@@ -3,7 +3,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import xpath_text
+from ..utils import (
+    xpath_text,
+    xpath_with_ns
+ )
+
 
 class GamekingsIE(InfoExtractor):
     _VALID_URL = r'http://www\.gamekings\.tv/videos/(?P<name>[0-9a-z\-]+)'
@@ -39,23 +43,22 @@ class GamekingsIE(InfoExtractor):
         playlist_id = re.search(r'(?:gogoVideo)\(\d+,"?(?P<playlist_id>.*)"', webpage, re.MULTILINE).group('playlist_id')
         playlist_url = 'http://www.gamekings.tv/wp-content/themes/gk2010/rss_playlist.php?id=' + playlist_id
         playlist_rss = self._download_xml(playlist_url, playlist_id)
+        
 
-        NS_MAP {
-            'rss': 'http://rss.jwpcdn.com/'
+        NS_MAP = {
+            'jwplayer': 'http://rss.jwpcdn.com/'
          }
 
-        # Todo: Implement Xpath for searching the video link
+        item = playlist_rss.find('./channel/item')
         
-        video_url = self._og_search_video_url(webpage)
-
+        image = xpath_text(item, xpath_with_ns('./jwplayer:image', NS_MAP), 'image')
+        file_node = item.find(xpath_with_ns('./jwplayer:source', NS_MAP))
+        
+        video_url = file_node.get('file')
         video = re.search(r'[0-9]+', video_url)
         video_id = video.group(0)
-
-        # Todo: add medium format
-        video_url = video_url.replace(video_id, 'large/' + video_id)
-        if "vimeo" in video_url:
-            video_url = video_url.replace('large/' + video_id, video_id)
-            video_url = video_url.replace('http://stream.gamekings.tv/', '')
+        
+        # Todo: Add medium format
 
         return {
             'id': video_id,
