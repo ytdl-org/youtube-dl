@@ -9,24 +9,25 @@ from .common import InfoExtractor
 class NationalArchivesUkIE(InfoExtractor):
     _VALID_URL = r'https?://media.nationalarchives.gov.uk/index.php/(?P<id>.*)/?'
     _TEST = {
-        'url': 'http://media.nationalarchives.gov.uk/index.php/webinar-using-discovery-national-archives-online-catalogue/'
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
+        'url': 'http://media.nationalarchives.gov.uk/index.php/webinar-using-discovery-national-archives-online-catalogue/',
+        'info_dict': {
+            'id': 'Mrj4DVp2zeA',
+            'ext': 'mp4',
+
+            'upload_date': '20150204',
+            'uploader_id': 'NationalArchives08',
+            'title': 'Webinar: Using Discovery, The National Archives’ online catalogue',
+            'uploader': 'The National Archives UK',
+            'description': 'md5:a236581cd2449dd2df4f93412f3f01c6'
         }
+
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-	youtube_url = re.search(r'https?://(?:www\.)?youtu(?:be\.com/watch\?v=|\.be/)(\w*)(&(amp;)?[\w\?=]*)?', webpage)
-	print(youtube_url)
+        youtube_url = re.search(r'https?://(?:www\.)?youtu(?:be\.com/watch\?v=|\.be/)(\w*)(&(amp;)?[\w\?=]*)?',
+                                webpage, re.MULTILINE).group(0)
+        self.to_screen('Youtube video detected')
 
-        return {
-            'id': video_id,
-            'title': title,
-            'description': self._og_search_description(webpage),
-            # TODO more properties (see youtube_dl/extractor/common.py)
-        }
+        return self.url_result(youtube_url, ie='Youtube')
