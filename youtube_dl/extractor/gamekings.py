@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-
+from ..utils import xpath_text
 
 class GamekingsIE(InfoExtractor):
     _VALID_URL = r'http://www\.gamekings\.tv/videos/(?P<name>[0-9a-z\-]+)'
@@ -35,6 +35,17 @@ class GamekingsIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         name = mobj.group('name')
         webpage = self._download_webpage(url, name)
+
+        playlist_id = re.search(r'(?:gogoVideo)\(\d+,"?(?P<playlist_id>.*)"', webpage, re.MULTILINE).group('playlist_id')
+        playlist_url = 'http://www.gamekings.tv/wp-content/themes/gk2010/rss_playlist.php?id=' + playlist_id
+        playlist_rss = self._download_xml(playlist_url, playlist_id)
+
+        NS_MAP {
+            'rss': 'http://rss.jwpcdn.com/'
+         }
+
+        # Todo: Implement Xpath for searching the video link
+        
         video_url = self._og_search_video_url(webpage)
 
         video = re.search(r'[0-9]+', video_url)
