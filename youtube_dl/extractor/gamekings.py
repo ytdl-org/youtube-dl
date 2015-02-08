@@ -66,4 +66,5 @@ class GamekingsIE(InfoExtractor):
             'url': video_url,
             'title': self._og_search_title(webpage),
             'description': self._og_search_description(webpage),
+            'thumbnail': image
         }
