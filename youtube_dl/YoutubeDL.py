@@ -832,20 +832,37 @@ class YoutubeDL(object):
             \]$
             ''' % '|'.join(map(re.escape, OPERATORS.keys())))
         m = operator_rex.search(format_spec)
+        if m:
+            try:
+                comparison_value = int(m.group('value'))
+            except ValueError:
+                comparison_value = parse_filesize(m.group('value'))
+                if comparison_value is None:
+                    comparison_value = parse_filesize(m.group('value') + 'B')
+                if comparison_value is None:
+                    raise ValueError(
+                        'Invalid value %r in format specification %r' % (
+                            m.group('value'), format_spec))
+            op = OPERATORS[m.group('op')]
+
+        if not m:
+            STR_OPERATORS = {
+                '=': operator.eq,
+                '!=': operator.ne,
+            }
+            str_operator_rex = re.compile(r'''(?x)\s*\[
+                \s*(?P<key>ext|acodec|vcodec|container|protocol)
+                \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?
+                \s*(?P<value>[a-zA-Z0-9_-]+)
+                \s*\]$
+                ''' % '|'.join(map(re.escape, STR_OPERATORS.keys())))
+            m = str_operator_rex.search(format_spec)
+            if m:
+                comparison_value = m.group('value')
+                op = STR_OPERATORS[m.group('op')]
+
         if not m:
             raise ValueError('Invalid format specification %r' % format_spec)
-
-        try:
-            comparison_value = int(m.group('value'))
-        except ValueError:
-            comparison_value = parse_filesize(m.group('value'))
-            if comparison_value is None:
-                comparison_value = parse_filesize(m.group('value') + 'B')
-            if comparison_value is None:
-                raise ValueError(
-                    'Invalid value %r in format specification %r' % (
-                        m.group('value'), format_spec))
-        op = OPERATORS[m.group('op')]
 
         def _filter(f):
             actual_value = f.get(m.group('key'))
