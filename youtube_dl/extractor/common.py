@@ -656,6 +656,21 @@ class InfoExtractor(object):
         }
         return RATING_TABLE.get(rating.lower(), None)
 
+    def _family_friendly_search(self, html):
+        # See http://schema.org/VideoObj
+        family_friendly = self._html_search_meta('isFamilyFriendly', html)
+
+        if not family_friendly:
+            return None
+
+        RATING_TABLE = {
+            '1': 0,
+            'true': 0,
+            '0': 18,
+            'false': 18,
+        }
+        return RATING_TABLE.get(family_friendly.lower(), None)
+
     def _twitter_search_player(self, html):
         return self._html_search_meta('twitter:player', html,
                                       'twitter card player')
