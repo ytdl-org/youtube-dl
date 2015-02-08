@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class GamekingsIE(InfoExtractor):
-    _VALID_URL = r'http://www\.gamekings\.tv/videos/(?P<id>[^/]+)'
+    _VALID_URL = r'http://www\.gamekings\.tv/(?:videos|nieuws)/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://www.gamekings.tv/videos/phoenix-wright-ace-attorney-dual-destinies-review/',
         # MD5 is flaky, seems to change regularly
@@ -32,6 +32,9 @@ class GamekingsIE(InfoExtractor):
             'description': 'md5:9917825fe0e9f4057601fe1e38860de3',
             'thumbnail': 're:^https?://.*\.jpg$',
         },
+    }, {
+        'url': 'http://www.gamekings.tv/nieuws/gamekings-extra-shelly-en-david-bereiden-zich-voor-op-de-livestream/',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
