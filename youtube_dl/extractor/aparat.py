@@ -20,6 +20,7 @@ class AparatIE(InfoExtractor):
             'id': 'wP8On',
             'ext': 'mp4',
             'title': 'تیم گلکسی 11 - زومیت',
+            'age_limit': 0,
         },
         # 'skip': 'Extremely unreliable',
     }
@@ -55,4 +56,5 @@ class AparatIE(InfoExtractor):
             'url': video_url,
             'ext': 'mp4',
             'thumbnail': thumbnail,
+            'age_limit': self._family_friendly_search(webpage),
         }

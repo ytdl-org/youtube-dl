@@ -80,9 +80,6 @@ class IzleseneIE(InfoExtractor):
             r'comment_count\s*=\s*\'([^\']+)\';',
             webpage, 'comment_count', fatal=False)
 
-        family_friendly = self._html_search_meta(
-            'isFamilyFriendly', webpage, 'age limit', fatal=False)
-
         content_url = self._html_search_meta(
             'contentURL', webpage, 'content URL', fatal=False)
         ext = determine_ext(content_url, 'mp4')
@@ -120,6 +117,6 @@ class IzleseneIE(InfoExtractor):
             'duration': duration,
             'view_count': int_or_none(view_count),
             'comment_count': int_or_none(comment_count),
-            'age_limit': 18 if family_friendly == 'False' else 0,
+            'age_limit': self._family_friendly_search(webpage),
             'formats': formats,
         }

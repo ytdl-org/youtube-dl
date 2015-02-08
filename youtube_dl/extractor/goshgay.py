@@ -34,8 +34,6 @@ class GoshgayIE(InfoExtractor):
         duration = parse_duration(self._html_search_regex(
             r'<span class="duration">\s*-?\s*(.*?)</span>',
             webpage, 'duration', fatal=False))
-        family_friendly = self._html_search_meta(
-            'isFamilyFriendly', webpage, default='false')
 
         flashvars = compat_parse_qs(self._html_search_regex(
             r'<embed.+?id="flash-player-embed".+?flashvars="([^"]+)"',
@@ -49,5 +47,5 @@ class GoshgayIE(InfoExtractor):
             'title': title,
             'thumbnail': thumbnail,
             'duration': duration,
-            'age_limit': 0 if family_friendly == 'true' else 18,
+            'age_limit': self._family_friendly_search(webpage),
         }
