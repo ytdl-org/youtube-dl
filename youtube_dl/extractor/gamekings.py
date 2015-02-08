@@ -7,7 +7,8 @@ from .common import InfoExtractor
 
 class GamekingsIE(InfoExtractor):
     _VALID_URL = r'http://www\.gamekings\.tv/videos/(?P<name>[0-9a-z\-]+)'
-    _TEST = {
+    _TESTS = [
+        {
         'url': 'http://www.gamekings.tv/videos/phoenix-wright-ace-attorney-dual-destinies-review/',
         # MD5 is flaky, seems to change regularly
         # 'md5': '2f32b1f7b80fdc5cb616efb4f387f8a3',
@@ -16,8 +17,17 @@ class GamekingsIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Phoenix Wright: Ace Attorney \u2013 Dual Destinies Review',
             'description': 'md5:36fd701e57e8c15ac8682a2374c99731',
+            }
+        },
+        {
+        'url': 'http://www.gamekings.tv/videos/the-legend-of-zelda-majoras-mask/',
+        'info_dict': {
+            'id': '118933752',
+            'ext': 'mp4',
+            'title': 'The Legend of Zelda: Majora’s Mask'
+            }
         }
-    }
+    ]
 
     def _real_extract(self, url):
 
@@ -33,6 +43,7 @@ class GamekingsIE(InfoExtractor):
         video_url = video_url.replace(video_id, 'large/' + video_id)
         if not (self._is_valid_url(video_url, video_id)):
             video_url = video_url.replace('large/' + video_id, video_id)
+            video_url = video_url.replace('http://stream.gamekings.tv/', '')
 
         return {
             'id': video_id,
