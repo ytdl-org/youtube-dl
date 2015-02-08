@@ -31,6 +31,8 @@ class GamekingsIE(InfoExtractor):
 
         # Todo: add medium format
         video_url = video_url.replace(video_id, 'large/' + video_id)
+        if not (self._is_valid_url(video_url, video_id)):
+            video_url = video_url.replace(video_id + '/large', video_id)
 
         return {
             'id': video_id,
