@@ -91,6 +91,15 @@ class RTLnowIE(InfoExtractor):
             },
         },
         {
+            'url': 'http://rtl-now.rtl.de/der-bachelor/folge-4.php?film_id=188729&player=1&season=5',
+            'info_dict': {
+                'id': '188729',
+                'ext': 'flv',
+                'upload_date': '20150204',
+                'description': 'md5:5e1ce23095e61a79c166d134b683cecc',
+                'title': 'Der Bachelor - Folge 4',
+            }
+        }, {
             'url': 'http://www.n-tvnow.de/deluxe-alles-was-spass-macht/thema-ua-luxushotel-fuer-vierbeiner.php?container_id=153819&player=1&season=0',
             'only_matching': True,
         },
