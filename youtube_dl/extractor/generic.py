@@ -1047,7 +1047,12 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded sbs.com.au player
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://(?:www\.)sbs\.com\.au/ondemand/video/single/.+?)\1',
+            r'''(?x)
+            (?:
+                <meta\s+property="og:video"\s+content=|
+                <iframe[^>]+?src=
+            )
+            (["\'])(?P<url>https?://(?:www\.)?sbs\.com\.au/ondemand/video/.+?)\1''',
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'SBS')
