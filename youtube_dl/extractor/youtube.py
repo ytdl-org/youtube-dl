@@ -780,8 +780,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
                     fo for fo in formats
                     if fo['format_id'] == format_id)
             except StopIteration:
-                f.update(self._formats.get(format_id, {}).items())
-                formats.append(f)
+                full_info = self._formats.get(format_id, {}).copy()
+                full_info.update(f)
+                formats.append(full_info)
             else:
                 existing_format.update(f)
         return formats
