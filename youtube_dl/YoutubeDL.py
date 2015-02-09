@@ -1546,7 +1546,6 @@ class YoutubeDL(object):
             line(f, idlen) for f in formats
             if f.get('preference') is None or f['preference'] >= -1000]
         if len(formats) > 1:
-            formats_s[0] += (' ' if self._format_note(formats[0]) else '') + '(worst)'
             formats_s[-1] += (' ' if self._format_note(formats[-1]) else '') + '(best)'
 
         header_line = line({
