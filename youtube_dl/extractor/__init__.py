@@ -276,6 +276,7 @@ from .myspace import MySpaceIE, MySpaceAlbumIE
 from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .myvidster import MyVidsterIE
+from .nationalarchivesuk import NationalArchivesUkIE
 from .naver import NaverIE
 from .nba import NBAIE
 from .nbc import (
