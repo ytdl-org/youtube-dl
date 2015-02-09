@@ -392,6 +392,7 @@
  - **StreamCZ**
  - **StreetVoice**
  - **SunPorno**
+ - **SVTPlay**
  - **SWRMediathek**
  - **Syfy**
  - **SztvHu**
