@@ -524,6 +524,19 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20150126',
             },
             'add_ie': ['Viddler'],
+        },
+        # jwplayer YouTube
+        {
+            'url': 'http://media.nationalarchives.gov.uk/index.php/webinar-using-discovery-national-archives-online-catalogue/',
+            'info_dict': {
+                'id': 'Mrj4DVp2zeA',
+                'ext': 'mp4',
+                'upload_date': '20150204',
+                'uploader': 'The National Archives UK',
+                'description': 'md5:a236581cd2449dd2df4f93412f3f01c6',
+                'uploader_id': 'NationalArchives08',
+                'title': 'Webinar: Using Discovery, The National Archives’ online catalogue',
+            },
         }
     ]
 
@@ -1065,6 +1078,8 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'Livestream')
 
         def check_video(vurl):
+            if YoutubeIE.suitable(vurl):
+                return True
             vpath = compat_urlparse.urlparse(vurl).path
             vext = determine_ext(vpath)
             return '.' in vpath and vext not in ('swf', 'png', 'jpg', 'srt', 'sbv', 'sub', 'vtt', 'ttml')
@@ -1082,7 +1097,8 @@ class GenericIE(InfoExtractor):
                     JWPlayerOptions|
                     jwplayer\s*\(\s*["'][^'"]+["']\s*\)\s*\.setup
                 )
-                .*?file\s*:\s*["\'](.*?)["\']''', webpage))
+                .*?
+                ['"]?file['"]?\s*:\s*["\'](.*?)["\']''', webpage))
         if not found:
             # Broaden the search a little bit
             found = filter_video(re.findall(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage))
