@@ -292,20 +292,20 @@ which means you can modify it, redistribute it or use it however you like.
                                      video results by putting a condition in
                                      brackets, as in -f "best[height=720]" (or
                                      -f "[filesize>10M]").  This works for
-                                     filesize, height, width, tbr, abr, vbr, and
-                                     fps and the comparisons <, <=, >, >=, =, !=
-                                     and for ext, acodec, vcodec, container and
-                                     protocol and the comparisons =, != .
-                                     Formats for which the value is not known
-                                     are excluded unless you put a question mark
-                                     (?) after the operator. You can combine
-                                     format filters, so  -f "[height <=?
-                                     720][tbr>500]" selects up to 720p videos
-                                     (or videos where the height is not known)
-                                     with a bitrate of at least 500 KBit/s. By
-                                     default, youtube-dl will pick the best
-                                     quality. Use commas to download multiple
-                                     audio formats, such as -f
+                                     filesize, height, width, tbr, abr, vbr,
+                                     asr, and fps and the comparisons <, <=, >,
+                                     >=, =, != and for ext, acodec, vcodec,
+                                     container, and protocol and the comparisons
+                                     =, != . Formats for which the value is not
+                                     known are excluded unless you put a
+                                     question mark (?) after the operator. You
+                                     can combine format filters, so  -f "[height
+                                     <=? 720][tbr>500]" selects up to 720p
+                                     videos (or videos where the height is not
+                                     known) with a bitrate of at least 500
+                                     KBit/s. By default, youtube-dl will pick
+                                     the best quality. Use commas to download
+                                     multiple audio formats, such as -f
                                      136/137/mp4/bestvideo,140/m4a/bestaudio.
                                      You can merge the video and audio of two
                                      formats into a single file using -f <video-
