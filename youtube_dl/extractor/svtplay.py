@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
@@ -10,13 +11,13 @@ class SVTPlayIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?svtplay\.se/video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.svtplay.se/video/2609989/sm-veckan/sm-veckan-rally-final-sasong-1-sm-veckan-rally-final',
-        'md5': '2521cd644e862936cf2e698206e47385',
+        'md5': 'f4a184968bc9c802a9b41316657aaa80',
         'info_dict': {
-            'id': '3966754',
+            'id': '2609989',
             'ext': 'mp4',
-            'title': 'FIFA 14 - E3 2013 Trailer',
+            'title': 'SM veckan vinter, Örebro - Rally, final',
             'duration': 4500,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': 're:^https?://.*[\.-]jpg$',
         },
     }
 
