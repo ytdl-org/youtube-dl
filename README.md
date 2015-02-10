@@ -77,6 +77,7 @@ which means you can modify it, redistribute it or use it however you like.
                                      on Windows)
     --flat-playlist                  Do not extract the videos of a playlist,
                                      only list them.
+    --no-color                       Do not emit color codes in output.
 
 ## Network Options:
     --proxy URL                      Use the specified HTTP/HTTPS proxy. Pass in
