@@ -557,7 +557,7 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='youtube_print_sig_code', default=False,
         help=optparse.SUPPRESS_HELP)
     verbosity.add_option(
-        '--print-traffic',
+        '--print-traffic', '--dump-headers',
         dest='debug_printtraffic', action='store_true', default=False,
         help='Display sent and read HTTP traffic')
     verbosity.add_option(
