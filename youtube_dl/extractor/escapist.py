@@ -54,8 +54,11 @@ class EscapistIE(InfoExtractor):
                 transform_source=js_to_json)
 
             playlist = config['playlist']
+            video_url = next(
+                p['url'] for p in playlist
+                if p.get('eventCategory') == 'Video')
             formats.append({
-                'url': playlist[1]['url'],
+                'url': video_url,
                 'format_id': name,
                 'quality': quality,
             })

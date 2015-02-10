@@ -271,7 +271,7 @@ class InfoExtractor(object):
             raise
         except compat_http_client.IncompleteRead as e:
             raise ExtractorError('A network error has occured.', cause=e, expected=True)
-        except (KeyError,) as e:
+        except (KeyError, StopIteration) as e:
             raise ExtractorError('An extractor error has occured.', cause=e)
 
     def set_downloader(self, downloader):
