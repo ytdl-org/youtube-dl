@@ -119,6 +119,23 @@ which means you can modify it, redistribute it or use it however you like.
                                      COUNT views
     --max-views COUNT                Do not download any videos with more than
                                      COUNT views
+    --match-filter FILTER            (Experimental) Generic video filter.
+                                     Specify any key (see help for -o for a list
+                                     of available keys) to match if the key is
+                                     present, !key to check if the key is not
+                                     present,key > NUMBER (like "comment_count >
+                                     12", also works with >=, <, <=, !=, =) to
+                                     compare against a number, and & to require
+                                     multiple matches. Values which are not
+                                     known are excluded unless you put a
+                                     question mark (?) after the operator.For
+                                     example, to only match videos that have
+                                     been liked more than 100 times and disliked
+                                     less than 50 times (or the dislike
+                                     functionality is not available at the given
+                                     service), but who also have a description,
+                                     use  --match-filter "like_count > 100 &
+                                     dislike_count <? 50 & description" .
     --no-playlist                    If the URL refers to a video and a
                                      playlist, download only the video.
     --age-limit YEARS                download only videos suitable for the given
