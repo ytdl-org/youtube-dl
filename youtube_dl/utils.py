@@ -17,6 +17,7 @@ import io
 import json
 import locale
 import math
+import operator
 import os
 import pipes
 import platform
@@ -1678,3 +1679,79 @@ def render_table(header_row, data):
     max_lens = [max(len(compat_str(v)) for v in col) for col in zip(*table)]
     format_str = ' '.join('%-' + compat_str(ml + 1) + 's' for ml in max_lens[:-1]) + '%s'
     return '\n'.join(format_str % tuple(row) for row in table)
+
+
+def _match_one(filter_part, dct):
+    COMPARISON_OPERATORS = {
+        '<': operator.lt,
+        '<=': operator.le,
+        '>': operator.gt,
+        '>=': operator.ge,
+        '=': operator.eq,
+        '!=': operator.ne,
+    }
+    operator_rex = re.compile(r'''(?x)\s*
+        (?P<key>[a-z_]+)
+        \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?\s*
+        (?:
+            (?P<intval>[0-9.]+(?:[kKmMgGtTpPeEzZyY]i?[Bb]?)?)|
+            (?P<strval>(?![0-9.])[a-z0-9A-Z]*)
+        )
+        \s*$
+        ''' % '|'.join(map(re.escape, COMPARISON_OPERATORS.keys())))
+    m = operator_rex.search(filter_part)
+    if m:
+        op = COMPARISON_OPERATORS[m.group('op')]
+        if m.group('strval') is not None:
+            if m.group('op') not in ('=', '!='):
+                raise ValueError(
+                    'Operator %s does not support string values!' % m.group('op'))
+            comparison_value = m.group('strval')
+        else:
+            try:
+                comparison_value = int(m.group('intval'))
+            except ValueError:
+                comparison_value = parse_filesize(m.group('intval'))
+                if comparison_value is None:
+                    comparison_value = parse_filesize(m.group('intval') + 'B')
+                if comparison_value is None:
+                    raise ValueError(
+                        'Invalid integer value %r in filter part %r' % (
+                            m.group('intval'), filter_part))
+        actual_value = dct.get(m.group('key'))
+        if actual_value is None:
+            return m.group('none_inclusive')
+        return op(actual_value, comparison_value)
+
+    UNARY_OPERATORS = {
+        '': lambda v: v is not None,
+        '!': lambda v: v is None,
+    }
+    operator_rex = re.compile(r'''(?x)\s*
+        (?P<op>%s)\s*(?P<key>[a-z_]+)
+        \s*$
+        ''' % '|'.join(map(re.escape, UNARY_OPERATORS.keys())))
+    m = operator_rex.search(filter_part)
+    if m:
+        op = UNARY_OPERATORS[m.group('op')]
+        actual_value = dct.get(m.group('key'))
+        return op(actual_value)
+
+    raise ValueError('Invalid filter part %r' % filter_part)
+
+
+def match_str(filter_str, dct):
+    """ Filter a dictionary with a simple string syntax. Returns True (=passes filter) or false """
+
+    return all(
+        _match_one(filter_part, dct) for filter_part in filter_str.split('&'))
+
+
+def match_filter_func(filter_str):
+    def _match_func(info_dict):
+        if match_str(filter_str, info_dict):
+            return None
+        else:
+            video_title = info_dict.get('title', info_dict.get('id', 'video'))
+            return '%s does not pass filter %s, skipping ..' % (video_title, filter_str)
+    return _match_func

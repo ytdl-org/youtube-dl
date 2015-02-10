@@ -228,6 +228,11 @@ class YoutubeDL(object):
     external_downloader:  Executable of the external downloader to call.
     listformats:       Print an overview of available video formats and exit.
     list_thumbnails:   Print a table of all thumbnails and exit.
+    match_filter:      A function that gets called with the info_dict of
+                       every video.
+                       If it returns a message, the video is ignored.
+                       If it returns None, the video is downloaded.
+                       match_filter_func in utils.py is one example for this.
 
 
     The following parameters are not used by YoutubeDL itself, they are used by
@@ -583,9 +588,16 @@ class YoutubeDL(object):
             if max_views is not None and view_count > max_views:
                 return 'Skipping %s, because it has exceeded the maximum view count (%d/%d)' % (video_title, view_count, max_views)
         if age_restricted(info_dict.get('age_limit'), self.params.get('age_limit')):
-            return 'Skipping "%s" because it is age restricted' % title
+            return 'Skipping "%s" because it is age restricted' % video_title
         if self.in_download_archive(info_dict):
             return '%s has already been recorded in archive' % video_title
+
+        match_filter = self.params.get('match_filter')
+        if match_filter is not None:
+            ret = match_filter(info_dict)
+            if ret is not None:
+                return ret
+
         return None
 
     @staticmethod

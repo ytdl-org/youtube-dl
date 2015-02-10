@@ -23,9 +23,10 @@ from .compat import (
 )
 from .utils import (
     DateRange,
-    DEFAULT_OUTTMPL,
     decodeOption,
+    DEFAULT_OUTTMPL,
     DownloadError,
+    match_filter_func,
     MaxDownloadsReached,
     preferredencoding,
     read_batch_urls,
@@ -247,6 +248,9 @@ def _real_main(argv=None):
             xattr  # Confuse flake8
         except ImportError:
             parser.error('setting filesize xattr requested but python-xattr is not available')
+    match_filter = (
+        None if opts.match_filter is None
+        else match_filter_func(opts.match_filter))
 
     ydl_opts = {
         'usenetrc': opts.usenetrc,
@@ -344,6 +348,7 @@ def _real_main(argv=None):
         'list_thumbnails': opts.list_thumbnails,
         'playlist_items': opts.playlist_items,
         'xattr_set_filesize': opts.xattr_set_filesize,
+        'match_filter': match_filter,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
