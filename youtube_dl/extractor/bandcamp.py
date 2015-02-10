@@ -79,7 +79,7 @@ class BandcampIE(InfoExtractor):
         # We get the dictionary of the track from some javascript code
         all_info = self._parse_json(self._search_regex(
             r'(?sm)items: (.*?),$', download_webpage, 'items'), video_id)
-        info = All_info[0]
+        info = all_info[0]
         # We pick mp3-320 for now, until format selection can be easily implemented.
         mp3_info = info['downloads']['mp3-320']
         # If we try to use this url it says the link has expired
