@@ -514,7 +514,7 @@ class InfoExtractor(object):
                 if mobj:
                     break
 
-        if os.name != 'nt' and sys.stderr.isatty():
+        if not self._downloader.params.get('no_color') and os.name != 'nt' and sys.stderr.isatty():
             _name = '\033[0;34m%s\033[0m' % name
         else:
             _name = name

@@ -349,6 +349,7 @@ def _real_main(argv=None):
         'playlist_items': opts.playlist_items,
         'xattr_set_filesize': opts.xattr_set_filesize,
         'match_filter': match_filter,
+        'no_color': opts.no_color,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
