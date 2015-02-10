@@ -734,22 +734,22 @@ def parseOpts(overrideArguments=None):
         if opts.verbose:
             write_string('[debug] Override config: ' + repr(overrideArguments) + '\n')
     else:
-        commandLineConf = sys.argv[1:]
-        if '--ignore-config' in commandLineConf:
-            systemConf = []
-            userConf = []
+        command_line_conf = sys.argv[1:]
+        if '--ignore-config' in command_line_conf:
+            system_conf = []
+            user_conf = []
         else:
-            systemConf = _readOptions('/etc/youtube-dl.conf')
-            if '--ignore-config' in systemConf:
-                userConf = []
+            system_conf = _readOptions('/etc/youtube-dl.conf')
+            if '--ignore-config' in system_conf:
+                user_conf = []
             else:
-                userConf = _readUserConf()
-        argv = systemConf + userConf + commandLineConf
+                user_conf = _readUserConf()
+        argv = system_conf + user_conf + command_line_conf
 
         opts, args = parser.parse_args(argv)
         if opts.verbose:
-            write_string('[debug] System config: ' + repr(_hide_login_info(systemConf)) + '\n')
-            write_string('[debug] User config: ' + repr(_hide_login_info(userConf)) + '\n')
-            write_string('[debug] Command-line args: ' + repr(_hide_login_info(commandLineConf)) + '\n')
+            write_string('[debug] System config: ' + repr(_hide_login_info(system_conf)) + '\n')
+            write_string('[debug] User config: ' + repr(_hide_login_info(user_conf)) + '\n')
+            write_string('[debug] Command-line args: ' + repr(_hide_login_info(command_line_conf)) + '\n')
 
     return parser, opts, args
