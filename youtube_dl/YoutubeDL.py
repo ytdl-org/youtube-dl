@@ -560,7 +560,7 @@ class YoutubeDL(object):
             self.report_error('Error in output template: ' + str(err) + ' (encoding: ' + repr(preferredencoding()) + ')')
             return None
 
-    def _match_entry(self, info_dict):
+    def _match_entry(self, info_dict, incomplete):
         """ Returns None iff the file should be downloaded """
 
         video_title = info_dict.get('title', info_dict.get('id', 'video'))
@@ -593,11 +593,12 @@ class YoutubeDL(object):
         if self.in_download_archive(info_dict):
             return '%s has already been recorded in archive' % video_title
 
-        match_filter = self.params.get('match_filter')
-        if match_filter is not None:
-            ret = match_filter(info_dict)
-            if ret is not None:
-                return ret
+        if not incomplete:
+            match_filter = self.params.get('match_filter')
+            if match_filter is not None:
+                ret = match_filter(info_dict)
+                if ret is not None:
+                    return ret
 
         return None
 
@@ -792,7 +793,7 @@ class YoutubeDL(object):
                     'extractor_key': ie_result['extractor_key'],
                 }
 
-                reason = self._match_entry(entry)
+                reason = self._match_entry(entry, incomplete=True)
                 if reason is not None:
                     self.to_screen('[download] ' + reason)
                     continue
@@ -1166,7 +1167,7 @@ class YoutubeDL(object):
         if 'format' not in info_dict:
             info_dict['format'] = info_dict['ext']
 
-        reason = self._match_entry(info_dict)
+        reason = self._match_entry(info_dict, incomplete=False)
         if reason is not None:
             self.to_screen('[download] ' + reason)
             return
