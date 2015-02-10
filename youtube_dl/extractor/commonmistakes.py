@@ -24,6 +24,6 @@ class CommonMistakesIE(InfoExtractor):
             'That doesn\'t make any sense. '
             'Simply remove the parameter in your command or configuration.'
         ) % url
-        if self._downloader.params.get('verbose'):
+        if not self._downloader.params.get('verbose'):
             msg += ' Add -v to the command line to see what arguments and configuration youtube-dl got.'
         raise ExtractorError(msg, expected=True)
