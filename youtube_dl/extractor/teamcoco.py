@@ -30,6 +30,11 @@ class TeamcocoIE(InfoExtractor):
             }
         }
     ]
+    _VIDEO_ID_REGEXES = (
+        r'"eVar42"\s*:\s*(\d+)',
+        r'Ginger\.TeamCoco\.openInApp\("video",\s*"([^"]+)"',
+        r'"id_not"\s*:\s*(\d+)'
+    )
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -40,8 +45,7 @@ class TeamcocoIE(InfoExtractor):
         video_id = mobj.group("video_id")
         if not video_id:
             video_id = self._html_search_regex(
-                r'<div\s+class="player".*?data-id="(\d+?)"',
-                webpage, 'video id')
+                self._VIDEO_ID_REGEXES, webpage, 'video id')
 
         data_url = 'http://teamcoco.com/cvp/2.0/%s.xml' % video_id
         data = self._download_xml(
