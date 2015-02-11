@@ -38,12 +38,32 @@ class CamdemyIE(InfoExtractor):
             'upload_date': '20140620',
             'timestamp': 1403271569,
         }
+    }, {
+        # External source
+        'url': 'http://www.camdemy.com/media/14842',
+        'md5': '50e1c3c3aa233d3d7b7daa2fa10b1cf7',
+        'info_dict': {
+            'id': '2vsYQzNIsJo',
+            'ext': 'mp4',
+            'upload_date': '20130211',
+            'uploader': 'Hun Kim',
+            'description': 'Excel 2013 Tutorial for Beginners - How to add Password Protection',
+            'uploader_id': 'hunkimtutorials',
+            'title': 'Excel 2013 Tutorial - How to add Password Protection',
+        }
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         page = self._download_webpage(url, video_id)
+
+        srcFrom = self._html_search_regex(
+            r"<div class='srcFrom'>Source: <a title='([^']+)'", page,
+            'external source', default=None)
+
+        if srcFrom:
+            return self.url_result(srcFrom)
 
         oembed_obj = self._download_json(
             'http://www.camdemy.com/oembed/?format=json&url=' + url, video_id)
