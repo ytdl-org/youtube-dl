@@ -14,6 +14,10 @@ class DctpTvIE(InfoExtractor):
             'display_id': 'videoinstallation-fuer-eine-kaufhausfassade',
             'ext': 'flv',
             'title': 'Videoinstallation für eine Kaufhausfassade'
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
         }
     }
 
