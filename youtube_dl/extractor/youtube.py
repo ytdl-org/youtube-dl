@@ -25,6 +25,7 @@ from ..compat import (
 from ..utils import (
     clean_html,
     ExtractorError,
+    float_or_none,
     get_element_by_attribute,
     get_element_by_id,
     int_or_none,
@@ -1124,6 +1125,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             'view_count': view_count,
             'like_count': like_count,
             'dislike_count': dislike_count,
+            'average_rating': float_or_none(video_info.get('avg_rating', [None])[0]),
             'formats': formats,
         }
 
