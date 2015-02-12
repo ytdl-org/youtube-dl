@@ -320,6 +320,7 @@ from .npo import (
     NPOLiveIE,
     TegenlichtVproIE,
 )
+from .nporadio import NPORadioIE
 from .nrk import (
     NRKIE,
     NRKTVIE,
