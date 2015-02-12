@@ -22,12 +22,12 @@ class NPORadioIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_regex(
-                self._html_get_attribute_regex('data-channel'), webpage, 'title')
-       
+            self._html_get_attribute_regex('data-channel'), webpage, 'title')
+
         json_data = json.loads(
-                     self._html_search_regex(
-                     self._html_get_attribute_regex('data-streams'), webpage, 'data-streams'))
-        
+            self._html_search_regex(
+                self._html_get_attribute_regex('data-streams'), webpage, 'data-streams'))
+
         return {
             'id': video_id,
             'title': title,
@@ -37,4 +37,3 @@ class NPORadioIE(InfoExtractor):
 
     def _html_get_attribute_regex(self, attribute):
         return r'{0}\s*=\s*\'([^\']+)\''.format(attribute)
-
