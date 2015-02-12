@@ -4,12 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..compat import compat_urllib_parse
 from ..utils import parse_iso8601
 
 
 class CamdemyIE(InfoExtractor):
-    _VALID_URL = r'http://www.camdemy.com/media/(?P<id>\d+).*'
+    _VALID_URL = r'http://www.camdemy.com/media/(?P<id>\d+)'
     _TESTS = [{
         # single file
         'url': 'http://www.camdemy.com/media/5181/',
@@ -69,25 +69,25 @@ class CamdemyIE(InfoExtractor):
             'http://www.camdemy.com/oembed/?format=json&url=' + url, video_id)
 
         thumb_url = oembed_obj['thumbnail_url']
-        video_folder = compat_urlparse.urljoin(thumb_url, 'video/')
+        video_folder = compat_urllib_parse.urljoin(thumb_url, 'video/')
         fileListXML = self._download_xml(
-            compat_urlparse.urljoin(video_folder, 'fileList.xml'),
+            compat_urllib_parse.urljoin(video_folder, 'fileList.xml'),
             video_id, 'Filelist XML')
         fileName = fileListXML.find('./video/item/fileName').text
 
         creation_time = self._html_search_regex(
-            r"<div class='title'>Posted :</div>.*<div class='value'>([0-9:\- ]+)<",
-            page, 'creation time', flags=re.MULTILINE | re.DOTALL) + '+08:00'
+            r"<div class='title'>Posted :</div>[\r\n ]*<div class='value'>([^<>]+)<",
+            page, 'creation time', flags=re.MULTILINE) + '+08:00'
         creation_timestamp = parse_iso8601(creation_time, delimiter=' ')
 
         view_count_str = self._html_search_regex(
-            r"<div class='title'>Views :</div>.*<div class='value'>([0-9,]+)<",
-            page, 'view count', flags=re.MULTILINE | re.DOTALL)
+            r"<div class='title'>Views :</div>[\r\n ]*<div class='value'>([^<>]+)<",
+            page, 'view count', flags=re.MULTILINE)
         views = int(view_count_str.replace(',', ''))
 
         return {
             'id': video_id,
-            'url': compat_urlparse.urljoin(video_folder, fileName),
+            'url': compat_urllib_parse.urljoin(video_folder, fileName),
             'title': oembed_obj['title'],
             'thumbnail': thumb_url,
             'description': self._html_search_meta('description', page),
@@ -96,3 +96,53 @@ class CamdemyIE(InfoExtractor):
             'timestamp': creation_timestamp,
             'view_count': views,
         }
+
+
+class CamdemyFolderIE(InfoExtractor):
+    _VALID_URL = r'http://www.camdemy.com/folder/(?P<id>\d+)'
+    _TESTS = [{
+        # links with trailing slash
+        'url': 'http://www.camdemy.com/folder/450',
+        'info_dict': {
+            'id': '450',
+            'title': '信號與系統 2012 & 2011 (Signals and Systems)',
+        },
+        'playlist_mincount': 145
+    }, {
+        # links without trailing slash
+        # and multi-page
+        'url': 'http://www.camdemy.com/folder/853',
+        'info_dict': {
+            'id': '853',
+            'title': '科學計算 - 使用 Matlab'
+        },
+        'playlist_mincount': 20
+    }, {
+        # with displayMode parameter. For testing the codes to add parameters
+        'url': 'http://www.camdemy.com/folder/853/?displayMode=defaultOrderByOrg',
+        'info_dict': {
+            'id': '853',
+            'title': '科學計算 - 使用 Matlab'
+        },
+        'playlist_mincount': 20
+    }]
+
+    def _real_extract(self, url):
+        folder_id = self._match_id(url)
+
+        # Add displayMode=list so that all links are displayed in a single page
+        parsed_url = list(compat_urllib_parse.urlparse(url))
+        query = dict(compat_urllib_parse.parse_qsl(parsed_url[4]))
+        query.update({'displayMode': 'list'})
+        parsed_url[4] = compat_urllib_parse.urlencode(query)
+        final_url = compat_urllib_parse.urlunparse(parsed_url)
+
+        page = self._download_webpage(final_url, folder_id)
+        matches = re.findall(r"href='(/media/\d+/?)'", page)
+
+        entries = [self.url_result('http://www.camdemy.com' + media_path)
+                   for media_path in matches]
+
+        folder_title = self._html_search_meta('keywords', page)
+
+        return self.playlist_result(entries, folder_id, folder_title)
