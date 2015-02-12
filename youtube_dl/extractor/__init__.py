@@ -49,6 +49,10 @@ from .brightcove import BrightcoveIE
 from .buzzfeed import BuzzFeedIE
 from .byutv import BYUtvIE
 from .c56 import C56IE
+from .camdemy import (
+    CamdemyIE,
+    CamdemyFolderIE
+)
 from .canal13cl import Canal13clIE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
