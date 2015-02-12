@@ -318,9 +318,10 @@ from .nowvideo import NowVideoIE
 from .npo import (
     NPOIE,
     NPOLiveIE,
+    NPORadioIE,
+    NPORadioFragmentIE,
     TegenlichtVproIE,
 )
-from .nporadio import NPORadioIE
 from .nrk import (
     NRKIE,
     NRKTVIE,
