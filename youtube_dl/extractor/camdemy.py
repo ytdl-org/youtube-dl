@@ -1,11 +1,18 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import datetime
 import re
 
 from .common import InfoExtractor
-from ..compat import (compat_urllib_parse, compat_urlparse)
-from ..utils import parse_iso8601
+from ..compat import (
+    compat_urllib_parse,
+    compat_urlparse,
+)
+from ..utils import (
+    parse_iso8601,
+    str_to_int,
+)
 
 
 class CamdemyIE(InfoExtractor):
@@ -23,6 +30,7 @@ class CamdemyIE(InfoExtractor):
             'creator': 'ss11spring',
             'upload_date': '20130114',
             'timestamp': 1358154556,
+            'view_count': int,
         }
     }, {
         # With non-empty description
@@ -55,46 +63,43 @@ class CamdemyIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         page = self._download_webpage(url, video_id)
 
-        srcFrom = self._html_search_regex(
+        src_from = self._html_search_regex(
             r"<div class='srcFrom'>Source: <a title='([^']+)'", page,
             'external source', default=None)
-
-        if srcFrom:
-            return self.url_result(srcFrom)
+        if src_from:
+            return self.url_result(src_from)
 
         oembed_obj = self._download_json(
             'http://www.camdemy.com/oembed/?format=json&url=' + url, video_id)
 
         thumb_url = oembed_obj['thumbnail_url']
         video_folder = compat_urlparse.urljoin(thumb_url, 'video/')
-        fileListXML = self._download_xml(
+        file_list_doc = self._download_xml(
             compat_urlparse.urljoin(video_folder, 'fileList.xml'),
             video_id, 'Filelist XML')
-        fileName = fileListXML.find('./video/item/fileName').text
+        file_name = file_list_doc.find('./video/item/fileName').text
+        video_url = compat_urlparse.urljoin(video_folder, file_name)
 
-        creation_time = self._html_search_regex(
-            r"<div class='title'>Posted :</div>[\r\n ]*<div class='value'>([^<>]+)<",
-            page, 'creation time', flags=re.MULTILINE) + '+08:00'
-        creation_timestamp = parse_iso8601(creation_time, delimiter=' ')
-
-        view_count_str = self._html_search_regex(
-            r"<div class='title'>Views :</div>[\r\n ]*<div class='value'>([^<>]+)<",
-            page, 'view count', flags=re.MULTILINE)
-        views = int(view_count_str.replace(',', ''))
+        timestamp = parse_iso8601(self._html_search_regex(
+            r"<div class='title'>Posted\s*:</div>\s*<div class='value'>([^<>]+)<",
+            page, 'creation time', fatal=False),
+            delimiter=' ', timezone=datetime.timedelta(hours=8))
+        view_count = str_to_int(self._html_search_regex(
+            r"<div class='title'>Views\s*:</div>\s*<div class='value'>([^<>]+)<",
+            page, 'view count', fatal=False))
 
         return {
             'id': video_id,
-            'url': compat_urlparse.urljoin(video_folder, fileName),
+            'url': video_url,
             'title': oembed_obj['title'],
             'thumbnail': thumb_url,
             'description': self._html_search_meta('description', page),
             'creator': oembed_obj['author_name'],
             'duration': oembed_obj['duration'],
-            'timestamp': creation_timestamp,
-            'view_count': views,
+            'timestamp': timestamp,
+            'view_count': view_count,
         }
 
 
