@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import (compat_urllib_parse, compat_urlparse)
 from ..utils import parse_iso8601
 
 
@@ -69,9 +69,9 @@ class CamdemyIE(InfoExtractor):
             'http://www.camdemy.com/oembed/?format=json&url=' + url, video_id)
 
         thumb_url = oembed_obj['thumbnail_url']
-        video_folder = compat_urllib_parse.urljoin(thumb_url, 'video/')
+        video_folder = compat_urlparse.urljoin(thumb_url, 'video/')
         fileListXML = self._download_xml(
-            compat_urllib_parse.urljoin(video_folder, 'fileList.xml'),
+            compat_urlparse.urljoin(video_folder, 'fileList.xml'),
             video_id, 'Filelist XML')
         fileName = fileListXML.find('./video/item/fileName').text
 
@@ -87,7 +87,7 @@ class CamdemyIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'url': compat_urllib_parse.urljoin(video_folder, fileName),
+            'url': compat_urlparse.urljoin(video_folder, fileName),
             'title': oembed_obj['title'],
             'thumbnail': thumb_url,
             'description': self._html_search_meta('description', page),
@@ -131,11 +131,11 @@ class CamdemyFolderIE(InfoExtractor):
         folder_id = self._match_id(url)
 
         # Add displayMode=list so that all links are displayed in a single page
-        parsed_url = list(compat_urllib_parse.urlparse(url))
-        query = dict(compat_urllib_parse.parse_qsl(parsed_url[4]))
+        parsed_url = list(compat_urlparse.urlparse(url))
+        query = dict(compat_urlparse.parse_qsl(parsed_url[4]))
         query.update({'displayMode': 'list'})
         parsed_url[4] = compat_urllib_parse.urlencode(query)
-        final_url = compat_urllib_parse.urlunparse(parsed_url)
+        final_url = compat_urlparse.urlunparse(parsed_url)
 
         page = self._download_webpage(final_url, folder_id)
         matches = re.findall(r"href='(/media/\d+/?)'", page)
