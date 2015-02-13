@@ -50,7 +50,7 @@ class BambuserIE(InfoExtractor):
             'duration': int(info['length']),
             'view_count': int(info['views_total']),
             'uploader': info['username'],
-            'uploader_id': info['uid'],
+            'uploader_id': info['owner']['uid'],
         }
 
 
