@@ -736,6 +736,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='prefer_ffmpeg',
         help='Prefer ffmpeg over avconv for running the postprocessors')
     postproc.add_option(
+        '--ffmpeg-location', '--avconv-location', metavar='PATH',
+        dest='ffmpeg_location',
+        help='Location of the ffmpeg/avconv binary; either the path to the binary or its containing directory.')
+    postproc.add_option(
         '--exec',
         metavar='CMD', dest='exec_cmd',
         help='Execute a command on the file after downloading, similar to find\'s -exec syntax. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'')

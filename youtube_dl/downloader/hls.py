@@ -23,15 +23,14 @@ class HlsFD(FileDownloader):
         tmpfilename = self.temp_name(filename)
 
         ffpp = FFmpegPostProcessor(downloader=self)
-        program = ffpp._executable
-        if program is None:
+        if not ffpp.available:
             self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
             return False
         ffpp.check_version()
 
         args = [
             encodeArgument(opt)
-            for opt in (program, '-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
+            for opt in (ffpp.executable, '-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
         args.append(encodeFilename(tmpfilename, True))
 
         retval = subprocess.call(args)
@@ -48,7 +47,7 @@ class HlsFD(FileDownloader):
             return True
         else:
             self.to_stderr('\n')
-            self.report_error('%s exited with code %d' % (program, retval))
+            self.report_error('%s exited with code %d' % (ffpp.basename, retval))
             return False
 
 

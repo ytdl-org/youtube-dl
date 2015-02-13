@@ -350,6 +350,7 @@ def _real_main(argv=None):
         'xattr_set_filesize': opts.xattr_set_filesize,
         'match_filter': match_filter,
         'no_color': opts.no_color,
+        'ffmpeg_location': opts.ffmpeg_location,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

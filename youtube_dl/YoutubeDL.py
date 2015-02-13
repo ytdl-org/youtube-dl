@@ -1298,7 +1298,7 @@ class YoutubeDL(object):
                     downloaded = []
                     success = True
                     merger = FFmpegMergerPP(self, not self.params.get('keepvideo'))
-                    if not merger._executable:
+                    if not merger.available():
                         postprocessors = []
                         self.report_warning('You have requested multiple '
                                             'formats but ffmpeg or avconv are not installed.'
@@ -1647,7 +1647,7 @@ class YoutubeDL(object):
         self._write_string('[debug] Python version %s - %s\n' % (
             platform.python_version(), platform_name()))
 
-        exe_versions = FFmpegPostProcessor.get_versions()
+        exe_versions = FFmpegPostProcessor.get_versions(self)
         exe_versions['rtmpdump'] = rtmpdump_version()
         exe_str = ', '.join(
             '%s %s' % (exe, v)

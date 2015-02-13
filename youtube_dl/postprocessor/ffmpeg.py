@@ -30,54 +30,97 @@ class FFmpegPostProcessorError(PostProcessingError):
 class FFmpegPostProcessor(PostProcessor):
     def __init__(self, downloader=None, deletetempfiles=False):
         PostProcessor.__init__(self, downloader)
-        self._versions = self.get_versions()
         self._deletetempfiles = deletetempfiles
+        self._determine_executables()
 
     def check_version(self):
-        if not self._executable:
+        if not self.available():
             raise FFmpegPostProcessorError('ffmpeg or avconv not found. Please install one.')
 
         required_version = '10-0' if self._uses_avconv() else '1.0'
         if is_outdated_version(
-                self._versions[self._executable], required_version):
+                self._versions[self.basename], required_version):
             warning = 'Your copy of %s is outdated, update %s to version %s or newer if you encounter any errors.' % (
-                self._executable, self._executable, required_version)
+                self.basename, self.basename, required_version)
             if self._downloader:
                 self._downloader.report_warning(warning)
 
     @staticmethod
-    def get_versions():
+    def get_versions(downloader=None):
+        return FFmpegPostProcessor(downloader)._versions
+
+    def _determine_executables(self):
         programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
-        return dict((p, get_exe_version(p, args=['-version'])) for p in programs)
+        prefer_ffmpeg = self._downloader.params.get('prefer_ffmpeg', False)
 
-    @property
-    def available(self):
-        return self._executable is not None
+        self.basename = None
+        self.probe_basename = None
 
-    @property
-    def _executable(self):
-        if self._downloader.params.get('prefer_ffmpeg', False):
+        self._paths = None
+        self._versions = None
+        if self._downloader:
+            location = self._downloader.params.get('ffmpeg_location')
+            if location is not None:
+                if not os.path.exists(location):
+                    self._downloader.report_warning(
+                        'ffmpeg-location %s does not exist! '
+                        'Continuing without avconv/ffmpeg.' % (location))
+                    self._versions = {}
+                    return
+                elif not os.path.isdir(location):
+                    basename = os.path.splitext(os.path.basename(location))[0]
+                    if basename not in programs:
+                        self._downloader.report_warning(
+                            'Cannot identify executable %s, its basename should be one of %s. '
+                            'Continuing without avconv/ffmpeg.' %
+                            (location, ', '.join(programs)))
+                        self._versions = {}
+                        return None
+                    location = os.path.dirname(os.path.abspath(location))
+                    if basename in ('ffmpeg', 'ffprobe'):
+                        prefer_ffmpeg = True
+
+                self._paths = dict(
+                    (p, os.path.join(location, p)) for p in programs)
+                self._versions = dict(
+                    (p, get_exe_version(self._paths[p], args=['-version']))
+                    for p in programs)
+        if self._versions is None:
+            self._versions = dict(
+                (p, get_exe_version(p, args=['-version'])) for p in programs)
+            self._paths = dict((p, p) for p in programs)
+
+        if prefer_ffmpeg:
             prefs = ('ffmpeg', 'avconv')
         else:
             prefs = ('avconv', 'ffmpeg')
         for p in prefs:
             if self._versions[p]:
-                return p
-        return None
+                self.basename = p
+                break
 
-    @property
-    def _probe_executable(self):
-        if self._downloader.params.get('prefer_ffmpeg', False):
+        if prefer_ffmpeg:
             prefs = ('ffprobe', 'avprobe')
         else:
             prefs = ('avprobe', 'ffprobe')
         for p in prefs:
             if self._versions[p]:
-                return p
-        return None
+                self.probe_basename = p
+                break
+
+    def available(self):
+        return self.basename is not None
 
     def _uses_avconv(self):
-        return self._executable == 'avconv'
+        return self.basename == 'avconv'
+
+    @property
+    def executable(self):
+        return self._paths[self.basename]
+
+    @property
+    def probe_executable(self):
+        return self._paths[self.probe_basename]
 
     def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
         self.check_version()
@@ -88,7 +131,7 @@ class FFmpegPostProcessor(PostProcessor):
         files_cmd = []
         for path in input_paths:
             files_cmd.extend([encodeArgument('-i'), encodeFilename(path, True)])
-        cmd = ([encodeFilename(self._executable, True), encodeArgument('-y')] +
+        cmd = ([encodeFilename(self.executable, True), encodeArgument('-y')] +
                files_cmd +
                [encodeArgument(o) for o in opts] +
                [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
@@ -127,13 +170,15 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
     def get_audio_codec(self, path):
 
-        if not self._probe_executable:
+        if not self.probe_executable:
             raise PostProcessingError('ffprobe or avprobe not found. Please install one.')
         try:
             cmd = [
-                encodeFilename(self._probe_executable, True),
+                encodeFilename(self.probe_executable, True),
                 encodeArgument('-show_streams'),
                 encodeFilename(self._ffmpeg_filename_argument(path), True)]
+            if self._downloader.params.get('verbose', False):
+                self._downloader.to_screen('[debug] ffprobe command line: %s' % shell_quote(cmd))
             handle = subprocess.Popen(cmd, stderr=compat_subprocess_get_DEVNULL(), stdout=subprocess.PIPE)
             output = handle.communicate()[0]
             if handle.wait() != 0:
@@ -223,14 +268,14 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             if self._nopostoverwrites and os.path.exists(encodeFilename(new_path)):
                 self._downloader.to_screen('[youtube] Post-process file %s exists, skipping' % new_path)
             else:
-                self._downloader.to_screen('[' + self._executable + '] Destination: ' + new_path)
+                self._downloader.to_screen('[' + self.basename + '] Destination: ' + new_path)
                 self.run_ffmpeg(path, new_path, acodec, more_opts)
         except:
             etype, e, tb = sys.exc_info()
             if isinstance(e, AudioConversionError):
                 msg = 'audio conversion failed: ' + e.msg
             else:
-                msg = 'error running ' + self._executable
+                msg = 'error running ' + self.basename
             raise PostProcessingError(msg)
 
         # Try to update the date time for extracted audio file.
