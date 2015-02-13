@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class CamdemyIE(InfoExtractor):
-    _VALID_URL = r'http://www.camdemy.com/media/(?P<id>\d+)'
+    _VALID_URL = r'http://(?:www\.)?camdemy\.com/media/(?P<id>\d+)'
     _TESTS = [{
         # single file
         'url': 'http://www.camdemy.com/media/5181/',
