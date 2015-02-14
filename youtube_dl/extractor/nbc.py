@@ -52,9 +52,9 @@ class NBCIE(InfoExtractor):
 
 
 class NBCNewsIE(InfoExtractor):
-    _VALID_URL = r'''(?x)https?://www\.nbcnews\.com/
-        ((video/.+?/(?P<id>\d+))|
-        ((?P<program>feature|nightly-news)/[^/]+/(?P<title>.+)))
+    _VALID_URL = r'''(?x)https?://(?:www\.)?nbcnews\.com/
+        (?:video/.+?/(?P<id>\d+)|
+        (?:feature|nightly-news)/[^/]+/(?P<title>.+))
         '''
 
     _TESTS = [
@@ -120,17 +120,10 @@ class NBCNewsIE(InfoExtractor):
             # "feature" and "nightly-news" pages use theplatform.com
             title = mobj.group('title')
             webpage = self._download_webpage(url, title)
-            program = mobj.group('program')
-            if program == 'feature':
-                bootstrap_json = self._search_regex(
-                    r'var bootstrapJson = ({.+})\s*$', webpage, 'bootstrap json',
-                    flags=re.MULTILINE)
-            else:
-                # nightly-news
-                bootstrap_json = self._search_regex(
-                    r'var playlistData = ({.+});\s*$', webpage, 'playlist data',
-                    flags=re.MULTILINE)
-            bootstrap = json.loads(bootstrap_json)
+            bootstrap_json = self._search_regex(
+                r'var\s+(?:bootstrapJson|playlistData)\s*=\s*({.+});?\s*$',
+                webpage, 'bootstrap json', flags=re.MULTILINE)
+            bootstrap = self._parse_json(bootstrap_json, video_id)
             info = bootstrap['results'][0]['video']
             mpxid = info['mpxId']
 
