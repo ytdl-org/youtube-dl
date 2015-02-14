@@ -333,11 +333,12 @@ class F4mFD(FileDownloader):
                                  status.get('speed'), eta)
 
             # report totals to actual hooks
-            status['status'] = 'downloading'
-            #status['downloaded_bytes'] = state['downloaded_bytes'] ?
-            #status['total_bytes'] = ?
+            toplevel_status = {'status': 'downloading', 'filename': filename, 'tmpfilename': tmpfilename}
+            toplevel_status['downloaded_bytes'] = state['downloaded_bytes']
+            if (state['downloaded_bytes'] > 0) and (progress > 0):
+                toplevel_status['total_bytes'] = int(100.0 * state['downloaded_bytes'] / progress)
             for hook in self._progress_hooks:
-                hook(status)
+                hook(toplevel_status)
 
         http_dl.add_progress_hook(frag_progress_hook)
 
