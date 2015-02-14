@@ -2,6 +2,11 @@ from __future__ import unicode_literals
 
 import re
 import json
+import time
+import hmac
+import binascii
+import hashlib
+
 
 from .subtitles import SubtitlesInfoExtractor
 from ..compat import (
@@ -11,6 +16,7 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     xpath_with_ns,
+    unsmuggle_url,
 )
 
 _x = lambda p: xpath_with_ns(p, {'smil': 'http://www.w3.org/2005/SMIL21/Language'})
@@ -18,7 +24,7 @@ _x = lambda p: xpath_with_ns(p, {'smil': 'http://www.w3.org/2005/SMIL21/Language
 
 class ThePlatformIE(SubtitlesInfoExtractor):
     _VALID_URL = r'''(?x)
-        (?:https?://(?:link|player)\.theplatform\.com/[sp]/[^/]+/
+        (?:https?://(?:link|player)\.theplatform\.com/[sp]/(?P<provider_id>[^/]+)/
            (?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/)?
          |theplatform:)(?P<id>[^/\?&]+)'''
 
@@ -38,9 +44,33 @@ class ThePlatformIE(SubtitlesInfoExtractor):
         },
     }
 
+    @staticmethod
+    def _sign_url(url, sig_key, sig_secret, life=600, include_qs=False):
+        flags = '10' if include_qs else '00'
+        expiration_date = '%x' % (int(time.time()) + life)
+
+        def str_to_hex(str):
+            return binascii.b2a_hex(str.encode('ascii')).decode('ascii')
+
+        def hex_to_str(hex):
+            return binascii.a2b_hex(hex)
+
+        relative_path = url.split('http://link.theplatform.com/s/')[1].split('?')[0]
+        clear_text = hex_to_str(flags + expiration_date + str_to_hex(relative_path))
+        checksum = hmac.new(sig_key.encode('ascii'), clear_text, hashlib.sha1).hexdigest()
+        sig = flags + expiration_date + checksum + str_to_hex(sig_secret)
+        return '%s&sig=%s' % (url, sig)
+
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
+
         mobj = re.match(self._VALID_URL, url)
+        provider_id = mobj.group('provider_id')
         video_id = mobj.group('id')
+
+        if not provider_id:
+            provider_id = 'dJ5BDC'
+
         if mobj.group('config'):
             config_url = url + '&form=json'
             config_url = config_url.replace('swf/', 'config/')
@@ -48,8 +78,12 @@ class ThePlatformIE(SubtitlesInfoExtractor):
             config = self._download_json(config_url, video_id, 'Downloading config')
             smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4&manifest=f4m'
         else:
-            smil_url = ('http://link.theplatform.com/s/dJ5BDC/{0}/meta.smil?'
-                        'format=smil&mbr=true'.format(video_id))
+            smil_url = ('http://link.theplatform.com/s/{0}/{1}/meta.smil?'
+                        'format=smil&mbr=true'.format(provider_id, video_id))
+
+        sig = smuggled_data.get('sig')
+        if sig:
+            smil_url = self._sign_url(smil_url, sig['key'], sig['secret'])
 
         meta = self._download_xml(smil_url, video_id)
         try:
@@ -62,7 +96,7 @@ class ThePlatformIE(SubtitlesInfoExtractor):
         else:
             raise ExtractorError(error_msg, expected=True)
 
-        info_url = 'http://link.theplatform.com/s/dJ5BDC/{0}?format=preview'.format(video_id)
+        info_url = 'http://link.theplatform.com/s/{0}/{1}?format=preview'.format(provider_id, video_id)
         info_json = self._download_webpage(info_url, video_id)
         info = json.loads(info_json)
 
