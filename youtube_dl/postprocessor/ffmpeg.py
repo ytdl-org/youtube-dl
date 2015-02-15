@@ -453,10 +453,6 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         'zu': 'zul',
     }
 
-    def __init__(self, downloader=None, subtitlesformat='srt'):
-        super(FFmpegEmbedSubtitlePP, self).__init__(downloader)
-        self._subformat = subtitlesformat
-
     @classmethod
     def _conver_lang_code(cls, code):
         """Convert language code from ISO 639-1 to ISO 639-2/T"""
@@ -472,7 +468,7 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
 
         sub_langs = [key for key in information['subtitles']]
         filename = information['filepath']
-        input_files = [filename] + [subtitles_filename(filename, lang, self._subformat) for lang in sub_langs]
+        input_files = [filename] + [subtitles_filename(filename, lang, sub_info['ext']) for lang, sub_info in information['subtitles'].items()]
 
         opts = [
             '-map', '0',

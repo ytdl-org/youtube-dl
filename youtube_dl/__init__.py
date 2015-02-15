@@ -226,7 +226,6 @@ def _real_main(argv=None):
     if opts.embedsubtitles:
         postprocessors.append({
             'key': 'FFmpegEmbedSubtitle',
-            'subtitlesformat': opts.subtitlesformat,
         })
     if opts.xattrs:
         postprocessors.append({'key': 'XAttrMetadata'})

@@ -27,15 +27,23 @@ class BaseTestSubtitles(unittest.TestCase):
 
     def setUp(self):
         self.DL = FakeYDL()
-        self.ie = self.IE(self.DL)
+        self.ie = self.IE()
+        self.DL.add_info_extractor(self.ie)
 
     def getInfoDict(self):
-        info_dict = self.ie.extract(self.url)
+        info_dict = self.DL.extract_info(self.url, download=False)
         return info_dict
 
     def getSubtitles(self):
         info_dict = self.getInfoDict()
-        return info_dict['subtitles']
+        subtitles = info_dict['subtitles']
+        if not subtitles:
+            return subtitles
+        for sub_info in subtitles.values():
+            if sub_info.get('data') is None:
+                uf = self.DL.urlopen(sub_info['url'])
+                sub_info['data'] = uf.read().decode('utf-8')
+        return dict((l, sub_info['data']) for l, sub_info in subtitles.items())
 
 
 class TestYoutubeSubtitles(BaseTestSubtitles):
@@ -176,7 +184,7 @@ class TestTedSubtitles(BaseTestSubtitles):
 
     def test_no_writesubtitles(self):
         subtitles = self.getSubtitles()
-        self.assertEqual(subtitles, None)
+        self.assertFalse(subtitles)
 
     def test_subtitles(self):
         self.DL.params['writesubtitles'] = True
@@ -196,17 +204,9 @@ class TestTedSubtitles(BaseTestSubtitles):
         self.assertTrue(len(subtitles.keys()) >= 28)
 
     def test_list_subtitles(self):
-        self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['listsubtitles'] = True
         info_dict = self.getInfoDict()
         self.assertEqual(info_dict, None)
-
-    def test_automatic_captions(self):
-        self.DL.expect_warning('Automatic Captions not supported by this server')
-        self.DL.params['writeautomaticsub'] = True
-        self.DL.params['subtitleslang'] = ['en']
-        subtitles = self.getSubtitles()
-        self.assertTrue(len(subtitles.keys()) == 0)
 
     def test_multiple_langs(self):
         self.DL.params['writesubtitles'] = True

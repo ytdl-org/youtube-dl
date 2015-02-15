@@ -387,8 +387,8 @@ def parseOpts(overrideArguments=None):
         help='lists all available subtitles for the video')
     subtitles.add_option(
         '--sub-format',
-        action='store', dest='subtitlesformat', metavar='FORMAT', default='srt',
-        help='subtitle format (default=srt) ([sbv/vtt] youtube only)')
+        action='store', dest='subtitlesformat', metavar='FORMAT', default='best',
+        help='subtitle format, accepts formats preference, for example: "ass/srt/best"')
     subtitles.add_option(
         '--sub-lang', '--sub-langs', '--srt-lang',
         action='callback', dest='subtitleslangs', metavar='LANGS', type='str',

@@ -154,7 +154,7 @@ class YoutubeDL(object):
     allsubtitles:      Downloads all the subtitles of the video
                        (requires writesubtitles or writeautomaticsub)
     listsubtitles:     Lists all available subtitles for the video
-    subtitlesformat:   Subtitle format [srt/sbv/vtt] (default=srt)
+    subtitlesformat:   The format code for subtitles
     subtitleslangs:    List of languages of the subtitles to download
     keepvideo:         Keep the video file after post-processing
     daterange:         A DateRange object, download only if the upload_date is in the range.
@@ -1019,6 +1019,11 @@ class YoutubeDL(object):
                 info_dict['timestamp'])
             info_dict['upload_date'] = upload_date.strftime('%Y%m%d')
 
+        if self.params.get('listsubtitles', False):
+            self.list_subtitles(info_dict['id'], info_dict.get('subtitles'))
+            return
+        info_dict['subtitles'] = self.process_subtitles(info_dict['id'], info_dict.get('subtitles'))
+
         # This extractors handle format selection themselves
         if info_dict['extractor'] in ['Youku']:
             if download:
@@ -1147,6 +1152,53 @@ class YoutubeDL(object):
         info_dict.update(formats_to_download[-1])
         return info_dict
 
+    def process_subtitles(self, video_id, available_subs):
+        """Select the requested subtitles and their format"""
+        if not available_subs:
+            return available_subs
+
+        if self.params.get('allsubtitles', False):
+            requested_langs = available_subs.keys()
+        else:
+            if self.params.get('subtitleslangs', False):
+                requested_langs = self.params.get('subtitleslangs')
+            elif 'en' in available_subs:
+                requested_langs = ['en']
+            else:
+                requested_langs = [list(available_subs.keys())[0]]
+
+        formats_query = self.params.get('subtitlesformat', 'best')
+        formats_preference = formats_query.split('/') if formats_query else []
+        subs = {}
+        for lang in requested_langs:
+            formats = available_subs.get(lang)
+            if formats is None:
+                self.report_warning('%s subtitles not available for %s' % (lang, video_id))
+                continue
+            if isinstance(formats, compat_str):
+                # TODO: convert all IE with subtitles support to the new format
+                # and remove this
+                subs[lang] = {
+                    'ext': formats_preference[0],
+                    'data': formats,
+                }
+                continue
+            for ext in formats_preference:
+                if ext == 'best':
+                    f = formats[-1]
+                    break
+                matches = list(filter(lambda f: f['ext'] == ext, formats))
+                if matches:
+                    f = matches[-1]
+                    break
+            else:
+                f = formats[-1]
+                self.report_warning(
+                    'No subtitle format found matching "%s" for language %s, '
+                    'using %s' % (formats_query, lang, f['ext']))
+            subs[lang] = f
+        return subs
+
     def process_info(self, info_dict):
         """Process a single resolved IE result."""
 
@@ -1253,11 +1305,18 @@ class YoutubeDL(object):
             # subtitles download errors are already managed as troubles in relevant IE
             # that way it will silently go on when used with unsupporting IE
             subtitles = info_dict['subtitles']
-            sub_format = self.params.get('subtitlesformat', 'srt')
-            for sub_lang in subtitles.keys():
-                sub = subtitles[sub_lang]
-                if sub is None:
-                    continue
+            for sub_lang, sub_info in subtitles.items():
+                sub_format = sub_info['ext']
+                if sub_info.get('data') is not None:
+                    sub_data = sub_info['data']
+                else:
+                    try:
+                        uf = self.urlopen(sub_info['url'])
+                        sub_data = uf.read().decode('utf-8')
+                    except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+                        self.report_warning('Unable to download subtitle for "%s": %s' %
+                                            (sub_lang, compat_str(err)))
+                        continue
                 try:
                     sub_filename = subtitles_filename(filename, sub_lang, sub_format)
                     if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(sub_filename)):
@@ -1265,7 +1324,7 @@ class YoutubeDL(object):
                     else:
                         self.to_screen('[info] Writing video subtitles to: ' + sub_filename)
                         with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
-                            subfile.write(sub)
+                            subfile.write(sub_data)
                 except (OSError, IOError):
                     self.report_error('Cannot write subtitles file ' + sub_filename)
                     return
@@ -1585,6 +1644,18 @@ class YoutubeDL(object):
         self.to_screen(render_table(
             ['ID', 'width', 'height', 'URL'],
             [[t['id'], t.get('width', 'unknown'), t.get('height', 'unknown'), t['url']] for t in thumbnails]))
+
+    def list_subtitles(self, video_id, subtitles):
+        if not subtitles:
+            self.to_screen('%s has no subtitles' % video_id)
+            return
+        header_line = 'Language    formats'
+        sub_lines = [
+            '%-12s%s' % (lang, ', '.join(f['ext'] for f in reversed(formats)))
+            for lang, formats in subtitles.items()]
+        self.to_screen(
+            'Available subtitles for %s:\n%s\n%s' %
+            (video_id, header_line, '\n'.join(sub_lines)))
 
     def urlopen(self, req):
         """ Start an HTTP download """

@@ -151,8 +151,14 @@ class InfoExtractor(object):
                     If not explicitly set, calculated from timestamp.
     uploader_id:    Nickname or id of the video uploader.
     location:       Physical location where the video was filmed.
-    subtitles:      The subtitle file contents as a dictionary in the format
-                    {language: subtitles}.
+    subtitles:      The available subtitles as a dictionary in the format
+                    {language: subformats}. "subformats" is a list sorted from
+                    lower to higher preference, each element is a dictionary
+                    with the "ext" entry and one of:
+                        * "data": The subtitles file contents
+                        * "url": A url pointing to the subtitles file
+                    Note: YoutubeDL.extract_info will get the requested
+                    format and replace the "subformats" list with it.
     duration:       Length of the video in seconds, as an integer.
     view_count:     How many users have watched the video on the platform.
     like_count:     Number of positive ratings of the video
@@ -992,6 +998,16 @@ class InfoExtractor(object):
                 return True
             any_restricted = any_restricted or is_restricted
         return not any_restricted
+
+    def extract_subtitles(self, *args, **kwargs):
+        subtitles = {}
+        list_subtitles = self._downloader.params.get('listsubtitles')
+        if self._downloader.params.get('writesubtitles', False) or list_subtitles:
+            subtitles.update(self._get_subtitles(*args, **kwargs))
+        return subtitles
+
+    def _get_subtitles(self, *args, **kwargs):
+        raise NotImplementedError("This method must be implemented by subclasses")
 
 
 class SearchInfoExtractor(InfoExtractor):
