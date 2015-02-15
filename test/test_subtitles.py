@@ -240,10 +240,6 @@ class TestVimeoSubtitles(BaseTestSubtitles):
     url = 'http://vimeo.com/76979871'
     IE = VimeoIE
 
-    def test_no_writesubtitles(self):
-        subtitles = self.getSubtitles()
-        self.assertEqual(subtitles, None)
-
     def test_subtitles(self):
         self.DL.params['writesubtitles'] = True
         subtitles = self.getSubtitles()
@@ -260,19 +256,6 @@ class TestVimeoSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['de', 'en', 'es', 'fr']))
-
-    def test_list_subtitles(self):
-        self.DL.expect_warning('Automatic Captions not supported by this server')
-        self.DL.params['listsubtitles'] = True
-        info_dict = self.getInfoDict()
-        self.assertEqual(info_dict, None)
-
-    def test_automatic_captions(self):
-        self.DL.expect_warning('Automatic Captions not supported by this server')
-        self.DL.params['writeautomaticsub'] = True
-        self.DL.params['subtitleslang'] = ['en']
-        subtitles = self.getSubtitles()
-        self.assertTrue(len(subtitles.keys()) == 0)
 
     def test_nosubtitles(self):
         self.DL.expect_warning('video doesn\'t have subtitles')
