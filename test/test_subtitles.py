@@ -138,7 +138,7 @@ class TestDailymotionSubtitles(BaseTestSubtitles):
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
-        self.assertEqual(len(subtitles.keys()), 5)
+        self.assertTrue(len(subtitles.keys()) >= 6)
 
     def test_list_subtitles(self):
         self.DL.expect_warning('Automatic Captions not supported by this server')
@@ -334,7 +334,7 @@ class TestCeskaTelevizeSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['cs']))
-        self.assertEqual(md5(subtitles['cs']), 'cc3957b2c6dff1db71e5f2e83d467480')
+        self.assertTrue(len(subtitles['cs']) > 20000)
 
     def test_nosubtitles(self):
         self.DL.expect_warning('video doesn\'t have subtitles')
