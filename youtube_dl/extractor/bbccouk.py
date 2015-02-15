@@ -273,7 +273,7 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
                     formats, subtitles = self._download_media_selector(programme_id)
                 return programme_id, title, description, duration, formats, subtitles
         except ExtractorError as ee:
-            if not isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 404:
+            if not (isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 404):
                 raise
 
         # fallback to legacy playlist
