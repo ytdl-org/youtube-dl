@@ -335,8 +335,10 @@ class F4mFD(FileDownloader):
             # report totals to actual hooks
             toplevel_status = {'status': 'downloading', 'filename': filename, 'tmpfilename': tmpfilename}
             toplevel_status['downloaded_bytes'] = state['downloaded_bytes']
-            if (state['downloaded_bytes'] > 0) and (progress > 0):
-                toplevel_status['total_bytes'] = int(100.0 * state['downloaded_bytes'] / progress)
+            total_bytes = 0
+            if progress > 0:
+                total_bytes = int((100.0 * state['downloaded_bytes']) / progress)
+            toplevel_status['total_bytes'] = total_bytes
             if 'speed' in status:
                 toplevel_status['speed'] = status['speed']
             if 'eta' in status:
