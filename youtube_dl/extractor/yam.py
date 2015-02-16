@@ -1,10 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_urlparse
-from ..utils import month_by_abbreviation
-import re
+from ..utils import (
+    float_or_none,
+    month_by_abbreviation,
+)
 
 
 class YamIE(InfoExtractor):
@@ -38,8 +42,8 @@ class YamIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        media_id = self._match_id(url)
-        page = self._download_webpage(url, media_id)
+        video_id = self._match_id(url)
+        page = self._download_webpage(url, video_id)
 
         # Is it hosted externally on YouTube?
         youtube_url = self._html_search_regex(
@@ -49,22 +53,29 @@ class YamIE(InfoExtractor):
             return self.url_result(youtube_url, 'Youtube')
 
         api_page = self._download_webpage(
-            'http://mymedia.yam.com/api/a/?pID=' + media_id, media_id)
+            'http://mymedia.yam.com/api/a/?pID=' + video_id, video_id,
+            note='Downloading API page')
         api_result_obj = compat_urlparse.parse_qs(api_page)
 
-        author = self._html_search_regex(
-            r'<!-- 發表作者 -->：[\n ]+<a href="/([a-z]+)"', page, 'author')
+        uploader_id = self._html_search_regex(
+            r'<!-- 發表作者 -->：[\n ]+<a href="/([a-z]+)"',
+            page, 'uploader id', fatal=False)
         mobj = re.search(r'<!-- 發表於 -->(?P<mon>[A-Z][a-z]{2})  ' +
                          r'(?P<day>\d{1,2}), (?P<year>\d{4})', page)
-        upload_date = '%s%02d%02d' % (mobj.group('year'),
-                                      month_by_abbreviation(mobj.group('mon')),
-                                      int(mobj.group('day')))
+        if mobj:
+            upload_date = '%s%02d%02d' % (
+                mobj.group('year'),
+                month_by_abbreviation(mobj.group('mon')),
+                int(mobj.group('day')))
+        else:
+            upload_date = None
+        duration = float_or_none(api_result_obj['totaltime'][0], scale=1000)
 
         return {
-            'id': media_id,
+            'id': video_id,
             'url': api_result_obj['mp3file'][0],
             'title': self._html_search_meta('description', page),
-            'duration': float(api_result_obj['totaltime'][0]) / 1000.0,
-            'uploader_id': author,
+            'duration': duration,
+            'uploader_id': uploader_id,
             'upload_date': upload_date,
         }
