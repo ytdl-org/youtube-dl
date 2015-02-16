@@ -337,6 +337,10 @@ class F4mFD(FileDownloader):
             toplevel_status['downloaded_bytes'] = state['downloaded_bytes']
             if (state['downloaded_bytes'] > 0) and (progress > 0):
                 toplevel_status['total_bytes'] = int(100.0 * state['downloaded_bytes'] / progress)
+            if 'speed' in status:
+                toplevel_status['speed'] = status['speed']
+            if 'eta' in status:
+                toplevel_status['eta'] = status['eta']
             for hook in self._progress_hooks:
                 hook(toplevel_status)
 
