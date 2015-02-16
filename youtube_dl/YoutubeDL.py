@@ -1022,7 +1022,7 @@ class YoutubeDL(object):
         if self.params.get('listsubtitles', False):
             self.list_subtitles(info_dict['id'], info_dict.get('subtitles'))
             return
-        info_dict['subtitles'] = self.process_subtitles(info_dict['id'], info_dict.get('subtitles'))
+        info_dict['requested_subtitles'] = self.process_subtitles(info_dict['id'], info_dict.get('subtitles'))
 
         # This extractors handle format selection themselves
         if info_dict['extractor'] in ['Youku']:
@@ -1301,10 +1301,10 @@ class YoutubeDL(object):
         subtitles_are_requested = any([self.params.get('writesubtitles', False),
                                        self.params.get('writeautomaticsub')])
 
-        if subtitles_are_requested and 'subtitles' in info_dict and info_dict['subtitles']:
+        if subtitles_are_requested and info_dict.get('requested_subtitles'):
             # subtitles download errors are already managed as troubles in relevant IE
             # that way it will silently go on when used with unsupporting IE
-            subtitles = info_dict['subtitles']
+            subtitles = info_dict['requested_subtitles']
             for sub_lang, sub_info in subtitles.items():
                 sub_format = sub_info['ext']
                 if sub_info.get('data') is not None:

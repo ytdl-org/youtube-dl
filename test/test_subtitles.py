@@ -36,7 +36,7 @@ class BaseTestSubtitles(unittest.TestCase):
 
     def getSubtitles(self):
         info_dict = self.getInfoDict()
-        subtitles = info_dict['subtitles']
+        subtitles = info_dict['requested_subtitles']
         if not subtitles:
             return subtitles
         for sub_info in subtitles.values():

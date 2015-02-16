@@ -157,8 +157,6 @@ class InfoExtractor(object):
                     with the "ext" entry and one of:
                         * "data": The subtitles file contents
                         * "url": A url pointing to the subtitles file
-                    Note: YoutubeDL.extract_info will get the requested
-                    format and replace the "subformats" list with it.
     duration:       Length of the video in seconds, as an integer.
     view_count:     How many users have watched the video on the platform.
     like_count:     Number of positive ratings of the video

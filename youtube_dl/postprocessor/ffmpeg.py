@@ -462,13 +462,14 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         if information['ext'] != 'mp4':
             self._downloader.to_screen('[ffmpeg] Subtitles can only be embedded in mp4 files')
             return True, information
-        if not information.get('subtitles'):
+        subtitles = information.get('requested_subtitles')
+        if not subtitles:
             self._downloader.to_screen('[ffmpeg] There aren\'t any subtitles to embed')
             return True, information
 
-        sub_langs = [key for key in information['subtitles']]
+        sub_langs = list(subtitles.keys())
         filename = information['filepath']
-        input_files = [filename] + [subtitles_filename(filename, lang, sub_info['ext']) for lang, sub_info in information['subtitles'].items()]
+        input_files = [filename] + [subtitles_filename(filename, lang, sub_info['ext']) for lang, sub_info in subtitles.items()]
 
         opts = [
             '-map', '0',
