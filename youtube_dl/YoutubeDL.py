@@ -1020,9 +1020,13 @@ class YoutubeDL(object):
             info_dict['upload_date'] = upload_date.strftime('%Y%m%d')
 
         if self.params.get('listsubtitles', False):
-            self.list_subtitles(info_dict['id'], info_dict.get('subtitles'))
+            if 'automatic_captions' in info_dict:
+                self.list_subtitles(info_dict['id'], info_dict.get('automatic_captions'), 'automatic captions')
+            self.list_subtitles(info_dict['id'], info_dict.get('subtitles'), 'subtitles')
             return
-        info_dict['requested_subtitles'] = self.process_subtitles(info_dict['id'], info_dict.get('subtitles'))
+        info_dict['requested_subtitles'] = self.process_subtitles(
+            info_dict['id'], info_dict.get('subtitles'),
+            info_dict.get('automatic_captions'))
 
         # This extractors handle format selection themselves
         if info_dict['extractor'] in ['Youku']:
@@ -1152,8 +1156,14 @@ class YoutubeDL(object):
         info_dict.update(formats_to_download[-1])
         return info_dict
 
-    def process_subtitles(self, video_id, available_subs):
+    def process_subtitles(self, video_id, available_subs, available_autocaps):
         """Select the requested subtitles and their format"""
+        if available_autocaps and self.params.get('writeautomaticsub'):
+            available_subs = available_subs.copy()
+            for lang, cap_info in available_autocaps.items():
+                if lang not in available_subs:
+                    available_subs[lang] = cap_info
+
         if not available_subs:
             return available_subs
 
@@ -1645,17 +1655,17 @@ class YoutubeDL(object):
             ['ID', 'width', 'height', 'URL'],
             [[t['id'], t.get('width', 'unknown'), t.get('height', 'unknown'), t['url']] for t in thumbnails]))
 
-    def list_subtitles(self, video_id, subtitles):
+    def list_subtitles(self, video_id, subtitles, name='subtitles'):
         if not subtitles:
-            self.to_screen('%s has no subtitles' % video_id)
+            self.to_screen('%s has no %s' % (video_id, name))
             return
         header_line = 'Language    formats'
         sub_lines = [
             '%-12s%s' % (lang, ', '.join(f['ext'] for f in reversed(formats)))
             for lang, formats in subtitles.items()]
         self.to_screen(
-            'Available subtitles for %s:\n%s\n%s' %
-            (video_id, header_line, '\n'.join(sub_lines)))
+            'Available %s for %s:\n%s\n%s' %
+            (name, video_id, header_line, '\n'.join(sub_lines)))
 
     def urlopen(self, req):
         """ Start an HTTP download """

@@ -157,6 +157,8 @@ class InfoExtractor(object):
                     with the "ext" entry and one of:
                         * "data": The subtitles file contents
                         * "url": A url pointing to the subtitles file
+    automatic_captions: Like 'subtitles', used by the YoutubeIE for
+                    automatically generated captions
     duration:       Length of the video in seconds, as an integer.
     view_count:     How many users have watched the video on the platform.
     like_count:     Number of positive ratings of the video
@@ -1005,6 +1007,16 @@ class InfoExtractor(object):
         return subtitles
 
     def _get_subtitles(self, *args, **kwargs):
+        raise NotImplementedError("This method must be implemented by subclasses")
+
+    def extract_automatic_captions(self, *args, **kwargs):
+        automatic_captions = {}
+        list_subtitles = self._downloader.params.get('listsubtitles')
+        if self._downloader.params.get('writeautomaticsub', False) or list_subtitles:
+            automatic_captions.update(self._get_automatic_captions(*args, **kwargs))
+        return automatic_captions
+
+    def _get_automatic_captions(self, *args, **kwargs):
         raise NotImplementedError("This method must be implemented by subclasses")
 
 

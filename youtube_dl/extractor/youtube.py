@@ -11,7 +11,6 @@ import time
 import traceback
 
 from .common import InfoExtractor, SearchInfoExtractor
-from .subtitles import SubtitlesInfoExtractor
 from ..jsinterp import JSInterpreter
 from ..swfinterp import SWFInterpreter
 from ..compat import (
@@ -185,7 +184,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             return
 
 
-class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
+class YoutubeIE(YoutubeBaseInfoExtractor):
     IE_DESC = 'YouTube.com'
     _VALID_URL = r"""(?x)^
                      (
@@ -644,7 +643,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             raise ExtractorError(
                 'Signature extraction failed: ' + tb, cause=e)
 
-    def _get_available_subtitles(self, video_id, webpage):
+    def _get_subtitles(self, video_id, webpage):
         try:
             subs_doc = self._download_xml(
                 'https://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id,
@@ -658,23 +657,27 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             lang = track.attrib['lang_code']
             if lang in sub_lang_list:
                 continue
-            params = compat_urllib_parse.urlencode({
-                'lang': lang,
-                'v': video_id,
-                'fmt': self._downloader.params.get('subtitlesformat', 'srt'),
-                'name': track.attrib['name'].encode('utf-8'),
-            })
-            url = 'https://www.youtube.com/api/timedtext?' + params
-            sub_lang_list[lang] = url
+            sub_formats = []
+            for ext in ['sbv', 'vtt', 'srt']:
+                params = compat_urllib_parse.urlencode({
+                    'lang': lang,
+                    'v': video_id,
+                    'fmt': ext,
+                    'name': track.attrib['name'].encode('utf-8'),
+                })
+                sub_formats.append({
+                    'url': 'https://www.youtube.com/api/timedtext?' + params,
+                    'ext': ext,
+                })
+            sub_lang_list[lang] = sub_formats
         if not sub_lang_list:
             self._downloader.report_warning('video doesn\'t have subtitles')
             return {}
         return sub_lang_list
 
-    def _get_available_automatic_caption(self, video_id, webpage):
+    def _get_automatic_captions(self, video_id, webpage):
         """We need the webpage for getting the captions url, pass it as an
            argument to speed up the process."""
-        sub_format = self._downloader.params.get('subtitlesformat', 'srt')
         self.to_screen('%s: Looking for automatic captions' % video_id)
         mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
         err_msg = 'Couldn\'t find automatic captions for %s' % video_id
@@ -704,14 +707,20 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             sub_lang_list = {}
             for lang_node in caption_list.findall('target'):
                 sub_lang = lang_node.attrib['lang_code']
-                params = compat_urllib_parse.urlencode({
-                    'lang': original_lang,
-                    'tlang': sub_lang,
-                    'fmt': sub_format,
-                    'ts': timestamp,
-                    'kind': caption_kind,
-                })
-                sub_lang_list[sub_lang] = caption_url + '&' + params
+                sub_formats = []
+                for ext in ['sbv', 'vtt', 'srt']:
+                    params = compat_urllib_parse.urlencode({
+                        'lang': original_lang,
+                        'tlang': sub_lang,
+                        'fmt': ext,
+                        'ts': timestamp,
+                        'kind': caption_kind,
+                    })
+                    sub_formats.append({
+                        'url': caption_url + '&' + params,
+                        'ext': ext,
+                    })
+                sub_lang_list[sub_lang] = sub_formats
             return sub_lang_list
         # An extractor error can be raise by the download process if there are
         # no automatic captions but there are subtitles
@@ -966,10 +975,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # subtitles
         video_subtitles = self.extract_subtitles(video_id, video_webpage)
-
-        if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id, video_webpage)
-            return
+        automatic_captions = self.extract_automatic_captions(video_id, video_webpage)
 
         if 'length_seconds' not in video_info:
             self._downloader.report_warning('unable to extract video duration')
@@ -1118,6 +1124,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
             'description': video_description,
             'categories': video_categories,
             'subtitles': video_subtitles,
+            'automatic_captions': automatic_captions,
             'duration': video_duration,
             'age_limit': 18 if age_gate else 0,
             'annotations': video_annotations,
