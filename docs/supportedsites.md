@@ -1,4 +1,5 @@
 # Supported sites
+ - **1tv**: Первый канал
  - **1up.com**
  - **220.ro**
  - **24video**
@@ -60,6 +61,8 @@
  - **Brightcove**
  - **BuzzFeed**
  - **BYUtv**
+ - **Camdemy**
+ - **CamdemyFolder**
  - **Canal13cl**
  - **canalc2.tv**
  - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
@@ -134,7 +137,6 @@
  - **fernsehkritik.tv:postecke**
  - **Firedrive**
  - **Firstpost**
- - **firsttv**: Видеоархив - Первый канал
  - **Flickr**
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
  - **Foxgay**
@@ -174,6 +176,7 @@
  - **Helsinki**: helsinki.fi
  - **HentaiStigma**
  - **HistoricFilms**
+ - **History**
  - **hitbox**
  - **hitbox:live**
  - **HornBunny**
@@ -287,6 +290,8 @@
  - **nowvideo**: NowVideo
  - **npo.nl**
  - **npo.nl:live**
+ - **npo.nl:radio**
+ - **npo.nl:radio:fragment**
  - **NRK**
  - **NRKTV**
  - **ntv.ru**
@@ -527,6 +532,7 @@
  - **XVideos**
  - **XXXYMovies**
  - **Yahoo**: Yahoo screen and movies
+ - **Yam**
  - **YesJapan**
  - **Ynet**
  - **YouJizz**

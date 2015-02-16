@@ -397,6 +397,9 @@ which means you can modify it, redistribute it or use it however you like.
                                      postprocessors (default)
     --prefer-ffmpeg                  Prefer ffmpeg over avconv for running the
                                      postprocessors
+    --ffmpeg-location PATH           Location of the ffmpeg/avconv binary;
+                                     either the path to the binary or its
+                                     containing directory.
     --exec CMD                       Execute a command on the file after
                                      downloading, similar to find's -exec
                                      syntax. Example: --exec 'adb push {}
