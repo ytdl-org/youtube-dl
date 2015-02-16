@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..compat import (
@@ -52,9 +51,9 @@ class NBCIE(InfoExtractor):
 
 
 class NBCNewsIE(InfoExtractor):
-    _VALID_URL = r'''(?x)https?://www\.nbcnews\.com/
-        ((video/.+?/(?P<id>\d+))|
-        (feature/[^/]+/(?P<title>.+)))
+    _VALID_URL = r'''(?x)https?://(?:www\.)?nbcnews\.com/
+        (?:video/.+?/(?P<id>\d+)|
+        (?:feature|nightly-news)/[^/]+/(?P<title>.+))
         '''
 
     _TESTS = [
@@ -89,6 +88,16 @@ class NBCNewsIE(InfoExtractor):
                 'description': 'md5:757988edbaae9d7be1d585eb5d55cc04',
             },
         },
+        {
+            'url': 'http://www.nbcnews.com/nightly-news/video/nightly-news-with-brian-williams-full-broadcast-february-4-394064451844',
+            'md5': 'b5dda8cddd8650baa0dcb616dd2cf60d',
+            'info_dict': {
+                'id': 'sekXqyTVnmN3',
+                'ext': 'mp4',
+                'title': 'Nightly News with Brian Williams Full Broadcast (February 4)',
+                'description': 'md5:1c10c1eccbe84a26e5debb4381e2d3c5',
+            },
+        },
     ]
 
     def _real_extract(self, url):
@@ -107,13 +116,13 @@ class NBCNewsIE(InfoExtractor):
                 'thumbnail': find_xpath_attr(info, 'media', 'type', 'thumbnail').text,
             }
         else:
-            # "feature" pages use theplatform.com
+            # "feature" and "nightly-news" pages use theplatform.com
             title = mobj.group('title')
             webpage = self._download_webpage(url, title)
             bootstrap_json = self._search_regex(
-                r'var bootstrapJson = ({.+})\s*$', webpage, 'bootstrap json',
-                flags=re.MULTILINE)
-            bootstrap = json.loads(bootstrap_json)
+                r'var\s+(?:bootstrapJson|playlistData)\s*=\s*({.+});?\s*$',
+                webpage, 'bootstrap json', flags=re.MULTILINE)
+            bootstrap = self._parse_json(bootstrap_json, video_id)
             info = bootstrap['results'][0]['video']
             mpxid = info['mpxId']
 

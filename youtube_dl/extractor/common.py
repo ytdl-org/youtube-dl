@@ -665,7 +665,7 @@ class InfoExtractor(object):
         return RATING_TABLE.get(rating.lower(), None)
 
     def _family_friendly_search(self, html):
-        # See http://schema.org/VideoObj
+        # See http://schema.org/VideoObject
         family_friendly = self._html_search_meta('isFamilyFriendly', html)
 
         if not family_friendly:

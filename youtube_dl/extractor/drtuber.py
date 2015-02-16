@@ -15,7 +15,7 @@ class DrTuberIE(InfoExtractor):
             'id': '1740434',
             'display_id': 'hot-perky-blonde-naked-golf',
             'ext': 'mp4',
-            'title': 'Hot Perky Blonde Naked Golf',
+            'title': 'hot perky blonde naked golf',
             'like_count': int,
             'dislike_count': int,
             'comment_count': int,
@@ -36,7 +36,8 @@ class DrTuberIE(InfoExtractor):
             r'<source src="([^"]+)"', webpage, 'video URL')
 
         title = self._html_search_regex(
-            r'<title>([^<]+)\s*-\s*Free', webpage, 'title')
+            [r'class="hd_title" style="[^"]+">([^<]+)</h1>', r'<title>([^<]+) - \d+'],
+            webpage, 'title')
 
         thumbnail = self._html_search_regex(
             r'poster="([^"]+)"',
