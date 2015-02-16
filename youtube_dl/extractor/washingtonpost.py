@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -11,9 +12,10 @@ from ..utils import (
 
 class WashingtonPostIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?washingtonpost\.com/.*?/(?P<id>[^/]+)/(?:$|[?#])'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.washingtonpost.com/sf/national/2014/03/22/sinkhole-of-bureaucracy/',
         'info_dict': {
+            'id': 'sinkhole-of-bureaucracy',
             'title': 'Sinkhole of bureaucracy',
         },
         'playlist': [{
@@ -40,15 +42,38 @@ class WashingtonPostIE(InfoExtractor):
                 'upload_date': '20140322',
                 'uploader': 'The Washington Post',
             },
+        }],
+    }, {
+        'url': 'http://www.washingtonpost.com/blogs/wonkblog/wp/2014/12/31/one-airline-figured-out-how-to-make-sure-its-airplanes-never-disappear/',
+        'info_dict': {
+            'id': 'one-airline-figured-out-how-to-make-sure-its-airplanes-never-disappear',
+            'title': 'One airline figured out how to make sure its airplanes never disappear',
+        },
+        'playlist': [{
+            'md5': 'a7c1b5634ba5e57a6a82cdffa5b1e0d0',
+            'info_dict': {
+                'id': '0e4bb54c-9065-11e4-a66f-0ca5037a597d',
+                'ext': 'mp4',
+                'description': 'Washington Post transportation reporter Ashley Halsey III explains why a plane\'s black box needs to be recovered from a crash site instead of having its information streamed in real time throughout the flight.',
+                'upload_date': '20141230',
+                'uploader': 'The Washington Post',
+                'timestamp': 1419974765,
+                'title': 'Why black boxes don’t transmit data in real time',
+            }
         }]
-    }
+    }]
 
     def _real_extract(self, url):
         page_id = self._match_id(url)
         webpage = self._download_webpage(url, page_id)
 
         title = self._og_search_title(webpage)
-        uuids = re.findall(r'data-video-uuid="([^"]+)"', webpage)
+
+        uuids = re.findall(r'''(?x)
+            (?:
+                <div\s+class="posttv-video-embed[^>]*?data-uuid=|
+                data-video-uuid=
+            )"([^"]+)"''', webpage)
         entries = []
         for i, uuid in enumerate(uuids, start=1):
             vinfo_all = self._download_json(
@@ -75,10 +100,11 @@ class WashingtonPostIE(InfoExtractor):
                 'filesize': s.get('fileSize'),
                 'url': s.get('url'),
                 'ext': 'mp4',
+                'preference': -100 if s.get('type') == 'smil' else None,
                 'protocol': {
                     'MP4': 'http',
                     'F4F': 'f4m',
-                }.get(s.get('type'))
+                }.get(s.get('type')),
             } for s in vinfo.get('streams', [])]
             source_media_url = vinfo.get('sourceMediaURL')
             if source_media_url:

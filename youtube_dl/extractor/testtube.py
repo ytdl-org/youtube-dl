@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    qualities,
+)
 
 
 class TestTubeIE(InfoExtractor):
@@ -46,13 +49,22 @@ class TestTubeIE(InfoExtractor):
         self._sort_formats(formats)
 
         duration = int_or_none(info.get('duration'))
+        images = info.get('images')
+        thumbnails = None
+        preference = qualities(['mini', 'small', 'medium', 'large'])
+        if images:
+            thumbnails = [{
+                'id': thumbnail_id,
+                'url': img_url,
+                'preference': preference(thumbnail_id)
+            } for thumbnail_id, img_url in images.items()]
 
         return {
             'id': video_id,
             'display_id': display_id,
             'title': info['title'],
             'description': info.get('summary'),
-            'thumbnail': info.get('images', {}).get('large'),
+            'thumbnails': thumbnails,
             'uploader': info.get('show', {}).get('name'),
             'uploader_id': info.get('show', {}).get('slug'),
             'duration': duration,

@@ -9,7 +9,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     HEADRequest,
-    int_or_none,
+    str_to_int,
     parse_iso8601,
 )
 
@@ -18,7 +18,7 @@ class MixcloudIE(InfoExtractor):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/([^/]+)/([^/]+)'
     IE_NAME = 'mixcloud'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.mixcloud.com/dholbach/cryptkeeper/',
         'info_dict': {
             'id': 'dholbach-cryptkeeper',
@@ -33,7 +33,20 @@ class MixcloudIE(InfoExtractor):
             'view_count': int,
             'like_count': int,
         },
-    }
+    }, {
+        'url': 'http://www.mixcloud.com/gillespeterson/caribou-7-inch-vinyl-mix-chat/',
+        'info_dict': {
+            'id': 'gillespeterson-caribou-7-inch-vinyl-mix-chat',
+            'ext': 'm4a',
+            'title': 'Electric Relaxation vol. 3',
+            'description': 'md5:2b8aec6adce69f9d41724647c65875e8',
+            'uploader': 'Daniel Drumz',
+            'uploader_id': 'gillespeterson',
+            'thumbnail': 're:https?://.*\.jpg',
+            'view_count': int,
+            'like_count': int,
+        },
+    }]
 
     def _get_url(self, track_id, template_url):
         server_count = 30
@@ -60,7 +73,7 @@ class MixcloudIE(InfoExtractor):
         webpage = self._download_webpage(url, track_id)
 
         preview_url = self._search_regex(
-            r'\s(?:data-preview-url|m-preview)="(.+?)"', webpage, 'preview url')
+            r'\s(?:data-preview-url|m-preview)="([^"]+)"', webpage, 'preview url')
         song_url = preview_url.replace('/previews/', '/c/originals/')
         template_url = re.sub(r'(stream\d*)', 'stream%d', song_url)
         final_song_url = self._get_url(track_id, template_url)
@@ -85,15 +98,17 @@ class MixcloudIE(InfoExtractor):
         uploader_id = self._search_regex(
             r'\s+"profile": "([^"]+)",', webpage, 'uploader id', fatal=False)
         description = self._og_search_description(webpage)
-        like_count = int_or_none(self._search_regex(
-            r'<meta itemprop="interactionCount" content="UserLikes:([0-9]+)"',
+        like_count = str_to_int(self._search_regex(
+            [r'<meta itemprop="interactionCount" content="UserLikes:([0-9]+)"',
+             r'/favorites/?">([0-9]+)<'],
             webpage, 'like count', fatal=False))
-        view_count = int_or_none(self._search_regex(
-            r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
+        view_count = str_to_int(self._search_regex(
+            [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
+             r'/listeners/?">([0-9,.]+)</a>'],
             webpage, 'play count', fatal=False))
         timestamp = parse_iso8601(self._search_regex(
             r'<time itemprop="dateCreated" datetime="([^"]+)">',
-            webpage, 'upload date'))
+            webpage, 'upload date', default=None))
 
         return {
             'id': track_id,

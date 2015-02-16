@@ -17,6 +17,7 @@ import io
 import json
 import locale
 import math
+import operator
 import os
 import pipes
 import platform
@@ -32,6 +33,7 @@ import xml.etree.ElementTree
 import zlib
 
 from .compat import (
+    compat_basestring,
     compat_chr,
     compat_getenv,
     compat_html_entities,
@@ -58,6 +60,11 @@ std_headers = {
     'Accept-Encoding': 'gzip, deflate',
     'Accept-Language': 'en-us,en;q=0.5',
 }
+
+
+ENGLISH_MONTH_NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December']
 
 
 def preferredencoding():
@@ -140,7 +147,7 @@ else:
     def find_xpath_attr(node, xpath, key, val):
         # Here comes the crazy part: In 2.6, if the xpath is a unicode,
         # .//node does not match if a node is a direct child of . !
-        if isinstance(xpath, unicode):
+        if isinstance(xpath, compat_str):
             xpath = xpath.encode('ascii')
 
         for f in node.findall(xpath):
@@ -411,25 +418,9 @@ def make_HTTPS_handler(params, **kwargs):
             pass
 
     if sys.version_info < (3, 2):
-        import httplib
-
-        class HTTPSConnectionV3(httplib.HTTPSConnection):
-            def __init__(self, *args, **kwargs):
-                httplib.HTTPSConnection.__init__(self, *args, **kwargs)
-
-            def connect(self):
-                sock = socket.create_connection((self.host, self.port), self.timeout)
-                if getattr(self, '_tunnel_host', False):
-                    self.sock = sock
-                    self._tunnel()
-                try:
-                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_TLSv1)
-                except ssl.SSLError:
-                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_SSLv23)
-
-        return YoutubeDLHTTPSHandler(params, https_conn_class=HTTPSConnectionV3, **kwargs)
+        return YoutubeDLHTTPSHandler(params, **kwargs)
     else:  # Python < 3.4
-        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
         context.verify_mode = (ssl.CERT_NONE
                                if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
@@ -560,7 +551,9 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
                 sock = compat_socket_create_connection(
                     (self.host, self.port), self.timeout, sa)
                 if is_https:
-                    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file)
+                    self.sock = ssl.wrap_socket(
+                        sock, self.key_file, self.cert_file,
+                        ssl_version=ssl.PROTOCOL_TLSv1)
                 else:
                     self.sock = sock
             hc.connect = functools.partial(_hc_connect, hc)
@@ -620,11 +613,6 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             if 'Accept-encoding' in req.headers:
                 del req.headers['Accept-encoding']
             del req.headers['Youtubedl-no-compression']
-        if 'Youtubedl-user-agent' in req.headers:
-            if 'User-agent' in req.headers:
-                del req.headers['User-agent']
-            req.headers['User-agent'] = req.headers['Youtubedl-user-agent']
-            del req.headers['Youtubedl-user-agent']
 
         if sys.version_info < (2, 7) and '#' in req.get_full_url():
             # Python 2.6 is brain-dead when it comes to fragments
@@ -673,31 +661,37 @@ class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
         self._params = params
 
     def https_open(self, req):
+        kwargs = {}
+        if hasattr(self, '_context'):  # python > 2.6
+            kwargs['context'] = self._context
+        if hasattr(self, '_check_hostname'):  # python 3.x
+            kwargs['check_hostname'] = self._check_hostname
         return self.do_open(functools.partial(
             _create_http_connection, self, self._https_conn_class, True),
-            req)
+            req, **kwargs)
 
 
-def parse_iso8601(date_str, delimiter='T'):
+def parse_iso8601(date_str, delimiter='T', timezone=None):
     """ Return a UNIX timestamp from the given date """
 
     if date_str is None:
         return None
 
-    m = re.search(
-        r'(\.[0-9]+)?(?:Z$| ?(?P<sign>\+|-)(?P<hours>[0-9]{2}):?(?P<minutes>[0-9]{2})$)',
-        date_str)
-    if not m:
-        timezone = datetime.timedelta()
-    else:
-        date_str = date_str[:-len(m.group(0))]
-        if not m.group('sign'):
+    if timezone is None:
+        m = re.search(
+            r'(\.[0-9]+)?(?:Z$| ?(?P<sign>\+|-)(?P<hours>[0-9]{2}):?(?P<minutes>[0-9]{2})$)',
+            date_str)
+        if not m:
             timezone = datetime.timedelta()
         else:
-            sign = 1 if m.group('sign') == '+' else -1
-            timezone = datetime.timedelta(
-                hours=sign * int(m.group('hours')),
-                minutes=sign * int(m.group('minutes')))
+            date_str = date_str[:-len(m.group(0))]
+            if not m.group('sign'):
+                timezone = datetime.timedelta()
+            else:
+                sign = 1 if m.group('sign') == '+' else -1
+                timezone = datetime.timedelta(
+                    hours=sign * int(m.group('hours')),
+                    minutes=sign * int(m.group('minutes')))
     date_format = '%Y-%m-%d{0}%H:%M:%S'.format(delimiter)
     dt = datetime.datetime.strptime(date_str, date_format) - timezone
     return calendar.timegm(dt.timetuple())
@@ -714,7 +708,7 @@ def unified_strdate(date_str, day_first=True):
     # %z (UTC offset) is only supported in python>=3.2
     date_str = re.sub(r' ?(\+|-)[0-9]{2}:?[0-9]{2}$', '', date_str)
     # Remove AM/PM + timezone
-    date_str = re.sub(r'(?i)\s*(?:AM|PM)\s+[A-Z]+', '', date_str)
+    date_str = re.sub(r'(?i)\s*(?:AM|PM)(?:\s+[A-Z]+)?', '', date_str)
 
     format_expressions = [
         '%d %B %Y',
@@ -876,6 +870,9 @@ def _windows_write_string(s, out):
         fileno = out.fileno()
     except AttributeError:
         # If the output stream doesn't have a fileno, it's virtual
+        return False
+    except io.UnsupportedOperation:
+        # Some strange Windows pseudo files?
         return False
     if fileno not in WIN_OUTPUT_IDS:
         return False
@@ -1193,11 +1190,18 @@ def get_term_width():
 def month_by_name(name):
     """ Return the number of a month by (locale-independently) English name """
 
-    ENGLISH_NAMES = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December']
     try:
-        return ENGLISH_NAMES.index(name) + 1
+        return ENGLISH_MONTH_NAMES.index(name) + 1
+    except ValueError:
+        return None
+
+
+def month_by_abbreviation(abbrev):
+    """ Return the number of a month by (locale-independently) English
+        abbreviations """
+
+    try:
+        return [s[:3] for s in ENGLISH_MONTH_NAMES].index(abbrev) + 1
     except ValueError:
         return None
 
@@ -1273,7 +1277,7 @@ def float_or_none(v, scale=1, invscale=1, default=None):
 
 
 def parse_duration(s):
-    if not isinstance(s, basestring if sys.version_info < (3, 0) else compat_str):
+    if not isinstance(s, compat_basestring):
         return None
 
     s = s.strip()
@@ -1285,7 +1289,10 @@ def parse_duration(s):
             (?P<only_hours>[0-9.]+)\s*(?:hours?)|
 
             (?:
-                (?:(?P<hours>[0-9]+)\s*(?:[:h]|hours?)\s*)?
+                (?:
+                    (?:(?P<days>[0-9]+)\s*(?:[:d]|days?)\s*)?
+                    (?P<hours>[0-9]+)\s*(?:[:h]|hours?)\s*
+                )?
                 (?P<mins>[0-9]+)\s*(?:[:m]|mins?|minutes?)\s*
             )?
             (?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?\s*(?:s|secs?|seconds?)?
@@ -1303,6 +1310,8 @@ def parse_duration(s):
         res += int(m.group('mins')) * 60
     if m.group('hours'):
         res += int(m.group('hours')) * 60 * 60
+    if m.group('days'):
+        res += int(m.group('days')) * 24 * 60 * 60
     if m.group('ms'):
         res += float(m.group('ms'))
     return res
@@ -1437,7 +1446,7 @@ def uppercase_escape(s):
 
 def escape_rfc3986(s):
     """Escape non-ASCII characters as suggested by RFC 3986"""
-    if sys.version_info < (3, 0) and isinstance(s, unicode):
+    if sys.version_info < (3, 0) and isinstance(s, compat_str):
         s = s.encode('utf-8')
     return compat_urllib_parse.quote(s, b"%/;:@&=+$,!~*'()?#[]")
 
@@ -1553,7 +1562,7 @@ def js_to_json(code):
     res = re.sub(r'''(?x)
         "(?:[^"\\]*(?:\\\\|\\")?)*"|
         '(?:[^'\\]*(?:\\\\|\\')?)*'|
-        [a-zA-Z_][a-zA-Z_0-9]*
+        [a-zA-Z_][.a-zA-Z_0-9]*
         ''', fix_kv, code)
     res = re.sub(r',(\s*\])', lambda m: m.group(1), res)
     return res
@@ -1653,3 +1662,109 @@ def is_html(first_bytes):
         s = first_bytes.decode('utf-8', 'replace')
 
     return re.match(r'^\s*<', s)
+
+
+def determine_protocol(info_dict):
+    protocol = info_dict.get('protocol')
+    if protocol is not None:
+        return protocol
+
+    url = info_dict['url']
+    if url.startswith('rtmp'):
+        return 'rtmp'
+    elif url.startswith('mms'):
+        return 'mms'
+    elif url.startswith('rtsp'):
+        return 'rtsp'
+
+    ext = determine_ext(url)
+    if ext == 'm3u8':
+        return 'm3u8'
+    elif ext == 'f4m':
+        return 'f4m'
+
+    return compat_urllib_parse_urlparse(url).scheme
+
+
+def render_table(header_row, data):
+    """ Render a list of rows, each as a list of values """
+    table = [header_row] + data
+    max_lens = [max(len(compat_str(v)) for v in col) for col in zip(*table)]
+    format_str = ' '.join('%-' + compat_str(ml + 1) + 's' for ml in max_lens[:-1]) + '%s'
+    return '\n'.join(format_str % tuple(row) for row in table)
+
+
+def _match_one(filter_part, dct):
+    COMPARISON_OPERATORS = {
+        '<': operator.lt,
+        '<=': operator.le,
+        '>': operator.gt,
+        '>=': operator.ge,
+        '=': operator.eq,
+        '!=': operator.ne,
+    }
+    operator_rex = re.compile(r'''(?x)\s*
+        (?P<key>[a-z_]+)
+        \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?\s*
+        (?:
+            (?P<intval>[0-9.]+(?:[kKmMgGtTpPeEzZyY]i?[Bb]?)?)|
+            (?P<strval>(?![0-9.])[a-z0-9A-Z]*)
+        )
+        \s*$
+        ''' % '|'.join(map(re.escape, COMPARISON_OPERATORS.keys())))
+    m = operator_rex.search(filter_part)
+    if m:
+        op = COMPARISON_OPERATORS[m.group('op')]
+        if m.group('strval') is not None:
+            if m.group('op') not in ('=', '!='):
+                raise ValueError(
+                    'Operator %s does not support string values!' % m.group('op'))
+            comparison_value = m.group('strval')
+        else:
+            try:
+                comparison_value = int(m.group('intval'))
+            except ValueError:
+                comparison_value = parse_filesize(m.group('intval'))
+                if comparison_value is None:
+                    comparison_value = parse_filesize(m.group('intval') + 'B')
+                if comparison_value is None:
+                    raise ValueError(
+                        'Invalid integer value %r in filter part %r' % (
+                            m.group('intval'), filter_part))
+        actual_value = dct.get(m.group('key'))
+        if actual_value is None:
+            return m.group('none_inclusive')
+        return op(actual_value, comparison_value)
+
+    UNARY_OPERATORS = {
+        '': lambda v: v is not None,
+        '!': lambda v: v is None,
+    }
+    operator_rex = re.compile(r'''(?x)\s*
+        (?P<op>%s)\s*(?P<key>[a-z_]+)
+        \s*$
+        ''' % '|'.join(map(re.escape, UNARY_OPERATORS.keys())))
+    m = operator_rex.search(filter_part)
+    if m:
+        op = UNARY_OPERATORS[m.group('op')]
+        actual_value = dct.get(m.group('key'))
+        return op(actual_value)
+
+    raise ValueError('Invalid filter part %r' % filter_part)
+
+
+def match_str(filter_str, dct):
+    """ Filter a dictionary with a simple string syntax. Returns True (=passes filter) or false """
+
+    return all(
+        _match_one(filter_part, dct) for filter_part in filter_str.split('&'))
+
+
+def match_filter_func(filter_str):
+    def _match_func(info_dict):
+        if match_str(filter_str, info_dict):
+            return None
+        else:
+            video_title = info_dict.get('title', info_dict.get('id', 'video'))
+            return '%s does not pass filter %s, skipping ..' % (video_title, filter_str)
+    return _match_func

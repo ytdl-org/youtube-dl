@@ -122,14 +122,15 @@ class AppleTrailersIE(InfoExtractor):
             playlist.append({
                 '_type': 'video',
                 'id': video_id,
-                'title': title,
                 'formats': formats,
                 'title': title,
                 'duration': duration,
                 'thumbnail': thumbnail,
                 'upload_date': upload_date,
                 'uploader_id': uploader_id,
-                'user_agent': 'QuickTime compatible (youtube-dl)',
+                'http_headers': {
+                    'User-Agent': 'QuickTime compatible (youtube-dl)',
+                },
             })
 
         return {

@@ -24,6 +24,23 @@ class CommonMistakesIE(InfoExtractor):
             'That doesn\'t make any sense. '
             'Simply remove the parameter in your command or configuration.'
         ) % url
-        if self._downloader.params.get('verbose'):
+        if not self._downloader.params.get('verbose'):
             msg += ' Add -v to the command line to see what arguments and configuration youtube-dl got.'
         raise ExtractorError(msg, expected=True)
+
+
+class UnicodeBOMIE(InfoExtractor):
+        IE_DESC = False
+        _VALID_URL = r'(?P<bom>\ufeff)(?P<id>.*)$'
+
+        _TESTS = [{
+            'url': '\ufeffhttp://www.youtube.com/watch?v=BaW_jenozKc',
+            'only_matching': True,
+        }]
+
+        def _real_extract(self, url):
+            real_url = self._match_id(url)
+            self.report_warning(
+                'Your URL starts with a Byte Order Mark (BOM). '
+                'Removing the BOM and looking for "%s" ...' % real_url)
+            return self.url_result(real_url)

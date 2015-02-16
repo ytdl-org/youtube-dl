@@ -3,6 +3,9 @@ from __future__ import unicode_literals
 import os
 import time
 
+from socket import error as SocketError
+import errno
+
 from .common import FileDownloader
 from ..compat import (
     compat_urllib_request,
@@ -24,10 +27,6 @@ class HttpFD(FileDownloader):
 
         # Do not include the Accept-Encoding header
         headers = {'Youtubedl-no-compression': 'True'}
-        if 'user_agent' in info_dict:
-            headers['Youtubedl-user-agent'] = info_dict['user_agent']
-        if 'http_referer' in info_dict:
-            headers['Referer'] = info_dict['http_referer']
         add_headers = info_dict.get('http_headers')
         if add_headers:
             headers.update(add_headers)
@@ -103,6 +102,11 @@ class HttpFD(FileDownloader):
                             resume_len = 0
                             open_mode = 'wb'
                             break
+            except SocketError as e:
+                if e.errno != errno.ECONNRESET:
+                    # Connection reset is no problem, just retry
+                    raise
+
             # Retry
             count += 1
             if count <= retries:
@@ -161,6 +165,14 @@ class HttpFD(FileDownloader):
                 except (OSError, IOError) as err:
                     self.report_error('unable to open for writing: %s' % str(err))
                     return False
+
+                if self.params.get('xattr_set_filesize', False) and data_len is not None:
+                    try:
+                        import xattr
+                        xattr.setxattr(tmpfilename, 'user.ytdl.filesize', str(data_len))
+                    except(OSError, IOError, ImportError) as err:
+                        self.report_error('unable to set filesize xattr: %s' % str(err))
+
             try:
                 stream.write(data_block)
             except (IOError, OSError) as err:

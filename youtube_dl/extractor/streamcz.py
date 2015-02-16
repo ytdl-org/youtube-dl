@@ -1,14 +1,30 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import hashlib
+import time
+
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_request,
+)
 from ..utils import (
     int_or_none,
 )
 
 
+def _get_api_key(api_path):
+    if api_path.endswith('?'):
+        api_path = api_path[:-1]
+
+    api_key = 'fb5f58a820353bd7095de526253c14fd'
+    a = '{0:}{1:}{2:}'.format(api_key, api_path, int(round(time.time() / 24 / 3600)))
+    return hashlib.md5(a.encode('ascii')).hexdigest()
+
+
 class StreamCZIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?stream\.cz/.+/(?P<id>[0-9]+)'
+    _API_URL = 'http://www.stream.cz/API'
 
     _TESTS = [{
         'url': 'http://www.stream.cz/peklonataliri/765767-ecka-pro-deti',
@@ -36,8 +52,11 @@ class StreamCZIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        data = self._download_json(
-            'http://www.stream.cz/API/episode/%s' % video_id, video_id)
+        api_path = '/episode/%s' % video_id
+
+        req = compat_urllib_request.Request(self._API_URL + api_path)
+        req.add_header('Api-Password', _get_api_key(api_path))
+        data = self._download_json(req, video_id)
 
         formats = []
         for quality, video in enumerate(data['video_qualities']):

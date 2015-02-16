@@ -11,6 +11,7 @@ class NerdCubedFeedIE(InfoExtractor):
     _TEST = {
         'url': 'http://www.nerdcubed.co.uk/feed.json',
         'info_dict': {
+            'id': 'nerdcubed-feed',
             'title': 'nerdcubed.co.uk feed',
         },
         'playlist_mincount': 1300,

@@ -14,6 +14,7 @@ import xml.etree.ElementTree
 
 from ..compat import (
     compat_cookiejar,
+    compat_HTTPError,
     compat_http_client,
     compat_urllib_error,
     compat_urllib_parse_urlparse,
@@ -26,6 +27,7 @@ from ..utils import (
     compiled_regex_type,
     ExtractorError,
     float_or_none,
+    HEADRequest,
     int_or_none,
     RegexNotFoundError,
     sanitize_filename,
@@ -87,7 +89,8 @@ class InfoExtractor(object):
                     * player_url SWF Player URL (used for rtmpdump).
                     * protocol   The protocol that will be used for the actual
                                  download, lower-case.
-                                 "http", "https", "rtsp", "rtmp", "m3u8" or so.
+                                 "http", "https", "rtsp", "rtmp", "rtmpe",
+                                 "m3u8", or "m3u8_native".
                     * preference Order number of this format. If this field is
                                  present and not None, the formats get sorted
                                  by this field, regardless of all other values.
@@ -108,15 +111,17 @@ class InfoExtractor(object):
                                   (quality takes higher priority)
                                  -1 for default (order by other properties),
                                  -2 or smaller for less than default.
-                    * http_referer  HTTP Referer header value to set.
                     * http_method  HTTP method to use for the download.
                     * http_headers  A dictionary of additional HTTP headers
                                  to add to the request.
                     * http_post_data  Additional data to send with a POST
                                  request.
                     * stretched_ratio  If given and not 1, indicates that the
-                                       video's pixels are not square.
-                                       width : height ratio as float.
+                                 video's pixels are not square.
+                                 width : height ratio as float.
+                    * no_resume  The server does not support resuming the
+                                 (HTTP or RTMP) download. Boolean.
+
     url:            Final video URL.
     ext:            Video filename extension.
     format:         The video format, defaults to ext (used for --get-format)
@@ -130,7 +135,9 @@ class InfoExtractor(object):
                     something like "4234987", title "Dancing naked mole rats",
                     and display_id "dancing-naked-mole-rats"
     thumbnails:     A list of dictionaries, with the following entries:
+                        * "id" (optional, string) - Thumbnail format ID
                         * "url"
+                        * "preference" (optional, int) - quality of the image
                         * "width" (optional, int)
                         * "height" (optional, int)
                         * "resolution" (optional, string "{width}x{height"},
@@ -138,6 +145,7 @@ class InfoExtractor(object):
     thumbnail:      Full URL to a video thumbnail image.
     description:    Full video description.
     uploader:       Full name of the video uploader.
+    creator:        The main artist who created the video.
     timestamp:      UNIX timestamp of the moment the video became available.
     upload_date:    Video upload date (YYYYMMDD).
                     If not explicitly set, calculated from timestamp.
@@ -149,6 +157,7 @@ class InfoExtractor(object):
     view_count:     How many users have watched the video on the platform.
     like_count:     Number of positive ratings of the video
     dislike_count:  Number of negative ratings of the video
+    average_rating: Average rating give by users, the scale used depends on the webpage
     comment_count:  Number of comments on the video
     comments:       A list of comments, each with one or more of the following
                     properties (all but one of text or html optional):
@@ -256,8 +265,15 @@ class InfoExtractor(object):
 
     def extract(self, url):
         """Extracts URL information and returns it in list of dicts."""
-        self.initialize()
-        return self._real_extract(url)
+        try:
+            self.initialize()
+            return self._real_extract(url)
+        except ExtractorError:
+            raise
+        except compat_http_client.IncompleteRead as e:
+            raise ExtractorError('A network error has occured.', cause=e, expected=True)
+        except (KeyError, StopIteration) as e:
+            raise ExtractorError('An extractor error has occured.', cause=e)
 
     def set_downloader(self, downloader):
         """Sets the downloader for this IE."""
@@ -499,7 +515,7 @@ class InfoExtractor(object):
                 if mobj:
                     break
 
-        if os.name != 'nt' and sys.stderr.isatty():
+        if not self._downloader.params.get('no_color') and os.name != 'nt' and sys.stderr.isatty():
             _name = '\033[0;34m%s\033[0m' % name
         else:
             _name = name
@@ -648,6 +664,21 @@ class InfoExtractor(object):
         }
         return RATING_TABLE.get(rating.lower(), None)
 
+    def _family_friendly_search(self, html):
+        # See http://schema.org/VideoObject
+        family_friendly = self._html_search_meta('isFamilyFriendly', html)
+
+        if not family_friendly:
+            return None
+
+        RATING_TABLE = {
+            '1': 0,
+            'true': 0,
+            '0': 18,
+            'false': 18,
+        }
+        return RATING_TABLE.get(family_friendly.lower(), None)
+
     def _twitter_search_player(self, html):
         return self._html_search_meta('twitter:player', html,
                                       'twitter card player')
@@ -697,20 +728,41 @@ class InfoExtractor(object):
                 preference,
                 f.get('language_preference') if f.get('language_preference') is not None else -1,
                 f.get('quality') if f.get('quality') is not None else -1,
+                f.get('tbr') if f.get('tbr') is not None else -1,
+                f.get('filesize') if f.get('filesize') is not None else -1,
+                f.get('vbr') if f.get('vbr') is not None else -1,
                 f.get('height') if f.get('height') is not None else -1,
                 f.get('width') if f.get('width') is not None else -1,
                 ext_preference,
-                f.get('tbr') if f.get('tbr') is not None else -1,
-                f.get('vbr') if f.get('vbr') is not None else -1,
                 f.get('abr') if f.get('abr') is not None else -1,
                 audio_ext_preference,
                 f.get('fps') if f.get('fps') is not None else -1,
-                f.get('filesize') if f.get('filesize') is not None else -1,
                 f.get('filesize_approx') if f.get('filesize_approx') is not None else -1,
                 f.get('source_preference') if f.get('source_preference') is not None else -1,
                 f.get('format_id'),
             )
         formats.sort(key=_formats_key)
+
+    def _check_formats(self, formats, video_id):
+        if formats:
+            formats[:] = filter(
+                lambda f: self._is_valid_url(
+                    f['url'], video_id,
+                    item='%s video format' % f.get('format_id') if f.get('format_id') else 'video'),
+                formats)
+
+    def _is_valid_url(self, url, video_id, item='video'):
+        try:
+            self._request_webpage(
+                HEADRequest(url), video_id,
+                'Checking %s URL' % item)
+            return True
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError):
+                self.report_warning(
+                    '%s URL is invalid, skipping' % item, video_id)
+                return False
+            raise
 
     def http_scheme(self):
         """ Either "http:" or "https:", depending on the user's preferences """
@@ -736,7 +788,7 @@ class InfoExtractor(object):
         self.to_screen(msg)
         time.sleep(timeout)
 
-    def _extract_f4m_formats(self, manifest_url, video_id):
+    def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None):
         manifest = self._download_xml(
             manifest_url, video_id, 'Downloading f4m manifest',
             'Unable to download f4m manifest')
@@ -749,26 +801,28 @@ class InfoExtractor(object):
             media_nodes = manifest.findall('{http://ns.adobe.com/f4m/2.0}media')
         for i, media_el in enumerate(media_nodes):
             if manifest_version == '2.0':
-                manifest_url = '/'.join(manifest_url.split('/')[:-1]) + '/' + media_el.attrib.get('href')
+                manifest_url = ('/'.join(manifest_url.split('/')[:-1]) + '/'
+                                + (media_el.attrib.get('href') or media_el.attrib.get('url')))
             tbr = int_or_none(media_el.attrib.get('bitrate'))
-            format_id = 'f4m-%d' % (i if tbr is None else tbr)
             formats.append({
-                'format_id': format_id,
+                'format_id': '-'.join(filter(None, [f4m_id, 'f4m-%d' % (i if tbr is None else tbr)])),
                 'url': manifest_url,
                 'ext': 'flv',
                 'tbr': tbr,
                 'width': int_or_none(media_el.attrib.get('width')),
                 'height': int_or_none(media_el.attrib.get('height')),
+                'preference': preference,
             })
         self._sort_formats(formats)
 
         return formats
 
     def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
-                              entry_protocol='m3u8', preference=None):
+                              entry_protocol='m3u8', preference=None,
+                              m3u8_id=None):
 
         formats = [{
-            'format_id': 'm3u8-meta',
+            'format_id': '-'.join(filter(None, [m3u8_id, 'm3u8-meta'])),
             'url': m3u8_url,
             'ext': ext,
             'protocol': 'm3u8',
@@ -804,9 +858,8 @@ class InfoExtractor(object):
                     formats.append({'url': format_url(line)})
                     continue
                 tbr = int_or_none(last_info.get('BANDWIDTH'), scale=1000)
-
                 f = {
-                    'format_id': 'm3u8-%d' % (tbr if tbr else len(formats)),
+                    'format_id': '-'.join(filter(None, [m3u8_id, 'm3u8-%d' % (tbr if tbr else len(formats))])),
                     'url': format_url(line.strip()),
                     'tbr': tbr,
                     'ext': ext,
@@ -832,10 +885,13 @@ class InfoExtractor(object):
         return formats
 
     # TODO: improve extraction
-    def _extract_smil_formats(self, smil_url, video_id):
+    def _extract_smil_formats(self, smil_url, video_id, fatal=True):
         smil = self._download_xml(
             smil_url, video_id, 'Downloading SMIL file',
-            'Unable to download SMIL file')
+            'Unable to download SMIL file', fatal=fatal)
+        if smil is False:
+            assert not fatal
+            return []
 
         base = smil.find('./head/meta').get('base')
 

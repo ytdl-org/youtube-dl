@@ -62,5 +62,7 @@ class VideoMegaIE(InfoExtractor):
             'title': title,
             'formats': formats,
             'thumbnail': thumbnail,
-            'http_referer': iframe_url,
+            'http_headers': {
+                'Referer': iframe_url,
+            },
         }

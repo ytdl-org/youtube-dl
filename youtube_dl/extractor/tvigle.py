@@ -1,6 +1,8 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     float_or_none,
@@ -11,7 +13,7 @@ from ..utils import (
 class TvigleIE(InfoExtractor):
     IE_NAME = 'tvigle'
     IE_DESC = 'Интернет-телевидение Tvigle.ru'
-    _VALID_URL = r'http://(?:www\.)?tvigle\.ru/(?:[^/]+/)+(?P<id>[^/]+)/$'
+    _VALID_URL = r'https?://(?:www\.)?(?:tvigle\.ru/(?:[^/]+/)+(?P<display_id>[^/]+)/$|cloud\.tvigle\.ru/video/(?P<id>\d+))'
 
     _TESTS = [
         {
@@ -38,16 +40,22 @@ class TvigleIE(InfoExtractor):
                 'duration': 186.080,
                 'age_limit': 0,
             },
-        },
+        }, {
+            'url': 'https://cloud.tvigle.ru/video/5267604/',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        display_id = mobj.group('display_id')
 
-        webpage = self._download_webpage(url, display_id)
-
-        video_id = self._html_search_regex(
-            r'<li class="video-preview current_playing" id="(\d+)">', webpage, 'video id')
+        if not video_id:
+            webpage = self._download_webpage(url, display_id)
+            video_id = self._html_search_regex(
+                r'<li class="video-preview current_playing" id="(\d+)">',
+                webpage, 'video id')
 
         video_data = self._download_json(
             'http://cloud.tvigle.ru/api/play/video/%s/' % video_id, display_id)

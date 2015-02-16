@@ -1,8 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 
 from ..utils import (
@@ -11,7 +9,7 @@ from ..utils import (
 
 
 class NormalbootsIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?normalboots\.com/video/(?P<videoid>[0-9a-z-]*)/?$'
+    _VALID_URL = r'http://(?:www\.)?normalboots\.com/video/(?P<id>[0-9a-z-]*)/?$'
     _TEST = {
         'url': 'http://normalboots.com/video/home-alone-games-jontron/',
         'md5': '8bf6de238915dd501105b44ef5f1e0f6',
@@ -30,19 +28,22 @@ class NormalbootsIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        video_uploader = self._html_search_regex(r'Posted\sby\s<a\shref="[A-Za-z0-9/]*">(?P<uploader>[A-Za-z]*)\s</a>',
-                                                 webpage, 'uploader')
-        raw_upload_date = self._html_search_regex('<span style="text-transform:uppercase; font-size:inherit;">[A-Za-z]+, (?P<date>.*)</span>',
-                                                  webpage, 'date')
-        video_upload_date = unified_strdate(raw_upload_date)
 
-        player_url = self._html_search_regex(r'<iframe\swidth="[0-9]+"\sheight="[0-9]+"\ssrc="(?P<url>[\S]+)"', webpage, 'url')
+        video_uploader = self._html_search_regex(
+            r'Posted\sby\s<a\shref="[A-Za-z0-9/]*">(?P<uploader>[A-Za-z]*)\s</a>',
+            webpage, 'uploader', fatal=False)
+        video_upload_date = unified_strdate(self._html_search_regex(
+            r'<span style="text-transform:uppercase; font-size:inherit;">[A-Za-z]+, (?P<date>.*)</span>',
+            webpage, 'date', fatal=False))
+
+        player_url = self._html_search_regex(
+            r'<iframe\swidth="[0-9]+"\sheight="[0-9]+"\ssrc="(?P<url>[\S]+)"',
+            webpage, 'player url')
         player_page = self._download_webpage(player_url, video_id)
-        video_url = self._html_search_regex(r"file:\s'(?P<file>[^']+\.mp4)'", player_page, 'file')
+        video_url = self._html_search_regex(
+            r"file:\s'(?P<file>[^']+\.mp4)'", player_page, 'file')
 
         return {
             'id': video_id,

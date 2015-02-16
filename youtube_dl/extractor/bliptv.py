@@ -199,7 +199,7 @@ class BlipTVIE(SubtitlesInfoExtractor):
         # For some weird reason, blip.tv serves a video instead of subtitles
         # when we request with a common UA
         req = compat_urllib_request.Request(url)
-        req.add_header('Youtubedl-user-agent', 'youtube-dl')
+        req.add_header('User-Agent', 'youtube-dl')
         return self._download_webpage(req, None, note=False)
 
 

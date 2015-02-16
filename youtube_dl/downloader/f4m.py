@@ -177,13 +177,12 @@ def build_fragments_list(boot_info):
     """ Return a list of (segment, fragment) for each fragment in the video """
     res = []
     segment_run_table = boot_info['segments'][0]
-    # I've only found videos with one segment
-    segment_run_entry = segment_run_table['segment_run'][0]
-    n_frags = segment_run_entry[1]
     fragment_run_entry_table = boot_info['fragments'][0]['fragments']
     first_frag_number = fragment_run_entry_table[0]['first']
-    for (i, frag_number) in zip(range(1, n_frags + 1), itertools.count(first_frag_number)):
-        res.append((1, frag_number))
+    fragments_counter = itertools.count(first_frag_number)
+    for segment, fragments_count in segment_run_table['segment_run']:
+        for _ in range(fragments_count):
+            res.append((segment, next(fragments_counter)))
     return res
 
 
@@ -231,6 +230,23 @@ class F4mFD(FileDownloader):
     A downloader for f4m manifests or AdobeHDS.
     """
 
+    def _get_unencrypted_media(self, doc):
+        media = doc.findall(_add_ns('media'))
+        if not media:
+            self.report_error('No media found')
+        for e in (doc.findall(_add_ns('drmAdditionalHeader')) +
+                  doc.findall(_add_ns('drmAdditionalHeaderSet'))):
+            # If id attribute is missing it's valid for all media nodes
+            # without drmAdditionalHeaderId or drmAdditionalHeaderSetId attribute
+            if 'id' not in e.attrib:
+                self.report_error('Missing ID in f4m DRM')
+        media = list(filter(lambda e: 'drmAdditionalHeaderId' not in e.attrib and
+                                      'drmAdditionalHeaderSetId' not in e.attrib,
+                            media))
+        if not media:
+            self.report_error('Unsupported DRM')
+        return media
+
     def real_download(self, filename, info_dict):
         man_url = info_dict['url']
         requested_bitrate = info_dict.get('tbr')
@@ -249,7 +265,8 @@ class F4mFD(FileDownloader):
         )
 
         doc = etree.fromstring(manifest)
-        formats = [(int(f.attrib.get('bitrate', -1)), f) for f in doc.findall(_add_ns('media'))]
+        formats = [(int(f.attrib.get('bitrate', -1)), f)
+                   for f in self._get_unencrypted_media(doc)]
         if requested_bitrate is None:
             # get the best format
             formats = sorted(formats, key=lambda f: f[0])

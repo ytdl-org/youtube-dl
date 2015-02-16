@@ -6,12 +6,14 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
+    compat_urllib_parse_urlparse,
 )
 from ..utils import (
     int_or_none,
     parse_duration,
     parse_iso8601,
     unescapeHTML,
+    xpath_text,
 )
 
 
@@ -159,11 +161,27 @@ class RTSIE(InfoExtractor):
             return int_or_none(self._search_regex(
                 r'-([0-9]+)k\.', url, 'bitrate', default=None))
 
-        formats = [{
-            'format_id': fid,
-            'url': furl,
-            'tbr': extract_bitrate(furl),
-        } for fid, furl in info['streams'].items()]
+        formats = []
+        for format_id, format_url in info['streams'].items():
+            if format_url.endswith('.f4m'):
+                token = self._download_xml(
+                    'http://tp.srgssr.ch/token/akahd.xml?stream=%s/*' % compat_urllib_parse_urlparse(format_url).path,
+                    video_id, 'Downloading %s token' % format_id)
+                auth_params = xpath_text(token, './/authparams', 'auth params')
+                if not auth_params:
+                    continue
+                formats.extend(self._extract_f4m_formats(
+                    '%s?%s&hdcore=3.4.0&plugin=aasp-3.4.0.132.66' % (format_url, auth_params),
+                    video_id, f4m_id=format_id))
+            elif format_url.endswith('.m3u8'):
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', m3u8_id=format_id))
+            else:
+                formats.append({
+                    'format_id': format_id,
+                    'url': format_url,
+                    'tbr': extract_bitrate(format_url),
+                })
 
         if 'media' in info:
             formats.extend([{

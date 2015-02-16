@@ -52,6 +52,8 @@ from youtube_dl.utils import (
     urlencode_postdata,
     version_tuple,
     xpath_with_ns,
+    render_table,
+    match_str,
 )
 
 
@@ -155,6 +157,9 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(
             unified_strdate('11/26/2014 11:30:00 AM PST', day_first=False),
             '20141126')
+        self.assertEqual(
+            unified_strdate('2/2/2015 6:47:40 PM', day_first=False),
+            '20150202')
 
     def test_find_xpath_attr(self):
         testxml = '''<root>
@@ -237,6 +242,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_duration('5 s'), 5)
         self.assertEqual(parse_duration('3 min'), 180)
         self.assertEqual(parse_duration('2.5 hours'), 9000)
+        self.assertEqual(parse_duration('02:03:04'), 7384)
+        self.assertEqual(parse_duration('01:02:03:04'), 93784)
 
     def test_fix_xml_ampersands(self):
         self.assertEqual(
@@ -370,6 +377,16 @@ class TestUtil(unittest.TestCase):
         on = js_to_json('{"abc": true}')
         self.assertEqual(json.loads(on), {'abc': True})
 
+        # Ignore JavaScript code as well
+        on = js_to_json('''{
+            "x": 1,
+            y: "a",
+            z: some.code
+        }''')
+        d = json.loads(on)
+        self.assertEqual(d['x'], 1)
+        self.assertEqual(d['y'], 'a')
+
     def test_clean_html(self):
         self.assertEqual(clean_html('a:\nb'), 'a: b')
         self.assertEqual(clean_html('a:\n   "b"'), 'a:    "b"')
@@ -433,6 +450,47 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
             b'\x00\x00\xFE\xFF\x00\x00\x00<\x00\x00\x00h\x00\x00\x00t\x00\x00\x00m\x00\x00\x00l\x00\x00\x00>\x00\x00\x00\xe4'))
         self.assertTrue(is_html(  # UTF-32-LE
             b'\xFF\xFE\x00\x00<\x00\x00\x00h\x00\x00\x00t\x00\x00\x00m\x00\x00\x00l\x00\x00\x00>\x00\x00\x00\xe4\x00\x00\x00'))
+
+    def test_render_table(self):
+        self.assertEqual(
+            render_table(
+                ['a', 'bcd'],
+                [[123, 4], [9999, 51]]),
+            'a    bcd\n'
+            '123  4\n'
+            '9999 51')
+
+    def test_match_str(self):
+        self.assertRaises(ValueError, match_str, 'xy>foobar', {})
+        self.assertFalse(match_str('xy', {'x': 1200}))
+        self.assertTrue(match_str('!xy', {'x': 1200}))
+        self.assertTrue(match_str('x', {'x': 1200}))
+        self.assertFalse(match_str('!x', {'x': 1200}))
+        self.assertTrue(match_str('x', {'x': 0}))
+        self.assertFalse(match_str('x>0', {'x': 0}))
+        self.assertFalse(match_str('x>0', {}))
+        self.assertTrue(match_str('x>?0', {}))
+        self.assertTrue(match_str('x>1K', {'x': 1200}))
+        self.assertFalse(match_str('x>2K', {'x': 1200}))
+        self.assertTrue(match_str('x>=1200 & x < 1300', {'x': 1200}))
+        self.assertFalse(match_str('x>=1100 & x < 1200', {'x': 1200}))
+        self.assertFalse(match_str('y=a212', {'y': 'foobar42'}))
+        self.assertTrue(match_str('y=foobar42', {'y': 'foobar42'}))
+        self.assertFalse(match_str('y!=foobar42', {'y': 'foobar42'}))
+        self.assertTrue(match_str('y!=foobar2', {'y': 'foobar42'}))
+        self.assertFalse(match_str(
+            'like_count > 100 & dislike_count <? 50 & description',
+            {'like_count': 90, 'description': 'foo'}))
+        self.assertTrue(match_str(
+            'like_count > 100 & dislike_count <? 50 & description',
+            {'like_count': 190, 'description': 'foo'}))
+        self.assertFalse(match_str(
+            'like_count > 100 & dislike_count <? 50 & description',
+            {'like_count': 190, 'dislike_count': 60, 'description': 'foo'}))
+        self.assertFalse(match_str(
+            'like_count > 100 & dislike_count <? 50 & description',
+            {'like_count': 190, 'dislike_count': 10}))
+
 
 if __name__ == '__main__':
     unittest.main()

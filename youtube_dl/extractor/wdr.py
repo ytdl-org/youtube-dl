@@ -71,6 +71,9 @@ class WDRIE(InfoExtractor):
         {
             'url': 'http://www1.wdr.de/mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100.html',
             'playlist_mincount': 146,
+            'info_dict': {
+                'id': 'mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100',
+            }
         }
     ]
 
@@ -169,7 +172,9 @@ class WDRMobileIE(InfoExtractor):
             'title': mobj.group('title'),
             'age_limit': int(mobj.group('age_limit')),
             'url': url,
-            'user_agent': 'mobile',
+            'http_headers': {
+                'User-Agent': 'mobile',
+            },
         }
 
 

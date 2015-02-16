@@ -1,59 +1,122 @@
 from __future__ import unicode_literals
 
 import json
+import operator
 import re
 
 from .utils import (
     ExtractorError,
 )
 
+_OPERATORS = [
+    ('|', operator.or_),
+    ('^', operator.xor),
+    ('&', operator.and_),
+    ('>>', operator.rshift),
+    ('<<', operator.lshift),
+    ('-', operator.sub),
+    ('+', operator.add),
+    ('%', operator.mod),
+    ('/', operator.truediv),
+    ('*', operator.mul),
+]
+_ASSIGN_OPERATORS = [(op + '=', opfunc) for op, opfunc in _OPERATORS]
+_ASSIGN_OPERATORS.append(('=', lambda cur, right: right))
+
+_NAME_RE = r'[a-zA-Z_$][a-zA-Z_$0-9]*'
+
 
 class JSInterpreter(object):
-    def __init__(self, code):
-        self.code = code
+    def __init__(self, code, objects=None):
+        if objects is None:
+            objects = {}
+        self.code = self._remove_comments(code)
         self._functions = {}
-        self._objects = {}
+        self._objects = objects
 
-    def interpret_statement(self, stmt, local_vars, allow_recursion=20):
+    def _remove_comments(self, code):
+        return re.sub(r'(?s)/\*.*?\*/', '', code)
+
+    def interpret_statement(self, stmt, local_vars, allow_recursion=100):
         if allow_recursion < 0:
             raise ExtractorError('Recursion limit reached')
 
-        if stmt.startswith('var '):
-            stmt = stmt[len('var '):]
-        ass_m = re.match(r'^(?P<out>[a-z]+)(?:\[(?P<index>[^\]]+)\])?' +
-                         r'=(?P<expr>.*)$', stmt)
-        if ass_m:
-            if ass_m.groupdict().get('index'):
-                def assign(val):
-                    lvar = local_vars[ass_m.group('out')]
-                    idx = self.interpret_expression(
-                        ass_m.group('index'), local_vars, allow_recursion)
-                    assert isinstance(idx, int)
-                    lvar[idx] = val
-                    return val
-                expr = ass_m.group('expr')
-            else:
-                def assign(val):
-                    local_vars[ass_m.group('out')] = val
-                    return val
-                expr = ass_m.group('expr')
-        elif stmt.startswith('return '):
-            assign = lambda v: v
-            expr = stmt[len('return '):]
+        should_abort = False
+        stmt = stmt.lstrip()
+        stmt_m = re.match(r'var\s', stmt)
+        if stmt_m:
+            expr = stmt[len(stmt_m.group(0)):]
         else:
-            # Try interpreting it as an expression
-            expr = stmt
-            assign = lambda v: v
+            return_m = re.match(r'return(?:\s+|$)', stmt)
+            if return_m:
+                expr = stmt[len(return_m.group(0)):]
+                should_abort = True
+            else:
+                # Try interpreting it as an expression
+                expr = stmt
 
         v = self.interpret_expression(expr, local_vars, allow_recursion)
-        return assign(v)
+        return v, should_abort
 
     def interpret_expression(self, expr, local_vars, allow_recursion):
+        expr = expr.strip()
+
+        if expr == '':  # Empty expression
+            return None
+
+        if expr.startswith('('):
+            parens_count = 0
+            for m in re.finditer(r'[()]', expr):
+                if m.group(0) == '(':
+                    parens_count += 1
+                else:
+                    parens_count -= 1
+                    if parens_count == 0:
+                        sub_expr = expr[1:m.start()]
+                        sub_result = self.interpret_expression(
+                            sub_expr, local_vars, allow_recursion)
+                        remaining_expr = expr[m.end():].strip()
+                        if not remaining_expr:
+                            return sub_result
+                        else:
+                            expr = json.dumps(sub_result) + remaining_expr
+                        break
+            else:
+                raise ExtractorError('Premature end of parens in %r' % expr)
+
+        for op, opfunc in _ASSIGN_OPERATORS:
+            m = re.match(r'''(?x)
+                (?P<out>%s)(?:\[(?P<index>[^\]]+?)\])?
+                \s*%s
+                (?P<expr>.*)$''' % (_NAME_RE, re.escape(op)), expr)
+            if not m:
+                continue
+            right_val = self.interpret_expression(
+                m.group('expr'), local_vars, allow_recursion - 1)
+
+            if m.groupdict().get('index'):
+                lvar = local_vars[m.group('out')]
+                idx = self.interpret_expression(
+                    m.group('index'), local_vars, allow_recursion)
+                assert isinstance(idx, int)
+                cur = lvar[idx]
+                val = opfunc(cur, right_val)
+                lvar[idx] = val
+                return val
+            else:
+                cur = local_vars.get(m.group('out'))
+                val = opfunc(cur, right_val)
+                local_vars[m.group('out')] = val
+                return val
+
         if expr.isdigit():
             return int(expr)
 
-        if expr.isalpha():
-            return local_vars[expr]
+        var_m = re.match(
+            r'(?!if|return|true|false)(?P<name>%s)$' % _NAME_RE,
+            expr)
+        if var_m:
+            return local_vars[var_m.group('name')]
 
         try:
             return json.loads(expr)
@@ -61,7 +124,7 @@ class JSInterpreter(object):
             pass
 
         m = re.match(
-            r'^(?P<var>[$a-zA-Z0-9_]+)\.(?P<member>[^(]+)(?:\(+(?P<args>[^()]*)\))?$',
+            r'(?P<var>%s)\.(?P<member>[^(]+)(?:\(+(?P<args>[^()]*)\))?$' % _NAME_RE,
             expr)
         if m:
             variable = m.group('var')
@@ -114,23 +177,31 @@ class JSInterpreter(object):
             return obj[member](argvals)
 
         m = re.match(
-            r'^(?P<in>[a-z]+)\[(?P<idx>.+)\]$', expr)
+            r'(?P<in>%s)\[(?P<idx>.+)\]$' % _NAME_RE, expr)
         if m:
             val = local_vars[m.group('in')]
             idx = self.interpret_expression(
                 m.group('idx'), local_vars, allow_recursion - 1)
             return val[idx]
 
-        m = re.match(r'^(?P<a>.+?)(?P<op>[%])(?P<b>.+?)$', expr)
-        if m:
-            a = self.interpret_expression(
-                m.group('a'), local_vars, allow_recursion)
-            b = self.interpret_expression(
-                m.group('b'), local_vars, allow_recursion)
-            return a % b
+        for op, opfunc in _OPERATORS:
+            m = re.match(r'(?P<x>.+?)%s(?P<y>.+)' % re.escape(op), expr)
+            if not m:
+                continue
+            x, abort = self.interpret_statement(
+                m.group('x'), local_vars, allow_recursion - 1)
+            if abort:
+                raise ExtractorError(
+                    'Premature left-side return of %s in %r' % (op, expr))
+            y, abort = self.interpret_statement(
+                m.group('y'), local_vars, allow_recursion - 1)
+            if abort:
+                raise ExtractorError(
+                    'Premature right-side return of %s in %r' % (op, expr))
+            return opfunc(x, y)
 
         m = re.match(
-            r'^(?P<func>[a-zA-Z$]+)\((?P<args>[a-z0-9,]+)\)$', expr)
+            r'^(?P<func>%s)\((?P<args>[a-zA-Z0-9_$,]+)\)$' % _NAME_RE, expr)
         if m:
             fname = m.group('func')
             argvals = tuple([
@@ -139,6 +210,7 @@ class JSInterpreter(object):
             if fname not in self._functions:
                 self._functions[fname] = self.extract_function(fname)
             return self._functions[fname](argvals)
+
         raise ExtractorError('Unsupported JS expression %r' % expr)
 
     def extract_object(self, objname):
@@ -162,9 +234,11 @@ class JSInterpreter(object):
 
     def extract_function(self, funcname):
         func_m = re.search(
-            (r'(?:function %s|[{;]%s\s*=\s*function)' % (
-                re.escape(funcname), re.escape(funcname))) +
-            r'\((?P<args>[a-z,]+)\){(?P<code>[^}]+)}',
+            r'''(?x)
+                (?:function\s+%s|[{;]%s\s*=\s*function)\s*
+                \((?P<args>[^)]*)\)\s*
+                \{(?P<code>[^}]+)\}''' % (
+                re.escape(funcname), re.escape(funcname)),
             self.code)
         if func_m is None:
             raise ExtractorError('Could not find JS function %r' % funcname)
@@ -172,10 +246,16 @@ class JSInterpreter(object):
 
         return self.build_function(argnames, func_m.group('code'))
 
+    def call_function(self, funcname, *args):
+        f = self.extract_function(funcname)
+        return f(args)
+
     def build_function(self, argnames, code):
         def resf(args):
             local_vars = dict(zip(argnames, args))
             for stmt in code.split(';'):
-                res = self.interpret_statement(stmt, local_vars)
+                res, abort = self.interpret_statement(stmt, local_vars)
+                if abort:
+                    break
             return res
         return resf

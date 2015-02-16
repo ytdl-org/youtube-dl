@@ -11,6 +11,7 @@ from ..compat import (
     compat_urllib_request,
 )
 from ..utils import (
+    encodeArgument,
     encodeFilename,
 )
 
@@ -21,23 +22,21 @@ class HlsFD(FileDownloader):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
-        args = [
-            '-y', '-i', url, '-f', 'mp4', '-c', 'copy',
-            '-bsf:a', 'aac_adtstoasc',
-            encodeFilename(tmpfilename, for_subprocess=True)]
-
         ffpp = FFmpegPostProcessor(downloader=self)
-        program = ffpp._executable
-        if program is None:
+        if not ffpp.available:
             self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
             return False
         ffpp.check_version()
-        cmd = [program] + args
 
-        retval = subprocess.call(cmd)
+        args = [
+            encodeArgument(opt)
+            for opt in (ffpp.executable, '-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
+        args.append(encodeFilename(tmpfilename, True))
+
+        retval = subprocess.call(args)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen('\r[%s] %s bytes' % (cmd[0], fsize))
+            self.to_screen('\r[%s] %s bytes' % (args[0], fsize))
             self.try_rename(tmpfilename, filename)
             self._hook_progress({
                 'downloaded_bytes': fsize,
@@ -48,7 +47,7 @@ class HlsFD(FileDownloader):
             return True
         else:
             self.to_stderr('\n')
-            self.report_error('%s exited with code %d' % (program, retval))
+            self.report_error('%s exited with code %d' % (ffpp.basename, retval))
             return False
 
 

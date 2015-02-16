@@ -20,6 +20,12 @@ class NHLBaseInfoExtractor(InfoExtractor):
     def _fix_json(json_string):
         return json_string.replace('\\\'', '\'')
 
+    def _real_extract_video(self, video_id):
+        json_url = 'http://video.nhl.com/videocenter/servlets/playlist?ids=%s&format=json' % video_id
+        data = self._download_json(
+            json_url, video_id, transform_source=self._fix_json)
+        return self._extract_video(data[0])
+
     def _extract_video(self, info):
         video_id = info['id']
         self.report_extraction(video_id)
@@ -54,7 +60,7 @@ class NHLBaseInfoExtractor(InfoExtractor):
 
 class NHLIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com'
-    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/console(?:\?(?:.*?[?&])?)id=(?P<id>[-0-9a-zA-Z]+)'
+    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/(?:console)?(?:\?(?:.*?[?&])?)id=(?P<id>[-0-9a-zA-Z]+)'
 
     _TESTS = [{
         'url': 'http://video.canucks.nhl.com/videocenter/console?catid=6?id=453614',
@@ -92,15 +98,41 @@ class NHLIE(NHLBaseInfoExtractor):
     }, {
         'url': 'http://video.flames.nhl.com/videocenter/console?id=630616',
         'only_matching': True,
+    }, {
+        'url': 'http://video.nhl.com/videocenter/?id=736722',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        json_url = 'http://video.nhl.com/videocenter/servlets/playlist?ids=%s&format=json' % video_id
-        data = self._download_json(
-            json_url, video_id, transform_source=self._fix_json)
-        return self._extract_video(data[0])
+        video_id = self._match_id(url)
+        return self._real_extract_video(video_id)
+
+
+class NHLNewsIE(NHLBaseInfoExtractor):
+    IE_NAME = 'nhl.com:news'
+    IE_DESC = 'NHL news'
+    _VALID_URL = r'https?://(?:www\.)?nhl\.com/ice/news\.html?(?:\?(?:.*?[?&])?)id=(?P<id>[-0-9a-zA-Z]+)'
+
+    _TEST = {
+        'url': 'http://www.nhl.com/ice/news.htm?id=750727',
+        'md5': '4b3d1262e177687a3009937bd9ec0be8',
+        'info_dict': {
+            'id': '736722',
+            'ext': 'mp4',
+            'title': 'Cal Clutterbuck has been fined $2,000',
+            'description': 'md5:45fe547d30edab88b23e0dd0ab1ed9e6',
+            'duration': 37,
+            'upload_date': '20150128',
+        },
+    }
+
+    def _real_extract(self, url):
+        news_id = self._match_id(url)
+        webpage = self._download_webpage(url, news_id)
+        video_id = self._search_regex(
+            [r'pVid(\d+)', r"nlid\s*:\s*'(\d+)'"],
+            webpage, 'video id')
+        return self._real_extract_video(video_id)
 
 
 class NHLVideocenterIE(NHLBaseInfoExtractor):

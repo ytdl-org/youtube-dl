@@ -46,16 +46,17 @@ class PornHdIE(InfoExtractor):
 
         quality = qualities(['sd', 'hd'])
         sources = json.loads(js_to_json(self._search_regex(
-            r"(?s)'sources'\s*:\s*(\{.+?\})\s*\}\);", webpage, 'sources')))
+            r"(?s)'sources'\s*:\s*(\{.+?\})\s*\}[;,)]",
+            webpage, 'sources')))
         formats = []
-        for container, s in sources.items():
-            for qname, video_url in s.items():
-                formats.append({
-                    'url': video_url,
-                    'container': container,
-                    'format_id': '%s-%s' % (container, qname),
-                    'quality': quality(qname),
-                })
+        for qname, video_url in sources.items():
+            if not video_url:
+                continue
+            formats.append({
+                'url': video_url,
+                'format_id': qname,
+                'quality': quality(qname),
+            })
         self._sort_formats(formats)
 
         return {

@@ -10,7 +10,7 @@ from ..compat import compat_HTTPError
 class BBCCoUkIE(SubtitlesInfoExtractor):
     IE_NAME = 'bbc.co.uk'
     IE_DESC = 'BBC iPlayer'
-    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:(?:(?:programmes|iplayer/(?:episode|playlist))/)|music/clips[/#])(?P<id>[\da-z]{8})'
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:(?:(?:programmes|iplayer(?:/[^/]+)?/(?:episode|playlist))/)|music/clips[/#])(?P<id>[\da-z]{8})'
 
     _TESTS = [
         {
@@ -117,6 +117,9 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
             'only_matching': True,
         }, {
             'url': 'http://www.bbc.co.uk/music/clips#p02frcc3',
+            'only_matching': True,
+        }, {
+            'url': 'http://www.bbc.co.uk/iplayer/cbeebies/episode/b0480276/bing-14-atchoo',
             'only_matching': True,
         }
     ]
@@ -270,7 +273,7 @@ class BBCCoUkIE(SubtitlesInfoExtractor):
                     formats, subtitles = self._download_media_selector(programme_id)
                 return programme_id, title, description, duration, formats, subtitles
         except ExtractorError as ee:
-            if not isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 404:
+            if not (isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 404):
                 raise
 
         # fallback to legacy playlist

@@ -91,6 +91,15 @@ class RTLnowIE(InfoExtractor):
             },
         },
         {
+            'url': 'http://rtl-now.rtl.de/der-bachelor/folge-4.php?film_id=188729&player=1&season=5',
+            'info_dict': {
+                'id': '188729',
+                'ext': 'flv',
+                'upload_date': '20150204',
+                'description': 'md5:5e1ce23095e61a79c166d134b683cecc',
+                'title': 'Der Bachelor - Folge 4',
+            }
+        }, {
             'url': 'http://www.n-tvnow.de/deluxe-alles-was-spass-macht/thema-ua-luxushotel-fuer-vierbeiner.php?container_id=153819&player=1&season=0',
             'only_matching': True,
         },
@@ -134,9 +143,18 @@ class RTLnowIE(InfoExtractor):
                     'player_url': video_page_url + 'includes/vodplayer.swf',
                 }
             else:
-                fmt = {
-                    'url': filename.text,
-                }
+                mobj = re.search(r'.*/(?P<hoster>[^/]+)/videos/(?P<play_path>.+)\.f4m', filename.text)
+                if mobj:
+                    fmt = {
+                        'url': 'rtmpe://fmspay-fra2.rtl.de/' + mobj.group('hoster'),
+                        'play_path': 'mp4:' + mobj.group('play_path'),
+                        'page_url': url,
+                        'player_url': video_page_url + 'includes/vodplayer.swf',
+                    }
+                else:
+                    fmt = {
+                        'url': filename.text,
+                    }
             fmt.update({
                 'width': int_or_none(filename.get('width')),
                 'height': int_or_none(filename.get('height')),

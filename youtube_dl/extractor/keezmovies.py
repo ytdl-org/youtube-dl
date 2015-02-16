@@ -7,10 +7,6 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse_urlparse,
     compat_urllib_request,
-    compat_urllib_parse,
-)
-from ..aes import (
-    aes_decrypt_text
 )
 
 
@@ -18,9 +14,10 @@ class KeezMoviesIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?keezmovies\.com/video/.+?(?P<id>[0-9]+)(?:[/?&]|$)'
     _TEST = {
         'url': 'http://www.keezmovies.com/video/petite-asian-lady-mai-playing-in-bathtub-1214711',
-        'file': '1214711.mp4',
         'md5': '6e297b7e789329923fcf83abb67c9289',
         'info_dict': {
+            'id': '1214711',
+            'ext': 'mp4',
             'title': 'Petite Asian Lady Mai Playing In Bathtub',
             'age_limit': 18,
         }
@@ -39,11 +36,10 @@ class KeezMoviesIE(InfoExtractor):
             embedded_url = mobj.group(1)
             return self.url_result(embedded_url)
 
-        video_title = self._html_search_regex(r'<h1 [^>]*>([^<]+)', webpage, 'title')
-        video_url = compat_urllib_parse.unquote(self._html_search_regex(r'video_url=(.+?)&amp;', webpage, 'video_url'))
-        if 'encrypted=true' in webpage:
-            password = self._html_search_regex(r'video_title=(.+?)&amp;', webpage, 'password')
-            video_url = aes_decrypt_text(video_url, password, 32).decode('utf-8')
+        video_title = self._html_search_regex(
+            r'<h1 [^>]*>([^<]+)', webpage, 'title')
+        video_url = self._html_search_regex(
+            r'(?s)html5VideoPlayer = .*?src="([^"]+)"', webpage, 'video URL')
         path = compat_urllib_parse_urlparse(video_url).path
         extension = os.path.splitext(path)[1][1:]
         format = path.split('/')[4].split('_')[:2]

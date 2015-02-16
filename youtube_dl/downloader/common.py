@@ -25,21 +25,23 @@ class FileDownloader(object):
 
     Available options:
 
-    verbose:           Print additional info to stdout.
-    quiet:             Do not print messages to stdout.
-    ratelimit:         Download speed limit, in bytes/sec.
-    retries:           Number of times to retry for HTTP error 5xx
-    buffersize:        Size of download buffer in bytes.
-    noresizebuffer:    Do not automatically resize the download buffer.
-    continuedl:        Try to continue downloads if possible.
-    noprogress:        Do not print the progress bar.
-    logtostderr:       Log messages to stderr instead of stdout.
-    consoletitle:      Display progress in console window's titlebar.
-    nopart:            Do not use temporary .part files.
-    updatetime:        Use the Last-modified header to set output file timestamps.
-    test:              Download only first bytes to test the downloader.
-    min_filesize:      Skip files smaller than this size
-    max_filesize:      Skip files larger than this size
+    verbose:            Print additional info to stdout.
+    quiet:              Do not print messages to stdout.
+    ratelimit:          Download speed limit, in bytes/sec.
+    retries:            Number of times to retry for HTTP error 5xx
+    buffersize:         Size of download buffer in bytes.
+    noresizebuffer:     Do not automatically resize the download buffer.
+    continuedl:         Try to continue downloads if possible.
+    noprogress:         Do not print the progress bar.
+    logtostderr:        Log messages to stderr instead of stdout.
+    consoletitle:       Display progress in console window's titlebar.
+    nopart:             Do not use temporary .part files.
+    updatetime:         Use the Last-modified header to set output file timestamps.
+    test:               Download only first bytes to test the downloader.
+    min_filesize:       Skip files smaller than this size
+    max_filesize:       Skip files larger than this size
+    xattr_set_filesize: Set ytdl.filesize user xattribute with expected size.
+                        (experimenatal)
 
     Subclasses of this one must re-define the real_download method.
     """
@@ -284,6 +286,7 @@ class FileDownloader(object):
         """Download to a filename using the info from info_dict
         Return True on success and False otherwise
         """
+
         nooverwrites_and_exists = (
             self.params.get('nooverwrites', False)
             and os.path.exists(encodeFilename(filename))
@@ -305,6 +308,11 @@ class FileDownloader(object):
             })
             return True
 
+        sleep_interval = self.params.get('sleep_interval')
+        if sleep_interval:
+            self.to_screen('[download] Sleeping %s seconds...' % sleep_interval)
+            time.sleep(sleep_interval)
+
         return self.real_download(filename, info_dict)
 
     def real_download(self, filename, info_dict):
@@ -319,3 +327,24 @@ class FileDownloader(object):
         # See YoutubeDl.py (search for progress_hooks) for a description of
         # this interface
         self._progress_hooks.append(ph)
+
+    def _debug_cmd(self, args, subprocess_encoding, exe=None):
+        if not self.params.get('verbose', False):
+            return
+
+        if exe is None:
+            exe = os.path.basename(args[0])
+
+        if subprocess_encoding:
+            str_args = [
+                a.decode(subprocess_encoding) if isinstance(a, bytes) else a
+                for a in args]
+        else:
+            str_args = args
+        try:
+            import pipes
+            shell_quote = lambda args: ' '.join(map(pipes.quote, str_args))
+        except ImportError:
+            shell_quote = repr
+        self.to_screen('[debug] %s command line: %s' % (
+            exe, shell_quote(str_args)))

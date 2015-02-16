@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-__all__ = ['aes_encrypt', 'key_expansion', 'aes_ctr_decrypt', 'aes_cbc_decrypt', 'aes_decrypt_text']
-
 import base64
 from math import ceil
 
@@ -329,3 +327,5 @@ def inc(data):
             data[i] = data[i] + 1
             break
     return data
+
+__all__ = ['aes_encrypt', 'key_expansion', 'aes_ctr_decrypt', 'aes_cbc_decrypt', 'aes_decrypt_text']

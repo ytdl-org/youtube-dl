@@ -104,6 +104,9 @@ class RtmpFD(FileDownloader):
         live = info_dict.get('rtmp_live', False)
         conn = info_dict.get('rtmp_conn', None)
         protocol = info_dict.get('rtmp_protocol', None)
+        real_time = info_dict.get('rtmp_real_time', False)
+        no_resume = info_dict.get('no_resume', False)
+        continue_dl = info_dict.get('continuedl', False)
 
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
@@ -141,7 +144,14 @@ class RtmpFD(FileDownloader):
             basic_args += ['--conn', conn]
         if protocol is not None:
             basic_args += ['--protocol', protocol]
-        args = basic_args + [[], ['--resume', '--skip', '1']][not live and self.params.get('continuedl', False)]
+        if real_time:
+            basic_args += ['--realtime']
+
+        args = basic_args
+        if not no_resume and continue_dl and not live:
+            args += ['--resume']
+        if not live and continue_dl:
+            args += ['--skip', '1']
 
         if sys.platform == 'win32' and sys.version_info < (3, 0):
             # Windows subprocess module does not actually support Unicode
@@ -152,19 +162,7 @@ class RtmpFD(FileDownloader):
         else:
             subprocess_encoding = None
 
-        if self.params.get('verbose', False):
-            if subprocess_encoding:
-                str_args = [
-                    a.decode(subprocess_encoding) if isinstance(a, bytes) else a
-                    for a in args]
-            else:
-                str_args = args
-            try:
-                import pipes
-                shell_quote = lambda args: ' '.join(map(pipes.quote, str_args))
-            except ImportError:
-                shell_quote = repr
-            self.to_screen('[debug] rtmpdump command line: ' + shell_quote(str_args))
+        self._debug_cmd(args, subprocess_encoding, exe='rtmpdump')
 
         RD_SUCCESS = 0
         RD_FAILED = 1

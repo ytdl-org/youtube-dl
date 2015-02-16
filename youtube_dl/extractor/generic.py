@@ -140,6 +140,19 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Ooyala'],
         },
+        # multiple ooyala embeds on SBN network websites
+        {
+            'url': 'http://www.sbnation.com/college-football-recruiting/2015/2/3/7970291/national-signing-day-rationalizations-itll-be-ok-itll-be-ok',
+            'info_dict': {
+                'id': 'national-signing-day-rationalizations-itll-be-ok-itll-be-ok',
+                'title': '25 lies you will tell yourself on National Signing Day - SBNation.com',
+            },
+            'playlist_mincount': 3,
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': ['Ooyala'],
+        },
         # google redirect
         {
             'url': 'http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&ved=0CCUQtwIwAA&url=http%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DcmQHVoWB5FY&ei=F-sNU-LLCaXk4QT52ICQBQ&usg=AFQjCNEw4hL29zgOohLXvpJ-Bdh2bils1Q&bvm=bv.61965928,d.bGE',
@@ -362,7 +375,7 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'id': 'http://phihag.de/2014/youtube-dl/rss2.xml',
                 'title': 'Zero Punctuation',
-                'description': 're:'
+                'description': 're:.*groundbreaking video review series.*'
             },
             'playlist_mincount': 11,
         },
@@ -489,6 +502,42 @@ class GenericIE(InfoExtractor):
                 'title': 'Jack Tips: 5 Steps to Permanent Gut Healing',
             }
         },
+        # Cinerama player
+        {
+            'url': 'http://www.abc.net.au/7.30/content/2015/s4164797.htm',
+            'info_dict': {
+                'id': '730m_DandD_1901_512k',
+                'ext': 'mp4',
+                'uploader': 'www.abc.net.au',
+                'title': 'Game of Thrones with dice - Dungeons and Dragons fantasy role-playing game gets new life - 19/01/2015',
+            }
+        },
+        # embedded viddler video
+        {
+            'url': 'http://deadspin.com/i-cant-stop-watching-john-wall-chop-the-nuggets-with-th-1681801597',
+            'info_dict': {
+                'id': '4d03aad9',
+                'ext': 'mp4',
+                'uploader': 'deadspin',
+                'title': 'WALL-TO-GORTAT',
+                'timestamp': 1422285291,
+                'upload_date': '20150126',
+            },
+            'add_ie': ['Viddler'],
+        },
+        # jwplayer YouTube
+        {
+            'url': 'http://media.nationalarchives.gov.uk/index.php/webinar-using-discovery-national-archives-online-catalogue/',
+            'info_dict': {
+                'id': 'Mrj4DVp2zeA',
+                'ext': 'mp4',
+                'upload_date': '20150204',
+                'uploader': 'The National Archives UK',
+                'description': 'md5:a236581cd2449dd2df4f93412f3f01c6',
+                'uploader_id': 'NationalArchives08',
+                'title': 'Webinar: Using Discovery, The National Archives’ online catalogue',
+            },
+        }
     ]
 
     def report_following_redirect(self, new_url):
@@ -850,11 +899,27 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'))
 
+        # Look for embedded Viddler player
+        mobj = re.search(
+            r'<(?:iframe[^>]+?src|param[^>]+?value)=(["\'])(?P<url>(?:https?:)?//(?:www\.)?viddler\.com/(?:embed|player)/.+?)\1',
+            webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'))
+
         # Look for Ooyala videos
-        mobj = (re.search(r'player.ooyala.com/[^"?]+\?[^"]*?(?:embedCode|ec)=(?P<ec>[^"&]+)', webpage) or
-                re.search(r'OO.Player.create\([\'"].*?[\'"],\s*[\'"](?P<ec>.{32})[\'"]', webpage))
+        mobj = (re.search(r'player\.ooyala\.com/[^"?]+\?[^"]*?(?:embedCode|ec)=(?P<ec>[^"&]+)', webpage) or
+                re.search(r'OO\.Player\.create\([\'"].*?[\'"],\s*[\'"](?P<ec>.{32})[\'"]', webpage) or
+                re.search(r'SBN\.VideoLinkset\.ooyala\([\'"](?P<ec>.{32})[\'"]\)', webpage))
         if mobj is not None:
             return OoyalaIE._build_url_result(mobj.group('ec'))
+
+        # Look for multiple Ooyala embeds on SBN network websites
+        mobj = re.search(r'SBN\.VideoLinkset\.entryGroup\((\[.*?\])', webpage)
+        if mobj is not None:
+            embeds = self._parse_json(mobj.group(1), video_id, fatal=False)
+            if embeds:
+                return _playlist_from_matches(
+                    embeds, getter=lambda v: OoyalaIE._url_for_embed_code(v['provider_video_id']), ie='Ooyala')
 
         # Look for Aparat videos
         mobj = re.search(r'<iframe .*?src="(http://www\.aparat\.com/video/[^"]+)"', webpage)
@@ -982,7 +1047,12 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded sbs.com.au player
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://(?:www\.)sbs\.com\.au/ondemand/video/single/.+?)\1',
+            r'''(?x)
+            (?:
+                <meta\s+property="og:video"\s+content=|
+                <iframe[^>]+?src=
+            )
+            (["\'])(?P<url>https?://(?:www\.)?sbs\.com\.au/ondemand/video/.+?)\1''',
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'SBS')
@@ -1013,6 +1083,8 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'Livestream')
 
         def check_video(vurl):
+            if YoutubeIE.suitable(vurl):
+                return True
             vpath = compat_urlparse.urlparse(vurl).path
             vext = determine_ext(vpath)
             return '.' in vpath and vext not in ('swf', 'png', 'jpg', 'srt', 'sbv', 'sub', 'vtt', 'ttml')
@@ -1030,7 +1102,8 @@ class GenericIE(InfoExtractor):
                     JWPlayerOptions|
                     jwplayer\s*\(\s*["'][^'"]+["']\s*\)\s*\.setup
                 )
-                .*?file\s*:\s*["\'](.*?)["\']''', webpage))
+                .*?
+                ['"]?file['"]?\s*:\s*["\'](.*?)["\']''', webpage))
         if not found:
             # Broaden the search a little bit
             found = filter_video(re.findall(r'[^A-Za-z0-9]?(?:file|source)=(http[^\'"&]*)', webpage))
@@ -1043,9 +1116,13 @@ class GenericIE(InfoExtractor):
             found = filter_video(re.findall(r'''(?xs)
                 flowplayer\("[^"]+",\s*
                     \{[^}]+?\}\s*,
-                    \s*{[^}]+? ["']?clip["']?\s*:\s*\{\s*
+                    \s*\{[^}]+? ["']?clip["']?\s*:\s*\{\s*
                         ["']?url["']?\s*:\s*["']([^"']+)["']
             ''', webpage))
+        if not found:
+            # Cinerama player
+            found = re.findall(
+                r"cinerama\.embedPlayer\(\s*\'[^']+\',\s*'([^']+)'", webpage)
         if not found:
             # Try to find twitter cards info
             found = filter_video(re.findall(

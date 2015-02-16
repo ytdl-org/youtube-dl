@@ -13,6 +13,7 @@ import copy
 from test.helper import FakeYDL, assertRegexpMatches
 from youtube_dl import YoutubeDL
 from youtube_dl.extractor import YoutubeIE
+from youtube_dl.postprocessor.common import PostProcessor
 
 
 class YDL(FakeYDL):
@@ -369,6 +370,36 @@ class TestFormatSelection(unittest.TestCase):
         assertRegexpMatches(self, ydl._format_note({
             'vbr': 10,
         }), '^\s*10k$')
+
+    def test_postprocessors(self):
+        filename = 'post-processor-testfile.mp4'
+        audiofile = filename + '.mp3'
+
+        class SimplePP(PostProcessor):
+            def run(self, info):
+                with open(audiofile, 'wt') as f:
+                    f.write('EXAMPLE')
+                info['filepath']
+                return False, info
+
+        def run_pp(params):
+            with open(filename, 'wt') as f:
+                f.write('EXAMPLE')
+            ydl = YoutubeDL(params)
+            ydl.add_post_processor(SimplePP())
+            ydl.post_process(filename, {'filepath': filename})
+
+        run_pp({'keepvideo': True})
+        self.assertTrue(os.path.exists(filename), '%s doesn\'t exist' % filename)
+        self.assertTrue(os.path.exists(audiofile), '%s doesn\'t exist' % audiofile)
+        os.unlink(filename)
+        os.unlink(audiofile)
+
+        run_pp({'keepvideo': False})
+        self.assertFalse(os.path.exists(filename), '%s exists' % filename)
+        self.assertTrue(os.path.exists(audiofile), '%s doesn\'t exist' % audiofile)
+        os.unlink(audiofile)
+
 
 if __name__ == '__main__':
     unittest.main()

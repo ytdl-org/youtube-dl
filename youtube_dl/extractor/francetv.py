@@ -230,12 +230,13 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
 
 class GenerationQuoiIE(InfoExtractor):
     IE_NAME = 'france2.fr:generation-quoi'
-    _VALID_URL = r'https?://generation-quoi\.france2\.fr/portrait/(?P<name>.*)(\?|$)'
+    _VALID_URL = r'https?://generation-quoi\.france2\.fr/portrait/(?P<id>[^/?#]+)'
 
     _TEST = {
         'url': 'http://generation-quoi.france2.fr/portrait/garde-a-vous',
-        'file': 'k7FJX8VBcvvLmX4wA5Q.mp4',
         'info_dict': {
+            'id': 'k7FJX8VBcvvLmX4wA5Q',
+            'ext': 'mp4',
             'title': 'Génération Quoi - Garde à Vous',
             'uploader': 'Génération Quoi',
         },
@@ -243,14 +244,12 @@ class GenerationQuoiIE(InfoExtractor):
             # It uses Dailymotion
             'skip_download': True,
         },
-        'skip': 'Only available from France',
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        name = mobj.group('name')
-        info_url = compat_urlparse.urljoin(url, '/medias/video/%s.json' % name)
-        info_json = self._download_webpage(info_url, name)
+        display_id = self._match_id(url)
+        info_url = compat_urlparse.urljoin(url, '/medias/video/%s.json' % display_id)
+        info_json = self._download_webpage(info_url, display_id)
         info = json.loads(info_json)
         return self.url_result('http://www.dailymotion.com/video/%s' % info['id'],
                                ie='Dailymotion')

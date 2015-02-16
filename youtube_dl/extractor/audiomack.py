@@ -88,16 +88,21 @@ class AudiomackAlbumIE(InfoExtractor):
         # Album playlist ripped from fakeshoredrive with no metadata
         {
             'url': 'http://www.audiomack.com/album/fakeshoredrive/ppp-pistol-p-project',
+            'info_dict': {
+                'title': 'PPP (Pistol P Project)',
+                'id': '837572',
+            },
             'playlist': [{
                 'info_dict': {
-                    'title': '9.-heaven-or-hell-chimaca-ft-zuse-prod-by-dj-fu',
-                    'id': '9.-heaven-or-hell-chimaca-ft-zuse-prod-by-dj-fu',
+                    'title': 'PPP (Pistol P Project) - 9. Heaven or Hell (CHIMACA) ft Zuse (prod by DJ FU)',
+                    'id': '837577',
                     'ext': 'mp3',
+                    'uploader': 'Lil Herb a.k.a. G Herbo',
                 }
             }],
             'params': {
-                'playliststart': 8,
-                'playlistend': 8,
+                'playliststart': 9,
+                'playlistend': 9,
             }
         }
     ]

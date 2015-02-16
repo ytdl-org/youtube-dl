@@ -1,77 +1,69 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
-import re
-
 from .common import InfoExtractor
 from ..compat import (
-    compat_parse_qs,
     compat_urlparse,
+)
+from ..utils import (
+    determine_ext,
+    int_or_none,
 )
 
 
 class FranceCultureIE(InfoExtractor):
-    _VALID_URL = r'(?P<baseurl>http://(?:www\.)?franceculture\.fr/)player/reecouter\?play=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?franceculture\.fr/player/reecouter\?play=(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.franceculture.fr/player/reecouter?play=4795174',
         'info_dict': {
             'id': '4795174',
             'ext': 'mp3',
             'title': 'Rendez-vous au pays des geeks',
+            'alt_title': 'Carnet nomade | 13-14',
             'vcodec': 'none',
-            'uploader': 'Colette Fellous',
             'upload_date': '20140301',
-            'duration': 3601,
             'thumbnail': r're:^http://www\.franceculture\.fr/.*/images/player/Carnet-nomade\.jpg$',
-            'description': 'Avec :Jean-Baptiste Péretié pour son documentaire sur Arte "La revanche des « geeks », une enquête menée aux Etats-Unis dans la S ...',
+            'description': 'startswith:Avec :Jean-Baptiste Péretié pour son documentaire sur Arte "La revanche des « geeks », une enquête menée aux Etats',
+            'timestamp': 1393700400,
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        baseurl = mobj.group('baseurl')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        params_code = self._search_regex(
-            r"<param name='movie' value='/sites/all/modules/rf/rf_player/swf/loader.swf\?([^']+)' />",
-            webpage, 'parameter code')
-        params = compat_parse_qs(params_code)
-        video_url = compat_urlparse.urljoin(baseurl, params['urlAOD'][0])
+
+        video_path = self._search_regex(
+            r'<a id="player".*?href="([^"]+)"', webpage, 'video path')
+        video_url = compat_urlparse.urljoin(url, video_path)
+        timestamp = int_or_none(self._search_regex(
+            r'<a id="player".*?data-date="([0-9]+)"',
+            webpage, 'upload date', fatal=False))
+        thumbnail = self._search_regex(
+            r'<a id="player".*?>\s+<img src="([^"]+)"',
+            webpage, 'thumbnail', fatal=False)
 
         title = self._html_search_regex(
-            r'<h1 class="title[^"]+">(.+?)</h1>', webpage, 'title')
+            r'<span class="title-diffusion">(.*?)</span>', webpage, 'title')
+        alt_title = self._html_search_regex(
+            r'<span class="title">(.*?)</span>',
+            webpage, 'alt_title', fatal=False)
+        description = self._html_search_regex(
+            r'<span class="description">(.*?)</span>',
+            webpage, 'description', fatal=False)
+
         uploader = self._html_search_regex(
             r'(?s)<div id="emission".*?<span class="author">(.*?)</span>',
-            webpage, 'uploader', fatal=False)
-        thumbnail_part = self._html_search_regex(
-            r'(?s)<div id="emission".*?<img src="([^"]+)"', webpage,
-            'thumbnail', fatal=False)
-        if thumbnail_part is None:
-            thumbnail = None
-        else:
-            thumbnail = compat_urlparse.urljoin(baseurl, thumbnail_part)
-        description = self._html_search_regex(
-            r'(?s)<p class="desc">(.*?)</p>', webpage, 'description')
-
-        info = json.loads(params['infoData'][0])[0]
-        duration = info.get('media_length')
-        upload_date_candidate = info.get('media_section5')
-        upload_date = (
-            upload_date_candidate
-            if (upload_date_candidate is not None and
-                re.match(r'[0-9]{8}$', upload_date_candidate))
-            else None)
+            webpage, 'uploader', default=None)
+        vcodec = 'none' if determine_ext(video_url.lower()) == 'mp3' else None
 
         return {
             'id': video_id,
             'url': video_url,
-            'vcodec': 'none' if video_url.lower().endswith('.mp3') else None,
-            'duration': duration,
+            'vcodec': vcodec,
             'uploader': uploader,
-            'upload_date': upload_date,
+            'timestamp': timestamp,
             'title': title,
+            'alt_title': alt_title,
             'thumbnail': thumbnail,
             'description': description,
         }

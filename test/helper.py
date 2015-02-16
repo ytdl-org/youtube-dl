@@ -103,6 +103,16 @@ def expect_info_dict(self, got_dict, expected_dict):
             self.assertTrue(
                 match_rex.match(got),
                 'field %s (value: %r) should match %r' % (info_field, got, match_str))
+        elif isinstance(expected, compat_str) and expected.startswith('startswith:'):
+            got = got_dict.get(info_field)
+            start_str = expected[len('startswith:'):]
+            self.assertTrue(
+                isinstance(got, compat_str),
+                'Expected a %s object, but got %s for field %s' % (
+                    compat_str.__name__, type(got).__name__, info_field))
+            self.assertTrue(
+                got.startswith(start_str),
+                'field %s (value: %r) should start with %r' % (info_field, got, start_str))
         elif isinstance(expected, type):
             got = got_dict.get(info_field)
             self.assertTrue(isinstance(got, expected),
@@ -140,7 +150,7 @@ def expect_info_dict(self, got_dict, expected_dict):
     # Are checkable fields missing from the test case definition?
     test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'md5:' + md5(value))
                           for key, value in got_dict.items()
-                          if value and key in ('title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location'))
+                          if value and key in ('id', 'title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location'))
     missing_keys = set(test_info_dict.keys()) - set(expected_dict.keys())
     if missing_keys:
         def _repr(v):
@@ -148,9 +158,15 @@ def expect_info_dict(self, got_dict, expected_dict):
                 return "'%s'" % v.replace('\\', '\\\\').replace("'", "\\'").replace('\n', '\\n')
             else:
                 return repr(v)
-        info_dict_str = ''.join(
-            '    %s: %s,\n' % (_repr(k), _repr(v))
-            for k, v in test_info_dict.items())
+        info_dict_str = ''
+        if len(missing_keys) != len(expected_dict):
+            info_dict_str += ''.join(
+                '    %s: %s,\n' % (_repr(k), _repr(v))
+                for k, v in test_info_dict.items() if k not in missing_keys)
+            info_dict_str += '\n'
+        info_dict_str += ''.join(
+            '    %s: %s,\n' % (_repr(k), _repr(test_info_dict[k]))
+            for k in missing_keys)
         write_string(
             '\n\'info_dict\': {\n' + info_dict_str + '}\n', out=sys.stderr)
         self.assertFalse(

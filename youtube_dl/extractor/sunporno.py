@@ -52,7 +52,7 @@ class SunPornoIE(InfoExtractor):
 
         formats = []
         quality = qualities(['mp4', 'flv'])
-        for video_url in re.findall(r'<source src="([^"]+)"', webpage):
+        for video_url in re.findall(r'<(?:source|video) src="([^"]+)"', webpage):
             video_ext = determine_ext(video_url)
             formats.append({
                 'url': video_url,

@@ -1,18 +1,17 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
 )
 from ..utils import (
     ExtractorError,
+    js_to_json,
 )
 
 
 class EscapistIE(InfoExtractor):
-    _VALID_URL = r'^https?://?(www\.)?escapistmagazine\.com/videos/view/(?P<showname>[^/]+)/(?P<id>[0-9]+)-'
+    _VALID_URL = r'https?://?(www\.)?escapistmagazine\.com/videos/view/[^/?#]+/(?P<id>[0-9]+)-[^/?#]*(?:$|[?#])'
     _TEST = {
         'url': 'http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate',
         'md5': 'ab3a706c681efca53f0a35f1415cf0d1',
@@ -20,31 +19,30 @@ class EscapistIE(InfoExtractor):
             'id': '6618',
             'ext': 'mp4',
             'description': "Baldur's Gate: Original, Modded or Enhanced Edition? I'll break down what you can expect from the new Baldur's Gate: Enhanced Edition.",
-            'uploader': 'the-escapist-presents',
+            'uploader_id': 'the-escapist-presents',
+            'uploader': 'The Escapist Presents',
             'title': "Breaking Down Baldur's Gate",
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        showName = mobj.group('showname')
-        video_id = mobj.group('id')
-
-        self.report_extraction(video_id)
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        videoDesc = self._html_search_regex(
-            r'<meta name="description" content="([^"]*)"',
-            webpage, 'description', fatal=False)
+        uploader_id = self._html_search_regex(
+            r"<h1 class='headline'><a href='/videos/view/(.*?)'",
+            webpage, 'uploader ID', fatal=False)
+        uploader = self._html_search_regex(
+            r"<h1 class='headline'>(.*?)</a>",
+            webpage, 'uploader', fatal=False)
+        description = self._html_search_meta('description', webpage)
 
-        playerUrl = self._og_search_video_url(webpage, name='player URL')
+        raw_title = self._html_search_meta('title', webpage, fatal=True)
+        title = raw_title.partition(' : ')[2]
 
-        title = self._html_search_regex(
-            r'<meta name="title" content="([^"]*)"',
-            webpage, 'title').split(' : ')[-1]
-
-        configUrl = self._search_regex('config=(.*)$', playerUrl, 'config URL')
-        configUrl = compat_urllib_parse.unquote(configUrl)
+        player_url = self._og_search_video_url(webpage, name='player URL')
+        config_url = compat_urllib_parse.unquote(self._search_regex(
+            r'config=(.*)$', player_url, 'config URL'))
 
         formats = []
 
@@ -53,18 +51,21 @@ class EscapistIE(InfoExtractor):
                 cfgurl, video_id,
                 'Downloading ' + name + ' configuration',
                 'Unable to download ' + name + ' configuration',
-                transform_source=lambda s: s.replace("'", '"'))
+                transform_source=js_to_json)
 
             playlist = config['playlist']
+            video_url = next(
+                p['url'] for p in playlist
+                if p.get('eventCategory') == 'Video')
             formats.append({
-                'url': playlist[1]['url'],
+                'url': video_url,
                 'format_id': name,
                 'quality': quality,
             })
 
-        _add_format('normal', configUrl, quality=0)
-        hq_url = (configUrl +
-                  ('&hq=1' if '?' in configUrl else configUrl + '?hq=1'))
+        _add_format('normal', config_url, quality=0)
+        hq_url = (config_url +
+                  ('&hq=1' if '?' in config_url else config_url + '?hq=1'))
         try:
             _add_format('hq', hq_url, quality=1)
         except ExtractorError:
@@ -75,9 +76,10 @@ class EscapistIE(InfoExtractor):
         return {
             'id': video_id,
             'formats': formats,
-            'uploader': showName,
+            'uploader': uploader,
+            'uploader_id': uploader_id,
             'title': title,
             'thumbnail': self._og_search_thumbnail(webpage),
-            'description': videoDesc,
-            'player_url': playerUrl,
+            'description': description,
+            'player_url': player_url,
         }

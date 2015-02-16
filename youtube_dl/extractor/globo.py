@@ -70,6 +70,19 @@ class GloboIE(InfoExtractor):
                 'like_count': int,
             }
         },
+        {
+            'url': 'http://globotv.globo.com/canal-brasil/sangue-latino/t/todos-os-videos/v/ator-e-diretor-argentino-ricado-darin-fala-sobre-utopias-e-suas-perdas/3928201/',
+            'md5': 'c1defca721ce25b2354e927d3e4b3dec',
+            'info_dict': {
+                'id': '3928201',
+                'ext': 'mp4',
+                'title': 'Ator e diretor argentino, Ricado Darín fala sobre utopias e suas perdas',
+                'duration': 1472.906,
+                'uploader': 'Canal Brasil',
+                'uploader_id': 705,
+                'like_count': int,
+            }
+        },
     ]
 
     class MD5():
@@ -381,11 +394,16 @@ class GloboIE(InfoExtractor):
             signed_md5 = self.MD5.b64_md5(received_md5 + compat_str(sign_time) + padding)
             signed_hash = hash_code + compat_str(received_time) + received_random + compat_str(sign_time) + padding + signed_md5
 
-            formats.append({
-                'url': '%s?h=%s&k=%s' % (resource['url'], signed_hash, 'flash'),
-                'format_id': resource_id,
-                'height': resource['height']
-            })
+            resource_url = resource['url']
+            signed_url = '%s?h=%s&k=%s' % (resource_url, signed_hash, 'flash')
+            if resource_id.endswith('m3u8') or resource_url.endswith('.m3u8'):
+                formats.extend(self._extract_m3u8_formats(signed_url, resource_id, 'mp4'))
+            else:
+                formats.append({
+                    'url': signed_url,
+                    'format_id': resource_id,
+                    'height': resource.get('height'),
+                })
 
         self._sort_formats(formats)
 

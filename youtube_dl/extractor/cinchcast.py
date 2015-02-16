@@ -28,12 +28,10 @@ class CinchcastIE(InfoExtractor):
             item, './{http://developer.longtailvideo.com/trac/}date')
         upload_date = unified_strdate(date_str, day_first=False)
         # duration is present but wrong
-        formats = []
-        formats.append({
+        formats = [{
             'format_id': 'main',
-            'url': item.find(
-                './{http://search.yahoo.com/mrss/}content').attrib['url'],
-        })
+            'url': item.find('./{http://search.yahoo.com/mrss/}content').attrib['url'],
+        }]
         backup_url = xpath_text(
             item, './{http://developer.longtailvideo.com/trac/}backupContent')
         if backup_url:
