@@ -62,6 +62,11 @@ std_headers = {
 }
 
 
+ENGLISH_MONTH_NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December']
+
+
 def preferredencoding():
     """Get preferred encoding.
 
@@ -1185,11 +1190,18 @@ def get_term_width():
 def month_by_name(name):
     """ Return the number of a month by (locale-independently) English name """
 
-    ENGLISH_NAMES = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December']
     try:
-        return ENGLISH_NAMES.index(name) + 1
+        return ENGLISH_MONTH_NAMES.index(name) + 1
+    except ValueError:
+        return None
+
+
+def month_by_abbreviation(abbrev):
+    """ Return the number of a month by (locale-independently) English
+        abbreviations """
+
+    try:
+        return [s[:3] for s in ENGLISH_MONTH_NAMES].index(abbrev) + 1
     except ValueError:
         return None
 
