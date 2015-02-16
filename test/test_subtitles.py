@@ -127,10 +127,6 @@ class TestDailymotionSubtitles(BaseTestSubtitles):
     url = 'http://www.dailymotion.com/video/xczg00'
     IE = DailymotionIE
 
-    def test_no_writesubtitles(self):
-        subtitles = self.getSubtitles()
-        self.assertEqual(subtitles, None)
-
     def test_subtitles(self):
         self.DL.params['writesubtitles'] = True
         subtitles = self.getSubtitles()
@@ -147,19 +143,6 @@ class TestDailymotionSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertTrue(len(subtitles.keys()) >= 6)
-
-    def test_list_subtitles(self):
-        self.DL.expect_warning('Automatic Captions not supported by this server')
-        self.DL.params['listsubtitles'] = True
-        info_dict = self.getInfoDict()
-        self.assertEqual(info_dict, None)
-
-    def test_automatic_captions(self):
-        self.DL.expect_warning('Automatic Captions not supported by this server')
-        self.DL.params['writeautomaticsub'] = True
-        self.DL.params['subtitleslang'] = ['en']
-        subtitles = self.getSubtitles()
-        self.assertTrue(len(subtitles.keys()) == 0)
 
     def test_nosubtitles(self):
         self.DL.expect_warning('video doesn\'t have subtitles')
