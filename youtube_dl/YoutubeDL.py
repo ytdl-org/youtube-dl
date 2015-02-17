@@ -1301,7 +1301,7 @@ class YoutubeDL(object):
                     downloaded = []
                     success = True
                     merger = FFmpegMergerPP(self, not self.params.get('keepvideo'))
-                    if not merger.available():
+                    if not merger.available:
                         postprocessors = []
                         self.report_warning('You have requested multiple '
                                             'formats but ffmpeg or avconv are not installed.'
