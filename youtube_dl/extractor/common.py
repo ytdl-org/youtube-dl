@@ -753,9 +753,7 @@ class InfoExtractor(object):
 
     def _is_valid_url(self, url, video_id, item='video'):
         try:
-            self._request_webpage(
-                HEADRequest(url), video_id,
-                'Checking %s URL' % item)
+            self._request_webpage(url, video_id, 'Checking %s URL' % item)
             return True
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError):
