@@ -27,7 +27,6 @@ from ..utils import (
     compiled_regex_type,
     ExtractorError,
     float_or_none,
-    HEADRequest,
     int_or_none,
     RegexNotFoundError,
     sanitize_filename,
@@ -839,7 +838,7 @@ class InfoExtractor(object):
             note='Downloading m3u8 information',
             errnote='Failed to download m3u8 information')
         last_info = None
-        last_media= None
+        last_media = None
         kv_rex = re.compile(
             r'(?P<key>[a-zA-Z_-]+)=(?P<val>"[^"]+"|[^",]+)(?:,|$)')
         for line in m3u8_doc.splitlines():

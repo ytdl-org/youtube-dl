@@ -52,7 +52,7 @@ class VideoLecturesNetIE(InfoExtractor):
         formats = []
         for v in switch.findall('./video'):
             proto = v.attrib.get('proto')
-            if not proto in ['http', 'rtmp']:
+            if proto not in ['http', 'rtmp']:
                 continue
             f = {
                 'width': int_or_none(v.attrib.get('width')),

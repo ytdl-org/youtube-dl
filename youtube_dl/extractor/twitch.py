@@ -348,6 +348,7 @@ class TwitchStreamIE(TwitchBaseIE):
             '%s/api/channel/hls/%s.m3u8?%s'
             % (self._USHER_BASE, channel_id, compat_urllib_parse.urlencode(query).encode('utf-8')),
             channel_id, 'mp4')
+
         # prefer the 'source' stream, the others are limited to 30 fps
         def _sort_source(f):
             if f.get('m3u8_media') is not None and f['m3u8_media'].get('NAME') == 'Source':
