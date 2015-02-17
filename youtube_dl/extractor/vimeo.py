@@ -18,6 +18,7 @@ from ..utils import (
     InAdvancePagedList,
     int_or_none,
     RegexNotFoundError,
+    smuggle_url,
     std_headers,
     unsmuggle_url,
     urlencode_postdata,
@@ -267,8 +268,11 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 raise ExtractorError('The author has restricted the access to this video, try with the "--referer" option')
 
             if re.search(r'<form[^>]+?id="pw_form"', webpage) is not None:
+                if data and '_video_password_verified' in data:
+                    raise ExtractorError('video password verification failed!')
                 self._verify_video_password(url, video_id, webpage)
-                return self._real_extract(url)
+                return self._real_extract(
+                    smuggle_url(url, {'_video_password_verified': 'verified'}))
             else:
                 raise ExtractorError('Unable to extract info section',
                                      cause=e)
