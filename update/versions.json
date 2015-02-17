@@ -1,6 +1,6 @@
 {
-    "latest": "2015.02.16.1",
-    "signature": "674544fee47cf48d46eb999c90a1939780b78f65d74aa04951c7f12457721eda5107175f5fa9646c13f70244ae649b5a2a4752a320eda6f80cd05ad62e171d842c760171453bdcf6edb852e6941924fac5f5306bf4c5735f2de7cf789ce975f4fde616cfbb018d535a0462d9a80f3448731cbc3cb26f54be42427746eff8a350",
+    "latest": "2015.02.17",
+    "signature": "1f2c781a09e6e751053b9599c8af51e5b230e1e9955bdce88d58d297b2d2d4bfd7a25f41e6f760fa9412d841d7050dfcdbc53d87bcf4b9012221da0e0a1454a9750c789f29cf5490ca1e22c7e488dd758fb519c8ebb7afece56d264c76c94df40807714756651c36af936b349ddd0ca471531983fb9a8764dbb75c83e074d8f2",
     "versions": {
         "2012.02.22": {
             "bin": [
@@ -7188,6 +7188,20 @@
             "tar": [
                 "https://yt-dl.org/downloads/2015.02.16.1/youtube-dl-2015.02.16.1.tar.gz",
                 "20edea66880bb78c895c8d431e50ff871ee3dd7c7a57cbe24aa8adc4bcc0b118"
+            ]
+        },
+        "2015.02.17": {
+            "bin": [
+                "https://yt-dl.org/downloads/2015.02.17/youtube-dl",
+                "a73e2610451b3798f76cbc0b3ec6aadc18c8f857326c23581f39fb68b5f66d00"
+            ],
+            "exe": [
+                "https://yt-dl.org/downloads/2015.02.17/youtube-dl.exe",
+                "d37ea1cce4ad5fd0f157d8a7151c0396c42966f49e8dd72683e4f174cf9fa282"
+            ],
+            "tar": [
+                "https://yt-dl.org/downloads/2015.02.17/youtube-dl-2015.02.17.tar.gz",
+                "862da68cf535fc99c4b10ad39cca1aa4164bb6835451782c578ca3f0afb1d452"
             ]
         }
     }
