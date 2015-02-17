@@ -200,13 +200,11 @@ class TestBlipTVSubtitles(BaseTestSubtitles):
     IE = BlipTVIE
 
     def test_list_subtitles(self):
-        self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['listsubtitles'] = True
         info_dict = self.getInfoDict()
         self.assertEqual(info_dict, None)
 
     def test_allsubtitles(self):
-        self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
