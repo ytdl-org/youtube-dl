@@ -1659,13 +1659,12 @@ class YoutubeDL(object):
         if not subtitles:
             self.to_screen('%s has no %s' % (video_id, name))
             return
-        header_line = 'Language    formats'
-        sub_lines = [
-            '%-12s%s' % (lang, ', '.join(f['ext'] for f in reversed(formats)))
-            for lang, formats in subtitles.items()]
         self.to_screen(
-            'Available %s for %s:\n%s\n%s' %
-            (name, video_id, header_line, '\n'.join(sub_lines)))
+            'Available %s for %s:' % (name, video_id))
+        self.to_screen(render_table(
+            ['Language', 'formats'],
+            [[lang, ', '.join(f['ext'] for f in reversed(formats))]
+                for lang, formats in subtitles.items()]))
 
     def urlopen(self, req):
         """ Start an HTTP download """
