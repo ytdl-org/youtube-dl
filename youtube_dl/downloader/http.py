@@ -200,16 +200,16 @@ class HttpFD(FileDownloader):
             else:
                 percent = self.calc_percent(byte_counter, data_len)
                 eta = self.calc_eta(start, time.time(), data_len - resume_len, byte_counter - resume_len)
-            self.report_progress(percent, data_len_str, speed, eta)
 
             self._hook_progress({
+                'status': 'downloading',
                 'downloaded_bytes': byte_counter,
                 'total_bytes': data_len,
                 'tmpfilename': tmpfilename,
                 'filename': filename,
-                'status': 'downloading',
                 'eta': eta,
                 'speed': speed,
+                'elapsed': now - start,
             })
 
             if is_test and byte_counter == data_len:
@@ -221,7 +221,13 @@ class HttpFD(FileDownloader):
             return False
         if tmpfilename != '-':
             stream.close()
-        self.report_finish(data_len_str, (time.time() - start))
+
+        self._hook_progress({
+            'downloaded_bytes': byte_counter,
+            'total_bytes': data_len,
+            'tmpfilename': tmpfilename,
+            'status': 'error',
+        })
         if data_len is not None and byte_counter != data_len:
             raise ContentTooShortError(byte_counter, int(data_len))
         self.try_rename(tmpfilename, filename)
@@ -235,6 +241,7 @@ class HttpFD(FileDownloader):
             'total_bytes': byte_counter,
             'filename': filename,
             'status': 'finished',
+            'elapsed': time.time() - start,
         })
 
         return True
