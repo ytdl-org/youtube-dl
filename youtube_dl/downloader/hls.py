@@ -23,7 +23,7 @@ class HlsFD(FileDownloader):
         tmpfilename = self.temp_name(filename)
 
         ffpp = FFmpegPostProcessor(downloader=self)
-        if not ffpp.available():
+        if not ffpp.available:
             self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
             return False
         ffpp.check_version()
