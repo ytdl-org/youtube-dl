@@ -75,7 +75,7 @@ class ExternalFD(FileDownloader):
 
 class CurlFD(ExternalFD):
     def _make_cmd(self, tmpfilename, info_dict):
-        cmd = [self.exe, '-o', tmpfilename]
+        cmd = [self.exe, '--location', '-o', tmpfilename]
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._source_address('--interface')
