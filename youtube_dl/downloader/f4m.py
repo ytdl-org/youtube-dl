@@ -341,8 +341,7 @@ class F4mFD(FileDownloader):
             toplevel_status['total_bytes'] = total_bytes
             if 'speed' in status:
                 toplevel_status['speed'] = status['speed']
-            if 'eta' in status:
-                toplevel_status['eta'] = eta
+            toplevel_status['eta'] = eta
             self._hook_progress(toplevel_status)
 
         http_dl.add_progress_hook(frag_progress_hook)
