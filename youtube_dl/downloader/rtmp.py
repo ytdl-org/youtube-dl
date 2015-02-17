@@ -11,7 +11,6 @@ from ..compat import compat_str
 from ..utils import (
     check_executable,
     encodeFilename,
-    format_bytes,
     get_exe_version,
 )
 
@@ -51,23 +50,23 @@ class RtmpFD(FileDownloader):
                     if not resume_percent:
                         resume_percent = percent
                         resume_downloaded_data_len = downloaded_data_len
-                    eta = self.calc_eta(start, time.time(), 100 - resume_percent, percent - resume_percent)
-                    speed = self.calc_speed(start, time.time(), downloaded_data_len - resume_downloaded_data_len)
+                    time_now = time.time()
+                    eta = self.calc_eta(start, time_now, 100 - resume_percent, percent - resume_percent)
+                    speed = self.calc_speed(start, time_now, downloaded_data_len - resume_downloaded_data_len)
                     data_len = None
                     if percent > 0:
                         data_len = int(downloaded_data_len * 100 / percent)
-                    data_len_str = '~' + format_bytes(data_len)
-                    self.report_progress(percent, data_len_str, speed, eta)
-                    cursor_in_new_line = False
                     self._hook_progress({
+                        'status': 'downloading',
                         'downloaded_bytes': downloaded_data_len,
-                        'total_bytes': data_len,
+                        'total_bytes_estimate': data_len,
                         'tmpfilename': tmpfilename,
                         'filename': filename,
-                        'status': 'downloading',
                         'eta': eta,
+                        'elapsed': time_now - start,
                         'speed': speed,
                     })
+                    cursor_in_new_line = False
                 else:
                     # no percent for live streams
                     mobj = re.search(r'([0-9]+\.[0-9]{3}) kB / [0-9]+\.[0-9]{2} sec', line)
@@ -75,15 +74,15 @@ class RtmpFD(FileDownloader):
                         downloaded_data_len = int(float(mobj.group(1)) * 1024)
                         time_now = time.time()
                         speed = self.calc_speed(start, time_now, downloaded_data_len)
-                        self.report_progress_live_stream(downloaded_data_len, speed, time_now - start)
-                        cursor_in_new_line = False
                         self._hook_progress({
                             'downloaded_bytes': downloaded_data_len,
                             'tmpfilename': tmpfilename,
                             'filename': filename,
                             'status': 'downloading',
+                            'elapsed': time_now - start,
                             'speed': speed,
                         })
+                        cursor_in_new_line = False
                     elif self.params.get('verbose', False):
                         if not cursor_in_new_line:
                             self.to_screen('')

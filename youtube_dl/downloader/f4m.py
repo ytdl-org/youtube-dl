@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import division, unicode_literals
 
 import base64
 import io
@@ -15,7 +15,6 @@ from ..compat import (
 from ..utils import (
     struct_pack,
     struct_unpack,
-    format_bytes,
     encodeFilename,
     sanitize_open,
     xpath_text,
@@ -252,17 +251,6 @@ class F4mFD(FileDownloader):
         requested_bitrate = info_dict.get('tbr')
         self.to_screen('[download] Downloading f4m manifest')
         manifest = self.ydl.urlopen(man_url).read()
-        self.report_destination(filename)
-        http_dl = HttpQuietDownloader(
-            self.ydl,
-            {
-                'continuedl': True,
-                'quiet': True,
-                'noprogress': True,
-                'ratelimit': self.params.get('ratelimit', None),
-                'test': self.params.get('test', False),
-            }
-        )
 
         doc = etree.fromstring(manifest)
         formats = [(int(f.attrib.get('bitrate', -1)), f)
@@ -298,39 +286,65 @@ class F4mFD(FileDownloader):
         # For some akamai manifests we'll need to add a query to the fragment url
         akamai_pv = xpath_text(doc, _add_ns('pv-2.0'))
 
+        self.report_destination(filename)
+        http_dl = HttpQuietDownloader(
+            self.ydl,
+            {
+                'continuedl': True,
+                'quiet': True,
+                'noprogress': True,
+                'ratelimit': self.params.get('ratelimit', None),
+                'test': self.params.get('test', False),
+            }
+        )
         tmpfilename = self.temp_name(filename)
         (dest_stream, tmpfilename) = sanitize_open(tmpfilename, 'wb')
+
         write_flv_header(dest_stream)
         write_metadata_tag(dest_stream, metadata)
 
         # This dict stores the download progress, it's updated by the progress
         # hook
         state = {
+            'status': 'downloading',
             'downloaded_bytes': 0,
-            'frag_counter': 0,
+            'frag_index': 0,
+            'frag_count': total_frags,
+            'filename': filename,
+            'tmpfilename': tmpfilename,
         }
         start = time.time()
 
-        def frag_progress_hook(status):
-            frag_total_bytes = status.get('total_bytes', 0)
-            estimated_size = (state['downloaded_bytes'] +
-                              (total_frags - state['frag_counter']) * frag_total_bytes)
-            if status['status'] == 'finished':
+        def frag_progress_hook(s):
+            if s['status'] not in ('downloading', 'finished'):
+                return
+
+            frag_total_bytes = s.get('total_bytes', 0)
+            if s['status'] == 'finished':
                 state['downloaded_bytes'] += frag_total_bytes
-                state['frag_counter'] += 1
-                progress = self.calc_percent(state['frag_counter'], total_frags)
-                byte_counter = state['downloaded_bytes']
+                state['frag_index'] += 1
+
+            estimated_size = (
+                (state['downloaded_bytes'] + frag_total_bytes)
+                / (state['frag_index'] + 1) * total_frags)
+            time_now = time.time()
+            state['total_bytes_estimate'] = estimated_size
+            state['elapsed'] = time_now - start
+
+            if s['status'] == 'finished':
+                progress = self.calc_percent(state['frag_index'], total_frags)
             else:
-                frag_downloaded_bytes = status['downloaded_bytes']
-                byte_counter = state['downloaded_bytes'] + frag_downloaded_bytes
+                frag_downloaded_bytes = s['downloaded_bytes']
                 frag_progress = self.calc_percent(frag_downloaded_bytes,
                                                   frag_total_bytes)
-                progress = self.calc_percent(state['frag_counter'], total_frags)
+                progress = self.calc_percent(state['frag_index'], total_frags)
                 progress += frag_progress / float(total_frags)
 
-            eta = self.calc_eta(start, time.time(), estimated_size, byte_counter)
-            self.report_progress(progress, format_bytes(estimated_size),
-                                 status.get('speed'), eta)
+                state['eta'] = self.calc_eta(
+                    start, time_now, estimated_size, state['downloaded_bytes'] + frag_downloaded_bytes)
+                state['speed'] = s.get('speed')
+            self._hook_progress(state)
+
         http_dl.add_progress_hook(frag_progress_hook)
 
         frags_filenames = []
@@ -354,8 +368,8 @@ class F4mFD(FileDownloader):
             frags_filenames.append(frag_filename)
 
         dest_stream.close()
-        self.report_finish(format_bytes(state['downloaded_bytes']), time.time() - start)
 
+        elapsed = time.time() - start
         self.try_rename(tmpfilename, filename)
         for frag_file in frags_filenames:
             os.remove(frag_file)
@@ -366,6 +380,7 @@ class F4mFD(FileDownloader):
             'total_bytes': fsize,
             'filename': filename,
             'status': 'finished',
+            'elapsed': elapsed,
         })
 
         return True

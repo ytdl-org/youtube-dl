@@ -14,7 +14,6 @@ from ..utils import (
     ContentTooShortError,
     encodeFilename,
     sanitize_open,
-    format_bytes,
 )
 
 
@@ -136,7 +135,6 @@ class HttpFD(FileDownloader):
                 self.to_screen('\r[download] File is larger than max-filesize (%s bytes > %s bytes). Aborting.' % (data_len, max_data_len))
                 return False
 
-        data_len_str = format_bytes(data_len)
         byte_counter = 0 + resume_len
         block_size = self.params.get('buffersize', 1024)
         start = time.time()
@@ -195,20 +193,19 @@ class HttpFD(FileDownloader):
             # Progress message
             speed = self.calc_speed(start, now, byte_counter - resume_len)
             if data_len is None:
-                eta = percent = None
+                eta = None
             else:
-                percent = self.calc_percent(byte_counter, data_len)
                 eta = self.calc_eta(start, time.time(), data_len - resume_len, byte_counter - resume_len)
-            self.report_progress(percent, data_len_str, speed, eta)
 
             self._hook_progress({
+                'status': 'downloading',
                 'downloaded_bytes': byte_counter,
                 'total_bytes': data_len,
                 'tmpfilename': tmpfilename,
                 'filename': filename,
-                'status': 'downloading',
                 'eta': eta,
                 'speed': speed,
+                'elapsed': now - start,
             })
 
             if is_test and byte_counter == data_len:
@@ -220,7 +217,13 @@ class HttpFD(FileDownloader):
             return False
         if tmpfilename != '-':
             stream.close()
-        self.report_finish(data_len_str, (time.time() - start))
+
+        self._hook_progress({
+            'downloaded_bytes': byte_counter,
+            'total_bytes': data_len,
+            'tmpfilename': tmpfilename,
+            'status': 'error',
+        })
         if data_len is not None and byte_counter != data_len:
             raise ContentTooShortError(byte_counter, int(data_len))
         self.try_rename(tmpfilename, filename)
@@ -234,6 +237,7 @@ class HttpFD(FileDownloader):
             'total_bytes': byte_counter,
             'filename': filename,
             'status': 'finished',
+            'elapsed': time.time() - start,
         })
 
         return True

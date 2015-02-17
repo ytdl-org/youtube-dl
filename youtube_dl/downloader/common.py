@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import division, unicode_literals
 
 import os
 import re
@@ -54,6 +54,7 @@ class FileDownloader(object):
         self.ydl = ydl
         self._progress_hooks = []
         self.params = params
+        self.add_progress_hook(self.report_progress)
 
     @staticmethod
     def format_seconds(seconds):
@@ -226,42 +227,64 @@ class FileDownloader(object):
             self.to_screen(clear_line + fullmsg, skip_eol=not is_last_line)
         self.to_console_title('youtube-dl ' + msg)
 
-    def report_progress(self, percent, data_len_str, speed, eta):
-        """Report download progress."""
-        if self.params.get('noprogress', False):
+    def report_progress(self, s):
+        if s['status'] == 'finished':
+            if self.params.get('noprogress', False):
+                self.to_screen('[download] Download completed')
+            else:
+                s['_total_bytes_str'] = format_bytes(s['total_bytes'])
+                if s.get('elapsed') is not None:
+                    s['_elapsed_str'] = self.format_seconds(s['elapsed'])
+                    msg_template = '100%% of %(_total_bytes_str)s in %(_elapsed_str)s'
+                else:
+                    msg_template = '100%% of %(_total_bytes_str)s'
+                self._report_progress_status(
+                    msg_template % s, is_last_line=True)
+
+        if self.params.get('noprogress'):
             return
-        if eta is not None:
-            eta_str = self.format_eta(eta)
-        else:
-            eta_str = 'Unknown ETA'
-        if percent is not None:
-            percent_str = self.format_percent(percent)
-        else:
-            percent_str = 'Unknown %'
-        speed_str = self.format_speed(speed)
 
-        msg = ('%s of %s at %s ETA %s' %
-               (percent_str, data_len_str, speed_str, eta_str))
-        self._report_progress_status(msg)
-
-    def report_progress_live_stream(self, downloaded_data_len, speed, elapsed):
-        if self.params.get('noprogress', False):
+        if s['status'] != 'downloading':
             return
-        downloaded_str = format_bytes(downloaded_data_len)
-        speed_str = self.format_speed(speed)
-        elapsed_str = FileDownloader.format_seconds(elapsed)
-        msg = '%s at %s (%s)' % (downloaded_str, speed_str, elapsed_str)
-        self._report_progress_status(msg)
 
-    def report_finish(self, data_len_str, tot_time):
-        """Report download finished."""
-        if self.params.get('noprogress', False):
-            self.to_screen('[download] Download completed')
+        if s.get('eta') is not None:
+            s['_eta_str'] = self.format_eta(s['eta'])
         else:
-            self._report_progress_status(
-                ('100%% of %s in %s' %
-                 (data_len_str, self.format_seconds(tot_time))),
-                is_last_line=True)
+            s['_eta_str'] = 'Unknown ETA'
+
+        if s.get('total_bytes') and s.get('downloaded_bytes') is not None:
+            s['_percent_str'] = self.format_percent(100 * s['downloaded_bytes'] / s['total_bytes'])
+        elif s.get('total_bytes_estimate') and s.get('downloaded_bytes') is not None:
+            s['_percent_str'] = self.format_percent(100 * s['downloaded_bytes'] / s['total_bytes_estimate'])
+        else:
+            if s.get('downloaded_bytes') == 0:
+                s['_percent_str'] = self.format_percent(0)
+            else:
+                s['_percent_str'] = 'Unknown %'
+
+        if s.get('speed') is not None:
+            s['_speed_str'] = self.format_speed(s['speed'])
+        else:
+            s['_speed_str'] = 'Unknown speed'
+
+        if s.get('total_bytes') is not None:
+            s['_total_bytes_str'] = format_bytes(s['total_bytes'])
+            msg_template = '%(_percent_str)s of %(_total_bytes_str)s at %(_speed_str)s ETA %(_eta_str)s'
+        elif s.get('total_bytes_estimate') is not None:
+            s['_total_bytes_estimate_str'] = format_bytes(s['total_bytes_estimate'])
+            msg_template = '%(_percent_str)s of ~%(_total_bytes_estimate_str)s at %(_speed_str)s ETA %(_eta_str)s'
+        else:
+            if s.get('downloaded_bytes') is not None:
+                s['_downloaded_bytes_str'] = format_bytes(s['downloaded_bytes'])
+                if s.get('elapsed'):
+                    s['_elapsed_str'] = self.format_seconds(s['elapsed'])
+                    msg_template = '%(_downloaded_bytes_str)s at %(_speed_str)s (%(_elapsed_str)s)'
+                else:
+                    msg_template = '%(_downloaded_bytes_str)s at %(_speed_str)s'
+            else:
+                msg_template = '%(_percent_str)s % at %(_speed_str)s ETA %(_eta_str)s'
+
+        self._report_progress_status(msg_template % s)
 
     def report_resuming_byte(self, resume_len):
         """Report attempt to resume at given byte."""
