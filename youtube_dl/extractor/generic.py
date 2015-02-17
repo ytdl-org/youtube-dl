@@ -537,6 +537,15 @@ class GenericIE(InfoExtractor):
                 'uploader_id': 'NationalArchives08',
                 'title': 'Webinar: Using Discovery, The National Archives’ online catalogue',
             },
+        },
+        # rtl.nl embed
+        {
+            'url': 'http://www.rtlnieuws.nl/nieuws/buitenland/aanslagen-kopenhagen',
+            'playlist_mincount': 5,
+            'info_dict': {
+                'id': 'aanslagen-kopenhagen',
+                'title': 'Aanslagen Kopenhagen | RTL Nieuws',
+            }
         }
     ]
 
@@ -782,6 +791,13 @@ class GenericIE(InfoExtractor):
                 'entries': entries,
             }
 
+        # Look for embedded rtl.nl player
+        matches = re.findall(
+            r'<iframe\s+(?:[a-zA-Z-]+="[^"]+"\s+)*?src="((?:https?:)?//(?:www\.)?rtl\.nl/system/videoplayer/[^"]+video_embed[^"]+)"',
+            webpage)
+        if matches:
+            return _playlist_from_matches(matches, ie='RtlNl')
+
         # Look for embedded (iframe) Vimeo player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/.+?)\1', webpage)
@@ -789,7 +805,6 @@ class GenericIE(InfoExtractor):
             player_url = unescapeHTML(mobj.group('url'))
             surl = smuggle_url(player_url, {'Referer': url})
             return self.url_result(surl)
-
         # Look for embedded (swf embed) Vimeo player
         mobj = re.search(
             r'<embed[^>]+?src="((?:https?:)?//(?:www\.)?vimeo\.com/moogaloop\.swf.+?)"', webpage)

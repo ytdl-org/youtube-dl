@@ -425,6 +425,10 @@ def parseOpts(overrideArguments=None):
         dest='xattr_set_filesize', action='store_true',
         help='(experimental) set file xattribute ytdl.filesize with expected filesize')
     downloader.add_option(
+        '--hls-prefer-native',
+        dest='hls_prefer_native', action='store_true',
+        help='(experimental) Use the native HLS downloader instead of ffmpeg.')
+    downloader.add_option(
         '--external-downloader',
         dest='external_downloader', metavar='COMMAND',
         help='(experimental) Use the specified external downloader. '

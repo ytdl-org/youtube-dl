@@ -34,6 +34,9 @@ def get_suitable_downloader(info_dict, params={}):
         if ed.supports(info_dict):
             return ed
 
+    if protocol == 'm3u8' and params.get('hls_prefer_native'):
+        return NativeHlsFD
+
     return PROTOCOL_MAP.get(protocol, HttpFD)
 
 

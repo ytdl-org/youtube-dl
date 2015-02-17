@@ -372,7 +372,7 @@ from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtbf import RTBFIE
 from .rte import RteIE
-from .rtlnl import RtlXlIE
+from .rtlnl import RtlNlIE
 from .rtlnow import RTLnowIE
 from .rtl2 import RTL2IE
 from .rtp import RTPIE

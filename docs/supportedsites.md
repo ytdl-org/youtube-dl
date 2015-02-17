@@ -338,9 +338,9 @@
  - **Roxwel**
  - **RTBF**
  - **Rte**
+ - **rtl.nl**: rtl.nl and rtlxl.nl
  - **RTL2**
  - **RTLnow**
- - **rtlxl.nl**
  - **RTP**
  - **RTS**: RTS.ch
  - **rtve.es:alacarta**: RTVE a la carta
