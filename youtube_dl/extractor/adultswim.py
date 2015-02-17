@@ -38,6 +38,7 @@ class AdultSwimIE(InfoExtractor):
             },
         ],
         'info_dict': {
+            'id': 'rQxZvXQ4ROaSOqq-or2Mow',
             'title': 'Rick and Morty - Pilot',
             'description': "Rick moves in with his daughter's family and establishes himself as a bad influence on his grandson, Morty. "
         }
@@ -55,6 +56,7 @@ class AdultSwimIE(InfoExtractor):
             }
         ],
         'info_dict': {
+            'id': '-t8CamQlQ2aYZ49ItZCFog',
             'title': 'American Dad - Putting Francine Out of Business',
             'description': 'Stan hatches a plan to get Francine out of the real estate business.Watch more American Dad on [adult swim].'
         },
