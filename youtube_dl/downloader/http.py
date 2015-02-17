@@ -1,10 +1,9 @@
 from __future__ import unicode_literals
 
-import os
-import time
-
-from socket import error as SocketError
 import errno
+import os
+import socket
+import time
 
 from .common import FileDownloader
 from ..compat import (
@@ -102,7 +101,7 @@ class HttpFD(FileDownloader):
                             resume_len = 0
                             open_mode = 'wb'
                             break
-            except SocketError as e:
+            except socket.error as e:
                 if e.errno != errno.ECONNRESET:
                     # Connection reset is no problem, just retry
                     raise
