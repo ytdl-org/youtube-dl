@@ -11,7 +11,6 @@ from ..compat import compat_str
 from ..utils import (
     check_executable,
     encodeFilename,
-    format_bytes,
     get_exe_version,
 )
 

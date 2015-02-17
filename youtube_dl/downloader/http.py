@@ -15,7 +15,6 @@ from ..utils import (
     ContentTooShortError,
     encodeFilename,
     sanitize_open,
-    format_bytes,
 )
 
 
@@ -137,7 +136,6 @@ class HttpFD(FileDownloader):
                 self.to_screen('\r[download] File is larger than max-filesize (%s bytes > %s bytes). Aborting.' % (data_len, max_data_len))
                 return False
 
-        data_len_str = format_bytes(data_len)
         byte_counter = 0 + resume_len
         block_size = self.params.get('buffersize', 1024)
         start = time.time()
@@ -196,9 +194,8 @@ class HttpFD(FileDownloader):
             # Progress message
             speed = self.calc_speed(start, now, byte_counter - resume_len)
             if data_len is None:
-                eta = percent = None
+                eta = None
             else:
-                percent = self.calc_percent(byte_counter, data_len)
                 eta = self.calc_eta(start, time.time(), data_len - resume_len, byte_counter - resume_len)
 
             self._hook_progress({

@@ -15,7 +15,6 @@ from ..compat import (
 from ..utils import (
     struct_pack,
     struct_unpack,
-    format_bytes,
     encodeFilename,
     sanitize_open,
     xpath_text,
@@ -334,10 +333,8 @@ class F4mFD(FileDownloader):
 
             if s['status'] == 'finished':
                 progress = self.calc_percent(state['frag_index'], total_frags)
-                byte_counter = state['downloaded_bytes']
             else:
                 frag_downloaded_bytes = s['downloaded_bytes']
-                byte_counter = state['downloaded_bytes'] + frag_downloaded_bytes
                 frag_progress = self.calc_percent(frag_downloaded_bytes,
                                                   frag_total_bytes)
                 progress = self.calc_percent(state['frag_index'], total_frags)
