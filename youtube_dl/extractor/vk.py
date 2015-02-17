@@ -217,6 +217,9 @@ class VKUserVideosIE(InfoExtractor):
     _TEMPLATE_URL = 'https://vk.com/videos'
     _TEST = {
         'url': 'http://vk.com/videos205387401',
+        'info_dict': {
+            'id': '205387401',
+        },
         'playlist_mincount': 4,
     }
 
