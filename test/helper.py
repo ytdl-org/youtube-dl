@@ -163,7 +163,9 @@ def expect_info_dict(self, got_dict, expected_dict):
             info_dict_str += ''.join(
                 '    %s: %s,\n' % (_repr(k), _repr(v))
                 for k, v in test_info_dict.items() if k not in missing_keys)
-            info_dict_str += '\n'
+
+            if info_dict_str:
+                info_dict_str += '\n'
         info_dict_str += ''.join(
             '    %s: %s,\n' % (_repr(k), _repr(test_info_dict[k]))
             for k in missing_keys)
