@@ -225,7 +225,6 @@ class YoutubeDL(object):
     call_home:         Boolean, true iff we are allowed to contact the
                        youtube-dl servers for debugging.
     sleep_interval:    Number of seconds to sleep before each download.
-    external_downloader:  Executable of the external downloader to call.
     listformats:       Print an overview of available video formats and exit.
     list_thumbnails:   Print a table of all thumbnails and exit.
     match_filter:      A function that gets called with the info_dict of
@@ -235,6 +234,10 @@ class YoutubeDL(object):
                        match_filter_func in utils.py is one example for this.
     no_color:          Do not emit color codes in output.
 
+    The following options determine which downloader is picked:
+    external_downloader: Executable of the external downloader to call.
+                       None or unset for standard (built-in) downloader.
+    hls_prefer_native: Use the native HLS downloader instead of ffmpeg/avconv.
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the FileDownloader:
