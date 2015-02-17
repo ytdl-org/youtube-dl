@@ -331,6 +331,20 @@ class F4mFD(FileDownloader):
             eta = self.calc_eta(start, time.time(), estimated_size, byte_counter)
             self.report_progress(progress, format_bytes(estimated_size),
                                  status.get('speed'), eta)
+
+            # report totals to actual hooks
+            toplevel_status = {'status': 'downloading', 'filename': filename,
+                               'tmpfilename': tmpfilename, 'eta': eta}
+            toplevel_status['downloaded_bytes'] = state['downloaded_bytes']
+            total_bytes = 0
+            if progress > 0:
+                # subject to rounding error
+                total_bytes = int((100.0 * state['downloaded_bytes']) / progress)
+            toplevel_status['total_bytes'] = total_bytes
+            if 'speed' in status:
+                toplevel_status['speed'] = status['speed']
+            self._hook_progress(toplevel_status)
+
         http_dl.add_progress_hook(frag_progress_hook)
 
         frags_filenames = []
