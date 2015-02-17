@@ -70,6 +70,7 @@ class VideoLecturesNetIE(InfoExtractor):
                 f.update({
                     'url': v.attrib['streamer'],
                     'play_path': src,
+                    'rtmp_real_time': True,
                 })
                 formats.append(f)
         self._sort_formats(formats)
