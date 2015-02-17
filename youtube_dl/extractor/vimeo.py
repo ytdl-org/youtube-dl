@@ -405,6 +405,7 @@ class VimeoChannelIE(InfoExtractor):
     _TESTS = [{
         'url': 'http://vimeo.com/channels/tributes',
         'info_dict': {
+            'id': 'tributes',
             'title': 'Vimeo Tributes',
         },
         'playlist_mincount': 25,
@@ -483,6 +484,7 @@ class VimeoUserIE(VimeoChannelIE):
         'url': 'http://vimeo.com/nkistudio/videos',
         'info_dict': {
             'title': 'Nki',
+            'id': 'nkistudio',
         },
         'playlist_mincount': 66,
     }]
@@ -500,6 +502,7 @@ class VimeoAlbumIE(VimeoChannelIE):
     _TESTS = [{
         'url': 'http://vimeo.com/album/2632481',
         'info_dict': {
+            'id': '2632481',
             'title': 'Staff Favorites: November 2013',
         },
         'playlist_mincount': 13,
@@ -530,6 +533,7 @@ class VimeoGroupsIE(VimeoAlbumIE):
     _TESTS = [{
         'url': 'http://vimeo.com/groups/rolexawards',
         'info_dict': {
+            'id': 'rolexawards',
             'title': 'Rolex Awards for Enterprise',
         },
         'playlist_mincount': 73,
@@ -612,6 +616,7 @@ class VimeoLikesIE(InfoExtractor):
         'url': 'https://vimeo.com/user755559/likes/',
         'playlist_mincount': 293,
         "info_dict": {
+            'id': 'user755559_likes',
             "description": "See all the videos urza likes",
             "title": 'Videos urza likes',
         },
