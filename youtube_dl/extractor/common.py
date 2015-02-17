@@ -1000,21 +1000,19 @@ class InfoExtractor(object):
         return not any_restricted
 
     def extract_subtitles(self, *args, **kwargs):
-        subtitles = {}
-        list_subtitles = self._downloader.params.get('listsubtitles')
-        if self._downloader.params.get('writesubtitles', False) or list_subtitles:
-            subtitles.update(self._get_subtitles(*args, **kwargs))
-        return subtitles
+        if (self._downloader.params.get('writesubtitles', False) or
+                self._downloader.params.get('listsubtitles')):
+            return self._get_subtitles(*args, **kwargs)
+        return {}
 
     def _get_subtitles(self, *args, **kwargs):
         raise NotImplementedError("This method must be implemented by subclasses")
 
     def extract_automatic_captions(self, *args, **kwargs):
-        automatic_captions = {}
-        list_subtitles = self._downloader.params.get('listsubtitles')
-        if self._downloader.params.get('writeautomaticsub', False) or list_subtitles:
-            automatic_captions.update(self._get_automatic_captions(*args, **kwargs))
-        return automatic_captions
+        if (self._downloader.params.get('writeautomaticsub', False) or
+                self._downloader.params.get('listsubtitles')):
+            return self._get_automatic_captions(*args, **kwargs)
+        return {}
 
     def _get_automatic_captions(self, *args, **kwargs):
         raise NotImplementedError("This method must be implemented by subclasses")
