@@ -954,30 +954,9 @@ class YoutubeDL(object):
         return res
 
     def _calc_cookies(self, info_dict):
-        class _PseudoRequest(object):
-            def __init__(self, url):
-                self.url = url
-                self.headers = {}
-                self.unverifiable = False
-
-            def add_unredirected_header(self, k, v):
-                self.headers[k] = v
-
-            def get_full_url(self):
-                return self.url
-
-            def is_unverifiable(self):
-                return self.unverifiable
-
-            def has_header(self, h):
-                return h in self.headers
-
-            def get_header(self, h, default=None):
-                return self.headers.get(h, default)
-
-        pr = _PseudoRequest(info_dict['url'])
+        pr = compat_urllib_request.Request(info_dict['url'])
         self.cookiejar.add_cookie_header(pr)
-        return pr.headers.get('Cookie')
+        return pr.get_header('Cookie')
 
     def process_video_result(self, info_dict, download=True):
         assert info_dict.get('_type', 'video') == 'video'
