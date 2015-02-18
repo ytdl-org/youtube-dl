@@ -23,6 +23,7 @@ from youtube_dl.extractor import (
     ComedyCentralIE,
     NRKTVIE,
     RaiIE,
+    VikiIE,
 )
 
 
@@ -370,6 +371,18 @@ class TestRaiSubtitles(BaseTestSubtitles):
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['it']))
         self.assertEqual(md5(subtitles['it']), 'b1d90a98755126b61e667567a1f6680a')
+
+
+class TestVikiSubtitles(BaseTestSubtitles):
+    url = 'http://www.viki.com/videos/1060846v-punch-episode-18'
+    IE = VikiIE
+
+    def test_allsubtitles(self):
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['en']))
+        self.assertEqual(md5(subtitles['en']), 'b0b781eeb45efd3f6398a925b259150b')
 
 
 if __name__ == '__main__':
