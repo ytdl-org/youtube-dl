@@ -1534,29 +1534,18 @@ class YoutubeDL(object):
         return res
 
     def list_formats(self, info_dict):
-        def line(format, idlen=20):
-            return (('%-' + compat_str(idlen + 1) + 's%-10s%-12s%s') % (
-                format['format_id'],
-                format['ext'],
-                self.format_resolution(format),
-                self._format_note(format),
-            ))
-
         formats = info_dict.get('formats', [info_dict])
-        idlen = max(len('format code'),
-                    max(len(f['format_id']) for f in formats))
-        formats_s = [
-            line(f, idlen) for f in formats
+        table = [
+            [f['format_id'], f['ext'], self.format_resolution(f), self._format_note(f)]
+            for f in formats
             if f.get('preference') is None or f['preference'] >= -1000]
         if len(formats) > 1:
-            formats_s[-1] += (' ' if self._format_note(formats[-1]) else '') + '(best)'
+            table[-1][-1] += (' ' if table[-1][-1] else '') + '(best)'
 
-        header_line = line({
-            'format_id': 'format code', 'ext': 'extension',
-            'resolution': 'resolution', 'format_note': 'note'}, idlen=idlen)
+        header_line = ['format code', 'extension', 'resolution', 'note']
         self.to_screen(
-            '[info] Available formats for %s:\n%s\n%s' %
-            (info_dict['id'], header_line, '\n'.join(formats_s)))
+            '[info] Available formats for %s:\n%s' %
+            (info_dict['id'], render_table(header_line, table)))
 
     def list_thumbnails(self, info_dict):
         thumbnails = info_dict.get('thumbnails')
