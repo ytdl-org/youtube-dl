@@ -20,6 +20,7 @@ from youtube_dl.extractor import (
     CeskaTelevizeIE,
     LyndaIE,
     NPOIE,
+    ComedyCentralIE,
 )
 
 
@@ -328,6 +329,21 @@ class TestNPOSubtitles(BaseTestSubtitles):
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['nl']))
         self.assertEqual(md5(subtitles['nl']), 'fc6435027572b63fb4ab143abd5ad3f4')
+
+
+class TestMTVSubtitles(BaseTestSubtitles):
+    url = 'http://www.cc.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother'
+    IE = ComedyCentralIE
+
+    def getInfoDict(self):
+        return super(TestMTVSubtitles, self).getInfoDict()['entries'][0]
+
+    def test_allsubtitles(self):
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['en']))
+        self.assertEqual(md5(subtitles['en']), 'b9f6ca22a6acf597ec76f61749765e65')
 
 
 if __name__ == '__main__':
