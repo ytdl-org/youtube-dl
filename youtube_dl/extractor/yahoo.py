@@ -24,7 +24,6 @@ class YahooIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
-            'md5': '4962b075c08be8690a922ee026d05e69',
             'info_dict': {
                 'id': '2d25e626-2378-391f-ada0-ddaf1417e588',
                 'ext': 'mp4',
