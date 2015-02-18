@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class PatreonIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?patreon\.com/creation\?hid=(.+)'
+    _VALID_URL = r'https?://(?:www\.)?patreon\.com/creation\?hid=(?P<id>[^&#]+)'
     _TESTS = [
         {
             'url': 'http://www.patreon.com/creation?hid=743933',
@@ -65,9 +65,7 @@ class PatreonIE(InfoExtractor):
     '''
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group(1)
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         title = self._og_search_title(webpage).strip()
 
@@ -80,11 +78,10 @@ class PatreonIE(InfoExtractor):
             uploader = self._html_search_regex(
                 r'<strong>(.*?)</strong> is creating', webpage, 'uploader')
         else:
-            playlist_js = self._search_regex(
+            playlist = self._parse_json(self._search_regex(
                 r'(?s)new\s+jPlayerPlaylist\(\s*\{\s*[^}]*},\s*(\[.*?,?\s*\])',
-                webpage, 'playlist JSON')
-            playlist_json = js_to_json(playlist_js)
-            playlist = json.loads(playlist_json)
+                webpage, 'playlist JSON'),
+                video_id, transform_source=js_to_json)
             data = playlist[0]
             video_url = self._proto_relative_url(data['mp3'])
             thumbnail = self._proto_relative_url(data.get('cover'))
