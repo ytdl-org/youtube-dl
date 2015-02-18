@@ -22,6 +22,7 @@ from youtube_dl.extractor import (
     NPOIE,
     ComedyCentralIE,
     NRKTVIE,
+    RaiIE,
 )
 
 
@@ -357,6 +358,18 @@ class TestNRKSubtitles(BaseTestSubtitles):
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['no']))
         self.assertEqual(md5(subtitles['no']), '1d221e6458c95c5494dcd38e6a1f129a')
+
+
+class TestRaiSubtitles(BaseTestSubtitles):
+    url = 'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-cb27157f-9dd0-4aee-b788-b1f67643a391.html'
+    IE = RaiIE
+
+    def test_allsubtitles(self):
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['it']))
+        self.assertEqual(md5(subtitles['it']), 'b1d90a98755126b61e667567a1f6680a')
 
 
 if __name__ == '__main__':
