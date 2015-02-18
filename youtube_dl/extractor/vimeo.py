@@ -175,7 +175,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
     def _verify_video_password(self, url, video_id, webpage):
         password = self._downloader.params.get('videopassword', None)
         if password is None:
-            raise ExtractorError('This video is protected by a password, use the --video-password option')
+            raise ExtractorError('This video is protected by a password, use the --video-password option', expected=True)
         token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
         data = compat_urllib_parse.urlencode({
             'password': password,
