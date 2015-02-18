@@ -18,6 +18,7 @@ from youtube_dl.extractor import (
     VimeoIE,
     WallaIE,
     CeskaTelevizeIE,
+    LyndaIE,
 )
 
 
@@ -302,6 +303,18 @@ class TestCeskaTelevizeSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(len(subtitles), 0)
+
+
+class TestLyndaSubtitles(BaseTestSubtitles):
+    url = 'http://www.lynda.com/Bootstrap-tutorials/Using-exercise-files/110885/114408-4.html'
+    IE = LyndaIE
+
+    def test_allsubtitles(self):
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['en']))
+        self.assertEqual(md5(subtitles['en']), '09bbe67222259bed60deaa26997d73a7')
 
 
 if __name__ == '__main__':
