@@ -562,10 +562,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor, SubtitlesInfoExtractor):
         else:
             assert False, 'Invalid player type %r' % player_type
 
-        if cache_spec is None:
-            test_string = ''.join(map(compat_chr, range(len(example_sig))))
-            cache_res = res(test_string)
-            cache_spec = [ord(c) for c in cache_res]
+        test_string = ''.join(map(compat_chr, range(len(example_sig))))
+        cache_res = res(test_string)
+        cache_spec = [ord(c) for c in cache_res]
 
         self._downloader.cache.store('youtube-sigfuncs', func_id, cache_spec)
         return res
