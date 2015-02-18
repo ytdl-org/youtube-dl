@@ -5,9 +5,6 @@ import json
 
 from .common import InfoExtractor
 from .youtube import YoutubeIE
-from ..compat import (
-    compat_urlparse,
-)
 from ..utils import (
     clean_html,
     ExtractorError,
@@ -108,7 +105,6 @@ class OCWMITIE(InfoExtractor):
                 'upload_date': '20121109',
                 'uploader_id': 'MIT',
                 'uploader': 'MIT OpenCourseWare',
-                # 'subtitles': 'http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-041-probabilistic-systems-analysis-and-applied-probability-fall-2010/video-lectures/lecture-7-multiple-variables-expectations-independence/MIT6_041F11_lec07_300k.mp4.srt'
             }
         },
         {
@@ -121,7 +117,6 @@ class OCWMITIE(InfoExtractor):
                 'uploader_id': 'MIT',
                 'uploader': 'MIT OpenCourseWare',
                 'description': 'This section contains lecture video excerpts, lecture notes, an interactive mathlet with supporting documents, and problem solving videos.',
-                # 'subtitles': 'http://ocw.mit.edu//courses/mathematics/18-01sc-single-variable-calculus-fall-2010/ocw-18.01-f07-lec01_300k.SRT'
             }
         }
     ]
@@ -140,7 +135,6 @@ class OCWMITIE(InfoExtractor):
             metadata = re.sub(r'[\'"]', '', embed_chapter_media.group(1))
             metadata = re.split(r', ?', metadata)
             yt = metadata[1]
-            subs = compat_urlparse.urljoin(self._BASE_URL, metadata[7])
         else:
             # search for call to ocw_embed_chapter_media(container_id, media_url, provider, page_url, image_url, captions_file)
             embed_media = re.search(r'ocw_embed_media\((.+?)\)', webpage)
@@ -148,7 +142,6 @@ class OCWMITIE(InfoExtractor):
                 metadata = re.sub(r'[\'"]', '', embed_media.group(1))
                 metadata = re.split(r', ?', metadata)
                 yt = metadata[1]
-                subs = compat_urlparse.urljoin(self._BASE_URL, metadata[5])
             else:
                 raise ExtractorError('Unable to find embedded YouTube video.')
         video_id = YoutubeIE.extract_id(yt)
@@ -159,7 +152,5 @@ class OCWMITIE(InfoExtractor):
             'title': title,
             'description': description,
             'url': yt,
-            'url_transparent'
-            'subtitles': subs,
             'ie_key': 'Youtube',
         }
