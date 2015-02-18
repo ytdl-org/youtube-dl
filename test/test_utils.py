@@ -370,6 +370,10 @@ class TestUtil(unittest.TestCase):
             "playlist":[{"controls":{"all":null}}]
         }''')
 
+        inp = '"SAND Number: SAND 2013-7800P\\nPresenter: Tom Russo\\nHabanero Software Training - Xyce Software\\nXyce, Sandia\\u0027s"'
+        json_code = js_to_json(inp)
+        self.assertEqual(json.loads(json_code), json.loads(inp))
+
     def test_js_to_json_edgecases(self):
         on = js_to_json("{abc_def:'1\\'\\\\2\\\\\\'3\"4'}")
         self.assertEqual(json.loads(on), {"abc_def": "1'\\2\\'3\"4"})
