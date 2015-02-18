@@ -1,11 +1,10 @@
 from __future__ import unicode_literals
 
-from .subtitles import SubtitlesInfoExtractor
-from .common import ExtractorError
+from .common import InfoExtractor, ExtractorError
 from ..utils import parse_iso8601
 
 
-class DRTVIE(SubtitlesInfoExtractor):
+class DRTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?dr\.dk/tv/se/(?:[^/]+/)*(?P<id>[\da-z-]+)(?:[/#?]|$)'
 
     _TEST = {
@@ -76,17 +75,13 @@ class DRTVIE(SubtitlesInfoExtractor):
                     }
                     for subs in subtitles_list:
                         lang = subs['Language']
-                        subtitles[LANGS.get(lang, lang)] = subs['Uri']
+                        subtitles[LANGS.get(lang, lang)] = [{'url': subs['Uri'], 'ext': 'vtt'}]
 
         if not formats and restricted_to_denmark:
             raise ExtractorError(
                 'Unfortunately, DR is not allowed to show this program outside Denmark.', expected=True)
 
         self._sort_formats(formats)
-
-        if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id, subtitles)
-            return
 
         return {
             'id': video_id,
@@ -96,5 +91,5 @@ class DRTVIE(SubtitlesInfoExtractor):
             'timestamp': timestamp,
             'duration': duration,
             'formats': formats,
-            'subtitles': self.extract_subtitles(video_id, subtitles),
+            'subtitles': subtitles,
         }
