@@ -22,7 +22,7 @@ class XTubeIE(InfoExtractor):
             'id': 'kVTUy_G222_',
             'ext': 'mp4',
             'title': 'strange erotica',
-            'description': 'http://www.xtube.com an ET kind of thing',
+            'description': 'contains:an ET kind of thing',
             'uploader': 'greenshowers',
             'duration': 450,
             'age_limit': 18,
