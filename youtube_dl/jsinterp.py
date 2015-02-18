@@ -35,7 +35,7 @@ class JSInterpreter(object):
         self._objects = objects
 
     def _remove_comments(self, code):
-        return re.sub(r'(?s)/\*.*?\*/', '', code)
+        return re.sub(r'(?s)/\*[^\[].*?\*/', '', code)
 
     def interpret_statement(self, stmt, local_vars, allow_recursion=100):
         if allow_recursion < 0:
