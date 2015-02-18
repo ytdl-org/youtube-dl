@@ -18,8 +18,8 @@ class WSJIE(InfoExtractor):
             'id': '1BD01A4C-BFE8-40A5-A42F-8A8AF9898B1A',
             'ext': 'mp4',
             'upload_date': '20150202',
-            'uploader_id': 'bbright',
-            'creator': 'bbright',
+            'uploader_id': 'jdesai',
+            'creator': 'jdesai',
             'categories': list,  # a long list
             'duration': 90,
             'title': 'Bills Coach Rex Ryan Updates His Old Jets Tattoo',
