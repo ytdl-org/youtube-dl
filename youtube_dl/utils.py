@@ -1616,6 +1616,15 @@ def args_to_str(args):
     return ' '.join(shlex_quote(a) for a in args)
 
 
+def mimetype2ext(mt):
+    _, _, res = mt.rpartition('/')
+
+    return {
+        'x-ms-wmv': 'wmv',
+        'x-mp4-fragmented': 'mp4',
+    }.get(res, res)
+
+
 def urlhandle_detect_ext(url_handle):
     try:
         url_handle.headers
@@ -1631,7 +1640,7 @@ def urlhandle_detect_ext(url_handle):
             if e:
                 return e
 
-    return getheader('Content-Type').split("/")[1]
+    return mimetype2ext(getheader('Content-Type'))
 
 
 def age_restricted(content_limit, age_limit):

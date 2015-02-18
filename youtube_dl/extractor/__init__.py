@@ -386,6 +386,7 @@ from .rutube import (
     RutubePersonIE,
 )
 from .rutv import RUTVIE
+from .sandia import SandiaIE
 from .sapo import SapoIE
 from .savefrom import SaveFromIE
 from .sbs import SBSIE
