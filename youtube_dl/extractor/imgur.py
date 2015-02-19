@@ -11,7 +11,7 @@ from ..utils import (
 )
 
 class ImgurIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?P<id>[a-zA-Z0-9]+)(?:\.)?(?:mp4|gifv)?'
+    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?P<id>[a-zA-Z0-9]+)(?:\.mp4|\.gifv)?'
 
     _TESTS = [{
         'url': 'https://i.imgur.com/A61SaA1.gifv',
