@@ -25,7 +25,6 @@ class SockshareIE(InfoExtractor):
             'id': '437BE28B89D799D7',
             'title': 'big_buck_bunny_720p_surround.avi',
             'ext': 'avi',
-            'thumbnail': 're:^http://.*\.jpg$',
         }
     }
 
@@ -45,7 +44,7 @@ class SockshareIE(InfoExtractor):
             ''', webpage, 'hash')
 
         fields = {
-            "hash": confirm_hash,
+            "hash": confirm_hash.encode('utf-8'),
             "confirm": "Continue as Free User"
         }
 
@@ -68,7 +67,7 @@ class SockshareIE(InfoExtractor):
             webpage, 'title', default=None)
         thumbnail = self._html_search_regex(
             r'<img\s+src="([^"]*)".+?name="bg"',
-            webpage, 'thumbnail')
+            webpage, 'thumbnail', default=None)
 
         formats = [{
             'format_id': 'sd',
