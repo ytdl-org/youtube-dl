@@ -29,6 +29,9 @@ class NetzkinoIE(InfoExtractor):
             'timestamp': 1344858571,
             'age_limit': 12,
         },
+        'params': {
+            'skip_download': 'Download only works from Germany',
+        }
     }
 
     def _real_extract(self, url):
