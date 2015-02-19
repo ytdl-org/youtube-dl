@@ -113,6 +113,16 @@ def expect_info_dict(self, got_dict, expected_dict):
             self.assertTrue(
                 got.startswith(start_str),
                 'field %s (value: %r) should start with %r' % (info_field, got, start_str))
+        elif isinstance(expected, compat_str) and expected.startswith('contains:'):
+            got = got_dict.get(info_field)
+            contains_str = expected[len('contains:'):]
+            self.assertTrue(
+                isinstance(got, compat_str),
+                'Expected a %s object, but got %s for field %s' % (
+                    compat_str.__name__, type(got).__name__, info_field))
+            self.assertTrue(
+                contains_str in got,
+                'field %s (value: %r) should contain %r' % (info_field, got, contains_str))
         elif isinstance(expected, type):
             got = got_dict.get(info_field)
             self.assertTrue(isinstance(got, expected),
@@ -163,12 +173,14 @@ def expect_info_dict(self, got_dict, expected_dict):
             info_dict_str += ''.join(
                 '    %s: %s,\n' % (_repr(k), _repr(v))
                 for k, v in test_info_dict.items() if k not in missing_keys)
-            info_dict_str += '\n'
+
+            if info_dict_str:
+                info_dict_str += '\n'
         info_dict_str += ''.join(
             '    %s: %s,\n' % (_repr(k), _repr(test_info_dict[k]))
             for k in missing_keys)
         write_string(
-            '\n\'info_dict\': {\n' + info_dict_str + '}\n', out=sys.stderr)
+            '\n\'info_dict\': {\n' + info_dict_str + '},\n', out=sys.stderr)
         self.assertFalse(
             missing_keys,
             'Missing keys in test definition: %s' % (

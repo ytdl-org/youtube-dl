@@ -68,6 +68,7 @@
  - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
  - **CBS**
  - **CBSNews**: CBS News
+ - **CBSSports**
  - **CeskaTelevize**
  - **channel9**: Channel 9
  - **Chilloutzone**
@@ -121,6 +122,7 @@
  - **EllenTV**
  - **EllenTV:clips**
  - **ElPais**: El País
+ - **Embedly**
  - **EMPFlix**
  - **Engadget**
  - **Eporner**
@@ -190,6 +192,7 @@
  - **ign.com**
  - **imdb**: Internet Movie Database trailers
  - **imdb:list**: Internet Movie Database lists
+ - **Imgur**
  - **Ina**
  - **InfoQ**
  - **Instagram**
@@ -262,6 +265,7 @@
  - **myvideo**
  - **MyVidster**
  - **n-tv.de**
+ - **NationalGeographic**
  - **Naver**
  - **NBA**
  - **NBC**
@@ -319,6 +323,7 @@
  - **podomatic**
  - **PornHd**
  - **PornHub**
+ - **PornHubPlaylist**
  - **Pornotube**
  - **PornoXO**
  - **PromptFile**
@@ -352,6 +357,7 @@
  - **rutube:movie**: Rutube movies
  - **rutube:person**: Rutube person videos
  - **RUTV**: RUTV.RU
+ - **Sandia**: Sandia National Laboratories
  - **Sapo**: SAPO Vídeos
  - **savefrom.net**
  - **SBS**: sbs.com.au

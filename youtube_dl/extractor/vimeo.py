@@ -18,6 +18,7 @@ from ..utils import (
     InAdvancePagedList,
     int_or_none,
     RegexNotFoundError,
+    smuggle_url,
     std_headers,
     unsmuggle_url,
     urlencode_postdata,
@@ -174,7 +175,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
     def _verify_video_password(self, url, video_id, webpage):
         password = self._downloader.params.get('videopassword', None)
         if password is None:
-            raise ExtractorError('This video is protected by a password, use the --video-password option')
+            raise ExtractorError('This video is protected by a password, use the --video-password option', expected=True)
         token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
         data = compat_urllib_parse.urlencode({
             'password': password,
@@ -267,8 +268,11 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
                 raise ExtractorError('The author has restricted the access to this video, try with the "--referer" option')
 
             if re.search(r'<form[^>]+?id="pw_form"', webpage) is not None:
+                if data and '_video_password_verified' in data:
+                    raise ExtractorError('video password verification failed!')
                 self._verify_video_password(url, video_id, webpage)
-                return self._real_extract(url)
+                return self._real_extract(
+                    smuggle_url(url, {'_video_password_verified': 'verified'}))
             else:
                 raise ExtractorError('Unable to extract info section',
                                      cause=e)
@@ -401,6 +405,7 @@ class VimeoChannelIE(InfoExtractor):
     _TESTS = [{
         'url': 'http://vimeo.com/channels/tributes',
         'info_dict': {
+            'id': 'tributes',
             'title': 'Vimeo Tributes',
         },
         'playlist_mincount': 25,
@@ -479,6 +484,7 @@ class VimeoUserIE(VimeoChannelIE):
         'url': 'http://vimeo.com/nkistudio/videos',
         'info_dict': {
             'title': 'Nki',
+            'id': 'nkistudio',
         },
         'playlist_mincount': 66,
     }]
@@ -496,6 +502,7 @@ class VimeoAlbumIE(VimeoChannelIE):
     _TESTS = [{
         'url': 'http://vimeo.com/album/2632481',
         'info_dict': {
+            'id': '2632481',
             'title': 'Staff Favorites: November 2013',
         },
         'playlist_mincount': 13,
@@ -526,6 +533,7 @@ class VimeoGroupsIE(VimeoAlbumIE):
     _TESTS = [{
         'url': 'http://vimeo.com/groups/rolexawards',
         'info_dict': {
+            'id': 'rolexawards',
             'title': 'Rolex Awards for Enterprise',
         },
         'playlist_mincount': 73,
@@ -608,6 +616,7 @@ class VimeoLikesIE(InfoExtractor):
         'url': 'https://vimeo.com/user755559/likes/',
         'playlist_mincount': 293,
         "info_dict": {
+            'id': 'user755559_likes',
             "description": "See all the videos urza likes",
             "title": 'Videos urza likes',
         },

@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import json
-
 from .common import InfoExtractor
 
 
@@ -10,13 +8,13 @@ class RadioDeIE(InfoExtractor):
     _VALID_URL = r'https?://(?P<id>.+?)\.(?:radio\.(?:de|at|fr|pt|es|pl|it)|rad\.io)'
     _TEST = {
         'url': 'http://ndr2.radio.de/',
-        'md5': '3b4cdd011bc59174596b6145cda474a4',
         'info_dict': {
             'id': 'ndr2',
             'ext': 'mp3',
             'title': 're:^NDR 2 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
             'description': 'md5:591c49c702db1a33751625ebfb67f273',
             'thumbnail': 're:^https?://.*\.png',
+            'is_live': True,
         },
         'params': {
             'skip_download': True,
@@ -25,16 +23,15 @@ class RadioDeIE(InfoExtractor):
 
     def _real_extract(self, url):
         radio_id = self._match_id(url)
-
         webpage = self._download_webpage(url, radio_id)
+        jscode = self._search_regex(
+            r"'components/station/stationService':\s*\{\s*'?station'?:\s*(\{.*?\s*\}),\n",
+            webpage, 'broadcast')
 
-        broadcast = json.loads(self._search_regex(
-            r'_getBroadcast\s*=\s*function\(\s*\)\s*{\s*return\s+({.+?})\s*;\s*}',
-            webpage, 'broadcast'))
-
+        broadcast = self._parse_json(jscode, radio_id)
         title = self._live_title(broadcast['name'])
         description = broadcast.get('description') or broadcast.get('shortDescription')
-        thumbnail = broadcast.get('picture4Url') or broadcast.get('picture4TransUrl')
+        thumbnail = broadcast.get('picture4Url') or broadcast.get('picture4TransUrl') or broadcast.get('logo100x100')
 
         formats = [{
             'url': stream['streamUrl'],

@@ -473,6 +473,7 @@ class GenericIE(InfoExtractor):
         {
             'url': 'http://discourse.ubuntu.com/t/unity-8-desktop-mode-windows-on-mir/1986',
             'info_dict': {
+                'id': '1986',
                 'title': 'Unity 8 desktop-mode windows on Mir! - Ubuntu Discourse',
             },
             'playlist_mincount': 2,
@@ -531,7 +532,7 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'id': 'Mrj4DVp2zeA',
                 'ext': 'mp4',
-                'upload_date': '20150204',
+                'upload_date': '20150212',
                 'uploader': 'The National Archives UK',
                 'description': 'md5:a236581cd2449dd2df4f93412f3f01c6',
                 'uploader_id': 'NationalArchives08',

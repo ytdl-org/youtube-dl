@@ -109,7 +109,7 @@ class BandcampIE(InfoExtractor):
 
 class BandcampAlbumIE(InfoExtractor):
     IE_NAME = 'Bandcamp:album'
-    _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<title>[^?#]+)|/?(?:$|[?#]))'
+    _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<album_id>[^?#]+)|/?(?:$|[?#]))'
 
     _TESTS = [{
         'url': 'http://blazo.bandcamp.com/album/jazz-format-mixtape-vol-1',
@@ -133,31 +133,37 @@ class BandcampAlbumIE(InfoExtractor):
         ],
         'info_dict': {
             'title': 'Jazz Format Mixtape vol.1',
+            'id': 'jazz-format-mixtape-vol-1',
+            'uploader_id': 'blazo',
         },
         'params': {
             'playlistend': 2
         },
-        'skip': 'Bandcamp imposes download limits. See test_playlists:test_bandcamp_album for the playlist test'
+        'skip': 'Bandcamp imposes download limits.'
     }, {
         'url': 'http://nightbringer.bandcamp.com/album/hierophany-of-the-open-grave',
         'info_dict': {
             'title': 'Hierophany of the Open Grave',
+            'uploader_id': 'nightbringer',
+            'id': 'hierophany-of-the-open-grave',
         },
         'playlist_mincount': 9,
     }, {
         'url': 'http://dotscale.bandcamp.com',
         'info_dict': {
             'title': 'Loom',
+            'id': 'dotscale',
+            'uploader_id': 'dotscale',
         },
         'playlist_mincount': 7,
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        playlist_id = mobj.group('subdomain')
-        title = mobj.group('title')
-        display_id = title or playlist_id
-        webpage = self._download_webpage(url, display_id)
+        uploader_id = mobj.group('subdomain')
+        album_id = mobj.group('album_id')
+        playlist_id = album_id or uploader_id
+        webpage = self._download_webpage(url, playlist_id)
         tracks_paths = re.findall(r'<a href="(.*?)" itemprop="url">', webpage)
         if not tracks_paths:
             raise ExtractorError('The page doesn\'t contain any tracks')
@@ -168,8 +174,8 @@ class BandcampAlbumIE(InfoExtractor):
             r'album_title\s*:\s*"(.*?)"', webpage, 'title', fatal=False)
         return {
             '_type': 'playlist',
+            'uploader_id': uploader_id,
             'id': playlist_id,
-            'display_id': display_id,
             'title': title,
             'entries': entries,
         }

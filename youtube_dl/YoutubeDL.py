@@ -199,18 +199,25 @@ class YoutubeDL(object):
                        postprocessor.
     progress_hooks:    A list of functions that get called on download
                        progress, with a dictionary with the entries
-                       * status: One of "downloading" and "finished".
+                       * status: One of "downloading", "error", or "finished".
                                  Check this first and ignore unknown values.
 
-                       If status is one of "downloading" or "finished", the
+                       If status is one of "downloading", or "finished", the
                        following properties may also be present:
                        * filename: The final filename (always present)
+                       * tmpfilename: The filename we're currently writing to
                        * downloaded_bytes: Bytes on disk
                        * total_bytes: Size of the whole file, None if unknown
-                       * tmpfilename: The filename we're currently writing to
+                       * total_bytes_estimate: Guess of the eventual file size,
+                                               None if unavailable.
+                       * elapsed: The number of seconds since download started.
                        * eta: The estimated time in seconds, None if unknown
                        * speed: The download speed in bytes/second, None if
                                 unknown
+                       * fragment_index: The counter of the currently
+                                         downloaded video fragment.
+                       * fragment_count: The number of fragments (= individual
+                                         files that will be merged)
 
                        Progress hooks are guaranteed to be called at least once
                        (with status "finished") if the download is successful.
@@ -954,30 +961,9 @@ class YoutubeDL(object):
         return res
 
     def _calc_cookies(self, info_dict):
-        class _PseudoRequest(object):
-            def __init__(self, url):
-                self.url = url
-                self.headers = {}
-                self.unverifiable = False
-
-            def add_unredirected_header(self, k, v):
-                self.headers[k] = v
-
-            def get_full_url(self):
-                return self.url
-
-            def is_unverifiable(self):
-                return self.unverifiable
-
-            def has_header(self, h):
-                return h in self.headers
-
-            def get_header(self, h, default=None):
-                return self.headers.get(h, default)
-
-        pr = _PseudoRequest(info_dict['url'])
+        pr = compat_urllib_request.Request(info_dict['url'])
         self.cookiejar.add_cookie_header(pr)
-        return pr.headers.get('Cookie')
+        return pr.get_header('Cookie')
 
     def process_video_result(self, info_dict, download=True):
         assert info_dict.get('_type', 'video') == 'video'
@@ -1301,7 +1287,7 @@ class YoutubeDL(object):
                     downloaded = []
                     success = True
                     merger = FFmpegMergerPP(self, not self.params.get('keepvideo'))
-                    if not merger.available():
+                    if not merger.available:
                         postprocessors = []
                         self.report_warning('You have requested multiple '
                                             'formats but ffmpeg or avconv are not installed.'
@@ -1548,29 +1534,18 @@ class YoutubeDL(object):
         return res
 
     def list_formats(self, info_dict):
-        def line(format, idlen=20):
-            return (('%-' + compat_str(idlen + 1) + 's%-10s%-12s%s') % (
-                format['format_id'],
-                format['ext'],
-                self.format_resolution(format),
-                self._format_note(format),
-            ))
-
         formats = info_dict.get('formats', [info_dict])
-        idlen = max(len('format code'),
-                    max(len(f['format_id']) for f in formats))
-        formats_s = [
-            line(f, idlen) for f in formats
+        table = [
+            [f['format_id'], f['ext'], self.format_resolution(f), self._format_note(f)]
+            for f in formats
             if f.get('preference') is None or f['preference'] >= -1000]
         if len(formats) > 1:
-            formats_s[-1] += (' ' if self._format_note(formats[-1]) else '') + '(best)'
+            table[-1][-1] += (' ' if table[-1][-1] else '') + '(best)'
 
-        header_line = line({
-            'format_id': 'format code', 'ext': 'extension',
-            'resolution': 'resolution', 'format_note': 'note'}, idlen=idlen)
+        header_line = ['format code', 'extension', 'resolution', 'note']
         self.to_screen(
-            '[info] Available formats for %s:\n%s\n%s' %
-            (info_dict['id'], header_line, '\n'.join(formats_s)))
+            '[info] Available formats for %s:\n%s' %
+            (info_dict['id'], render_table(header_line, table)))
 
     def list_thumbnails(self, info_dict):
         thumbnails = info_dict.get('thumbnails')

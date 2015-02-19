@@ -34,10 +34,10 @@ class FFmpegPostProcessor(PostProcessor):
         self._determine_executables()
 
     def check_version(self):
-        if not self.available():
+        if not self.available:
             raise FFmpegPostProcessorError('ffmpeg or avconv not found. Please install one.')
 
-        required_version = '10-0' if self._uses_avconv() else '1.0'
+        required_version = '10-0' if self.basename == 'avconv' else '1.0'
         if is_outdated_version(
                 self._versions[self.basename], required_version):
             warning = 'Your copy of %s is outdated, update %s to version %s or newer if you encounter any errors.' % (
@@ -108,11 +108,9 @@ class FFmpegPostProcessor(PostProcessor):
                 self.probe_basename = p
                 break
 
+    @property
     def available(self):
         return self.basename is not None
-
-    def _uses_avconv(self):
-        return self.basename == 'avconv'
 
     @property
     def executable(self):

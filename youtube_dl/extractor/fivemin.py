@@ -14,6 +14,7 @@ class FiveMinIE(InfoExtractor):
     IE_NAME = '5min'
     _VALID_URL = r'''(?x)
         (?:https?://[^/]*?5min\.com/Scripts/PlayerSeed\.js\?(?:.*?&)?playList=|
+            https?://(?:(?:massively|www)\.)?joystiq\.com/video/|
             5min:)
         (?P<id>\d+)
         '''

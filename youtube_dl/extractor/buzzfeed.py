@@ -33,6 +33,7 @@ class BuzzFeedIE(InfoExtractor):
             'skip_download': True,  # Got enough YouTube download tests
         },
         'info_dict': {
+            'id': 'look-at-this-cute-dog-omg',
             'description': 're:Munchkin the Teddy Bear is back ?!',
             'title': 'You Need To Stop What You\'re Doing And Watching This Dog Walk On A Treadmill',
         },
@@ -42,8 +43,8 @@ class BuzzFeedIE(InfoExtractor):
                 'ext': 'mp4',
                 'upload_date': '20141124',
                 'uploader_id': 'CindysMunchkin',
-                'description': 're:© 2014 Munchkin the Shih Tzu',
-                'uploader': 'Munchkin the Shih Tzu',
+                'description': 're:© 2014 Munchkin the',
+                'uploader': 're:^Munchkin the',
                 'title': 're:Munchkin the Teddy Bear gets her exercise',
             },
         }]

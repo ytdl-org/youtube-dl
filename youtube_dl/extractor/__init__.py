@@ -58,6 +58,7 @@ from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
 from .cbs import CBSIE
 from .cbsnews import CBSNewsIE
+from .cbssports import CBSSportsIE
 from .ccc import CCCIE
 from .ceskatelevize import CeskaTelevizeIE
 from .channel9 import Channel9IE
@@ -121,6 +122,7 @@ from .ellentv import (
     EllenTVClipsIE,
 )
 from .elpais import ElPaisIE
+from .embedly import EmbedlyIE
 from .empflix import EMPFlixIE
 from .engadget import EngadgetIE
 from .eporner import EpornerIE
@@ -204,6 +206,7 @@ from .imdb import (
     ImdbIE,
     ImdbListIE
 )
+from .imgur import ImgurIE
 from .ina import InaIE
 from .infoq import InfoQIE
 from .instagram import InstagramIE, InstagramUserIE
@@ -283,6 +286,7 @@ from .myspace import MySpaceIE, MySpaceAlbumIE
 from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .myvidster import MyVidsterIE
+from .nationalgeographic import NationalGeographicIE
 from .naver import NaverIE
 from .nba import NBAIE
 from .nbc import (
@@ -351,7 +355,10 @@ from .playfm import PlayFMIE
 from .playvid import PlayvidIE
 from .podomatic import PodomaticIE
 from .pornhd import PornHdIE
-from .pornhub import PornHubIE
+from .pornhub import (
+    PornHubIE,
+    PornHubPlaylistIE,
+)
 from .pornotube import PornotubeIE
 from .pornoxo import PornoXOIE
 from .promptfile import PromptFileIE
@@ -387,6 +394,7 @@ from .rutube import (
     RutubePersonIE,
 )
 from .rutv import RUTVIE
+from .sandia import SandiaIE
 from .sapo import SapoIE
 from .savefrom import SaveFromIE
 from .sbs import SBSIE

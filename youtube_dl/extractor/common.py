@@ -27,7 +27,6 @@ from ..utils import (
     compiled_regex_type,
     ExtractorError,
     float_or_none,
-    HEADRequest,
     int_or_none,
     RegexNotFoundError,
     sanitize_filename,
@@ -753,9 +752,7 @@ class InfoExtractor(object):
 
     def _is_valid_url(self, url, video_id, item='video'):
         try:
-            self._request_webpage(
-                HEADRequest(url), video_id,
-                'Checking %s URL' % item)
+            self._request_webpage(url, video_id, 'Checking %s URL' % item)
             return True
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError):
@@ -841,6 +838,7 @@ class InfoExtractor(object):
             note='Downloading m3u8 information',
             errnote='Failed to download m3u8 information')
         last_info = None
+        last_media = None
         kv_rex = re.compile(
             r'(?P<key>[a-zA-Z_-]+)=(?P<val>"[^"]+"|[^",]+)(?:,|$)')
         for line in m3u8_doc.splitlines():
@@ -851,6 +849,13 @@ class InfoExtractor(object):
                     if v.startswith('"'):
                         v = v[1:-1]
                     last_info[m.group('key')] = v
+            elif line.startswith('#EXT-X-MEDIA:'):
+                last_media = {}
+                for m in kv_rex.finditer(line):
+                    v = m.group('val')
+                    if v.startswith('"'):
+                        v = v[1:-1]
+                    last_media[m.group('key')] = v
             elif line.startswith('#') or not line.strip():
                 continue
             else:
@@ -879,6 +884,9 @@ class InfoExtractor(object):
                     width_str, height_str = resolution.split('x')
                     f['width'] = int(width_str)
                     f['height'] = int(height_str)
+                if last_media is not None:
+                    f['m3u8_media'] = last_media
+                    last_media = None
                 formats.append(f)
                 last_info = {}
         self._sort_formats(formats)

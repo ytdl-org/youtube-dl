@@ -194,6 +194,7 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
         'url': 'http://www.dailymotion.com/playlist/xv4bw_nqtv_sport/1#video=xl8v3q',
         'info_dict': {
             'title': 'SPORT',
+            'id': 'xv4bw_nqtv_sport',
         },
         'playlist_mincount': 20,
     }]

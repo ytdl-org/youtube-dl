@@ -14,6 +14,9 @@ class AppleTrailersIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?trailers\.apple\.com/trailers/(?P<company>[^/]+)/(?P<movie>[^/]+)'
     _TEST = {
         "url": "http://trailers.apple.com/trailers/wb/manofsteel/",
+        'info_dict': {
+            'id': 'manofsteel',
+        },
         "playlist": [
             {
                 "md5": "d97a8e575432dbcb81b7c3acb741f8a8",

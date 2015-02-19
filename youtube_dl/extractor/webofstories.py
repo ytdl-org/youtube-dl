@@ -45,19 +45,17 @@ class WebOfStoriesIE(InfoExtractor):
         description = self._html_search_meta('description', webpage)
         thumbnail = self._og_search_thumbnail(webpage)
 
-        story_filename = self._search_regex(
-            r'\.storyFileName\("([^"]+)"\)', webpage, 'story filename')
-        speaker_id = self._search_regex(
-            r'\.speakerId\("([^"]+)"\)', webpage, 'speaker ID')
-        story_id = self._search_regex(
-            r'\.storyId\((\d+)\)', webpage, 'story ID')
-        speaker_type = self._search_regex(
-            r'\.speakerType\("([^"]+)"\)', webpage, 'speaker type')
-        great_life = self._search_regex(
-            r'isGreatLifeStory\s*=\s*(true|false)', webpage, 'great life story')
+        embed_params = [s.strip(" \r\n\t'") for s in self._search_regex(
+            r'(?s)\$\("#embedCode"\).html\(getEmbedCode\((.*?)\)',
+            webpage, 'embed params').split(',')]
+
+        (
+            _, speaker_id, story_id, story_duration,
+            speaker_type, great_life, _thumbnail, _has_subtitles,
+            story_filename, _story_order) = embed_params
+
         is_great_life_series = great_life == 'true'
-        duration = int_or_none(self._search_regex(
-            r'\.duration\((\d+)\)', webpage, 'duration', fatal=False))
+        duration = int_or_none(story_duration)
 
         # URL building, see: http://www.webofstories.com/scripts/player.js
         ms_prefix = ''
