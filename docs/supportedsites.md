@@ -121,6 +121,7 @@
  - **EllenTV**
  - **EllenTV:clips**
  - **ElPais**: El País
+ - **Embedly**
  - **EMPFlix**
  - **Engadget**
  - **Eporner**
