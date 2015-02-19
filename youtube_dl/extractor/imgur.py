@@ -7,14 +7,22 @@ from ..utils import (
     int_or_none,
     js_to_json,
     mimetype2ext,
+    ExtractorError,
 )
 
-
 class ImgurIE(InfoExtractor):
-    _VALID_URL = r'https?://i\.imgur\.com/(?P<id>[a-zA-Z0-9]+)\.(?:mp4|gifv)'
+    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?P<id>[a-zA-Z0-9]+)(?:\.)?(?:mp4|gifv)?'
 
     _TESTS = [{
         'url': 'https://i.imgur.com/A61SaA1.gifv',
+        'info_dict': {
+            'id': 'A61SaA1',
+            'ext': 'mp4',
+            'title': 'MRW gifv is up and running without any bugs',
+            'description': 'The Internet\'s visual storytelling community. Explore, share, and discuss the best visual stories the Internet has to offer.',
+        },
+    }, {
+        'url': 'https://imgur.com/A61SaA1',
         'info_dict': {
             'id': 'A61SaA1',
             'ext': 'mp4',
@@ -26,6 +34,11 @@ class ImgurIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
+        sources = re.findall(r'<source src="([^"]+)" type="([^"]+)"', webpage)
+        if not sources:
+            raise ExtractorError(
+                'No sources found for video %s' % video_id, expected=True)
 
         width = int_or_none(self._search_regex(
             r'<param name="width" value="([0-9]+)"',
