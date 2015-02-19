@@ -1,9 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import json
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     js_to_json,
@@ -35,6 +32,23 @@ class PatreonIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*$',
             },
         },
+        {
+            'url': 'https://www.patreon.com/creation?hid=1682498',
+            'info_dict': {
+                'id': 'SU4fj_aEMVw',
+                'ext': 'mp4',
+                'title': 'I\'m on Patreon!',
+                'uploader': 'TraciJHines',
+                'thumbnail': 're:^https?://.*$',
+                'upload_date': '20150211',
+                'description': 'md5:c5a706b1f687817a3de09db1eb93acd4',
+                'uploader_id': 'TraciJHines',
+            },
+            'params': {
+                'noplaylist': True,
+                'skip_download': True,
+            }
+        }
     ]
 
     # Currently Patreon exposes download URL via hidden CSS, so login is not
@@ -72,11 +86,17 @@ class PatreonIE(InfoExtractor):
         attach_fn = self._html_search_regex(
             r'<div class="attach"><a target="_blank" href="([^"]+)">',
             webpage, 'attachment URL', default=None)
+        embed = self._html_search_regex(
+            r'<div id="watchCreation">\s*<iframe class="embedly-embed" src="([^"]+)"',
+            webpage, 'embedded URL', default=None)
+
         if attach_fn is not None:
             video_url = 'http://www.patreon.com' + attach_fn
             thumbnail = self._og_search_thumbnail(webpage)
             uploader = self._html_search_regex(
                 r'<strong>(.*?)</strong> is creating', webpage, 'uploader')
+        elif embed is not None:
+            return self.url_result(embed)
         else:
             playlist = self._parse_json(self._search_regex(
                 r'(?s)new\s+jPlayerPlaylist\(\s*\{\s*[^}]*},\s*(\[.*?,?\s*\])',

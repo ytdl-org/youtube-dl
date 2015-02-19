@@ -121,6 +121,7 @@ from .ellentv import (
     EllenTVClipsIE,
 )
 from .elpais import ElPaisIE
+from .embedly import EmbedlyIE
 from .empflix import EMPFlixIE
 from .engadget import EngadgetIE
 from .eporner import EpornerIE
