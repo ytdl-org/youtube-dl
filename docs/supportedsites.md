@@ -68,6 +68,7 @@
  - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
  - **CBS**
  - **CBSNews**: CBS News
+ - **CBSSports**
  - **CeskaTelevize**
  - **channel9**: Channel 9
  - **Chilloutzone**
@@ -264,6 +265,7 @@
  - **myvideo**
  - **MyVidster**
  - **n-tv.de**
+ - **NationalGeographic**
  - **Naver**
  - **NBA**
  - **NBC**
@@ -321,6 +323,7 @@
  - **podomatic**
  - **PornHd**
  - **PornHub**
+ - **PornHubPlaylist**
  - **Pornotube**
  - **PornoXO**
  - **PromptFile**
