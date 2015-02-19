@@ -24,6 +24,7 @@ from youtube_dl.extractor import (
     NRKTVIE,
     RaiIE,
     VikiIE,
+    ThePlatformIE,
 )
 
 
@@ -383,6 +384,20 @@ class TestVikiSubtitles(BaseTestSubtitles):
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['en']))
         self.assertEqual(md5(subtitles['en']), 'b0b781eeb45efd3f6398a925b259150b')
+
+
+class TestThePlatformSubtitles(BaseTestSubtitles):
+    # from http://www.3playmedia.com/services-features/tools/integrations/theplatform/
+    # (see http://theplatform.com/about/partners/type/subtitles-closed-captioning/)
+    url = 'theplatform:JFUjUE1_ehvq'
+    IE = ThePlatformIE
+
+    def test_allsubtitles(self):
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['en']))
+        self.assertEqual(md5(subtitles['en']), '97e7670cbae3c4d26ae8bcc7fdd78d4b')
 
 
 if __name__ == '__main__':
