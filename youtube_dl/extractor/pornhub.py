@@ -110,3 +110,33 @@ class PornHubIE(InfoExtractor):
             'formats': formats,
             'age_limit': 18,
         }
+
+
+class PornHubPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/playlist/(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'http://www.pornhub.com/playlist/6201671',
+        'info_dict': {
+            'id': '6201671',
+            'title': 'P0p4',
+        },
+        'playlist_mincount': 35,
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result('http://www.pornhub.com/%s' % video_url, 'PornHub')
+            for video_url in set(re.findall('href="/?(view_video\.php\?viewkey=\d+[^"]*)"', webpage))
+        ]
+
+        playlist = self._parse_json(
+            self._search_regex(
+                r'playlistObject\s*=\s*({.+?});', webpage, 'playlist'),
+            playlist_id)
+
+        return self.playlist_result(
+            entries, playlist_id, playlist.get('title'), playlist.get('description'))

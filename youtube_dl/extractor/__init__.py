@@ -353,7 +353,10 @@ from .playfm import PlayFMIE
 from .playvid import PlayvidIE
 from .podomatic import PodomaticIE
 from .pornhd import PornHdIE
-from .pornhub import PornHubIE
+from .pornhub import (
+    PornHubIE,
+    PornHubPlaylistIE,
+)
 from .pornotube import PornotubeIE
 from .pornoxo import PornoXOIE
 from .promptfile import PromptFileIE
