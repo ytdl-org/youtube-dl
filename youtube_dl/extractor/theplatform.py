@@ -71,7 +71,9 @@ class ThePlatformIE(SubtitlesInfoExtractor):
         if not provider_id:
             provider_id = 'dJ5BDC'
 
-        if mobj.group('config'):
+        if smuggled_data.get('force_smil_url', False):
+            smil_url = url
+        elif mobj.group('config'):
             config_url = url + '&form=json'
             config_url = config_url.replace('swf/', 'config/')
             config_url = config_url.replace('onsite/', 'onsite/config/')

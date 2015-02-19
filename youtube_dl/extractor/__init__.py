@@ -285,6 +285,7 @@ from .myspace import MySpaceIE, MySpaceAlbumIE
 from .myspass import MySpassIE
 from .myvideo import MyVideoIE
 from .myvidster import MyVidsterIE
+from .nationalgeographic import NationalGeographicIE
 from .naver import NaverIE
 from .nba import NBAIE
 from .nbc import (
