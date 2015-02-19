@@ -191,6 +191,7 @@
  - **ign.com**
  - **imdb**: Internet Movie Database trailers
  - **imdb:list**: Internet Movie Database lists
+ - **Imgur**
  - **Ina**
  - **InfoQ**
  - **Instagram**
