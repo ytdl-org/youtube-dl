@@ -205,6 +205,7 @@ from .imdb import (
     ImdbIE,
     ImdbListIE
 )
+from .imgur import ImgurIE
 from .ina import InaIE
 from .infoq import InfoQIE
 from .instagram import InstagramIE, InstagramUserIE
