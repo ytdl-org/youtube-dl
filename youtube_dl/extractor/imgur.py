@@ -5,16 +5,25 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
+    str_or_none,
     js_to_json,
     mimetype2ext,
+    ExtractorError,
 )
 
-
 class ImgurIE(InfoExtractor):
-    _VALID_URL = r'https?://i\.imgur\.com/(?P<id>[a-zA-Z0-9]+)\.(?:mp4|gifv)'
+    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?P<id>[a-zA-Z0-9]+)(?:\.mp4|\.gifv)?'
 
     _TESTS = [{
         'url': 'https://i.imgur.com/A61SaA1.gifv',
+        'info_dict': {
+            'id': 'A61SaA1',
+            'ext': 'mp4',
+            'title': 'MRW gifv is up and running without any bugs',
+            'description': 'The Internet\'s visual storytelling community. Explore, share, and discuss the best visual stories the Internet has to offer.',
+        },
+    }, {
+        'url': 'https://imgur.com/A61SaA1',
         'info_dict': {
             'id': 'A61SaA1',
             'ext': 'mp4',
@@ -34,10 +43,13 @@ class ImgurIE(InfoExtractor):
             r'<param name="height" value="([0-9]+)"',
             webpage, 'height', fatal=False))
 
-        formats = []
-        video_elements = self._search_regex(
+        video_elements = str_or_none(self._search_regex(
             r'(?s)<div class="video-elements">(.*?)</div>',
-            webpage, 'video elements')
+            webpage, 'video elements', fatal=False))
+        if not video_elements:
+            raise ExtractorError(
+                'No sources found for video %s' % video_id, expected=True)
+
         formats = []
         for m in re.finditer(r'<source\s+src="(?P<src>[^"]+)"\s+type="(?P<type>[^"]+)"', video_elements):
             formats.append({
