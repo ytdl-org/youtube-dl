@@ -18,13 +18,13 @@ class NBCIE(InfoExtractor):
 
     _TESTS = [
         {
-            'url': 'http://www.nbc.com/chicago-fire/video/i-am-a-firefighter/2734188',
+            'url': 'http://www.nbc.com/the-tonight-show/segments/112966',
             # md5 checksum is not stable
             'info_dict': {
-                'id': 'bTmnLCvIbaaH',
+                'id': 'c9xnCo0YPOPH',
                 'ext': 'flv',
-                'title': 'I Am a Firefighter',
-                'description': 'An emergency puts Dawson\'sf irefighter skills to the ultimate test in this four-part digital series.',
+                'title': 'Jimmy Fallon Surprises Fans at Ben & Jerry\'s',
+                'description': 'Jimmy gives out free scoops of his new "Tonight Dough" ice cream flavor by surprising customers at the Ben & Jerry\'s scoop shop.',
             },
         },
         {
