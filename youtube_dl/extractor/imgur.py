@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
+    str_or_none,
     js_to_json,
     mimetype2ext,
     ExtractorError,
@@ -35,11 +36,6 @@ class ImgurIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        sources = re.findall(r'<source src="([^"]+)" type="([^"]+)"', webpage)
-        if not sources:
-            raise ExtractorError(
-                'No sources found for video %s' % video_id, expected=True)
-
         width = int_or_none(self._search_regex(
             r'<param name="width" value="([0-9]+)"',
             webpage, 'width', fatal=False))
@@ -47,10 +43,13 @@ class ImgurIE(InfoExtractor):
             r'<param name="height" value="([0-9]+)"',
             webpage, 'height', fatal=False))
 
-        formats = []
-        video_elements = self._search_regex(
+        video_elements = str_or_none(self._search_regex(
             r'(?s)<div class="video-elements">(.*?)</div>',
-            webpage, 'video elements')
+            webpage, 'video elements', fatal=False))
+        if not video_elements:
+            raise ExtractorError(
+                'No sources found for video %s' % video_id, expected=True)
+
         formats = []
         for m in re.finditer(r'<source\s+src="(?P<src>[^"]+)"\s+type="(?P<type>[^"]+)"', video_elements):
             formats.append({
