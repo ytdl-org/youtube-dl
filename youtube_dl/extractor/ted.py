@@ -83,6 +83,22 @@ class TEDIE(SubtitlesInfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # YouTube video
+        'url': 'http://www.ted.com/talks/jeffrey_kluger_the_sibling_bond',
+        'add_ie': ['Youtube'],
+        'info_dict': {
+            'id': 'aFBIPO-P7LM',
+            'ext': 'mp4',
+            'title': 'The hidden power of siblings: Jeff Kluger at TEDxAsheville',
+            'description': 'md5:3d7a4f50d95ca5dd67104e2a20f43fe1',
+            'uploader': 'TEDx Talks',
+            'uploader_id': 'TEDxTalks',
+            'upload_date': '20111216',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     _NATIVE_FORMATS = {
@@ -132,15 +148,16 @@ class TEDIE(SubtitlesInfoExtractor):
 
         talk_info = self._extract_info(webpage)['talks'][0]
 
-        if talk_info.get('external') is not None:
-            self.to_screen('Found video from %s' % talk_info['external']['service'])
-            if 'code' in talk_info['external']:
-                ext_url = talk_info['external']['code']
-            else:
-                ext_url = talk_info['external']['uri']
+        external = talk_info.get('external')
+        if external:
+            service = external['service']
+            self.to_screen('Found video from %s' % service)
+            ext_url = None
+            if service.lower() == 'youtube':
+                ext_url = external.get('code')
             return {
                 '_type': 'url',
-                'url': ext_url,
+                'url': ext_url or external['uri'],
             }
 
         formats = [{
