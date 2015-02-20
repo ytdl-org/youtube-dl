@@ -134,9 +134,13 @@ class TEDIE(SubtitlesInfoExtractor):
 
         if talk_info.get('external') is not None:
             self.to_screen('Found video from %s' % talk_info['external']['service'])
+            if 'code' in talk_info['external']:
+                ext_url = talk_info['external']['code']
+            else:
+                ext_url = talk_info['external']['uri']
             return {
                 '_type': 'url',
-                'url': talk_info['external']['uri'],
+                'url': ext_url,
             }
 
         formats = [{
