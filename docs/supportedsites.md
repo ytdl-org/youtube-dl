@@ -451,6 +451,7 @@
  - **Turbo**
  - **Tutv**
  - **tv.dfb.de**
+ - **TV4**: tv4.se and tv4play.se
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvp.pl**
  - **tvp.pl:Series**
