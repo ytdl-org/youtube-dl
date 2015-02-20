@@ -1,7 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
+from ..utils import clean_html
 
 
 class ChirbitIE(InfoExtractor):
@@ -32,3 +35,63 @@ class ChirbitIE(InfoExtractor):
             'title': audio_title,
             'url': audio_url
         }
+
+class ChirbitProfileIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?chirbit.com/(?P<id>[^/]+)'
+    _TEST = {
+        'url': 'http://chirbit.com/ScarletBeauty',
+        'playlist_count': 3,
+        'info_dict': {
+            '_type': 'playlist',
+            'title': 'ScarletBeauty',
+            'id': 'ScarletBeauty'
+        }
+    }
+
+    def _real_extract(self, url):
+        profile_id = self._match_id(url)
+
+        # Chirbit has a pretty weird "Last Page" navigation behavior.
+        # We grab the profile's oldest entry to determine when to
+        # stop fetching entries.
+        oldestpage = self._download_webpage(url + '/24599', profile_id)
+        oldest_page_entries = re.findall(
+            r'''soundFile:\s*"http://audio.chirbit.com/(.*?).mp3"''',
+            oldestpage);
+        oldestentry = clean_html(oldest_page_entries[-1]);
+
+        ids = []
+        titles = []
+        n = 0
+        while True:
+            page = self._download_webpage(url + '/' + str(n), profile_id)
+            page_ids = re.findall(
+                r'''soundFile:\s*"http://audio.chirbit.com/(.*?).mp3"''',
+                page);
+            page_titles = re.findall(
+                r'''<div\s+class="chirbit_title"\s*>(.*?)</div>''',
+                page);
+            ids += page_ids
+            titles += page_titles
+            if oldestentry in page_ids:
+                break
+            n += 1
+
+        entries = []
+        i = 0
+        for id in ids:
+            entries.append({
+                'id': id,
+                'title': titles[i],
+                'url': 'http://audio.chirbit.com/' + id + '.mp3'
+            });
+            i += 1
+
+        info_dict = {
+            '_type': 'playlist',
+            'id': profile_id,
+            'title': profile_id,
+            'entries': entries
+        }
+
+        return info_dict;
