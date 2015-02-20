@@ -22,6 +22,7 @@ class EscapistIE(InfoExtractor):
             'uploader_id': 'the-escapist-presents',
             'uploader': 'The Escapist Presents',
             'title': "Breaking Down Baldur's Gate",
+            'thumbnail': 're:^https?://.*\.jpg$',
         }
     }
 
@@ -40,9 +41,8 @@ class EscapistIE(InfoExtractor):
         raw_title = self._html_search_meta('title', webpage, fatal=True)
         title = raw_title.partition(' : ')[2]
 
-        player_url = self._og_search_video_url(webpage, name='player URL')
-        config_url = compat_urllib_parse.unquote(self._search_regex(
-            r'config=(.*)$', player_url, 'config URL'))
+        config_url = compat_urllib_parse.unquote(self._html_search_regex(
+            r'<param name="flashvars" value="config=([^"&]+)', webpage, 'config URL'))
 
         formats = []
 
@@ -81,5 +81,4 @@ class EscapistIE(InfoExtractor):
             'title': title,
             'thumbnail': self._og_search_thumbnail(webpage),
             'description': description,
-            'player_url': player_url,
         }
