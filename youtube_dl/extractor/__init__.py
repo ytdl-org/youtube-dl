@@ -490,6 +490,7 @@ from .tumblr import TumblrIE
 from .tunein import TuneInIE
 from .turbo import TurboIE
 from .tutv import TutvIE
+from .tv4 import TV4IE
 from .tvigle import TvigleIE
 from .tvp import TvpIE, TvpSeriesIE
 from .tvplay import TVPlayIE
