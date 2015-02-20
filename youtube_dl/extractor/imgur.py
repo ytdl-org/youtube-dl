@@ -19,16 +19,16 @@ class ImgurIE(InfoExtractor):
         'info_dict': {
             'id': 'A61SaA1',
             'ext': 'mp4',
-            'title': 'MRW gifv is up and running without any bugs',
-            'description': 'The Internet\'s visual storytelling community. Explore, share, and discuss the best visual stories the Internet has to offer.',
+            'title': 're:Imgur GIF$|MRW gifv is up and running without any bugs$',
+            'description': 're:The origin of the Internet\'s most viral images$|The Internet\'s visual storytelling community\. Explore, share, and discuss the best visual stories the Internet has to offer\.$',
         },
     }, {
         'url': 'https://imgur.com/A61SaA1',
         'info_dict': {
             'id': 'A61SaA1',
             'ext': 'mp4',
-            'title': 'MRW gifv is up and running without any bugs',
-            'description': 'The Internet\'s visual storytelling community. Explore, share, and discuss the best visual stories the Internet has to offer.',
+            'title': 're:Imgur GIF$|MRW gifv is up and running without any bugs$',
+            'description': 're:The origin of the Internet\'s most viral images$|The Internet\'s visual storytelling community\. Explore, share, and discuss the best visual stories the Internet has to offer\.$',
         },
     }]
 
