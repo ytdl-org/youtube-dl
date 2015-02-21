@@ -163,8 +163,6 @@ class TEDIE(InfoExtractor):
         self._sort_formats(formats)
 
         video_id = compat_str(talk_info['id'])
-        # subtitles
-        video_subtitles = self.extract_subtitles(video_id, talk_info)
 
         thumbnail = talk_info['thumb']
         if not thumbnail.startswith('http'):
@@ -175,7 +173,7 @@ class TEDIE(InfoExtractor):
             'uploader': talk_info['speaker'],
             'thumbnail': thumbnail,
             'description': self._og_search_description(webpage),
-            'subtitles': video_subtitles,
+            'subtitles': self._get_subtitles(video_id, talk_info),
             'formats': formats,
             'duration': talk_info.get('duration'),
         }
@@ -194,7 +192,6 @@ class TEDIE(InfoExtractor):
                 ]
             return sub_lang_list
         else:
-            self._downloader.report_warning('video doesn\'t have subtitles')
             return {}
 
     def _watch_info(self, url, name):
