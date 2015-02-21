@@ -391,6 +391,16 @@ class InfoExtractor(object):
             if blocked_iframe:
                 msg += ' Visit %s for more details' % blocked_iframe
             raise ExtractorError(msg, expected=True)
+        if '<title>The URL you requested has been blocked</title>' in content[:512]:
+            msg = (
+                'Access to this webpage has been blocked by Indian censorship. '
+                'Use a VPN or proxy server (with --proxy) to route around it.')
+            block_msg = self._html_search_regex(
+                r'</h1><p>(.*?)</p>',
+                content, 'block message', default=None)
+            if block_msg:
+                msg += ' (Message: "%s")' % block_msg.replace('\n', ' ')
+            raise ExtractorError(msg, expected=True)
 
         return content
 
