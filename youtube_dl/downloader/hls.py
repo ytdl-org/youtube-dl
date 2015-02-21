@@ -19,6 +19,7 @@ from ..utils import (
 class HlsFD(FileDownloader):
     def real_download(self, filename, info_dict):
         url = info_dict['url']
+        filename = ''.join([i if ord(i) < 128 else ' ' for i in filename])
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
