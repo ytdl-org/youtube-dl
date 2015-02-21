@@ -559,6 +559,7 @@
  - **youtube:subscriptions**: YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)
  - **youtube:user**: YouTube.com user videos (URL or "ytuser" keyword)
  - **youtube:watch_later**: Youtube watch later list, ":ytwatchlater" for short (requires authentication)
+ - **Zapiks**
  - **ZDF**
  - **ZDFChannel**
  - **zingmp3:album**: mp3.zing.vn albums
