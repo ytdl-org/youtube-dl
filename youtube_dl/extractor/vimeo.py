@@ -228,7 +228,8 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
 
         password = self._downloader.params.get('videopassword', None)
         if password:
-            headers['Cookie'] = '%s_password=%s' % (video_id, hashlib.md5(password).hexdigest())
+            headers['Cookie'] = '%s_password=%s' % (
+                video_id, hashlib.md5(password.encode('utf-8')).hexdigest())
 
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request(url, None, headers)
