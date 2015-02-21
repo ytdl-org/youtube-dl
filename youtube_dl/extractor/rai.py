@@ -3,10 +3,12 @@ from __future__ import unicode_literals
 import re
 
 from .subtitles import SubtitlesInfoExtractor
+from ..compat import (
+    compat_urllib_parse,
+)
 from ..utils import (
     parse_duration,
     unified_strdate,
-    compat_urllib_parse,
 )
 
 

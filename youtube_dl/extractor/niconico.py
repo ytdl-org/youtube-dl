@@ -5,14 +5,16 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
     compat_urlparse,
-    unified_strdate,
-    parse_duration,
-    int_or_none,
+)
+from ..utils import (
     ExtractorError,
+    int_or_none,
+    parse_duration,
+    unified_strdate,
 )
 
 

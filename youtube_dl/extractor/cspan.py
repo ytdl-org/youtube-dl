@@ -27,7 +27,6 @@ class CSpanIE(InfoExtractor):
         'url': 'http://www.c-span.org/video/?c4486943/cspan-international-health-care-models',
         # For whatever reason, the served video alternates between
         # two different ones
-        #'md5': 'dbb0f047376d457f2ab8b3929cbb2d0c',
         'info_dict': {
             'id': '340723',
             'ext': 'mp4',

@@ -20,6 +20,7 @@ class AparatIE(InfoExtractor):
             'id': 'wP8On',
             'ext': 'mp4',
             'title': 'تیم گلکسی 11 - زومیت',
+            'age_limit': 0,
         },
         # 'skip': 'Extremely unreliable',
     }
@@ -34,7 +35,8 @@ class AparatIE(InfoExtractor):
                      video_id + '/vt/frame')
         webpage = self._download_webpage(embed_url, video_id)
 
-        video_urls = re.findall(r'fileList\[[0-9]+\]\s*=\s*"([^"]+)"', webpage)
+        video_urls = [video_url.replace('\\/', '/') for video_url in re.findall(
+            r'(?:fileList\[[0-9]+\]\s*=|"file"\s*:)\s*"([^"]+)"', webpage)]
         for i, video_url in enumerate(video_urls):
             req = HEADRequest(video_url)
             res = self._request_webpage(
@@ -46,7 +48,7 @@ class AparatIE(InfoExtractor):
 
         title = self._search_regex(r'\s+title:\s*"([^"]+)"', webpage, 'title')
         thumbnail = self._search_regex(
-            r'\s+image:\s*"([^"]+)"', webpage, 'thumbnail', fatal=False)
+            r'image:\s*"([^"]+)"', webpage, 'thumbnail', fatal=False)
 
         return {
             'id': video_id,
@@ -54,4 +56,5 @@ class AparatIE(InfoExtractor):
             'url': video_url,
             'ext': 'mp4',
             'thumbnail': thumbnail,
+            'age_limit': self._family_friendly_search(webpage),
         }

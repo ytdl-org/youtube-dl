@@ -12,7 +12,7 @@ from ..utils import (
 class TNAFlixIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tnaflix\.com/(?P<cat_id>[\w-]+)/(?P<display_id>[\w-]+)/video(?P<id>\d+)'
 
-    _TITLE_REGEX = None
+    _TITLE_REGEX = r'<title>(.+?) - TNAFlix Porn Videos</title>'
     _DESCRIPTION_REGEX = r'<h3 itemprop="description">([^<]+)</h3>'
     _CONFIG_REGEX = r'flashvars\.config\s*=\s*escape\("([^"]+)"'
 
@@ -49,8 +49,8 @@ class TNAFlixIE(InfoExtractor):
         if duration:
             duration = parse_duration(duration[1:])
 
-        cfg_url = self._html_search_regex(
-            self._CONFIG_REGEX, webpage, 'flashvars.config')
+        cfg_url = self._proto_relative_url(self._html_search_regex(
+            self._CONFIG_REGEX, webpage, 'flashvars.config'), 'http:')
 
         cfg_xml = self._download_xml(
             cfg_url, display_id, note='Downloading metadata',

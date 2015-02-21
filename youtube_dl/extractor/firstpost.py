@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 
 
@@ -20,11 +18,10 @@ class FirstpostIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         page = self._download_webpage(url, video_id)
-        title = self._html_search_meta('twitter:title', page, 'title')
+
+        title = self._html_search_meta('twitter:title', page, 'title', fatal=True)
         description = self._html_search_meta('twitter:description', page, 'title')
 
         data = self._download_xml(
@@ -42,6 +39,7 @@ class FirstpostIE(InfoExtractor):
                 'height': int(details.find('./height').text.strip()),
             } for details in item.findall('./source/file_details') if details.find('./file').text
         ]
+        self._sort_formats(formats)
 
         return {
             'id': video_id,

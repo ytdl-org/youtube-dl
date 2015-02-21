@@ -3,9 +3,11 @@ from __future__ import unicode_literals
 import re
 
 from .mtv import MTVServicesInfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
     compat_urllib_parse,
+)
+from ..utils import (
     ExtractorError,
     float_or_none,
     unified_strdate,
@@ -32,12 +34,12 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
 
 class ComedyCentralShowsIE(MTVServicesInfoExtractor):
     IE_DESC = 'The Daily Show / The Colbert Report'
-    # urls can be abbreviations like :thedailyshow or :colbert
+    # urls can be abbreviations like :thedailyshow
     # urls for episodes like:
     # or urls for clips like: http://www.thedailyshow.com/watch/mon-december-10-2012/any-given-gun-day
     #                     or: http://www.colbertnation.com/the-colbert-report-videos/421667/november-29-2012/moon-shattering-news
     #                     or: http://www.colbertnation.com/the-colbert-report-collections/422008/festival-of-lights/79524
-    _VALID_URL = r'''(?x)^(:(?P<shortname>tds|thedailyshow|cr|colbert|colbertnation|colbertreport)
+    _VALID_URL = r'''(?x)^(:(?P<shortname>tds|thedailyshow)
                       |https?://(:www\.)?
                           (?P<showname>thedailyshow|thecolbertreport)\.(?:cc\.)?com/
                          ((?:full-)?episodes/(?:[0-9a-z]{6}/)?(?P<episode>.*)|
@@ -47,8 +49,10 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
                               |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*))
                           )|
                           (?P<interview>
-                              extended-interviews/(?P<interID>[0-9a-z]+)/(?:playlist_tds_extended_)?(?P<interview_title>.*?)(/.*?)?)))
-                     (?:[?#].*|$)'''
+                              extended-interviews/(?P<interID>[0-9a-z]+)/
+                              (?:playlist_tds_extended_)?(?P<interview_title>[^/?#]*?)
+                              (?:/[^/?#]?|[?#]|$))))
+                     '''
     _TESTS = [{
         'url': 'http://thedailyshow.cc.com/watch/thu-december-13-2012/kristen-stewart',
         'md5': '4e2f5cb088a83cd8cdb7756132f9739d',
@@ -60,6 +64,38 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
             'uploader': 'thedailyshow',
             'title': 'thedailyshow kristen-stewart part 1',
         }
+    }, {
+        'url': 'http://thedailyshow.cc.com/extended-interviews/b6364d/sarah-chayes-extended-interview',
+        'info_dict': {
+            'id': 'sarah-chayes-extended-interview',
+            'description': 'Carnegie Endowment Senior Associate Sarah Chayes discusses how corrupt institutions function throughout the world in her book "Thieves of State: Why Corruption Threatens Global Security."',
+            'title': 'thedailyshow Sarah Chayes Extended Interview',
+        },
+        'playlist': [
+            {
+                'info_dict': {
+                    'id': '0baad492-cbec-4ec1-9e50-ad91c291127f',
+                    'ext': 'mp4',
+                    'upload_date': '20150129',
+                    'description': 'Carnegie Endowment Senior Associate Sarah Chayes discusses how corrupt institutions function throughout the world in her book "Thieves of State: Why Corruption Threatens Global Security."',
+                    'uploader': 'thedailyshow',
+                    'title': 'thedailyshow sarah-chayes-extended-interview part 1',
+                },
+            },
+            {
+                'info_dict': {
+                    'id': '1e4fb91b-8ce7-4277-bd7c-98c9f1bbd283',
+                    'ext': 'mp4',
+                    'upload_date': '20150129',
+                    'description': 'Carnegie Endowment Senior Associate Sarah Chayes discusses how corrupt institutions function throughout the world in her book "Thieves of State: Why Corruption Threatens Global Security."',
+                    'uploader': 'thedailyshow',
+                    'title': 'thedailyshow sarah-chayes-extended-interview part 2',
+                },
+            },
+        ],
+        'params': {
+            'skip_download': True,
+        },
     }, {
         'url': 'http://thedailyshow.cc.com/extended-interviews/xm3fnq/andrew-napolitano-extended-interview',
         'only_matching': True,
@@ -80,6 +116,9 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://thedailyshow.cc.com/video-playlists/npde3s/the-daily-show-19088-highlights',
+        'only_matching': True,
+    }, {
+        'url': 'http://thedailyshow.cc.com/video-playlists/t6d9sg/the-daily-show-20038-highlights/be3cwo',
         'only_matching': True,
     }, {
         'url': 'http://thedailyshow.cc.com/special-editions/2l8fdb/special-edition---a-look-back-at-food',
@@ -234,6 +273,7 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
 
         return {
             '_type': 'playlist',
+            'id': epTitle,
             'entries': entries,
             'title': playlist_title,
             'description': description,

@@ -15,7 +15,7 @@ class TMZIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Kim Kardashian\'s Boobs Unlock a Mystery!',
             'description': 'Did Kim Kardasain try to one-up Khloe by one-upping Kylie???  Or is she just showing off her amazing boobs?',
-            'thumbnail': 'http://cdnbakmi.kaltura.com/p/591531/sp/59153100/thumbnail/entry_id/0_okj015ty/version/100002/acv/182/width/640',
+            'thumbnail': r're:http://cdnbakmi\.kaltura\.com/.*thumbnail.*',
         }
     }
 

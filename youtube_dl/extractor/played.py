@@ -5,10 +5,12 @@ import re
 import os.path
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
+)
+from ..utils import (
+    ExtractorError,
 )
 
 
@@ -24,11 +26,11 @@ class PlayedIE(InfoExtractor):
             'ext': 'flv',
             'title': 'youtube-dl_test_video.mp4',
         },
+        'skip': 'Removed for copyright infringement.',  # oh wow
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         orig_webpage = self._download_webpage(url, video_id)
 
         m_error = re.search(

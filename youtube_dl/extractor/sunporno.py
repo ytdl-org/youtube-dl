@@ -28,27 +28,31 @@ class SunPornoIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(r'<title>([^<]+)</title>', webpage, 'title')
-        description = self._html_search_meta('description', webpage, 'description')
+        title = self._html_search_regex(
+            r'<title>([^<]+)</title>', webpage, 'title')
+        description = self._html_search_meta(
+            'description', webpage, 'description')
         thumbnail = self._html_search_regex(
             r'poster="([^"]+)"', webpage, 'thumbnail', fatal=False)
 
         duration = parse_duration(self._search_regex(
-            r'Duration:\s*(\d+:\d+)\s*<', webpage, 'duration', fatal=False))
+            r'itemprop="duration">\s*(\d+:\d+)\s*<',
+            webpage, 'duration', fatal=False))
 
         view_count = int_or_none(self._html_search_regex(
-            r'class="views">\s*(\d+)\s*<', webpage, 'view count', fatal=False))
+            r'class="views">\s*(\d+)\s*<',
+            webpage, 'view count', fatal=False))
         comment_count = int_or_none(self._html_search_regex(
-            r'(\d+)</b> Comments?', webpage, 'comment count', fatal=False))
+            r'(\d+)</b> Comments?',
+            webpage, 'comment count', fatal=False))
 
         formats = []
         quality = qualities(['mp4', 'flv'])
-        for video_url in re.findall(r'<source src="([^"]+)"', webpage):
+        for video_url in re.findall(r'<(?:source|video) src="([^"]+)"', webpage):
             video_ext = determine_ext(video_url)
             formats.append({
                 'url': video_url,

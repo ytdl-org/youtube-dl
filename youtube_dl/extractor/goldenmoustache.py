@@ -1,9 +1,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-)
 
 
 class GoldenMoustacheIE(InfoExtractor):
@@ -17,7 +14,6 @@ class GoldenMoustacheIE(InfoExtractor):
             'title': 'Suricate - Le Poker',
             'description': 'md5:3d1f242f44f8c8cb0a106f1fd08e5dc9',
             'thumbnail': 're:^https?://.*\.jpg$',
-            'view_count': int,
         }
     }, {
         'url': 'http://www.goldenmoustache.com/le-lab-tout-effacer-mc-fly-et-carlito-55249/',
@@ -28,7 +24,6 @@ class GoldenMoustacheIE(InfoExtractor):
             'title': 'Le LAB - Tout Effacer (Mc Fly et Carlito)',
             'description': 'md5:9b7fbf11023fb2250bd4b185e3de3b2a',
             'thumbnail': 're:^https?://.*\.(?:png|jpg)$',
-            'view_count': int,
         }
     }]
 
@@ -42,9 +37,6 @@ class GoldenMoustacheIE(InfoExtractor):
             r'<title>(.*?)(?: - Golden Moustache)?</title>', webpage, 'title')
         thumbnail = self._og_search_thumbnail(webpage)
         description = self._og_search_description(webpage)
-        view_count = int_or_none(self._html_search_regex(
-            r'<strong>([0-9]+)</strong>\s*VUES</span>',
-            webpage, 'view count', fatal=False))
 
         return {
             'id': video_id,
@@ -53,5 +45,4 @@ class GoldenMoustacheIE(InfoExtractor):
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
-            'view_count': view_count,
         }

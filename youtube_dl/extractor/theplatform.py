@@ -2,21 +2,29 @@ from __future__ import unicode_literals
 
 import re
 import json
+import time
+import hmac
+import binascii
+import hashlib
 
-from .common import InfoExtractor
-from ..utils import (
+
+from .subtitles import SubtitlesInfoExtractor
+from ..compat import (
     compat_str,
+)
+from ..utils import (
     determine_ext,
     ExtractorError,
     xpath_with_ns,
+    unsmuggle_url,
 )
 
 _x = lambda p: xpath_with_ns(p, {'smil': 'http://www.w3.org/2005/SMIL21/Language'})
 
 
-class ThePlatformIE(InfoExtractor):
+class ThePlatformIE(SubtitlesInfoExtractor):
     _VALID_URL = r'''(?x)
-        (?:https?://(?:link|player)\.theplatform\.com/[sp]/[^/]+/
+        (?:https?://(?:link|player)\.theplatform\.com/[sp]/(?P<provider_id>[^/]+)/
            (?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/)?
          |theplatform:)(?P<id>[^/\?&]+)'''
 
@@ -36,18 +44,48 @@ class ThePlatformIE(InfoExtractor):
         },
     }
 
+    @staticmethod
+    def _sign_url(url, sig_key, sig_secret, life=600, include_qs=False):
+        flags = '10' if include_qs else '00'
+        expiration_date = '%x' % (int(time.time()) + life)
+
+        def str_to_hex(str):
+            return binascii.b2a_hex(str.encode('ascii')).decode('ascii')
+
+        def hex_to_str(hex):
+            return binascii.a2b_hex(hex)
+
+        relative_path = url.split('http://link.theplatform.com/s/')[1].split('?')[0]
+        clear_text = hex_to_str(flags + expiration_date + str_to_hex(relative_path))
+        checksum = hmac.new(sig_key.encode('ascii'), clear_text, hashlib.sha1).hexdigest()
+        sig = flags + expiration_date + checksum + str_to_hex(sig_secret)
+        return '%s&sig=%s' % (url, sig)
+
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
+
         mobj = re.match(self._VALID_URL, url)
+        provider_id = mobj.group('provider_id')
         video_id = mobj.group('id')
-        if mobj.group('config'):
+
+        if not provider_id:
+            provider_id = 'dJ5BDC'
+
+        if smuggled_data.get('force_smil_url', False):
+            smil_url = url
+        elif mobj.group('config'):
             config_url = url + '&form=json'
             config_url = config_url.replace('swf/', 'config/')
             config_url = config_url.replace('onsite/', 'onsite/config/')
             config = self._download_json(config_url, video_id, 'Downloading config')
             smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4&manifest=f4m'
         else:
-            smil_url = ('http://link.theplatform.com/s/dJ5BDC/{0}/meta.smil?'
-                        'format=smil&mbr=true'.format(video_id))
+            smil_url = ('http://link.theplatform.com/s/{0}/{1}/meta.smil?'
+                        'format=smil&mbr=true'.format(provider_id, video_id))
+
+        sig = smuggled_data.get('sig')
+        if sig:
+            smil_url = self._sign_url(smil_url, sig['key'], sig['secret'])
 
         meta = self._download_xml(smil_url, video_id)
         try:
@@ -60,9 +98,23 @@ class ThePlatformIE(InfoExtractor):
         else:
             raise ExtractorError(error_msg, expected=True)
 
-        info_url = 'http://link.theplatform.com/s/dJ5BDC/{0}?format=preview'.format(video_id)
+        info_url = 'http://link.theplatform.com/s/{0}/{1}?format=preview'.format(provider_id, video_id)
         info_json = self._download_webpage(info_url, video_id)
         info = json.loads(info_json)
+
+        subtitles = {}
+        captions = info.get('captions')
+        if isinstance(captions, list):
+            for caption in captions:
+                lang, src = caption.get('lang'), caption.get('src')
+                if lang and src:
+                    subtitles[lang] = src
+
+        if self._downloader.params.get('listsubtitles', False):
+            self._list_available_subtitles(video_id, subtitles)
+            return
+
+        subtitles = self.extract_subtitles(video_id, subtitles)
 
         head = meta.find(_x('smil:head'))
         body = meta.find(_x('smil:body'))
@@ -115,6 +167,7 @@ class ThePlatformIE(InfoExtractor):
         return {
             'id': video_id,
             'title': info['title'],
+            'subtitles': subtitles,
             'formats': formats,
             'description': info['description'],
             'thumbnail': info['defaultThumbnailUrl'],

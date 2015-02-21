@@ -60,23 +60,24 @@ class SpiegelIE(InfoExtractor):
         xml_url = base_url + video_id + '.xml'
         idoc = self._download_xml(xml_url, video_id)
 
-        formats = [
-            {
-                'format_id': n.tag.rpartition('type')[2],
-                'url': base_url + n.find('./filename').text,
-                'width': int(n.find('./width').text),
-                'height': int(n.find('./height').text),
-                'abr': int(n.find('./audiobitrate').text),
-                'vbr': int(n.find('./videobitrate').text),
-                'vcodec': n.find('./codec').text,
-                'acodec': 'MP4A',
-            }
-            for n in list(idoc)
-            # Blacklist type 6, it's extremely LQ and not available on the same server
-            if n.tag.startswith('type') and n.tag != 'type6'
-        ]
+        formats = []
+        for n in list(idoc):
+            if n.tag.startswith('type') and n.tag != 'type6':
+                format_id = n.tag.rpartition('type')[2]
+                video_url = base_url + n.find('./filename').text
+                formats.append({
+                    'format_id': format_id,
+                    'url': video_url,
+                    'width': int(n.find('./width').text),
+                    'height': int(n.find('./height').text),
+                    'abr': int(n.find('./audiobitrate').text),
+                    'vbr': int(n.find('./videobitrate').text),
+                    'vcodec': n.find('./codec').text,
+                    'acodec': 'MP4A',
+                })
         duration = float(idoc[0].findall('./duration')[0].text)
 
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         return {

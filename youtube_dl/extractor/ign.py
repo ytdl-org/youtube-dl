@@ -34,6 +34,9 @@ class IGNIE(InfoExtractor):
         },
         {
             'url': 'http://me.ign.com/en/feature/15775/100-little-things-in-gta-5-that-will-blow-your-mind',
+            'info_dict': {
+                'id': '100-little-things-in-gta-5-that-will-blow-your-mind',
+            },
             'playlist': [
                 {
                     'info_dict': {

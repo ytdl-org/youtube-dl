@@ -5,12 +5,14 @@ import json
 
 from .subtitles import SubtitlesInfoExtractor
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
+    compat_str,
     compat_urllib_parse,
     compat_urllib_request,
+)
+from ..utils import (
     ExtractorError,
     int_or_none,
-    compat_str,
 )
 
 
@@ -83,6 +85,7 @@ class LyndaIE(SubtitlesInfoExtractor):
                 } for format_id, video_url in prioritized_streams['0'].items()
             ])
 
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         if self._downloader.params.get('listsubtitles', False):

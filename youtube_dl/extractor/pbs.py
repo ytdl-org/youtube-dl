@@ -4,6 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     unified_strdate,
     US_RATINGS,
 )
@@ -151,6 +152,19 @@ class PBSIE(InfoExtractor):
         info_url = 'http://video.pbs.org/videoInfo/%s?format=json' % video_id
         info = self._download_json(info_url, display_id)
 
+        redirect_url = info['alternate_encoding']['url']
+        redirect_info = self._download_json(
+            redirect_url + '?format=json', display_id,
+            'Downloading video url info')
+        if redirect_info['status'] == 'error':
+            if redirect_info['http_code'] == 403:
+                message = (
+                    'The video is not available in your region due to '
+                    'right restrictions')
+            else:
+                message = redirect_info['message']
+            raise ExtractorError(message, expected=True)
+
         rating_str = info.get('rating')
         if rating_str is not None:
             rating_str = rating_str.rpartition('-')[2]
@@ -160,7 +174,7 @@ class PBSIE(InfoExtractor):
             'id': video_id,
             'display_id': display_id,
             'title': info['title'],
-            'url': info['alternate_encoding']['url'],
+            'url': redirect_info['url'],
             'ext': 'mp4',
             'description': info['program'].get('description'),
             'thumbnail': info.get('image_url'),

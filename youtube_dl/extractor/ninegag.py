@@ -23,6 +23,9 @@ class NineGagIE(InfoExtractor):
             "ext": "mp4",
             "description": "This 3-minute video will make you smile and then make you feel untalented and insignificant. Anyway, you should share this awesomeness. (Thanks, Dino!)",
             "title": "\"People Are Awesome 2013\" Is Absolutely Awesome",
+            'uploader_id': 'UCdEH6EjDKwtTe-sO2f0_1XA',
+            'uploader': 'CompilationChannel',
+            'upload_date': '20131110',
             "view_count": int,
             "thumbnail": "re:^https?://",
         },
@@ -35,6 +38,9 @@ class NineGagIE(InfoExtractor):
             'display_id': 'alternate-banned-opening-scene-of-gravity',
             "description": "While Gravity was a pretty awesome movie already, YouTuber Krishna Shenoi came up with a way to improve upon it, introducing a much better solution to Sandra Bullock's seemingly endless tumble in space. The ending is priceless.",
             'title': "Banned Opening Scene Of \"Gravity\" That Changes The Whole Movie",
+            'uploader': 'Krishna Shenoi',
+            'upload_date': '20140401',
+            'uploader_id': 'krishnashenoi93',
         },
     }]
 

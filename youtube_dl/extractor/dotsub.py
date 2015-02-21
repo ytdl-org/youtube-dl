@@ -1,13 +1,14 @@
 from __future__ import unicode_literals
 
-import re
-import time
-
 from .common import InfoExtractor
+from ..utils import (
+    float_or_none,
+    int_or_none,
+)
 
 
 class DotsubIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?dotsub\.com/view/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?dotsub\.com/view/(?P<id>[^/]+)'
     _TEST = {
         'url': 'http://dotsub.com/view/aed3b8b2-1889-4df5-ae63-ad85f5572f27',
         'md5': '0914d4d69605090f623b7ac329fea66e',
@@ -15,28 +16,37 @@ class DotsubIE(InfoExtractor):
             'id': 'aed3b8b2-1889-4df5-ae63-ad85f5572f27',
             'ext': 'flv',
             'title': 'Pyramids of Waste (2010), AKA The Lightbulb Conspiracy - Planned obsolescence documentary',
+            'description': 'md5:699a0f7f50aeec6042cb3b1db2d0d074',
+            'thumbnail': 're:^https?://dotsub.com/media/aed3b8b2-1889-4df5-ae63-ad85f5572f27/p',
+            'duration': 3169,
             'uploader': '4v4l0n42',
-            'description': 'Pyramids of Waste (2010) also known as "The lightbulb conspiracy" is a documentary about how our economic system based on consumerism  and planned obsolescence is breaking our planet down.\r\n\r\nSolutions to this can be found at:\r\nhttp://robotswillstealyourjob.com\r\nhttp://www.federicopistono.org\r\n\r\nhttp://opensourceecology.org\r\nhttp://thezeitgeistmovement.com',
-            'thumbnail': 'http://dotsub.com/media/aed3b8b2-1889-4df5-ae63-ad85f5572f27/p',
+            'timestamp': 1292248482.625,
             'upload_date': '20101213',
+            'view_count': int,
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        info_url = "https://dotsub.com/api/media/%s/metadata" % video_id
-        info = self._download_json(info_url, video_id)
-        date = time.gmtime(info['dateCreated'] / 1000)  # The timestamp is in miliseconds
+        video_id = self._match_id(url)
+
+        info = self._download_json(
+            'https://dotsub.com/api/media/%s/metadata' % video_id, video_id)
+        video_url = info.get('mediaURI')
+
+        if not video_url:
+            webpage = self._download_webpage(url, video_id)
+            video_url = self._search_regex(
+                r'"file"\s*:\s*\'([^\']+)', webpage, 'video url')
 
         return {
             'id': video_id,
-            'url': info['mediaURI'],
+            'url': video_url,
             'ext': 'flv',
             'title': info['title'],
-            'thumbnail': info['screenshotURI'],
-            'description': info['description'],
-            'uploader': info['user'],
-            'view_count': info['numberOfViews'],
-            'upload_date': '%04i%02i%02i' % (date.tm_year, date.tm_mon, date.tm_mday),
+            'description': info.get('description'),
+            'thumbnail': info.get('screenshotURI'),
+            'duration': int_or_none(info.get('duration'), 1000),
+            'uploader': info.get('user'),
+            'timestamp': float_or_none(info.get('dateCreated'), 1000),
+            'view_count': int_or_none(info.get('numberOfViews')),
         }

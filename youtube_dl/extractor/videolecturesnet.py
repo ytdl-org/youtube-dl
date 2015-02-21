@@ -49,15 +49,31 @@ class VideoLecturesNetIE(InfoExtractor):
         thumbnail = (
             None if thumbnail_el is None else thumbnail_el.attrib.get('src'))
 
-        formats = [{
-            'url': v.attrib['src'],
-            'width': int_or_none(v.attrib.get('width')),
-            'height': int_or_none(v.attrib.get('height')),
-            'filesize': int_or_none(v.attrib.get('size')),
-            'tbr': int_or_none(v.attrib.get('systemBitrate')) / 1000.0,
-            'ext': v.attrib.get('ext'),
-        } for v in switch.findall('./video')
-            if v.attrib.get('proto') == 'http']
+        formats = []
+        for v in switch.findall('./video'):
+            proto = v.attrib.get('proto')
+            if proto not in ['http', 'rtmp']:
+                continue
+            f = {
+                'width': int_or_none(v.attrib.get('width')),
+                'height': int_or_none(v.attrib.get('height')),
+                'filesize': int_or_none(v.attrib.get('size')),
+                'tbr': int_or_none(v.attrib.get('systemBitrate')) / 1000.0,
+                'ext': v.attrib.get('ext'),
+            }
+            src = v.attrib['src']
+            if proto == 'http':
+                if self._is_valid_url(src, video_id):
+                    f['url'] = src
+                    formats.append(f)
+            elif proto == 'rtmp':
+                f.update({
+                    'url': v.attrib['streamer'],
+                    'play_path': src,
+                    'rtmp_real_time': True,
+                })
+                formats.append(f)
+        self._sort_formats(formats)
 
         return {
             'id': video_id,

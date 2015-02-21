@@ -6,7 +6,7 @@ from .mitele import MiTeleIE
 
 class TelecincoIE(MiTeleIE):
     IE_NAME = 'telecinco.es'
-    _VALID_URL = r'https?://www\.telecinco\.es/[^/]+/[^/]+/[^/]+/(?P<episode>.*?)\.html'
+    _VALID_URL = r'https?://www\.telecinco\.es/[^/]+/[^/]+/[^/]+/(?P<id>.*?)\.html'
 
     _TEST = {
         'url': 'http://www.telecinco.es/robinfood/temporada-01/t01xp14/Bacalao-cocochas-pil-pil_0_1876350223.html',

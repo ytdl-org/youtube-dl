@@ -5,7 +5,7 @@ import re
 
 from .subtitles import SubtitlesInfoExtractor
 
-from ..utils import (
+from ..compat import (
     compat_str,
 )
 
@@ -13,7 +13,7 @@ from ..utils import (
 class TEDIE(SubtitlesInfoExtractor):
     _VALID_URL = r'''(?x)
         (?P<proto>https?://)
-        (?P<type>www|embed)(?P<urlmain>\.ted\.com/
+        (?P<type>www|embed(?:-ssl)?)(?P<urlmain>\.ted\.com/
         (
             (?P<type_playlist>playlists(?:/\d+)?) # We have a playlist
             |
@@ -83,6 +83,22 @@ class TEDIE(SubtitlesInfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # YouTube video
+        'url': 'http://www.ted.com/talks/jeffrey_kluger_the_sibling_bond',
+        'add_ie': ['Youtube'],
+        'info_dict': {
+            'id': 'aFBIPO-P7LM',
+            'ext': 'mp4',
+            'title': 'The hidden power of siblings: Jeff Kluger at TEDxAsheville',
+            'description': 'md5:3d7a4f50d95ca5dd67104e2a20f43fe1',
+            'uploader': 'TEDx Talks',
+            'uploader_id': 'TEDxTalks',
+            'upload_date': '20111216',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     _NATIVE_FORMATS = {
@@ -98,7 +114,7 @@ class TEDIE(SubtitlesInfoExtractor):
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url, re.VERBOSE)
-        if m.group('type') == 'embed':
+        if m.group('type').startswith('embed'):
             desktop_url = m.group('proto') + 'www' + m.group('urlmain')
             return self.url_result(desktop_url, 'TED')
         name = m.group('name')
@@ -132,11 +148,16 @@ class TEDIE(SubtitlesInfoExtractor):
 
         talk_info = self._extract_info(webpage)['talks'][0]
 
-        if talk_info.get('external') is not None:
-            self.to_screen('Found video from %s' % talk_info['external']['service'])
+        external = talk_info.get('external')
+        if external:
+            service = external['service']
+            self.to_screen('Found video from %s' % service)
+            ext_url = None
+            if service.lower() == 'youtube':
+                ext_url = external.get('code')
             return {
                 '_type': 'url',
-                'url': talk_info['external']['uri'],
+                'url': ext_url or external['uri'],
             }
 
         formats = [{
@@ -199,8 +220,9 @@ class TEDIE(SubtitlesInfoExtractor):
         webpage = self._download_webpage(url, name)
 
         config_json = self._html_search_regex(
-            r"data-config='([^']+)", webpage, 'config')
-        config = json.loads(config_json)
+            r'"pages\.jwplayer"\s*,\s*({.+?})\s*\)\s*</script>',
+            webpage, 'config')
+        config = json.loads(config_json)['config']
         video_url = config['video']['url']
         thumbnail = config.get('image', {}).get('url')
 

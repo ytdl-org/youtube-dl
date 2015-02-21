@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
 )
@@ -39,7 +39,8 @@ class GDCVaultIE(InfoExtractor):
                 'id': '1015301',
                 'ext': 'flv',
                 'title': 'Thexder Meets Windows 95, or Writing Great Games in the Windows 95 Environment',
-            }
+            },
+            'skip': 'Requires login',
         }
     ]
 

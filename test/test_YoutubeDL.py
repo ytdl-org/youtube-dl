@@ -8,9 +8,12 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import copy
+
 from test.helper import FakeYDL, assertRegexpMatches
 from youtube_dl import YoutubeDL
 from youtube_dl.extractor import YoutubeIE
+from youtube_dl.postprocessor.common import PostProcessor
 
 
 class YDL(FakeYDL):
@@ -192,6 +195,37 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], 'vid-high')
 
+    def test_format_selection_audio_exts(self):
+        formats = [
+            {'format_id': 'mp3-64', 'ext': 'mp3', 'abr': 64, 'url': 'http://_', 'vcodec': 'none'},
+            {'format_id': 'ogg-64', 'ext': 'ogg', 'abr': 64, 'url': 'http://_', 'vcodec': 'none'},
+            {'format_id': 'aac-64', 'ext': 'aac', 'abr': 64, 'url': 'http://_', 'vcodec': 'none'},
+            {'format_id': 'mp3-32', 'ext': 'mp3', 'abr': 32, 'url': 'http://_', 'vcodec': 'none'},
+            {'format_id': 'aac-32', 'ext': 'aac', 'abr': 32, 'url': 'http://_', 'vcodec': 'none'},
+        ]
+
+        info_dict = _make_result(formats)
+        ydl = YDL({'format': 'best'})
+        ie = YoutubeIE(ydl)
+        ie._sort_formats(info_dict['formats'])
+        ydl.process_ie_result(copy.deepcopy(info_dict))
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'aac-64')
+
+        ydl = YDL({'format': 'mp3'})
+        ie = YoutubeIE(ydl)
+        ie._sort_formats(info_dict['formats'])
+        ydl.process_ie_result(copy.deepcopy(info_dict))
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'mp3-64')
+
+        ydl = YDL({'prefer_free_formats': True})
+        ie = YoutubeIE(ydl)
+        ie._sort_formats(info_dict['formats'])
+        ydl.process_ie_result(copy.deepcopy(info_dict))
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'ogg-64')
+
     def test_format_selection_video(self):
         formats = [
             {'format_id': 'dash-video-low', 'ext': 'mp4', 'preference': 1, 'acodec': 'none', 'url': '_'},
@@ -218,7 +252,7 @@ class TestFormatSelection(unittest.TestCase):
             # 3D
             '85', '84', '102', '83', '101', '82', '100',
             # Dash video
-            '138', '137', '248', '136', '247', '135', '246',
+            '137', '248', '136', '247', '135', '246',
             '245', '244', '134', '243', '133', '242', '160',
             # Dash audio
             '141', '172', '140', '171', '139',
@@ -247,6 +281,61 @@ class TestFormatSelection(unittest.TestCase):
             ydl.process_ie_result(info_dict)
             downloaded = ydl.downloaded_info_dicts[0]
             self.assertEqual(downloaded['format_id'], f1id)
+
+    def test_format_filtering(self):
+        formats = [
+            {'format_id': 'A', 'filesize': 500, 'width': 1000},
+            {'format_id': 'B', 'filesize': 1000, 'width': 500},
+            {'format_id': 'C', 'filesize': 1000, 'width': 400},
+            {'format_id': 'D', 'filesize': 2000, 'width': 600},
+            {'format_id': 'E', 'filesize': 3000},
+            {'format_id': 'F'},
+            {'format_id': 'G', 'filesize': 1000000},
+        ]
+        for f in formats:
+            f['url'] = 'http://_/'
+            f['ext'] = 'unknown'
+        info_dict = _make_result(formats)
+
+        ydl = YDL({'format': 'best[filesize<3000]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'D')
+
+        ydl = YDL({'format': 'best[filesize<=3000]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'E')
+
+        ydl = YDL({'format': 'best[filesize <= ? 3000]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'F')
+
+        ydl = YDL({'format': 'best [filesize = 1000] [width>450]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'B')
+
+        ydl = YDL({'format': 'best [filesize = 1000] [width!=450]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'C')
+
+        ydl = YDL({'format': '[filesize>?1]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'G')
+
+        ydl = YDL({'format': '[filesize<1M]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'E')
+
+        ydl = YDL({'format': '[filesize<1MiB]'})
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'G')
 
     def test_add_extra_info(self):
         test_dict = {
@@ -281,6 +370,36 @@ class TestFormatSelection(unittest.TestCase):
         assertRegexpMatches(self, ydl._format_note({
             'vbr': 10,
         }), '^\s*10k$')
+
+    def test_postprocessors(self):
+        filename = 'post-processor-testfile.mp4'
+        audiofile = filename + '.mp3'
+
+        class SimplePP(PostProcessor):
+            def run(self, info):
+                with open(audiofile, 'wt') as f:
+                    f.write('EXAMPLE')
+                info['filepath']
+                return False, info
+
+        def run_pp(params):
+            with open(filename, 'wt') as f:
+                f.write('EXAMPLE')
+            ydl = YoutubeDL(params)
+            ydl.add_post_processor(SimplePP())
+            ydl.post_process(filename, {'filepath': filename})
+
+        run_pp({'keepvideo': True})
+        self.assertTrue(os.path.exists(filename), '%s doesn\'t exist' % filename)
+        self.assertTrue(os.path.exists(audiofile), '%s doesn\'t exist' % audiofile)
+        os.unlink(filename)
+        os.unlink(audiofile)
+
+        run_pp({'keepvideo': False})
+        self.assertFalse(os.path.exists(filename), '%s exists' % filename)
+        self.assertTrue(os.path.exists(audiofile), '%s doesn\'t exist' % audiofile)
+        os.unlink(audiofile)
+
 
 if __name__ == '__main__':
     unittest.main()

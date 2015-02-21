@@ -1,15 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 
 
 class TF1IE(InfoExtractor):
     """TF1 uses the wat.tv player."""
-    _VALID_URL = r'http://videos\.tf1\.fr/.*-(?P<id>.*?)\.html'
-    _TEST = {
+    _VALID_URL = r'http://(?:videos\.tf1|www\.tfou)\.fr/.*?-(?P<id>\d+)(?:-\d+)?\.html'
+    _TESTS = {
         'url': 'http://videos.tf1.fr/auto-moto/citroen-grand-c4-picasso-2013-presentation-officielle-8062060.html',
         'info_dict': {
             'id': '10635995',
@@ -21,14 +19,26 @@ class TF1IE(InfoExtractor):
             # Sometimes wat serves the whole file with the --test option
             'skip_download': True,
         },
+    }, {
+        'url': 'http://www.tfou.fr/chuggington/videos/le-grand-mysterioso-chuggington-7085291-739.html',
+        'info_dict': {
+            'id': '12043945',
+            'ext': 'mp4',
+            'title': 'Le grand Mystérioso - Chuggington',
+            'description': 'Le grand Mystérioso - Emery rêve qu\'un article lui soit consacré dans le journal.',
+            'upload_date': '20150103',
+        },
+        'params': {
+            # Sometimes wat serves the whole file with the --test option
+            'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         embed_url = self._html_search_regex(
-            r'"(https://www.wat.tv/embedframe/.*?)"', webpage, 'embed url')
+            r'["\'](https?://www.wat.tv/embedframe/.*?)["\']', webpage, 'embed url')
         embed_page = self._download_webpage(embed_url, video_id,
                                             'Downloading embed player page')
         wat_id = self._search_regex(r'UVID=(.*?)&', embed_page, 'wat id')

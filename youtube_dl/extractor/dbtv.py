@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     float_or_none,
     int_or_none,
@@ -61,7 +62,7 @@ class DBTVIE(InfoExtractor):
         self._sort_formats(formats)
 
         return {
-            'id': video['id'],
+            'id': compat_str(video['id']),
             'display_id': display_id,
             'title': video['title'],
             'description': clean_html(video['desc']),

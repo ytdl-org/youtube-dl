@@ -17,7 +17,6 @@ class VikiIE(SubtitlesInfoExtractor):
     _VALID_URL = r'^https?://(?:www\.)?viki\.com/videos/(?P<id>[0-9]+v)'
     _TEST = {
         'url': 'http://www.viki.com/videos/1023585v-heirs-episode-14',
-        'md5': 'a21454021c2646f5433514177e2caa5f',
         'info_dict': {
             'id': '1023585v',
             'ext': 'mp4',
@@ -31,8 +30,7 @@ class VikiIE(SubtitlesInfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group(1)
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
         title = self._og_search_title(webpage)

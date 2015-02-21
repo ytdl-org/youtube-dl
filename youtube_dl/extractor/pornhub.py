@@ -4,10 +4,13 @@ import os
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
+    compat_urllib_parse,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
-    compat_urllib_parse,
+)
+from ..utils import (
+    ExtractorError,
     str_to_int,
 )
 from ..aes import (
@@ -16,7 +19,7 @@ from ..aes import (
 
 
 class PornHubIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?pornhub\.com/view_video\.php\?viewkey=(?P<id>[0-9a-f]+)'
+    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/view_video\.php\?viewkey=(?P<id>[0-9a-f]+)'
     _TEST = {
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
         'md5': '882f488fa1f0026f023f33576004a2ed',
@@ -42,9 +45,18 @@ class PornHubIE(InfoExtractor):
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
+        error_msg = self._html_search_regex(
+            r'(?s)<div class="userMessageSection[^"]*".*?>(.*?)</div>',
+            webpage, 'error message', default=None)
+        if error_msg:
+            error_msg = re.sub(r'\s+', ' ', error_msg)
+            raise ExtractorError(
+                'PornHub said: %s' % error_msg,
+                expected=True, video_id=video_id)
+
         video_title = self._html_search_regex(r'<h1 [^>]+>([^<]+)', webpage, 'title')
         video_uploader = self._html_search_regex(
-            r'(?s)From:&nbsp;.+?<(?:a href="/users/|a href="/channels/|<span class="username)[^>]+>(.+?)<',
+            r'(?s)From:&nbsp;.+?<(?:a href="/users/|a href="/channels/|span class="username)[^>]+>(.+?)<',
             webpage, 'uploader', fatal=False)
         thumbnail = self._html_search_regex(r'"image_url":"([^"]+)', webpage, 'thumbnail', fatal=False)
         if thumbnail:
@@ -98,3 +110,33 @@ class PornHubIE(InfoExtractor):
             'formats': formats,
             'age_limit': 18,
         }
+
+
+class PornHubPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/playlist/(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'http://www.pornhub.com/playlist/6201671',
+        'info_dict': {
+            'id': '6201671',
+            'title': 'P0p4',
+        },
+        'playlist_mincount': 35,
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result('http://www.pornhub.com/%s' % video_url, 'PornHub')
+            for video_url in set(re.findall('href="/?(view_video\.php\?viewkey=\d+[^"]*)"', webpage))
+        ]
+
+        playlist = self._parse_json(
+            self._search_regex(
+                r'playlistObject\s*=\s*({.+?});', webpage, 'playlist'),
+            playlist_id)
+
+        return self.playlist_result(
+            entries, playlist_id, playlist.get('title'), playlist.get('description'))

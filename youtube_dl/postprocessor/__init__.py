@@ -6,15 +6,20 @@ from .ffmpeg import (
     FFmpegAudioFixPP,
     FFmpegEmbedSubtitlePP,
     FFmpegExtractAudioPP,
+    FFmpegFixupStretchedPP,
+    FFmpegFixupM4aPP,
+    FFmpegJoinVideosPP,
     FFmpegMergerPP,
     FFmpegMetadataPP,
-    FFmpegVideoConvertor,
-    FFmpegExtractAudioPP,
-    FFmpegEmbedSubtitlePP,
-    FFmpegJoinVideosPP,
+    FFmpegVideoConvertorPP,
 )
 from .xattrpp import XAttrMetadataPP
 from .execafterdownload import ExecAfterDownloadPP
+
+
+def get_postprocessor(key):
+    return globals()[key + 'PP']
+
 
 __all__ = [
     'AtomicParsleyPP',
@@ -22,12 +27,12 @@ __all__ = [
     'FFmpegAudioFixPP',
     'FFmpegEmbedSubtitlePP',
     'FFmpegExtractAudioPP',
+    'FFmpegFixupM4aPP',
+    'FFmpegFixupStretchedPP',
+    'FFmpegJoinVideosPP',
     'FFmpegMergerPP',
     'FFmpegMetadataPP',
     'FFmpegPostProcessor',
-    'FFmpegVideoConvertor',
-    'FFmpegExtractAudioPP',
-    'FFmpegEmbedSubtitlePP',
-    'FFmpegJoinVideosPP',
+    'FFmpegVideoConvertorPP',
     'XAttrMetadataPP',
 ]

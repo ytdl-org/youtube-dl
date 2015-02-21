@@ -14,7 +14,7 @@ from ..utils import (
 
 class XHamsterIE(InfoExtractor):
     """Information Extractor for xHamster"""
-    _VALID_URL = r'http://(?:.+?\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.+?)\.html(?:\?.*)?'
+    _VALID_URL = r'(?P<proto>https?)://(?:.+?\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.+?)\.html(?:\?.*)?'
     _TESTS = [
         {
             'url': 'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
@@ -39,7 +39,11 @@ class XHamsterIE(InfoExtractor):
                 'duration': 200,
                 'age_limit': 18,
             }
-        }
+        },
+        {
+            'url': 'https://xhamster.com/movies/2272726/amber_slayed_by_the_knight.html',
+            'only_matching': True,
+        },
     ]
 
     def _real_extract(self, url):
@@ -57,7 +61,8 @@ class XHamsterIE(InfoExtractor):
 
         video_id = mobj.group('id')
         seo = mobj.group('seo')
-        mrss_url = 'http://xhamster.com/movies/%s/%s.html' % (video_id, seo)
+        proto = mobj.group('proto')
+        mrss_url = '%s://xhamster.com/movies/%s/%s.html' % (proto, video_id, seo)
         webpage = self._download_webpage(mrss_url, video_id)
 
         title = self._html_search_regex(r'<title>(?P<title>.+?) - xHamster\.com</title>', webpage, 'title')

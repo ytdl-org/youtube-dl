@@ -6,7 +6,9 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     xpath_with_ns,
-    parse_iso8601
+    parse_iso8601,
+    float_or_none,
+    int_or_none,
 )
 
 NAMESPACE_MAP = {
@@ -21,25 +23,41 @@ RAW_MP4_URL = 'http://cdn.riptide-mtvn.com/'
 
 class GameOneIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?gameone\.de/tv/(?P<id>\d+)'
-    _TEST = {
-        'url': 'http://www.gameone.de/tv/288',
-        'md5': '136656b7fb4c9cb4a8e2d500651c499b',
-        'info_dict': {
-            'id': '288',
-            'ext': 'mp4',
-            'title': 'Game One - Folge 288',
-            'duration': 1238,
-            'thumbnail': 'http://s3.gameone.de/gameone/assets/video_metas/teaser_images/000/643/636/big/640x360.jpg',
-            'description': 'FIFA-Pressepokal 2014, Star Citizen, Kingdom Come: Deliverance, Project Cars, Schöner Trants Nerdquiz Folge 2 Runde 1',
-            'age_limit': 16,
-            'upload_date': '20140513',
-            'timestamp': 1399980122,
+    _TESTS = [
+        {
+            'url': 'http://www.gameone.de/tv/288',
+            'md5': '136656b7fb4c9cb4a8e2d500651c499b',
+            'info_dict': {
+                'id': '288',
+                'ext': 'mp4',
+                'title': 'Game One - Folge 288',
+                'duration': 1238,
+                'thumbnail': 'http://s3.gameone.de/gameone/assets/video_metas/teaser_images/000/643/636/big/640x360.jpg',
+                'description': 'FIFA-Pressepokal 2014, Star Citizen, Kingdom Come: Deliverance, Project Cars, Schöner Trants Nerdquiz Folge 2 Runde 1',
+                'age_limit': 16,
+                'upload_date': '20140513',
+                'timestamp': 1399980122,
+            }
+        },
+        {
+            'url': 'http://gameone.de/tv/220',
+            'md5': '5227ca74c4ae6b5f74c0510a7c48839e',
+            'info_dict': {
+                'id': '220',
+                'ext': 'mp4',
+                'upload_date': '20120918',
+                'description': 'Jet Set Radio HD, Tekken Tag Tournament 2, Source Filmmaker',
+                'timestamp': 1347971451,
+                'title': 'Game One - Folge 220',
+                'duration': 896.62,
+                'age_limit': 16,
+            }
         }
-    }
+
+    ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
         og_video = self._og_search_video_url(webpage, secure=False)
@@ -66,13 +84,13 @@ class GameOneIE(InfoExtractor):
             video_id,
             'Downloading media:content')
         rendition_items = content.findall('.//rendition')
-        duration = int(rendition_items[0].get('duration'))
+        duration = float_or_none(rendition_items[0].get('duration'))
         formats = [
             {
                 'url': re.sub(r'.*/(r2)', RAW_MP4_URL + r'\1', r.find('./src').text),
-                'width': int(r.get('width')),
-                'height': int(r.get('height')),
-                'tbr': int(r.get('bitrate')),
+                'width': int_or_none(r.get('width')),
+                'height': int_or_none(r.get('height')),
+                'tbr': int_or_none(r.get('bitrate')),
             }
             for r in rendition_items
         ]
@@ -105,7 +123,8 @@ class GameOnePlaylistIE(InfoExtractor):
         webpage = self._download_webpage('http://www.gameone.de/tv', 'TV')
         max_id = max(map(int, re.findall(r'<a href="/tv/(\d+)"', webpage)))
         entries = [
-            self.url_result('http://www.gameone.de/tv/%d' % video_id, 'GameOne')
+            self.url_result('http://www.gameone.de/tv/%d' %
+                            video_id, 'GameOne')
             for video_id in range(max_id, 0, -1)]
 
         return {

@@ -3,12 +3,14 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
+    compat_urllib_parse,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
-    compat_urllib_parse,
-    unified_strdate,
+)
+from ..utils import (
     str_to_int,
+    unified_strdate,
 )
 from ..aes import aes_decrypt_text
 

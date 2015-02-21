@@ -2,10 +2,9 @@
 from __future__ import unicode_literals
 
 import re
-import time
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
 )
@@ -40,8 +39,7 @@ class StreamcloudIE(InfoExtractor):
             ''', orig_webpage)
         post = compat_urllib_parse.urlencode(fields)
 
-        self.to_screen('%s: Waiting for timeout' % video_id)
-        time.sleep(12)
+        self._sleep(12, video_id)
         headers = {
             b'Content-Type': b'application/x-www-form-urlencoded',
         }

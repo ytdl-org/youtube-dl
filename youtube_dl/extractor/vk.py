@@ -5,14 +5,17 @@ import re
 import json
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_str,
+    compat_urllib_parse,
+    compat_urllib_request,
+)
 from ..utils import (
     ExtractorError,
-    compat_urllib_request,
-    compat_urllib_parse,
-    compat_str,
+    orderedSet,
     unescapeHTML,
     unified_strdate,
-    orderedSet)
+)
 
 
 class VKIE(InfoExtractor):
@@ -161,6 +164,14 @@ class VKIE(InfoExtractor):
             self.to_screen('Youtube video detected')
             return self.url_result(m_yt.group(1), 'Youtube')
 
+        m_rutube = re.search(
+            r'\ssrc="((?:https?:)?//rutube\.ru\\?/video\\?/embed(?:.*?))\\?"', info_page)
+        if m_rutube is not None:
+            self.to_screen('rutube video detected')
+            rutube_url = self._proto_relative_url(
+                m_rutube.group(1).replace('\\', ''))
+            return self.url_result(rutube_url)
+
         m_opts = re.search(r'(?s)var\s+opts\s*=\s*({.*?});', info_page)
         if m_opts:
             m_opts_url = re.search(r"url\s*:\s*'([^']+)", m_opts.group(1))
@@ -206,6 +217,9 @@ class VKUserVideosIE(InfoExtractor):
     _TEMPLATE_URL = 'https://vk.com/videos'
     _TEST = {
         'url': 'http://vk.com/videos205387401',
+        'info_dict': {
+            'id': '205387401',
+        },
         'playlist_mincount': 4,
     }
 

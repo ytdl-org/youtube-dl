@@ -236,16 +236,17 @@ class Channel9IE(InfoExtractor):
         if contents is None:
             return contents
 
-        session_meta = {'session_code': self._extract_session_code(html),
-                        'session_day': self._extract_session_day(html),
-                        'session_room': self._extract_session_room(html),
-                        'session_speakers': self._extract_session_speakers(html),
-                        }
+        session_meta = {
+            'session_code': self._extract_session_code(html),
+            'session_day': self._extract_session_day(html),
+            'session_room': self._extract_session_room(html),
+            'session_speakers': self._extract_session_speakers(html),
+        }
 
         for content in contents:
             content.update(session_meta)
 
-        return contents
+        return self.playlist_result(contents)
 
     def _extract_list(self, content_path):
         rss = self._download_xml(self._RSS_URL % content_path, content_path, 'Downloading RSS')

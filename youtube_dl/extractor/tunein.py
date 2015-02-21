@@ -19,11 +19,12 @@ class TuneInIE(InfoExtractor):
         |tun\.in/(?P<redirect_id>[A-Za-z0-9]+)
     )
     '''
+    _API_URL_TEMPLATE = 'http://tunein.com/tuner/tune/?stationId={0:}&tuneType=Station'
 
     _INFO_DICT = {
         'id': '34682',
         'title': 'Jazz 24 on 88.5 Jazz24 - KPLU-HD2',
-        'ext': 'AAC',
+        'ext': 'aac',
         'thumbnail': 're:^https?://.*\.png$',
         'location': 'Tacoma, WA',
     }
@@ -56,13 +57,10 @@ class TuneInIE(InfoExtractor):
             mobj = re.match(self._VALID_URL, url)
         station_id = mobj.group('id')
 
-        webpage = self._download_webpage(
-            url, station_id, note='Downloading station webpage')
+        station_info = self._download_json(
+            self._API_URL_TEMPLATE.format(station_id),
+            station_id, note='Downloading station JSON')
 
-        payload = self._html_search_regex(
-            r'(?m)TuneIn\.payload\s*=\s*(\{[^$]+?)$', webpage, 'JSON data')
-        json_data = json.loads(payload)
-        station_info = json_data['Station']['broadcast']
         title = station_info['Title']
         thumbnail = station_info.get('Logo')
         location = station_info.get('Location')
@@ -80,14 +78,21 @@ class TuneInIE(InfoExtractor):
         for stream in streams:
             if stream.get('Type') == 'Live':
                 is_live = True
+            reliability = stream.get('Reliability')
+            format_note = (
+                'Reliability: %d%%' % reliability
+                if reliability is not None else None)
             formats.append({
+                'preference': (
+                    0 if reliability is None or reliability > 90
+                    else 1),
                 'abr': stream.get('Bandwidth'),
-                'ext': stream.get('MediaType'),
+                'ext': stream.get('MediaType').lower(),
                 'acodec': stream.get('MediaType'),
                 'vcodec': 'none',
                 'url': stream.get('Url'),
-                # Sometimes streams with the highest quality do not exist
-                'preference': stream.get('Reliability'),
+                'source_preference': reliability,
+                'format_note': format_note,
             })
         self._sort_formats(formats)
 

@@ -6,13 +6,15 @@ import time
 import hashlib
 
 from .common import InfoExtractor
-from ..utils import (
-    compat_urllib_request,
-    compat_urllib_parse,
-    ExtractorError,
-    clean_html,
-    unified_strdate,
+from ..compat import (
     compat_str,
+    compat_urllib_parse,
+    compat_urllib_request,
+)
+from ..utils import (
+    clean_html,
+    ExtractorError,
+    unified_strdate,
 )
 
 

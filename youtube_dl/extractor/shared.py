@@ -4,10 +4,12 @@ import re
 import base64
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_parse,
+    compat_urllib_request,
+)
 from ..utils import (
     ExtractorError,
-    compat_urllib_request,
-    compat_urllib_parse,
     int_or_none,
 )
 
@@ -26,26 +28,30 @@ class SharedIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
 
-        page = self._download_webpage(url, video_id)
+        if '>File does not exist<' in webpage:
+            raise ExtractorError(
+                'Video %s does not exist' % video_id, expected=True)
 
-        if re.search(r'>File does not exist<', page) is not None:
-            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
-
-        download_form = dict(re.findall(r'<input type="hidden" name="([^"]+)" value="([^"]*)"', page))
-
-        request = compat_urllib_request.Request(url, compat_urllib_parse.urlencode(download_form))
+        download_form = dict(re.findall(
+            r'<input type="hidden" name="([^"]+)" value="([^"]*)"', webpage))
+        request = compat_urllib_request.Request(
+            url, compat_urllib_parse.urlencode(download_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
 
-        video_page = self._download_webpage(request, video_id, 'Downloading video page')
+        video_page = self._download_webpage(
+            request, video_id, 'Downloading video page')
 
-        video_url = self._html_search_regex(r'data-url="([^"]+)"', video_page, 'video URL')
-        title = base64.b64decode(self._html_search_meta('full:title', page, 'title')).decode('utf-8')
-        filesize = int_or_none(self._html_search_meta('full:size', page, 'file size', fatal=False))
+        video_url = self._html_search_regex(
+            r'data-url="([^"]+)"', video_page, 'video URL')
+        title = base64.b64decode(self._html_search_meta(
+            'full:title', webpage, 'title')).decode('utf-8')
+        filesize = int_or_none(self._html_search_meta(
+            'full:size', webpage, 'file size', fatal=False))
         thumbnail = self._html_search_regex(
-            r'data-poster="([^"]+)"', video_page, 'thumbnail', fatal=False, default=None)
+            r'data-poster="([^"]+)"', video_page, 'thumbnail', default=None)
 
         return {
             'id': video_id,

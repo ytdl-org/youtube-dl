@@ -4,10 +4,12 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
     compat_urllib_parse_urlparse,
     compat_urlparse,
+)
+from ..utils import (
     ExtractorError,
     find_xpath_attr,
     int_or_none,
@@ -35,6 +37,7 @@ class LivestreamIE(InfoExtractor):
         'url': 'http://new.livestream.com/tedx/cityenglish',
         'info_dict': {
             'title': 'TEDCity2.0 (English)',
+            'id': '2245590',
         },
         'playlist_mincount': 4,
     }, {
@@ -146,7 +149,8 @@ class LivestreamIE(InfoExtractor):
                   if is_relevant(video_data, video_id)]
         if video_id is None:
             # This is an event page:
-            return self.playlist_result(videos, info['id'], info['full_name'])
+            return self.playlist_result(
+                videos, '%s' % info['id'], info['full_name'])
         else:
             if not videos:
                 raise ExtractorError('Cannot find video %s' % video_id)

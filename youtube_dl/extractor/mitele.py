@@ -1,12 +1,13 @@
 from __future__ import unicode_literals
 
-import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
     compat_urlparse,
+)
+from ..utils import (
     get_element_by_attribute,
     parse_duration,
     strip_jsonp,
@@ -15,7 +16,7 @@ from ..utils import (
 
 class MiTeleIE(InfoExtractor):
     IE_NAME = 'mitele.es'
-    _VALID_URL = r'http://www\.mitele\.es/[^/]+/[^/]+/[^/]+/(?P<episode>[^/]+)/'
+    _VALID_URL = r'http://www\.mitele\.es/[^/]+/[^/]+/[^/]+/(?P<id>[^/]+)/'
 
     _TEST = {
         'url': 'http://www.mitele.es/programas-tv/diario-de/la-redaccion/programa-144/',
@@ -31,12 +32,10 @@ class MiTeleIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        episode = mobj.group('episode')
+        episode = self._match_id(url)
         webpage = self._download_webpage(url, episode)
         embed_data_json = self._search_regex(
-            r'MSV\.embedData\[.*?\]\s*=\s*({.*?});', webpage, 'embed data',
-            flags=re.DOTALL
+            r'(?s)MSV\.embedData\[.*?\]\s*=\s*({.*?});', webpage, 'embed data',
         ).replace('\'', '"')
         embed_data = json.loads(embed_data_json)
 

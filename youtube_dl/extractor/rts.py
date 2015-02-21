@@ -4,18 +4,22 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_str,
+    compat_urllib_parse_urlparse,
+)
 from ..utils import (
     int_or_none,
     parse_duration,
     parse_iso8601,
     unescapeHTML,
-    compat_str,
+    xpath_text,
 )
 
 
 class RTSIE(InfoExtractor):
     IE_DESC = 'RTS.ch'
-    _VALID_URL = r'^https?://(?:www\.)?rts\.ch/(?:[^/]+/){2,}(?P<id>[0-9]+)-.*?\.html'
+    _VALID_URL = r'https?://(?:www\.)?rts\.ch/(?:(?:[^/]+/){2,}(?P<id>[0-9]+)-(?P<display_id>.+?)\.html|play/tv/[^/]+/video/(?P<display_id_new>.+?)\?id=(?P<id_new>[0-9]+))'
 
     _TESTS = [
         {
@@ -23,6 +27,7 @@ class RTSIE(InfoExtractor):
             'md5': '753b877968ad8afaeddccc374d4256a5',
             'info_dict': {
                 'id': '3449373',
+                'display_id': 'les-enfants-terribles',
                 'ext': 'mp4',
                 'duration': 1488,
                 'title': 'Les Enfants Terribles',
@@ -30,7 +35,8 @@ class RTSIE(InfoExtractor):
                 'uploader': 'Divers',
                 'upload_date': '19680921',
                 'timestamp': -40280400,
-                'thumbnail': 're:^https?://.*\.image'
+                'thumbnail': 're:^https?://.*\.image',
+                'view_count': int,
             },
         },
         {
@@ -38,6 +44,7 @@ class RTSIE(InfoExtractor):
             'md5': 'c148457a27bdc9e5b1ffe081a7a8337b',
             'info_dict': {
                 'id': '5624067',
+                'display_id': 'entre-ciel-et-mer',
                 'ext': 'mp4',
                 'duration': 3720,
                 'title': 'Les yeux dans les cieux - Mon homard au Canada',
@@ -45,7 +52,8 @@ class RTSIE(InfoExtractor):
                 'uploader': 'Passe-moi les jumelles',
                 'upload_date': '20140404',
                 'timestamp': 1396635300,
-                'thumbnail': 're:^https?://.*\.image'
+                'thumbnail': 're:^https?://.*\.image',
+                'view_count': int,
             },
         },
         {
@@ -53,6 +61,7 @@ class RTSIE(InfoExtractor):
             'md5': 'b4326fecd3eb64a458ba73c73e91299d',
             'info_dict': {
                 'id': '5745975',
+                'display_id': '1-2-kloten-fribourg-5-2-second-but-pour-gotteron-par-kwiatowski',
                 'ext': 'mp4',
                 'duration': 48,
                 'title': '1/2, Kloten - Fribourg (5-2): second but pour Gottéron par Kwiatowski',
@@ -60,7 +69,8 @@ class RTSIE(InfoExtractor):
                 'uploader': 'Hockey',
                 'upload_date': '20140403',
                 'timestamp': 1396556882,
-                'thumbnail': 're:^https?://.*\.image'
+                'thumbnail': 're:^https?://.*\.image',
+                'view_count': int,
             },
             'skip': 'Blocked outside Switzerland',
         },
@@ -69,6 +79,7 @@ class RTSIE(InfoExtractor):
             'md5': '9bb06503773c07ce83d3cbd793cebb91',
             'info_dict': {
                 'id': '5745356',
+                'display_id': 'londres-cachee-par-un-epais-smog',
                 'ext': 'mp4',
                 'duration': 33,
                 'title': 'Londres cachée par un épais smog',
@@ -76,7 +87,8 @@ class RTSIE(InfoExtractor):
                 'uploader': 'Le Journal en continu',
                 'upload_date': '20140403',
                 'timestamp': 1396537322,
-                'thumbnail': 're:^https?://.*\.image'
+                'thumbnail': 're:^https?://.*\.image',
+                'view_count': int,
             },
         },
         {
@@ -84,6 +96,7 @@ class RTSIE(InfoExtractor):
             'md5': 'dd8ef6a22dff163d063e2a52bc8adcae',
             'info_dict': {
                 'id': '5706148',
+                'display_id': 'urban-hippie-de-damien-krisl-03-04-2014',
                 'ext': 'mp3',
                 'duration': 123,
                 'title': '"Urban Hippie", de Damien Krisl',
@@ -92,22 +105,44 @@ class RTSIE(InfoExtractor):
                 'timestamp': 1396551600,
             },
         },
+        {
+            'url': 'http://www.rts.ch/play/tv/-/video/le-19h30?id=6348260',
+            'md5': '968777c8779e5aa2434be96c54e19743',
+            'info_dict': {
+                'id': '6348260',
+                'display_id': 'le-19h30',
+                'ext': 'mp4',
+                'duration': 1796,
+                'title': 'Le 19h30',
+                'description': '',
+                'uploader': 'Le 19h30',
+                'upload_date': '20141201',
+                'timestamp': 1417458600,
+                'thumbnail': 're:^https?://.*\.image',
+                'view_count': int,
+            },
+        },
+        {
+            'url': 'http://www.rts.ch/play/tv/le-19h30/video/le-chantier-du-nouveau-parlement-vaudois-a-permis-une-trouvaille-historique?id=6348280',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
-        video_id = m.group('id')
+        video_id = m.group('id') or m.group('id_new')
+        display_id = m.group('display_id') or m.group('display_id_new')
 
         def download_json(internal_id):
             return self._download_json(
                 'http://www.rts.ch/a/%s.html?f=json/article' % internal_id,
-                video_id)
+                display_id)
 
         all_info = download_json(video_id)
 
         # video_id extracted out of URL is not always a real id
         if 'video' not in all_info and 'audio' not in all_info:
-            page = self._download_webpage(url, video_id)
+            page = self._download_webpage(url, display_id)
             internal_id = self._html_search_regex(
                 r'<(?:video|audio) data-id="([0-9]+)"', page,
                 'internal video id')
@@ -126,11 +161,27 @@ class RTSIE(InfoExtractor):
             return int_or_none(self._search_regex(
                 r'-([0-9]+)k\.', url, 'bitrate', default=None))
 
-        formats = [{
-            'format_id': fid,
-            'url': furl,
-            'tbr': extract_bitrate(furl),
-        } for fid, furl in info['streams'].items()]
+        formats = []
+        for format_id, format_url in info['streams'].items():
+            if format_url.endswith('.f4m'):
+                token = self._download_xml(
+                    'http://tp.srgssr.ch/token/akahd.xml?stream=%s/*' % compat_urllib_parse_urlparse(format_url).path,
+                    video_id, 'Downloading %s token' % format_id)
+                auth_params = xpath_text(token, './/authparams', 'auth params')
+                if not auth_params:
+                    continue
+                formats.extend(self._extract_f4m_formats(
+                    '%s?%s&hdcore=3.4.0&plugin=aasp-3.4.0.132.66' % (format_url, auth_params),
+                    video_id, f4m_id=format_id))
+            elif format_url.endswith('.m3u8'):
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', m3u8_id=format_id))
+            else:
+                formats.append({
+                    'format_id': format_id,
+                    'url': format_url,
+                    'tbr': extract_bitrate(format_url),
+                })
 
         if 'media' in info:
             formats.extend([{
@@ -143,6 +194,7 @@ class RTSIE(InfoExtractor):
 
         return {
             'id': video_id,
+            'display_id': display_id,
             'formats': formats,
             'title': info['title'],
             'description': info.get('intro'),

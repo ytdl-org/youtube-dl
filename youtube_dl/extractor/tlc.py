@@ -5,7 +5,7 @@ import re
 from .common import InfoExtractor
 from .brightcove import BrightcoveIE
 from .discovery import DiscoveryIE
-from ..utils import compat_urlparse
+from ..compat import compat_urlparse
 
 
 class TlcIE(DiscoveryIE):

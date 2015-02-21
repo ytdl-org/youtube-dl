@@ -1,10 +1,8 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
 )
 
@@ -23,10 +21,7 @@ class XNXXIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
-        # Get webpage content
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         video_url = self._search_regex(r'flv_url=(.*?)&amp;',

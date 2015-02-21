@@ -39,5 +39,6 @@
     "writesubtitles": false,
     "allsubtitles": false,
     "listssubtitles": false,
-    "socket_timeout": 20
+    "socket_timeout": 20,
+    "fixup": "never"
 }

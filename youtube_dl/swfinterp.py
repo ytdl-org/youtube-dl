@@ -4,8 +4,8 @@ import collections
 import io
 import zlib
 
+from .compat import compat_str
 from .utils import (
-    compat_str,
     ExtractorError,
     struct_unpack,
 )

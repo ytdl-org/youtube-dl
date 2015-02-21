@@ -2,9 +2,8 @@
 
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
+from ..utils import js_to_json
 
 
 class HelsinkiIE(InfoExtractor):
@@ -24,39 +23,21 @@ class HelsinkiIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        formats = []
 
-        mobj = re.search(r'file=((\w+):[^&]+)', webpage)
-        if mobj:
-            formats.append({
-                'ext': mobj.group(2),
-                'play_path': mobj.group(1),
-                'url': 'rtmp://flashvideo.it.helsinki.fi/vod/',
-                'player_url': 'http://video.helsinki.fi/player.swf',
-                'format_note': 'sd',
-                'quality': 0,
-            })
-
-        mobj = re.search(r'hd\.file=((\w+):[^&]+)', webpage)
-        if mobj:
-            formats.append({
-                'ext': mobj.group(2),
-                'play_path': mobj.group(1),
-                'url': 'rtmp://flashvideo.it.helsinki.fi/vod/',
-                'player_url': 'http://video.helsinki.fi/player.swf',
-                'format_note': 'hd',
-                'quality': 1,
-            })
-
+        params = self._parse_json(self._html_search_regex(
+            r'(?s)jwplayer\("player"\).setup\((\{.*?\})\);',
+            webpage, 'player code'), video_id, transform_source=js_to_json)
+        formats = [{
+            'url': s['file'],
+            'ext': 'mp4',
+        } for s in params['sources']]
         self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': self._og_search_title(webpage).replace('Video: ', ''),
             'description': self._og_search_description(webpage),
-            'thumbnail': self._og_search_thumbnail(webpage),
             'formats': formats,
         }

@@ -5,6 +5,8 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
+    HEADRequest,
     unified_strdate,
     url_basename,
     qualities,
@@ -13,12 +15,13 @@ from ..utils import (
 
 class CanalplusIE(InfoExtractor):
     IE_DESC = 'canalplus.fr, piwiplus.fr and d8.tv'
-    _VALID_URL = r'https?://(?:www\.(?P<site>canalplus\.fr|piwiplus\.fr|d8\.tv)/.*?/(?P<path>.*)|player\.canalplus\.fr/#/(?P<id>[0-9]+))'
+    _VALID_URL = r'https?://(?:www\.(?P<site>canalplus\.fr|piwiplus\.fr|d8\.tv|itele\.fr)/.*?/(?P<path>.*)|player\.canalplus\.fr/#/(?P<id>[0-9]+))'
     _VIDEO_INFO_TEMPLATE = 'http://service.canal-plus.com/video/rest/getVideosLiees/%s/%s'
     _SITE_ID_MAP = {
         'canalplus.fr': 'cplus',
         'piwiplus.fr': 'teletoon',
         'd8.tv': 'd8',
+        'itele.fr': 'itele',
     }
 
     _TESTS = [{
@@ -51,6 +54,16 @@ class CanalplusIE(InfoExtractor):
             'upload_date': '20131108',
         },
         'skip': 'videos get deleted after a while',
+    }, {
+        'url': 'http://www.itele.fr/france/video/aubervilliers-un-lycee-en-colere-111559',
+        'md5': '65aa83ad62fe107ce29e564bb8712580',
+        'info_dict': {
+            'id': '1213714',
+            'ext': 'flv',
+            'title': 'Aubervilliers : un lycée en colère - Le 11/02/2015 à 06h45',
+            'description': 'md5:8216206ec53426ea6321321f3b3c16db',
+            'upload_date': '20150211',
+        },
     }]
 
     def _real_extract(self, url):
@@ -75,6 +88,16 @@ class CanalplusIE(InfoExtractor):
         infos = video_info.find('INFOS')
 
         preference = qualities(['MOBILE', 'BAS_DEBIT', 'HAUT_DEBIT', 'HD', 'HLS', 'HDS'])
+
+        fmt_url = next(iter(media.find('VIDEOS'))).text
+        if '/geo' in fmt_url.lower():
+            response = self._request_webpage(
+                HEADRequest(fmt_url), video_id,
+                'Checking if the video is georestricted')
+            if '/blocage' in response.geturl():
+                raise ExtractorError(
+                    'The video is not available in your country',
+                    expected=True)
 
         formats = []
         for fmt in media.find('VIDEOS'):

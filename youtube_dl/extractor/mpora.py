@@ -1,21 +1,19 @@
 from __future__ import unicode_literals
 
-import json
-import re
-
 from .common import InfoExtractor
 from ..utils import int_or_none
 
 
 class MporaIE(InfoExtractor):
-    _VALID_URL = r'^https?://(www\.)?mpora\.(?:com|de)/videos/(?P<id>[^?#/]+)'
+    _VALID_URL = r'https?://(www\.)?mpora\.(?:com|de)/videos/(?P<id>[^?#/]+)'
     IE_NAME = 'MPORA'
 
     _TEST = {
         'url': 'http://mpora.de/videos/AAdo8okx4wiz/embed?locale=de',
-        'file': 'AAdo8okx4wiz.mp4',
         'md5': 'a7a228473eedd3be741397cf452932eb',
         'info_dict': {
+            'id': 'AAdo8okx4wiz',
+            'ext': 'mp4',
             'title': 'Katy Curd -  Winter in the Forest',
             'duration': 416,
             'uploader': 'Peter Newman Media',
@@ -23,14 +21,12 @@ class MporaIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        m = re.match(self._VALID_URL, url)
-        video_id = m.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
         data_json = self._search_regex(
             r"new FM\.Player\('[^']+',\s*(\{.*?)\).player;", webpage, 'json')
-
-        data = json.loads(data_json)
+        data = self._parse_json(data_json, video_id)
 
         uploader = data['info_overlay'].get('username')
         duration = data['video']['duration'] // 1000

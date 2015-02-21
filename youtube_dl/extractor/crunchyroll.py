@@ -10,10 +10,12 @@ import xml.etree.ElementTree
 from hashlib import sha1
 from math import pow, sqrt, floor
 from .subtitles import SubtitlesInfoExtractor
-from ..utils import (
-    ExtractorError,
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
+)
+from ..utils import (
+    ExtractorError,
     bytes_to_intlist,
     intlist_to_bytes,
     unified_strdate,
@@ -27,10 +29,9 @@ from .common import InfoExtractor
 
 
 class CrunchyrollIE(SubtitlesInfoExtractor):
-    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?:[^/]*/[^/?&]*?|media/\?id=)(?P<video_id>[0-9]+))(?:[/?&]|$)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:[^/]*/[^/?&]*?|media/\?id=)(?P<video_id>[0-9]+))(?:[/?&]|$)'
+    _TESTS = [{
         'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
-        #'md5': 'b1639fd6ddfaa43788c85f6d1dddd412',
         'info_dict': {
             'id': '645513',
             'ext': 'flv',
@@ -45,7 +46,10 @@ class CrunchyrollIE(SubtitlesInfoExtractor):
             # rtmp
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'http://www.crunchyroll.fr/girl-friend-beta/episode-11-goodbye-la-mode-661697',
+        'only_matching': True,
+    }]
 
     _FORMAT_IDS = {
         '360': ('60', '106'),
@@ -224,7 +228,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         video_thumbnail = self._search_regex(r'<episode_image_url>([^<]+)', playerdata, 'thumbnail', fatal=False)
 
         formats = []
-        for fmt in re.findall(r'\?p([0-9]{3,4})=1', webpage):
+        for fmt in re.findall(r'showmedia\.([0-9]{3,4})p', webpage):
             stream_quality, stream_format = self._FORMAT_IDS[fmt]
             video_format = fmt + 'p'
             streamdata_req = compat_urllib_request.Request('http://www.crunchyroll.com/xml/')

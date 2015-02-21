@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_parse_qs,
     compat_urlparse,
+)
+from ..utils import (
     determine_ext,
     unified_strdate,
 )
@@ -65,6 +68,13 @@ class WDRIE(InfoExtractor):
                 'upload_date': '20140717',
             },
         },
+        {
+            'url': 'http://www1.wdr.de/mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100.html',
+            'playlist_mincount': 146,
+            'info_dict': {
+                'id': 'mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100',
+            }
+        }
     ]
 
     def _real_extract(self, url):
@@ -79,6 +89,27 @@ class WDRIE(InfoExtractor):
                 self.url_result(page_url + href, 'WDR')
                 for href in re.findall(r'<a href="/?(.+?%s\.html)" rel="nofollow"' % self._PLAYER_REGEX, webpage)
             ]
+
+            if entries:  # Playlist page
+                return self.playlist_result(entries, page_id)
+
+            # Overview page
+            entries = []
+            for page_num in itertools.count(2):
+                hrefs = re.findall(
+                    r'<li class="mediathekvideo"\s*>\s*<img[^>]*>\s*<a href="(/mediathek/video/[^"]+)"',
+                    webpage)
+                entries.extend(
+                    self.url_result(page_url + href, 'WDR')
+                    for href in hrefs)
+                next_url_m = re.search(
+                    r'<li class="nextToLast">\s*<a href="([^"]+)"', webpage)
+                if not next_url_m:
+                    break
+                next_url = page_url + next_url_m.group(1)
+                webpage = self._download_webpage(
+                    next_url, page_id,
+                    note='Downloading playlist page %d' % page_num)
             return self.playlist_result(entries, page_id)
 
         flashvars = compat_parse_qs(
@@ -141,8 +172,9 @@ class WDRMobileIE(InfoExtractor):
             'title': mobj.group('title'),
             'age_limit': int(mobj.group('age_limit')),
             'url': url,
-            'ext': determine_ext(url),
-            'user_agent': 'mobile',
+            'http_headers': {
+                'User-Agent': 'mobile',
+            },
         }
 
 
@@ -171,8 +203,7 @@ class WDRMausIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
         param_code = self._html_search_regex(
@@ -223,5 +254,3 @@ class WDRMausIE(InfoExtractor):
             'thumbnail': thumbnail,
             'upload_date': upload_date,
         }
-
-# TODO test _1

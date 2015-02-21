@@ -5,7 +5,7 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import compat_urllib_parse
+from ..compat import compat_urllib_parse
 
 
 class YnetIE(InfoExtractor):

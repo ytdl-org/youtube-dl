@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 
 
@@ -20,8 +18,7 @@ class EbaumsWorldIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         config = self._download_xml(
             'http://www.ebaumsworld.com/video/player/%s' % video_id, video_id)
         video_url = config.find('file').text

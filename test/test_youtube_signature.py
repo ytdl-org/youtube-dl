@@ -8,11 +8,11 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
 import io
 import re
 import string
 
+from test.helper import FakeYDL
 from youtube_dl.extractor import YoutubeIE
 from youtube_dl.compat import compat_str, compat_urlretrieve
 
@@ -64,6 +64,12 @@ _TESTS = [
         'js',
         '4646B5181C6C3020DF1D9C7FCFEA.AD80ABF70C39BD369CCCAE780AFBB98FA6B6CB42766249D9488C288',
         '82C8849D94266724DC6B6AF89BBFA087EACCD963.B93C07FBA084ACAEFCF7C9D1FD0203C6C1815B6B'
+    ),
+    (
+        'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflKjOTVq/html5player.js',
+        'js',
+        '312AA52209E3623129A412D56A40F11CB0AF14AE.3EE09501CB14E3BCDC3B2AE808BF3F1D14E7FBF12',
+        '112AA5220913623229A412D56A40F11CB0AF14AE.3EE0950FCB14EEBCDC3B2AE808BF331D14E7FBF3',
     )
 ]
 
@@ -88,7 +94,8 @@ def make_tfunc(url, stype, sig_input, expected_sig):
         if not os.path.exists(fn):
             compat_urlretrieve(url, fn)
 
-        ie = YoutubeIE()
+        ydl = FakeYDL()
+        ie = YoutubeIE(ydl)
         if stype == 'js':
             with io.open(fn, encoding='utf-8') as testf:
                 jscode = testf.read()

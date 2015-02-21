@@ -3,55 +3,50 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-from ..utils import (
+from .subtitles import SubtitlesInfoExtractor
+from ..compat import (
     compat_urllib_request,
     compat_urllib_parse,
     compat_urllib_parse_urlparse,
+)
+from ..utils import (
     ExtractorError,
+    float_or_none,
 )
 
 
-class CeskaTelevizeIE(InfoExtractor):
+class CeskaTelevizeIE(SubtitlesInfoExtractor):
     _VALID_URL = r'https?://www\.ceskatelevize\.cz/(porady|ivysilani)/(.+/)?(?P<id>[^?#]+)'
 
     _TESTS = [
         {
-            'url': 'http://www.ceskatelevize.cz/ivysilani/10532695142-prvni-republika/213512120230004-spanelska-chripka',
+            'url': 'http://www.ceskatelevize.cz/ivysilani/ivysilani/10441294653-hyde-park-civilizace/214411058091220',
             'info_dict': {
-                'id': '213512120230004',
-                'ext': 'flv',
-                'title': 'První republika: Španělská chřipka',
-                'duration': 3107.4,
+                'id': '214411058091220',
+                'ext': 'mp4',
+                'title': 'Hyde Park Civilizace',
+                'description': 'Věda a současná civilizace. Interaktivní pořad - prostor pro vaše otázky a komentáře',
+                'thumbnail': 're:^https?://.*\.jpg',
+                'duration': 3350,
             },
             'params': {
-                'skip_download': True,  # requires rtmpdump
+                # m3u8 download
+                'skip_download': True,
             },
-            'skip': 'Works only from Czech Republic.',
-        },
-        {
-            'url': 'http://www.ceskatelevize.cz/ivysilani/1030584952-tsatsiki-maminka-a-policajt',
-            'info_dict': {
-                'id': '20138143440',
-                'ext': 'flv',
-                'title': 'Tsatsiki, maminka a policajt',
-                'duration': 6754.1,
-            },
-            'params': {
-                'skip_download': True,  # requires rtmpdump
-            },
-            'skip': 'Works only from Czech Republic.',
         },
         {
             'url': 'http://www.ceskatelevize.cz/ivysilani/10532695142-prvni-republika/bonus/14716-zpevacka-z-duparny-bobina',
             'info_dict': {
                 'id': '14716',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'První republika: Zpěvačka z Dupárny Bobina',
-                'duration': 90,
+                'description': 'Sága mapující atmosféru první republiky od r. 1918 do r. 1945.',
+                'thumbnail': 're:^https?://.*\.jpg',
+                'duration': 88.4,
             },
             'params': {
-                'skip_download': True,  # requires rtmpdump
+                # m3u8 download
+                'skip_download': True,
             },
         },
     ]
@@ -78,8 +73,9 @@ class CeskaTelevizeIE(InfoExtractor):
             'requestSource': 'iVysilani',
         }
 
-        req = compat_urllib_request.Request('http://www.ceskatelevize.cz/ivysilani/ajax/get-playlist-url',
-                                            data=compat_urllib_parse.urlencode(data))
+        req = compat_urllib_request.Request(
+            'http://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
+            data=compat_urllib_parse.urlencode(data))
 
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
         req.add_header('x-addr', '127.0.0.1')
@@ -88,39 +84,72 @@ class CeskaTelevizeIE(InfoExtractor):
 
         playlistpage = self._download_json(req, video_id)
 
-        req = compat_urllib_request.Request(compat_urllib_parse.unquote(playlistpage['url']))
+        playlist_url = playlistpage['url']
+        if playlist_url == 'error_region':
+            raise ExtractorError(NOT_AVAILABLE_STRING, expected=True)
+
+        req = compat_urllib_request.Request(compat_urllib_parse.unquote(playlist_url))
         req.add_header('Referer', url)
 
-        playlist = self._download_xml(req, video_id)
+        playlist = self._download_json(req, video_id)
 
+        item = playlist['playlist'][0]
         formats = []
-        for i in playlist.find('smilRoot/body'):
-            if 'AD' not in i.attrib['id']:
-                base_url = i.attrib['base']
-                parsedurl = compat_urllib_parse_urlparse(base_url)
-                duration = i.attrib['duration']
-
-                for video in i.findall('video'):
-                    if video.attrib['label'] != 'AD':
-                        format_id = video.attrib['label']
-                        play_path = video.attrib['src']
-                        vbr = int(video.attrib['system-bitrate'])
-
-                        formats.append({
-                            'format_id': format_id,
-                            'url': base_url,
-                            'vbr': vbr,
-                            'play_path': play_path,
-                            'app': parsedurl.path[1:] + '?' + parsedurl.query,
-                            'rtmp_live': True,
-                            'ext': 'flv',
-                        })
-
+        for format_id, stream_url in item['streamUrls'].items():
+            formats.extend(self._extract_m3u8_formats(stream_url, video_id, 'mp4'))
         self._sort_formats(formats)
+
+        title = self._og_search_title(webpage)
+        description = self._og_search_description(webpage)
+        duration = float_or_none(item.get('duration'))
+        thumbnail = item.get('previewImageUrl')
+
+        subtitles = {}
+        subs = item.get('subtitles')
+        if subs:
+            subtitles['cs'] = subs[0]['url']
+
+        if self._downloader.params.get('listsubtitles', False):
+            self._list_available_subtitles(video_id, subtitles)
+            return
+
+        subtitles = self._fix_subtitles(self.extract_subtitles(video_id, subtitles))
 
         return {
             'id': episode_id,
-            'title': self._html_search_regex(r'<title>(.+?) — iVysílání — Česká televize</title>', webpage, 'title'),
-            'duration': float(duration),
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'duration': duration,
             'formats': formats,
+            'subtitles': subtitles,
         }
+
+    @staticmethod
+    def _fix_subtitles(subtitles):
+        """ Convert millisecond-based subtitles to SRT """
+        if subtitles is None:
+            return subtitles  # subtitles not requested
+
+        def _msectotimecode(msec):
+            """ Helper utility to convert milliseconds to timecode """
+            components = []
+            for divider in [1000, 60, 60, 100]:
+                components.append(msec % divider)
+                msec //= divider
+            return "{3:02}:{2:02}:{1:02},{0:03}".format(*components)
+
+        def _fix_subtitle(subtitle):
+            for line in subtitle.splitlines():
+                m = re.match(r"^\s*([0-9]+);\s*([0-9]+)\s+([0-9]+)\s*$", line)
+                if m:
+                    yield m.group(1)
+                    start, stop = (_msectotimecode(int(t)) for t in m.groups()[1:])
+                    yield "{0} --> {1}".format(start, stop)
+                else:
+                    yield line
+
+        fixed_subtitles = {}
+        for k, v in subtitles.items():
+            fixed_subtitles[k] = "\r\n".join(_fix_subtitle(v))
+        return fixed_subtitles

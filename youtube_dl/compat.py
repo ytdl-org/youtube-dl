@@ -4,6 +4,7 @@ import getpass
 import optparse
 import os
 import re
+import socket
 import subprocess
 import sys
 
@@ -71,6 +72,11 @@ except ImportError:
     compat_subprocess_get_DEVNULL = lambda: open(os.path.devnull, 'w')
 
 try:
+    import http.server as compat_http_server
+except ImportError:
+    import BaseHTTPServer as compat_http_server
+
+try:
     from urllib.parse import unquote as compat_urllib_parse_unquote
 except ImportError:
     def compat_urllib_parse_unquote(string, encoding='utf-8', errors='replace'):
@@ -108,6 +114,26 @@ except ImportError:
             string += pct_sequence.decode(encoding, errors)
         return string
 
+try:
+    compat_str = unicode  # Python 2
+except NameError:
+    compat_str = str
+
+try:
+    compat_basestring = basestring  # Python 2
+except NameError:
+    compat_basestring = str
+
+try:
+    compat_chr = unichr  # Python 2
+except NameError:
+    compat_chr = chr
+
+try:
+    from xml.etree.ElementTree import ParseError as compat_xml_parse_error
+except ImportError:  # Python 2.6
+    from xml.parsers.expat import ExpatError as compat_xml_parse_error
+
 
 try:
     from urllib.parse import parse_qs as compat_parse_qs
@@ -117,7 +143,7 @@ except ImportError:  # Python 2
 
     def _parse_qsl(qs, keep_blank_values=False, strict_parsing=False,
                    encoding='utf-8', errors='replace'):
-        qs, _coerce_result = qs, unicode
+        qs, _coerce_result = qs, compat_str
         pairs = [s2 for s1 in qs.split('&') for s2 in s1.split(';')]
         r = []
         for name_value in pairs:
@@ -155,21 +181,6 @@ except ImportError:  # Python 2
             else:
                 parsed_result[name] = [value]
         return parsed_result
-
-try:
-    compat_str = unicode  # Python 2
-except NameError:
-    compat_str = str
-
-try:
-    compat_chr = unichr  # Python 2
-except NameError:
-    compat_chr = chr
-
-try:
-    from xml.etree.ElementTree import ParseError as compat_xml_parse_error
-except ImportError:  # Python 2.6
-    from xml.parsers.expat import ExpatError as compat_xml_parse_error
 
 try:
     from shlex import quote as shlex_quote
@@ -247,7 +258,7 @@ else:
                 userhome = compat_getenv('HOME')
             elif 'USERPROFILE' in os.environ:
                 userhome = compat_getenv('USERPROFILE')
-            elif not 'HOMEPATH' in os.environ:
+            elif 'HOMEPATH' not in os.environ:
                 return path
             else:
                 try:
@@ -297,12 +308,40 @@ else:
 
 # Old 2.6 and 2.7 releases require kwargs to be bytes
 try:
-    (lambda x: x)(**{'x': 0})
+    def _testfunc(x):
+        pass
+    _testfunc(**{'x': 0})
 except TypeError:
     def compat_kwargs(kwargs):
         return dict((bytes(k), v) for k, v in kwargs.items())
 else:
     compat_kwargs = lambda kwargs: kwargs
+
+
+if sys.version_info < (2, 7):
+    def compat_socket_create_connection(address, timeout, source_address=None):
+        host, port = address
+        err = None
+        for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
+            af, socktype, proto, canonname, sa = res
+            sock = None
+            try:
+                sock = socket.socket(af, socktype, proto)
+                sock.settimeout(timeout)
+                if source_address:
+                    sock.bind(source_address)
+                sock.connect(sa)
+                return sock
+            except socket.error as _:
+                err = _
+                if sock is not None:
+                    sock.close()
+        if err is not None:
+            raise err
+        else:
+            raise socket.error("getaddrinfo returns an empty list")
+else:
+    compat_socket_create_connection = socket.create_connection
 
 
 # Fix https://github.com/rg3/youtube-dl/issues/4223
@@ -328,6 +367,7 @@ def workaround_optparse_bug9161():
 
 __all__ = [
     'compat_HTTPError',
+    'compat_basestring',
     'compat_chr',
     'compat_cookiejar',
     'compat_expanduser',
@@ -336,10 +376,12 @@ __all__ = [
     'compat_html_entities',
     'compat_html_parser',
     'compat_http_client',
+    'compat_http_server',
     'compat_kwargs',
     'compat_ord',
     'compat_parse_qs',
     'compat_print',
+    'compat_socket_create_connection',
     'compat_str',
     'compat_subprocess_get_DEVNULL',
     'compat_urllib_error',

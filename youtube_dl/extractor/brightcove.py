@@ -6,25 +6,26 @@ import json
 import xml.etree.ElementTree
 
 from .common import InfoExtractor
-from ..utils import (
-    compat_urllib_parse,
-    find_xpath_attr,
-    fix_xml_ampersands,
-    compat_urlparse,
-    compat_str,
-    compat_urllib_request,
+from ..compat import (
     compat_parse_qs,
+    compat_str,
+    compat_urllib_parse,
     compat_urllib_parse_urlparse,
-
+    compat_urllib_request,
+    compat_urlparse,
+)
+from ..utils import (
     determine_ext,
     ExtractorError,
-    unsmuggle_url,
+    find_xpath_attr,
+    fix_xml_ampersands,
     unescapeHTML,
+    unsmuggle_url,
 )
 
 
 class BrightcoveIE(InfoExtractor):
-    _VALID_URL = r'https?://.*brightcove\.com/(services|viewer).*?\?(?P<query>.*)'
+    _VALID_URL = r'(?:https?://.*brightcove\.com/(services|viewer).*?\?|brightcove:)(?P<query>.*)'
     _FEDERATED_URL_TEMPLATE = 'http://c.brightcove.com/services/viewer/htmlFederated?%s'
 
     _TESTS = [
@@ -94,6 +95,7 @@ class BrightcoveIE(InfoExtractor):
             'url': 'http://c.brightcove.com/services/viewer/htmlFederated?playerID=3550052898001&playerKey=AQ%7E%7E%2CAAABmA9XpXk%7E%2C-Kp7jNgisre1fG5OdqpAFUTcs0lP_ZoL',
             'info_dict': {
                 'title': 'Sealife',
+                'id': '3550319591001',
             },
             'playlist_mincount': 7,
         },
@@ -107,7 +109,7 @@ class BrightcoveIE(InfoExtractor):
         """
 
         # Fix up some stupid HTML, see https://github.com/rg3/youtube-dl/issues/1553
-        object_str = re.sub(r'(<param name="[^"]+" value="[^"]+")>',
+        object_str = re.sub(r'(<param(?:\s+[a-zA-Z0-9_]+="[^"]*")*)>',
                             lambda m: m.group(1) + '/>', object_str)
         # Fix up some stupid XML, see https://github.com/rg3/youtube-dl/issues/1608
         object_str = object_str.replace('<--', '<!--')
@@ -246,7 +248,7 @@ class BrightcoveIE(InfoExtractor):
         playlist_info = json_data['videoList']
         videos = [self._extract_video_info(video_info) for video_info in playlist_info['mediaCollectionDTO']['videoDTOs']]
 
-        return self.playlist_result(videos, playlist_id=playlist_info['id'],
+        return self.playlist_result(videos, playlist_id='%s' % playlist_info['id'],
                                     playlist_title=playlist_info['mediaCollectionDTO']['displayName'])
 
     def _extract_video_info(self, video_info):
@@ -265,6 +267,7 @@ class BrightcoveIE(InfoExtractor):
                 url = rend['defaultURL']
                 if not url:
                     continue
+                ext = None
                 if rend['remote']:
                     url_comp = compat_urllib_parse_urlparse(url)
                     if url_comp.path.endswith('.m3u8'):
@@ -276,7 +279,7 @@ class BrightcoveIE(InfoExtractor):
                         # akamaihd.net, but they don't use f4m manifests
                         url = url.replace('control/', '') + '?&v=3.3.0&fp=13&r=FEEFJ&g=RTSJIMBMPFPB'
                         ext = 'flv'
-                else:
+                if ext is None:
                     ext = determine_ext(url)
                 size = rend.get('size')
                 formats.append({

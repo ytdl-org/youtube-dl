@@ -4,11 +4,14 @@ import os
 import re
 import subprocess
 
+from ..postprocessor.ffmpeg import FFmpegPostProcessor
 from .common import FileDownloader
-from ..utils import (
+from ..compat import (
     compat_urlparse,
     compat_urllib_request,
-    check_executable,
+)
+from ..utils import (
+    encodeArgument,
     encodeFilename,
 )
 
@@ -19,23 +22,21 @@ class HlsFD(FileDownloader):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
-        args = [
-            '-y', '-i', url, '-f', 'mp4', '-c', 'copy',
-            '-bsf:a', 'aac_adtstoasc',
-            encodeFilename(tmpfilename, for_subprocess=True)]
-
-        for program in ['avconv', 'ffmpeg']:
-            if check_executable(program, ['-version']):
-                break
-        else:
+        ffpp = FFmpegPostProcessor(downloader=self)
+        if not ffpp.available:
             self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
             return False
-        cmd = [program] + args
+        ffpp.check_version()
 
-        retval = subprocess.call(cmd)
+        args = [
+            encodeArgument(opt)
+            for opt in (ffpp.executable, '-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
+        args.append(encodeFilename(tmpfilename, True))
+
+        retval = subprocess.call(args)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen('\r[%s] %s bytes' % (cmd[0], fsize))
+            self.to_screen('\r[%s] %s bytes' % (args[0], fsize))
             self.try_rename(tmpfilename, filename)
             self._hook_progress({
                 'downloaded_bytes': fsize,
@@ -46,7 +47,7 @@ class HlsFD(FileDownloader):
             return True
         else:
             self.to_stderr('\n')
-            self.report_error('%s exited with code %d' % (program, retval))
+            self.report_error('%s exited with code %d' % (ffpp.basename, retval))
             return False
 
 

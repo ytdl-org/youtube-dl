@@ -8,20 +8,20 @@ from ..utils import int_or_none
 
 
 class LiveLeakIE(InfoExtractor):
-    _VALID_URL = r'^(?:http://)?(?:\w+\.)?liveleak\.com/view\?(?:.*?)i=(?P<video_id>[\w_]+)(?:.*)'
+    _VALID_URL = r'https?://(?:\w+\.)?liveleak\.com/view\?(?:.*?)i=(?P<id>[\w_]+)(?:.*)'
     _TESTS = [{
         'url': 'http://www.liveleak.com/view?i=757_1364311680',
-        'md5': '0813c2430bea7a46bf13acf3406992f4',
+        'md5': '50f79e05ba149149c1b4ea961223d5b3',
         'info_dict': {
             'id': '757_1364311680',
-            'ext': 'mp4',
+            'ext': 'flv',
             'description': 'extremely bad day for this guy..!',
             'uploader': 'ljfriel2',
             'title': 'Most unlucky car accident'
         }
     }, {
         'url': 'http://www.liveleak.com/view?i=f93_1390833151',
-        'md5': 'd3f1367d14cc3c15bf24fbfbe04b9abf',
+        'md5': 'b13a29626183c9d33944e6a04f41aafc',
         'info_dict': {
             'id': 'f93_1390833151',
             'ext': 'mp4',
@@ -43,8 +43,7 @@ class LiveLeakIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('video_id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         video_title = self._og_search_title(webpage).replace('LiveLeak.com -', '').strip()
@@ -81,9 +80,19 @@ class LiveLeakIE(InfoExtractor):
         sources = json.loads(sources_json)
 
         formats = [{
+            'format_id': '%s' % i,
             'format_note': s.get('label'),
             'url': s['file'],
-        } for s in sources]
+        } for i, s in enumerate(sources)]
+        for i, s in enumerate(sources):
+            orig_url = s['file'].replace('.h264_base.mp4', '')
+            if s['file'] != orig_url:
+                formats.append({
+                    'format_id': 'original-%s' % i,
+                    'format_note': s.get('label'),
+                    'url': orig_url,
+                    'preference': 1,
+                })
         self._sort_formats(formats)
 
         return {
