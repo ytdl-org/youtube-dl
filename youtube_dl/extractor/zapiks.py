@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class ZapiksIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?zapiks\.fr/(?:(?P<display_id>.+?)\.html|index\.php\?.*\bmedia_id=(?P<id>\d+))'
+    _VALID_URL = r'https?://(?:www\.)?zapiks\.(?:fr|com)/(?:(?:[a-z]{2}/)?(?P<display_id>.+?)\.html|index\.php\?.*\bmedia_id=(?P<id>\d+))'
     _TESTS = [
         {
             'url': 'http://www.zapiks.fr/ep2s3-bon-appetit-eh-be-viva.html',
@@ -31,6 +31,14 @@ class ZapiksIE(InfoExtractor):
                 'view_count': int,
                 'comment_count': int,
             },
+        },
+        {
+            'url': 'http://www.zapiks.com/ep3s5-bon-appetit-baqueira-m-1.html',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://www.zapiks.com/nl/ep3s5-bon-appetit-baqueira-m-1.html',
+            'only_matching': True,
         },
         {
             'url': 'http://www.zapiks.fr/index.php?action=playerIframe&amp;media_id=118046&amp;width=640&amp;height=360&amp;autoStart=false&amp;language=fr',
