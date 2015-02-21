@@ -189,14 +189,14 @@ def _real_main(argv=None):
         # In Python 2, sys.argv is a bytestring (also note http://bugs.python.org/issue2128 for Windows systems)
         if opts.outtmpl is not None:
             opts.outtmpl = opts.outtmpl.decode(preferredencoding())
-    outtmpl = ((opts.outtmpl is not None and opts.outtmpl)
-               or (opts.format == '-1' and opts.usetitle and '%(title)s-%(id)s-%(format)s.%(ext)s')
-               or (opts.format == '-1' and '%(id)s-%(format)s.%(ext)s')
-               or (opts.usetitle and opts.autonumber and '%(autonumber)s-%(title)s-%(id)s.%(ext)s')
-               or (opts.usetitle and '%(title)s-%(id)s.%(ext)s')
-               or (opts.useid and '%(id)s.%(ext)s')
-               or (opts.autonumber and '%(autonumber)s-%(id)s.%(ext)s')
-               or DEFAULT_OUTTMPL)
+    outtmpl = ((opts.outtmpl is not None and opts.outtmpl) or
+               (opts.format == '-1' and opts.usetitle and '%(title)s-%(id)s-%(format)s.%(ext)s') or
+               (opts.format == '-1' and '%(id)s-%(format)s.%(ext)s') or
+               (opts.usetitle and opts.autonumber and '%(autonumber)s-%(title)s-%(id)s.%(ext)s') or
+               (opts.usetitle and '%(title)s-%(id)s.%(ext)s') or
+               (opts.useid and '%(id)s.%(ext)s') or
+               (opts.autonumber and '%(autonumber)s-%(id)s.%(ext)s') or
+               DEFAULT_OUTTMPL)
     if not os.path.splitext(outtmpl)[1] and opts.extractaudio:
         parser.error('Cannot download a video and extract audio into the same'
                      ' file! Use "{0}.%(ext)s" instead of "{0}" as the output'

@@ -325,8 +325,8 @@ class F4mFD(FileDownloader):
                 state['frag_index'] += 1
 
             estimated_size = (
-                (state['downloaded_bytes'] + frag_total_bytes)
-                / (state['frag_index'] + 1) * total_frags)
+                (state['downloaded_bytes'] + frag_total_bytes) /
+                (state['frag_index'] + 1) * total_frags)
             time_now = time.time()
             state['total_bytes_estimate'] = estimated_size
             state['elapsed'] = time_now - start

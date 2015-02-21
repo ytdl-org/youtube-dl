@@ -308,8 +308,8 @@ class YoutubeDL(object):
                     raise
 
         if (sys.version_info >= (3,) and sys.platform != 'win32' and
-                sys.getfilesystemencoding() in ['ascii', 'ANSI_X3.4-1968']
-                and not params.get('restrictfilenames', False)):
+                sys.getfilesystemencoding() in ['ascii', 'ANSI_X3.4-1968'] and
+                not params.get('restrictfilenames', False)):
             # On Python 3, the Unicode filesystem API will throw errors (#1474)
             self.report_warning(
                 'Assuming --restrict-filenames since file system encoding '
@@ -1366,8 +1366,8 @@ class YoutubeDL(object):
         """Download a given list of URLs."""
         outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
         if (len(url_list) > 1 and
-                '%' not in outtmpl
-                and self.params.get('max_downloads') != 1):
+                '%' not in outtmpl and
+                self.params.get('max_downloads') != 1):
             raise SameFileError(outtmpl)
 
         for url in url_list:
