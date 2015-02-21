@@ -1164,8 +1164,10 @@ class YoutubeDL(object):
                 if lang not in available_subs:
                     available_subs[lang] = cap_info
 
-        if not available_subs:
-            return available_subs
+        if (not self.params.get('writesubtitles') and not
+                self.params.get('writeautomaticsub') or not
+                available_subs):
+            return None
 
         if self.params.get('allsubtitles', False):
             requested_langs = available_subs.keys()

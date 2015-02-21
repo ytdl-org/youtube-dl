@@ -113,7 +113,7 @@ class TestYoutubeSubtitles(BaseTestSubtitles):
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
-        self.assertEqual(len(subtitles), 0)
+        self.assertFalse(subtitles)
 
     def test_youtube_multiple_langs(self):
         self.url = 'QRS8MkLhQmM'
@@ -152,7 +152,7 @@ class TestDailymotionSubtitles(BaseTestSubtitles):
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
-        self.assertEqual(len(subtitles), 0)
+        self.assertFalse(subtitles)
 
     def test_multiple_langs(self):
         self.DL.params['writesubtitles'] = True
@@ -246,7 +246,7 @@ class TestVimeoSubtitles(BaseTestSubtitles):
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
-        self.assertEqual(len(subtitles), 0)
+        self.assertFalse(subtitles)
 
     def test_multiple_langs(self):
         self.DL.params['writesubtitles'] = True
@@ -281,7 +281,7 @@ class TestWallaSubtitles(BaseTestSubtitles):
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
-        self.assertEqual(len(subtitles), 0)
+        self.assertFalse(subtitles)
 
 
 class TestCeskaTelevizeSubtitles(BaseTestSubtitles):
@@ -308,7 +308,7 @@ class TestCeskaTelevizeSubtitles(BaseTestSubtitles):
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
-        self.assertEqual(len(subtitles), 0)
+        self.assertFalse(subtitles)
 
 
 class TestLyndaSubtitles(BaseTestSubtitles):
