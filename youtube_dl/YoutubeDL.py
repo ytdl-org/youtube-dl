@@ -1300,10 +1300,22 @@ class YoutubeDL(object):
                                             ' The formats won\'t be merged')
                     else:
                         postprocessors = [merger]
+                    for f in info_dict['requested_formats']:
+                        new_info = dict(info_dict)
+                        new_info.update(f)
+                        fname = self.prepare_filename(new_info)
+                        fname = prepend_extension(fname, 'f%s' % f['format_id'])
+                        downloaded.append(fname)
+                        partial_success = dl(fname, new_info)
+                        success = success and partial_success
+                    info_dict['__postprocessors'] = postprocessors
+                    info_dict['__files_to_merge'] = downloaded
+                else:
                     parts = info_dict.get('parts', [])
                     if not parts:
                         success = dl(filename, info_dict)
                     elif len(parts) == 1:
+                        # Just a single file
                         info_dict.update(parts[0])
                         success = dl(filename, info_dict)
                     else:
@@ -1320,19 +1332,6 @@ class YoutubeDL(object):
                                 part_filename = build_part_filename(filename, i)
                                 parts_success.append(dl(part_filename, part_info))
                             success = all(parts_success)
-                    for f in info_dict['requested_formats']:
-                        new_info = dict(info_dict)
-                        new_info.update(f)
-                        fname = self.prepare_filename(new_info)
-                        fname = prepend_extension(fname, 'f%s' % f['format_id'])
-                        downloaded.append(fname)
-                        partial_success = dl(fname, new_info)
-                        success = success and partial_success
-                    info_dict['__postprocessors'] = postprocessors
-                    info_dict['__files_to_merge'] = downloaded
-                else:
-                    # Just a single file
-                    success = dl(filename, info_dict)
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                 self.report_error('unable to download video data: %s' % str(err))
                 return
