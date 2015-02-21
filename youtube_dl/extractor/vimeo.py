@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import json
 import re
 import itertools
+import hashlib
 
 from .common import InfoExtractor
 from .subtitles import SubtitlesInfoExtractor
@@ -224,6 +225,10 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
         orig_url = url
         if mobj.group('pro') or mobj.group('player'):
             url = 'http://player.vimeo.com/video/' + video_id
+
+        password = self._downloader.params.get('videopassword', None)
+        if password:
+            headers['Cookie'] = '%s_password=%s' % (video_id, hashlib.md5(password).hexdigest())
 
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request(url, None, headers)
