@@ -389,6 +389,13 @@ class TestFormatSelection(unittest.TestCase):
         self.assertFalse(subs['es']['_auto'])
         self.assertTrue(subs['pt']['_auto'])
 
+        result = get_info({'writeautomaticsub': True, 'subtitleslangs': ['es', 'pt']})
+        subs = result['requested_subtitles']
+        self.assertTrue(subs)
+        self.assertEqual(set(subs.keys()), set(['es', 'pt']))
+        self.assertTrue(subs['es']['_auto'])
+        self.assertTrue(subs['pt']['_auto'])
+
     def test_add_extra_info(self):
         test_dict = {
             'extractor': 'Foo',

@@ -1156,11 +1156,13 @@ class YoutubeDL(object):
         info_dict.update(formats_to_download[-1])
         return info_dict
 
-    def process_subtitles(self, video_id, available_subs, available_autocaps):
+    def process_subtitles(self, video_id, normal_subtitles, automatic_captions):
         """Select the requested subtitles and their format"""
-        if available_autocaps and self.params.get('writeautomaticsub'):
-            available_subs = available_subs.copy()
-            for lang, cap_info in available_autocaps.items():
+        available_subs = {}
+        if normal_subtitles and self.params.get('writesubtitles'):
+            available_subs.update(normal_subtitles)
+        if automatic_captions and self.params.get('writeautomaticsub'):
+            for lang, cap_info in automatic_captions.items():
                 if lang not in available_subs:
                     available_subs[lang] = cap_info
 
