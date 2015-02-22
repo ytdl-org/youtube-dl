@@ -12,7 +12,7 @@ from ..utils import (
 
 class AppleTrailersIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?trailers\.apple\.com/(?:trailers|ca)/(?P<company>[^/]+)/(?P<movie>[^/]+)'
-    _TEST = {
+    _TESTS = [{
         "url": "http://trailers.apple.com/trailers/wb/manofsteel/",
         'info_dict': {
             'id': 'manofsteel',
@@ -63,7 +63,10 @@ class AppleTrailersIE(InfoExtractor):
                 },
             },
         ]
-    }
+    }, {
+        'url': 'http://trailers.apple.com/ca/metropole/autrui/',
+        'only_matching': True,
+    }]
 
     _JSON_RE = r'iTunes.playURL\((.*?)\);'
 
