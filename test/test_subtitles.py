@@ -288,7 +288,7 @@ class TestVikiSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['en']))
-        self.assertEqual(md5(subtitles['en']), 'b0b781eeb45efd3f6398a925b259150b')
+        self.assertEqual(md5(subtitles['en']), '53cb083a5914b2d84ef1ab67b880d18a')
 
 
 class TestThePlatformSubtitles(BaseTestSubtitles):
