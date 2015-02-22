@@ -963,6 +963,14 @@ class InfoExtractor(object):
                 'width': width,
                 'height': height,
             }], rtmp_count)
+        elif proto.startswith('http'):
+            return ([{
+                'url': base + src,
+                'ext': ext or 'flv',
+                'tbr': bitrate,
+                'width': width,
+                'height': height,
+            }], rtmp_count)
 
     def _live_title(self, name):
         """ Generate the title for a live video """
