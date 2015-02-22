@@ -364,6 +364,7 @@ from .promptfile import PromptFileIE
 from .prosiebensat1 import ProSiebenSat1IE
 from .pyvideo import PyvideoIE
 from .quickvid import QuickVidIE
+from .r7 import R7IE
 from .radiode import RadioDeIE
 from .radiobremen import RadioBremenIE
 from .radiofrance import RadioFranceIE
