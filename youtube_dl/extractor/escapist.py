@@ -31,10 +31,10 @@ class EscapistIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         uploader_id = self._html_search_regex(
-            r"<h1 class='headline'><a href='/videos/view/(.*?)'",
+            r"<h1\s+class='headline'>\s*<a\s+href='/videos/view/(.*?)'",
             webpage, 'uploader ID', fatal=False)
         uploader = self._html_search_regex(
-            r"<h1 class='headline'>(.*?)</a>",
+            r"<h1\s+class='headline'>(.*?)</a>",
             webpage, 'uploader', fatal=False)
         description = self._html_search_meta('description', webpage)
 
@@ -42,7 +42,7 @@ class EscapistIE(InfoExtractor):
         title = raw_title.partition(' : ')[2]
 
         config_url = compat_urllib_parse.unquote(self._html_search_regex(
-            r'<param name="flashvars" value="config=([^"&]+)', webpage, 'config URL'))
+            r'<param\s+name="flashvars"\s+value="config=([^"&]+)', webpage, 'config URL'))
 
         formats = []
 
