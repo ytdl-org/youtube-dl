@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class AppleTrailersIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?trailers\.apple\.com/trailers/(?P<company>[^/]+)/(?P<movie>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?trailers\.apple\.com/(?:trailers|ca)/(?P<company>[^/]+)/(?P<movie>[^/]+)'
     _TEST = {
         "url": "http://trailers.apple.com/trailers/wb/manofsteel/",
         'info_dict': {
