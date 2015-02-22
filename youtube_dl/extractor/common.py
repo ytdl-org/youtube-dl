@@ -833,7 +833,7 @@ class InfoExtractor(object):
             'url': m3u8_url,
             'ext': ext,
             'protocol': 'm3u8',
-            'preference': -1,
+            'preference': preference - 1 if preference else -1,
             'resolution': 'multiple',
             'format_note': 'Quality selection URL',
         }]
