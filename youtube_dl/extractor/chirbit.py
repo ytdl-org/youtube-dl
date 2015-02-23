@@ -37,7 +37,7 @@ class ChirbitIE(InfoExtractor):
         }
 
 class ChirbitProfileIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?chirbit.com/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?chirbit.com/(?P<id>[^/]+)/?$'
     _TEST = {
         'url': 'http://chirbit.com/ScarletBeauty',
         'playlist_count': 3,
