@@ -1,97 +1,82 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..utils import clean_html
+from ..utils import (
+    parse_duration,
+    int_or_none,
+)
 
 
 class ChirbitIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?chirb\.it/(?P<id>[^/]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?chirb\.it/(?:(?:wp|pl)/|fb_chirbit_player\.swf\?key=)?(?P<id>[\da-zA-Z]+)'
+    _TESTS = [{
         'url': 'http://chirb.it/PrIPv5',
         'md5': '9847b0dad6ac3e074568bf2cfb197de8',
         'info_dict': {
             'id': 'PrIPv5',
-            'display_id': 'kukushtv_1423231243',
             'ext': 'mp3',
             'title': 'Фасадстрой',
-            'url': 'http://audio.chirbit.com/kukushtv_1423231243.mp3'
+            'duration': 52,
+            'view_count': int,
+            'comment_count': int,
         }
-    }
+    }, {
+        'url': 'https://chirb.it/fb_chirbit_player.swf?key=PrIPv5',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
-        audio_linkid = self._match_id(url)
-        webpage = self._download_webpage(url, audio_linkid)
+        audio_id = self._match_id(url)
 
-        audio_title = self._html_search_regex(r'<h2\s+itemprop="name">(.*?)</h2>', webpage, 'title')
-        audio_id = self._html_search_regex(r'\("setFile",\s+"http://audio.chirbit.com/(.*?).mp3"\)', webpage, 'audio ID')
-        audio_url = 'http://audio.chirbit.com/' + audio_id + '.mp3';
+        webpage = self._download_webpage(
+            'http://chirb.it/%s' % audio_id, audio_id)
+
+        audio_url = self._search_regex(
+            r'"setFile"\s*,\s*"([^"]+)"', webpage, 'audio url')
+
+        title = self._search_regex(
+            r'itemprop="name">([^<]+)', webpage, 'title')
+        duration = parse_duration(self._html_search_meta(
+            'duration', webpage, 'duration', fatal=False))
+        view_count = int_or_none(self._search_regex(
+            r'itemprop="playCount"\s*>(\d+)', webpage,
+            'listen count', fatal=False))
+        comment_count = int_or_none(self._search_regex(
+            r'>(\d+) Comments?:', webpage,
+            'comment count', fatal=False))
 
         return {
-            'id': audio_linkid,
-            'display_id': audio_id,
-            'title': audio_title,
-            'url': audio_url
+            'id': audio_id,
+            'url': audio_url,
+            'title': title,
+            'duration': duration,
+            'view_count': view_count,
+            'comment_count': comment_count,
         }
 
+
 class ChirbitProfileIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?chirbit.com/(?P<id>[^/]+)/?$'
+    _VALID_URL = r'https?://(?:www\.)?chirbit.com/(?:rss/)?(?P<id>[^/]+)'
     _TEST = {
         'url': 'http://chirbit.com/ScarletBeauty',
-        'playlist_count': 3,
         'info_dict': {
-            '_type': 'playlist',
-            'title': 'ScarletBeauty',
-            'id': 'ScarletBeauty'
-        }
+            'id': 'ScarletBeauty',
+            'title': 'Chirbits by ScarletBeauty',
+        },
+        'playlist_mincount': 3,
     }
 
     def _real_extract(self, url):
         profile_id = self._match_id(url)
 
-        # Chirbit has a pretty weird "Last Page" navigation behavior.
-        # We grab the profile's oldest entry to determine when to
-        # stop fetching entries.
-        oldestpage = self._download_webpage(url + '/24599', profile_id)
-        oldest_page_entries = re.findall(
-            r'''soundFile:\s*"http://audio.chirbit.com/(.*?).mp3"''',
-            oldestpage);
-        oldestentry = clean_html(oldest_page_entries[-1]);
+        rss = self._download_xml(
+            'http://chirbit.com/rss/%s' % profile_id, profile_id)
 
-        ids = []
-        titles = []
-        n = 0
-        while True:
-            page = self._download_webpage(url + '/' + str(n), profile_id)
-            page_ids = re.findall(
-                r'''soundFile:\s*"http://audio.chirbit.com/(.*?).mp3"''',
-                page);
-            page_titles = re.findall(
-                r'''<div\s+class="chirbit_title"\s*>(.*?)</div>''',
-                page);
-            ids += page_ids
-            titles += page_titles
-            if oldestentry in page_ids:
-                break
-            n += 1
+        entries = [
+            self.url_result(audio_url.text, 'Chirbit')
+            for audio_url in rss.findall('./channel/item/link')]
 
-        entries = []
-        i = 0
-        for id in ids:
-            entries.append({
-                'id': id,
-                'title': titles[i],
-                'url': 'http://audio.chirbit.com/' + id + '.mp3'
-            });
-            i += 1
+        title = rss.find('./channel/title').text
 
-        info_dict = {
-            '_type': 'playlist',
-            'id': profile_id,
-            'title': profile_id,
-            'entries': entries
-        }
-
-        return info_dict;
+        return self.playlist_result(entries, profile_id, title)

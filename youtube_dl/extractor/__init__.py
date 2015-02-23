@@ -63,7 +63,10 @@ from .ccc import CCCIE
 from .ceskatelevize import CeskaTelevizeIE
 from .channel9 import Channel9IE
 from .chilloutzone import ChilloutzoneIE
-from .chirbit import ChirbitIE, ChirbitProfileIE
+from .chirbit import (
+    ChirbitIE,
+    ChirbitProfileIE,
+)
 from .cinchcast import CinchcastIE
 from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
