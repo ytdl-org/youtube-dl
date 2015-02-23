@@ -43,7 +43,7 @@ class SoundgasmIE(InfoExtractor):
 
 class SoundgasmProfileIE(InfoExtractor):
     IE_NAME = 'soundgasm:profile'
-    _VALID_URL = r'https?://(?:www\.)?soundgasm\.net/u/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?soundgasm\.net/u/(?P<id>[^/]+)/?(?:\#.*)?$'
     _TEST = {
         'url': 'http://soundgasm.net/u/ytdl',
         'info_dict': {
