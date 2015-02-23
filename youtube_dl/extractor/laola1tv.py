@@ -47,7 +47,7 @@ class Laola1TvIE(InfoExtractor):
         flashvars = dict((m[0], m[1]) for m in flashvars_m)
 
         partner_id = self._search_regex(
-            'partnerid\s*:\s*"([^"]+)"', iframe, 'partner id')
+            r'partnerid\s*:\s*"([^"]+)"', iframe, 'partner id')
 
         xml_url = ('http://www.laola1.tv/server/hd_video.php?' +
                    'play=%s&partner=%s&portal=%s&v5ident=&lang=%s' % (
