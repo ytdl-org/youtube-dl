@@ -1189,14 +1189,6 @@ class YoutubeDL(object):
             if formats is None:
                 self.report_warning('%s subtitles not available for %s' % (lang, video_id))
                 continue
-            if isinstance(formats, compat_str):
-                # TODO: convert all IE with subtitles support to the new format
-                # and remove this
-                subs[lang] = {
-                    'ext': formats_preference[0],
-                    'data': formats,
-                }
-                continue
             for ext in formats_preference:
                 if ext == 'best':
                     f = formats[-1]
