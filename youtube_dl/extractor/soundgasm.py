@@ -41,36 +41,22 @@ class SoundgasmIE(InfoExtractor):
         }
 
 class SoundgasmProfileIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?soundgasm\.net/u/(?P<id>[0-9a-zA-Z_\-]+)/?$'
+    _VALID_URL = r'https?://(?:www\.)?soundgasm\.net/u/(?P<id>[^/]+)'
     _TEST = {
         'url': 'http://soundgasm.net/u/ytdl',
-        'playlist_count': 1,
         'info_dict': {
-            '_type': 'playlist',
             'id': 'ytdl',
-            'title': 'ytdl'
-        }
+        },
+        'playlist_count': 1,
     }
 
     def _real_extract(self, url):
         profile_id = self._match_id(url)
+
         webpage = self._download_webpage(url, profile_id)
 
-        ids = re.findall(r'''<a\s+href=".+?/u/%s/([^/]+)">''' % re.escape(profile_id), webpage)
-        ids = [clean_html(id) for id in ids]
+        entries = [
+            self.url_result(audio_url, 'Soundgasm')
+            for audio_url in re.findall(r'href="([^"]+/u/%s/[^"]+)' % profile_id, webpage)]
 
-        entries = []
-        for id in ids:
-            entries.append({
-                '_type': 'url',
-                'url': ('http://soundgasm.net/u/%s/%s' % (profile_id, id))
-            })
-
-        info_dict = {
-            '_type': 'playlist',
-            'id': profile_id,
-            'title': profile_id,
-            'entries': entries
-        }
-
-        return info_dict;
+        return self.playlist_result(entries, profile_id)
