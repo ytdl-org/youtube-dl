@@ -9,6 +9,7 @@ from ..utils import (
 
 
 class ChirbitIE(InfoExtractor):
+    IE_NAME = 'chirbit'
     _VALID_URL = r'https?://(?:www\.)?chirb\.it/(?:(?:wp|pl)/|fb_chirbit_player\.swf\?key=)?(?P<id>[\da-zA-Z]+)'
     _TESTS = [{
         'url': 'http://chirb.it/PrIPv5',
@@ -57,6 +58,7 @@ class ChirbitIE(InfoExtractor):
 
 
 class ChirbitProfileIE(InfoExtractor):
+    IE_NAME = 'chirbit:profile'
     _VALID_URL = r'https?://(?:www\.)?chirbit.com/(?:rss/)?(?P<id>[^/]+)'
     _TEST = {
         'url': 'http://chirbit.com/ScarletBeauty',
