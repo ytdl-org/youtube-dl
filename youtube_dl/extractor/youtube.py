@@ -1153,13 +1153,13 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                         |  p/
                         )
                         (
-                            (?:PL|LL|EC|UU|FL|RD)?[0-9A-Za-z-_]{10,}
+                            (?:PL|LL|EC|UU|FL|RD|UL)?[0-9A-Za-z-_]{10,}
                             # Top tracks, they can also include dots
                             |(?:MC)[\w\.]*
                         )
                         .*
                      |
-                        ((?:PL|LL|EC|UU|FL|RD)[0-9A-Za-z-_]{10,})
+                        ((?:PL|LL|EC|UU|FL|RD|UL)[0-9A-Za-z-_]{10,})
                      )"""
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s'
     _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)'
@@ -1244,7 +1244,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
             for vid_id in ids]
 
     def _extract_mix(self, playlist_id):
-        # The mixes are generated from a a single video
+        # The mixes are generated from a single video
         # the id of the playlist is just 'RD' + video_id
         url = 'https://youtube.com/watch?v=%s&list=%s' % (playlist_id[-11:], playlist_id)
         webpage = self._download_webpage(
@@ -1280,7 +1280,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
             else:
                 self.to_screen('Downloading playlist %s - add --no-playlist to just download video %s' % (playlist_id, video_id))
 
-        if playlist_id.startswith('RD'):
+        if playlist_id.startswith('RD') or playlist_id.startswith('UL'):
             # Mixes require a custom extraction process
             return self._extract_mix(playlist_id)
 
