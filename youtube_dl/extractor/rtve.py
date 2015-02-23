@@ -102,13 +102,25 @@ class RTVEALaCartaIE(InfoExtractor):
             video_url = compat_urlparse.urljoin(
                 'http://mvod1.akcdn.rtve.es/', video_path)
 
+        subtitles = None
+        if info.get('sbtFile') is not None:
+            subtitles = self.extract_subtitles(video_id, info['sbtFile'])
+
         return {
             'id': video_id,
             'title': info['title'],
             'url': video_url,
             'thumbnail': info.get('image'),
             'page_url': url,
+            'subtitles': subtitles,
         }
+
+    def _get_subtitles(self, video_id, sub_file):
+        subs = self._download_json(
+            sub_file + '.json', video_id,
+            'Downloading subtitles info')['page']['items']
+        return dict((s['lang'], [{'ext': 'vtt', 'url': s['src']}])
+            for s in subs)
 
 
 class RTVELiveIE(InfoExtractor):

@@ -25,6 +25,7 @@ from youtube_dl.extractor import (
     RaiIE,
     VikiIE,
     ThePlatformIE,
+    RTVEALaCartaIE,
 )
 
 
@@ -303,6 +304,20 @@ class TestThePlatformSubtitles(BaseTestSubtitles):
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['en']))
         self.assertEqual(md5(subtitles['en']), '97e7670cbae3c4d26ae8bcc7fdd78d4b')
+
+
+class TestRtveSubtitles(BaseTestSubtitles):
+    url = 'http://www.rtve.es/alacarta/videos/los-misterios-de-laura/misterios-laura-capitulo-32-misterio-del-numero-17-2-parte/2428621/'
+    IE = RTVEALaCartaIE
+
+    def test_allsubtitles(self):
+        print('Skipping, only available from Spain')
+        return
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['es']))
+        self.assertEqual(md5(subtitles['es']), '69e70cae2d40574fb7316f31d6eb7fca')
 
 
 if __name__ == '__main__':
