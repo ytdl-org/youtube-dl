@@ -66,9 +66,10 @@ class GDCVaultIE(InfoExtractor):
 
     def _parse_flv(self, xml_description):
         video_formats = []
+        akamai_url = xml_description.find('./metadata/akamaiHost').text
         slide_video_path = xml_description.find('./metadata/slideVideo').text
         video_formats.append({
-            'url': 'rtmp://%s/ondemand?ovpfv=1.1' % 'fms.digitallyspeaking.com/cfx/st',
+            'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
             'play_path': remove_end(slide_video_path, '.flv'),
             'ext': 'flv',
             'format_note': 'slide deck video',
@@ -78,7 +79,7 @@ class GDCVaultIE(InfoExtractor):
         })
         speaker_video_path = xml_description.find('./metadata/speakerVideo').text
         video_formats.append({
-            'url': 'rtmp://%s/ondemand?ovpfv=1.1' % 'fms.digitallyspeaking.com/cfx/st',
+            'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
             'play_path': remove_end(speaker_video_path, '.flv'),
             'ext': 'flv',
             'format_note': 'speaker video',
