@@ -72,6 +72,8 @@
  - **CeskaTelevize**
  - **channel9**: Channel 9
  - **Chilloutzone**
+ - **chirbit**
+ - **chirbit:profile**
  - **Cinchcast**
  - **Cinemassacre**
  - **clipfish**
@@ -330,6 +332,7 @@
  - **prosiebensat1**: ProSiebenSat.1 Digital
  - **Pyvideo**
  - **QuickVid**
+ - **R7**
  - **radio.de**
  - **radiobremen**
  - **radiofrance**
@@ -385,7 +388,8 @@
  - **soundcloud:playlist**
  - **soundcloud:set**
  - **soundcloud:user**
- - **Soundgasm**
+ - **soundgasm**
+ - **soundgasm:profile**
  - **southpark.cc.com**
  - **southpark.de**
  - **Space**
