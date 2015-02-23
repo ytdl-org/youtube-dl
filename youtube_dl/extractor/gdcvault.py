@@ -66,7 +66,6 @@ class GDCVaultIE(InfoExtractor):
 
     def _parse_flv(self, xml_description):
         video_formats = []
-        akami_url = xml_description.find('./metadata/akamaiHost').text
         slide_video_path = xml_description.find('./metadata/slideVideo').text
         video_formats.append({
             'url': 'rtmp://%s/ondemand?ovpfv=1.1' % 'fms.digitallyspeaking.com/cfx/st',
