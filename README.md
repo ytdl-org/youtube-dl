@@ -351,8 +351,8 @@ which means you can modify it, redistribute it or use it however you like.
     --all-subs                       downloads all the available subtitles of
                                      the video
     --list-subs                      lists all available subtitles for the video
-    --sub-format FORMAT              subtitle format (default=srt) ([sbv/vtt]
-                                     youtube only)
+    --sub-format FORMAT              subtitle format, accepts formats
+                                     preference, for example: "ass/srt/best"
     --sub-lang LANGS                 languages of the subtitles to download
                                      (optional) separated by commas, use IETF
                                      language tags like 'en,pt'
