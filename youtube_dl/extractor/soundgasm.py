@@ -8,6 +8,7 @@ from ..utils import clean_html
 
 
 class SoundgasmIE(InfoExtractor):
+    IE_NAME = 'soundgasm'
     _VALID_URL = r'https?://(?:www\.)?soundgasm\.net/u/(?P<user>[0-9a-zA-Z_\-]+)/(?P<title>[0-9a-zA-Z_\-]+)'
     _TEST = {
         'url': 'http://soundgasm.net/u/ytdl/Piano-sample',
@@ -41,6 +42,7 @@ class SoundgasmIE(InfoExtractor):
         }
 
 class SoundgasmProfileIE(InfoExtractor):
+    IE_NAME = 'soundgasm:profile'
     _VALID_URL = r'https?://(?:www\.)?soundgasm\.net/u/(?P<id>[^/]+)'
     _TEST = {
         'url': 'http://soundgasm.net/u/ytdl',
