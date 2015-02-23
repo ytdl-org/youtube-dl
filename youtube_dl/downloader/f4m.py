@@ -11,6 +11,7 @@ from .common import FileDownloader
 from .http import HttpFD
 from ..compat import (
     compat_urlparse,
+    compat_urllib_error,
 )
 from ..utils import (
     struct_pack,
@@ -389,22 +390,38 @@ class F4mFD(FileDownloader):
             if akamai_pv:
                 url += '?' + akamai_pv.strip(';')
             frag_filename = '%s-%s' % (tmpfilename, name)
-            success = http_dl.download(frag_filename, {'url': url})
-            if not success:
-                return False
-            with open(frag_filename, 'rb') as down:
-                down_data = down.read()
-                reader = FlvReader(down_data)
-                while True:
-                    _, box_type, box_data = reader.read_box_info()
-                    if box_type == b'mdat':
-                        dest_stream.write(box_data)
-                        break
-            frags_filenames.append(frag_filename)
+            try:
+                success = http_dl.download(frag_filename, {'url': url})
+                if not success:
+                    return False
+                with open(frag_filename, 'rb') as down:
+                    down_data = down.read()
+                    reader = FlvReader(down_data)
+                    while True:
+                        _, box_type, box_data = reader.read_box_info()
+                        if box_type == b'mdat':
+                            dest_stream.write(box_data)
+                            break
+                if live:
+                    os.remove(frag_filename)
+                else:
+                    frags_filenames.append(frag_filename)
+            except (compat_urllib_error.HTTPError, ) as err:
+                if live and (err.code == 404 or err.code == 410):
+                    # We didn't keep up with the live window. Continue
+                    # with the next available fragment.
+                    msg = 'Fragment %d unavailable' % frag_i
+                    self.report_warning(msg)
+                    fragments_list = []
+                else:
+                    raise
 
             if not fragments_list and live and bootstrap_url:
                 fragments_list = self._update_live_fragments(bootstrap_url, frag_i)
-                self.to_screen('Updated available fragments: %d' % len(fragments_list))
+                total_frags += len(fragments_list)
+                if fragments_list and (fragments_list[0][1] > frag_i + 1):
+                    msg = 'Missed %d fragments' % (fragments_list[0][1] - (frag_i + 1))
+                    self.report_warning(msg)
 
         dest_stream.close()
 
