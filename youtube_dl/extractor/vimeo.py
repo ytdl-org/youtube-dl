@@ -7,7 +7,6 @@ import itertools
 import hashlib
 
 from .common import InfoExtractor
-from .subtitles import SubtitlesInfoExtractor
 from ..compat import (
     compat_HTTPError,
     compat_urllib_parse,
@@ -53,7 +52,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
         self._download_webpage(login_request, None, False, 'Wrong login info')
 
 
-class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
+class VimeoIE(VimeoBaseInfoExtractor):
     """Information extractor for vimeo.com."""
 
     # _VALID_URL matches Vimeo URLs
@@ -378,12 +377,10 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
         text_tracks = config['request'].get('text_tracks')
         if text_tracks:
             for tt in text_tracks:
-                subtitles[tt['lang']] = 'http://vimeo.com' + tt['url']
-
-        video_subtitles = self.extract_subtitles(video_id, subtitles)
-        if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id, subtitles)
-            return
+                subtitles[tt['lang']] = [{
+                    'ext': 'vtt',
+                    'url': 'http://vimeo.com' + tt['url'],
+                }]
 
         return {
             'id': video_id,
@@ -399,7 +396,7 @@ class VimeoIE(VimeoBaseInfoExtractor, SubtitlesInfoExtractor):
             'view_count': view_count,
             'like_count': like_count,
             'comment_count': comment_count,
-            'subtitles': video_subtitles,
+            'subtitles': subtitles,
         }
 
 

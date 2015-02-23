@@ -10,7 +10,6 @@ from ..utils import (
     parse_duration,
     unified_strdate,
 )
-from .subtitles import SubtitlesInfoExtractor
 
 
 class NRKIE(InfoExtractor):
@@ -73,7 +72,7 @@ class NRKIE(InfoExtractor):
         }
 
 
-class NRKTVIE(SubtitlesInfoExtractor):
+class NRKTVIE(InfoExtractor):
     _VALID_URL = r'(?P<baseurl>http://tv\.nrk(?:super)?\.no/)(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})(?:/\d{2}-\d{2}-\d{4})?(?:#del=(?P<part_id>\d+))?'
 
     _TESTS = [
@@ -156,7 +155,7 @@ class NRKTVIE(SubtitlesInfoExtractor):
         if self._downloader.params.get('verbose', False):
             self.to_screen('[debug] %s' % txt)
 
-    def _extract_captions(self, subtitlesurl, video_id, baseurl):
+    def _get_subtitles(self, subtitlesurl, video_id, baseurl):
         url = "%s%s" % (baseurl, subtitlesurl)
         self._debug_print('%s: Subtitle url: %s' % (video_id, url))
         captions = self._download_xml(url, video_id, 'Downloading subtitles')
@@ -170,7 +169,10 @@ class NRKTVIE(SubtitlesInfoExtractor):
             endtime = self._seconds2str(begin + duration)
             text = '\n'.join(p.itertext())
             srt += '%s\r\n%s --> %s\r\n%s\r\n\r\n' % (str(pos), starttime, endtime, text)
-        return {lang: srt}
+        return {lang: [
+            {'ext': 'ttml', 'url': url},
+            {'ext': 'srt', 'data': srt},
+        ]}
 
     def _extract_f4m(self, manifest_url, video_id):
         return self._extract_f4m_formats(manifest_url + '?hdcore=3.1.1&plugin=aasp-3.1.1.69.124', video_id)
@@ -243,10 +245,7 @@ class NRKTVIE(SubtitlesInfoExtractor):
             webpage, 'subtitle URL', default=None)
         subtitles = None
         if subtitles_url:
-            subtitles = self._extract_captions(subtitles_url, video_id, baseurl)
-        if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id, subtitles)
-            return
+            subtitles = self.extract_subtitles(subtitles_url, video_id, baseurl)
 
         return {
             'id': video_id,

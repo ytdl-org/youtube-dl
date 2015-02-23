@@ -337,6 +337,65 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], 'G')
 
+    def test_subtitles(self):
+        def s_formats(lang, autocaption=False):
+            return [{
+                'ext': ext,
+                'url': 'http://localhost/video.%s.%s' % (lang, ext),
+                '_auto': autocaption,
+            } for ext in ['vtt', 'srt', 'ass']]
+        subtitles = dict((l, s_formats(l)) for l in ['en', 'fr', 'es'])
+        auto_captions = dict((l, s_formats(l, True)) for l in ['it', 'pt', 'es'])
+        info_dict = {
+            'id': 'test',
+            'title': 'Test',
+            'url': 'http://localhost/video.mp4',
+            'subtitles': subtitles,
+            'automatic_captions': auto_captions,
+            'extractor': 'TEST',
+        }
+
+        def get_info(params={}):
+            params.setdefault('simulate', True)
+            ydl = YDL(params)
+            ydl.report_warning = lambda *args, **kargs: None
+            return ydl.process_video_result(info_dict, download=False)
+
+        result = get_info()
+        self.assertFalse(result.get('requested_subtitles'))
+        self.assertEqual(result['subtitles'], subtitles)
+        self.assertEqual(result['automatic_captions'], auto_captions)
+
+        result = get_info({'writesubtitles': True})
+        subs = result['requested_subtitles']
+        self.assertTrue(subs)
+        self.assertEqual(set(subs.keys()), set(['en']))
+        self.assertTrue(subs['en'].get('data') is None)
+        self.assertEqual(subs['en']['ext'], 'ass')
+
+        result = get_info({'writesubtitles': True, 'subtitlesformat': 'foo/srt'})
+        subs = result['requested_subtitles']
+        self.assertEqual(subs['en']['ext'], 'srt')
+
+        result = get_info({'writesubtitles': True, 'subtitleslangs': ['es', 'fr', 'it']})
+        subs = result['requested_subtitles']
+        self.assertTrue(subs)
+        self.assertEqual(set(subs.keys()), set(['es', 'fr']))
+
+        result = get_info({'writesubtitles': True, 'writeautomaticsub': True, 'subtitleslangs': ['es', 'pt']})
+        subs = result['requested_subtitles']
+        self.assertTrue(subs)
+        self.assertEqual(set(subs.keys()), set(['es', 'pt']))
+        self.assertFalse(subs['es']['_auto'])
+        self.assertTrue(subs['pt']['_auto'])
+
+        result = get_info({'writeautomaticsub': True, 'subtitleslangs': ['es', 'pt']})
+        subs = result['requested_subtitles']
+        self.assertTrue(subs)
+        self.assertEqual(set(subs.keys()), set(['es', 'pt']))
+        self.assertTrue(subs['es']['_auto'])
+        self.assertTrue(subs['pt']['_auto'])
+
     def test_add_extra_info(self):
         test_dict = {
             'extractor': 'Foo',
