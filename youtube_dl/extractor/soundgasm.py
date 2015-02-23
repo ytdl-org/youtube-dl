@@ -40,6 +40,7 @@ class SoundgasmIE(InfoExtractor):
             'description': description
         }
 
+
 class SoundgasmProfileIE(InfoExtractor):
     IE_NAME = 'soundgasm:profile'
     _VALID_URL = r'https?://(?:www\.)?soundgasm\.net/u/(?P<id>[^/]+)/?(?:\#.*)?$'
