@@ -35,8 +35,7 @@ class EpornerIE(InfoExtractor):
         title = self._html_search_regex(
             r'<title>(.*?) - EPORNER', webpage, 'title')
 
-
-        redirect_url = 'http://www.eporner.com/config5/%s/%s' % (video_id, display_id)
+        redirect_url = 'http://www.eporner.com/config5/%s' % video_id
         player_code = self._download_webpage(
             redirect_url, display_id, note='Downloading player config')
 
@@ -67,5 +66,5 @@ class EpornerIE(InfoExtractor):
             'duration': duration,
             'view_count': view_count,
             'formats': formats,
-            'age_limit': self._rta_search(webpage),
+            'age_limit': 18,
         }
