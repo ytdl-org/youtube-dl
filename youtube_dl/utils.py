@@ -304,6 +304,8 @@ def sanitize_filename(s, restricted=False, is_id=False):
         # Common case of "Foreign band name - English song title"
         if restricted and result.startswith('-_'):
             result = result[2:]
+        if result.startswith('-'):
+            result = '_' + result[len('-'):]
         if not result:
             result = '_'
     return result
