@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import os.path
+import re
 import time
 import datetime
 
@@ -11,7 +12,7 @@ from ..utils import (ExtractorError, parse_iso8601)
 
 
 class LetvIE(InfoExtractor):
-    _VALID_URL = r'http://www.letv.com/ptv/vplay/(?P<id>\d+).html'
+    _VALID_URL = r'http://www\.letv\.com/ptv/vplay/(?P<id>\d+).html'
 
     _TESTS = [{
         'url': 'http://www.letv.com/ptv/vplay/22005890.html',
@@ -118,3 +119,54 @@ class LetvIE(InfoExtractor):
             'thumbnail': playurl['pic'],
             'timestamp': publish_time,
         }
+
+
+class LetvTvIE(InfoExtractor):
+    _VALID_URL = r'http://www.letv.com/tv/(?P<id>\d+).html'
+    _TESTS = [{
+        'url': 'http://www.letv.com/tv/46177.html',
+        'info_dict': {
+            'id': '46177',
+            'title': '美人天下',
+            'description': 'md5:395666ff41b44080396e59570dbac01c'
+        },
+        'playlist_count': 35
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        page = self._download_webpage(url, playlist_id)
+
+        media_urls = list(set(re.findall(
+            r'http://www.letv.com/ptv/vplay/\d+.html', page)))
+        entries = [self.url_result(media_url, ie='Letv')
+                   for media_url in media_urls]
+
+        title = self._html_search_meta('keywords', page, fatal=False).split('，')[0]
+        description = self._html_search_meta('description', page, fatal=False)
+
+        return self.playlist_result(entries, playlist_id, playlist_title=title,
+                                    playlist_description=description)
+
+
+class LetvPlaylistIE(LetvTvIE):
+    _VALID_URL = r'http://tv.letv.com/[a-z]+/(?P<id>[a-z]+)/index.s?html'
+    _TESTS = [{
+        'url': 'http://tv.letv.com/izt/wuzetian/index.html',
+        'info_dict': {
+            'id': 'wuzetian',
+            'title': '武媚娘传奇',
+            'description': 'md5:e12499475ab3d50219e5bba00b3cb248'
+        },
+        'playlist_count': 96
+    }, {
+        'url': 'http://tv.letv.com/pzt/lswjzzjc/index.shtml',
+        'info_dict': {
+            'id': 'lswjzzjc',
+            # should be "劲舞青春", but I can't find a simple way to determine
+            # the playlist title
+            'title': '乐视午间自制剧场',
+            'description': 'md5:b1eef244f45589a7b5b1af9ff25a4489'
+        },
+        'playlist_mincount': 7
+    }]
