@@ -42,7 +42,14 @@ class EscapistIE(InfoExtractor):
         title = raw_title.partition(' : ')[2]
 
         config_url = compat_urllib_parse.unquote(self._html_search_regex(
-            r'<param\s+name="flashvars"\s+value="config=([^"&]+)', webpage, 'config URL'))
+            r'''(?x)
+            (?:
+                <param\s+name="flashvars"\s+value="config=|
+                flashvars=&quot;config=
+            )
+            ([^"&]+)
+            ''',
+            webpage, 'config URL'))
 
         formats = []
 
