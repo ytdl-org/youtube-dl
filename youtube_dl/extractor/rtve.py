@@ -119,7 +119,8 @@ class RTVEALaCartaIE(InfoExtractor):
         subs = self._download_json(
             sub_file + '.json', video_id,
             'Downloading subtitles info')['page']['items']
-        return dict((s['lang'], [{'ext': 'vtt', 'url': s['src']}])
+        return dict(
+            (s['lang'], [{'ext': 'vtt', 'url': s['src']}])
             for s in subs)
 
 
