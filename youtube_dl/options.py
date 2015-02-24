@@ -273,6 +273,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='noplaylist', default=False,
         help='If the URL refers to a video and a playlist, download only the video.')
     selection.add_option(
+        '--yes-playlist',
+        action='store_false', dest='noplaylist', default=False,
+        help='If the URL refers to a video and a playlist, download the playlist.')
+    selection.add_option(
         '--age-limit',
         metavar='YEARS', dest='age_limit', default=None, type=int,
         help='download only videos suitable for the given age')
