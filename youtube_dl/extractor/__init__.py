@@ -237,6 +237,7 @@ from .krasview import KrasViewIE
 from .ku6 import Ku6IE
 from .la7 import LA7IE
 from .laola1tv import Laola1TvIE
+from .letv import LetvIE
 from .lifenews import LifeNewsIE
 from .liveleak import LiveLeakIE
 from .livestream import (
