@@ -23,14 +23,22 @@ class LetvIE(InfoExtractor):
             'title': '第87届奥斯卡颁奖礼完美落幕 《鸟人》成最大赢家',
             'timestamp': 1424747397,
             'upload_date': '20150224',
+            'description': 'md5:a9cb175fd753e2962176b7beca21a47c',
         }
     }, {
-        'url': 'http://www.letv.com/ptv/vplay/1118082.html',
+        'url': 'http://www.letv.com/ptv/vplay/1415246.html',
         'info_dict': {
-            'id': '1118082',
+            'id': '1415246',
             'ext': 'mp4',
-        }
+            'title': '美人天下01',
+            'description': 'md5:f88573d9d7225ada1359eaf0dbf8bcda',
+        },
+        'expected_warnings': [
+            'publish time'
+        ]
     }]
+    # http://www.letv.com/ptv/vplay/1118082.html
+    # This video is available only in Mainland China
 
     @staticmethod
     def urshift(val, n):
@@ -111,12 +119,14 @@ class LetvIE(InfoExtractor):
         publish_time = parse_iso8601(self._html_search_regex(
             r'发布时间&nbsp;([^<>]+) ', page, 'publish time', fatal=False),
             delimiter=' ', timezone=datetime.timedelta(hours=8))
+        description = self._html_search_meta('description', page, fatal=False)
 
         return {
             'id': media_id,
             'formats': urls,
             'title': playurl['title'],
             'thumbnail': playurl['pic'],
+            'description': description,
             'timestamp': publish_time,
         }
 
@@ -142,7 +152,8 @@ class LetvTvIE(InfoExtractor):
         entries = [self.url_result(media_url, ie='Letv')
                    for media_url in media_urls]
 
-        title = self._html_search_meta('keywords', page, fatal=False).split('，')[0]
+        title = self._html_search_meta('keywords', page,
+                                       fatal=False).split('，')[0]
         description = self._html_search_meta('description', page, fatal=False)
 
         return self.playlist_result(entries, playlist_id, playlist_title=title,
@@ -158,13 +169,14 @@ class LetvPlaylistIE(LetvTvIE):
             'title': '武媚娘传奇',
             'description': 'md5:e12499475ab3d50219e5bba00b3cb248'
         },
-        'playlist_count': 96
+        # This playlist contains some extra videos other than the drama itself
+        'playlist_mincount': 96
     }, {
         'url': 'http://tv.letv.com/pzt/lswjzzjc/index.shtml',
         'info_dict': {
             'id': 'lswjzzjc',
-            # should be "劲舞青春", but I can't find a simple way to determine
-            # the playlist title
+            # The title should be "劲舞青春", but I can't find a simple way to
+            # determine the playlist title
             'title': '乐视午间自制剧场',
             'description': 'md5:b1eef244f45589a7b5b1af9ff25a4489'
         },
