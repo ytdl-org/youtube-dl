@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     float_or_none,
@@ -158,7 +159,9 @@ class NRKTVIE(InfoExtractor):
     def _get_subtitles(self, subtitlesurl, video_id, baseurl):
         url = "%s%s" % (baseurl, subtitlesurl)
         self._debug_print('%s: Subtitle url: %s' % (video_id, url))
-        captions = self._download_xml(url, video_id, 'Downloading subtitles')
+        captions = self._download_xml(
+            url, video_id, 'Downloading subtitles',
+            transform_source=lambda s: s.replace(r'<br />', '\r\n'))
         lang = captions.get('lang', 'no')
         ps = captions.findall('./{0}body/{0}div/{0}p'.format('{http://www.w3.org/ns/ttml}'))
         srt = ''
@@ -167,8 +170,7 @@ class NRKTVIE(InfoExtractor):
             duration = parse_duration(p.get('dur'))
             starttime = self._seconds2str(begin)
             endtime = self._seconds2str(begin + duration)
-            text = '\n'.join(p.itertext())
-            srt += '%s\r\n%s --> %s\r\n%s\r\n\r\n' % (str(pos), starttime, endtime, text)
+            srt += '%s\r\n%s --> %s\r\n%s\r\n\r\n' % (compat_str(pos), starttime, endtime, p.text)
         return {lang: [
             {'ext': 'ttml', 'url': url},
             {'ext': 'srt', 'data': srt},
