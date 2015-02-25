@@ -44,10 +44,10 @@ class EscapistIE(InfoExtractor):
         config_url = compat_urllib_parse.unquote(self._html_search_regex(
             r'''(?x)
             (?:
-                <param\s+name="flashvars"\s+value="config=|
+                <param\s+name="flashvars".*?\s+value="config=|
                 flashvars=&quot;config=
             )
-            ([^"&]+)
+            (https?://[^"&]+)
             ''',
             webpage, 'config URL'))
 
