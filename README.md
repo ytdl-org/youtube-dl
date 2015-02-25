@@ -139,6 +139,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      dislike_count <? 50 & description" .
     --no-playlist                    If the URL refers to a video and a
                                      playlist, download only the video.
+    --yes-playlist                   If the URL refers to a video and a
+                                     playlist, download the playlist.
     --age-limit YEARS                download only videos suitable for the given
                                      age
     --download-archive FILE          Download only videos not listed in the
