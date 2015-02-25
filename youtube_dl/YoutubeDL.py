@@ -1031,6 +1031,9 @@ class YoutubeDL(object):
                 for j, part in enumerate(format['parts']):
                     if 'url' not in part:
                         raise ExtractorError('Missing "url" key in result (index %d, part %d)' % (i, j))
+                    full_format_info = info_dict.copy()
+                    full_format_info.update(part)
+                    part['http_headers'] = self._calc_headers(full_format_info)
             else:
                 if 'url' not in format:
                     raise ExtractorError('Missing "url" key in result (index %d)' % i)
@@ -1046,11 +1049,12 @@ class YoutubeDL(object):
             # Automatically determine file extension if missing
             if 'ext' not in format:
                 format['ext'] = determine_ext(format['url']).lower()
-            # Add HTTP headers, so that external programs can use them from the
-            # json output
-            full_format_info = info_dict.copy()
-            full_format_info.update(format)
-            format['http_headers'] = self._calc_headers(full_format_info)
+            if 'parts' not in format:
+                # Add HTTP headers, so that external programs can use them from the
+                # json output
+                full_format_info = info_dict.copy()
+                full_format_info.update(format)
+                format['http_headers'] = self._calc_headers(full_format_info)
 
         format_limit = self.params.get('format_limit', None)
         if format_limit:

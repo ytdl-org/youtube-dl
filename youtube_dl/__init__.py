@@ -234,6 +234,8 @@ def _real_main(argv=None):
         if not opts.addmetadata:
             postprocessors.append({'key': 'FFmpegAudioFix'})
         postprocessors.append({'key': 'AtomicParsley'})
+    if opts.joinparts:
+        postprocessors.append({'key': 'FFmpegJoinVideos'})
     # Please keep ExecAfterDownload towards the bottom as it allows the user to modify the final file in any way.
     # So if the user is able to remove the file before your postprocessor runs it might cause a few problems.
     if opts.exec_cmd:
