@@ -63,6 +63,10 @@ from .ccc import CCCIE
 from .ceskatelevize import CeskaTelevizeIE
 from .channel9 import Channel9IE
 from .chilloutzone import ChilloutzoneIE
+from .chirbit import (
+    ChirbitIE,
+    ChirbitProfileIE,
+)
 from .cinchcast import CinchcastIE
 from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
@@ -365,6 +369,7 @@ from .promptfile import PromptFileIE
 from .prosiebensat1 import ProSiebenSat1IE
 from .pyvideo import PyvideoIE
 from .quickvid import QuickVidIE
+from .r7 import R7IE
 from .radiode import RadioDeIE
 from .radiobremen import RadioBremenIE
 from .radiofrance import RadioFranceIE
@@ -425,7 +430,10 @@ from .soundcloud import (
     SoundcloudUserIE,
     SoundcloudPlaylistIE
 )
-from .soundgasm import SoundgasmIE
+from .soundgasm import (
+    SoundgasmIE,
+    SoundgasmProfileIE
+)
 from .southpark import (
     SouthParkIE,
     SouthparkDeIE,
@@ -613,6 +621,7 @@ from .youtube import (
     YoutubeUserIE,
     YoutubeWatchLaterIE,
 )
+from .zapiks import ZapiksIE
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import (
     ZingMp3SongIE,

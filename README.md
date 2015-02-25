@@ -351,8 +351,8 @@ which means you can modify it, redistribute it or use it however you like.
     --all-subs                       downloads all the available subtitles of
                                      the video
     --list-subs                      lists all available subtitles for the video
-    --sub-format FORMAT              subtitle format (default=srt) ([sbv/vtt]
-                                     youtube only)
+    --sub-format FORMAT              subtitle format, accepts formats
+                                     preference, for example: "ass/srt/best"
     --sub-lang LANGS                 languages of the subtitles to download
                                      (optional) separated by commas, use IETF
                                      language tags like 'en,pt'
@@ -571,7 +571,7 @@ Support requests for services that **do** purchase the rights to distribute thei
 
 ### How can I detect whether a given URL is supported by youtube-dl?
 
-For one, have a look at the [list of supported sites](docs/supportedsites.md). Note that it can sometimes happen that the site changes its URL scheme (say, from http://example.com/v/1234567 to http://example.com/v/1234567 ) and youtube-dl reports an URL of a service in that list as unsupported. In that case, simply report a bug.
+For one, have a look at the [list of supported sites](docs/supportedsites.md). Note that it can sometimes happen that the site changes its URL scheme (say, from http://example.com/video/1234567 to http://example.com/v/1234567 ) and youtube-dl reports an URL of a service in that list as unsupported. In that case, simply report a bug.
 
 It is *not* possible to detect whether a URL is supported or not. That's because youtube-dl contains a generic extractor which matches **all** URLs. You may be tempted to disable, exclude, or remove the generic extractor, but the generic extractor not only allows users to extract videos from lots of websites that embed a video from another service, but may also be used to extract video from a service that it's hosting itself. Therefore, we neither recommend nor support disabling, excluding, or removing the generic extractor.
 

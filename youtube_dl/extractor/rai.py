@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import re
 
-from .subtitles import SubtitlesInfoExtractor
+from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
 )
@@ -12,7 +12,7 @@ from ..utils import (
 )
 
 
-class RaiIE(SubtitlesInfoExtractor):
+class RaiIE(InfoExtractor):
     _VALID_URL = r'(?P<url>http://(?:.+?\.)?(?:rai\.it|rai\.tv|rainews\.it)/dl/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})(?:-.+?)?\.html)'
     _TESTS = [
         {
@@ -89,15 +89,7 @@ class RaiIE(SubtitlesInfoExtractor):
                 'ext': 'mp4',
             })
 
-        if self._downloader.params.get('listsubtitles', False):
-            page = self._download_webpage(url, video_id)
-            self._list_available_subtitles(video_id, page)
-            return
-
-        subtitles = {}
-        if self._have_to_download_any_subtitles:
-            page = self._download_webpage(url, video_id)
-            subtitles = self.extract_subtitles(video_id, page)
+        subtitles = self.extract_subtitles(video_id, url)
 
         return {
             'id': video_id,
@@ -111,7 +103,8 @@ class RaiIE(SubtitlesInfoExtractor):
             'subtitles': subtitles,
         }
 
-    def _get_available_subtitles(self, video_id, webpage):
+    def _get_subtitles(self, video_id, url):
+        webpage = self._download_webpage(url, video_id)
         subtitles = {}
         m = re.search(r'<meta name="closedcaption" content="(?P<captions>[^"]+)"', webpage)
         if m:
@@ -120,5 +113,8 @@ class RaiIE(SubtitlesInfoExtractor):
             SRT_EXT = '.srt'
             if captions.endswith(STL_EXT):
                 captions = captions[:-len(STL_EXT)] + SRT_EXT
-            subtitles['it'] = 'http://www.rai.tv%s' % compat_urllib_parse.quote(captions)
+            subtitles['it'] = [{
+                'ext': 'srt',
+                'url': 'http://www.rai.tv%s' % compat_urllib_parse.quote(captions),
+            }]
         return subtitles

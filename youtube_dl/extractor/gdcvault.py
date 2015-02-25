@@ -7,6 +7,7 @@ from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
 )
+from ..utils import remove_end
 
 
 class GDCVaultIE(InfoExtractor):
@@ -65,10 +66,12 @@ class GDCVaultIE(InfoExtractor):
 
     def _parse_flv(self, xml_description):
         video_formats = []
-        akami_url = xml_description.find('./metadata/akamaiHost').text
+        akamai_url = xml_description.find('./metadata/akamaiHost').text
         slide_video_path = xml_description.find('./metadata/slideVideo').text
         video_formats.append({
-            'url': 'rtmp://' + akami_url + '/' + slide_video_path,
+            'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
+            'play_path': remove_end(slide_video_path, '.flv'),
+            'ext': 'flv',
             'format_note': 'slide deck video',
             'quality': -2,
             'preference': -2,
@@ -76,7 +79,9 @@ class GDCVaultIE(InfoExtractor):
         })
         speaker_video_path = xml_description.find('./metadata/speakerVideo').text
         video_formats.append({
-            'url': 'rtmp://' + akami_url + '/' + speaker_video_path,
+            'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
+            'play_path': remove_end(speaker_video_path, '.flv'),
+            'ext': 'flv',
             'format_note': 'speaker video',
             'quality': -1,
             'preference': -1,

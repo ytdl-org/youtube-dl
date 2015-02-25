@@ -6,6 +6,7 @@ import re
 import time
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import (
     struct_unpack,
     remove_end,
@@ -96,12 +97,14 @@ class RTVEALaCartaIE(InfoExtractor):
             ).replace('.net.rtve', '.multimedia.cdn.rtve')
             video_path = self._download_webpage(
                 auth_url, video_id, 'Getting video url')
-            # Use mvod.akcdn instead of flash.akamaihd.multimedia.cdn to get
+            # Use mvod1.akcdn instead of flash.akamaihd.multimedia.cdn to get
             # the right Content-Length header and the mp4 format
-            video_url = (
-                'http://mvod.akcdn.rtve.es/{0}&v=2.6.8'
-                '&fp=MAC%2016,0,0,296&r=MRUGG&g=OEOJWFXNFGCP'.format(video_path)
-            )
+            video_url = compat_urlparse.urljoin(
+                'http://mvod1.akcdn.rtve.es/', video_path)
+
+        subtitles = None
+        if info.get('sbtFile') is not None:
+            subtitles = self.extract_subtitles(video_id, info['sbtFile'])
 
         return {
             'id': video_id,
@@ -109,7 +112,16 @@ class RTVEALaCartaIE(InfoExtractor):
             'url': video_url,
             'thumbnail': info.get('image'),
             'page_url': url,
+            'subtitles': subtitles,
         }
+
+    def _get_subtitles(self, video_id, sub_file):
+        subs = self._download_json(
+            sub_file + '.json', video_id,
+            'Downloading subtitles info')['page']['items']
+        return dict(
+            (s['lang'], [{'ext': 'vtt', 'url': s['src']}])
+            for s in subs)
 
 
 class RTVELiveIE(InfoExtractor):

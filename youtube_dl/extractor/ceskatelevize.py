@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import re
 
-from .subtitles import SubtitlesInfoExtractor
+from .common import InfoExtractor
 from ..compat import (
     compat_urllib_request,
     compat_urllib_parse,
@@ -15,7 +15,7 @@ from ..utils import (
 )
 
 
-class CeskaTelevizeIE(SubtitlesInfoExtractor):
+class CeskaTelevizeIE(InfoExtractor):
     _VALID_URL = r'https?://www\.ceskatelevize\.cz/(porady|ivysilani)/(.+/)?(?P<id>[^?#]+)'
 
     _TESTS = [
@@ -107,13 +107,7 @@ class CeskaTelevizeIE(SubtitlesInfoExtractor):
         subtitles = {}
         subs = item.get('subtitles')
         if subs:
-            subtitles['cs'] = subs[0]['url']
-
-        if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id, subtitles)
-            return
-
-        subtitles = self._fix_subtitles(self.extract_subtitles(video_id, subtitles))
+            subtitles = self.extract_subtitles(episode_id, subs)
 
         return {
             'id': episode_id,
@@ -125,11 +119,20 @@ class CeskaTelevizeIE(SubtitlesInfoExtractor):
             'subtitles': subtitles,
         }
 
+    def _get_subtitles(self, episode_id, subs):
+        original_subtitles = self._download_webpage(
+            subs[0]['url'], episode_id, 'Downloading subtitles')
+        srt_subs = self._fix_subtitles(original_subtitles)
+        return {
+            'cs': [{
+                'ext': 'srt',
+                'data': srt_subs,
+            }]
+        }
+
     @staticmethod
     def _fix_subtitles(subtitles):
         """ Convert millisecond-based subtitles to SRT """
-        if subtitles is None:
-            return subtitles  # subtitles not requested
 
         def _msectotimecode(msec):
             """ Helper utility to convert milliseconds to timecode """
@@ -149,7 +152,4 @@ class CeskaTelevizeIE(SubtitlesInfoExtractor):
                 else:
                     yield line
 
-        fixed_subtitles = {}
-        for k, v in subtitles.items():
-            fixed_subtitles[k] = "\r\n".join(_fix_subtitle(v))
-        return fixed_subtitles
+        return "\r\n".join(_fix_subtitle(subtitles))

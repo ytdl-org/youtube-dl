@@ -547,7 +547,16 @@ class GenericIE(InfoExtractor):
                 'id': 'aanslagen-kopenhagen',
                 'title': 'Aanslagen Kopenhagen | RTL Nieuws',
             }
-        }
+        },
+        # Zapiks embed
+        {
+            'url': 'http://www.skipass.com/news/116090-bon-appetit-s5ep3-baqueira-mi-cor.html',
+            'info_dict': {
+                'id': '118046',
+                'ext': 'mp4',
+                'title': 'EP3S5 - Bon Appétit - Baqueira Mi Corazon !',
+            }
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -1097,6 +1106,12 @@ class GenericIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'Livestream')
+
+        # Look for Zapiks embed
+        mobj = re.search(
+            r'<iframe[^>]+src="(?P<url>https?://(?:www\.)?zapiks\.fr/index\.php\?.+?)"', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'Zapiks')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

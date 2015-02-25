@@ -273,6 +273,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='noplaylist', default=False,
         help='If the URL refers to a video and a playlist, download only the video.')
     selection.add_option(
+        '--yes-playlist',
+        action='store_false', dest='noplaylist', default=False,
+        help='If the URL refers to a video and a playlist, download the playlist.')
+    selection.add_option(
         '--age-limit',
         metavar='YEARS', dest='age_limit', default=None, type=int,
         help='download only videos suitable for the given age')
@@ -387,8 +391,8 @@ def parseOpts(overrideArguments=None):
         help='lists all available subtitles for the video')
     subtitles.add_option(
         '--sub-format',
-        action='store', dest='subtitlesformat', metavar='FORMAT', default='srt',
-        help='subtitle format (default=srt) ([sbv/vtt] youtube only)')
+        action='store', dest='subtitlesformat', metavar='FORMAT', default='best',
+        help='subtitle format, accepts formats preference, for example: "ass/srt/best"')
     subtitles.add_option(
         '--sub-lang', '--sub-langs', '--srt-lang',
         action='callback', dest='subtitleslangs', metavar='LANGS', type='str',

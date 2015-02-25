@@ -8,7 +8,7 @@ import binascii
 import hashlib
 
 
-from .subtitles import SubtitlesInfoExtractor
+from .common import InfoExtractor
 from ..compat import (
     compat_str,
 )
@@ -22,7 +22,7 @@ from ..utils import (
 _x = lambda p: xpath_with_ns(p, {'smil': 'http://www.w3.org/2005/SMIL21/Language'})
 
 
-class ThePlatformIE(SubtitlesInfoExtractor):
+class ThePlatformIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         (?:https?://(?:link|player)\.theplatform\.com/[sp]/(?P<provider_id>[^/]+)/
            (?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/)?
@@ -106,15 +106,11 @@ class ThePlatformIE(SubtitlesInfoExtractor):
         captions = info.get('captions')
         if isinstance(captions, list):
             for caption in captions:
-                lang, src = caption.get('lang'), caption.get('src')
-                if lang and src:
-                    subtitles[lang] = src
-
-        if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id, subtitles)
-            return
-
-        subtitles = self.extract_subtitles(video_id, subtitles)
+                lang, src, mime = caption.get('lang', 'en'), caption.get('src'), caption.get('type')
+                subtitles[lang] = [{
+                    'ext': 'srt' if mime == 'text/srt' else 'ttml',
+                    'url': src,
+                }]
 
         head = meta.find(_x('smil:head'))
         body = meta.find(_x('smil:body'))

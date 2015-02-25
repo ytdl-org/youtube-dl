@@ -311,14 +311,14 @@ class FileDownloader(object):
         """
 
         nooverwrites_and_exists = (
-            self.params.get('nooverwrites', False)
-            and os.path.exists(encodeFilename(filename))
+            self.params.get('nooverwrites', False) and
+            os.path.exists(encodeFilename(filename))
         )
 
         continuedl_and_exists = (
-            self.params.get('continuedl', False)
-            and os.path.isfile(encodeFilename(filename))
-            and not self.params.get('nopart', False)
+            self.params.get('continuedl', False) and
+            os.path.isfile(encodeFilename(filename)) and
+            not self.params.get('nopart', False)
         )
 
         # Check file already present

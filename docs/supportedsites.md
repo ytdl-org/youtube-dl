@@ -72,6 +72,8 @@
  - **CeskaTelevize**
  - **channel9**: Channel 9
  - **Chilloutzone**
+ - **chirbit**
+ - **chirbit:profile**
  - **Cinchcast**
  - **Cinemassacre**
  - **clipfish**
@@ -330,6 +332,7 @@
  - **prosiebensat1**: ProSiebenSat.1 Digital
  - **Pyvideo**
  - **QuickVid**
+ - **R7**
  - **radio.de**
  - **radiobremen**
  - **radiofrance**
@@ -385,7 +388,8 @@
  - **soundcloud:playlist**
  - **soundcloud:set**
  - **soundcloud:user**
- - **Soundgasm**
+ - **soundgasm**
+ - **soundgasm:profile**
  - **southpark.cc.com**
  - **southpark.de**
  - **Space**
@@ -451,6 +455,7 @@
  - **Turbo**
  - **Tutv**
  - **tv.dfb.de**
+ - **TV4**: tv4.se and tv4play.se
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvp.pl**
  - **tvp.pl:Series**
@@ -558,6 +563,7 @@
  - **youtube:subscriptions**: YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)
  - **youtube:user**: YouTube.com user videos (URL or "ytuser" keyword)
  - **youtube:watch_later**: Youtube watch later list, ":ytwatchlater" for short (requires authentication)
+ - **Zapiks**
  - **ZDF**
  - **ZDFChannel**
  - **zingmp3:album**: mp3.zing.vn albums

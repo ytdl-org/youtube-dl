@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import time
 import hmac
 
-from .subtitles import SubtitlesInfoExtractor
+from .common import InfoExtractor
 from ..compat import (
     compat_str,
     compat_urllib_parse,
@@ -17,7 +17,7 @@ from ..utils import (
 )
 
 
-class AtresPlayerIE(SubtitlesInfoExtractor):
+class AtresPlayerIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?atresplayer\.com/television/[^/]+/[^/]+/[^/]+/(?P<id>.+?)_\d+\.html'
     _TESTS = [
         {
@@ -144,13 +144,12 @@ class AtresPlayerIE(SubtitlesInfoExtractor):
         thumbnail = xpath_text(episode, './media/asset/files/background', 'thumbnail')
 
         subtitles = {}
-        subtitle = xpath_text(episode, './media/asset/files/subtitle', 'subtitle')
-        if subtitle:
-            subtitles['es'] = subtitle
-
-        if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id, subtitles)
-            return
+        subtitle_url = xpath_text(episode, './media/asset/files/subtitle', 'subtitle')
+        if subtitle_url:
+            subtitles['es'] = [{
+                'ext': 'srt',
+                'url': subtitle_url,
+            }]
 
         return {
             'id': video_id,
@@ -159,5 +158,5 @@ class AtresPlayerIE(SubtitlesInfoExtractor):
             'thumbnail': thumbnail,
             'duration': duration,
             'formats': formats,
-            'subtitles': self.extract_subtitles(video_id, subtitles),
+            'subtitles': subtitles,
         }

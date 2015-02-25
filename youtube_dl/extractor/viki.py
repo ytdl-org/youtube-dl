@@ -2,16 +2,17 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_urlparse
 from ..utils import (
     ExtractorError,
     unescapeHTML,
     unified_strdate,
     US_RATINGS,
 )
-from .subtitles import SubtitlesInfoExtractor
+from .common import InfoExtractor
 
 
-class VikiIE(SubtitlesInfoExtractor):
+class VikiIE(InfoExtractor):
     IE_NAME = 'viki'
 
     _VALID_URL = r'^https?://(?:www\.)?viki\.com/videos/(?P<id>[0-9]+v)'
@@ -69,9 +70,6 @@ class VikiIE(SubtitlesInfoExtractor):
 
         # subtitles
         video_subtitles = self.extract_subtitles(video_id, info_webpage)
-        if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id, info_webpage)
-            return
 
         return {
             'id': video_id,
@@ -85,12 +83,15 @@ class VikiIE(SubtitlesInfoExtractor):
             'upload_date': upload_date,
         }
 
-    def _get_available_subtitles(self, video_id, info_webpage):
+    def _get_subtitles(self, video_id, info_webpage):
         res = {}
-        for sturl_html in re.findall(r'<track src="([^"]+)"/>', info_webpage):
+        for sturl_html in re.findall(r'<track src="([^"]+)"', info_webpage):
             sturl = unescapeHTML(sturl_html)
             m = re.search(r'/(?P<lang>[a-z]+)\.vtt', sturl)
             if not m:
                 continue
-            res[m.group('lang')] = sturl
+            res[m.group('lang')] = [{
+                'url': compat_urlparse.urljoin('http://www.viki.com', sturl),
+                'ext': 'vtt',
+            }]
         return res

@@ -22,6 +22,7 @@ class EscapistIE(InfoExtractor):
             'uploader_id': 'the-escapist-presents',
             'uploader': 'The Escapist Presents',
             'title': "Breaking Down Baldur's Gate",
+            'thumbnail': 're:^https?://.*\.jpg$',
         }
     }
 
@@ -30,19 +31,25 @@ class EscapistIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         uploader_id = self._html_search_regex(
-            r"<h1 class='headline'><a href='/videos/view/(.*?)'",
+            r"<h1\s+class='headline'>\s*<a\s+href='/videos/view/(.*?)'",
             webpage, 'uploader ID', fatal=False)
         uploader = self._html_search_regex(
-            r"<h1 class='headline'>(.*?)</a>",
+            r"<h1\s+class='headline'>(.*?)</a>",
             webpage, 'uploader', fatal=False)
         description = self._html_search_meta('description', webpage)
 
         raw_title = self._html_search_meta('title', webpage, fatal=True)
         title = raw_title.partition(' : ')[2]
 
-        player_url = self._og_search_video_url(webpage, name='player URL')
-        config_url = compat_urllib_parse.unquote(self._search_regex(
-            r'config=(.*)$', player_url, 'config URL'))
+        config_url = compat_urllib_parse.unquote(self._html_search_regex(
+            r'''(?x)
+            (?:
+                <param\s+name="flashvars"\s+value="config=|
+                flashvars=&quot;config=
+            )
+            ([^"&]+)
+            ''',
+            webpage, 'config URL'))
 
         formats = []
 
@@ -81,5 +88,4 @@ class EscapistIE(InfoExtractor):
             'title': title,
             'thumbnail': self._og_search_thumbnail(webpage),
             'description': description,
-            'player_url': player_url,
         }
