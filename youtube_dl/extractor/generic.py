@@ -1208,7 +1208,9 @@ class GenericIE(InfoExtractor):
             return entries[0]
         else:
             for num, e in enumerate(entries, start=1):
-                e['title'] = '%s (%d)' % (e['title'], num)
+                # 'url' results don't have a title
+                if e.get('title') is not None:
+                    e['title'] = '%s (%d)' % (e['title'], num)
             return {
                 '_type': 'playlist',
                 'entries': entries,
