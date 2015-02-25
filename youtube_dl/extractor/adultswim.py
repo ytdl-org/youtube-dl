@@ -160,8 +160,7 @@ class AdultSwimIE(InfoExtractor):
                 'description': episode_description
             })
 
-        return {
-            '_type': 'playlist',
+        data = {
             'id': episode_id,
             'display_id': episode_path,
             'entries': entries,
@@ -169,3 +168,13 @@ class AdultSwimIE(InfoExtractor):
             'description': episode_description,
             'duration': episode_duration
         }
+
+        if self._downloader.params.get('joinparts') and len(entries) > 1:
+            # convert entries => formats into formats => parts
+            self.to_screen('Found {} segments to join'.format(len(entries)))
+            data['formats'] = self._entry_formats_to_parts(entries)
+        else:
+            data['_type'] = 'playlist'
+            data['entries'] = entries
+
+        return data
