@@ -52,6 +52,7 @@ class EscapistIE(InfoExtractor):
             webpage, 'config URL'))
 
         formats = []
+        ad_formats = []
 
         def _add_format(name, cfgurl, quality):
             config = self._download_json(
@@ -61,14 +62,19 @@ class EscapistIE(InfoExtractor):
                 transform_source=js_to_json)
 
             playlist = config['playlist']
-            video_url = next(
-                p['url'] for p in playlist
-                if p.get('eventCategory') == 'Video')
-            formats.append({
-                'url': video_url,
-                'format_id': name,
-                'quality': quality,
-            })
+            for p in playlist:
+                if p.get('eventCategory') == 'Video':
+                    ar = formats
+                elif p.get('eventCategory') == 'Video Postroll':
+                    ar = ad_formats
+                else:
+                    continue
+
+                ar.append({
+                    'url': p['url'],
+                    'format_id': name,
+                    'quality': quality,
+                })
 
         _add_format('normal', config_url, quality=0)
         hq_url = (config_url +
@@ -77,10 +83,9 @@ class EscapistIE(InfoExtractor):
             _add_format('hq', hq_url, quality=1)
         except ExtractorError:
             pass  # That's fine, we'll just use normal quality
-
         self._sort_formats(formats)
 
-        return {
+        res = {
             'id': video_id,
             'formats': formats,
             'uploader': uploader,
@@ -89,3 +94,19 @@ class EscapistIE(InfoExtractor):
             'thumbnail': self._og_search_thumbnail(webpage),
             'description': description,
         }
+
+        if self._downloader.params.get('include_ads') and ad_formats:
+            self._sort_formats(ad_formats)
+            ad_res = {
+                'id': '%s-ad' % video_id,
+                'title': '%s (Postroll)' % title,
+                'formats': ad_formats,
+            }
+            return {
+                '_type': 'playlist',
+                'entries': [res, ad_res],
+                'title': title,
+                'id': video_id,
+            }
+
+        return res
