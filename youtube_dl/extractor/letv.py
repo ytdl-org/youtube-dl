@@ -136,7 +136,8 @@ class LetvIE(InfoExtractor):
 
                 url_info_dict = {
                     'url': media_url,
-                    'ext': determine_ext(dispatch[format_id][1])
+                    'ext': determine_ext(dispatch[format_id][1]),
+                    'format_id': format_id,
                 }
 
                 if format_id[-1:] == 'p':
