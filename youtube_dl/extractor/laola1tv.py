@@ -27,8 +27,6 @@ class Laola1TvIE(InfoExtractor):
         }
     }
 
-    _BROKEN = True  # Not really - extractor works fine, but f4m downloader does not support live streams yet.
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
@@ -57,11 +55,7 @@ class Laola1TvIE(InfoExtractor):
         title = xpath_text(hd_doc, './/video/title', fatal=True)
         flash_url = xpath_text(hd_doc, './/video/url', fatal=True)
         uploader = xpath_text(hd_doc, './/video/meta_organistation')
-
         is_live = xpath_text(hd_doc, './/video/islive') == 'true'
-        if is_live:
-            raise ExtractorError(
-                'Live streams are not supported by the f4m downloader.')
 
         categories = xpath_text(hd_doc, './/video/meta_sports')
         if categories:
