@@ -25,7 +25,9 @@ class MporaIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         data_json = self._search_regex(
-            r"new FM\.Player\('[^']+',\s*(\{.*?)\).player;", webpage, 'json')
+            [r"new FM\.Player\('[^']+',\s*(\{.*?)\).player;",
+             r"new\s+FM\.Kaltura\.Player\('[^']+'\s*,\s*({.+?})\);"],
+            webpage, 'json')
         data = self._parse_json(data_json, video_id)
 
         uploader = data['info_overlay'].get('username')
