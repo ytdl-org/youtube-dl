@@ -17,6 +17,7 @@
  - **AdultSwim**
  - **Aftenposten**
  - **Aftonbladet**
+ - **AirMozilla**
  - **AlJazeera**
  - **Allocine**
  - **AlphaPorno**
@@ -220,6 +221,9 @@
  - **Ku6**
  - **la7.tv**
  - **Laola1Tv**
+ - **Letv**
+ - **LetvPlaylist**
+ - **LetvTv**
  - **lifenews**: LIFE | NEWS
  - **LiveLeak**
  - **livestream**
