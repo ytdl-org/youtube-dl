@@ -250,6 +250,8 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
                 })
                 self._sort_formats(formats)
 
+            subtitles = self._extract_subtitles(cdoc, guid)
+
             virtual_id = show_name + ' ' + epTitle + ' part ' + compat_str(part_num + 1)
             entries.append({
                 'id': guid,
@@ -260,6 +262,7 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
                 'duration': duration,
                 'thumbnail': thumbnail,
                 'description': description,
+                'subtitles': subtitles,
             })
 
         return {
