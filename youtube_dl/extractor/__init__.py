@@ -481,6 +481,7 @@ from .tenplay import TenPlayIE
 from .testurl import TestURLIE
 from .testtube import TestTubeIE
 from .tf1 import TF1IE
+from .thechive import TheChiveIE
 from .theonion import TheOnionIE
 from .theplatform import ThePlatformIE
 from .thesixtyone import TheSixtyOneIE
