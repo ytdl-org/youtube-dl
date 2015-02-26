@@ -923,18 +923,18 @@ class InfoExtractor(object):
         rtmp_count = 0
         if smil.findall('./body/seq/video'):
             video = smil.findall('./body/seq/video')[0]
-            fmts, rtmp_count = self._parse_smil_video(video, base, rtmp_count)
+            fmts, rtmp_count = self._parse_smil_video(video, video_id, base, rtmp_count)
             formats.extend(fmts)
         else:
             for video in smil.findall('./body/switch/video'):
-                fmts, rtmp_count = self._parse_smil_video(video, base, rtmp_count)
+                fmts, rtmp_count = self._parse_smil_video(video, video_id, base, rtmp_count)
                 formats.extend(fmts)
 
         self._sort_formats(formats)
 
         return formats
 
-    def _parse_smil_video(self, video, base, rtmp_count):
+    def _parse_smil_video(self, video, video_id, base, rtmp_count):
         src = video.get('src')
         if not src:
             return ([], rtmp_count)
