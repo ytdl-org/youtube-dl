@@ -1290,6 +1290,7 @@ def parse_duration(s):
             (?P<only_mins>[0-9.]+)\s*(?:mins?|minutes?)\s*|
             (?P<only_hours>[0-9.]+)\s*(?:hours?)|
 
+            \s*(?P<hours_reversed>[0-9]+)\s*(?:[:h]|hours?)\s*(?P<mins_reversed>[0-9]+)\s*(?:[:m]|mins?|minutes?)\s*|
             (?:
                 (?:
                     (?:(?P<days>[0-9]+)\s*(?:[:d]|days?)\s*)?
@@ -1308,10 +1309,14 @@ def parse_duration(s):
         return float_or_none(m.group('only_hours'), invscale=60 * 60)
     if m.group('secs'):
         res += int(m.group('secs'))
+    if m.group('mins_reversed'):
+        res += int(m.group('mins_reversed')) * 60
     if m.group('mins'):
         res += int(m.group('mins')) * 60
     if m.group('hours'):
         res += int(m.group('hours')) * 60 * 60
+    if m.group('hours_reversed'):
+        res += int(m.group('hours_reversed')) * 60 * 60
     if m.group('days'):
         res += int(m.group('days')) * 24 * 60 * 60
     if m.group('ms'):

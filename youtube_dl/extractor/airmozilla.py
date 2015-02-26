@@ -4,7 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import parse_iso8601
+from ..utils import (
+    int_or_none,
+    parse_duration,
+    parse_iso8601,
+)
 
 
 class AirMozillaIE(InfoExtractor):
@@ -27,13 +31,6 @@ class AirMozillaIE(InfoExtractor):
         }
     }
 
-    _QUALITY_MAP = {
-        '360p': 0,
-        '576p': 1,
-        '640p': 2,
-        '720p': 3,
-    }
-
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
@@ -43,19 +40,23 @@ class AirMozillaIE(InfoExtractor):
         jwconfig = self._search_regex(r'\svar jwconfig = (\{.*?\});\s', embed_script, 'metadata')
         metadata = self._parse_json(jwconfig, video_id)
 
-        formats = []
-        for source in metadata['playlist'][0]['sources']:
-            fmt = {
-                'url': source['file'],
-                'ext': source['type'],
-                'format_id': self._search_regex(r'&format=(.*)$', source['file'], 'video format'),
-                'resolution': source['label'],
-                'quality': self._QUALITY_MAP.get(source['label'], -1),
-            }
-            formats.append(fmt)
+        formats = [{
+            'url': source['file'],
+            'ext': source['type'],
+            'format_id': self._search_regex(r'&format=(.*)$', source['file'], 'video format'),
+            'format': source['label'],
+            'height': int(source['label'].rstrip('p')),
+        } for source in metadata['playlist'][0]['sources']]
         self._sort_formats(formats)
 
-        duration_match = re.search(r'Duration:(?: (?P<H>\d+) hours?)?(?: (?P<M>\d+) minutes?)?', webpage)
+        view_count = int_or_none(self._html_search_regex(
+            r'Views since archived: ([0-9]+)',
+            webpage, 'view count', fatal=False))
+        timestamp = parse_iso8601(self._html_search_regex(
+            r'<time datetime="(.*?)"', webpage, 'timestamp', fatal=False))
+        duration = parse_duration(self._search_regex(
+            r'Duration:\s*(\d+\s*hours?\s*\d+\s*minutes?)',
+            webpage, 'duration', fatal=False))
 
         return {
             'id': video_id,
@@ -63,11 +64,11 @@ class AirMozillaIE(InfoExtractor):
             'formats': formats,
             'url': self._og_search_url(webpage),
             'display_id': display_id,
-            'thumbnail': metadata['playlist'][0]['image'],
+            'thumbnail': metadata['playlist'][0].get('image'),
             'description': self._og_search_description(webpage),
-            'timestamp': parse_iso8601(self._html_search_regex(r'<time datetime="(.*?)"', webpage, 'timestamp')),
+            'timestamp': timestamp,
             'location': self._html_search_regex(r'Location: (.*)', webpage, 'location', default=None),
-            'duration': int(duration_match.groupdict()['H'] or 0) * 3600 + int(duration_match.groupdict()['M'] or 0) * 60,
-            'view_count': int(self._html_search_regex(r'Views since archived: ([0-9]+)', webpage, 'view count')),
+            'duration': duration,
+            'view_count': view_count,
             'categories': re.findall(r'<a href=".*?" class="channel">(.*?)</a>', webpage),
         }
