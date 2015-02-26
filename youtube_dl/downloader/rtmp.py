@@ -119,7 +119,7 @@ class RtmpFD(FileDownloader):
         # Download using rtmpdump. rtmpdump returns exit code 2 when
         # the connection was interrumpted and resuming appears to be
         # possible. This is part of rtmpdump's normal usage, AFAIK.
-        basic_args = ['rtmpdump', '--verbose', '-r', url, '-o', tmpfilename]
+        basic_args = ['rtmpdump', '--verbose', '-r', url, '-o', tmpfilename.encode('ascii', 'replace')]
         if player_url is not None:
             basic_args += ['--swfVfy', player_url]
         if page_url is not None:
