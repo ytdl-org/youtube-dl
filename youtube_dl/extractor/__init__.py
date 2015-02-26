@@ -8,6 +8,7 @@ from .adobetv import AdobeTVIE
 from .adultswim import AdultSwimIE
 from .aftenposten import AftenpostenIE
 from .aftonbladet import AftonbladetIE
+from .airmozilla import AirMozillaIE
 from .aljazeera import AlJazeeraIE
 from .alphaporno import AlphaPornoIE
 from .anitube import AnitubeIE
