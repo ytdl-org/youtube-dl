@@ -1,14 +1,20 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import os.path
+import datetime
 import re
 import time
-import datetime
 
 from .common import InfoExtractor
-from ..compat import (compat_urlparse, compat_urllib_parse)
-from ..utils import (ExtractorError, parse_iso8601)
+from ..compat import (
+    compat_urlparse,
+    compat_urllib_parse,
+)
+from ..utils import (
+    determine_ext,
+    ExtractorError,
+    parse_iso8601,
+)
 
 
 class LetvIE(InfoExtractor):
@@ -44,7 +50,7 @@ class LetvIE(InfoExtractor):
     def urshift(val, n):
         return val >> n if val >= 0 else (val + 0x100000000) >> n
 
-    # ror() and calcTimeKey() are reversed from a embedded swf file in KLetvPlayer.swf
+    # ror() and calc_time_key() are reversed from a embedded swf file in KLetvPlayer.swf
     def ror(self, param1, param2):
         _loc3_ = 0
         while _loc3_ < param2:
@@ -52,7 +58,7 @@ class LetvIE(InfoExtractor):
             _loc3_ += 1
         return param1
 
-    def calcTimeKey(self, param1):
+    def calc_time_key(self, param1):
         _loc2_ = 773625421
         _loc3_ = self.ror(param1, _loc2_ % 13)
         _loc3_ = _loc3_ ^ _loc2_
@@ -67,7 +73,7 @@ class LetvIE(InfoExtractor):
             'platid': 1,
             'splatid': 101,
             'format': 1,
-            'tkey': self.calcTimeKey(int(time.time())),
+            'tkey': self.calc_time_key(int(time.time())),
             'domain': 'www.letv.com'
         }
         play_json = self._download_json(
@@ -108,7 +114,7 @@ class LetvIE(InfoExtractor):
 
                 url_info_dict = {
                     'url': media_url,
-                    'ext': os.path.splitext(dispatch[format_id][1])[1][1:]
+                    'ext': determine_ext(dispatch[format_id][1])
                 }
 
                 if format_id[-1:] == 'p':
