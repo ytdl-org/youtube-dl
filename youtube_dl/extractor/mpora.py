@@ -5,7 +5,7 @@ from ..utils import int_or_none
 
 
 class MporaIE(InfoExtractor):
-    _VALID_URL = r'https?://(www\.)?mpora\.(?:com|de)/videos/(?P<id>[^?#/]+)'
+    _VALID_URL = r'https?://(?:www\.)?mpora\.(?:com|de)/videos/(?P<id>[^?#/]+)'
     IE_NAME = 'MPORA'
 
     _TEST = {
