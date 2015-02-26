@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -31,7 +33,7 @@ class GameStarIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         og_title = self._og_search_title(webpage)
-        title = og_title.replace(' - Video bei GameStar.de', '').strip()
+        title = re.sub(r'\s*- Video (bei|-) GameStar\.de$', '', og_title)
 
         url = 'http://gamestar.de/_misc/videos/portal/getVideoUrl.cfm?premium=0&videoId=' + video_id
 
