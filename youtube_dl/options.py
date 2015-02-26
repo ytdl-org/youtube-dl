@@ -177,6 +177,11 @@ def parseOpts(overrideArguments=None):
         default=None, metavar='URL',
         help='Use the specified HTTP/HTTPS proxy. Pass in an empty string (--proxy "") for direct connection')
     network.add_option(
+        '--alternative-proxy', dest='alternative_proxy',
+        default=None, metavar='URL',
+        help='Use the specified HTTP/HTTPS address as the alternative proxy. Pass in an empty string (--alternative-proxy "") for direct connection'
+    )
+    network.add_option(
         '--socket-timeout',
         dest='socket_timeout', type=float, default=None, metavar='SECONDS',
         help='Time to wait before giving up, in seconds')

@@ -277,6 +277,7 @@ class YoutubeDL(object):
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
+        self._openers_pool = {}
         self.params = params
         self.cache = Cache(self)
 
@@ -320,7 +321,7 @@ class YoutubeDL(object):
         if '%(stitle)s' in self.params.get('outtmpl', ''):
             self.report_warning('%(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.')
 
-        self._setup_opener()
+        self._setup_openers()
 
         if auto_init:
             self.print_debug_header()
@@ -1729,12 +1730,16 @@ class YoutubeDL(object):
                     'See https://yt-dl.org/update if you need help updating.' %
                     latest_version)
 
-    def _setup_opener(self):
+    def _setup_openers(self):
+        self._setup_single_opener('default', self.params.get('proxy'))
+        self._setup_single_opener('alternative', self.params.get('alternative_proxy'))
+        self.use_opener('default')
+
+    def _setup_single_opener(self, opener_name, opts_proxy):
         timeout_val = self.params.get('socket_timeout')
         self._socket_timeout = 600 if timeout_val is None else float(timeout_val)
 
         opts_cookiefile = self.params.get('cookiefile')
-        opts_proxy = self.params.get('proxy')
 
         if opts_cookiefile is None:
             self.cookiejar = compat_cookiejar.CookieJar()
@@ -1767,7 +1772,13 @@ class YoutubeDL(object):
         # cases where our custom HTTP handler doesn't come into play
         # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
         opener.addheaders = []
-        self._opener = opener
+        self._openers_pool[opener_name] = opener
+
+    def use_opener(self, opener_name):
+        if opener_name in self._openers_pool:
+            self._opener = self._openers_pool[opener_name]
+        else:
+            raise Exception('Invalid opener name ' + opener_name)
 
     def encode(self, s):
         if isinstance(s, bytes):

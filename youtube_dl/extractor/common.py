@@ -1053,6 +1053,15 @@ class InfoExtractor(object):
     def _get_automatic_captions(self, *args, **kwargs):
         raise NotImplementedError("This method must be implemented by subclasses")
 
+    def _multiple_opener_supported(self):
+        return hasattr(self._downloader, 'use_opener')
+
+    def _use_opener(self, opener_name):
+        if self._multiple_opener_supported():
+            self._downloader.use_opener(opener_name)
+        else:
+            raise Exception('Multiple opener not supported')
+
 
 class SearchInfoExtractor(InfoExtractor):
     """

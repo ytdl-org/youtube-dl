@@ -33,6 +33,7 @@ class LetvIE(InfoExtractor):
         }
     }, {
         'url': 'http://www.letv.com/ptv/vplay/1415246.html',
+        'md5': 'b4b0a9248ecf34d80ee52a2609627a88',
         'info_dict': {
             'id': '1415246',
             'ext': 'mp4',
@@ -42,9 +43,23 @@ class LetvIE(InfoExtractor):
         'expected_warnings': [
             'publish time'
         ]
+    }, {
+        # This video is available only in Mainland China, thus a proxy is needed
+        'url': 'http://www.letv.com/ptv/vplay/1118082.html',
+        'md5': 'f80936fbe20fb2f58648e81386ff7927',
+        'info_dict': {
+            'id': '1118082',
+            'ext': 'mp4',
+            'title': '与龙共舞 完整版',
+            'description': 'md5:7506a5eeb1722bb9d4068f85024e3986',
+        },
+        'expected_warnings': [
+            'publish time'
+        ],
+        'params': {
+            'alternative_proxy': 'proxy.uku.im:8888'
+        }
     }]
-    # http://www.letv.com/ptv/vplay/1118082.html
-    # This video is available only in Mainland China
 
     @staticmethod
     def urshift(val, n):
@@ -76,9 +91,16 @@ class LetvIE(InfoExtractor):
             'tkey': self.calc_time_key(int(time.time())),
             'domain': 'www.letv.com'
         }
+
+        if self._multiple_opener_supported():
+            self._use_opener('alternative')
+
         play_json = self._download_json(
             'http://api.letv.com/mms/out/video/playJson?' + compat_urllib_parse.urlencode(params),
             media_id, 'playJson data')
+
+        if self._multiple_opener_supported():
+            self._use_opener('default')
 
         # Check for errors
         playstatus = play_json['playstatus']
