@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
+    compat_urllib_request,
 )
 from ..utils import (
     ExtractorError,
@@ -12,6 +13,7 @@ from ..utils import (
 
 class EscapistIE(InfoExtractor):
     _VALID_URL = r'https?://?(www\.)?escapistmagazine\.com/videos/view/[^/?#]+/(?P<id>[0-9]+)-[^/?#]*(?:$|[?#])'
+    _USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'
     _TEST = {
         'url': 'http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate',
         'md5': 'ab3a706c681efca53f0a35f1415cf0d1',
@@ -28,7 +30,9 @@ class EscapistIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        webpage_req = compat_urllib_request.Request(url)
+        webpage_req.add_header('User-Agent', self._USER_AGENT)
+        webpage = self._download_webpage(webpage_req, video_id)
 
         uploader_id = self._html_search_regex(
             r"<h1\s+class='headline'>\s*<a\s+href='/videos/view/(.*?)'",
@@ -54,9 +58,11 @@ class EscapistIE(InfoExtractor):
         formats = []
         ad_formats = []
 
-        def _add_format(name, cfgurl, quality):
+        def _add_format(name, cfg_url, quality):
+            cfg_req = compat_urllib_request.Request(cfg_url)
+            cfg_req.add_header('User-Agent', self._USER_AGENT)
             config = self._download_json(
-                cfgurl, video_id,
+                cfg_req, video_id,
                 'Downloading ' + name + ' configuration',
                 'Unable to download ' + name + ' configuration',
                 transform_source=js_to_json)
@@ -74,6 +80,9 @@ class EscapistIE(InfoExtractor):
                     'url': p['url'],
                     'format_id': name,
                     'quality': quality,
+                    'http_headers': {
+                        'User-Agent': self._USER_AGENT,
+                    },
                 })
 
         _add_format('normal', config_url, quality=0)
@@ -84,6 +93,9 @@ class EscapistIE(InfoExtractor):
         except ExtractorError:
             pass  # That's fine, we'll just use normal quality
         self._sort_formats(formats)
+
+        if '/escapist/sales-marketing/' in formats[-1]['url']:
+            raise ExtractorError('This IP address has been blocked by The Escapist', expected=True)
 
         res = {
             'id': video_id,
