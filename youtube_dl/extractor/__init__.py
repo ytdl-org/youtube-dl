@@ -346,6 +346,7 @@ from .ntvde import NTVDeIE
 from .ntvru import NTVRuIE
 from .nytimes import NYTimesIE
 from .nuvid import NuvidIE
+from .odnoklassniki import OdnoklassnikiIE
 from .oktoberfesttv import OktoberfestTVIE
 from .ooyala import OoyalaIE
 from .openfilm import OpenFilmIE
