@@ -14,7 +14,7 @@ from ..utils import (
 class KalturaIE(InfoExtractor):
     _VALID_URL = r'''(?x)
     (?:kaltura:|
-       https?://(:?www\.)?kaltura\.com/index\.php/kwidget/(?:[^/]+/)*?wid/_
+       https?://(:?(?:www|cdnapisec)\.)?kaltura\.com/index\.php/kwidget/(?:[^/]+/)*?wid/_
     )(?P<partner_id>\d+)
     (?::|
        /(?:[^/]+/)*?entry_id/
@@ -37,6 +37,10 @@ class KalturaIE(InfoExtractor):
         },
         {
             'url': 'http://www.kaltura.com/index.php/kwidget/cache_st/1300318621/wid/_269692/uiconf_id/3873291/entry_id/1_1jc2y3e4',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://cdnapisec.kaltura.com/index.php/kwidget/wid/_557781/uiconf_id/22845202/entry_id/1_plr1syf3',
             'only_matching': True,
         },
     ]
