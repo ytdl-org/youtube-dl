@@ -1713,11 +1713,8 @@ class YoutubeDL(object):
             exe_str = 'none'
         self._write_string('[debug] exe versions: %s\n' % exe_str)
 
-        proxy_map = {}
-        for handler in self._opener.handlers:
-            if hasattr(handler, 'proxies'):
-                proxy_map.update(handler.proxies)
-        self._write_string('[debug] Proxy map: ' + compat_str(proxy_map) + '\n')
+        self.dump_proxy_map('default', 'Proxy map')
+        self.dump_proxy_map('alternative', 'Alternative proxy map')
 
         if self.params.get('call_home', False):
             ipaddr = self.urlopen('https://yt-dl.org/ip').read().decode('utf-8')
@@ -1729,6 +1726,13 @@ class YoutubeDL(object):
                     'You are using an outdated version (newest version: %s)! '
                     'See https://yt-dl.org/update if you need help updating.' %
                     latest_version)
+
+    def dump_proxy_map(self, opener_name, prefix):
+        proxy_map = {}
+        for handler in self._openers_pool[opener_name].handlers:
+            if hasattr(handler, 'proxies'):
+                proxy_map.update(handler.proxies)
+        self._write_string('[debug] %s: %s\n' % (prefix, compat_str(proxy_map)))
 
     def _setup_openers(self):
         default_proxy = self.params.get('proxy')
