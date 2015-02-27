@@ -18,7 +18,7 @@ from ..utils import (
 class LyndaIE(InfoExtractor):
     IE_NAME = 'lynda'
     IE_DESC = 'lynda.com videos'
-    _VALID_URL = r'https?://www\.lynda\.com/[^/]+/[^/]+/\d+/(\d+)-\d\.html'
+    _VALID_URL = r'https?://www\.lynda\.com/(?:[^/]+/[^/]+/\d+|player/embed)/(\d+)'
     _LOGIN_URL = 'https://www.lynda.com/login/login.aspx'
     _NETRC_MACHINE = 'lynda'
 
@@ -27,7 +27,7 @@ class LyndaIE(InfoExtractor):
 
     ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to provide lynda.com account credentials.'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.lynda.com/Bootstrap-tutorials/Using-exercise-files/110885/114408-4.html',
         'md5': 'ecfc6862da89489161fb9cd5f5a6fac1',
         'info_dict': {
@@ -36,7 +36,10 @@ class LyndaIE(InfoExtractor):
             'title': 'Using the exercise files',
             'duration': 68
         }
-    }
+    }, {
+        'url': 'https://www.lynda.com/player/embed/133770?tr=foo=1;bar=g;fizz=rt&fs=0',
+        'only_matching': True,
+    }]
 
     def _real_initialize(self):
         self._login()
