@@ -1731,8 +1731,14 @@ class YoutubeDL(object):
                     latest_version)
 
     def _setup_openers(self):
-        self._setup_single_opener('default', self.params.get('proxy'))
-        self._setup_single_opener('alternative', self.params.get('alternative_proxy'))
+        default_proxy = self.params.get('proxy')
+        alternative_proxy = self.params.get('alternative_proxy')
+        if not alternative_proxy:
+            alternative_proxy = default_proxy
+
+        self._setup_single_opener('default', default_proxy)
+        self._setup_single_opener('alternative', alternative_proxy)
+
         self.use_opener('default')
 
     def _setup_single_opener(self, opener_name, opts_proxy):
