@@ -92,15 +92,13 @@ class LetvIE(InfoExtractor):
             'domain': 'www.letv.com'
         }
 
-        if self._multiple_opener_supported():
-            self._use_opener('alternative')
+        self._use_opener('alternative')
 
         play_json = self._download_json(
             'http://api.letv.com/mms/out/video/playJson?' + compat_urllib_parse.urlencode(params),
             media_id, 'playJson data')
 
-        if self._multiple_opener_supported():
-            self._use_opener('default')
+        self._use_opener('default')
 
         # Check for errors
         playstatus = play_json['playstatus']
