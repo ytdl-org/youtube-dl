@@ -155,7 +155,7 @@ class LyndaIE(InfoExtractor):
                 continue
             appear_time = m_current.group('timecode')
             disappear_time = m_next.group('timecode')
-            text = seq_current['Caption']
+            text = seq_current['Caption'].strip()
             srt += '%s\r\n%s --> %s\r\n%s' % (str(pos), appear_time, disappear_time, text)
         if srt:
             return srt
