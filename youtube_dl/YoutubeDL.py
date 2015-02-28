@@ -321,6 +321,7 @@ class YoutubeDL(object):
         if '%(stitle)s' in self.params.get('outtmpl', ''):
             self.report_warning('%(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.')
 
+        self._setup_cookiejar()
         self._setup_openers()
 
         if auto_init:
@@ -1734,21 +1735,7 @@ class YoutubeDL(object):
                 proxy_map.update(handler.proxies)
         self._write_string('[debug] %s: %s\n' % (prefix, compat_str(proxy_map)))
 
-    def _setup_openers(self):
-        default_proxy = self.params.get('proxy')
-        alternative_proxy = self.params.get('alternative_proxy')
-        if not alternative_proxy:
-            alternative_proxy = default_proxy
-
-        self._setup_single_opener('default', default_proxy)
-        self._setup_single_opener('alternative', alternative_proxy)
-
-        self.use_opener('default')
-
-    def _setup_single_opener(self, opener_name, opts_proxy):
-        timeout_val = self.params.get('socket_timeout')
-        self._socket_timeout = 600 if timeout_val is None else float(timeout_val)
-
+    def _setup_cookiejar(self):
         opts_cookiefile = self.params.get('cookiefile')
 
         if opts_cookiefile is None:
@@ -1759,6 +1746,25 @@ class YoutubeDL(object):
             if os.access(opts_cookiefile, os.R_OK):
                 self.cookiejar.load()
 
+    def _setup_openers(self):
+        timeout_val = self.params.get('socket_timeout')
+        self._socket_timeout = 600 if timeout_val is None else float(timeout_val)
+
+        debuglevel = 1 if self.params.get('debug_printtraffic') else 0
+        https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)
+        ydlh = YoutubeDLHandler(self.params, debuglevel=debuglevel)
+
+        default_proxy = self.params.get('proxy')
+        alternative_proxy = self.params.get('alternative_proxy')
+        if not alternative_proxy:
+            alternative_proxy = default_proxy
+
+        self._setup_single_opener('default', default_proxy, https_handler, ydlh)
+        self._setup_single_opener('alternative', alternative_proxy, https_handler, ydlh)
+
+        self.use_opener('default')
+
+    def _setup_single_opener(self, opener_name, opts_proxy, https_handler, ydlh):
         cookie_processor = compat_urllib_request.HTTPCookieProcessor(
             self.cookiejar)
         if opts_proxy is not None:
@@ -1773,9 +1779,6 @@ class YoutubeDL(object):
                 proxies['https'] = proxies['http']
         proxy_handler = compat_urllib_request.ProxyHandler(proxies)
 
-        debuglevel = 1 if self.params.get('debug_printtraffic') else 0
-        https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)
-        ydlh = YoutubeDLHandler(self.params, debuglevel=debuglevel)
         opener = compat_urllib_request.build_opener(
             https_handler, proxy_handler, cookie_processor, ydlh)
         # Delete the default user-agent header, which would otherwise apply in
