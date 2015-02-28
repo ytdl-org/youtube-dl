@@ -751,6 +751,10 @@ def parseOpts(overrideArguments=None):
         '--exec',
         metavar='CMD', dest='exec_cmd',
         help='Execute a command on the file after downloading, similar to find\'s -exec syntax. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'')
+    postproc.add_option(
+        '--convert-subtitles', '--convert-subs',
+        metavar='FORMAT', dest='convertsubtitles', default=None,
+        help='Convert the subtitles to other format (currently supported: srt|ass|vtt)')
 
     parser.add_option_group(general)
     parser.add_option_group(network)
