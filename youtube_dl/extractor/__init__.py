@@ -350,7 +350,6 @@ from .odnoklassniki import OdnoklassnikiIE
 from .oktoberfesttv import OktoberfestTVIE
 from .ooyala import OoyalaIE
 from .openfilm import OpenFilmIE
-from .oppetarkiv import OppetArkivIE
 from .orf import (
     ORFTVthekIE,
     ORFOE1IE,
