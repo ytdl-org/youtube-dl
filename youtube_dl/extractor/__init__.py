@@ -233,6 +233,12 @@ from .karaoketv import KaraoketvIE
 from .keezmovies import KeezMoviesIE
 from .khanacademy import KhanAcademyIE
 from .kickstarter import KickStarterIE
+from .kissanime import (
+    KissAnimeIE,
+    KissCartoonIE,
+    KissAnimePlaylistIE,
+    KissCartoonPlaylistIE,
+)
 from .keek import KeekIE
 from .kontrtube import KontrTubeIE
 from .krasview import KrasViewIE
