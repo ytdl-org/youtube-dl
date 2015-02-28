@@ -170,6 +170,9 @@ def _real_main(argv=None):
     if opts.recodevideo is not None:
         if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv']:
             parser.error('invalid video recode format specified')
+    if opts.convertsubtitles is not None:
+        if opts.convertsubtitles not in ['srt', 'vtt', 'ass']:
+            parser.error('invalid subtitle format specified')
 
     if opts.date is not None:
         date = DateRange.day(opts.date)
@@ -222,6 +225,11 @@ def _real_main(argv=None):
         postprocessors.append({
             'key': 'FFmpegVideoConvertor',
             'preferedformat': opts.recodevideo,
+        })
+    if opts.convertsubtitles:
+        postprocessors.append({
+            'key': 'FFmpegSubtitlesConvertor',
+            'format': opts.convertsubtitles,
         })
     if opts.embedsubtitles:
         postprocessors.append({

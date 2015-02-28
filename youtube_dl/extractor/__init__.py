@@ -227,6 +227,7 @@ from .jeuxvideo import JeuxVideoIE
 from .jove import JoveIE
 from .jukebox import JukeboxIE
 from .jpopsukitv import JpopsukiIE
+from .kaltura import KalturaIE
 from .kankan import KankanIE
 from .karaoketv import KaraoketvIE
 from .keezmovies import KeezMoviesIE
@@ -345,6 +346,7 @@ from .ntvde import NTVDeIE
 from .ntvru import NTVRuIE
 from .nytimes import NYTimesIE
 from .nuvid import NuvidIE
+from .odnoklassniki import OdnoklassnikiIE
 from .oktoberfesttv import OktoberfestTVIE
 from .ooyala import OoyalaIE
 from .openfilm import OpenFilmIE
@@ -372,6 +374,7 @@ from .pornotube import PornotubeIE
 from .pornoxo import PornoXOIE
 from .promptfile import PromptFileIE
 from .prosiebensat1 import ProSiebenSat1IE
+from .puls4 import Puls4IE
 from .pyvideo import PyvideoIE
 from .quickvid import QuickVidIE
 from .r7 import R7IE
