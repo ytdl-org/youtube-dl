@@ -210,6 +210,7 @@
  - **Jove**
  - **jpopsuki.tv**
  - **Jukebox**
+ - **Kaltura**
  - **Kankan**
  - **Karaoketv**
  - **keek**
@@ -308,6 +309,7 @@
  - **Nuvid**
  - **NYTimes**
  - **ocw.mit.edu**
+ - **Odnoklassniki**
  - **OktoberfestTV**
  - **on.aol.com**
  - **Ooyala**
@@ -334,6 +336,7 @@
  - **PornoXO**
  - **PromptFile**
  - **prosiebensat1**: ProSiebenSat.1 Digital
+ - **Puls4**
  - **Pyvideo**
  - **QuickVid**
  - **R7**
@@ -412,7 +415,7 @@
  - **StreamCZ**
  - **StreetVoice**
  - **SunPorno**
- - **SVTPlay**
+ - **SVTPlay**: SVT Play and Öppet arkiv
  - **SWRMediathek**
  - **Syfy**
  - **SztvHu**
