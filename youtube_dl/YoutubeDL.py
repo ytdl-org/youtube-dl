@@ -278,6 +278,7 @@ class YoutubeDL(object):
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
         self._openers_pool = {}
+        self.DEFAULT_OPENER_NAME = 'default'
         self.params = params
         self.cache = Cache(self)
 
@@ -1642,7 +1643,7 @@ class YoutubeDL(object):
             [[lang, ', '.join(f['ext'] for f in reversed(formats))]
                 for lang, formats in subtitles.items()]))
 
-    def urlopen(self, req):
+    def urlopen(self, req, opener_name=None):
         """ Start an HTTP download """
 
         # According to RFC 3986, URLs can not contain non-ASCII characters, however this is not
@@ -1664,7 +1665,12 @@ class YoutubeDL(object):
                     url_escaped, data=req.data, headers=req.headers,
                     origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
 
-        return self._opener.open(req, timeout=self._socket_timeout)
+        if not opener_name:
+            opener_name = self.DEFAULT_OPENER_NAME
+        if opener_name not in self._openers_pool:
+            raise Exception('Invalid opener name "%s"' % compat_str(opener_name))
+
+        return self._openers_pool[opener_name].open(req, timeout=self._socket_timeout)
 
     def print_debug_header(self):
         if not self.params.get('verbose'):
@@ -1762,8 +1768,6 @@ class YoutubeDL(object):
         self._setup_single_opener('default', default_proxy, https_handler, ydlh)
         self._setup_single_opener('alternative', alternative_proxy, https_handler, ydlh)
 
-        self.use_opener('default')
-
     def _setup_single_opener(self, opener_name, opts_proxy, https_handler, ydlh):
         cookie_processor = compat_urllib_request.HTTPCookieProcessor(
             self.cookiejar)
@@ -1786,12 +1790,6 @@ class YoutubeDL(object):
         # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
         opener.addheaders = []
         self._openers_pool[opener_name] = opener
-
-    def use_opener(self, opener_name):
-        if opener_name in self._openers_pool:
-            self._opener = self._openers_pool[opener_name]
-        else:
-            raise Exception('Invalid opener name ' + opener_name)
 
     def encode(self, s):
         if isinstance(s, bytes):

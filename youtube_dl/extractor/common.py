@@ -301,7 +301,7 @@ class InfoExtractor(object):
     def IE_NAME(self):
         return type(self).__name__[:-2]
 
-    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True):
+    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, opener_name=None):
         """ Returns the response handle """
         if note is None:
             self.report_download_webpage(video_id)
@@ -311,7 +311,7 @@ class InfoExtractor(object):
             else:
                 self.to_screen('%s: %s' % (video_id, note))
         try:
-            return self._downloader.urlopen(url_or_request)
+            return self._downloader.urlopen(url_or_request, opener_name=opener_name)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             if errnote is False:
                 return False
@@ -324,13 +324,13 @@ class InfoExtractor(object):
                 self._downloader.report_warning(errmsg)
                 return False
 
-    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True):
+    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True, opener_name=None):
         """ Returns a tuple (page content as string, URL handle) """
         # Strip hashes from the URL (#1038)
         if isinstance(url_or_request, (compat_str, str)):
             url_or_request = url_or_request.partition('#')[0]
 
-        urlh = self._request_webpage(url_or_request, video_id, note, errnote, fatal)
+        urlh = self._request_webpage(url_or_request, video_id, note, errnote, fatal, opener_name=opener_name)
         if urlh is False:
             assert not fatal
             return False
@@ -410,13 +410,13 @@ class InfoExtractor(object):
 
         return content
 
-    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5):
+    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, opener_name=None):
         """ Returns the data of the page as a string """
         success = False
         try_count = 0
         while success is False:
             try:
-                res = self._download_webpage_handle(url_or_request, video_id, note, errnote, fatal)
+                res = self._download_webpage_handle(url_or_request, video_id, note, errnote, fatal, opener_name=opener_name)
                 success = True
             except compat_http_client.IncompleteRead as e:
                 try_count += 1
@@ -431,10 +431,10 @@ class InfoExtractor(object):
 
     def _download_xml(self, url_or_request, video_id,
                       note='Downloading XML', errnote='Unable to download XML',
-                      transform_source=None, fatal=True):
+                      transform_source=None, fatal=True, opener_name=None):
         """Return the xml as an xml.etree.ElementTree.Element"""
         xml_string = self._download_webpage(
-            url_or_request, video_id, note, errnote, fatal=fatal)
+            url_or_request, video_id, note, errnote, fatal=fatal, opener_name=opener_name)
         if xml_string is False:
             return xml_string
         if transform_source:
@@ -445,9 +445,9 @@ class InfoExtractor(object):
                        note='Downloading JSON metadata',
                        errnote='Unable to download JSON metadata',
                        transform_source=None,
-                       fatal=True):
+                       fatal=True, opener_name=None):
         json_string = self._download_webpage(
-            url_or_request, video_id, note, errnote, fatal=fatal)
+            url_or_request, video_id, note, errnote, fatal=fatal, opener_name=opener_name)
         if (not fatal) and json_string is False:
             return None
         return self._parse_json(
