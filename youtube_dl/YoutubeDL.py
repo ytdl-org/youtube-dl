@@ -28,6 +28,7 @@ from .compat import (
     compat_basestring,
     compat_cookiejar,
     compat_expanduser,
+    compat_get_terminal_size,
     compat_http_client,
     compat_kwargs,
     compat_str,
@@ -46,7 +47,6 @@ from .utils import (
     ExtractorError,
     format_bytes,
     formatSeconds,
-    get_term_width,
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
@@ -284,7 +284,7 @@ class YoutubeDL(object):
             try:
                 import pty
                 master, slave = pty.openpty()
-                width = get_term_width()
+                width = compat_get_terminal_size().columns
                 if width is None:
                     width_args = []
                 else:

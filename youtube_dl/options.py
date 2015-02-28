@@ -8,11 +8,11 @@ import sys
 from .downloader.external import list_external_downloaders
 from .compat import (
     compat_expanduser,
+    compat_get_terminal_size,
     compat_getenv,
     compat_kwargs,
 )
 from .utils import (
-    get_term_width,
     write_string,
 )
 from .version import __version__
@@ -100,7 +100,7 @@ def parseOpts(overrideArguments=None):
         return opts
 
     # No need to wrap help messages if we're on a wide console
-    columns = get_term_width()
+    columns = compat_get_terminal_size().columns
     max_width = columns if columns else 80
     max_help_position = 80
 

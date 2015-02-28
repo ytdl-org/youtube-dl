@@ -35,7 +35,6 @@ import zlib
 from .compat import (
     compat_basestring,
     compat_chr,
-    compat_getenv,
     compat_html_entities,
     compat_http_client,
     compat_parse_qs,
@@ -1171,22 +1170,6 @@ def parse_filesize(s):
     num_str = m.group('num').replace(',', '.')
     mult = _UNIT_TABLE[m.group('unit')]
     return int(float(num_str) * mult)
-
-
-def get_term_width():
-    columns = compat_getenv('COLUMNS', None)
-    if columns:
-        return int(columns)
-
-    try:
-        sp = subprocess.Popen(
-            ['stty', 'size'],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = sp.communicate()
-        return int(out.split()[1])
-    except:
-        pass
-    return None
 
 
 def month_by_name(name):
