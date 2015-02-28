@@ -8,6 +8,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     js_to_json,
+    parse_duration,
 )
 
 
@@ -25,6 +26,7 @@ class EscapistIE(InfoExtractor):
             'uploader': 'The Escapist Presents',
             'title': "Breaking Down Baldur's Gate",
             'thumbnail': 're:^https?://.*\.jpg$',
+            'duration': 264,
         }
     }
 
@@ -41,6 +43,7 @@ class EscapistIE(InfoExtractor):
             r"<h1\s+class='headline'>(.*?)</a>",
             webpage, 'uploader', fatal=False)
         description = self._html_search_meta('description', webpage)
+        duration = parse_duration(self._html_search_meta('duration', webpage))
 
         raw_title = self._html_search_meta('title', webpage, fatal=True)
         title = raw_title.partition(' : ')[2]
@@ -105,6 +108,7 @@ class EscapistIE(InfoExtractor):
             'title': title,
             'thumbnail': self._og_search_thumbnail(webpage),
             'description': description,
+            'duration': duration,
         }
 
         if self._downloader.params.get('include_ads') and ad_formats:
