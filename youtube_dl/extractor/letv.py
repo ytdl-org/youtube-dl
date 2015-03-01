@@ -57,7 +57,7 @@ class LetvIE(InfoExtractor):
             'publish time'
         ],
         'params': {
-            'alternative_proxy': 'proxy.uku.im:8888'
+            'cn_verification_proxy': 'proxy.uku.im:8888'
         }
     }]
 
@@ -94,7 +94,7 @@ class LetvIE(InfoExtractor):
 
         play_json = self._download_json(
             'http://api.letv.com/mms/out/video/playJson?' + compat_urllib_parse.urlencode(params),
-            media_id, 'playJson data', opener_name='alternative')
+            media_id, 'playJson data', opener_name='cn_verification')
 
         # Check for errors
         playstatus = play_json['playstatus']

@@ -1721,7 +1721,7 @@ class YoutubeDL(object):
         self._write_string('[debug] exe versions: %s\n' % exe_str)
 
         self.dump_proxy_map('default', 'Proxy map')
-        self.dump_proxy_map('alternative', 'Alternative proxy map')
+        self.dump_proxy_map('cn_verification', 'China IP verification proxy map')
 
         if self.params.get('call_home', False):
             ipaddr = self.urlopen('https://yt-dl.org/ip').read().decode('utf-8')
@@ -1761,12 +1761,13 @@ class YoutubeDL(object):
         ydlh = YoutubeDLHandler(self.params, debuglevel=debuglevel)
 
         default_proxy = self.params.get('proxy')
-        alternative_proxy = self.params.get('alternative_proxy')
-        if not alternative_proxy:
-            alternative_proxy = default_proxy
+        cn_verification_proxy = self.params.get('cn_verification_proxy')
+
+        if not cn_verification_proxy:
+            cn_verification_proxy = default_proxy
 
         self._setup_single_opener('default', default_proxy, https_handler, ydlh)
-        self._setup_single_opener('alternative', alternative_proxy, https_handler, ydlh)
+        self._setup_single_opener('cn_verification', cn_verification_proxy, https_handler, ydlh)
 
     def _setup_single_opener(self, opener_name, opts_proxy, https_handler, ydlh):
         cookie_processor = compat_urllib_request.HTTPCookieProcessor(

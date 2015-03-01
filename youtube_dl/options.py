@@ -177,9 +177,9 @@ def parseOpts(overrideArguments=None):
         default=None, metavar='URL',
         help='Use the specified HTTP/HTTPS proxy. Pass in an empty string (--proxy "") for direct connection')
     network.add_option(
-        '--alternative-proxy', dest='alternative_proxy',
+        '--cn-verification-proxy', dest='cn_verification_proxy',
         default=None, metavar='URL',
-        help='Use the specified HTTP/HTTPS address as the alternative proxy. Pass in an empty string (--alternative-proxy "") for direct connection'
+        help='The proxy used in the China IP verification step. The default proxy specified by --proxy is used if this option is not given'
     )
     network.add_option(
         '--socket-timeout',
