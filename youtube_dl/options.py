@@ -179,7 +179,7 @@ def parseOpts(overrideArguments=None):
     network.add_option(
         '--cn-verification-proxy', dest='cn_verification_proxy',
         default=None, metavar='URL',
-        help='The proxy used in the China IP verification step. The default proxy specified by --proxy is used if this option is not given'
+        help='The proxy used in the China IP verification step of information extraction. The default proxy specified by --proxy is used if this option is not given'
     )
     network.add_option(
         '--socket-timeout',
