@@ -529,6 +529,10 @@ YouTube requires an additional signature since September 2012 which is not suppo
 
 In February 2015, the new YouTube player contained a character sequence in a string that was misinterpreted by old versions of youtube-dl. See [above](#how-do-i-update-youtube-dl) for how to update youtube-dl.
 
+### HTTP Error 429: Too Many Requests or 402: Payment Required
+
+These two error codes indicate that the service is blocking your IP address because of overuse. Contact the service and ask them to unblock your IP address, or - if you have acquired a whitelisted IP address already - use the [`--proxy` or `--network-address` options](#network-options) to select another IP address.
+
 ### SyntaxError: Non-ASCII character ###
 
 The error
