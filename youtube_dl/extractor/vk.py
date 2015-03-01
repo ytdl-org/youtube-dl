@@ -152,7 +152,10 @@ class VKIE(InfoExtractor):
             'use --username and --password options to provide account credentials.',
 
             r'<!>Unknown error':
-            'Video %s does not exist.'
+            'Video %s does not exist.',
+
+            r'<!>Видео временно недоступно':
+            'Video %s is temporarily unavailable.',
         }
 
         for error_re, error_msg in ERRORS.items():
