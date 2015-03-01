@@ -11,14 +11,14 @@ from .common import InfoExtractor
 class TudouIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tudou\.com/(?:listplay|programs(?:/view)?|albumplay)/.*?/(?P<id>[^/?#]+?)(?:\.html)?/?(?:$|[?#])'
     _TESTS = [{
-        u'url': u'http://www.tudou.com/listplay/zzdE77v6Mmo/2xN2duXMxmw.html',
-        u'file': u'2xN2duXMxmw.f4v',
-        u'md5': u'140a49ed444bd22f93330985d8475fcb',
-        u'info_dict': {
-            u'id': u'159448201',
-            u'ext': u'f4v',
-            u'title': u'卡马乔国足开大脚长传冲吊集锦',
-            u'thumbnail': u're:^https?://.*\.jpg$',
+        'url': 'http://www.tudou.com/listplay/zzdE77v6Mmo/2xN2duXMxmw.html',
+        'file': '2xN2duXMxmw.f4v',
+        'md5': '140a49ed444bd22f93330985d8475fcb',
+        'info_dict': {
+            'id': '159448201',
+            'ext': 'f4v',
+            'title': '卡马乔国足开大脚长传冲吊集锦',
+            'thumbnail': 're:^https?://.*\.jpg$',
         }
     }, {
         'url': 'http://www.tudou.com/programs/view/ajX3gyhL0pc/',
