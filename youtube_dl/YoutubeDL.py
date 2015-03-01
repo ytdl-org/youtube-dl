@@ -4,8 +4,10 @@
 from __future__ import absolute_import, unicode_literals
 
 import collections
+import contextlib
 import datetime
 import errno
+import fileinput
 import io
 import itertools
 import json
@@ -1452,8 +1454,11 @@ class YoutubeDL(object):
         return self._download_retcode
 
     def download_with_info_file(self, info_filename):
-        with io.open(info_filename, 'r', encoding='utf-8') as f:
-            info = json.load(f)
+        with contextlib.closing(fileinput.FileInput(
+                [info_filename], mode='r',
+                openhook=fileinput.hook_encoded('utf-8'))) as f:
+            # FileInput doesn't have a read method, we can't call json.load
+            info = json.loads('\n'.join(f))
         try:
             self.process_ie_result(info, download=True)
         except DownloadError:
