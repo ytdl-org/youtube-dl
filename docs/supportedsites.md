@@ -17,6 +17,7 @@
  - **AdultSwim**
  - **Aftenposten**
  - **Aftonbladet**
+ - **AirMozilla**
  - **AlJazeera**
  - **Allocine**
  - **AlphaPorno**
@@ -72,6 +73,8 @@
  - **CeskaTelevize**
  - **channel9**: Channel 9
  - **Chilloutzone**
+ - **chirbit**
+ - **chirbit:profile**
  - **Cinchcast**
  - **Cinemassacre**
  - **clipfish**
@@ -207,6 +210,7 @@
  - **Jove**
  - **jpopsuki.tv**
  - **Jukebox**
+ - **Kaltura**
  - **Kankan**
  - **Karaoketv**
  - **keek**
@@ -218,6 +222,9 @@
  - **Ku6**
  - **la7.tv**
  - **Laola1Tv**
+ - **Letv**
+ - **LetvPlaylist**
+ - **LetvTv**
  - **lifenews**: LIFE | NEWS
  - **LiveLeak**
  - **livestream**
@@ -302,6 +309,7 @@
  - **Nuvid**
  - **NYTimes**
  - **ocw.mit.edu**
+ - **Odnoklassniki**
  - **OktoberfestTV**
  - **on.aol.com**
  - **Ooyala**
@@ -328,8 +336,10 @@
  - **PornoXO**
  - **PromptFile**
  - **prosiebensat1**: ProSiebenSat.1 Digital
+ - **Puls4**
  - **Pyvideo**
  - **QuickVid**
+ - **R7**
  - **radio.de**
  - **radiobremen**
  - **radiofrance**
@@ -385,7 +395,8 @@
  - **soundcloud:playlist**
  - **soundcloud:set**
  - **soundcloud:user**
- - **Soundgasm**
+ - **soundgasm**
+ - **soundgasm:profile**
  - **southpark.cc.com**
  - **southpark.de**
  - **Space**
@@ -404,7 +415,7 @@
  - **StreamCZ**
  - **StreetVoice**
  - **SunPorno**
- - **SVTPlay**
+ - **SVTPlay**: SVT Play and Öppet arkiv
  - **SWRMediathek**
  - **Syfy**
  - **SztvHu**
@@ -559,6 +570,7 @@
  - **youtube:subscriptions**: YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)
  - **youtube:user**: YouTube.com user videos (URL or "ytuser" keyword)
  - **youtube:watch_later**: Youtube watch later list, ":ytwatchlater" for short (requires authentication)
+ - **Zapiks**
  - **ZDF**
  - **ZDFChannel**
  - **zingmp3:album**: mp3.zing.vn albums

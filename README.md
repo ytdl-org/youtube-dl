@@ -139,6 +139,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      dislike_count <? 50 & description" .
     --no-playlist                    If the URL refers to a video and a
                                      playlist, download only the video.
+    --yes-playlist                   If the URL refers to a video and a
+                                     playlist, download the playlist.
     --age-limit YEARS                download only videos suitable for the given
                                      age
     --download-archive FILE          Download only videos not listed in the
@@ -351,8 +353,8 @@ which means you can modify it, redistribute it or use it however you like.
     --all-subs                       downloads all the available subtitles of
                                      the video
     --list-subs                      lists all available subtitles for the video
-    --sub-format FORMAT              subtitle format (default=srt) ([sbv/vtt]
-                                     youtube only)
+    --sub-format FORMAT              subtitle format, accepts formats
+                                     preference, for example: "ass/srt/best"
     --sub-lang LANGS                 languages of the subtitles to download
                                      (optional) separated by commas, use IETF
                                      language tags like 'en,pt'
@@ -406,6 +408,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      downloading, similar to find's -exec
                                      syntax. Example: --exec 'adb push {}
                                      /sdcard/Music/ && rm {}'
+    --convert-subtitles FORMAT       Convert the subtitles to other format
+                                     (currently supported: srt|ass|vtt)
 
 # CONFIGURATION
 

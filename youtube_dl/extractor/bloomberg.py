@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 
 class BloombergIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.bloomberg\.com/video/(?P<name>.+?)\.html'
+    _VALID_URL = r'https?://www\.bloomberg\.com/video/(?P<id>.+?)\.html'
 
     _TEST = {
         'url': 'http://www.bloomberg.com/video/shah-s-presentation-on-foreign-exchange-strategies-qurhIVlJSB6hzkVi229d8g.html',
@@ -20,9 +20,9 @@ class BloombergIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        name = mobj.group('name')
+        name = self._match_id(url)
         webpage = self._download_webpage(url, name)
+
         f4m_url = self._search_regex(
             r'<source src="(https?://[^"]+\.f4m.*?)"', webpage,
             'f4m url')

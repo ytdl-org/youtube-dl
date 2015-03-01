@@ -9,7 +9,7 @@ import xml.etree.ElementTree
 
 from hashlib import sha1
 from math import pow, sqrt, floor
-from .subtitles import SubtitlesInfoExtractor
+from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
@@ -25,10 +25,9 @@ from ..aes import (
     aes_cbc_decrypt,
     inc,
 )
-from .common import InfoExtractor
 
 
-class CrunchyrollIE(SubtitlesInfoExtractor):
+class CrunchyrollIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:[^/]*/[^/?&]*?|media/\?id=)(?P<video_id>[0-9]+))(?:[/?&]|$)'
     _TESTS = [{
         'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
@@ -187,6 +186,38 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         return output
 
+    def _get_subtitles(self, video_id, webpage):
+        subtitles = {}
+        for sub_id, sub_name in re.findall(r'\?ssid=([0-9]+)" title="([^"]+)', webpage):
+            sub_page = self._download_webpage(
+                'http://www.crunchyroll.com/xml/?req=RpcApiSubtitle_GetXml&subtitle_script_id=' + sub_id,
+                video_id, note='Downloading subtitles for ' + sub_name)
+            id = self._search_regex(r'id=\'([0-9]+)', sub_page, 'subtitle_id', fatal=False)
+            iv = self._search_regex(r'<iv>([^<]+)', sub_page, 'subtitle_iv', fatal=False)
+            data = self._search_regex(r'<data>([^<]+)', sub_page, 'subtitle_data', fatal=False)
+            if not id or not iv or not data:
+                continue
+            id = int(id)
+            iv = base64.b64decode(iv)
+            data = base64.b64decode(data)
+
+            subtitle = self._decrypt_subtitles(data, iv, id).decode('utf-8')
+            lang_code = self._search_regex(r'lang_code=["\']([^"\']+)', subtitle, 'subtitle_lang_code', fatal=False)
+            if not lang_code:
+                continue
+            sub_root = xml.etree.ElementTree.fromstring(subtitle)
+            subtitles[lang_code] = [
+                {
+                    'ext': 'srt',
+                    'data': self._convert_subtitles_to_srt(sub_root),
+                },
+                {
+                    'ext': 'ass',
+                    'data': self._convert_subtitles_to_ass(sub_root),
+                },
+            ]
+        return subtitles
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('video_id')
@@ -249,34 +280,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 'format_id': video_format,
             })
 
-        subtitles = {}
-        sub_format = self._downloader.params.get('subtitlesformat', 'srt')
-        for sub_id, sub_name in re.findall(r'\?ssid=([0-9]+)" title="([^"]+)', webpage):
-            sub_page = self._download_webpage(
-                'http://www.crunchyroll.com/xml/?req=RpcApiSubtitle_GetXml&subtitle_script_id=' + sub_id,
-                video_id, note='Downloading subtitles for ' + sub_name)
-            id = self._search_regex(r'id=\'([0-9]+)', sub_page, 'subtitle_id', fatal=False)
-            iv = self._search_regex(r'<iv>([^<]+)', sub_page, 'subtitle_iv', fatal=False)
-            data = self._search_regex(r'<data>([^<]+)', sub_page, 'subtitle_data', fatal=False)
-            if not id or not iv or not data:
-                continue
-            id = int(id)
-            iv = base64.b64decode(iv)
-            data = base64.b64decode(data)
-
-            subtitle = self._decrypt_subtitles(data, iv, id).decode('utf-8')
-            lang_code = self._search_regex(r'lang_code=["\']([^"\']+)', subtitle, 'subtitle_lang_code', fatal=False)
-            if not lang_code:
-                continue
-            sub_root = xml.etree.ElementTree.fromstring(subtitle)
-            if sub_format == 'ass':
-                subtitles[lang_code] = self._convert_subtitles_to_ass(sub_root)
-            else:
-                subtitles[lang_code] = self._convert_subtitles_to_srt(sub_root)
-
-        if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id, subtitles)
-            return
+        subtitles = self.extract_subtitles(video_id, webpage)
 
         return {
             'id': video_id,

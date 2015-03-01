@@ -28,7 +28,6 @@ class AdobeTVIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         webpage = self._download_webpage(url, video_id)
 
         player = self._parse_json(
@@ -44,8 +43,10 @@ class AdobeTVIE(InfoExtractor):
             self._html_search_meta('datepublished', webpage, 'upload date'))
 
         duration = parse_duration(
-            self._html_search_meta('duration', webpage, 'duration')
-            or self._search_regex(r'Runtime:\s*(\d{2}:\d{2}:\d{2})', webpage, 'duration'))
+            self._html_search_meta('duration', webpage, 'duration') or
+            self._search_regex(
+                r'Runtime:\s*(\d{2}:\d{2}:\d{2})',
+                webpage, 'duration', fatal=False))
 
         view_count = str_to_int(self._search_regex(
             r'<div class="views">\s*Views?:\s*([\d,.]+)\s*</div>',

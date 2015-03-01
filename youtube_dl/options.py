@@ -8,11 +8,11 @@ import sys
 from .downloader.external import list_external_downloaders
 from .compat import (
     compat_expanduser,
+    compat_get_terminal_size,
     compat_getenv,
     compat_kwargs,
 )
 from .utils import (
-    get_term_width,
     write_string,
 )
 from .version import __version__
@@ -100,7 +100,7 @@ def parseOpts(overrideArguments=None):
         return opts
 
     # No need to wrap help messages if we're on a wide console
-    columns = get_term_width()
+    columns = compat_get_terminal_size().columns
     max_width = columns if columns else 80
     max_help_position = 80
 
@@ -273,6 +273,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='noplaylist', default=False,
         help='If the URL refers to a video and a playlist, download only the video.')
     selection.add_option(
+        '--yes-playlist',
+        action='store_false', dest='noplaylist', default=False,
+        help='If the URL refers to a video and a playlist, download the playlist.')
+    selection.add_option(
         '--age-limit',
         metavar='YEARS', dest='age_limit', default=None, type=int,
         help='download only videos suitable for the given age')
@@ -387,8 +391,8 @@ def parseOpts(overrideArguments=None):
         help='lists all available subtitles for the video')
     subtitles.add_option(
         '--sub-format',
-        action='store', dest='subtitlesformat', metavar='FORMAT', default='srt',
-        help='subtitle format (default=srt) ([sbv/vtt] youtube only)')
+        action='store', dest='subtitlesformat', metavar='FORMAT', default='best',
+        help='subtitle format, accepts formats preference, for example: "ass/srt/best"')
     subtitles.add_option(
         '--sub-lang', '--sub-langs', '--srt-lang',
         action='callback', dest='subtitleslangs', metavar='LANGS', type='str',
@@ -751,6 +755,10 @@ def parseOpts(overrideArguments=None):
         '--exec',
         metavar='CMD', dest='exec_cmd',
         help='Execute a command on the file after downloading, similar to find\'s -exec syntax. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'')
+    postproc.add_option(
+        '--convert-subtitles', '--convert-subs',
+        metavar='FORMAT', dest='convertsubtitles', default=None,
+        help='Convert the subtitles to other format (currently supported: srt|ass|vtt)')
 
     parser.add_option_group(general)
     parser.add_option_group(network)

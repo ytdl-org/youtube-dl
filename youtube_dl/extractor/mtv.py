@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import re
 
-from .subtitles import SubtitlesInfoExtractor
+from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
@@ -23,7 +23,7 @@ def _media_xml_tag(tag):
     return '{http://search.yahoo.com/mrss/}%s' % tag
 
 
-class MTVServicesInfoExtractor(SubtitlesInfoExtractor):
+class MTVServicesInfoExtractor(InfoExtractor):
     _MOBILE_TEMPLATE = None
 
     @staticmethod
@@ -95,25 +95,15 @@ class MTVServicesInfoExtractor(SubtitlesInfoExtractor):
 
     def _extract_subtitles(self, mdoc, mtvn_id):
         subtitles = {}
-        FORMATS = {
-            'scc': 'cea-608',
-            'eia-608': 'cea-608',
-            'xml': 'ttml',
-        }
-        subtitles_format = FORMATS.get(
-            self._downloader.params.get('subtitlesformat'), 'ttml')
         for transcript in mdoc.findall('.//transcript'):
             if transcript.get('kind') != 'captions':
                 continue
             lang = transcript.get('srclang')
-            for typographic in transcript.findall('./typographic'):
-                captions_format = typographic.get('format')
-                if captions_format == subtitles_format:
-                    subtitles[lang] = compat_str(typographic.get('src'))
-                    break
-        if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(mtvn_id, subtitles)
-        return self.extract_subtitles(mtvn_id, subtitles)
+            subtitles[lang] = [{
+                'url': compat_str(typographic.get('src')),
+                'ext': typographic.get('format')
+            } for typographic in transcript.findall('./typographic')]
+        return subtitles
 
     def _get_video_info(self, itemdoc):
         uri = itemdoc.find('guid').text
@@ -195,8 +185,6 @@ class MTVServicesInfoExtractor(SubtitlesInfoExtractor):
                 [r'data-mgid="(.*?)"', r'swfobject.embedSWF\(".*?(mgid:.*?)"'],
                 webpage, 'mgid')
         videos_info = self._get_videos_info(mgid)
-        if self._downloader.params.get('listsubtitles', False):
-            return
         if self._downloader.params.get('joinparts'):
             show_name = self._html_search_regex(
                 r'<h1.*?class="[^"]*title[^"]*".*?>(.*?)</h1>',

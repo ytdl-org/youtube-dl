@@ -151,8 +151,14 @@ class InfoExtractor(object):
                     If not explicitly set, calculated from timestamp.
     uploader_id:    Nickname or id of the video uploader.
     location:       Physical location where the video was filmed.
-    subtitles:      The subtitle file contents as a dictionary in the format
-                    {language: subtitles}.
+    subtitles:      The available subtitles as a dictionary in the format
+                    {language: subformats}. "subformats" is a list sorted from
+                    lower to higher preference, each element is a dictionary
+                    with the "ext" entry and one of:
+                        * "data": The subtitles file contents
+                        * "url": A url pointing to the subtitles file
+    automatic_captions: Like 'subtitles', used by the YoutubeIE for
+                    automatically generated captions
     duration:       Length of the video in seconds, as an integer.
     view_count:     How many users have watched the video on the platform.
     like_count:     Number of positive ratings of the video
@@ -394,6 +400,16 @@ class InfoExtractor(object):
                 'Websense information URL', default=None)
             if blocked_iframe:
                 msg += ' Visit %s for more details' % blocked_iframe
+            raise ExtractorError(msg, expected=True)
+        if '<title>The URL you requested has been blocked</title>' in content[:512]:
+            msg = (
+                'Access to this webpage has been blocked by Indian censorship. '
+                'Use a VPN or proxy server (with --proxy) to route around it.')
+            block_msg = self._html_search_regex(
+                r'</h1><p>(.*?)</p>',
+                content, 'block message', default=None)
+            if block_msg:
+                msg += ' (Message: "%s")' % block_msg.replace('\n', ' ')
             raise ExtractorError(msg, expected=True)
 
         return content
@@ -825,8 +841,8 @@ class InfoExtractor(object):
             media_nodes = manifest.findall('{http://ns.adobe.com/f4m/2.0}media')
         for i, media_el in enumerate(media_nodes):
             if manifest_version == '2.0':
-                manifest_url = ('/'.join(manifest_url.split('/')[:-1]) + '/'
-                                + (media_el.attrib.get('href') or media_el.attrib.get('url')))
+                manifest_url = ('/'.join(manifest_url.split('/')[:-1]) + '/' +
+                                (media_el.attrib.get('href') or media_el.attrib.get('url')))
             tbr = int_or_none(media_el.attrib.get('bitrate'))
             formats.append({
                 'format_id': '-'.join(filter(None, [f4m_id, 'f4m-%d' % (i if tbr is None else tbr)])),
@@ -850,7 +866,7 @@ class InfoExtractor(object):
             'url': m3u8_url,
             'ext': ext,
             'protocol': 'm3u8',
-            'preference': -1,
+            'preference': preference - 1 if preference else -1,
             'resolution': 'multiple',
             'format_note': 'Quality selection URL',
         }]
@@ -932,38 +948,56 @@ class InfoExtractor(object):
 
         formats = []
         rtmp_count = 0
-        for video in smil.findall('./body/switch/video'):
-            src = video.get('src')
-            if not src:
-                continue
-            bitrate = int_or_none(video.get('system-bitrate') or video.get('systemBitrate'), 1000)
-            width = int_or_none(video.get('width'))
-            height = int_or_none(video.get('height'))
-            proto = video.get('proto')
-            if not proto:
-                if base:
-                    if base.startswith('rtmp'):
-                        proto = 'rtmp'
-                    elif base.startswith('http'):
-                        proto = 'http'
-            ext = video.get('ext')
-            if proto == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(src, video_id, ext))
-            elif proto == 'rtmp':
-                rtmp_count += 1
-                streamer = video.get('streamer') or base
-                formats.append({
-                    'url': streamer,
-                    'play_path': src,
-                    'ext': 'flv',
-                    'format_id': 'rtmp-%d' % (rtmp_count if bitrate is None else bitrate),
-                    'tbr': bitrate,
-                    'width': width,
-                    'height': height,
-                })
+        if smil.findall('./body/seq/video'):
+            video = smil.findall('./body/seq/video')[0]
+            fmts, rtmp_count = self._parse_smil_video(video, video_id, base, rtmp_count)
+            formats.extend(fmts)
+        else:
+            for video in smil.findall('./body/switch/video'):
+                fmts, rtmp_count = self._parse_smil_video(video, video_id, base, rtmp_count)
+                formats.extend(fmts)
+
         self._sort_formats(formats)
 
         return formats
+
+    def _parse_smil_video(self, video, video_id, base, rtmp_count):
+        src = video.get('src')
+        if not src:
+            return ([], rtmp_count)
+        bitrate = int_or_none(video.get('system-bitrate') or video.get('systemBitrate'), 1000)
+        width = int_or_none(video.get('width'))
+        height = int_or_none(video.get('height'))
+        proto = video.get('proto')
+        if not proto:
+            if base:
+                if base.startswith('rtmp'):
+                    proto = 'rtmp'
+                elif base.startswith('http'):
+                    proto = 'http'
+        ext = video.get('ext')
+        if proto == 'm3u8':
+            return (self._extract_m3u8_formats(src, video_id, ext), rtmp_count)
+        elif proto == 'rtmp':
+            rtmp_count += 1
+            streamer = video.get('streamer') or base
+            return ([{
+                'url': streamer,
+                'play_path': src,
+                'ext': 'flv',
+                'format_id': 'rtmp-%d' % (rtmp_count if bitrate is None else bitrate),
+                'tbr': bitrate,
+                'width': width,
+                'height': height,
+            }], rtmp_count)
+        elif proto.startswith('http'):
+            return ([{
+                'url': base + src,
+                'ext': ext or 'flv',
+                'tbr': bitrate,
+                'width': width,
+                'height': height,
+            }], rtmp_count)
 
     def _live_title(self, name):
         """ Generate the title for a live video """
@@ -1027,6 +1061,24 @@ class InfoExtractor(object):
                 return True
             any_restricted = any_restricted or is_restricted
         return not any_restricted
+
+    def extract_subtitles(self, *args, **kwargs):
+        if (self._downloader.params.get('writesubtitles', False) or
+                self._downloader.params.get('listsubtitles')):
+            return self._get_subtitles(*args, **kwargs)
+        return {}
+
+    def _get_subtitles(self, *args, **kwargs):
+        raise NotImplementedError("This method must be implemented by subclasses")
+
+    def extract_automatic_captions(self, *args, **kwargs):
+        if (self._downloader.params.get('writeautomaticsub', False) or
+                self._downloader.params.get('listsubtitles')):
+            return self._get_automatic_captions(*args, **kwargs)
+        return {}
+
+    def _get_automatic_captions(self, *args, **kwargs):
+        raise NotImplementedError("This method must be implemented by subclasses")
 
 
 class SearchInfoExtractor(InfoExtractor):

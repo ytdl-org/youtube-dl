@@ -126,11 +126,17 @@ class FacebookIE(InfoExtractor):
         params_raw = compat_urllib_parse.unquote(data['params'])
         params = json.loads(params_raw)
         video_data = params['video_data'][0]
-        video_url = video_data.get('hd_src')
-        if not video_url:
-            video_url = video_data['sd_src']
-        if not video_url:
-            raise ExtractorError('Cannot find video URL')
+
+        formats = []
+        for quality in ['sd', 'hd']:
+            src = video_data.get('%s_src' % quality)
+            if src is not None:
+                formats.append({
+                    'format_id': quality,
+                    'url': src,
+                })
+        if not formats:
+            raise ExtractorError('Cannot find video formats')
 
         video_title = self._html_search_regex(
             r'<h2 class="uiHeaderTitle">([^<]*)</h2>', webpage, 'title',
@@ -146,7 +152,7 @@ class FacebookIE(InfoExtractor):
         return {
             'id': video_id,
             'title': video_title,
-            'url': video_url,
+            'formats': formats,
             'duration': int_or_none(video_data.get('video_duration')),
             'thumbnail': video_data.get('thumbnail_src'),
         }

@@ -6,7 +6,6 @@ import json
 import itertools
 
 from .common import InfoExtractor
-from .subtitles import SubtitlesInfoExtractor
 
 from ..compat import (
     compat_str,
@@ -31,7 +30,7 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
         return request
 
 
-class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
+class DailymotionIE(DailymotionBaseInfoExtractor):
     """Information Extractor for Dailymotion"""
 
     _VALID_URL = r'(?i)(?:https?://)?(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(embed|#)/)?video/(?P<id>[^/?_]+)'
@@ -143,9 +142,6 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # subtitles
         video_subtitles = self.extract_subtitles(video_id, webpage)
-        if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id, webpage)
-            return
 
         view_count = str_to_int(self._search_regex(
             r'video_views_count[^>]+>\s+([\d\.,]+)',
@@ -169,7 +165,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             'view_count': view_count,
         }
 
-    def _get_available_subtitles(self, video_id, webpage):
+    def _get_subtitles(self, video_id, webpage):
         try:
             sub_list = self._download_webpage(
                 'https://api.dailymotion.com/video/%s/subtitles?fields=id,language,url' % video_id,
@@ -179,7 +175,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             return {}
         info = json.loads(sub_list)
         if (info['total'] > 0):
-            sub_lang_list = dict((l['language'], l['url']) for l in info['list'])
+            sub_lang_list = dict((l['language'], [{'url': l['url'], 'ext': 'srt'}]) for l in info['list'])
             return sub_lang_list
         self._downloader.report_warning('video doesn\'t have subtitles')
         return {}

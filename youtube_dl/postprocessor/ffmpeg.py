@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import io
 import os
 import subprocess
 import sys
@@ -500,10 +501,6 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         'zu': 'zul',
     }
 
-    def __init__(self, downloader=None, subtitlesformat='srt'):
-        super(FFmpegEmbedSubtitlePP, self).__init__(downloader)
-        self._subformat = subtitlesformat
-
     @classmethod
     def _conver_lang_code(cls, code):
         """Convert language code from ISO 639-1 to ISO 639-2/T"""
@@ -513,13 +510,14 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         if information['ext'] != 'mp4':
             self._downloader.to_screen('[ffmpeg] Subtitles can only be embedded in mp4 files')
             return True, information
-        if not information.get('subtitles'):
+        subtitles = information.get('requested_subtitles')
+        if not subtitles:
             self._downloader.to_screen('[ffmpeg] There aren\'t any subtitles to embed')
             return True, information
 
-        sub_langs = [key for key in information['subtitles']]
+        sub_langs = list(subtitles.keys())
         filename = information['filepath']
-        input_files = [filename] + [subtitles_filename(filename, lang, self._subformat) for lang in sub_langs]
+        input_files = [filename] + [subtitles_filename(filename, lang, sub_info['ext']) for lang, sub_info in subtitles.items()]
 
         opts = [
             '-map', '0',
@@ -664,5 +662,42 @@ class FFmpegFixupM4aPP(FFmpegPostProcessor):
 
         os.remove(encodeFilename(filename))
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+
+        return True, info
+
+
+class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
+    def __init__(self, downloader=None, format=None):
+        super(FFmpegSubtitlesConvertorPP, self).__init__(downloader)
+        self.format = format
+
+    def run(self, info):
+        subs = info.get('requested_subtitles')
+        filename = info['filepath']
+        new_ext = self.format
+        new_format = new_ext
+        if new_format == 'vtt':
+            new_format = 'webvtt'
+        if subs is None:
+            self._downloader.to_screen('[ffmpeg] There aren\'t any subtitles to convert')
+            return True, info
+        self._downloader.to_screen('[ffmpeg] Converting subtitles')
+        for lang, sub in subs.items():
+            ext = sub['ext']
+            if ext == new_ext:
+                self._downloader.to_screen(
+                    '[ffmpeg] Subtitle file for %s is already in the requested'
+                    'format' % new_ext)
+                continue
+            new_file = subtitles_filename(filename, lang, new_ext)
+            self.run_ffmpeg(
+                subtitles_filename(filename, lang, ext),
+                new_file, ['-f', new_format])
+
+            with io.open(new_file, 'rt', encoding='utf-8') as f:
+                subs[lang] = {
+                    'ext': ext,
+                    'data': f.read(),
+                }
 
         return True, info

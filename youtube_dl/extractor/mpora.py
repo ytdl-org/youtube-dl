@@ -5,7 +5,7 @@ from ..utils import int_or_none
 
 
 class MporaIE(InfoExtractor):
-    _VALID_URL = r'https?://(www\.)?mpora\.(?:com|de)/videos/(?P<id>[^?#/]+)'
+    _VALID_URL = r'https?://(?:www\.)?mpora\.(?:com|de)/videos/(?P<id>[^?#/]+)'
     IE_NAME = 'MPORA'
 
     _TEST = {
@@ -25,7 +25,9 @@ class MporaIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         data_json = self._search_regex(
-            r"new FM\.Player\('[^']+',\s*(\{.*?)\).player;", webpage, 'json')
+            [r"new FM\.Player\('[^']+',\s*(\{.*?)\).player;",
+             r"new\s+FM\.Kaltura\.Player\('[^']+'\s*,\s*({.+?})\);"],
+            webpage, 'json')
         data = self._parse_json(data_json, video_id)
 
         uploader = data['info_overlay'].get('username')

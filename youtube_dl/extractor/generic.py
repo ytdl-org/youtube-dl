@@ -547,7 +547,28 @@ class GenericIE(InfoExtractor):
                 'id': 'aanslagen-kopenhagen',
                 'title': 'Aanslagen Kopenhagen | RTL Nieuws',
             }
-        }
+        },
+        # Zapiks embed
+        {
+            'url': 'http://www.skipass.com/news/116090-bon-appetit-s5ep3-baqueira-mi-cor.html',
+            'info_dict': {
+                'id': '118046',
+                'ext': 'mp4',
+                'title': 'EP3S5 - Bon Appétit - Baqueira Mi Corazon !',
+            }
+        },
+        # Kaltura embed
+        {
+            'url': 'http://www.monumentalnetwork.com/videos/john-carlson-postgame-2-25-15',
+            'info_dict': {
+                'id': '1_eergr3h1',
+                'ext': 'mp4',
+                'upload_date': '20150226',
+                'uploader_id': 'MonumentalSports-Kaltura@perfectsensedigital.com',
+                'timestamp': int,
+                'title': 'John Carlson Postgame 2/25/15',
+            },
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -1098,6 +1119,18 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'Livestream')
 
+        # Look for Zapiks embed
+        mobj = re.search(
+            r'<iframe[^>]+src="(?P<url>https?://(?:www\.)?zapiks\.fr/index\.php\?.+?)"', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'Zapiks')
+
+        # Look for Kaltura embeds
+        mobj = re.search(
+            r"(?s)kWidget\.(?:thumb)?[Ee]mbed\(\{.*?'wid'\s*:\s*'_?(?P<partner_id>[^']+)',.*?'entry_id'\s*:\s*'(?P<id>[^']+)',", webpage)
+        if mobj is not None:
+            return self.url_result('kaltura:%(partner_id)s:%(id)s' % mobj.groupdict(), 'Kaltura')
+
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
                 return True
@@ -1193,7 +1226,9 @@ class GenericIE(InfoExtractor):
             return entries[0]
         else:
             for num, e in enumerate(entries, start=1):
-                e['title'] = '%s (%d)' % (e['title'], num)
+                # 'url' results don't have a title
+                if e.get('title') is not None:
+                    e['title'] = '%s (%d)' % (e['title'], num)
             return {
                 '_type': 'playlist',
                 'entries': entries,
