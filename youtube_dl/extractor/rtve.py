@@ -8,8 +8,9 @@ import time
 from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
-    struct_unpack,
+    float_or_none,
     remove_end,
+    struct_unpack,
 )
 
 
@@ -67,6 +68,7 @@ class RTVEALaCartaIE(InfoExtractor):
             'id': '2491869',
             'ext': 'mp4',
             'title': 'Balonmano - Swiss Cup masculina. Final: España-Suecia',
+            'duration': 5024.566,
         },
     }, {
         'note': 'Live stream',
@@ -113,6 +115,7 @@ class RTVEALaCartaIE(InfoExtractor):
             'thumbnail': info.get('image'),
             'page_url': url,
             'subtitles': subtitles,
+            'duration': float_or_none(info.get('duration'), scale=1000),
         }
 
     def _get_subtitles(self, video_id, sub_file):

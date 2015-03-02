@@ -139,6 +139,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      dislike_count <? 50 & description" .
     --no-playlist                    If the URL refers to a video and a
                                      playlist, download only the video.
+    --yes-playlist                   If the URL refers to a video and a
+                                     playlist, download the playlist.
     --age-limit YEARS                download only videos suitable for the given
                                      age
     --download-archive FILE          Download only videos not listed in the
@@ -406,6 +408,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      downloading, similar to find's -exec
                                      syntax. Example: --exec 'adb push {}
                                      /sdcard/Music/ && rm {}'
+    --convert-subtitles FORMAT       Convert the subtitles to other format
+                                     (currently supported: srt|ass|vtt)
 
 # CONFIGURATION
 
@@ -524,6 +528,10 @@ YouTube requires an additional signature since September 2012 which is not suppo
 ### ExtractorError: Could not find JS function u'OF'
 
 In February 2015, the new YouTube player contained a character sequence in a string that was misinterpreted by old versions of youtube-dl. See [above](#how-do-i-update-youtube-dl) for how to update youtube-dl.
+
+### HTTP Error 429: Too Many Requests or 402: Payment Required
+
+These two error codes indicate that the service is blocking your IP address because of overuse. Contact the service and ask them to unblock your IP address, or - if you have acquired a whitelisted IP address already - use the [`--proxy` or `--network-address` options](#network-options) to select another IP address.
 
 ### SyntaxError: Non-ASCII character ###
 

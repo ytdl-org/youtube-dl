@@ -180,7 +180,7 @@ class SoundcloudIE(InfoExtractor):
                     'format_id': key,
                     'url': url,
                     'play_path': 'mp3:' + path,
-                    'ext': ext,
+                    'ext': 'flv',
                     'vcodec': 'none',
                 })
 
@@ -200,8 +200,9 @@ class SoundcloudIE(InfoExtractor):
                 if f['format_id'].startswith('rtmp'):
                     f['protocol'] = 'rtmp'
 
-            self._sort_formats(formats)
-            result['formats'] = formats
+        self._check_formats(formats, track_id)
+        self._sort_formats(formats)
+        result['formats'] = formats
 
         return result
 

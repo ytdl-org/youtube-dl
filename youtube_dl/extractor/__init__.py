@@ -8,6 +8,7 @@ from .adobetv import AdobeTVIE
 from .adultswim import AdultSwimIE
 from .aftenposten import AftenpostenIE
 from .aftonbladet import AftonbladetIE
+from .airmozilla import AirMozillaIE
 from .aljazeera import AlJazeeraIE
 from .alphaporno import AlphaPornoIE
 from .anitube import AnitubeIE
@@ -226,6 +227,7 @@ from .jeuxvideo import JeuxVideoIE
 from .jove import JoveIE
 from .jukebox import JukeboxIE
 from .jpopsukitv import JpopsukiIE
+from .kaltura import KalturaIE
 from .kankan import KankanIE
 from .karaoketv import KaraoketvIE
 from .keezmovies import KeezMoviesIE
@@ -237,6 +239,11 @@ from .krasview import KrasViewIE
 from .ku6 import Ku6IE
 from .la7 import LA7IE
 from .laola1tv import Laola1TvIE
+from .letv import (
+    LetvIE,
+    LetvTvIE,
+    LetvPlaylistIE
+)
 from .lifenews import LifeNewsIE
 from .liveleak import LiveLeakIE
 from .livestream import (
@@ -340,6 +347,7 @@ from .ntvde import NTVDeIE
 from .ntvru import NTVRuIE
 from .nytimes import NYTimesIE
 from .nuvid import NuvidIE
+from .odnoklassniki import OdnoklassnikiIE
 from .oktoberfesttv import OktoberfestTVIE
 from .ooyala import OoyalaIE
 from .openfilm import OpenFilmIE
@@ -367,6 +375,7 @@ from .pornotube import PornotubeIE
 from .pornoxo import PornoXOIE
 from .promptfile import PromptFileIE
 from .prosiebensat1 import ProSiebenSat1IE
+from .puls4 import Puls4IE
 from .pyvideo import PyvideoIE
 from .quickvid import QuickVidIE
 from .r7 import R7IE

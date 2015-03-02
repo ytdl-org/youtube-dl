@@ -18,7 +18,7 @@ class MiTeleIE(InfoExtractor):
     IE_NAME = 'mitele.es'
     _VALID_URL = r'http://www\.mitele\.es/[^/]+/[^/]+/[^/]+/(?P<id>[^/]+)/'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/la-redaccion/programa-144/',
         'md5': '6a75fe9d0d3275bead0cb683c616fddb',
         'info_dict': {
@@ -29,7 +29,7 @@ class MiTeleIE(InfoExtractor):
             'display_id': 'programa-144',
             'duration': 2913,
         },
-    }
+    }]
 
     def _real_extract(self, url):
         episode = self._match_id(url)

@@ -1,9 +1,11 @@
 from __future__ import unicode_literals
 
+import collections
 import getpass
 import optparse
 import os
 import re
+import shutil
 import socket
 import subprocess
 import sys
@@ -364,6 +366,33 @@ def workaround_optparse_bug9161():
             return real_add_option(self, *bargs, **bkwargs)
         optparse.OptionGroup.add_option = _compat_add_option
 
+if hasattr(shutil, 'get_terminal_size'):  # Python >= 3.3
+    compat_get_terminal_size = shutil.get_terminal_size
+else:
+    _terminal_size = collections.namedtuple('terminal_size', ['columns', 'lines'])
+
+    def compat_get_terminal_size():
+        columns = compat_getenv('COLUMNS', None)
+        if columns:
+            columns = int(columns)
+        else:
+            columns = None
+        lines = compat_getenv('LINES', None)
+        if lines:
+            lines = int(lines)
+        else:
+            lines = None
+
+        try:
+            sp = subprocess.Popen(
+                ['stty', 'size'],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = sp.communicate()
+            lines, columns = map(int, out.split())
+        except:
+            pass
+        return _terminal_size(columns, lines)
+
 
 __all__ = [
     'compat_HTTPError',
@@ -371,6 +400,7 @@ __all__ = [
     'compat_chr',
     'compat_cookiejar',
     'compat_expanduser',
+    'compat_get_terminal_size',
     'compat_getenv',
     'compat_getpass',
     'compat_html_entities',

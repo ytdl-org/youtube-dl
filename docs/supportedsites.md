@@ -17,6 +17,7 @@
  - **AdultSwim**
  - **Aftenposten**
  - **Aftonbladet**
+ - **AirMozilla**
  - **AlJazeera**
  - **Allocine**
  - **AlphaPorno**
@@ -209,6 +210,7 @@
  - **Jove**
  - **jpopsuki.tv**
  - **Jukebox**
+ - **Kaltura**
  - **Kankan**
  - **Karaoketv**
  - **keek**
@@ -220,6 +222,9 @@
  - **Ku6**
  - **la7.tv**
  - **Laola1Tv**
+ - **Letv**
+ - **LetvPlaylist**
+ - **LetvTv**
  - **lifenews**: LIFE | NEWS
  - **LiveLeak**
  - **livestream**
@@ -304,6 +309,7 @@
  - **Nuvid**
  - **NYTimes**
  - **ocw.mit.edu**
+ - **Odnoklassniki**
  - **OktoberfestTV**
  - **on.aol.com**
  - **Ooyala**
@@ -330,6 +336,7 @@
  - **PornoXO**
  - **PromptFile**
  - **prosiebensat1**: ProSiebenSat.1 Digital
+ - **Puls4**
  - **Pyvideo**
  - **QuickVid**
  - **R7**
@@ -408,7 +415,7 @@
  - **StreamCZ**
  - **StreetVoice**
  - **SunPorno**
- - **SVTPlay**
+ - **SVTPlay**: SVT Play and Öppet arkiv
  - **SWRMediathek**
  - **Syfy**
  - **SztvHu**

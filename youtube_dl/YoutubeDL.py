@@ -4,8 +4,10 @@
 from __future__ import absolute_import, unicode_literals
 
 import collections
+import contextlib
 import datetime
 import errno
+import fileinput
 import io
 import itertools
 import json
@@ -28,6 +30,7 @@ from .compat import (
     compat_basestring,
     compat_cookiejar,
     compat_expanduser,
+    compat_get_terminal_size,
     compat_http_client,
     compat_kwargs,
     compat_str,
@@ -46,7 +49,6 @@ from .utils import (
     ExtractorError,
     format_bytes,
     formatSeconds,
-    get_term_width,
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
@@ -247,10 +249,10 @@ class YoutubeDL(object):
     hls_prefer_native: Use the native HLS downloader instead of ffmpeg/avconv.
 
     The following parameters are not used by YoutubeDL itself, they are used by
-    the FileDownloader:
+    the downloader (see youtube_dl/downloader/common.py):
     nopart, updatetime, buffersize, ratelimit, min_filesize, max_filesize, test,
     noresizebuffer, retries, continuedl, noprogress, consoletitle,
-    xattr_set_filesize.
+    xattr_set_filesize, external_downloader_args.
 
     The following options are used by the post processors:
     prefer_ffmpeg:     If True, use ffmpeg instead of avconv if both are available,
@@ -284,7 +286,7 @@ class YoutubeDL(object):
             try:
                 import pty
                 master, slave = pty.openpty()
-                width = get_term_width()
+                width = compat_get_terminal_size().columns
                 if width is None:
                     width_args = []
                 else:
@@ -1300,17 +1302,18 @@ class YoutubeDL(object):
             # subtitles download errors are already managed as troubles in relevant IE
             # that way it will silently go on when used with unsupporting IE
             subtitles = info_dict['requested_subtitles']
+            ie = self.get_info_extractor(info_dict['extractor_key'])
             for sub_lang, sub_info in subtitles.items():
                 sub_format = sub_info['ext']
                 if sub_info.get('data') is not None:
                     sub_data = sub_info['data']
                 else:
                     try:
-                        uf = self.urlopen(sub_info['url'])
-                        sub_data = uf.read().decode('utf-8')
-                    except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+                        sub_data = ie._download_webpage(
+                            sub_info['url'], info_dict['id'], note=False)
+                    except ExtractorError as err:
                         self.report_warning('Unable to download subtitle for "%s": %s' %
-                                            (sub_lang, compat_str(err)))
+                                            (sub_lang, compat_str(err.cause)))
                         continue
                 try:
                     sub_filename = subtitles_filename(filename, sub_lang, sub_format)
@@ -1451,8 +1454,11 @@ class YoutubeDL(object):
         return self._download_retcode
 
     def download_with_info_file(self, info_filename):
-        with io.open(info_filename, 'r', encoding='utf-8') as f:
-            info = json.load(f)
+        with contextlib.closing(fileinput.FileInput(
+                [info_filename], mode='r',
+                openhook=fileinput.hook_encoded('utf-8'))) as f:
+            # FileInput doesn't have a read method, we can't call json.load
+            info = json.loads('\n'.join(f))
         try:
             self.process_ie_result(info, download=True)
         except DownloadError:

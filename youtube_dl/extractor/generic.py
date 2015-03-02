@@ -26,6 +26,7 @@ from ..utils import (
     unsmuggle_url,
     UnsupportedError,
     url_basename,
+    xpath_text,
 )
 from .brightcove import BrightcoveIE
 from .ooyala import OoyalaIE
@@ -557,6 +558,28 @@ class GenericIE(InfoExtractor):
                 'title': 'EP3S5 - Bon Appétit - Baqueira Mi Corazon !',
             }
         },
+        # Kaltura embed
+        {
+            'url': 'http://www.monumentalnetwork.com/videos/john-carlson-postgame-2-25-15',
+            'info_dict': {
+                'id': '1_eergr3h1',
+                'ext': 'mp4',
+                'upload_date': '20150226',
+                'uploader_id': 'MonumentalSports-Kaltura@perfectsensedigital.com',
+                'timestamp': int,
+                'title': 'John Carlson Postgame 2/25/15',
+            },
+        },
+        # RSS feed with enclosure
+        {
+            'url': 'http://podcastfeeds.nbcnews.com/audio/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
+            'info_dict': {
+                'id': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
+                'ext': 'm4v',
+                'upload_date': '20150228',
+                'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
+            }
+        }
     ]
 
     def report_following_redirect(self, new_url):
@@ -568,11 +591,24 @@ class GenericIE(InfoExtractor):
         playlist_desc_el = doc.find('./channel/description')
         playlist_desc = None if playlist_desc_el is None else playlist_desc_el.text
 
-        entries = [{
-            '_type': 'url',
-            'url': e.find('link').text,
-            'title': e.find('title').text,
-        } for e in doc.findall('./channel/item')]
+        entries = []
+        for it in doc.findall('./channel/item'):
+            next_url = xpath_text(it, 'link', fatal=False)
+            if not next_url:
+                enclosure_nodes = it.findall('./enclosure')
+                for e in enclosure_nodes:
+                    next_url = e.attrib.get('url')
+                    if next_url:
+                        break
+
+            if not next_url:
+                continue
+
+            entries.append({
+                '_type': 'url',
+                'url': next_url,
+                'title': it.find('title').text,
+            })
 
         return {
             '_type': 'playlist',
@@ -1113,6 +1149,12 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'Zapiks')
 
+        # Look for Kaltura embeds
+        mobj = re.search(
+            r"(?s)kWidget\.(?:thumb)?[Ee]mbed\(\{.*?'wid'\s*:\s*'_?(?P<partner_id>[^']+)',.*?'entry_id'\s*:\s*'(?P<id>[^']+)',", webpage)
+        if mobj is not None:
+            return self.url_result('kaltura:%(partner_id)s:%(id)s' % mobj.groupdict(), 'Kaltura')
+
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
                 return True
@@ -1208,7 +1250,9 @@ class GenericIE(InfoExtractor):
             return entries[0]
         else:
             for num, e in enumerate(entries, start=1):
-                e['title'] = '%s (%d)' % (e['title'], num)
+                # 'url' results don't have a title
+                if e.get('title') is not None:
+                    e['title'] = '%s (%d)' % (e['title'], num)
             return {
                 '_type': 'playlist',
                 'entries': entries,

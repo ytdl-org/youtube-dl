@@ -34,7 +34,15 @@ class TwitchBaseIE(InfoExtractor):
                 expected=True)
 
     def _download_json(self, url, video_id, note='Downloading JSON metadata'):
-        response = super(TwitchBaseIE, self)._download_json(url, video_id, note)
+        headers = {
+            'Referer': 'http://api.twitch.tv/crossdomain/receiver.html?v=2',
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+        for cookie in self._downloader.cookiejar:
+            if cookie.name == 'api_token':
+                headers['Twitch-Api-Token'] = cookie.value
+        request = compat_urllib_request.Request(url, headers=headers)
+        response = super(TwitchBaseIE, self)._download_json(request, video_id, note)
         self._handle_error(response)
         return response
 

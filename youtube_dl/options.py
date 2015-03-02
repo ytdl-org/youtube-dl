@@ -8,11 +8,11 @@ import sys
 from .downloader.external import list_external_downloaders
 from .compat import (
     compat_expanduser,
+    compat_get_terminal_size,
     compat_getenv,
     compat_kwargs,
 )
 from .utils import (
-    get_term_width,
     write_string,
 )
 from .version import __version__
@@ -100,7 +100,7 @@ def parseOpts(overrideArguments=None):
         return opts
 
     # No need to wrap help messages if we're on a wide console
-    columns = get_term_width()
+    columns = compat_get_terminal_size().columns
     max_width = columns if columns else 80
     max_help_position = 80
 
@@ -435,8 +435,12 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--external-downloader',
         dest='external_downloader', metavar='COMMAND',
-        help='(experimental) Use the specified external downloader. '
+        help='Use the specified external downloader. '
              'Currently supports %s' % ','.join(list_external_downloaders()))
+    downloader.add_option(
+        '--external-downloader-args',
+        dest='external_downloader_args', metavar='ARGS',
+        help='Give these arguments to the external downloader.')
 
     workarounds = optparse.OptionGroup(parser, 'Workarounds')
     workarounds.add_option(
@@ -751,6 +755,10 @@ def parseOpts(overrideArguments=None):
         '--exec',
         metavar='CMD', dest='exec_cmd',
         help='Execute a command on the file after downloading, similar to find\'s -exec syntax. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'')
+    postproc.add_option(
+        '--convert-subtitles', '--convert-subs',
+        metavar='FORMAT', dest='convertsubtitles', default=None,
+        help='Convert the subtitles to other format (currently supported: srt|ass|vtt)')
 
     parser.add_option_group(general)
     parser.add_option_group(network)

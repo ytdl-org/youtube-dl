@@ -35,7 +35,6 @@ import zlib
 from .compat import (
     compat_basestring,
     compat_chr,
-    compat_getenv,
     compat_html_entities,
     compat_http_client,
     compat_parse_qs,
@@ -54,7 +53,7 @@ from .compat import (
 compiled_regex_type = type(re.compile(''))
 
 std_headers = {
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20100101 Firefox/10.0 (Chrome)',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20150101 Firefox/20.0 (Chrome)',
     'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate',
@@ -306,6 +305,7 @@ def sanitize_filename(s, restricted=False, is_id=False):
             result = result[2:]
         if result.startswith('-'):
             result = '_' + result[len('-'):]
+        result = result.lstrip('.')
         if not result:
             result = '_'
     return result
@@ -1173,22 +1173,6 @@ def parse_filesize(s):
     return int(float(num_str) * mult)
 
 
-def get_term_width():
-    columns = compat_getenv('COLUMNS', None)
-    if columns:
-        return int(columns)
-
-    try:
-        sp = subprocess.Popen(
-            ['stty', 'size'],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = sp.communicate()
-        return int(out.split()[1])
-    except:
-        pass
-    return None
-
-
 def month_by_name(name):
     """ Return the number of a month by (locale-independently) English name """
 
@@ -1290,6 +1274,7 @@ def parse_duration(s):
             (?P<only_mins>[0-9.]+)\s*(?:mins?|minutes?)\s*|
             (?P<only_hours>[0-9.]+)\s*(?:hours?)|
 
+            \s*(?P<hours_reversed>[0-9]+)\s*(?:[:h]|hours?)\s*(?P<mins_reversed>[0-9]+)\s*(?:[:m]|mins?|minutes?)\s*|
             (?:
                 (?:
                     (?:(?P<days>[0-9]+)\s*(?:[:d]|days?)\s*)?
@@ -1308,10 +1293,14 @@ def parse_duration(s):
         return float_or_none(m.group('only_hours'), invscale=60 * 60)
     if m.group('secs'):
         res += int(m.group('secs'))
+    if m.group('mins_reversed'):
+        res += int(m.group('mins_reversed')) * 60
     if m.group('mins'):
         res += int(m.group('mins')) * 60
     if m.group('hours'):
         res += int(m.group('hours')) * 60 * 60
+    if m.group('hours_reversed'):
+        res += int(m.group('hours_reversed')) * 60 * 60
     if m.group('days'):
         res += int(m.group('days')) * 24 * 60 * 60
     if m.group('ms'):

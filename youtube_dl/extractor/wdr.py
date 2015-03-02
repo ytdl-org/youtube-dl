@@ -28,6 +28,7 @@ class WDRIE(InfoExtractor):
                 'title': 'Servicezeit',
                 'description': 'md5:c8f43e5e815eeb54d0b96df2fba906cb',
                 'upload_date': '20140310',
+                'is_live': False
             },
             'params': {
                 'skip_download': True,
@@ -41,6 +42,7 @@ class WDRIE(InfoExtractor):
                 'title': 'Marga Spiegel ist tot',
                 'description': 'md5:2309992a6716c347891c045be50992e4',
                 'upload_date': '20140311',
+                'is_live': False
             },
             'params': {
                 'skip_download': True,
@@ -55,6 +57,7 @@ class WDRIE(InfoExtractor):
                 'title': 'Erlebte Geschichten: Marga Spiegel (29.11.2009)',
                 'description': 'md5:2309992a6716c347891c045be50992e4',
                 'upload_date': '20091129',
+                'is_live': False
             },
         },
         {
@@ -66,6 +69,7 @@ class WDRIE(InfoExtractor):
                 'title': 'Flavia Coelho: Amar é Amar',
                 'description': 'md5:7b29e97e10dfb6e265238b32fa35b23a',
                 'upload_date': '20140717',
+                'is_live': False
             },
         },
         {
@@ -74,6 +78,20 @@ class WDRIE(InfoExtractor):
             'info_dict': {
                 'id': 'mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100',
             }
+        },
+        {
+            'url': 'http://www1.wdr.de/mediathek/video/livestream/index.html',
+            'info_dict': {
+                'id': 'mdb-103364',
+                'title': 're:^WDR Fernsehen [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+                'description': 'md5:ae2ff888510623bf8d4b115f95a9b7c9',
+                'ext': 'flv',
+                'upload_date': '20150212',
+                'is_live': True
+            },
+            'params': {
+                'skip_download': True,
+            },
         }
     ]
 
@@ -119,6 +137,10 @@ class WDRIE(InfoExtractor):
         video_url = flashvars['dslSrc'][0]
         title = flashvars['trackerClipTitle'][0]
         thumbnail = flashvars['startPicture'][0] if 'startPicture' in flashvars else None
+        is_live = flashvars.get('isLive', ['0'])[0] == '1'
+
+        if is_live:
+            title = self._live_title(title)
 
         if 'trackerClipAirTime' in flashvars:
             upload_date = flashvars['trackerClipAirTime'][0]
@@ -131,6 +153,13 @@ class WDRIE(InfoExtractor):
         if video_url.endswith('.f4m'):
             video_url += '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18'
             ext = 'flv'
+        elif video_url.endswith('.smil'):
+            fmt = self._extract_smil_formats(video_url, page_id)[0]
+            video_url = fmt['url']
+            sep = '&' if '?' in video_url else '?'
+            video_url += sep
+            video_url += 'hdcore=3.3.0&plugin=aasp-3.3.0.99.43'
+            ext = fmt['ext']
         else:
             ext = determine_ext(video_url)
 
@@ -144,6 +173,7 @@ class WDRIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'upload_date': upload_date,
+            'is_live': is_live
         }
 
 

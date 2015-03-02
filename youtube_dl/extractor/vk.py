@@ -31,7 +31,7 @@ class VKIE(InfoExtractor):
                 'id': '162222515',
                 'ext': 'flv',
                 'title': 'ProtivoGunz - Хуёвая песня',
-                'uploader': 're:Noize MC.*',
+                'uploader': 're:(?:Noize MC|Alexander Ilyashenko).*',
                 'duration': 195,
                 'upload_date': '20120212',
             },
@@ -140,7 +140,7 @@ class VKIE(InfoExtractor):
         if not video_id:
             video_id = '%s_%s' % (mobj.group('oid'), mobj.group('id'))
 
-        info_url = 'http://vk.com/al_video.php?act=show&al=1&video=%s' % video_id
+        info_url = 'http://vk.com/al_video.php?act=show&al=1&module=video&video=%s' % video_id
         info_page = self._download_webpage(info_url, video_id)
 
         ERRORS = {
@@ -152,7 +152,10 @@ class VKIE(InfoExtractor):
             'use --username and --password options to provide account credentials.',
 
             r'<!>Unknown error':
-            'Video %s does not exist.'
+            'Video %s does not exist.',
+
+            r'<!>Видео временно недоступно':
+            'Video %s is temporarily unavailable.',
         }
 
         for error_re, error_msg in ERRORS.items():
