@@ -180,7 +180,7 @@ class SoundcloudIE(InfoExtractor):
                     'format_id': key,
                     'url': url,
                     'play_path': 'mp3:' + path,
-                    'ext': ext,
+                    'ext': 'flv',
                     'vcodec': 'none',
                 })
 
