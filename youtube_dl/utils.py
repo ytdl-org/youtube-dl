@@ -305,6 +305,7 @@ def sanitize_filename(s, restricted=False, is_id=False):
             result = result[2:]
         if result.startswith('-'):
             result = '_' + result[len('-'):]
+        result = result.lstrip('.')
         if not result:
             result = '_'
     return result
