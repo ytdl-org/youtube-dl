@@ -54,6 +54,7 @@ from .utils import (
     MaxDownloadsReached,
     PagedList,
     parse_filesize,
+    PerRequestProxyHandler,
     PostProcessingError,
     platform_name,
     preferredencoding,
@@ -183,6 +184,8 @@ class YoutubeDL(object):
     prefer_insecure:   Use HTTP instead of HTTPS to retrieve information.
                        At the moment, this is only supported by YouTube.
     proxy:             URL of the proxy server to use
+    cn_verification_proxy:  URL of the proxy to use for IP address verification
+                       on Chinese sites. (Experimental)
     socket_timeout:    Time to wait for unresponsive hosts, in seconds
     bidi_workaround:   Work around buggy terminals without bidirectional text
                        support, using fridibi
@@ -1762,7 +1765,7 @@ class YoutubeDL(object):
             # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)
             if 'http' in proxies and 'https' not in proxies:
                 proxies['https'] = proxies['http']
-        proxy_handler = compat_urllib_request.ProxyHandler(proxies)
+        proxy_handler = PerRequestProxyHandler(proxies)
 
         debuglevel = 1 if self.params.get('debug_printtraffic') else 0
         https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)

@@ -1768,3 +1768,13 @@ def match_filter_func(filter_str):
             video_title = info_dict.get('title', info_dict.get('id', 'video'))
             return '%s does not pass filter %s, skipping ..' % (video_title, filter_str)
     return _match_func
+
+
+class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
+    def proxy_open(self, req, proxy, type):
+        req_proxy = req.headers.get('Ytdl-Request-Proxy')
+        if req_proxy is not None:
+            proxy = req_proxy
+            del req.headers['Ytdl-Request-Proxy']
+        return compat_urllib_request.ProxyHandler.proxy_open(
+            self, req, proxy, type)
