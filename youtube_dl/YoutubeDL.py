@@ -249,10 +249,10 @@ class YoutubeDL(object):
     hls_prefer_native: Use the native HLS downloader instead of ffmpeg/avconv.
 
     The following parameters are not used by YoutubeDL itself, they are used by
-    the FileDownloader:
+    the downloader (see youtube_dl/downloader/common.py):
     nopart, updatetime, buffersize, ratelimit, min_filesize, max_filesize, test,
     noresizebuffer, retries, continuedl, noprogress, consoletitle,
-    xattr_set_filesize.
+    xattr_set_filesize, external_downloader_args.
 
     The following options are used by the post processors:
     prefer_ffmpeg:     If True, use ffmpeg instead of avconv if both are available,

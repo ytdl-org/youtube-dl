@@ -435,8 +435,12 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--external-downloader',
         dest='external_downloader', metavar='COMMAND',
-        help='(experimental) Use the specified external downloader. '
+        help='Use the specified external downloader. '
              'Currently supports %s' % ','.join(list_external_downloaders()))
+    downloader.add_option(
+        '--external-downloader-args',
+        dest='external_downloader_args', metavar='ARGS',
+        help='Give these arguments to the external downloader.')
 
     workarounds = optparse.OptionGroup(parser, 'Workarounds')
     workarounds.add_option(

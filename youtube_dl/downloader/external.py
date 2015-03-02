@@ -51,6 +51,13 @@ class ExternalFD(FileDownloader):
             return []
         return [command_option, source_address]
 
+    def _configuration_args(self, default=[]):
+        ex_args = self.params.get('external_downloader_args')
+        if ex_args is None:
+            return default
+        assert isinstance(ex_args, list)
+        return ex_args
+
     def _call_downloader(self, tmpfilename, info_dict):
         """ Either overwrite this or implement _make_cmd """
         cmd = self._make_cmd(tmpfilename, info_dict)
@@ -79,6 +86,7 @@ class CurlFD(ExternalFD):
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._source_address('--interface')
+        cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
 
@@ -89,15 +97,16 @@ class WgetFD(ExternalFD):
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._source_address('--bind-address')
+        cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
 
 
 class Aria2cFD(ExternalFD):
     def _make_cmd(self, tmpfilename, info_dict):
-        cmd = [
-            self.exe, '-c',
-            '--min-split-size', '1M', '--max-connection-per-server', '4']
+        cmd = [self.exe, '-c']
+        cmd += self._configuration_args([
+            '--min-split-size', '1M', '--max-connection-per-server', '4'])
         dn = os.path.dirname(tmpfilename)
         if dn:
             cmd += ['--dir', dn]
