@@ -144,6 +144,7 @@ class LyndaIE(InfoExtractor):
 
     def _fix_subtitles(self, subs):
         srt = ''
+        seq_counter = 0
         for pos in range(0, len(subs) - 1):
             seq_current = subs[pos]
             m_current = re.match(self._TIMECODE_REGEX, seq_current['Timecode'])
@@ -155,8 +156,10 @@ class LyndaIE(InfoExtractor):
                 continue
             appear_time = m_current.group('timecode')
             disappear_time = m_next.group('timecode')
-            text = seq_current['Caption'].lstrip()
-            srt += '%s\r\n%s --> %s\r\n%s' % (str(pos), appear_time, disappear_time, text)
+            text = seq_current['Caption'].strip()
+            if text:
+                seq_counter += 1
+                srt += '%s\r\n%s --> %s\r\n%s\r\n\r\n' % (seq_counter, appear_time, disappear_time, text)
         if srt:
             return srt
 
