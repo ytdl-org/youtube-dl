@@ -88,9 +88,10 @@ class LetvIE(InfoExtractor):
         play_json_req = compat_urllib_request.Request(
             'http://api.letv.com/mms/out/video/playJson?' + compat_urllib_parse.urlencode(params)
         )
-        play_json_req.add_header(
-            'Ytdl-request-proxy',
-            self._downloader.params.get('cn_verification_proxy'))
+        cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
+        if cn_verification_proxy:
+            play_json_req.add_header('Ytdl-request-proxy', cn_verification_proxy)
+
         play_json = self._download_json(
             play_json_req,
             media_id, 'playJson data')
