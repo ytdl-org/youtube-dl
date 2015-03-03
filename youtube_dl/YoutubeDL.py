@@ -279,6 +279,8 @@ class YoutubeDL(object):
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
+        self._openers_pool = {}
+        self.DEFAULT_OPENER_NAME = 'default'
         self.params = params
         self.cache = Cache(self)
 
@@ -322,7 +324,8 @@ class YoutubeDL(object):
         if '%(stitle)s' in self.params.get('outtmpl', ''):
             self.report_warning('%(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.')
 
-        self._setup_opener()
+        self._setup_cookiejar()
+        self._setup_openers()
 
         if auto_init:
             self.print_debug_header()
@@ -1646,7 +1649,7 @@ class YoutubeDL(object):
             [[lang, ', '.join(f['ext'] for f in reversed(formats))]
                 for lang, formats in subtitles.items()]))
 
-    def urlopen(self, req):
+    def urlopen(self, req, opener_name=None):
         """ Start an HTTP download """
 
         # According to RFC 3986, URLs can not contain non-ASCII characters, however this is not
@@ -1668,7 +1671,12 @@ class YoutubeDL(object):
                     url_escaped, data=req.data, headers=req.headers,
                     origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
 
-        return self._opener.open(req, timeout=self._socket_timeout)
+        if not opener_name:
+            opener_name = self.DEFAULT_OPENER_NAME
+        if opener_name not in self._openers_pool:
+            raise Exception('Invalid opener name "%s"' % compat_str(opener_name))
+
+        return self._openers_pool[opener_name].open(req, timeout=self._socket_timeout)
 
     def print_debug_header(self):
         if not self.params.get('verbose'):
@@ -1718,11 +1726,8 @@ class YoutubeDL(object):
             exe_str = 'none'
         self._write_string('[debug] exe versions: %s\n' % exe_str)
 
-        proxy_map = {}
-        for handler in self._opener.handlers:
-            if hasattr(handler, 'proxies'):
-                proxy_map.update(handler.proxies)
-        self._write_string('[debug] Proxy map: ' + compat_str(proxy_map) + '\n')
+        self.dump_proxy_map('default', 'Proxy map')
+        self.dump_proxy_map('cn_verification', 'China IP verification proxy map')
 
         if self.params.get('call_home', False):
             ipaddr = self.urlopen('https://yt-dl.org/ip').read().decode('utf-8')
@@ -1735,12 +1740,15 @@ class YoutubeDL(object):
                     'See https://yt-dl.org/update if you need help updating.' %
                     latest_version)
 
-    def _setup_opener(self):
-        timeout_val = self.params.get('socket_timeout')
-        self._socket_timeout = 600 if timeout_val is None else float(timeout_val)
+    def dump_proxy_map(self, opener_name, prefix):
+        proxy_map = {}
+        for handler in self._openers_pool[opener_name].handlers:
+            if hasattr(handler, 'proxies'):
+                proxy_map.update(handler.proxies)
+        self._write_string('[debug] %s: %s\n' % (prefix, compat_str(proxy_map)))
 
+    def _setup_cookiejar(self):
         opts_cookiefile = self.params.get('cookiefile')
-        opts_proxy = self.params.get('proxy')
 
         if opts_cookiefile is None:
             self.cookiejar = compat_cookiejar.CookieJar()
@@ -1750,6 +1758,24 @@ class YoutubeDL(object):
             if os.access(opts_cookiefile, os.R_OK):
                 self.cookiejar.load()
 
+    def _setup_openers(self):
+        timeout_val = self.params.get('socket_timeout')
+        self._socket_timeout = 600 if timeout_val is None else float(timeout_val)
+
+        debuglevel = 1 if self.params.get('debug_printtraffic') else 0
+        https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)
+        ydlh = YoutubeDLHandler(self.params, debuglevel=debuglevel)
+
+        default_proxy = self.params.get('proxy')
+        cn_verification_proxy = self.params.get('cn_verification_proxy')
+
+        if not cn_verification_proxy:
+            cn_verification_proxy = default_proxy
+
+        self._setup_single_opener('default', default_proxy, https_handler, ydlh)
+        self._setup_single_opener('cn_verification', cn_verification_proxy, https_handler, ydlh)
+
+    def _setup_single_opener(self, opener_name, opts_proxy, https_handler, ydlh):
         cookie_processor = compat_urllib_request.HTTPCookieProcessor(
             self.cookiejar)
         if opts_proxy is not None:
@@ -1764,16 +1790,13 @@ class YoutubeDL(object):
                 proxies['https'] = proxies['http']
         proxy_handler = compat_urllib_request.ProxyHandler(proxies)
 
-        debuglevel = 1 if self.params.get('debug_printtraffic') else 0
-        https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)
-        ydlh = YoutubeDLHandler(self.params, debuglevel=debuglevel)
         opener = compat_urllib_request.build_opener(
             https_handler, proxy_handler, cookie_processor, ydlh)
         # Delete the default user-agent header, which would otherwise apply in
         # cases where our custom HTTP handler doesn't come into play
         # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
         opener.addheaders = []
-        self._opener = opener
+        self._openers_pool[opener_name] = opener
 
     def encode(self, s):
         if isinstance(s, bytes):
