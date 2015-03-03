@@ -19,6 +19,7 @@ class LyndaBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://www.lynda.com/login/login.aspx'
     _SUCCESSFUL_LOGIN_REGEX = r'isLoggedIn: true'
     _ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to provide lynda.com account credentials.'
+    _NETRC_MACHINE = 'lynda'
 
     def _real_initialize(self):
         self._login()
