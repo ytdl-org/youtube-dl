@@ -67,6 +67,8 @@ which means you can modify it, redistribute it or use it however you like.
     --source-address IP              Client-side IP address to bind to (experimental)
     -4, --force-ipv4                 Make all connections via IPv4 (experimental)
     -6, --force-ipv6                 Make all connections via IPv6 (experimental)
+    --cn-verification-proxy URL      Use this proxy to verify the IP address for some Chinese sites. The default proxy specified by --proxy (or none, if the options is
+                                     not present) is used for the actual downloading. (experimental)
 
 ## Video Selection:
     --playlist-start NUMBER          playlist video to start at (default is 1)
