@@ -47,7 +47,7 @@ class YouPornIE(InfoExtractor):
 
         # Get JSON parameters
         json_params = self._search_regex(
-            r'var currentVideo = new Video\((.*)\)[,;]',
+            r'var videoJason = (.*)[,;]',
             webpage, 'JSON parameters')
         try:
             params = json.loads(json_params)
