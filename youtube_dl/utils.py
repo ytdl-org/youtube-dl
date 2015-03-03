@@ -1771,10 +1771,21 @@ def match_filter_func(filter_str):
 
 
 class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
+    def __init__(self, proxies=None):
+        # Set default handlers
+        for type in ('http', 'https'):
+            setattr(self, '%s_open' % type,
+                    lambda r, proxy='__noproxy__', type=type, meth=self.proxy_open:
+                        meth(r, proxy, type))
+        return compat_urllib_request.ProxyHandler.__init__(self, proxies)
+
     def proxy_open(self, req, proxy, type):
-        req_proxy = req.headers.get('Ytdl-Request-Proxy')
+        req_proxy = req.headers.get('Ytdl-request-proxy')
         if req_proxy is not None:
             proxy = req_proxy
-            del req.headers['Ytdl-Request-Proxy']
+            del req.headers['Ytdl-request-proxy']
+
+        if proxy == '__noproxy__':
+            return None  # No Proxy
         return compat_urllib_request.ProxyHandler.proxy_open(
             self, req, proxy, type)

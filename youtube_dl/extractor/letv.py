@@ -40,9 +40,6 @@ class LetvIE(InfoExtractor):
             'title': '美人天下01',
             'description': 'md5:f88573d9d7225ada1359eaf0dbf8bcda',
         },
-        'expected_warnings': [
-            'publish time'
-        ]
     }, {
         'note': 'This video is available only in Mainland China, thus a proxy is needed',
         'url': 'http://www.letv.com/ptv/vplay/1118082.html',
@@ -53,11 +50,8 @@ class LetvIE(InfoExtractor):
             'title': '与龙共舞 完整版',
             'description': 'md5:7506a5eeb1722bb9d4068f85024e3986',
         },
-        'expected_warnings': [
-            'publish time'
-        ],
         'params': {
-            'cn_verification_proxy': 'proxy.uku.im:8888'
+            'cn_verification_proxy': 'http://proxy.uku.im:8888'
         },
     }]
 
@@ -95,7 +89,7 @@ class LetvIE(InfoExtractor):
             'http://api.letv.com/mms/out/video/playJson?' + compat_urllib_parse.urlencode(params)
         )
         play_json_req.add_header(
-            'Ytdl-Request-Proxy',
+            'Ytdl-request-proxy',
             self._downloader.params.get('cn_verification_proxy'))
         play_json = self._download_json(
             play_json_req,
