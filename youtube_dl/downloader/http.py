@@ -92,6 +92,8 @@ class HttpFD(FileDownloader):
                             self._hook_progress({
                                 'filename': filename,
                                 'status': 'finished',
+                                'downloaded_bytes': resume_len,
+                                'total_bytes': resume_len,
                             })
                             return True
                         else:
