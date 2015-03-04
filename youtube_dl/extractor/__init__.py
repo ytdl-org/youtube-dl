@@ -364,6 +364,7 @@ from .planetaplay import PlanetaPlayIE
 from .played import PlayedIE
 from .playfm import PlayFMIE
 from .playvid import PlayvidIE
+from .playwire import PlaywireIE
 from .podomatic import PodomaticIE
 from .pornhd import PornHdIE
 from .pornhub import (
