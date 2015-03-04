@@ -381,6 +381,7 @@ from .pornhub import (
 )
 from .pornotube import PornotubeIE
 from .pornoxo import PornoXOIE
+from .primesharetv import PrimesharetvIE
 from .promptfile import PromptFileIE
 from .prosiebensat1 import ProSiebenSat1IE
 from .puls4 import Puls4IE
