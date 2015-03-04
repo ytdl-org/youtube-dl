@@ -15,6 +15,19 @@ from ..compat import (
 class PrimesharetvIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?primeshare\.tv/download/(?P<id>.*)(?:.*)'
 
+    _TESTS = [
+        {
+            'url': 'http://primeshare.tv/download/238790B611',
+            'md5': 'bb41f9f6c0dd434c729f04ce5b677192',
+            'info_dict': {
+                'id': '238790B611',
+                'ext': 'mp4',
+                "title": "Public Domain - 1960s Commercial - Crest Toothpaste-YKsuFona [...]",
+                "duration": 10,
+            },
+        }
+    ]
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
@@ -33,7 +46,7 @@ class PrimesharetvIE(InfoExtractor):
         video_page = self._download_webpage(video_page_request, None, False, '')
 
         video_url = self._html_search_regex(
-            r'url: \'(http://l\.primeshare\.tv[^\']+)\',', video_page, 'video url')
+            r'url: \'(http://[a-z0-9]+\.primeshare\.tv:443/file/get/[^\']+)\',', video_page, 'video url')
 
         title = self._html_search_regex(
             r'<h1>Watch&nbsp;[^\(]+\(([^/)]+)\)&nbsp;', video_page, 'title')
