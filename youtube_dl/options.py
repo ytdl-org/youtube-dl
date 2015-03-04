@@ -736,6 +736,15 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='addmetadata', default=False,
         help='write metadata to the video file')
     postproc.add_option(
+        '--metadata-from-title',
+        metavar='FORMAT', dest='metafromtitle',
+        help='parse additional metadata like song title / artist from the video title. \n'
+             'The format syntax is the same as --output, '
+             'the parsed parameters replace existing values.\n'
+             'Additional templates: %(songtitle), %(album), %(artist). \n'
+             'Example: --metadata-from-title "%(artist)s - %(title)s" matches a title like '
+             '"Coldplay - Paradise"')
+    postproc.add_option(
         '--xattrs',
         action='store_true', dest='xattrs', default=False,
         help='write metadata to the video file\'s xattrs (using dublin core and xdg standards)')
