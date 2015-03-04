@@ -16,6 +16,7 @@ class TVPlayIE(InfoExtractor):
     _VALID_URL = r'''(?x)http://(?:www\.)?
         (?:tvplay\.lv/parraides|
            tv3play\.lt/programos|
+           play\.tv3\.lt/programos|
            tv3play\.ee/sisu|
            tv3play\.se/program|
            tv6play\.se/program|
@@ -45,7 +46,7 @@ class TVPlayIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://www.tv3play.lt/programos/moterys-meluoja-geriau/409229?autostart=true',
+            'url': 'http://play.tv3.lt/programos/moterys-meluoja-geriau/409229?autostart=true',
             'info_dict': {
                 'id': '409229',
                 'ext': 'flv',

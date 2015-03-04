@@ -195,6 +195,12 @@ def parseOpts(overrideArguments=None):
         action='store_const', const='::', dest='source_address',
         help='Make all connections via IPv6 (experimental)',
     )
+    network.add_option(
+        '--cn-verification-proxy',
+        dest='cn_verification_proxy', default=None, metavar='URL',
+        help='Use this proxy to verify the IP address for some Chinese sites. '
+        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading. (experimental)'
+    )
 
     selection = optparse.OptionGroup(parser, 'Video Selection')
     selection.add_option(

@@ -12,6 +12,7 @@ from ..utils import remove_end
 
 class GDCVaultIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?gdcvault\.com/play/(?P<id>\d+)/(?P<name>(\w|-)+)'
+    _NETRC_MACHINE = 'gdcvault'
     _TESTS = [
         {
             'url': 'http://www.gdcvault.com/play/1019721/Doki-Doki-Universe-Sweet-Simple',

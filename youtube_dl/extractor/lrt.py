@@ -52,6 +52,7 @@ class LRTIE(InfoExtractor):
                     'url': data['streamer'],
                     'play_path': 'mp4:%s' % data['file'],
                     'preference': -1,
+                    'rtmp_real_time': True,
                 })
             else:
                 formats.extend(

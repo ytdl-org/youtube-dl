@@ -92,6 +92,8 @@ class HttpFD(FileDownloader):
                             self._hook_progress({
                                 'filename': filename,
                                 'status': 'finished',
+                                'downloaded_bytes': resume_len,
+                                'total_bytes': resume_len,
                             })
                             return True
                         else:
@@ -218,12 +220,6 @@ class HttpFD(FileDownloader):
         if tmpfilename != '-':
             stream.close()
 
-        self._hook_progress({
-            'downloaded_bytes': byte_counter,
-            'total_bytes': data_len,
-            'tmpfilename': tmpfilename,
-            'status': 'error',
-        })
         if data_len is not None and byte_counter != data_len:
             raise ContentTooShortError(byte_counter, int(data_len))
         self.try_rename(tmpfilename, filename)

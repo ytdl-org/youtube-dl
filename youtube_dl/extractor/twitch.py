@@ -23,6 +23,7 @@ class TwitchBaseIE(InfoExtractor):
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'http://usher.twitch.tv'
     _LOGIN_URL = 'https://secure.twitch.tv/user/login'
+    _NETRC_MACHINE = 'twitch'
 
     def _handle_error(self, response):
         if not isinstance(response, dict):
