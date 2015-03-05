@@ -4,11 +4,11 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse_urlparse,
+    compat_parse_qs,
     compat_urllib_request,
-    compat_urllib_parse,
 )
 from ..utils import (
+    qualities,
     str_to_int,
 )
 
@@ -17,7 +17,7 @@ class ExtremeTubeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?(?P<url>extremetube\.com/.*?video/.+?(?P<id>[0-9]+))(?:[/?&]|$)'
     _TESTS = [{
         'url': 'http://www.extremetube.com/video/music-video-14-british-euro-brit-european-cumshots-swallow-652431',
-        'md5': '1fb9228f5e3332ec8c057d6ac36f33e0',
+        'md5': '344d0c6d50e2f16b06e49ca011d8ac69',
         'info_dict': {
             'id': '652431',
             'ext': 'mp4',
@@ -49,19 +49,27 @@ class ExtremeTubeIE(InfoExtractor):
             r'Views:\s*</strong>\s*<span>([\d,\.]+)</span>',
             webpage, 'view count', fatal=False))
 
-        video_url = compat_urllib_parse.unquote(self._html_search_regex(
-            r'video_url=(.+?)&amp;', webpage, 'video_url'))
-        path = compat_urllib_parse_urlparse(video_url).path
-        format = path.split('/')[5].split('_')[:2]
-        format = "-".join(format)
+        flash_vars = compat_parse_qs(self._search_regex(
+            r'<param[^>]+?name="flashvars"[^>]+?value="([^"]+)"', webpage, 'flash vars'))
+
+        formats = []
+        quality = qualities(['180p', '240p', '360p', '480p', '720p', '1080p'])
+        for k, vals in flash_vars.items():
+            m = re.match(r'quality_(?P<quality>[0-9]+p)$', k)
+            if m is not None:
+                formats.append({
+                    'format_id': m.group('quality'),
+                    'quality': quality(m.group('quality')),
+                    'url': vals[0],
+                })
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': video_title,
+            'formats': formats,
             'uploader': uploader,
             'view_count': view_count,
-            'url': video_url,
-            'format': format,
-            'format_id': format,
             'age_limit': 18,
         }
