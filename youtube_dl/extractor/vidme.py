@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -28,12 +26,11 @@ class VidmeIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        video_url = self._html_search_regex(r'<source src="([^"]+)"', webpage, 'video URL')
+        video_url = self._html_search_regex(
+            r'<source src="([^"]+)"', webpage, 'video URL')
 
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage, default='')
