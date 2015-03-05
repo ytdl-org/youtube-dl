@@ -4,22 +4,42 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .common import compat_str
+from ..utils import compat_str
+from ..compat import compat_urllib_request
 
 
 class SohuIE(InfoExtractor):
     _VALID_URL = r'https?://(?P<mytv>my\.)?tv\.sohu\.com/.+?/(?(mytv)|n)(?P<id>\d+)\.shtml.*?'
 
-    _TEST = {
+    _TESTS = [{
+        'note': 'This video is available only in Mainland China',
         'url': 'http://tv.sohu.com/20130724/n382479172.shtml#super',
-        'md5': 'bde8d9a6ffd82c63a1eefaef4eeefec7',
+        'md5': '29175c8cadd8b5cc4055001e85d6b372',
         'info_dict': {
             'id': '382479172',
             'ext': 'mp4',
             'title': 'MV：Far East Movement《The Illest》',
         },
-        'skip': 'Only available from China',
-    }
+        'params': {
+            'cn_verification_proxy': 'proxy.uku.im:8888'
+        }
+    }, {
+        'url': 'http://tv.sohu.com/20150305/n409385080.shtml',
+        'md5': '699060e75cf58858dd47fb9c03c42cfb',
+        'info_dict': {
+            'id': '409385080',
+            'ext': 'mp4',
+            'title': '《2015湖南卫视羊年元宵晚会》唐嫣《花好月圆》',
+        }
+    }, {
+        'url': 'http://my.tv.sohu.com/us/232799889/78693464.shtml',
+        'md5': '9bf34be48f2f4dadcb226c74127e203c',
+        'info_dict': {
+            'id': '78693464',
+            'ext': 'mp4',
+            'title': '【爱范品】第31期：MWC见不到的奇葩手机',
+        }
+    }]
 
     def _real_extract(self, url):
 
@@ -29,9 +49,14 @@ class SohuIE(InfoExtractor):
             else:
                 base_data_url = 'http://hot.vrs.sohu.com/vrs_flash.action?vid='
 
-            return self._download_json(
-                base_data_url + vid_id, video_id,
-                'Downloading JSON data for %s' % vid_id)
+            req = compat_urllib_request.Request(base_data_url + vid_id)
+
+            cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
+            if cn_verification_proxy:
+                req.add_header('Ytdl-request-proxy', cn_verification_proxy)
+
+            return self._download_json(req, video_id,
+                                       'Downloading JSON data for %s' % vid_id)
 
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
@@ -77,6 +102,11 @@ class SohuIE(InfoExtractor):
                     % (format_id, i + 1, part_count))
 
                 part_info = part_str.split('|')
+
+                # Sanitize URL to prevent download failure
+                if part_info[0][-1] == '/' and su[i][0] == '/':
+                    su[i] = su[i][1:]
+
                 video_url = '%s%s?key=%s' % (part_info[0], su[i], part_info[3])
 
                 formats.append({
