@@ -839,7 +839,7 @@ class InfoExtractor(object):
                               m3u8_id=None):
 
         formats = [{
-            'format_id': '-'.join(filter(None, [m3u8_id, 'm3u8-meta'])),
+            'format_id': '-'.join(filter(None, [m3u8_id, 'meta'])),
             'url': m3u8_url,
             'ext': ext,
             'protocol': 'm3u8',
