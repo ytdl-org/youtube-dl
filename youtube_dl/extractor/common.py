@@ -883,12 +883,13 @@ class InfoExtractor(object):
                     formats.append({'url': format_url(line)})
                     continue
                 tbr = int_or_none(last_info.get('BANDWIDTH'), scale=1000)
-                format_id = last_media.get('NAME')
-                if not format_id:
-                    format_id = '-'.join(filter(None, [
-                        m3u8_id, 'm3u8-%d' % (tbr if tbr else len(formats))]))
+                format_id = []
+                if m3u8_id:
+                    format_id.append(m3u8_id)
+                last_media_name = last_media.get('NAME') if last_media else None
+                format_id.append(last_media_name if last_media_name else '%d' % (tbr if tbr else len(formats)))
                 f = {
-                    'format_id': format_id,
+                    'format_id': '-'.join(format_id),
                     'url': format_url(line.strip()),
                     'tbr': tbr,
                     'ext': ext,
