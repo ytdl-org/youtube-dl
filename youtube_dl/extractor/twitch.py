@@ -85,6 +85,14 @@ class TwitchBaseIE(InfoExtractor):
             raise ExtractorError(
                 'Unable to login: %s' % m.group('msg').strip(), expected=True)
 
+    def _prefer_source(self, formats):
+        try:
+            source = next(f for f in formats if f['format_id'] == 'Source')
+            source['preference'] = 10
+        except StopIteration:
+            pass  # No Source stream present
+        self._sort_formats(formats)
+
 
 class TwitchItemBaseIE(TwitchBaseIE):
     def _download_info(self, item, item_id):
@@ -209,6 +217,7 @@ class TwitchVodIE(TwitchItemBaseIE):
             '%s/vod/%s?nauth=%s&nauthsig=%s'
             % (self._USHER_BASE, item_id, access_token['token'], access_token['sig']),
             item_id, 'mp4')
+        self._prefer_source(formats)
         info['formats'] = formats
         return info
 
@@ -357,13 +366,7 @@ class TwitchStreamIE(TwitchBaseIE):
             '%s/api/channel/hls/%s.m3u8?%s'
             % (self._USHER_BASE, channel_id, compat_urllib_parse.urlencode(query).encode('utf-8')),
             channel_id, 'mp4')
-
-        # prefer the 'source' stream, the others are limited to 30 fps
-        def _sort_source(f):
-            if f.get('m3u8_media') is not None and f['m3u8_media'].get('NAME') == 'Source':
-                return 1
-            return 0
-        formats = sorted(formats, key=_sort_source)
+        self._prefer_source(formats)
 
         view_count = stream.get('viewers')
         timestamp = parse_iso8601(stream.get('created_at'))
