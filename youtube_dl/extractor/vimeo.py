@@ -20,6 +20,7 @@ from ..utils import (
     RegexNotFoundError,
     smuggle_url,
     std_headers,
+    unified_strdate,
     unsmuggle_url,
     urlencode_postdata,
 )
@@ -140,6 +141,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'description': 'md5:8678b246399b070816b12313e8b4eb5c',
                 'uploader_id': 'atencio',
                 'uploader': 'Peter Atencio',
+                'upload_date': '20130927',
                 'duration': 187,
             },
         },
@@ -323,9 +325,9 @@ class VimeoIE(VimeoBaseInfoExtractor):
 
         # Extract upload date
         video_upload_date = None
-        mobj = re.search(r'<meta itemprop="dateCreated" content="(\d{4})-(\d{2})-(\d{2})T', webpage)
+        mobj = re.search(r'<time[^>]+datetime="([^"]+)"', webpage)
         if mobj is not None:
-            video_upload_date = mobj.group(1) + mobj.group(2) + mobj.group(3)
+            video_upload_date = unified_strdate(mobj.group(1))
 
         try:
             view_count = int(self._search_regex(r'UserPlays:(\d+)', webpage, 'view count'))
