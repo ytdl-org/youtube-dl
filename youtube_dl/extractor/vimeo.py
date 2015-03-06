@@ -429,10 +429,10 @@ class VimeoChannelIE(InfoExtractor):
             name="([^"]+)"\s+
             value="([^"]*)"
             ''', login_form))
-        token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
+        token = self._search_regex(r'xsrft = \'(.*?)\'', webpage, 'login token')
         fields['token'] = token
         fields['password'] = password
-        post = compat_urllib_parse.urlencode(fields)
+        post = urlencode_postdata(fields)
         password_path = self._search_regex(
             r'action="([^"]+)"', login_form, 'password URL')
         password_url = compat_urlparse.urljoin(page_url, password_path)
@@ -494,10 +494,10 @@ class VimeoUserIE(VimeoChannelIE):
 
 class VimeoAlbumIE(VimeoChannelIE):
     IE_NAME = 'vimeo:album'
-    _VALID_URL = r'https?://vimeo\.com/album/(?P<id>\d+)'
+    _VALID_URL = r'https://vimeo\.com/album/(?P<id>\d+)'
     _TITLE_RE = r'<header id="page_header">\n\s*<h1>(.*?)</h1>'
     _TESTS = [{
-        'url': 'http://vimeo.com/album/2632481',
+        'url': 'https://vimeo.com/album/2632481',
         'info_dict': {
             'id': '2632481',
             'title': 'Staff Favorites: November 2013',
@@ -521,7 +521,7 @@ class VimeoAlbumIE(VimeoChannelIE):
 
     def _real_extract(self, url):
         album_id = self._match_id(url)
-        return self._extract_videos(album_id, 'http://vimeo.com/album/%s' % album_id)
+        return self._extract_videos(album_id, 'https://vimeo.com/album/%s' % album_id)
 
 
 class VimeoGroupsIE(VimeoAlbumIE):
