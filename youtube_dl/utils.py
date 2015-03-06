@@ -1789,3 +1789,18 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
             return None  # No Proxy
         return compat_urllib_request.ProxyHandler.proxy_open(
             self, req, proxy, type)
+
+
+def url_sanitize_consecutive_slashes(url):
+    """Sanitize URLs with consecutive slashes
+
+    For example, transform both
+        http://hostname/foo//bar/filename.html
+    and
+        http://hostname//foo/bar/filename.html
+    into
+        http://hostname/foo/bar/filename.html
+    """
+    parsed_url = list(compat_urlparse.urlparse(url))
+    parsed_url[2] = re.sub(r'/{2,}', '/', parsed_url[2])
+    return compat_urlparse.urlunparse(parsed_url)

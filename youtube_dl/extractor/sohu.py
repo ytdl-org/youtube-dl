@@ -8,6 +8,7 @@ from ..compat import (
     compat_str,
     compat_urllib_request
 )
+from ..utils import url_sanitize_consecutive_slashes
 
 
 class SohuIE(InfoExtractor):
@@ -105,11 +106,8 @@ class SohuIE(InfoExtractor):
 
                 part_info = part_str.split('|')
 
-                # Sanitize URL to prevent download failure
-                if part_info[0][-1] == '/' and su[i][0] == '/':
-                    su[i] = su[i][1:]
-
-                video_url = '%s%s?key=%s' % (part_info[0], su[i], part_info[3])
+                video_url = url_sanitize_consecutive_slashes(
+                    '%s%s?key=%s' % (part_info[0], su[i], part_info[3]))
 
                 formats.append({
                     'url': video_url,
