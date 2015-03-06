@@ -222,7 +222,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         video_id = mobj.group('id')
         orig_url = url
         if mobj.group('pro') or mobj.group('player'):
-            url = 'http://player.vimeo.com/video/' + video_id
+            url = 'https://player.vimeo.com/video/' + video_id
 
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request(url, None, headers)
