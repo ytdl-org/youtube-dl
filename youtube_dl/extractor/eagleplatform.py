@@ -48,7 +48,6 @@ class EaglePlatformIE(InfoExtractor):
     }]
 
     def _handle_error(self, response):
-        print(response['status'])
         status = int_or_none(response.get('status', 200))
         if status != 200:
             raise ExtractorError(' '.join(response['errors']), expected=True)
