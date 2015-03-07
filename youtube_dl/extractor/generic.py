@@ -570,6 +570,20 @@ class GenericIE(InfoExtractor):
                 'title': 'John Carlson Postgame 2/25/15',
             },
         },
+        # Eagle.Platform embed (generic URL)
+        {
+            'url': 'http://lenta.ru/news/2015/03/06/navalny/',
+            'info_dict': {
+                'id': '227304',
+                'ext': 'mp4',
+                'title': 'Навальный вышел на свободу',
+                'description': 'md5:d97861ac9ae77377f3f20eaf9d04b4f5',
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'duration': 87,
+                'view_count': int,
+                'age_limit': 0,
+            },
+        },
         # RSS feed with enclosure
         {
             'url': 'http://podcastfeeds.nbcnews.com/audio/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
@@ -1154,6 +1168,12 @@ class GenericIE(InfoExtractor):
             r"(?s)kWidget\.(?:thumb)?[Ee]mbed\(\{.*?'wid'\s*:\s*'_?(?P<partner_id>[^']+)',.*?'entry_id'\s*:\s*'(?P<id>[^']+)',", webpage)
         if mobj is not None:
             return self.url_result('kaltura:%(partner_id)s:%(id)s' % mobj.groupdict(), 'Kaltura')
+
+        # Look for Eagle.Platform embeds
+        mobj = re.search(
+            r'<iframe[^>]+src="(?P<url>https?://.+?\.media\.eagleplatform\.com/index/player\?.+?)"', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'EaglePlatform')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
