@@ -553,16 +553,20 @@ class YoutubeDL(object):
                 elif template_dict.get('width'):
                     template_dict['resolution'] = '?x%d' % template_dict['width']
 
+            restrict_filenames = self.params.get('restrictfilenames')
+
             sanitize = lambda k, v: sanitize_filename(
                 compat_str(v),
-                restricted=self.params.get('restrictfilenames'),
+                restricted=restrict_filenames,
                 is_id=(k == 'id'))
             template_dict = dict((k, sanitize(k, v))
                                  for k, v in template_dict.items()
                                  if v is not None)
             template_dict = collections.defaultdict(lambda: 'NA', template_dict)
 
-            outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
+            outtmpl = sanitize_filename(
+                self.params.get('outtmpl', DEFAULT_OUTTMPL),
+                restricted=restrict_filenames)
             tmpl = compat_expanduser(outtmpl)
             filename = tmpl % template_dict
             # Temporary fix for #4787
