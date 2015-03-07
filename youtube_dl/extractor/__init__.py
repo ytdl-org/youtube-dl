@@ -354,6 +354,7 @@ from .orf import (
     ORFTVthekIE,
     ORFOE1IE,
     ORFFM4IE,
+    ORFIPTVIE,
 )
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
