@@ -584,6 +584,18 @@ class GenericIE(InfoExtractor):
                 'age_limit': 0,
             },
         },
+        # ClipYou (Eagle.Platform) embed (custom URL)
+        {
+            'url': 'http://muz-tv.ru/play/7129/',
+            'info_dict': {
+                'id': '12820',
+                'ext': 'mp4',
+                'title': "'O Sole Mio",
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'duration': 216,
+                'view_count': int,
+            },
+        },
         # RSS feed with enclosure
         {
             'url': 'http://podcastfeeds.nbcnews.com/audio/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
@@ -1174,6 +1186,12 @@ class GenericIE(InfoExtractor):
             r'<iframe[^>]+src="(?P<url>https?://.+?\.media\.eagleplatform\.com/index/player\?.+?)"', webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'EaglePlatform')
+
+        # Look for ClipYou (uses Eagle.Platform) embeds
+        mobj = re.search(
+            r'<iframe[^>]+src="https?://(?P<host>media\.clipyou\.ru)/index/player\?.*\brecord_id=(?P<id>\d+).*"', webpage)
+        if mobj is not None:
+            return self.url_result('eagleplatform:%(host)s:%(id)s' % mobj.groupdict(), 'EaglePlatform')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
