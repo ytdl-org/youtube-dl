@@ -116,6 +116,7 @@ from .defense import DefenseGouvFrIE
 from .discovery import DiscoveryIE
 from .divxstage import DivxStageIE
 from .dropbox import DropboxIE
+from .eagleplatform import EaglePlatformIE
 from .ebaumsworld import EbaumsWorldIE
 from .echomsk import EchoMskIE
 from .ehow import EHowIE
