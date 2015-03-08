@@ -7,8 +7,8 @@ from .common import InfoExtractor
 
 
 class GazetaIE(InfoExtractor):
-    _VALID_URL = r'(?P<url>https?://(?:www\.)?gazeta\.ru/(?:(?P<category>[^/]*)/)?video/(?:main/)?(?P<id>[A-Za-z0-9-_]+)\.s?html)'
-    _TEST = {
+    _VALID_URL = r'(?P<url>https?://(?:www\.)?gazeta\.ru/(?:[^/]+/)?video/(?:(?:main|\d{4}/\d{2}/\d{2})/)?(?P<id>[A-Za-z0-9-_.]+)\.s?html)'
+    _TESTS = [{
         'url': 'http://www.gazeta.ru/video/main/zadaite_vopros_vladislavu_yurevichu.shtml',
         'md5': 'd49c9bdc6e5a7888f27475dc215ee789',
         'info_dict': {
@@ -18,7 +18,10 @@ class GazetaIE(InfoExtractor):
             'description': 'md5:38617526050bd17b234728e7f9620a71',
             'thumbnail': 're:^https?://.*\.jpg',
         },
-    }
+    }, {
+        'url': 'http://www.gazeta.ru/lifestyle/video/2015/03/08/master-klass_krasivoi_byt._delaem_vesennii_makiyazh.shtml',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
