@@ -439,7 +439,7 @@ class InfoExtractor(object):
             return xml_string
         if transform_source:
             xml_string = transform_source(xml_string)
-        return xml.etree.ElementTree.fromstring(xml_string.encode('utf-8'))
+        return xml.etree.ElementTree.fromstring(xml_string.encode('utf-8').strip())
 
     def _download_json(self, url_or_request, video_id,
                        note='Downloading JSON metadata',
