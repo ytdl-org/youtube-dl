@@ -358,13 +358,12 @@ class TwitchStreamIE(TwitchBaseIE):
             'p': random.randint(1000000, 10000000),
             'player': 'twitchweb',
             'segment_preference': '4',
-            'sig': access_token['sig'],
-            'token': access_token['token'],
+            'sig': access_token['sig'].encode('utf-8'),
+            'token': access_token['token'].encode('utf-8'),
         }
-
         formats = self._extract_m3u8_formats(
             '%s/api/channel/hls/%s.m3u8?%s'
-            % (self._USHER_BASE, channel_id, compat_urllib_parse.urlencode(query).encode('utf-8')),
+            % (self._USHER_BASE, channel_id, compat_urllib_parse.urlencode(query)),
             channel_id, 'mp4')
         self._prefer_source(formats)
 
