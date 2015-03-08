@@ -14,7 +14,7 @@ from ..utils import (
 class WallaIE(InfoExtractor):
     _VALID_URL = r'http://[^\.]+\.walla\.co\.il/[^/]+/(?P<id>\d+)'
     _TESTS = [{
-        'url': 'http://news.walla.co.il/item/2835878',
+        'url': 'http://news.walla.co.il/item/2663876',
         'info_dict': {
             'id': '2663876',
             'ext': 'mp4',
