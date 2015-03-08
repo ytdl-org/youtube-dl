@@ -1262,7 +1262,7 @@ class YoutubeDL(object):
             return
 
         try:
-            dn = os.path.dirname(encodeFilename(filename))
+            dn = os.path.dirname(sanitize_path(encodeFilename(filename)))
             if dn and not os.path.exists(dn):
                 os.makedirs(dn)
         except (OSError, IOError) as err:
