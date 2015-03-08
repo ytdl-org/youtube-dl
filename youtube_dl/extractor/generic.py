@@ -596,6 +596,19 @@ class GenericIE(InfoExtractor):
                 'view_count': int,
             },
         },
+        # Pladform embed
+        {
+            'url': 'http://muz-tv.ru/kinozal/view/7400/',
+            'info_dict': {
+                'id': '100183293',
+                'ext': 'mp4',
+                'title': 'Тайны перевала Дятлова • Тайна перевала Дятлова 1 серия 2 часть',
+                'description': 'Документальный сериал-расследование одной из самых жутких тайн ХХ века',
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'duration': 694,
+                'age_limit': 0,
+            },
+        },
         # RSS feed with enclosure
         {
             'url': 'http://podcastfeeds.nbcnews.com/audio/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
@@ -1192,6 +1205,12 @@ class GenericIE(InfoExtractor):
             r'<iframe[^>]+src="https?://(?P<host>media\.clipyou\.ru)/index/player\?.*\brecord_id=(?P<id>\d+).*"', webpage)
         if mobj is not None:
             return self.url_result('eagleplatform:%(host)s:%(id)s' % mobj.groupdict(), 'EaglePlatform')
+
+        # Look for Pladform embeds
+        mobj = re.search(
+            r'<iframe[^>]+src="(?P<url>https?://out\.pladform\.ru/player\?.+?)"', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'Pladform')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
