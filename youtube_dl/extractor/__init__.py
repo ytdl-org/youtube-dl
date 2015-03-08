@@ -175,6 +175,7 @@ from .gameone import (
 from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
 from .gametrailers import GametrailersIE
+from .gazeta import GazetaIE
 from .gdcvault import GDCVaultIE
 from .generic import GenericIE
 from .giantbomb import GiantBombIE
