@@ -41,7 +41,7 @@ class BreakIE(InfoExtractor):
             'tbr': media['bitRate'],
             'width': media['width'],
             'height': media['height'],
-        } for media in info['media']]
+        } for media in info['media'] if media.get('mediaPurpose') == 'play']
 
         if not formats:
             formats.append({
