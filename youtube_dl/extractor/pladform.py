@@ -6,6 +6,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     xpath_text,
+    qualities,
 )
 
 
@@ -55,9 +56,12 @@ class PladformIE(InfoExtractor):
                 '%s returned error: %s' % (self.IE_NAME, video.text),
                 expected=True)
 
+        quality = qualities(('ld', 'sd', 'hd'))
+
         formats = [{
             'url': src.text,
             'format_id': src.get('quality'),
+            'quality': quality(src.get('quality')),
         } for src in video.findall('./src')]
         self._sort_formats(formats)
 
