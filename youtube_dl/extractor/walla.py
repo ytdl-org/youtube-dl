@@ -5,29 +5,43 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     xpath_text,
     int_or_none,
 )
 
 
 class WallaIE(InfoExtractor):
-    _VALID_URL = r'http://vod\.walla\.co\.il/[^/]+/(?P<id>\d+)/(?P<display_id>.+)'
-    _TEST = {
+    _VALID_URL = r'http://[^\.]+\.walla\.co\.il/[^/]+/(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'http://news.walla.co.il/item/2835878',
+        'info_dict': {
+            'id': '2663876',
+            'ext': 'mp4',
+            'title': 'בנט יורה: "בפעם הבאה יהיה רב ראשי אחד לישראל"',
+            'description': 'md5:5f3ac43a8abc132ccaa1a6894a137440',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'duration': 112,
+        },
+        'params': {
+            # stream download
+            'skip_download': True,
+        }
+    }, {
         'url': 'http://vod.walla.co.il/movie/2642630/one-direction-all-for-one',
         'info_dict': {
             'id': '2642630',
-            'display_id': 'one-direction-all-for-one',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'וואן דיירקשן: ההיסטריה',
             'description': 'md5:de9e2512a92442574cdb0913c49bc4d8',
             'thumbnail': 're:^https?://.*\.jpg',
             'duration': 3600,
         },
         'params': {
-            # rtmp download
+            # stream download
             'skip_download': True,
         }
-    }
+    }]
 
     _SUBTITLE_LANGS = {
         'עברית': 'heb',
@@ -36,18 +50,27 @@ class WallaIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        display_id = mobj.group('display_id')
 
         video = self._download_xml(
-            'http://video2.walla.co.il/?w=null/null/%s/@@/video/flv_pl' % video_id,
-            display_id)
+            'http://video.walla.co.il/?w=//%s/@@/video/flv_pl' % video_id,
+            video_id)
 
         item = video.find('./items/item')
 
+        if item is None:
+            raise ExtractorError('The item doesn\'t exist or has no video.', expected=True)
+
         title = xpath_text(item, './title', 'title')
-        description = xpath_text(item, './synopsis', 'description')
+        description = next(
+            item for item in [
+                xpath_text(item, './synopsis', 'description'),
+                xpath_text(item, './subtitle', 'description'),
+                '',
+            ] if item is not None
+        )
         thumbnail = xpath_text(item, './preview_pic', 'thumbnail')
         duration = int_or_none(xpath_text(item, './duration', 'duration'))
+        default_file = xpath_text(item, './src', 'src')
 
         subtitles = {}
         for subtitle in item.findall('./subtitles/subtitle'):
@@ -57,16 +80,23 @@ class WallaIE(InfoExtractor):
                 'url': xpath_text(subtitle, './src'),
             }]
 
+        playlist_url = 'http://walla-s.vidnt.com/walla_vod/_definst_/%s.mp4/playlist.m3u8'
+
         formats = []
+        formats.append(
+            {
+                'url': playlist_url % default_file,
+                'ext': 'mp4',
+                'format_id': 40,
+            }
+        )
+
         for quality in item.findall('./qualities/quality'):
             format_id = xpath_text(quality, './title')
             fmt = {
-                'url': 'rtmp://wafla.walla.co.il/vod',
-                'play_path': xpath_text(quality, './src'),
-                'player_url': 'http://isc.walla.co.il/w9/swf/video_swf/vod/WallaMediaPlayerAvod.swf',
-                'page_url': url,
-                'ext': 'flv',
-                'format_id': xpath_text(quality, './title'),
+                'url': playlist_url % xpath_text(quality, './src'),
+                'ext': 'mp4',
+                'format_id': quality.attrib['type'],
             }
             m = re.search(r'^(?P<height>\d+)[Pp]', format_id)
             if m:
@@ -76,7 +106,6 @@ class WallaIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'display_id': display_id,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
