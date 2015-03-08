@@ -364,6 +364,7 @@ from .pbs import PBSIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
 from .planetaplay import PlanetaPlayIE
+from .pladform import PladformIE
 from .played import PlayedIE
 from .playfm import PlayFMIE
 from .playvid import PlayvidIE
