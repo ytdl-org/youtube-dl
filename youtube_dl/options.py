@@ -563,7 +563,7 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='verbose', default=False,
         help='print various debugging information')
     verbosity.add_option(
-        '--dump-intermediate-pages',
+        '--dump-pages', '--dump-intermediate-pages',
         action='store_true', dest='dump_intermediate_pages', default=False,
         help='print downloaded pages to debug problems (very verbose)')
     verbosity.add_option(
