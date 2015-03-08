@@ -319,7 +319,7 @@ def sanitize_path(s):
     if unc_or_drive:
         norm_path.pop(0)
     sanitized_path = [
-        re.sub('[/<>:"\\|\\\\?\\*]', '#', path_part)
+        re.sub('(?:[/<>:"\\|\\\\?\\*]|\.$)', '#', path_part)
         for path_part in norm_path]
     if unc_or_drive:
         sanitized_path.insert(0, unc_or_drive + os.path.sep)
