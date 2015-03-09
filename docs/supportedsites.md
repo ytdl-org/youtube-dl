@@ -117,6 +117,7 @@
  - **DRTV**
  - **Dump**
  - **dvtv**: http://video.aktualne.cz/
+ - **EaglePlatform**
  - **EbaumsWorld**
  - **EchoMsk**
  - **eHow**
@@ -161,6 +162,7 @@
  - **GameSpot**
  - **GameStar**
  - **Gametrailers**
+ - **Gazeta**
  - **GDCVault**
  - **generic**: Generic downloader that works on some sites
  - **GiantBomb**
@@ -315,6 +317,7 @@
  - **Ooyala**
  - **OpenFilm**
  - **orf:fm4**: radio FM4
+ - **orf:iptv**: iptv.ORF.at
  - **orf:oe1**: Radio Österreich 1
  - **orf:tvthek**: ORF TVthek
  - **parliamentlive.tv**: UK parliament videos
@@ -322,10 +325,12 @@
  - **PBS**
  - **Phoenix**
  - **Photobucket**
+ - **Pladform**
  - **PlanetaPlay**
  - **play.fm**
  - **played.to**
  - **Playvid**
+ - **Playwire**
  - **plus.google**: Google Plus
  - **pluzz.francetv.fr**
  - **podomatic**

@@ -167,7 +167,7 @@ which means you can modify it, redistribute it or use it however you like.
     --no-progress                    do not print progress bar
     --console-title                  display progress in console titlebar
     -v, --verbose                    print various debugging information
-    --dump-intermediate-pages        print downloaded pages to debug problems (very verbose)
+    --dump-pages                     print downloaded pages to debug problems (very verbose)
     --write-pages                    Write downloaded intermediary pages to files in the current directory to debug problems
     --print-traffic                  Display sent and read HTTP traffic
     -C, --call-home                  Contact the youtube-dl server for debugging.
