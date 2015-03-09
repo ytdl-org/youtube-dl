@@ -163,6 +163,11 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_path('abc.../def'), 'abc..#\\def')
         self.assertEqual(sanitize_path('abc.../def...'), 'abc..#\\def..#')
 
+        self.assertEqual(sanitize_path('../abc'), '..\\abc')
+        self.assertEqual(sanitize_path('../../abc'), '..\\..\\abc')
+        self.assertEqual(sanitize_path('./abc'), 'abc')
+        self.assertEqual(sanitize_path('./../abc'), '..\\abc')
+
     def test_ordered_set(self):
         self.assertEqual(orderedSet([1, 1, 2, 3, 4, 4, 5, 6, 7, 3, 5]), [1, 2, 3, 4, 5, 6, 7])
         self.assertEqual(orderedSet([]), [])
