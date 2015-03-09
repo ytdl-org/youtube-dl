@@ -611,6 +611,11 @@ from .yahoo import (
     YahooSearchIE,
 )
 from .yam import YamIE
+from .yandexmusic import (
+    YandexMusicTrackIE,
+    YandexMusicAlbumIE,
+    YandexMusicPlaylistIE,
+)
 from .yesjapan import YesJapanIE
 from .ynet import YnetIE
 from .youjizz import YouJizzIE
