@@ -41,7 +41,7 @@ class NiconicoIE(InfoExtractor):
         },
     }
 
-    _VALID_URL = r'https?://(?:www\.|secure\.)?nicovideo\.jp/watch/((?:[a-z]{2})?[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.|secure\.)?nicovideo\.jp/watch/(?P<id>(?:[a-z]{2})?[0-9]+)'
     _NETRC_MACHINE = 'niconico'
     # Determine whether the downloader used authentication to download video
     _AUTHENTICATED = False
@@ -76,8 +76,7 @@ class NiconicoIE(InfoExtractor):
         return True
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group(1)
+        video_id = self._match_id(url)
 
         # Get video webpage. We are not actually interested in it, but need
         # the cookies in order to be able to download the info webpage
