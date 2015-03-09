@@ -61,6 +61,7 @@ from .utils import (
     render_table,
     SameFileError,
     sanitize_filename,
+    sanitize_path,
     std_headers,
     subtitles_filename,
     takewhile_inclusive,
@@ -562,7 +563,7 @@ class YoutubeDL(object):
                                  if v is not None)
             template_dict = collections.defaultdict(lambda: 'NA', template_dict)
 
-            outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
+            outtmpl = sanitize_path(self.params.get('outtmpl', DEFAULT_OUTTMPL))
             tmpl = compat_expanduser(outtmpl)
             filename = tmpl % template_dict
             # Temporary fix for #4787
@@ -1261,7 +1262,7 @@ class YoutubeDL(object):
             return
 
         try:
-            dn = os.path.dirname(encodeFilename(filename))
+            dn = os.path.dirname(sanitize_path(encodeFilename(filename)))
             if dn and not os.path.exists(dn):
                 os.makedirs(dn)
         except (OSError, IOError) as err:

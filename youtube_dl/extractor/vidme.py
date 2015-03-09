@@ -41,13 +41,10 @@ class VidmeIE(InfoExtractor):
         duration = float_or_none(self._html_search_regex(
             r'data-duration="([^"]+)"', webpage, 'duration', fatal=False))
         view_count = str_to_int(self._html_search_regex(
-            r'<span class="video_views">\s*([\d,\.]+)\s*plays?', webpage, 'view count', fatal=False))
+            r'<(?:li|span) class="video_views">\s*([\d,\.]+)\s*plays?', webpage, 'view count', fatal=False))
         like_count = str_to_int(self._html_search_regex(
             r'class="score js-video-vote-score"[^>]+data-score="([\d,\.\s]+)">',
             webpage, 'like count', fatal=False))
-        comment_count = str_to_int(self._html_search_regex(
-            r'class="js-comment-count"[^>]+data-count="([\d,\.\s]+)">',
-            webpage, 'comment count', fatal=False))
 
         return {
             'id': video_id,
@@ -61,5 +58,4 @@ class VidmeIE(InfoExtractor):
             'duration': duration,
             'view_count': view_count,
             'like_count': like_count,
-            'comment_count': comment_count,
         }

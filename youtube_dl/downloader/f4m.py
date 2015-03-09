@@ -281,7 +281,7 @@ class F4mFD(FileDownloader):
             boot_info = self._get_bootstrap_from_url(bootstrap_url)
         else:
             bootstrap_url = None
-            bootstrap = base64.b64decode(node.text)
+            bootstrap = base64.b64decode(node.text.encode('ascii'))
             boot_info = read_bootstrap_info(bootstrap)
         return (boot_info, bootstrap_url)
 
@@ -308,7 +308,7 @@ class F4mFD(FileDownloader):
         live = boot_info['live']
         metadata_node = media.find(_add_ns('metadata'))
         if metadata_node is not None:
-            metadata = base64.b64decode(metadata_node.text)
+            metadata = base64.b64decode(metadata_node.text.encode('ascii'))
         else:
             metadata = None
 

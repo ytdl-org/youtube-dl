@@ -252,15 +252,12 @@ def sanitize_open(filename, open_mode):
             raise
 
         # In case of error, try to remove win32 forbidden chars
-        alt_filename = os.path.join(
-            re.sub('[/<>:"\\|\\\\?\\*]', '#', path_part)
-            for path_part in os.path.split(filename)
-        )
+        alt_filename = sanitize_path(filename)
         if alt_filename == filename:
             raise
         else:
             # An exception here should be caught in the caller
-            stream = open(encodeFilename(filename), open_mode)
+            stream = open(encodeFilename(alt_filename), open_mode)
             return (stream, alt_filename)
 
 
@@ -309,6 +306,24 @@ def sanitize_filename(s, restricted=False, is_id=False):
         if not result:
             result = '_'
     return result
+
+
+def sanitize_path(s):
+    """Sanitizes and normalizes path on Windows"""
+    if sys.platform != 'win32':
+        return s
+    drive, _ = os.path.splitdrive(s)
+    unc, _ = os.path.splitunc(s)
+    unc_or_drive = unc or drive
+    norm_path = os.path.normpath(remove_start(s, unc_or_drive)).split(os.path.sep)
+    if unc_or_drive:
+        norm_path.pop(0)
+    sanitized_path = [
+        re.sub('(?:[/<>:"\\|\\\\?\\*]|\.$)', '#', path_part)
+        for path_part in norm_path]
+    if unc_or_drive:
+        sanitized_path.insert(0, unc_or_drive + os.path.sep)
+    return os.path.join(*sanitized_path)
 
 
 def orderedSet(iterable):
