@@ -125,4 +125,3 @@ class YandexMusicPlaylistIE(YandexMusicBaseIE):
         return self.playlist_result(
             entries, compat_str(playlist_id),
             playlist['title'], playlist.get('description'))
-
