@@ -65,8 +65,7 @@ class FunnyOrDieIE(InfoExtractor):
           if not sublang in subtitles.keys():
             subtitles[sublang]=[]
           subext=suburl.split('/')[-1]
-          print subext
-          subtitles[sublang].append({'url': suburl,'ext': subext})
+          subtitles[sublang].append({'url': 'http://www.funnyordie.com'+suburl,'ext': subext})
 
         post_json = self._search_regex(
             r'fb_post\s*=\s*(\{.*?\});', webpage, 'post details')
