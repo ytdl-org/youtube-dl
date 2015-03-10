@@ -13,7 +13,7 @@ class MetadataFromTitlePPError(PostProcessingError):
 class MetadataFromTitlePP(PostProcessor):
     def __init__(self, downloader, titleformat):
         self._titleformat = titleformat
-        self._titleregex, self._attributes = self.fmtToRegex(titleformat)
+        self._titleregex = self.fmtToRegex(titleformat)
 
     def fmtToRegex(self, fmt):
         """
@@ -29,20 +29,18 @@ class MetadataFromTitlePP(PostProcessor):
         # replace %(..)s with regex group and escape other string parts
         for match in re.finditer(r'%\((\w+)\)s', fmt):
             regex += re.escape(fmt[lastpos:match.start()])
-            groupname = match.group(1)
-            groups.append(groupname)
-            regex += r'(?P<' + groupname + '>.+)'
+            regex += r'(?P<' + match.group(1) + '>.+)'
             lastpos = match.end()
         if lastpos < len(fmt):
             regex += re.escape(fmt[lastpos:len(fmt)])
-        return regex, groups
+        return regex
 
     def run(self, info):
         title = info['title']
         match = re.match(self._titleregex, title)
         if match is None:
             raise MetadataFromTitlePPError('Could not interpret title of video as "%s"' % self._titleformat)
-        for attribute in self._attributes:
+        for attribute, value in match.groupdict().items():
             value = match.group(attribute)
             info[attribute] = value
             self._downloader.to_screen('[fromtitle] parsed ' + attribute + ': ' + value)
