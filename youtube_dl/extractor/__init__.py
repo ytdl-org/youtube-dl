@@ -226,6 +226,7 @@ from .ivi import (
 from .izlesene import IzleseneIE
 from .jadorecettepub import JadoreCettePubIE
 from .jeuxvideo import JeuxVideoIE
+from .joemonster import JoeMonsterIE
 from .jove import JoveIE
 from .jukebox import JukeboxIE
 from .jpopsukitv import JpopsukiIE
