@@ -58,14 +58,12 @@ class FunnyOrDieIE(InfoExtractor):
                     'vbr': bitrate,
                 })
 
-        subtitles={}
-        subtitle_matches=re.findall(r'<track kind="captions" src="([^"]+)" srclang="([^"]+)"', webpage)
-        for match in subtitle_matches:
-          (suburl,sublang)=match
-          if not sublang in subtitles.keys():
-            subtitles[sublang]=[]
-          subext=suburl.split('/')[-1]
-          subtitles[sublang].append({'url': 'http://www.funnyordie.com'+suburl,'ext': subext})
+        subtitles = {}
+        for src, src_lang in re.findall(r'<track kind="captions" src="([^"]+)" srclang="([^"]+)"', webpage):
+            subtitles[src_lang] = [{
+                'ext': src.split('/')[-1],
+                'url': 'http://www.funnyordie.com%s' % src,
+            }]
 
         post_json = self._search_regex(
             r'fb_post\s*=\s*(\{.*?\});', webpage, 'post details')
