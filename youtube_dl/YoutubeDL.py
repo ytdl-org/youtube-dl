@@ -1086,8 +1086,7 @@ class YoutubeDL(object):
         if req_format is None:
             req_format = 'best'
         formats_to_download = []
-        # The -1 is for supporting YoutubeIE
-        if req_format in ('-1', 'all'):
+        if req_format == 'all':
             formats_to_download = formats
         else:
             for rfstr in req_format.split(','):
