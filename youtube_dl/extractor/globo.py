@@ -20,7 +20,7 @@ class GloboIE(InfoExtractor):
     _VALID_URL = 'https?://.+?\.globo\.com/(?P<id>.+)'
 
     _API_URL_TEMPLATE = 'http://api.globovideos.com/videos/%s/playlist'
-    _SECURITY_URL_TEMPLATE = 'http://security.video.globo.com/videos/%s/hash?player=flash&version=2.9.9.50&resource_id=%s'
+    _SECURITY_URL_TEMPLATE = 'http://security.video.globo.com/videos/%s/hash?player=flash&version=17.0.0.132&resource_id=%s'
 
     _VIDEOID_REGEXES = [
         r'\bdata-video-id="(\d+)"',
