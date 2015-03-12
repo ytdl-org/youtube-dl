@@ -48,7 +48,7 @@ class BeatportProIE(InfoExtractor):
         playables = json.loads(playables)
 
         # Find first track with matching ID (always the first one listed?)
-        track = next(filter(lambda t: t['id'] == int(track_id), playables['tracks']))
+        track = next(t for t in playables['tracks'] if t['id'] == int(track_id))
 
         # Construct title from artist(s), track name, and mix name
         title = ', '.join((a['name'] for a in track['artists'])) + ' - ' + track['name']
