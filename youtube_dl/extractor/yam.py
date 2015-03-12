@@ -39,7 +39,8 @@ class YamIE(InfoExtractor):
             'description': 'md5:11e2e405311633ace874f2e6226c8b17',
             'uploader_id': '2323agoy',
             'title': '20090412陽明山二子坪-1',
-        }
+        },
+        'skip': 'Video does not exist',
     }, {
         'url': 'http://mymedia.yam.com/m/3598173',
         'info_dict': {
