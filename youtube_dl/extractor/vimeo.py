@@ -38,7 +38,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
         self.report_login()
         login_url = 'https://vimeo.com/log_in'
         webpage = self._download_webpage(login_url, None, False)
-        token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
+        token = self._search_regex(r'xsrft = \'(.*?)\'', webpage, 'login token')
         data = urlencode_postdata({
             'email': username,
             'password': password,
