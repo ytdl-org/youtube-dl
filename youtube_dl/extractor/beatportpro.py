@@ -9,7 +9,7 @@ from ..utils import int_or_none
 
 
 class BeatportProIE(InfoExtractor):
-    _VALID_URL = r'https?://pro\.beatport\.com/track/.+/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://pro\.beatport\.com/track/(?P<display_id>[^/]+)/(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'https://pro.beatport.com/track/synesthesia-original-mix/5379371',
         'md5': 'b3c34d8639a2f6a7f734382358478887',
@@ -40,8 +40,11 @@ class BeatportProIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        track_id = self._match_id(url)
-        webpage = self._download_webpage(url, track_id)
+        mobj = re.match(self._VALID_URL, url)
+        track_id = mobj.group('id')
+        display_id = mobj.group('display_id')
+
+        webpage = self._download_webpage(url, display_id)
 
         playables = self._search_regex(
             r'window\.Playables\s*=\s*({.*?});', webpage,
@@ -92,7 +95,7 @@ class BeatportProIE(InfoExtractor):
 
         return {
             'id': track['id'],
-            'display-id': track['slug'],
+            'display_id': track.get('slug') or display_id,
             'title': title,
             'formats': formats,
             'thumbnails': images,
