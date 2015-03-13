@@ -15,14 +15,17 @@ class KanalPlayIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?kanal(?P<channel_id>5|9|11)play\.se/(?:#!/)?(?:play/)?program/\d+/video/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.kanal5play.se/#!/play/program/3060212363/video/3270012277',
-        'md5': '',
         'info_dict': {
-            'id': '2609989',
+            'id': '3270012277',
             'ext': 'flv',
             'title': 'Saknar både dusch och avlopp',
-            'description': 'md5:',
+            'description': 'md5:6023a95832a06059832ae93bc3c7efb7',
             'duration': 2636.36,
         },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        }
     }, {
         'url': 'http://www.kanal9play.se/#!/play/program/335032/video/246042',
         'only_matching': True,
