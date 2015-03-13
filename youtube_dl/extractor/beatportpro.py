@@ -2,9 +2,9 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import int_or_none
 
 
@@ -46,10 +46,11 @@ class BeatportProIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        playables = self._search_regex(
-            r'window\.Playables\s*=\s*({.*?});', webpage,
-            'playables info', flags=re.DOTALL)
-        playables = json.loads(playables)
+        playables = self._parse_json(
+            self._search_regex(
+                r'window\.Playables\s*=\s*({.+?});', webpage,
+                'playables info', flags=re.DOTALL),
+            track_id)
 
         track = next(t for t in playables['tracks'] if t['id'] == int(track_id))
 
@@ -59,7 +60,7 @@ class BeatportProIE(InfoExtractor):
 
         formats = []
         for ext, info in track['preview'].items():
-            if info['url'] is None:
+            if not info['url']:
                 continue
             fmt = {
                 'url': info['url'],
@@ -85,16 +86,16 @@ class BeatportProIE(InfoExtractor):
             image_url = info.get('url')
             if name == 'dynamic' or not image_url:
                 continue
-            img = {
+            image = {
                 'id': name,
                 'url': image_url,
                 'height': int_or_none(info.get('height')),
                 'width': int_or_none(info.get('width')),
             }
-            images.append(img)
+            images.append(image)
 
         return {
-            'id': track['id'],
+            'id': compat_str(track.get('id')) or track_id,
             'display_id': track.get('slug') or display_id,
             'title': title,
             'formats': formats,
