@@ -1,14 +1,15 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
-
 import re
 import json
 
+from .common import InfoExtractor
+from ..utils import int_or_none
+
 
 class BeatportProIE(InfoExtractor):
-    _VALID_URL = r'https?://pro\.beatport\.com/track/.*/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://pro\.beatport\.com/track/.+/(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'https://pro.beatport.com/track/synesthesia-original-mix/5379371',
         'md5': 'b3c34d8639a2f6a7f734382358478887',
@@ -42,20 +43,17 @@ class BeatportProIE(InfoExtractor):
         track_id = self._match_id(url)
         webpage = self._download_webpage(url, track_id)
 
-        # Extract "Playables" JSON information from the page
-        playables = self._search_regex(r'window\.Playables = ({.*?});', webpage,
-                                       'playables info', flags=re.DOTALL)
+        playables = self._search_regex(
+            r'window\.Playables\s*=\s*({.*?});', webpage,
+            'playables info', flags=re.DOTALL)
         playables = json.loads(playables)
 
-        # Find first track with matching ID (always the first one listed?)
         track = next(t for t in playables['tracks'] if t['id'] == int(track_id))
 
-        # Construct title from artist(s), track name, and mix name
         title = ', '.join((a['name'] for a in track['artists'])) + ' - ' + track['name']
         if track['mix']:
             title += ' (' + track['mix'] + ')'
 
-        # Get format information
         formats = []
         for ext, info in track['preview'].items():
             if info['url'] is None:
@@ -76,26 +74,26 @@ class BeatportProIE(InfoExtractor):
                 fmt['acodec'] = 'aac'
                 fmt['abr'] = 96
                 fmt['asr'] = 44100
-            formats += [fmt]
+            formats.append(fmt)
         self._sort_formats(formats)
 
-        # Get album art as thumbnails
-        imgs = []
+        images = []
         for name, info in track['images'].items():
-            if name == 'dynamic' or info['url'] is None:
+            image_url = info.get('url')
+            if name == 'dynamic' or not image_url:
                 continue
             img = {
                 'id': name,
-                'url': info['url'],
-                'height': info['height'],
-                'width': info['width'],
+                'url': image_url,
+                'height': int_or_none(info.get('height')),
+                'width': int_or_none(info.get('width')),
             }
-            imgs += [img]
+            images.append(img)
 
         return {
             'id': track['id'],
             'display-id': track['slug'],
             'title': title,
             'formats': formats,
-            'thumbnails': imgs,
+            'thumbnails': images,
         }
