@@ -559,6 +559,7 @@ from .videoweed import VideoWeedIE
 from .vidme import VidmeIE
 from .vidzi import VidziIE
 from .vier import VierIE, VierVideosIE
+from .viewster import ViewsterIE
 from .vimeo import (
     VimeoIE,
     VimeoAlbumIE,
