@@ -77,7 +77,7 @@ class BeatportProIE(InfoExtractor):
                 fmt['abr'] = 96
                 fmt['asr'] = 44100
             formats += [fmt]
-        formats.sort(key=lambda f: f['preference'])
+        self._sort_formats(formats)
 
         # Get album art as thumbnails
         imgs = []
