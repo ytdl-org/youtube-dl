@@ -515,6 +515,7 @@ youtube-dl makes the best effort to be a good command-line program, and thus sho
 From a Python program, you can embed youtube-dl in a more powerful fashion, like this:
 
 ```python
+from __future__ import unicode_literals
 import youtube_dl
 
 ydl_opts = {}
@@ -527,6 +528,7 @@ Most likely, you'll want to use various options. For a list of what can be done,
 Here's a more complete example of a program that outputs only errors (and a short message after the download is finished), and downloads/converts the video to an mp3 file:
 
 ```python
+from __future__ import unicode_literals
 import youtube_dl
 
 

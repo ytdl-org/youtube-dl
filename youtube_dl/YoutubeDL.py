@@ -323,6 +323,11 @@ class YoutubeDL(object):
                 'Set the LC_ALL environment variable to fix this.')
             self.params['restrictfilenames'] = True
 
+        if isinstance(params.get('outtmpl'), bytes):
+            self.report_warning(
+                'Parameter outtmpl is bytes, but should be a unicode string. '
+                'Put  from __future__ import unicode_literals  at the top of your code file or consider switching to Python 3.x.')
+
         if '%(stitle)s' in self.params.get('outtmpl', ''):
             self.report_warning('%(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.')
 
