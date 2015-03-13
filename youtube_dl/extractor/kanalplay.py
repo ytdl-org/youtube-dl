@@ -31,6 +31,22 @@ class KanalPlayIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    def _fix_subtitles(self, subs):
+        return '\r\n\r\n'.join(
+            '%s\r\n%s --> %s\r\n%s'
+            % (
+                num,
+                self._subtitles_timecode(item['startMillis'] / 1000.0),
+                self._subtitles_timecode(item['endMillis'] / 1000.0),
+                item['text'],
+            ) for num, item in enumerate(subs, 1))
+
+    def _get_subtitles(self, channel_id, video_id):
+        subs = self._download_json(
+            'http://www.kanal%splay.se/api/subtitles/%s' % (channel_id, video_id),
+            video_id, 'Downloading subtitles JSON', fatal=False)
+        return {'se': [{'ext': 'srt', 'data': self._fix_subtitles(subs)}]} if subs else {}
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
@@ -62,6 +78,10 @@ class KanalPlayIE(InfoExtractor):
         } for stream in video['streams']]
         self._sort_formats(formats)
 
+        subtitles = {}
+        if video.get('hasSubtitle'):
+            subtitles = self.extract_subtitles(channel_id, video_id)
+
         return {
             'id': video_id,
             'title': title,
@@ -69,4 +89,5 @@ class KanalPlayIE(InfoExtractor):
             'thumbnail': thumbnail,
             'duration': duration,
             'formats': formats,
+            'subtitles': subtitles,
         }
