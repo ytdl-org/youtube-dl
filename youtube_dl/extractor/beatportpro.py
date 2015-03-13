@@ -14,8 +14,8 @@ class BeatportProIE(InfoExtractor):
         'url': 'https://pro.beatport.com/track/synesthesia-original-mix/5379371',
         'md5': 'b3c34d8639a2f6a7f734382358478887',
         'info_dict': {
-            'id': 5379371,
-            'display-id': 'synesthesia-original-mix',
+            'id': '5379371',
+            'display_id': 'synesthesia-original-mix',
             'ext': 'mp4',
             'title': 'Froxic - Synesthesia (Original Mix)',
         },
@@ -23,8 +23,8 @@ class BeatportProIE(InfoExtractor):
         'url': 'https://pro.beatport.com/track/love-and-war-original-mix/3756896',
         'md5': 'e44c3025dfa38c6577fbaeb43da43514',
         'info_dict': {
-            'id': 3756896,
-            'display-id': 'love-and-war-original-mix',
+            'id': '3756896',
+            'display_id': 'love-and-war-original-mix',
             'ext': 'mp3',
             'title': 'Wolfgang Gartner - Love & War (Original Mix)',
         },
@@ -32,8 +32,8 @@ class BeatportProIE(InfoExtractor):
         'url': 'https://pro.beatport.com/track/birds-original-mix/4991738',
         'md5': 'a1fd8e8046de3950fd039304c186c05f',
         'info_dict': {
-            'id': 4991738,
-            'display-id': 'birds-original-mix',
+            'id': '4991738',
+            'display_id': 'birds-original-mix',
             'ext': 'mp4',
             'title': "Tos, Middle Milk, Mumblin' Johnsson - Birds (Original Mix)",
         }
