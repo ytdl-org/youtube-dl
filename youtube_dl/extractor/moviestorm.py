@@ -9,9 +9,7 @@ from .common import InfoExtractor
 from ..utils import ExtractorError
 from ..compat import (
     compat_html_parser,
-    compat_urllib_parse,
-    compat_urllib_request,
-    compat_urlparse,
+    compat_urlparse
 )
 
 class MovieStormHTMLParser(compat_html_parser.HTMLParser):
