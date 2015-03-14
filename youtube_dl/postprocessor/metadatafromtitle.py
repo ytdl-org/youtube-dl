@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
 import re
 
@@ -12,20 +12,19 @@ class MetadataFromTitlePPError(PostProcessingError):
 
 class MetadataFromTitlePP(PostProcessor):
     def __init__(self, downloader, titleformat):
+        super(MetadataFromTitlePP, self).__init__(downloader)
         self._titleformat = titleformat
-        self._titleregex = self.fmtToRegex(titleformat)
+        self._titleregex = self.format_to_regex(titleformat)
 
-    def fmtToRegex(self, fmt):
+    def format_to_regex(self, fmt):
         """
         Converts a string like
            '%(title)s - %(artist)s'
         to a regex like
            '(?P<title>.+)\ \-\ (?P<artist>.+)'
-        and a list of the named groups [title, artist]
         """
         lastpos = 0
         regex = ""
-        groups = []
         # replace %(..)s with regex group and escape other string parts
         for match in re.finditer(r'%\((\w+)\)s', fmt):
             regex += re.escape(fmt[lastpos:match.start()])

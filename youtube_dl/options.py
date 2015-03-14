@@ -738,10 +738,10 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--metadata-from-title',
         metavar='FORMAT', dest='metafromtitle',
-        help='parse additional metadata like song title / artist from the video title. \n'
+        help='parse additional metadata like song title / artist from the video title. '
              'The format syntax is the same as --output, '
-             'the parsed parameters replace existing values.\n'
-             'Additional templates: %(songtitle), %(album), %(artist). \n'
+             'the parsed parameters replace existing values. '
+             'Additional templates: %(album), %(artist). '
              'Example: --metadata-from-title "%(artist)s - %(title)s" matches a title like '
              '"Coldplay - Paradise"')
     postproc.add_option(

@@ -541,9 +541,7 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
 class FFmpegMetadataPP(FFmpegPostProcessor):
     def run(self, info):
         metadata = {}
-        if info.get('songtitle') is not None:
-            metadata['title'] = info['songtitle']
-        elif info.get('title') is not None:
+        if info.get('title') is not None:
             metadata['title'] = info['title']
         if info.get('upload_date') is not None:
             metadata['date'] = info['upload_date']
