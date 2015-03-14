@@ -42,6 +42,37 @@ class SohuIE(InfoExtractor):
             'ext': 'mp4',
             'title': '【爱范品】第31期：MWC见不到的奇葩手机',
         }
+    }, {
+        'note': 'Multipart video',
+        'url': 'http://my.tv.sohu.com/pl/8384802/78910339.shtml',
+        'info_dict': {
+            'id': '78910339',
+        },
+        'playlist': [{
+            'md5': 'bdbfb8f39924725e6589c146bc1883ad',
+            'info_dict': {
+                'id': '78910339_part1',
+                'ext': 'mp4',
+                'duration': 294,
+                'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
+            }
+        }, {
+            'md5': '3e1f46aaeb95354fd10e7fca9fc1804e',
+            'info_dict': {
+                'id': '78910339_part2',
+                'ext': 'mp4',
+                'duration': 300,
+                'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
+            }
+        }, {
+            'md5': '8407e634175fdac706766481b9443450',
+            'info_dict': {
+                'id': '78910339_part3',
+                'ext': 'mp4',
+                'duration': 150,
+                'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
+            }
+        }]
     }]
 
     def _real_extract(self, url):
