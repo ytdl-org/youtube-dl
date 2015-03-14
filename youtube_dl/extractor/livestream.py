@@ -134,9 +134,18 @@ class LivestreamIE(InfoExtractor):
                     api_url, video_id, 'Downloading video info'))
                 return self._extract_video_info(info)
 
-        config_json = self._search_regex(
-            r'window.config = ({.*?});', webpage, 'window config')
-        info = json.loads(config_json)['event']
+        # Is this JSON?
+        if webpage[0] == "{":
+            info = json.loads(webpage)
+            # We cannot tell this information from a JSON feed.
+            info['id'] = 'unknown'
+            info['full_name'] = 'unknown'
+            # Change the JSON structure to match the window.config structure.
+            info['feed'] = info
+        else:
+            config_json = self._search_regex(
+                r'window.config = ({.*?});', webpage, 'window config')
+            info = json.loads(config_json)['event']
 
         def is_relevant(vdata, vid):
             result = vdata['type'] == 'video'
@@ -236,7 +245,7 @@ class LivestreamOriginalIE(InfoExtractor):
 class LivestreamShortenerIE(InfoExtractor):
     IE_NAME = 'livestream:shortener'
     IE_DESC = False  # Do not list
-    _VALID_URL = r'https?://livestre\.am/(?P<id>.+)'
+    _VALID_URL = r'https?://(new\.)?livestre\.am/(?P<id>.+)'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
