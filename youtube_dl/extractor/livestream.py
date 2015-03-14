@@ -43,6 +43,13 @@ class LivestreamIE(InfoExtractor):
     }, {
         'url': 'https://new.livestream.com/accounts/362/events/3557232/videos/67864563/player?autoPlay=false&height=360&mute=false&width=640',
         'only_matching': True,
+    }, {
+        'url': 'http://new.livestream.com/api/accounts/1504418/events/3705884/feed.json?&id=74703579&newer=-1&type=video',
+        'info_dict': {
+            'id': 'unknown',
+            'title': 'unknown',
+        },
+        'playlist_mincount': 10,
     }]
 
     def _parse_smil(self, video_id, smil_url):
