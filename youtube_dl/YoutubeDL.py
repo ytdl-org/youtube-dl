@@ -629,6 +629,28 @@ class YoutubeDL(object):
         for key, value in extra_info.items():
             info_dict.setdefault(key, value)
 
+    def process_farmed_links(self, direct_urls):
+        familiar_farmed_urls = []
+        for farmed_url in direct_urls:
+            for ie in self._ies:
+                # not all extractors have IE_NAME set, using class name for fuller coverage
+                c = ie.__class__.__name__
+
+                # ignore non-familiar links
+                if c != 'GenericIE' and c != 'MovieStormIE' and ie.suitable(farmed_url):
+                    familiar_farmed_urls.append( [ie, farmed_url] )
+
+        for tuple in familiar_farmed_urls:
+            ie = tuple[0]
+            familiar_farmed_url = tuple[1]
+
+            try:
+                ie_result = ie.extract(familiar_farmed_url)
+                return ie_result, ie
+            except:
+                # Failed extract, move on to next url in list
+                ie.to_screen("\033[0;33mWARNING:\033[0m failed attempt, trying next farmed link")
+
     def extract_info(self, url, download=True, ie_key=None, extra_info={},
                      process=True):
         '''
@@ -652,6 +674,11 @@ class YoutubeDL(object):
 
             try:
                 ie_result = ie.extract(url)
+
+                # handle link farm extractors
+                if hasattr(ie, '_LINK_FARM') and ie._LINK_FARM:
+                	ie_result, ie = self.process_farmed_links(ie_result)
+
                 if ie_result is None:  # Finished already (backwards compatibility; listformats and friends should be moved here)
                     break
                 if isinstance(ie_result, list):
