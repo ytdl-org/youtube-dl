@@ -117,6 +117,9 @@ class EightTracksIE(InfoExtractor):
         track_count = data['tracks_count']
         duration = data['duration']
         avg_song_duration = float(duration) / track_count
+        # duration is sometimes negative, use predefined avg duration
+        if avg_song_duration <= 0:
+            avg_song_duration = 300
         first_url = 'http://8tracks.com/sets/%s/play?player=sm&mix_id=%s&format=jsonh' % (session, mix_id)
         next_url = first_url
         entries = []
