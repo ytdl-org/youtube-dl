@@ -39,7 +39,7 @@ class YandexMusicBaseIE(InfoExtractor):
 class YandexMusicTrackIE(YandexMusicBaseIE):
     IE_NAME = 'yandexmusic:track'
     IE_DESC = 'Яндекс.Музыка - Трек'
-    _VALID_URL = r'https?://music\.yandex\.ru/album/(?P<album_id>\d+)/track/(?P<id>\d+)'
+    _VALID_URL = r'https?://music\.yandex\.(?:ru|kz|ua|by)/album/(?P<album_id>\d+)/track/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://music.yandex.ru/album/540508/track/4878838',
@@ -67,7 +67,7 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
 class YandexMusicAlbumIE(YandexMusicBaseIE):
     IE_NAME = 'yandexmusic:album'
     IE_DESC = 'Яндекс.Музыка - Альбом'
-    _VALID_URL = r'https?://music\.yandex\.ru/album/(?P<id>\d+)/?(\?|$)'
+    _VALID_URL = r'https?://music\.yandex\.(?:ru|kz|ua|by)/album/(?P<id>\d+)/?(\?|$)'
 
     _TEST = {
         'url': 'http://music.yandex.ru/album/540508',
@@ -98,7 +98,7 @@ class YandexMusicAlbumIE(YandexMusicBaseIE):
 class YandexMusicPlaylistIE(YandexMusicBaseIE):
     IE_NAME = 'yandexmusic:playlist'
     IE_DESC = 'Яндекс.Музыка - Плейлист'
-    _VALID_URL = r'https?://music\.yandex\.ru/users/[^/]+/playlists/(?P<id>\d+)'
+    _VALID_URL = r'https?://music\.yandex\.(?:ru|kz|ua|by)/users/[^/]+/playlists/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://music.yandex.ru/users/music.partners/playlists/1245',
