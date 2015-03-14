@@ -30,7 +30,7 @@ class MovieStormHTMLParser(compat_html_parser.HTMLParser):
             if 'moviestorm' in attrs['href']:
                 self.watch_urls.append(attrs['href'].strip())
         elif tag == 'a' and 'class' in attrs and attrs['class'] == 'real_link':
-        	self.direct_url = attrs['href'].strip()
+            self.direct_url = attrs['href'].strip()
 
     def handle_endtag(self, tag):
         if tag == 'td':
@@ -80,11 +80,11 @@ class MovieStormIE(InfoExtractor):
         # retry loop to capture moviestorm page
         while True:
             if self.retry_count == 0:
-        	    note = 'Downloading link farm page'
-        	else:
-        	    note = ('Unstable db connection, retying again in %s seconds '
-        	        '[%s/%s]' % (self.retry_wait, self.retry_count,
-        	        self.max_retries))
+                note = 'Downloading link farm page'
+            else:
+                note = ('Unstable db connection, retying again in %s seconds '
+                    '[%s/%s]' % (self.retry_wait, self.retry_count,
+                    self.max_retries))
 
         	(_, _, token) = self._parse_target(url)
         	farmpage = self._download_webpage(

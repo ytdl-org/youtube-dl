@@ -677,7 +677,7 @@ class YoutubeDL(object):
 
                 # handle link farm extractors
                 if hasattr(ie, '_LINK_FARM') and ie._LINK_FARM:
-                	ie_result, ie = self.process_farmed_links(ie_result)
+                    ie_result, ie = self.process_farmed_links(ie_result)
 
                 if ie_result is None:  # Finished already (backwards compatibility; listformats and friends should be moved here)
                     break
