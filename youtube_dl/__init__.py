@@ -213,6 +213,11 @@ def _real_main(argv=None):
     # PostProcessors
     postprocessors = []
     # Add the metadata pp first, the other pps will copy it
+    if opts.metafromtitle:
+        postprocessors.append({
+            'key': 'MetadataFromTitle',
+            'titleformat': opts.metafromtitle
+        })
     if opts.addmetadata:
         postprocessors.append({'key': 'FFmpegMetadata'})
     if opts.extractaudio:
