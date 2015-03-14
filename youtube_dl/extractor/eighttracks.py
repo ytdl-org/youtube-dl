@@ -108,9 +108,10 @@ class EightTracksIE(InfoExtractor):
 
         webpage = self._download_webpage(url, playlist_id)
 
-        json_like = self._search_regex(
-            r"(?s)PAGE.mix = (.*?);\n", webpage, 'trax information')
-        data = json.loads(json_like)
+        data = self._parse_json(
+            self._search_regex(
+                r"(?s)PAGE\.mix\s*=\s*({.+?});\n", webpage, 'trax information'),
+            playlist_id)
 
         session = str(random.randint(0, 1000000000))
         mix_id = data['id']
