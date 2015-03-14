@@ -629,7 +629,7 @@ class YoutubeDL(object):
         for key, value in extra_info.items():
             info_dict.setdefault(key, value)
 
-    def extract_info(self, url, download=True, ie_key=None, extra_info={},
+    def extract_info(self, url, download=False, ie_key=None, extra_info={},
                      process=True):
         '''
         Returns a list with a dictionary for each video we find.
@@ -1449,7 +1449,7 @@ class YoutubeDL(object):
         for url in url_list:
             try:
                 # It also downloads the videos
-                res = self.extract_info(url)
+                res = self.extract_info(url, download=True)
             except UnavailableVideoError:
                 self.report_error('unable to download video')
             except MaxDownloadsReached:

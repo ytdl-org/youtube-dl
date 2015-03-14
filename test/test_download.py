@@ -136,7 +136,7 @@ def generator(test_case):
                     # We're not using .download here sine that is just a shim
                     # for outside error handling, and returns the exit code
                     # instead of the result dict.
-                    res_dict = ydl.extract_info(test_case['url'])
+                    res_dict = ydl.extract_info(test_case['url'], download=True)
                 except (DownloadError, ExtractorError) as err:
                     # Check if the exception is not a network related one
                     if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError, compat_http_client.BadStatusLine) or (err.exc_info[0] == compat_HTTPError and err.exc_info[1].code == 503):
