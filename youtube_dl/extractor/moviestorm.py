@@ -47,28 +47,29 @@ class MovieStormHTMLParser(compat_html_parser.HTMLParser):
         return getattr(p, return_variable)
 
 class MovieStormIE(InfoExtractor):
-    # HANDLER INFO:
-    # There are no tests for this IE because the links on any given moviestorm
-    # page can dynamically change, and because the actual download/extraction
-    # is ultimately preformed by another IE. Example urls to
-    # feed to this IE are:
-    #
-    #   EPISODE: http://moviestorm.eu/view/5821-watch-portlandia/season-1/episode-1
-    #   MOVIE:   http://moviestorm.eu/view/5269-watch-taken-3-online.html
-    #
-    # If the user provides a series url, like the one below, this IE should detect
-    # and raise an error:
-    #
-    #   SERIES:  http://moviestorm.eu/view/5821-watch-portlandia.html
-    #
-    # In other news, moviestorm's drupal db config is unstable at times retry up to 5
-    # times before giving up, waiting 5 second delay between each retry.
-    #
-    # Also, this IE will catch all links with http://moviestorm.eu urls. If it's an
-    # un-handleable url, an error will be thrown informing the user of appropriate
-    # urls to provide. Not using a more complex regex is meant to prevent unacceptable
-    # moviestorm urls from falling back into the generic IE, as that will always fail on
-    # moviestorm links.
+    """EXTRACTOR INFO:
+    There are no tests for this IE because the links on any given moviestorm
+    page can dynamically change, and because the actual download/extraction
+    is ultimately preformed by another IE. Example urls to
+    feed to this IE are:
+
+        EPISODE: http://moviestorm.eu/view/5821-watch-portlandia/season-1/episode-1
+        MOVIE:   http://moviestorm.eu/view/5269-watch-taken-3-online.html
+
+    If the user provides a series url, like the one below, this IE should detect
+    and raise an error:
+
+        SERIES:  http://moviestorm.eu/view/5821-watch-portlandia.html
+
+    In other news, moviestorm's drupal db config is unstable at times retry up to 5
+    times before giving up, waiting 5 second delay between each retry.
+
+    Also, this IE will catch all links with http://moviestorm.eu urls. If it's an
+    un-handleable url, an error will be thrown informing the user of appropriate
+    urls to provide. Not using a more complex regex is meant to prevent unacceptable
+    moviestorm urls from falling back into the generic IE, as that will always fail on
+    moviestorm links.
+    """
 
     IE_DESC = 'Movie Storm (link farm)'
     IE_NAME = 'MovieStorm'
