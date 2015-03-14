@@ -37,7 +37,6 @@ from .bandcamp import BandcampIE, BandcampAlbumIE
 from .bbccouk import BBCCoUkIE
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
-from .beatportpro import BeatportProIE
 from .bet import BetIE
 from .bild import BildIE
 from .bilibili import BiliBiliIE
@@ -232,7 +231,6 @@ from .jove import JoveIE
 from .jukebox import JukeboxIE
 from .jpopsukitv import JpopsukiIE
 from .kaltura import KalturaIE
-from .kanalplay import KanalPlayIE
 from .kankan import KankanIE
 from .karaoketv import KaraoketvIE
 from .keezmovies import KeezMoviesIE
@@ -281,6 +279,7 @@ from .moevideo import MoeVideoIE
 from .mofosex import MofosexIE
 from .mojvideo import MojvideoIE
 from .moniker import MonikerIE
+from .moviestorm import MovieStormIE
 from .mooshare import MooshareIE
 from .morningstar import MorningstarIE
 from .motherless import MotherlessIE
@@ -559,7 +558,6 @@ from .videoweed import VideoWeedIE
 from .vidme import VidmeIE
 from .vidzi import VidziIE
 from .vier import VierIE, VierVideosIE
-from .viewster import ViewsterIE
 from .vimeo import (
     VimeoIE,
     VimeoAlbumIE,
