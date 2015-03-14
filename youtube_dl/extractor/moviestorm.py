@@ -117,12 +117,12 @@ class MovieStormIE(InfoExtractor):
                 note=False,
                 errnote='Unable to download link farm watch page',
                 fatal=False
-        	)
+            )
 
-        	if watchpage is not None:
-        	    direct_url = MovieStormHTMLParser.extract_direct_url(watchpage)
-        	    if direct_url:
-        	        self.direct_urls.append(direct_url)
+            if watchpage is not None:
+                direct_url = MovieStormHTMLParser.extract_direct_url(watchpage)
+                if direct_url:
+                    self.direct_urls.append(direct_url)
 
         self.to_screen(': Passing off farmed links to InfoExtractors')
         return list(set(self.direct_urls))
