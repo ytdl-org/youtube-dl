@@ -73,6 +73,17 @@ class SohuIE(InfoExtractor):
                 'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
             }
         }]
+    }, {
+        'info': 'Video with title containing dash',
+        'url': 'http://my.tv.sohu.com/us/249884221/78932792.shtml',
+        'info_dict': {
+            'id': '78932792',
+            'ext': 'mp4',
+            'title': 'youtube-dl testing video',
+        },
+        'params': {
+            'skip_download': True
+        }
     }]
 
     def _real_extract(self, url):
@@ -97,10 +108,8 @@ class SohuIE(InfoExtractor):
         mytv = mobj.group('mytv') is not None
 
         webpage = self._download_webpage(url, video_id)
-        raw_title = self._html_search_regex(
-            r'(?s)<title>(.+?)</title>',
-            webpage, 'video title')
-        title = raw_title.partition('-')[0].strip()
+
+        title = self._og_search_title(webpage)
 
         vid = self._html_search_regex(
             r'var vid ?= ?["\'](\d+)["\']',
