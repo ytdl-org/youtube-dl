@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import re
 import json
+import itertools
 
 from .common import InfoExtractor
 from ..compat import (
@@ -40,6 +41,13 @@ class LivestreamIE(InfoExtractor):
             'id': '2245590',
         },
         'playlist_mincount': 4,
+    }, {
+        'url': 'http://new.livestream.com/chess24/tatasteelchess',
+        'info_dict': {
+            'title': 'Tata Steel Chess',
+            'id': '3705884',
+        },
+        'playlist_mincount': 60,
     }, {
         'url': 'https://new.livestream.com/accounts/362/events/3557232/videos/67864563/player?autoPlay=false&height=360&mute=false&width=640',
         'only_matching': True,
@@ -117,6 +125,30 @@ class LivestreamIE(InfoExtractor):
             'view_count': video_data.get('views'),
         }
 
+    def _extract_event(self, info):
+        event_id = compat_str(info['id'])
+        account = compat_str(info['owner_account_id'])
+        root_url = (
+            'https://new.livestream.com/api/accounts/{account}/events/{event}/'
+            'feed.json'.format(account=account, event=event_id))
+
+        def _extract_videos():
+            last_video = None
+            for i in itertools.count(1):
+                if last_video is None:
+                    info_url = root_url
+                else:
+                    info_url = '{root}?&id={id}&newer=-1&type=video'.format(
+                        root=root_url, id=last_video)
+                videos_info = self._download_json(info_url, event_id, 'Downloading page {0}'.format(i))['data']
+                videos_info = [v['data'] for v in videos_info if v['type'] == 'video']
+                if not videos_info:
+                    break
+                for v in videos_info:
+                    yield self._extract_video_info(v)
+                last_video = videos_info[-1]['id']
+        return self.playlist_result(_extract_videos(), event_id, info['full_name'])
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
@@ -144,14 +176,13 @@ class LivestreamIE(InfoExtractor):
                 result = result and compat_str(vdata['data']['id']) == vid
             return result
 
-        videos = [self._extract_video_info(video_data['data'])
-                  for video_data in info['feed']['data']
-                  if is_relevant(video_data, video_id)]
         if video_id is None:
             # This is an event page:
-            return self.playlist_result(
-                videos, '%s' % info['id'], info['full_name'])
+            return self._extract_event(info)
         else:
+            videos = [self._extract_video_info(video_data['data'])
+                      for video_data in info['feed']['data']
+                      if is_relevant(video_data, video_id)]
             if not videos:
                 raise ExtractorError('Cannot find video %s' % video_id)
             return videos[0]
