@@ -82,6 +82,7 @@ class MovieStormIE(InfoExtractor):
     max_retries = 5
     retry_wait = 5
     direct_urls = []
+    direct_url_max = 50
 
     def _parse_target(self, target):
         uri = compat_urlparse.urlparse(target)
@@ -149,7 +150,7 @@ class MovieStormIE(InfoExtractor):
         for watch_url in watch_urls:
             # Stop after gathering 50 urls, moviestorm sends 503 if
             # request too many in rapid succession
-            if direct_url_count < 50:
+            if direct_url_count < self.direct_url_max:
                 (_, _, token) = self._parse_target(watch_url)
                 watchpage = self._download_webpage(
                     watch_url, token,
