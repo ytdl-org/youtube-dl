@@ -14,10 +14,10 @@ from ..utils import (
 
 
 class AftenpostenIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?aftenposten\.no/webtv/([^/]+/)*(?P<id>[^/]+)-\d+\.html'
+    _VALID_URL = r'https?://(?:www\.)?aftenposten\.no/webtv/(?:#!/)?video/(?P<id>\d+)'
 
     _TEST = {
-        'url': 'http://www.aftenposten.no/webtv/serier-og-programmer/sweatshopenglish/TRAILER-SWEATSHOP---I-cant-take-any-more-7800835.html?paging=&section=webtv_serierogprogrammer_sweatshop_sweatshopenglish',
+        'url': 'http://www.aftenposten.no/webtv/#!/video/21039/trailer-sweatshop-i-can-t-take-any-more',
         'md5': 'fd828cd29774a729bf4d4425fe192972',
         'info_dict': {
             'id': '21039',
@@ -30,12 +30,7 @@ class AftenpostenIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, display_id)
-
-        video_id = self._html_search_regex(
-            r'data-xs-id="(\d+)"', webpage, 'video id')
+        video_id = self._match_id(url)
 
         data = self._download_xml(
             'http://frontend.xstream.dk/ap/feed/video/?platform=web&id=%s' % video_id, video_id)
