@@ -126,6 +126,49 @@ class RTVEALaCartaIE(InfoExtractor):
             (s['lang'], [{'ext': 'vtt', 'url': s['src']}])
             for s in subs)
 
+class RTVEInfantilIE(InfoExtractor):
+    IE_NAME = 'rtve.es:alacarta'
+    IE_DESC = 'RTVE a la carta'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/infantil/serie/(?P<show>[^/]*)/video/(?P<short_tittle>[^/]*)/(?P<id>[0-9]+)/'
+
+    _TESTS = [{
+        'url': 'http://www.rtve.es/infantil/serie/cleo/video/maneras-vivir/3040283/',
+        'md5': '915319587b33720b8e0357caaa6617e6',
+        'info_dict': {
+            'id': '3040283',
+            'ext': 'mp4',
+            'title': 'Maneras de vivir',
+            'thumbnail': 'http://www.rtve.es/resources/jpg/6/5/1426182947956.JPG',
+            'duration': 357.958,
+        },
+    },]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        short_tittle = mobj.group('short_tittle')
+        info = self._download_json(
+            'http://www.rtve.es/api/videos/%s/config/alacarta_videos.json' % video_id,
+            video_id)['page']['items'][0]
+
+        webpage = self._download_webpage(url, video_id)
+        vidplayer_id = self._search_regex(
+            r' id="vidplayer([0-9]+)"', webpage, 'internal video ID')
+
+        png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/default/videos/%s.png' % vidplayer_id
+        png = self._download_webpage(png_url, video_id, 'Downloading url information')
+        video_url = _decrypt_url(png)
+
+        return {
+            'id': video_id,
+            'ext': 'mp4',
+            'title': info['title'],
+            'url': video_url,
+            'thumbnail': info.get('image'),
+            'duration': float_or_none(info.get('duration'), scale=1000),
+        }
+
+
 
 class RTVEInfantilIE(InfoExtractor):
     IE_NAME = 'rtve.es:infantil'
