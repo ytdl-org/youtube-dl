@@ -47,6 +47,7 @@
  - **Bandcamp**
  - **Bandcamp:album**
  - **bbc.co.uk**: BBC iPlayer
+ - **BeatportPro**
  - **Beeg**
  - **BehindKink**
  - **Bet**
@@ -145,6 +146,7 @@
  - **Firstpost**
  - **Flickr**
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
+ - **FootyRoom**
  - **Foxgay**
  - **FoxNews**
  - **france2.fr:generation-quoi**
@@ -213,6 +215,7 @@
  - **jpopsuki.tv**
  - **Jukebox**
  - **Kaltura**
+ - **KanalPlay**: Kanal 5/9/11 Play
  - **Kankan**
  - **Karaoketv**
  - **keek**
@@ -414,6 +417,7 @@
  - **SportBox**
  - **SportDeutschland**
  - **SRMediathek**: Saarländischer Rundfunk
+ - **SSA**
  - **stanfordoc**: Stanford Open ClassRoom
  - **Steam**
  - **streamcloud.eu**
@@ -510,6 +514,7 @@
  - **Vidzi**
  - **vier**
  - **vier:videos**
+ - **Viewster**
  - **viki**
  - **vimeo**
  - **vimeo:album**
@@ -556,6 +561,9 @@
  - **XXXYMovies**
  - **Yahoo**: Yahoo screen and movies
  - **Yam**
+ - **yandexmusic:album**: Яндекс.Музыка - Альбом
+ - **yandexmusic:playlist**: Яндекс.Музыка - Плейлист
+ - **yandexmusic:track**: Яндекс.Музыка - Трек
  - **YesJapan**
  - **Ynet**
  - **YouJizz**

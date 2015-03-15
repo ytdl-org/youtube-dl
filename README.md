@@ -228,6 +228,9 @@ which means you can modify it, redistribute it or use it however you like.
     --embed-subs                     embed subtitles in the video (only for mp4 videos)
     --embed-thumbnail                embed thumbnail in the audio as cover art
     --add-metadata                   write metadata to the video file
+    --metadata-from-title FORMAT     parse additional metadata like song title / artist from the video title. The format syntax is the same as --output, the parsed
+                                     parameters replace existing values. Additional templates: %(album), %(artist). Example: --metadata-from-title "%(artist)s -
+                                     %(title)s" matches a title like "Coldplay - Paradise"
     --xattrs                         write metadata to the video file's xattrs (using dublin core and xdg standards)
     --fixup POLICY                   Automatically correct known faults of the file. One of never (do nothing), warn (only emit a warning), detect_or_warn(the default;
                                      fix file if we can, warn otherwise)
