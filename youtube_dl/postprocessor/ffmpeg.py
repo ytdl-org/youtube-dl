@@ -237,7 +237,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                         more_opts += ['-b:a', self._preferredquality + 'k']
         else:
             # We convert the audio (lossy)
-            acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'opus': 'opus', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
+            acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'opus': 'opus', 'vorbis': 'libvorbis', 'wav': None, 'libfdkaac': None, 'libfdkaac-he': None, 'libfdkaac-hev2': None}[self._preferredcodec]
             extension = self._preferredcodec
             more_opts = []
             if self._preferredquality is not None:
@@ -255,6 +255,21 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             if self._preferredcodec == 'wav':
                 extension = 'wav'
                 more_opts += ['-f', 'wav']
+            if self._preferredcodec == 'libfdkaac' or self._preferredcodec == 'libfdkaac-he' or self._preferredcodec == 'libfdkaac-hev2':
+                more_opts = []
+                acodec = 'libfdk_aac'
+                prefix, sep, ext = path.rpartition('.')
+                if (ext == 'm4a'):
+                    extension = 'libfdkaac.m4a'
+                if self._preferredquality is not None:
+                    if int(self._preferredquality) < 6:
+                        more_opts += ['-vbr', self._preferredquality]
+                    else:
+                        more_opts += ['-b:a', self._preferredquality + 'k']
+                if self._preferredcodec == 'libfdkaac-he':
+                    more_opts += ['-profile:a', 'aac_he']
+                elif self._preferredcodec == 'libfdkaac-hev2':
+                    more_opts += ['-profile:a', 'aac_he_v2']
 
         prefix, sep, ext = path.rpartition('.')  # not os.path.splitext, since the latter does not work on unicode in all setups
         new_path = prefix + sep + extension
