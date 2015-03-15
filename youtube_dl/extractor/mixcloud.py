@@ -73,14 +73,10 @@ class MixcloudIE(InfoExtractor):
         webpage = self._download_webpage(url, track_id)
 
         preview_url = self._search_regex(
-            r'\s(?:data-preview-url|m-preview)="([^"]+)"', webpage, 'preview url')
-        song_url = preview_url.replace('/previews/', '/c/originals/')
-        template_url = re.sub(r'(stream\d*)', 'stream%d', song_url)
+            r'\bm-play-on-spacebar\b.*\n?.*\bm-preview="([^"]+)"', webpage, 'preview url')
+        song_url = re.sub(r'\.mp3$', '.m4a', preview_url.replace('/previews/', '/c/m4a/64/'))
+        template_url = re.sub(r'(stream\d+)', 'stream%d', song_url)
         final_song_url = self._get_url(track_id, template_url)
-        if final_song_url is None:
-            self.to_screen('Trying with m4a extension')
-            template_url = template_url.replace('.mp3', '.m4a').replace('originals/', 'm4a/64/')
-            final_song_url = self._get_url(track_id, template_url)
         if final_song_url is None:
             raise ExtractorError('Unable to extract track url')
 
@@ -99,8 +95,7 @@ class MixcloudIE(InfoExtractor):
             r'\s+"profile": "([^"]+)",', webpage, 'uploader id', fatal=False)
         description = self._og_search_description(webpage)
         like_count = str_to_int(self._search_regex(
-            [r'<meta itemprop="interactionCount" content="UserLikes:([0-9]+)"',
-             r'/favorites/?">([0-9]+)<'],
+            r'\bbutton-favorite\b.+m-ajax-toggle-count="([^"]+)"',
             webpage, 'like count', fatal=False))
         view_count = str_to_int(self._search_regex(
             [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
