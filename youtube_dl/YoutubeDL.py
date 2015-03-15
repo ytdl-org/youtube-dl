@@ -635,7 +635,7 @@ class YoutubeDL(object):
         Returns a list with a dictionary for each video we find.
         If 'download', also downloads the videos.
         extra_info is a dict containing the extra values to add to each result
-         '''
+        '''
 
         if ie_key:
             ies = [self.get_info_extractor(ie_key)]
