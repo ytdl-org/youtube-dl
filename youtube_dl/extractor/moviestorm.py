@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import os.path
-import re
 from time import sleep
 
 from .common import InfoExtractor
@@ -11,6 +10,7 @@ from ..compat import (
     compat_html_parser,
     compat_urlparse
 )
+
 
 class MovieStormHTMLParser(compat_html_parser.HTMLParser):
     def __init__(self):
@@ -45,6 +45,7 @@ class MovieStormHTMLParser(compat_html_parser.HTMLParser):
         p.feed(html)
         p.close()
         return getattr(p, return_variable)
+
 
 class MovieStormIE(InfoExtractor):
     """EXTRACTOR INFO:
@@ -92,7 +93,7 @@ class MovieStormIE(InfoExtractor):
         # Inform user to provide proper moviestorm link
         if 'watch' not in url:
             msg = ('The moviestorm handler requires either a movie page link or '
-                'a series episode page link.  Please try again with one of those.')
+                   'a series episode page link.  Please try again with one of those.')
             raise ExtractorError(msg, expected=True)
 
         while True:
@@ -100,8 +101,8 @@ class MovieStormIE(InfoExtractor):
                 note = 'Downloading link farm page'
             else:
                 note = ('Unstable db connection, retying again in %s seconds '
-                    '[%s/%s]' % (self.retry_wait, self.retry_count,
-                    self.max_retries))
+                        '[%s/%s]' % (self.retry_wait, self.retry_count,
+                                     self.max_retries))
 
             (_, _, token) = self._parse_target(url)
             farmpage = self._download_webpage(
@@ -120,7 +121,7 @@ class MovieStormIE(InfoExtractor):
                 # Fail if provided series home page
                 if series_home_page:
                     msg = ('It looks like you provided an show page url.  You must provide '
-                        'an episode page url or movie page url')
+                           'an episode page url or movie page url')
                     raise ExtractorError(msg, expected=True)
 
                 # Success

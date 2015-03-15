@@ -638,7 +638,7 @@ class YoutubeDL(object):
 
                 # ignore non-familiar links
                 if c != 'GenericIE' and c != 'MovieStormIE' and ie.suitable(farmed_url):
-                    familiar_farmed_urls.append( [ie, farmed_url] )
+                    familiar_farmed_urls.append([ie, farmed_url])
 
         for tuple in familiar_farmed_urls:
             ie = tuple[0]
