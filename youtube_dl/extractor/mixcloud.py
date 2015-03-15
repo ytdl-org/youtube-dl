@@ -99,8 +99,7 @@ class MixcloudIE(InfoExtractor):
             r'\s+"profile": "([^"]+)",', webpage, 'uploader id', fatal=False)
         description = self._og_search_description(webpage)
         like_count = str_to_int(self._search_regex(
-            [r'<meta itemprop="interactionCount" content="UserLikes:([0-9]+)"',
-             r'/favorites/?">([0-9]+)<'],
+            r'\bbutton-favorite\b.+m-ajax-toggle-count="([^"]+)"',
             webpage, 'like count', fatal=False))
         view_count = str_to_int(self._search_regex(
             [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
