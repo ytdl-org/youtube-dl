@@ -126,10 +126,11 @@ class RTVEALaCartaIE(InfoExtractor):
             (s['lang'], [{'ext': 'vtt', 'url': s['src']}])
             for s in subs)
 
+
 class RTVEInfantilIE(InfoExtractor):
-    IE_NAME = 'rtve.es:alacarta'
-    IE_DESC = 'RTVE a la carta'
-    _VALID_URL = r'https?://(?:www\.)?rtve\.es/infantil/serie/(?P<show>[^/]*)/video/(?P<short_tittle>[^/]*)/(?P<id>[0-9]+)/'
+    IE_NAME = 'rtve.es:infantil'
+    IE_DESC = 'RTVE infantil'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/infantil/serie/(?P<show>[^/]*)/video/(?P<short_title>[^/]*)/(?P<id>[0-9]+)/'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/infantil/serie/cleo/video/maneras-vivir/3040283/',
@@ -141,12 +142,10 @@ class RTVEInfantilIE(InfoExtractor):
             'thumbnail': 'http://www.rtve.es/resources/jpg/6/5/1426182947956.JPG',
             'duration': 357.958,
         },
-    },]
+    }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        short_tittle = mobj.group('short_tittle')
+        video_id = self._match_id(url)
         info = self._download_json(
             'http://www.rtve.es/api/videos/%s/config/alacarta_videos.json' % video_id,
             video_id)['page']['items'][0]
@@ -167,7 +166,6 @@ class RTVEInfantilIE(InfoExtractor):
             'thumbnail': info.get('image'),
             'duration': float_or_none(info.get('duration'), scale=1000),
         }
-
 
 
 class RTVELiveIE(InfoExtractor):
