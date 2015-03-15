@@ -50,6 +50,9 @@ class ARDMediathekIE(InfoExtractor):
         if '>Der gewünschte Beitrag ist nicht mehr verfügbar.<' in webpage:
             raise ExtractorError('Video %s is no longer available' % video_id, expected=True)
 
+        if 'Diese Sendung ist für Jugendliche unter 12 Jahren nicht geeignet. Der Clip ist deshalb nur von 20 bis 6 Uhr verfügbar.' in webpage:
+            raise ExtractorError('This program is only suitable for those aged 12 and older. Video %s is therefore only available between 20 pm and 6 am.' % video_id, expected=True)
+
         if re.search(r'[\?&]rss($|[=&])', url):
             doc = parse_xml(webpage)
             if doc.tag == 'rss':
