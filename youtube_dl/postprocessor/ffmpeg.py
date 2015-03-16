@@ -23,7 +23,7 @@ from ..utils import (
     subtitles_filename,
 )
 
-FFMPEG_CBR_SAMPLERATE_TABLE = {
+LIBFDKAAC_CBR_SAMPLERATE_TABLE = {
     "libfdkaac": [
         [16, 23, 11025],
         [24, 31, 16000],
@@ -45,7 +45,7 @@ FFMPEG_CBR_SAMPLERATE_TABLE = {
     ]
 }
 
-FFMPEG_VBR_SAMPLERATE_TABLE = {
+LIBFDKAAC_VBR_SAMPLERATE_TABLE = {
     "libfdkaac": [
         [1, 32000], #40kbps
         [2, 32000], #64kbps
@@ -248,7 +248,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             raise AudioConversionError(err.msg)
 
     def get_fdkaac_cbr_samplerate(self, codec, bitrate):
-        table = FFMPEG_CBR_SAMPLERATE_TABLE[codec];
+        table = LIBFDKAAC_CBR_SAMPLERATE_TABLE[codec];
         int_bitrate = int(bitrate)
         for configuration in table:
             min_rate, max_rate, sample_rate = configuration[0], configuration[1], configuration[2]
@@ -257,7 +257,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         raise PostProcessingError('WARNING: Can''t find fdkaac samplerate configuration for bitrate.')
 
     def get_fdkaac_vbr_samplerate(self, codec, vbr_value):
-        table = FFMPEG_VBR_SAMPLERATE_TABLE[codec];
+        table = LIBFDKAAC_VBR_SAMPLERATE_TABLE[codec];
         int_vbr_level = int(vbr_value)
         for configuration in table:
             vbr_level, sample_rate = configuration[0], configuration[1]
