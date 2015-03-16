@@ -595,7 +595,7 @@ class FFmpegJoinVideosPP(FFmpegPostProcessor):
         files_file = u'%s.videos' % filename
         with io.open(encodeFilename(files_file), 'w', encoding='utf-8') as f:
             for video in parts_files:
-                f.write(u'file \'%s\'\n' % video)
+                f.write(u'file \'%s\'\n' % video.replace("'", r"'\''"))
         self._downloader.to_screen(u'[ffmpeg] Joining video parts, destination: %s' % filename)
         try:
             self.run_ffmpeg(files_file, filename, ['-c', 'copy'], ['-f', 'concat'])
