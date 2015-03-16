@@ -23,6 +23,50 @@ from ..utils import (
     subtitles_filename,
 )
 
+FFMPEG_CBR_SAMPLERATE_TABLE = {
+    "libfdkaac": [
+        [16, 23, 11025],
+        [24, 31, 16000],
+        [32, 39, 24000],
+        [40, 95, 32000],
+        [96, 320, 44100],
+        [320, 576, 48000]
+    ],
+    "libfdkaac-he": [
+        [16, 28, 32000],
+        [28, 63, 44100],
+        [64, 128, 48000]
+    ],
+    "libfdkaac-hev2": [
+        [8, 11, 24000],
+        [12, 17, 32000],
+        [18, 39, 44100],
+        [40, 56, 48000]
+    ]
+}
+
+FFMPEG_VBR_SAMPLERATE_TABLE = {
+    "libfdkaac": [
+        [1, 32000], #40kbps
+        [2, 32000], #64kbps
+        [3, 44100], #96kbps
+        [4, 44100], #128kbps
+        [5, 44100], #192kbps
+    ],
+    "libfdkaac-he": [
+        [1, 44100],
+        [2, 48000],
+        [3, 48000],
+        [4, 48000],
+        [5, 48000]
+    ],
+    "libfdkaac-hev2": [
+        [1, 48000],
+        [2, 48000],
+        [3, 48000],
+        [4, 48000]
+    ]
+}
 
 class FFmpegPostProcessorError(PostProcessingError):
     pass
@@ -203,6 +247,24 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         except FFmpegPostProcessorError as err:
             raise AudioConversionError(err.msg)
 
+    def get_fdkaac_cbr_samplerate(self, codec, bitrate):
+        table = FFMPEG_CBR_SAMPLERATE_TABLE[codec];
+        int_bitrate = int(bitrate)
+        for configuration in table:
+            min_rate, max_rate, sample_rate = configuration[0], configuration[1], configuration[2]
+            if int_bitrate>=min_rate and int_bitrate<=max_rate:
+                return sample_rate
+        raise PostProcessingError('WARNING: Can''t find fdkaac samplerate configuration for bitrate.')
+
+    def get_fdkaac_vbr_samplerate(self, codec, vbr_value):
+        table = FFMPEG_VBR_SAMPLERATE_TABLE[codec];
+        int_vbr_level = int(vbr_value)
+        for configuration in table:
+            vbr_level, sample_rate = configuration[0], configuration[1]
+            if int_vbr_level == vbr_level:
+                return sample_rate
+        raise PostProcessingError('WARNING: Can''t find fdkaac samplerate configuration for VBR level.')
+
     def run(self, information):
         path = information['filepath']
 
@@ -259,13 +321,18 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 more_opts = []
                 acodec = 'libfdk_aac'
                 prefix, sep, ext = path.rpartition('.')
+
                 if (ext == 'm4a'):
                     extension = 'libfdkaac.m4a'
                 if self._preferredquality is not None:
                     if int(self._preferredquality) < 6:
                         more_opts += ['-vbr', self._preferredquality]
+                        sample_rate = self.get_fdkaac_vbr_samplerate(self._preferredcodec, self._preferredquality)
+                        more_opts += ['-ar', str(sample_rate)]
                     else:
                         more_opts += ['-b:a', self._preferredquality + 'k']
+                        sample_rate = self.get_fdkaac_cbr_samplerate(self._preferredcodec, self._preferredquality)
+                        more_opts += ['-ar', str(sample_rate)]
                 if self._preferredcodec == 'libfdkaac-he':
                     more_opts += ['-profile:a', 'aac_he']
                 elif self._preferredcodec == 'libfdkaac-hev2':
