@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import json
 import re
 import itertools
-import hashlib
 
 from .common import InfoExtractor
 from ..compat import (
@@ -20,6 +19,7 @@ from ..utils import (
     RegexNotFoundError,
     smuggle_url,
     std_headers,
+    unified_strdate,
     unsmuggle_url,
     urlencode_postdata,
 )
@@ -38,7 +38,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
         self.report_login()
         login_url = 'https://vimeo.com/log_in'
         webpage = self._download_webpage(login_url, None, False)
-        token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
+        token = self._search_regex(r'xsrft = \'(.*?)\'', webpage, 'login token')
         data = urlencode_postdata({
             'email': username,
             'password': password,
@@ -140,6 +140,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'description': 'md5:8678b246399b070816b12313e8b4eb5c',
                 'uploader_id': 'atencio',
                 'uploader': 'Peter Atencio',
+                'upload_date': '20130927',
                 'duration': 187,
             },
         },
@@ -176,17 +177,15 @@ class VimeoIE(VimeoBaseInfoExtractor):
         password = self._downloader.params.get('videopassword', None)
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option', expected=True)
-        token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
-        data = compat_urllib_parse.urlencode({
+        token = self._search_regex(r'xsrft = \'(.*?)\'', webpage, 'login token')
+        data = urlencode_postdata({
             'password': password,
             'token': token,
         })
-        # I didn't manage to use the password with https
-        if url.startswith('https'):
-            pass_url = url.replace('https', 'http')
-        else:
-            pass_url = url
-        password_request = compat_urllib_request.Request(pass_url + '/password', data)
+        if url.startswith('http://'):
+            # vimeo only supports https now, but the user can give an http url
+            url = url.replace('http://', 'https://')
+        password_request = compat_urllib_request.Request(url + '/password', data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         password_request.add_header('Cookie', 'xsrft=%s' % token)
         return self._download_webpage(
@@ -223,12 +222,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         video_id = mobj.group('id')
         orig_url = url
         if mobj.group('pro') or mobj.group('player'):
-            url = 'http://player.vimeo.com/video/' + video_id
-
-        password = self._downloader.params.get('videopassword', None)
-        if password:
-            headers['Cookie'] = '%s_password=%s' % (
-                video_id, hashlib.md5(password.encode('utf-8')).hexdigest())
+            url = 'https://player.vimeo.com/video/' + video_id
 
         # Retrieve video webpage to extract further information
         request = compat_urllib_request.Request(url, None, headers)
@@ -323,9 +317,9 @@ class VimeoIE(VimeoBaseInfoExtractor):
 
         # Extract upload date
         video_upload_date = None
-        mobj = re.search(r'<meta itemprop="dateCreated" content="(\d{4})-(\d{2})-(\d{2})T', webpage)
+        mobj = re.search(r'<time[^>]+datetime="([^"]+)"', webpage)
         if mobj is not None:
-            video_upload_date = mobj.group(1) + mobj.group(2) + mobj.group(3)
+            video_upload_date = unified_strdate(mobj.group(1))
 
         try:
             view_count = int(self._search_regex(r'UserPlays:(\d+)', webpage, 'view count'))
@@ -379,7 +373,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             for tt in text_tracks:
                 subtitles[tt['lang']] = [{
                     'ext': 'vtt',
-                    'url': 'http://vimeo.com' + tt['url'],
+                    'url': 'https://vimeo.com' + tt['url'],
                 }]
 
         return {
@@ -402,11 +396,11 @@ class VimeoIE(VimeoBaseInfoExtractor):
 
 class VimeoChannelIE(InfoExtractor):
     IE_NAME = 'vimeo:channel'
-    _VALID_URL = r'https?://vimeo\.com/channels/(?P<id>[^/?#]+)/?(?:$|[?#])'
+    _VALID_URL = r'https://vimeo\.com/channels/(?P<id>[^/?#]+)/?(?:$|[?#])'
     _MORE_PAGES_INDICATOR = r'<a.+?rel="next"'
     _TITLE_RE = r'<link rel="alternate"[^>]+?title="(.*?)"'
     _TESTS = [{
-        'url': 'http://vimeo.com/channels/tributes',
+        'url': 'https://vimeo.com/channels/tributes',
         'info_dict': {
             'id': 'tributes',
             'title': 'Vimeo Tributes',
@@ -435,10 +429,10 @@ class VimeoChannelIE(InfoExtractor):
             name="([^"]+)"\s+
             value="([^"]*)"
             ''', login_form))
-        token = self._search_regex(r'xsrft: \'(.*?)\'', webpage, 'login token')
+        token = self._search_regex(r'xsrft = \'(.*?)\'', webpage, 'login token')
         fields['token'] = token
         fields['password'] = password
-        post = compat_urllib_parse.urlencode(fields)
+        post = urlencode_postdata(fields)
         password_path = self._search_regex(
             r'action="([^"]+)"', login_form, 'password URL')
         password_url = compat_urlparse.urljoin(page_url, password_path)
@@ -465,7 +459,7 @@ class VimeoChannelIE(InfoExtractor):
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
                 break
 
-        entries = [self.url_result('http://vimeo.com/%s' % video_id, 'Vimeo')
+        entries = [self.url_result('https://vimeo.com/%s' % video_id, 'Vimeo')
                    for video_id in video_ids]
         return {'_type': 'playlist',
                 'id': list_id,
@@ -476,15 +470,15 @@ class VimeoChannelIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         channel_id = mobj.group('id')
-        return self._extract_videos(channel_id, 'http://vimeo.com/channels/%s' % channel_id)
+        return self._extract_videos(channel_id, 'https://vimeo.com/channels/%s' % channel_id)
 
 
 class VimeoUserIE(VimeoChannelIE):
     IE_NAME = 'vimeo:user'
-    _VALID_URL = r'https?://vimeo\.com/(?![0-9]+(?:$|[?#/]))(?P<name>[^/]+)(?:/videos|[#?]|$)'
+    _VALID_URL = r'https://vimeo\.com/(?![0-9]+(?:$|[?#/]))(?P<name>[^/]+)(?:/videos|[#?]|$)'
     _TITLE_RE = r'<a[^>]+?class="user">([^<>]+?)</a>'
     _TESTS = [{
-        'url': 'http://vimeo.com/nkistudio/videos',
+        'url': 'https://vimeo.com/nkistudio/videos',
         'info_dict': {
             'title': 'Nki',
             'id': 'nkistudio',
@@ -495,15 +489,15 @@ class VimeoUserIE(VimeoChannelIE):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         name = mobj.group('name')
-        return self._extract_videos(name, 'http://vimeo.com/%s' % name)
+        return self._extract_videos(name, 'https://vimeo.com/%s' % name)
 
 
 class VimeoAlbumIE(VimeoChannelIE):
     IE_NAME = 'vimeo:album'
-    _VALID_URL = r'https?://vimeo\.com/album/(?P<id>\d+)'
+    _VALID_URL = r'https://vimeo\.com/album/(?P<id>\d+)'
     _TITLE_RE = r'<header id="page_header">\n\s*<h1>(.*?)</h1>'
     _TESTS = [{
-        'url': 'http://vimeo.com/album/2632481',
+        'url': 'https://vimeo.com/album/2632481',
         'info_dict': {
             'id': '2632481',
             'title': 'Staff Favorites: November 2013',
@@ -527,14 +521,14 @@ class VimeoAlbumIE(VimeoChannelIE):
 
     def _real_extract(self, url):
         album_id = self._match_id(url)
-        return self._extract_videos(album_id, 'http://vimeo.com/album/%s' % album_id)
+        return self._extract_videos(album_id, 'https://vimeo.com/album/%s' % album_id)
 
 
 class VimeoGroupsIE(VimeoAlbumIE):
     IE_NAME = 'vimeo:group'
-    _VALID_URL = r'(?:https?://)?vimeo\.com/groups/(?P<name>[^/]+)'
+    _VALID_URL = r'https://vimeo\.com/groups/(?P<name>[^/]+)'
     _TESTS = [{
-        'url': 'http://vimeo.com/groups/rolexawards',
+        'url': 'https://vimeo.com/groups/rolexawards',
         'info_dict': {
             'id': 'rolexawards',
             'title': 'Rolex Awards for Enterprise',
@@ -548,13 +542,13 @@ class VimeoGroupsIE(VimeoAlbumIE):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         name = mobj.group('name')
-        return self._extract_videos(name, 'http://vimeo.com/groups/%s' % name)
+        return self._extract_videos(name, 'https://vimeo.com/groups/%s' % name)
 
 
 class VimeoReviewIE(InfoExtractor):
     IE_NAME = 'vimeo:review'
     IE_DESC = 'Review pages on vimeo'
-    _VALID_URL = r'https?://vimeo\.com/[^/]+/review/(?P<id>[^/]+)'
+    _VALID_URL = r'https://vimeo\.com/[^/]+/review/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'https://vimeo.com/user21297594/review/75524534/3c257a1b5d',
         'md5': 'c507a72f780cacc12b2248bb4006d253',
@@ -566,7 +560,7 @@ class VimeoReviewIE(InfoExtractor):
         }
     }, {
         'note': 'video player needs Referer',
-        'url': 'http://vimeo.com/user22258446/review/91613211/13f927e053',
+        'url': 'https://vimeo.com/user22258446/review/91613211/13f927e053',
         'md5': '6295fdab8f4bf6a002d058b2c6dce276',
         'info_dict': {
             'id': '91613211',
@@ -588,11 +582,11 @@ class VimeoReviewIE(InfoExtractor):
 class VimeoWatchLaterIE(VimeoBaseInfoExtractor, VimeoChannelIE):
     IE_NAME = 'vimeo:watchlater'
     IE_DESC = 'Vimeo watch later list, "vimeowatchlater" keyword (requires authentication)'
-    _VALID_URL = r'https?://vimeo\.com/home/watchlater|:vimeowatchlater'
+    _VALID_URL = r'https://vimeo\.com/home/watchlater|:vimeowatchlater'
     _LOGIN_REQUIRED = True
     _TITLE_RE = r'href="/home/watchlater".*?>(.*?)<'
     _TESTS = [{
-        'url': 'http://vimeo.com/home/watchlater',
+        'url': 'https://vimeo.com/home/watchlater',
         'only_matching': True,
     }]
 
@@ -612,7 +606,7 @@ class VimeoWatchLaterIE(VimeoBaseInfoExtractor, VimeoChannelIE):
 
 
 class VimeoLikesIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vimeo\.com/user(?P<id>[0-9]+)/likes/?(?:$|[?#]|sort:)'
+    _VALID_URL = r'https://(?:www\.)?vimeo\.com/user(?P<id>[0-9]+)/likes/?(?:$|[?#]|sort:)'
     IE_NAME = 'vimeo:likes'
     IE_DESC = 'Vimeo user likes'
     _TEST = {
@@ -640,8 +634,8 @@ class VimeoLikesIE(InfoExtractor):
         description = self._html_search_meta('description', webpage)
 
         def _get_page(idx):
-            page_url = '%s//vimeo.com/user%s/likes/page:%d/sort:date' % (
-                self.http_scheme(), user_id, idx + 1)
+            page_url = 'https://vimeo.com/user%s/likes/page:%d/sort:date' % (
+                user_id, idx + 1)
             webpage = self._download_webpage(
                 page_url, user_id,
                 note='Downloading page %d/%d' % (idx + 1, page_count))

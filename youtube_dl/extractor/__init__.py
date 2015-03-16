@@ -37,6 +37,7 @@ from .bandcamp import BandcampIE, BandcampAlbumIE
 from .bbccouk import BBCCoUkIE
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
+from .beatportpro import BeatportProIE
 from .bet import BetIE
 from .bild import BildIE
 from .bilibili import BiliBiliIE
@@ -116,6 +117,7 @@ from .defense import DefenseGouvFrIE
 from .discovery import DiscoveryIE
 from .divxstage import DivxStageIE
 from .dropbox import DropboxIE
+from .eagleplatform import EaglePlatformIE
 from .ebaumsworld import EbaumsWorldIE
 from .echomsk import EchoMskIE
 from .ehow import EHowIE
@@ -150,6 +152,7 @@ from .fktv import (
 )
 from .flickr import FlickrIE
 from .folketinget import FolketingetIE
+from .footyroom import FootyRoomIE
 from .fourtube import FourTubeIE
 from .foxgay import FoxgayIE
 from .foxnews import FoxNewsIE
@@ -174,6 +177,7 @@ from .gameone import (
 from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
 from .gametrailers import GametrailersIE
+from .gazeta import GazetaIE
 from .gdcvault import GDCVaultIE
 from .generic import GenericIE
 from .giantbomb import GiantBombIE
@@ -228,6 +232,7 @@ from .jove import JoveIE
 from .jukebox import JukeboxIE
 from .jpopsukitv import JpopsukiIE
 from .kaltura import KalturaIE
+from .kanalplay import KanalPlayIE
 from .kankan import KankanIE
 from .karaoketv import KaraoketvIE
 from .keezmovies import KeezMoviesIE
@@ -354,6 +359,7 @@ from .orf import (
     ORFTVthekIE,
     ORFOE1IE,
     ORFFM4IE,
+    ORFIPTVIE,
 )
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
@@ -361,9 +367,11 @@ from .pbs import PBSIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
 from .planetaplay import PlanetaPlayIE
+from .pladform import PladformIE
 from .played import PlayedIE
 from .playfm import PlayFMIE
 from .playvid import PlayvidIE
+from .playwire import PlaywireIE
 from .podomatic import PodomaticIE
 from .pornhd import PornHdIE
 from .pornhub import (
@@ -397,7 +405,7 @@ from .rtlnow import RTLnowIE
 from .rtl2 import RTL2IE
 from .rtp import RTPIE
 from .rts import RTSIE
-from .rtve import RTVEALaCartaIE, RTVELiveIE
+from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE
 from .ruhd import RUHDIE
 from .rutube import (
     RutubeIE,
@@ -455,6 +463,7 @@ from .sport5 import Sport5IE
 from .sportbox import SportBoxIE
 from .sportdeutschland import SportDeutschlandIE
 from .srmediathek import SRMediathekIE
+from .ssa import SSAIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .steam import SteamIE
 from .streamcloud import StreamcloudIE
@@ -550,6 +559,7 @@ from .videoweed import VideoWeedIE
 from .vidme import VidmeIE
 from .vidzi import VidziIE
 from .vier import VierIE, VierVideosIE
+from .viewster import ViewsterIE
 from .vimeo import (
     VimeoIE,
     VimeoAlbumIE,
@@ -606,6 +616,11 @@ from .yahoo import (
     YahooSearchIE,
 )
 from .yam import YamIE
+from .yandexmusic import (
+    YandexMusicTrackIE,
+    YandexMusicAlbumIE,
+    YandexMusicPlaylistIE,
+)
 from .yesjapan import YesJapanIE
 from .ynet import YnetIE
 from .youjizz import YouJizzIE

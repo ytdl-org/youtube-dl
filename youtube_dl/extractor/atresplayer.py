@@ -19,6 +19,7 @@ from ..utils import (
 
 class AtresPlayerIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?atresplayer\.com/television/[^/]+/[^/]+/[^/]+/(?P<id>.+?)_\d+\.html'
+    _NETRC_MACHINE = 'atresplayer'
     _TESTS = [
         {
             'url': 'http://www.atresplayer.com/television/programas/el-club-de-la-comedia/temporada-4/capitulo-10-especial-solidario-nochebuena_2014122100174.html',

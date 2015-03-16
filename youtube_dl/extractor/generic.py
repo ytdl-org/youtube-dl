@@ -26,6 +26,7 @@ from ..utils import (
     unsmuggle_url,
     UnsupportedError,
     url_basename,
+    xpath_text,
 )
 from .brightcove import BrightcoveIE
 from .ooyala import OoyalaIE
@@ -569,6 +570,55 @@ class GenericIE(InfoExtractor):
                 'title': 'John Carlson Postgame 2/25/15',
             },
         },
+        # Eagle.Platform embed (generic URL)
+        {
+            'url': 'http://lenta.ru/news/2015/03/06/navalny/',
+            'info_dict': {
+                'id': '227304',
+                'ext': 'mp4',
+                'title': 'Навальный вышел на свободу',
+                'description': 'md5:d97861ac9ae77377f3f20eaf9d04b4f5',
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'duration': 87,
+                'view_count': int,
+                'age_limit': 0,
+            },
+        },
+        # ClipYou (Eagle.Platform) embed (custom URL)
+        {
+            'url': 'http://muz-tv.ru/play/7129/',
+            'info_dict': {
+                'id': '12820',
+                'ext': 'mp4',
+                'title': "'O Sole Mio",
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'duration': 216,
+                'view_count': int,
+            },
+        },
+        # Pladform embed
+        {
+            'url': 'http://muz-tv.ru/kinozal/view/7400/',
+            'info_dict': {
+                'id': '100183293',
+                'ext': 'mp4',
+                'title': 'Тайны перевала Дятлова • Тайна перевала Дятлова 1 серия 2 часть',
+                'description': 'Документальный сериал-расследование одной из самых жутких тайн ХХ века',
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'duration': 694,
+                'age_limit': 0,
+            },
+        },
+        # RSS feed with enclosure
+        {
+            'url': 'http://podcastfeeds.nbcnews.com/audio/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
+            'info_dict': {
+                'id': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
+                'ext': 'm4v',
+                'upload_date': '20150228',
+                'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
+            }
+        }
     ]
 
     def report_following_redirect(self, new_url):
@@ -580,11 +630,24 @@ class GenericIE(InfoExtractor):
         playlist_desc_el = doc.find('./channel/description')
         playlist_desc = None if playlist_desc_el is None else playlist_desc_el.text
 
-        entries = [{
-            '_type': 'url',
-            'url': e.find('link').text,
-            'title': e.find('title').text,
-        } for e in doc.findall('./channel/item')]
+        entries = []
+        for it in doc.findall('./channel/item'):
+            next_url = xpath_text(it, 'link', fatal=False)
+            if not next_url:
+                enclosure_nodes = it.findall('./enclosure')
+                for e in enclosure_nodes:
+                    next_url = e.attrib.get('url')
+                    if next_url:
+                        break
+
+            if not next_url:
+                continue
+
+            entries.append({
+                '_type': 'url',
+                'url': next_url,
+                'title': it.find('title').text,
+            })
 
         return {
             '_type': 'playlist',
@@ -1130,6 +1193,24 @@ class GenericIE(InfoExtractor):
             r"(?s)kWidget\.(?:thumb)?[Ee]mbed\(\{.*?'wid'\s*:\s*'_?(?P<partner_id>[^']+)',.*?'entry_id'\s*:\s*'(?P<id>[^']+)',", webpage)
         if mobj is not None:
             return self.url_result('kaltura:%(partner_id)s:%(id)s' % mobj.groupdict(), 'Kaltura')
+
+        # Look for Eagle.Platform embeds
+        mobj = re.search(
+            r'<iframe[^>]+src="(?P<url>https?://.+?\.media\.eagleplatform\.com/index/player\?.+?)"', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'EaglePlatform')
+
+        # Look for ClipYou (uses Eagle.Platform) embeds
+        mobj = re.search(
+            r'<iframe[^>]+src="https?://(?P<host>media\.clipyou\.ru)/index/player\?.*\brecord_id=(?P<id>\d+).*"', webpage)
+        if mobj is not None:
+            return self.url_result('eagleplatform:%(host)s:%(id)s' % mobj.groupdict(), 'EaglePlatform')
+
+        # Look for Pladform embeds
+        mobj = re.search(
+            r'<iframe[^>]+src="(?P<url>https?://out\.pladform\.ru/player\?.+?)"', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'Pladform')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

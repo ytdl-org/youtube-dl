@@ -2,7 +2,6 @@
 
 from __future__ import unicode_literals
 
-import json
 import re
 
 from .common import InfoExtractor
@@ -15,10 +14,10 @@ class JeuxVideoIE(InfoExtractor):
         'url': 'http://www.jeuxvideo.com/reportages-videos-jeux/0004/00046170/tearaway-playstation-vita-gc-2013-tearaway-nous-presente-ses-papiers-d-identite-00115182.htm',
         'md5': '046e491afb32a8aaac1f44dd4ddd54ee',
         'info_dict': {
-            'id': '5182',
+            'id': '114765',
             'ext': 'mp4',
-            'title': 'GC 2013 : Tearaway nous présente ses papiers d\'identité',
-            'description': 'Lorsque les développeurs de LittleBigPlanet proposent un nouveau titre, on ne peut que s\'attendre à un résultat original et fort attrayant.\n',
+            'title': 'Tearaway : GC 2013 : Tearaway nous présente ses papiers d\'identité',
+            'description': 'Lorsque les développeurs de LittleBigPlanet proposent un nouveau titre, on ne peut que s\'attendre à un résultat original et fort attrayant.',
         },
     }
 
@@ -26,26 +25,29 @@ class JeuxVideoIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         title = mobj.group(1)
         webpage = self._download_webpage(url, title)
-        xml_link = self._html_search_regex(
-            r'<param name="flashvars" value="config=(.*?)" />',
+        title = self._html_search_meta('name', webpage)
+        config_url = self._html_search_regex(
+            r'data-src="(/contenu/medias/video.php.*?)"',
             webpage, 'config URL')
+        config_url = 'http://www.jeuxvideo.com' + config_url
 
         video_id = self._search_regex(
-            r'http://www\.jeuxvideo\.com/config/\w+/\d+/(.*?)/\d+_player\.xml',
-            xml_link, 'video ID')
+            r'id=(\d+)',
+            config_url, 'video ID')
 
-        config = self._download_xml(
-            xml_link, title, 'Downloading XML config')
-        info_json = config.find('format.json').text
-        info = json.loads(info_json)['versions'][0]
+        config = self._download_json(
+            config_url, title, 'Downloading JSON config')
 
-        video_url = 'http://video720.jeuxvideo.com/' + info['file']
+        formats = [{
+            'url': source['file'],
+            'format_id': source['label'],
+            'resolution': source['label'],
+        } for source in reversed(config['sources'])]
 
         return {
             'id': video_id,
-            'title': config.find('titre_video').text,
-            'ext': 'mp4',
-            'url': video_url,
+            'title': title,
+            'formats': formats,
             'description': self._og_search_description(webpage),
-            'thumbnail': config.find('image').text,
+            'thumbnail': config.get('image'),
         }

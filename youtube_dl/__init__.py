@@ -9,6 +9,7 @@ import codecs
 import io
 import os
 import random
+import shlex
 import sys
 
 
@@ -212,6 +213,11 @@ def _real_main(argv=None):
     # PostProcessors
     postprocessors = []
     # Add the metadata pp first, the other pps will copy it
+    if opts.metafromtitle:
+        postprocessors.append({
+            'key': 'MetadataFromTitle',
+            'titleformat': opts.metafromtitle
+        })
     if opts.addmetadata:
         postprocessors.append({'key': 'FFmpegMetadata'})
     if opts.extractaudio:
@@ -257,6 +263,9 @@ def _real_main(argv=None):
             xattr  # Confuse flake8
         except ImportError:
             parser.error('setting filesize xattr requested but python-xattr is not available')
+    external_downloader_args = None
+    if opts.external_downloader_args:
+        external_downloader_args = shlex.split(opts.external_downloader_args)
     match_filter = (
         None if opts.match_filter is None
         else match_filter_func(opts.match_filter))
@@ -362,6 +371,8 @@ def _real_main(argv=None):
         'no_color': opts.no_color,
         'ffmpeg_location': opts.ffmpeg_location,
         'hls_prefer_native': opts.hls_prefer_native,
+        'external_downloader_args': external_downloader_args,
+        'cn_verification_proxy': opts.cn_verification_proxy,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

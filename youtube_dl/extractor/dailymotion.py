@@ -46,13 +46,13 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
 
     _TESTS = [
         {
-            'url': 'http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech',
-            'md5': '392c4b85a60a90dc4792da41ce3144eb',
+            'url': 'https://www.dailymotion.com/video/x2iuewm_steam-machine-models-pricing-listed-on-steam-store-ign-news_videogames',
+            'md5': '2137c41a8e78554bb09225b8eb322406',
             'info_dict': {
-                'id': 'x33vw9',
+                'id': 'x2iuewm',
                 'ext': 'mp4',
-                'uploader': 'Amphora Alex and Van .',
-                'title': 'Tutoriel de Youtubeur"DL DES VIDEO DE YOUTUBE"',
+                'uploader': 'IGN',
+                'title': 'Steam Machine Models, Pricing Listed on Steam Store - IGN News',
             }
         },
         # Vevo video

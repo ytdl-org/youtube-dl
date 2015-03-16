@@ -549,7 +549,9 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
             metadata['title'] = info['title']
         if info.get('upload_date') is not None:
             metadata['date'] = info['upload_date']
-        if info.get('uploader') is not None:
+        if info.get('artist') is not None:
+            metadata['artist'] = info['artist']
+        elif info.get('uploader') is not None:
             metadata['artist'] = info['uploader']
         elif info.get('uploader_id') is not None:
             metadata['artist'] = info['uploader_id']
@@ -558,6 +560,8 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
             metadata['comment'] = info['description']
         if info.get('webpage_url') is not None:
             metadata['purl'] = info['webpage_url']
+        if info.get('album') is not None:
+            metadata['album'] = info['album']
 
         if not metadata:
             self._downloader.to_screen('[ffmpeg] There isn\'t any metadata to add')

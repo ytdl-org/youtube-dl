@@ -50,7 +50,6 @@ class FunnyOrDieIE(InfoExtractor):
         bitrates.sort()
 
         formats = []
-
         for bitrate in bitrates:
             for link in links:
                 formats.append({
@@ -58,6 +57,13 @@ class FunnyOrDieIE(InfoExtractor):
                     'format_id': '%s-%d' % (link[1], bitrate),
                     'vbr': bitrate,
                 })
+
+        subtitles = {}
+        for src, src_lang in re.findall(r'<track kind="captions" src="([^"]+)" srclang="([^"]+)"', webpage):
+            subtitles[src_lang] = [{
+                'ext': src.split('/')[-1],
+                'url': 'http://www.funnyordie.com%s' % src,
+            }]
 
         post_json = self._search_regex(
             r'fb_post\s*=\s*(\{.*?\});', webpage, 'post details')
@@ -69,4 +75,5 @@ class FunnyOrDieIE(InfoExtractor):
             'description': post.get('description'),
             'thumbnail': post.get('picture'),
             'formats': formats,
+            'subtitles': subtitles,
         }

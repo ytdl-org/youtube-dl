@@ -23,6 +23,7 @@ class TwitchBaseIE(InfoExtractor):
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'http://usher.twitch.tv'
     _LOGIN_URL = 'https://secure.twitch.tv/user/login'
+    _NETRC_MACHINE = 'twitch'
 
     def _handle_error(self, response):
         if not isinstance(response, dict):
@@ -83,6 +84,14 @@ class TwitchBaseIE(InfoExtractor):
         if m:
             raise ExtractorError(
                 'Unable to login: %s' % m.group('msg').strip(), expected=True)
+
+    def _prefer_source(self, formats):
+        try:
+            source = next(f for f in formats if f['format_id'] == 'Source')
+            source['preference'] = 10
+        except StopIteration:
+            pass  # No Source stream present
+        self._sort_formats(formats)
 
 
 class TwitchItemBaseIE(TwitchBaseIE):
@@ -208,6 +217,7 @@ class TwitchVodIE(TwitchItemBaseIE):
             '%s/vod/%s?nauth=%s&nauthsig=%s'
             % (self._USHER_BASE, item_id, access_token['token'], access_token['sig']),
             item_id, 'mp4')
+        self._prefer_source(formats)
         info['formats'] = formats
         return info
 
@@ -348,21 +358,14 @@ class TwitchStreamIE(TwitchBaseIE):
             'p': random.randint(1000000, 10000000),
             'player': 'twitchweb',
             'segment_preference': '4',
-            'sig': access_token['sig'],
-            'token': access_token['token'],
+            'sig': access_token['sig'].encode('utf-8'),
+            'token': access_token['token'].encode('utf-8'),
         }
-
         formats = self._extract_m3u8_formats(
             '%s/api/channel/hls/%s.m3u8?%s'
-            % (self._USHER_BASE, channel_id, compat_urllib_parse.urlencode(query).encode('utf-8')),
+            % (self._USHER_BASE, channel_id, compat_urllib_parse.urlencode(query)),
             channel_id, 'mp4')
-
-        # prefer the 'source' stream, the others are limited to 30 fps
-        def _sort_source(f):
-            if f.get('m3u8_media') is not None and f['m3u8_media'].get('NAME') == 'Source':
-                return 1
-            return 0
-        formats = sorted(formats, key=_sort_source)
+        self._prefer_source(formats)
 
         view_count = stream.get('viewers')
         timestamp = parse_iso8601(stream.get('created_at'))

@@ -149,9 +149,6 @@ class NRKTVIE(InfoExtractor):
         }
     ]
 
-    def _seconds2str(self, s):
-        return '%02d:%02d:%02d.%03d' % (s / 3600, (s % 3600) / 60, s % 60, (s % 1) * 1000)
-
     def _debug_print(self, txt):
         if self._downloader.params.get('verbose', False):
             self.to_screen('[debug] %s' % txt)
@@ -168,8 +165,8 @@ class NRKTVIE(InfoExtractor):
         for pos, p in enumerate(ps):
             begin = parse_duration(p.get('begin'))
             duration = parse_duration(p.get('dur'))
-            starttime = self._seconds2str(begin)
-            endtime = self._seconds2str(begin + duration)
+            starttime = self._subtitles_timecode(begin)
+            endtime = self._subtitles_timecode(begin + duration)
             srt += '%s\r\n%s --> %s\r\n%s\r\n\r\n' % (compat_str(pos), starttime, endtime, p.text)
         return {lang: [
             {'ext': 'ttml', 'url': url},

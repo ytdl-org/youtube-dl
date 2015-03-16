@@ -47,6 +47,7 @@
  - **Bandcamp**
  - **Bandcamp:album**
  - **bbc.co.uk**: BBC iPlayer
+ - **BeatportPro**
  - **Beeg**
  - **BehindKink**
  - **Bet**
@@ -117,6 +118,7 @@
  - **DRTV**
  - **Dump**
  - **dvtv**: http://video.aktualne.cz/
+ - **EaglePlatform**
  - **EbaumsWorld**
  - **EchoMsk**
  - **eHow**
@@ -144,6 +146,7 @@
  - **Firstpost**
  - **Flickr**
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
+ - **FootyRoom**
  - **Foxgay**
  - **FoxNews**
  - **france2.fr:generation-quoi**
@@ -161,6 +164,7 @@
  - **GameSpot**
  - **GameStar**
  - **Gametrailers**
+ - **Gazeta**
  - **GDCVault**
  - **generic**: Generic downloader that works on some sites
  - **GiantBomb**
@@ -211,6 +215,7 @@
  - **jpopsuki.tv**
  - **Jukebox**
  - **Kaltura**
+ - **KanalPlay**: Kanal 5/9/11 Play
  - **Kankan**
  - **Karaoketv**
  - **keek**
@@ -315,6 +320,7 @@
  - **Ooyala**
  - **OpenFilm**
  - **orf:fm4**: radio FM4
+ - **orf:iptv**: iptv.ORF.at
  - **orf:oe1**: Radio Österreich 1
  - **orf:tvthek**: ORF TVthek
  - **parliamentlive.tv**: UK parliament videos
@@ -322,10 +328,12 @@
  - **PBS**
  - **Phoenix**
  - **Photobucket**
+ - **Pladform**
  - **PlanetaPlay**
  - **play.fm**
  - **played.to**
  - **Playvid**
+ - **Playwire**
  - **plus.google**: Google Plus
  - **pluzz.francetv.fr**
  - **podomatic**
@@ -409,6 +417,7 @@
  - **SportBox**
  - **SportDeutschland**
  - **SRMediathek**: Saarländischer Rundfunk
+ - **SSA**
  - **stanfordoc**: Stanford Open ClassRoom
  - **Steam**
  - **streamcloud.eu**
@@ -505,6 +514,7 @@
  - **Vidzi**
  - **vier**
  - **vier:videos**
+ - **Viewster**
  - **viki**
  - **vimeo**
  - **vimeo:album**
@@ -551,6 +561,9 @@
  - **XXXYMovies**
  - **Yahoo**: Yahoo screen and movies
  - **Yam**
+ - **yandexmusic:album**: Яндекс.Музыка - Альбом
+ - **yandexmusic:playlist**: Яндекс.Музыка - Плейлист
+ - **yandexmusic:track**: Яндекс.Музыка - Трек
  - **YesJapan**
  - **Ynet**
  - **YouJizz**

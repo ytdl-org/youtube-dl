@@ -11,6 +11,11 @@ from ..utils import (
     HEADRequest,
     unified_strdate,
     ExtractorError,
+    strip_jsonp,
+    int_or_none,
+    float_or_none,
+    determine_ext,
+    remove_end,
 )
 
 
@@ -196,4 +201,93 @@ class ORFFM4IE(InfoExtractor):
             'title': data['title'],
             'description': data['subtitle'],
             'entries': entries
+        }
+
+
+class ORFIPTVIE(InfoExtractor):
+    IE_NAME = 'orf:iptv'
+    IE_DESC = 'iptv.ORF.at'
+    _VALID_URL = r'http://iptv\.orf\.at/(?:#/)?stories/(?P<id>\d+)'
+
+    _TEST = {
+        'url': 'http://iptv.orf.at/stories/2267952',
+        'md5': '26ffa4bab6dbce1eee78bbc7021016cd',
+        'info_dict': {
+            'id': '339775',
+            'ext': 'flv',
+            'title': 'Kreml-Kritiker Nawalny wieder frei',
+            'description': 'md5:6f24e7f546d364dacd0e616a9e409236',
+            'duration': 84.729,
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'upload_date': '20150306',
+        },
+    }
+
+    def _real_extract(self, url):
+        story_id = self._match_id(url)
+
+        webpage = self._download_webpage(
+            'http://iptv.orf.at/stories/%s' % story_id, story_id)
+
+        video_id = self._search_regex(
+            r'data-video(?:id)?="(\d+)"', webpage, 'video id')
+
+        data = self._download_json(
+            'http://bits.orf.at/filehandler/static-api/json/current/data.json?file=%s' % video_id,
+            video_id)[0]
+
+        duration = float_or_none(data['duration'], 1000)
+
+        video = data['sources']['default']
+        load_balancer_url = video['loadBalancerUrl']
+        abr = int_or_none(video.get('audioBitrate'))
+        vbr = int_or_none(video.get('bitrate'))
+        fps = int_or_none(video.get('videoFps'))
+        width = int_or_none(video.get('videoWidth'))
+        height = int_or_none(video.get('videoHeight'))
+        thumbnail = video.get('preview')
+
+        rendition = self._download_json(
+            load_balancer_url, video_id, transform_source=strip_jsonp)
+
+        f = {
+            'abr': abr,
+            'vbr': vbr,
+            'fps': fps,
+            'width': width,
+            'height': height,
+        }
+
+        formats = []
+        for format_id, format_url in rendition['redirect'].items():
+            if format_id == 'rtmp':
+                ff = f.copy()
+                ff.update({
+                    'url': format_url,
+                    'format_id': format_id,
+                })
+                formats.append(ff)
+            elif determine_ext(format_url) == 'f4m':
+                formats.extend(self._extract_f4m_formats(
+                    format_url, video_id, f4m_id=format_id))
+            elif determine_ext(format_url) == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', m3u8_id=format_id))
+            else:
+                continue
+        self._sort_formats(formats)
+
+        title = remove_end(self._og_search_title(webpage), ' - iptv.ORF.at')
+        description = self._og_search_description(webpage)
+        upload_date = unified_strdate(self._html_search_meta(
+            'dc.date', webpage, 'upload date'))
+
+        return {
+            'id': video_id,
+            'title': title,
+            'description': description,
+            'duration': duration,
+            'thumbnail': thumbnail,
+            'upload_date': upload_date,
+            'formats': formats,
         }

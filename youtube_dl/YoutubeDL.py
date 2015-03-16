@@ -54,12 +54,14 @@ from .utils import (
     MaxDownloadsReached,
     PagedList,
     parse_filesize,
+    PerRequestProxyHandler,
     PostProcessingError,
     platform_name,
     preferredencoding,
     render_table,
     SameFileError,
     sanitize_filename,
+    sanitize_path,
     std_headers,
     subtitles_filename,
     build_part_filename,
@@ -184,6 +186,8 @@ class YoutubeDL(object):
     prefer_insecure:   Use HTTP instead of HTTPS to retrieve information.
                        At the moment, this is only supported by YouTube.
     proxy:             URL of the proxy server to use
+    cn_verification_proxy:  URL of the proxy to use for IP address verification
+                       on Chinese sites. (Experimental)
     socket_timeout:    Time to wait for unresponsive hosts, in seconds
     bidi_workaround:   Work around buggy terminals without bidirectional text
                        support, using fridibi
@@ -250,10 +254,10 @@ class YoutubeDL(object):
     hls_prefer_native: Use the native HLS downloader instead of ffmpeg/avconv.
 
     The following parameters are not used by YoutubeDL itself, they are used by
-    the FileDownloader:
+    the downloader (see youtube_dl/downloader/common.py):
     nopart, updatetime, buffersize, ratelimit, min_filesize, max_filesize, test,
     noresizebuffer, retries, continuedl, noprogress, consoletitle,
-    xattr_set_filesize.
+    xattr_set_filesize, external_downloader_args.
 
     The following options are used by the post processors:
     prefer_ffmpeg:     If True, use ffmpeg instead of avconv if both are available,
@@ -319,6 +323,11 @@ class YoutubeDL(object):
                 'cannot encode all characters. '
                 'Set the LC_ALL environment variable to fix this.')
             self.params['restrictfilenames'] = True
+
+        if isinstance(params.get('outtmpl'), bytes):
+            self.report_warning(
+                'Parameter outtmpl is bytes, but should be a unicode string. '
+                'Put  from __future__ import unicode_literals  at the top of your code file or consider switching to Python 3.x.')
 
         if '%(stitle)s' in self.params.get('outtmpl', ''):
             self.report_warning('%(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.')
@@ -560,7 +569,7 @@ class YoutubeDL(object):
                                  if v is not None)
             template_dict = collections.defaultdict(lambda: 'NA', template_dict)
 
-            outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
+            outtmpl = sanitize_path(self.params.get('outtmpl', DEFAULT_OUTTMPL))
             tmpl = compat_expanduser(outtmpl)
             filename = tmpl % template_dict
             # Temporary fix for #4787
@@ -627,7 +636,7 @@ class YoutubeDL(object):
         Returns a list with a dictionary for each video we find.
         If 'download', also downloads the videos.
         extra_info is a dict containing the extra values to add to each result
-         '''
+        '''
 
         if ie_key:
             ies = [self.get_info_extractor(ie_key)]
@@ -1092,8 +1101,7 @@ class YoutubeDL(object):
         if req_format is None:
             req_format = 'best'
         formats_to_download = []
-        # The -1 is for supporting YoutubeIE
-        if req_format in ('-1', 'all'):
+        if req_format == 'all':
             formats_to_download = formats
         else:
             for rfstr in req_format.split(','):
@@ -1268,7 +1276,7 @@ class YoutubeDL(object):
             return
 
         try:
-            dn = os.path.dirname(encodeFilename(filename))
+            dn = os.path.dirname(sanitize_path(encodeFilename(filename)))
             if dn and not os.path.exists(dn):
                 os.makedirs(dn)
         except (OSError, IOError) as err:
@@ -1791,13 +1799,14 @@ class YoutubeDL(object):
             # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)
             if 'http' in proxies and 'https' not in proxies:
                 proxies['https'] = proxies['http']
-        proxy_handler = compat_urllib_request.ProxyHandler(proxies)
+        proxy_handler = PerRequestProxyHandler(proxies)
 
         debuglevel = 1 if self.params.get('debug_printtraffic') else 0
         https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)
         ydlh = YoutubeDLHandler(self.params, debuglevel=debuglevel)
         opener = compat_urllib_request.build_opener(
-            https_handler, proxy_handler, cookie_processor, ydlh)
+            proxy_handler, https_handler, cookie_processor, ydlh)
+
         # Delete the default user-agent header, which would otherwise apply in
         # cases where our custom HTTP handler doesn't come into play
         # (See https://github.com/rg3/youtube-dl/issues/1309 for details)

@@ -7,8 +7,9 @@ import time
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urlparse,
     compat_urllib_parse,
+    compat_urllib_request,
+    compat_urlparse,
 )
 from ..utils import (
     determine_ext,
@@ -39,12 +40,20 @@ class LetvIE(InfoExtractor):
             'title': '美人天下01',
             'description': 'md5:f88573d9d7225ada1359eaf0dbf8bcda',
         },
-        'expected_warnings': [
-            'publish time'
-        ]
+    }, {
+        'note': 'This video is available only in Mainland China, thus a proxy is needed',
+        'url': 'http://www.letv.com/ptv/vplay/1118082.html',
+        'md5': 'f80936fbe20fb2f58648e81386ff7927',
+        'info_dict': {
+            'id': '1118082',
+            'ext': 'mp4',
+            'title': '与龙共舞 完整版',
+            'description': 'md5:7506a5eeb1722bb9d4068f85024e3986',
+        },
+        'params': {
+            'cn_verification_proxy': 'http://proxy.uku.im:8888'
+        },
     }]
-    # http://www.letv.com/ptv/vplay/1118082.html
-    # This video is available only in Mainland China
 
     @staticmethod
     def urshift(val, n):
@@ -76,8 +85,14 @@ class LetvIE(InfoExtractor):
             'tkey': self.calc_time_key(int(time.time())),
             'domain': 'www.letv.com'
         }
+        play_json_req = compat_urllib_request.Request(
+            'http://api.letv.com/mms/out/video/playJson?' + compat_urllib_parse.urlencode(params)
+        )
+        play_json_req.add_header(
+            'Ytdl-request-proxy',
+            self._downloader.params.get('cn_verification_proxy'))
         play_json = self._download_json(
-            'http://api.letv.com/mms/out/video/playJson?' + compat_urllib_parse.urlencode(params),
+            play_json_req,
             media_id, 'playJson data')
 
         # Check for errors
@@ -114,7 +129,8 @@ class LetvIE(InfoExtractor):
 
                 url_info_dict = {
                     'url': media_url,
-                    'ext': determine_ext(dispatch[format_id][1])
+                    'ext': determine_ext(dispatch[format_id][1]),
+                    'format_id': format_id,
                 }
 
                 if format_id[-1:] == 'p':
@@ -123,7 +139,7 @@ class LetvIE(InfoExtractor):
                 urls.append(url_info_dict)
 
         publish_time = parse_iso8601(self._html_search_regex(
-            r'发布时间&nbsp;([^<>]+) ', page, 'publish time', fatal=False),
+            r'发布时间&nbsp;([^<>]+) ', page, 'publish time', default=None),
             delimiter=' ', timezone=datetime.timedelta(hours=8))
         description = self._html_search_meta('description', page, fatal=False)
 

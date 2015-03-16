@@ -31,7 +31,7 @@ class VKIE(InfoExtractor):
                 'id': '162222515',
                 'ext': 'flv',
                 'title': 'ProtivoGunz - Хуёвая песня',
-                'uploader': 're:Noize MC.*',
+                'uploader': 're:(?:Noize MC|Alexander Ilyashenko).*',
                 'duration': 195,
                 'upload_date': '20120212',
             },

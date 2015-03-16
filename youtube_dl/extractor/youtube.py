@@ -1532,7 +1532,7 @@ class YoutubeSearchURLIE(InfoExtractor):
 
         webpage = self._download_webpage(url, query)
         result_code = self._search_regex(
-            r'(?s)<ol class="item-section"(.*?)</ol>', webpage, 'result HTML')
+            r'(?s)<ol[^>]+class="item-section"(.*?)</ol>', webpage, 'result HTML')
 
         part_codes = re.findall(
             r'(?s)<h3 class="yt-lockup-title">(.*?)</h3>', result_code)

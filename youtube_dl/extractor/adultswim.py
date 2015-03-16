@@ -2,13 +2,12 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    xpath_text,
     float_or_none,
+    xpath_text,
 )
 
 
@@ -60,6 +59,24 @@ class AdultSwimIE(InfoExtractor):
             'title': 'American Dad - Putting Francine Out of Business',
             'description': 'Stan hatches a plan to get Francine out of the real estate business.Watch more American Dad on [adult swim].'
         },
+    }, {
+        'url': 'http://www.adultswim.com/videos/tim-and-eric-awesome-show-great-job/dr-steve-brule-for-your-wine/',
+        'playlist': [
+            {
+                'md5': '3e346a2ab0087d687a05e1e7f3b3e529',
+                'info_dict': {
+                    'id': 'sY3cMUR_TbuE4YmdjzbIcQ-0',
+                    'ext': 'flv',
+                    'title': 'Tim and Eric Awesome Show Great Job! - Dr. Steve Brule, For Your Wine',
+                    'description': 'Dr. Brule reports live from Wine Country with a special report on wines.  \r\nWatch Tim and Eric Awesome Show Great Job! episode #20, "Embarrassed" on Adult Swim.\r\n\r\n',
+                },
+            }
+        ],
+        'info_dict': {
+            'id': 'sY3cMUR_TbuE4YmdjzbIcQ',
+            'title': 'Tim and Eric Awesome Show Great Job! - Dr. Steve Brule, For Your Wine',
+            'description': 'Dr. Brule reports live from Wine Country with a special report on wines.  \r\nWatch Tim and Eric Awesome Show Great Job! episode #20, "Embarrassed" on Adult Swim.\r\n\r\n',
+        },
     }]
 
     @staticmethod
@@ -80,6 +97,7 @@ class AdultSwimIE(InfoExtractor):
             for video in collection.get('videos'):
                 if video.get('slug') == slug:
                     return collection, video
+        return None, None
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -90,28 +108,30 @@ class AdultSwimIE(InfoExtractor):
         webpage = self._download_webpage(url, episode_path)
 
         # Extract the value of `bootstrappedData` from the Javascript in the page.
-        bootstrappedDataJS = self._search_regex(r'var bootstrappedData = ({.*});', webpage, episode_path)
-
-        try:
-            bootstrappedData = json.loads(bootstrappedDataJS)
-        except ValueError as ve:
-            errmsg = '%s: Failed to parse JSON ' % episode_path
-            raise ExtractorError(errmsg, cause=ve)
+        bootstrapped_data = self._parse_json(self._search_regex(
+            r'var bootstrappedData = ({.*});', webpage, 'bootstraped data'), episode_path)
 
         # Downloading videos from a /videos/playlist/ URL needs to be handled differently.
         # NOTE: We are only downloading one video (the current one) not the playlist
         if is_playlist:
-            collections = bootstrappedData['playlists']['collections']
+            collections = bootstrapped_data['playlists']['collections']
             collection = self.find_collection_by_linkURL(collections, show_path)
             video_info = self.find_video_info(collection, episode_path)
 
             show_title = video_info['showTitle']
             segment_ids = [video_info['videoPlaybackID']]
         else:
-            collections = bootstrappedData['show']['collections']
+            collections = bootstrapped_data['show']['collections']
             collection, video_info = self.find_collection_containing_video(collections, episode_path)
 
-            show = bootstrappedData['show']
+            # Video wasn't found in the collections, let's try `slugged_video`.
+            if video_info is None:
+                if bootstrapped_data.get('slugged_video', {}).get('slug') == episode_path:
+                    video_info = bootstrapped_data['slugged_video']
+                else:
+                    raise ExtractorError('Unable to find video info')
+
+            show = bootstrapped_data['show']
             show_title = show['title']
             segment_ids = [clip['videoPlaybackID'] for clip in video_info['clips']]
 

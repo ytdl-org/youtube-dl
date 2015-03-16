@@ -219,7 +219,8 @@ class NPOLiveIE(NPOBaseIE):
         if streams:
             for stream in streams:
                 stream_type = stream.get('type').lower()
-                if stream_type == 'ss':
+                # smooth streaming is not supported
+                if stream_type in ['ss', 'ms']:
                     continue
                 stream_info = self._download_json(
                     'http://ida.omroep.nl/aapi/?stream=%s&token=%s&type=jsonp'
@@ -242,6 +243,7 @@ class NPOLiveIE(NPOBaseIE):
                 else:
                     formats.append({
                         'url': stream_url,
+                        'preference': -10,
                     })
 
         self._sort_formats(formats)

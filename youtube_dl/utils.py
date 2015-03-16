@@ -252,15 +252,12 @@ def sanitize_open(filename, open_mode):
             raise
 
         # In case of error, try to remove win32 forbidden chars
-        alt_filename = os.path.join(
-            re.sub('[/<>:"\\|\\\\?\\*]', '#', path_part)
-            for path_part in os.path.split(filename)
-        )
+        alt_filename = sanitize_path(filename)
         if alt_filename == filename:
             raise
         else:
             # An exception here should be caught in the caller
-            stream = open(encodeFilename(filename), open_mode)
+            stream = open(encodeFilename(alt_filename), open_mode)
             return (stream, alt_filename)
 
 
@@ -305,9 +302,28 @@ def sanitize_filename(s, restricted=False, is_id=False):
             result = result[2:]
         if result.startswith('-'):
             result = '_' + result[len('-'):]
+        result = result.lstrip('.')
         if not result:
             result = '_'
     return result
+
+
+def sanitize_path(s):
+    """Sanitizes and normalizes path on Windows"""
+    if sys.platform != 'win32':
+        return s
+    drive, _ = os.path.splitdrive(s)
+    unc, _ = os.path.splitunc(s)
+    unc_or_drive = unc or drive
+    norm_path = os.path.normpath(remove_start(s, unc_or_drive)).split(os.path.sep)
+    if unc_or_drive:
+        norm_path.pop(0)
+    sanitized_path = [
+        path_part if path_part in ['.', '..'] else re.sub('(?:[/<>:"\\|\\\\?\\*]|\.$)', '#', path_part)
+        for path_part in norm_path]
+    if unc_or_drive:
+        sanitized_path.insert(0, unc_or_drive + os.path.sep)
+    return os.path.join(*sanitized_path)
 
 
 def orderedSet(iterable):
@@ -1771,3 +1787,24 @@ def match_filter_func(filter_str):
             video_title = info_dict.get('title', info_dict.get('id', 'video'))
             return '%s does not pass filter %s, skipping ..' % (video_title, filter_str)
     return _match_func
+
+
+class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
+    def __init__(self, proxies=None):
+        # Set default handlers
+        for type in ('http', 'https'):
+            setattr(self, '%s_open' % type,
+                    lambda r, proxy='__noproxy__', type=type, meth=self.proxy_open:
+                        meth(r, proxy, type))
+        return compat_urllib_request.ProxyHandler.__init__(self, proxies)
+
+    def proxy_open(self, req, proxy, type):
+        req_proxy = req.headers.get('Ytdl-request-proxy')
+        if req_proxy is not None:
+            proxy = req_proxy
+            del req.headers['Ytdl-request-proxy']
+
+        if proxy == '__noproxy__':
+            return None  # No Proxy
+        return compat_urllib_request.ProxyHandler.proxy_open(
+            self, req, proxy, type)

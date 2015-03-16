@@ -8,6 +8,7 @@ from ..compat import compat_urlparse
 from ..utils import (
     float_or_none,
     month_by_abbreviation,
+    ExtractorError,
 )
 
 
@@ -28,22 +29,44 @@ class YamIE(InfoExtractor):
         }
     }, {
         # An external video hosted on YouTube
-        'url': 'http://mymedia.yam.com/m/3598173',
-        'md5': '0238ceec479c654e8c2f1223755bf3e9',
+        'url': 'http://mymedia.yam.com/m/3599430',
+        'md5': '03127cf10d8f35d120a9e8e52e3b17c6',
         'info_dict': {
-            'id': 'pJ2Deys283c',
+            'id': 'CNpEoQlrIgA',
             'ext': 'mp4',
-            'upload_date': '20150202',
+            'upload_date': '20150306',
             'uploader': '新莊社大瑜伽社',
-            'description': 'md5:f5cc72f0baf259a70fb731654b0d2eff',
+            'description': 'md5:11e2e405311633ace874f2e6226c8b17',
             'uploader_id': '2323agoy',
-            'title': '外婆的澎湖灣KTV-潘安邦',
-        }
+            'title': '20090412陽明山二子坪-1',
+        },
+        'skip': 'Video does not exist',
+    }, {
+        'url': 'http://mymedia.yam.com/m/3598173',
+        'info_dict': {
+            'id': '3598173',
+            'ext': 'mp4',
+        },
+        'skip': 'cause Yam system error',
+    }, {
+        'url': 'http://mymedia.yam.com/m/3599437',
+        'info_dict': {
+            'id': '3599437',
+            'ext': 'mp4',
+        },
+        'skip': 'invalid YouTube URL',
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         page = self._download_webpage(url, video_id)
+
+        # Check for errors
+        system_msg = self._html_search_regex(
+            r'系統訊息(?:<br>|\n|\r)*([^<>]+)<br>', page, 'system message',
+            default=None)
+        if system_msg:
+            raise ExtractorError(system_msg, expected=True)
 
         # Is it hosted externally on YouTube?
         youtube_url = self._html_search_regex(
