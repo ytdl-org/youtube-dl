@@ -6,6 +6,15 @@ from ..utils import (
 
 class LibsynIE(InfoExtractor):
     _VALID_URL = r'(?:https?:)?//html5-player\.libsyn\.com/embed/episode/id/(?P<id>[0-9]+)(?:/.*)?'
+    _TESTS = [{
+        'url': "http://html5-player.libsyn.com/embed/episode/id/3377616/",
+        'info_dict': {
+            'id': "3377616",
+            'ext': "mp3",
+            'title': "Episode 12: Bassem Youssef: Egypt's Jon Stewart",
+            'description': "<p>Bassem Youssef joins executive producer Steve Bodow and senior producer Sara Taksler for a conversation about how&nbsp;<em style=\"font-family: Tahoma, Geneva, sans-serif; font-size: 12.8000001907349px;\">The Daily Show</em>&nbsp;inspired Bassem to create&nbsp;<em style=\"font-family: Tahoma, Geneva, sans-serif; font-size: 12.8000001907349px;\">Al-Bernameg</em>, his massively popular (and now banned) Egyptian news satire program. Sara discusses her soon-to-be-released documentary,&nbsp;<em style=\"font-family: Tahoma, Geneva, sans-serif; font-size: 12.8000001907349px;\">Tickling Giants</em>, which chronicles how Bassem and his staff risked their safety every day to tell jokes.</p>",
+        },
+    }]
 
     def _real_extract(self, url):
         if url.startswith('//'):

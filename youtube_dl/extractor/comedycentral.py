@@ -276,6 +276,10 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
 
 class TheDailyShowPodcastIE(InfoExtractor):
     _VALID_URL = r'(?P<scheme>https?:)?//thedailyshow\.cc\.com/podcast/(?P<id>[a-z\-]+)'
+    _TESTS = [{
+        "url": "http://thedailyshow.cc.com/podcast/episodetwelve",
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
