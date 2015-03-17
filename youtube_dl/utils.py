@@ -326,6 +326,13 @@ def sanitize_path(s):
     return os.path.join(*sanitized_path)
 
 
+def sanitize_url_path_consecutive_slashes(url):
+    """Collapses consecutive slashes in URLs' path"""
+    parsed_url = list(compat_urlparse.urlparse(url))
+    parsed_url[2] = re.sub(r'/{2,}', '/', parsed_url[2])
+    return compat_urlparse.urlunparse(parsed_url)
+
+
 def orderedSet(iterable):
     """ Remove all duplicates from the input iterable """
     res = []

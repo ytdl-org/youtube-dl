@@ -4,22 +4,87 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .common import compat_str
+from ..compat import (
+    compat_str,
+    compat_urllib_request
+)
+from ..utils import sanitize_url_path_consecutive_slashes
 
 
 class SohuIE(InfoExtractor):
     _VALID_URL = r'https?://(?P<mytv>my\.)?tv\.sohu\.com/.+?/(?(mytv)|n)(?P<id>\d+)\.shtml.*?'
 
-    _TEST = {
+    _TESTS = [{
+        'note': 'This video is available only in Mainland China',
         'url': 'http://tv.sohu.com/20130724/n382479172.shtml#super',
-        'md5': 'bde8d9a6ffd82c63a1eefaef4eeefec7',
+        'md5': '29175c8cadd8b5cc4055001e85d6b372',
         'info_dict': {
             'id': '382479172',
             'ext': 'mp4',
             'title': 'MV：Far East Movement《The Illest》',
         },
-        'skip': 'Only available from China',
-    }
+        'params': {
+            'cn_verification_proxy': 'proxy.uku.im:8888'
+        }
+    }, {
+        'url': 'http://tv.sohu.com/20150305/n409385080.shtml',
+        'md5': '699060e75cf58858dd47fb9c03c42cfb',
+        'info_dict': {
+            'id': '409385080',
+            'ext': 'mp4',
+            'title': '《2015湖南卫视羊年元宵晚会》唐嫣《花好月圆》',
+        }
+    }, {
+        'url': 'http://my.tv.sohu.com/us/232799889/78693464.shtml',
+        'md5': '9bf34be48f2f4dadcb226c74127e203c',
+        'info_dict': {
+            'id': '78693464',
+            'ext': 'mp4',
+            'title': '【爱范品】第31期：MWC见不到的奇葩手机',
+        }
+    }, {
+        'note': 'Multipart video',
+        'url': 'http://my.tv.sohu.com/pl/8384802/78910339.shtml',
+        'info_dict': {
+            'id': '78910339',
+        },
+        'playlist': [{
+            'md5': 'bdbfb8f39924725e6589c146bc1883ad',
+            'info_dict': {
+                'id': '78910339_part1',
+                'ext': 'mp4',
+                'duration': 294,
+                'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
+            }
+        }, {
+            'md5': '3e1f46aaeb95354fd10e7fca9fc1804e',
+            'info_dict': {
+                'id': '78910339_part2',
+                'ext': 'mp4',
+                'duration': 300,
+                'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
+            }
+        }, {
+            'md5': '8407e634175fdac706766481b9443450',
+            'info_dict': {
+                'id': '78910339_part3',
+                'ext': 'mp4',
+                'duration': 150,
+                'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
+            }
+        }]
+    }, {
+        'note': 'Video with title containing dash',
+        'url': 'http://my.tv.sohu.com/us/249884221/78932792.shtml',
+        'info_dict': {
+            'id': '78932792',
+            'ext': 'mp4',
+            'title': 'youtube-dl testing video',
+        },
+        'params': {
+            'skip_download': True
+        }
+    }]
 
     def _real_extract(self, url):
 
@@ -29,8 +94,14 @@ class SohuIE(InfoExtractor):
             else:
                 base_data_url = 'http://hot.vrs.sohu.com/vrs_flash.action?vid='
 
+            req = compat_urllib_request.Request(base_data_url + vid_id)
+
+            cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
+            if cn_verification_proxy:
+                req.add_header('Ytdl-request-proxy', cn_verification_proxy)
+
             return self._download_json(
-                base_data_url + vid_id, video_id,
+                req, video_id,
                 'Downloading JSON data for %s' % vid_id)
 
         mobj = re.match(self._VALID_URL, url)
@@ -38,10 +109,8 @@ class SohuIE(InfoExtractor):
         mytv = mobj.group('mytv') is not None
 
         webpage = self._download_webpage(url, video_id)
-        raw_title = self._html_search_regex(
-            r'(?s)<title>(.+?)</title>',
-            webpage, 'video title')
-        title = raw_title.partition('-')[0].strip()
+
+        title = self._og_search_title(webpage)
 
         vid = self._html_search_regex(
             r'var vid ?= ?["\'](\d+)["\']',
@@ -77,7 +146,9 @@ class SohuIE(InfoExtractor):
                     % (format_id, i + 1, part_count))
 
                 part_info = part_str.split('|')
-                video_url = '%s%s?key=%s' % (part_info[0], su[i], part_info[3])
+
+                video_url = sanitize_url_path_consecutive_slashes(
+                    '%s%s?key=%s' % (part_info[0], su[i], part_info[3]))
 
                 formats.append({
                     'url': video_url,

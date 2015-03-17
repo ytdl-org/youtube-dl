@@ -39,6 +39,7 @@ from youtube_dl.utils import (
     read_batch_urls,
     sanitize_filename,
     sanitize_path,
+    sanitize_url_path_consecutive_slashes,
     shell_quote,
     smuggle_url,
     str_to_int,
@@ -167,6 +168,26 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_path('../../abc'), '..\\..\\abc')
         self.assertEqual(sanitize_path('./abc'), 'abc')
         self.assertEqual(sanitize_path('./../abc'), '..\\abc')
+
+    def test_sanitize_url_path_consecutive_slashes(self):
+        self.assertEqual(
+            sanitize_url_path_consecutive_slashes('http://hostname/foo//bar/filename.html'),
+            'http://hostname/foo/bar/filename.html')
+        self.assertEqual(
+            sanitize_url_path_consecutive_slashes('http://hostname//foo/bar/filename.html'),
+            'http://hostname/foo/bar/filename.html')
+        self.assertEqual(
+            sanitize_url_path_consecutive_slashes('http://hostname//'),
+            'http://hostname/')
+        self.assertEqual(
+            sanitize_url_path_consecutive_slashes('http://hostname/foo/bar/filename.html'),
+            'http://hostname/foo/bar/filename.html')
+        self.assertEqual(
+            sanitize_url_path_consecutive_slashes('http://hostname/'),
+            'http://hostname/')
+        self.assertEqual(
+            sanitize_url_path_consecutive_slashes('http://hostname/abc//'),
+            'http://hostname/abc/')
 
     def test_ordered_set(self):
         self.assertEqual(orderedSet([1, 1, 2, 3, 4, 4, 5, 6, 7, 3, 5]), [1, 2, 3, 4, 5, 6, 7])
