@@ -1268,16 +1268,16 @@ class GenericIE(InfoExtractor):
             # HTML5 video
             found = re.findall(r'(?s)<video[^<]*(?:>.*?<source[^>]*)?\s+src=["\'](.*?)["\']', webpage)
         if not found:
+            REDIRECT_REGEX = r'[0-9]{,2};\s*(?:URL|url)=\'?([^\'"]+)'
             found = re.search(
                 r'(?i)<meta\s+(?=(?:[a-z-]+="[^"]+"\s+)*http-equiv="refresh")'
-                r'(?:[a-z-]+="[^"]+"\s+)*?content="[0-9]{,2};\s*(?:URL|url)=\'?([^\'"]+)',
+                r'(?:[a-z-]+="[^"]+"\s+)*?content="%s' % REDIRECT_REGEX,
                 webpage)
             if not found:
                 # Look also in Refresh HTTP header
                 refresh_header = head_response.headers.get('Refresh')
                 if refresh_header:
-                    found = re.search(
-                        r'[0-9]{,2};\s*(?:URL|url)=(.+)', refresh_header)
+                    found = re.search(REDIRECT_REGEX, refresh_header)
             if found:
                 new_url = found.group(1)
                 self.report_following_redirect(new_url)
