@@ -140,9 +140,9 @@ class GroovesharkIE(InfoExtractor):
 
         if webpage is not None:
             o = GroovesharkHtmlParser.extract_object_tags(webpage)
-            return (webpage, [x for x in o if x['attrs']['id'] == 'jsPlayerEmbed'])
+            return webpage, [x for x in o if x['attrs']['id'] == 'jsPlayerEmbed']
 
-        return (webpage, None)
+        return webpage, None
 
     def _real_initialize(self):
         self.ts = int(time.time() * 1000)  # timestamp in millis
@@ -154,7 +154,7 @@ class GroovesharkIE(InfoExtractor):
         swf_referer = None
         if self.do_playerpage_request:
             (_, player_objs) = self._get_playerpage(url)
-            if player_objs is not None:
+            if player_objs:
                 swf_referer = self._build_swf_referer(url, player_objs[0])
                 self.to_screen('SWF Referer: %s' % swf_referer)
 
