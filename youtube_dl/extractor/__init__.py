@@ -107,6 +107,7 @@ from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE
 from .dfb import DFBIE
 from .dotsub import DotsubIE
+from .douyutv import DouyutvIE
 from .dreisat import DreiSatIE
 from .drbonanza import DRBonanzaIE
 from .drtuber import DrTuberIE
