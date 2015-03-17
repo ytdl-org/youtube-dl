@@ -55,6 +55,7 @@ from youtube_dl.utils import (
     xpath_with_ns,
     render_table,
     match_str,
+    url_sanitize_consecutive_slashes,
 )
 
 
@@ -537,6 +538,21 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
         self.assertFalse(match_str(
             'like_count > 100 & dislike_count <? 50 & description',
             {'like_count': 190, 'dislike_count': 10}))
+
+    def test_url_sanitize_consecutive_slashes(self):
+        self.assertEqual(url_sanitize_consecutive_slashes(
+            'http://hostname/foo//bar/filename.html'),
+            'http://hostname/foo/bar/filename.html')
+        self.assertEqual(url_sanitize_consecutive_slashes(
+            'http://hostname//foo/bar/filename.html'),
+            'http://hostname/foo/bar/filename.html')
+        self.assertEqual(url_sanitize_consecutive_slashes(
+            'http://hostname//'), 'http://hostname/')
+        self.assertEqual(url_sanitize_consecutive_slashes(
+            'http://hostname/foo/bar/filename.html'),
+            'http://hostname/foo/bar/filename.html')
+        self.assertEqual(url_sanitize_consecutive_slashes(
+            'http://hostname/'), 'http://hostname/')
 
 
 if __name__ == '__main__':
