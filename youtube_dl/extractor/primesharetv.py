@@ -1,59 +1,65 @@
-# encoding: utf-8
 from __future__ import unicode_literals
 
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    parse_filesize,
-    unified_strdate,
-    urlencode_postdata,
-)
 from ..compat import (
+    compat_urllib_parse,
     compat_urllib_request,
 )
+from ..utils import ExtractorError
 
-class PrimesharetvIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?primeshare\.tv/download/(?P<id>.*)(?:.*)'
 
-    _TESTS = [
-        {
-            'url': 'http://primeshare.tv/download/238790B611',
-            'md5': 'bb41f9f6c0dd434c729f04ce5b677192',
-            'info_dict': {
-                'id': '238790B611',
-                'ext': 'mp4',
-                "title": "Public Domain - 1960s Commercial - Crest Toothpaste-YKsuFona [...]",
-                "duration": 10,
-            },
-        }
-    ]
+class PrimeShareTVIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?primeshare\.tv/download/(?P<id>[\da-zA-Z]+)'
+
+    _TEST = {
+        'url': 'http://primeshare.tv/download/238790B611',
+        'md5': 'b92d9bf5461137c36228009f31533fbc',
+        'info_dict': {
+            'id': '238790B611',
+            'ext': 'mp4',
+            'title': 'Public Domain - 1960s Commercial - Crest Toothpaste-YKsuFona',
+        },
+    }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+
         webpage = self._download_webpage(url, video_id)
-        if re.search(r'<h1>File not exist</h1>', webpage) is not None:
-            raise ExtractorError('The file does not exist', expected=True)
-        hashtoken = self._search_regex(r' name="hash" value="(.*?)" ', webpage, 'hash token')
-       
-        self._sleep(9, video_id)
-        
-        data = urlencode_postdata({
-            'hash': hashtoken,
-        })
+
+        if '>File not exist<' in webpage:
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+
+        fields = dict(re.findall(r'''(?x)<input\s+
+            type="hidden"\s+
+            name="([^"]+)"\s+
+            (?:id="[^"]+"\s+)?
+            value="([^"]*)"
+            ''', webpage))
+
         headers = {
             'Referer': url,
             'Content-Type': 'application/x-www-form-urlencoded',
         }
-        video_page_request = compat_urllib_request.Request(url, data, headers=headers)
-        video_page = self._download_webpage(video_page_request, None, False, '')
-        video_url = self._html_search_regex(
-            r'url: \'(http://[a-z0-9]+\.primeshare\.tv:443/file/get/[^\']+)\',', video_page, 'video url')
+
+        wait_time = int(self._search_regex(
+            r'var\s+cWaitTime\s*=\s*(\d+)',
+            webpage, 'wait time', default=7)) + 1
+        self._sleep(wait_time, video_id)
+
+        req = compat_urllib_request.Request(
+            url, compat_urllib_parse.urlencode(fields), headers)
+        video_page = self._download_webpage(
+            req, video_id, 'Downloading video page')
+
+        video_url = self._search_regex(
+            r"url\s*:\s*'([^']+\.primeshare\.tv(?::443)?/file/[^']+)'",
+            video_page, 'video url')
 
         title = self._html_search_regex(
-            r'<h1>Watch&nbsp;[^\(]+\(([^/)]+)\)&nbsp;', video_page, 'title')
+            r'<h1>Watch\s*(?:&nbsp;)?\s*\((.+?)(?:\s*\[\.\.\.\])?\)\s*(?:&nbsp;)?\s*<strong>',
+            video_page, 'title')
 
         return {
             'id': video_id,
@@ -61,8 +67,3 @@ class PrimesharetvIE(InfoExtractor):
             'title': title,
             'ext': 'mp4',
         }
-    
-    def _debug_print(self, txt):
-        if self._downloader.params.get('verbose'):
-            self.to_screen('[debug] %s' % txt)
-
