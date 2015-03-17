@@ -384,6 +384,7 @@ from .promptfile import PromptFileIE
 from .prosiebensat1 import ProSiebenSat1IE
 from .puls4 import Puls4IE
 from .pyvideo import PyvideoIE
+from .qqmusic import QQMusicIE
 from .quickvid import QuickVidIE
 from .r7 import R7IE
 from .radiode import RadioDeIE
