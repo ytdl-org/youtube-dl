@@ -94,7 +94,7 @@ class LetvIE(InfoExtractor):
 
         play_json = self._download_json(
             play_json_req,
-            media_id, 'playJson data')
+            media_id, 'Downloading playJson data')
 
         # Check for errors
         playstatus = play_json['playstatus']
