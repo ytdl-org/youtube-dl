@@ -1270,8 +1270,14 @@ class GenericIE(InfoExtractor):
         if not found:
             found = re.search(
                 r'(?i)<meta\s+(?=(?:[a-z-]+="[^"]+"\s+)*http-equiv="refresh")'
-                r'(?:[a-z-]+="[^"]+"\s+)*?content="[0-9]{,2};url=\'?([^\'"]+)',
+                r'(?:[a-z-]+="[^"]+"\s+)*?content="[0-9]{,2};\s*(?:URL|url)=\'?([^\'"]+)',
                 webpage)
+            if not found:
+                # Look also in Refresh HTTP header
+                refresh_header = head_response.headers.get('Refresh')
+                if refresh_header:
+                    found = re.search(
+                        r'[0-9]{,2};\s*(?:URL|url)=(.+)', refresh_header)
             if found:
                 new_url = found.group(1)
                 self.report_following_redirect(new_url)
