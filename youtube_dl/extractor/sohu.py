@@ -8,7 +8,7 @@ from ..compat import (
     compat_str,
     compat_urllib_request
 )
-from ..utils import url_sanitize_consecutive_slashes
+from ..utils import sanitize_url_path_consecutive_slashes
 
 
 class SohuIE(InfoExtractor):
@@ -74,7 +74,7 @@ class SohuIE(InfoExtractor):
             }
         }]
     }, {
-        'info': 'Video with title containing dash',
+        'note': 'Video with title containing dash',
         'url': 'http://my.tv.sohu.com/us/249884221/78932792.shtml',
         'info_dict': {
             'id': '78932792',
@@ -100,8 +100,9 @@ class SohuIE(InfoExtractor):
             if cn_verification_proxy:
                 req.add_header('Ytdl-request-proxy', cn_verification_proxy)
 
-            return self._download_json(req, video_id,
-                                       'Downloading JSON data for %s' % vid_id)
+            return self._download_json(
+                req, video_id,
+                'Downloading JSON data for %s' % vid_id)
 
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
@@ -146,7 +147,7 @@ class SohuIE(InfoExtractor):
 
                 part_info = part_str.split('|')
 
-                video_url = url_sanitize_consecutive_slashes(
+                video_url = sanitize_url_path_consecutive_slashes(
                     '%s%s?key=%s' % (part_info[0], su[i], part_info[3]))
 
                 formats.append({
