@@ -146,6 +146,7 @@ class ArteTVPlus7IE(InfoExtractor):
 
             formats.append(format)
 
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         info_dict['formats'] = formats
