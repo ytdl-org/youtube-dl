@@ -2,58 +2,76 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import ExtractorError
 
-from ..utils import (
-    ExtractorError,
-)
 
-class DouyutvIE(InfoExtractor):
+class DouyuTVIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?douyutv\.com/(?P<id>[A-Za-z0-9]+)'
-
-    '''
-    show_status: 1 直播中 ，2 没有直播
-    '''
-
     _TEST = {
         'url': 'http://www.douyutv.com/iseven',
         'info_dict': {
             'id': 'iseven',
-            'title': '清晨醒脑！T-ara根本停不下来！',
             'ext': 'flv',
+            'title': 're:^清晨醒脑！T-ara根本停不下来！ [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 'md5:9e525642c25a0a24302869937cf69d17',
             'thumbnail': 're:^https?://.*\.jpg$',
+            'uploader': '7师傅',
+            'uploader_id': '431925',
             'is_live': True,
+        },
+        'params': {
+            'skip_download': True,
         }
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        info_url = 'http://www.douyutv.com/api/client/room/' + video_id
 
-        config = self._download_json(info_url, video_id)
+        config = self._download_json(
+            'http://www.douyutv.com/api/client/room/%s' % video_id, video_id)
 
-        error_code = config.get('error')
-        show_status = config['data'].get('show_status')
+        data = config['data']
+
+        error_code = config.get('error', 0)
+        show_status = data.get('show_status')
         if error_code is not 0:
-            raise ExtractorError('Server reported error %i' % error_code,
-                                 expected=True)
+            raise ExtractorError(
+                'Server reported error %i' % error_code, expected=True)
 
+        # 1 = live, 2 = offline
         if show_status == '2':
-            raise ExtractorError('The live show has not yet started',
-                                 expected=True)
+            raise ExtractorError(
+                'Live stream is offline', expected=True)
 
-        title = config['data'].get('room_name')
-        rtmp_url = config['data'].get('rtmp_url')
-        rtmp_live = config['data'].get('rtmp_live')
-        thumbnail = config['data'].get('room_src') 
+        base_url = data['rtmp_url']
+        live_path = data['rtmp_live']
 
-        url = rtmp_url+'/'+rtmp_live
+        title = self._live_title(data['room_name'])
+        description = data.get('show_details')
+        thumbnail = data.get('room_src')
+
+        uploader = data.get('nickname')
+        uploader_id = data.get('owner_uid')
+
+        multi_formats = data.get('rtmp_multi_bitrate')
+        if not isinstance(multi_formats, dict):
+            multi_formats = {}
+        multi_formats['live'] = live_path
+
+        formats = [{
+            'url': '%s/%s' % (base_url, format_path),
+            'format_id': format_id,
+            'preference': 1 if format_id == 'live' else 0,
+        } for format_id, format_path in multi_formats.items()]
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': title,
-            'ext':'flv',
-            'url': url,
+            'description': description,
             'thumbnail': thumbnail,
+            'uploader': uploader,
+            'uploader_id': uploader_id,
+            'formats': formats,
             'is_live': True,
-            # TODO more properties (see youtube_dl/extractor/common.py)
         }
