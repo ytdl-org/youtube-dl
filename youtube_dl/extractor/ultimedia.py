@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     qualities,
     unified_strdate,
     clean_html,
@@ -48,6 +49,10 @@ class UltimediaIE(InfoExtractor):
 
         deliver_page = self._download_webpage(
             deliver_url, video_id, 'Downloading iframe page')
+
+        if '>This video is currently not available' in deliver_page:
+            raise ExtractorError(
+                'Video %s is currently not available' % video_id, expected=True)
 
         player = self._parse_json(
             self._search_regex(
