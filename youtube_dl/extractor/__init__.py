@@ -534,11 +534,11 @@ from .twitch import (
     TwitchStreamIE,
 )
 from .ubu import UbuIE
-from .ultimedia import UltimediaIE
 from .udemy import (
     UdemyIE,
     UdemyCourseIE
 )
+from .ultimedia import UltimediaIE
 from .unistra import UnistraIE
 from .urort import UrortIE
 from .ustream import UstreamIE, UstreamChannelIE
