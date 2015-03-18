@@ -534,6 +534,7 @@ from .twitch import (
     TwitchStreamIE,
 )
 from .ubu import UbuIE
+from .ultimedia import UltimediaIE
 from .udemy import (
     UdemyIE,
     UdemyCourseIE
