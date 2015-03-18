@@ -386,7 +386,8 @@ from .puls4 import Puls4IE
 from .pyvideo import PyvideoIE
 from .qqmusic import (
     QQMusicIE,
-    QQMusicSingerIE
+    QQMusicSingerIE,
+    QQMusicAlbumIE,
 )
 from .quickvid import QuickVidIE
 from .r7 import R7IE

@@ -6,7 +6,10 @@ import time
 import re
 
 from .common import InfoExtractor
-from ..utils import strip_jsonp
+from ..utils import (
+    strip_jsonp,
+    unescapeHTML,
+)
 from ..compat import compat_urllib_request
 
 
@@ -66,7 +69,28 @@ class QQMusicIE(InfoExtractor):
         }
 
 
-class QQMusicSingerIE(InfoExtractor):
+class QQPlaylistBaseIE(InfoExtractor):
+    @staticmethod
+    def qq_static_url(category, mid):
+        return 'http://y.qq.com/y/static/%s/%s/%s/%s.html' % (category, mid[-2], mid[-1], mid)
+
+    @staticmethod
+    def qq_song_url(mid):
+        return 'http://y.qq.com/#type=song&mid=%s' % mid
+
+    @classmethod
+    def get_entries_from_page(cls, page):
+        entries = []
+
+        for item in re.findall(r'class="data"[^<>]*>([^<>]+)</', page):
+            song_mid = unescapeHTML(item).split('|')[-5]
+            entries.append(cls.url_result(
+                cls.qq_song_url(song_mid), 'QQMusic', song_mid))
+
+        return entries
+
+
+class QQMusicSingerIE(QQPlaylistBaseIE):
     _VALID_URL = r'http://y.qq.com/#type=singer&mid=(?P<id>[0-9A-Za-z]+)'
     _TEST = {
         'url': 'http://y.qq.com/#type=singer&mid=001BLpXF2DyJe2',
@@ -82,15 +106,9 @@ class QQMusicSingerIE(InfoExtractor):
         mid = self._match_id(url)
 
         singer_page = self._download_webpage(
-            'http://y.qq.com/y/static/singer/%s/%s/%s.html' % (mid[-2], mid[-1], mid),
-            'Download singer page')
+            self.qq_static_url('singer', mid), mid, 'Download singer page')
 
-        entries = []
-
-        for item in re.findall(r'<span class="data">([^<>]+)</span>', singer_page):
-            song_mid = item.split('|')[-5]
-            entries.append(self.url_result(
-                'http://y.qq.com/#type=song&mid=' + song_mid, 'QQMusic', song_mid))
+        entries = self.get_entries_from_page(singer_page)
 
         singer_name = self._html_search_regex(
             r"singername\s*:\s*'([^']+)'", singer_page, 'singer name',
@@ -108,8 +126,40 @@ class QQMusicSingerIE(InfoExtractor):
             req.add_header(
                 'Referer', 'http://s.plcloud.music.qq.com/xhr_proxy_utf8.html')
             singer_desc_page = self._download_xml(
-                req, 'Donwload singer description XML')
+                req, mid, 'Donwload singer description XML')
 
             singer_desc = singer_desc_page.find('./data/info/desc').text
 
         return self.playlist_result(entries, mid, singer_name, singer_desc)
+
+
+class QQMusicAlbumIE(QQPlaylistBaseIE):
+    _VALID_URL = r'http://y.qq.com/#type=album&mid=(?P<id>[0-9A-Za-z]+)'
+
+    _TEST = {
+        'url': 'http://y.qq.com/#type=album&mid=000gXCTb2AhRR1&play=0',
+        'info_dict': {
+            'id': '000gXCTb2AhRR1',
+            'title': '我们都是这样长大的',
+            'description': 'md5:d216c55a2d4b3537fe4415b8767d74d6',
+        },
+        'playlist_count': 4,
+    }
+
+    def _real_extract(self, url):
+        mid = self._match_id(url)
+
+        album_page = self._download_webpage(
+            self.qq_static_url('album', mid), mid, 'Download album page')
+
+        entries = self.get_entries_from_page(album_page)
+
+        album_name = self._html_search_regex(
+            r"albumname\s*:\s*'([^']+)',", album_page, 'album name',
+            default=None)
+
+        album_detail = self._html_search_regex(
+            r'<div class="album_detail close_detail">\s*<p>((?:[^<>]+(?:<br />)?)+)</p>',
+            album_page, 'album details', default=None)
+
+        return self.playlist_result(entries, mid, album_name, album_detail)
