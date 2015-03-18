@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
@@ -60,12 +62,18 @@ class UltimediaIE(InfoExtractor):
             video_id)
 
         quality = qualities(['flash', 'html5'])
-
-        formats = [{
-            'url': mode['config']['file'],
-            'format_id': mode.get('type'),
-            'quality': quality(mode.get('type')),
-        } for mode in player['modes']]
+        formats = []
+        for mode in player['modes']:
+            video_url = mode.get('config', {}).get('file')
+            if not video_url:
+                continue
+            if re.match(r'https?://www\.youtube\.com/.+?', video_url):
+                return self.url_result(video_url, 'Youtube')
+            formats.append({
+                'url': video_url,
+                'format_id': mode.get('type'),
+                'quality': quality(mode.get('type')),
+            })
         self._sort_formats(formats)
 
         thumbnail = player.get('image')
