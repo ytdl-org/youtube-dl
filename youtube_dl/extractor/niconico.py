@@ -97,6 +97,7 @@ class NiconicoIE(InfoExtractor):
                 'http://ext.nicovideo.jp/thumb_watch/' + video_id, video_id)
             thumb_play_key = self._search_regex(
                 r'\'thumbPlayKey\'\s*:\s*\'(.*?)\'', ext_player_info, 'thumbPlayKey')
+
             # Get flv info
             flv_info_data = compat_urllib_parse.urlencode({
                 'k': thumb_play_key,
