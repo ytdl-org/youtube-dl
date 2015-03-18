@@ -10,7 +10,6 @@ from ..utils import (
     ExtractorError,
     HEADRequest,
     str_to_int,
-    parse_iso8601,
 )
 
 
@@ -27,8 +26,6 @@ class MixcloudIE(InfoExtractor):
             'description': 'After quite a long silence from myself, finally another Drum\'n\'Bass mix with my favourite current dance floor bangers.',
             'uploader': 'Daniel Holbach',
             'uploader_id': 'dholbach',
-            'upload_date': '20111115',
-            'timestamp': 1321359578,
             'thumbnail': 're:https?://.*\.jpg',
             'view_count': int,
             'like_count': int,
@@ -37,12 +34,12 @@ class MixcloudIE(InfoExtractor):
         'url': 'http://www.mixcloud.com/gillespeterson/caribou-7-inch-vinyl-mix-chat/',
         'info_dict': {
             'id': 'gillespeterson-caribou-7-inch-vinyl-mix-chat',
-            'ext': 'm4a',
-            'title': 'Electric Relaxation vol. 3',
+            'ext': 'mp3',
+            'title': 'Caribou 7 inch Vinyl Mix & Chat',
             'description': 'md5:2b8aec6adce69f9d41724647c65875e8',
-            'uploader': 'Daniel Drumz',
+            'uploader': 'Gilles Peterson Worldwide',
             'uploader_id': 'gillespeterson',
-            'thumbnail': 're:https?://.*\.jpg',
+            'thumbnail': 're:https?://.*/images/',
             'view_count': int,
             'like_count': int,
         },
@@ -85,7 +82,7 @@ class MixcloudIE(InfoExtractor):
             raise ExtractorError('Unable to extract track url')
 
         PREFIX = (
-            r'<span class="play-button[^"]*?"'
+            r'm-play-on-spacebar[^>]+'
             r'(?:\s+[a-zA-Z0-9-]+(?:="[^"]+")?)*?\s+')
         title = self._html_search_regex(
             PREFIX + r'm-title="([^"]+)"', webpage, 'title')
@@ -105,9 +102,6 @@ class MixcloudIE(InfoExtractor):
             [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
              r'/listeners/?">([0-9,.]+)</a>'],
             webpage, 'play count', fatal=False))
-        timestamp = parse_iso8601(self._search_regex(
-            r'<time itemprop="dateCreated" datetime="([^"]+)">',
-            webpage, 'upload date', default=None))
 
         return {
             'id': track_id,
@@ -117,7 +111,6 @@ class MixcloudIE(InfoExtractor):
             'thumbnail': thumbnail,
             'uploader': uploader,
             'uploader_id': uploader_id,
-            'timestamp': timestamp,
             'view_count': view_count,
             'like_count': like_count,
         }
