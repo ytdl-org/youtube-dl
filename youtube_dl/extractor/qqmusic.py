@@ -3,9 +3,11 @@ from __future__ import unicode_literals
 
 import random
 import time
+import re
 
 from .common import InfoExtractor
 from ..utils import strip_jsonp
+from ..compat import compat_urllib_request
 
 
 class QQMusicIE(InfoExtractor):
@@ -34,7 +36,7 @@ class QQMusicIE(InfoExtractor):
 
         detail_info_page = self._download_webpage(
             'http://s.plcloud.music.qq.com/fcgi-bin/fcg_yqq_song_detail_info.fcg?songmid=%s&play=0' % mid,
-            mid, note='Download sont detail info',
+            mid, note='Download song detail info',
             errnote='Unable to get song detail info')
 
         song_name = self._html_search_regex(
@@ -62,3 +64,52 @@ class QQMusicIE(InfoExtractor):
             'upload_date': publish_time,
             'creator': singer,
         }
+
+
+class QQMusicSingerIE(InfoExtractor):
+    _VALID_URL = r'http://y.qq.com/#type=singer&mid=(?P<id>[0-9A-Za-z]+)'
+    _TEST = {
+        'url': 'http://y.qq.com/#type=singer&mid=001BLpXF2DyJe2',
+        'info_dict': {
+            'id': '001BLpXF2DyJe2',
+            'title': '林俊杰',
+            'description': 'md5:2a222d89ba4455a3af19940c0481bb78',
+        },
+        'playlist_count': 12,
+    }
+
+    def _real_extract(self, url):
+        mid = self._match_id(url)
+
+        singer_page = self._download_webpage(
+            'http://y.qq.com/y/static/singer/%s/%s/%s.html' % (mid[-2], mid[-1], mid),
+            'Download singer page')
+
+        entries = []
+
+        for item in re.findall(r'<span class="data">([^<>]+)</span>', singer_page):
+            song_mid = item.split('|')[-5]
+            entries.append(self.url_result(
+                'http://y.qq.com/#type=song&mid=' + song_mid, 'QQMusic', song_mid))
+
+        singer_name = self._html_search_regex(
+            r"singername\s*:\s*'([^']+)'", singer_page, 'singer name',
+            default=None)
+
+        singer_id = self._html_search_regex(
+            r"singerid\s*:\s*'([0-9]+)'", singer_page, 'singer id',
+            default=None)
+
+        singer_desc = None
+
+        if singer_id:
+            req = compat_urllib_request.Request(
+                'http://s.plcloud.music.qq.com/fcgi-bin/fcg_get_singer_desc.fcg?utf8=1&outCharset=utf-8&format=xml&singerid=%s' % singer_id)
+            req.add_header(
+                'Referer', 'http://s.plcloud.music.qq.com/xhr_proxy_utf8.html')
+            singer_desc_page = self._download_xml(
+                req, 'Donwload singer description XML')
+
+            singer_desc = singer_desc_page.find('./data/info/desc').text
+
+        return self.playlist_result(entries, mid, singer_name, singer_desc)
