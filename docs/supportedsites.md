@@ -112,6 +112,7 @@
  - **Discovery**
  - **divxstage**: DivxStage
  - **Dotsub**
+ - **DouyuTV**
  - **DRBonanza**
  - **Dropbox**
  - **DrTuber**
@@ -342,6 +343,7 @@
  - **PornHubPlaylist**
  - **Pornotube**
  - **PornoXO**
+ - **PrimeShareTV**
  - **PromptFile**
  - **prosiebensat1**: ProSiebenSat.1 Digital
  - **Puls4**
@@ -367,6 +369,7 @@
  - **RTP**
  - **RTS**: RTS.ch
  - **rtve.es:alacarta**: RTVE a la carta
+ - **rtve.es:infantil**: RTVE infantil
  - **rtve.es:live**: RTVE.es live streams
  - **RUHD**
  - **rutube**: Rutube videos
@@ -487,6 +490,7 @@
  - **Ubu**
  - **udemy**
  - **udemy:course**
+ - **Ultimedia**
  - **Unistra**
  - **Urort**: NRK P3 Urørt
  - **ustream**
