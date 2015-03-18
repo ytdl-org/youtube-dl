@@ -1,12 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import random
+import time
+
 from .common import InfoExtractor
 from ..utils import strip_jsonp
-
-# guid is a random number generated in javascript, but seems a fixed number
-# also works
-guid = '1'
 
 
 class QQMusicIE(InfoExtractor):
@@ -22,6 +21,13 @@ class QQMusicIE(InfoExtractor):
             'creator': '林俊杰',
         }
     }]
+
+    # Reference: m_r_GetRUin() in top_player.js
+    # http://imgcache.gtimg.cn/music/portal_v3/y/top_player.js
+    @staticmethod
+    def m_r_get_ruin():
+        curMs = int(time.time() * 1000) % 1000
+        return int(round(random.random() * 2147483647) * curMs % 1E10)
 
     def _real_extract(self, url):
         mid = self._match_id(url)
@@ -40,6 +46,8 @@ class QQMusicIE(InfoExtractor):
 
         singer = self._html_search_regex(
             r"singer:\s*'([^']+)", detail_info_page, 'singer')
+
+        guid = self.m_r_get_ruin()
 
         vkey = self._download_json(
             'http://base.music.qq.com/fcgi-bin/fcg_musicexpress.fcg?json=3&guid=%s' % guid,
