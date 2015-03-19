@@ -9,9 +9,9 @@ from ..utils import (
 
 
 class NYTimesIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www\.)?nytimes\.com/video/(?:[^/]+/)+|graphics8\.nytimes\.com/bcvideo/\d+(?:\.\d+)?/iframe/embed\.html\?videoId=)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:(?:www\.)?nytimes\.com/video/(?:[^/]+/)+?|graphics8\.nytimes\.com/bcvideo/\d+(?:\.\d+)?/iframe/embed\.html\?videoId=)(?P<id>\d+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.nytimes.com/video/opinion/100000002847155/verbatim-what-is-a-photocopier.html?playlistId=100000001150263',
         'md5': '18a525a510f942ada2720db5f31644c0',
         'info_dict': {
@@ -24,7 +24,10 @@ class NYTimesIE(InfoExtractor):
             'uploader': 'Brett Weiner',
             'duration': 419,
         }
-    }
+    }, {
+        'url': 'http://www.nytimes.com/video/travel/100000003550828/36-hours-in-dubai.html',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
