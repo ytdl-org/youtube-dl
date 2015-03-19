@@ -7,7 +7,7 @@ from ..utils import parse_iso8601
 
 
 class NYTimesIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nytimes\.com/video/(?:[^/]+/)+(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:(?:www\.)?nytimes\.com/video/(?:[^/]+/)+|graphics8\.nytimes\.com/bcvideo/\d+(?:\.\d+)?/iframe/embed\.html\?videoId=)(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://www.nytimes.com/video/opinion/100000002847155/verbatim-what-is-a-photocopier.html?playlistId=100000001150263',
