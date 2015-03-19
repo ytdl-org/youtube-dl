@@ -33,14 +33,13 @@ class VineIE(InfoExtractor):
             r'window\.POST_DATA = { %s: ({.+?}) }' % video_id, webpage, 'vine data'))
 
         formats = [{
-            'url': data['videoLowURL'],
-            'ext': 'mp4',
-            'format_id': 'low',
-        }, {
-            'url': data['videoUrl'],
-            'ext': 'mp4',
-            'format_id': 'standard',
-        }]
+            'format_id': '%(format)s-%(rate)s' % f,
+            'vcodec': f['format'],
+            'quality': f['rate'],
+            'url': f['videoUrl'],
+        } for f in data['videoUrls'] if f.get('rate')]
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
