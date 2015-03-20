@@ -23,6 +23,7 @@ class TwitchBaseIE(InfoExtractor):
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'http://usher.twitch.tv'
     _LOGIN_URL = 'https://secure.twitch.tv/user/login'
+    _LOGIN_POST_URL = 'https://secure-login.twitch.tv/login'
     _NETRC_MACHINE = 'twitch'
 
     def _handle_error(self, response):
@@ -67,14 +68,14 @@ class TwitchBaseIE(InfoExtractor):
             'authenticity_token': authenticity_token,
             'redirect_on_login': '',
             'embed_form': 'false',
-            'mp_source_action': '',
+            'mp_source_action': 'login-button',
             'follow': '',
-            'user[login]': username,
-            'user[password]': password,
+            'login': username,
+            'password': password,
         }
 
         request = compat_urllib_request.Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+            self._LOGIN_POST_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         request.add_header('Referer', self._LOGIN_URL)
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)
