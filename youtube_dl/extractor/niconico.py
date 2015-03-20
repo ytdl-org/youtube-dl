@@ -22,7 +22,7 @@ class NiconicoIE(InfoExtractor):
     IE_NAME = 'niconico'
     IE_DESC = 'ニコニコ動画'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.nicovideo.jp/watch/sm22312215',
         'md5': 'd1a75c0823e2f629128c43e1212760f9',
         'info_dict': {
@@ -39,7 +39,24 @@ class NiconicoIE(InfoExtractor):
             'username': 'ydl.niconico@gmail.com',
             'password': 'youtube-dl',
         },
-    }
+    }, {
+        'url': 'http://www.nicovideo.jp/watch/nm14296458',
+        'md5': '8db08e0158457cf852a31519fceea5bc',
+        'info_dict': {
+            'id': 'nm14296458',
+            'ext': 'swf',
+            'title': '【鏡音リン】Dance on media【オリジナル】take2!',
+            'description': 'md5:',
+            'uploader': 'りょうた',
+            'uploader_id': '18822557',
+            'upload_date': '20110429',
+            'duration': 209,
+        },
+        'params': {
+            'username': 'ydl.niconico@gmail.com',
+            'password': 'youtube-dl',
+        },
+    }]
 
     _VALID_URL = r'https?://(?:www\.|secure\.)?nicovideo\.jp/watch/(?P<id>(?:[a-z]{2})?[0-9]+)'
     _NETRC_MACHINE = 'niconico'
@@ -89,7 +106,7 @@ class NiconicoIE(InfoExtractor):
         if self._AUTHENTICATED:
             # Get flv info
             flv_info_webpage = self._download_webpage(
-                'http://flapi.nicovideo.jp/api/getflv?v=' + video_id,
+                'http://flapi.nicovideo.jp/api/getflv/' + video_id + '?as3=1',
                 video_id, 'Downloading flv info')
         else:
             # Get external player info
