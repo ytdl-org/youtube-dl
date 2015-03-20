@@ -14,6 +14,7 @@ from test.helper import FakeYDL, assertRegexpMatches
 from youtube_dl import YoutubeDL
 from youtube_dl.extractor import YoutubeIE
 from youtube_dl.postprocessor.common import PostProcessor
+from youtube_dl.utils import match_filter_func
 
 TEST_URL = 'http://localhost/sample.mp4'
 
@@ -462,6 +463,73 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertFalse(os.path.exists(filename), '%s exists' % filename)
         self.assertTrue(os.path.exists(audiofile), '%s doesn\'t exist' % audiofile)
         os.unlink(audiofile)
+
+    def test_match_filter(self):
+        class FilterYDL(YDL):
+            def __init__(self, *args, **kwargs):
+                super(FilterYDL, self).__init__(*args, **kwargs)
+                self.params['simulate'] = True
+
+            def process_info(self, info_dict):
+                super(YDL, self).process_info(info_dict)
+
+            def _match_entry(self, info_dict, incomplete):
+                res = super(FilterYDL, self)._match_entry(info_dict, incomplete)
+                if res is None:
+                    self.downloaded_info_dicts.append(info_dict)
+                return res
+
+        first = {
+            'id': '1',
+            'url': TEST_URL,
+            'title': 'one',
+            'extractor': 'TEST',
+            'duration': 30,
+            'filesize': 10 * 1024,
+        }
+        second = {
+            'id': '2',
+            'url': TEST_URL,
+            'title': 'two',
+            'extractor': 'TEST',
+            'duration': 10,
+            'description': 'foo',
+            'filesize': 5 * 1024,
+        }
+        videos = [first, second]
+
+        def get_videos(filter_=None):
+            ydl = FilterYDL({'match_filter': filter_})
+            for v in videos:
+                ydl.process_ie_result(v, download=True)
+            return [v['id'] for v in ydl.downloaded_info_dicts]
+
+        res = get_videos()
+        self.assertEqual(res, ['1', '2'])
+
+        def f(v):
+            if v['id'] == '1':
+                return None
+            else:
+                return 'Video id is not 1'
+        res = get_videos(f)
+        self.assertEqual(res, ['1'])
+
+        f = match_filter_func('duration < 30')
+        res = get_videos(f)
+        self.assertEqual(res, ['2'])
+
+        f = match_filter_func('description = foo')
+        res = get_videos(f)
+        self.assertEqual(res, ['2'])
+
+        f = match_filter_func('description =? foo')
+        res = get_videos(f)
+        self.assertEqual(res, ['1', '2'])
+
+        f = match_filter_func('filesize > 5KiB')
+        res = get_videos(f)
+        self.assertEqual(res, ['1'])
 
 
 if __name__ == '__main__':
