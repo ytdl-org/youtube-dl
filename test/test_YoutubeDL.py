@@ -339,6 +339,8 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], 'G')
 
+
+class TestYoutubeDL(unittest.TestCase):
     def test_subtitles(self):
         def s_formats(lang, autocaption=False):
             return [{
