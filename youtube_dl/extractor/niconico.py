@@ -89,7 +89,7 @@ class NiconicoIE(InfoExtractor):
         if self._AUTHENTICATED:
             # Get flv info
             flv_info_webpage = self._download_webpage(
-                'http://flapi.nicovideo.jp/api/getflv?v=' + video_id,
+                'http://flapi.nicovideo.jp/api/getflv/' + video_id + '?as3=1',
                 video_id, 'Downloading flv info')
         else:
             # Get external player info
