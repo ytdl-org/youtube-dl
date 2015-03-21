@@ -23,7 +23,6 @@ from ..utils import (
 )
 from ..aes import (
     aes_cbc_decrypt,
-    inc,
 )
 
 
@@ -102,13 +101,6 @@ class CrunchyrollIE(InfoExtractor):
 
         key = obfuscate_key(id)
 
-        class Counter:
-            __value = iv
-
-            def next_value(self):
-                temp = self.__value
-                self.__value = inc(self.__value)
-                return temp
         decrypted_data = intlist_to_bytes(aes_cbc_decrypt(data, key, iv))
         return zlib.decompress(decrypted_data)
 
