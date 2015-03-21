@@ -25,6 +25,7 @@ class NRKIE(InfoExtractor):
                 'ext': 'flv',
                 'title': 'Dompap og andre fugler i Piip-Show',
                 'description': 'md5:d9261ba34c43b61c812cb6b0269a5c8f',
+                'duration': 263,
             }
         },
         {
@@ -35,6 +36,7 @@ class NRKIE(InfoExtractor):
                 'ext': 'flv',
                 'title': 'Slik høres internett ut når du er blind',
                 'description': 'md5:a621f5cc1bd75c8d5104cb048c6b8568',
+                'duration': 20,
             }
         },
     ]
@@ -53,6 +55,8 @@ class NRKIE(InfoExtractor):
 
         video_url = data['mediaUrl'] + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81'
 
+        duration = parse_duration(data.get('duration'))
+
         images = data.get('images')
         if images:
             thumbnails = images['webImages']
@@ -67,6 +71,7 @@ class NRKIE(InfoExtractor):
             'ext': 'flv',
             'title': data['title'],
             'description': data['description'],
+            'duration': duration,
             'thumbnail': thumbnail,
         }
 
