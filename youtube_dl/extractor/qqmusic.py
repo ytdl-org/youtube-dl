@@ -24,6 +24,7 @@ class QQMusicIE(InfoExtractor):
             'title': '可惜没如果',
             'upload_date': '20141227',
             'creator': '林俊杰',
+            'description': 'md5:242c97c2847e0495583b7b13764f7106',
         }
     }]
 
@@ -47,10 +48,16 @@ class QQMusicIE(InfoExtractor):
 
         publish_time = self._html_search_regex(
             r'发行时间：(\d{4}-\d{2}-\d{2})', detail_info_page,
-            'publish time').replace('-', '')
+            'publish time', default=None)
+        if publish_time:
+            publish_time = publish_time.replace('-', '')
 
         singer = self._html_search_regex(
-            r"singer:\s*'([^']+)", detail_info_page, 'singer')
+            r"singer:\s*'([^']+)", detail_info_page, 'singer', default=None)
+
+        lrc_content = self._html_search_regex(
+            r'<div class="content" id="lrc_content"[^<>]*>([^<>]+)</div>',
+            detail_info_page, 'LRC lyrics', default=None)
 
         guid = self.m_r_get_ruin()
 
@@ -66,6 +73,7 @@ class QQMusicIE(InfoExtractor):
             'title': song_name,
             'upload_date': publish_time,
             'creator': singer,
+            'description': lrc_content,
         }
 
 
@@ -74,10 +82,6 @@ class QQPlaylistBaseIE(InfoExtractor):
     def qq_static_url(category, mid):
         return 'http://y.qq.com/y/static/%s/%s/%s/%s.html' % (category, mid[-2], mid[-1], mid)
 
-    @staticmethod
-    def qq_song_url(mid):
-        return 'http://y.qq.com/#type=song&mid=%s' % mid
-
     @classmethod
     def get_entries_from_page(cls, page):
         entries = []
@@ -85,7 +89,8 @@ class QQPlaylistBaseIE(InfoExtractor):
         for item in re.findall(r'class="data"[^<>]*>([^<>]+)</', page):
             song_mid = unescapeHTML(item).split('|')[-5]
             entries.append(cls.url_result(
-                cls.qq_song_url(song_mid), 'QQMusic', song_mid))
+                'http://y.qq.com/#type=song&mid=' + song_mid, 'QQMusic',
+                song_mid))
 
         return entries
 
