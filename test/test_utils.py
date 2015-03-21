@@ -24,6 +24,7 @@ from youtube_dl.utils import (
     encodeFilename,
     escape_rfc3986,
     escape_url,
+    ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
     InAdvancePagedList,
@@ -54,6 +55,7 @@ from youtube_dl.utils import (
     urlencode_postdata,
     version_tuple,
     xpath_with_ns,
+    xpath_text,
     render_table,
     match_str,
 )
@@ -249,6 +251,17 @@ class TestUtil(unittest.TestCase):
         self.assertTrue(find('media:song') is not None)
         self.assertEqual(find('media:song/media:author').text, 'The Author')
         self.assertEqual(find('media:song/url').text, 'http://server.com/download.mp3')
+
+    def test_xpath_text(self):
+        testxml = '''<root>
+            <div>
+                <p>Foo</p>
+            </div>
+        </root>'''
+        doc = xml.etree.ElementTree.fromstring(testxml)
+        self.assertEqual(xpath_text(doc, 'div/p'), 'Foo')
+        self.assertTrue(xpath_text(doc, 'div/bar') is None)
+        self.assertRaises(ExtractorError, xpath_text, doc, 'div/bar', fatal=True)
 
     def test_smuggle_url(self):
         data = {"ö": "ö", "abc": [3]}
