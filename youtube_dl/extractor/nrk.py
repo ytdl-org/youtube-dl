@@ -77,17 +77,25 @@ class NRKIE(InfoExtractor):
 
 
 class NRKPlaylistIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?nrk\.no/(?!video)[^/]+/(?P<id>[^/]+)'
+    _VALID_URL = r'http://(?:www\.)?nrk\.no/(?!video)(?:[^/]+/)+(?P<id>[^/]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.nrk.no/troms/gjenopplev-den-historiske-solformorkelsen-1.12270763',
         'info_dict': {
             'id': 'gjenopplev-den-historiske-solformorkelsen-1.12270763',
             'title': 'Gjenopplev den historiske solformørkelsen',
             'description': 'md5:c2df8ea3bac5654a26fc2834a542feed',
         },
-        'playlist_mincount': 2,
-    }
+        'playlist_count': 2,
+    }, {
+        'url': 'http://www.nrk.no/kultur/bok/rivertonprisen-til-karin-fossum-1.12266449',
+        'info_dict': {
+            'id': 'rivertonprisen-til-karin-fossum-1.12266449',
+            'title': 'Rivertonprisen til Karin Fossum',
+            'description': 'Første kvinne på 15 år til å vinne krimlitteraturprisen.',
+        },
+        'playlist_count': 5,
+    }]
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
@@ -97,7 +105,8 @@ class NRKPlaylistIE(InfoExtractor):
         entries = [
             self.url_result('nrk:%s' % video_id, 'NRK')
             for video_id in re.findall(
-                r'class="[^"]*\brich\b[^"]*"[^>]+data-video-id="(\d+)"', webpage)
+                r'class="[^"]*\brich\b[^"]*"[^>]+data-video-id="([^"]+)"',
+                webpage)
         ]
 
         playlist_title = self._og_search_title(webpage)
