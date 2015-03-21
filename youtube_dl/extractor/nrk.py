@@ -14,22 +14,22 @@ from ..utils import (
 
 
 class NRKIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?nrk\.no/(?:video|lyd)/[^/]+/(?P<id>[\dA-F]{16})'
+    _VALID_URL = r'(?:nrk:|http://(?:www\.)?nrk\.no/video/PS\*)(?P<id>\d+)'
 
     _TESTS = [
         {
-            'url': 'http://www.nrk.no/video/dompap_og_andre_fugler_i_piip_show/D0FA54B5C8B6CE59/emne/piipshow/',
-            'md5': 'a6eac35052f3b242bb6bb7f43aed5886',
+            'url': 'http://www.nrk.no/video/PS*150533',
+            'md5': 'bccd850baebefe23b56d708a113229c2',
             'info_dict': {
                 'id': '150533',
                 'ext': 'flv',
                 'title': 'Dompap og andre fugler i Piip-Show',
-                'description': 'md5:d9261ba34c43b61c812cb6b0269a5c8f'
+                'description': 'md5:d9261ba34c43b61c812cb6b0269a5c8f',
             }
         },
         {
-            'url': 'http://www.nrk.no/lyd/lyd_av_oppleser_for_blinde/AEFDDD5473BA0198/',
-            'md5': '3471f2a51718195164e88f46bf427668',
+            'url': 'http://www.nrk.no/video/PS*154915',
+            'md5': '0b1493ba1aae7d9579a5ad5531bc395a',
             'info_dict': {
                 'id': '154915',
                 'ext': 'flv',
@@ -40,20 +40,18 @@ class NRKIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
-        page = self._download_webpage(url, video_id)
-
-        video_id = self._html_search_regex(r'<div class="nrk-video" data-nrk-id="(\d+)">', page, 'video id')
+        video_id = self._match_id(url)
 
         data = self._download_json(
-            'http://v7.psapi.nrk.no/mediaelement/%s' % video_id, video_id, 'Downloading media JSON')
+            'http://v8.psapi.nrk.no/mediaelement/%s' % video_id,
+            video_id, 'Downloading media JSON')
 
         if data['usageRights']['isGeoBlocked']:
-            raise ExtractorError('NRK har ikke rettig-heter til å vise dette programmet utenfor Norge', expected=True)
+            raise ExtractorError(
+                'NRK har ikke rettig-heter til å vise dette programmet utenfor Norge',
+                expected=True)
 
-        video_url = data['mediaUrl'] + '?hdcore=3.1.1&plugin=aasp-3.1.1.69.124'
+        video_url = data['mediaUrl'] + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81'
 
         images = data.get('images')
         if images:
