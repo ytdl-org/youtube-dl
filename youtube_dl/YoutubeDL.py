@@ -328,9 +328,6 @@ class YoutubeDL(object):
                 'Parameter outtmpl is bytes, but should be a unicode string. '
                 'Put  from __future__ import unicode_literals  at the top of your code file or consider switching to Python 3.x.')
 
-        if '%(stitle)s' in self.params.get('outtmpl', ''):
-            self.report_warning('%(stitle)s is deprecated. Use the %(title)s and the --restrict-filenames flag(which also secures %(uploader)s et al) instead.')
-
         self._setup_opener()
 
         if auto_init:
@@ -1217,9 +1214,6 @@ class YoutubeDL(object):
         info_dict['fulltitle'] = info_dict['title']
         if len(info_dict['title']) > 200:
             info_dict['title'] = info_dict['title'][:197] + '...'
-
-        # Keep for backwards compatibility
-        info_dict['stitle'] = info_dict['title']
 
         if 'format' not in info_dict:
             info_dict['format'] = info_dict['ext']
