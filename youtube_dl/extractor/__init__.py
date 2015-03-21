@@ -346,6 +346,7 @@ from .npo import (
 )
 from .nrk import (
     NRKIE,
+    NRKPlaylistIE,
     NRKTVIE,
 )
 from .ntvde import NTVDeIE

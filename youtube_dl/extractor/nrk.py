@@ -76,6 +76,37 @@ class NRKIE(InfoExtractor):
         }
 
 
+class NRKPlaylistIE(InfoExtractor):
+    _VALID_URL = r'http://(?:www\.)?nrk\.no/(?:[^/]+/)*(?P<id>[^/]+)'
+
+    _TEST = {
+        'url': 'http://www.nrk.no/troms/gjenopplev-den-historiske-solformorkelsen-1.12270763',
+        'info_dict': {
+            'id': 'gjenopplev-den-historiske-solformorkelsen-1.12270763',
+            'title': 'Gjenopplev den historiske solformørkelsen',
+            'description': 'md5:c2df8ea3bac5654a26fc2834a542feed',
+        },
+        'playlist_mincount': 2,
+    }
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result('nrk:%s' % video_id, 'NRK')
+            for video_id in re.findall(
+                r'class="[^"]*\brich\b[^"]*"[^>]+data-video-id="(\d+)"', webpage)
+        ]
+
+        playlist_title = self._og_search_title(webpage)
+        playlist_description = self._og_search_description(webpage)
+
+        return self.playlist_result(
+            entries, playlist_id, playlist_title, playlist_description)
+
+
 class NRKTVIE(InfoExtractor):
     _VALID_URL = r'(?P<baseurl>http://tv\.nrk(?:super)?\.no/)(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})(?:/\d{2}-\d{2}-\d{4})?(?:#del=(?P<part_id>\d+))?'
 
