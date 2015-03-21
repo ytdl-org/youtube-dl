@@ -24,7 +24,7 @@ class QQMusicIE(InfoExtractor):
             'title': '可惜没如果',
             'upload_date': '20141227',
             'creator': '林俊杰',
-            'description': 'md5:242c97c2847e0495583b7b13764f7106',
+            'description': 'md5:4348ff1dd24036906baa7b6f973f8d30',
         }
     }]
 
@@ -41,7 +41,7 @@ class QQMusicIE(InfoExtractor):
         detail_info_page = self._download_webpage(
             'http://s.plcloud.music.qq.com/fcgi-bin/fcg_yqq_song_detail_info.fcg?songmid=%s&play=0' % mid,
             mid, note='Download song detail info',
-            errnote='Unable to get song detail info')
+            errnote='Unable to get song detail info', encoding='gbk')
 
         song_name = self._html_search_regex(
             r"songname:\s*'([^']+)'", detail_info_page, 'song name')
