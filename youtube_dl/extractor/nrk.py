@@ -77,7 +77,7 @@ class NRKIE(InfoExtractor):
 
 
 class NRKPlaylistIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?nrk\.no/(?:[^/]+/)*(?P<id>[^/]+)'
+    _VALID_URL = r'http://(?:www\.)?nrk\.no/(?!video)[^/]+/(?P<id>[^/]+)'
 
     _TEST = {
         'url': 'http://www.nrk.no/troms/gjenopplev-den-historiske-solformorkelsen-1.12270763',
