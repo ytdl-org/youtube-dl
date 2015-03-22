@@ -527,6 +527,17 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Viddler'],
         },
+        # Libsyn embed
+        {
+            'url': 'http://thedailyshow.cc.com/podcast/episodetwelve',
+            'info_dict': {
+                'id': '3377616',
+                'ext': 'mp3',
+                'title': "The Daily Show Podcast without Jon Stewart - Episode 12: Bassem Youssef: Egypt's Jon Stewart",
+                'description': 'md5:601cb790edd05908957dae8aaa866465',
+                'upload_date': '20150220',
+            },
+        },
         # jwplayer YouTube
         {
             'url': 'http://media.nationalarchives.gov.uk/index.php/webinar-using-discovery-national-archives-online-catalogue/',
@@ -1010,6 +1021,12 @@ class GenericIE(InfoExtractor):
         mobj = re.search(
             r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//graphics8\.nytimes\.com/bcvideo/[^/]+/iframe/embed\.html.+?)\1>',
             webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'))
+
+        # Look for Libsyn player
+        mobj = re.search(
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//html5-player\.libsyn\.com/embed/.+?)\1', webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'))
 
