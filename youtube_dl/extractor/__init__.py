@@ -420,6 +420,10 @@ from .rutube import (
 )
 from .rutv import RUTVIE
 from .sandia import SandiaIE
+from .safari import (
+    SafariIE,
+    SafariCourseIE,
+)
 from .sapo import SapoIE
 from .savefrom import SaveFromIE
 from .sbs import SBSIE
