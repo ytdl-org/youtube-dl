@@ -84,7 +84,7 @@ from .cnn import (
 )
 from .collegehumor import CollegeHumorIE
 from .collegerama import CollegeRamaIE
-from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
+from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE, TheDailyShowPodcastIE
 from .comcarcoff import ComCarCoffIE
 from .commonmistakes import CommonMistakesIE, UnicodeBOMIE
 from .condenast import CondeNastIE
@@ -251,6 +251,7 @@ from .letv import (
     LetvPlaylistIE
 )
 from .lifenews import LifeNewsIE
+from .libsyn import LibsynIE
 from .liveleak import LiveLeakIE
 from .livestream import (
     LivestreamIE,
