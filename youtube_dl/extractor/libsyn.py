@@ -36,7 +36,7 @@ class LibsynIE(InfoExtractor):
         episode_title = self._search_regex(
             r'<h3>([^<]+)</h3>', webpage, 'title', default=None)
 
-        title = '%s - %s' %(podcast_title, episode_title) if podcast_title else episode_title
+        title = '%s - %s' % (podcast_title, episode_title) if podcast_title else episode_title
 
         description = self._html_search_regex(
             r'<div id="info_text_body">(.+?)</div>', webpage,
