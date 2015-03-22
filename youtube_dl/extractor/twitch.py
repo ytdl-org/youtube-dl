@@ -149,7 +149,7 @@ class TwitchItemBaseIE(TwitchBaseIE):
 
 class TwitchVideoIE(TwitchItemBaseIE):
     IE_NAME = 'twitch:video'
-    _VALID_URL = r'%s/[^/]+/b/(?P<id>[^/]+)' % TwitchBaseIE._VALID_URL_BASE
+    _VALID_URL = r'%s/[^/]+/b/(?P<id>\d+)' % TwitchBaseIE._VALID_URL_BASE
     _ITEM_TYPE = 'video'
     _ITEM_SHORTCUT = 'a'
 
@@ -165,7 +165,7 @@ class TwitchVideoIE(TwitchItemBaseIE):
 
 class TwitchChapterIE(TwitchItemBaseIE):
     IE_NAME = 'twitch:chapter'
-    _VALID_URL = r'%s/[^/]+/c/(?P<id>[^/]+)' % TwitchBaseIE._VALID_URL_BASE
+    _VALID_URL = r'%s/[^/]+/c/(?P<id>\d+)' % TwitchBaseIE._VALID_URL_BASE
     _ITEM_TYPE = 'chapter'
     _ITEM_SHORTCUT = 'c'
 
@@ -184,7 +184,7 @@ class TwitchChapterIE(TwitchItemBaseIE):
 
 class TwitchVodIE(TwitchItemBaseIE):
     IE_NAME = 'twitch:vod'
-    _VALID_URL = r'%s/[^/]+/v/(?P<id>[^/]+)' % TwitchBaseIE._VALID_URL_BASE
+    _VALID_URL = r'%s/[^/]+/v/(?P<id>\d+)' % TwitchBaseIE._VALID_URL_BASE
     _ITEM_TYPE = 'vod'
     _ITEM_SHORTCUT = 'v'
 
