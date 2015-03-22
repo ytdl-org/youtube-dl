@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from .mtv import MTVServicesInfoExtractor
 from ..compat import (
     compat_str,
