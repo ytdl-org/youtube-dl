@@ -382,6 +382,7 @@ from .pornhub import (
     PornHubPlaylistIE,
 )
 from .pornotube import PornotubeIE
+from .pornovoisines import PornoVoisinesIE
 from .pornoxo import PornoXOIE
 from .primesharetv import PrimeShareTVIE
 from .promptfile import PromptFileIE
