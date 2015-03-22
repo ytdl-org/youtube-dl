@@ -43,5 +43,13 @@ class TestAES(unittest.TestCase):
         decrypted = (aes_decrypt_text(encrypted, password, 16))
         self.assertEqual(decrypted, self.secret_msg)
 
+        password = intlist_to_bytes(self.key).decode('utf-8')
+        encrypted = base64.b64encode(
+            intlist_to_bytes(self.iv[:8]) +
+            b'\x0b\xe6\xa4\xd9z\x0e\xb8\xb9\xd0\xd4i_\x85\x1d\x99\x98_\xe5\x80\xe7.\xbf\xa5\x83'
+        )
+        decrypted = (aes_decrypt_text(encrypted, password, 32))
+        self.assertEqual(decrypted, self.secret_msg)
+
 if __name__ == '__main__':
     unittest.main()
