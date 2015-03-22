@@ -1,50 +1,59 @@
-# encoding: utf-8
+# coding: utf-8
+from __future__ import unicode_literals
+
+import re
+
 from .common import InfoExtractor
-from ..utils import (
-    unified_strdate,
-)
+from ..utils import unified_strdate
+
 
 class LibsynIE(InfoExtractor):
-    _VALID_URL = r'(?:https?:)?//html5-player\.libsyn\.com/embed/episode/id/(?P<id>[0-9]+)(?:/.*)?'
-    _TESTS = [{
-        'url': "http://html5-player.libsyn.com/embed/episode/id/3377616/",
+    _VALID_URL = r'https?://html5-player\.libsyn\.com/embed/episode/id/(?P<id>[0-9]+)'
+
+    _TEST = {
+        'url': 'http://html5-player.libsyn.com/embed/episode/id/3377616/',
+        'md5': '443360ee1b58007bc3dcf09b41d093bb',
         'info_dict': {
-            'id': "3377616",
-            'ext': "mp3",
-            'title': "Episode 12: Bassem Youssef: Egypt's Jon Stewart",
-            'description': "<p>Bassem Youssef joins executive producer Steve Bodow and senior producer Sara Taksler for a conversation about how&nbsp;<em style=\"font-family: Tahoma, Geneva, sans-serif; font-size: 12.8000001907349px;\">The Daily Show</em>&nbsp;inspired Bassem to create&nbsp;<em style=\"font-family: Tahoma, Geneva, sans-serif; font-size: 12.8000001907349px;\">Al-Bernameg</em>, his massively popular (and now banned) Egyptian news satire program. Sara discusses her soon-to-be-released documentary,&nbsp;<em style=\"font-family: Tahoma, Geneva, sans-serif; font-size: 12.8000001907349px;\">Tickling Giants</em>, which chronicles how Bassem and his staff risked their safety every day to tell jokes.</p>",
+            'id': '3377616',
+            'ext': 'mp3',
+            'title': "The Daily Show Podcast without Jon Stewart - Episode 12: Bassem Youssef: Egypt's Jon Stewart",
+            'description': 'md5:601cb790edd05908957dae8aaa866465',
+            'upload_date': '20150220',
         },
-    }]
+    }
 
     def _real_extract(self, url):
-        if url.startswith('//'):
-            url = 'https:' + url
-        display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id)
+        video_id = self._match_id(url)
 
-        podcast_title         = self._search_regex(r'<h2>(.*?)</h2>', webpage, 'show title')
-        podcast_episode_title = self._search_regex(r'<h3>(.*?)</h3>', webpage, 'episode title')
-        podcast_date          = unified_strdate(self._search_regex(r'<div class="release_date">Released: (.*?)</div>', webpage, 'release date'))
-        podcast_description   = self._search_regex(r'<div id="info_text_body">(.*?)</div>', webpage, 'description')
+        webpage = self._download_webpage(url, video_id)
 
-        url0 = self._search_regex(r'var mediaURLLibsyn = "(?P<url0>https?://.*)";', webpage, 'first media URL')
-        url1 = self._search_regex(r'var mediaURL = "(?P<url1>https?://.*)";', webpage, 'second media URL')
+        formats = [{
+            'url': media_url,
+        } for media_url in set(re.findall('var\s+mediaURL(?:Libsyn)?\s*=\s*"([^"]+)"', webpage))]
 
-        if url0 != url1:
-            formats = [{
-                'url': url0
-            }, {
-                'url': url1
-            }]
-        else:
-            formats = [{
-                'url': url0
-            }]
+        podcast_title = self._search_regex(
+            r'<h2>([^<]+)</h2>', webpage, 'title')
+        episode_title = self._search_regex(
+            r'<h3>([^<]+)</h3>', webpage, 'title', default=None)
+
+        title = '%s - %s' %(podcast_title, episode_title) if podcast_title else episode_title
+
+        description = self._html_search_regex(
+            r'<div id="info_text_body">(.+?)</div>', webpage,
+            'description', fatal=False)
+
+        thumbnail = self._search_regex(
+            r'<img[^>]+class="info-show-icon"[^>]+src="([^"]+)"',
+            webpage, 'thumbnail', fatal=False)
+
+        release_date = unified_strdate(self._search_regex(
+            r'<div class="release_date">Released: ([^<]+)<', webpage, 'release date', fatal=False))
 
         return {
-            'id': display_id,
-            'title': podcast_episode_title,
-            'description': podcast_description,
-            'upload_date': podcast_date,
+            'id': video_id,
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'upload_date': release_date,
             'formats': formats,
         }
