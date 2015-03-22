@@ -84,7 +84,7 @@ from .cnn import (
 )
 from .collegehumor import CollegeHumorIE
 from .collegerama import CollegeRamaIE
-from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE, TheDailyShowPodcastIE
+from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
 from .comcarcoff import ComCarCoffIE
 from .commonmistakes import CommonMistakesIE, UnicodeBOMIE
 from .condenast import CondeNastIE

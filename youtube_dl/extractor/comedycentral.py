@@ -273,27 +273,3 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
             'title': show_name + ' ' + title,
             'description': description,
         }
-
-class TheDailyShowPodcastIE(InfoExtractor):
-    _VALID_URL = r'(?P<scheme>https?:)?//thedailyshow\.cc\.com/podcast/(?P<id>[a-z\-]+)'
-    _TESTS = [{
-        "url": "http://thedailyshow.cc.com/podcast/episodetwelve",
-        'only_matching': True,
-    }]
-
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id)
-
-        player_url = self._search_regex(r'<iframe(?:\s+[^>]+)?\s*src="((?:https?:)?//html5-player\.libsyn\.com/embed/episode/id/[0-9]+)', webpage, 'player URL')
-        if player_url.startswith('//'):
-            mobj = re.match(self._VALID_URL, url)
-            scheme = mobj.group('scheme')
-            if not scheme:
-                scheme = 'https:'
-            player_url = scheme + player_url
-
-        return {
-            '_type': 'url_transparent',
-            'url': player_url,
-        }
