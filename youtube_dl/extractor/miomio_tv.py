@@ -23,10 +23,15 @@ class MiomioTvIE(InfoExtractor):
 
         title = self._html_search_regex(r'<meta\s+name="description"\s+content="\s*([^"]*)\s*"', webpage, 'title')
         ref_path = self._search_regex(r'src="(/mioplayer/.*?)"', webpage, 'ref_path')
-        referer = 'http://www.miomio.tv{}'.format(ref_path)
+        referer = 'http://www.miomio.tv{0}'.format(ref_path)
         xml_config = self._search_regex(r'flashvars="type=sina&amp;(.*?)&amp;cid=', webpage, 'xml config')
-        self._request_webpage("http://www.miomio.tv/mioplayer/mioplayerconfigfiles/xml.php?id={}&r=cc{}".format(id, 945), video_id)
-        xml_url = 'http://www.miomio.tv/mioplayer/mioplayerconfigfiles/sina.php?{}'.format(xml_config)
+        
+        # skipping the following page causes lags and eventually connection drop-outs
+        # id is normally a rotating three digit value but a fixed value always appears to work
+        self._request_webpage("http://www.miomio.tv/mioplayer/mioplayerconfigfiles/xml.php?id={0}&r=cc{1}".format(id, 945), video_id)
+
+        # the following xml contains the actual configuration information on the video file(s)
+        xml_url = 'http://www.miomio.tv/mioplayer/mioplayerconfigfiles/sina.php?{0}'.format(xml_config)
         vidconfig = self._download_xml(xml_url, video_id)
 
         file_els = vidconfig.findall('.//durl')
@@ -48,7 +53,6 @@ class MiomioTvIE(InfoExtractor):
 
         http_headers = {
             'Referer': referer,
-            'Accept-Language': 'en,en-US;q=0.7,de;q=0.3',
             'Accept-Encoding': 'gzip, deflate',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
         }
