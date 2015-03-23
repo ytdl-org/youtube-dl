@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class MLBIE(InfoExtractor):
-    _VALID_URL = r'https?://m(?:lb)?\.mlb\.com/(?:(?:.*?/)?video/(?:topic/[\da-z_-]+/)?v|(?:shared/video/embed/embed\.html|[^/]+/video/play\.jsp)\?.*?\bcontent_id=)(?P<id>n?\d+)'
+    _VALID_URL = r'https?://m(?:lb)?\.(?:[\da-z_-]+\.)?mlb\.com/(?:(?:.*?/)?video/(?:topic/[\da-z_-]+/)?v|(?:shared/video/embed/embed\.html|[^/]+/video/play\.jsp)\?.*?\bcontent_id=)(?P<id>n?\d+)'
     _TESTS = [
         {
             'url': 'http://m.mlb.com/sea/video/topic/51231442/v34698933/nymsea-ackley-robs-a-home-run-with-an-amazing-catch/?c_id=sea',
@@ -80,6 +80,10 @@ class MLBIE(InfoExtractor):
             'url': 'http://mlb.mlb.com/es/video/play.jsp?content_id=36599553',
             'only_matching': True,
         },
+        {
+            'url': 'http://m.cardinals.mlb.com/stl/video/v51175783/atlstl-piscotty-makes-great-sliding-catch-on-line/?partnerId=as_mlb_20150321_42500876&adbid=579409712979910656&adbpl=tw&adbpr=52847728',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
