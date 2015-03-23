@@ -231,7 +231,10 @@ class NPOLiveIE(NPOBaseIE):
                 stream_url = self._download_json(
                     stream_info['stream'], display_id,
                     'Downloading %s URL' % stream_type,
-                    transform_source=strip_jsonp)
+                    'Unable to download %s URL' % stream_type,
+                    transform_source=strip_jsonp, fatal=False)
+                if not stream_url:
+                    continue
                 if stream_type == 'hds':
                     f4m_formats = self._extract_f4m_formats(stream_url, display_id)
                     # f4m downloader downloads only piece of live stream
