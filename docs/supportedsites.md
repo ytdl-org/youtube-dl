@@ -244,6 +244,7 @@
  - **Mgoon**
  - **Minhateca**
  - **MinistryGrid**
+ - **Miomio.tv**
  - **mitele.es**
  - **mixcloud**
  - **MLB**

@@ -265,6 +265,7 @@ from .mdr import MDRIE
 from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mgoon import MgoonIE
+from .miomio_tv import MiomioTvIE
 from .minhateca import MinhatecaIE
 from .ministrygrid import MinistryGridIE
 from .mit import TechTVMITIE, MITIE, OCWMITIE
