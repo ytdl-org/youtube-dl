@@ -370,6 +370,10 @@ from .tudou import TudouIE
 from .tumblr import TumblrIE
 from .turbo import TurboIE
 from .tutv import TutvIE
+from .twentytwotracks import (
+    TwentyTwoTracksIE,
+    TwentyTwoTracksGenreIE
+)
 from .tvigle import TvigleIE
 from .tvp import TvpIE
 from .tvplay import TVPlayIE
