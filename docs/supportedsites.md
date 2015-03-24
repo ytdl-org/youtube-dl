@@ -231,6 +231,7 @@
  - **Letv**
  - **LetvPlaylist**
  - **LetvTv**
+ - **Libsyn**
  - **lifenews**: LIFE | NEWS
  - **LiveLeak**
  - **livestream**
@@ -310,6 +311,7 @@
  - **npo.nl:radio**
  - **npo.nl:radio:fragment**
  - **NRK**
+ - **NRKPlaylist**
  - **NRKTV**
  - **ntv.ru**
  - **Nuvid**
