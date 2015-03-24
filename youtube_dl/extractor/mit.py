@@ -6,7 +6,6 @@ import json
 from .common import InfoExtractor
 from .youtube import YoutubeIE
 from ..utils import (
-    compat_urlparse,
     clean_html,
     ExtractorError,
     get_element_by_id,
@@ -15,7 +14,7 @@ from ..utils import (
 
 class TechTVMITIE(InfoExtractor):
     IE_NAME = 'techtv.mit.edu'
-    _VALID_URL = r'https?://techtv\.mit\.edu/(videos|embeds)/(?P<id>\d+)'
+    _VALID_URL = r'https?://techtv\.mit\.edu/(?:videos|embeds)/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://techtv.mit.edu/videos/25418-mit-dna-learning-center-set',
@@ -29,8 +28,7 @@ class TechTVMITIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         raw_page = self._download_webpage(
             'http://techtv.mit.edu/videos/%s' % video_id, video_id)
         clean_page = re.compile(r'<!--.*?-->', re.S).sub('', raw_page)
@@ -104,7 +102,9 @@ class OCWMITIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Lecture 7: Multiple Discrete Random Variables: Expectations, Conditioning, Independence',
                 'description': 'In this lecture, the professor discussed multiple random variables, expectations, and binomial distribution.',
-                #'subtitles': 'http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-041-probabilistic-systems-analysis-and-applied-probability-fall-2010/video-lectures/lecture-7-multiple-variables-expectations-independence/MIT6_041F11_lec07_300k.mp4.srt'
+                'upload_date': '20121109',
+                'uploader_id': 'MIT',
+                'uploader': 'MIT OpenCourseWare',
             }
         },
         {
@@ -113,8 +113,10 @@ class OCWMITIE(InfoExtractor):
                 'id': '7K1sB05pE0A',
                 'ext': 'mp4',
                 'title': 'Session 1: Introduction to Derivatives',
+                'upload_date': '20090818',
+                'uploader_id': 'MIT',
+                'uploader': 'MIT OpenCourseWare',
                 'description': 'This section contains lecture video excerpts, lecture notes, an interactive mathlet with supporting documents, and problem solving videos.',
-                #'subtitles': 'http://ocw.mit.edu//courses/mathematics/18-01sc-single-variable-calculus-fall-2010/ocw-18.01-f07-lec01_300k.SRT'
             }
         }
     ]
@@ -133,7 +135,6 @@ class OCWMITIE(InfoExtractor):
             metadata = re.sub(r'[\'"]', '', embed_chapter_media.group(1))
             metadata = re.split(r', ?', metadata)
             yt = metadata[1]
-            subs = compat_urlparse.urljoin(self._BASE_URL, metadata[7])
         else:
             # search for call to ocw_embed_chapter_media(container_id, media_url, provider, page_url, image_url, captions_file)
             embed_media = re.search(r'ocw_embed_media\((.+?)\)', webpage)
@@ -141,7 +142,6 @@ class OCWMITIE(InfoExtractor):
                 metadata = re.sub(r'[\'"]', '', embed_media.group(1))
                 metadata = re.split(r', ?', metadata)
                 yt = metadata[1]
-                subs = compat_urlparse.urljoin(self._BASE_URL, metadata[5])
             else:
                 raise ExtractorError('Unable to find embedded YouTube video.')
         video_id = YoutubeIE.extract_id(yt)
@@ -152,7 +152,5 @@ class OCWMITIE(InfoExtractor):
             'title': title,
             'description': description,
             'url': yt,
-            'url_transparent'
-            'subtitles': subs,
             'ie_key': 'Youtube',
         }

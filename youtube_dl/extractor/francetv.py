@@ -6,13 +6,15 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
-    compat_urlparse,
-    ExtractorError,
-    clean_html,
-    parse_duration,
+from ..compat import (
     compat_urllib_parse_urlparse,
+    compat_urlparse,
+)
+from ..utils import (
+    clean_html,
+    ExtractorError,
     int_or_none,
+    parse_duration,
 )
 
 
@@ -26,6 +28,19 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
         if info.get('status') == 'NOK':
             raise ExtractorError(
                 '%s returned error: %s' % (self.IE_NAME, info['message']), expected=True)
+        allowed_countries = info['videos'][0].get('geoblocage')
+        if allowed_countries:
+            georestricted = True
+            geo_info = self._download_json(
+                'http://geo.francetv.fr/ws/edgescape.json', video_id,
+                'Downloading geo restriction info')
+            country = geo_info['reponse']['geo_info']['country_code']
+            if country not in allowed_countries:
+                raise ExtractorError(
+                    'The video is not available from your location',
+                    expected=True)
+        else:
+            georestricted = False
 
         formats = []
         for video in info['videos']:
@@ -36,6 +51,10 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                 continue
             format_id = video['format']
             if video_url.endswith('.f4m'):
+                if georestricted:
+                    # See https://github.com/rg3/youtube-dl/issues/3963
+                    # m3u8 urls work fine
+                    continue
                 video_url_parsed = compat_urllib_parse_urlparse(video_url)
                 f4m_url = self._download_webpage(
                     'http://hdfauth.francetv.fr/esi/urltokengen2.html?url=%s' % video_url_parsed.path,
@@ -46,7 +65,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                         f4m_format['preference'] = 1
                     formats.extend(f4m_formats)
             elif video_url.endswith('.m3u8'):
-                formats.extend(self._extract_m3u8_formats(video_url, video_id))
+                formats.extend(self._extract_m3u8_formats(video_url, video_id, 'mp4'))
             elif video_url.startswith('rtmp'):
                 formats.append({
                     'url': video_url,
@@ -58,7 +77,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                 formats.append({
                     'url': video_url,
                     'format_id': format_id,
-                    'preference': 2,
+                    'preference': -1,
                 })
         self._sort_formats(formats)
 
@@ -93,7 +112,6 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
-        'md5': '9cecf35f99c4079c199e9817882a9a1c',
         'info_dict': {
             'id': '84981923',
             'ext': 'flv',
@@ -212,12 +230,13 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
 
 class GenerationQuoiIE(InfoExtractor):
     IE_NAME = 'france2.fr:generation-quoi'
-    _VALID_URL = r'https?://generation-quoi\.france2\.fr/portrait/(?P<name>.*)(\?|$)'
+    _VALID_URL = r'https?://generation-quoi\.france2\.fr/portrait/(?P<id>[^/?#]+)'
 
     _TEST = {
         'url': 'http://generation-quoi.france2.fr/portrait/garde-a-vous',
-        'file': 'k7FJX8VBcvvLmX4wA5Q.mp4',
         'info_dict': {
+            'id': 'k7FJX8VBcvvLmX4wA5Q',
+            'ext': 'mp4',
             'title': 'Génération Quoi - Garde à Vous',
             'uploader': 'Génération Quoi',
         },
@@ -225,17 +244,15 @@ class GenerationQuoiIE(InfoExtractor):
             # It uses Dailymotion
             'skip_download': True,
         },
-        'skip': 'Only available from France',
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        name = mobj.group('name')
-        info_url = compat_urlparse.urljoin(url, '/medias/video/%s.json' % name)
-        info_json = self._download_webpage(info_url, name)
+        display_id = self._match_id(url)
+        info_url = compat_urlparse.urljoin(url, '/medias/video/%s.json' % display_id)
+        info_json = self._download_webpage(info_url, display_id)
         info = json.loads(info_json)
         return self.url_result('http://www.dailymotion.com/video/%s' % info['id'],
-            ie='Dailymotion')
+                               ie='Dailymotion')
 
 
 class CultureboxIE(FranceTVBaseInfoExtractor):

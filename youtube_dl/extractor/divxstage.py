@@ -7,7 +7,7 @@ class DivxStageIE(NovaMovIE):
     IE_NAME = 'divxstage'
     IE_DESC = 'DivxStage'
 
-    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'divxstage\.(?:eu|net|ch|co|at|ag)'}
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'divxstage\.(?:eu|net|ch|co|at|ag|to)'}
 
     _HOST = 'www.divxstage.eu'
 

@@ -3,9 +3,8 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urlparse,
-    get_meta_content,
 )
 
 
@@ -46,13 +45,13 @@ class UstreamIE(InfoExtractor):
         self.report_extraction(video_id)
 
         video_title = self._html_search_regex(r'data-title="(?P<title>.+)"',
-            webpage, 'title')
+                                              webpage, 'title')
 
         uploader = self._html_search_regex(r'data-content-type="channel".*?>(?P<uploader>.*?)</a>',
-            webpage, 'uploader', fatal=False, flags=re.DOTALL)
+                                           webpage, 'uploader', fatal=False, flags=re.DOTALL)
 
         thumbnail = self._html_search_regex(r'<link rel="image_src" href="(?P<thumb>.*?)"',
-            webpage, 'thumbnail', fatal=False)
+                                            webpage, 'thumbnail', fatal=False)
 
         return {
             'id': video_id,
@@ -72,14 +71,14 @@ class UstreamChannelIE(InfoExtractor):
         'info_dict': {
             'id': '10874166',
         },
-        'playlist_mincount': 54,
+        'playlist_mincount': 17,
     }
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
         display_id = m.group('slug')
         webpage = self._download_webpage(url, display_id)
-        channel_id = get_meta_content('ustream:channel_id', webpage)
+        channel_id = self._html_search_meta('ustream:channel_id', webpage)
 
         BASE = 'http://www.ustream.tv'
         next_url = '/ajax/socialstream/videos/%s/1.json' % channel_id

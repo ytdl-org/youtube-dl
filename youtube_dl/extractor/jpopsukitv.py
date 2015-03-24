@@ -1,8 +1,6 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -12,14 +10,14 @@ from ..utils import (
 
 class JpopsukiIE(InfoExtractor):
     IE_NAME = 'jpopsuki.tv'
-    _VALID_URL = r'https?://(?:www\.)?jpopsuki\.tv/video/(.*?)/(?P<id>\S+)'
+    _VALID_URL = r'https?://(?:www\.)?jpopsuki\.tv/(?:category/)?video/[^/]+/(?P<id>\S+)'
 
     _TEST = {
         'url': 'http://www.jpopsuki.tv/video/ayumi-hamasaki---evolution/00be659d23b0b40508169cdee4545771',
         'md5': '88018c0c1a9b1387940e90ec9e7e198e',
-        'file': '00be659d23b0b40508169cdee4545771.mp4',
         'info_dict': {
             'id': '00be659d23b0b40508169cdee4545771',
+            'ext': 'mp4',
             'title': 'ayumi hamasaki - evolution',
             'description': 'Release date: 2001.01.31\r\n浜崎あゆみ - evolution',
             'thumbnail': 'http://www.jpopsuki.tv/cache/89722c74d2a2ebe58bcac65321c115b2.jpg',
@@ -30,8 +28,7 @@ class JpopsukiIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
 
@@ -47,11 +44,9 @@ class JpopsukiIE(InfoExtractor):
         uploader_id = self._html_search_regex(
             r'<li>from: <a href="/user/view/user/\S*?/uid/(\d*)',
             webpage, 'video uploader_id', fatal=False)
-        upload_date = self._html_search_regex(
+        upload_date = unified_strdate(self._html_search_regex(
             r'<li>uploaded: (.*?)</li>', webpage, 'video upload_date',
-            fatal=False)
-        if upload_date is not None:
-            upload_date = unified_strdate(upload_date)
+            fatal=False))
         view_count_str = self._html_search_regex(
             r'<li>Hits: ([0-9]+?)</li>', webpage, 'video view_count',
             fatal=False)

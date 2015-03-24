@@ -8,13 +8,13 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
 import io
 import re
 import string
 
+from test.helper import FakeYDL
 from youtube_dl.extractor import YoutubeIE
-from youtube_dl.utils import compat_str, compat_urlretrieve
+from youtube_dl.compat import compat_str, compat_urlretrieve
 
 _TESTS = [
     (
@@ -48,18 +48,6 @@ _TESTS = [
         'A52CB8B320D22032ABB3A41D773D2B6342034902.A22E87CDD37DBE75A5E52412DC874AC16A7CFCA2',
     ),
     (
-        'http://s.ytimg.com/yts/swfbin/player-vfl5vIhK2/watch_as3.swf',
-        'swf',
-        86,
-        'O1I3456789abcde0ghijklmnopqrstuvwxyzABCDEFGHfJKLMN2PQRSTUVWXY\\!"#$%&\'()*+,-./:;<=>?'
-    ),
-    (
-        'http://s.ytimg.com/yts/swfbin/player-vflmDyk47/watch_as3.swf',
-        'swf',
-        'F375F75BF2AFDAAF2666E43868D46816F83F13E81C46.3725A8218E446A0DECD33F79DC282994D6AA92C92C9',
-        '9C29AA6D499282CD97F33DCED0A644E8128A5273.64C18E31F38361864D86834E6662FAADFA2FB57F'
-    ),
-    (
         'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflBb0OQx.js',
         'js',
         84,
@@ -76,6 +64,12 @@ _TESTS = [
         'js',
         '4646B5181C6C3020DF1D9C7FCFEA.AD80ABF70C39BD369CCCAE780AFBB98FA6B6CB42766249D9488C288',
         '82C8849D94266724DC6B6AF89BBFA087EACCD963.B93C07FBA084ACAEFCF7C9D1FD0203C6C1815B6B'
+    ),
+    (
+        'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflKjOTVq/html5player.js',
+        'js',
+        '312AA52209E3623129A412D56A40F11CB0AF14AE.3EE09501CB14E3BCDC3B2AE808BF3F1D14E7FBF12',
+        '112AA5220913623229A412D56A40F11CB0AF14AE.3EE0950FCB14EEBCDC3B2AE808BF331D14E7FBF3',
     )
 ]
 
@@ -100,7 +94,8 @@ def make_tfunc(url, stype, sig_input, expected_sig):
         if not os.path.exists(fn):
             compat_urlretrieve(url, fn)
 
-        ie = YoutubeIE()
+        ydl = FakeYDL()
+        ie = YoutubeIE(ydl)
         if stype == 'js':
             with io.open(fn, encoding='utf-8') as testf:
                 jscode = testf.read()

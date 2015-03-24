@@ -57,9 +57,7 @@ class TeacherTubeIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_meta('title', webpage, 'title', fatal=True)
@@ -121,7 +119,7 @@ class TeacherTubeUserIE(InfoExtractor):
         urls = []
         webpage = self._download_webpage(url, user_id)
         urls.extend(re.findall(self._MEDIA_RE, webpage))
-        
+
         pages = re.findall(r'/ajax-user/user-videos/%s\?page=([0-9]+)' % user_id, webpage)[:-1]
         for p in pages:
             more = 'http://www.teachertube.com/ajax-user/user-videos/%s?page=%s' % (user_id, p)

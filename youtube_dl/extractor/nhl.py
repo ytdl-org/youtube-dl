@@ -2,12 +2,15 @@ from __future__ import unicode_literals
 
 import re
 import json
+import os
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urlparse,
     compat_urllib_parse,
-    determine_ext,
+    compat_urllib_parse_urlparse
+)
+from ..utils import (
     unified_strdate,
 )
 
@@ -17,26 +20,37 @@ class NHLBaseInfoExtractor(InfoExtractor):
     def _fix_json(json_string):
         return json_string.replace('\\\'', '\'')
 
+    def _real_extract_video(self, video_id):
+        json_url = 'http://video.nhl.com/videocenter/servlets/playlist?ids=%s&format=json' % video_id
+        data = self._download_json(
+            json_url, video_id, transform_source=self._fix_json)
+        return self._extract_video(data[0])
+
     def _extract_video(self, info):
         video_id = info['id']
         self.report_extraction(video_id)
 
         initial_video_url = info['publishPoint']
-        data = compat_urllib_parse.urlencode({
-            'type': 'fvod',
-            'path': initial_video_url.replace('.mp4', '_sd.mp4'),
-        })
-        path_url = 'http://video.nhl.com/videocenter/servlets/encryptvideopath?' + data
-        path_doc = self._download_xml(
-            path_url, video_id, 'Downloading final video url')
-        video_url = path_doc.find('path').text
+        if info['formats'] == '1':
+            parsed_url = compat_urllib_parse_urlparse(initial_video_url)
+            filename, ext = os.path.splitext(parsed_url.path)
+            path = '%s_sd%s' % (filename, ext)
+            data = compat_urllib_parse.urlencode({
+                'type': 'fvod',
+                'path': compat_urlparse.urlunparse(parsed_url[:2] + (path,) + parsed_url[3:])
+            })
+            path_url = 'http://video.nhl.com/videocenter/servlets/encryptvideopath?' + data
+            path_doc = self._download_xml(
+                path_url, video_id, 'Downloading final video url')
+            video_url = path_doc.find('path').text
+        else:
+            video_url = initial_video_url
 
         join = compat_urlparse.urljoin
         return {
             'id': video_id,
             'title': info['name'],
             'url': video_url,
-            'ext': determine_ext(video_url),
             'description': info['description'],
             'duration': int(info['duration']),
             'thumbnail': join(join(video_url, '/u/'), info['bigImage']),
@@ -46,10 +60,11 @@ class NHLBaseInfoExtractor(InfoExtractor):
 
 class NHLIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com'
-    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/console(?:\?(?:.*?[?&])?)id=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/(?:console)?(?:\?(?:.*?[?&])?)id=(?P<id>[-0-9a-zA-Z]+)'
 
     _TESTS = [{
         'url': 'http://video.canucks.nhl.com/videocenter/console?catid=6?id=453614',
+        'md5': 'db704a4ea09e8d3988c85e36cc892d09',
         'info_dict': {
             'id': '453614',
             'ext': 'mp4',
@@ -59,23 +74,71 @@ class NHLIE(NHLBaseInfoExtractor):
             'upload_date': '20131006',
         },
     }, {
+        'url': 'http://video.nhl.com/videocenter/console?id=2014020024-628-h',
+        'md5': 'd22e82bc592f52d37d24b03531ee9696',
+        'info_dict': {
+            'id': '2014020024-628-h',
+            'ext': 'mp4',
+            'title': 'Alex Galchenyuk Goal on Ray Emery (14:40/3rd)',
+            'description': 'Home broadcast - Montreal Canadiens at Philadelphia Flyers - October 11, 2014',
+            'duration': 0,
+            'upload_date': '20141011',
+        },
+    }, {
+        'url': 'http://video.mapleleafs.nhl.com/videocenter/console?id=58665&catid=802',
+        'md5': 'c78fc64ea01777e426cfc202b746c825',
+        'info_dict': {
+            'id': '58665',
+            'ext': 'flv',
+            'title': 'Classic Game In Six - April 22, 1979',
+            'description': 'It was the last playoff game for the Leafs in the decade, and the last time the Leafs and Habs played in the playoffs. Great game, not a great ending.',
+            'duration': 400,
+            'upload_date': '20100129'
+        },
+    }, {
         'url': 'http://video.flames.nhl.com/videocenter/console?id=630616',
+        'only_matching': True,
+    }, {
+        'url': 'http://video.nhl.com/videocenter/?id=736722',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        json_url = 'http://video.nhl.com/videocenter/servlets/playlist?ids=%s&format=json' % video_id
-        data = self._download_json(
-            json_url, video_id, transform_source=self._fix_json)
-        return self._extract_video(data[0])
+        video_id = self._match_id(url)
+        return self._real_extract_video(video_id)
+
+
+class NHLNewsIE(NHLBaseInfoExtractor):
+    IE_NAME = 'nhl.com:news'
+    IE_DESC = 'NHL news'
+    _VALID_URL = r'https?://(?:www\.)?nhl\.com/ice/news\.html?(?:\?(?:.*?[?&])?)id=(?P<id>[-0-9a-zA-Z]+)'
+
+    _TEST = {
+        'url': 'http://www.nhl.com/ice/news.htm?id=750727',
+        'md5': '4b3d1262e177687a3009937bd9ec0be8',
+        'info_dict': {
+            'id': '736722',
+            'ext': 'mp4',
+            'title': 'Cal Clutterbuck has been fined $2,000',
+            'description': 'md5:45fe547d30edab88b23e0dd0ab1ed9e6',
+            'duration': 37,
+            'upload_date': '20150128',
+        },
+    }
+
+    def _real_extract(self, url):
+        news_id = self._match_id(url)
+        webpage = self._download_webpage(url, news_id)
+        video_id = self._search_regex(
+            [r'pVid(\d+)', r"nlid\s*:\s*'(\d+)'"],
+            webpage, 'video id')
+        return self._real_extract_video(video_id)
 
 
 class NHLVideocenterIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com:videocenter'
     IE_DESC = 'NHL videocenter category'
-    _VALID_URL = r'https?://video\.(?P<team>[^.]*)\.nhl\.com/videocenter/(console\?.*?catid=(?P<catid>[0-9]+)(?![&?]id=).*?)?$'
+    _VALID_URL = r'https?://video\.(?P<team>[^.]*)\.nhl\.com/videocenter/(console\?[^(id=)]*catid=(?P<catid>[0-9]+)(?![&?]id=).*?)?$'
     _TEST = {
         'url': 'http://video.canucks.nhl.com/videocenter/console?catid=999',
         'info_dict': {
@@ -109,10 +172,10 @@ class NHLVideocenterIE(NHLBaseInfoExtractor):
         response = self._download_webpage(request_url, playlist_title)
         response = self._fix_json(response)
         if not response.strip():
-            self._downloader.report_warning(u'Got an empty reponse, trying '
+            self._downloader.report_warning('Got an empty reponse, trying '
                                             'adding the "newvideos" parameter')
             response = self._download_webpage(request_url + '&newvideos=true',
-                playlist_title)
+                                              playlist_title)
             response = self._fix_json(response)
         videos = json.loads(response)
 

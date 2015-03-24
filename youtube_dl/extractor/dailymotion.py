@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -6,17 +6,19 @@ import json
 import itertools
 
 from .common import InfoExtractor
-from .subtitles import SubtitlesInfoExtractor
 
-from ..utils import (
-    compat_urllib_request,
+from ..compat import (
     compat_str,
+    compat_urllib_request,
+)
+from ..utils import (
+    ExtractorError,
+    int_or_none,
     orderedSet,
     str_to_int,
-    int_or_none,
-    ExtractorError,
     unescapeHTML,
 )
+
 
 class DailymotionBaseInfoExtractor(InfoExtractor):
     @staticmethod
@@ -27,7 +29,8 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
         request.add_header('Cookie', 'ff=off')
         return request
 
-class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
+
+class DailymotionIE(DailymotionBaseInfoExtractor):
     """Information Extractor for Dailymotion"""
 
     _VALID_URL = r'(?i)(?:https?://)?(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(embed|#)/)?video/(?P<id>[^/?_]+)'
@@ -43,13 +46,13 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
 
     _TESTS = [
         {
-            'url': 'http://www.dailymotion.com/video/x33vw9_tutoriel-de-youtubeur-dl-des-video_tech',
-            'md5': '392c4b85a60a90dc4792da41ce3144eb',
+            'url': 'https://www.dailymotion.com/video/x2iuewm_steam-machine-models-pricing-listed-on-steam-store-ign-news_videogames',
+            'md5': '2137c41a8e78554bb09225b8eb322406',
             'info_dict': {
-                'id': 'x33vw9',
+                'id': 'x2iuewm',
                 'ext': 'mp4',
-                'uploader': 'Amphora Alex and Van .',
-                'title': 'Tutoriel de Youtubeur"DL DES VIDEO DE YOUTUBE"',
+                'uploader': 'IGN',
+                'title': 'Steam Machine Models, Pricing Listed on Steam Store - IGN News',
             }
         },
         # Vevo video
@@ -82,11 +85,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
     ]
 
     def _real_extract(self, url):
-        # Extract id and simplified title from URL
-        mobj = re.match(self._VALID_URL, url)
-
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         url = 'http://www.dailymotion.com/video/%s' % video_id
 
         # Retrieve video webpage to extract further information
@@ -98,7 +97,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # It may just embed a vevo video:
         m_vevo = re.search(
-            r'<link rel="video_src" href="[^"]*?vevo.com[^"]*?videoId=(?P<id>[\w]*)',
+            r'<link rel="video_src" href="[^"]*?vevo.com[^"]*?video=(?P<id>[\w]*)',
             webpage)
         if m_vevo is not None:
             vevo_id = m_vevo.group('id')
@@ -116,7 +115,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
         embed_page = self._download_webpage(embed_url, video_id,
                                             'Downloading embed page')
         info = self._search_regex(r'var info = ({.*?}),$', embed_page,
-            'video info', flags=re.MULTILINE)
+                                  'video info', flags=re.MULTILINE)
         info = json.loads(info)
         if info.get('error') is not None:
             msg = 'Couldn\'t get video, Dailymotion says: %s' % info['error']['title']
@@ -143,28 +142,30 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
 
         # subtitles
         video_subtitles = self.extract_subtitles(video_id, webpage)
-        if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id, webpage)
-            return
 
-        view_count = self._search_regex(
-            r'video_views_count[^>]+>\s+([\d\.,]+)', webpage, 'view count', fatal=False)
-        if view_count is not None:
-            view_count = str_to_int(view_count)
+        view_count = str_to_int(self._search_regex(
+            r'video_views_count[^>]+>\s+([\d\.,]+)',
+            webpage, 'view count', fatal=False))
+
+        title = self._og_search_title(webpage, default=None)
+        if title is None:
+            title = self._html_search_regex(
+                r'(?s)<span\s+id="video_title"[^>]*>(.*?)</span>', webpage,
+                'title')
 
         return {
-            'id':       video_id,
+            'id': video_id,
             'formats': formats,
             'uploader': info['owner.screenname'],
-            'upload_date':  video_upload_date,
-            'title':    self._og_search_title(webpage),
-            'subtitles':    video_subtitles,
+            'upload_date': video_upload_date,
+            'title': title,
+            'subtitles': video_subtitles,
             'thumbnail': info['thumbnail_url'],
             'age_limit': age_limit,
             'view_count': view_count,
         }
 
-    def _get_available_subtitles(self, video_id, webpage):
+    def _get_subtitles(self, video_id, webpage):
         try:
             sub_list = self._download_webpage(
                 'https://api.dailymotion.com/video/%s/subtitles?fields=id,language,url' % video_id,
@@ -174,7 +175,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor, SubtitlesInfoExtractor):
             return {}
         info = json.loads(sub_list)
         if (info['total'] > 0):
-            sub_lang_list = dict((l['language'], l['url']) for l in info['list'])
+            sub_lang_list = dict((l['language'], [{'url': l['url'], 'ext': 'srt'}]) for l in info['list'])
             return sub_lang_list
         self._downloader.report_warning('video doesn\'t have subtitles')
         return {}
@@ -189,6 +190,7 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
         'url': 'http://www.dailymotion.com/playlist/xv4bw_nqtv_sport/1#video=xl8v3q',
         'info_dict': {
             'title': 'SPORT',
+            'id': 'xv4bw_nqtv_sport',
         },
         'playlist_mincount': 20,
     }]
@@ -205,7 +207,7 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
             if re.search(self._MORE_PAGES_INDICATOR, webpage) is None:
                 break
         return [self.url_result('http://www.dailymotion.com/video/%s' % video_id, 'Dailymotion')
-                   for video_id in orderedSet(video_ids)]
+                for video_id in orderedSet(video_ids)]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

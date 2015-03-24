@@ -5,15 +5,18 @@ import re
 import socket
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_http_client,
     compat_str,
     compat_urllib_error,
     compat_urllib_parse,
     compat_urllib_request,
-    urlencode_postdata,
+)
+from ..utils import (
     ExtractorError,
+    int_or_none,
     limit_length,
+    urlencode_postdata,
 )
 
 
@@ -34,8 +37,7 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '637842556329505',
             'ext': 'mp4',
-            'duration': 38,
-            'title': 'Did you know Kei Nishikori is the first Asian man to ever reach a Grand Slam fin...',
+            'title': 're:Did you know Kei Nishikori is the first Asian man to ever reach a Grand Slam',
         }
     }, {
         'note': 'Video without discernible title',
@@ -58,8 +60,8 @@ class FacebookIE(InfoExtractor):
         login_page_req = compat_urllib_request.Request(self._LOGIN_URL)
         login_page_req.add_header('Cookie', 'locale=en_US')
         login_page = self._download_webpage(login_page_req, None,
-            note='Downloading login page',
-            errnote='Unable to download login page')
+                                            note='Downloading login page',
+                                            errnote='Unable to download login page')
         lsd = self._search_regex(
             r'<input type="hidden" name="lsd" value="([^"]*)"',
             login_page, 'lsd')
@@ -75,12 +77,12 @@ class FacebookIE(InfoExtractor):
             'legacy_return': '1',
             'timezone': '-60',
             'trynum': '1',
-            }
+        }
         request = compat_urllib_request.Request(self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         try:
             login_results = self._download_webpage(request, None,
-                note='Logging in', errnote='unable to fetch login page')
+                                                   note='Logging in', errnote='unable to fetch login page')
             if re.search(r'<form(.*)name="login"(.*)</form>', login_results) is not None:
                 self._downloader.report_warning('unable to log in: bad username/password, or exceded login rate limit (~3/min). Check credentials or wait.')
                 return
@@ -94,7 +96,7 @@ class FacebookIE(InfoExtractor):
             check_req = compat_urllib_request.Request(self._CHECKPOINT_URL, urlencode_postdata(check_form))
             check_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
             check_response = self._download_webpage(check_req, None,
-                note='Confirming login')
+                                                    note='Confirming login')
             if re.search(r'id="checkpointSubmitButton"', check_response) is not None:
                 self._downloader.report_warning('Unable to confirm login, you have to login in your brower and authorize the login.')
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -105,9 +107,7 @@ class FacebookIE(InfoExtractor):
         self._login()
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         url = 'https://www.facebook.com/video/video.php?v=%s' % video_id
         webpage = self._download_webpage(url, video_id)
 
@@ -126,11 +126,17 @@ class FacebookIE(InfoExtractor):
         params_raw = compat_urllib_parse.unquote(data['params'])
         params = json.loads(params_raw)
         video_data = params['video_data'][0]
-        video_url = video_data.get('hd_src')
-        if not video_url:
-            video_url = video_data['sd_src']
-        if not video_url:
-            raise ExtractorError('Cannot find video URL')
+
+        formats = []
+        for quality in ['sd', 'hd']:
+            src = video_data.get('%s_src' % quality)
+            if src is not None:
+                formats.append({
+                    'format_id': quality,
+                    'url': src,
+                })
+        if not formats:
+            raise ExtractorError('Cannot find video formats')
 
         video_title = self._html_search_regex(
             r'<h2 class="uiHeaderTitle">([^<]*)</h2>', webpage, 'title',
@@ -146,7 +152,7 @@ class FacebookIE(InfoExtractor):
         return {
             'id': video_id,
             'title': video_title,
-            'url': video_url,
-            'duration': int(video_data['video_duration']),
-            'thumbnail': video_data['thumbnail_src'],
+            'formats': formats,
+            'duration': int_or_none(video_data.get('video_duration')),
+            'thumbnail': video_data.get('thumbnail_src'),
         }

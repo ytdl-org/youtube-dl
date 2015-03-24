@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 
 
@@ -20,13 +18,11 @@ class IconosquareIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        html_title = self._html_search_regex(
-            r'<title>(.+?)</title>',
+        title = self._html_search_regex(
+            r'<title>(.+?)(?: *\(Videos?\))? \| (?:Iconosquare|Statigram)</title>',
             webpage, 'title')
-        title = re.sub(r'(?: *\(Videos?\))? \| (?:Iconosquare|Statigram)$', '', html_title)
         uploader_id = self._html_search_regex(
             r'@([^ ]+)', title, 'uploader name', fatal=False)
 

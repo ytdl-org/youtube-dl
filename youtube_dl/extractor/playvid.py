@@ -3,30 +3,37 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
+)
+from ..utils import (
+    clean_html,
+    ExtractorError,
 )
 
 
 class PlayvidIE(InfoExtractor):
-    _VALID_URL = r'^https?://www\.playvid\.com/watch(\?v=|/)(?P<id>.+?)(?:#|$)'
+    _VALID_URL = r'https?://www\.playvid\.com/watch(\?v=|/)(?P<id>.+?)(?:#|$)'
     _TEST = {
-        'url': 'http://www.playvid.com/watch/agbDDi7WZTV',
-        'md5': '44930f8afa616efdf9482daf4fe53e1e',
+        'url': 'http://www.playvid.com/watch/RnmBNgtrrJu',
+        'md5': 'ffa2f6b2119af359f544388d8c01eb6c',
         'info_dict': {
-            'id': 'agbDDi7WZTV',
+            'id': 'RnmBNgtrrJu',
             'ext': 'mp4',
-            'title': 'Michelle Lewin in Miami Beach',
-            'duration': 240,
+            'title': 'md5:9256d01c6317e3f703848b5906880dc8',
+            'duration': 82,
             'age_limit': 18,
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
+        m_error = re.search(
+            r'<div class="block-error">\s*<div class="heading">\s*<div>(?P<msg>.+?)</div>\s*</div>', webpage)
+        if m_error:
+            raise ExtractorError(clean_html(m_error.group('msg')), expected=True)
 
         video_title = None
         duration = None

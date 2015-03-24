@@ -2,10 +2,9 @@
 from __future__ import unicode_literals
 
 import re
-import time
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
 )
@@ -13,7 +12,7 @@ from ..utils import (
 
 class StreamcloudIE(InfoExtractor):
     IE_NAME = 'streamcloud.eu'
-    _VALID_URL = r'https?://streamcloud\.eu/(?P<id>[a-zA-Z0-9_-]+)/(?P<fname>[^#?]*)\.html'
+    _VALID_URL = r'https?://streamcloud\.eu/(?P<id>[a-zA-Z0-9_-]+)(?:/(?P<fname>[^#?]*)\.html)?'
 
     _TEST = {
         'url': 'http://streamcloud.eu/skp9j99s4bpz/youtube-dl_test_video_____________-BaW_jenozKc.mp4.html',
@@ -27,8 +26,8 @@ class StreamcloudIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
+        url = 'http://streamcloud.eu/%s' % video_id
 
         orig_webpage = self._download_webpage(url, video_id)
 
@@ -40,8 +39,7 @@ class StreamcloudIE(InfoExtractor):
             ''', orig_webpage)
         post = compat_urllib_parse.urlencode(fields)
 
-        self.to_screen('%s: Waiting for timeout' % video_id)
-        time.sleep(12)
+        self._sleep(12, video_id)
         headers = {
             b'Content-Type': b'application/x-www-form-urlencoded',
         }

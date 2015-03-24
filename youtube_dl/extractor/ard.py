@@ -4,16 +4,16 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from .generic import GenericIE
 from ..utils import (
     determine_ext,
     ExtractorError,
     qualities,
-    compat_urllib_parse_urlparse,
-    compat_urllib_parse,
     int_or_none,
     parse_duration,
     unified_strdate,
     xpath_text,
+    parse_xml,
 )
 
 
@@ -23,13 +23,7 @@ class ARDMediathekIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://mediathek.daserste.de/sendungen_a-z/328454_anne-will/22429276_vertrauen-ist-gut-spionieren-ist-besser-geht',
-        'file': '22429276.mp4',
-        'md5': '469751912f1de0816a9fc9df8336476c',
-        'info_dict': {
-            'title': 'Vertrauen ist gut, Spionieren ist besser - Geht so deutsch-amerikanische Freundschaft?',
-            'description': 'Das Erste Mediathek [ARD]: Vertrauen ist gut, Spionieren ist besser - Geht so deutsch-amerikanische Freundschaft?, Anne Will, Über die Spionage-Affäre diskutieren Clemens Binninger, Katrin Göring-Eckardt, Georg Mascolo, Andrew B. Denison und Constanze Kurz.. Das Video zur Sendung Anne Will am Mittwoch, 16.07.2014',
-        },
-        'skip': 'Blocked outside of Germany',
+        'only_matching': True,
     }, {
         'url': 'http://www.ardmediathek.de/tv/Tatort/Das-Wunder-von-Wolbeck-Video-tgl-ab-20/Das-Erste/Video?documentId=22490580&bcastId=602916',
         'info_dict': {
@@ -55,6 +49,14 @@ class ARDMediathekIE(InfoExtractor):
 
         if '>Der gewünschte Beitrag ist nicht mehr verfügbar.<' in webpage:
             raise ExtractorError('Video %s is no longer available' % video_id, expected=True)
+
+        if 'Diese Sendung ist für Jugendliche unter 12 Jahren nicht geeignet. Der Clip ist deshalb nur von 20 bis 6 Uhr verfügbar.' in webpage:
+            raise ExtractorError('This program is only suitable for those aged 12 and older. Video %s is therefore only available between 20 pm and 6 am.' % video_id, expected=True)
+
+        if re.search(r'[\?&]rss($|[=&])', url):
+            doc = parse_xml(webpage)
+            if doc.tag == 'rss':
+                return GenericIE()._extract_rss(url, video_id, doc)
 
         title = self._html_search_regex(
             [r'<h1(?:\s+class="boxTopHeadline")?>(.*?)</h1>',
@@ -187,4 +189,3 @@ class ARDIE(InfoExtractor):
             'upload_date': upload_date,
             'thumbnail': thumbnail,
         }
-

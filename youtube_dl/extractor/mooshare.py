@@ -1,13 +1,14 @@
 from __future__ import unicode_literals
 
 import re
-import time
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
+from ..compat import (
     compat_urllib_request,
     compat_urllib_parse,
+)
+from ..utils import (
+    ExtractorError,
 )
 
 
@@ -43,13 +44,11 @@ class MooshareIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         page = self._download_webpage(url, video_id, 'Downloading page')
 
         if re.search(r'>Video Not Found or Deleted<', page) is not None:
-            raise ExtractorError(u'Video %s does not exist' % video_id, expected=True)
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
         hash_key = self._html_search_regex(r'<input type="hidden" name="hash" value="([^"]+)">', page, 'hash')
         title = self._html_search_regex(r'(?m)<div class="blockTitle">\s*<h2>Watch ([^<]+)</h2>', page, 'title')
@@ -64,8 +63,7 @@ class MooshareIE(InfoExtractor):
             'http://mooshare.biz/%s' % video_id, compat_urllib_parse.urlencode(download_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
 
-        self.to_screen('%s: Waiting for timeout' % video_id)
-        time.sleep(5)
+        self._sleep(5, video_id)
 
         video_page = self._download_webpage(request, video_id, 'Downloading video page')
 

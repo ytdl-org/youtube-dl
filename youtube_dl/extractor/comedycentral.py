@@ -2,11 +2,12 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from .mtv import MTVServicesInfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
     compat_urllib_parse,
+)
+from ..utils import (
     ExtractorError,
     float_or_none,
     unified_strdate,
@@ -31,14 +32,14 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
     }
 
 
-class ComedyCentralShowsIE(InfoExtractor):
+class ComedyCentralShowsIE(MTVServicesInfoExtractor):
     IE_DESC = 'The Daily Show / The Colbert Report'
-    # urls can be abbreviations like :thedailyshow or :colbert
+    # urls can be abbreviations like :thedailyshow
     # urls for episodes like:
     # or urls for clips like: http://www.thedailyshow.com/watch/mon-december-10-2012/any-given-gun-day
     #                     or: http://www.colbertnation.com/the-colbert-report-videos/421667/november-29-2012/moon-shattering-news
     #                     or: http://www.colbertnation.com/the-colbert-report-collections/422008/festival-of-lights/79524
-    _VALID_URL = r'''(?x)^(:(?P<shortname>tds|thedailyshow|cr|colbert|colbertnation|colbertreport)
+    _VALID_URL = r'''(?x)^(:(?P<shortname>tds|thedailyshow)
                       |https?://(:www\.)?
                           (?P<showname>thedailyshow|thecolbertreport)\.(?:cc\.)?com/
                          ((?:full-)?episodes/(?:[0-9a-z]{6}/)?(?P<episode>.*)|
@@ -48,8 +49,10 @@ class ComedyCentralShowsIE(InfoExtractor):
                               |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*))
                           )|
                           (?P<interview>
-                              extended-interviews/(?P<interID>[0-9a-z]+)/(?:playlist_tds_extended_)?(?P<interview_title>.*?)(/.*?)?)))
-                     (?:[?#].*|$)'''
+                              extended-interviews/(?P<interID>[0-9a-z]+)/
+                              (?:playlist_tds_extended_)?(?P<interview_title>[^/?#]*?)
+                              (?:/[^/?#]?|[?#]|$))))
+                     '''
     _TESTS = [{
         'url': 'http://thedailyshow.cc.com/watch/thu-december-13-2012/kristen-stewart',
         'md5': '4e2f5cb088a83cd8cdb7756132f9739d',
@@ -61,6 +64,38 @@ class ComedyCentralShowsIE(InfoExtractor):
             'uploader': 'thedailyshow',
             'title': 'thedailyshow kristen-stewart part 1',
         }
+    }, {
+        'url': 'http://thedailyshow.cc.com/extended-interviews/b6364d/sarah-chayes-extended-interview',
+        'info_dict': {
+            'id': 'sarah-chayes-extended-interview',
+            'description': 'Carnegie Endowment Senior Associate Sarah Chayes discusses how corrupt institutions function throughout the world in her book "Thieves of State: Why Corruption Threatens Global Security."',
+            'title': 'thedailyshow Sarah Chayes Extended Interview',
+        },
+        'playlist': [
+            {
+                'info_dict': {
+                    'id': '0baad492-cbec-4ec1-9e50-ad91c291127f',
+                    'ext': 'mp4',
+                    'upload_date': '20150129',
+                    'description': 'Carnegie Endowment Senior Associate Sarah Chayes discusses how corrupt institutions function throughout the world in her book "Thieves of State: Why Corruption Threatens Global Security."',
+                    'uploader': 'thedailyshow',
+                    'title': 'thedailyshow sarah-chayes-extended-interview part 1',
+                },
+            },
+            {
+                'info_dict': {
+                    'id': '1e4fb91b-8ce7-4277-bd7c-98c9f1bbd283',
+                    'ext': 'mp4',
+                    'upload_date': '20150129',
+                    'description': 'Carnegie Endowment Senior Associate Sarah Chayes discusses how corrupt institutions function throughout the world in her book "Thieves of State: Why Corruption Threatens Global Security."',
+                    'uploader': 'thedailyshow',
+                    'title': 'thedailyshow sarah-chayes-extended-interview part 2',
+                },
+            },
+        ],
+        'params': {
+            'skip_download': True,
+        },
     }, {
         'url': 'http://thedailyshow.cc.com/extended-interviews/xm3fnq/andrew-napolitano-extended-interview',
         'only_matching': True,
@@ -81,6 +116,9 @@ class ComedyCentralShowsIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://thedailyshow.cc.com/video-playlists/npde3s/the-daily-show-19088-highlights',
+        'only_matching': True,
+    }, {
+        'url': 'http://thedailyshow.cc.com/video-playlists/t6d9sg/the-daily-show-20038-highlights/be3cwo',
         'only_matching': True,
     }, {
         'url': 'http://thedailyshow.cc.com/special-editions/2l8fdb/special-edition---a-look-back-at-food',
@@ -109,18 +147,8 @@ class ComedyCentralShowsIE(InfoExtractor):
         '400': (384, 216),
     }
 
-    @staticmethod
-    def _transform_rtmp_url(rtmp_video_url):
-        m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp\.comedystor/.*)$', rtmp_video_url)
-        if not m:
-            raise ExtractorError('Cannot transform RTMP url')
-        base = 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=1+_pxI0=Ripod-h264+_pxL0=undefined+_pxM0=+_pxK=18639+_pxE=mp4/44620/mtvnorigin/'
-        return base + m.group('finalid')
-
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url, re.VERBOSE)
-        if mobj is None:
-            raise ExtractorError('Invalid URL: %s' % url)
+        mobj = re.match(self._VALID_URL, url)
 
         if mobj.group('shortname'):
             if mobj.group('shortname') in ('tds', 'thedailyshow'):
@@ -212,9 +240,6 @@ class ComedyCentralShowsIE(InfoExtractor):
                     'ext': self._video_extensions.get(format, 'mp4'),
                     'height': h,
                     'width': w,
-
-                    'format_note': 'HTTP 400 at the moment (patches welcome!)',
-                    'preference': -100,
                 })
                 formats.append({
                     'format_id': 'rtmp-%s' % format,
@@ -224,6 +249,8 @@ class ComedyCentralShowsIE(InfoExtractor):
                     'width': w,
                 })
                 self._sort_formats(formats)
+
+            subtitles = self._extract_subtitles(cdoc, guid)
 
             virtual_id = show_name + ' ' + epTitle + ' part ' + compat_str(part_num + 1)
             entries.append({
@@ -235,10 +262,12 @@ class ComedyCentralShowsIE(InfoExtractor):
                 'duration': duration,
                 'thumbnail': thumbnail,
                 'description': description,
+                'subtitles': subtitles,
             })
 
         return {
             '_type': 'playlist',
+            'id': epTitle,
             'entries': entries,
             'title': show_name + ' ' + title,
             'description': description,

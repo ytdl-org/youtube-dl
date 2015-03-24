@@ -4,13 +4,15 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
+from ..compat import (
     compat_parse_qs,
     compat_urllib_parse,
-    remove_end,
-    HEADRequest,
     compat_HTTPError,
+)
+from ..utils import (
+    ExtractorError,
+    HEADRequest,
+    remove_end,
 )
 
 
@@ -103,6 +105,7 @@ class CloudyIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         file_key = self._search_regex(
-            r'filekey\s*=\s*"([^"]+)"', webpage, 'file_key')
+            [r'key\s*:\s*"([^"]+)"', r'filekey\s*=\s*"([^"]+)"'],
+            webpage, 'file_key')
 
         return self._extract_video(video_host, video_id, file_key)

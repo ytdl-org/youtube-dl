@@ -3,10 +3,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_parse_qs,
     compat_urllib_parse,
     compat_urllib_request,
+)
+from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
@@ -22,7 +24,7 @@ class MetacafeIE(InfoExtractor):
         # Youtube video
         {
             'add_ie': ['Youtube'],
-            'url':  'http://metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/',
+            'url': 'http://metacafe.com/watch/yt-_aUehQsCQtM/the_electric_company_short_i_pbs_kids_go/',
             'info_dict': {
                 'id': '_aUehQsCQtM',
                 'ext': 'mp4',
@@ -219,8 +221,8 @@ class MetacafeIE(InfoExtractor):
         description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
         video_uploader = self._html_search_regex(
-                r'submitter=(.*?);|googletag\.pubads\(\)\.setTargeting\("(?:channel|submiter)","([^"]+)"\);',
-                webpage, 'uploader nickname', fatal=False)
+            r'submitter=(.*?);|googletag\.pubads\(\)\.setTargeting\("(?:channel|submiter)","([^"]+)"\);',
+            webpage, 'uploader nickname', fatal=False)
         duration = int_or_none(
             self._html_search_meta('video:duration', webpage))
 

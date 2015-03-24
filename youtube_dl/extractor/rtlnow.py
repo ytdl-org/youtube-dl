@@ -81,7 +81,7 @@ class RTLnowIE(InfoExtractor):
                 'id': '99205',
                 'ext': 'flv',
                 'title': 'Medicopter 117 - Angst!',
-                'description': 'md5:895b1df01639b5f61a04fc305a5cb94d',
+                'description': 're:^Im Therapiezentrum \'Sonnalm\' kommen durch eine Unachtsamkeit die für die B.handlung mit Phobikern gehaltenen Voglespinnen frei\. Eine Ausreißerin',
                 'thumbnail': 'http://autoimg.static-fra.de/superrtlnow/287529/1500x1500/image2.jpg',
                 'upload_date': '20080928',
                 'duration': 2691,
@@ -91,6 +91,15 @@ class RTLnowIE(InfoExtractor):
             },
         },
         {
+            'url': 'http://rtl-now.rtl.de/der-bachelor/folge-4.php?film_id=188729&player=1&season=5',
+            'info_dict': {
+                'id': '188729',
+                'ext': 'flv',
+                'upload_date': '20150204',
+                'description': 'md5:5e1ce23095e61a79c166d134b683cecc',
+                'title': 'Der Bachelor - Folge 4',
+            }
+        }, {
             'url': 'http://www.n-tvnow.de/deluxe-alles-was-spass-macht/thema-ua-luxushotel-fuer-vierbeiner.php?container_id=153819&player=1&season=0',
             'only_matching': True,
         },
@@ -122,7 +131,7 @@ class RTLnowIE(InfoExtractor):
         playerdata = self._download_xml(playerdata_url, video_id, 'Downloading player data XML')
 
         videoinfo = playerdata.find('./playlist/videoinfo')
-        
+
         formats = []
         for filename in videoinfo.findall('filename'):
             mobj = re.search(r'(?P<url>rtmpe://(?:[^/]+/){2})(?P<play_path>.+)', filename.text)
@@ -134,9 +143,18 @@ class RTLnowIE(InfoExtractor):
                     'player_url': video_page_url + 'includes/vodplayer.swf',
                 }
             else:
-                fmt = {
-                    'url': filename.text,
-                }
+                mobj = re.search(r'.*/(?P<hoster>[^/]+)/videos/(?P<play_path>.+)\.f4m', filename.text)
+                if mobj:
+                    fmt = {
+                        'url': 'rtmpe://fms.rtl.de/' + mobj.group('hoster'),
+                        'play_path': 'mp4:' + mobj.group('play_path'),
+                        'page_url': url,
+                        'player_url': video_page_url + 'includes/vodplayer.swf',
+                    }
+                else:
+                    fmt = {
+                        'url': filename.text,
+                    }
             fmt.update({
                 'width': int_or_none(filename.get('width')),
                 'height': int_or_none(filename.get('height')),

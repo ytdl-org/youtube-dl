@@ -5,15 +5,14 @@ import re
 import json
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
-    compat_str,
     qualities,
-    determine_ext,
 )
 
 
 class AllocineIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?allocine\.fr/(?P<typ>article|video|film)/(fichearticle_gen_carticle=|player_gen_cmedia=|fichefilm_gen_cfilm=)(?P<id>[0-9]+)(?:\.html)?'
+    _VALID_URL = r'https?://(?:www\.)?allocine\.fr/(?P<typ>article|video|film)/(fichearticle_gen_carticle=|player_gen_cmedia=|fichefilm_gen_cfilm=|video-)(?P<id>[0-9]+)(?:\.html)?'
 
     _TESTS = [{
         'url': 'http://www.allocine.fr/article/fichearticle_gen_carticle=18635087.html',
@@ -22,7 +21,7 @@ class AllocineIE(InfoExtractor):
             'id': '19546517',
             'ext': 'mp4',
             'title': 'Astérix - Le Domaine des Dieux Teaser VF',
-            'description': 'md5:4a754271d9c6f16c72629a8a993ee884',
+            'description': 'md5:abcd09ce503c6560512c14ebfdb720d2',
             'thumbnail': 're:http://.*\.jpg',
         },
     }, {
@@ -45,6 +44,9 @@ class AllocineIE(InfoExtractor):
             'description': 'md5:71742e3a74b0d692c7fce0dd2017a4ac',
             'thumbnail': 're:http://.*\.jpg',
         },
+    }, {
+        'url': 'http://www.allocine.fr/video/video-19550147/',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -75,9 +77,7 @@ class AllocineIE(InfoExtractor):
                     'format_id': format_id,
                     'quality': quality(format_id),
                     'url': v,
-                    'ext': determine_ext(v),
                 })
-
         self._sort_formats(formats)
 
         return {

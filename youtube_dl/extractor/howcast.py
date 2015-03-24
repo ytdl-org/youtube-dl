@@ -13,7 +13,7 @@ class HowcastIE(InfoExtractor):
         'info_dict': {
             'id': '390161',
             'ext': 'mp4',
-            'description': 'The square knot, also known as the reef knot, is one of the oldest, most basic knots to tie, and can be used in many different ways. Here\'s the proper way to tie a square knot.', 
+            'description': 'The square knot, also known as the reef knot, is one of the oldest, most basic knots to tie, and can be used in many different ways. Here\'s the proper way to tie a square knot.',
             'title': 'How to Tie a Square Knot Properly',
         }
     }
@@ -27,10 +27,10 @@ class HowcastIE(InfoExtractor):
         self.report_extraction(video_id)
 
         video_url = self._search_regex(r'\'?file\'?: "(http://mobile-media\.howcast\.com/[0-9]+\.mp4)',
-            webpage, 'video URL')
+                                       webpage, 'video URL')
 
         video_description = self._html_search_regex(r'<meta content=(?:"([^"]+)"|\'([^\']+)\') name=\'description\'',
-            webpage, 'description', fatal=False)
+                                                    webpage, 'description', fatal=False)
 
         return {
             'id': video_id,

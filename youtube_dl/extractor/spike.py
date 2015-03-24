@@ -1,14 +1,12 @@
 from __future__ import unicode_literals
 
-import re
-
 from .mtv import MTVServicesInfoExtractor
 
 
 class SpikeIE(MTVServicesInfoExtractor):
     _VALID_URL = r'''(?x)https?://
-        (www\.spike\.com/(video-clips|episodes)/.+|
-         m\.spike\.com/videos/video.rbml\?id=(?P<mobile_id>[^&]+))
+        (?:www\.spike\.com/(?:video-clips|(?:full-)?episodes)/.+|
+         m\.spike\.com/videos/video\.rbml\?id=(?P<id>[^&]+))
         '''
     _TEST = {
         'url': 'http://www.spike.com/video-clips/lhtu8m/auction-hunters-can-allen-ride-a-hundred-year-old-motorcycle',
@@ -25,8 +23,7 @@ class SpikeIE(MTVServicesInfoExtractor):
     _MOBILE_TEMPLATE = 'http://m.spike.com/videos/video.rbml?id=%s'
 
     def _real_extract(self, url):
-        mobj = re.search(self._VALID_URL, url)
-        mobile_id = mobj.group('mobile_id')
-        if mobile_id is not None:
+        mobile_id = self._match_id(url)
+        if mobile_id:
             url = 'http://www.spike.com/video-clips/%s' % mobile_id
         return super(SpikeIE, self)._real_extract(url)

@@ -16,7 +16,7 @@ class MailRuIE(InfoExtractor):
             'url': 'http://my.mail.ru/video/top#video=/mail/sonypicturesrus/75/76',
             'md5': 'dea205f03120046894db4ebb6159879a',
             'info_dict': {
-                'id': '46301138',
+                'id': '46301138_76',
                 'ext': 'mp4',
                 'title': 'Новый Человек-Паук. Высокое напряжение. Восстание Электро',
                 'timestamp': 1393232740,
@@ -30,7 +30,7 @@ class MailRuIE(InfoExtractor):
             'url': 'http://my.mail.ru/corp/hitech/video/news_hi-tech_mail_ru/1263.html',
             'md5': '00a91a58c3402204dcced523777b475f',
             'info_dict': {
-                'id': '46843144',
+                'id': '46843144_1263',
                 'ext': 'mp4',
                 'title': 'Samsung Galaxy S5 Hammer Smash Fail Battery Explosion',
                 'timestamp': 1397217632,
@@ -54,30 +54,33 @@ class MailRuIE(InfoExtractor):
 
         author = video_data['author']
         uploader = author['name']
-        uploader_id = author['id']
+        uploader_id = author.get('id') or author.get('email')
+        view_count = video_data.get('views_count')
 
-        movie = video_data['movie']
-        content_id = str(movie['contentId'])
-        title = movie['title']
+        meta_data = video_data['meta']
+        content_id = '%s_%s' % (
+            meta_data.get('accId', ''), meta_data['itemId'])
+        title = meta_data['title']
         if title.endswith('.mp4'):
             title = title[:-4]
-        thumbnail = movie['poster']
-        duration = movie['duration']
-
-        view_count = video_data['views_count']
+        thumbnail = meta_data['poster']
+        duration = meta_data['duration']
+        timestamp = meta_data['timestamp']
 
         formats = [
             {
                 'url': video['url'],
-                'format_id': video['name'],
+                'format_id': video['key'],
+                'height': int(video['key'].rstrip('p'))
             } for video in video_data['videos']
         ]
+        self._sort_formats(formats)
 
         return {
             'id': content_id,
             'title': title,
             'thumbnail': thumbnail,
-            'timestamp': video_data['timestamp'],
+            'timestamp': timestamp,
             'uploader': uploader,
             'uploader_id': uploader_id,
             'duration': duration,

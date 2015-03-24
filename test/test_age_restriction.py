@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import unicode_literals
 
 # Allow direct execution
 import os
@@ -19,7 +20,7 @@ def _download_restricted(url, filename, age):
         'age_limit': age,
         'skip_download': True,
         'writeinfojson': True,
-        "outtmpl": "%(id)s.%(ext)s",
+        'outtmpl': '%(id)s.%(ext)s',
     }
     ydl = YoutubeDL(params)
     ydl.add_default_info_extractors()
@@ -43,11 +44,6 @@ class TestAgeRestriction(unittest.TestCase):
         self._assert_restricted(
             'http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/',
             '505835.mp4', 2, old_age=25)
-
-    def test_pornotube(self):
-        self._assert_restricted(
-            'http://pornotube.com/c/173/m/1689755/Marilyn-Monroe-Bathing',
-            '1689755.flv', 13)
 
 
 if __name__ == '__main__':

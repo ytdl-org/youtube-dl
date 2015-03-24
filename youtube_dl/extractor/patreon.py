@@ -1,9 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import json
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     js_to_json,
@@ -11,7 +8,7 @@ from ..utils import (
 
 
 class PatreonIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?patreon\.com/creation\?hid=(.+)'
+    _VALID_URL = r'https?://(?:www\.)?patreon\.com/creation\?hid=(?P<id>[^&#]+)'
     _TESTS = [
         {
             'url': 'http://www.patreon.com/creation?hid=743933',
@@ -35,6 +32,23 @@ class PatreonIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*$',
             },
         },
+        {
+            'url': 'https://www.patreon.com/creation?hid=1682498',
+            'info_dict': {
+                'id': 'SU4fj_aEMVw',
+                'ext': 'mp4',
+                'title': 'I\'m on Patreon!',
+                'uploader': 'TraciJHines',
+                'thumbnail': 're:^https?://.*$',
+                'upload_date': '20150211',
+                'description': 'md5:c5a706b1f687817a3de09db1eb93acd4',
+                'uploader_id': 'TraciJHines',
+            },
+            'params': {
+                'noplaylist': True,
+                'skip_download': True,
+            }
+        }
     ]
 
     # Currently Patreon exposes download URL via hidden CSS, so login is not
@@ -65,26 +79,29 @@ class PatreonIE(InfoExtractor):
     '''
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group(1)
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         title = self._og_search_title(webpage).strip()
 
         attach_fn = self._html_search_regex(
             r'<div class="attach"><a target="_blank" href="([^"]+)">',
             webpage, 'attachment URL', default=None)
+        embed = self._html_search_regex(
+            r'<div id="watchCreation">\s*<iframe class="embedly-embed" src="([^"]+)"',
+            webpage, 'embedded URL', default=None)
+
         if attach_fn is not None:
             video_url = 'http://www.patreon.com' + attach_fn
             thumbnail = self._og_search_thumbnail(webpage)
             uploader = self._html_search_regex(
                 r'<strong>(.*?)</strong> is creating', webpage, 'uploader')
+        elif embed is not None:
+            return self.url_result(embed)
         else:
-            playlist_js = self._search_regex(
+            playlist = self._parse_json(self._search_regex(
                 r'(?s)new\s+jPlayerPlaylist\(\s*\{\s*[^}]*},\s*(\[.*?,?\s*\])',
-                webpage, 'playlist JSON')
-            playlist_json = js_to_json(playlist_js)
-            playlist = json.loads(playlist_json)
+                webpage, 'playlist JSON'),
+                video_id, transform_source=js_to_json)
             data = playlist[0]
             video_url = self._proto_relative_url(data['mp3'])
             thumbnail = self._proto_relative_url(data.get('cover'))

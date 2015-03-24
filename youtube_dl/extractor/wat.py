@@ -5,7 +5,10 @@ import re
 import hashlib
 
 from .common import InfoExtractor
-from ..utils import unified_strdate
+from ..utils import (
+    ExtractorError,
+    unified_strdate,
+)
 
 
 class WatIE(InfoExtractor):
@@ -37,6 +40,7 @@ class WatIE(InfoExtractor):
                 'upload_date': '20140816',
                 'duration': 2910,
             },
+            'skip': "Ce contenu n'est pas disponible pour l'instant.",
         },
     ]
 
@@ -56,6 +60,11 @@ class WatIE(InfoExtractor):
         real_id = self._search_regex(r'xtpage = ".*-(.*?)";', webpage, 'real id')
 
         video_info = self.download_video_info(real_id)
+
+        error_desc = video_info.get('error_desc')
+        if error_desc:
+            raise ExtractorError(
+                '%s returned error: %s' % (self.IE_NAME, error_desc), expected=True)
 
         geo_list = video_info.get('geoList')
         country = geo_list[0] if geo_list else ''

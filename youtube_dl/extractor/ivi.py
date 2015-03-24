@@ -5,8 +5,10 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_request,
+)
+from ..utils import (
     ExtractorError,
 )
 
@@ -14,7 +16,7 @@ from ..utils import (
 class IviIE(InfoExtractor):
     IE_DESC = 'ivi.ru'
     IE_NAME = 'ivi'
-    _VALID_URL = r'https?://(?:www\.)?ivi\.ru/(?:watch/(?:[^/]+/)?|video/player\?.*?videoId=)(?P<videoid>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?ivi\.ru/(?:watch/(?:[^/]+/)?|video/player\?.*?videoId=)(?P<id>\d+)'
 
     _TESTS = [
         # Single movie
@@ -43,7 +45,7 @@ class IviIE(InfoExtractor):
                 'thumbnail': 'http://thumbs.ivi.ru/f15.vcp.digitalaccess.ru/contents/8/4/0068dc0677041f3336b7c2baad8fc0.jpg',
             },
             'skip': 'Only works from Russia',
-         }
+        }
     ]
 
     # Sorted by quality
@@ -61,29 +63,34 @@ class IviIE(InfoExtractor):
         return int(m.group('commentcount')) if m is not None else 0
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
+        video_id = self._match_id(url)
 
         api_url = 'http://api.digitalaccess.ru/api/json/'
 
-        data = {'method': 'da.content.get',
-                'params': [video_id, {'site': 's183',
-                                      'referrer': 'http://www.ivi.ru/watch/%s' % video_id,
-                                      'contentid': video_id
-                                      }
-                           ]
+        data = {
+            'method': 'da.content.get',
+            'params': [
+                video_id, {
+                    'site': 's183',
+                    'referrer': 'http://www.ivi.ru/watch/%s' % video_id,
+                    'contentid': video_id
                 }
+            ]
+        }
 
         request = compat_urllib_request.Request(api_url, json.dumps(data))
 
-        video_json_page = self._download_webpage(request, video_id, 'Downloading video JSON')
+        video_json_page = self._download_webpage(
+            request, video_id, 'Downloading video JSON')
         video_json = json.loads(video_json_page)
 
         if 'error' in video_json:
             error = video_json['error']
             if error['origin'] == 'NoRedisValidData':
                 raise ExtractorError('Video %s does not exist' % video_id, expected=True)
-            raise ExtractorError('Unable to download video %s: %s' % (video_id, error['message']), expected=True)
+            raise ExtractorError(
+                'Unable to download video %s: %s' % (video_id, error['message']),
+                expected=True)
 
         result = video_json['result']
 
@@ -102,7 +109,7 @@ class IviIE(InfoExtractor):
         compilation = result['compilation']
         title = result['title']
 
-        title = '%s - %s' % (compilation, title) if compilation is not None else title  
+        title = '%s - %s' % (compilation, title) if compilation is not None else title
 
         previews = result['preview']
         previews.sort(key=lambda fmt: self._known_thumbnails.index(fmt['content_format']))
@@ -152,17 +159,17 @@ class IviCompilationIE(InfoExtractor):
         compilation_id = mobj.group('compilationid')
         season_id = mobj.group('seasonid')
 
-        if season_id is not None: # Season link
+        if season_id is not None:  # Season link
             season_page = self._download_webpage(url, compilation_id, 'Downloading season %s web page' % season_id)
             playlist_id = '%s/season%s' % (compilation_id, season_id)
             playlist_title = self._html_search_meta('title', season_page, 'title')
             entries = self._extract_entries(season_page, compilation_id)
-        else: # Compilation link            
+        else:  # Compilation link
             compilation_page = self._download_webpage(url, compilation_id, 'Downloading compilation web page')
             playlist_id = compilation_id
             playlist_title = self._html_search_meta('title', compilation_page, 'title')
             seasons = re.findall(r'<a href="/watch/%s/season(\d+)">[^<]+</a>' % compilation_id, compilation_page)
-            if len(seasons) == 0: # No seasons in this compilation
+            if len(seasons) == 0:  # No seasons in this compilation
                 entries = self._extract_entries(compilation_page, compilation_id)
             else:
                 entries = []

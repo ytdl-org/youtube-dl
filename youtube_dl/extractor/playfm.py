@@ -4,12 +4,15 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
+)
+from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
+    str_to_int,
 )
 
 
@@ -29,6 +32,7 @@ class PlayFMIE(InfoExtractor):
             'duration': 5627.428,
             'upload_date': '20140712',
             'view_count': int,
+            'comment_count': int,
             'thumbnail': 're:^https?://.*\.jpg$',
         },
     }
@@ -51,7 +55,8 @@ class PlayFMIE(InfoExtractor):
 
         recording = rec_doc.find('./recording')
         title = recording.find('./title').text
-        view_count = int_or_none(recording.find('./stats/playcount').text)
+        view_count = str_to_int(recording.find('./stats/playcount').text)
+        comment_count = str_to_int(recording.find('./stats/comments').text)
         duration = float_or_none(recording.find('./duration').text, scale=1000)
         thumbnail = recording.find('./image').text
 
@@ -75,6 +80,7 @@ class PlayFMIE(InfoExtractor):
             'title': title,
             'upload_date': upload_date,
             'view_count': view_count,
+            'comment_count': comment_count,
             'duration': duration,
             'thumbnail': thumbnail,
             'uploader': uploader,

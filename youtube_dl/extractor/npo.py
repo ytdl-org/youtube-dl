@@ -1,18 +1,28 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
-    unified_strdate,
+    fix_xml_ampersands,
     parse_duration,
     qualities,
+    strip_jsonp,
+    unified_strdate,
+    url_basename,
 )
 
 
-class NPOIE(InfoExtractor):
+class NPOBaseIE(InfoExtractor):
+    def _get_token(self, video_id):
+        token_page = self._download_webpage(
+            'http://ida.omroep.nl/npoplayer/i.js',
+            video_id, note='Downloading token')
+        return self._search_regex(
+            r'npoplayer\.token = "(.+?)"', token_page, 'token')
+
+
+class NPOIE(NPOBaseIE):
     IE_NAME = 'npo.nl'
-    _VALID_URL = r'https?://www\.npo\.nl/[^/]+/[^/]+/(?P<id>[^/?]+)'
+    _VALID_URL = r'https?://(?:www\.)?npo\.nl/(?!live|radio)[^/]+/[^/]+/(?P<id>[^/?]+)'
 
     _TESTS = [
         {
@@ -49,53 +59,114 @@ class NPOIE(InfoExtractor):
                 'upload_date': '20130225',
                 'duration': 3000,
             },
-        }
+        },
+        {
+            'url': 'http://www.npo.nl/de-nieuwe-mens-deel-1/21-07-2010/WO_VPRO_043706',
+            'info_dict': {
+                'id': 'WO_VPRO_043706',
+                'ext': 'wmv',
+                'title': 'De nieuwe mens - Deel 1',
+                'description': 'md5:518ae51ba1293ffb80d8d8ce90b74e4b',
+                'duration': 4680,
+            },
+            'params': {
+                # mplayer mms download
+                'skip_download': True,
+            }
+        },
+        # non asf in streams
+        {
+            'url': 'http://www.npo.nl/hoe-gaat-europa-verder-na-parijs/10-01-2015/WO_NOS_762771',
+            'md5': 'b3da13de374cbe2d5332a7e910bef97f',
+            'info_dict': {
+                'id': 'WO_NOS_762771',
+                'ext': 'mp4',
+                'title': 'Hoe gaat Europa verder na Parijs?',
+            },
+        },
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
+        return self._get_info(video_id)
 
+    def _get_info(self, video_id):
         metadata = self._download_json(
             'http://e.omroep.nl/metadata/aflevering/%s' % video_id,
             video_id,
             # We have to remove the javascript callback
-            transform_source=lambda j: re.sub(r'parseMetadata\((.*?)\);\n//.*$', r'\1', j)
+            transform_source=strip_jsonp,
         )
-        token_page = self._download_webpage(
-            'http://ida.omroep.nl/npoplayer/i.js',
-            video_id,
-            note='Downloading token'
-        )
-        token = self._search_regex(r'npoplayer\.token = "(.+?)"', token_page, 'token')
+
+        token = self._get_token(video_id)
 
         formats = []
-        quality = qualities(['adaptive', 'wmv_sb', 'h264_sb', 'wmv_bb', 'h264_bb', 'wvc1_std', 'h264_std'])
-        for format_id in metadata['pubopties']:
-            format_info = self._download_json(
-                'http://ida.omroep.nl/odi/?prid=%s&puboptions=%s&adaptive=yes&token=%s' % (video_id, format_id, token),
-                video_id, 'Downloading %s JSON' % format_id)
-            if format_info.get('error_code', 0) or format_info.get('errorcode', 0):
-                continue
-            streams = format_info.get('streams')
-            if streams:
-                video_info = self._download_json(
-                    streams[0] + '&type=json',
-                    video_id, 'Downloading %s stream JSON' % format_id)
-            else:
-                video_info = format_info
-            video_url = video_info.get('url')
-            if not video_url:
-                continue
-            if format_id == 'adaptive':
-                formats.extend(self._extract_m3u8_formats(video_url, video_id))
-            else:
+
+        pubopties = metadata.get('pubopties')
+        if pubopties:
+            quality = qualities(['adaptive', 'wmv_sb', 'h264_sb', 'wmv_bb', 'h264_bb', 'wvc1_std', 'h264_std'])
+            for format_id in pubopties:
+                format_info = self._download_json(
+                    'http://ida.omroep.nl/odi/?prid=%s&puboptions=%s&adaptive=yes&token=%s'
+                    % (video_id, format_id, token),
+                    video_id, 'Downloading %s JSON' % format_id)
+                if format_info.get('error_code', 0) or format_info.get('errorcode', 0):
+                    continue
+                streams = format_info.get('streams')
+                if streams:
+                    video_info = self._download_json(
+                        streams[0] + '&type=json',
+                        video_id, 'Downloading %s stream JSON' % format_id)
+                else:
+                    video_info = format_info
+                video_url = video_info.get('url')
+                if not video_url:
+                    continue
+                if format_id == 'adaptive':
+                    formats.extend(self._extract_m3u8_formats(video_url, video_id))
+                else:
+                    formats.append({
+                        'url': video_url,
+                        'format_id': format_id,
+                        'quality': quality(format_id),
+                    })
+
+        streams = metadata.get('streams')
+        if streams:
+            for i, stream in enumerate(streams):
+                stream_url = stream.get('url')
+                if not stream_url:
+                    continue
+                if '.asf' not in stream_url:
+                    formats.append({
+                        'url': stream_url,
+                        'quality': stream.get('kwaliteit'),
+                    })
+                    continue
+                asx = self._download_xml(
+                    stream_url, video_id,
+                    'Downloading stream %d ASX playlist' % i,
+                    transform_source=fix_xml_ampersands)
+                ref = asx.find('./ENTRY/Ref')
+                if ref is None:
+                    continue
+                video_url = ref.get('href')
+                if not video_url:
+                    continue
                 formats.append({
                     'url': video_url,
-                    'format_id': format_id,
-                    'quality': quality(format_id),
+                    'ext': stream.get('formaat', 'asf'),
+                    'quality': stream.get('kwaliteit'),
                 })
+
         self._sort_formats(formats)
+
+        subtitles = {}
+        if metadata.get('tt888') == 'ja':
+            subtitles['nl'] = [{
+                'ext': 'vtt',
+                'url': 'http://e.omroep.nl/tt888/%s' % video_id,
+            }]
 
         return {
             'id': video_id,
@@ -105,4 +176,192 @@ class NPOIE(InfoExtractor):
             'upload_date': unified_strdate(metadata.get('gidsdatum')),
             'duration': parse_duration(metadata.get('tijdsduur')),
             'formats': formats,
+            'subtitles': subtitles,
         }
+
+
+class NPOLiveIE(NPOBaseIE):
+    IE_NAME = 'npo.nl:live'
+    _VALID_URL = r'https?://(?:www\.)?npo\.nl/live/(?P<id>.+)'
+
+    _TEST = {
+        'url': 'http://www.npo.nl/live/npo-1',
+        'info_dict': {
+            'id': 'LI_NEDERLAND1_136692',
+            'display_id': 'npo-1',
+            'ext': 'mp4',
+            'title': 're:^Nederland 1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 'Livestream',
+            'is_live': True,
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+
+        live_id = self._search_regex(
+            r'data-prid="([^"]+)"', webpage, 'live id')
+
+        metadata = self._download_json(
+            'http://e.omroep.nl/metadata/%s' % live_id,
+            display_id, transform_source=strip_jsonp)
+
+        token = self._get_token(display_id)
+
+        formats = []
+
+        streams = metadata.get('streams')
+        if streams:
+            for stream in streams:
+                stream_type = stream.get('type').lower()
+                # smooth streaming is not supported
+                if stream_type in ['ss', 'ms']:
+                    continue
+                stream_info = self._download_json(
+                    'http://ida.omroep.nl/aapi/?stream=%s&token=%s&type=jsonp'
+                    % (stream.get('url'), token),
+                    display_id, 'Downloading %s JSON' % stream_type)
+                if stream_info.get('error_code', 0) or stream_info.get('errorcode', 0):
+                    continue
+                stream_url = self._download_json(
+                    stream_info['stream'], display_id,
+                    'Downloading %s URL' % stream_type,
+                    'Unable to download %s URL' % stream_type,
+                    transform_source=strip_jsonp, fatal=False)
+                if not stream_url:
+                    continue
+                if stream_type == 'hds':
+                    f4m_formats = self._extract_f4m_formats(stream_url, display_id)
+                    # f4m downloader downloads only piece of live stream
+                    for f4m_format in f4m_formats:
+                        f4m_format['preference'] = -1
+                    formats.extend(f4m_formats)
+                elif stream_type == 'hls':
+                    formats.extend(self._extract_m3u8_formats(stream_url, display_id, 'mp4'))
+                else:
+                    formats.append({
+                        'url': stream_url,
+                        'preference': -10,
+                    })
+
+        self._sort_formats(formats)
+
+        return {
+            'id': live_id,
+            'display_id': display_id,
+            'title': self._live_title(metadata['titel']),
+            'description': metadata['info'],
+            'thumbnail': metadata.get('images', [{'url': None}])[-1]['url'],
+            'formats': formats,
+            'is_live': True,
+        }
+
+
+class NPORadioIE(InfoExtractor):
+    IE_NAME = 'npo.nl:radio'
+    _VALID_URL = r'https?://(?:www\.)?npo\.nl/radio/(?P<id>[^/]+)/?$'
+
+    _TEST = {
+        'url': 'http://www.npo.nl/radio/radio-1',
+        'info_dict': {
+            'id': 'radio-1',
+            'ext': 'mp3',
+            'title': 're:^NPO Radio 1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'is_live': True,
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }
+
+    @staticmethod
+    def _html_get_attribute_regex(attribute):
+        return r'{0}\s*=\s*\'([^\']+)\''.format(attribute)
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        title = self._html_search_regex(
+            self._html_get_attribute_regex('data-channel'), webpage, 'title')
+
+        stream = self._parse_json(
+            self._html_search_regex(self._html_get_attribute_regex('data-streams'), webpage, 'data-streams'),
+            video_id)
+
+        codec = stream.get('codec')
+
+        return {
+            'id': video_id,
+            'url': stream['url'],
+            'title': self._live_title(title),
+            'acodec': codec,
+            'ext': codec,
+            'is_live': True,
+        }
+
+
+class NPORadioFragmentIE(InfoExtractor):
+    IE_NAME = 'npo.nl:radio:fragment'
+    _VALID_URL = r'https?://(?:www\.)?npo\.nl/radio/[^/]+/fragment/(?P<id>\d+)'
+
+    _TEST = {
+        'url': 'http://www.npo.nl/radio/radio-5/fragment/174356',
+        'md5': 'dd8cc470dad764d0fdc70a9a1e2d18c2',
+        'info_dict': {
+            'id': '174356',
+            'ext': 'mp3',
+            'title': 'Jubileumconcert Willeke Alberti',
+        },
+    }
+
+    def _real_extract(self, url):
+        audio_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, audio_id)
+
+        title = self._html_search_regex(
+            r'href="/radio/[^/]+/fragment/%s" title="([^"]+)"' % audio_id,
+            webpage, 'title')
+
+        audio_url = self._search_regex(
+            r"data-streams='([^']+)'", webpage, 'audio url')
+
+        return {
+            'id': audio_id,
+            'url': audio_url,
+            'title': title,
+        }
+
+
+class TegenlichtVproIE(NPOIE):
+    IE_NAME = 'tegenlicht.vpro.nl'
+    _VALID_URL = r'https?://tegenlicht\.vpro\.nl/afleveringen/.*?'
+
+    _TESTS = [
+        {
+            'url': 'http://tegenlicht.vpro.nl/afleveringen/2012-2013/de-toekomst-komt-uit-afrika.html',
+            'md5': 'f8065e4e5a7824068ed3c7e783178f2c',
+            'info_dict': {
+                'id': 'VPWON_1169289',
+                'ext': 'm4v',
+                'title': 'Tegenlicht',
+                'description': 'md5:d6476bceb17a8c103c76c3b708f05dd1',
+                'upload_date': '20130225',
+            },
+        },
+    ]
+
+    def _real_extract(self, url):
+        name = url_basename(url)
+        webpage = self._download_webpage(url, name)
+        urn = self._html_search_meta('mediaurn', webpage)
+        info_page = self._download_json(
+            'http://rs.vpro.nl/v2/api/media/%s.json' % urn, name)
+        return self._get_info(info_page['mid'])

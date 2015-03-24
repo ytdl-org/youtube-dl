@@ -8,12 +8,13 @@ import re
 
 
 from .common import InfoExtractor
-from ..utils import ExtractorError, compat_urllib_request, compat_html_parser
-
-from ..utils import (
+from ..compat import (
+    compat_html_parser,
     compat_urllib_parse,
+    compat_urllib_request,
     compat_urlparse,
 )
+from ..utils import ExtractorError
 
 
 class GroovesharkHtmlParser(compat_html_parser.HTMLParser):
@@ -82,7 +83,7 @@ class GroovesharkIE(InfoExtractor):
         return compat_urlparse.urlunparse((uri.scheme, uri.netloc, obj['attrs']['data'], None, None, None))
 
     def _transform_bootstrap(self, js):
-        return re.split('(?m)^\s*try\s*{', js)[0] \
+        return re.split('(?m)^\s*try\s*\{', js)[0] \
                  .split(' = ', 1)[1].strip().rstrip(';')
 
     def _transform_meta(self, js):
@@ -139,9 +140,9 @@ class GroovesharkIE(InfoExtractor):
 
         if webpage is not None:
             o = GroovesharkHtmlParser.extract_object_tags(webpage)
-            return (webpage, [x for x in o if x['attrs']['id'] == 'jsPlayerEmbed'])
+            return webpage, [x for x in o if x['attrs']['id'] == 'jsPlayerEmbed']
 
-        return (webpage, None)
+        return webpage, None
 
     def _real_initialize(self):
         self.ts = int(time.time() * 1000)  # timestamp in millis
@@ -153,7 +154,7 @@ class GroovesharkIE(InfoExtractor):
         swf_referer = None
         if self.do_playerpage_request:
             (_, player_objs) = self._get_playerpage(url)
-            if player_objs is not None:
+            if player_objs:
                 swf_referer = self._build_swf_referer(url, player_objs[0])
                 self.to_screen('SWF Referer: %s' % swf_referer)
 

@@ -9,26 +9,32 @@ from ..utils import ExtractorError
 class TinyPicIE(InfoExtractor):
     IE_NAME = 'tinypic'
     IE_DESC = 'tinypic.com videos'
-    _VALID_URL = r'http://tinypic\.com/player\.php\?v=(?P<id>[^&]+)&s=\d+'
+    _VALID_URL = r'http://(?:.+?\.)?tinypic\.com/player\.php\?v=(?P<id>[^&]+)&s=\d+'
 
-    _TEST = {
-        'url': 'http://tinypic.com/player.php?v=6xw7tc%3E&s=5#.UtqZmbRFCM8',
-        'md5': '609b74432465364e72727ebc6203f044',
-        'info_dict': {
-            'id': '6xw7tc',
-            'ext': 'flv',
-            'title': 'shadow phenomenon weird',
+    _TESTS = [
+        {
+            'url': 'http://tinypic.com/player.php?v=6xw7tc%3E&s=5#.UtqZmbRFCM8',
+            'md5': '609b74432465364e72727ebc6203f044',
+            'info_dict': {
+                'id': '6xw7tc',
+                'ext': 'flv',
+                'title': 'shadow phenomenon weird',
+            },
+        },
+        {
+            'url': 'http://de.tinypic.com/player.php?v=dy90yh&s=8',
+            'only_matching': True,
         }
-    }
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id, 'Downloading page')
-        
+
         mobj = re.search(r'(?m)fo\.addVariable\("file",\s"(?P<fileid>[\da-z]+)"\);\n'
-            '\s+fo\.addVariable\("s",\s"(?P<serverid>\d+)"\);', webpage)
+                         '\s+fo\.addVariable\("s",\s"(?P<serverid>\d+)"\);', webpage)
         if mobj is None:
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 

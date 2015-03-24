@@ -16,7 +16,6 @@ class OoyalaIE(InfoExtractor):
         {
             # From http://it.slashdot.org/story/13/04/25/178216/recovering-data-from-broken-hard-drives-and-ssds-video
             'url': 'http://player.ooyala.com/player.js?embedCode=pxczE2YjpfHfn1f3M-ykG_AmJRRn0PD8',
-            'md5': '3f5cceb3a7bf461d6c29dc466cf8033c',
             'info_dict': {
                 'id': 'pxczE2YjpfHfn1f3M-ykG_AmJRRn0PD8',
                 'ext': 'mp4',
@@ -26,7 +25,6 @@ class OoyalaIE(InfoExtractor):
         }, {
             # Only available for ipad
             'url': 'http://player.ooyala.com/player.js?embedCode=x1b3lqZDq9y_7kMyC2Op5qo-p077tXD0',
-            'md5': '4b9754921fddb68106e48c142e2a01e6',
             'info_dict': {
                 'id': 'x1b3lqZDq9y_7kMyC2Op5qo-p077tXD0',
                 'ext': 'mp4',
@@ -43,7 +41,7 @@ class OoyalaIE(InfoExtractor):
     @classmethod
     def _build_url_result(cls, embed_code):
         return cls.url_result(cls._url_for_embed_code(embed_code),
-            ie=cls.ie_key())
+                              ie=cls.ie_key())
 
     def _extract_result(self, info, more_info):
         return {
@@ -97,4 +95,3 @@ class OoyalaIE(InfoExtractor):
             }
         else:
             return self._extract_result(videos_info[0], videos_more_info)
-        

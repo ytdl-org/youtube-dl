@@ -44,8 +44,8 @@ copyright = u'2014, Ricardo Garcia Gonzalez'
 # built documents.
 #
 # The short X.Y version.
-import youtube_dl
-version = youtube_dl.__version__
+from youtube_dl.version import __version__
+version = __version__
 # The full version, including alpha/beta/rc tags.
 release = version
 

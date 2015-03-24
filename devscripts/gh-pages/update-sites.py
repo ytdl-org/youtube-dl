@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import unicode_literals
 
 import sys
 import os
@@ -9,19 +10,20 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 import youtube_dl
 
+
 def main():
     with open('supportedsites.html.in', 'r', encoding='utf-8') as tmplf:
         template = tmplf.read()
 
     ie_htmls = []
-    for ie in sorted(youtube_dl.gen_extractors(), key=lambda i: i.IE_NAME.lower()):
+    for ie in youtube_dl.list_extractors(age_limit=None):
         ie_html = '<b>{}</b>'.format(ie.IE_NAME)
         ie_desc = getattr(ie, 'IE_DESC', None)
         if ie_desc is False:
             continue
         elif ie_desc is not None:
             ie_html += ': {}'.format(ie.IE_DESC)
-        if ie.working() == False:
+        if not ie.working():
             ie_html += ' (Currently broken)'
         ie_htmls.append('<li>{}</li>'.format(ie_html))
 

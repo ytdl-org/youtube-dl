@@ -28,7 +28,7 @@
     "retries": 10, 
     "simulate": false, 
     "subtitleslang": null, 
-    "subtitlesformat": "srt",
+    "subtitlesformat": "best",
     "test": true, 
     "updatetime": true, 
     "usenetrc": false, 
@@ -39,5 +39,6 @@
     "writesubtitles": false,
     "allsubtitles": false,
     "listssubtitles": false,
-    "socket_timeout": 20
+    "socket_timeout": 20,
+    "fixup": "never"
 }

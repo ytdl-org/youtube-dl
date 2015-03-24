@@ -9,7 +9,7 @@ class BeegIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?beeg\.com/(?P<id>\d+)'
     _TEST = {
         'url': 'http://beeg.com/5416503',
-        'md5': '634526ae978711f6b748fe0dd6c11f57',
+        'md5': '1bff67111adb785c51d1b42959ec10e5',
         'info_dict': {
             'id': '5416503',
             'ext': 'mp4',
@@ -40,7 +40,7 @@ class BeegIE(InfoExtractor):
 
         title = self._html_search_regex(
             r'<title>([^<]+)\s*-\s*beeg\.?</title>', webpage, 'title')
-        
+
         description = self._html_search_regex(
             r'<meta name="description" content="([^"]*)"',
             webpage, 'description', fatal=False)

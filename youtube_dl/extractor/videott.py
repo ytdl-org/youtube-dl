@@ -13,9 +13,9 @@ from ..utils import (
 class VideoTtIE(InfoExtractor):
     ID_NAME = 'video.tt'
     IE_DESC = 'video.tt - Your True Tube'
-    _VALID_URL = r'http://(?:www\.)?video\.tt/(?:video/|watch_video\.php\?v=)(?P<id>[\da-zA-Z]{9})'
+    _VALID_URL = r'http://(?:www\.)?video\.tt/(?:(?:video|embed)/|watch_video\.php\?v=)(?P<id>[\da-zA-Z]{9})'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.video.tt/watch_video.php?v=amd5YujV8',
         'md5': 'b13aa9e2f267effb5d1094443dff65ba',
         'info_dict': {
@@ -26,7 +26,10 @@ class VideoTtIE(InfoExtractor):
             'upload_date': '20130827',
             'uploader': 'joseph313',
         }
-    }
+    }, {
+        'url': 'http://video.tt/embed/amd5YujV8',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

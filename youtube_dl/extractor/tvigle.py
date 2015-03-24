@@ -6,26 +6,26 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     float_or_none,
-    str_to_int,
+    parse_age_limit,
 )
 
 
 class TvigleIE(InfoExtractor):
     IE_NAME = 'tvigle'
     IE_DESC = 'Интернет-телевидение Tvigle.ru'
-    _VALID_URL = r'http://(?:www\.)?tvigle\.ru/(?:[^/]+/)+(?P<display_id>[^/]+)/$'
+    _VALID_URL = r'https?://(?:www\.)?(?:tvigle\.ru/(?:[^/]+/)+(?P<display_id>[^/]+)/$|cloud\.tvigle\.ru/video/(?P<id>\d+))'
 
     _TESTS = [
         {
-            'url': 'http://www.tvigle.ru/video/brat-2/',
-            'md5': '72cb7eab33e54314e1790da402d3c9c3',
+            'url': 'http://www.tvigle.ru/video/sokrat/',
+            'md5': '36514aed3657d4f70b4b2cef8eb520cd',
             'info_dict': {
-                'id': '5119390',
-                'display_id': 'brat-2',
-                'ext': 'mp4',
-                'title': 'Брат 2 ',
-                'description': 'md5:5751f4fe345a58e1692585c361294bd8',
-                'duration': 7356.369,
+                'id': '1848932',
+                'display_id': 'sokrat',
+                'ext': 'flv',
+                'title': 'Сократ',
+                'description': 'md5:a05bd01be310074d5833efc6743be95e',
+                'duration': 6586,
                 'age_limit': 0,
             },
         },
@@ -40,17 +40,22 @@ class TvigleIE(InfoExtractor):
                 'duration': 186.080,
                 'age_limit': 0,
             },
-        },
+        }, {
+            'url': 'https://cloud.tvigle.ru/video/5267604/',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
         display_id = mobj.group('display_id')
 
-        webpage = self._download_webpage(url, display_id)
-
-        video_id = self._html_search_regex(
-            r'<li class="video-preview current_playing" id="(\d+)">', webpage, 'video id')
+        if not video_id:
+            webpage = self._download_webpage(url, display_id)
+            video_id = self._html_search_regex(
+                r'<li class="video-preview current_playing" id="(\d+)">',
+                webpage, 'video id')
 
         video_data = self._download_json(
             'http://cloud.tvigle.ru/api/play/video/%s/' % video_id, display_id)
@@ -60,8 +65,8 @@ class TvigleIE(InfoExtractor):
         title = item['title']
         description = item['description']
         thumbnail = item['thumbnail']
-        duration = float_or_none(item['durationMilliseconds'], 1000)
-        age_limit = str_to_int(item['ageRestrictions'])
+        duration = float_or_none(item.get('durationMilliseconds'), 1000)
+        age_limit = parse_age_limit(item.get('ageRestrictions'))
 
         formats = []
         for vcodec, fmts in item['videos'].items():
@@ -71,6 +76,7 @@ class TvigleIE(InfoExtractor):
                     'format_id': '%s-%s' % (vcodec, quality),
                     'vcodec': vcodec,
                     'height': int(quality[:-1]),
+                    'filesize': item['video_files_size'][vcodec][quality],
                 })
         self._sort_formats(formats)
 

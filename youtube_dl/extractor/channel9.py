@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from ..utils import ExtractorError
 
+
 class Channel9IE(InfoExtractor):
     '''
     Common extractor for channel9.msdn.com.
@@ -27,11 +28,11 @@ class Channel9IE(InfoExtractor):
                 'title': 'Developer Kick-Off Session: Stuff We Love',
                 'description': 'md5:c08d72240b7c87fcecafe2692f80e35f',
                 'duration': 4576,
-                'thumbnail': 'http://media.ch9.ms/ch9/9d51/03902f2d-fc97-4d3c-b195-0bfe15a19d51/KOS002_220.jpg',
+                'thumbnail': 'http://video.ch9.ms/ch9/9d51/03902f2d-fc97-4d3c-b195-0bfe15a19d51/KOS002_220.jpg',
                 'session_code': 'KOS002',
                 'session_day': 'Day 1',
                 'session_room': 'Arena 1A',
-                'session_speakers': [ 'Ed Blankenship', 'Andrew Coates', 'Brady Gaster', 'Patrick Klug', 'Mads Kristensen' ],
+                'session_speakers': ['Ed Blankenship', 'Andrew Coates', 'Brady Gaster', 'Patrick Klug', 'Mads Kristensen'],
             },
         },
         {
@@ -43,8 +44,8 @@ class Channel9IE(InfoExtractor):
                 'title': 'Self-service BI with Power BI - nuclear testing',
                 'description': 'md5:d1e6ecaafa7fb52a2cacdf9599829f5b',
                 'duration': 1540,
-                'thumbnail': 'http://media.ch9.ms/ch9/87e1/0300391f-a455-4c72-bec3-4422f19287e1/selfservicenuk_512.jpg',
-                'authors': [ 'Mike Wilmot' ],
+                'thumbnail': 'http://video.ch9.ms/ch9/87e1/0300391f-a455-4c72-bec3-4422f19287e1/selfservicenuk_512.jpg',
+                'authors': ['Mike Wilmot'],
             },
         }
     ]
@@ -83,7 +84,7 @@ class Channel9IE(InfoExtractor):
             'format_id': x.group('quality'),
             'format_note': x.group('note'),
             'format': '%s (%s)' % (x.group('quality'), x.group('note')),
-            'filesize': self._restore_bytes(x.group('filesize')), # File size is approximate
+            'filesize': self._restore_bytes(x.group('filesize')),  # File size is approximate
             'preference': self._known_formats.index(x.group('quality')),
             'vcodec': 'none' if x.group('note') == 'Audio only' else None,
         } for x in list(re.finditer(FORMAT_REGEX, html)) if x.group('quality') in self._known_formats]
@@ -94,7 +95,7 @@ class Channel9IE(InfoExtractor):
 
     def _extract_title(self, html):
         title = self._html_search_meta('title', html, 'title')
-        if title is None:           
+        if title is None:
             title = self._og_search_title(html)
             TITLE_SUFFIX = ' (Channel 9)'
             if title is not None and title.endswith(TITLE_SUFFIX):
@@ -115,7 +116,7 @@ class Channel9IE(InfoExtractor):
         return self._html_search_meta('description', html, 'description')
 
     def _extract_duration(self, html):
-        m = re.search(r'data-video_duration="(?P<hours>\d{2}):(?P<minutes>\d{2}):(?P<seconds>\d{2})"', html)
+        m = re.search(r'"length": *"(?P<hours>\d{2}):(?P<minutes>\d{2}):(?P<seconds>\d{2})"', html)
         return ((int(m.group('hours')) * 60 * 60) + (int(m.group('minutes')) * 60) + int(m.group('seconds'))) if m else None
 
     def _extract_slides(self, html):
@@ -167,7 +168,7 @@ class Channel9IE(InfoExtractor):
         return re.findall(r'<a href="/Events/Speakers/[^"]+">([^<]+)</a>', html)
 
     def _extract_content(self, html, content_path):
-        # Look for downloadable content        
+        # Look for downloadable content
         formats = self._formats_from_html(html)
         slides = self._extract_slides(html)
         zip_ = self._extract_zip(html)
@@ -187,32 +188,33 @@ class Channel9IE(InfoExtractor):
         view_count = self._extract_view_count(html)
         comment_count = self._extract_comment_count(html)
 
-        common = {'_type': 'video',
-                  'id': content_path,
-                  'description': description,
-                  'thumbnail': thumbnail,
-                  'duration': duration,
-                  'avg_rating': avg_rating,
-                  'rating_count': rating_count,
-                  'view_count': view_count,
-                  'comment_count': comment_count,
-                }
+        common = {
+            '_type': 'video',
+            'id': content_path,
+            'description': description,
+            'thumbnail': thumbnail,
+            'duration': duration,
+            'avg_rating': avg_rating,
+            'rating_count': rating_count,
+            'view_count': view_count,
+            'comment_count': comment_count,
+        }
 
         result = []
 
         if slides is not None:
             d = common.copy()
-            d.update({ 'title': title + '-Slides', 'url': slides })
+            d.update({'title': title + '-Slides', 'url': slides})
             result.append(d)
 
         if zip_ is not None:
             d = common.copy()
-            d.update({ 'title': title + '-Zip', 'url': zip_ })
+            d.update({'title': title + '-Zip', 'url': zip_})
             result.append(d)
 
         if len(formats) > 0:
             d = common.copy()
-            d.update({ 'title': title, 'formats': formats })
+            d.update({'title': title, 'formats': formats})
             result.append(d)
 
         return result
@@ -234,16 +236,17 @@ class Channel9IE(InfoExtractor):
         if contents is None:
             return contents
 
-        session_meta = {'session_code': self._extract_session_code(html),
-                        'session_day': self._extract_session_day(html),
-                        'session_room': self._extract_session_room(html),
-                        'session_speakers': self._extract_session_speakers(html),
-                        }
+        session_meta = {
+            'session_code': self._extract_session_code(html),
+            'session_day': self._extract_session_day(html),
+            'session_room': self._extract_session_room(html),
+            'session_speakers': self._extract_session_speakers(html),
+        }
 
         for content in contents:
             content.update(session_meta)
 
-        return contents
+        return self.playlist_result(contents)
 
     def _extract_list(self, content_path):
         rss = self._download_xml(self._RSS_URL % content_path, content_path, 'Downloading RSS')
@@ -258,16 +261,17 @@ class Channel9IE(InfoExtractor):
 
         webpage = self._download_webpage(url, content_path, 'Downloading web page')
 
-        page_type_m = re.search(r'<meta name="Search.PageType" content="(?P<pagetype>[^"]+)"/>', webpage)
-        if page_type_m is None:
-            raise ExtractorError('Search.PageType not found, don\'t know how to process this page', expected=True)
+        page_type_m = re.search(r'<meta name="WT.entryid" content="(?P<pagetype>[^:]+)[^"]+"/>', webpage)
+        if page_type_m is not None:
+            page_type = page_type_m.group('pagetype')
+            if page_type == 'Entry':      # Any 'item'-like page, may contain downloadable content
+                return self._extract_entry_item(webpage, content_path)
+            elif page_type == 'Session':  # Event session page, may contain downloadable content
+                return self._extract_session(webpage, content_path)
+            elif page_type == 'Event':
+                return self._extract_list(content_path)
+            else:
+                raise ExtractorError('Unexpected WT.entryid %s' % page_type, expected=True)
 
-        page_type = page_type_m.group('pagetype')
-        if page_type == 'List':         # List page, may contain list of 'item'-like objects
+        else:  # Assuming list
             return self._extract_list(content_path)
-        elif page_type == 'Entry.Item': # Any 'item'-like page, may contain downloadable content
-            return self._extract_entry_item(webpage, content_path)
-        elif page_type == 'Session':    # Event session page, may contain downloadable content
-            return self._extract_session(webpage, content_path)
-        else:
-            raise ExtractorError('Unexpected Search.PageType %s' % page_type, expected=True)

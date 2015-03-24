@@ -1,11 +1,13 @@
 from __future__ import unicode_literals
 
-import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
+    compat_urlparse,
+)
+from ..utils import (
     get_element_by_attribute,
     parse_duration,
     strip_jsonp,
@@ -14,9 +16,9 @@ from ..utils import (
 
 class MiTeleIE(InfoExtractor):
     IE_NAME = 'mitele.es'
-    _VALID_URL = r'http://www\.mitele\.es/[^/]+/[^/]+/[^/]+/(?P<episode>[^/]+)/'
+    _VALID_URL = r'http://www\.mitele\.es/[^/]+/[^/]+/[^/]+/(?P<id>[^/]+)/'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/la-redaccion/programa-144/',
         'md5': '6a75fe9d0d3275bead0cb683c616fddb',
         'info_dict': {
@@ -27,25 +29,31 @@ class MiTeleIE(InfoExtractor):
             'display_id': 'programa-144',
             'duration': 2913,
         },
-    }
+    }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        episode = mobj.group('episode')
+        episode = self._match_id(url)
         webpage = self._download_webpage(url, episode)
         embed_data_json = self._search_regex(
-            r'MSV\.embedData\[.*?\]\s*=\s*({.*?});', webpage, 'embed data',
-            flags=re.DOTALL
+            r'(?s)MSV\.embedData\[.*?\]\s*=\s*({.*?});', webpage, 'embed data',
         ).replace('\'', '"')
         embed_data = json.loads(embed_data_json)
 
-        info_url = embed_data['flashvars']['host']
+        domain = embed_data['mediaUrl']
+        if not domain.startswith('http'):
+            # only happens in telecinco.es videos
+            domain = 'http://' + domain
+        info_url = compat_urlparse.urljoin(
+            domain,
+            compat_urllib_parse.unquote(embed_data['flashvars']['host'])
+        )
         info_el = self._download_xml(info_url, episode).find('./video/info')
 
         video_link = info_el.find('videoUrl/link').text
         token_query = compat_urllib_parse.urlencode({'id': video_link})
         token_info = self._download_json(
-            'http://token.mitele.es/?' + token_query, episode,
+            embed_data['flashvars']['ov_tk'] + '?' + token_query,
+            episode,
             transform_source=strip_jsonp
         )
 

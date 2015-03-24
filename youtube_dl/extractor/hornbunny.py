@@ -37,7 +37,7 @@ class HornBunnyIE(InfoExtractor):
         webpage2 = self._download_webpage(redirect_url, video_id)
         video_url = self._html_search_regex(
             r'flvMask:(.*?);', webpage2, 'video_url')
-        
+
         duration = parse_duration(self._search_regex(
             r'<strong>Runtime:</strong>\s*([0-9:]+)</div>',
             webpage, 'duration', fatal=False))

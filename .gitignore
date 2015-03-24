@@ -30,3 +30,6 @@ updates_key.pem
 *.swp
 test/testdata
 .tox
+youtube-dl.zsh
+.idea
+.idea/*

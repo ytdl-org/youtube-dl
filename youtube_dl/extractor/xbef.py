@@ -1,9 +1,7 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
 )
 
@@ -23,10 +21,9 @@ class XBefIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        m = re.match(self._VALID_URL, url)
-        video_id = m.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
         title = self._html_search_regex(
             r'<h1[^>]*>(.*?)</h1>', webpage, 'title')
 
@@ -47,4 +44,3 @@ class XBefIE(InfoExtractor):
             'thumbnail': thumbnail,
             'age_limit': 18,
         }
-

@@ -4,10 +4,13 @@ import os
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
+    compat_urllib_parse,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
-    compat_urllib_parse,
+)
+from ..utils import (
+    ExtractorError,
     str_to_int,
 )
 from ..aes import (
@@ -16,13 +19,14 @@ from ..aes import (
 
 
 class PornHubIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>pornhub\.com/view_video\.php\?viewkey=(?P<videoid>[0-9a-f]+))'
+    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/view_video\.php\?viewkey=(?P<id>[0-9a-f]+)'
     _TEST = {
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
-        'file': '648719015.mp4',
         'md5': '882f488fa1f0026f023f33576004a2ed',
         'info_dict': {
-            "uploader": "BABES-COM",
+            'id': '648719015',
+            'ext': 'mp4',
+            "uploader": "Babes",
             "title": "Seductive Indian beauty strips down and fingers her pink pussy",
             "age_limit": 18
         }
@@ -35,17 +39,24 @@ class PornHubIE(InfoExtractor):
         return count
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
-        url = 'http://www.' + mobj.group('url')
+        video_id = self._match_id(url)
 
         req = compat_urllib_request.Request(url)
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
+        error_msg = self._html_search_regex(
+            r'(?s)<div class="userMessageSection[^"]*".*?>(.*?)</div>',
+            webpage, 'error message', default=None)
+        if error_msg:
+            error_msg = re.sub(r'\s+', ' ', error_msg)
+            raise ExtractorError(
+                'PornHub said: %s' % error_msg,
+                expected=True, video_id=video_id)
+
         video_title = self._html_search_regex(r'<h1 [^>]+>([^<]+)', webpage, 'title')
         video_uploader = self._html_search_regex(
-            r'(?s)From:&nbsp;.+?<(?:a href="/users/|<span class="username)[^>]+>(.+?)<',
+            r'(?s)From:&nbsp;.+?<(?:a href="/users/|a href="/channels/|span class="username)[^>]+>(.+?)<',
             webpage, 'uploader', fatal=False)
         thumbnail = self._html_search_regex(r'"image_url":"([^"]+)', webpage, 'thumbnail', fatal=False)
         if thumbnail:
@@ -57,7 +68,7 @@ class PornHubIE(InfoExtractor):
         comment_count = self._extract_count(
             r'All comments \(<var class="videoCommentCount">([\d,\.]+)</var>', webpage, 'comment')
 
-        video_urls = list(map(compat_urllib_parse.unquote , re.findall(r'"quality_[0-9]{3}p":"([^"]+)', webpage)))
+        video_urls = list(map(compat_urllib_parse.unquote, re.findall(r'"quality_[0-9]{3}p":"([^"]+)', webpage)))
         if webpage.find('"encrypted":true') != -1:
             password = compat_urllib_parse.unquote_plus(self._html_search_regex(r'"video_title":"([^"]+)', webpage, 'password'))
             video_urls = list(map(lambda s: aes_decrypt_text(s, password, 32).decode('utf-8'), video_urls))
@@ -99,3 +110,33 @@ class PornHubIE(InfoExtractor):
             'formats': formats,
             'age_limit': 18,
         }
+
+
+class PornHubPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/playlist/(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'http://www.pornhub.com/playlist/6201671',
+        'info_dict': {
+            'id': '6201671',
+            'title': 'P0p4',
+        },
+        'playlist_mincount': 35,
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result('http://www.pornhub.com/%s' % video_url, 'PornHub')
+            for video_url in set(re.findall('href="/?(view_video\.php\?viewkey=\d+[^"]*)"', webpage))
+        ]
+
+        playlist = self._parse_json(
+            self._search_regex(
+                r'playlistObject\s*=\s*({.+?});', webpage, 'playlist'),
+            playlist_id)
+
+        return self.playlist_result(
+            entries, playlist_id, playlist.get('title'), playlist.get('description'))

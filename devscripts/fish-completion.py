@@ -23,13 +23,13 @@ EXTRA_ARGS = {
     'batch-file': ['--require-parameter'],
 }
 
+
 def build_completion(opt_parser):
     commands = []
 
     for group in opt_parser.option_groups:
         for option in group.option_list:
             long_option = option.get_opt_string().strip('-')
-            help_msg = shell_quote([option.help])
             complete_cmd = ['complete', '--command', 'youtube-dl', '--long-option', long_option]
             if option._short_opts:
                 complete_cmd += ['--short-option', option._short_opts[0].strip('-')]

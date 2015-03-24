@@ -2,15 +2,19 @@
 from __future__ import unicode_literals
 
 import re
+import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
     compat_urlparse,
-    unified_strdate,
-    parse_duration,
+)
+from ..utils import (
+    ExtractorError,
     int_or_none,
+    parse_duration,
+    unified_strdate,
 )
 
 
@@ -18,7 +22,7 @@ class NiconicoIE(InfoExtractor):
     IE_NAME = 'niconico'
     IE_DESC = 'ニコニコ動画'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.nicovideo.jp/watch/sm22312215',
         'md5': 'd1a75c0823e2f629128c43e1212760f9',
         'info_dict': {
@@ -35,22 +39,38 @@ class NiconicoIE(InfoExtractor):
             'username': 'ydl.niconico@gmail.com',
             'password': 'youtube-dl',
         },
-    }
+    }, {
+        'url': 'http://www.nicovideo.jp/watch/nm14296458',
+        'md5': '8db08e0158457cf852a31519fceea5bc',
+        'info_dict': {
+            'id': 'nm14296458',
+            'ext': 'swf',
+            'title': '【鏡音リン】Dance on media【オリジナル】take2!',
+            'description': 'md5:',
+            'uploader': 'りょうた',
+            'uploader_id': '18822557',
+            'upload_date': '20110429',
+            'duration': 209,
+        },
+        'params': {
+            'username': 'ydl.niconico@gmail.com',
+            'password': 'youtube-dl',
+        },
+    }]
 
-    _VALID_URL = r'https?://(?:www\.|secure\.)?nicovideo\.jp/watch/((?:[a-z]{2})?[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.|secure\.)?nicovideo\.jp/watch/(?P<id>(?:[a-z]{2})?[0-9]+)'
     _NETRC_MACHINE = 'niconico'
-    # Determine whether the downloader uses authentication to download video
-    _AUTHENTICATE = False
+    # Determine whether the downloader used authentication to download video
+    _AUTHENTICATED = False
 
     def _real_initialize(self):
-        if self._downloader.params.get('username', None) is not None:
-            self._AUTHENTICATE = True
-
-        if self._AUTHENTICATE:
-            self._login()
+        self._login()
 
     def _login(self):
         (username, password) = self._get_login_info()
+        # No authentication to be performed
+        if not username:
+            return True
 
         # Log in
         login_form_strs = {
@@ -68,11 +88,12 @@ class NiconicoIE(InfoExtractor):
         if re.search(r'(?i)<h1 class="mb8p4">Log in error</h1>', login_results) is not None:
             self._downloader.report_warning('unable to log in: bad username or password')
             return False
+        # Successful login
+        self._AUTHENTICATED = True
         return True
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group(1)
+        video_id = self._match_id(url)
 
         # Get video webpage. We are not actually interested in it, but need
         # the cookies in order to be able to download the info webpage
@@ -82,10 +103,10 @@ class NiconicoIE(InfoExtractor):
             'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id, video_id,
             note='Downloading video info page')
 
-        if self._AUTHENTICATE:
+        if self._AUTHENTICATED:
             # Get flv info
             flv_info_webpage = self._download_webpage(
-                'http://flapi.nicovideo.jp/api/getflv?v=' + video_id,
+                'http://flapi.nicovideo.jp/api/getflv/' + video_id + '?as3=1',
                 video_id, 'Downloading flv info')
         else:
             # Get external player info
@@ -106,6 +127,9 @@ class NiconicoIE(InfoExtractor):
                 flv_info_request, video_id,
                 note='Downloading flv info', errnote='Unable to download flv info')
 
+        if 'deleted=' in flv_info_webpage:
+            raise ExtractorError('The video has been deleted.',
+                                 expected=True)
         video_real_url = compat_urlparse.parse_qs(flv_info_webpage)['url'][0]
 
         # Start extracting information
@@ -144,4 +168,38 @@ class NiconicoIE(InfoExtractor):
             'comment_count': comment_count,
             'duration': duration,
             'webpage_url': webpage_url,
+        }
+
+
+class NiconicoPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://www\.nicovideo\.jp/mylist/(?P<id>\d+)'
+
+    _TEST = {
+        'url': 'http://www.nicovideo.jp/mylist/27411728',
+        'info_dict': {
+            'id': '27411728',
+            'title': 'AKB48のオールナイトニッポン',
+        },
+        'playlist_mincount': 225,
+    }
+
+    def _real_extract(self, url):
+        list_id = self._match_id(url)
+        webpage = self._download_webpage(url, list_id)
+
+        entries_json = self._search_regex(r'Mylist\.preload\(\d+, (\[.*\])\);',
+                                          webpage, 'entries')
+        entries = json.loads(entries_json)
+        entries = [{
+            '_type': 'url',
+            'ie_key': NiconicoIE.ie_key(),
+            'url': ('http://www.nicovideo.jp/watch/%s' %
+                    entry['item_data']['video_id']),
+        } for entry in entries]
+
+        return {
+            '_type': 'playlist',
+            'title': self._search_regex(r'\s+name: "(.*?)"', webpage, 'title'),
+            'id': list_id,
+            'entries': entries,
         }

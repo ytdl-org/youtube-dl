@@ -36,16 +36,16 @@ class GodTubeIE(InfoExtractor):
             'http://www.godtube.com/resource/mediaplayer/%s.xml' % video_id.lower(),
             video_id, 'Downloading player config XML')
 
-        video_url = config.find('.//file').text
-        uploader = config.find('.//author').text
-        timestamp = parse_iso8601(config.find('.//date').text)
-        duration = parse_duration(config.find('.//duration').text)
-        thumbnail = config.find('.//image').text
+        video_url = config.find('file').text
+        uploader = config.find('author').text
+        timestamp = parse_iso8601(config.find('date').text)
+        duration = parse_duration(config.find('duration').text)
+        thumbnail = config.find('image').text
 
         media = self._download_xml(
             'http://www.godtube.com/media/xml/?v=%s' % video_id, video_id, 'Downloading media XML')
 
-        title = media.find('.//title').text
+        title = media.find('title').text
 
         return {
             'id': video_id,

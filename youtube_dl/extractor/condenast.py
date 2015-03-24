@@ -5,11 +5,13 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
-    orderedSet,
     compat_urllib_parse_urlparse,
     compat_urlparse,
+)
+from ..utils import (
+    orderedSet,
 )
 
 
@@ -33,6 +35,8 @@ class CondeNastIE(InfoExtractor):
 
     _VALID_URL = r'http://(video|www|player)\.(?P<site>%s)\.com/(?P<type>watch|series|video|embed)/(?P<id>[^/?#]+)' % '|'.join(_SITES.keys())
     IE_DESC = 'Condé Nast media group: %s' % ', '.join(sorted(_SITES.values()))
+
+    EMBED_URL = r'(?:https?:)?//player\.(?P<site>%s)\.com/(?P<type>embed)/.+?' % '|'.join(_SITES.keys())
 
     _TEST = {
         'url': 'http://video.wired.com/watch/3d-printed-speakers-lit-with-led',

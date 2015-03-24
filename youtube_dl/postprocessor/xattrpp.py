@@ -1,12 +1,16 @@
+from __future__ import unicode_literals
+
 import os
 import subprocess
 import sys
 
 from .common import PostProcessor
+from ..compat import (
+    subprocess_check_output
+)
 from ..utils import (
     check_executable,
     hyphenate_date,
-    subprocess_check_output
 )
 
 
@@ -106,4 +110,3 @@ class XAttrMetadataPP(PostProcessor):
         except (subprocess.CalledProcessError, OSError):
             self._downloader.report_error("This filesystem doesn't support extended attributes. (You may have to enable them in your /etc/fstab)")
             return False, info
-

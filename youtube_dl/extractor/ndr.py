@@ -18,16 +18,16 @@ class NDRIE(InfoExtractor):
 
     _TESTS = [
         {
-            'url': 'http://www.ndr.de/fernsehen/media/dienordreportage325.html',
-            'md5': '4a4eeafd17c3058b65f0c8f091355855',
+            'url': 'http://www.ndr.de/fernsehen/sendungen/nordmagazin/Kartoffeltage-in-der-Lewitz,nordmagazin25866.html',
+            'md5': '5bc5f5b92c82c0f8b26cddca34f8bb2c',
             'note': 'Video file',
             'info_dict': {
-                'id': '325',
+                'id': '25866',
                 'ext': 'mp4',
-                'title': 'Blaue Bohnen aus Blocken',
-                'description': 'md5:190d71ba2ccddc805ed01547718963bc',
-                'duration': 1715,
-            },
+                'title': 'Kartoffeltage in der Lewitz',
+                'description': 'md5:48c4c04dde604c8a9971b3d4e3b9eaa8',
+                'duration': 166,
+            }
         },
         {
             'url': 'http://www.ndr.de/info/audio51535.html',
@@ -67,7 +67,7 @@ class NDRIE(InfoExtractor):
 
         thumbnail = None
 
-        video_url = re.search(r'''3: \{src:'(?P<video>.+?)\.hi\.mp4', type:"video/mp4"},''', page)
+        video_url = re.search(r'''3: \{src:'(?P<video>.+?)\.(lo|hi|hq)\.mp4', type:"video/mp4"},''', page)
         if video_url:
             thumbnails = re.findall(r'''\d+: \{src: "([^"]+)"(?: \|\| '[^']+')?, quality: '([^']+)'}''', page)
             if thumbnails:

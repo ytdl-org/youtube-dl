@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -28,12 +26,11 @@ class VidmeIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        video_url = self._html_search_regex(r'<source src="([^"]+)"', webpage, 'video URL')
+        video_url = self._html_search_regex(
+            r'<source src="([^"]+)"', webpage, 'video URL')
 
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage, default='')
@@ -44,13 +41,10 @@ class VidmeIE(InfoExtractor):
         duration = float_or_none(self._html_search_regex(
             r'data-duration="([^"]+)"', webpage, 'duration', fatal=False))
         view_count = str_to_int(self._html_search_regex(
-            r'<span class="video_views">\s*([\d,\.]+)\s*plays?', webpage, 'view count', fatal=False))
+            r'<(?:li|span) class="video_views">\s*([\d,\.]+)\s*plays?', webpage, 'view count', fatal=False))
         like_count = str_to_int(self._html_search_regex(
             r'class="score js-video-vote-score"[^>]+data-score="([\d,\.\s]+)">',
             webpage, 'like count', fatal=False))
-        comment_count = str_to_int(self._html_search_regex(
-            r'class="js-comment-count"[^>]+data-count="([\d,\.\s]+)">',
-            webpage, 'comment count', fatal=False))
 
         return {
             'id': video_id,
@@ -64,5 +58,4 @@ class VidmeIE(InfoExtractor):
             'duration': duration,
             'view_count': view_count,
             'like_count': like_count,
-            'comment_count': comment_count,
         }

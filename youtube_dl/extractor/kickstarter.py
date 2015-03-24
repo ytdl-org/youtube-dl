@@ -1,8 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 
 
@@ -15,28 +13,25 @@ class KickStarterIE(InfoExtractor):
             'id': '1404461844',
             'ext': 'mp4',
             'title': 'Intersection: The Story of Josh Grant by Kyle Cowling',
-            'description': 'A unique motocross documentary that examines the '
-                'life and mind of one of sports most elite athletes: Josh Grant.',
+            'description': (
+                'A unique motocross documentary that examines the '
+                'life and mind of one of sports most elite athletes: Josh Grant.'
+            ),
         },
     }, {
         'note': 'Embedded video (not using the native kickstarter video service)',
         'url': 'https://www.kickstarter.com/projects/597507018/pebble-e-paper-watch-for-iphone-and-android/posts/659178',
-        'playlist': [
-            {
-                'info_dict': {
-                    'id': '78704821',
-                    'ext': 'mp4',
-                    'uploader_id': 'pebble',
-                    'uploader': 'Pebble Technology',
-                    'title': 'Pebble iOS Notifications',
-                }
-            }
-        ],
+        'info_dict': {
+            'id': '78704821',
+            'ext': 'mp4',
+            'uploader_id': 'pebble',
+            'uploader': 'Pebble Technology',
+            'title': 'Pebble iOS Notifications',
+        }
     }]
 
     def _real_extract(self, url):
-        m = re.match(self._VALID_URL, url)
-        video_id = m.group('id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_regex(

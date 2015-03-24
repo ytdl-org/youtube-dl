@@ -29,13 +29,11 @@ class GameStarIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         og_title = self._og_search_title(webpage)
-        title = og_title.replace(' - Video bei GameStar.de', '').strip()
+        title = re.sub(r'\s*- Video (bei|-) GameStar\.de$', '', og_title)
 
         url = 'http://gamestar.de/_misc/videos/portal/getVideoUrl.cfm?premium=0&videoId=' + video_id
 

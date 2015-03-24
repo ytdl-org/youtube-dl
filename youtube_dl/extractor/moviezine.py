@@ -27,7 +27,7 @@ class MoviezineIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         jsplayer = self._download_webpage('http://www.moviezine.se/api/player.js?video=%s' % video_id, video_id, 'Downloading js api player')
 
-        formats =[{
+        formats = [{
             'format_id': 'sd',
             'url': self._html_search_regex(r'file: "(.+?)",', jsplayer, 'file'),
             'quality': 0,

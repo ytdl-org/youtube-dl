@@ -6,9 +6,11 @@ import re
 import time
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import (
-    struct_unpack,
+    float_or_none,
     remove_end,
+    struct_unpack,
 )
 
 
@@ -54,11 +56,10 @@ def _decrypt_url(png):
     return url
 
 
-
 class RTVEALaCartaIE(InfoExtractor):
     IE_NAME = 'rtve.es:alacarta'
     IE_DESC = 'RTVE a la carta'
-    _VALID_URL = r'http://www\.rtve\.es/alacarta/videos/[^/]+/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'http://www\.rtve\.es/(m/)?alacarta/videos/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/alacarta/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
@@ -67,6 +68,7 @@ class RTVEALaCartaIE(InfoExtractor):
             'id': '2491869',
             'ext': 'mp4',
             'title': 'Balonmano - Swiss Cup masculina. Final: España-Suecia',
+            'duration': 5024.566,
         },
     }, {
         'note': 'Live stream',
@@ -75,7 +77,11 @@ class RTVEALaCartaIE(InfoExtractor):
             'id': '1694255',
             'ext': 'flv',
             'title': 'TODO',
-        }
+        },
+        'skip': 'The f4m manifest can\'t be used yet',
+    }, {
+        'url': 'http://www.rtve.es/m/alacarta/videos/cuentame-como-paso/cuentame-como-paso-t16-ultimo-minuto-nuestra-vida-capitulo-276/2969138/?media=tve',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -87,6 +93,20 @@ class RTVEALaCartaIE(InfoExtractor):
         png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/default/videos/%s.png' % video_id
         png = self._download_webpage(png_url, video_id, 'Downloading url information')
         video_url = _decrypt_url(png)
+        if not video_url.endswith('.f4m'):
+            auth_url = video_url.replace(
+                'resources/', 'auth/resources/'
+            ).replace('.net.rtve', '.multimedia.cdn.rtve')
+            video_path = self._download_webpage(
+                auth_url, video_id, 'Getting video url')
+            # Use mvod1.akcdn instead of flash.akamaihd.multimedia.cdn to get
+            # the right Content-Length header and the mp4 format
+            video_url = compat_urlparse.urljoin(
+                'http://mvod1.akcdn.rtve.es/', video_path)
+
+        subtitles = None
+        if info.get('sbtFile') is not None:
+            subtitles = self.extract_subtitles(video_id, info['sbtFile'])
 
         return {
             'id': video_id,
@@ -94,6 +114,57 @@ class RTVEALaCartaIE(InfoExtractor):
             'url': video_url,
             'thumbnail': info.get('image'),
             'page_url': url,
+            'subtitles': subtitles,
+            'duration': float_or_none(info.get('duration'), scale=1000),
+        }
+
+    def _get_subtitles(self, video_id, sub_file):
+        subs = self._download_json(
+            sub_file + '.json', video_id,
+            'Downloading subtitles info')['page']['items']
+        return dict(
+            (s['lang'], [{'ext': 'vtt', 'url': s['src']}])
+            for s in subs)
+
+
+class RTVEInfantilIE(InfoExtractor):
+    IE_NAME = 'rtve.es:infantil'
+    IE_DESC = 'RTVE infantil'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/infantil/serie/(?P<show>[^/]*)/video/(?P<short_title>[^/]*)/(?P<id>[0-9]+)/'
+
+    _TESTS = [{
+        'url': 'http://www.rtve.es/infantil/serie/cleo/video/maneras-vivir/3040283/',
+        'md5': '915319587b33720b8e0357caaa6617e6',
+        'info_dict': {
+            'id': '3040283',
+            'ext': 'mp4',
+            'title': 'Maneras de vivir',
+            'thumbnail': 'http://www.rtve.es/resources/jpg/6/5/1426182947956.JPG',
+            'duration': 357.958,
+        },
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        info = self._download_json(
+            'http://www.rtve.es/api/videos/%s/config/alacarta_videos.json' % video_id,
+            video_id)['page']['items'][0]
+
+        webpage = self._download_webpage(url, video_id)
+        vidplayer_id = self._search_regex(
+            r' id="vidplayer([0-9]+)"', webpage, 'internal video ID')
+
+        png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/default/videos/%s.png' % vidplayer_id
+        png = self._download_webpage(png_url, video_id, 'Downloading url information')
+        video_url = _decrypt_url(png)
+
+        return {
+            'id': video_id,
+            'ext': 'mp4',
+            'title': info['title'],
+            'url': video_url,
+            'thumbnail': info.get('image'),
+            'duration': float_or_none(info.get('duration'), scale=1000),
         }
 
 

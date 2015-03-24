@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_parse_qs,
     compat_urlparse,
+)
+from ..utils import (
     determine_ext,
     unified_strdate,
 )
@@ -25,6 +28,7 @@ class WDRIE(InfoExtractor):
                 'title': 'Servicezeit',
                 'description': 'md5:c8f43e5e815eeb54d0b96df2fba906cb',
                 'upload_date': '20140310',
+                'is_live': False
             },
             'params': {
                 'skip_download': True,
@@ -38,6 +42,7 @@ class WDRIE(InfoExtractor):
                 'title': 'Marga Spiegel ist tot',
                 'description': 'md5:2309992a6716c347891c045be50992e4',
                 'upload_date': '20140311',
+                'is_live': False
             },
             'params': {
                 'skip_download': True,
@@ -52,6 +57,7 @@ class WDRIE(InfoExtractor):
                 'title': 'Erlebte Geschichten: Marga Spiegel (29.11.2009)',
                 'description': 'md5:2309992a6716c347891c045be50992e4',
                 'upload_date': '20091129',
+                'is_live': False
             },
         },
         {
@@ -63,8 +69,30 @@ class WDRIE(InfoExtractor):
                 'title': 'Flavia Coelho: Amar é Amar',
                 'description': 'md5:7b29e97e10dfb6e265238b32fa35b23a',
                 'upload_date': '20140717',
+                'is_live': False
             },
         },
+        {
+            'url': 'http://www1.wdr.de/mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100.html',
+            'playlist_mincount': 146,
+            'info_dict': {
+                'id': 'mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100',
+            }
+        },
+        {
+            'url': 'http://www1.wdr.de/mediathek/video/livestream/index.html',
+            'info_dict': {
+                'id': 'mdb-103364',
+                'title': 're:^WDR Fernsehen [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+                'description': 'md5:ae2ff888510623bf8d4b115f95a9b7c9',
+                'ext': 'flv',
+                'upload_date': '20150212',
+                'is_live': True
+            },
+            'params': {
+                'skip_download': True,
+            },
+        }
     ]
 
     def _real_extract(self, url):
@@ -79,6 +107,27 @@ class WDRIE(InfoExtractor):
                 self.url_result(page_url + href, 'WDR')
                 for href in re.findall(r'<a href="/?(.+?%s\.html)" rel="nofollow"' % self._PLAYER_REGEX, webpage)
             ]
+
+            if entries:  # Playlist page
+                return self.playlist_result(entries, page_id)
+
+            # Overview page
+            entries = []
+            for page_num in itertools.count(2):
+                hrefs = re.findall(
+                    r'<li class="mediathekvideo"\s*>\s*<img[^>]*>\s*<a href="(/mediathek/video/[^"]+)"',
+                    webpage)
+                entries.extend(
+                    self.url_result(page_url + href, 'WDR')
+                    for href in hrefs)
+                next_url_m = re.search(
+                    r'<li class="nextToLast">\s*<a href="([^"]+)"', webpage)
+                if not next_url_m:
+                    break
+                next_url = page_url + next_url_m.group(1)
+                webpage = self._download_webpage(
+                    next_url, page_id,
+                    note='Downloading playlist page %d' % page_num)
             return self.playlist_result(entries, page_id)
 
         flashvars = compat_parse_qs(
@@ -88,6 +137,10 @@ class WDRIE(InfoExtractor):
         video_url = flashvars['dslSrc'][0]
         title = flashvars['trackerClipTitle'][0]
         thumbnail = flashvars['startPicture'][0] if 'startPicture' in flashvars else None
+        is_live = flashvars.get('isLive', ['0'])[0] == '1'
+
+        if is_live:
+            title = self._live_title(title)
 
         if 'trackerClipAirTime' in flashvars:
             upload_date = flashvars['trackerClipAirTime'][0]
@@ -100,6 +153,13 @@ class WDRIE(InfoExtractor):
         if video_url.endswith('.f4m'):
             video_url += '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18'
             ext = 'flv'
+        elif video_url.endswith('.smil'):
+            fmt = self._extract_smil_formats(video_url, page_id)[0]
+            video_url = fmt['url']
+            sep = '&' if '?' in video_url else '?'
+            video_url += sep
+            video_url += 'hdcore=3.3.0&plugin=aasp-3.3.0.99.43'
+            ext = fmt['ext']
         else:
             ext = determine_ext(video_url)
 
@@ -113,6 +173,7 @@ class WDRIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'upload_date': upload_date,
+            'is_live': is_live
         }
 
 
@@ -141,8 +202,9 @@ class WDRMobileIE(InfoExtractor):
             'title': mobj.group('title'),
             'age_limit': int(mobj.group('age_limit')),
             'url': url,
-            'ext': determine_ext(url),
-            'user_agent': 'mobile',
+            'http_headers': {
+                'User-Agent': 'mobile',
+            },
         }
 
 
@@ -171,8 +233,7 @@ class WDRMausIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
         param_code = self._html_search_regex(
@@ -223,5 +284,3 @@ class WDRMausIE(InfoExtractor):
             'thumbnail': thumbnail,
             'upload_date': upload_date,
         }
-
-# TODO test _1

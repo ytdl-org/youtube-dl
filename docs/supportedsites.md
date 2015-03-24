@@ -1,0 +1,596 @@
+# Supported sites
+ - **1tv**: Первый канал
+ - **1up.com**
+ - **220.ro**
+ - **24video**
+ - **3sat**
+ - **4tube**
+ - **56.com**
+ - **5min**
+ - **8tracks**
+ - **9gag**
+ - **abc.net.au**
+ - **Abc7News**
+ - **AcademicEarth:Course**
+ - **AddAnime**
+ - **AdobeTV**
+ - **AdultSwim**
+ - **Aftenposten**
+ - **Aftonbladet**
+ - **AirMozilla**
+ - **AlJazeera**
+ - **Allocine**
+ - **AlphaPorno**
+ - **anitube.se**
+ - **AnySex**
+ - **Aparat**
+ - **AppleDailyAnimationNews**
+ - **AppleDailyRealtimeNews**
+ - **AppleTrailers**
+ - **archive.org**: archive.org videos
+ - **ARD**
+ - **ARD:mediathek**
+ - **arte.tv**
+ - **arte.tv:+7**
+ - **arte.tv:concert**
+ - **arte.tv:creative**
+ - **arte.tv:ddc**
+ - **arte.tv:embed**
+ - **arte.tv:future**
+ - **AtresPlayer**
+ - **ATTTechChannel**
+ - **audiomack**
+ - **audiomack:album**
+ - **Azubu**
+ - **bambuser**
+ - **bambuser:channel**
+ - **Bandcamp**
+ - **Bandcamp:album**
+ - **bbc.co.uk**: BBC iPlayer
+ - **BeatportPro**
+ - **Beeg**
+ - **BehindKink**
+ - **Bet**
+ - **Bild**: Bild.de
+ - **BiliBili**
+ - **blinkx**
+ - **blip.tv:user**
+ - **BlipTV**
+ - **Bloomberg**
+ - **Bpb**: Bundeszentrale für politische Bildung
+ - **BR**: Bayerischer Rundfunk Mediathek
+ - **Break**
+ - **Brightcove**
+ - **BuzzFeed**
+ - **BYUtv**
+ - **Camdemy**
+ - **CamdemyFolder**
+ - **Canal13cl**
+ - **canalc2.tv**
+ - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
+ - **CBS**
+ - **CBSNews**: CBS News
+ - **CBSSports**
+ - **CeskaTelevize**
+ - **channel9**: Channel 9
+ - **Chilloutzone**
+ - **chirbit**
+ - **chirbit:profile**
+ - **Cinchcast**
+ - **Cinemassacre**
+ - **clipfish**
+ - **cliphunter**
+ - **Clipsyndicate**
+ - **Cloudy**
+ - **Clubic**
+ - **cmt.com**
+ - **CNET**
+ - **CNN**
+ - **CNNArticle**
+ - **CNNBlogs**
+ - **CollegeHumor**
+ - **CollegeRama**
+ - **ComCarCoff**
+ - **ComedyCentral**
+ - **ComedyCentralShows**: The Daily Show / The Colbert Report
+ - **CondeNast**: Condé Nast media group: Condé Nast, GQ, Glamour, Vanity Fair, Vogue, W Magazine, WIRED
+ - **Cracked**
+ - **Criterion**
+ - **Crunchyroll**
+ - **crunchyroll:playlist**
+ - **CSpan**: C-SPAN
+ - **CtsNews**
+ - **culturebox.francetvinfo.fr**
+ - **dailymotion**
+ - **dailymotion:playlist**
+ - **dailymotion:user**
+ - **daum.net**
+ - **DBTV**
+ - **DctpTv**
+ - **DeezerPlaylist**
+ - **defense.gouv.fr**
+ - **Discovery**
+ - **divxstage**: DivxStage
+ - **Dotsub**
+ - **DouyuTV**
+ - **DRBonanza**
+ - **Dropbox**
+ - **DrTuber**
+ - **DRTV**
+ - **Dump**
+ - **dvtv**: http://video.aktualne.cz/
+ - **EaglePlatform**
+ - **EbaumsWorld**
+ - **EchoMsk**
+ - **eHow**
+ - **Einthusan**
+ - **eitb.tv**
+ - **EllenTV**
+ - **EllenTV:clips**
+ - **ElPais**: El País
+ - **Embedly**
+ - **EMPFlix**
+ - **Engadget**
+ - **Eporner**
+ - **EroProfile**
+ - **Escapist**
+ - **EveryonesMixtape**
+ - **exfm**: ex.fm
+ - **ExpoTV**
+ - **ExtremeTube**
+ - **facebook**
+ - **faz.net**
+ - **fc2**
+ - **fernsehkritik.tv**
+ - **fernsehkritik.tv:postecke**
+ - **Firedrive**
+ - **Firstpost**
+ - **Flickr**
+ - **Folketinget**: Folketinget (ft.dk; Danish parliament)
+ - **FootyRoom**
+ - **Foxgay**
+ - **FoxNews**
+ - **france2.fr:generation-quoi**
+ - **FranceCulture**
+ - **FranceInter**
+ - **francetv**: France 2, 3, 4, 5 and Ô
+ - **francetvinfo.fr**
+ - **Freesound**
+ - **freespeech.org**
+ - **FreeVideo**
+ - **FunnyOrDie**
+ - **Gamekings**
+ - **GameOne**
+ - **gameone:playlist**
+ - **GameSpot**
+ - **GameStar**
+ - **Gametrailers**
+ - **Gazeta**
+ - **GDCVault**
+ - **generic**: Generic downloader that works on some sites
+ - **GiantBomb**
+ - **Giga**
+ - **Glide**: Glide mobile video messages (glide.me)
+ - **Globo**
+ - **GodTube**
+ - **GoldenMoustache**
+ - **Golem**
+ - **GorillaVid**: GorillaVid.in, daclips.in, movpod.in and fastvideo.in
+ - **Goshgay**
+ - **Grooveshark**
+ - **Groupon**
+ - **Hark**
+ - **HearThisAt**
+ - **Heise**
+ - **HellPorno**
+ - **Helsinki**: helsinki.fi
+ - **HentaiStigma**
+ - **HistoricFilms**
+ - **History**
+ - **hitbox**
+ - **hitbox:live**
+ - **HornBunny**
+ - **HostingBulk**
+ - **HotNewHipHop**
+ - **Howcast**
+ - **HowStuffWorks**
+ - **HuffPost**: Huffington Post
+ - **Hypem**
+ - **Iconosquare**
+ - **ign.com**
+ - **imdb**: Internet Movie Database trailers
+ - **imdb:list**: Internet Movie Database lists
+ - **Imgur**
+ - **Ina**
+ - **InfoQ**
+ - **Instagram**
+ - **instagram:user**: Instagram user profile
+ - **InternetVideoArchive**
+ - **IPrima**
+ - **ivi**: ivi.ru
+ - **ivi:compilation**: ivi.ru compilations
+ - **Izlesene**
+ - **JadoreCettePub**
+ - **JeuxVideo**
+ - **Jove**
+ - **jpopsuki.tv**
+ - **Jukebox**
+ - **Kaltura**
+ - **KanalPlay**: Kanal 5/9/11 Play
+ - **Kankan**
+ - **Karaoketv**
+ - **keek**
+ - **KeezMovies**
+ - **KhanAcademy**
+ - **KickStarter**
+ - **kontrtube**: KontrTube.ru - Труба зовёт
+ - **KrasView**: Красвью
+ - **Ku6**
+ - **la7.tv**
+ - **Laola1Tv**
+ - **Letv**
+ - **LetvPlaylist**
+ - **LetvTv**
+ - **Libsyn**
+ - **lifenews**: LIFE | NEWS
+ - **LiveLeak**
+ - **livestream**
+ - **livestream:original**
+ - **LnkGo**
+ - **lrt.lt**
+ - **lynda**: lynda.com videos
+ - **lynda:course**: lynda.com online courses
+ - **m6**
+ - **macgamestore**: MacGameStore trailers
+ - **mailru**: Видео@Mail.Ru
+ - **Malemotion**
+ - **MDR**
+ - **media.ccc.de**
+ - **metacafe**
+ - **Metacritic**
+ - **Mgoon**
+ - **Minhateca**
+ - **MinistryGrid**
+ - **mitele.es**
+ - **mixcloud**
+ - **MLB**
+ - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
+ - **Mofosex**
+ - **Mojvideo**
+ - **Moniker**: allmyvideos.net and vidspot.net
+ - **mooshare**: Mooshare.biz
+ - **Morningstar**: morningstar.com
+ - **Motherless**
+ - **Motorsport**: motorsport.com
+ - **MovieClips**
+ - **Moviezine**
+ - **movshare**: MovShare
+ - **MPORA**
+ - **MTV**
+ - **mtviggy.com**
+ - **mtvservices:embedded**
+ - **MuenchenTV**: münchen.tv
+ - **MusicPlayOn**
+ - **MusicVault**
+ - **muzu.tv**
+ - **MySpace**
+ - **MySpace:album**
+ - **MySpass**
+ - **myvideo**
+ - **MyVidster**
+ - **n-tv.de**
+ - **NationalGeographic**
+ - **Naver**
+ - **NBA**
+ - **NBC**
+ - **NBCNews**
+ - **ndr**: NDR.de - Mediathek
+ - **NDTV**
+ - **NerdCubedFeed**
+ - **Nerdist**
+ - **Netzkino**
+ - **Newgrounds**
+ - **Newstube**
+ - **NextMedia**
+ - **NextMediaActionNews**
+ - **nfb**: National Film Board of Canada
+ - **nfl.com**
+ - **nhl.com**
+ - **nhl.com:news**: NHL news
+ - **nhl.com:videocenter**: NHL videocenter category
+ - **niconico**: ニコニコ動画
+ - **NiconicoPlaylist**
+ - **Noco**
+ - **Normalboots**
+ - **NosVideo**
+ - **novamov**: NovaMov
+ - **Nowness**
+ - **nowvideo**: NowVideo
+ - **npo.nl**
+ - **npo.nl:live**
+ - **npo.nl:radio**
+ - **npo.nl:radio:fragment**
+ - **NRK**
+ - **NRKPlaylist**
+ - **NRKTV**
+ - **ntv.ru**
+ - **Nuvid**
+ - **NYTimes**
+ - **ocw.mit.edu**
+ - **Odnoklassniki**
+ - **OktoberfestTV**
+ - **on.aol.com**
+ - **Ooyala**
+ - **OpenFilm**
+ - **orf:fm4**: radio FM4
+ - **orf:iptv**: iptv.ORF.at
+ - **orf:oe1**: Radio Österreich 1
+ - **orf:tvthek**: ORF TVthek
+ - **parliamentlive.tv**: UK parliament videos
+ - **Patreon**
+ - **PBS**
+ - **Phoenix**
+ - **Photobucket**
+ - **Pladform**
+ - **PlanetaPlay**
+ - **play.fm**
+ - **played.to**
+ - **Playvid**
+ - **Playwire**
+ - **plus.google**: Google Plus
+ - **pluzz.francetv.fr**
+ - **podomatic**
+ - **PornHd**
+ - **PornHub**
+ - **PornHubPlaylist**
+ - **Pornotube**
+ - **PornoXO**
+ - **PrimeShareTV**
+ - **PromptFile**
+ - **prosiebensat1**: ProSiebenSat.1 Digital
+ - **Puls4**
+ - **Pyvideo**
+ - **QuickVid**
+ - **R7**
+ - **radio.de**
+ - **radiobremen**
+ - **radiofrance**
+ - **Rai**
+ - **RBMARadio**
+ - **RedTube**
+ - **Restudy**
+ - **ReverbNation**
+ - **RingTV**
+ - **RottenTomatoes**
+ - **Roxwel**
+ - **RTBF**
+ - **Rte**
+ - **rtl.nl**: rtl.nl and rtlxl.nl
+ - **RTL2**
+ - **RTLnow**
+ - **RTP**
+ - **RTS**: RTS.ch
+ - **rtve.es:alacarta**: RTVE a la carta
+ - **rtve.es:infantil**: RTVE infantil
+ - **rtve.es:live**: RTVE.es live streams
+ - **RUHD**
+ - **rutube**: Rutube videos
+ - **rutube:channel**: Rutube channels
+ - **rutube:embed**: Rutube embedded videos
+ - **rutube:movie**: Rutube movies
+ - **rutube:person**: Rutube person videos
+ - **RUTV**: RUTV.RU
+ - **Sandia**: Sandia National Laboratories
+ - **Sapo**: SAPO Vídeos
+ - **savefrom.net**
+ - **SBS**: sbs.com.au
+ - **SciVee**
+ - **screen.yahoo:search**: Yahoo screen search
+ - **Screencast**
+ - **ScreencastOMatic**
+ - **ScreenwaveMedia**
+ - **ServingSys**
+ - **Sexu**
+ - **SexyKarma**: Sexy Karma and Watch Indian Porn
+ - **Shared**
+ - **ShareSix**
+ - **Sina**
+ - **Slideshare**
+ - **Slutload**
+ - **smotri**: Smotri.com
+ - **smotri:broadcast**: Smotri.com broadcasts
+ - **smotri:community**: Smotri.com community videos
+ - **smotri:user**: Smotri.com user videos
+ - **Snotr**
+ - **Sockshare**
+ - **Sohu**
+ - **soundcloud**
+ - **soundcloud:playlist**
+ - **soundcloud:set**
+ - **soundcloud:user**
+ - **soundgasm**
+ - **soundgasm:profile**
+ - **southpark.cc.com**
+ - **southpark.de**
+ - **Space**
+ - **Spankwire**
+ - **Spiegel**
+ - **Spiegel:Article**: Articles on spiegel.de
+ - **Spiegeltv**
+ - **Spike**
+ - **Sport5**
+ - **SportBox**
+ - **SportDeutschland**
+ - **SRMediathek**: Saarländischer Rundfunk
+ - **SSA**
+ - **stanfordoc**: Stanford Open ClassRoom
+ - **Steam**
+ - **streamcloud.eu**
+ - **StreamCZ**
+ - **StreetVoice**
+ - **SunPorno**
+ - **SVTPlay**: SVT Play and Öppet arkiv
+ - **SWRMediathek**
+ - **Syfy**
+ - **SztvHu**
+ - **Tagesschau**
+ - **Tapely**
+ - **Tass**
+ - **teachertube**: teachertube.com videos
+ - **teachertube:user:collection**: teachertube.com user and collection videos
+ - **TeachingChannel**
+ - **Teamcoco**
+ - **TeamFour**
+ - **TechTalks**
+ - **techtv.mit.edu**
+ - **TED**
+ - **tegenlicht.vpro.nl**
+ - **TeleBruxelles**
+ - **telecinco.es**
+ - **TeleMB**
+ - **TeleTask**
+ - **TenPlay**
+ - **TestTube**
+ - **TF1**
+ - **TheOnion**
+ - **ThePlatform**
+ - **TheSixtyOne**
+ - **ThisAV**
+ - **THVideo**
+ - **THVideoPlaylist**
+ - **tinypic**: tinypic.com videos
+ - **tlc.com**
+ - **tlc.de**
+ - **TMZ**
+ - **TNAFlix**
+ - **tou.tv**
+ - **Toypics**: Toypics user profile
+ - **ToypicsUser**: Toypics user profile
+ - **TrailerAddict** (Currently broken)
+ - **Trilulilu**
+ - **TruTube**
+ - **Tube8**
+ - **Tudou**
+ - **Tumblr**
+ - **TuneIn**
+ - **Turbo**
+ - **Tutv**
+ - **tv.dfb.de**
+ - **TV4**: tv4.se and tv4play.se
+ - **tvigle**: Интернет-телевидение Tvigle.ru
+ - **tvp.pl**
+ - **tvp.pl:Series**
+ - **TVPlay**: TV3Play and related services
+ - **Tweakers**
+ - **twitch:bookmarks**
+ - **twitch:chapter**
+ - **twitch:past_broadcasts**
+ - **twitch:profile**
+ - **twitch:stream**
+ - **twitch:video**
+ - **twitch:vod**
+ - **Ubu**
+ - **udemy**
+ - **udemy:course**
+ - **Ultimedia**
+ - **Unistra**
+ - **Urort**: NRK P3 Urørt
+ - **ustream**
+ - **ustream:channel**
+ - **Vbox7**
+ - **VeeHD**
+ - **Veoh**
+ - **Vesti**: Вести.Ru
+ - **Vevo**
+ - **VGTV**
+ - **vh1.com**
+ - **Vice**
+ - **Viddler**
+ - **video.google:search**: Google Video search
+ - **video.mit.edu**
+ - **VideoBam**
+ - **VideoDetective**
+ - **videofy.me**
+ - **videolectures.net**
+ - **VideoMega**
+ - **VideoPremium**
+ - **VideoTt**: video.tt - Your True Tube
+ - **videoweed**: VideoWeed
+ - **Vidme**
+ - **Vidzi**
+ - **vier**
+ - **vier:videos**
+ - **Viewster**
+ - **viki**
+ - **vimeo**
+ - **vimeo:album**
+ - **vimeo:channel**
+ - **vimeo:group**
+ - **vimeo:likes**: Vimeo user likes
+ - **vimeo:review**: Review pages on vimeo
+ - **vimeo:user**
+ - **vimeo:watchlater**: Vimeo watch later list, "vimeowatchlater" keyword (requires authentication)
+ - **Vimple**: Vimple.ru
+ - **Vine**
+ - **vine:user**
+ - **vk.com**
+ - **vk.com:user-videos**: vk.com:All of a user's videos
+ - **Vodlocker**
+ - **Vporn**
+ - **VRT**
+ - **vube**: Vube.com
+ - **VuClip**
+ - **vulture.com**
+ - **Walla**
+ - **WashingtonPost**
+ - **wat.tv**
+ - **WayOfTheMaster**
+ - **WDR**
+ - **wdr:mobile**
+ - **WDRMaus**: Sendung mit der Maus
+ - **WebOfStories**
+ - **Weibo**
+ - **Wimp**
+ - **Wistia**
+ - **WorldStarHipHop**
+ - **wrzuta.pl**
+ - **WSJ**: Wall Street Journal
+ - **XBef**
+ - **XboxClips**
+ - **XHamster**
+ - **XMinus**
+ - **XNXX**
+ - **XTube**
+ - **XTubeUser**: XTube user profile
+ - **Xuite**
+ - **XVideos**
+ - **XXXYMovies**
+ - **Yahoo**: Yahoo screen and movies
+ - **Yam**
+ - **yandexmusic:album**: Яндекс.Музыка - Альбом
+ - **yandexmusic:playlist**: Яндекс.Музыка - Плейлист
+ - **yandexmusic:track**: Яндекс.Музыка - Трек
+ - **YesJapan**
+ - **Ynet**
+ - **YouJizz**
+ - **Youku**
+ - **YouPorn**
+ - **YourUpload**
+ - **youtube**: YouTube.com
+ - **youtube:channel**: YouTube.com channels
+ - **youtube:favorites**: YouTube.com favourite videos, ":ytfav" for short (requires authentication)
+ - **youtube:history**: Youtube watch history, ":ythistory" for short (requires authentication)
+ - **youtube:playlist**: YouTube.com playlists
+ - **youtube:recommended**: YouTube.com recommended videos, ":ytrec" for short (requires authentication)
+ - **youtube:search**: YouTube.com searches
+ - **youtube:search:date**: YouTube.com searches, newest videos first
+ - **youtube:search_url**: YouTube.com search URLs
+ - **youtube:show**: YouTube.com (multi-season) shows
+ - **youtube:subscriptions**: YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)
+ - **youtube:user**: YouTube.com user videos (URL or "ytuser" keyword)
+ - **youtube:watch_later**: Youtube watch later list, ":ytwatchlater" for short (requires authentication)
+ - **Zapiks**
+ - **ZDF**
+ - **ZDFChannel**
+ - **zingmp3:album**: mp3.zing.vn albums
+ - **zingmp3:song**: mp3.zing.vn songs
