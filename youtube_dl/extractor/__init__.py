@@ -526,6 +526,10 @@ from .tvp import TvpIE, TvpSeriesIE
 from .tvplay import TVPlayIE
 from .tweakers import TweakersIE
 from .twentyfourvideo import TwentyFourVideoIE
+from .twentytwotracks import (
+    TwentyTwoTracksIE,
+    TwentyTwoTracksGenreIE
+)
 from .twitch import (
     TwitchVideoIE,
     TwitchChapterIE,
