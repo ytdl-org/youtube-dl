@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# coding: utf-8
+
 from __future__ import unicode_literals
 
 import unittest
@@ -26,6 +28,13 @@ class TestExecution(unittest.TestCase):
 
     def test_main_exec(self):
         subprocess.check_call([sys.executable, 'youtube_dl/__main__.py', '--version'], cwd=rootDir, stdout=_DEV_NULL)
+
+    def test_cmdline_umlauts(self):
+        p = subprocess.Popen(
+            [sys.executable, 'youtube_dl/__main__.py', 'ä', '--version'],
+            cwd=rootDir, stdout=_DEV_NULL, stderr=subprocess.PIPE)
+        _, stderr = p.communicate()
+        self.assertFalse(stderr)
 
 if __name__ == '__main__':
     unittest.main()
