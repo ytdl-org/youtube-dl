@@ -8,11 +8,12 @@ class RedTubeIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?redtube\.com/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.redtube.com/66418',
+        'md5': '7b8c22b5e7098a3e1c09709df1126d2d',
         'info_dict': {
             'id': '66418',
             'ext': 'mp4',
-            "title": "Sucked on a toilet",
-            "age_limit": 18,
+            'title': 'Sucked on a toilet',
+            'age_limit': 18,
         }
     }
 
