@@ -3,109 +3,84 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import int_or_none
 
 # 22Tracks regularly replace the audio tracks that can be streamed on their
 # site. The tracks usually expire after 1 months, so we can't add tests.
 
 
 class TwentyTwoTracksIE(InfoExtractor):
-    _VALID_URL = r'http://22tracks\.com/([a-z]+)/([a-z]+[2]*)/(\d+)'
-    IE_NAME = 'TwentyTwoTracks:Tracks'
+    _VALID_URL = r'https?://22tracks\.com/(?P<city>[a-z]+)/(?P<genre>[\da-z]+)/(?P<id>\d+)'
+    IE_NAME = '22tracks:track'
 
-    def _extract_info(self, city, genre, track=''):
-        self._base_url = "http://22tracks.com/api/"
+    _API_BASE = 'http://22tracks.com/api'
 
-        if track == '':
-            itemid = genre
-        else:
-            itemid = track
+    def _extract_info(self, city, genre_name, track_id=None):
+        item_id = track_id if track_id else genre_name
 
         cities = self._download_json(
-            self._base_url + 'cities', itemid,
-            'Downloading city info', 'Cannot download city info')
-        city_id = [x['id'] for x in cities if x['slug'] == city]
+            '%s/cities' % self._API_BASE, item_id,
+            'Downloading cities info',
+            'Unable to download cities info')
+        city_id = [x['id'] for x in cities if x['slug'] == city][0]
 
         genres = self._download_json(
-            self._base_url + 'genres/' + str(city_id[0]), itemid,
-            'Downloading genre info', 'Cannot download genre info')
-        genre_id = [x['id'] for x in genres if x['slug'] == genre]
+            '%s/genres/%s' % (self._API_BASE, city_id), item_id,
+            'Downloading %s genres info' % city,
+            'Unable to download %s genres info' % city)
+        genre = [x for x in genres if x['slug'] == genre_name][0]
+        genre_id = genre['id']
 
         tracks = self._download_json(
-            self._base_url + 'tracks/' + str(genre_id[0]),
-            itemid, 'Downloading track info', 'Cannot download track info')
+            '%s/tracks/%s' % (self._API_BASE, genre_id), item_id,
+            'Downloading %s genre tracks info' % genre_name,
+            'Unable to download track info')
 
-        if track == '':
-            return [[x['title'] for x in genres if x['slug'] == genre][0],
-                    tracks]
-        else:
-            return [x for x in tracks if x['id'] == itemid][0]
+        return [x for x in tracks if x['id'] == item_id][0] if track_id else [genre['title'], tracks]
 
-    def _get_token(self, filename, track_id):
+    def _get_track_url(self, filename, track_id):
         token = self._download_json(
-            'http://22tracks.com/token.php?desktop=true&u=%2F128%2f{0}'.format(
-                filename), track_id, 'Finding download link...')
+            'http://22tracks.com/token.php?desktop=true&u=/128/%s' % filename,
+            track_id, 'Downloading token', 'Unable to download token')
+        return 'http://audio.22tracks.com%s?st=%s&e=%d' % (token['filename'], token['st'], token['e'])
 
-        down_url = 'http://audio.22tracks.com{0}?st={1}&e={2}'.format(
-            token['filename'],
-            token['st'],
-            token['e'])
-
-        return down_url
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-
-        city_id = mobj.group(1)
-        genre_id = mobj.group(2)
-        track_id = mobj.group(3)
-
-        self.to_screen(':: Track ID found! - Downloading single track')
-
-        track_info = self._extract_info(city_id, genre_id, track_id)
-
-        download_url = self._get_token(track_info['filename'], track_id)
-        title = '{0}-{1}'.format(
-            track_info['artist'].strip(), track_info['title'].strip())
-
+    def _extract_track_info(self, track_info, track_id):
+        download_url = self._get_track_url(track_info['filename'], track_id)
+        title = '%s - %s' % (track_info['artist'].strip(), track_info['title'].strip())
         return {
             'id': track_id,
             'url': download_url,
             'ext': 'mp3',
             'title': title,
-            'duration': track_info['duration']
+            'duration': int_or_none(track_info.get('duration')),
+            'timestamp': int_or_none(track_info.get('published_at') or track_info.get('created'))
         }
-
-
-class TwentyTwoTracksGenreIE(TwentyTwoTracksIE):
-    _VALID_URL = r'http://22tracks\.com/([a-z]+)/([a-z]+[2]*)/?'
-    IE_NAME = 'TwentyTwoTracks:Genre'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
 
-        city_id = mobj.group(1)
-        genre_id = mobj.group(2)
+        city = mobj.group('city')
+        genre = mobj.group('genre')
+        track_id = mobj.group('id')
 
-        self.to_screen(':: Track ID not found! - Downloading entire genre')
+        track_info = self._extract_info(city, genre, track_id)
+        return self._extract_track_info(track_info, track_id)
 
-        playlist_info = self._extract_info(city_id, genre_id)
 
-        entries = []
-        for track in playlist_info[1]:
-            title = '{0}-{1}'.format(
-                track['artist'].strip(), track['title'].strip())
-            entries.append({
-                'id': track['id'],
-                'url': self._get_token(track['filename'], track['id']),
-                'ext': 'mp3',
-                'title': title
-            })
+class TwentyTwoTracksGenreIE(TwentyTwoTracksIE):
+    _VALID_URL = r'https?://22tracks\.com/(?P<city>[a-z]+)/(?P<genre>[\da-z]+)/?$'
+    IE_NAME = '22tracks:genre'
 
-        self.to_screen(':: Links found - Downloading Playlist')
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
 
-        return {
-            '_type': 'playlist',
-            'id': genre_id,
-            'title': playlist_info[0],
-            'entries': entries
-        }
+        city = mobj.group('city')
+        genre = mobj.group('genre')
+
+        genre_title, tracks = self._extract_info(city, genre)
+
+        entries = [
+            self._extract_track_info(track_info, track_info['id'])
+            for track_info in tracks]
+
+        return self.playlist_result(entries, genre, genre_title)
