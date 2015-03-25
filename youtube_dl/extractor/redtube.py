@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import ExtractorError
 
 
 class RedTubeIE(InfoExtractor):
@@ -18,6 +19,9 @@ class RedTubeIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
+        if any(s in webpage for s in ['video-deleted-info', '>This video has been removed']):
+            raise ExtractorError('Video %s has been removed' % video_id, expected=True)
 
         video_url = self._html_search_regex(
             r'<source src="(.+?)" type="video/mp4">', webpage, 'video URL')
