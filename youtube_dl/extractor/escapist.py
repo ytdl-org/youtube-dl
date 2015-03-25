@@ -14,7 +14,6 @@ from ..utils import (
 
 class EscapistIE(InfoExtractor):
     _VALID_URL = r'https?://?(www\.)?escapistmagazine\.com/videos/view/[^/?#]+/(?P<id>[0-9]+)-[^/?#]*(?:$|[?#])'
-    _USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'
     _TEST = {
         'url': 'http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate',
         'md5': 'ab3a706c681efca53f0a35f1415cf0d1',
@@ -31,9 +30,26 @@ class EscapistIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
+        def _gen_useragent(id):
+            base_ua = 'Mozilla/5.0 ({0}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{1}.0.{2}.{3} Safari/537.36'
+
+            os = [
+                'Windows NT 6.3; WOW64',
+                'Windows NT 6.2; WOW64',
+                'Windows NT 6.1; WOW64',
+                'Windows NT 5.1',
+                'X11; Linux x86_64',
+                'X11; Linux i686',
+                'Macintosh; Intel Mac OS X 10_9_3',
+                'Macintosh; Intel Mac OS X 10_6_8'
+            ]
+
+            return base_ua.format(os[id % len(os)], (id % 10) + 30, id % 3000, id % 100)
+
         video_id = self._match_id(url)
+        user_agent = _gen_useragent(int(video_id))
         webpage_req = compat_urllib_request.Request(url)
-        webpage_req.add_header('User-Agent', self._USER_AGENT)
+        webpage_req.add_header('User-Agent', user_agent)
         webpage = self._download_webpage(webpage_req, video_id)
 
         uploader_id = self._html_search_regex(
@@ -61,9 +77,9 @@ class EscapistIE(InfoExtractor):
         formats = []
         ad_formats = []
 
-        def _add_format(name, cfg_url, quality):
+        def _add_format(name, cfg_url, user_agent, quality):
             cfg_req = compat_urllib_request.Request(cfg_url)
-            cfg_req.add_header('User-Agent', self._USER_AGENT)
+            cfg_req.add_header('User-Agent', user_agent)
             config = self._download_json(
                 cfg_req, video_id,
                 'Downloading ' + name + ' configuration',
@@ -84,15 +100,15 @@ class EscapistIE(InfoExtractor):
                     'format_id': name,
                     'quality': quality,
                     'http_headers': {
-                        'User-Agent': self._USER_AGENT,
+                        'User-Agent': user_agent,
                     },
                 })
 
-        _add_format('normal', config_url, quality=0)
+        _add_format('normal', config_url, user_agent, quality=0)
         hq_url = (config_url +
                   ('&hq=1' if '?' in config_url else config_url + '?hq=1'))
         try:
-            _add_format('hq', hq_url, quality=1)
+            _add_format('hq', hq_url, user_agent, quality=1)
         except ExtractorError:
             pass  # That's fine, we'll just use normal quality
         self._sort_formats(formats)
