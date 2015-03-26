@@ -551,6 +551,7 @@ from .ustream import UstreamIE, UstreamChannelIE
 from .vbox7 import Vbox7IE
 from .veehd import VeeHDIE
 from .veoh import VeohIE
+from .vessel import VesselIE
 from .vesti import VestiIE
 from .vevo import VevoIE
 from .vgtv import VGTVIE
