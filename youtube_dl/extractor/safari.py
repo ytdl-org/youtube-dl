@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from .brightcove import BrightcoveIE
@@ -20,16 +19,18 @@ from ..utils import (
 
 class SafariBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://www.safaribooksonline.com/accounts/login/'
-    _SUCCESSFUL_LOGIN_REGEX = r'<a href="/accounts/logout/"[^>]+>Sign Out</a>'
-    _ACCOUNT_CREDENTIALS_HINT = ('Use --username and --password options to '
-                                 'supply credentials for safaribooksonline.com ')
-    _NETRC_MACHINE = 'safaribooksonline'
+    _SUCCESSFUL_LOGIN_REGEX = r'<a href="/accounts/logout/"[^>]*>Sign Out</a>'
+    _ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to supply credentials for safaribooksonline.com'
+    _NETRC_MACHINE = 'safari'
+
+    _API_BASE = 'https://www.safaribooksonline.com/api/v1/book'
+    _API_FORMAT = 'json'
 
     LOGGED_IN = False
 
     def _real_initialize(self):
         # We only need to log in once for courses or individual videos
-        if not SafariBaseIE.LOGGED_IN:
+        if not self.LOGGED_IN:
             self._login()
             SafariBaseIE.LOGGED_IN = True
 
@@ -49,7 +50,7 @@ class SafariBaseIE(InfoExtractor):
             'Downloading login form')
 
         csrf = self._html_search_regex(
-            r"<input +type='hidden' +name='csrfmiddlewaretoken' +value='([^']+)' +/>",
+            r"name='csrfmiddlewaretoken'\s+value='([^']+)'",
             login_page, 'csrf token')
 
         login_form = {
@@ -66,8 +67,9 @@ class SafariBaseIE(InfoExtractor):
             request, None, 'Logging in as %s' % username)
 
         if re.search(self._SUCCESSFUL_LOGIN_REGEX, login_page) is None:
-            raise ExtractorError('Login failed; make sure your credentials are correct and '
-                                 'try again.', expected=True)
+            raise ExtractorError(
+                'Login failed; make sure your credentials are correct and try again.',
+                expected=True)
 
         self.to_screen('Login successful')
 
@@ -75,69 +77,80 @@ class SafariBaseIE(InfoExtractor):
 class SafariIE(SafariBaseIE):
     IE_NAME = 'safari'
     IE_DESC = 'safaribooksonline.com online video'
-    _VALID_URL = (r'https?://(?:www\.)?safaribooksonline\.com/library/view/[^/]+/'
-                  '(?P<id>\d+)/(?P<part>part\d+)\.html')
-    _TEST = {
-        'url': ('https://www.safaribooksonline.com/library/view/'
-                'hadoop-fundamentals-livelessons/9780133392838/part00.html'),
+    _VALID_URL = r'''(?x)https?://
+                            (?:www\.)?safaribooksonline\.com/
+                                (?:
+                                    library/view/[^/]+|
+                                    api/v1/book
+                                )/
+                                (?P<course_id>\d+)/
+                                    (?:chapter(?:-content)?/)?
+                                (?P<part>part\d+)\.html
+    '''
+
+    _TESTS = [{
+        'url': 'https://www.safaribooksonline.com/library/view/hadoop-fundamentals-livelessons/9780133392838/part00.html',
         'md5': '5b0c4cc1b3c1ba15dda7344085aa5592',
         'info_dict': {
-            'id': '9780133392838',
+            'id': '2842601850001',
             'ext': 'mp4',
             'title': 'Introduction',
-        }
-    }
+        },
+        'skip': 'Requires safaribooksonline account credentials',
+    }, {
+        'url': 'https://www.safaribooksonline.com/api/v1/book/9780133392838/chapter/part00.html',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        course_id = mobj.group('course_id')
         part = mobj.group('part')
 
-        webpage = self._download_webpage(url, part)
+        webpage = self._download_webpage(
+            '%s/%s/chapter-content/%s.html' % (self._API_BASE, course_id, part),
+            part)
+
         bc_url = BrightcoveIE._extract_brightcove_url(webpage)
         if not bc_url:
             raise ExtractorError('Could not extract Brightcove URL from %s' % url, expected=True)
 
-        return {
-            '_type': 'url',
-            'url': smuggle_url(bc_url, {'Referer': url}),
-            'ie_key': 'Brightcove'
-        }
+        return self.url_result(smuggle_url(bc_url, {'Referer': url}), 'Brightcove')
 
 
 class SafariCourseIE(SafariBaseIE):
     IE_NAME = 'safari:course'
     IE_DESC = 'safaribooksonline.com online courses'
 
-    _VALID_URL = (r'https?://(?:www\.)?safaribooksonline\.com/library/view/'
-                  '(?P<course_path>[^/]+)/(?P<id>\d+)/?$')
+    _VALID_URL = r'https?://(?:www\.)?safaribooksonline\.com/(?:library/view/[^/]+|api/v1/book)/(?P<id>\d+)/?(?:[#?]|$)'
 
-    _API_BASE = 'https://www.safaribooksonline.com/api/v1/book'
-    _API_FORMAT = 'json'
+    _TESTS = [{
+        'url': 'https://www.safaribooksonline.com/library/view/hadoop-fundamentals-livelessons/9780133392838/',
+        'info_dict': {
+            'id': '9780133392838',
+            'title': 'Hadoop Fundamentals LiveLessons',
+        },
+        'playlist_count': 22,
+        'skip': 'Requires safaribooksonline account credentials',
+    }, {
+        'url': 'https://www.safaribooksonline.com/api/v1/book/9781449396459/?override_format=json',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        course_path = mobj.group('course_path')
-        course_id = mobj.group('id')
+        course_id = self._match_id(url)
 
-        webpage = self._download_webpage(
+        course_json = self._download_json(
             '%s/%s/?override_format=%s' % (self._API_BASE, course_id, self._API_FORMAT),
-            course_path, 'Downloading course JSON')
-
-        course_json = json.loads(webpage)
+            course_id, 'Downloading course JSON')
 
         if 'chapters' not in course_json:
-            raise ExtractorError('No chapters found for course %s' % course_id, expected=True)
-
-        num_parts = len(course_json['chapters'])
-        parts = ['%02d' % part for part in range(num_parts)]
+            raise ExtractorError(
+                'No chapters found for course %s' % course_id, expected=True)
 
         entries = [
-            self.url_result(
-                'https://www.safaribooksonline.com/library/view/%s/%s/part%s.html' % (course_path,
-                                                                                      course_id,
-                                                                                      part_id),
-                'Safari')
-            for part_id in parts]
+            self.url_result(chapter, 'Safari')
+            for chapter in course_json['chapters']]
 
         course_title = course_json['title']
 
