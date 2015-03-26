@@ -200,6 +200,8 @@ class TestUtil(unittest.TestCase):
 
     def test_unescape_html(self):
         self.assertEqual(unescapeHTML('%20;'), '%20;')
+        self.assertEqual(unescapeHTML('&#x2F;'), '/')
+        self.assertEqual(unescapeHTML('&#47;'), '/')
         self.assertEqual(
             unescapeHTML('&eacute;'), 'é')
 

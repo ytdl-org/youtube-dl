@@ -348,7 +348,7 @@ def _htmlentity_transform(entity):
     if entity in compat_html_entities.name2codepoint:
         return compat_chr(compat_html_entities.name2codepoint[entity])
 
-    mobj = re.match(r'#(x?[0-9]+)', entity)
+    mobj = re.match(r'#(x[0-9a-fA-F]+|[0-9]+)', entity)
     if mobj is not None:
         numstr = mobj.group(1)
         if numstr.startswith('x'):
