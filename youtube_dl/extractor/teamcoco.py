@@ -54,7 +54,7 @@ class TeamcocoIE(InfoExtractor):
             embed_url, video_id, 'Downloading embed page')
 
         player_data = self._parse_json(self._search_regex(
-            r'Y\.Ginger\.Module\.Player\((\{.*?\})\);', embed, 'player data'), video_id)
+            r'Y\.Ginger\.Module\.Player(?:;var\s*player\s*=\s*new\s*m)?\((\{.*?\})\);', embed, 'player data'), video_id)
         data = self._parse_json(
             base64.b64decode(player_data['preload'].encode('ascii')).decode('utf-8'), video_id)
 
