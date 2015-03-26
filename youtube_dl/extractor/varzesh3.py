@@ -43,13 +43,16 @@ class Varzesh3IE(InfoExtractor):
 
         title = self._html_search_regex(r'meta[^>]+property="og:title"[^>]+content="([^"]+)"', webpage, 'title')
         video_link = self._html_search_regex(r'source[^>]+src="([^"]+)"', webpage, 'video_link')
-        id = self._html_search_regex(r"link[^>]+rel='canonical'[^>]+href='\/\?p=([^']+)'\/>", webpage, 'id')
-        description = self._html_search_regex(r'<div[^>]+class="matn">[^<]+<p>([^<]+)<\/p>', webpage, 'description')
+        vid_id = self._html_search_regex(r"link[^>]+rel='canonical'[^>]+href='\/\?p=([^']+)'\/>", webpage, 'vid_id')
+        try:
+            description = self._html_search_regex(r'<div class="matn">(.*?)</div>', webpage, 'description')
+        except:
+            description = title
         thumbnail = self._html_search_regex(r'link[^>]+rel="image_src"[^>]+href="([^"]+)"', webpage, 'thumbnail')
 
         return {
             'url': video_link,
-            'id': id,
+            'id': vid_id,
             'title': title,
             'ext': video_link.split(".")[-1],
             'description': description,
