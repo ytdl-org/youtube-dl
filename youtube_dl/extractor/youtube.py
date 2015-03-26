@@ -1263,27 +1263,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
 
         return self.playlist_result(url_results, playlist_id, title)
 
-    def _real_extract(self, url):
-        # Extract playlist id
-        mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError('Invalid URL: %s' % url)
-        playlist_id = mobj.group(1) or mobj.group(2)
-
-        # Check if it's a video-specific URL
-        query_dict = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
-        if 'v' in query_dict:
-            video_id = query_dict['v'][0]
-            if self._downloader.params.get('noplaylist'):
-                self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
-                return self.url_result(video_id, 'Youtube', video_id=video_id)
-            else:
-                self.to_screen('Downloading playlist %s - add --no-playlist to just download video %s' % (playlist_id, video_id))
-
-        if playlist_id.startswith('RD') or playlist_id.startswith('UL'):
-            # Mixes require a custom extraction process
-            return self._extract_mix(playlist_id)
-
+    def _extract_playlist(self, playlist_id):
         url = self._TEMPLATE_URL % playlist_id
         page = self._download_webpage(url, playlist_id)
         more_widget_html = content_html = page
@@ -1326,6 +1306,29 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
 
         url_results = self._ids_to_results(ids)
         return self.playlist_result(url_results, playlist_id, playlist_title)
+
+    def _real_extract(self, url):
+        # Extract playlist id
+        mobj = re.match(self._VALID_URL, url)
+        if mobj is None:
+            raise ExtractorError('Invalid URL: %s' % url)
+        playlist_id = mobj.group(1) or mobj.group(2)
+
+        # Check if it's a video-specific URL
+        query_dict = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+        if 'v' in query_dict:
+            video_id = query_dict['v'][0]
+            if self._downloader.params.get('noplaylist'):
+                self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
+                return self.url_result(video_id, 'Youtube', video_id=video_id)
+            else:
+                self.to_screen('Downloading playlist %s - add --no-playlist to just download video %s' % (playlist_id, video_id))
+
+        if playlist_id.startswith('RD') or playlist_id.startswith('UL'):
+            # Mixes require a custom extraction process
+            return self._extract_mix(playlist_id)
+
+        return self._extract_playlist(playlist_id)
 
 
 class YoutubeChannelIE(InfoExtractor):
@@ -1649,12 +1652,15 @@ class YoutubeRecommendedIE(YoutubeFeedsInfoExtractor):
     _PLAYLIST_TITLE = 'Youtube Recommended videos'
 
 
-class YoutubeWatchLaterIE(YoutubeFeedsInfoExtractor):
+class YoutubeWatchLaterIE(YoutubePlaylistIE):
     IE_DESC = 'Youtube watch later list, ":ytwatchlater" for short (requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/feed/watch_later|:ytwatchlater'
+    _VALID_URL = r'https?://www\.youtube\.com/(?:feed/watch_later|playlist\?list=WL)|:ytwatchlater'
     _FEED_NAME = 'watch_later'
     _PLAYLIST_TITLE = 'Youtube Watch Later'
     _PERSONAL_FEED = True
+
+    def _real_extract(self, url):
+        return self._extract_playlist('WL')
 
 
 class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
