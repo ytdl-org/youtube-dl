@@ -1646,6 +1646,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
 
 
 class YoutubeRecommendedIE(YoutubeFeedsInfoExtractor):
+    IE_NAME = 'youtube:recommended'
     IE_DESC = 'YouTube.com recommended videos, ":ytrec" for short (requires authentication)'
     _VALID_URL = r'https?://www\.youtube\.com/feed/recommended|:ytrec(?:ommended)?'
     _FEED_NAME = 'recommended'
@@ -1653,6 +1654,7 @@ class YoutubeRecommendedIE(YoutubeFeedsInfoExtractor):
 
 
 class YoutubeWatchLaterIE(YoutubePlaylistIE):
+    IE_NAME = 'youtube:watchlater'
     IE_DESC = 'Youtube watch later list, ":ytwatchlater" for short (requires authentication)'
     _VALID_URL = r'https?://www\.youtube\.com/(?:feed/watch_later|playlist\?list=WL)|:ytwatchlater'
     _FEED_NAME = 'watch_later'
@@ -1664,6 +1666,7 @@ class YoutubeWatchLaterIE(YoutubePlaylistIE):
 
 
 class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
+    IE_NAME = 'youtube:history'
     IE_DESC = 'Youtube watch history, ":ythistory" for short (requires authentication)'
     _VALID_URL = 'https?://www\.youtube\.com/feed/history|:ythistory'
     _FEED_NAME = 'history'
