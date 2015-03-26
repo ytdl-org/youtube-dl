@@ -45,7 +45,7 @@ class VesselIE(InfoExtractor):
 
     def _check_access_rights(self, data):
         access_info = data.get('__view', {})
-        if access_info.get('allow_access') == False:
+        if not access_info.get('allow_access', True):
             err_code = access_info.get('error_code') or ''
             if err_code == 'ITEM_PAID_ONLY':
                 raise ExtractorError(
