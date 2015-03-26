@@ -16,7 +16,7 @@ class Varzesh3IE(InfoExtractor):
             'url': 'http://dl1.video.varzesh3.com/video/clip94/1/video/namayeshi/saves_week26.mp4',
             'id': '76337',
             'ext': 'mp4',
-            'title': u'۵ واکنش برتر دروازه‌بانان؛هفته ۲۶ بوندسلیگا',
+            'title': '۵ واکنش برتر دروازه‌بانان؛هفته ۲۶ بوندسلیگا',
             'thumbnail': 'http://video.varzesh3.com/wp-content/uploads/230315_saves_week26.jpg',
             'description': u'فصل ۲۰۱۵-۲۰۱۴',
         }
