@@ -18,7 +18,7 @@ class Varzesh3IE(InfoExtractor):
             'ext': 'mp4',
             'title': '۵ واکنش برتر دروازه‌بانان؛هفته ۲۶ بوندسلیگا',
             'thumbnail': 'http://video.varzesh3.com/wp-content/uploads/230315_saves_week26.jpg',
-            'description': u'فصل ۲۰۱۵-۲۰۱۴',
+            'description': 'فصل ۲۰۱۵-۲۰۱۴',
         }
     }
 
