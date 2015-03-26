@@ -1657,9 +1657,8 @@ class YoutubeWatchLaterIE(YoutubePlaylistIE):
     IE_NAME = 'youtube:watchlater'
     IE_DESC = 'Youtube watch later list, ":ytwatchlater" for short (requires authentication)'
     _VALID_URL = r'https?://www\.youtube\.com/(?:feed/watch_later|playlist\?list=WL)|:ytwatchlater'
-    _FEED_NAME = 'watch_later'
-    _PLAYLIST_TITLE = 'Youtube Watch Later'
-    _PERSONAL_FEED = True
+
+    _TESTS = []  # override PlaylistIE tests
 
     def _real_extract(self, url):
         return self._extract_playlist('WL')
