@@ -2,7 +2,7 @@ all: youtube-dl README.md CONTRIBUTING.md README.txt youtube-dl.1 youtube-dl.bas
 
 clean:
 	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish *.dump *.part *.info.json *.mp4 *.flv *.mp3 *.avi CONTRIBUTING.md.tmp youtube-dl youtube-dl.exe
-	find -name "*.pyc" -delete
+	find . -name "*.pyc" -delete
 
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
