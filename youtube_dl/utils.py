@@ -75,7 +75,7 @@ def preferredencoding():
     try:
         pref = locale.getpreferredencoding()
         'TEST'.encode(pref)
-    except:
+    except Exception:
         pref = 'UTF-8'
 
     return pref
@@ -127,7 +127,7 @@ def write_json_file(obj, fn):
             except OSError:
                 pass
         os.rename(tf.name, fn)
-    except:
+    except Exception:
         try:
             os.remove(tf.name)
         except OSError:

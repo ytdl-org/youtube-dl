@@ -65,7 +65,7 @@ def update_self(to_screen, verbose):
     # Check if there is a new version
     try:
         newversion = opener.open(VERSION_URL).read().decode('utf-8').strip()
-    except:
+    except Exception:
         if verbose:
             to_screen(compat_str(traceback.format_exc()))
         to_screen('ERROR: can\'t find the current version. Please try again later.')
@@ -78,7 +78,7 @@ def update_self(to_screen, verbose):
     try:
         versions_info = opener.open(JSON_URL).read().decode('utf-8')
         versions_info = json.loads(versions_info)
-    except:
+    except Exception:
         if verbose:
             to_screen(compat_str(traceback.format_exc()))
         to_screen('ERROR: can\'t obtain versions info. Please try again later.')

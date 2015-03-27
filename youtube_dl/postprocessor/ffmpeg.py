@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import io
 import os
 import subprocess
-import sys
 import time
 
 
@@ -269,19 +268,17 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             else:
                 self._downloader.to_screen('[' + self.basename + '] Destination: ' + new_path)
                 self.run_ffmpeg(path, new_path, acodec, more_opts)
-        except:
-            etype, e, tb = sys.exc_info()
-            if isinstance(e, AudioConversionError):
-                msg = 'audio conversion failed: ' + e.msg
-            else:
-                msg = 'error running ' + self.basename
-            raise PostProcessingError(msg)
+        except AudioConversionError as e:
+            raise PostProcessingError(
+                'audio conversion failed: ' + e.msg)
+        except Exception:
+            raise PostProcessingError('error running ' + self.basename)
 
         # Try to update the date time for extracted audio file.
         if information.get('filetime') is not None:
             try:
                 os.utime(encodeFilename(new_path), (time.time(), information['filetime']))
-            except:
+            except Exception:
                 self._downloader.report_warning('Cannot update utime of audio file')
 
         information['filepath'] = new_path

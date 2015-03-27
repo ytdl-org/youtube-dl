@@ -52,7 +52,7 @@ class YouPornIE(InfoExtractor):
             webpage, 'JSON parameters')
         try:
             params = json.loads(json_params)
-        except:
+        except ValueError:
             raise ExtractorError('Invalid JSON')
 
         self.report_extraction(video_id)

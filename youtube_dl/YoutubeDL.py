@@ -1701,10 +1701,10 @@ class YoutubeDL(object):
             out = out.decode().strip()
             if re.match('[0-9a-f]+', out):
                 self._write_string('[debug] Git HEAD: ' + out + '\n')
-        except:
+        except Exception:
             try:
                 sys.exc_clear()
-            except:
+            except Exception:
                 pass
         self._write_string('[debug] Python version %s - %s\n' % (
             platform.python_version(), platform_name()))

@@ -389,7 +389,7 @@ else:
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = sp.communicate()
             lines, columns = map(int, out.split())
-        except:
+        except Exception:
             pass
         return _terminal_size(columns, lines)
 

@@ -28,7 +28,7 @@ for test in get_testcases():
     if METHOD == 'EURISTIC':
         try:
             webpage = compat_urllib_request.urlopen(test['url'], timeout=10).read()
-        except:
+        except Exception:
             print('\nFail: {0}'.format(test['name']))
             continue
 

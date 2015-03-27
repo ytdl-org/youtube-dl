@@ -204,7 +204,7 @@ class FileDownloader(object):
             return
         try:
             os.utime(filename, (time.time(), filetime))
-        except:
+        except Exception:
             pass
         return filetime
 
