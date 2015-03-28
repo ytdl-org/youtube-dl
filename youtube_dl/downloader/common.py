@@ -318,7 +318,7 @@ class FileDownloader(object):
         )
 
         continuedl_and_exists = (
-            self.params.get('continuedl', False) and
+            self.params.get('continuedl', True) and
             os.path.isfile(encodeFilename(filename)) and
             not self.params.get('nopart', False)
         )

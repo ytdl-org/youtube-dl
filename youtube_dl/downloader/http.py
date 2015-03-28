@@ -49,7 +49,7 @@ class HttpFD(FileDownloader):
 
         open_mode = 'wb'
         if resume_len != 0:
-            if self.params.get('continuedl', False):
+            if self.params.get('continuedl', True):
                 self.report_resuming_byte(resume_len)
                 request.add_header('Range', 'bytes=%d-' % resume_len)
                 open_mode = 'ab'
