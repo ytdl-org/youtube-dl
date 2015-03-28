@@ -9,9 +9,9 @@ from ..utils import (
 
 class DHMIE(InfoExtractor):
     IE_DESC = 'Filmarchiv - Deutsches Historisches Museum'
-    _VALID_URL = r'http://www\.dhm\.de/filmarchiv/die-filme/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?dhm\.de/filmarchiv/(?:[^/]+/)+(?P<id>[^/]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.dhm.de/filmarchiv/die-filme/the-marshallplan-at-work-in-west-germany/',
         'md5': '11c475f670209bf6acca0b2b7ef51827',
         'info_dict': {
@@ -21,8 +21,17 @@ class DHMIE(InfoExtractor):
             'description': 'md5:1fabd480c153f97b07add61c44407c82',
             'duration': 660,
             'thumbnail': 're:^https?://.*\.jpg$',
-        }
-    }
+        },
+    }, {
+        'url': 'http://www.dhm.de/filmarchiv/02-mapping-the-wall/peter-g/rolle-1/',
+        'md5': '09890226332476a3e3f6f2cb74734aa5',
+        'info_dict': {
+            'id': 'rolle-1',
+            'ext': 'flv',
+            'title': 'ROLLE 1',
+            'thumbnail': 're:^https?://.*\.jpg$',
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -49,10 +58,10 @@ class DHMIE(InfoExtractor):
             webpage, 'title').strip()
         description = self._html_search_regex(
             r'<p><strong>Description:</strong>(.+?)</p>',
-            webpage, 'description', fatal=False)
+            webpage, 'description', default=None)
         duration = parse_duration(self._search_regex(
             r'<em>Length\s*</em>\s*:\s*</strong>([^<]+)',
-            webpage, 'duration', fatal=False))
+            webpage, 'duration', default=None))
 
         return {
             'id': video_id,
