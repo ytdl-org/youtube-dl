@@ -106,6 +106,7 @@ from .dbtv import DBTVIE
 from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE
 from .dfb import DFBIE
+from .dhm import DHMIE
 from .dotsub import DotsubIE
 from .douyutv import DouyuTVIE
 from .dreisat import DreiSatIE
