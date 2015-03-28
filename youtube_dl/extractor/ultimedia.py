@@ -42,7 +42,6 @@ class UltimediaIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         webpage = self._download_webpage(url, video_id)
 
         deliver_url = self._search_regex(
@@ -81,8 +80,8 @@ class UltimediaIE(InfoExtractor):
         title = clean_html((
             self._html_search_regex(
                 r'(?s)<div\s+id="catArticle">.+?</div>(.+?)</h1>',
-                webpage, 'title', default=None)
-            or self._search_regex(
+                webpage, 'title', default=None) or
+            self._search_regex(
                 r"var\s+nameVideo\s*=\s*'([^']+)'",
                 deliver_page, 'title')))
 
