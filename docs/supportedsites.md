@@ -2,6 +2,8 @@
  - **1tv**: Первый канал
  - **1up.com**
  - **220.ro**
+ - **22tracks:genre**
+ - **22tracks:track**
  - **24video**
  - **3sat**
  - **4tube**
@@ -380,6 +382,8 @@
  - **rutube:movie**: Rutube movies
  - **rutube:person**: Rutube person videos
  - **RUTV**: RUTV.RU
+ - **safari**: safaribooksonline.com online video
+ - **safari:course**: safaribooksonline.com online courses
  - **Sandia**: Sandia National Laboratories
  - **Sapo**: SAPO Vídeos
  - **savefrom.net**
@@ -500,6 +504,7 @@
  - **Vbox7**
  - **VeeHD**
  - **Veoh**
+ - **Vessel**
  - **Vesti**: Вести.Ru
  - **Vevo**
  - **VGTV**
@@ -588,7 +593,7 @@
  - **youtube:show**: YouTube.com (multi-season) shows
  - **youtube:subscriptions**: YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)
  - **youtube:user**: YouTube.com user videos (URL or "ytuser" keyword)
- - **youtube:watch_later**: Youtube watch later list, ":ytwatchlater" for short (requires authentication)
+ - **youtube:watchlater**: Youtube watch later list, ":ytwatchlater" for short (requires authentication)
  - **Zapiks**
  - **ZDF**
  - **ZDFChannel**
