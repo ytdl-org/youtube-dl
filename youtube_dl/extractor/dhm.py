@@ -1,53 +1,64 @@
-# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-
-import urllib2
-import xml.etree.ElementTree as ET
-import re
+from ..utils import (
+    xpath_text,
+    parse_duration,
+)
 
 
 class DHMIE(InfoExtractor):
-    IE_DESC = 'Deutsches Historisches Museum'
-    _VALID_URL = r'http://www\.dhm\.de/filmarchiv/(?P<id>.*?)'
+    IE_DESC = 'Filmarchiv - Deutsches Historisches Museum'
+    _VALID_URL = r'http://www\.dhm\.de/filmarchiv/die-filme/(?P<id>[^/]+)'
 
     _TEST = {
         'url': 'http://www.dhm.de/filmarchiv/die-filme/the-marshallplan-at-work-in-west-germany/',
         'md5': '11c475f670209bf6acca0b2b7ef51827',
         'info_dict': {
-            'id': 'marshallwg',
+            'id': 'the-marshallplan-at-work-in-west-germany',
             'ext': 'flv',
             'title': 'MARSHALL PLAN AT WORK IN WESTERN GERMANY, THE',
-            'thumbnail': 'http://www.dhm.de/filmarchiv/video/mpworkwg.jpg',
+            'description': 'md5:1fabd480c153f97b07add61c44407c82',
+            'duration': 660,
+            'thumbnail': 're:^https?://.*\.jpg$',
         }
     }
 
     def _real_extract(self, url):
-        video_id = ''
+        video_id = self._match_id(url)
+
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(
-            r'dc:title=\"(.*?)\"', webpage, 'title')
+        playlist_url = self._search_regex(
+            r"file\s*:\s*'([^']+)'", webpage, 'playlist url')
 
-        playlist_url = self._html_search_regex(
-            r'file: \'(.*?)\'', webpage, 'playlist URL')
+        playlist = self._download_xml(playlist_url, video_id)
 
-        xml_file = urllib2.urlopen(playlist_url)
-        data = xml_file.read()
-        xml_file.close()
+        track = playlist.find(
+            './{http://xspf.org/ns/0/}trackList/{http://xspf.org/ns/0/}track')
 
-        root = ET.fromstring(data)
-        video_url = root[0][0][0].text
-        thumbnail = root[0][0][2].text
+        video_url = xpath_text(
+            track, './{http://xspf.org/ns/0/}location',
+            'video url', fatal=True)
+        thumbnail = xpath_text(
+            track, './{http://xspf.org/ns/0/}image',
+            'thumbnail')
 
-        m = re.search('video/(.+?).flv', video_url)
-        if m:
-            video_id = m.group(1)
+        title = self._search_regex(
+            [r'dc:title="([^"]+)"', r'<title> &raquo;([^<]+)</title>'],
+            webpage, 'title').strip()
+        description = self._html_search_regex(
+            r'<p><strong>Description:</strong>(.+?)</p>',
+            webpage, 'description', fatal=False)
+        duration = parse_duration(self._search_regex(
+            r'<em>Length\s*</em>\s*:\s*</strong>([^<]+)',
+            webpage, 'duration', fatal=False))
 
         return {
             'id': video_id,
-            'title': title,
             'url': video_url,
+            'title': title,
+            'description': description,
+            'duration': duration,
             'thumbnail': thumbnail,
         }
