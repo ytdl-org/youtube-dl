@@ -9,6 +9,7 @@ import re
 
 
 class DHMIE(InfoExtractor):
+    IE_DESC = 'Deutsches Historisches Museum'
     _VALID_URL = r'http://www\.dhm\.de/filmarchiv/(?P<id>.*?)'
 
     _TEST = {
