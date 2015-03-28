@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class NBCIE(InfoExtractor):
-    _VALID_URL = r'http://www\.nbc\.com/(?:[^/]+/)+(?P<id>n?\d+)'
+    _VALID_URL = r'https?://www\.nbc\.com/(?:[^/]+/)+(?P<id>n?\d+)'
 
     _TESTS = [
         {
