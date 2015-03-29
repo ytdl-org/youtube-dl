@@ -67,7 +67,7 @@ class DouyuTVIE(InfoExtractor):
         error_code = config.get('error', 0)
         if error_code is not 0:
             error_desc = 'Server reported error %i' % error_code
-            if isinstance(data, compat_str) or isinstance(data, compat_basestring):
+            if isinstance(data, (compat_str, compat_basestring)):
                 error_desc += ': ' + data
             raise ExtractorError(error_desc, expected=True)
 
