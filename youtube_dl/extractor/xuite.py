@@ -69,18 +69,26 @@ class XuiteIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def base64_decode_utf8(data):
+        return base64.b64decode(data.encode('utf-8')).decode('utf-8')
+
+    @staticmethod
+    def base64_encode_utf8(data):
+        return base64.b64encode(data.encode('utf-8')).decode('utf-8')
+
     def _extract_flv_config(self, media_id):
-        base64_media_id = base64.b64encode(media_id.encode('utf-8')).decode('utf-8')
+        base64_media_id = self.base64_encode_utf8(media_id)
         flv_config = self._download_xml(
             'http://vlog.xuite.net/flash/player?media=%s' % base64_media_id,
             'flv config')
         prop_dict = {}
         for prop in flv_config.findall('./property'):
-            prop_id = base64.b64decode(prop.attrib['id']).decode('utf-8')
+            prop_id = self.base64_decode_utf8(prop.attrib['id'])
             # CDATA may be empty in flv config
             if not prop.text:
                 continue
-            encoded_content = base64.b64decode(prop.text).decode('utf-8')
+            encoded_content = self.base64_decode_utf8(prop.text)
             prop_dict[prop_id] = compat_urllib_parse_unquote(encoded_content)
         return prop_dict
 
