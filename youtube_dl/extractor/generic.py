@@ -620,6 +620,16 @@ class GenericIE(InfoExtractor):
                 'age_limit': 0,
             },
         },
+        # 5min embed
+        {
+            'url': 'http://techcrunch.com/video/facebook-creates-on-this-day-crunch-report/518726732/',
+            'md5': '4c6f127a30736b59b3e2c19234ee2bf7',
+            'info_dict': {
+                'id': '518726732',
+                'ext': 'mp4',
+                'title': 'Facebook Creates "On This Day" | Crunch Report',
+            },
+        },
         # RSS feed with enclosure
         {
             'url': 'http://podcastfeeds.nbcnews.com/audio/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
@@ -1235,6 +1245,12 @@ class GenericIE(InfoExtractor):
             r'<iframe[^>]+src="(?P<url>https?://out\.pladform\.ru/player\?.+?)"', webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'Pladform')
+
+        # Look for 5min embeds
+        mobj = re.search(
+            r'<meta[^>]+property="og:video"[^>]+content="https?://embed\.5min\.com/(?P<id>[0-9]+)/?', webpage)
+        if mobj is not None:
+            return self.url_result('5min:%s' % mobj.group('id'), 'FiveMin')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
