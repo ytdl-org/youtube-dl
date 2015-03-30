@@ -53,7 +53,7 @@ class NBCIE(InfoExtractor):
 class NBCSportsVPlayerIE(InfoExtractor):
     _VALID_URL = r'https?://vplayer\.nbcsports\.com/(?:[^/]+/)+(?P<id>[0-9a-zA-Z_]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_share/select/9CsDKds0kvHI',
         'md5': 'ceae8dced5c14a1c1ffcb7a32194cca5',
         'info_dict': {
@@ -62,7 +62,11 @@ class NBCSportsVPlayerIE(InfoExtractor):
             'description': 'md5:df390f70a9ba7c95ff1daace988f0d8d',
             'title': 'Tyler Kalinoski hits buzzer-beater to lift Davidson',
         }
-    }
+    }, {
+        'note': 'This video is already expired. It\'s for testing _VALID_URL',
+        'url': 'http://vplayer.nbcsports.com/p/BxmELC/nbc_embedshare/select/_hqLjQ95yx8Z',
+        'only_matching': True,
+    }]
 
     @staticmethod
     def _extract_url(webpage):
