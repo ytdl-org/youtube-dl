@@ -242,7 +242,7 @@ class SoundcloudIE(InfoExtractor):
 
 
 class SoundcloudSetIE(SoundcloudIE):
-    _VALID_URL = r'https?://(?:www\.)?soundcloud\.com/(?P<uploader>[\w\d-]+)/sets/(?P<slug_title>[\w\d-]+)(?:/(?P<token>[^?/]+))?'
+    _VALID_URL = r'https?://(?:(?:www|m)\.)?soundcloud\.com/(?P<uploader>[\w\d-]+)/sets/(?P<slug_title>[\w\d-]+)(?:/(?P<token>[^?/]+))?'
     IE_NAME = 'soundcloud:set'
     _TESTS = [{
         'url': 'https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep',
@@ -287,7 +287,7 @@ class SoundcloudSetIE(SoundcloudIE):
 
 
 class SoundcloudUserIE(SoundcloudIE):
-    _VALID_URL = r'https?://(www\.)?soundcloud\.com/(?P<user>[^/]+)/?((?P<rsrc>tracks|likes)/?)?(\?.*)?$'
+    _VALID_URL = r'https?://(?:(?:www|m)\.)?soundcloud\.com/(?P<user>[^/]+)/?((?P<rsrc>tracks|likes)/?)?(\?.*)?$'
     IE_NAME = 'soundcloud:user'
     _TESTS = [{
         'url': 'https://soundcloud.com/the-concept-band',
