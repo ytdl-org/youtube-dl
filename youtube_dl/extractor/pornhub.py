@@ -33,10 +33,8 @@ class PornHubIE(InfoExtractor):
     }
 
     def _extract_count(self, pattern, webpage, name):
-        count = self._html_search_regex(pattern, webpage, '%s count' % name, fatal=False)
-        if count:
-            count = str_to_int(count)
-        return count
+        return str_to_int(self._search_regex(
+            pattern, webpage, '%s count' % name, fatal=False))
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -62,11 +60,14 @@ class PornHubIE(InfoExtractor):
         if thumbnail:
             thumbnail = compat_urllib_parse.unquote(thumbnail)
 
-        view_count = self._extract_count(r'<span class="count">([\d,\.]+)</span> views', webpage, 'view')
-        like_count = self._extract_count(r'<span class="votesUp">([\d,\.]+)</span>', webpage, 'like')
-        dislike_count = self._extract_count(r'<span class="votesDown">([\d,\.]+)</span>', webpage, 'dislike')
+        view_count = self._extract_count(
+            r'<span class="count">([\d,\.]+)</span> views', webpage, 'view')
+        like_count = self._extract_count(
+            r'<span class="votesUp">([\d,\.]+)</span>', webpage, 'like')
+        dislike_count = self._extract_count(
+            r'<span class="votesDown">([\d,\.]+)</span>', webpage, 'dislike')
         comment_count = self._extract_count(
-            r'All comments \(<var class="videoCommentCount">([\d,\.]+)</var>', webpage, 'comment')
+            r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
         video_urls = list(map(compat_urllib_parse.unquote, re.findall(r'"quality_[0-9]{3}p":"([^"]+)', webpage)))
         if webpage.find('"encrypted":true') != -1:
