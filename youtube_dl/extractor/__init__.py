@@ -310,9 +310,9 @@ from .naver import NaverIE
 from .nba import NBAIE
 from .nbc import (
     NBCIE,
-    NBCSportsVPlayerIE,
-    NBCSportsIE,
     NBCNewsIE,
+    NBCSportsIE,
+    NBCSportsVPlayerIE,
 )
 from .ndr import NDRIE
 from .ndtv import NDTVIE
