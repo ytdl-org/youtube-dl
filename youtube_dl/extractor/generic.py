@@ -29,6 +29,7 @@ from ..utils import (
     xpath_text,
 )
 from .brightcove import BrightcoveIE
+from .nbc import NBCSportsVPlayerIE
 from .ooyala import OoyalaIE
 from .rutv import RUTVIE
 from .smotri import SmotriIE
@@ -639,6 +640,15 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20150228',
                 'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
             }
+        },
+        # NBC Sports vplayer embeds
+        {
+            'url': 'http://bbs.clutchfans.net/showthread.php?t=244180',
+            'info_dict': {
+                'id': '_hqLjQ95yx8Z',
+                'ext': 'flv'
+            },
+            'skip': 'This content expired on 9/17/14 12:23 PM',
         }
     ]
 
@@ -1251,6 +1261,11 @@ class GenericIE(InfoExtractor):
             r'<meta[^>]+property="og:video"[^>]+content="https?://embed\.5min\.com/(?P<id>[0-9]+)/?', webpage)
         if mobj is not None:
             return self.url_result('5min:%s' % mobj.group('id'), 'FiveMin')
+
+        # Look for NBC Sports VPlayer embeds
+        nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
+        if nbc_sports_url:
+            return self.url_result(nbc_sports_url, 'NBCSportsVPlayer')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

@@ -92,7 +92,7 @@ class ThePlatformIE(InfoExtractor):
             error_msg = next(
                 n.attrib['abstract']
                 for n in meta.findall(_x('.//smil:ref'))
-                if n.attrib.get('title') == 'Geographic Restriction')
+                if n.attrib.get('title') == 'Geographic Restriction' or n.attrib.get('title') == 'Expired')
         except StopIteration:
             pass
         else:
