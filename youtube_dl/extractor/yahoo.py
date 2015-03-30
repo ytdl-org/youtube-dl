@@ -17,6 +17,8 @@ from ..utils import (
     int_or_none,
 )
 
+from .nbc import NBCSportsVPlayerIE
+
 
 class YahooIE(InfoExtractor):
     IE_DESC = 'Yahoo screen and movies'
@@ -132,6 +134,7 @@ class YahooIE(InfoExtractor):
         }, {
             'note': 'NBC Sports embeds',
             'url': 'http://sports.yahoo.com/blogs/ncaab-the-dagger/tyler-kalinoski-s-buzzer-beater-caps-davidson-s-comeback-win-185609842.html?guid=nbc_cbk_davidsonbuzzerbeater_150313',
+            'md5': 'ceae8dced5c14a1c1ffcb7a32194cca5',
             'info_dict': {
                 'id': '9CsDKds0kvHI',
                 'ext': 'flv',
@@ -161,10 +164,9 @@ class YahooIE(InfoExtractor):
                 video_id = items[0]['id']
                 return self._get_info(video_id, display_id, webpage)
         # Look for NBCSports iframes
-        iframe_m = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://vplayer\.nbcsports\.com/[^"]+)"', webpage)
-        if iframe_m:
-            return self.url_result(iframe_m.group('url'), 'NBCSports')
+        nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
+        if nbc_sports_url:
+            return self.url_result(nbc_sports_url, 'NBCSportsVPlayer')
 
         items_json = self._search_regex(
             r'mediaItems: ({.*?})$', webpage, 'items', flags=re.MULTILINE,
