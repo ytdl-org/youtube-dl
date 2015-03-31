@@ -134,7 +134,6 @@ class YahooIE(InfoExtractor):
         }, {
             'note': 'NBC Sports embeds',
             'url': 'http://sports.yahoo.com/blogs/ncaab-the-dagger/tyler-kalinoski-s-buzzer-beater-caps-davidson-s-comeback-win-185609842.html?guid=nbc_cbk_davidsonbuzzerbeater_150313',
-            'md5': 'ceae8dced5c14a1c1ffcb7a32194cca5',
             'info_dict': {
                 'id': '9CsDKds0kvHI',
                 'ext': 'flv',

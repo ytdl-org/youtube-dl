@@ -55,7 +55,6 @@ class NBCSportsVPlayerIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_share/select/9CsDKds0kvHI',
-        'md5': 'ceae8dced5c14a1c1ffcb7a32194cca5',
         'info_dict': {
             'id': '9CsDKds0kvHI',
             'ext': 'flv',
@@ -88,7 +87,6 @@ class NBCSportsIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.nbcsports.com//college-basketball/ncaab/tom-izzo-michigan-st-has-so-much-respect-duke',
-        'md5': 'ba6c93f96b67bf05344f78bd523dac0f',
         'info_dict': {
             'id': 'PHJSaFWbrTY9',
             'ext': 'flv',
