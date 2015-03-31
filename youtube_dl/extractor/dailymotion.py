@@ -25,8 +25,7 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
     def _build_request(url):
         """Build a request with the family filter disabled"""
         request = compat_urllib_request.Request(url)
-        request.add_header('Cookie', 'family_filter=off')
-        request.add_header('Cookie', 'ff=off')
+        request.add_header('Cookie', 'family_filter=off; ff=off')
         return request
 
 
@@ -112,8 +111,9 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             video_upload_date = mobj.group(3) + mobj.group(2) + mobj.group(1)
 
         embed_url = 'http://www.dailymotion.com/embed/video/%s' % video_id
-        embed_page = self._download_webpage(embed_url, video_id,
-                                            'Downloading embed page')
+        embed_request = self._build_request(embed_url)
+        embed_page = self._download_webpage(
+            embed_request, video_id, 'Downloading embed page')
         info = self._search_regex(r'var info = ({.*?}),$', embed_page,
                                   'video info', flags=re.MULTILINE)
         info = json.loads(info)
