@@ -62,7 +62,6 @@ class NBCSportsVPlayerIE(InfoExtractor):
             'title': 'Tyler Kalinoski hits buzzer-beater to lift Davidson',
         }
     }, {
-        'note': 'This video is already expired. It\'s for testing _VALID_URL',
         'url': 'http://vplayer.nbcsports.com/p/BxmELC/nbc_embedshare/select/_hqLjQ95yx8Z',
         'only_matching': True,
     }]
