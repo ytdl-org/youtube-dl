@@ -641,14 +641,15 @@ class GenericIE(InfoExtractor):
                 'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
             }
         },
-        # NBC Sports vplayer embeds
+        # NBC Sports vplayer embed
         {
-            'url': 'http://bbs.clutchfans.net/showthread.php?t=244180',
+            'url': 'http://www.riderfans.com/forum/showthread.php?121827-Freeman&s=e98fa1ea6dc08e886b1678d35212494a',
             'info_dict': {
-                'id': '_hqLjQ95yx8Z',
-                'ext': 'flv'
+                'id': 'ln7x1qSThw4k',
+                'ext': 'flv',
+                'title': "PFT Live: New leader in the 'new-look' defense",
+                'description': 'md5:65a19b4bbfb3b0c0c5768bed1dfad74e',
             },
-            'skip': 'This content expired on 9/17/14 12:23 PM',
         }
     ]
 
