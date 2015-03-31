@@ -50,6 +50,58 @@ class NBCIE(InfoExtractor):
         return self.url_result(theplatform_url)
 
 
+class NBCSportsVPlayerIE(InfoExtractor):
+    _VALID_URL = r'https?://vplayer\.nbcsports\.com/(?:[^/]+/)+(?P<id>[0-9a-zA-Z_]+)'
+
+    _TESTS = [{
+        'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_share/select/9CsDKds0kvHI',
+        'info_dict': {
+            'id': '9CsDKds0kvHI',
+            'ext': 'flv',
+            'description': 'md5:df390f70a9ba7c95ff1daace988f0d8d',
+            'title': 'Tyler Kalinoski hits buzzer-beater to lift Davidson',
+        }
+    }, {
+        'note': 'This video is already expired. It\'s for testing _VALID_URL',
+        'url': 'http://vplayer.nbcsports.com/p/BxmELC/nbc_embedshare/select/_hqLjQ95yx8Z',
+        'only_matching': True,
+    }]
+
+    @staticmethod
+    def _extract_url(webpage):
+        iframe_m = re.search(
+            r'<iframe[^>]+src="(?P<url>https?://vplayer\.nbcsports\.com/[^"]+)"', webpage)
+        if iframe_m:
+            return iframe_m.group('url')
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        theplatform_url = self._og_search_video_url(webpage)
+        return self.url_result(theplatform_url, 'ThePlatform')
+
+
+class NBCSportsIE(InfoExtractor):
+    # Does not include https becuase its certificate is invalid
+    _VALID_URL = r'http://www\.nbcsports\.com//?(?:[^/]+/)+(?P<id>[0-9a-z-]+)'
+
+    _TEST = {
+        'url': 'http://www.nbcsports.com//college-basketball/ncaab/tom-izzo-michigan-st-has-so-much-respect-duke',
+        'info_dict': {
+            'id': 'PHJSaFWbrTY9',
+            'ext': 'flv',
+            'title': 'Tom Izzo, Michigan St. has \'so much respect\' for Duke',
+            'description': 'md5:ecb459c9d59e0766ac9c7d5d0eda8113',
+        }
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        return self.url_result(
+            NBCSportsVPlayerIE._extract_url(webpage), 'NBCSportsVPlayer')
+
+
 class NBCNewsIE(InfoExtractor):
     _VALID_URL = r'''(?x)https?://(?:www\.)?nbcnews\.com/
         (?:video/.+?/(?P<id>\d+)|

@@ -311,6 +311,8 @@ from .nba import NBAIE
 from .nbc import (
     NBCIE,
     NBCNewsIE,
+    NBCSportsIE,
+    NBCSportsVPlayerIE,
 )
 from .ndr import NDRIE
 from .ndtv import NDTVIE
