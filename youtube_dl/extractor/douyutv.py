@@ -1,19 +1,23 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import hashlib
+import time
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import (ExtractorError, unescapeHTML)
+from ..compat import (compat_str, compat_basestring)
 
 
 class DouyuTVIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?douyutv\.com/(?P<id>[A-Za-z0-9]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.douyutv.com/iseven',
         'info_dict': {
-            'id': 'iseven',
+            'id': '17732',
+            'display_id': 'iseven',
             'ext': 'flv',
             'title': 're:^清晨醒脑！T-ara根本停不下来！ [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
-            'description': 'md5:9e525642c25a0a24302869937cf69d17',
+            'description': 'md5:c93d6692dde6fe33809a46edcbecca44',
             'thumbnail': 're:^https?://.*\.jpg$',
             'uploader': '7师傅',
             'uploader_id': '431925',
@@ -22,22 +26,52 @@ class DouyuTVIE(InfoExtractor):
         'params': {
             'skip_download': True,
         }
-    }
+    }, {
+        'url': 'http://www.douyutv.com/85982',
+        'info_dict': {
+            'id': '85982',
+            'display_id': '85982',
+            'ext': 'flv',
+            'title': 're:^小漠从零单排记！——CSOL2躲猫猫 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 'md5:746a2f7a253966a06755a912f0acc0d2',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'uploader': 'douyu小漠',
+            'uploader_id': '3769985',
+            'is_live': True,
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        if video_id.isdigit():
+            room_id = video_id
+        else:
+            page = self._download_webpage(url, video_id)
+            room_id = self._html_search_regex(
+                r'"room_id"\s*:\s*(\d+),', page, 'room id')
+
+        prefix = 'room/%s?aid=android&client_sys=android&time=%d' % (
+            room_id, int(time.time()))
+
+        auth = hashlib.md5((prefix + '1231').encode('ascii')).hexdigest()
         config = self._download_json(
-            'http://www.douyutv.com/api/client/room/%s' % video_id, video_id)
+            'http://www.douyutv.com/api/v1/%s&auth=%s' % (prefix, auth),
+            video_id)
 
         data = config['data']
 
         error_code = config.get('error', 0)
-        show_status = data.get('show_status')
         if error_code is not 0:
-            raise ExtractorError(
-                'Server reported error %i' % error_code, expected=True)
+            error_desc = 'Server reported error %i' % error_code
+            if isinstance(data, (compat_str, compat_basestring)):
+                error_desc += ': ' + data
+            raise ExtractorError(error_desc, expected=True)
 
+        show_status = data.get('show_status')
         # 1 = live, 2 = offline
         if show_status == '2':
             raise ExtractorError(
@@ -46,7 +80,7 @@ class DouyuTVIE(InfoExtractor):
         base_url = data['rtmp_url']
         live_path = data['rtmp_live']
 
-        title = self._live_title(data['room_name'])
+        title = self._live_title(unescapeHTML(data['room_name']))
         description = data.get('show_details')
         thumbnail = data.get('room_src')
 
@@ -66,7 +100,8 @@ class DouyuTVIE(InfoExtractor):
         self._sort_formats(formats)
 
         return {
-            'id': video_id,
+            'id': room_id,
+            'display_id': video_id,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
