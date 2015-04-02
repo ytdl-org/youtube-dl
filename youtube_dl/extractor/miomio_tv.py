@@ -1,74 +1,93 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import random
+
 from .common import InfoExtractor
+from ..utils import (
+    xpath_text,
+    int_or_none,
+)
 
 
 class MiomioTvIE(InfoExtractor):
     IE_NAME = 'miomio.tv'
     _VALID_URL = r'https?://(?:www\.)?miomio\.tv/watch/cc(?P<id>[0-9]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.miomio.tv/watch/cc179734/',
         'md5': '48de02137d0739c15b440a224ad364b9',
         'info_dict': {
             'id': '179734',
-            'title': u'\u624b\u7ed8\u52a8\u6f2b\u9b3c\u6ce3\u4f46\u4e01\u5168\u7a0b\u753b\u6cd5',
-            'ext': 'flv'
-        }
-    }
+            'ext': 'flv',
+            'title': '手绘动漫鬼泣但丁全程画法',
+            'duration': 354,
+        },
+    }, {
+        'url': 'http://www.miomio.tv/watch/cc184024/',
+        'info_dict': {
+            'id': '43729',
+            'title': '《动漫同人插画绘制》',
+        },
+        'playlist_mincount': 86,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(r'<meta\s+name="description"\s+content="\s*([^"]*)\s*"', webpage, 'title')
-        ref_path = self._search_regex(r'src="(/mioplayer/.*?)"', webpage, 'ref_path')
-        referer = 'http://www.miomio.tv{0}'.format(ref_path)
-        xml_config = self._search_regex(r'flashvars="type=sina&amp;(.*?)&amp;cid=', webpage, 'xml config')
+        title = self._html_search_meta(
+            'description', webpage, 'title', fatal=True)
+
+        mioplayer_path = self._search_regex(
+            r'src="(/mioplayer/[^"]+)"', webpage, 'ref_path')
+
+        xml_config = self._search_regex(
+            r'flashvars="type=sina&amp;(.+?)&amp;',
+            webpage, 'xml config')
         
         # skipping the following page causes lags and eventually connection drop-outs
-        # id is normally a rotating three digit value but a fixed value always appears to work
-        self._request_webpage("http://www.miomio.tv/mioplayer/mioplayerconfigfiles/xml.php?id={0}&r=cc{1}".format(id, 945), video_id)
+        self._request_webpage(
+            'http://www.miomio.tv/mioplayer/mioplayerconfigfiles/xml.php?id=%s&r=%s' % (id, random.randint(100, 999)),
+            video_id)
 
         # the following xml contains the actual configuration information on the video file(s)
-        xml_url = 'http://www.miomio.tv/mioplayer/mioplayerconfigfiles/sina.php?{0}'.format(xml_config)
-        vidconfig = self._download_xml(xml_url, video_id)
-
-        file_els = vidconfig.findall('.//durl')
-
-        entries = []
-
-        for file_el in file_els:
-            segment_id = file_el.find('order').text.strip()
-            segment_title = '_'.join([title, segment_id])
-            segment_duration = file_el.find('length').text.strip()
-            segment_url = file_el.find('url').text.strip()
-
-            entries.append({
-                'id': segment_id,
-                'title': segment_title,
-                'duration': segment_duration,
-                'url': segment_url
-            })
+        vid_config = self._download_xml(
+            'http://www.miomio.tv/mioplayer/mioplayerconfigfiles/sina.php?{0}'.format(xml_config),
+            video_id)
 
         http_headers = {
-            'Referer': referer,
-            'Accept-Encoding': 'gzip, deflate',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+            'Referer': 'http://www.miomio.tv%s' % mioplayer_path,
         }
 
+        entries = []
+        for f in vid_config.findall('./durl'):
+            segment_url = xpath_text(f, 'url', 'video url')
+            if not segment_url:
+                continue
+            order = xpath_text(f, 'order', 'order')
+            segment_id = video_id
+            segment_title = title
+            if order:
+                segment_id += '-%s' % order
+                segment_title += ' part %s' % order
+            entries.append({
+                'id': segment_id,
+                'url': segment_url,
+                'title': segment_title,
+                'duration': int_or_none(xpath_text(f, 'length', 'duration'), 1000),
+                'http_headers': http_headers,
+            })
+
         if len(entries) == 1:
-            return {
-                'id': video_id,
-                'title': title,
-                'url': entries[0]['url'],
-                'http_headers': http_headers
-            }
+            segment = entries[0]
+            segment['id'] = video_id
+            segment['title'] = title
+            return segment
 
         return {
             '_type': 'multi_video',
             'id': video_id,
-            'title': title,
             'entries': entries,
-            'http_headers': http_headers
+            'title': title,
+            'http_headers': http_headers,
         }
