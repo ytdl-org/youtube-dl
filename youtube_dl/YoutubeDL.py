@@ -1768,6 +1768,12 @@ class YoutubeDL(object):
 
         debuglevel = 1 if self.params.get('debug_printtraffic') else 0
         https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)
+        # The ssl context is only available in python 2.7.9 and 3.x
+        if hasattr(https_handler, '_context'):
+            if len(https_handler._context.get_ca_certs()) == 0:
+                self.report_warning(
+                    'No ssl certificates were loaded, urls that use https '
+                    'won\'t work')
         ydlh = YoutubeDLHandler(self.params, debuglevel=debuglevel)
         opener = compat_urllib_request.build_opener(
             proxy_handler, https_handler, cookie_processor, ydlh)
