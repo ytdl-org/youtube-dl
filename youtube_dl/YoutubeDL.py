@@ -1770,7 +1770,9 @@ class YoutubeDL(object):
         https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)
         # The ssl context is only available in python 2.7.9 and 3.x
         if hasattr(https_handler, '_context'):
-            if len(https_handler._context.get_ca_certs()) == 0:
+            ctx = https_handler._context
+            # get_ca_certs is unavailable prior to python 3.4
+            if hasattr(ctx, 'get_ca_certs') and len(ctx.get_ca_certs()) == 0:
                 self.report_warning(
                     'No ssl certificates were loaded, urls that use https '
                     'won\'t work')
