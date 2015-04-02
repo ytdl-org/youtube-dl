@@ -10,7 +10,7 @@ from ..utils import (
 )
 
 
-class MiomioTvIE(InfoExtractor):
+class MioMioIE(InfoExtractor):
     IE_NAME = 'miomio.tv'
     _VALID_URL = r'https?://(?:www\.)?miomio\.tv/watch/cc(?P<id>[0-9]+)'
     _TESTS = [{
