@@ -25,7 +25,7 @@ class ProSiebenSat1IE(InfoExtractor):
             'info_dict': {
                 'id': '2104602',
                 'ext': 'mp4',
-                'title': 'Staffel 2, Episode 18 - Jahresrückblick',
+                'title': 'Episode 18 - Staffel 2',
                 'description': 'md5:8733c81b702ea472e069bc48bb658fc1',
                 'upload_date': '20131231',
                 'duration': 5845.04,
