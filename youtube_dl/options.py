@@ -13,6 +13,7 @@ from .compat import (
     compat_kwargs,
 )
 from .utils import (
+    preferredencoding,
     write_string,
 )
 from .version import __version__
@@ -797,7 +798,7 @@ def parseOpts(overrideArguments=None):
         # Workaround for Python 2.x, where argv is a byte list
         if sys.version_info < (3,):
             command_line_conf = [
-                a.decode('utf-8', 'replace') for a in command_line_conf]
+                a.decode(preferredencoding(), 'replace') for a in command_line_conf]
 
         if '--ignore-config' in command_line_conf:
             system_conf = []
