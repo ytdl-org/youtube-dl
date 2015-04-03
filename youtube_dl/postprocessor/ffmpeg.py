@@ -117,6 +117,10 @@ class FFmpegPostProcessor(PostProcessor):
         return self._paths[self.basename]
 
     @property
+    def probe_available(self):
+        return self.probe_basename is not None
+
+    @property
     def probe_executable(self):
         return self._paths[self.probe_basename]
 
@@ -168,7 +172,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
     def get_audio_codec(self, path):
 
-        if not self.probe_executable:
+        if not self.probe_available:
             raise PostProcessingError('ffprobe or avprobe not found. Please install one.')
         try:
             cmd = [
