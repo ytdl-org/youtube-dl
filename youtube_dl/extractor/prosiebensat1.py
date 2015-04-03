@@ -266,6 +266,7 @@ class ProSiebenSat1IE(InfoExtractor):
             urls_sources = urls_sources.values()
 
         def fix_bitrate(bitrate):
+            bitrate = int(bitrate)
             return (bitrate // 1000) if bitrate % 1000 == 0 else bitrate
 
         for source in urls_sources:
