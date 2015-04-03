@@ -111,6 +111,7 @@
  - **DctpTv**
  - **DeezerPlaylist**
  - **defense.gouv.fr**
+ - **DHM**: Filmarchiv - Deutsches Historisches Museum
  - **Discovery**
  - **divxstage**: DivxStage
  - **Dotsub**
@@ -120,6 +121,7 @@
  - **DrTuber**
  - **DRTV**
  - **Dump**
+ - **Dumpert**
  - **dvtv**: http://video.aktualne.cz/
  - **EaglePlatform**
  - **EbaumsWorld**
@@ -253,6 +255,7 @@
  - **Mgoon**
  - **Minhateca**
  - **MinistryGrid**
+ - **miomio.tv**
  - **mitele.es**
  - **mixcloud**
  - **MLB**
@@ -286,6 +289,8 @@
  - **NBA**
  - **NBC**
  - **NBCNews**
+ - **NBCSports**
+ - **NBCSportsVPlayer**
  - **ndr**: NDR.de - Mediathek
  - **NDTV**
  - **NerdCubedFeed**
@@ -501,6 +506,7 @@
  - **Urort**: NRK P3 Urørt
  - **ustream**
  - **ustream:channel**
+ - **Varzesh3**
  - **Vbox7**
  - **VeeHD**
  - **Veoh**
