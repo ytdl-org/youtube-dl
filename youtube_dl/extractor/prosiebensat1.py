@@ -10,6 +10,7 @@ from ..compat import (
 )
 from ..utils import (
     unified_strdate,
+    int_or_none,
 )
 
 
@@ -266,6 +267,9 @@ class ProSiebenSat1IE(InfoExtractor):
             urls_sources = urls_sources.values()
 
         def fix_bitrate(bitrate):
+            bitrate = int_or_none(bitrate)
+            if not bitrate:
+                return None
             return (bitrate // 1000) if bitrate % 1000 == 0 else bitrate
 
         for source in urls_sources:
