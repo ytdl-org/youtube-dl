@@ -359,7 +359,7 @@ def parseOpts(overrideArguments=None):
     video_format.add_option(
         '--max-quality',
         action='store', dest='format_limit', metavar='FORMAT',
-        help='Specify highest quality format to download')
+        help='Highest quality format to download')
     video_format.add_option(
         '-F', '--list-formats',
         action='store_true', dest='listformats',
@@ -399,7 +399,7 @@ def parseOpts(overrideArguments=None):
     subtitles.add_option(
         '--sub-format',
         action='store', dest='subtitlesformat', metavar='FORMAT', default='best',
-        help='Specify subtitle format preference, for example: "srt" or "ass/srt/best"')
+        help='Subtitle format, accepts formats preference, for example: "srt" or "ass/srt/best"')
     subtitles.add_option(
         '--sub-lang', '--sub-langs', '--srt-lang',
         action='callback', dest='subtitleslangs', metavar='LANGS', type='str',
