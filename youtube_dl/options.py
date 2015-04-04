@@ -670,7 +670,7 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '--load-info',
         dest='load_info_filename', metavar='FILE',
-        help='Specify JSON file containing the video information (created with the "--write-json" option)')
+        help='JSON file containing the video information (created with the "--write-info-json" option)')
     filesystem.add_option(
         '--cookies',
         dest='cookiefile', metavar='FILE',
