@@ -1,14 +1,18 @@
-# coding: utf-8
 from __future__ import unicode_literals
+
 import re
-import time
 
 from .common import InfoExtractor
+from ..utils import (
+    js_to_json,
+    parse_duration,
+    remove_start,
+)
 
 
 class GamersydeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?gamersyde\.com/hqstream_'
-    _TESTS = [{
+    _VALID_URL = r'https?://(?:www\.)?gamersyde\.com/hqstream_(?P<display_id>[\da-z_]+)-(?P<id>\d+)_[a-z]{2}\.html'
+    _TEST = {
         'url': 'http://www.gamersyde.com/hqstream_bloodborne_birth_of_a_hero-34371_en.html',
         'md5': 'f38d400d32f19724570040d5ce3a505f',
         'info_dict': {
@@ -18,76 +22,49 @@ class GamersydeIE(InfoExtractor):
             'title': 'Bloodborne - Birth of a hero',
             'thumbnail': 're:^https?://.*\.jpg$',
         }
-    }, {
-        'url': 'http://www.gamersyde.com/hqstream_dark_souls_ii_scholar_of_the_first_sin_gameplay_part_1-34417_en.html',
-        'md5': '94bd7c3feff3275576cf5cb6c8a3a720',
-        'info_dict': {
-            'id': '34417',
-            'ext': 'mp4',
-            'duration': 270,
-            'title': 'Dark Souls II: Scholar of the First Sin - Gameplay - Part 1',
-            'thumbnail': 're:^https?://.*\.jpg$',
-        }
-    }, {
-        'url': 'http://www.gamersyde.com/hqstream_grand_theft_auto_v_heists_trailer-33786_en.html',
-        'md5': '65e442f5f340d571ece8c80d50700369',
-        'info_dict': {
-            'id': '33786',
-            'ext': 'mp4',
-            'duration': 59,
-            'title': 'Grand Theft Auto V - Heists Trailer',
-            'thumbnail': 're:^https?://.*\.jpg$',
-        }
     }
-    ]
-
-    def _calculateDuration(self, durationString):
-        if (durationString.find("minutes") > -1):
-            duration = time.strptime(durationString, "%M minutes %S seconds")
-        else:
-            duration = time.strptime(durationString, "%S seconds")
-        return duration.tm_min * 60 + duration.tm_sec
-
-    def _fixJsonSyntax(self, json):
-
-        json = re.sub(r",\s*}", "}", json, flags=re.DOTALL)
-        json = re.sub(r",\s*]", "]", json, flags=re.DOTALL)
-        json = json.replace('file: "', '"file": "')
-        json = json.replace('title: "', '"title": "')
-        json = json.replace('label: "', '"label": "')
-        json = json.replace('image: "', '"image": "')
-        json = json.replace('sources: [', '"sources": [')
-        return json
 
     def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        display_id = mobj.group('display_id')
 
-        video_id = self._search_regex(r'-(.*?)_[a-z]{2}.html$', url, 'video_id')
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url, display_id)
 
-        filesJson = self._search_regex(r'playlist: (.*?)\}\);', webpage, 'files', flags=re.DOTALL)
-        data = self._parse_json(filesJson,video_id, transform_source=self._fixJsonSyntax)
-        
-        playlist = data[0]
+        playlist = self._parse_json(
+            self._search_regex(
+                r'(?s)playlist: \[({.+?})\]\s*}\);', webpage, 'files'),
+            display_id, transform_source=js_to_json)
 
         formats = []
-
-        title = re.sub(r"[0-9]+ - ", "", playlist['title'])
-        
-        length = self._search_regex(r'(([0-9]{1,2} minutes ){0,1}[0-9]{1,2} seconds)', webpage, 'length')
-        duration = self._calculateDuration(length)
-
-        for playlistEntry in playlist['sources']:
-            format = {
-                'url': playlistEntry['file'],
-                'format_id': playlistEntry['label']
+        for source in playlist['sources']:
+            video_url = source.get('file')
+            if not video_url:
+                continue
+            format_id = source.get('label')
+            f = {
+                'url': video_url,
+                'format_id': format_id,
             }
+            m = re.search(r'^(?P<height>\d+)[pP](?P<fps>\d+)fps', format_id)
+            if m:
+                f.update({
+                    'height': int(m.group('height')),
+                    'fps': int(m.group('fps')),
+                })
+            formats.append(f)
+        self._sort_formats(formats)
 
-            formats.append(format)
+        title = remove_start(playlist['title'], '%s - ' % video_id)
+        thumbnail = playlist.get('image')
+        duration = parse_duration(self._search_regex(
+            r'Length:</label>([^<]+)<', webpage, 'duration', fatal=False))
 
         return {
             'id': video_id,
+            'display_id': display_id,
             'title': title,
-            'formats': formats,
+            'thumbnail': thumbnail,
             'duration': duration,
-            'thumbnail': playlist['image']
-            }
+            'formats': formats,
+        }
