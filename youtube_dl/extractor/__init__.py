@@ -63,6 +63,7 @@ from .cbsnews import CBSNewsIE
 from .cbssports import CBSSportsIE
 from .ccc import CCCIE
 from .ceskatelevize import CeskaTelevizeIE
+from .channel4 import Channel4IE
 from .channel9 import Channel9IE
 from .chilloutzone import ChilloutzoneIE
 from .chirbit import (
