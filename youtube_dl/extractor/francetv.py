@@ -261,17 +261,15 @@ class CultureboxIE(FranceTVBaseInfoExtractor):
 
     _TEST = {
         'url': 'http://culturebox.francetvinfo.fr/live/musique/musique-classique/le-livre-vermeil-de-montserrat-a-la-cathedrale-delne-214511',
+        'md5': '9b88dc156781c4dbebd4c3e066e0b1d6',
         'info_dict': {
             'id': 'EV_50111',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': "Le Livre Vermeil de Montserrat à la Cathédrale d'Elne",
             'description': 'md5:f8a4ad202e8fe533e2c493cc12e739d9',
             'upload_date': '20150320',
             'timestamp': 1426892400,
             'duration': 2760.9,
-        },
-        'params': {
-            'skip_download': True,
         },
     }
 
