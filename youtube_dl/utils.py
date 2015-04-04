@@ -730,7 +730,8 @@ def unified_strdate(date_str, day_first=True):
     # Replace commas
     date_str = date_str.replace(',', ' ')
     # %z (UTC offset) is only supported in python>=3.2
-    date_str = re.sub(r' ?(\+|-)[0-9]{2}:?[0-9]{2}$', '', date_str)
+    if not re.match(r'^[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}$', date_str):
+        date_str = re.sub(r' ?(\+|-)[0-9]{2}:?[0-9]{2}$', '', date_str)
     # Remove AM/PM + timezone
     date_str = re.sub(r'(?i)\s*(?:AM|PM)(?:\s+[A-Z]+)?', '', date_str)
 
@@ -759,6 +760,7 @@ def unified_strdate(date_str, day_first=True):
     ]
     if day_first:
         format_expressions.extend([
+            '%d-%m-%Y',
             '%d.%m.%Y',
             '%d/%m/%Y',
             '%d/%m/%y',
@@ -766,6 +768,7 @@ def unified_strdate(date_str, day_first=True):
         ])
     else:
         format_expressions.extend([
+            '%m-%d-%Y',
             '%m.%d.%Y',
             '%m/%d/%Y',
             '%m/%d/%y',
