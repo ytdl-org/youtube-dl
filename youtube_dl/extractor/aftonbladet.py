@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class AftonbladetIE(InfoExtractor):
-    _VALID_URL = r'^http://tv\.aftonbladet\.se/webbtv.+?(?P<video_id>article[0-9]+)\.ab(?:$|[?#])'
+    _VALID_URL = r'http://tv\.aftonbladet\.se/webbtv.+?(?P<id>article[0-9]+)\.ab(?:$|[?#])'
     _TEST = {
         'url': 'http://tv.aftonbladet.se/webbtv/nyheter/vetenskap/rymden/article36015.ab',
         'info_dict': {
