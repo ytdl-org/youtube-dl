@@ -759,6 +759,7 @@ def unified_strdate(date_str, day_first=True):
     ]
     if day_first:
         format_expressions.extend([
+            '%d-%m-%Y',
             '%d.%m.%Y',
             '%d/%m/%Y',
             '%d/%m/%y',
@@ -766,6 +767,7 @@ def unified_strdate(date_str, day_first=True):
         ])
     else:
         format_expressions.extend([
+            '%m-%d-%Y',
             '%m.%d.%Y',
             '%m/%d/%Y',
             '%m/%d/%y',
