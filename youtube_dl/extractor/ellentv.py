@@ -40,14 +40,15 @@ class EllenTVIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        video_url = self._html_search_meta('VideoURL', webpage, 'url')
+
+        video_url = self._html_search_meta('VideoURL', webpage, 'url', fatal=True)
         title = self._og_search_title(webpage, default=None) or self._search_regex(
             r'pageName\s*=\s*"([^"]+)"', webpage, 'title')
         description = self._html_search_meta(
             'description', webpage, 'description') or self._og_search_description(webpage)
         timestamp = parse_iso8601(self._search_regex(
             r'<span class="publish-date"><time datetime="([^"]+)">',
-            webpage, 'timestamp'))
+            webpage, 'timestamp', fatal=False))
 
         return {
             'id': video_id,
