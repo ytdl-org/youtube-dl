@@ -822,7 +822,7 @@ class InfoExtractor(object):
                                 (media_el.attrib.get('href') or media_el.attrib.get('url')))
             tbr = int_or_none(media_el.attrib.get('bitrate'))
             formats.append({
-                'format_id': '-'.join(filter(None, [f4m_id, 'f4m-%d' % (i if tbr is None else tbr)])),
+                'format_id': '-'.join(filter(None, [f4m_id, compat_str(i if tbr is None else tbr)])),
                 'url': manifest_url,
                 'ext': 'flv',
                 'tbr': tbr,
