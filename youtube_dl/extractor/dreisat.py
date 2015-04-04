@@ -13,15 +13,15 @@ class DreiSatIE(InfoExtractor):
     IE_NAME = '3sat'
     _VALID_URL = r'(?:http://)?(?:www\.)?3sat\.de/mediathek/(?:index\.php)?\?(?:(?:mode|display)=[^&]+&)*obj=(?P<id>[0-9]+)$'
     _TEST = {
-        'url': 'http://www.3sat.de/mediathek/index.php?obj=36983',
-        'md5': '9dcfe344732808dbfcc901537973c922',
+        'url': 'http://www.3sat.de/mediathek/index.php?mode=play&obj=45918',
+        'md5': 'be37228896d30a88f315b638900a026e',
         'info_dict': {
-            'id': '36983',
+            'id': '45918',
             'ext': 'mp4',
-            'title': 'Kaffeeland Schweiz',
-            'description': 'md5:cc4424b18b75ae9948b13929a0814033',
+            'title': 'Waidmannsheil',
+            'description': 'md5:cce00ca1d70e21425e72c86a98a56817',
             'uploader': '3sat',
-            'upload_date': '20130622'
+            'upload_date': '20140913'
         }
     }
 
