@@ -36,6 +36,7 @@ class RadioJavanIE(InfoExtractor):
             'format_id': '%sp' % height,
             'height': int(height),
         } for height, video_path in re.findall(r"RJ\.video(\d+)p\s*=\s*'/?([^']+)'", webpage)]
+        self._sort_formats(formats)
 
         title = self._og_search_title(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
