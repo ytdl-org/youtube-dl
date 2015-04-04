@@ -260,15 +260,18 @@ class CultureboxIE(FranceTVBaseInfoExtractor):
     _VALID_URL = r'https?://(?:m\.)?culturebox\.francetvinfo\.fr/(?P<name>.*?)(\?|$)'
 
     _TEST = {
-        'url': 'http://culturebox.francetvinfo.fr/festivals/dans-les-jardins-de-william-christie/dans-les-jardins-de-william-christie-le-camus-162553',
-        'md5': '5ad6dec1ffb2a3fbcb20cc4b744be8d6',
+        'url': 'http://culturebox.francetvinfo.fr/live/musique/musique-classique/le-livre-vermeil-de-montserrat-a-la-cathedrale-delne-214511',
         'info_dict': {
-            'id': 'EV_22853',
-            'ext': 'flv',
-            'title': 'Dans les jardins de William Christie - Le Camus',
-            'description': 'md5:4710c82315c40f0c865ca8b9a68b5299',
-            'upload_date': '20140829',
-            'timestamp': 1409317200,
+            'id': 'EV_50111',
+            'ext': 'mp4',
+            'title': "Le Livre Vermeil de Montserrat à la Cathédrale d'Elne",
+            'description': 'md5:f8a4ad202e8fe533e2c493cc12e739d9',
+            'upload_date': '20150320',
+            'timestamp': 1426892400,
+            'duration': 2760.9,
+        },
+        'params': {
+            'skip_download': True,
         },
     }
 
