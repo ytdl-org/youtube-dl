@@ -396,6 +396,7 @@ from .pyvideo import PyvideoIE
 from .quickvid import QuickVidIE
 from .r7 import R7IE
 from .radiode import RadioDeIE
+from .radiojavan import RadioJavanIE
 from .radiobremen import RadioBremenIE
 from .radiofrance import RadioFranceIE
 from .rai import RaiIE
