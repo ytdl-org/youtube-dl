@@ -8,7 +8,6 @@ from .common import InfoExtractor
 
 class GamersydeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?gamersyde\.com/hqstream_'
-    _TEST = {
         'url': 'http://www.gamersyde.com/hqstream_bloodborne_birth_of_a_hero-34371_en.html',
         'md5': 'f38d400d32f19724570040d5ce3a505f',
         'info_dict': {
@@ -17,6 +16,11 @@ class GamersydeIE(InfoExtractor):
             'title': 'Bloodborne - Birth of a hero',
             'thumbnail': 're:^https?://.*\.jpg$',
         }
+    },
+    {
+        'url': 'http://www.gamersyde.com/hqstream_dark_souls_ii_scholar_of_the_first_sin_gameplay_part_1-34417_en.html',
+        'info_dict': {
+            'ext': 'mp4',
     }
 
     def _calculateDuration(self, durationString):
@@ -27,7 +31,6 @@ class GamersydeIE(InfoExtractor):
 
         json = re.sub(r"{\s*(\w)", r'{"\1', json)
         json = re.sub(r",\s*(\w)", r',"\1', json)
-        json = re.sub(r"(\w): ", r'\1":', json)
         json = re.sub(r",\s*}", "}", json, flags=re.DOTALL)
         json = re.sub(r",\s*]", "]", json, flags=re.DOTALL)
 
@@ -40,7 +43,6 @@ class GamersydeIE(InfoExtractor):
 
         filesJson = self._search_regex(r'playlist: (.*?)\}\);', webpage, 'files', flags=re.DOTALL)
         filesJson = self._fixJsonSyntax(filesJson)
-
         data = json.loads(filesJson)
         playlist = data[0]
 
