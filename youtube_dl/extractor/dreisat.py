@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import unified_strdate
+from ..utils import (
+    ExtractorError,
+    unified_strdate,
+)
 
 
 class DreiSatIE(InfoExtractor):
@@ -27,6 +30,15 @@ class DreiSatIE(InfoExtractor):
         video_id = mobj.group('id')
         details_url = 'http://www.3sat.de/mediathek/xmlservice/web/beitragsDetails?ak=web&id=%s' % video_id
         details_doc = self._download_xml(details_url, video_id, 'Downloading video details')
+
+        status_code = details_doc.find('./status/statuscode')
+        if status_code is not None and status_code.text != 'ok':
+            code = status_code.text
+            if code == 'notVisibleAnymore':
+                message = 'Video %s is not available' % video_id
+            else:
+                message = '%s returned error: %s' % (self.IE_NAME, code)
+            raise ExtractorError(message, expected=True)
 
         thumbnail_els = details_doc.findall('.//teaserimage')
         thumbnails = [{
