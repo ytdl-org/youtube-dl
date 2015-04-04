@@ -470,6 +470,12 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(d['x'], 1)
         self.assertEqual(d['y'], 'a')
 
+        on = js_to_json('["abc", "def",]')
+        self.assertEqual(json.loads(on), ['abc', 'def'])
+
+        on = js_to_json('{"abc": "def",}')
+        self.assertEqual(json.loads(on), {'abc': 'def'})
+
     def test_clean_html(self):
         self.assertEqual(clean_html('a:\nb'), 'a: b')
         self.assertEqual(clean_html('a:\n   "b"'), 'a:    "b"')

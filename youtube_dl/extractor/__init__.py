@@ -177,6 +177,7 @@ from .gameone import (
     GameOneIE,
     GameOnePlaylistIE,
 )
+from .gamersyde import GamersydeIE
 from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
 from .gametrailers import GametrailersIE

@@ -1577,7 +1577,7 @@ def js_to_json(code):
         '(?:[^'\\]*(?:\\\\|\\['"nu]))*[^'\\]*'|
         [a-zA-Z_][.a-zA-Z_0-9]*
         ''', fix_kv, code)
-    res = re.sub(r',(\s*\])', lambda m: m.group(1), res)
+    res = re.sub(r',(\s*[\]}])', lambda m: m.group(1), res)
     return res
 
 
