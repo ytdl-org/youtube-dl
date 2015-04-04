@@ -14,6 +14,7 @@ from ..utils import (
     clean_html,
     ExtractorError,
     int_or_none,
+    float_or_none,
     parse_duration,
 )
 
@@ -86,7 +87,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
             'title': info['titre'],
             'description': clean_html(info['synopsis']),
             'thumbnail': compat_urlparse.urljoin('http://pluzz.francetv.fr', info['image']),
-            'duration': parse_duration(info['duree']),
+            'duration': float_or_none(info.get('real_duration'), 1000) or parse_duration(info['duree']),
             'timestamp': int_or_none(info['diffusion']['timestamp']),
             'formats': formats,
         }
