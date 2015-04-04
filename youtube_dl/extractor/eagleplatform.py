@@ -45,6 +45,7 @@ class EaglePlatformIE(InfoExtractor):
             'duration': 216,
             'view_count': int,
         },
+        'skip': 'Georestricted',
     }]
 
     def _handle_error(self, response):
