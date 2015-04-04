@@ -26,6 +26,10 @@ class DRTVIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
+        if '>Programmet er ikke længere tilgængeligt' in webpage:
+            raise ExtractorError(
+                'Video %s is not available' % video_id, expected=True)
+
         video_id = self._search_regex(
             r'data-(?:material-identifier|episode-slug)="([^"]+)"',
             webpage, 'video id')
