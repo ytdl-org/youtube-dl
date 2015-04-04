@@ -275,7 +275,12 @@ class CultureboxIE(FranceTVBaseInfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         name = mobj.group('name')
+
         webpage = self._download_webpage(url, name)
+
+        if ">Ce live n'est plus disponible en replay<" in webpage:
+            raise ExtractorError('Video %s is not available' % name, expected=True)
+
         video_id, catalogue = self._search_regex(
             r'"http://videos\.francetv\.fr/video/([^@]+@[^"]+)"', webpage, 'video id').split('@')
 
