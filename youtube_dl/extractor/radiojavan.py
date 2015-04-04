@@ -34,7 +34,7 @@ class RadioJavanIE(InfoExtractor):
         formats = [{
             'url': 'https://media.rdjavan.com/media/music_video/%s' % video_path,
             'format_id': '%sp' % height,
-            'height': height,
+            'height': int(height),
         } for height, video_path in re.findall(r"RJ\.video(\d+)p\s*=\s*'/?([^']+)'", webpage)]
 
         title = self._og_search_title(webpage)
