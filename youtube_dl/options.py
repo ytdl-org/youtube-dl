@@ -606,7 +606,7 @@ def parseOpts(overrideArguments=None):
               '%(format)s for the format description (like "22 - 1280x720" or "HD"), '
               '%(format_id)s for the unique id of the format (like YouTube\'s itags: "137"), '
               '%(upload_date)s for the upload date (YYYYMMDD), '
-              '%(extractor)s for the provider (YouTube, metacafe, etc), '
+              '%(extractor)s for the provider (youtube, metacafe, etc), '
               '%(id)s for the video id, '
               '%(playlist_title)s, %(playlist_id)s, or %(playlist)s (=title if present, ID otherwise) for the playlist the video is in, '
               '%(playlist_index)s for the position in the playlist. '
