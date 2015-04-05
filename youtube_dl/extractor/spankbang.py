@@ -25,7 +25,7 @@ class SpankBangIE(InfoExtractor):
                 "format_id": q,
                 "format": q,
                 "ext": "mp4",
-                "url": "http://spankbang.com/_{}/{}/title/{}__mp4".format(video_id, stream_key, q)
+                "url": "http://spankbang.com/_{0}/{1}/title/{2}__mp4".format(video_id, stream_key, q)
             })
 
         return {
