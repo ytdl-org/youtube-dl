@@ -855,7 +855,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 args = ytplayer_config['args']
                 # Convert to the same format returned by compat_parse_qs
                 video_info = dict((k, [v]) for k, v in args.items())
-                if 'url_encoded_fmt_stream_map' not in args:
+                if ('url_encoded_fmt_stream_map' not in args or
+                        args['url_encoded_fmt_stream_map'] == ''):
                     raise ValueError('No stream_map present')  # caught below
             except ValueError:
                 # We fallback to the get_video_info pages (used by the embed page)
