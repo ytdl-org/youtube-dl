@@ -8,6 +8,20 @@ class SpankBangIE(InfoExtractor):
     """Extractor for http://spankbang.com"""
     
     _VALID_URL = r"https?://(?:www\.)?spankbang\.com/(?P<id>\w+)/video/.*"
+    
+    _TEST = {
+        "url": "http://spankbang.com/3vvn/video/fantasy+solo",
+        "md5": "1cc433e1d6aa14bc376535b8679302f7",
+        "info_dict": {
+            "id": "3vvn",
+            "title": "fantasy solo",
+            "description": "Watch fantasy solo free HD porn video - 05 minutes - dillion harper masturbates on a bed free adult movies.",
+            "format": "720p",
+            "format_id": "720p",
+            "ext": "mp4",
+            "url": "re:http://spankbang.com/_3vvn/IjE0MjgyNjY5MTcuMzUi.IaGrcF-vDrvktMhjd-1fWixiCzU/title/720p__mp4"
+        }
+    }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
