@@ -19,7 +19,7 @@ class SpankBangIE(InfoExtractor):
             "format": "720p",
             "format_id": "720p",
             "ext": "mp4",
-            "url": "re:http://spankbang.com/_3vvn/IjE0MjgyNjY5MTcuMzUi.IaGrcF-vDrvktMhjd-1fWixiCzU/title/720p__mp4"
+            "url": "http://spankbang.com/_3vvn/IjE0MjgyNjY5MTcuMzUi.IaGrcF-vDrvktMhjd-1fWixiCzU/title/720p__mp4"
         }
     }
 
