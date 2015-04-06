@@ -18,7 +18,7 @@ class CrooksAndLiarsIE(InfoExtractor):
             'title': "Fox & Friends Says Protecting Atheists From Discrimination Is Anti-Christian!",
             'description': "Fox News, Fox & Friends Weekend, April 4, 2015. Read more... http://crooksandliars.com/2015/04/fox-friends-says-protecting-atheists",
             'timestamp': 1428207000,
-            'thumbnail': '//crooksandliars.com/files/mediaposters/2015/04/31235.jpg?ts=1428207050',
+            'thumbnail': 'https://crooksandliars.com/files/mediaposters/2015/04/31235.jpg?ts=1428207050',
             'uploader': "Heather",
         }
     }]
@@ -46,7 +46,7 @@ class CrooksAndLiarsIE(InfoExtractor):
             'uploader': manifest['author'],
             'title': manifest['title'],
             'description': manifest['description'],
-            'thumbnail': manifest['poster'],
+            'thumbnail': self._proto_relative_url(manifest['poster']),
             'duration': manifest['duration'],
             'timestamp': int(manifest['created']),
             'formats': formats,
