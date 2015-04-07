@@ -17,7 +17,7 @@ from ..utils import (
 
 class AddAnimeIE(InfoExtractor):
     _VALID_URL = r'http://(?:\w+\.)?add-anime\.net/(?:watch_video\.php\?(?:.*?)v=|video/)(?P<id>[\w_]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.add-anime.net/watch_video.php?v=24MR3YO5SAS9',
         'md5': '72954ea10bc979ab5e2eb288b21425a0',
         'info_dict': {
@@ -26,7 +26,10 @@ class AddAnimeIE(InfoExtractor):
             'description': 'One Piece 606',
             'title': 'One Piece 606',
         }
-    }
+    }, {
+        'url': 'http://add-anime.net/video/MDUGWYKNGBD8/One-Piece-687',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
