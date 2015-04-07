@@ -182,7 +182,8 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
         if mgid is None or ':' not in mgid:
             mgid = self._search_regex(
-                [r'data-mgid="(.*?)"', r'swfobject.embedSWF\(".*?(mgid:.*?)"'],
+                [r'data-mgid="(.*?)"', r'swfobject.embedSWF\(".*?(mgid:.*?)"',
+                 r'sm4:video:embed.*?' + MTVServicesEmbeddedIE._VALID_URL],
                 webpage, 'mgid')
 
         videos_info = self._get_videos_info(mgid)
@@ -191,7 +192,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
 class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
     IE_NAME = 'mtvservices:embedded'
-    _VALID_URL = r'https?://media\.mtvnservices\.com/embed/(?P<mgid>.+?)(\?|/|$)'
+    _VALID_URL = r'https?://media\.mtvnservices\.com/embed/(?P<mgid>.+?)(\?|/|&|$)'
 
     _TEST = {
         # From http://www.thewrap.com/peter-dinklage-sums-up-game-of-thrones-in-45-seconds-video/
