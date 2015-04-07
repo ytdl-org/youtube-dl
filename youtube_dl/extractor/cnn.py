@@ -12,7 +12,7 @@ from ..utils import (
 
 class CNNIE(InfoExtractor):
     _VALID_URL = r'''(?x)https?://(?:(?:edition|www)\.)?cnn\.com/video/(?:data/.+?|\?)/
-        (?P<path>.+?/(?P<title>[^/]+?)(?:\.(?:cnn|hln|ktvk)(?:-ap)?|(?=&)))'''
+        (?P<path>.+?/(?P<title>[^/]+?)(?:\.(?:[a-z]{3,5})(?:-ap)?|(?=&)))'''
 
     _TESTS = [{
         'url': 'http://edition.cnn.com/video/?/video/sports/2013/06/09/nadal-1-on-1.cnn',
@@ -47,6 +47,9 @@ class CNNIE(InfoExtractor):
         }
     }, {
         'url': 'http://cnn.com/video/?/video/politics/2015/03/27/pkg-arizona-senator-church-attendance-mandatory.ktvk',
+        'only_matching': True,
+    }, {
+        'url': 'http://cnn.com/video/?/video/us/2015/04/06/dnt-baker-refuses-anti-gay-order.wkmg',
         'only_matching': True,
     }]
 
