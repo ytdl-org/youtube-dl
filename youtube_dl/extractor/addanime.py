@@ -11,6 +11,7 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    qualities,
 )
 
 
@@ -63,8 +64,10 @@ class AddAnimeIE(InfoExtractor):
                 note='Confirming after redirect')
             webpage = self._download_webpage(url, video_id)
 
+        FORMATS = ('normal', 'hq')
+        quality = qualities(FORMATS)
         formats = []
-        for format_id in ('normal', 'hq'):
+        for format_id in FORMATS:
             rex = r"var %s_video_file = '(.*?)';" % re.escape(format_id)
             video_url = self._search_regex(rex, webpage, 'video file URLx',
                                            fatal=False)
@@ -73,6 +76,7 @@ class AddAnimeIE(InfoExtractor):
             formats.append({
                 'format_id': format_id,
                 'url': video_url,
+                'quality': quality(format_id),
             })
         self._sort_formats(formats)
         video_title = self._og_search_title(webpage)
