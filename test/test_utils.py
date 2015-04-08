@@ -53,6 +53,7 @@ from youtube_dl.utils import (
     uppercase_escape,
     url_basename,
     urlencode_postdata,
+    url_infer_protocol,
     version_tuple,
     xpath_with_ns,
     xpath_text,
@@ -295,6 +296,10 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(
             url_basename('http://media.w3.org/2010/05/sintel/trailer.mp4'),
             'trailer.mp4')
+
+    def test_url_infer_protocol(self):
+        self.assertEqual(url_infer_protocol('http://foo.com/', '//bar.com/'), 'http://bar.com/')
+        self.assertEqual(url_infer_protocol('http://foo.com/', 'https://bar.com/'), 'https://bar.com/')
 
     def test_parse_duration(self):
         self.assertEqual(parse_duration(None), None)

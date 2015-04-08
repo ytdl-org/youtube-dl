@@ -26,6 +26,7 @@ from ..utils import (
     unsmuggle_url,
     UnsupportedError,
     url_basename,
+    url_infer_protocol,
     xpath_text,
 )
 from .brightcove import BrightcoveIE
@@ -34,6 +35,7 @@ from .ooyala import OoyalaIE
 from .rutv import RUTVIE
 from .smotri import SmotriIE
 from .condenast import CondeNastIE
+from .udn import UDNEmbedIE
 
 
 class GenericIE(InfoExtractor):
@@ -650,6 +652,17 @@ class GenericIE(InfoExtractor):
                 'title': "PFT Live: New leader in the 'new-look' defense",
                 'description': 'md5:65a19b4bbfb3b0c0c5768bed1dfad74e',
             },
+        },
+        # UDN embed
+        {
+            'url': 'http://www.udn.com/news/story/7314/822787',
+            'md5': 'de06b4c90b042c128395a88f0384817e',
+            'info_dict': {
+                'id': '300040',
+                'ext': 'mp4',
+                'title': '生物老師男變女 全校挺"做自己"',
+                'thumbnail': 're:^https?://.*\.jpg$',
+            }
         }
     ]
 
@@ -1267,6 +1280,13 @@ class GenericIE(InfoExtractor):
         nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
         if nbc_sports_url:
             return self.url_result(nbc_sports_url, 'NBCSportsVPlayer')
+
+        # Look for UDN embeds
+        mobj = re.search(
+            r'<iframe[^>]+src="(?P<url>%s)"' % UDNEmbedIE._VALID_URL, webpage)
+        if mobj is not None:
+            return self.url_result(
+                url_infer_protocol(url, mobj.group('url')), 'UDNEmbed')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

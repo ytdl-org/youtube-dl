@@ -1711,6 +1711,17 @@ def determine_protocol(info_dict):
     return compat_urllib_parse_urlparse(url).scheme
 
 
+def url_infer_protocol(ref_url, target_url):
+    """ Infer protocol for protocol independent target urls """
+    parsed_target_url = list(compat_urllib_parse_urlparse(target_url))
+    if parsed_target_url[0]:
+        return target_url
+
+    parsed_target_url[0] = compat_urllib_parse_urlparse(ref_url).scheme
+
+    return compat_urlparse.urlunparse(parsed_target_url)
+
+
 def render_table(header_row, data):
     """ Render a list of rows, each as a list of values """
     table = [header_row] + data
