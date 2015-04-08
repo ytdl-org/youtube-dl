@@ -28,7 +28,7 @@ class ThePlatformIE(InfoExtractor):
            (?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/)?
          |theplatform:)(?P<id>[^/\?&]+)'''
 
-    _TEST = {
+    _TESTS = [{
         # from http://www.metacafe.com/watch/cb-e9I_cZgTgIPd/blackberrys_big_bold_z30/
         'url': 'http://link.theplatform.com/s/dJ5BDC/e9I_cZgTgIPd/meta.smil?format=smil&Tracking=true&mbr=true',
         'info_dict': {
@@ -42,7 +42,20 @@ class ThePlatformIE(InfoExtractor):
             # rtmp download
             'skip_download': True,
         },
-    }
+        # from http://www.cnet.com/videos/tesla-model-s-a-second-step-towards-a-cleaner-motoring-future/
+    }, {
+        'url': 'http://link.theplatform.com/s/kYEXFC/22d_qsQ6MIRT',
+        'info_dict': {
+            'id': '22d_qsQ6MIRT',
+            'ext': 'flv',
+            'description': 'md5:ac330c9258c04f9d7512cf26b9595409',
+            'title': 'Tesla Model S: A second step towards a cleaner motoring future',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        }
+    }]
 
     @staticmethod
     def _sign_url(url, sig_key, sig_secret, life=600, include_qs=False):
@@ -126,7 +139,7 @@ class ThePlatformIE(InfoExtractor):
             formats = self._extract_f4m_formats(f4m_url, video_id)
         else:
             formats = []
-            switch = body.find(_x('smil:switch'))
+            switch = body.find(_x('.//smil:switch'))
             if switch is not None:
                 base_url = head.find(_x('smil:meta')).attrib['base']
                 for f in switch.findall(_x('smil:video')):
