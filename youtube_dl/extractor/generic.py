@@ -26,7 +26,6 @@ from ..utils import (
     unsmuggle_url,
     UnsupportedError,
     url_basename,
-    url_infer_protocol,
     xpath_text,
 )
 from .brightcove import BrightcoveIE
@@ -1286,7 +1285,7 @@ class GenericIE(InfoExtractor):
             r'<iframe[^>]+src="(?P<url>%s)"' % UDNEmbedIE._VALID_URL, webpage)
         if mobj is not None:
             return self.url_result(
-                url_infer_protocol(url, mobj.group('url')), 'UDNEmbed')
+                compat_urlparse.urljoin(url, mobj.group('url')), 'UDNEmbed')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

@@ -3,10 +3,8 @@ from __future__ import unicode_literals
 
 import json
 from .common import InfoExtractor
-from ..utils import (
-    url_infer_protocol,
-    js_to_json
-)
+from ..utils import js_to_json
+from ..compat import compat_urlparse
 
 
 class UDNEmbedIE(InfoExtractor):
@@ -45,7 +43,7 @@ class UDNEmbedIE(InfoExtractor):
 
         formats = [{
             'url': self._download_webpage(
-                url_infer_protocol(url, api_url), video_id,
+                compat_urlparse.urljoin(url, api_url), video_id,
                 'retrieve url for %s video' % video_type),
             'format_id': video_type,
             'preference': 0 if video_type == 'mp4' else -1,
