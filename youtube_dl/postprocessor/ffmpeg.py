@@ -146,10 +146,7 @@ class FFmpegPostProcessor(PostProcessor):
             stderr = stderr.decode('utf-8', 'replace')
             msg = stderr.strip().split('\n')[-1]
             raise FFmpegPostProcessorError(msg)
-        try:
-            os.utime(encodeFilename(out_path), (oldest_mtime, oldest_mtime))
-        except Exception:
-            self._downloader.report_warning('Cannot update utime of file')
+        self.try_utime(out_path, oldest_mtime, oldest_mtime)
 
         if self._deletetempfiles:
             for ipath in input_paths:
@@ -284,10 +281,9 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
         # Try to update the date time for extracted audio file.
         if information.get('filetime') is not None:
-            try:
-                os.utime(encodeFilename(new_path), (time.time(), information['filetime']))
-            except Exception:
-                self._downloader.report_warning('Cannot update utime of audio file')
+            self.try_utime(
+                new_path, time.time(), information['filetime'],
+                errnote='Cannot update utime of audio file')
 
         information['filepath'] = new_path
         return self._nopostoverwrites, information
