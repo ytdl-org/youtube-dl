@@ -142,6 +142,8 @@ class ThePlatformIE(InfoExtractor):
             switch = body.find(_x('smil:switch'))
             if switch is None:
                 switch = body.find(_x('smil:par//smil:switch'))
+            if switch is None:
+                switch = body.find(_x('smil:par'))
             if switch is not None:
                 base_url = head.find(_x('smil:meta')).attrib['base']
                 for f in switch.findall(_x('smil:video')):
