@@ -166,6 +166,7 @@
  - **Gamekings**
  - **GameOne**
  - **gameone:playlist**
+ - **Gamersyde**
  - **GameSpot**
  - **GameStar**
  - **Gametrailers**
@@ -351,6 +352,7 @@
  - **PornHub**
  - **PornHubPlaylist**
  - **Pornotube**
+ - **PornoVoisines**
  - **PornoXO**
  - **PrimeShareTV**
  - **PromptFile**
@@ -362,6 +364,7 @@
  - **radio.de**
  - **radiobremen**
  - **radiofrance**
+ - **RadioJavan**
  - **Rai**
  - **RBMARadio**
  - **RedTube**
@@ -422,6 +425,7 @@
  - **southpark.cc.com**
  - **southpark.de**
  - **Space**
+ - **SpankBang**
  - **Spankwire**
  - **Spiegel**
  - **Spiegel:Article**: Articles on spiegel.de
@@ -501,6 +505,7 @@
  - **Ubu**
  - **udemy**
  - **udemy:course**
+ - **UDNEmbed**
  - **Ultimedia**
  - **Unistra**
  - **Urort**: NRK P3 Urørt
