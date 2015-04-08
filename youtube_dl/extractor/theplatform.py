@@ -17,6 +17,7 @@ from ..utils import (
     ExtractorError,
     xpath_with_ns,
     unsmuggle_url,
+    int_or_none,
 )
 
 _x = lambda p: xpath_with_ns(p, {'smil': 'http://www.w3.org/2005/SMIL21/Language'})
@@ -148,9 +149,9 @@ class ThePlatformIE(InfoExtractor):
                 base_url = head.find(_x('smil:meta')).attrib['base']
                 for f in switch.findall(_x('smil:video')):
                     attr = f.attrib
-                    width = int(attr['width'])
-                    height = int(attr['height'])
-                    vbr = int(attr['system-bitrate']) // 1000
+                    width = int_or_none(attr.get('width'))
+                    height = int_or_none(attr.get('height'))
+                    vbr = int_or_none(attr.get('system-bitrate'), 1000)
                     format_id = '%dx%d_%dk' % (width, height, vbr)
                     formats.append({
                         'format_id': format_id,
@@ -165,7 +166,7 @@ class ThePlatformIE(InfoExtractor):
                 switch = body.find(_x('smil:seq//smil:switch')) or body.find(_x('smil:seq/smil:switch'))
                 for f in switch.findall(_x('smil:video')):
                     attr = f.attrib
-                    vbr = int(attr['system-bitrate']) // 1000
+                    vbr = int_or_none(attr.get('system-bitrate'), 1000)
                     ext = determine_ext(attr['src'])
                     if ext == 'once':
                         ext = 'mp4'
@@ -184,5 +185,5 @@ class ThePlatformIE(InfoExtractor):
             'formats': formats,
             'description': info['description'],
             'thumbnail': info['defaultThumbnailUrl'],
-            'duration': info['duration'] // 1000,
+            'duration': int_or_none(info.get('duration'), 1000),
         }
