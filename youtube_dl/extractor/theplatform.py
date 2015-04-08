@@ -139,7 +139,9 @@ class ThePlatformIE(InfoExtractor):
             formats = self._extract_f4m_formats(f4m_url, video_id)
         else:
             formats = []
-            switch = body.find(_x('.//smil:switch'))
+            switch = body.find(_x('smil:switch'))
+            if switch is None:
+                switch = body.find(_x('smil:par//smil:switch'))
             if switch is not None:
                 base_url = head.find(_x('smil:meta')).attrib['base']
                 for f in switch.findall(_x('smil:video')):
