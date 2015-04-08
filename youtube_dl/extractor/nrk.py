@@ -210,7 +210,14 @@ class NRKTVIE(InfoExtractor):
             duration = parse_duration(p.get('dur'))
             starttime = self._subtitles_timecode(begin)
             endtime = self._subtitles_timecode(begin + duration)
-            srt += '%s\r\n%s --> %s\r\n%s\r\n\r\n' % (compat_str(pos), starttime, endtime, p.text)
+
+            subs = []
+            subs.append(unicode(p.text).strip())
+            for child in p:
+                subs.append(unicode(child.text).strip())
+                subs.append(unicode(child.tail).strip())
+
+            srt += '%s\r\n%s --> %s\r\n%s\r\n\r\n' % (compat_str(pos), starttime, endtime, '\n'.join(filter(None, subs)))
         return {lang: [
             {'ext': 'ttml', 'url': url},
             {'ext': 'srt', 'data': srt},
