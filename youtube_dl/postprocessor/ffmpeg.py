@@ -146,7 +146,11 @@ class FFmpegPostProcessor(PostProcessor):
             stderr = stderr.decode('utf-8', 'replace')
             msg = stderr.strip().split('\n')[-1]
             raise FFmpegPostProcessorError(msg)
-        os.utime(encodeFilename(out_path), (oldest_mtime, oldest_mtime))
+        try:
+            os.utime(encodeFilename(out_path), (oldest_mtime, oldest_mtime))
+        except Exception:
+            self._downloader.report_warning('Cannot update utime of file')
+
         if self._deletetempfiles:
             for ipath in input_paths:
                 os.remove(ipath)
