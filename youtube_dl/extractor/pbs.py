@@ -155,7 +155,7 @@ class PBSIE(InfoExtractor):
         redirect_url = info['alternate_encoding']['url']
         redirect_info = self._download_json(
             redirect_url + '?format=json', display_id,
-            'Downloading video url info')
+            'Downloading alternate_encoding video url info')
         if redirect_info['status'] == 'error':
             if redirect_info['http_code'] == 403:
                 message = (
@@ -170,12 +170,36 @@ class PBSIE(InfoExtractor):
             rating_str = rating_str.rpartition('-')[2]
         age_limit = US_RATINGS.get(rating_str)
 
+        formats = []
+        formats.append({
+            'format_id': info['alternate_encoding']['eeid'],
+            'url': redirect_info['url'],
+            'ext': 'mp4'
+        })
+        
+        redirect_url_hls = info['recommended_encoding']['url']
+        redirect_info_hls = self._download_json(
+           redirect_url_hls + '?format=json', display_id,
+            'Downloading recommended_encoding video url info');
+            
+        formats.append({
+            'format_id': info['recommended_encoding']['eeid'],
+            'url': redirect_info_hls['url'],
+            'protocol': 'm3u8',
+            'ext': 'mp4'
+        })
+        formats.append({
+            'format_id': info['recommended_encoding']['eeid'].replace("hls-800k-16x9", "hls-2500k-16x9"),
+            'url': redirect_info_hls['url'].replace("hls-64-800k", "hls-400-2500k"),
+            'protocol': 'm3u8',
+            'ext': 'mp4'
+        })
+      
         return {
             'id': video_id,
             'display_id': display_id,
             'title': info['title'],
-            'url': redirect_info['url'],
-            'ext': 'mp4',
+            'formats': formats,
             'description': info['program'].get('description'),
             'thumbnail': info.get('image_url'),
             'duration': info.get('duration'),
