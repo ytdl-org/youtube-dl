@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import base64
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_request
 from ..utils import qualities
 
 
@@ -23,7 +24,10 @@ class DumpertIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+
+        req = compat_urllib_request.Request(url)
+        req.add_header('Cookie', 'nsfw=1')
+        webpage = self._download_webpage(req, video_id)
 
         files_base64 = self._search_regex(
             r'data-files="([^"]+)"', webpage, 'data files')
