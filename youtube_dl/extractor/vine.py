@@ -58,9 +58,11 @@ class VineIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage('https://vine.co/v/' + video_id, video_id)
 
-        data = json.loads(self._html_search_regex(
-            r'window\.POST_DATA = { %s: ({.+?}) };\s*</script>' % video_id,
-            webpage, 'vine data'))
+        data = self._parse_json(
+            self._html_search_regex(
+                r'window\.POST_DATA = { %s: ({.+?}) };\s*</script>' % video_id,
+                webpage, 'vine data'),
+            video_id)
 
         formats = [{
             'format_id': '%(format)s-%(rate)s' % f,
