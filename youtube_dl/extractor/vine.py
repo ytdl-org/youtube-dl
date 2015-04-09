@@ -37,7 +37,7 @@ class VineIE(InfoExtractor):
             'vcodec': f['format'],
             'quality': f['rate'],
             'url': f['videoUrl'],
-        } for f in data['videoUrls'] if f.get('rate')]
+        } for f in data['videoUrls']]
 
         self._sort_formats(formats)
 
