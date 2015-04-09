@@ -8,6 +8,7 @@ import time
 from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
+    ExtractorError,
     float_or_none,
     remove_end,
     std_headers,
@@ -98,6 +99,8 @@ class RTVEALaCartaIE(InfoExtractor):
         info = self._download_json(
             'http://www.rtve.es/api/videos/%s/config/alacarta_videos.json' % video_id,
             video_id)['page']['items'][0]
+        if info['state'] == 'DESPU':
+            raise ExtractorError('The video is no longer available', expected=True)
         png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/%s/videos/%s.png' % (self._manager, video_id)
         png = self._download_webpage(png_url, video_id, 'Downloading url information')
         video_url = _decrypt_url(png)
