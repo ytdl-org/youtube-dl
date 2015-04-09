@@ -62,23 +62,27 @@ class TeamcocoIE(InfoExtractor):
         formats = []
         get_quality = qualities(['500k', '480p', '1000k', '720p', '1080p'])
         for filed in data['files']:
-            m_format = re.search(r'(\d+(k|p))\.mp4', filed['url'])
-            if m_format is not None:
-                format_id = m_format.group(1)
+            if filed['type'] == 'hls':
+                formats.extend(self._extract_m3u8_formats(
+                    filed['url'], video_id, ext='mp4'))
             else:
-                format_id = filed['bitrate']
-            tbr = (
-                int(filed['bitrate'])
-                if filed['bitrate'].isdigit()
-                else None)
+                m_format = re.search(r'(\d+(k|p))\.mp4', filed['url'])
+                if m_format is not None:
+                    format_id = m_format.group(1)
+                else:
+                    format_id = filed['bitrate']
+                tbr = (
+                    int(filed['bitrate'])
+                    if filed['bitrate'].isdigit()
+                    else None)
 
-            formats.append({
-                'url': filed['url'],
-                'ext': 'mp4',
-                'tbr': tbr,
-                'format_id': format_id,
-                'quality': get_quality(format_id),
-            })
+                formats.append({
+                    'url': filed['url'],
+                    'ext': 'mp4',
+                    'tbr': tbr,
+                    'format_id': format_id,
+                    'quality': get_quality(format_id),
+                })
 
         self._sort_formats(formats)
 
