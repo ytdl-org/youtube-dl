@@ -9,7 +9,7 @@ from ..utils import unified_strdate
 
 
 class VineIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vine\.co/v/(?P<id>\w+)'
+    _VALID_URL = r'https?://(?:www\.)?vine\.co/(?:v|oembed)/(?P<id>\w+)'
     _TESTS = [{
         'url': 'https://vine.co/v/b9KOOWX7HUx',
         'md5': '2f36fed6235b16da96ce9b4dc890940d',
@@ -49,6 +49,9 @@ class VineIE(InfoExtractor):
             'uploader': 'Z3k3',
             'uploader_id': '936470460173008896',
         },
+    }, {
+        'url': 'https://vine.co/oembed/MYxVapFvz2z.json',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
