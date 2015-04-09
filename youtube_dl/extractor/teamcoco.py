@@ -4,7 +4,10 @@ import base64
 import re
 
 from .common import InfoExtractor
-from ..utils import qualities
+from ..utils import (
+    ExtractorError,
+    qualities,
+)
 
 
 class TeamcocoIE(InfoExtractor):
@@ -49,14 +52,12 @@ class TeamcocoIE(InfoExtractor):
             video_id = self._html_search_regex(
                 self._VIDEO_ID_REGEXES, webpage, 'video id')
 
-        embed_url = 'http://teamcoco.com/embed/v/%s' % video_id
-        embed = self._download_webpage(
-            embed_url, video_id, 'Downloading embed page')
-
-        player_data = self._parse_json(self._search_regex(
-            r'Y\.Ginger\.Module\.Player(?:;var\s*player\s*=\s*new\s*m)?\((\{.*?\})\);', embed, 'player data'), video_id)
+        preloads = re.findall(r'"preload":\s*"([^"]+)"', webpage)
+        if not preloads:
+            raise ExtractorError('Preload information could not be extracted')
+        preload = max([(len(p), p) for p in preloads])[1]
         data = self._parse_json(
-            base64.b64decode(player_data['preload'].encode('ascii')).decode('utf-8'), video_id)
+            base64.b64decode(preload.encode('ascii')).decode('utf-8'), video_id)
 
         formats = []
         get_quality = qualities(['500k', '480p', '1000k', '720p', '1080p'])
