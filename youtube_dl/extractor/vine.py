@@ -10,7 +10,7 @@ from ..utils import unified_strdate
 
 class VineIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?vine\.co/v/(?P<id>\w+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://vine.co/v/b9KOOWX7HUx',
         'md5': '2f36fed6235b16da96ce9b4dc890940d',
         'info_dict': {
@@ -23,7 +23,33 @@ class VineIE(InfoExtractor):
             'uploader': 'Jack Dorsey',
             'uploader_id': '76',
         },
-    }
+    }, {
+        'url': 'https://vine.co/v/MYxVapFvz2z',
+        'md5': '7b9a7cbc76734424ff942eb52c8f1065',
+        'info_dict': {
+            'id': 'MYxVapFvz2z',
+            'ext': 'mp4',
+            'title': 'Fuck Da Police #Mikebrown #justice #ferguson #prayforferguson #protesting #NMOS14',
+            'alt_title': 'Vine by Luna',
+            'description': 'Fuck Da Police #Mikebrown #justice #ferguson #prayforferguson #protesting #NMOS14',
+            'upload_date': '20140815',
+            'uploader': 'Luna',
+            'uploader_id': '1102363502380728320',
+        },
+    }, {
+        'url': 'https://vine.co/v/bxVjBbZlPUH',
+        'md5': 'ea27decea3fa670625aac92771a96b73',
+        'info_dict': {
+            'id': 'bxVjBbZlPUH',
+            'ext': 'mp4',
+            'title': '#mw3 #ac130 #killcam #angelofdeath',
+            'alt_title': 'Vine by Z3k3',
+            'description': '#mw3 #ac130 #killcam #angelofdeath',
+            'upload_date': '20130430',
+            'uploader': 'Z3k3',
+            'uploader_id': '936470460173008896',
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
