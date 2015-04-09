@@ -21,6 +21,7 @@ class TeamcocoIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Conan Becomes A Mary Kay Beauty Consultant',
                 'description': 'Mary Kay is perhaps the most trusted name in female beauty, so of course Conan is a natural choice to sell their products.',
+                'duration': 504,
                 'age_limit': 0,
             }
         }, {
@@ -31,6 +32,7 @@ class TeamcocoIE(InfoExtractor):
                 'ext': 'mp4',
                 'description': 'Louis C.K. got starstruck by George W. Bush, so what? Part one.',
                 'title': 'Louis C.K. Interview Pt. 1 11/3/11',
+                'duration': 288,
                 'age_limit': 0,
             }
         }
@@ -93,5 +95,6 @@ class TeamcocoIE(InfoExtractor):
             'title': data['title'],
             'thumbnail': data.get('thumb', {}).get('href'),
             'description': data.get('teaser'),
+            'duration': data.get('duration'),
             'age_limit': self._family_friendly_search(webpage),
         }
