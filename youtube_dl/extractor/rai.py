@@ -62,6 +62,17 @@ class RaiIE(InfoExtractor):
                 'description': 'Edizione delle ore 20:30 ',
             }
         },
+        {
+            'url': 'http://www.ilcandidato.rai.it/dl/ray/media/Il-Candidato---Primo-episodio-Le-Primarie-28e5525a-b495-45e8-a7c3-bc48ba45d2b6.html',
+            'md5': '02b64456f7cc09f96ff14e7dd489017e',
+            'info_dict': {
+                'id': '28e5525a-b495-45e8-a7c3-bc48ba45d2b6',
+                'ext': 'flv',
+                'title': 'Il Candidato - Primo episodio: "Le Primarie"',
+                'description': 'Primo appuntamento con "Il candidato" con Filippo Timi, alias Piero Zucca presidente!',
+                'uploader': 'RaiTre',
+            }
+        }
     ]
 
     def _extract_relinker_url(self, webpage):
