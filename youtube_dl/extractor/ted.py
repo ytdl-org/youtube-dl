@@ -5,9 +5,8 @@ import re
 
 from .common import InfoExtractor
 
-from ..compat import (
-    compat_str,
-)
+from ..compat import compat_str
+from ..utils import int_or_none
 
 
 class TEDIE(InfoExtractor):
@@ -170,17 +169,41 @@ class TEDIE(InfoExtractor):
                 finfo = self._NATIVE_FORMATS.get(f['format_id'])
                 if finfo:
                     f.update(finfo)
-        else:
-            # Use rtmp downloads
-            formats = [{
-                'format_id': f['name'],
-                'url': talk_info['streamer'],
-                'play_path': f['file'],
-                'ext': 'flv',
-                'width': f['width'],
-                'height': f['height'],
-                'tbr': f['bitrate'],
-            } for f in talk_info['resources']['rtmp']]
+
+        for format_id, resources in talk_info['resources'].items():
+            if format_id == 'h264':
+                for resource in resources:
+                    bitrate = int_or_none(resource.get('bitrate'))
+                    formats.append({
+                        'url': resource['file'],
+                        'format_id': '%s-%sk' % (format_id, bitrate),
+                        'tbr': bitrate,
+                    })
+            elif format_id == 'rtmp':
+                streamer = talk_info.get('streamer')
+                if not streamer:
+                    continue
+                for resource in resources:
+                    formats.append({
+                        'format_id': '%s-%s' % (format_id, resource.get('name')),
+                        'url': streamer,
+                        'play_path': resource['file'],
+                        'ext': 'flv',
+                        'width': int_or_none(resource.get('width')),
+                        'height': int_or_none(resource.get('height')),
+                        'tbr': int_or_none(resource.get('bitrate')),
+                    })
+            elif format_id == 'hls':
+                formats.extend(self._extract_m3u8_formats(
+                    resources.get('stream'), video_name, 'mp4', m3u8_id=format_id))
+
+        audio_download = talk_info.get('audioDownload')
+        if audio_download:
+            formats.append({
+                'url': audio_download,
+                'format_id': 'audio',
+            })
+
         self._sort_formats(formats)
 
         video_id = compat_str(talk_info['id'])
