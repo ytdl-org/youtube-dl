@@ -82,9 +82,9 @@ class RaiIE(InfoExtractor):
             iframe_path = self._search_regex(
                 r'<iframe[^>]+src="/?(dl/[^"]+\?iframe\b[^"]*)"',
                 webpage, 'iframe')
-            iframe_page = self._download_webpage(
+            webpage = self._download_webpage(
                 '%s/%s' % (host, iframe_path), video_id)
-            relinker_url = self._extract_relinker_url(iframe_page)
+            relinker_url = self._extract_relinker_url(webpage)
 
         relinker = self._download_json(
             '%s&output=47' % relinker_url, video_id)
@@ -112,15 +112,15 @@ class RaiIE(InfoExtractor):
             uploader = media.get('author')
             upload_date = unified_strdate(media.get('date'))
         else:
-            title = self._search_regex(
-                r'var\s+videoTitolo\s*=\s*"([^"]+)";',
-                webpage, 'title', default=None) or self._og_search_title(webpage)
+            title = (self._search_regex(
+                r'var\s+videoTitolo\s*=\s*"(.+?)";',
+                webpage, 'title', default=None) or self._og_search_title(webpage)).replace('\\"', '"')
             description = self._og_search_description(webpage)
             thumbnail = self._og_search_thumbnail(webpage)
             duration = None
             uploader = self._html_search_meta('Editore', webpage, 'uploader')
             upload_date = unified_strdate(self._html_search_meta(
-                'item-date', webpage, 'upload date'))
+                'item-date', webpage, 'upload date', default=None))
 
         subtitles = self.extract_subtitles(video_id, webpage)
 
