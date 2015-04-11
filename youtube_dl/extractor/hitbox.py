@@ -10,6 +10,7 @@ from ..utils import (
     float_or_none,
     int_or_none,
     compat_str,
+    determine_ext,
 )
 
 
@@ -147,12 +148,27 @@ class HitboxLiveIE(HitboxIE):
                 servers.append(base_url)
                 for stream in cdn.get('bitrates'):
                     label = stream.get('label')
-                    if label != 'Auto':
+                    if label == 'Auto':
+                        continue
+                    stream_url = stream.get('url')
+                    if not stream_url:
+                        continue
+                    bitrate = int_or_none(stream.get('bitrate'))
+                    if stream.get('provider') == 'hls' or determine_ext(stream_url) == 'm3u8':
+                        if not stream_url.startswith('http'):
+                            continue
                         formats.append({
-                            'url': '%s/%s' % (base_url, stream.get('url')),
+                            'url': stream_url,
                             'ext': 'mp4',
-                            'vbr': stream.get('bitrate'),
-                            'resolution': label,
+                            'tbr': bitrate,
+                            'format_note': label,
+                            'rtmp_live': True,
+                        })
+                    else:
+                        formats.append({
+                            'url': '%s/%s' % (base_url, stream_url),
+                            'ext': 'mp4',
+                            'tbr': bitrate,
                             'rtmp_live': True,
                             'format_note': host,
                             'page_url': url,
