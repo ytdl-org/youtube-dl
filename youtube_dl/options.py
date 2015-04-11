@@ -794,21 +794,22 @@ def parseOpts(overrideArguments=None):
         if opts.verbose:
             write_string('[debug] Override config: ' + repr(overrideArguments) + '\n')
     else:
-        command_line_conf = sys.argv[1:]
-        # Workaround for Python 2.x, where argv is a byte list
-        if sys.version_info < (3,):
-            command_line_conf = [
-                a.decode(preferredencoding(), 'replace') for a in command_line_conf]
+        def compat_conf(conf):
+            if sys.version_info < (3,):
+                return [a.decode(preferredencoding(), 'replace') for a in conf]
+            return conf
+
+        command_line_conf = compat_conf(sys.argv[1:])
 
         if '--ignore-config' in command_line_conf:
             system_conf = []
             user_conf = []
         else:
-            system_conf = _readOptions('/etc/youtube-dl.conf')
+            system_conf = compat_conf(_readOptions('/etc/youtube-dl.conf'))
             if '--ignore-config' in system_conf:
                 user_conf = []
             else:
-                user_conf = _readUserConf()
+                user_conf = compat_conf(_readUserConf())
         argv = system_conf + user_conf + command_line_conf
 
         opts, args = parser.parse_args(argv)
