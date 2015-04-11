@@ -1275,6 +1275,12 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result('5min:%s' % mobj.group('id'), 'FiveMin')
 
+        # Look for Crooks and Liars embeds
+        mobj = re.search(
+            r'<(?:iframe[^>]+src|param[^>]+value)=(["\'])(?P<url>(?:https?:)?//embed\.crooksandliars\.com/(?:embed|v)/.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'))
+
         # Look for NBC Sports VPlayer embeds
         nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
         if nbc_sports_url:
