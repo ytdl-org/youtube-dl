@@ -90,7 +90,7 @@ from .commonmistakes import CommonMistakesIE, UnicodeBOMIE
 from .condenast import CondeNastIE
 from .cracked import CrackedIE
 from .criterion import CriterionIE
-from .crooksandliars import CrooksAndLiarsIE, CrooksAndLiarsArticleIE
+from .crooksandliars import CrooksAndLiarsIE
 from .crunchyroll import (
     CrunchyrollIE,
     CrunchyrollShowPlaylistIE
