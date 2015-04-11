@@ -642,6 +642,32 @@ class GenericIE(InfoExtractor):
                 'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
             }
         },
+        # Crooks and Liars embed
+        {
+            'url': 'http://crooksandliars.com/2015/04/fox-friends-says-protecting-atheists',
+            'info_dict': {
+                'id': '8RUoRhRi',
+                'ext': 'mp4',
+                'title': "Fox & Friends Says Protecting Atheists From Discrimination Is Anti-Christian!",
+                'description': 'md5:e1a46ad1650e3a5ec7196d432799127f',
+                'timestamp': 1428207000,
+                'upload_date': '20150405',
+                'uploader': 'Heather',
+            },
+        },
+        # Crooks and Liars external embed
+        {
+            'url': 'http://theothermccain.com/2010/02/02/video-proves-that-bill-kristol-has-been-watching-glenn-beck/comment-page-1/',
+            'info_dict': {
+                'id': 'MTE3MjUtMzQ2MzA',
+                'ext': 'mp4',
+                'title': 'md5:5e3662a81a4014d24c250d76d41a08d5',
+                'description': 'md5:9b8e9542d6c3c5de42d6451b7d780cec',
+                'timestamp': 1265032391,
+                'upload_date': '20100201',
+                'uploader': 'Heather',
+            },
+        },
         # NBC Sports vplayer embed
         {
             'url': 'http://www.riderfans.com/forum/showthread.php?121827-Freeman&s=e98fa1ea6dc08e886b1678d35212494a',
@@ -1274,6 +1300,12 @@ class GenericIE(InfoExtractor):
             r'<meta[^>]+property="og:video"[^>]+content="https?://embed\.5min\.com/(?P<id>[0-9]+)/?', webpage)
         if mobj is not None:
             return self.url_result('5min:%s' % mobj.group('id'), 'FiveMin')
+
+        # Look for Crooks and Liars embeds
+        mobj = re.search(
+            r'<(?:iframe[^>]+src|param[^>]+value)=(["\'])(?P<url>(?:https?:)?//embed\.crooksandliars\.com/(?:embed|v)/.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'))
 
         # Look for NBC Sports VPlayer embeds
         nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
