@@ -45,9 +45,8 @@ class FootyRoomIE(InfoExtractor):
             playwire_url = self._search_regex(
                 r'data-config="([^"]+)"', payload,
                 'playwire url', default=None)
-            if not playwire_url.startswith("http:"):
-                playwire_url = "http:" + playwire_url
             if playwire_url:
-                entries.append(self.url_result(playwire_url, 'Playwire'))
+                entries.append(self.url_result(self._proto_relative_url(
+                    playwire_url, 'http:'), 'Playwire'))
 
         return self.playlist_result(entries, playlist_id, playlist_title)
