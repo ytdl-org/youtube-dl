@@ -21,7 +21,7 @@ from ..utils import (
 
 class LivestreamIE(InfoExtractor):
     IE_NAME = 'livestream'
-    _VALID_URL = r'https?://new\.livestream\.com/.*?/(?P<event_name>.*?)(/videos/(?P<id>[0-9]+)(?:/player)?)?/?(?:$|[?#])'
+    _VALID_URL = r'https?://(?:new\.)?livestream\.com/.*?/(?P<event_name>.*?)(/videos/(?P<id>[0-9]+)(?:/player)?)?/?(?:$|[?#])'
     _TESTS = [{
         'url': 'http://new.livestream.com/CoheedandCambria/WebsterHall/videos/4719370',
         'md5': '53274c76ba7754fb0e8d072716f2292b',
@@ -50,6 +50,9 @@ class LivestreamIE(InfoExtractor):
         'playlist_mincount': 60,
     }, {
         'url': 'https://new.livestream.com/accounts/362/events/3557232/videos/67864563/player?autoPlay=false&height=360&mute=false&width=640',
+        'only_matching': True,
+    }, {
+        'url': 'http://livestream.com/bsww/concacafbeachsoccercampeonato2015',
         'only_matching': True,
     }]
 

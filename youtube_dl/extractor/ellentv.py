@@ -13,15 +13,15 @@ from ..utils import (
 class EllenTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?(?:ellentv|ellentube)\.com/videos/(?P<id>[a-z0-9_-]+)'
     _TESTS = [{
-        'url': 'http://www.ellentv.com/videos/0-7jqrsr18/',
-        'md5': 'e4af06f3bf0d5f471921a18db5764642',
+        'url': 'http://www.ellentv.com/videos/0-ipq1gsai/',
+        'md5': '8e3c576bf2e9bfff4d76565f56f94c9c',
         'info_dict': {
-            'id': '0-7jqrsr18',
+            'id': '0-ipq1gsai',
             'ext': 'mp4',
-            'title': 'What\'s Wrong with These Photos? A Whole Lot',
-            'description': 'md5:35f152dc66b587cf13e6d2cf4fa467f6',
-            'timestamp': 1406876400,
-            'upload_date': '20140801',
+            'title': 'Fast Fingers of Fate',
+            'description': 'md5:686114ced0a032926935e9015ee794ac',
+            'timestamp': 1428033600,
+            'upload_date': '20150403',
         }
     }, {
         'url': 'http://ellentube.com/videos/0-dvzmabd5/',
@@ -40,14 +40,15 @@ class EllenTVIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        video_url = self._html_search_meta('VideoURL', webpage, 'url')
+
+        video_url = self._html_search_meta('VideoURL', webpage, 'url', fatal=True)
         title = self._og_search_title(webpage, default=None) or self._search_regex(
             r'pageName\s*=\s*"([^"]+)"', webpage, 'title')
         description = self._html_search_meta(
             'description', webpage, 'description') or self._og_search_description(webpage)
         timestamp = parse_iso8601(self._search_regex(
             r'<span class="publish-date"><time datetime="([^"]+)">',
-            webpage, 'timestamp'))
+            webpage, 'timestamp', fatal=False))
 
         return {
             'id': video_id,

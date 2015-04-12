@@ -44,7 +44,7 @@ class MioMioIE(InfoExtractor):
         xml_config = self._search_regex(
             r'flashvars="type=sina&amp;(.+?)&amp;',
             webpage, 'xml config')
-        
+
         # skipping the following page causes lags and eventually connection drop-outs
         self._request_webpage(
             'http://www.miomio.tv/mioplayer/mioplayerconfigfiles/xml.php?id=%s&r=%s' % (id, random.randint(100, 999)),

@@ -2,10 +2,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import int_or_none
 
 
 class AftonbladetIE(InfoExtractor):
-    _VALID_URL = r'^http://tv\.aftonbladet\.se/webbtv.+?(?P<video_id>article[0-9]+)\.ab(?:$|[?#])'
+    _VALID_URL = r'http://tv\.aftonbladet\.se/webbtv.+?(?P<id>article[0-9]+)\.ab(?:$|[?#])'
     _TEST = {
         'url': 'http://tv.aftonbladet.se/webbtv/nyheter/vetenskap/rymden/article36015.ab',
         'info_dict': {
@@ -43,9 +44,9 @@ class AftonbladetIE(InfoExtractor):
             formats.append({
                 'url': 'http://%s:%d/%s/%s' % (p['address'], p['port'], p['path'], p['filename']),
                 'ext': 'mp4',
-                'width': fmt['width'],
-                'height': fmt['height'],
-                'tbr': fmt['bitrate'],
+                'width': int_or_none(fmt.get('width')),
+                'height': int_or_none(fmt.get('height')),
+                'tbr': int_or_none(fmt.get('bitrate')),
                 'protocol': 'http',
             })
         self._sort_formats(formats)
@@ -54,9 +55,9 @@ class AftonbladetIE(InfoExtractor):
             'id': video_id,
             'title': internal_meta_json['title'],
             'formats': formats,
-            'thumbnail': internal_meta_json['imageUrl'],
-            'description': internal_meta_json['shortPreamble'],
-            'timestamp': internal_meta_json['timePublished'],
-            'duration': internal_meta_json['duration'],
-            'view_count': internal_meta_json['views'],
+            'thumbnail': internal_meta_json.get('imageUrl'),
+            'description': internal_meta_json.get('shortPreamble'),
+            'timestamp': int_or_none(internal_meta_json.get('timePublished')),
+            'duration': int_or_none(internal_meta_json.get('duration')),
+            'view_count': int_or_none(internal_meta_json.get('views')),
         }

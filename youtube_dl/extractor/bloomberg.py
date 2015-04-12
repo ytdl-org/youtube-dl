@@ -6,32 +6,39 @@ from .common import InfoExtractor
 
 
 class BloombergIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.bloomberg\.com/video/(?P<id>.+?)\.html'
+    _VALID_URL = r'https?://www\.bloomberg\.com/news/videos/[^/]+/(?P<id>[^/?#]+)'
 
     _TEST = {
-        'url': 'http://www.bloomberg.com/video/shah-s-presentation-on-foreign-exchange-strategies-qurhIVlJSB6hzkVi229d8g.html',
+        'url': 'http://www.bloomberg.com/news/videos/b/aaeae121-5949-481e-a1ce-4562db6f5df2',
         # The md5 checksum changes
         'info_dict': {
             'id': 'qurhIVlJSB6hzkVi229d8g',
             'ext': 'flv',
             'title': 'Shah\'s Presentation on Foreign-Exchange Strategies',
-            'description': 'md5:0681e0d30dcdfc6abf34594961d8ea88',
+            'description': 'md5:a8ba0302912d03d246979735c17d2761',
         },
     }
 
     def _real_extract(self, url):
         name = self._match_id(url)
         webpage = self._download_webpage(url, name)
-
-        f4m_url = self._search_regex(
-            r'<source src="(https?://[^"]+\.f4m.*?)"', webpage,
-            'f4m url')
+        video_id = self._search_regex(r'"bmmrId":"(.+?)"', webpage, 'id')
         title = re.sub(': Video$', '', self._og_search_title(webpage))
 
+        embed_info = self._download_json(
+            'http://www.bloomberg.com/api/embed?id=%s' % video_id, video_id)
+        formats = []
+        for stream in embed_info['streams']:
+            if stream["muxing_format"] == "TS":
+                formats.extend(self._extract_m3u8_formats(stream['url'], video_id))
+            else:
+                formats.extend(self._extract_f4m_formats(stream['url'], video_id))
+        self._sort_formats(formats)
+
         return {
-            'id': name.split('-')[-1],
+            'id': video_id,
             'title': title,
-            'formats': self._extract_f4m_formats(f4m_url, name),
+            'formats': formats,
             'description': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
         }

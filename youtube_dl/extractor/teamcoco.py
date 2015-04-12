@@ -4,7 +4,10 @@ import base64
 import re
 
 from .common import InfoExtractor
-from ..utils import qualities
+from ..utils import (
+    ExtractorError,
+    qualities,
+)
 
 
 class TeamcocoIE(InfoExtractor):
@@ -18,6 +21,7 @@ class TeamcocoIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Conan Becomes A Mary Kay Beauty Consultant',
                 'description': 'Mary Kay is perhaps the most trusted name in female beauty, so of course Conan is a natural choice to sell their products.',
+                'duration': 504,
                 'age_limit': 0,
             }
         }, {
@@ -28,6 +32,7 @@ class TeamcocoIE(InfoExtractor):
                 'ext': 'mp4',
                 'description': 'Louis C.K. got starstruck by George W. Bush, so what? Part one.',
                 'title': 'Louis C.K. Interview Pt. 1 11/3/11',
+                'duration': 288,
                 'age_limit': 0,
             }
         }
@@ -49,35 +54,37 @@ class TeamcocoIE(InfoExtractor):
             video_id = self._html_search_regex(
                 self._VIDEO_ID_REGEXES, webpage, 'video id')
 
-        embed_url = 'http://teamcoco.com/embed/v/%s' % video_id
-        embed = self._download_webpage(
-            embed_url, video_id, 'Downloading embed page')
-
-        player_data = self._parse_json(self._search_regex(
-            r'Y\.Ginger\.Module\.Player(?:;var\s*player\s*=\s*new\s*m)?\((\{.*?\})\);', embed, 'player data'), video_id)
+        preloads = re.findall(r'"preload":\s*"([^"]+)"', webpage)
+        if not preloads:
+            raise ExtractorError('Preload information could not be extracted')
+        preload = max([(len(p), p) for p in preloads])[1]
         data = self._parse_json(
-            base64.b64decode(player_data['preload'].encode('ascii')).decode('utf-8'), video_id)
+            base64.b64decode(preload.encode('ascii')).decode('utf-8'), video_id)
 
         formats = []
         get_quality = qualities(['500k', '480p', '1000k', '720p', '1080p'])
         for filed in data['files']:
-            m_format = re.search(r'(\d+(k|p))\.mp4', filed['url'])
-            if m_format is not None:
-                format_id = m_format.group(1)
+            if filed['type'] == 'hls':
+                formats.extend(self._extract_m3u8_formats(
+                    filed['url'], video_id, ext='mp4'))
             else:
-                format_id = filed['bitrate']
-            tbr = (
-                int(filed['bitrate'])
-                if filed['bitrate'].isdigit()
-                else None)
+                m_format = re.search(r'(\d+(k|p))\.mp4', filed['url'])
+                if m_format is not None:
+                    format_id = m_format.group(1)
+                else:
+                    format_id = filed['bitrate']
+                tbr = (
+                    int(filed['bitrate'])
+                    if filed['bitrate'].isdigit()
+                    else None)
 
-            formats.append({
-                'url': filed['url'],
-                'ext': 'mp4',
-                'tbr': tbr,
-                'format_id': format_id,
-                'quality': get_quality(format_id),
-            })
+                formats.append({
+                    'url': filed['url'],
+                    'ext': 'mp4',
+                    'tbr': tbr,
+                    'format_id': format_id,
+                    'quality': get_quality(format_id),
+                })
 
         self._sort_formats(formats)
 
@@ -88,5 +95,6 @@ class TeamcocoIE(InfoExtractor):
             'title': data['title'],
             'thumbnail': data.get('thumb', {}).get('href'),
             'description': data.get('teaser'),
+            'duration': data.get('duration'),
             'age_limit': self._family_friendly_search(webpage),
         }

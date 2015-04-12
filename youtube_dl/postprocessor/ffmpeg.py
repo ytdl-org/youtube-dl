@@ -117,6 +117,10 @@ class FFmpegPostProcessor(PostProcessor):
         return self._paths[self.basename]
 
     @property
+    def probe_available(self):
+        return self.probe_basename is not None
+
+    @property
     def probe_executable(self):
         return self._paths[self.probe_basename]
 
@@ -142,7 +146,8 @@ class FFmpegPostProcessor(PostProcessor):
             stderr = stderr.decode('utf-8', 'replace')
             msg = stderr.strip().split('\n')[-1]
             raise FFmpegPostProcessorError(msg)
-        os.utime(encodeFilename(out_path), (oldest_mtime, oldest_mtime))
+        self.try_utime(out_path, oldest_mtime, oldest_mtime)
+
         if self._deletetempfiles:
             for ipath in input_paths:
                 os.remove(ipath)
@@ -168,7 +173,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
     def get_audio_codec(self, path):
 
-        if not self.probe_executable:
+        if not self.probe_available:
             raise PostProcessingError('ffprobe or avprobe not found. Please install one.')
         try:
             cmd = [
@@ -276,10 +281,9 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
         # Try to update the date time for extracted audio file.
         if information.get('filetime') is not None:
-            try:
-                os.utime(encodeFilename(new_path), (time.time(), information['filetime']))
-            except Exception:
-                self._downloader.report_warning('Cannot update utime of audio file')
+            self.try_utime(
+                new_path, time.time(), information['filetime'],
+                errnote='Cannot update utime of audio file')
 
         information['filepath'] = new_path
         return self._nopostoverwrites, information

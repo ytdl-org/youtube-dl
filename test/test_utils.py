@@ -227,6 +227,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(
             unified_strdate('2/2/2015 6:47:40 PM', day_first=False),
             '20150202')
+        self.assertEqual(unified_strdate('25-09-2014'), '20140925')
 
     def test_find_xpath_attr(self):
         testxml = '''<root>
@@ -469,6 +470,12 @@ class TestUtil(unittest.TestCase):
         d = json.loads(on)
         self.assertEqual(d['x'], 1)
         self.assertEqual(d['y'], 'a')
+
+        on = js_to_json('["abc", "def",]')
+        self.assertEqual(json.loads(on), ['abc', 'def'])
+
+        on = js_to_json('{"abc": "def",}')
+        self.assertEqual(json.loads(on), {'abc': 'def'})
 
     def test_clean_html(self):
         self.assertEqual(clean_html('a:\nb'), 'a: b')

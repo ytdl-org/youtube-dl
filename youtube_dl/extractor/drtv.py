@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor, ExtractorError
@@ -8,16 +9,16 @@ class DRTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?dr\.dk/tv/se/(?:[^/]+/)*(?P<id>[\da-z-]+)(?:[/#?]|$)'
 
     _TEST = {
-        'url': 'http://www.dr.dk/tv/se/partiets-mand/partiets-mand-7-8',
-        'md5': '4a7e1dd65cdb2643500a3f753c942f25',
+        'url': 'https://www.dr.dk/tv/se/boern/ultra/panisk-paske/panisk-paske-5',
+        'md5': 'dc515a9ab50577fa14cc4e4b0265168f',
         'info_dict': {
-            'id': 'partiets-mand-7-8',
+            'id': 'panisk-paske-5',
             'ext': 'mp4',
-            'title': 'Partiets mand (7:8)',
-            'description': 'md5:a684b90a8f9336cd4aab94b7647d7862',
-            'timestamp': 1403047940,
-            'upload_date': '20140617',
-            'duration': 1299.040,
+            'title': 'Panisk Påske (5)',
+            'description': 'md5:ca14173c5ab24cd26b0fcc074dff391c',
+            'timestamp': 1426984612,
+            'upload_date': '20150322',
+            'duration': 1455,
         },
     }
 
@@ -25,6 +26,10 @@ class DRTVIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
+
+        if '>Programmet er ikke længere tilgængeligt' in webpage:
+            raise ExtractorError(
+                'Video %s is not available' % video_id, expected=True)
 
         video_id = self._search_regex(
             r'data-(?:material-identifier|episode-slug)="([^"]+)"',

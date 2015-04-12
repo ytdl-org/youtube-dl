@@ -495,7 +495,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': '孫艾倫',
                 'title': '[A-made] 變態妍字幕版 太妍 我就是這樣的人',
             },
-        }
+        },
+        # url_encoded_fmt_stream_map is empty string
+        {
+            'url': 'qEJwOuvDf7I',
+            'info_dict': {
+                'id': 'qEJwOuvDf7I',
+                'ext': 'mp4',
+                'title': 'Обсуждение судебной практики по выборам 14 сентября 2014 года в Санкт-Петербурге',
+                'description': '',
+                'upload_date': '20150404',
+                'uploader_id': 'spbelect',
+                'uploader': 'Наблюдатели Петербурга',
+            },
+            'params': {
+                'skip_download': 'requires avconv',
+            }
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -772,33 +788,41 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             errnote='Could not download DASH manifest')
 
         formats = []
-        for r in dash_doc.findall('.//{urn:mpeg:DASH:schema:MPD:2011}Representation'):
-            url_el = r.find('{urn:mpeg:DASH:schema:MPD:2011}BaseURL')
-            if url_el is None:
-                continue
-            format_id = r.attrib['id']
-            video_url = url_el.text
-            filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength'))
-            f = {
-                'format_id': format_id,
-                'url': video_url,
-                'width': int_or_none(r.attrib.get('width')),
-                'height': int_or_none(r.attrib.get('height')),
-                'tbr': int_or_none(r.attrib.get('bandwidth'), 1000),
-                'asr': int_or_none(r.attrib.get('audioSamplingRate')),
-                'filesize': filesize,
-                'fps': int_or_none(r.attrib.get('frameRate')),
-            }
-            try:
-                existing_format = next(
-                    fo for fo in formats
-                    if fo['format_id'] == format_id)
-            except StopIteration:
-                full_info = self._formats.get(format_id, {}).copy()
-                full_info.update(f)
-                formats.append(full_info)
-            else:
-                existing_format.update(f)
+        for a in dash_doc.findall('.//{urn:mpeg:DASH:schema:MPD:2011}AdaptationSet'):
+            mime_type = a.attrib.get('mimeType')
+            for r in a.findall('{urn:mpeg:DASH:schema:MPD:2011}Representation'):
+                url_el = r.find('{urn:mpeg:DASH:schema:MPD:2011}BaseURL')
+                if url_el is None:
+                    continue
+                if mime_type == 'text/vtt':
+                    # TODO implement WebVTT downloading
+                    pass
+                elif mime_type.startswith('audio/') or mime_type.startswith('video/'):
+                    format_id = r.attrib['id']
+                    video_url = url_el.text
+                    filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength'))
+                    f = {
+                        'format_id': format_id,
+                        'url': video_url,
+                        'width': int_or_none(r.attrib.get('width')),
+                        'height': int_or_none(r.attrib.get('height')),
+                        'tbr': int_or_none(r.attrib.get('bandwidth'), 1000),
+                        'asr': int_or_none(r.attrib.get('audioSamplingRate')),
+                        'filesize': filesize,
+                        'fps': int_or_none(r.attrib.get('frameRate')),
+                    }
+                    try:
+                        existing_format = next(
+                            fo for fo in formats
+                            if fo['format_id'] == format_id)
+                    except StopIteration:
+                        full_info = self._formats.get(format_id, {}).copy()
+                        full_info.update(f)
+                        formats.append(full_info)
+                    else:
+                        existing_format.update(f)
+                else:
+                    self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
         return formats
 
     def _real_extract(self, url):
@@ -855,7 +879,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 args = ytplayer_config['args']
                 # Convert to the same format returned by compat_parse_qs
                 video_info = dict((k, [v]) for k, v in args.items())
-                if 'url_encoded_fmt_stream_map' not in args:
+                if not args.get('url_encoded_fmt_stream_map'):
                     raise ValueError('No stream_map present')  # caught below
             except ValueError:
                 # We fallback to the get_video_info pages (used by the embed page)

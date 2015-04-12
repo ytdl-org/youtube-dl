@@ -14,7 +14,9 @@ from ..utils import (
     clean_html,
     ExtractorError,
     int_or_none,
+    float_or_none,
     parse_duration,
+    determine_ext,
 )
 
 
@@ -50,7 +52,8 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
             if not video_url:
                 continue
             format_id = video['format']
-            if video_url.endswith('.f4m'):
+            ext = determine_ext(video_url)
+            if ext == 'f4m':
                 if georestricted:
                     # See https://github.com/rg3/youtube-dl/issues/3963
                     # m3u8 urls work fine
@@ -60,12 +63,9 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                     'http://hdfauth.francetv.fr/esi/urltokengen2.html?url=%s' % video_url_parsed.path,
                     video_id, 'Downloading f4m manifest token', fatal=False)
                 if f4m_url:
-                    f4m_formats = self._extract_f4m_formats(f4m_url, video_id)
-                    for f4m_format in f4m_formats:
-                        f4m_format['preference'] = 1
-                    formats.extend(f4m_formats)
-            elif video_url.endswith('.m3u8'):
-                formats.extend(self._extract_m3u8_formats(video_url, video_id, 'mp4'))
+                    formats.extend(self._extract_f4m_formats(f4m_url, video_id, 1, format_id))
+            elif ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(video_url, video_id, 'mp4', m3u8_id=format_id))
             elif video_url.startswith('rtmp'):
                 formats.append({
                     'url': video_url,
@@ -86,7 +86,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
             'title': info['titre'],
             'description': clean_html(info['synopsis']),
             'thumbnail': compat_urlparse.urljoin('http://pluzz.francetv.fr', info['image']),
-            'duration': parse_duration(info['duree']),
+            'duration': float_or_none(info.get('real_duration'), 1000) or parse_duration(info['duree']),
             'timestamp': int_or_none(info['diffusion']['timestamp']),
             'formats': formats,
         }
@@ -260,22 +260,28 @@ class CultureboxIE(FranceTVBaseInfoExtractor):
     _VALID_URL = r'https?://(?:m\.)?culturebox\.francetvinfo\.fr/(?P<name>.*?)(\?|$)'
 
     _TEST = {
-        'url': 'http://culturebox.francetvinfo.fr/festivals/dans-les-jardins-de-william-christie/dans-les-jardins-de-william-christie-le-camus-162553',
-        'md5': '5ad6dec1ffb2a3fbcb20cc4b744be8d6',
+        'url': 'http://culturebox.francetvinfo.fr/live/musique/musique-classique/le-livre-vermeil-de-montserrat-a-la-cathedrale-delne-214511',
+        'md5': '9b88dc156781c4dbebd4c3e066e0b1d6',
         'info_dict': {
-            'id': 'EV_22853',
+            'id': 'EV_50111',
             'ext': 'flv',
-            'title': 'Dans les jardins de William Christie - Le Camus',
-            'description': 'md5:4710c82315c40f0c865ca8b9a68b5299',
-            'upload_date': '20140829',
-            'timestamp': 1409317200,
+            'title': "Le Livre Vermeil de Montserrat à la Cathédrale d'Elne",
+            'description': 'md5:f8a4ad202e8fe533e2c493cc12e739d9',
+            'upload_date': '20150320',
+            'timestamp': 1426892400,
+            'duration': 2760.9,
         },
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         name = mobj.group('name')
+
         webpage = self._download_webpage(url, name)
+
+        if ">Ce live n'est plus disponible en replay<" in webpage:
+            raise ExtractorError('Video %s is not available' % name, expected=True)
+
         video_id, catalogue = self._search_regex(
             r'"http://videos\.francetv\.fr/video/([^@]+@[^"]+)"', webpage, 'video id').split('@')
 

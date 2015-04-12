@@ -172,6 +172,7 @@ class BlipTVIE(InfoExtractor):
                     'width': int_or_none(media_content.get('width')),
                     'height': int_or_none(media_content.get('height')),
                 })
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         subtitles = self.extract_subtitles(video_id, subtitles_urls)
