@@ -8,7 +8,6 @@ class FootyRoomIE(InfoExtractor):
     _VALID_URL = r'http://footyroom\.com/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://footyroom.com/schalke-04-0-2-real-madrid-2015-02/',
-        'md5': 'f38d400d32f19724570040d5ce3a505f',
         'info_dict': {
             'id': 'schalke-04-0-2-real-madrid-2015-02',
             'title': 'Schalke 04 0 – 2 Real Madrid',
