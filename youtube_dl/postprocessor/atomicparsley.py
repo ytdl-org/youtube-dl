@@ -50,8 +50,13 @@ class AtomicParsleyPP(PostProcessor):
             msg = stderr.decode('utf-8', 'replace').strip()
             raise AtomicParsleyPPError(msg)
 
-        os.remove(encodeFilename(filename))
         os.remove(encodeFilename(temp_thumbnail))
-        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        # for formats that don't support thumbnails (like 3gp) AtomicParsley
+        # won't create to the temporary file
+        if b'No changes' in stdout:
+            self._downloader.report_warning('The file format doesn\'t support embedding a thumbnail')
+        else:
+            os.remove(encodeFilename(filename))
+            os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
         return True, info
