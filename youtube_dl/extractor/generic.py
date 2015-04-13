@@ -930,7 +930,10 @@ class GenericIE(InfoExtractor):
                 urlrs, playlist_id=video_id, playlist_title=video_title)
 
         # Look for BrightCove:
-        bc_urls = BrightcoveIE._extract_brightcove_urls(webpage)
+        try:
+            bc_urls = BrightcoveIE._extract_brightcove_urls(webpage)
+        except:
+            bc_urls = None
         if bc_urls:
             self.to_screen('Brightcove video detected.')
             entries = [{
