@@ -183,7 +183,7 @@ class BrightcoveIE(InfoExtractor):
             (?:
                 [^>]+?class=[\'"][^>]*?BrightcoveExperience.*?[\'"] |
                 [^>]*?>\s*<param\s+name="movie"\s+value="https?://[^/]*brightcove\.com/
-            ).+?</object>''',
+            ).+?>\s*</object>''',
             webpage)
         return [cls._build_brighcove_url(m) for m in matches]
 
