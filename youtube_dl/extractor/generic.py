@@ -681,11 +681,11 @@ class GenericIE(InfoExtractor):
         # UDN embed
         {
             'url': 'http://www.udn.com/news/story/7314/822787',
-            'md5': 'de06b4c90b042c128395a88f0384817e',
+            'md5': 'fd2060e988c326991037b9aff9df21a6',
             'info_dict': {
-                'id': '300040',
+                'id': '300346',
                 'ext': 'mp4',
-                'title': '生物老師男變女 全校挺"做自己"',
+                'title': '中一中男師變性 全校師生力挺',
                 'thumbnail': 're:^https?://.*\.jpg$',
             }
         },
