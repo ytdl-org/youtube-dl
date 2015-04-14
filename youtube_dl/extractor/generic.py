@@ -688,6 +688,20 @@ class GenericIE(InfoExtractor):
                 'title': '生物老師男變女 全校挺"做自己"',
                 'thumbnail': 're:^https?://.*\.jpg$',
             }
+        },
+        # Ooyala embed
+        {
+            'url': 'http://www.businessinsider.com/excel-index-match-vlookup-video-how-to-2015-2?IR=T',
+            'info_dict': {
+                'id': '50YnY4czr4ms1vJ7yz3xzq0excz_pUMs',
+                'ext': 'mp4',
+                'description': 'VIDEO: Index/Match versus VLOOKUP.',
+                'title': 'This is what separates the Excel masters from the wannabes',
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            }
         }
     ]
 
@@ -1092,7 +1106,8 @@ class GenericIE(InfoExtractor):
         # Look for Ooyala videos
         mobj = (re.search(r'player\.ooyala\.com/[^"?]+\?[^"]*?(?:embedCode|ec)=(?P<ec>[^"&]+)', webpage) or
                 re.search(r'OO\.Player\.create\([\'"].*?[\'"],\s*[\'"](?P<ec>.{32})[\'"]', webpage) or
-                re.search(r'SBN\.VideoLinkset\.ooyala\([\'"](?P<ec>.{32})[\'"]\)', webpage))
+                re.search(r'SBN\.VideoLinkset\.ooyala\([\'"](?P<ec>.{32})[\'"]\)', webpage) or
+                re.search(r'data-ooyala-video-id\s*=\s*[\'"](?P<ec>.{32})[\'"]', webpage))
         if mobj is not None:
             return OoyalaIE._build_url_result(mobj.group('ec'))
 
