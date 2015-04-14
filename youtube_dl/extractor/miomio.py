@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     xpath_text,
     int_or_none,
+    ExtractorError,
 )
 
 
@@ -14,13 +15,14 @@ class MioMioIE(InfoExtractor):
     IE_NAME = 'miomio.tv'
     _VALID_URL = r'https?://(?:www\.)?miomio\.tv/watch/cc(?P<id>[0-9]+)'
     _TESTS = [{
-        'url': 'http://www.miomio.tv/watch/cc179734/',
-        'md5': '48de02137d0739c15b440a224ad364b9',
+        # "type=video" in flashvars
+        'url': 'http://www.miomio.tv/watch/cc88912/',
+        'md5': '317a5f7f6b544ce8419b784ca8edae65',
         'info_dict': {
-            'id': '179734',
+            'id': '88912',
             'ext': 'flv',
-            'title': '手绘动漫鬼泣但丁全程画法',
-            'duration': 354,
+            'title': '【SKY】字幕 铠武昭和VS平成 假面骑士大战FEAT战队 魔星字幕组 字幕',
+            'duration': 5923,
         },
     }, {
         'url': 'http://www.miomio.tv/watch/cc184024/',
@@ -42,7 +44,7 @@ class MioMioIE(InfoExtractor):
             r'src="(/mioplayer/[^"]+)"', webpage, 'ref_path')
 
         xml_config = self._search_regex(
-            r'flashvars="type=sina&amp;(.+?)&amp;',
+            r'flashvars="type=(?:sina|video)&amp;(.+?)&amp;',
             webpage, 'xml config')
 
         # skipping the following page causes lags and eventually connection drop-outs
@@ -58,6 +60,9 @@ class MioMioIE(InfoExtractor):
         http_headers = {
             'Referer': 'http://www.miomio.tv%s' % mioplayer_path,
         }
+
+        if not int_or_none(xpath_text(vid_config, 'timelength')):
+            raise ExtractorError('Unable to load videos!', expected=True)
 
         entries = []
         for f in vid_config.findall('./durl'):
