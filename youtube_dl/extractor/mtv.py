@@ -118,6 +118,14 @@ class MTVServicesInfoExtractor(InfoExtractor):
         mediagen_doc = self._download_xml(mediagen_url, video_id,
                                           'Downloading video urls')
 
+        item = mediagen_doc.find('./video/item')
+        if item is not None and item.get('type') == 'text':
+            message = '%s returned error: ' % self.IE_NAME
+            if item.get('code') is not None:
+                message += '%s - ' % item.get('code')
+            message += item.text
+            raise ExtractorError(message, expected=True)
+
         description_node = itemdoc.find('description')
         if description_node is not None:
             description = description_node.text.strip()
