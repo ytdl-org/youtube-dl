@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import base64
@@ -35,6 +36,17 @@ class TeamcocoIE(InfoExtractor):
                 'duration': 288,
                 'age_limit': 0,
             }
+        }, {
+            'url': 'http://teamcoco.com/video/timothy-olyphant-drinking-whiskey',
+            'info_dict': {
+                'id': '88748',
+                'ext': 'mp4',
+                'title': 'Timothy Olyphant Raises A Toast To “Justified”',
+                'description': 'md5:15501f23f020e793aeca761205e42c24',
+            },
+            'params': {
+                'skip_download': True,  # m3u8 downloads
+            }
         }
     ]
     _VIDEO_ID_REGEXES = (
@@ -54,10 +66,23 @@ class TeamcocoIE(InfoExtractor):
             video_id = self._html_search_regex(
                 self._VIDEO_ID_REGEXES, webpage, 'video id')
 
+        preload = None
         preloads = re.findall(r'"preload":\s*"([^"]+)"', webpage)
-        if not preloads:
-            raise ExtractorError('Preload information could not be extracted')
-        preload = max([(len(p), p) for p in preloads])[1]
+        if preloads:
+            preload = max([(len(p), p) for p in preloads])[1]
+
+        if not preload:
+            preload = ''.join(re.findall(r'this\.push\("([^"]+)"\);', webpage))
+
+        if not preload:
+            preload = self._html_search_regex([
+                r'player,\[?"([^"]+)"\]?', r'player.init\(\[?"([^"]+)"\]?\)'
+            ], webpage.replace('","', ''), 'preload data', default=None)
+
+        if not preload:
+            raise ExtractorError(
+                'Preload information could not be extracted', expected=True)
+
         data = self._parse_json(
             base64.b64decode(preload.encode('ascii')).decode('utf-8'), video_id)
 
