@@ -56,6 +56,6 @@ class TumblrIE(InfoExtractor):
             'url': video_url,
             'ext': 'mp4',
             'title': video_title,
-            'description': self._og_search_description(webpage),
-            'thumbnail': self._og_search_thumbnail(webpage),
+            'description': self._og_search_description(webpage, default=None),
+            'thumbnail': self._og_search_thumbnail(webpage, default=None),
         }
