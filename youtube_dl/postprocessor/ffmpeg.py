@@ -501,8 +501,8 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         return cls._lang_map.get(code[:2])
 
     def run(self, information):
-        if information['ext'] != 'mp4':
-            self._downloader.to_screen('[ffmpeg] Subtitles can only be embedded in mp4 files')
+        if information['ext'] not in ['mp4', 'mkv']:
+            self._downloader.to_screen('[ffmpeg] Subtitles can only be embedded in mp4 or mkv files')
             return [], information
         subtitles = information.get('requested_subtitles')
         if not subtitles:
@@ -520,8 +520,9 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
             # Don't copy the existing subtitles, we may be running the
             # postprocessor a second time
             '-map', '-0:s',
-            '-c:s', 'mov_text',
         ]
+        if information['ext'] == 'mp4':
+            opts += ['-c:s', 'mov_text']
         for (i, lang) in enumerate(sub_langs):
             opts.extend(['-map', '%d:0' % (i + 1)])
             lang_code = self._conver_lang_code(lang)
