@@ -622,6 +622,17 @@ class GenericIE(InfoExtractor):
                 'age_limit': 0,
             },
         },
+        # Playwire embed
+        {
+            'url': 'http://www.cinemablend.com/new/First-Joe-Dirt-2-Trailer-Teaser-Stupid-Greatness-70874.html',
+            'info_dict': {
+                'id': '3519514',
+                'ext': 'mp4',
+                'title': 'Joe Dirt 2 Beautiful Loser Teaser Trailer',
+                'thumbnail': 're:^https?://.*\.png$',
+                'duration': 45.115,
+            },
+        },
         # 5min embed
         {
             'url': 'http://techcrunch.com/video/facebook-creates-on-this-day-crunch-report/518726732/',
