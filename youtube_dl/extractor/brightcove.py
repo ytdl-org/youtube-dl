@@ -188,7 +188,7 @@ class BrightcoveIE(InfoExtractor):
                 [^>]*?>\s*<param\s+name="movie"\s+value="https?://[^/]*brightcove\.com/
             ).+?>\s*</object>''',
             webpage)
-        return filter(None, [cls._build_brighcove_url(m) for m in matches])
+        return list(filter(None, [cls._build_brighcove_url(m) for m in matches]))
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
