@@ -1310,6 +1310,12 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'Pladform')
 
+        # Look for Playwire embeds
+        mobj = re.search(
+            r'<script[^>]+data-config=(["\'])(?P<url>(?:https?:)?//config\.playwire\.com/.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'))
+
         # Look for 5min embeds
         mobj = re.search(
             r'<meta[^>]+property="og:video"[^>]+content="https?://embed\.5min\.com/(?P<id>[0-9]+)/?', webpage)
