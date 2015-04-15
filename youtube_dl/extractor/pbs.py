@@ -171,30 +171,35 @@ class PBSIE(InfoExtractor):
         age_limit = US_RATINGS.get(rating_str)
 
         formats = []
+
+        if info['alternate_encoding']['eeid'] != info['recommended_encoding']['eeid']:
+            redirect_url_hls = info['recommended_encoding']['url']
+            redirect_info_hls = self._download_json(
+               redirect_url_hls + '?format=json', display_id,
+                'Downloading recommended_encoding video url info');
+            if redirect_info_hls['url'].endswith('m3u8'):
+                formats.append({
+                    'format_id': info['recommended_encoding']['eeid'],
+                    'url': redirect_info_hls['url'],
+                    'protocol': 'm3u8',
+                    'ext': 'mp4',
+                    'preference': -2
+                })
+                if 'hls-64-800k' in redirect_info_hls['url']: 
+                    formats.append({
+                        'format_id': info['recommended_encoding']['eeid'].replace("hls-800k-16x9", "hls-2500k-16x9"),
+                        'url': redirect_info_hls['url'].replace("hls-64-800k", "hls-64-2500k"),
+                        'protocol': 'm3u8',
+                        'ext': 'mp4',
+                        'preference': -2
+                    })
+
         formats.append({
             'format_id': info['alternate_encoding']['eeid'],
             'url': redirect_info['url'],
             'ext': 'mp4'
         })
-        
-        redirect_url_hls = info['recommended_encoding']['url']
-        redirect_info_hls = self._download_json(
-           redirect_url_hls + '?format=json', display_id,
-            'Downloading recommended_encoding video url info');
-            
-        formats.append({
-            'format_id': info['recommended_encoding']['eeid'],
-            'url': redirect_info_hls['url'],
-            'protocol': 'm3u8',
-            'ext': 'mp4'
-        })
-        formats.append({
-            'format_id': info['recommended_encoding']['eeid'].replace("hls-800k-16x9", "hls-2500k-16x9"),
-            'url': redirect_info_hls['url'].replace("hls-64-800k", "hls-400-2500k"),
-            'protocol': 'm3u8',
-            'ext': 'mp4'
-        })
-      
+
         return {
             'id': video_id,
             'display_id': display_id,
