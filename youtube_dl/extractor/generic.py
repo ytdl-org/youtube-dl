@@ -713,6 +713,20 @@ class GenericIE(InfoExtractor):
                 # m3u8 downloads
                 'skip_download': True,
             }
+        },
+        # Contains a SMIL manifest
+        {
+            'url': 'http://www.telewebion.com/fa/1263668/%D9%82%D8%B1%D8%B9%D9%87%E2%80%8C%DA%A9%D8%B4%DB%8C-%D9%84%DB%8C%DA%AF-%D9%82%D9%87%D8%B1%D9%85%D8%A7%D9%86%D8%A7%D9%86-%D8%A7%D8%B1%D9%88%D9%BE%D8%A7/%2B-%D9%81%D9%88%D8%AA%D8%A8%D8%A7%D9%84.html',
+            'info_dict': {
+                'id': 'file',
+                'ext': 'flv',
+                'title': '+ Football: Lottery Champions League Europe',
+                'uploader': 'www.telewebion.com',
+            },
+            'params': {
+                # rtmpe downloads
+                'skip_download': True,
+            }
         }
     ]
 
@@ -1440,13 +1454,22 @@ class GenericIE(InfoExtractor):
             # here's a fun little line of code for you:
             video_id = os.path.splitext(video_id)[0]
 
-            entries.append({
-                'id': video_id,
-                'url': video_url,
-                'uploader': video_uploader,
-                'title': video_title,
-                'age_limit': age_limit,
-            })
+            if determine_ext(video_url) == 'smil':
+                entries.append({
+                    'id': video_id,
+                    'formats': self._extract_smil_formats(video_url, video_id),
+                    'uploader': video_uploader,
+                    'title': video_title,
+                    'age_limit': age_limit,
+                })
+            else:
+                entries.append({
+                    'id': video_id,
+                    'url': video_url,
+                    'uploader': video_uploader,
+                    'title': video_title,
+                    'age_limit': age_limit,
+                })
 
         if len(entries) == 1:
             return entries[0]
