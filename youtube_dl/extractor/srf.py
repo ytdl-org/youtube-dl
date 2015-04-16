@@ -45,12 +45,12 @@ class SrfIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        display_id = re.match(self._VALID_URL, url).group('display_id') or video_id
 
         video_data = self._download_xml(
             'http://il.srgssr.ch/integrationlayer/1.0/ue/srf/video/play/%s.xml' % video_id,
-            video_id)
+            display_id)
 
-        display_id = re.match(self._VALID_URL, url).group('display_id')
         title = xpath_text(
             video_data, './AssetMetadatas/AssetMetadata/title', fatal=True)
         thumbnails = [{
@@ -68,10 +68,10 @@ class SrfIE(InfoExtractor):
                 format_id = '%s-%s' % (quality, item.attrib['protocol'])
                 if original_ext == 'f4m':
                     formats.extend(self._extract_f4m_formats(
-                        full_url + '?hdcore=3.4.0', video_id, f4m_id=format_id))
+                        full_url + '?hdcore=3.4.0', display_id, f4m_id=format_id))
                 elif original_ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
-                        full_url, video_id, 'mp4', m3u8_id=format_id))
+                        full_url, display_id, 'mp4', m3u8_id=format_id))
                 else:
                     formats.append({
                         'url': full_url,
