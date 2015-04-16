@@ -24,8 +24,12 @@ class FacebookIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         https?://(?:\w+\.)?facebook\.com/
         (?:[^#]*?\#!/)?
-        (?:video/video\.php|photo\.php|video\.php|video/embed)\?(?:.*?)
-        (?:v|video_id)=(?P<id>[0-9]+)
+        (?:
+            (?:video/video\.php|photo\.php|video\.php|video/embed)\?(?:.*?)
+            (?:v|video_id)=|
+            [^/]+/videos/
+        )
+        (?P<id>[0-9]+)
         (?:.*)'''
     _LOGIN_URL = 'https://www.facebook.com/login.php?next=http%3A%2F%2Ffacebook.com%2Fhome.php&login_attempt=1'
     _CHECKPOINT_URL = 'https://www.facebook.com/checkpoint/?next=http%3A%2F%2Ffacebook.com%2Fhome.php&_fb_noscript=1'
@@ -49,6 +53,9 @@ class FacebookIE(InfoExtractor):
         }
     }, {
         'url': 'https://www.facebook.com/video.php?v=10204634152394104',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.facebook.com/amogood/videos/1618742068337349/?fref=nf',
         'only_matching': True,
     }]
 
