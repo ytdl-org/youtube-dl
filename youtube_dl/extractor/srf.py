@@ -75,7 +75,7 @@ class SrfIE(InfoExtractor):
                 else:
                     formats.append({
                         'url': full_url,
-                        'ext': 'mp4' if original_ext == 'm3u8' else original_ext,
+                        'ext': original_ext,
                         'format_id': format_id,
                         'quality': 0 if 'HD' in quality else -1,
                         'preference': 1,
