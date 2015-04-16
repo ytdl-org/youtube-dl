@@ -63,7 +63,7 @@ class GfycatIE(InfoExtractor):
             'height':     json['height'],
             'fps':        json['frameRate'],
             'filesize':   json['mp4Size'],
-            'preference': '-1'
+            'preference': 2
         }, {
             'format_id': 'webm',
             'ext':       'webm',
@@ -72,7 +72,7 @@ class GfycatIE(InfoExtractor):
             'height':     json['height'],
             'fps':        json['frameRate'],
             'filesize':   json['webmSize'],
-            'preference': 0
+            'preference': 1
         }, {
             'format_id':  'gif',
             'ext':        'gif',
@@ -81,7 +81,7 @@ class GfycatIE(InfoExtractor):
             'height':     json['height'],
             'fps':        json['frameRate'],
             'filesize':   json['gifSize'],
-            'preference': 1
+            'preference': 0
         }]
         
         self._sort_formats(formats)
