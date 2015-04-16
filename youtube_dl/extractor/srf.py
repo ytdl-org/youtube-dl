@@ -26,18 +26,15 @@ class SrfIE(InfoExtractor):
     }, {
         # No Speichern (Save) button
         'url': 'http://www.srf.ch/play/tv/top-gear/video/jaguar-xk120-shadow-und-tornado-dampflokomotive?id=677f5829-e473-4823-ac83-a1087fe97faa',
+        'md5': 'd97e236e80d1d24729e5d0953d276a4f',
         'info_dict': {
             'id': '677f5829-e473-4823-ac83-a1087fe97faa',
             'display_id': 'jaguar-xk120-shadow-und-tornado-dampflokomotive',
-            'ext': 'mp4',
+            'ext': 'flv',
             'upload_date': '20130710',
             'title': 'Jaguar XK120, Shadow und Tornado-Dampflokomotive',
             'timestamp': 1373493600,
         },
-        'params': {
-            # Require ffmpeg/avconv
-            'skip_download': True,
-        }
     }, {
         'url': 'http://www.srf.ch/player/tv/10vor10/video/snowden-beantragt-asyl-in-russland?id=28e1a57d-5b76-4399-8ab3-9097f071e6c5',
         'only_matching': True,
