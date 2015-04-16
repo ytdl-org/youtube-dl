@@ -83,6 +83,16 @@ class SrfIE(InfoExtractor):
 
         self._sort_formats(formats)
 
+        subtitles = {}
+        subtitles_data = video_data.find('Subtitles')
+        if subtitles_data is not None:
+            subtitles_list = [{
+                'url': sub.text,
+                'ext': determine_ext(sub.text),
+            } for sub in subtitles_data]
+            if subtitles_list:
+                subtitles['de'] = subtitles_list
+
         return {
             'id': video_id,
             'display_id': display_id,
@@ -90,4 +100,5 @@ class SrfIE(InfoExtractor):
             'title': title,
             'thumbnails': thumbnails,
             'timestamp': timestamp,
+            'subtitles': subtitles,
         }
