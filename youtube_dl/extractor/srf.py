@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class SrfIE(InfoExtractor):
-    _VALID_URL = r'http://www\.srf\.ch/play(?:er)?/tv/[^/]+/video/(?P<display_id>[^?]+)\?id=(?P<id>[0-9a-f\-]{36})'
+    _VALID_URL = r'https?://(?:www\.srf\.ch/play(?:er)?/tv/[^/]+/video/(?P<display_id>[^?]+)\?id=|tp\.srgssr\.ch/p/flash\?urn=urn:srf:ais:video:)(?P<id>[0-9a-f\-]{36})'
     _TESTS = [{
         'url': 'http://www.srf.ch/play/tv/10vor10/video/snowden-beantragt-asyl-in-russland?id=28e1a57d-5b76-4399-8ab3-9097f071e6c5',
         'md5': '4cd93523723beff51bb4bee974ee238d',
@@ -37,6 +37,9 @@ class SrfIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.srf.ch/player/tv/10vor10/video/snowden-beantragt-asyl-in-russland?id=28e1a57d-5b76-4399-8ab3-9097f071e6c5',
+        'only_matching': True,
+    }, {
+        'url': 'https://tp.srgssr.ch/p/flash?urn=urn:srf:ais:video:28e1a57d-5b76-4399-8ab3-9097f071e6c5',
         'only_matching': True,
     }]
 
