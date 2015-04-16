@@ -61,18 +61,25 @@ class SrfIE(InfoExtractor):
 
         formats = []
         for item in video_data.findall('./Playlists/Playlist') + video_data.findall('./Downloads/Download'):
-            url_node = item.find('url')
-            quality = url_node.attrib['quality']
-            full_url = url_node.text
-            original_ext = determine_ext(full_url)
-            if original_ext == 'f4m':
-                full_url += '?hdcore=3.4.0'  # Without this, you get a 403 error
-            formats.append({
-                'url': full_url,
-                'ext': 'mp4' if original_ext == 'm3u8' else original_ext,
-                'format_id': '%s-%s' % (quality, item.attrib['protocol']),
-                'preference': 0 if 'HD' in quality else -1,
-            })
+            for url_node in item.findall('url'):
+                quality = url_node.attrib['quality']
+                full_url = url_node.text
+                original_ext = determine_ext(full_url)
+                format_id = '%s-%s' % (quality, item.attrib['protocol'])
+                if original_ext == 'f4m':
+                    formats.extend(self._extract_f4m_formats(
+                        full_url + '?hdcore=3.4.0', video_id, f4m_id=format_id))
+                elif original_ext == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        full_url, video_id, 'mp4', m3u8_id=format_id))
+                else:
+                    formats.append({
+                        'url': full_url,
+                        'ext': 'mp4' if original_ext == 'm3u8' else original_ext,
+                        'format_id': format_id,
+                        'quality': 0 if 'HD' in quality else -1,
+                        'preference': 1,
+                    })
 
         self._sort_formats(formats)
 
