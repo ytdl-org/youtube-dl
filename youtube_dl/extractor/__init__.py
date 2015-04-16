@@ -485,6 +485,7 @@ from .spike import SpikeIE
 from .sport5 import Sport5IE
 from .sportbox import SportBoxIE
 from .sportdeutschland import SportDeutschlandIE
+from .srf import SrfIE
 from .srmediathek import SRMediathekIE
 from .ssa import SSAIE
 from .stanfordoc import StanfordOpenClassroomIE
