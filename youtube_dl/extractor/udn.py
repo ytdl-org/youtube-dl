@@ -3,12 +3,15 @@ from __future__ import unicode_literals
 
 import json
 from .common import InfoExtractor
-from ..utils import js_to_json
+from ..utils import (
+    js_to_json,
+    ExtractorError,
+)
 from ..compat import compat_urlparse
 
 
 class UDNEmbedIE(InfoExtractor):
-    _VALID_URL = r'(?:https?:)?//video\.udn\.com/embed/news/(?P<id>\d+)'
+    _VALID_URL = r'https?://video\.udn\.com/(?:embed|play)/news/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://video.udn.com/embed/news/300040',
         'md5': 'de06b4c90b042c128395a88f0384817e',
@@ -19,7 +22,11 @@ class UDNEmbedIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.jpg$',
         }
     }, {
-        'url': '//video.udn.com/embed/news/300040',
+        'url': 'https://video.udn.com/embed/news/300040',
+        'only_matching': True,
+    }, {
+        # From https://video.udn.com/news/303776
+        'url': 'https://video.udn.com/play/news/303776',
         'only_matching': True,
     }]
 
@@ -47,7 +54,10 @@ class UDNEmbedIE(InfoExtractor):
                 'retrieve url for %s video' % video_type),
             'format_id': video_type,
             'preference': 0 if video_type == 'mp4' else -1,
-        } for video_type, api_url in video_urls.items()]
+        } for video_type, api_url in video_urls.items() if api_url]
+
+        if not formats:
+            raise ExtractorError('No videos found', expected=True)
 
         self._sort_formats(formats)
 
