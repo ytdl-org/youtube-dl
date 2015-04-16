@@ -8,31 +8,39 @@ from .common import InfoExtractor
 
 class GfycatIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?gfycat\.com/(?P<id>[^/?#]+)'
-    _TESTS = [{
-        'url': 'http://gfycat.com/DeadlyDecisiveGermanpinscher',
-        'info_dict': {
-            'id':          'DeadlyDecisiveGermanpinscher',
-            'title':       'Ghost in the Shell',
-            'ext':         'mp4',
-            'upload_date': '20140913'
-        }
-    },{
-        'url': 'http://gfycat.com/pleasinghilariouskusimanse',
-        'info_dict': {
-            'id':          'pleasinghilariouskusimanse',
-            'title':       'PleasingHilariousKusimanse',
-            'ext':         'webm',
-            'upload_date': '20150412'
-        }
-    },{
-        'url': 'http://gfycat.com/requiredunkemptbuzzard',
-        'info_dict': {
-            'id':          'requiredunkemptbuzzard',
-            'title':       'Headshot!',
-            'ext':         'gif',
-            'upload_date': '20150130'
-        }
-    }]
+    _TESTS = [
+        {
+            'url': 'http://gfycat.com/DeadlyDecisiveGermanpinscher',
+            'info_dict': {
+                'id':          'DeadlyDecisiveGermanpinscher',
+                'title':       'Ghost in the Shell',
+                'ext':         'mp4',
+                'upload_date': '20140913'
+            }
+        },{
+            'url': 'http://gfycat.com/pleasinghilariouskusimanse',
+            'info_dict': {
+                'id':          'pleasinghilariouskusimanse',
+                'title':       'PleasingHilariousKusimanse',
+                'ext':         'webm',
+                'upload_date': '20150412'
+            },
+            'params': {
+                'format': 'webm',
+            },
+        },{
+            'url': 'http://gfycat.com/requiredunkemptbuzzard',
+            'info_dict': {
+                'id':          'requiredunkemptbuzzard',
+                'title':       'Headshot!',
+                'ext':         'gif',
+                'upload_date': '20150129'
+            },
+            'params': {
+                'format': 'gif',
+            },
+        },
+    ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
