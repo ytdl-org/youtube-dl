@@ -221,7 +221,12 @@ class SoundcloudIE(InfoExtractor):
                 info_json_url += "&secret_token=" + token
         elif mobj.group('player'):
             query = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
-            return self.url_result(query['url'][0])
+            real_url = query['url'][0]
+            # If the token is in the query of the original url we have to
+            # manually add it
+            if 'secret_token' in query:
+                real_url += '?secret_token=' + query['secret_token'][0]
+            return self.url_result(real_url)
         else:
             # extract uploader (which is in the url)
             uploader = mobj.group('uploader')
