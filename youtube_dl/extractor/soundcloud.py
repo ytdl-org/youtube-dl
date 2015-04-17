@@ -279,9 +279,8 @@ class SoundcloudSetIE(SoundcloudIE):
         info = self._download_json(resolv_url, full_title)
 
         if 'errors' in info:
-            for err in info['errors']:
-                self._downloader.report_error('unable to download video webpage: %s' % compat_str(err['error_message']))
-            return
+            msgs = (compat_str(err['error_message']) for err in info['errors'])
+            raise ExtractorError('unable to download video webpage: %s' % ','.join(msgs))
 
         return {
             '_type': 'playlist',
