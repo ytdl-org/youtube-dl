@@ -23,6 +23,7 @@ from ..compat import (
 )
 from ..utils import (
     age_restricted,
+    bug_reports_message,
     clean_html,
     compiled_regex_type,
     ExtractorError,
@@ -556,8 +557,7 @@ class InfoExtractor(object):
         elif fatal:
             raise RegexNotFoundError('Unable to extract %s' % _name)
         else:
-            self._downloader.report_warning('unable to extract %s; '
-                                            'please report this issue on http://yt-dl.org/bug' % _name)
+            self._downloader.report_warning('unable to extract %s' % _name + bug_reports_message())
             return None
 
     def _html_search_regex(self, pattern, string, name, default=_NO_DEFAULT, fatal=True, flags=0, group=None):

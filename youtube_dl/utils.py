@@ -452,6 +452,17 @@ def make_HTTPS_handler(params, **kwargs):
         return YoutubeDLHTTPSHandler(params, context=context, **kwargs)
 
 
+def bug_reports_message():
+    if ytdl_is_updateable():
+        update_cmd = 'type  youtube-dl -U  to update'
+    else:
+        update_cmd = 'see  https://yt-dl.org/update  on how to update'
+    msg = '; please report this issue on https://yt-dl.org/bug .'
+    msg += ' Make sure you are using the latest version; %s.' % update_cmd
+    msg += ' Be sure to call youtube-dl with the --verbose flag and include its complete output.'
+    return msg
+
+
 class ExtractorError(Exception):
     """Error during info extraction."""
 
@@ -467,13 +478,7 @@ class ExtractorError(Exception):
         if cause:
             msg += ' (caused by %r)' % cause
         if not expected:
-            if ytdl_is_updateable():
-                update_cmd = 'type  youtube-dl -U  to update'
-            else:
-                update_cmd = 'see  https://yt-dl.org/update  on how to update'
-            msg += '; please report this issue on https://yt-dl.org/bug .'
-            msg += ' Make sure you are using the latest version; %s.' % update_cmd
-            msg += ' Be sure to call youtube-dl with the --verbose flag and include its complete output.'
+            msg += bug_reports_message()
         super(ExtractorError, self).__init__(msg)
 
         self.traceback = tb
