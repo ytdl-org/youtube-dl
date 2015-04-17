@@ -7,7 +7,7 @@
     "forcethumbnail": false, 
     "forcetitle": false, 
     "forceurl": false, 
-    "format": null, 
+    "format": "best",
     "format_limit": null, 
     "ignoreerrors": false, 
     "listformats": null, 
