@@ -11,6 +11,18 @@ from ..utils import (
 
 class MegavideozeuIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?megavideoz\.eu/video/(?P<id>.*)(?:.*)'
+    _TESTS = [
+        {
+            'url': 'http://megavideoz.eu/video/WM6UB919XMXH/SMPTE-Universal-Film-Leader',
+            'info_dict': {
+                'id': '48723',
+                'ext': 'mp4',
+                'duration': '10',
+                'title': 'SMPTE Universal Film Leader',
+            }
+        }
+    ]
+
 
     def _real_extract(self, url):
         tmp_video_id = self._match_id(url)
@@ -29,7 +41,7 @@ class MegavideozeuIE(InfoExtractor):
         title = self._html_search_regex(
             r'<title><!\[CDATA\[([^\]]+)', configpage, 'title')
         duration = int_or_none(self._html_search_regex(
-            r'<duration>([0-9]+)', configpage, 'duration', fatal=False))
+            r'<duration>([0-9\.]+)', configpage, 'duration', fatal=False))
 
         return {
             'id': video_id,
