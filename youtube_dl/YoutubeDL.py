@@ -1373,12 +1373,34 @@ class YoutubeDL(object):
                                             ' The formats won\'t be merged')
                     else:
                         postprocessors = [merger]
+
+                    def compatible_formats(formats):
+                        video, audio = formats
+                        # Check extension
+                        video_ext, audio_ext = audio.get('ext'), video.get('ext')
+                        if video_ext and audio_ext:
+                            COMPATIBLE_EXTS = (
+                                ('mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v'),
+                                ('webm')
+                            )
+                            for exts in COMPATIBLE_EXTS:
+                                if video_ext in exts and audio_ext in exts:
+                                    return True
+                        # TODO: Check acodec/vcodec
+                        return False
+
+                    requested_formats = info_dict['requested_formats']
+                    # Merge incompatible formats into mkv
+                    if not compatible_formats(requested_formats):
+                        filename = os.path.splitext(filename)[0] + '.mkv'
+                        self.report_warning('You have requested formats uncompatible for merge. '
+                                            'The formats will be merged into mkv')
                     if os.path.exists(encodeFilename(filename)):
                         self.to_screen(
                             '[download] %s has already been downloaded and '
                             'merged' % filename)
                     else:
-                        for f in info_dict['requested_formats']:
+                        for f in requested_formats:
                             new_info = dict(info_dict)
                             new_info.update(f)
                             fname = self.prepare_filename(new_info)
