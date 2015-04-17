@@ -264,15 +264,14 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         new_path = prefix + sep + extension
 
         # If we download foo.mp3 and convert it to... foo.mp3, then don't delete foo.mp3, silly.
-        if new_path == path:
-            self._nopostoverwrites = True
+        if (new_path == path or
+                (self._nopostoverwrites and os.path.exists(encodeFilename(new_path)))):
+            self._downloader.to_screen('[youtube] Post-process file %s exists, skipping' % new_path)
+            return True, information
 
         try:
-            if self._nopostoverwrites and os.path.exists(encodeFilename(new_path)):
-                self._downloader.to_screen('[youtube] Post-process file %s exists, skipping' % new_path)
-            else:
-                self._downloader.to_screen('[' + self.basename + '] Destination: ' + new_path)
-                self.run_ffmpeg(path, new_path, acodec, more_opts)
+            self._downloader.to_screen('[' + self.basename + '] Destination: ' + new_path)
+            self.run_ffmpeg(path, new_path, acodec, more_opts)
         except AudioConversionError as e:
             raise PostProcessingError(
                 'audio conversion failed: ' + e.msg)
@@ -286,7 +285,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 errnote='Cannot update utime of audio file')
 
         information['filepath'] = new_path
-        return self._nopostoverwrites, information
+        return False, information
 
 
 class FFmpegVideoConvertorPP(FFmpegPostProcessor):
