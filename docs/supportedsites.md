@@ -98,6 +98,7 @@
  - **CondeNast**: Condé Nast media group: Condé Nast, GQ, Glamour, Vanity Fair, Vogue, W Magazine, WIRED
  - **Cracked**
  - **Criterion**
+ - **CrooksAndLiars**
  - **Crunchyroll**
  - **crunchyroll:playlist**
  - **CSpan**: C-SPAN
@@ -359,6 +360,9 @@
  - **prosiebensat1**: ProSiebenSat.1 Digital
  - **Puls4**
  - **Pyvideo**
+ - **QQMusic**
+ - **QQMusicAlbum**
+ - **QQMusicSinger**
  - **QuickVid**
  - **R7**
  - **radio.de**
@@ -434,6 +438,7 @@
  - **Sport5**
  - **SportBox**
  - **SportDeutschland**
+ - **Srf**
  - **SRMediathek**: Saarländischer Rundfunk
  - **SSA**
  - **stanfordoc**: Stanford Open ClassRoom
