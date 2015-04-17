@@ -1486,16 +1486,9 @@ class YoutubeDL(object):
             pps_chain.extend(ie_info['__postprocessors'])
         pps_chain.extend(self._pps)
         for pp in pps_chain:
-            keep_video = None
             old_filename = info['filepath']
             try:
-                keep_video_wish, info = pp.run(info)
-                if keep_video_wish is not None:
-                    if keep_video_wish:
-                        keep_video = keep_video_wish
-                    elif keep_video is None:
-                        # No clear decision yet, let IE decide
-                        keep_video = keep_video_wish
+                keep_video, info = pp.run(info)
             except PostProcessingError as e:
                 self.report_error(e.msg)
             if keep_video is False and not self.params.get('keepvideo', False):
