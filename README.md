@@ -225,7 +225,7 @@ which means you can modify it, redistribute it or use it however you like.
     --recode-video FORMAT            Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm|mkv)
     -k, --keep-video                 Keep the video file on disk after the post-processing; the video is erased by default
     --no-post-overwrites             Do not overwrite post-processed files; the post-processed files are overwritten by default
-    --embed-subs                     Embed subtitles in the video (only for mp4 videos)
+    --embed-subs                     Embed subtitles in the video (only for mkv and mp4 videos)
     --embed-thumbnail                Embed thumbnail in the audio as cover art
     --add-metadata                   Write metadata to the video file
     --metadata-from-title FORMAT     Parse additional metadata like song title / artist from the video title. The format syntax is the same as --output, the parsed
