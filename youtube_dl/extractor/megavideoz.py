@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     float_or_none,
     xpath_text,
 )
@@ -30,6 +31,9 @@ class MegaVideozIE(InfoExtractor):
         display_id = mobj.group('display_id') or video_id
 
         webpage = self._download_webpage(url, display_id)
+
+        if '>Video Not Found<' in webpage:
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
         config = self._download_xml(
             self._search_regex(
