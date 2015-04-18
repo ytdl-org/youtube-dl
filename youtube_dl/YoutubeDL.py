@@ -1361,7 +1361,7 @@ class YoutubeDL(object):
                 if info_dict.get('requested_formats') is not None:
                     downloaded = []
                     success = True
-                    merger = FFmpegMergerPP(self, not self.params.get('keepvideo'))
+                    merger = FFmpegMergerPP(self)
                     if not merger.available:
                         postprocessors = []
                         self.report_warning('You have requested multiple '

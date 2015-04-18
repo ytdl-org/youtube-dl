@@ -28,9 +28,8 @@ class FFmpegPostProcessorError(PostProcessingError):
 
 
 class FFmpegPostProcessor(PostProcessor):
-    def __init__(self, downloader=None, deletetempfiles=False):
+    def __init__(self, downloader=None):
         PostProcessor.__init__(self, downloader)
-        self._deletetempfiles = deletetempfiles
         self._determine_executables()
 
     def check_version(self):
@@ -147,10 +146,6 @@ class FFmpegPostProcessor(PostProcessor):
             msg = stderr.strip().split('\n')[-1]
             raise FFmpegPostProcessorError(msg)
         self.try_utime(out_path, oldest_mtime, oldest_mtime)
-
-        if self._deletetempfiles:
-            for ipath in input_paths:
-                os.remove(ipath)
 
     def run_ffmpeg(self, path, out_path, opts):
         self.run_ffmpeg_multiple_files([path], out_path, opts)
@@ -588,7 +583,7 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         args = ['-c', 'copy', '-map', '0:v:0', '-map', '1:a:0']
         self._downloader.to_screen('[ffmpeg] Merging formats into "%s"' % filename)
         self.run_ffmpeg_multiple_files(info['__files_to_merge'], filename, args)
-        return [], info
+        return info['__files_to_merge'], info
 
 
 class FFmpegAudioFixPP(FFmpegPostProcessor):
