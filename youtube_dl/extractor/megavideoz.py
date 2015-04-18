@@ -10,7 +10,7 @@ from ..utils import (
 )
 
 
-class MegavideozeuIE(InfoExtractor):
+class MegaVideozIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?megavideoz\.eu/video/(?P<id>[^/]+)(?:/(?P<display_id>[^/]+))?'
     _TEST = {
         'url': 'http://megavideoz.eu/video/WM6UB919XMXH/SMPTE-Universal-Film-Leader',
