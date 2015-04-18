@@ -27,7 +27,7 @@ class FacebookIE(InfoExtractor):
         (?:
             (?:video/video\.php|photo\.php|video\.php|video/embed)\?(?:.*?)
             (?:v|video_id)=|
-            [^/]+/videos/
+            [^/]+/videos/(?:[^/]+/)?
         )
         (?P<id>[0-9]+)
         (?:.*)'''
@@ -56,6 +56,9 @@ class FacebookIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.facebook.com/amogood/videos/1618742068337349/?fref=nf',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.facebook.com/ChristyClarkForBC/videos/vb.22819070941/10153870694020942/?type=2&theater',
         'only_matching': True,
     }]
 
