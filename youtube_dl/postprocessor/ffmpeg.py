@@ -513,7 +513,8 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
 
         sub_langs = list(subtitles.keys())
         filename = information['filepath']
-        input_files = [filename] + [subtitles_filename(filename, lang, sub_info['ext']) for lang, sub_info in subtitles.items()]
+        sub_filenames = [subtitles_filename(filename, lang, sub_info['ext']) for lang, sub_info in subtitles.items()]
+        input_files = [filename] + sub_filenames
 
         opts = [
             '-map', '0',
@@ -535,7 +536,7 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         os.remove(encodeFilename(filename))
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
-        return [], information
+        return sub_filenames, information
 
 
 class FFmpegMetadataPP(FFmpegPostProcessor):
