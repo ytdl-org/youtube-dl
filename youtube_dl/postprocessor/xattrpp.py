@@ -105,8 +105,8 @@ class XAttrMetadataPP(PostProcessor):
                     byte_value = value.encode('utf-8')
                     write_xattr(filename, xattrname, byte_value)
 
-            return True, info
+            return [], info
 
         except (subprocess.CalledProcessError, OSError):
             self._downloader.report_error("This filesystem doesn't support extended attributes. (You may have to enable them in your /etc/fstab)")
-            return False, info
+            return [], info

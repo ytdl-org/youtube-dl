@@ -443,26 +443,35 @@ class TestYoutubeDL(unittest.TestCase):
             def run(self, info):
                 with open(audiofile, 'wt') as f:
                     f.write('EXAMPLE')
-                info['filepath']
-                return False, info
+                return [info['filepath']], info
 
-        def run_pp(params):
+        def run_pp(params, PP):
             with open(filename, 'wt') as f:
                 f.write('EXAMPLE')
             ydl = YoutubeDL(params)
-            ydl.add_post_processor(SimplePP())
+            ydl.add_post_processor(PP())
             ydl.post_process(filename, {'filepath': filename})
 
-        run_pp({'keepvideo': True})
+        run_pp({'keepvideo': True}, SimplePP)
         self.assertTrue(os.path.exists(filename), '%s doesn\'t exist' % filename)
         self.assertTrue(os.path.exists(audiofile), '%s doesn\'t exist' % audiofile)
         os.unlink(filename)
         os.unlink(audiofile)
 
-        run_pp({'keepvideo': False})
+        run_pp({'keepvideo': False}, SimplePP)
         self.assertFalse(os.path.exists(filename), '%s exists' % filename)
         self.assertTrue(os.path.exists(audiofile), '%s doesn\'t exist' % audiofile)
         os.unlink(audiofile)
+
+        class ModifierPP(PostProcessor):
+            def run(self, info):
+                with open(info['filepath'], 'wt') as f:
+                    f.write('MODIFIED')
+                return [], info
+
+        run_pp({'keepvideo': False}, ModifierPP)
+        self.assertTrue(os.path.exists(filename), '%s doesn\'t exist' % filename)
+        os.unlink(filename)
 
     def test_match_filter(self):
         class FilterYDL(YDL):

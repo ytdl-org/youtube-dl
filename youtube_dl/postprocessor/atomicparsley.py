@@ -59,4 +59,4 @@ class AtomicParsleyPP(PostProcessor):
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
-        return True, info
+        return [], info

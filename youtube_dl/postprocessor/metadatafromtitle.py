@@ -44,4 +44,4 @@ class MetadataFromTitlePP(PostProcessor):
             info[attribute] = value
             self._downloader.to_screen('[fromtitle] parsed ' + attribute + ': ' + value)
 
-        return True, info
+        return [], info

@@ -25,4 +25,4 @@ class ExecAfterDownloadPP(PostProcessor):
             raise PostProcessingError(
                 'Command returned error code %d' % retCode)
 
-        return None, information  # by default, keep file and do nothing
+        return [], information

@@ -1488,15 +1488,16 @@ class YoutubeDL(object):
         for pp in pps_chain:
             old_filename = info['filepath']
             try:
-                keep_video, info = pp.run(info)
+                files_to_delete, info = pp.run(info)
             except PostProcessingError as e:
                 self.report_error(e.msg)
-            if keep_video is False and not self.params.get('keepvideo', False):
-                try:
+            if files_to_delete and not self.params.get('keepvideo', False):
+                for old_filename in files_to_delete:
                     self.to_screen('Deleting original file %s (pass -k to keep)' % old_filename)
-                    os.remove(encodeFilename(old_filename))
-                except (IOError, OSError):
-                    self.report_warning('Unable to remove downloaded video file')
+                    try:
+                        os.remove(encodeFilename(old_filename))
+                    except (IOError, OSError):
+                        self.report_warning('Unable to remove downloaded original file')
 
     def _make_archive_id(self, info_dict):
         # Future-proof against any change in case
