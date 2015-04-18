@@ -32,7 +32,7 @@ class MegaVideozIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        if '>Video Not Found<' in webpage:
+        if any(p in webpage for p in ('>Video Not Found<', '>404 Error<')):
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
         config = self._download_xml(
