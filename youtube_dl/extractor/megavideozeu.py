@@ -1,51 +1,52 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
-    int_or_none,
-    parse_filesize,
-    unified_strdate,
+    float_or_none,
+    xpath_text,
 )
 
 
 class MegavideozeuIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?megavideoz\.eu/video/(?P<id>.*)(?:.*)'
-    _TESTS = [
-        {
-            'url': 'http://megavideoz.eu/video/WM6UB919XMXH/SMPTE-Universal-Film-Leader',
-            'info_dict': {
-                'id': '48723',
-                'ext': 'mp4',
-                'duration': '10',
-                'title': 'SMPTE Universal Film Leader',
-            }
+    _VALID_URL = r'https?://(?:www\.)?megavideoz\.eu/video/(?P<id>[^/]+)(?:/(?P<display_id>[^/]+))?'
+    _TEST = {
+        'url': 'http://megavideoz.eu/video/WM6UB919XMXH/SMPTE-Universal-Film-Leader',
+        'info_dict': {
+            'id': '48723',
+            'display_id': 'SMPTE-Universal-Film-Leader',
+            'ext': 'mp4',
+            'title': 'SMPTE Universal Film Leader',
+            'thumbnail': 're:https?://.*?\.jpg',
+            'duration': 10.93,
         }
-    ]
-
+    }
 
     def _real_extract(self, url):
-        tmp_video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        display_id = mobj.group('display_id') or video_id
 
-        webpage = self._download_webpage(url, tmp_video_id)
+        webpage = self._download_webpage(url, display_id)
 
-        config_php = self._html_search_regex(
-            r'var cnf = \'([^\']+)\'', webpage, 'config.php url')
+        config = self._download_xml(
+            self._search_regex(
+                r"var\s+cnf\s*=\s*'([^']+)'", webpage, 'cnf url'),
+            display_id)
 
-	configpage = self._download_webpage(config_php, tmp_video_id)
-
-        video_id = self._html_search_regex(
-            r'<mediaid>([^<]+)', configpage, 'video id')
-        video_url = self._html_search_regex(
-            r'<file>([^<]+)', configpage, 'video URL')
-        title = self._html_search_regex(
-            r'<title><!\[CDATA\[([^\]]+)', configpage, 'title')
-        duration = int_or_none(self._html_search_regex(
-            r'<duration>([0-9\.]+)', configpage, 'duration', fatal=False))
+        video_url = xpath_text(config, './file', 'video url', fatal=True)
+        title = xpath_text(config, './title', 'title', fatal=True)
+        thumbnail = xpath_text(config, './image', 'thumbnail')
+        duration = float_or_none(xpath_text(config, './duration', 'duration'))
+        video_id = xpath_text(config, './mediaid', 'video id') or video_id
 
         return {
             'id': video_id,
+            'display_id': display_id,
             'url': video_url,
             'title': title,
+            'thumbnail': thumbnail,
             'duration': duration
         }
