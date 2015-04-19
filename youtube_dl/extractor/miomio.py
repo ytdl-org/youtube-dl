@@ -31,6 +31,14 @@ class MioMioIE(InfoExtractor):
             'title': '《动漫同人插画绘制》',
         },
         'playlist_mincount': 86,
+        'skip': 'This video takes time too long for retrieving the URL',
+    }, {
+        'url': 'http://www.miomio.tv/watch/cc173113/',
+        'info_dict': {
+            'id': '173113',
+            'title': 'The New Macbook 2015 上手试玩与简评'
+        },
+        'playlist_mincount': 2,
     }]
 
     def _real_extract(self, url):
