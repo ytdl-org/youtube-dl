@@ -1369,16 +1369,21 @@ class YoutubeDL(object):
                                             ' The formats won\'t be merged')
                     else:
                         postprocessors = [merger]
-                    for f in info_dict['requested_formats']:
-                        new_info = dict(info_dict)
-                        new_info.update(f)
-                        fname = self.prepare_filename(new_info)
-                        fname = prepend_extension(fname, 'f%s' % f['format_id'])
-                        downloaded.append(fname)
-                        partial_success = dl(fname, new_info)
-                        success = success and partial_success
-                    info_dict['__postprocessors'] = postprocessors
-                    info_dict['__files_to_merge'] = downloaded
+                    if os.path.exists(encodeFilename(filename)):
+                        self.to_screen(
+                            '[download] %s has already been downloaded and '
+                            'merged' % filename)
+                    else:
+                        for f in info_dict['requested_formats']:
+                            new_info = dict(info_dict)
+                            new_info.update(f)
+                            fname = self.prepare_filename(new_info)
+                            fname = prepend_extension(fname, 'f%s' % f['format_id'])
+                            downloaded.append(fname)
+                            partial_success = dl(fname, new_info)
+                            success = success and partial_success
+                        info_dict['__postprocessors'] = postprocessors
+                        info_dict['__files_to_merge'] = downloaded
                 else:
                     # Just a single file
                     success = dl(filename, info_dict)
