@@ -153,7 +153,7 @@ def generator(test_case):
                     break
 
             if is_playlist:
-                self.assertEqual(res_dict['_type'], 'playlist')
+                self.assertTrue(res_dict['_type'] in ['playlist', 'multi_video'])
                 self.assertTrue('entries' in res_dict)
                 expect_info_dict(self, res_dict, test_case.get('info_dict', {}))
 
