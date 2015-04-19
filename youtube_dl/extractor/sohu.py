@@ -47,6 +47,7 @@ class SohuIE(InfoExtractor):
         'url': 'http://my.tv.sohu.com/pl/8384802/78910339.shtml',
         'info_dict': {
             'id': '78910339',
+            'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
         },
         'playlist': [{
             'md5': 'bdbfb8f39924725e6589c146bc1883ad',
@@ -110,7 +111,7 @@ class SohuIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        title = self._og_search_title(webpage)
+        title = re.sub(r' - 搜狐视频$', '', self._og_search_title(webpage))
 
         vid = self._html_search_regex(
             r'var vid ?= ?["\'](\d+)["\']',
@@ -172,9 +173,10 @@ class SohuIE(InfoExtractor):
             info['id'] = video_id
         else:
             info = {
-                '_type': 'playlist',
+                '_type': 'multi_video',
                 'entries': playlist,
                 'id': video_id,
+                'title': title,
             }
 
         return info
