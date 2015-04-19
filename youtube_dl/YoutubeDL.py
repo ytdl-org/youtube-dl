@@ -1390,9 +1390,15 @@ class YoutubeDL(object):
                         return False
 
                     requested_formats = info_dict['requested_formats']
-                    # Merge incompatible formats into mkv
+                    uncompatible_merge_warn = False
+                    # Incompatible formats will be merged into mkv
                     if not compatible_formats(requested_formats):
                         filename = os.path.splitext(filename)[0] + '.mkv'
+                        uncompatible_merge_warn = True
+                    if os.path.exists(encodeFilename(filename)):
+                        self.report_file_already_downloaded(filename)
+                        return
+                    if uncompatible_merge_warn:
                         self.report_warning('You have requested formats uncompatible for merge. '
                                             'The formats will be merged into mkv')
                     for f in requested_formats:
