@@ -270,6 +270,8 @@ The simplest case is requesting a specific format, for example `-f 22`. You can 
 
 If you are want to download multiple videos and they don't have the same formats available, you can specify the order of preference using slashes, as in `-f 22/17/18`. You can also filter the video results by putting a condition in brackets, as in `-f "best[height=720]"` (or `-f "[filesize>10M]"`).  This works for filesize, height, width, tbr, abr, vbr, asr, and fps and the comparisons <, <=, >, >=, =, != and for ext, acodec, vcodec, container, and protocol and the comparisons =, != . Formats for which the value is not known are excluded unless you put a question mark (?) after the operator. You can combine format filters, so  `-f "[height <=? 720][tbr>500]"` selects up to 720p videos (or videos where the height is not known) with a bitrate of at least 500 KBit/s. Use commas to download multiple formats, such as `-f 136/137/mp4/bestvideo,140/m4a/bestaudio`. You can merge the video and audio of two formats into a single file using `-f <video-format>+<audio-format>` (requires ffmpeg or avconv), for example `-f bestvideo+bestaudio`.
 
+youtube-dl uses `-f bestvideo+bestaudio/best` if ffmpeg or avconv are installed (`best` is needed for videos that don't come from YouTube because they don't provide the audio and video in two different files). If you want to only download some dash formats (for example if you are not interested in getting videos with a resolution higher than 1080p), you can add `-f bestvideo[height<=?1080]+bestaudio/best` to your configuration file.
+
 # VIDEO SELECTION
 
 Videos can be filtered by their upload date using the options `--date`, `--datebefore` or `--dateafter`, they accept dates in two formats:
