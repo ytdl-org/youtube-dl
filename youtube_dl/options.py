@@ -322,32 +322,7 @@ def parseOpts(overrideArguments=None):
     video_format.add_option(
         '-f', '--format',
         action='store', dest='format', metavar='FORMAT', default=None,
-        help=(
-            'Video format code, specify the order of preference using'
-            ' slashes, as in -f 22/17/18 . '
-            ' Instead of format codes, you can select by extension for the '
-            'extensions aac, m4a, mp3, mp4, ogg, wav, webm. '
-            'You can also use the special names "best",'
-            ' "bestvideo", "bestaudio", "worst". '
-            ' You can filter the video results by putting a condition in'
-            ' brackets, as in -f "best[height=720]"'
-            ' (or -f "[filesize>10M]"). '
-            ' This works for filesize, height, width, tbr, abr, vbr, asr, and fps'
-            ' and the comparisons <, <=, >, >=, =, !='
-            ' and for ext, acodec, vcodec, container, and protocol'
-            ' and the comparisons =, != .'
-            ' Formats for which the value is not known are excluded unless you'
-            ' put a question mark (?) after the operator.'
-            ' You can combine format filters, so  '
-            '-f "[height <=? 720][tbr>500]" '
-            'selects up to 720p videos (or videos where the height is not '
-            'known) with a bitrate of at least 500 KBit/s.'
-            ' By default, youtube-dl will pick the best quality.'
-            ' Use commas to download multiple audio formats, such as'
-            ' -f  136/137/mp4/bestvideo,140/m4a/bestaudio.'
-            ' You can merge the video and audio of two formats into a single'
-            ' file using -f <video-format>+<audio-format> (requires ffmpeg or'
-            ' avconv), for example -f bestvideo+bestaudio.'))
+        help='Video format code, see the "FORMAT SELECTION" for all the info')
     video_format.add_option(
         '--all-formats',
         action='store_const', dest='format', const='all',
