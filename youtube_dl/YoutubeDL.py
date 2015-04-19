@@ -1091,7 +1091,11 @@ class YoutubeDL(object):
 
         req_format = self.params.get('format')
         if req_format is None:
-            req_format = 'best'
+            req_format_list = []
+            if info_dict['extractor'] == 'youtube' and FFmpegMergerPP(self).available:
+                req_format_list.append('bestvideo+bestaudio')
+            req_format_list.append('best')
+            req_format = '/'.join(req_format_list)
         formats_to_download = []
         if req_format == 'all':
             formats_to_download = formats
@@ -1369,7 +1373,35 @@ class YoutubeDL(object):
                                             ' The formats won\'t be merged')
                     else:
                         postprocessors = [merger]
-                    for f in info_dict['requested_formats']:
+
+                    def compatible_formats(formats):
+                        video, audio = formats
+                        # Check extension
+                        video_ext, audio_ext = audio.get('ext'), video.get('ext')
+                        if video_ext and audio_ext:
+                            COMPATIBLE_EXTS = (
+                                ('mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v'),
+                                ('webm')
+                            )
+                            for exts in COMPATIBLE_EXTS:
+                                if video_ext in exts and audio_ext in exts:
+                                    return True
+                        # TODO: Check acodec/vcodec
+                        return False
+
+                    requested_formats = info_dict['requested_formats']
+                    uncompatible_merge_warn = False
+                    # Incompatible formats will be merged into mkv
+                    if not compatible_formats(requested_formats):
+                        filename = os.path.splitext(filename)[0] + '.mkv'
+                        uncompatible_merge_warn = True
+                    if os.path.exists(encodeFilename(filename)):
+                        self.report_file_already_downloaded(filename)
+                        return
+                    if uncompatible_merge_warn:
+                        self.report_warning('You have requested formats uncompatible for merge. '
+                                            'The formats will be merged into mkv')
+                    for f in requested_formats:
                         new_info = dict(info_dict)
                         new_info.update(f)
                         fname = self.prepare_filename(new_info)
