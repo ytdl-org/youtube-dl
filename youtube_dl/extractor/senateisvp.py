@@ -53,6 +53,7 @@ class SenateISVPIE(InfoExtractor):
             'id': 'judiciary031715',
             'ext': 'flv',
             'title': 'Integrated Senate Video Player',
+            'thumbnail': 're:^https?://.*\.(?:jpg|png)$',
         }
     }, {
         'url': 'http://www.senate.gov/isvp/?type=live&comm=commerce&filename=commerce011514.mp4&auto_play=false',
@@ -87,6 +88,9 @@ class SenateISVPIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_regex(r'<title>([^<]+)</title>', webpage, video_id)
+        poster = qs.get('poster')
+        if poster:
+            thumbnail = poster[0]
 
         video_type = qs['type'][0]
         committee = video_type if video_type == 'arch' else qs['comm'][0]
@@ -119,6 +123,7 @@ class SenateISVPIE(InfoExtractor):
         info_dict = {
             'id': video_id,
             'title': title,
+            'thumbnail': thumbnail,
         }
 
         if len(formats) >= 1:
