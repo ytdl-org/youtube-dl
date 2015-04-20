@@ -1,13 +1,11 @@
 from __future__ import unicode_literals
 
 import re
-import json
 import itertools
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_request
+from ..utils import ExtractorError
 
 
 class BambuserIE(InfoExtractor):
@@ -39,17 +37,24 @@ class BambuserIE(InfoExtractor):
 
         info = self._download_json(
             'http://player-c.api.bambuser.com/getVideo.json?api_key=%s&vid=%s'
-            % (self._API_KEY, video_id), video_id)['result']
+            % (self._API_KEY, video_id), video_id)
+
+        error = info.get('error')
+        if error:
+            raise ExtractorError(
+                '%s returned error: %s' % (self.IE_NAME, error), expected=True)
+
+        result = info['result']
 
         return {
             'id': video_id,
-            'title': info['title'],
-            'url': info['url'],
-            'thumbnail': info.get('preview'),
-            'duration': int(info['length']),
-            'view_count': int(info['views_total']),
-            'uploader': info['username'],
-            'uploader_id': info['owner']['uid'],
+            'title': result['title'],
+            'url': result['url'],
+            'thumbnail': result.get('preview'),
+            'duration': int(result['length']),
+            'view_count': int(result['views_total']),
+            'uploader': result['username'],
+            'uploader_id': result['owner']['uid'],
         }
 
 
