@@ -708,7 +708,7 @@ class InfoExtractor(object):
         return self._html_search_meta('twitter:player', html,
                                       'twitter card player')
 
-    def _sort_formats(self, formats):
+    def _sort_formats(self, formats, field_preference=None):
         if not formats:
             raise ExtractorError('No video formats found')
 
@@ -717,6 +717,9 @@ class InfoExtractor(object):
             from ..utils import determine_ext
             if not f.get('ext') and 'url' in f:
                 f['ext'] = determine_ext(f['url'])
+
+            if isinstance(field_preference, (list, tuple)):
+                return tuple(f.get(field) if f.get(field) is not None else -1 for field in field_preference)
 
             preference = f.get('preference')
             if preference is None:
