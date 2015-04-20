@@ -48,7 +48,6 @@ class CSpanIE(InfoExtractor):
     }, {
         # Video from senate.gov
         'url': 'http://www.c-span.org/video/?104517-1/immigration-reforms-needed-protect-skilled-american-workers',
-        'md5': '7314c4b96dad66dd8e63dc3518ceaa6f',
         'info_dict': {
             'id': 'judiciary031715',
             'ext': 'flv',
