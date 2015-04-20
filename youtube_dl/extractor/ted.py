@@ -10,6 +10,7 @@ from ..utils import int_or_none
 
 
 class TEDIE(InfoExtractor):
+    IE_NAME = 'ted'
     _VALID_URL = r'''(?x)
         (?P<proto>https?://)
         (?P<type>www|embed(?:-ssl)?)(?P<urlmain>\.ted\.com/
