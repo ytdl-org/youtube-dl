@@ -210,6 +210,7 @@ class TEDIE(InfoExtractor):
                 'url': audio_download,
                 'format_id': 'audio',
                 'vcodec': 'none',
+                'preference': -0.5,
             })
 
         self._sort_formats(formats)
