@@ -4,8 +4,15 @@ import re
 import itertools
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
-from ..utils import ExtractorError
+from ..compat import (
+    compat_urllib_request,
+    compat_str,
+)
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+    float_or_none,
+)
 
 
 class BambuserIE(InfoExtractor):
@@ -24,6 +31,9 @@ class BambuserIE(InfoExtractor):
             'duration': 3741,
             'uploader': 'pixelversity',
             'uploader_id': '344706',
+            'timestamp': 1382976692,
+            'upload_date': '20131028',
+            'view_count': int,
         },
         'params': {
             # It doesn't respect the 'Range' header, it would download the whole video
@@ -51,10 +61,13 @@ class BambuserIE(InfoExtractor):
             'title': result['title'],
             'url': result['url'],
             'thumbnail': result.get('preview'),
-            'duration': int(result['length']),
-            'view_count': int(result['views_total']),
-            'uploader': result['username'],
-            'uploader_id': result['owner']['uid'],
+            'duration': int_or_none(result.get('length')),
+            'uploader': result.get('username'),
+            'uploader_id': compat_str(result.get('owner', {}).get('uid')),
+            'timestamp': int_or_none(result.get('created')),
+            'fps': float_or_none(result.get('framerate')),
+            'view_count': int_or_none(result.get('views_total')),
+            'comment_count': int_or_none(result.get('comment_count')),
         }
 
 
