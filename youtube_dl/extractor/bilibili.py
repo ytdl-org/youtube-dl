@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     unified_strdate,
+    ExtractorError,
 )
 
 
@@ -30,6 +31,8 @@ class BiliBiliIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
+        if self._search_regex(r'(此视频不存在或被删除)', webpage, 'error message', default=None):
+            raise ExtractorError('The video does not exist or was deleted', expected=True)
         video_code = self._search_regex(
             r'(?s)<div itemprop="video".*?>(.*?)</div>', webpage, 'video code')
 
