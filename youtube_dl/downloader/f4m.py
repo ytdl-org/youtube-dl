@@ -389,6 +389,8 @@ class F4mFD(FileDownloader):
             url = base_url + name
             if akamai_pv:
                 url += '?' + akamai_pv.strip(';')
+            if info_dict.get('extra_param_to_segment_url'):
+                url += info_dict.get('extra_param_to_segment_url')
             frag_filename = '%s-%s' % (tmpfilename, name)
             try:
                 success = http_dl.download(frag_filename, {'url': url})

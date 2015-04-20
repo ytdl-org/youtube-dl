@@ -447,6 +447,7 @@ from .scivee import SciVeeIE
 from .screencast import ScreencastIE
 from .screencastomatic import ScreencastOMaticIE
 from .screenwavemedia import CinemassacreIE, ScreenwaveMediaIE, TeamFourIE
+from .senateisvp import SenateISVPIE
 from .servingsys import ServingSysIE
 from .sexu import SexuIE
 from .sexykarma import SexyKarmaIE
