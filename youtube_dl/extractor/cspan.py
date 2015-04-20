@@ -37,11 +37,14 @@ class CSpanIE(InfoExtractor):
         }
     }, {
         'url': 'http://www.c-span.org/video/?318608-1/gm-ignition-switch-recall',
+        'md5': '446562a736c6bf97118e389433ed88d4',
         'info_dict': {
             'id': '342759',
+            'ext': 'mp4',
             'title': 'General Motors Ignition Switch Recall',
+            'duration': 14848,
+            'description': 'md5:70c7c3b8fa63fa60d42772440596034c'
         },
-        'playlist_duration_sum': 14855,
     }, {
         # Video from senate.gov
         'url': 'http://www.c-span.org/video/?104517-1/immigration-reforms-needed-protect-skilled-american-workers',
@@ -97,9 +100,14 @@ class CSpanIE(InfoExtractor):
             'duration': int_or_none(f.get('length', {}).get('#text')),
         } for partnum, f in enumerate(files)]
 
-        return {
-            '_type': 'playlist',
-            'entries': entries,
-            'title': title,
-            'id': video_id,
-        }
+        if len(entries) == 1:
+            entry = dict(entries[0])
+            entry['id'] = video_id
+            return entry
+        else:
+            return {
+                '_type': 'playlist',
+                'entries': entries,
+                'title': title,
+                'id': video_id,
+            }
