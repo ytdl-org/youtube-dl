@@ -194,14 +194,18 @@ class TEDIE(InfoExtractor):
                         'tbr': int_or_none(resource.get('bitrate')),
                     })
             elif format_id == 'hls':
-                formats.extend(self._extract_m3u8_formats(
-                    resources.get('stream'), video_name, 'mp4', m3u8_id=format_id))
+                hls_formats = self._extract_m3u8_formats(
+                    resources.get('stream'), video_name, 'mp4', m3u8_id=format_id)
+                for f in hls_formats:
+                    f['acodec'] = 'none'
+                formats.extend(hls_formats)
 
         audio_download = talk_info.get('audioDownload')
         if audio_download:
             formats.append({
                 'url': audio_download,
                 'format_id': 'audio',
+                'vcodec': 'none',
             })
 
         self._sort_formats(formats)
