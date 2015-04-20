@@ -5,6 +5,7 @@ import itertools
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_urllib_parse,
     compat_urllib_request,
     compat_str,
 )
@@ -19,6 +20,8 @@ class BambuserIE(InfoExtractor):
     IE_NAME = 'bambuser'
     _VALID_URL = r'https?://bambuser\.com/v/(?P<id>\d+)'
     _API_KEY = '005f64509e19a868399060af746a00aa'
+    _LOGIN_URL = 'https://bambuser.com/user'
+    _NETRC_MACHINE = 'bambuser'
 
     _TEST = {
         'url': 'http://bambuser.com/v/4050584',
@@ -41,6 +44,34 @@ class BambuserIE(InfoExtractor):
             'skip_download': True,
         },
     }
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            return
+
+        login_form = {
+            'form_id': 'user_login',
+            'op': 'Log in',
+            'name': username,
+            'pass': password,
+        }
+
+        request = compat_urllib_request.Request(
+            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+        request.add_header('Referer', self._LOGIN_URL)
+        response = self._download_webpage(
+            request, None, 'Logging in as %s' % username)
+
+        login_error = self._html_search_regex(
+            r'(?s)<div class="messages error">(.+?)</div>',
+            response, 'login error', default=None)
+        if login_error:
+            raise ExtractorError(
+                'Unable to login: %s' % login_error, expected=True)
+
+    def _real_initialize(self):
+        self._login()
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
