@@ -7,7 +7,9 @@ from ..utils import (
     int_or_none,
     unescapeHTML,
     find_xpath_attr,
+    smuggle_url,
 )
+from .senateisvp import SenateISVPIE
 
 
 class CSpanIE(InfoExtractor):
@@ -40,6 +42,15 @@ class CSpanIE(InfoExtractor):
             'title': 'General Motors Ignition Switch Recall',
         },
         'playlist_duration_sum': 14855,
+    }, {
+        # Video from senate.gov
+        'url': 'http://www.c-span.org/video/?104517-1/immigration-reforms-needed-protect-skilled-american-workers',
+        'md5': '7314c4b96dad66dd8e63dc3518ceaa6f',
+        'info_dict': {
+            'id': 'judiciary031715',
+            'ext': 'flv',
+            'title': 'Immigration Reforms Needed to Protect Skilled American Workers',
+        }
     }]
 
     def _real_extract(self, url):
@@ -56,7 +67,7 @@ class CSpanIE(InfoExtractor):
                 # present, otherwise this is a stripped version
                 r'<p class=\'initial\'>(.*?)</p>'
             ],
-            webpage, 'description', flags=re.DOTALL)
+            webpage, 'description', flags=re.DOTALL, default=None)
 
         info_url = 'http://c-spanvideo.org/videoLibrary/assets/player/ajax-player.php?os=android&html5=program&id=' + video_id
         data = self._download_json(info_url, video_id)
@@ -67,6 +78,11 @@ class CSpanIE(InfoExtractor):
 
         title = find_xpath_attr(doc, './/string', 'name', 'title').text
         thumbnail = find_xpath_attr(doc, './/string', 'name', 'poster').text
+
+        senate_isvp_url = SenateISVPIE._search_iframe_url(webpage)
+        if senate_isvp_url:
+            surl = smuggle_url(senate_isvp_url, {'force_title': title})
+            return self.url_result(surl, 'SenateISVP', video_id, title)
 
         files = data['video']['files']
 

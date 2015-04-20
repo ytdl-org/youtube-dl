@@ -35,6 +35,7 @@ from .rutv import RUTVIE
 from .smotri import SmotriIE
 from .condenast import CondeNastIE
 from .udn import UDNEmbedIE
+from .senateisvp import SenateISVPIE
 
 
 class GenericIE(InfoExtractor):
@@ -1364,6 +1365,11 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(
                 compat_urlparse.urljoin(url, mobj.group('url')), 'UDNEmbed')
+
+        # Look for Senate ISVP iframe
+        senate_isvp_url = SenateISVPIE._search_iframe_url(webpage)
+        if senate_isvp_url:
+            return self.url_result(surl, 'SenateISVP')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

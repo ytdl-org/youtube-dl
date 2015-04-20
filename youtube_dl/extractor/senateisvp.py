@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 
 import re
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    unsmuggle_url,
+)
 from ..compat import (
     compat_parse_qs,
     compat_urlparse,
@@ -73,12 +76,22 @@ class SenateISVPIE(InfoExtractor):
         }
     }]
 
+    @staticmethod
+    def _search_iframe_url(webpage):
+        mobj = re.search(
+            r"<iframe[^>]+src=['\"](?P<url>http://www\.senate\.gov/isvp/\?[^'\"]+)['\"]",
+            webpage)
+        if mobj:
+            return mobj.group('url')
+
     def _get_info_for_comm(self, committee):
         for entry in self._COMM_MAP:
             if entry[0] == committee:
                 return entry[1:]
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
+
         qs = compat_parse_qs(re.match(self._VALID_URL, url).group('qs'))
         if not qs.get('filename') or not qs.get('type') or not qs.get('comm'):
             raise ExtractorError('Invalid URL', expected=True)
@@ -87,7 +100,10 @@ class SenateISVPIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(r'<title>([^<]+)</title>', webpage, video_id)
+        if smuggled_data.get('force_title'):
+            title = smuggled_data['force_title']
+        else:
+            title = self._html_search_regex(r'<title>([^<]+)</title>', webpage, video_id)
         poster = qs.get('poster')
         if poster:
             thumbnail = poster[0]
