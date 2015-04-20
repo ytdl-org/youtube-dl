@@ -35,12 +35,11 @@ class BambuserIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        info_url = ('http://player-c.api.bambuser.com/getVideo.json?'
-                    '&api_key=%s&vid=%s' % (self._API_KEY, video_id))
-        info_json = self._download_webpage(info_url, video_id)
-        info = json.loads(info_json)['result']
+        video_id = self._match_id(url)
+
+        info = self._download_json(
+            'http://player-c.api.bambuser.com/getVideo.json?api_key=%s&vid=%s'
+            % (self._API_KEY, video_id), video_id)['result']
 
         return {
             'id': video_id,
