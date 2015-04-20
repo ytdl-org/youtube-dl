@@ -72,7 +72,7 @@ class BandcampIE(InfoExtractor):
 
         download_link = m_download.group(1)
         video_id = self._search_regex(
-            r'(?ms)var TralbumData = {.*?id: (?P<id>\d+),?$',
+            r'(?ms)var TralbumData = .*?[{,]\s*id: (?P<id>\d+),?$',
             webpage, 'video id')
 
         download_webpage = self._download_webpage(download_link, video_id, 'Downloading free downloads page')
