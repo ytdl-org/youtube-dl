@@ -198,6 +198,8 @@ class TEDIE(InfoExtractor):
                 hls_formats = self._extract_m3u8_formats(
                     resources.get('stream'), video_name, 'mp4', m3u8_id=format_id)
                 for f in hls_formats:
+                    if f.get('format_id') == 'hls-meta':
+                        continue
                     if not f.get('height'):
                         f['vcodec'] = 'none'
                     else:
