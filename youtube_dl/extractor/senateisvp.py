@@ -51,7 +51,6 @@ class SenateISVPIE(InfoExtractor):
     _VALID_URL = r'http://www\.senate\.gov/isvp/\?(?P<qs>.+)'
     _TESTS = [{
         'url': 'http://www.senate.gov/isvp/?comm=judiciary&type=live&stt=&filename=judiciary031715&auto_play=false&wmode=transparent&poster=http%3A%2F%2Fwww.judiciary.senate.gov%2Fthemes%2Fjudiciary%2Fimages%2Fvideo-poster-flash-fit.png',
-        'md5': '7314c4b96dad66dd8e63dc3518ceaa6f',
         'info_dict': {
             'id': 'judiciary031715',
             'ext': 'flv',
@@ -60,7 +59,6 @@ class SenateISVPIE(InfoExtractor):
         }
     }, {
         'url': 'http://www.senate.gov/isvp/?type=live&comm=commerce&filename=commerce011514.mp4&auto_play=false',
-        'md5': '2917c827513700aa9b70eaebf25116da',
         'info_dict': {
             'id': 'commerce011514',
             'ext': 'flv',
@@ -105,8 +103,7 @@ class SenateISVPIE(InfoExtractor):
         else:
             title = self._html_search_regex(r'<title>([^<]+)</title>', webpage, video_id)
         poster = qs.get('poster')
-        if poster:
-            thumbnail = poster[0]
+        thumbnail = poster[0] if poster else None
 
         video_type = qs['type'][0]
         committee = video_type if video_type == 'arch' else qs['comm'][0]
