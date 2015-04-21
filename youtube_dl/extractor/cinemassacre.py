@@ -33,6 +33,7 @@ class CinemassacreIE(InfoExtractor):
             },
         },
         {
+            # blip.tv embedded video
             'url': 'http://cinemassacre.com/2006/12/07/chronologically-confused-about-bad-movie-and-video-game-sequel-titles/',
             'md5': 'ca9b3c8dd5a66f9375daeb5135f5a3de',
             'info_dict': {
@@ -45,6 +46,20 @@ class CinemassacreIE(InfoExtractor):
                 'timestamp': 1283233867,
                 'description': 'md5:0a108c78d130676b207d0f6d029ecffd',
             }
+        },
+        {
+            # Youtube embedded video
+            'url': 'http://cinemassacre.com/2006/09/01/mckids/',
+            'md5': '6eb30961fa795fedc750eac4881ad2e1',
+            'info_dict': {
+                'id': 'FnxsNhuikpo',
+                'ext': 'mp4',
+                'upload_date': '20060901',
+                'uploader': 'Cinemassacre Extras',
+                'description': 'md5:de9b751efa9e45fbaafd9c8a1123ed53',
+                'uploader_id': 'Cinemassacre',
+                'title': 'AVGN: McKids',
+            }
         }
     ]
 
@@ -56,7 +71,10 @@ class CinemassacreIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         playerdata_url = self._search_regex(
-            r'src="(http://player\.screenwavemedia\.com/play/[a-zA-Z]+\.php\?[^"]*\bid=.+?)"',
+            [
+                r'src="(http://player\.screenwavemedia\.com/play/[a-zA-Z]+\.php\?[^"]*\bid=.+?)"',
+                r'<iframe[^>]+src="((?:https?:)?//(?:[^.]+\.)?youtube\.com/.+?)"',
+            ],
             webpage, 'player data URL', default=None)
         if not playerdata_url:
             playerdata_url = BlipTVIE._extract_url(webpage)
