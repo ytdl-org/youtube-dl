@@ -133,15 +133,9 @@ class SenateISVPIE(InfoExtractor):
 
             self._sort_formats(formats)
 
-        info_dict = {
+        return {
             'id': video_id,
             'title': title,
+            'formats': formats,
             'thumbnail': thumbnail,
         }
-
-        if len(formats) >= 1:
-            info_dict.update({'formats': formats})
-        else:
-            info_dict.update(formats[0])
-
-        return info_dict
