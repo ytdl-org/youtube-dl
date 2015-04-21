@@ -36,6 +36,7 @@ from .smotri import SmotriIE
 from .condenast import CondeNastIE
 from .udn import UDNEmbedIE
 from .senateisvp import SenateISVPIE
+from .bliptv import BlipTVIE
 
 
 class GenericIE(InfoExtractor):
@@ -1073,12 +1074,9 @@ class GenericIE(InfoExtractor):
             }
 
         # Look for embedded blip.tv player
-        mobj = re.search(r'<meta\s[^>]*https?://api\.blip\.tv/\w+/redirect/\w+/(\d+)', webpage)
-        if mobj:
-            return self.url_result('http://blip.tv/a/a-' + mobj.group(1), 'BlipTV')
-        mobj = re.search(r'<(?:iframe|embed|object)\s[^>]*(https?://(?:\w+\.)?blip\.tv/(?:play/|api\.swf#)[a-zA-Z0-9_]+)', webpage)
-        if mobj:
-            return self.url_result(mobj.group(1), 'BlipTV')
+        bliptv_url = BlipTVIE._extract_url(webpage)
+        if bliptv_url:
+            return self.url_result(bliptv_url, 'BlipTV')
 
         # Look for embedded condenast player
         matches = re.findall(

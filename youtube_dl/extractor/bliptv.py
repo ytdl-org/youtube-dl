@@ -102,6 +102,15 @@ class BlipTVIE(InfoExtractor):
         },
     ]
 
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(r'<meta\s[^>]*https?://api\.blip\.tv/\w+/redirect/\w+/(\d+)', webpage)
+        if mobj:
+            return 'http://blip.tv/a/a-' + mobj.group(1)
+        mobj = re.search(r'<(?:iframe|embed|object)\s[^>]*(https?://(?:\w+\.)?blip\.tv/(?:play/|api\.swf#)[a-zA-Z0-9_]+)', webpage)
+        if mobj:
+            return mobj.group(1)
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         lookup_id = mobj.group('lookup_id')

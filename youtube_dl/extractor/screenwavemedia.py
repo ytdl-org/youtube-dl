@@ -7,7 +7,9 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     unified_strdate,
+    ExtractorError
 )
+from .bliptv import BlipTVIE
 
 
 class ScreenwaveMediaIE(InfoExtractor):
@@ -104,6 +106,20 @@ class CinemassacreIE(InfoExtractor):
                 'upload_date': '20131002',
                 'title': 'The Mummy’s Hand (1940)',
             },
+        },
+        {
+            'url': 'http://cinemassacre.com/2006/12/07/chronologically-confused-about-bad-movie-and-video-game-sequel-titles/',
+            'md5': 'ca9b3c8dd5a66f9375daeb5135f5a3de',
+            'info_dict': {
+                'id': '4065369',
+                'ext': 'flv',
+                'title': 'AVGN: Chronologically Confused about Bad Movie and Video Game Sequel Titles',
+                'upload_date': '20061207',
+                'uploader': 'cinemassacre',
+                'uploader_id': '250778',
+                'timestamp': 1283233867,
+                'description': 'md5:0a108c78d130676b207d0f6d029ecffd',
+            }
         }
     ]
 
@@ -116,7 +132,12 @@ class CinemassacreIE(InfoExtractor):
 
         playerdata_url = self._search_regex(
             r'src="(http://player\.screenwavemedia\.com/play/[a-zA-Z]+\.php\?[^"]*\bid=.+?)"',
-            webpage, 'player data URL')
+            webpage, 'player data URL', default=None)
+        if not playerdata_url:
+            playerdata_url = BlipTVIE._extract_url(webpage)
+        if not playerdata_url:
+            raise ExtractorError('Unable to find player data')
+
         video_title = self._html_search_regex(
             r'<title>(?P<title>.+?)\|', webpage, 'title')
         video_description = self._html_search_regex(
