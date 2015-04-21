@@ -1517,7 +1517,7 @@ class YoutubeSearchIE(SearchInfoExtractor):
         while (PAGE_SIZE * pagenum) < limit:
             result_url = self._API_URL % (
                 compat_urllib_parse.quote_plus(query.encode('utf-8')),
-                (PAGE_SIZE * pagenum) + 1)
+                max((PAGE_SIZE * pagenum) + 1), 2)
             data_json = self._download_webpage(
                 result_url, video_id='query "%s"' % query,
                 note='Downloading page %s' % (pagenum + 1),
