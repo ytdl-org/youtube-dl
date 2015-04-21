@@ -38,6 +38,7 @@ from .compat import (
     compat_urllib_request,
 )
 from .utils import (
+    add_defaults_if_directory,
     escape_url,
     ContentTooShortError,
     date_from_str,
@@ -567,6 +568,7 @@ class YoutubeDL(object):
 
             outtmpl = sanitize_path(self.params.get('outtmpl', DEFAULT_OUTTMPL))
             tmpl = compat_expanduser(outtmpl)
+            tmpl = add_defaults_if_directory(tmpl)
             filename = tmpl % template_dict
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
