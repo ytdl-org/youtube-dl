@@ -1369,7 +1369,8 @@ class YoutubeChannelIE(InfoExtractor):
         }
     }]
 
-    def extract_videos_from_page(self, page):
+    @staticmethod
+    def extract_videos_from_page(page):
         ids_in_page = []
         titles_in_page = []
         for mobj in re.finditer(r'(?:title="(?P<title>[^"]+)"[^>]+)?href="/watch\?v=(?P<id>[0-9A-Za-z_-]+)&?', page):
