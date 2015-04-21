@@ -97,7 +97,7 @@ class HitboxIE(InfoExtractor):
             video_id)
 
         clip = player_config.get('clip')
-        video_url = clip.get('url')
+        video_url = clip.get('bitrates', [])[0].get('url')
         res = clip.get('bitrates', [])[0].get('label')
 
         metadata['resolution'] = res
