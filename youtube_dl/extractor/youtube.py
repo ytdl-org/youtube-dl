@@ -1458,54 +1458,55 @@ class YoutubeUserIE(YoutubeChannelIE):
             return super(YoutubeUserIE, cls).suitable(url)
 
 
-class YoutubeSearchIE(SearchInfoExtractor):
+class YoutubeSearchIE(SearchInfoExtractor, YoutubePlaylistIE):
     IE_DESC = 'YouTube.com searches'
-    _API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc'
-    _MAX_RESULTS = 1000
+    # there doesn't appear to be a real limit, for example if you search for
+    # 'python' you get more than 8.000.000 results
+    _MAX_RESULTS = float('inf')
     IE_NAME = 'youtube:search'
     _SEARCH_KEY = 'ytsearch'
+    _EXTRA_QUERY_ARGS = {}
 
     def _get_n_results(self, query, n):
         """Get a specified number of results for a query"""
 
-        video_ids = []
-        pagenum = 0
+        videos = []
         limit = n
-        PAGE_SIZE = 50
 
-        while (PAGE_SIZE * pagenum) < limit:
-            result_url = self._API_URL % (
-                compat_urllib_parse.quote_plus(query.encode('utf-8')),
-                max((PAGE_SIZE * pagenum) + 1), 2)
-            data_json = self._download_webpage(
+        for pagenum in itertools.count(1):
+            url_query = {
+                'search_query': query,
+                'page': pagenum,
+                'spf': 'navigate',
+            }
+            url_query.update(self._EXTRA_QUERY_ARGS)
+            result_url = 'https://www.youtube.com/results?' + compat_urllib_parse.urlencode(url_query)
+            data = self._download_json(
                 result_url, video_id='query "%s"' % query,
-                note='Downloading page %s' % (pagenum + 1),
+                note='Downloading page %s' % pagenum,
                 errnote='Unable to download API page')
-            data = json.loads(data_json)
-            api_response = data['data']
+            html_content = data[1]['body']['content']
 
-            if 'items' not in api_response:
+            if 'class="search-message' in html_content:
                 raise ExtractorError(
                     '[youtube] No video results', expected=True)
 
-            new_ids = list(video['id'] for video in api_response['items'])
-            video_ids += new_ids
+            new_videos = self._ids_to_results(orderedSet(re.findall(
+                r'href="/watch\?v=(.{11})', html_content)))
+            videos += new_videos
+            if not new_videos or len(videos) > limit:
+                break
 
-            limit = min(n, api_response['totalItems'])
-            pagenum += 1
-
-        if len(video_ids) > n:
-            video_ids = video_ids[:n]
-        videos = [self.url_result(video_id, 'Youtube', video_id=video_id)
-                  for video_id in video_ids]
+        if len(videos) > n:
+            videos = videos[:n]
         return self.playlist_result(videos, query)
 
 
 class YoutubeSearchDateIE(YoutubeSearchIE):
     IE_NAME = YoutubeSearchIE.IE_NAME + ':date'
-    _API_URL = 'https://gdata.youtube.com/feeds/api/videos?q=%s&start-index=%i&max-results=50&v=2&alt=jsonc&orderby=published'
     _SEARCH_KEY = 'ytsearchdate'
     IE_DESC = 'YouTube.com searches, newest videos first'
+    _EXTRA_QUERY_ARGS = {'search_sort': 'video_date_uploaded'}
 
 
 class YoutubeSearchURLIE(InfoExtractor):
