@@ -96,13 +96,33 @@ class HitboxIE(InfoExtractor):
             'https://www.hitbox.tv/api/player/config/video/%s' % video_id,
             video_id)
 
-        clip = player_config.get('clip')
-        video_url = clip.get('url')
-        res = clip.get('bitrates', [])[0].get('label')
+        formats = []
+        for video in player_config['clip']['bitrates']:
+            label = video.get('label')
+            if label == 'Auto':
+                continue
+            video_url = video.get('url')
+            if not video_url:
+                continue
+            bitrate = int_or_none(video.get('bitrate'))
+            if determine_ext(video_url) == 'm3u8':
+                if not video_url.startswith('http'):
+                    continue
+                formats.append({
+                    'url': video_url,
+                    'ext': 'mp4',
+                    'tbr': bitrate,
+                    'format_note': label,
+                    'protocol': 'm3u8_native',
+                })
+            else:
+                formats.append({
+                    'url': video_url,
+                    'tbr': bitrate,
+                    'format_note': label,
+                })
 
-        metadata['resolution'] = res
-        metadata['url'] = video_url
-        metadata['protocol'] = 'm3u8'
+        metadata['formats'] = formats
 
         return metadata
 
