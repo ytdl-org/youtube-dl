@@ -6,7 +6,7 @@ from .common import InfoExtractor
 from ..compat import compat_urllib_request
 from ..utils import (
     ExtractorError,
-    unescapeHTML,
+    find_xpath_attr,
 )
 
 
@@ -40,20 +40,21 @@ class FlickrIE(InfoExtractor):
         secret = self._search_regex(r'secret"\s*:\s*"(\w+)"', webpage, 'secret')
 
         first_url = 'https://secure.flickr.com/apps/video/video_mtl_xml.gne?v=x&photo_id=' + video_id + '&secret=' + secret + '&bitrate=700&target=_self'
-        first_xml = self._download_webpage(first_url, video_id, 'Downloading first data webpage')
+        first_xml = self._download_xml(first_url, video_id, 'Downloading first data webpage')
 
-        node_id = self._html_search_regex(r'<Item id="id">(\d+-\d+)</Item>',
-                                          first_xml, 'node_id')
+        node_id = find_xpath_attr(
+            first_xml, './/{http://video.yahoo.com/YEP/1.0/}Item', 'id',
+            'id').text
 
         second_url = 'https://secure.flickr.com/video_playlist.gne?node_id=' + node_id + '&tech=flash&mode=playlist&bitrate=700&secret=' + secret + '&rd=video.yahoo.com&noad=1'
-        second_xml = self._download_webpage(second_url, video_id, 'Downloading second data webpage')
+        second_xml = self._download_xml(second_url, video_id, 'Downloading second data webpage')
 
         self.report_extraction(video_id)
 
-        mobj = re.search(r'<STREAM APP="(.+?)" FULLPATH="(.+?)"', second_xml)
-        if mobj is None:
+        stream = second_xml.find('.//STREAM')
+        if stream is None:
             raise ExtractorError('Unable to extract video url')
-        video_url = mobj.group(1) + unescapeHTML(mobj.group(2))
+        video_url = stream.attrib['APP'] + stream.attrib['FULLPATH']
 
         return {
             'id': video_id,
