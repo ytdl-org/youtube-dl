@@ -1466,6 +1466,7 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubePlaylistIE):
     IE_NAME = 'youtube:search'
     _SEARCH_KEY = 'ytsearch'
     _EXTRA_QUERY_ARGS = {}
+    _TESTS = []
 
     def _get_n_results(self, query, n):
         """Get a specified number of results for a query"""
