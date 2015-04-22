@@ -43,7 +43,8 @@ class HitboxIE(InfoExtractor):
     def _extract_metadata(self, url, video_id):
         thumb_base = 'https://edge.sf.hitbox.tv'
         metadata = self._download_json(
-            '%s/%s' % (url, video_id), video_id)
+            '%s/%s' % (url, video_id), video_id,
+            'Downloading metadata JSON')
 
         date = 'media_live_since'
         media_type = 'livestream'
@@ -90,7 +91,7 @@ class HitboxIE(InfoExtractor):
 
         player_config = self._download_json(
             'https://www.hitbox.tv/api/player/config/video/%s' % video_id,
-            video_id)
+            video_id, 'Downloading video JSON')
 
         formats = []
         for video in player_config['clip']['bitrates']:
