@@ -150,10 +150,6 @@ class HitboxLiveIE(HitboxIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        metadata = self._extract_metadata(
-            'https://www.hitbox.tv/api/media/live',
-            video_id)
-
         player_config = self._download_json(
             'https://www.hitbox.tv/api/player/config/live/%s' % video_id,
             video_id)
@@ -194,9 +190,13 @@ class HitboxLiveIE(HitboxIE):
                             'page_url': url,
                             'player_url': 'http://www.hitbox.tv/static/player/flowplayer/flowplayer.commercial-3.2.16.swf',
                         })
-
         self._sort_formats(formats)
+
+        metadata = self._extract_metadata(
+            'https://www.hitbox.tv/api/media/live',
+            video_id)
         metadata['formats'] = formats
         metadata['is_live'] = True
         metadata['title'] = self._live_title(metadata.get('title'))
+
         return metadata
