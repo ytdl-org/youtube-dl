@@ -1516,7 +1516,6 @@ class YoutubeDL(object):
             pps_chain.extend(ie_info['__postprocessors'])
         pps_chain.extend(self._pps)
         for pp in pps_chain:
-            old_filename = info['filepath']
             try:
                 files_to_delete, info = pp.run(info)
             except PostProcessingError as e:
