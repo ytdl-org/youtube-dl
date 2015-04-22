@@ -88,10 +88,6 @@ class HitboxIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        metadata = self._extract_metadata(
-            'https://www.hitbox.tv/api/media/video',
-            video_id)
-
         player_config = self._download_json(
             'https://www.hitbox.tv/api/player/config/video/%s' % video_id,
             video_id)
@@ -123,6 +119,9 @@ class HitboxIE(InfoExtractor):
                 })
         self._sort_formats(formats)
 
+        metadata = self._extract_metadata(
+            'https://www.hitbox.tv/api/media/video',
+            video_id)
         metadata['formats'] = formats
 
         return metadata
