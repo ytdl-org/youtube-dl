@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_request
 from ..utils import (
     ExtractorError,
     unescapeHTML,
@@ -29,9 +30,14 @@ class FlickrIE(InfoExtractor):
         video_id = mobj.group('id')
         video_uploader_id = mobj.group('uploader_id')
         webpage_url = 'http://www.flickr.com/photos/' + video_uploader_id + '/' + video_id
-        webpage = self._download_webpage(webpage_url, video_id)
+        req = compat_urllib_request.Request(webpage_url)
+        req.add_header(
+            'User-Agent',
+            # it needs a more recent version
+            'Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20150101 Firefox/38.0 (Chrome)')
+        webpage = self._download_webpage(req, video_id)
 
-        secret = self._search_regex(r"photo_secret: '(\w+)'", webpage, 'secret')
+        secret = self._search_regex(r'secret"\s*:\s*"(\w+)"', webpage, 'secret')
 
         first_url = 'https://secure.flickr.com/apps/video/video_mtl_xml.gne?v=x&photo_id=' + video_id + '&secret=' + secret + '&bitrate=700&target=_self'
         first_xml = self._download_webpage(first_url, video_id, 'Downloading first data webpage')
