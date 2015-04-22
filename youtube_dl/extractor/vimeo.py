@@ -439,7 +439,7 @@ class VimeoChannelIE(InfoExtractor):
             name="([^"]+)"\s+
             value="([^"]*)"
             ''', login_form))
-        token = self._search_regex(r'xsrft = \'(.*?)\'', webpage, 'login token')
+        token = self._search_regex(r'xsrft":"(.*?)"', webpage, 'login token')
         fields['token'] = token
         fields['password'] = password
         post = urlencode_postdata(fields)
