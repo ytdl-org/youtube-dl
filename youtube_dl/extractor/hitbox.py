@@ -121,6 +121,7 @@ class HitboxIE(InfoExtractor):
                     'tbr': bitrate,
                     'format_note': label,
                 })
+        self._sort_formats(formats)
 
         metadata['formats'] = formats
 
