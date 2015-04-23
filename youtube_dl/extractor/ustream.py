@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import json
 import re
 
 from .common import InfoExtractor
@@ -39,7 +40,15 @@ class UstreamIE(InfoExtractor):
             desktop_url = 'http://www.ustream.tv/recorded/' + desktop_video_id
             return self.url_result(desktop_url, 'Ustream')
 
-        video_url = 'http://tcdn.ustream.tv/video/%s' % video_id
+        params = self._download_json(
+            'http://cdngw.ustream.tv/rgwjson/Viewer.getVideo/' + json.dumps({
+                'brandId': 1,
+                'videoId': int(video_id),
+                'autoplay': False,
+            }), video_id)
+
+        video_url = params['flv']
+
         webpage = self._download_webpage(url, video_id)
 
         self.report_extraction(video_id)
