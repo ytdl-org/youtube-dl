@@ -58,7 +58,16 @@ class UstreamIE(InfoExtractor):
         self.report_extraction(video_id)
 
         video_title = self._html_search_regex(r'data-title="(?P<title>.+)"',
-                                              webpage, 'title')
+                                              webpage, 'title', default=None)
+
+        if not video_title:
+            try:
+                video_title = params['moduleConfig']['meta']['title']
+            except KeyError:
+                pass
+
+        if not video_title:
+            video_title = 'Ustream video ' + video_id
 
         uploader = self._html_search_regex(r'data-content-type="channel".*?>(?P<uploader>.*?)</a>',
                                            webpage, 'uploader', fatal=False, flags=re.DOTALL)
