@@ -30,8 +30,15 @@ class CrackedIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
+        youtube_url = self._search_regex(
+            r'<iframe[^>]+src="((?:https?:)?//www\.youtube\.com/embed/[^"]+)"',
+            webpage, 'youtube url', default=None)
+        if youtube_url:
+            return self.url_result(youtube_url)
+
         video_url = self._html_search_regex(
-            [r'var\s+CK_vidSrc\s*=\s*"([^"]+)"', r'<video\s+src="([^"]+)"'], webpage, 'video URL')
+            [r'var\s+CK_vidSrc\s*=\s*"([^"]+)"', r'<video\s+src="([^"]+)"'],
+            webpage, 'video URL')
 
         title = self._search_regex(
             [r'property="?og:title"?\s+content="([^"]+)"', r'class="?title"?>([^<]+)'],
