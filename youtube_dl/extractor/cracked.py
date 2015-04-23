@@ -11,18 +11,30 @@ from ..utils import (
 
 class CrackedIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?cracked\.com/video_(?P<id>\d+)_[\da-z-]+\.html'
-    _TEST = {
-        'url': 'http://www.cracked.com/video_19006_4-plot-holes-you-didnt-notice-in-your-favorite-movies.html',
-        'md5': '4b29a5eeec292cd5eca6388c7558db9e',
+    _TESTS = [{
+        'url': 'http://www.cracked.com/video_19070_if-animal-actors-got-e21-true-hollywood-stories.html',
+        'md5': '89b90b9824e3806ca95072c4d78f13f7',
         'info_dict': {
-            'id': '19006',
+            'id': '19070',
             'ext': 'mp4',
-            'title': '4 Plot Holes You Didn\'t Notice in Your Favorite Movies',
-            'description': 'md5:3b909e752661db86007d10e5ec2df769',
-            'timestamp': 1405659600,
-            'upload_date': '20140718',
+            'title': 'If Animal Actors Got E! True Hollywood Stories',
+            'timestamp': 1404954000,
+            'upload_date': '20140710',
         }
-    }
+    }, {
+        # youtube embed
+        'url': 'http://www.cracked.com/video_19006_4-plot-holes-you-didnt-notice-in-your-favorite-movies.html',
+        'md5': 'ccd52866b50bde63a6ef3b35016ba8c7',
+        'info_dict': {
+            'id': 'EjI00A3rZD0',
+            'ext': 'mp4',
+            'title': "4 Plot Holes You Didn't Notice in Your Favorite Movies - The Spit Take",
+            'description': 'md5:c603708c718b796fe6079e2b3351ffc7',
+            'upload_date': '20140725',
+            'uploader_id': 'Cracked',
+            'uploader': 'Cracked',
+        }
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -34,7 +46,7 @@ class CrackedIE(InfoExtractor):
             r'<iframe[^>]+src="((?:https?:)?//www\.youtube\.com/embed/[^"]+)"',
             webpage, 'youtube url', default=None)
         if youtube_url:
-            return self.url_result(youtube_url)
+            return self.url_result(youtube_url, 'Youtube')
 
         video_url = self._html_search_regex(
             [r'var\s+CK_vidSrc\s*=\s*"([^"]+)"', r'<video\s+src="([^"]+)"'],
