@@ -11,6 +11,7 @@ from ..compat import (
 from ..utils import (
     check_executable,
     hyphenate_date,
+    version_tuple,
 )
 
 
@@ -35,6 +36,19 @@ class XAttrMetadataPP(PostProcessor):
         try:
             # try the pyxattr module...
             import xattr
+
+            # Unicode arguments are not supported in python-pyxattr until
+            # version 0.5.0
+            # See https://github.com/rg3/youtube-dl/issues/5498
+            pyxattr_required_version = '0.5.0'
+            if version_tuple(xattr.__version__) < version_tuple(pyxattr_required_version):
+                self._downloader.report_warning(
+                    'python-pyxattr is detected but is too old. '
+                    'yourube-dl requires %s or above while your version is %s. '
+                    'Falling back to other xattr implementations' % (
+                        pyxattr_required_version, xattr.__version__))
+
+                raise ImportError
 
             def write_xattr(path, key, value):
                 return xattr.setxattr(path, key, value)
