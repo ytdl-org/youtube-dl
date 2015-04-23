@@ -33,17 +33,25 @@ class CrackedIE(InfoExtractor):
         video_url = self._html_search_regex(
             [r'var\s+CK_vidSrc\s*=\s*"([^"]+)"', r'<video\s+src="([^"]+)"'], webpage, 'video URL')
 
-        title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
+        title = self._search_regex(
+            [r'property="?og:title"?\s+content="([^"]+)"', r'class="?title"?>([^<]+)'],
+            webpage, 'title')
 
-        timestamp = self._html_search_regex(r'<time datetime="([^"]+)"', webpage, 'upload date', fatal=False)
+        description = self._search_regex(
+            r'name="?(?:og:)?description"?\s+content="([^"]+)"',
+            webpage, 'description', default=None)
+
+        timestamp = self._html_search_regex(
+            r'"date"\s*:\s*"([^"]+)"', webpage, 'upload date', fatal=False)
         if timestamp:
             timestamp = parse_iso8601(timestamp[:-6])
 
         view_count = str_to_int(self._html_search_regex(
-            r'<span class="views" id="viewCounts">([\d,\.]+) Views</span>', webpage, 'view count', fatal=False))
+            r'<span\s+class="?views"? id="?viewCounts"?>([\d,\.]+) Views</span>',
+            webpage, 'view count', fatal=False))
         comment_count = str_to_int(self._html_search_regex(
-            r'<span id="commentCounts">([\d,\.]+)</span>', webpage, 'comment count', fatal=False))
+            r'<span\s+id="?commentCounts"?>([\d,\.]+)</span>',
+            webpage, 'comment count', fatal=False))
 
         m = re.search(r'_(?P<width>\d+)X(?P<height>\d+)\.mp4$', video_url)
         if m:
