@@ -13,7 +13,7 @@ from ..utils import ExtractorError
 class UstreamIE(InfoExtractor):
     _VALID_URL = r'https?://www\.ustream\.tv/(?P<type>recorded|embed|embed/recorded)/(?P<videoID>\d+)'
     IE_NAME = 'ustream'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.ustream.tv/recorded/20274954',
         'md5': '088f151799e8f572f84eb62f17d73e5c',
         'info_dict': {
@@ -22,7 +22,18 @@ class UstreamIE(InfoExtractor):
             'uploader': 'Young Americans for Liberty',
             'title': 'Young Americans for Liberty February 7, 2012 2:28 AM',
         },
-    }
+    }, {
+        # From http://sportscanada.tv/canadagames/index.php/week2/figure-skating/444
+        # Title and uploader available only from params JSON
+        'url': 'http://www.ustream.tv/embed/recorded/59307601?ub=ff0000&lc=ff0000&oc=ffffff&uc=ffffff&v=3&wmode=direct',
+        'md5': '5a2abf40babeac9812ed20ae12d34e10',
+        'info_dict': {
+            'id': '59307601',
+            'ext': 'flv',
+            'title': '-CG11- Canada Games Figure Skating',
+            'uploader': 'sportscanadatv',
+        }
+    }]
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
@@ -70,7 +81,13 @@ class UstreamIE(InfoExtractor):
             video_title = 'Ustream video ' + video_id
 
         uploader = self._html_search_regex(r'data-content-type="channel".*?>(?P<uploader>.*?)</a>',
-                                           webpage, 'uploader', fatal=False, flags=re.DOTALL)
+                                           webpage, 'uploader', fatal=False, flags=re.DOTALL, default=None)
+
+        if not uploader:
+            try:
+                uploader = params['moduleConfig']['meta']['userName']
+            except KeyError:
+                uploader = None
 
         thumbnail = self._html_search_regex(r'<link rel="image_src" href="(?P<thumb>.*?)"',
                                             webpage, 'thumbnail', fatal=False)
