@@ -272,7 +272,7 @@ If you want to download multiple videos and they don't have the same formats ava
 
 Since the end of April 2015 youtube-dl uses `-f bestvideo+bestaudio/best` as default format selection (see #5447, #5456). If ffmpeg or avconv are installed this results in downloading `bestvideo` and `bestaudio` separately and muxing them together into a single file giving the best overall quality available. Otherwise it falls back to `best` and results in downloading best available quality served as a single file. `best` is also needed for videos that don't come from YouTube because they don't provide the audio and video in two different files. If you want to only download some dash formats (for example if you are not interested in getting videos with a resolution higher than 1080p), you can add `-f bestvideo[height<=?1080]+bestaudio/best` to your configuration file.
 
-If you want to preserve the old format selection behavior (pre-April 2015), i.e. you want to download best available quality media served as a single file, you should explicitly specify your choice with `-f best`. You may want to add it to the [configuration file](https://github.com/rg3/youtube-dl#configuration) in order not to type it every time you run youtube-dl.
+If you want to preserve the old format selection behavior (pre-April 2015), i.e. you want to download best available quality media served as a single file, you should explicitly specify your choice with `-f best`. You may want to add it to the [configuration file](#configuration) in order not to type it every time you run youtube-dl.
 
 # VIDEO SELECTION
 
