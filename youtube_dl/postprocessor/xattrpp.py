@@ -44,7 +44,7 @@ class XAttrMetadataPP(PostProcessor):
             if version_tuple(xattr.__version__) < version_tuple(pyxattr_required_version):
                 self._downloader.report_warning(
                     'python-pyxattr is detected but is too old. '
-                    'yourube-dl requires %s or above while your version is %s. '
+                    'youtube-dl requires %s or above while your version is %s. '
                     'Falling back to other xattr implementations' % (
                         pyxattr_required_version, xattr.__version__))
 
