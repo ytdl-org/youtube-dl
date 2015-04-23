@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urlparse,
 )
+from ..utils import ExtractorError
 
 
 class UstreamIE(InfoExtractor):
@@ -46,6 +47,9 @@ class UstreamIE(InfoExtractor):
                 'videoId': int(video_id),
                 'autoplay': False,
             }), video_id)
+
+        if 'error' in params:
+            raise ExtractorError(params['error']['message'], expected=True)
 
         video_url = params['flv']
 
