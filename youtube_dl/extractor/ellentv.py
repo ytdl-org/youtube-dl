@@ -54,7 +54,7 @@ class EllenTVClipsIE(InfoExtractor):
             'id': 'meryl-streep-vanessa-hudgens',
             'title': 'Meryl Streep, Vanessa Hudgens',
         },
-        'playlist_mincount': 9,
+        'playlist_mincount': 7,
     }
 
     def _real_extract(self, url):
