@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 import os
 import subprocess
 
-from .common import PostProcessor
+from .ffmpeg import FFmpegPostProcessor
+
 from ..compat import (
     compat_urlretrieve,
 )
@@ -22,7 +23,7 @@ class EmbedThumbnailPPError(PostProcessingError):
     pass
 
 
-class EmbedThumbnailPP(PostProcessor):
+class EmbedThumbnailPP(FFmpegPostProcessor):
     def run(self, info):
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
@@ -34,22 +35,12 @@ class EmbedThumbnailPP(PostProcessor):
         compat_urlretrieve(info['thumbnail'], temp_thumbnail)
 
         if info['ext'] == 'mp3':
-            if not check_executable('ffmpeg', ['-version']):
-                raise AtomicParsleyPPError('FFmpeg was not found. Please install.')
-
-            cmd = ['ffmpeg', '-i', filename, '-i', temp_thumbnail, '-c', 'copy', '-map', '0', '-map', '1', '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"', temp_filename]
+            options = ['-i', temp_thumbnail, '-c', 'copy', '-map', '0', '-map', '1',
+                '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"']
 
             self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
 
-            if self._downloader.params.get('verbose', False):
-                self._downloader.to_screen('[debug] FFmpeg command line: %s' % shell_quote(cmd))
-
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = p.communicate()
-
-            if p.returncode != 0:
-                msg = stderr.decode('utf-8', 'replace').strip()
-                raise EmbedThumbnailPPError(msg)
+            self.run_ffmpeg(filename, temp_filename, options)
 
             os.remove(encodeFilename(temp_thumbnail))
             os.remove(encodeFilename(filename))
