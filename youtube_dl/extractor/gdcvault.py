@@ -11,7 +11,7 @@ from ..utils import remove_end
 
 
 class GDCVaultIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?gdcvault\.com/play/(?P<id>\d+)/(?P<name>(\w|-)+)'
+    _VALID_URL = r'https?://(?:www\.)?gdcvault\.com/play/(?P<id>\d+)/(?P<name>(\w|-)+)?'
     _NETRC_MACHINE = 'gdcvault'
     _TESTS = [
         {
@@ -43,6 +43,10 @@ class GDCVaultIE(InfoExtractor):
                 'title': 'Thexder Meets Windows 95, or Writing Great Games in the Windows 95 Environment',
             },
             'skip': 'Requires login',
+        },
+        {
+            'url': 'http://gdcvault.com/play/1020791/',
+            'only_matching': True,
         }
     ]
 
