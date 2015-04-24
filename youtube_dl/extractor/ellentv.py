@@ -78,4 +78,8 @@ class EllenTVClipsIE(InfoExtractor):
             raise ExtractorError('Failed to download JSON', cause=ve)
 
     def _extract_entries(self, playlist):
-        return [self.url_result(item['url'], 'EllenTV') for item in playlist]
+        return [
+            self.url_result(
+                'kaltura:%s:%s' % (item['kaltura_partner_id'], item['kaltura_entry_id']),
+                'Kaltura')
+            for item in playlist]
