@@ -280,6 +280,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 errnote='Cannot update utime of audio file')
 
         information['filepath'] = new_path
+        information['ext'] = extension
+
         return [path], information
 
 

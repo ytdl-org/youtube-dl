@@ -240,9 +240,7 @@ def _real_main(argv=None):
     if opts.xattrs:
         postprocessors.append({'key': 'XAttrMetadata'})
     if opts.embedthumbnail:
-        if not opts.addmetadata:
-            postprocessors.append({'key': 'FFmpegAudioFix'})
-        postprocessors.append({'key': 'AtomicParsley'})
+        postprocessors.append({'key': 'EmbedThumbnail'})
     # Please keep ExecAfterDownload towards the bottom as it allows the user to modify the final file in any way.
     # So if the user is able to remove the file before your postprocessor runs it might cause a few problems.
     if opts.exec_cmd:
