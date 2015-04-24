@@ -325,6 +325,13 @@ def sanitize_path(s):
         sanitized_path.insert(0, drive_or_unc + os.path.sep)
     return os.path.join(*sanitized_path)
 
+def add_defaults_if_directory(path):
+    """Appends the default output template, if the given path is an existing directory.  Non-directory inputs are returned unchanged."""
+    if os.path.isdir(path):
+        dir = os.path.join(path, '')  # ensure trailing slash
+        return dir + DEFAULT_OUTTMPL
+    else:
+        return path
 
 def sanitize_url_path_consecutive_slashes(url):
     """Collapses consecutive slashes in URLs' path"""

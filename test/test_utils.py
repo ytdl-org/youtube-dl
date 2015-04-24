@@ -16,10 +16,12 @@ import json
 import xml.etree.ElementTree
 
 from youtube_dl.utils import (
+    add_defaults_if_directory,
     age_restricted,
     args_to_str,
     clean_html,
     DateRange,
+    DEFAULT_OUTTMPL,
     detect_exe_version,
     encodeFilename,
     escape_rfc3986,
@@ -581,6 +583,16 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
             'like_count > 100 & dislike_count <? 50 & description',
             {'like_count': 190, 'dislike_count': 10}))
 
+    def test_add_defaults_if_directory(self):
+        cwd = os.getcwd()
+
+        existant_dir = os.path.join(cwd, '')  # ensure trailing slash
+        self.assertTrue(os.path.isdir(existant_dir))
+        self.assertEqual(add_defaults_if_directory(cwd), os.path.join(existant_dir, DEFAULT_OUTTMPL))
+
+        nonexistant_dir = os.path.join(cwd, 'add_defaults_if_directory_test')
+        self.assertFalse(os.path.isdir(nonexistant_dir))
+        self.assertEqual(add_defaults_if_directory(nonexistant_dir), nonexistant_dir)
 
 if __name__ == '__main__':
     unittest.main()
