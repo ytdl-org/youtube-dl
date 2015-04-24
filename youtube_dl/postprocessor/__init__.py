@@ -1,9 +1,8 @@
 from __future__ import unicode_literals
 
-from .atomicparsley import AtomicParsleyPP
+from .embedthumbnail import EmbedThumbnailPP
 from .ffmpeg import (
     FFmpegPostProcessor,
-    FFmpegAudioFixPP,
     FFmpegEmbedSubtitlePP,
     FFmpegExtractAudioPP,
     FFmpegFixupStretchedPP,
@@ -23,9 +22,8 @@ def get_postprocessor(key):
 
 
 __all__ = [
-    'AtomicParsleyPP',
+    'EmbedThumbnailPP',
     'ExecAfterDownloadPP',
-    'FFmpegAudioFixPP',
     'FFmpegEmbedSubtitlePP',
     'FFmpegExtractAudioPP',
     'FFmpegFixupM4aPP',

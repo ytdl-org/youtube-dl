@@ -280,6 +280,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 errnote='Cannot update utime of audio file')
 
         information['filepath'] = new_path
+        information['ext'] = extension
+
         return [path], information
 
 
@@ -586,21 +588,6 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         self.run_ffmpeg_multiple_files(info['__files_to_merge'], temp_filename, args)
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return info['__files_to_merge'], info
-
-
-class FFmpegAudioFixPP(FFmpegPostProcessor):
-    def run(self, info):
-        filename = info['filepath']
-        temp_filename = prepend_extension(filename, 'temp')
-
-        options = ['-vn', '-acodec', 'copy']
-        self._downloader.to_screen('[ffmpeg] Fixing audio file "%s"' % filename)
-        self.run_ffmpeg(filename, temp_filename, options)
-
-        os.remove(encodeFilename(filename))
-        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
-
-        return [], info
 
 
 class FFmpegFixupStretchedPP(FFmpegPostProcessor):
