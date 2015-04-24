@@ -263,8 +263,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             streamdata = self._download_xml(
                 streamdata_req, video_id,
                 note='Downloading media info for %s' % video_format)
-            video_url = streamdata.find('.//host').text
-            video_play_path = streamdata.find('.//file').text
+            video_url = streamdata.find('./host').text
+            video_play_path = streamdata.find('./file').text
             formats.append({
                 'url': video_url,
                 'play_path': video_play_path,
