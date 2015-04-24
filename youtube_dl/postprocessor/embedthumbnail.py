@@ -35,7 +35,8 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
         compat_urlretrieve(info['thumbnail'], temp_thumbnail)
 
         if info['ext'] == 'mp3':
-            options = ['-i', temp_thumbnail, '-c', 'copy', '-map', '0', '-map', '1',
+            options = [
+                '-i', temp_thumbnail, '-c', 'copy', '-map', '0', '-map', '1',
                 '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"']
 
             self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
