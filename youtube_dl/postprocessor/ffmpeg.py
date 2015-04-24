@@ -590,21 +590,6 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         return info['__files_to_merge'], info
 
 
-class FFmpegAudioFixPP(FFmpegPostProcessor):
-    def run(self, info):
-        filename = info['filepath']
-        temp_filename = prepend_extension(filename, 'temp')
-
-        options = ['-vn', '-acodec', 'copy']
-        self._downloader.to_screen('[ffmpeg] Fixing audio file "%s"' % filename)
-        self.run_ffmpeg(filename, temp_filename, options)
-
-        os.remove(encodeFilename(filename))
-        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
-
-        return [], info
-
-
 class FFmpegFixupStretchedPP(FFmpegPostProcessor):
     def run(self, info):
         stretched_ratio = info.get('stretched_ratio')
