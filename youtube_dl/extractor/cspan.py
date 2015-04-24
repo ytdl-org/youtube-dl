@@ -8,6 +8,7 @@ from ..utils import (
     unescapeHTML,
     find_xpath_attr,
     smuggle_url,
+    determine_ext,
 )
 from .senateisvp import SenateISVPIE
 
@@ -87,6 +88,10 @@ class CSpanIE(InfoExtractor):
             return self.url_result(surl, 'SenateISVP', video_id, title)
 
         files = data['video']['files']
+        try:
+            capfile = data['video']['capfile']['#text']
+        except KeyError:
+            capfile = None
 
         entries = [{
             'id': '%s_%d' % (video_id, partnum + 1),
@@ -97,6 +102,12 @@ class CSpanIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'duration': int_or_none(f.get('length', {}).get('#text')),
+            'subtitles': {
+                'en': [{
+                    'url': capfile,
+                    'ext': determine_ext(capfile, 'dfxp')
+                }],
+            } if capfile else None,
         } for partnum, f in enumerate(files)]
 
         if len(entries) == 1:
