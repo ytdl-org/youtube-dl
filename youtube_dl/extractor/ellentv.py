@@ -12,29 +12,19 @@ from ..utils import (
 
 class EllenTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?(?:ellentv|ellentube)\.com/videos/(?P<id>[a-z0-9_-]+)'
-    _TESTS = [{
+    _TEST = {
         'url': 'http://www.ellentv.com/videos/0-ipq1gsai/',
         'md5': '8e3c576bf2e9bfff4d76565f56f94c9c',
         'info_dict': {
-            'id': '0-ipq1gsai',
+            'id': '0_ipq1gsai',
             'ext': 'mp4',
             'title': 'Fast Fingers of Fate',
-            'description': 'md5:686114ced0a032926935e9015ee794ac',
-            'timestamp': 1428033600,
+            'description': 'md5:587e79fbbd0d73b148bc596d99ce48e6',
+            'timestamp': 1428035648,
             'upload_date': '20150403',
+            'uploader_id': 'batchUser',
         }
-    }, {
-        'url': 'http://ellentube.com/videos/0-dvzmabd5/',
-        'md5': '98238118eaa2bbdf6ad7f708e3e4f4eb',
-        'info_dict': {
-            'id': '0-dvzmabd5',
-            'ext': 'mp4',
-            'title': '1 year old twin sister makes her brother laugh',
-            'description': '1 year old twin sister makes her brother laugh',
-            'timestamp': 1419542075,
-            'upload_date': '20141225',
-        }
-    }]
+    }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
