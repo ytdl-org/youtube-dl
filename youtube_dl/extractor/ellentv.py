@@ -39,24 +39,20 @@ class EllenTVIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(
+            'http://widgets.ellentube.com/videos/%s' % video_id,
+            video_id)
 
-        video_url = self._html_search_meta('VideoURL', webpage, 'url', fatal=True)
-        title = self._og_search_title(webpage, default=None) or self._search_regex(
-            r'pageName\s*=\s*"([^"]+)"', webpage, 'title')
-        description = self._html_search_meta(
-            'description', webpage, 'description') or self._og_search_description(webpage)
-        timestamp = parse_iso8601(self._search_regex(
-            r'<span class="publish-date"><time datetime="([^"]+)">',
-            webpage, 'timestamp', fatal=False))
+        partner_id = self._search_regex(
+            r"var\s+partnerId\s*=\s*'([^']+)", webpage, 'partner id')
 
-        return {
-            'id': video_id,
-            'url': video_url,
-            'title': title,
-            'description': description,
-            'timestamp': timestamp,
-        }
+        kaltura_id = self._search_regex(
+            [r'id="kaltura_player_([^"]+)"',
+             r"_wb_entry_id\s*:\s*'([^']+)",
+             r'data-kaltura-entry-id="([^"]+)'],
+            webpage, 'kaltura id')
+
+        return self.url_result('kaltura:%s:%s' % (partner_id, kaltura_id), 'Kaltura')
 
 
 class EllenTVClipsIE(InfoExtractor):
