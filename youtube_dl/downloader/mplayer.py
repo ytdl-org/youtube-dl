@@ -16,12 +16,19 @@ class MplayerFD(FileDownloader):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
-        args = [
-            'mplayer', '-really-quiet', '-vo', 'null', '-vc', 'dummy',
-            '-dumpstream', '-dumpfile', tmpfilename, url]
+        args = []
         # Check for mplayer first
-        if not check_executable('mplayer', ['-h']):
-            self.report_error('MMS or RTSP download detected but "%s" could not be run' % args[0])
+        if check_executable('mplayer', ['-h']):
+            args = [
+                'mplayer', '-really-quiet', '-vo', 'null', '-vc', 'dummy',
+                '-dumpstream', '-dumpfile', tmpfilename, url]
+                        
+        # Check for mpv
+        elif check_executable('mpv', ['-h']):
+            args = [
+                'mpv', '-really-quiet', '--vo=null', '--stream-dump=' + tmpfilename, url]
+        else:
+            self.report_error('MMS or RTSP download detected but neither "mplayer" nor "mpv" could be run')
             return False
 
         # Download using mplayer.
