@@ -2,11 +2,11 @@ from __future__ import unicode_literals
 
 import os.path
 import subprocess
-import sys
 
 from .common import FileDownloader
 from ..utils import (
     encodeFilename,
+    encodeArgument,
 )
 
 
@@ -60,17 +60,9 @@ class ExternalFD(FileDownloader):
 
     def _call_downloader(self, tmpfilename, info_dict):
         """ Either overwrite this or implement _make_cmd """
-        cmd = self._make_cmd(tmpfilename, info_dict)
+        cmd = [encodeArgument(a) for a in self._make_cmd(tmpfilename, info_dict)]
 
-        if sys.platform == 'win32' and sys.version_info < (3, 0):
-            # Windows subprocess module does not actually support Unicode
-            # on Python 2.x
-            # See http://stackoverflow.com/a/9951851/35070
-            subprocess_encoding = sys.getfilesystemencoding()
-            cmd = [a.encode(subprocess_encoding, 'ignore') for a in cmd]
-        else:
-            subprocess_encoding = None
-        self._debug_cmd(cmd, subprocess_encoding)
+        self._debug_cmd(cmd)
 
         p = subprocess.Popen(
             cmd, stderr=subprocess.PIPE)
