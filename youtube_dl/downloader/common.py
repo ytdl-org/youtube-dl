@@ -8,6 +8,7 @@ import time
 from ..compat import compat_str
 from ..utils import (
     encodeFilename,
+    decodeArgument,
     format_bytes,
     timeconvert,
 )
@@ -353,19 +354,15 @@ class FileDownloader(object):
         # this interface
         self._progress_hooks.append(ph)
 
-    def _debug_cmd(self, args, subprocess_encoding, exe=None):
+    def _debug_cmd(self, args, exe=None):
         if not self.params.get('verbose', False):
             return
 
-        if exe is None:
-            exe = os.path.basename(args[0])
+        str_args = [decodeArgument(a) for a in args]
 
-        if subprocess_encoding:
-            str_args = [
-                a.decode(subprocess_encoding) if isinstance(a, bytes) else a
-                for a in args]
-        else:
-            str_args = args
+        if exe is None:
+            exe = os.path.basename(str_args[0])
+
         try:
             import pipes
             shell_quote = lambda args: ' '.join(map(pipes.quote, str_args))
