@@ -28,7 +28,7 @@ class MplayerFD(FileDownloader):
             args = [
                 'mpv', '-really-quiet', '--vo=null', '--stream-dump=' + tmpfilename, url]
         else:
-            self.report_error('MMS or RTSP download detected but neither "mplayer" nor "mpv" could be run')
+            self.report_error('MMS or RTSP download detected but neither "mplayer" nor "mpv" could be run. Please install any.')
             return False
 
         # Download using mplayer.
