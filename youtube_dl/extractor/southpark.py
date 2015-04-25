@@ -1,3 +1,4 @@
+# encoding: utf-8
 from __future__ import unicode_literals
 
 from .mtv import MTVServicesInfoExtractor
@@ -21,7 +22,7 @@ class SouthParkIE(MTVServicesInfoExtractor):
 
 
 class SouthParkEsIE(SouthParkIE):
-    IE_NAME = 'southpark.cc.com:espanol'
+    IE_NAME = 'southpark.cc.com:español'
     _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.cc\.com/episodios-en-espanol/(?P<id>.+?)(\?|#|$))'
     _LANG = 'es'
 
