@@ -1109,15 +1109,6 @@ def shell_quote(args):
     return ' '.join(quoted_args)
 
 
-def takewhile_inclusive(pred, seq):
-    """ Like itertools.takewhile, but include the latest evaluated element
-        (the first element so that Not pred(e)) """
-    for e in seq:
-        yield e
-        if not pred(e):
-            return
-
-
 def smuggle_url(url, data):
     """ Pass additional data in a URL for internal use. """
 

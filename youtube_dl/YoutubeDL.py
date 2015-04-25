@@ -64,7 +64,6 @@ from .utils import (
     sanitize_path,
     std_headers,
     subtitles_filename,
-    takewhile_inclusive,
     UnavailableVideoError,
     url_basename,
     version_tuple,
@@ -135,7 +134,6 @@ class YoutubeDL(object):
                        (or video) as a single JSON line.
     simulate:          Do not download the video files.
     format:            Video format code. See options.py for more information.
-    format_limit:      Highest quality format to try.
     outtmpl:           Template for output names.
     restrictfilenames: Do not allow "&" and spaces in file names
     ignoreerrors:      Do not stop on download errors.
@@ -1067,12 +1065,6 @@ class YoutubeDL(object):
             full_format_info = info_dict.copy()
             full_format_info.update(format)
             format['http_headers'] = self._calc_headers(full_format_info)
-
-        format_limit = self.params.get('format_limit', None)
-        if format_limit:
-            formats = list(takewhile_inclusive(
-                lambda f: f['format_id'] != format_limit, formats
-            ))
 
         # TODO Central sorting goes here
 
