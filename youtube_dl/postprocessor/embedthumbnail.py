@@ -11,6 +11,7 @@ from ..compat import (
     compat_urlretrieve,
 )
 from ..utils import (
+    determine_ext,
     check_executable,
     encodeFilename,
     PostProcessingError,
@@ -27,7 +28,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
     def run(self, info):
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
-        temp_thumbnail = prepend_extension(filename, 'thumb')
+        temp_thumbnail = filename + '.' + determine_ext(info['thumbnail'])
 
         if not info.get('thumbnail'):
             raise EmbedThumbnailPPError('Thumbnail was not found. Nothing to do.')
