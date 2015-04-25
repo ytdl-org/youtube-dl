@@ -3,9 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-)
+from ..utils import int_or_none
 
 
 class InstagramIE(InfoExtractor):
@@ -23,8 +21,8 @@ class InstagramIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
+
         webpage = self._download_webpage(url, video_id)
         uploader_id = self._search_regex(r'"owner":{"username":"(.+?)"',
                                          webpage, 'uploader id', fatal=False)
