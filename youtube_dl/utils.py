@@ -371,6 +371,18 @@ def unescapeHTML(s):
         r'&([^;]+);', lambda m: _htmlentity_transform(m.group(1)), s)
 
 
+def get_subprocess_encoding():
+    if sys.platform == 'win32' and sys.getwindowsversion()[0] >= 5:
+        # For subprocess calls, encode with locale encoding
+        # Refer to http://stackoverflow.com/a/9951851/35070
+        encoding = preferredencoding()
+    else:
+        encoding = sys.getfilesystemencoding()
+    if encoding is None:
+        encoding = 'utf-8'
+    return encoding
+
+
 def encodeFilename(s, for_subprocess=False):
     """
     @param s The name of the file
@@ -382,21 +394,24 @@ def encodeFilename(s, for_subprocess=False):
     if sys.version_info >= (3, 0):
         return s
 
-    if sys.platform == 'win32' and sys.getwindowsversion()[0] >= 5:
-        # Pass '' directly to use Unicode APIs on Windows 2000 and up
-        # (Detecting Windows NT 4 is tricky because 'major >= 4' would
-        # match Windows 9x series as well. Besides, NT 4 is obsolete.)
-        if not for_subprocess:
-            return s
-        else:
-            # For subprocess calls, encode with locale encoding
-            # Refer to http://stackoverflow.com/a/9951851/35070
-            encoding = preferredencoding()
-    else:
-        encoding = sys.getfilesystemencoding()
-    if encoding is None:
-        encoding = 'utf-8'
-    return s.encode(encoding, 'ignore')
+    # Pass '' directly to use Unicode APIs on Windows 2000 and up
+    # (Detecting Windows NT 4 is tricky because 'major >= 4' would
+    # match Windows 9x series as well. Besides, NT 4 is obsolete.)
+    if not for_subprocess and sys.platform == 'win32' and sys.getwindowsversion()[0] >= 5:
+        return s
+
+    return s.encode(get_subprocess_encoding(), 'ignore')
+
+
+def decodeFilename(b, for_subprocess=False):
+
+    if sys.version_info >= (3, 0):
+        return b
+
+    if not isinstance(b, bytes):
+        return b
+
+    return b.decode(get_subprocess_encoding(), 'ignore')
 
 
 def encodeArgument(s):
@@ -406,6 +421,10 @@ def encodeArgument(s):
         # assert False, 'Internal error: %r should be of type %r, is %r' % (s, compat_str, type(s))
         s = s.decode('ascii')
     return encodeFilename(s, True)
+
+
+def decodeArgument(b):
+    return decodeFilename(b, True)
 
 
 def decodeOption(optval):
