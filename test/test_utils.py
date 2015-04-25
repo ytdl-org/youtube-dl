@@ -58,6 +58,8 @@ from youtube_dl.utils import (
     xpath_text,
     render_table,
     match_str,
+    parse_dfxp_time_expr,
+    dfxp2srt,
 )
 
 
@@ -580,6 +582,42 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
         self.assertFalse(match_str(
             'like_count > 100 & dislike_count <? 50 & description',
             {'like_count': 190, 'dislike_count': 10}))
+
+    def test_parse_dfxp_time_expr(self):
+        self.assertEqual(parse_dfxp_time_expr(None), 0.0)
+        self.assertEqual(parse_dfxp_time_expr(''), 0.0)
+        self.assertEqual(parse_dfxp_time_expr('0.1'), 0.1)
+        self.assertEqual(parse_dfxp_time_expr('0.1s'), 0.1)
+        self.assertEqual(parse_dfxp_time_expr('00:00:01'), 1.0)
+        self.assertEqual(parse_dfxp_time_expr('00:00:01.100'), 1.1)
+
+    def test_dfxp2srt(self):
+        dfxp_data = '''<?xml version="1.0" encoding="UTF-8"?>
+            <tt xmlns="http://www.w3.org/ns/ttml" xml:lang="en" xmlns:tts="http://www.w3.org/ns/ttml#parameter">
+            <body>
+                <div xml:lang="en">
+                    <p begin="0" end="1">The following line contains Chinese characters and special symbols</p>
+                    <p begin="1" end="2">第二行<br/>♪♪</p>
+                    <p begin="2" end="3"><span>Third<br/>Line</span></p>
+                </div>
+            </body>
+            </tt>'''
+        srt_data = '''1
+00:00:00,000 --> 00:00:01,000
+The following line contains Chinese characters and special symbols
+
+2
+00:00:01,000 --> 00:00:02,000
+第二行
+♪♪
+
+3
+00:00:02,000 --> 00:00:03,000
+Third
+Line
+
+'''
+        self.assertEqual(dfxp2srt(dfxp_data), srt_data)
 
 
 if __name__ == '__main__':

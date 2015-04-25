@@ -1800,6 +1800,59 @@ def match_filter_func(filter_str):
     return _match_func
 
 
+def parse_dfxp_time_expr(time_expr):
+    if not time_expr:
+        return 0.0
+
+    mobj = re.match(r'^(?P<time_offset>\d+(?:\.\d+)?)s?$', time_expr)
+    if mobj:
+        return float(mobj.group('time_offset'))
+
+    mobj = re.match(r'^(\d+):(\d\d):(\d\d(?:\.\d+)?)$', time_expr)
+    if mobj:
+        return 3600 * int(mobj.group(1)) + 60 * int(mobj.group(2)) + float(mobj.group(3))
+
+
+def format_srt_time(seconds):
+    (mins, secs) = divmod(seconds, 60)
+    (hours, mins) = divmod(mins, 60)
+    millisecs = (secs - int(secs)) * 1000
+    secs = int(secs)
+    return '%02d:%02d:%02d,%03d' % (hours, mins, secs, millisecs)
+
+
+def dfxp2srt(dfxp_data):
+    _x = functools.partial(xpath_with_ns, ns_map={'ttml': 'http://www.w3.org/ns/ttml'})
+
+    def parse_node(node):
+        str_or_empty = functools.partial(str_or_none, default='')
+
+        out = str_or_empty(node.text)
+
+        for child in node:
+            if child.tag == _x('ttml:br'):
+                out += '\n' + str_or_empty(child.tail)
+            elif child.tag == _x('ttml:span'):
+                out += str_or_empty(parse_node(child))
+            else:
+                out += str_or_empty(xml.etree.ElementTree.tostring(child))
+
+        return out
+
+    dfxp = xml.etree.ElementTree.fromstring(dfxp_data.encode('utf-8'))
+    out = []
+    paras = dfxp.findall(_x('.//ttml:p'))
+
+    for para, index in zip(paras, itertools.count(1)):
+        out.append('%d\n%s --> %s\n%s\n\n' % (
+            index,
+            format_srt_time(parse_dfxp_time_expr(para.attrib.get('begin'))),
+            format_srt_time(parse_dfxp_time_expr(para.attrib.get('end'))),
+            parse_node(para)))
+
+    return ''.join(out)
+
+
 class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
     def __init__(self, proxies=None):
         # Set default handlers

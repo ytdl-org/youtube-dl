@@ -20,6 +20,7 @@ from ..utils import (
     prepend_extension,
     shell_quote,
     subtitles_filename,
+    dfxp2srt,
 )
 
 
@@ -651,6 +652,30 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                     'format' % new_ext)
                 continue
             new_file = subtitles_filename(filename, lang, new_ext)
+
+            if ext == 'dfxp' or ext == 'ttml':
+                self._downloader.report_warning(
+                    'You have requested to convert dfxp (TTML) subtitles into another format, '
+                    'which results in style information loss')
+
+                dfxp_file = subtitles_filename(filename, lang, ext)
+                srt_file = subtitles_filename(filename, lang, 'srt')
+
+                with io.open(dfxp_file, 'rt', encoding='utf-8') as f:
+                    srt_data = dfxp2srt(f.read())
+
+                with io.open(srt_file, 'wt', encoding='utf-8') as f:
+                    f.write(srt_data)
+
+                ext = 'srt'
+                subs[lang] = {
+                    'ext': 'srt',
+                    'data': srt_data
+                }
+
+                if new_ext == 'srt':
+                    continue
+
             self.run_ffmpeg(
                 subtitles_filename(filename, lang, ext),
                 new_file, ['-f', new_format])
