@@ -20,6 +20,17 @@ class SouthParkIE(MTVServicesInfoExtractor):
     }]
 
 
+class SouthParkEsIE(SouthParkIE):
+    IE_NAME = 'southpark.cc.com:espanol'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.cc\.com/episodios-en-espanol/(?P<id>.+?)(\?|#|$))'
+    _LANG = 'es'
+
+    _TESTS = [{
+        'url': 'http://southpark.cc.com/episodios-en-espanol/s01e01-cartman-consigue-una-sonda-anal#source=351c1323-0b96-402d-a8b9-40d01b2e9bde&position=1&sort=!airdate',
+        'playlist_count': 4,
+    }]
+
+
 class SouthparkDeIE(SouthParkIE):
     IE_NAME = 'southpark.de'
     _VALID_URL = r'https?://(www\.)?(?P<url>southpark\.de/(clips|alle-episoden)/(?P<id>.+?)(\?|#|$))'
