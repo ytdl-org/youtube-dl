@@ -10,7 +10,7 @@ from ..utils import (
 )
 
 
-class MplayerFD(FileDownloader):
+class RtspFD(FileDownloader):
     def real_download(self, filename, info_dict):
         url = info_dict['url']
         self.report_destination(filename)

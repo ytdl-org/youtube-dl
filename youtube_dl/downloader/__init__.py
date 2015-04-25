@@ -6,7 +6,7 @@ from .f4m import F4mFD
 from .hls import HlsFD
 from .hls import NativeHlsFD
 from .http import HttpFD
-from .mplayer import MplayerFD
+from .rtsp import RtspFD
 from .rtmp import RtmpFD
 
 from ..utils import (
@@ -17,8 +17,8 @@ PROTOCOL_MAP = {
     'rtmp': RtmpFD,
     'm3u8_native': NativeHlsFD,
     'm3u8': HlsFD,
-    'mms': MplayerFD,
-    'rtsp': MplayerFD,
+    'mms': RtspFD,
+    'rtsp': RtspFD,
     'f4m': F4mFD,
 }
 
