@@ -5,7 +5,7 @@ from .mtv import MTVServicesInfoExtractor
 
 class SouthParkIE(MTVServicesInfoExtractor):
     IE_NAME = 'southpark.cc.com'
-    _VALID_URL = r'https?://(www\.)?(?P<url>southpark\.cc\.com/(clips|full-episodes)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.cc\.com/(?:clips|full-episodes)/(?P<id>.+?)(\?|#|$))'
 
     _FEED_URL = 'http://www.southparkstudios.com/feeds/video-player/mrss'
 
@@ -33,7 +33,7 @@ class SouthParkEsIE(SouthParkIE):
 
 class SouthparkDeIE(SouthParkIE):
     IE_NAME = 'southpark.de'
-    _VALID_URL = r'https?://(www\.)?(?P<url>southpark\.de/(clips|alle-episoden)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.de/(?:clips|alle-episoden)/(?P<id>.+?)(\?|#|$))'
     _FEED_URL = 'http://www.southpark.de/feeds/video-player/mrss/'
 
     _TESTS = [{
