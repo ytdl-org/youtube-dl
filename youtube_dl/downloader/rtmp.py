@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import os
 import re
 import subprocess
-import sys
 import time
 
 from .common import FileDownloader
@@ -11,6 +10,7 @@ from ..compat import compat_str
 from ..utils import (
     check_executable,
     encodeFilename,
+    encodeArgument,
     get_exe_version,
 )
 
@@ -121,7 +121,7 @@ class RtmpFD(FileDownloader):
         # possible. This is part of rtmpdump's normal usage, AFAIK.
         basic_args = [
             'rtmpdump', '--verbose', '-r', url,
-            '-o', encodeFilename(tmpfilename, True)]
+            '-o', tmpfilename]
         if player_url is not None:
             basic_args += ['--swfVfy', player_url]
         if page_url is not None:
@@ -154,16 +154,9 @@ class RtmpFD(FileDownloader):
         if not live and continue_dl:
             args += ['--skip', '1']
 
-        if sys.platform == 'win32' and sys.version_info < (3, 0):
-            # Windows subprocess module does not actually support Unicode
-            # on Python 2.x
-            # See http://stackoverflow.com/a/9951851/35070
-            subprocess_encoding = sys.getfilesystemencoding()
-            args = [a.encode(subprocess_encoding, 'ignore') for a in args]
-        else:
-            subprocess_encoding = None
+        args = [encodeArgument(a) for a in args]
 
-        self._debug_cmd(args, subprocess_encoding, exe='rtmpdump')
+        self._debug_cmd(args, exe='rtmpdump')
 
         RD_SUCCESS = 0
         RD_FAILED = 1
@@ -180,7 +173,11 @@ class RtmpFD(FileDownloader):
             prevsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen('[rtmpdump] %s bytes' % prevsize)
             time.sleep(5.0)  # This seems to be needed
-            retval = run_rtmpdump(basic_args + ['-e'] + [[], ['-k', '1']][retval == RD_FAILED])
+            args = basic_args + ['--resume']
+            if retval == RD_FAILED:
+                args += ['--skip', '1']
+            args = [encodeArgument(a) for a in args]
+            retval = run_rtmpdump(args)
             cursize = os.path.getsize(encodeFilename(tmpfilename))
             if prevsize == cursize and retval == RD_FAILED:
                 break
