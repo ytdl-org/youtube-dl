@@ -25,6 +25,7 @@ def _media_xml_tag(tag):
 
 class MTVServicesInfoExtractor(InfoExtractor):
     _MOBILE_TEMPLATE = None
+    _LANG = None
 
     @staticmethod
     def _id_from_uri(uri):
@@ -169,8 +170,12 @@ class MTVServicesInfoExtractor(InfoExtractor):
         video_id = self._id_from_uri(uri)
         feed_url = self._get_feed_url(uri)
         data = compat_urllib_parse.urlencode({'uri': uri})
+        info_url = feed_url + '?'
+        if self._LANG:
+            info_url += 'lang=%s&' % self._LANG
+        info_url += data
         idoc = self._download_xml(
-            feed_url + '?' + data, video_id,
+            info_url, video_id,
             'Downloading info', transform_source=fix_xml_ampersands)
         return self.playlist_result(
             [self._get_video_info(item) for item in idoc.findall('.//item')])
