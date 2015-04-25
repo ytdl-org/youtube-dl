@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class InstagramIE(InfoExtractor):
-    _VALID_URL = r'http://instagram\.com/p/(?P<id>.*?)/'
+    _VALID_URL = r'https?://instagram\.com/p/(?P<id>[\da-zA-Z]+)'
     _TEST = {
         'url': 'http://instagram.com/p/aye83DjauH/?foo=bar#abc',
         'md5': '0d2da106a9d2631273e192b372806516',
