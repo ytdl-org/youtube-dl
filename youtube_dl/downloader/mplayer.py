@@ -16,14 +16,10 @@ class MplayerFD(FileDownloader):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
-        args = []
-        # Check for mplayer first
         if check_executable('mplayer', ['-h']):
             args = [
                 'mplayer', '-really-quiet', '-vo', 'null', '-vc', 'dummy',
                 '-dumpstream', '-dumpfile', tmpfilename, url]
-                        
-        # Check for mpv
         elif check_executable('mpv', ['-h']):
             args = [
                 'mpv', '-really-quiet', '--vo=null', '--stream-dump=' + tmpfilename, url]
@@ -31,7 +27,6 @@ class MplayerFD(FileDownloader):
             self.report_error('MMS or RTSP download detected but neither "mplayer" nor "mpv" could be run. Please install any.')
             return False
 
-        # Download using mplayer.
         retval = subprocess.call(args)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
@@ -46,5 +41,5 @@ class MplayerFD(FileDownloader):
             return True
         else:
             self.to_stderr('\n')
-            self.report_error('mplayer exited with code %d' % retval)
+            self.report_error('%s exited with code %d' % (args[0], retval))
             return False
