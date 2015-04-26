@@ -3,75 +3,76 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
+    float_or_none,
     int_or_none,
     parse_iso8601,
-    unified_strdate,
+    xpath_text,
 )
 
+
 class PhilharmonieDeParisIE(InfoExtractor):
-    _VALID_URL = r'http://live\.philharmoniedeparis\.fr/concert/(?P<id>\d+)(?:/|\.html)'
+    IE_DESC = 'Philharmonie de Paris'
+    _VALID_URL = r'http://live\.philharmoniedeparis\.fr/(?:[Cc]oncert/|misc/Playlist\.ashx\?id=)(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://live.philharmoniedeparis.fr/concert/1032066.html',
         'info_dict': {
             'id': '1032066',
-            'ext': 'mp4',
-            'title': "Week-end Bach. Passion selon saint Jean. Akademie für alte Musik Berlin, Rias Kammerchor, René Jacobs",
+            'ext': 'flv',
+            'title': 'md5:d1f5585d87d041d07ce9434804bc8425',
+            'timestamp': 1428179400,
             'upload_date': '20150404',
+            'duration': 6592.278,
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
         }
+    }, {
+        'url': 'http://live.philharmoniedeparis.fr/Concert/1030324.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://live.philharmoniedeparis.fr/misc/Playlist.ashx?id=1030324&track=&lang=fr',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
-        fichier_nom = self._html_search_regex(r'\sflashvars\s*:\s*\{\s*fichier_nom\s*:\s*\'(.*?)\'\s*,', webpage, 'fichier_nom')
-
-        playlist = self._download_xml('http://live.philharmoniedeparis.fr' + fichier_nom, video_id)
-
-        concert = playlist.find('.//concert')
+        concert = self._download_xml(
+            'http://live.philharmoniedeparis.fr/misc/Playlist.ashx?id=%s' % video_id,
+            video_id).find('./concert')
 
         formats = []
         info_dict = {
             'id': video_id,
-            'title': concert.find('./titre').text,
+            'title': xpath_text(concert, './titre', 'title', fatal=True),
             'formats': formats,
         }
 
-        if concert.attrib.get('heure'):
-            info_dict['timestamp'] = parse_iso8601(('%s-%s-%s%s') % (
-                concert.attrib['date'][0:4],
-                concert.attrib['date'][4:6],
-                concert.attrib['date'][6:8],
-                concert.attrib['heure']
-            ))
-        else:
-            info_dict['upload_date'] = concert.attrib['date']
-
         fichiers = concert.find('./fichiers')
+        stream = fichiers.attrib['serveurstream']
         for fichier in fichiers.findall('./fichier'):
-            # Sometimes <ficher>s have no attributes at all. Skip them.
-            if 'url' not in fichier.attrib:
-                continue
+            info_dict['duration'] = float_or_none(fichier.get('timecodefin'))
+            for quality, (format_id, suffix) in enumerate([('lq', ''), ('hq', '_hd')]):
+                format_url = fichier.get('url%s' % suffix)
+                if not format_url:
+                    continue
+                formats.append({
+                    'url': stream,
+                    'play_path': format_url,
+                    'ext': 'flv',
+                    'format_id': format_id,
+                    'width': int_or_none(concert.get('largeur%s' % suffix)),
+                    'height': int_or_none(concert.get('hauteur%s' % suffix)),
+                    'quality': quality,
+                })
+        self._sort_formats(formats)
 
-            formats.append({
-                'format_id': 'lq',
-                'url': fichiers.attrib['serveurstream'],
-                'ext': determine_ext(fichier.attrib['url']),
-                'play_path': fichier.attrib['url'],
-                'width': int_or_none(concert.attrib['largeur']),
-                'height': int_or_none(concert.attrib['hauteur']),
-                'quality': 1,
-            })
-
-            formats.append({
-                'format_id': 'hq',
-                'url': fichiers.attrib['serveurstream'],
-                'ext': determine_ext(fichier.attrib['url_hd']),
-                'play_path': fichier.attrib['url_hd'],
-                'width': int_or_none(concert.attrib['largeur_hd']),
-                'height': int_or_none(concert.attrib['hauteur_hd']),
-                'quality': 2,
-            })
+        date, hour = concert.get('date'), concert.get('heure')
+        if date and hour:
+            info_dict['timestamp'] = parse_iso8601(
+                '%s-%s-%sT%s:00' % (date[0:4], date[4:6], date[6:8], hour))
+        elif date:
+            info_dict['upload_date'] = date
 
         return info_dict
