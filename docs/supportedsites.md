@@ -174,6 +174,7 @@
  - **Gazeta**
  - **GDCVault**
  - **generic**: Generic downloader that works on some sites
+ - **Gfycat**
  - **GiantBomb**
  - **Giga**
  - **Glide**: Glide mobile video messages (glide.me)
@@ -181,7 +182,7 @@
  - **GodTube**
  - **GoldenMoustache**
  - **Golem**
- - **GorillaVid**: GorillaVid.in, daclips.in, movpod.in and fastvideo.in
+ - **GorillaVid**: GorillaVid.in, daclips.in, movpod.in, fastvideo.in and realvid.net
  - **Goshgay**
  - **Grooveshark**
  - **Groupon**
@@ -252,6 +253,7 @@
  - **Malemotion**
  - **MDR**
  - **media.ccc.de**
+ - **MegaVideoz**
  - **metacafe**
  - **Metacritic**
  - **Mgoon**
@@ -405,6 +407,7 @@
  - **Screencast**
  - **ScreencastOMatic**
  - **ScreenwaveMedia**
+ - **SenateISVP**
  - **ServingSys**
  - **Sexu**
  - **SexyKarma**: Sexy Karma and Watch Indian Porn
@@ -427,6 +430,7 @@
  - **soundgasm**
  - **soundgasm:profile**
  - **southpark.cc.com**
+ - **southpark.cc.com:español**
  - **southpark.de**
  - **Space**
  - **SpankBang**
@@ -461,7 +465,7 @@
  - **TeamFour**
  - **TechTalks**
  - **techtv.mit.edu**
- - **TED**
+ - **ted**
  - **tegenlicht.vpro.nl**
  - **TeleBruxelles**
  - **telecinco.es**
@@ -551,7 +555,7 @@
  - **vimeo:review**: Review pages on vimeo
  - **vimeo:user**
  - **vimeo:watchlater**: Vimeo watch later list, "vimeowatchlater" keyword (requires authentication)
- - **Vimple**: Vimple.ru
+ - **Vimple**: Vimple - one-click video hosting
  - **Vine**
  - **vine:user**
  - **vk.com**
