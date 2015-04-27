@@ -1,128 +1,102 @@
 from __future__ import unicode_literals
 
+import json
+
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_request
+
 from ..utils import (
-    ExtractorError,
-    js_to_json,
-    parse_duration,
+    determine_ext,
+    clean_html,
+    qualities,
 )
+
+
+def _decrypt_config(key, string):
+    a = ''
+    i = ''
+    r = ''
+
+    while len(a) < (len(string) / 2):
+        a += key
+
+    a = a[0:int(len(string) / 2)]
+
+    t = 0
+    while t < len(string):
+        i += chr(int(string[t] + string[t + 1], 16))
+        t += 2
+
+    icko = [s for s in i]
+
+    for t, c in enumerate(a):
+        r += chr(ord(c) ^ ord(icko[t]))
+
+    return r
 
 
 class EscapistIE(InfoExtractor):
     _VALID_URL = r'https?://?(www\.)?escapistmagazine\.com/videos/view/[^/?#]+/(?P<id>[0-9]+)-[^/?#]*(?:$|[?#])'
-    _USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate',
-        'md5': 'ab3a706c681efca53f0a35f1415cf0d1',
+        'md5': 'c6793dbda81388f4264c1ba18684a74d',
         'info_dict': {
             'id': '6618',
             'ext': 'mp4',
             'description': "Baldur's Gate: Original, Modded or Enhanced Edition? I'll break down what you can expect from the new Baldur's Gate: Enhanced Edition.",
-            'uploader_id': 'the-escapist-presents',
-            'uploader': 'The Escapist Presents',
             'title': "Breaking Down Baldur's Gate",
             'thumbnail': 're:^https?://.*\.jpg$',
             'duration': 264,
         }
-    }
+    }, {
+        'url': 'http://www.escapistmagazine.com/videos/view/zero-punctuation/10044-Evolve-One-vs-Multiplayer',
+        'md5': 'cf8842a8a46444d241f9a9980d7874f2',
+        'info_dict': {
+            'id': '10044',
+            'ext': 'mp4',
+            'description': 'This week, Zero Punctuation reviews Evolve.',
+            'title': 'Evolve - One vs Multiplayer',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'duration': 304,
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage_req = compat_urllib_request.Request(url)
-        webpage_req.add_header('User-Agent', self._USER_AGENT)
-        webpage = self._download_webpage(webpage_req, video_id)
+        webpage = self._download_webpage(url, video_id)
 
-        uploader_id = self._html_search_regex(
-            r"<h1\s+class='headline'>\s*<a\s+href='/videos/view/(.*?)'",
-            webpage, 'uploader ID', fatal=False)
-        uploader = self._html_search_regex(
-            r"<h1\s+class='headline'>(.*?)</a>",
-            webpage, 'uploader', fatal=False)
-        description = self._html_search_meta('description', webpage)
-        duration = parse_duration(self._html_search_meta('duration', webpage))
+        imsVideo = json.loads(self._search_regex(r'imsVideo\.play\(([^\)]+)\);', webpage, 'imsVideo'))
+        video_id = imsVideo['videoID']
+        key = imsVideo['hash']
 
-        raw_title = self._html_search_meta('title', webpage, fatal=True)
-        title = raw_title.partition(' : ')[2]
-
-        config_url = compat_urllib_parse.unquote(self._html_search_regex(
-            r'''(?x)
-            (?:
-                <param\s+name="flashvars".*?\s+value="config=|
-                flashvars=&quot;config=
-            )
-            (https?://[^"&]+)
-            ''',
-            webpage, 'config URL'))
+        quality = qualities(['lq', 'hq', 'hd'])
 
         formats = []
-        ad_formats = []
+        for q in ['lq', 'hq', 'hd']:
+            config_req = compat_urllib_request.Request('http://www.escapistmagazine.com/videos/'
+                'vidconfig.php?videoID=%s&hash=%s&quality=%s' % (video_id, key, 'mp4_' + q))
+            config_req.add_header('Referer', url)
+            config = self._download_webpage(config_req, video_id, 'Downloading video config ' + q.upper())
 
-        def _add_format(name, cfg_url, quality):
-            cfg_req = compat_urllib_request.Request(cfg_url)
-            cfg_req.add_header('User-Agent', self._USER_AGENT)
-            config = self._download_json(
-                cfg_req, video_id,
-                'Downloading ' + name + ' configuration',
-                'Unable to download ' + name + ' configuration',
-                transform_source=js_to_json)
+            data = json.loads(_decrypt_config(key, config))
 
-            playlist = config['playlist']
-            for p in playlist:
-                if p.get('eventCategory') == 'Video':
-                    ar = formats
-                elif p.get('eventCategory') == 'Video Postroll':
-                    ar = ad_formats
-                else:
-                    continue
+            title = clean_html(data['videoData']['title'])
+            duration = data['videoData']['duration'] / 1000
 
-                ar.append({
-                    'url': p['url'],
-                    'format_id': name,
-                    'quality': quality,
-                    'http_headers': {
-                        'User-Agent': self._USER_AGENT,
-                    },
-                })
+            for i, v in enumerate(data['files']['videos']):
 
-        _add_format('normal', config_url, quality=0)
-        hq_url = (config_url +
-                  ('&hq=1' if '?' in config_url else config_url + '?hq=1'))
-        try:
-            _add_format('hq', hq_url, quality=1)
-        except ExtractorError:
-            pass  # That's fine, we'll just use normal quality
-        self._sort_formats(formats)
+                formats.append({
+                    'url': v,
+                    'format_id': determine_ext(v) + '_' + q + str(i),
+                    'quality': quality(q),
+                    })
 
-        if '/escapist/sales-marketing/' in formats[-1]['url']:
-            raise ExtractorError('This IP address has been blocked by The Escapist', expected=True)
 
-        res = {
+        return {
             'id': video_id,
             'formats': formats,
-            'uploader': uploader,
-            'uploader_id': uploader_id,
             'title': title,
             'thumbnail': self._og_search_thumbnail(webpage),
-            'description': description,
+            'description': self._og_search_description(webpage),
             'duration': duration,
         }
-
-        if self._downloader.params.get('include_ads') and ad_formats:
-            self._sort_formats(ad_formats)
-            ad_res = {
-                'id': '%s-ad' % video_id,
-                'title': '%s (Postroll)' % title,
-                'formats': ad_formats,
-            }
-            return {
-                '_type': 'playlist',
-                'entries': [res, ad_res],
-                'title': title,
-                'id': video_id,
-            }
-
-        return res
