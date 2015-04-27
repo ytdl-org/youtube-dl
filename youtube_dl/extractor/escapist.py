@@ -65,7 +65,10 @@ class EscapistIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        imsVideo = json.loads(self._search_regex(r'imsVideo\.play\(([^\)]+)\);', webpage, 'imsVideo'))
+        imsVideo = self._parse_json(
+            self._search_regex(
+                r'imsVideo\.play\(({.+?})\);', webpage, 'imsVideo'),
+            video_id)
         video_id = imsVideo['videoID']
         key = imsVideo['hash']
 
