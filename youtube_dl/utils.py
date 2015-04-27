@@ -37,6 +37,7 @@ from .compat import (
     compat_chr,
     compat_html_entities,
     compat_http_client,
+    compat_kwargs,
     compat_parse_qs,
     compat_socket_create_connection,
     compat_str,
@@ -114,7 +115,7 @@ def write_json_file(obj, fn):
             'encoding': 'utf-8',
         })
 
-    tf = tempfile.NamedTemporaryFile(**args)
+    tf = tempfile.NamedTemporaryFile(**compat_kwargs(args))
 
     try:
         with tf:
