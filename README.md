@@ -362,17 +362,17 @@ YouTube requires an additional signature since September 2012 which is not suppo
 
 That's actually the output from your shell. Since ampersand is one of the special shell characters it's interpreted by shell preventing you from passing the whole URL to youtube-dl. To disable your shell from interpreting the ampersands (or any other special characters) you have to either put the whole URL in quotes or escape them with a backslash (which approach will work depends on your shell).
 
-For example if your URL is https://www.youtube.com/watch?t=48&v=e2CXaJv0cMw you should end up with following command:
+For example if your URL is https://www.youtube.com/watch?t=4&v=BaW_jenozKc you should end up with following command:
 
-```youtube-dl 'https://www.youtube.com/watch?t=48&v=e2CXaJv0cMw'```
+```youtube-dl 'https://www.youtube.com/watch?t=4&v=BaW_jenozKc'```
 
 or
 
-```youtube-dl https://www.youtube.com/watch?t=48\&v=e2CXaJv0cMw```
+```youtube-dl https://www.youtube.com/watch?t=4\&v=BaW_jenozKc```
 
 For Windows you have to use the double quotes:
 
-```youtube-dl "https://www.youtube.com/watch?t=48&v=e2CXaJv0cMw"```
+```youtube-dl "https://www.youtube.com/watch?t=4&v=BaW_jenozKc"```
 
 ### ExtractorError: Could not find JS function u'OF'
 
