@@ -358,6 +358,22 @@ YouTube has switched to a new video info format in July 2011 which is not suppor
 
 YouTube requires an additional signature since September 2012 which is not supported by old versions of youtube-dl. See [above](#how-do-i-update-youtube-dl) for how to update youtube-dl.
 
+### Video URL contains an ampersand and I'm getting some strange output `[1] 2839` or `'v' is not recognized as an internal or external command` ###
+
+That's actually the output from your shell. Since ampersand is one of the special shell characters it's interpreted by shell preventing you from passing the whole URL to youtube-dl. To disable your shell from interpreting the ampersands (or any other special characters) you have to either put the whole URL in quotes or escape them with a backslash (which approach will work depends on your shell).
+
+For example if your URL is https://www.youtube.com/watch?t=48&v=e2CXaJv0cMw you should end up with following command:
+
+```youtube-dl 'https://www.youtube.com/watch?t=48&v=e2CXaJv0cMw'```
+
+or
+
+```youtube-dl https://www.youtube.com/watch?t=48\&v=e2CXaJv0cMw```
+
+For Windows you have to use the double quotes:
+
+```youtube-dl "https://www.youtube.com/watch?t=48&v=e2CXaJv0cMw"```
+
 ### ExtractorError: Could not find JS function u'OF'
 
 In February 2015, the new YouTube player contained a character sequence in a string that was misinterpreted by old versions of youtube-dl. See [above](#how-do-i-update-youtube-dl) for how to update youtube-dl.
