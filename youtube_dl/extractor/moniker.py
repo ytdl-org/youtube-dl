@@ -41,6 +41,9 @@ class MonikerIE(InfoExtractor):
         video_id = self._match_id(url)
         orig_webpage = self._download_webpage(url, video_id)
 
+        if '>File Not Found<' in orig_webpage:
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+
         error = self._search_regex(
             r'class="err">([^<]+)<', orig_webpage, 'error', default=None)
         if error:
