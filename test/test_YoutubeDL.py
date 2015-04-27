@@ -101,39 +101,6 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['ext'], 'flv')
 
-    def test_format_limit(self):
-        formats = [
-            {'format_id': 'meh', 'url': 'http://example.com/meh', 'preference': 1},
-            {'format_id': 'good', 'url': 'http://example.com/good', 'preference': 2},
-            {'format_id': 'great', 'url': 'http://example.com/great', 'preference': 3},
-            {'format_id': 'excellent', 'url': 'http://example.com/exc', 'preference': 4},
-        ]
-        info_dict = _make_result(formats)
-
-        ydl = YDL()
-        ydl.process_ie_result(info_dict)
-        downloaded = ydl.downloaded_info_dicts[0]
-        self.assertEqual(downloaded['format_id'], 'excellent')
-
-        ydl = YDL({'format_limit': 'good'})
-        assert ydl.params['format_limit'] == 'good'
-        ydl.process_ie_result(info_dict.copy())
-        downloaded = ydl.downloaded_info_dicts[0]
-        self.assertEqual(downloaded['format_id'], 'good')
-
-        ydl = YDL({'format_limit': 'great', 'format': 'all'})
-        ydl.process_ie_result(info_dict.copy())
-        self.assertEqual(ydl.downloaded_info_dicts[0]['format_id'], 'meh')
-        self.assertEqual(ydl.downloaded_info_dicts[1]['format_id'], 'good')
-        self.assertEqual(ydl.downloaded_info_dicts[2]['format_id'], 'great')
-        self.assertTrue('3' in ydl.msgs[0])
-
-        ydl = YDL()
-        ydl.params['format_limit'] = 'excellent'
-        ydl.process_ie_result(info_dict.copy())
-        downloaded = ydl.downloaded_info_dicts[0]
-        self.assertEqual(downloaded['format_id'], 'excellent')
-
     def test_format_selection(self):
         formats = [
             {'format_id': '35', 'ext': 'mp4', 'preference': 1, 'url': TEST_URL},

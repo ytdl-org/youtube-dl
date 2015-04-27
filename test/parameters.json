@@ -8,7 +8,6 @@
     "forcetitle": false, 
     "forceurl": false, 
     "format": "best",
-    "format_limit": null, 
     "ignoreerrors": false, 
     "listformats": null, 
     "logtostderr": false, 

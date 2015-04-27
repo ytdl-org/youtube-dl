@@ -332,10 +332,6 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='prefer_free_formats', default=False,
         help='Prefer free video formats unless a specific one is requested')
     video_format.add_option(
-        '--max-quality',
-        action='store', dest='format_limit', metavar='FORMAT',
-        help='Highest quality format to download')
-    video_format.add_option(
         '-F', '--list-formats',
         action='store_true', dest='listformats',
         help='List all available formats')
