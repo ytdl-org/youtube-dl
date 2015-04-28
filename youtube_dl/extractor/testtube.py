@@ -22,12 +22,30 @@ class TestTubeIE(InfoExtractor):
             'uploader': 'DNews',
             'uploader_id': 'dnews',
         },
+    }, {
+        'url': 'https://testtube.com/iflscience/insane-jet-ski-flipping',
+        'info_dict': {
+            'id': 'fAGfJ4YjVus',
+            'ext': 'mp4',
+            'title': 'Flipping Jet-Ski Skills | Outrageous Acts of Science',
+            'uploader': 'Science Channel',
+            'uploader_id': 'ScienceChannel',
+            'upload_date': '20150203',
+            'description': 'md5:e61374030015bae1d2e22f096d4769d6',
+        }
     }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
 
         webpage = self._download_webpage(url, display_id)
+
+        youtube_url = self._html_search_regex(
+            r'<iframe[^>]+src="((?:https?:)?//www.youtube.com/embed/[^"]+)"',
+            webpage, 'youtube iframe', default=None)
+        if youtube_url:
+            return self.url_result(youtube_url, 'Youtube', video_id=display_id)
+
         video_id = self._search_regex(
             r"player\.loadRevision3Item\('video_id',\s*([0-9]+)\);",
             webpage, 'video ID')
