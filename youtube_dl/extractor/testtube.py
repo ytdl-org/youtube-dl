@@ -15,7 +15,7 @@ class TestTubeIE(InfoExtractor):
             'id': '60163',
             'display_id': '5-weird-ways-plants-can-eat-animals',
             'duration': 275,
-            'ext': 'mp4',
+            'ext': 'webm',
             'title': '5 Weird Ways Plants Can Eat Animals',
             'description': 'Why have some plants evolved to eat meat?',
             'thumbnail': 're:^https?://.*\.jpg$',
