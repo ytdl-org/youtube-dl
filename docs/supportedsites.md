@@ -340,6 +340,7 @@
  - **parliamentlive.tv**: UK parliament videos
  - **Patreon**
  - **PBS**
+ - **PhilharmonieDeParis**: Philharmonie de Paris
  - **Phoenix**
  - **Photobucket**
  - **Pladform**
