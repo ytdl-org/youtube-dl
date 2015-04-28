@@ -16,7 +16,7 @@ class YourUploadIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://yourupload.com/watch/14i14h',
-            'md5': 'bf5c2f95c4c917536e80936af7bc51e1',
+            'md5': '5e2c63385454c557f97c4c4131a393cd',
             'info_dict': {
                 'id': '14i14h',
                 'ext': 'mp4',
@@ -38,16 +38,16 @@ class YourUploadIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        url = 'http://embed.yucache.net/{0:}'.format(video_id)
-        webpage = self._download_webpage(url, video_id)
+        embed_url = 'http://embed.yucache.net/{0:}'.format(video_id)
+        webpage = self._download_webpage(embed_url, video_id)
 
         title = self._og_search_title(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
-        url = self._og_search_video_url(webpage)
+        video_url = self._og_search_video_url(webpage)
 
         formats = [{
             'format_id': 'sd',
-            'url': url,
+            'url': video_url,
         }]
 
         return {
@@ -55,4 +55,7 @@ class YourUploadIE(InfoExtractor):
             'title': title,
             'formats': formats,
             'thumbnail': thumbnail,
+            'http_headers': {
+                'Referer': embed_url,
+            },
         }
