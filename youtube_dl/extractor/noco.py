@@ -86,9 +86,23 @@ class NocoIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
+        options = self._call_api('users/init', None, 'Downloading user options JSON')['options']
+        audio_lang = options.get('audio_language', 'fr')
+
         medias = self._call_api(
             'shows/%s/medias' % video_id,
             video_id, 'Downloading video JSON')
+
+        show = self._call_api(
+            'shows/by_id/%s' % video_id,
+            video_id, 'Downloading show JSON')[0]
+
+        if audio_lang == 'original':
+            audio_lang = show['original_lang']
+        if len(medias) == 1:
+            audio_lang = list(medias.keys())[0]
+        elif not audio_lang in medias:
+            audio_lang = 'fr'
 
         qualities = self._call_api(
             'qualities',
@@ -96,12 +110,12 @@ class NocoIE(InfoExtractor):
 
         formats = []
 
-        for lang, lang_dict in medias['fr']['video_list'].items():
+        for lang, lang_dict in medias[audio_lang]['video_list'].items():
             for format_id, fmt in lang_dict['quality_list'].items():
                 format_id_extended = '%s-%s' % (lang, format_id) if lang != 'none' else format_id
 
                 video = self._call_api(
-                    'shows/%s/video/%s/fr' % (video_id, format_id.lower()),
+                    'shows/%s/video/%s/%s' % (video_id, format_id.lower(), audio_lang),
                     video_id, 'Downloading %s video JSON' % format_id_extended,
                     lang if lang != 'none' else None)
 
@@ -126,10 +140,6 @@ class NocoIE(InfoExtractor):
                 })
 
         self._sort_formats(formats)
-
-        show = self._call_api(
-            'shows/by_id/%s' % video_id,
-            video_id, 'Downloading show JSON')[0]
 
         upload_date = unified_strdate(show['online_date_start_utc'])
         uploader = show['partner_name']
