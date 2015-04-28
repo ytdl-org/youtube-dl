@@ -1291,12 +1291,22 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         page = self._download_webpage(url, playlist_id)
         more_widget_html = content_html = page
 
-        # Check if the playlist exists or is private
-        if re.search(r'<div class="yt-alert-message">[^<]*?(The|This) playlist (does not exist|is private)[^<]*?</div>', page) is not None:
-            raise ExtractorError(
-                'The playlist doesn\'t exist or is private, use --username or '
-                '--netrc to access it.',
-                expected=True)
+        for match in re.findall(r'<div class="yt-alert-message">([^<]+)</div>', page):
+            match = match.strip()
+            # Check if the playlist exists or is private
+            if re.match(r'[^<]*(The|This) playlist (does not exist|is private)[^<]*', match):
+                raise ExtractorError(
+                    'The playlist doesn\'t exist or is private, use --username or '
+                    '--netrc to access it.',
+                    expected=True)
+            elif re.match(r'[^<]*Invalid parameters[^<]*', match):
+                raise ExtractorError(
+                    'Invalid parameters. Maybe URL is incorrect.',
+                    expected=True)
+            elif re.match(r'[^<]*Choose your language[^<]*', match):
+                continue
+            else:
+                self.report_warning('Youtube gives an alert message: ' + match)
 
         # Extract the video ids from the playlist pages
         ids = []
