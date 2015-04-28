@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 
 
@@ -35,25 +33,19 @@ class YourUploadIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         embed_url = 'http://embed.yucache.net/{0:}'.format(video_id)
         webpage = self._download_webpage(embed_url, video_id)
 
         title = self._og_search_title(webpage)
-        thumbnail = self._og_search_thumbnail(webpage)
         video_url = self._og_search_video_url(webpage)
-
-        formats = [{
-            'format_id': 'sd',
-            'url': video_url,
-        }]
+        thumbnail = self._og_search_thumbnail(webpage, default=None)
 
         return {
             'id': video_id,
             'title': title,
-            'formats': formats,
+            'url': video_url,
             'thumbnail': thumbnail,
             'http_headers': {
                 'Referer': embed_url,
