@@ -38,13 +38,10 @@ class NiconicoIE(InfoExtractor):
             'description': '(c) copyright 2008, Blender Foundation / www.bigbuckbunny.org',
             'duration': 33,
         },
-        'params': {
-            'username': 'ydl.niconico@gmail.com',
-            'password': 'youtube-dl',
-        },
     }, {
+        # File downloaded with and without credentials are different, so omit
+        # the md5 field
         'url': 'http://www.nicovideo.jp/watch/nm14296458',
-        'md5': '8db08e0158457cf852a31519fceea5bc',
         'info_dict': {
             'id': 'nm14296458',
             'ext': 'swf',
@@ -56,10 +53,6 @@ class NiconicoIE(InfoExtractor):
             'timestamp': 1304065916,
             'duration': 209,
         },
-        'params': {
-            'username': 'ydl.niconico@gmail.com',
-            'password': 'youtube-dl',
-        },
     }, {
         # 'video exists but is marked as "deleted"
         'url': 'http://www.nicovideo.jp/watch/sm10000',
@@ -70,10 +63,6 @@ class NiconicoIE(InfoExtractor):
             'description': 'deleted',
             'title': 'ドラえもんエターナル第3話「決戦第3新東京市」＜前編＞',
         },
-        'params': {
-            'username': 'ydl.niconico@gmail.com',
-            'password': 'youtube-dl',
-        }
     }]
 
     _VALID_URL = r'https?://(?:www\.|secure\.)?nicovideo\.jp/watch/(?P<id>(?:[a-z]{2})?[0-9]+)'
@@ -158,6 +147,8 @@ class NiconicoIE(InfoExtractor):
 
         # Start extracting information
         title = xpath_text(video_info, './/title')
+        if not title:
+            title = self._og_search_title(webpage, default=None)
         if not title:
             title = self._html_search_regex(
                 r'<span[^>]+class="videoHeaderTitle"[^>]*>([^<]+)</span>',
