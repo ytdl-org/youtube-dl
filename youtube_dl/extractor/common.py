@@ -47,7 +47,7 @@ class InfoExtractor(object):
     information possibly downloading the video to the file system, among
     other possible outcomes.
 
-    The type field determines the the type of the result.
+    The type field determines the type of the result.
     By far the most common value (and the default if _type is missing) is
     "video", which indicates a single video.
 
@@ -572,7 +572,7 @@ class InfoExtractor(object):
 
     def _get_login_info(self):
         """
-        Get the the login info as (username, password)
+        Get the login info as (username, password)
         It will look in the netrc file using the _NETRC_MACHINE value
         If there's no info available, return (None, None)
         """
