@@ -76,7 +76,8 @@ class EscapistIE(InfoExtractor):
 
         formats = []
         for q in ['lq', 'hq', 'hd']:
-            config_req = compat_urllib_request.Request('http://www.escapistmagazine.com/videos/'
+            config_req = compat_urllib_request.Request(
+                'http://www.escapistmagazine.com/videos/'
                 'vidconfig.php?videoID=%s&hash=%s&quality=%s' % (video_id, key, 'mp4_' + q))
             config_req.add_header('Referer', url)
             config = self._download_webpage(config_req, video_id, 'Downloading video config ' + q.upper())
@@ -92,8 +93,7 @@ class EscapistIE(InfoExtractor):
                     'url': v,
                     'format_id': determine_ext(v) + '_' + q + str(i),
                     'quality': quality(q),
-                    })
-
+                })
 
         return {
             'id': video_id,
