@@ -14,7 +14,9 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     parse_duration,
-    unified_strdate,
+    parse_iso8601,
+    xpath_text,
+    determine_ext,
 )
 
 
@@ -32,6 +34,7 @@ class NiconicoIE(InfoExtractor):
             'uploader': 'takuya0301',
             'uploader_id': '2698420',
             'upload_date': '20131123',
+            'timestamp': 1385182762,
             'description': '(c) copyright 2008, Blender Foundation / www.bigbuckbunny.org',
             'duration': 33,
         },
@@ -46,16 +49,31 @@ class NiconicoIE(InfoExtractor):
             'id': 'nm14296458',
             'ext': 'swf',
             'title': '【鏡音リン】Dance on media【オリジナル】take2!',
-            'description': 'md5:',
+            'description': 'md5:689f066d74610b3b22e0f1739add0f58',
             'uploader': 'りょうた',
             'uploader_id': '18822557',
             'upload_date': '20110429',
+            'timestamp': 1304065916,
             'duration': 209,
         },
         'params': {
             'username': 'ydl.niconico@gmail.com',
             'password': 'youtube-dl',
         },
+    }, {
+        # 'video exists but is marked as "deleted"
+        'url': 'http://www.nicovideo.jp/watch/sm10000',
+        'md5': '38e53c9aad548f3ecf01ca7680b59b08',
+        'info_dict': {
+            'id': 'sm10000',
+            'ext': 'unknown_video',
+            'description': 'deleted',
+            'title': 'ドラえもんエターナル第3話「決戦第3新東京市」＜前編＞',
+        },
+        'params': {
+            'username': 'ydl.niconico@gmail.com',
+            'password': 'youtube-dl',
+        }
     }]
 
     _VALID_URL = r'https?://(?:www\.|secure\.)?nicovideo\.jp/watch/(?P<id>(?:[a-z]{2})?[0-9]+)'
@@ -95,9 +113,10 @@ class NiconicoIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        # Get video webpage. We are not actually interested in it, but need
-        # the cookies in order to be able to download the info webpage
-        self._download_webpage('http://www.nicovideo.jp/watch/' + video_id, video_id)
+        # Get video webpage. We are not actually interested in it for normal
+        # cases, but need the cookies in order to be able to download the
+        # info webpage
+        webpage = self._download_webpage('http://www.nicovideo.jp/watch/' + video_id, video_id)
 
         video_info = self._download_xml(
             'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id, video_id,
@@ -127,22 +146,34 @@ class NiconicoIE(InfoExtractor):
                 flv_info_request, video_id,
                 note='Downloading flv info', errnote='Unable to download flv info')
 
-        if 'deleted=' in flv_info_webpage:
-            raise ExtractorError('The video has been deleted.',
-                                 expected=True)
-        video_real_url = compat_urlparse.parse_qs(flv_info_webpage)['url'][0]
+        flv_info = compat_urlparse.parse_qs(flv_info_webpage)
+        if 'url' not in flv_info:
+            if 'deleted' in flv_info:
+                raise ExtractorError('The video has been deleted.',
+                                     expected=True)
+            else:
+                raise ExtractorError('Unable to find video URL')
+
+        video_real_url = flv_info['url'][0]
 
         # Start extracting information
-        title = video_info.find('.//title').text
-        extension = video_info.find('.//movie_type').text
+        title = xpath_text(video_info, './/title')
+        if not title:
+            title = self._html_search_regex(
+                r'<span[^>]+class="videoHeaderTitle"[^>]*>([^<]+)</span>',
+                webpage, 'video title')
+
+        extension = xpath_text(video_info, './/movie_type')
+        if not extension:
+            extension = determine_ext(video_real_url)
         video_format = extension.upper()
-        thumbnail = video_info.find('.//thumbnail_url').text
-        description = video_info.find('.//description').text
-        upload_date = unified_strdate(video_info.find('.//first_retrieve').text.split('+')[0])
-        view_count = int_or_none(video_info.find('.//view_counter').text)
-        comment_count = int_or_none(video_info.find('.//comment_num').text)
-        duration = parse_duration(video_info.find('.//length').text)
-        webpage_url = video_info.find('.//watch_url').text
+        thumbnail = xpath_text(video_info, './/thumbnail_url')
+        description = xpath_text(video_info, './/description')
+        timestamp = parse_iso8601(xpath_text(video_info, './/first_retrieve'))
+        view_count = int_or_none(xpath_text(video_info, './/view_counter'))
+        comment_count = int_or_none(xpath_text(video_info, './/comment_num'))
+        duration = parse_duration(xpath_text(video_info, './/length'))
+        webpage_url = xpath_text(video_info, './/watch_url')
 
         if video_info.find('.//ch_id') is not None:
             uploader_id = video_info.find('.//ch_id').text
@@ -153,7 +184,7 @@ class NiconicoIE(InfoExtractor):
         else:
             uploader_id = uploader = None
 
-        return {
+        ret = {
             'id': video_id,
             'url': video_real_url,
             'title': title,
@@ -162,13 +193,14 @@ class NiconicoIE(InfoExtractor):
             'thumbnail': thumbnail,
             'description': description,
             'uploader': uploader,
-            'upload_date': upload_date,
+            'timestamp': timestamp,
             'uploader_id': uploader_id,
             'view_count': view_count,
             'comment_count': comment_count,
             'duration': duration,
             'webpage_url': webpage_url,
         }
+        return dict((k, v) for k, v in ret.items() if v is not None)
 
 
 class NiconicoPlaylistIE(InfoExtractor):
