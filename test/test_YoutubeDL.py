@@ -237,7 +237,7 @@ class TestFormatSelection(unittest.TestCase):
             f2['url'] = 'url:' + f2id
 
             info_dict = _make_result([f1, f2], extractor='youtube')
-            ydl = YDL()
+            ydl = YDL({'format': 'best/bestvideo'})
             yie = YoutubeIE(ydl)
             yie._sort_formats(info_dict['formats'])
             ydl.process_ie_result(info_dict)
@@ -245,7 +245,7 @@ class TestFormatSelection(unittest.TestCase):
             self.assertEqual(downloaded['format_id'], f1id)
 
             info_dict = _make_result([f2, f1], extractor='youtube')
-            ydl = YDL()
+            ydl = YDL({'format': 'best/bestvideo'})
             yie = YoutubeIE(ydl)
             yie._sort_formats(info_dict['formats'])
             ydl.process_ie_result(info_dict)
