@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import re
 import json
+import datetime
 
 from .common import InfoExtractor
 from ..compat import (
@@ -55,13 +56,16 @@ class NiconicoIE(InfoExtractor):
         },
     }, {
         # 'video exists but is marked as "deleted"
+        # md5 is unstable
         'url': 'http://www.nicovideo.jp/watch/sm10000',
-        'md5': '38e53c9aad548f3ecf01ca7680b59b08',
         'info_dict': {
             'id': 'sm10000',
             'ext': 'unknown_video',
             'description': 'deleted',
             'title': 'ドラえもんエターナル第3話「決戦第3新東京市」＜前編＞',
+            'upload_date': '20071224',
+            'timestamp': 1198527840,  # timestamp field has different value if logged in
+            'duration': 304,
         },
     }]
 
@@ -154,17 +158,59 @@ class NiconicoIE(InfoExtractor):
                 r'<span[^>]+class="videoHeaderTitle"[^>]*>([^<]+)</span>',
                 webpage, 'video title')
 
+        watch_api_data_string = self._html_search_regex(
+            r'<div[^>]+id="watchAPIDataContainer"[^>]+>([^<]+)</div>',
+            webpage, 'watch api data', default=None)
+        watch_api_data = self._parse_json(watch_api_data_string, video_id) if watch_api_data_string else {}
+        video_detail = watch_api_data.get('videoDetail', {})
+
         extension = xpath_text(video_info, './/movie_type')
         if not extension:
             extension = determine_ext(video_real_url)
         video_format = extension.upper()
-        thumbnail = xpath_text(video_info, './/thumbnail_url')
+
+        thumbnail = (
+            xpath_text(video_info, './/thumbnail_url') or
+            self._html_search_meta('image', webpage, 'thumbnail', default=None) or
+            video_detail.get('thumbnail'))
+
         description = xpath_text(video_info, './/description')
+
         timestamp = parse_iso8601(xpath_text(video_info, './/first_retrieve'))
+        if not timestamp:
+            match = self._html_search_meta('datePublished', webpage, 'date published', default=None)
+            if match:
+                timestamp = parse_iso8601(match.replace('+', ':00+'))
+        if not timestamp and video_detail.get('postedAt'):
+            timestamp = parse_iso8601(
+                video_detail['postedAt'].replace('/', '-'),
+                delimiter=' ', timezone=datetime.timedelta(hours=9))
+
         view_count = int_or_none(xpath_text(video_info, './/view_counter'))
+        if not view_count:
+            match = self._html_search_regex(
+                r'>Views: <strong[^>]*>([^<]+)</strong>',
+                webpage, 'view count', default=None)
+            if match:
+                view_count = int_or_none(match.replace(',', ''))
+        view_count = view_count or video_detail.get('viewCount')
+
         comment_count = int_or_none(xpath_text(video_info, './/comment_num'))
-        duration = parse_duration(xpath_text(video_info, './/length'))
-        webpage_url = xpath_text(video_info, './/watch_url')
+        if not comment_count:
+            match = self._html_search_regex(
+                r'>Comments: <strong[^>]*>([^<]+)</strong>',
+                webpage, 'comment count', default=None)
+            if match:
+                comment_count = int_or_none(match.replace(',', ''))
+        comment_count = comment_count or video_detail.get('commentCount')
+
+        duration = (parse_duration(
+            xpath_text(video_info, './/length') or
+            self._html_search_meta(
+                'video:duration', webpage, 'video duration', default=None)) or
+            video_detail.get('length'))
+
+        webpage_url = xpath_text(video_info, './/watch_url') or url
 
         if video_info.find('.//ch_id') is not None:
             uploader_id = video_info.find('.//ch_id').text
@@ -175,7 +221,7 @@ class NiconicoIE(InfoExtractor):
         else:
             uploader_id = uploader = None
 
-        ret = {
+        return {
             'id': video_id,
             'url': video_real_url,
             'title': title,
@@ -191,7 +237,6 @@ class NiconicoIE(InfoExtractor):
             'duration': duration,
             'webpage_url': webpage_url,
         }
-        return dict((k, v) for k, v in ret.items() if v is not None)
 
 
 class NiconicoPlaylistIE(InfoExtractor):
