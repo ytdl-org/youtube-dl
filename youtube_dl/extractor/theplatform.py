@@ -129,7 +129,9 @@ class ThePlatformIE(InfoExtractor):
         head = meta.find(_x('smil:head'))
         body = meta.find(_x('smil:body'))
 
-        f4m_node = body.find(_x('smil:seq//smil:video')) or body.find(_x('smil:seq/smil:video'))
+        f4m_node = body.find(_x('smil:seq//smil:video'))
+        if f4m_node is None:
+            f4m_node = body.find(_x('smil:seq/smil:video'))
         if f4m_node is not None and '.f4m' in f4m_node.attrib['src']:
             f4m_url = f4m_node.attrib['src']
             if 'manifest.f4m?' not in f4m_url:
@@ -142,7 +144,9 @@ class ThePlatformIE(InfoExtractor):
             formats = []
             switch = body.find(_x('smil:switch'))
             if switch is None:
-                switch = body.find(_x('smil:par//smil:switch')) or body.find(_x('smil:par/smil:switch'))
+                switch = body.find(_x('smil:par//smil:switch'))
+            if switch is None:
+                switch = body.find(_x('smil:par/smil:switch'))
             if switch is None:
                 switch = body.find(_x('smil:par'))
             if switch is not None:
@@ -163,7 +167,9 @@ class ThePlatformIE(InfoExtractor):
                         'vbr': vbr,
                     })
             else:
-                switch = body.find(_x('smil:seq//smil:switch')) or body.find(_x('smil:seq/smil:switch'))
+                switch = body.find(_x('smil:seq//smil:switch'))
+                if switch is None:
+                    switch = body.find(_x('smil:seq/smil:switch'))
                 for f in switch.findall(_x('smil:video')):
                     attr = f.attrib
                     vbr = int_or_none(attr.get('system-bitrate'), 1000)
