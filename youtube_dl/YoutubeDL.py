@@ -1339,7 +1339,7 @@ class YoutubeDL(object):
                 self.to_screen('[info] Writing video description metadata as JSON to: ' + infofn)
                 filtered_info_dict = dict(
                     (k, v) for k, v in info_dict.items()
-                    if not k in ['requested_formats', 'requested_subtitles'])
+                    if k not in ['requested_formats', 'requested_subtitles'])
                 try:
                     write_json_file(filtered_info_dict, infofn)
                 except (OSError, IOError):
