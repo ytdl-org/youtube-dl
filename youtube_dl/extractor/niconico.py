@@ -67,6 +67,18 @@ class NiconicoIE(InfoExtractor):
             'timestamp': 1198527840,  # timestamp field has different value if logged in
             'duration': 304,
         },
+    }, {
+        'url': 'http://www.nicovideo.jp/watch/so22543406',
+        'info_dict': {
+            'id': '1388129933',
+            'ext': 'mp4',
+            'title': '【第1回】RADIOアニメロミックス ラブライブ！～のぞえりRadio Garden～',
+            'description': 'md5:b27d224bb0ff53d3c8269e9f8b561cf1',
+            'timestamp': 1388851200,
+            'upload_date': '20140104',
+            'uploader': 'アニメロチャンネル',
+            'uploader_id': '312',
+        }
     }]
 
     _VALID_URL = r'https?://(?:www\.|secure\.)?nicovideo\.jp/watch/(?P<id>(?:[a-z]{2})?[0-9]+)'
@@ -109,7 +121,10 @@ class NiconicoIE(InfoExtractor):
         # Get video webpage. We are not actually interested in it for normal
         # cases, but need the cookies in order to be able to download the
         # info webpage
-        webpage = self._download_webpage('http://www.nicovideo.jp/watch/' + video_id, video_id)
+        webpage, handle = self._download_webpage_handle(
+            'http://www.nicovideo.jp/watch/' + video_id, video_id)
+        if video_id.startswith('so'):
+            video_id = self._match_id(handle.geturl())
 
         video_info = self._download_xml(
             'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id, video_id,
