@@ -1337,11 +1337,8 @@ class YoutubeDL(object):
                 self.to_screen('[info] Video description metadata is already present')
             else:
                 self.to_screen('[info] Writing video description metadata as JSON to: ' + infofn)
-                filtered_info_dict = dict(
-                    (k, v) for k, v in info_dict.items()
-                    if k not in ['requested_formats', 'requested_subtitles'])
                 try:
-                    write_json_file(filtered_info_dict, infofn)
+                    write_json_file(self.filter_requested_info(info_dict), infofn)
                 except (OSError, IOError):
                     self.report_error('Cannot write metadata to JSON file ' + infofn)
                     return
@@ -1491,7 +1488,7 @@ class YoutubeDL(object):
                 [info_filename], mode='r',
                 openhook=fileinput.hook_encoded('utf-8'))) as f:
             # FileInput doesn't have a read method, we can't call json.load
-            info = json.loads('\n'.join(f))
+            info = self.filter_requested_info(json.loads('\n'.join(f)))
         try:
             self.process_ie_result(info, download=True)
         except DownloadError:
@@ -1502,6 +1499,12 @@ class YoutubeDL(object):
             else:
                 raise
         return self._download_retcode
+
+    @staticmethod
+    def filter_requested_info(info_dict):
+        return dict(
+            (k, v) for k, v in info_dict.items()
+            if k not in ['requested_formats', 'requested_subtitles'])
 
     def post_process(self, filename, ie_info):
         """Run all the postprocessors on the given file."""
