@@ -39,13 +39,13 @@ class VeeHDIE(InfoExtractor):
             'uploader_id': 'spotted',
         }
     }, {
-        'url': 'http://veehd.com/video/4665804_Tell-No-One-Ne-le-dis-a-personne-2006-French-EngSoftSubs-Re-Up',
+        'url': 'http://veehd.com/video/2046729_2012-2009-DivX-Trailer',
         'info_dict': {
-            'id': '4665804',
+            'id': '2046729',
             'ext': 'avi',
-            'title': 'Tell No One (Ne le dis a personne) 2006 French(EngSoftSubs) Re-Up',
-            'description': 'md5:d660cca685549776f37165e9a10b60ba',
-            'uploader_id': 'belial2549',
+            'title': '2012 (2009) DivX Trailer',
+            'description': 'md5:75435ee95255e6a9838ac6f6f3a2396b',
+            'uploader_id': 'Movie_Trailers',
         }
     }]
 
