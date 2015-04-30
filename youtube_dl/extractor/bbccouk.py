@@ -116,6 +116,20 @@ class BBCCoUkIE(InfoExtractor):
                 'skip_download': True,
             }
         }, {
+            'url': 'http://www.bbc.co.uk/iplayer/episode/b054fn09/ad/natural-world-20152016-2-super-powered-owls',
+            'info_dict': {
+                'id': 'p02n76xf',
+                'ext': 'flv',
+                'title': 'Natural World, 2015-2016: 2. Super Powered Owls',
+                'description': 'md5:e4db5c937d0e95a7c6b5e654d429183d',
+                'duration': 3540,
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            },
+            'skip': 'geolocation',
+        }, {
             'url': 'http://www.bbc.co.uk/iplayer/playlist/p01dvks4',
             'only_matching': True,
         }, {
