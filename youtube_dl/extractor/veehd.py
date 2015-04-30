@@ -17,7 +17,9 @@ from ..utils import (
 class VeeHDIE(InfoExtractor):
     _VALID_URL = r'https?://veehd\.com/video/(?P<id>\d+)'
 
-    _TEST = {
+    # Seems VeeHD videos have multiple copies on several servers, all of
+    # whom have different MD5 checksums, so omit md5 field in all tests
+    _TESTS = [{
         'url': 'http://veehd.com/video/4639434_Solar-Sinter',
         'info_dict': {
             'id': '4639434',
@@ -26,7 +28,26 @@ class VeeHDIE(InfoExtractor):
             'uploader_id': 'VideoEyes',
             'description': 'md5:46a840e8692ddbaffb5f81d9885cb457',
         },
-    }
+        'skip': 'Video deleted',
+    }, {
+        'url': 'http://veehd.com/video/4905758_Elysian-Fields-Channeling',
+        'info_dict': {
+            'id': '4905758',
+            'ext': 'mp4',
+            'title': 'Elysian Fields - Channeling',
+            'description': 'md5:360e4e95fdab58aefbea0f2a19e5604b',
+            'uploader_id': 'spotted',
+        }
+    }, {
+        'url': 'http://veehd.com/video/4665804_Tell-No-One-Ne-le-dis-a-personne-2006-French-EngSoftSubs-Re-Up',
+        'info_dict': {
+            'id': '4665804',
+            'ext': 'avi',
+            'title': 'Tell No One (Ne le dis a personne) 2006 French(EngSoftSubs) Re-Up',
+            'description': 'md5:d660cca685549776f37165e9a10b60ba',
+            'uploader_id': 'belial2549',
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -48,13 +69,21 @@ class VeeHDIE(InfoExtractor):
         player_page = self._download_webpage(
             player_url, video_id, 'Downloading player page')
 
+        video_url = None
+
         config_json = self._search_regex(
             r'value=\'config=({.+?})\'', player_page, 'config json', default=None)
 
         if config_json:
             config = json.loads(config_json)
             video_url = compat_urlparse.unquote(config['clip']['url'])
-        else:
+
+        if not video_url:
+            video_url = self._html_search_regex(
+                r'<embed[^>]+type="video/divx"[^>]+src="([^"]+)"',
+                player_page, 'video url', default=None)
+
+        if not video_url:
             iframe_src = self._search_regex(
                 r'<iframe[^>]+src="/?([^"]+)"', player_page, 'iframe url')
             iframe_url = 'http://veehd.com/%s' % iframe_src
@@ -82,7 +111,6 @@ class VeeHDIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'url': video_url,
-            'ext': 'mp4',
             'uploader_id': uploader_id,
             'thumbnail': thumbnail,
             'description': description,
