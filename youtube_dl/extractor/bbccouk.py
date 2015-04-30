@@ -343,8 +343,6 @@ class BBCCoUkIE(InfoExtractor):
 
         webpage = self._download_webpage(url, group_id, 'Downloading video page')
 
-        thumbnail = self._og_search_thumbnail(webpage)
-
         programme_id = None
 
         tviplayer = self._search_regex(
@@ -375,7 +373,7 @@ class BBCCoUkIE(InfoExtractor):
             'id': programme_id,
             'title': title,
             'description': description,
-            'thumbnail': thumbnail,
+            'thumbnail': self._og_search_thumbnail(webpage, default=None),
             'duration': duration,
             'formats': formats,
             'subtitles': subtitles,
