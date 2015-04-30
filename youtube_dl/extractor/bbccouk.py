@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 import xml.etree.ElementTree
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+)
 from ..compat import compat_HTTPError
 
 
@@ -326,16 +329,29 @@ class BBCCoUkIE(InfoExtractor):
 
         webpage = self._download_webpage(url, group_id, 'Downloading video page')
 
-        programme_id = self._search_regex(
-            r'"vpid"\s*:\s*"([\da-z]{8})"', webpage, 'vpid', fatal=False, default=None)
+        thumbnail = self._og_search_thumbnail(webpage)
+
+        programme_id = None
+
+        tviplayer = self._search_regex(
+            r'mediator\.bind\(({.+?})\s*,\s*document\.getElementById',
+            webpage, 'player', default=None)
+
+        if tviplayer:
+            player = self._parse_json(tviplayer, group_id).get('player', {})
+            duration = int_or_none(player.get('duration'))
+            programme_id = player.get('vpid')
+
+        if not programme_id:
+            programme_id = self._search_regex(
+                r'"vpid"\s*:\s*"([\da-z]{8})"', webpage, 'vpid', fatal=False, default=None)
+
         if programme_id:
-            player = self._download_json(
-                'http://www.bbc.co.uk/iplayer/episode/%s.json' % group_id,
-                group_id)['jsConf']['player']
-            title = player['title']
-            description = player['subtitle']
-            duration = player['duration']
             formats, subtitles = self._download_media_selector(programme_id)
+            title = self._og_search_title(webpage)
+            description = self._search_regex(
+                r'<p class="medium-description">([^<]+)</p>',
+                webpage, 'description', fatal=False)
         else:
             programme_id, title, description, duration, formats, subtitles = self._download_playlist(group_id)
 
@@ -345,6 +361,7 @@ class BBCCoUkIE(InfoExtractor):
             'id': programme_id,
             'title': title,
             'description': description,
+            'thumbnail': thumbnail,
             'duration': duration,
             'formats': formats,
             'subtitles': subtitles,
