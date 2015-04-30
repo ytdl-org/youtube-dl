@@ -161,6 +161,7 @@ from .footyroom import FootyRoomIE
 from .fourtube import FourTubeIE
 from .foxgay import FoxgayIE
 from .foxnews import FoxNewsIE
+from .foxsports import FoxSportsIE
 from .franceculture import FranceCultureIE
 from .franceinter import FranceInterIE
 from .francetv import (
