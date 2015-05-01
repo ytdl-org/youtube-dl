@@ -12,6 +12,8 @@ from ..utils import (
     unified_strdate,
     US_RATINGS,
     clean_html,
+    determine_ext,
+    mimetype2ext,
 )
 from .common import InfoExtractor
 
@@ -44,6 +46,19 @@ class VikiIE(InfoExtractor):
             'description': 'md5:d70b2f9428f5488321bfe1db10d612ea',
             'upload_date': '20150430',
             'title': '\'The Avengers: Age of Ultron\' Press Conference',
+        }
+    }, {
+        'url': 'http://www.viki.com/videos/1048879v-ankhon-dekhi',
+        'info_dict': {
+            'id': '1048879v',
+            'ext': 'mp4',
+            'upload_date': '20140820',
+            'description': 'md5:54ff56d51bdfc7a30441ec967394e91c',
+            'title': 'Ankhon Dekhi',
+        },
+        'params': {
+            # requires ffmpeg
+            'skip_download': True,
         }
     }]
 
@@ -81,8 +96,21 @@ class VikiIE(InfoExtractor):
                     expected=True)
             else:
                 raise ExtractorError('Viki said: ' + err_msg)
-        video_url = self._html_search_regex(
-            r'<source[^>]+src="([^"]+)"', info_webpage, 'video URL')
+        mobj = re.search(
+            r'<source[^>]+type="(?P<mime_type>[^"]+)"[^>]+src="(?P<url>[^"]+)"', info_webpage)
+        if not mobj:
+            raise ExtractorError('Unable to find video URL')
+        video_url = unescapeHTML(mobj.group('url'))
+        video_ext = mimetype2ext(mobj.group('mime_type'))
+
+        if determine_ext(video_url) == 'm3u8':
+            formats = self._extract_m3u8_formats(
+                video_url, video_id, ext=video_ext)
+        else:
+            formats = [{
+                'url': video_url,
+                'ext': video_ext,
+            }]
 
         upload_date_str = self._html_search_regex(
             r'"created_at":"([^"]+)"', info_webpage, 'upload date')
@@ -98,7 +126,7 @@ class VikiIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'url': video_url,
+            'formats': formats,
             'description': description,
             'thumbnail': thumbnail,
             'age_limit': age_limit,
