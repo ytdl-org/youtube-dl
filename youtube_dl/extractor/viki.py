@@ -11,6 +11,7 @@ from ..utils import (
     unescapeHTML,
     unified_strdate,
     US_RATINGS,
+    clean_html,
 )
 from .common import InfoExtractor
 
@@ -71,10 +72,15 @@ class VikiIE(InfoExtractor):
         req.add_header('User-Agent', self._USER_AGENT)
         info_webpage = self._download_webpage(
             req, video_id, note='Downloading info page')
-        if re.match(r'\s*<div\s+class="video-error', info_webpage):
-            raise ExtractorError(
-                'Video %s is blocked from your location.' % video_id,
-                expected=True)
+        err_msg = self._html_search_regex(r'<div[^>]+class="video-error[^>]+>(.+)</div>', info_webpage, 'error message', default=None)
+        if err_msg:
+            err_msg = clean_html(err_msg)
+            if 'not available in your region' in err_msg:
+                raise ExtractorError(
+                    'Video %s is blocked from your location.' % video_id,
+                    expected=True)
+            else:
+                raise ExtractorError('Viki said: ' + err_msg)
         video_url = self._html_search_regex(
             r'<source[^>]+src="([^"]+)"', info_webpage, 'video URL')
 
