@@ -11,7 +11,6 @@ from ..utils import (
     unescapeHTML,
     unified_strdate,
     US_RATINGS,
-    clean_html,
     determine_ext,
     mimetype2ext,
 )
@@ -89,7 +88,6 @@ class VikiIE(InfoExtractor):
             req, video_id, note='Downloading info page')
         err_msg = self._html_search_regex(r'<div[^>]+class="video-error[^>]+>(.+)</div>', info_webpage, 'error message', default=None)
         if err_msg:
-            err_msg = clean_html(err_msg)
             if 'not available in your region' in err_msg:
                 raise ExtractorError(
                     'Video %s is blocked from your location.' % video_id,
