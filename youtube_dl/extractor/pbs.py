@@ -5,6 +5,8 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
+    determine_ext,
+    int_or_none,
     unified_strdate,
     US_RATINGS,
 )
@@ -149,21 +151,44 @@ class PBSIE(InfoExtractor):
                 for vid_id in video_id]
             return self.playlist_result(entries, display_id)
 
-        info_url = 'http://video.pbs.org/videoInfo/%s?format=json' % video_id
-        info = self._download_json(info_url, display_id)
+        info = self._download_json(
+            'http://video.pbs.org/videoInfo/%s?format=json&type=partner' % video_id,
+            display_id)
 
-        redirect_url = info['alternate_encoding']['url']
-        redirect_info = self._download_json(
-            redirect_url + '?format=json', display_id,
-            'Downloading video url info')
-        if redirect_info['status'] == 'error':
-            if redirect_info['http_code'] == 403:
-                message = (
-                    'The video is not available in your region due to '
-                    'right restrictions')
+        formats = []
+        for encoding_name in ('recommended_encoding', 'alternate_encoding'):
+            redirect = info.get(encoding_name)
+            if not redirect:
+                continue
+            redirect_url = redirect.get('url')
+            if not redirect_url:
+                continue
+
+            redirect_info = self._download_json(
+                redirect_url + '?format=json', display_id,
+                'Downloading %s video url info' % encoding_name)
+
+            if redirect_info['status'] == 'error':
+                if redirect_info['http_code'] == 403:
+                    message = (
+                        'The video is not available in your region due to '
+                        'right restrictions')
+                else:
+                    message = redirect_info['message']
+                raise ExtractorError(message, expected=True)
+
+            format_url = redirect_info.get('url')
+            if not format_url:
+                continue
+
+            if determine_ext(format_url) == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, display_id, 'mp4', preference=1, m3u8_id='hls'))
             else:
-                message = redirect_info['message']
-            raise ExtractorError(message, expected=True)
+                formats.append({
+                    'url': format_url,
+                })
+        self._sort_formats(formats)
 
         rating_str = info.get('rating')
         if rating_str is not None:
@@ -174,11 +199,10 @@ class PBSIE(InfoExtractor):
             'id': video_id,
             'display_id': display_id,
             'title': info['title'],
-            'url': redirect_info['url'],
-            'ext': 'mp4',
             'description': info['program'].get('description'),
             'thumbnail': info.get('image_url'),
-            'duration': info.get('duration'),
+            'duration': int_or_none(info.get('duration')),
             'age_limit': age_limit,
             'upload_date': upload_date,
+            'formats': formats,
         }
