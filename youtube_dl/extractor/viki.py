@@ -2,7 +2,10 @@ from __future__ import unicode_literals
 
 import re
 
-from ..compat import compat_urlparse
+from ..compat import (
+    compat_urlparse,
+    compat_urllib_request,
+)
 from ..utils import (
     ExtractorError,
     unescapeHTML,
@@ -15,8 +18,11 @@ from .common import InfoExtractor
 class VikiIE(InfoExtractor):
     IE_NAME = 'viki'
 
+    # iPad2
+    _USER_AGENT = 'Mozilla/5.0(iPad; U; CPU OS 4_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8F191 Safari/6533.18.5'
+
     _VALID_URL = r'^https?://(?:www\.)?viki\.com/videos/(?P<id>[0-9]+v)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.viki.com/videos/1023585v-heirs-episode-14',
         'info_dict': {
             'id': '1023585v',
@@ -28,7 +34,17 @@ class VikiIE(InfoExtractor):
             'age_limit': 13,
         },
         'skip': 'Blocked in the US',
-    }
+    }, {
+        'url': 'http://www.viki.com/videos/1067139v-the-avengers-age-of-ultron-press-conference',
+        'md5': 'ca6493e6f0a6ec07da9aa8d6304b4b2c',
+        'info_dict': {
+            'id': '1067139v',
+            'ext': 'mp4',
+            'description': 'md5:d70b2f9428f5488321bfe1db10d612ea',
+            'upload_date': '20150430',
+            'title': '\'The Avengers: Age of Ultron\' Press Conference',
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -50,9 +66,11 @@ class VikiIE(InfoExtractor):
             'rating information', default='').strip()
         age_limit = US_RATINGS.get(rating_str)
 
-        info_url = 'http://www.viki.com/player5_fragment/%s?action=show&controller=videos' % video_id
+        req = compat_urllib_request.Request(
+            'http://www.viki.com/player5_fragment/%s?action=show&controller=videos' % video_id)
+        req.add_header('User-Agent', self._USER_AGENT)
         info_webpage = self._download_webpage(
-            info_url, video_id, note='Downloading info page')
+            req, video_id, note='Downloading info page')
         if re.match(r'\s*<div\s+class="video-error', info_webpage):
             raise ExtractorError(
                 'Video %s is blocked from your location.' % video_id,
