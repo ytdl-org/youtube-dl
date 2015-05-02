@@ -41,6 +41,7 @@ from youtube_dl.utils import (
     sanitize_filename,
     sanitize_path,
     sanitize_url_path_consecutive_slashes,
+    prepend_extension,
     shell_quote,
     smuggle_url,
     str_to_int,
@@ -192,6 +193,14 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(
             sanitize_url_path_consecutive_slashes('http://hostname/abc//'),
             'http://hostname/abc/')
+
+    def test_prepend_extension(self):
+        self.assertEqual(prepend_extension('abc.ext', 'temp'), 'abc.temp.ext')
+        self.assertEqual(prepend_extension('abc.ext', 'temp', 'ext'), 'abc.temp.ext')
+        self.assertEqual(prepend_extension('abc.unexpected_ext', 'temp', 'ext'), 'abc.unexpected_ext.temp')
+        self.assertEqual(prepend_extension('abc', 'temp'), 'abc.temp')
+        self.assertEqual(prepend_extension('.abc', 'temp'), '.abc.temp')
+        self.assertEqual(prepend_extension('.abc.ext', 'temp'), '.abc.temp.ext')
 
     def test_ordered_set(self):
         self.assertEqual(orderedSet([1, 1, 2, 3, 4, 4, 5, 6, 7, 3, 5]), [1, 2, 3, 4, 5, 6, 7])
