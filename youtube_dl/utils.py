@@ -1349,9 +1349,12 @@ def parse_duration(s):
     return res
 
 
-def prepend_extension(filename, ext):
+def prepend_extension(filename, ext, expected_real_ext=None):
     name, real_ext = os.path.splitext(filename)
-    return '{0}.{1}{2}'.format(name, ext, real_ext)
+    return (
+        '{0}.{1}{2}'.format(name, ext, real_ext)
+        if not expected_real_ext or real_ext[1:] == expected_real_ext
+        else '{0}.{1}'.format(filename, ext))
 
 
 def check_executable(exe, args=[]):
