@@ -637,7 +637,7 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '--write-annotations',
         action='store_true', dest='writeannotations', default=False,
-        help='Write video annotations to a .annotation file')
+        help='Write video annotations to a .annotations.xml file')
     filesystem.add_option(
         '--load-info',
         dest='load_info_filename', metavar='FILE',
