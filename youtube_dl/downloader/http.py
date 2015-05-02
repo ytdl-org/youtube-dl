@@ -28,13 +28,8 @@ class HttpFD(FileDownloader):
         add_headers = info_dict.get('http_headers')
         if add_headers:
             headers.update(add_headers)
-        data = info_dict.get('http_post_data')
-        http_method = info_dict.get('http_method')
-        basic_request = compat_urllib_request.Request(url, data, headers)
-        request = compat_urllib_request.Request(url, data, headers)
-        if http_method is not None:
-            basic_request.get_method = lambda: http_method
-            request.get_method = lambda: http_method
+        basic_request = compat_urllib_request.Request(url, None, headers)
+        request = compat_urllib_request.Request(url, None, headers)
 
         is_test = self.params.get('test', False)
 

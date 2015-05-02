@@ -111,11 +111,8 @@ class InfoExtractor(object):
                                   (quality takes higher priority)
                                  -1 for default (order by other properties),
                                  -2 or smaller for less than default.
-                    * http_method  HTTP method to use for the download.
                     * http_headers  A dictionary of additional HTTP headers
                                  to add to the request.
-                    * http_post_data  Additional data to send with a POST
-                                 request.
                     * stretched_ratio  If given and not 1, indicates that the
                                  video's pixels are not square.
                                  width : height ratio as float.

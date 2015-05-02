@@ -47,11 +47,6 @@ except ImportError:  # Python 2
     import htmlentitydefs as compat_html_entities
 
 try:
-    import html.parser as compat_html_parser
-except ImportError:  # Python 2
-    import HTMLParser as compat_html_parser
-
-try:
     import http.client as compat_http_client
 except ImportError:  # Python 2
     import httplib as compat_http_client
@@ -404,7 +399,6 @@ __all__ = [
     'compat_getenv',
     'compat_getpass',
     'compat_html_entities',
-    'compat_html_parser',
     'compat_http_client',
     'compat_http_server',
     'compat_kwargs',
