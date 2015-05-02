@@ -199,7 +199,6 @@ from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
 from .gorillavid import GorillaVidIE
 from .goshgay import GoshgayIE
-from .grooveshark import GroovesharkIE
 from .groupon import GrouponIE
 from .hark import HarkIE
 from .hearthisat import HearThisAtIE
