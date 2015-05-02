@@ -71,6 +71,7 @@ from .utils import (
     write_string,
     YoutubeDLHandler,
     prepend_extension,
+    replace_extension,
     args_to_str,
     age_restricted,
 )
@@ -1332,7 +1333,7 @@ class YoutubeDL(object):
                     return
 
         if self.params.get('writeinfojson', False):
-            infofn = os.path.splitext(filename)[0] + '.info.json'
+            infofn = replace_extension(filename, 'info.json', info_dict.get('ext'))
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(infofn)):
                 self.to_screen('[info] Video description metadata is already present')
             else:
