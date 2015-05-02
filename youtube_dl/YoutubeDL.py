@@ -1403,7 +1403,7 @@ class YoutubeDL(object):
                             new_info = dict(info_dict)
                             new_info.update(f)
                             fname = self.prepare_filename(new_info)
-                            fname = prepend_extension(fname, 'f%s' % f['format_id'])
+                            fname = prepend_extension(fname, 'f%s' % f['format_id'], new_info['ext'])
                             downloaded.append(fname)
                             partial_success = dl(fname, new_info)
                             success = success and partial_success
