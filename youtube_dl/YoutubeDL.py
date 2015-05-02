@@ -1382,11 +1382,18 @@ class YoutubeDL(object):
                         # TODO: Check acodec/vcodec
                         return False
 
+                    filename_real_ext = os.path.splitext(filename)[1][1:]
+                    filename_wo_ext = (
+                        os.path.splitext(filename)[0]
+                        if filename_real_ext == info_dict['ext']
+                        else filename)
                     requested_formats = info_dict['requested_formats']
                     if self.params.get('merge_output_format') is None and not compatible_formats(requested_formats):
-                        filename = os.path.splitext(filename)[0] + '.mkv'
+                        info_dict['ext'] = 'mkv'
                         self.report_warning('You have requested formats incompatible for merge. '
                                             'The formats will be merged into mkv')
+                    # Ensure filename always has a correct extension for successful merge
+                    filename = '%s.%s' % (filename_wo_ext, info_dict['ext'])
                     if os.path.exists(encodeFilename(filename)):
                         self.to_screen(
                             '[download] %s has already been downloaded and '
