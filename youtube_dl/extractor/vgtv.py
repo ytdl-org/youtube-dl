@@ -8,7 +8,7 @@ from ..utils import float_or_none
 
 
 class VGTVIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?vgtv\.no/#!/(?:.*)/(?P<id>[0-9]+)'
+    _VALID_URL = r'http://(?:www\.)?vgtv\.no/#!/[^/]+/(?P<id>[0-9]+)'
     _TESTS = [
         {
             # streamType: vod
