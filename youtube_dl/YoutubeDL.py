@@ -1286,7 +1286,7 @@ class YoutubeDL(object):
                     return
 
         if self.params.get('writeannotations', False):
-            annofn = filename + '.annotations.xml'
+            annofn = replace_extension(filename, 'annotations.xml', info_dict.get('ext'))
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(annofn)):
                 self.to_screen('[info] Video annotations are already present')
             else:
