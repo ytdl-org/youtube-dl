@@ -1271,7 +1271,7 @@ class YoutubeDL(object):
             return
 
         if self.params.get('writedescription', False):
-            descfn = filename + '.description'
+            descfn = replace_extension(filename, 'description', info_dict.get('ext'))
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(descfn)):
                 self.to_screen('[info] Video description is already present')
             elif info_dict.get('description') is None:
