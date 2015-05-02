@@ -1357,6 +1357,13 @@ def prepend_extension(filename, ext, expected_real_ext=None):
         else '{0}.{1}'.format(filename, ext))
 
 
+def replace_extension(filename, ext, expected_real_ext=None):
+    name, real_ext = os.path.splitext(filename)
+    return '{0}.{1}'.format(
+        name if not expected_real_ext or real_ext[1:] == expected_real_ext else filename,
+        ext)
+
+
 def check_executable(exe, args=[]):
     """ Checks if the given binary is installed somewhere in PATH, and returns its name.
     args can be a list of arguments for a short output (like -version) """
