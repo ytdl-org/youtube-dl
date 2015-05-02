@@ -1105,32 +1105,31 @@ class YoutubeDL(object):
                         formats_info = (self.select_format(format_1, formats),
                                         self.select_format(format_2, formats))
                         if all(formats_info):
-                            # The first format must contain the video and the
-                            # second the audio
-                            if formats_info[0].get('vcodec') == 'none':
-                                self.report_error('The first format must '
-                                                  'contain the video, try using '
-                                                  '"-f %s+%s"' % (format_2, format_1))
+                            try:
+                                vfmtinfo = [fmt for fmt in formats_info if fmt.get('vcodec') != 'none'][0]
+                                afmtinfo = [fmt for fmt in formats_info if fmt.get('acodec') != 'none'][0]
+                            except IndexError:
+                                self.report_error('You must specify a single video format and a single audio format')
                                 return
-                            output_ext = (
-                                formats_info[0]['ext']
-                                if self.params.get('merge_output_format') is None
-                                else self.params['merge_output_format'])
+
+                            output_ext = self.params.get('merge_output_format')
+                            if output_ext is None:
+                                output_ext = vfmtinfo['ext']
                             selected_format = {
                                 'requested_formats': formats_info,
-                                'format': '%s+%s' % (formats_info[0].get('format'),
-                                                     formats_info[1].get('format')),
-                                'format_id': '%s+%s' % (formats_info[0].get('format_id'),
-                                                        formats_info[1].get('format_id')),
-                                'width': formats_info[0].get('width'),
-                                'height': formats_info[0].get('height'),
-                                'resolution': formats_info[0].get('resolution'),
-                                'fps': formats_info[0].get('fps'),
-                                'vcodec': formats_info[0].get('vcodec'),
-                                'vbr': formats_info[0].get('vbr'),
-                                'stretched_ratio': formats_info[0].get('stretched_ratio'),
-                                'acodec': formats_info[1].get('acodec'),
-                                'abr': formats_info[1].get('abr'),
+                                'format': '%s+%s' % (vfmtinfo.get('format'),
+                                                     afmtinfo.get('format')),
+                                'format_id': '%s+%s' % (vfmtinfo.get('format_id'),
+                                                        afmtinfo.get('format_id')),
+                                'width': vfmtinfo.get('width'),
+                                'height': vfmtinfo.get('height'),
+                                'resolution': vfmtinfo.get('resolution'),
+                                'fps': vfmtinfo.get('fps'),
+                                'vcodec': vfmtinfo.get('vcodec'),
+                                'vbr': vfmtinfo.get('vbr'),
+                                'stretched_ratio': vfmtinfo.get('stretched_ratio'),
+                                'acodec': afmtinfo.get('acodec'),
+                                'abr': afmtinfo.get('abr'),
                                 'ext': output_ext,
                             }
                         else:
