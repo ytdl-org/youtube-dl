@@ -181,12 +181,15 @@ class RUTVIE(InfoExtractor):
 
         self._sort_formats(formats)
 
+        is_live = video_type == 'live'
+
         return {
             'id': video_id,
-            'title': title,
+            'title': self._live_title(title) if is_live else title,
             'description': description,
             'thumbnail': thumbnail,
             'view_count': view_count,
             'duration': duration,
             'formats': formats,
+            'is_live': is_live,
         }
