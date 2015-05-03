@@ -133,7 +133,7 @@ which means you can modify it, redistribute it or use it however you like.
     --no-mtime                       Do not use the Last-modified header to set the file modification time
     --write-description              Write video description to a .description file
     --write-info-json                Write video metadata to a .info.json file
-    --write-annotations              Write video annotations to a .annotation file
+    --write-annotations              Write video annotations to a .annotations.xml file
     --load-info FILE                 JSON file containing the video information (created with the "--write-info-json" option)
     --cookies FILE                   File to read cookies from and dump cookie jar in
     --cache-dir DIR                  Location in the filesystem where youtube-dl can store some downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl

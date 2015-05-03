@@ -44,6 +44,7 @@
  - **audiomack**
  - **audiomack:album**
  - **Azubu**
+ - **BaiduVideo**
  - **bambuser**
  - **bambuser:channel**
  - **Bandcamp**
@@ -155,6 +156,7 @@
  - **FootyRoom**
  - **Foxgay**
  - **FoxNews**
+ - **FoxSports**
  - **france2.fr:generation-quoi**
  - **FranceCulture**
  - **FranceInter**
@@ -184,7 +186,6 @@
  - **Golem**
  - **GorillaVid**: GorillaVid.in, daclips.in, movpod.in, fastvideo.in and realvid.net
  - **Goshgay**
- - **Grooveshark**
  - **Groupon**
  - **Hark**
  - **HearThisAt**
