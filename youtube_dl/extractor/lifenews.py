@@ -47,9 +47,9 @@ class LifeNewsIE(InfoExtractor):
         description = self._og_search_description(webpage)
 
         view_count = self._html_search_regex(
-            r'<div class=\'views\'>(\d+)</div>', webpage, 'view count', fatal=False)
+            r'<div class=\'views\'>\s*(\d+)\s*</div>', webpage, 'view count', fatal=False)
         comment_count = self._html_search_regex(
-            r'<div class=\'comments\'>\s*<span class=\'counter\'>(\d+)</span>', webpage, 'comment count', fatal=False)
+            r'<div class=\'comments\'>\s*<span class=\'counter\'>\s*(\d+)\s*</span>', webpage, 'comment count', fatal=False)
 
         upload_date = self._html_search_regex(
             r'<time datetime=\'([^\']+)\'>', webpage, 'upload date', fatal=False)
