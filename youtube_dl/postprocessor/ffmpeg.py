@@ -4,7 +4,7 @@ import io
 import os
 import subprocess
 import time
-
+import hashNames
 
 from .common import AudioConversionError, PostProcessor
 
@@ -131,12 +131,17 @@ class FFmpegPostProcessor(PostProcessor):
             os.stat(encodeFilename(path)).st_mtime for path in input_paths)
 
         files_cmd = []
+        original_names = []
         for path in input_paths:
-            files_cmd.extend([encodeArgument('-i'), encodeFilename(path, True)])
+            hashed_path = hashNames.hashRename(path)
+            os.rename(path, hashed_path)
+            original_names.append([hashed_path, path])
+            files_cmd.extend([encodeArgument('-i'), encodeFilename(hashed_path, True)])
+        hashed_out_path = hashNames.hashRename(out_path)
         cmd = ([encodeFilename(self.executable, True), encodeArgument('-y')] +
                files_cmd +
                [encodeArgument(o) for o in opts] +
-               [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
+               [encodeFilename(self._ffmpeg_filename_argument(hashed_out_path), True)])
 
         if self._downloader.params.get('verbose', False):
             self._downloader.to_screen('[debug] ffmpeg command line: %s' % shell_quote(cmd))
@@ -146,6 +151,9 @@ class FFmpegPostProcessor(PostProcessor):
             stderr = stderr.decode('utf-8', 'replace')
             msg = stderr.strip().split('\n')[-1]
             raise FFmpegPostProcessorError(msg)
+        for o_name in original_names:
+            os.rename(o_name[0], o_name[1])
+        os.rename(hashed_out_path, out_path)
         self.try_utime(out_path, oldest_mtime, oldest_mtime)
 
     def run_ffmpeg(self, path, out_path, opts):
