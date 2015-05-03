@@ -85,7 +85,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        url = 'http://www.dailymotion.com/video/%s' % video_id
+        url = 'https://www.dailymotion.com/video/%s' % video_id
 
         # Retrieve video webpage to extract further information
         request = self._build_request(url)
@@ -110,7 +110,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         if mobj is not None:
             video_upload_date = mobj.group(3) + mobj.group(2) + mobj.group(1)
 
-        embed_url = 'http://www.dailymotion.com/embed/video/%s' % video_id
+        embed_url = 'https://www.dailymotion.com/embed/video/%s' % video_id
         embed_request = self._build_request(embed_url)
         embed_page = self._download_webpage(
             embed_request, video_id, 'Downloading embed page')
