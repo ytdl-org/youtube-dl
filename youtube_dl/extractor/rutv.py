@@ -189,9 +189,6 @@ class RUTVIE(InfoExtractor):
                 })
                 formats.append(fmt)
 
-        if not formats:
-            raise ExtractorError('No media links available for %s' % video_id)
-
         self._sort_formats(formats)
 
         return {
