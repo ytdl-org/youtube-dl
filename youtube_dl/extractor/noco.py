@@ -14,6 +14,9 @@ from ..compat import (
 from ..utils import (
     clean_html,
     ExtractorError,
+    int_or_none,
+    float_or_none,
+    parse_iso8601,
     unified_strdate,
 )
 
@@ -151,22 +154,22 @@ class NocoIE(InfoExtractor):
                     formats.append({
                         'url': file_url,
                         'format_id': format_id_extended,
-                        'width': fmt['res_width'],
-                        'height': fmt['res_lines'],
-                        'abr': fmt['audiobitrate'],
-                        'vbr': fmt['videobitrate'],
-                        'filesize': fmt['filesize'],
-                        'format_note': qualities[format_id]['quality_name'],
-                        'quality': qualities[format_id]['priority'],
+                        'width': int_or_none(fmt.get('res_width')),
+                        'height': int_or_none(fmt.get('res_lines')),
+                        'abr': int_or_none(fmt.get('audiobitrate')),
+                        'vbr': int_or_none(fmt.get('videobitrate')),
+                        'filesize': int_or_none(fmt.get('filesize')),
+                        'format_note': qualities[format_id].get('quality_name'),
+                        'quality': qualities[format_id].get('priority'),
                         'preference': preference,
                     })
 
         self._sort_formats(formats)
 
-        upload_date = unified_strdate(show['online_date_start_utc'])
-        uploader = show['partner_name']
-        uploader_id = show['partner_key']
-        duration = show['duration_ms'] / 1000.0
+        timestamp = parse_iso8601(show.get('online_date_start_utc'), ' ')
+        uploader = show.get('partner_name')
+        uploader_id = show.get('partner_key')
+        duration = float_or_none(show.get('duration_ms'), 1000)
 
         thumbnails = []
         for thumbnail_key, thumbnail_url in show.items():
@@ -198,7 +201,7 @@ class NocoIE(InfoExtractor):
             'title': title,
             'description': description,
             'thumbnails': thumbnails,
-            'upload_date': upload_date,
+            'timestamp': timestamp,
             'uploader': uploader,
             'uploader_id': uploader_id,
             'duration': duration,
