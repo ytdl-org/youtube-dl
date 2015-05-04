@@ -194,19 +194,19 @@ class LivestreamIE(InfoExtractor):
 # The original version of Livestream uses a different system
 class LivestreamOriginalIE(InfoExtractor):
     IE_NAME = 'livestream:original'
-    _VALID_URL = r'''(?x)https?://www\.livestream\.com/
+    _VALID_URL = r'''(?x)https?://original\.livestream\.com/
         (?P<user>[^/]+)/(?P<type>video|folder)
         (?:\?.*?Id=|/)(?P<id>.*?)(&|$)
         '''
     _TESTS = [{
-        'url': 'http://www.livestream.com/dealbook/video?clipId=pla_8aa4a3f1-ba15-46a4-893b-902210e138fb',
+        'url': 'http://original.livestream.com/dealbook/video?clipId=pla_8aa4a3f1-ba15-46a4-893b-902210e138fb',
         'info_dict': {
             'id': 'pla_8aa4a3f1-ba15-46a4-893b-902210e138fb',
             'ext': 'mp4',
             'title': 'Spark 1 (BitCoin) with Cameron Winklevoss & Tyler Winklevoss of Winklevoss Capital',
         },
     }, {
-        'url': 'https://www.livestream.com/newplay/folder?dirId=a07bf706-d0e4-4e75-a747-b021d84f2fd3',
+        'url': 'https://original.livestream.com/newplay/folder?dirId=a07bf706-d0e4-4e75-a747-b021d84f2fd3',
         'info_dict': {
             'id': 'a07bf706-d0e4-4e75-a747-b021d84f2fd3',
         },
