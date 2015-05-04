@@ -103,9 +103,6 @@ class NocoIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        options = self._call_api('users/init', None, 'Downloading user options JSON')['options']
-        audio_lang = options.get('audio_language', 'fr')
-
         medias = self._call_api(
             'shows/%s/medias' % video_id,
             video_id, 'Downloading video JSON')
@@ -114,12 +111,17 @@ class NocoIE(InfoExtractor):
             'shows/by_id/%s' % video_id,
             video_id, 'Downloading show JSON')[0]
 
-        if audio_lang == 'original':
-            audio_lang = show['original_lang']
+        options = self._call_api(
+            'users/init', video_id,
+            'Downloading user options JSON')['options']
+        audio_lang_pref = options.get('audio_language') or options.get('language', 'fr')
+
+        if audio_lang_pref == 'original':
+            audio_lang_pref = show['original_lang']
         if len(medias) == 1:
-            audio_lang = list(medias.keys())[0]
-        elif not audio_lang in medias:
-            audio_lang = 'fr'
+            audio_lang_pref = list(medias.keys())[0]
+        elif audio_lang_pref not in medias:
+            audio_lang_pref = 'fr'
 
         qualities = self._call_api(
             'qualities',
@@ -127,34 +129,37 @@ class NocoIE(InfoExtractor):
 
         formats = []
 
-        for lang, lang_dict in medias[audio_lang]['video_list'].items():
-            for format_id, fmt in lang_dict['quality_list'].items():
-                format_id_extended = '%s-%s' % (lang, format_id) if lang != 'none' else format_id
+        for audio_lang, audio_lang_dict in medias.items():
+            preference = 1 if audio_lang == audio_lang_pref else 0
+            for sub_lang, lang_dict in audio_lang_dict['video_list'].items():
+                for format_id, fmt in lang_dict['quality_list'].items():
+                    format_id_extended = 'audio-%s_sub-%s_%s' % (audio_lang, sub_lang, format_id)
 
-                video = self._call_api(
-                    'shows/%s/video/%s/%s' % (video_id, format_id.lower(), audio_lang),
-                    video_id, 'Downloading %s video JSON' % format_id_extended,
-                    lang if lang != 'none' else None)
+                    video = self._call_api(
+                        'shows/%s/video/%s/%s' % (video_id, format_id.lower(), audio_lang),
+                        video_id, 'Downloading %s video JSON' % format_id_extended,
+                        sub_lang if sub_lang != 'none' else None)
 
-                file_url = video['file']
-                if not file_url:
-                    continue
+                    file_url = video['file']
+                    if not file_url:
+                        continue
 
-                if file_url in ['forbidden', 'not found']:
-                    popmessage = video['popmessage']
-                    self._raise_error(popmessage['title'], popmessage['message'])
+                    if file_url in ['forbidden', 'not found']:
+                        popmessage = video['popmessage']
+                        self._raise_error(popmessage['title'], popmessage['message'])
 
-                formats.append({
-                    'url': file_url,
-                    'format_id': format_id_extended,
-                    'width': fmt['res_width'],
-                    'height': fmt['res_lines'],
-                    'abr': fmt['audiobitrate'],
-                    'vbr': fmt['videobitrate'],
-                    'filesize': fmt['filesize'],
-                    'format_note': qualities[format_id]['quality_name'],
-                    'preference': qualities[format_id]['priority'],
-                })
+                    formats.append({
+                        'url': file_url,
+                        'format_id': format_id_extended,
+                        'width': fmt['res_width'],
+                        'height': fmt['res_lines'],
+                        'abr': fmt['audiobitrate'],
+                        'vbr': fmt['videobitrate'],
+                        'filesize': fmt['filesize'],
+                        'format_note': qualities[format_id]['quality_name'],
+                        'quality': qualities[format_id]['priority'],
+                        'preference': preference,
+                    })
 
         self._sort_formats(formats)
 
