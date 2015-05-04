@@ -36,7 +36,7 @@ def _decrypt_config(key, string):
 
 
 class EscapistIE(InfoExtractor):
-    _VALID_URL = r'https?://?(www\.)?escapistmagazine\.com/videos/view/[^/?#]+/(?P<id>[0-9]+)-[^/?#]*(?:$|[?#])'
+    _VALID_URL = r'https?://?(?:www\.)?escapistmagazine\.com/videos/view/[^/?#]+/(?P<id>[0-9]+)-[^/?#]*(?:$|[?#])'
     _TESTS = [{
         'url': 'http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate',
         'md5': 'ab3a706c681efca53f0a35f1415cf0d1',
