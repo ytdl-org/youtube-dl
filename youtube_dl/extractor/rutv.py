@@ -87,7 +87,7 @@ class RUTVIE(InfoExtractor):
             'skip': 'Translation has finished',
         },
         {
-            'url': 'http://live.russia.tv/index/index/channel_id/3',
+            'url': 'http://player.rutv.ru/iframe/live/id/21/showZoomBtn/false/isPlay/true/',
             'info_dict': {
                 'id': '21',
                 'ext': 'mp4',
