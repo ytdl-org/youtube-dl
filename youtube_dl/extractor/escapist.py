@@ -39,7 +39,7 @@ class EscapistIE(InfoExtractor):
     _VALID_URL = r'https?://?(www\.)?escapistmagazine\.com/videos/view/[^/?#]+/(?P<id>[0-9]+)-[^/?#]*(?:$|[?#])'
     _TESTS = [{
         'url': 'http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate',
-        'md5': 'c6793dbda81388f4264c1ba18684a74d',
+        'md5': 'ab3a706c681efca53f0a35f1415cf0d1',
         'info_dict': {
             'id': '6618',
             'ext': 'mp4',
@@ -50,7 +50,7 @@ class EscapistIE(InfoExtractor):
         }
     }, {
         'url': 'http://www.escapistmagazine.com/videos/view/zero-punctuation/10044-Evolve-One-vs-Multiplayer',
-        'md5': 'cf8842a8a46444d241f9a9980d7874f2',
+        'md5': '9e8c437b0dbb0387d3bd3255ca77f6bf',
         'info_dict': {
             'id': '10044',
             'ext': 'mp4',
