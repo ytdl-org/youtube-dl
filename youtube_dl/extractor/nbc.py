@@ -37,13 +37,26 @@ class NBCIE(InfoExtractor):
             },
             'skip': 'Only works from US',
         },
+        {
+            'url': 'http://www.nbc.com/saturday-night-live/video/star-wars-teaser/2832821',
+            'info_dict': {
+                'id': '8iUuyzWDdYUZ',
+                'ext': 'flv',
+                'title': 'Star Wars Teaser',
+                'description': 'md5:0b40f9cbde5b671a7ff62fceccc4f442',
+            },
+            'skip': 'Only works from US',
+        }
     ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         theplatform_url = self._search_regex(
-            '(?:class="video-player video-player-full" data-mpx-url|class="player" src)="(.*?)"',
+            [
+                r'(?:class="video-player video-player-full" data-mpx-url|class="player" src)="(.*?)"',
+                r'"embedURL"\s*:\s*"([^"]+)"'
+            ],
             webpage, 'theplatform url').replace('_no_endcard', '')
         if theplatform_url.startswith('//'):
             theplatform_url = 'http:' + theplatform_url
