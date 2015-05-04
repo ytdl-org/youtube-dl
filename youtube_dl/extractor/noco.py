@@ -51,7 +51,7 @@ class NocoIE(InfoExtractor):
                 'id': '12610',
                 'ext': 'mp4',
                 'title': 'The Guild #1 - Wake-Up Call',
-                'description': '',
+                'timestamp': 1403863200,
                 'upload_date': '20140627',
                 'uploader': 'LBL42',
                 'uploader_id': 'LBL',
