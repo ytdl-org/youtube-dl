@@ -25,21 +25,38 @@ class NocoIE(InfoExtractor):
     _SUB_LANG_TEMPLATE = '&sub_lang=%s'
     _NETRC_MACHINE = 'noco'
 
-    _TEST = {
-        'url': 'http://noco.tv/emission/11538/nolife/ami-ami-idol-hello-france/',
-        'md5': '0a993f0058ddbcd902630b2047ef710e',
-        'info_dict': {
-            'id': '11538',
-            'ext': 'mp4',
-            'title': 'Ami Ami Idol - Hello! France',
-            'description': 'md5:4eaab46ab68fa4197a317a88a53d3b86',
-            'upload_date': '20140412',
-            'uploader': 'Nolife',
-            'uploader_id': 'NOL',
-            'duration': 2851.2,
+    _TESTS = [
+        {
+            'url': 'http://noco.tv/emission/11538/nolife/ami-ami-idol-hello-france/',
+            'md5': '0a993f0058ddbcd902630b2047ef710e',
+            'info_dict': {
+                'id': '11538',
+                'ext': 'mp4',
+                'title': 'Ami Ami Idol - Hello! France',
+                'description': 'md5:4eaab46ab68fa4197a317a88a53d3b86',
+                'upload_date': '20140412',
+                'uploader': 'Nolife',
+                'uploader_id': 'NOL',
+                'duration': 2851.2,
+            },
+            'skip': 'Requires noco account',
         },
-        'skip': 'Requires noco account',
-    }
+        {
+            'url': 'http://noco.tv/emission/12610/lbl42/the-guild/s01e01-wake-up-call',
+            'md5': 'c190f1f48e313c55838f1f412225934d',
+            'info_dict': {
+                'id': '12610',
+                'ext': 'mp4',
+                'title': 'The Guild #1 - Wake-Up Call',
+                'description': '',
+                'upload_date': '20140627',
+                'uploader': 'LBL42',
+                'uploader_id': 'LBL',
+                'duration': 233.023,
+            },
+            'skip': 'Requires noco account',
+        }
+    ]
 
     def _real_initialize(self):
         self._login()
@@ -86,9 +103,23 @@ class NocoIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
+        options = self._call_api('users/init', None, 'Downloading user options JSON')['options']
+        audio_lang = options.get('audio_language', 'fr')
+
         medias = self._call_api(
             'shows/%s/medias' % video_id,
             video_id, 'Downloading video JSON')
+
+        show = self._call_api(
+            'shows/by_id/%s' % video_id,
+            video_id, 'Downloading show JSON')[0]
+
+        if audio_lang == 'original':
+            audio_lang = show['original_lang']
+        if len(medias) == 1:
+            audio_lang = list(medias.keys())[0]
+        elif not audio_lang in medias:
+            audio_lang = 'fr'
 
         qualities = self._call_api(
             'qualities',
@@ -96,12 +127,12 @@ class NocoIE(InfoExtractor):
 
         formats = []
 
-        for lang, lang_dict in medias['fr']['video_list'].items():
+        for lang, lang_dict in medias[audio_lang]['video_list'].items():
             for format_id, fmt in lang_dict['quality_list'].items():
                 format_id_extended = '%s-%s' % (lang, format_id) if lang != 'none' else format_id
 
                 video = self._call_api(
-                    'shows/%s/video/%s/fr' % (video_id, format_id.lower()),
+                    'shows/%s/video/%s/%s' % (video_id, format_id.lower(), audio_lang),
                     video_id, 'Downloading %s video JSON' % format_id_extended,
                     lang if lang != 'none' else None)
 
@@ -126,10 +157,6 @@ class NocoIE(InfoExtractor):
                 })
 
         self._sort_formats(formats)
-
-        show = self._call_api(
-            'shows/by_id/%s' % video_id,
-            video_id, 'Downloading show JSON')[0]
 
         upload_date = unified_strdate(show['online_date_start_utc'])
         uploader = show['partner_name']
