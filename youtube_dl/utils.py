@@ -1486,6 +1486,14 @@ def uppercase_escape(s):
         s)
 
 
+def lowercase_escape(s):
+    unicode_escape = codecs.getdecoder('unicode_escape')
+    return re.sub(
+        r'\\u[0-9a-fA-F]{4}',
+        lambda m: unicode_escape(m.group(0))[0],
+        s)
+
+
 def escape_rfc3986(s):
     """Escape non-ASCII characters as suggested by RFC 3986"""
     if sys.version_info < (3, 0) and isinstance(s, compat_str):

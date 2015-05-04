@@ -10,6 +10,8 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     find_xpath_attr,
+    lowercase_escape,
+    unescapeHTML,
 )
 
 
@@ -46,18 +48,23 @@ class NBCIE(InfoExtractor):
                 'description': 'md5:0b40f9cbde5b671a7ff62fceccc4f442',
             },
             'skip': 'Only works from US',
+        },
+        {
+            # This video has expired but with an escaped embedURL
+            'url': 'http://www.nbc.com/parenthood/episode-guide/season-5/just-like-at-home/515',
+            'skip': 'Expired'
         }
     ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        theplatform_url = self._search_regex(
+        theplatform_url = unescapeHTML(lowercase_escape(self._html_search_regex(
             [
                 r'(?:class="video-player video-player-full" data-mpx-url|class="player" src)="(.*?)"',
                 r'"embedURL"\s*:\s*"([^"]+)"'
             ],
-            webpage, 'theplatform url').replace('_no_endcard', '')
+            webpage, 'theplatform url').replace('_no_endcard', '').replace('\\/', '/')))
         if theplatform_url.startswith('//'):
             theplatform_url = 'http:' + theplatform_url
         return self.url_result(theplatform_url)
