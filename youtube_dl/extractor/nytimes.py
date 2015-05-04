@@ -89,8 +89,8 @@ class NYTimesIE(NYTimesBaseIE):
 
 
 class NYTimesArticleIE(NYTimesBaseIE):
-    _VALID_URL = r'https?://(?:www)?\.nytimes\.com/\d{4}/\d{2}/\d{2}/(?:[^/]+/)*(?P<id>[^.]+)\.html'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www)?\.nytimes\.com/(.(?<!video))*?/(?:[^/]+/)*(?P<id>[^.]+)(?:\.html)?'
+    _TESTS = [{
         'url': 'http://www.nytimes.com/2015/04/14/business/owner-of-gravity-payments-a-credit-card-processor-is-setting-a-new-minimum-wage-70000-a-year.html?_r=0',
         'md5': 'e2076d58b4da18e6a001d53fd56db3c9',
         'info_dict': {
@@ -102,7 +102,10 @@ class NYTimesArticleIE(NYTimesBaseIE):
             'upload_date': '20150414',
             'uploader': 'Matthew Williams',
         }
-    }
+    }, {
+        'url': 'http://www.nytimes.com/news/minute/2014/03/17/times-minute-whats-next-in-crimea/?_php=true&_type=blogs&_php=true&_type=blogs&_r=1',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
