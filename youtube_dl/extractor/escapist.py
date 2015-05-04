@@ -48,6 +48,7 @@ class EscapistIE(InfoExtractor):
             'title': "Breaking Down Baldur's Gate",
             'thumbnail': 're:^https?://.*\.jpg$',
             'duration': 264,
+            'uploader': 'The Escapist',
         }
     }, {
         'url': 'http://www.escapistmagazine.com/videos/view/zero-punctuation/10044-Evolve-One-vs-Multiplayer',
@@ -59,6 +60,7 @@ class EscapistIE(InfoExtractor):
             'title': 'Evolve - One vs Multiplayer',
             'thumbnail': 're:^https?://.*\.jpg$',
             'duration': 304,
+            'uploader': 'The Escapist',
         }
     }]
 
