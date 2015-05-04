@@ -8,7 +8,7 @@ from ..compat import compat_urllib_request
 from ..utils import (
     determine_ext,
     clean_html,
-    qualities,
+    int_or_none,
 )
 
 
@@ -72,28 +72,23 @@ class EscapistIE(InfoExtractor):
         video_id = imsVideo['videoID']
         key = imsVideo['hash']
 
-        quality = qualities(['lq', 'hq', 'hd'])
+        config_req = compat_urllib_request.Request(
+            'http://www.escapistmagazine.com/videos/'
+            'vidconfig.php?videoID=%s&hash=%s' % (video_id, key))
+        config_req.add_header('Referer', url)
+        config = self._download_webpage(config_req, video_id, 'Downloading video config')
 
-        formats = []
-        for q in ['lq', 'hq', 'hd']:
-            config_req = compat_urllib_request.Request(
-                'http://www.escapistmagazine.com/videos/'
-                'vidconfig.php?videoID=%s&hash=%s&quality=%s' % (video_id, key, 'mp4_' + q))
-            config_req.add_header('Referer', url)
-            config = self._download_webpage(config_req, video_id, 'Downloading video config ' + q.upper())
+        data = json.loads(_decrypt_config(key, config))
 
-            data = json.loads(_decrypt_config(key, config))
+        title = clean_html(data['videoData']['title'])
+        duration = data['videoData']['duration'] / 1000
 
-            title = clean_html(data['videoData']['title'])
-            duration = data['videoData']['duration'] / 1000
-
-            for i, v in enumerate(data['files']['videos']):
-
-                formats.append({
-                    'url': v,
-                    'format_id': determine_ext(v) + '_' + q + str(i),
-                    'quality': quality(q),
-                })
+        formats = [{
+            'url': video['src'],
+            'format_id': '%s-%sp' % (determine_ext(video['src']), video['res']),
+            'height': int_or_none(video.get('res')),
+        } for video in data['files']['videos']]
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
