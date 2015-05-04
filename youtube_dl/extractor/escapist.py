@@ -9,6 +9,7 @@ from ..utils import (
     determine_ext,
     clean_html,
     int_or_none,
+    float_or_none,
 )
 
 
@@ -65,12 +66,12 @@ class EscapistIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        imsVideo = self._parse_json(
+        ims_video = self._parse_json(
             self._search_regex(
                 r'imsVideo\.play\(({.+?})\);', webpage, 'imsVideo'),
             video_id)
-        video_id = imsVideo['videoID']
-        key = imsVideo['hash']
+        video_id = ims_video['videoID']
+        key = ims_video['hash']
 
         config_req = compat_urllib_request.Request(
             'http://www.escapistmagazine.com/videos/'
@@ -80,8 +81,11 @@ class EscapistIE(InfoExtractor):
 
         data = json.loads(_decrypt_config(key, config))
 
-        title = clean_html(data['videoData']['title'])
-        duration = data['videoData']['duration'] / 1000
+        video_data = data['videoData']
+
+        title = clean_html(video_data['title'])
+        duration = float_or_none(video_data.get('duration'), 1000)
+        uploader = video_data.get('publisher')
 
         formats = [{
             'url': video['src'],
@@ -97,4 +101,5 @@ class EscapistIE(InfoExtractor):
             'thumbnail': self._og_search_thumbnail(webpage),
             'description': self._og_search_description(webpage),
             'duration': duration,
+            'uploader': uploader,
         }
