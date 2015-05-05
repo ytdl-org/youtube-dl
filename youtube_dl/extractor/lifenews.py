@@ -39,6 +39,17 @@ class LifeNewsIE(InfoExtractor):
             'upload_date': '20150402',
             'uploader': 'embed.life.ru',
         }
+    }, {
+        'url': 'http://lifenews.ru/news/153461',
+        'md5': '9b6ef8bc0ffa25aebc8bdb40d89ab795',
+        'info_dict': {
+            'id': '153461',
+            'ext': 'mp4',
+            'title': 'В Москве спасли потерявшегося медвежонка, который спрятался на дереве',
+            'description': 'Маленький хищник не смог найти дорогу домой и обрел временное убежище на тополе недалеко от жилого массива, пока его не нашла соседская собака.',
+            'upload_date': '20150505',
+            'uploader': 'embed.life.ru',
+        }
     }]
 
     def _real_extract(self, url):
@@ -88,6 +99,8 @@ class LifeNewsIE(InfoExtractor):
             return cur_info
 
         if iframe_link:
+            if iframe_link.startswith('//'):
+                iframe_link = 'http:' + iframe_link
             cur_info = dict(common_info)
             cur_info.update({
                 '_type': 'url_transparent',
