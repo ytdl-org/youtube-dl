@@ -46,3 +46,18 @@ class SouthparkDeIE(SouthParkIE):
             'description': 'Cartman explains the benefits of "Shitter" to Stan, Kyle and Craig.',
         },
     }]
+
+
+class SouthParkNlIE(SouthParkIE):
+    IE_NAME = 'southpark.nl'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.nl/(?:clips|full-episodes)/(?P<id>.+?)(\?|#|$))'
+    _FEED_URL = 'http://www.southpark.nl/feeds/video-player/mrss/'
+
+    _TESTS = [{
+        'url': 'http://www.southpark.nl/full-episodes/s18e06-freemium-isnt-free',
+        'info_dict': {
+            'id': 'c56b9a1f-0e42-4942-89e0-8e721d814c5c',
+            'ext': 'mp4',
+            'title': 'South Park 1806: Freemium Isn\'t Free - Act 3',
+        },
+    }]

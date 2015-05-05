@@ -485,6 +485,7 @@ from .southpark import (
     SouthParkIE,
     SouthParkEsIE,
     SouthparkDeIE,
+    SouthParkNlIE
 )
 from .space import SpaceIE
 from .spankbang import SpankBangIE
