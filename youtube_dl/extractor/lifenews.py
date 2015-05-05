@@ -99,8 +99,7 @@ class LifeNewsIE(InfoExtractor):
             return cur_info
 
         if iframe_link:
-            if iframe_link.startswith('//'):
-                iframe_link = 'http:' + iframe_link
+            iframe_link = self._proto_relative_url(iframe_link, 'http:')
             cur_info = dict(common_info)
             cur_info.update({
                 '_type': 'url_transparent',
