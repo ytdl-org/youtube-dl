@@ -32,7 +32,7 @@ class SouthParkEsIE(SouthParkIE):
     }]
 
 
-class SouthparkDeIE(SouthParkIE):
+class SouthParkDeIE(SouthParkIE):
     IE_NAME = 'southpark.de'
     _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.de/(?:clips|alle-episoden)/(?P<id>.+?)(\?|#|$))'
     _FEED_URL = 'http://www.southpark.de/feeds/video-player/mrss/'
