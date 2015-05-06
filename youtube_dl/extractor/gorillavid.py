@@ -35,13 +35,7 @@ class GorillaVidIE(InfoExtractor):
         },
     }, {
         'url': 'http://gorillavid.in/embed-z08zf8le23c6-960x480.html',
-        'md5': 'c9e293ca74d46cad638e199c3f3fe604',
-        'info_dict': {
-            'id': 'z08zf8le23c6',
-            'ext': 'mp4',
-            'title': 'Say something nice',
-            'thumbnail': 're:http://.*\.jpg',
-        },
+        'only_matching': True,
     }, {
         'url': 'http://daclips.in/3rso4kdn6f9m',
         'md5': '1ad8fd39bb976eeb66004d3a4895f106',
