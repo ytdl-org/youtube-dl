@@ -187,6 +187,7 @@ class PBSIE(InfoExtractor):
             else:
                 formats.append({
                     'url': format_url,
+                    'format_id': redirect.get('eeid'),
                 })
         self._sort_formats(formats)
 
