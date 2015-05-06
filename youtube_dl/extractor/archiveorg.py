@@ -33,7 +33,7 @@ class ArchiveOrgIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        json_url = url + ('?' if '?' in url else '&') + 'output=json'
+        json_url = url + ('&' if '?' in url else '?') + 'output=json'
         data = self._download_json(json_url, video_id)
 
         def get_optional(data_dict, field):
