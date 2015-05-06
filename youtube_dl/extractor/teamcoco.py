@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import base64
+import binascii
 import re
 
 from .common import InfoExtractor
@@ -9,6 +10,7 @@ from ..utils import (
     ExtractorError,
     qualities,
 )
+from ..compat import compat_ord
 
 
 class TeamcocoIE(InfoExtractor):
@@ -66,7 +68,7 @@ class TeamcocoIE(InfoExtractor):
             video_id = self._html_search_regex(
                 self._VIDEO_ID_REGEXES, webpage, 'video id')
 
-        preload = None
+        data = preload = None
         preloads = re.findall(r'"preload":\s*"([^"]+)"', webpage)
         if preloads:
             preload = max([(len(p), p) for p in preloads])[1]
@@ -80,11 +82,27 @@ class TeamcocoIE(InfoExtractor):
             ], webpage.replace('","', ''), 'preload data', default=None)
 
         if not preload:
+            preload_codes = self._html_search_regex(
+                r'(function.+)setTimeout\(function\(\)\{playlist',
+                webpage, 'preload codes')
+            base64_fragments = re.findall(r'"([a-zA-z0-9+/=]+)"', preload_codes)
+            base64_fragments.remove('init')
+            for i in range(len(base64_fragments)):
+                cur_sequence = (''.join(base64_fragments[i:] + base64_fragments[:i])).encode('ascii')
+                try:
+                    raw_data = base64.b64decode(cur_sequence)
+                except (TypeError, binascii.Error):
+                    continue
+                if compat_ord(raw_data[0]) == compat_ord('{'):
+                    data = self._parse_json(raw_data.decode('utf-8'), video_id, fatal=False)
+
+        if not preload and not data:
             raise ExtractorError(
                 'Preload information could not be extracted', expected=True)
 
-        data = self._parse_json(
-            base64.b64decode(preload.encode('ascii')).decode('utf-8'), video_id)
+        if not data:
+            data = self._parse_json(
+                base64.b64decode(preload.encode('ascii')).decode('utf-8'), video_id)
 
         formats = []
         get_quality = qualities(['500k', '480p', '1000k', '720p', '1080p'])
