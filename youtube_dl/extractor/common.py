@@ -764,7 +764,7 @@ class InfoExtractor(object):
                 f.get('fps') if f.get('fps') is not None else -1,
                 f.get('filesize_approx') if f.get('filesize_approx') is not None else -1,
                 f.get('source_preference') if f.get('source_preference') is not None else -1,
-                f.get('format_id'),
+                f.get('format_id') if f.get('format_id') is not None else '',
             )
         formats.sort(key=_formats_key)
 
