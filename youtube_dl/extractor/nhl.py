@@ -21,6 +21,9 @@ class NHLBaseInfoExtractor(InfoExtractor):
         return json_string.replace('\\\'', '\'')
 
     def _real_extract_video(self, video_id):
+        vid_parts = video_id.split(',')
+        if len(vid_parts) == 3:
+            video_id = '%s0%s%s-X-h' % (vid_parts[0][:4], vid_parts[1], vid_parts[2].rjust(4, '0'))
         json_url = 'http://video.nhl.com/videocenter/servlets/playlist?ids=%s&format=json' % video_id
         data = self._download_json(
             json_url, video_id, transform_source=self._fix_json)
@@ -60,7 +63,7 @@ class NHLBaseInfoExtractor(InfoExtractor):
 
 class NHLIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com'
-    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/(?:console)?(?:\?(?:.*?[?&])?)id=(?P<id>[-0-9a-zA-Z]+)'
+    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/(?:console)?(?:\?(?:.*?[?&])?)(?:id|hlg)=(?P<id>[-0-9a-zA-Z,]+)'
 
     _TESTS = [{
         'url': 'http://video.canucks.nhl.com/videocenter/console?catid=6?id=453614',
@@ -101,6 +104,17 @@ class NHLIE(NHLBaseInfoExtractor):
     }, {
         'url': 'http://video.nhl.com/videocenter/?id=736722',
         'only_matching': True,
+    }, {
+        'url': 'http://video.nhl.com/videocenter/console?hlg=20142015,2,299&lang=en',
+        'md5': '076fcb88c255154aacbf0a7accc3f340',
+        'info_dict': {
+            'id': '2014020299-X-h',
+            'ext': 'mp4',
+            'title': 'Penguins at Islanders / Game Highlights',
+            'description': 'Home broadcast - Pittsburgh Penguins at New York Islanders - November 22, 2014',
+            'duration': 268,
+            'upload_date': '20141122',
+        }
     }]
 
     def _real_extract(self, url):
