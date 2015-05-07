@@ -1,12 +1,14 @@
 from __future__ import unicode_literals
 import re
 import json
+import base64
 
 from .common import InfoExtractor
 from ..utils import (
     unescapeHTML,
     ExtractorError,
     determine_ext,
+    int_or_none,
 )
 
 
@@ -33,6 +35,17 @@ class OoyalaIE(InfoExtractor):
                 'description': '',
             },
         },
+        {
+            # Information available only through SAS api
+            # From http://community.plm.automation.siemens.com/t5/News-NX-Manufacturing/Tool-Path-Divide/ba-p/4187
+            'url': 'http://player.ooyala.com/player.js?embedCode=FiOG81ZTrvckcchQxmalf4aQj590qTEx',
+            'md5': 'a84001441b35ea492bc03736e59e7935',
+            'info_dict': {
+                'id': 'FiOG81ZTrvckcchQxmalf4aQj590qTEx',
+                'ext': 'mp4',
+                'title': 'Ooyala video',
+            }
+        }
     ]
 
     @staticmethod
@@ -88,6 +101,36 @@ class OoyalaIE(InfoExtractor):
                 mobile_player, 'info', fatal=False, default=None)
             if videos_info:
                 break
+
+        if not videos_info:
+            formats = []
+            auth_data = self._download_json(
+                'http://player.ooyala.com/sas/player_api/v1/authorization/embed_code/%s/%s?domain=www.example.org&supportedFormats=mp4,webm' % (embedCode, embedCode),
+                embedCode)
+
+            cur_auth_data = auth_data['authorization_data'][embedCode]
+
+            for stream in cur_auth_data['streams']:
+                formats.append({
+                    'url': base64.b64decode(stream['url']['data'].encode('ascii')).decode('utf-8'),
+                    'ext': stream.get('delivery_type'),
+                    'format': stream.get('video_codec'),
+                    'format_id': stream.get('profile'),
+                    'width': int_or_none(stream.get('width')),
+                    'height': int_or_none(stream.get('height')),
+                    'abr': int_or_none(stream.get('audio_bitrate')),
+                    'vbr': int_or_none(stream.get('video_bitrate')),
+                })
+            if len(formats):
+                return {
+                    'id': embedCode,
+                    'formats': formats,
+                    'title': 'Ooyala video',
+                }
+
+            if not cur_auth_data['authorized']:
+                raise ExtractorError(cur_auth_data['message'], expected=True)
+
         if not videos_info:
             raise ExtractorError('Unable to extract info')
         videos_info = videos_info.replace('\\"', '"')
