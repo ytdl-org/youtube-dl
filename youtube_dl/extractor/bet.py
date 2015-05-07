@@ -16,7 +16,7 @@ class BetIE(InfoExtractor):
         {
             'url': 'http://www.bet.com/news/politics/2014/12/08/in-bet-exclusive-obama-talks-race-and-racism.html',
             'info_dict': {
-                'id': '500406c1-0d86-4f40-880d-eab2ec1f7587',
+                'id': 'e0c430e7-14e8-414d-bd9d-c14c55cd406f',
                 'display_id': 'in-bet-exclusive-obama-talks-race-and-racism',
                 'ext': 'flv',
                 'title': 'A Conversation With President Obama',
@@ -35,7 +35,7 @@ class BetIE(InfoExtractor):
         {
             'url': 'http://www.bet.com/video/news/national/2014/justice-for-ferguson-a-community-reacts.html',
             'info_dict': {
-                'id': 'bcd1b1df-673a-42cf-8d01-b282db608f2d',
+                'id': '0291d0f7-b8da-4423-9c5a-ebfa0368ef53',
                 'display_id': 'justice-for-ferguson-a-community-reacts',
                 'ext': 'flv',
                 'title': 'Justice for Ferguson: A Community Reacts',
