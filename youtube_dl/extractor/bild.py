@@ -18,7 +18,7 @@ class BildIE(InfoExtractor):
             'id': '38184146',
             'ext': 'mp4',
             'title': 'BILD hat sie getestet',
-            'thumbnail': 'http://bilder.bild.de/fotos/bild-hat-sie-getestet-das-koennen-apples-neue-ipads-38184138/Bild/1.bild.jpg',
+            'thumbnail': 're:^https?://.*\.jpg$',
             'duration': 196,
             'description': 'Mit dem iPad Air 2 und dem iPad Mini 3 hat Apple zwei neue Tablet-Modelle präsentiert. BILD-Reporter Sven Stein durfte die Geräte bereits testen. ',
         }
