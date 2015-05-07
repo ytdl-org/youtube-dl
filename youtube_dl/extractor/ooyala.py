@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     unescapeHTML,
     ExtractorError,
+    determine_ext,
 )
 
 
@@ -44,11 +45,21 @@ class OoyalaIE(InfoExtractor):
                               ie=cls.ie_key())
 
     def _extract_result(self, info, more_info):
+        embedCode = info['embedCode']
+        video_url = info.get('ipad_url') or info['url']
+
+        if determine_ext(video_url) == 'm3u8':
+            formats = self._extract_m3u8_formats(video_url, embedCode, ext='mp4')
+        else:
+            formats = [{
+                'url': video_url,
+                'ext': 'mp4',
+            }]
+
         return {
-            'id': info['embedCode'],
-            'ext': 'mp4',
+            'id': embedCode,
             'title': unescapeHTML(info['title']),
-            'url': info.get('ipad_url') or info['url'],
+            'formats': formats,
             'description': unescapeHTML(more_info['description']),
             'thumbnail': more_info['promo'],
         }
