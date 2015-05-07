@@ -16,11 +16,11 @@ class BetIE(InfoExtractor):
         {
             'url': 'http://www.bet.com/news/politics/2014/12/08/in-bet-exclusive-obama-talks-race-and-racism.html',
             'info_dict': {
-                'id': '740ab250-bb94-4a8a-8787-fe0de7c74471',
+                'id': 'news/national/2014/a-conversation-with-president-obama',
                 'display_id': 'in-bet-exclusive-obama-talks-race-and-racism',
                 'ext': 'flv',
-                'title': 'BET News Presents: A Conversation With President Obama',
-                'description': 'md5:5a88d8ae912c1b33e090290af7ec33c6',
+                'title': 'A Conversation With President Obama',
+                'description': 'md5:699d0652a350cf3e491cd15cc745b5da',
                 'duration': 1534,
                 'timestamp': 1418075340,
                 'upload_date': '20141208',
@@ -35,7 +35,7 @@ class BetIE(InfoExtractor):
         {
             'url': 'http://www.bet.com/video/news/national/2014/justice-for-ferguson-a-community-reacts.html',
             'info_dict': {
-                'id': 'bcd1b1df-673a-42cf-8d01-b282db608f2d',
+                'id': 'news/national/2014/justice-for-ferguson-a-community-reacts',
                 'display_id': 'justice-for-ferguson-a-community-reacts',
                 'ext': 'flv',
                 'title': 'Justice for Ferguson: A Community Reacts',
@@ -61,6 +61,9 @@ class BetIE(InfoExtractor):
             [r'mediaURL\s*:\s*"([^"]+)"', r"var\s+mrssMediaUrl\s*=\s*'([^']+)'"],
             webpage, 'media URL'))
 
+        video_id = self._search_regex(
+            r'/video/(.*)/_jcr_content/', media_url, 'video id')
+
         mrss = self._download_xml(media_url, display_id)
 
         item = mrss.find('./channel/item')
@@ -74,8 +77,6 @@ class BetIE(InfoExtractor):
         title = xpath_text(item, './title', 'title')
         description = xpath_text(
             item, './description', 'description', fatal=False)
-
-        video_id = xpath_text(item, './guid', 'video id', fatal=False)
 
         timestamp = parse_iso8601(xpath_text(
             item, xpath_with_ns('./dc:date', NS_MAP),
