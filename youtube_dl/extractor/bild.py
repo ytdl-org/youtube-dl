@@ -2,7 +2,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    fix_xml_ampersands,
+)
 
 
 class BildIE(InfoExtractor):
@@ -15,7 +18,7 @@ class BildIE(InfoExtractor):
             'id': '38184146',
             'ext': 'mp4',
             'title': 'BILD hat sie getestet',
-            'thumbnail': 'http://bilder.bild.de/fotos/stand-das-koennen-die-neuen-ipads-38184138/Bild/1.bild.jpg',
+            'thumbnail': 're:^https?://.*\.jpg$',
             'duration': 196,
             'description': 'Mit dem iPad Air 2 und dem iPad Mini 3 hat Apple zwei neue Tablet-Modelle präsentiert. BILD-Reporter Sven Stein durfte die Geräte bereits testen. ',
         }
@@ -25,7 +28,7 @@ class BildIE(InfoExtractor):
         video_id = self._match_id(url)
 
         xml_url = url.split(".bild.html")[0] + ",view=xml.bild.xml"
-        doc = self._download_xml(xml_url, video_id)
+        doc = self._download_xml(xml_url, video_id, transform_source=fix_xml_ampersands)
 
         duration = int_or_none(doc.attrib.get('duration'), scale=1000)
 
