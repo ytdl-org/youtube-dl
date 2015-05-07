@@ -31,7 +31,6 @@ class ViceIE(InfoExtractor):
                 r'embedCode=([^&\'"]+)', webpage,
                 'ooyala embed code')
             ooyala_url = OoyalaIE._url_for_embed_code(embed_code)
-            print(ooyala_url)
         except ExtractorError:
             raise ExtractorError('The page doesn\'t contain a video', expected=True)
         return self.url_result(ooyala_url, ie='Ooyala')
