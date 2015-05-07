@@ -50,7 +50,7 @@ class NHLBaseInfoExtractor(InfoExtractor):
             video_url = initial_video_url
 
         join = compat_urlparse.urljoin
-        return {
+        ret = {
             'id': video_id,
             'title': info['name'],
             'url': video_url,
@@ -59,6 +59,15 @@ class NHLBaseInfoExtractor(InfoExtractor):
             'thumbnail': join(join(video_url, '/u/'), info['bigImage']),
             'upload_date': unified_strdate(info['releaseDate'].split('.')[0]),
         }
+        if video_url.startswith('rtmp:'):
+            mobj = re.match(r'(?P<tc_url>rtmp://[^/]+/(?P<app>[a-z0-9/]+))/(?P<play_path>mp4:.*)', video_url)
+            ret.update({
+                'tc_url': mobj.group('tc_url'),
+                'play_path': mobj.group('play_path'),
+                'app': mobj.group('app'),
+                'no_resume': True,
+            })
+        return ret
 
 
 class NHLIE(NHLBaseInfoExtractor):
@@ -114,6 +123,18 @@ class NHLIE(NHLBaseInfoExtractor):
             'description': 'Home broadcast - Pittsburgh Penguins at New York Islanders - November 22, 2014',
             'duration': 268,
             'upload_date': '20141122',
+        }
+    }, {
+        'url': 'http://video.oilers.nhl.com/videocenter/console?id=691469&catid=4',
+        'info_dict': {
+            'id': '691469',
+            'ext': 'mp4',
+            'title': 'RAW | Craig MacTavish Full Press Conference',
+            'description': 'Oilers GM Craig MacTavish addresses the media at Rexall Place on Friday.',
+            'upload_date': '20141205',
+        },
+        'params': {
+            'skip_download': True,  # Requires rtmpdump
         }
     }]
 
