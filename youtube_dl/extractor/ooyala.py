@@ -121,7 +121,7 @@ class OoyalaIE(InfoExtractor):
                     'abr': int_or_none(stream.get('audio_bitrate')),
                     'vbr': int_or_none(stream.get('video_bitrate')),
                 })
-            if len(formats):
+            if formats:
                 return {
                     'id': embedCode,
                     'formats': formats,
