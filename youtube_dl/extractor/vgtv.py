@@ -8,7 +8,8 @@ from ..utils import float_or_none
 
 
 class VGTVIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?vgtv\.no/#!/[^/]+/(?P<id>[0-9]+)'
+    IE_DESC = 'VGTV and BTTV'
+    _VALID_URL = r'http://(?:www\.)?(?P<host>vgtv|bt)\.no/(?:(?:tv/)?#!/(?:video|live)/(?P<id>[0-9]+)|(?:[^/]+/)*(?P<path>[^/]+))'
     _TESTS = [
         {
             # streamType: vod
@@ -64,12 +65,25 @@ class VGTVIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            'url': 'http://www.bt.no/tv/#!/video/100250/norling-dette-er-forskjellen-paa-1-divisjon-og-eliteserien',
+            'only_matching': True,
+        },
     ]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        host = mobj.group('host')
+
+        HOST_WEBSITES = {
+            'vgtv': 'vgtv',
+            'bt': 'bttv',
+        }
+
         data = self._download_json(
-            'http://svp.vg.no/svp/api/v1/vgtv/assets/%s?appName=vgtv-website' % video_id,
+            'http://svp.vg.no/svp/api/v1/%s/assets/%s?appName=%s-website'
+            % (host, video_id, HOST_WEBSITES[host]),
             video_id, 'Downloading media JSON')
 
         streams = data['streamUrls']
