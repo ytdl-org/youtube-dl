@@ -64,6 +64,13 @@ class SVTIE(SVTBaseIE):
         },
     }
 
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'(?:<iframe src|href)="(?P<url>%s[^"]*)"' % SVTIE._VALID_URL, webpage)
+        if mobj:
+            return mobj.group('url')
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         widget_id = mobj.group('widget_id')

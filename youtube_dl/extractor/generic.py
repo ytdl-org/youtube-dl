@@ -37,6 +37,7 @@ from .condenast import CondeNastIE
 from .udn import UDNEmbedIE
 from .senateisvp import SenateISVPIE
 from .bliptv import BlipTVIE
+from .svt import SVTIE
 
 
 class GenericIE(InfoExtractor):
@@ -1090,6 +1091,11 @@ class GenericIE(InfoExtractor):
         bliptv_url = BlipTVIE._extract_url(webpage)
         if bliptv_url:
             return self.url_result(bliptv_url, 'BlipTV')
+
+        # Look for SVT player
+        svt_url = SVTIE._extract_url(webpage)
+        if svt_url:
+            return self.url_result(svt_url, 'SVT')
 
         # Look for embedded condenast player
         matches = re.findall(
