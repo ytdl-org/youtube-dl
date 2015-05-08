@@ -1380,7 +1380,7 @@ def get_exe_version(exe, args=['--version'],
     or False if the executable is not present """
     try:
         out, _ = subprocess.Popen(
-            [exe] + args,
+            [encodeArgument(exe)] + args,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
     except OSError:
         return False
