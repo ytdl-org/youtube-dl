@@ -22,7 +22,7 @@ class MLBIE(InfoExtractor):
                                 )\?.*?\bcontent_id=
                             )
                             (?P<id>n?\d+)|
-                            (?P<path>.+?)
+                            (?:[^/]+/)*(?P<path>[^/]+)
                         )
                     '''
     _TESTS = [
