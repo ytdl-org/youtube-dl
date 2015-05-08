@@ -143,7 +143,8 @@ class VGTVIE(InfoExtractor):
 
 
 class BTArticleIE(InfoExtractor):
-    IE_DESC = 'Bergens Tidende'
+    IE_NAME = 'bt:article'
+    IE_DESC = 'Bergens Tidende Articles'
     _VALID_URL = 'http://(?:www\.)?bt\.no/(?:[^/]+/)+(?P<id>[^/]+)-\d+\.html'
     _TEST = {
         'url': 'http://www.bt.no/nyheter/lokalt/Kjemper-for-internatet-1788214.html',
@@ -166,3 +167,26 @@ class BTArticleIE(InfoExtractor):
         video_id = self._search_regex(
             r'SVP\.Player\.load\(\s*(\d+)', webpage, 'video id')
         return self.url_result('vgtv:bt:%s' % video_id, 'VGTV')
+
+
+class BTVestlendingenIE(InfoExtractor):
+    IE_NAME = 'bt:vestlendingen'
+    IE_DESC = 'Bergens Tidende - Vestlendingen'
+    _VALID_URL = 'http://(?:www\.)?bt\.no/spesial/vestlendingen/#!/(?P<id>\d+)'
+    _TEST = {
+        'url': 'http://www.bt.no/spesial/vestlendingen/#!/86588',
+        'md5': 'd7d17e3337dc80de6d3a540aefbe441b',
+        'info_dict': {
+            'id': '86588',
+            'ext': 'mov',
+            'title': 'Otto Wollertsen',
+            'description': 'Vestlendingen Otto Fredrik Wollertsen',
+            'timestamp': 1430473209,
+            'upload_date': '20150501',
+        },
+    }
+
+    def _real_extract(self, url):
+        return self.url_result('xstream:btno:%s' % self._match_id(url), 'Xstream')
+
+
