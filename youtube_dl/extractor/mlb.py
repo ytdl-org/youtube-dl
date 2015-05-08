@@ -10,7 +10,21 @@ from ..utils import (
 
 
 class MLBIE(InfoExtractor):
-    _VALID_URL = r'https?://m(?:lb)?\.(?:[\da-z_-]+\.)?mlb\.com/(?:(?:.*?/)?video/(?:topic/[\da-z_-]+/)?v|(?:shared/video/embed/(?:embed|m-internal-embed)\.html|[^/]+/video/play\.jsp)\?.*?\bcontent_id=)(?P<id>n?\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        m(?:lb)?\.(?:[\da-z_-]+\.)?mlb\.com/
+                        (?:
+                            (?:
+                                (?:.*?/)?video/(?:topic/[\da-z_-]+/)?v|
+                                (?:
+                                    shared/video/embed/(?:embed|m-internal-embed)\.html|
+                                    [^/]+/video/play\.jsp
+                                )\?.*?\bcontent_id=
+                            )
+                            (?P<id>n?\d+)|
+                            (?P<path>.+?)
+                        )
+                    '''
     _TESTS = [
         {
             'url': 'http://m.mlb.com/sea/video/topic/51231442/v34698933/nymsea-ackley-robs-a-home-run-with-an-amazing-catch/?c_id=sea',
@@ -94,6 +108,12 @@ class MLBIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+
+        if not video_id:
+            video_path = mobj.group('path')
+            webpage = self._download_webpage(url, video_path)
+            video_id = self._search_regex(
+                r'data-videoid="(\d+)"', webpage, 'video id')
 
         detail = self._download_xml(
             'http://m.mlb.com/gen/multimedia/detail/%s/%s/%s/%s.xml'
