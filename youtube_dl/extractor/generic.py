@@ -659,6 +659,17 @@ class GenericIE(InfoExtractor):
                 'title': 'Facebook Creates "On This Day" | Crunch Report',
             },
         },
+        # SVT embed
+        {
+            'url': 'http://www.svt.se/sport/ishockey/jagr-tacklar-giroux-under-intervjun',
+            'info_dict': {
+                'id': '2900353',
+                'ext': 'flv',
+                'title': 'Här trycker Jagr till Giroux (under SVT-intervjun)',
+                'duration': 27,
+                'age_limit': 0,
+            },
+        },
         # RSS feed with enclosure
         {
             'url': 'http://podcastfeeds.nbcnews.com/audio/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
