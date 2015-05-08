@@ -587,7 +587,10 @@ from .veoh import VeohIE
 from .vessel import VesselIE
 from .vesti import VestiIE
 from .vevo import VevoIE
-from .vgtv import VGTVIE
+from .vgtv import (
+    BTArticleIE,
+    VGTVIE,
+)
 from .vh1 import VH1IE
 from .vice import ViceIE
 from .viddler import ViddlerIE

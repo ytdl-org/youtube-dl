@@ -9,7 +9,18 @@ from ..utils import float_or_none
 
 class VGTVIE(InfoExtractor):
     IE_DESC = 'VGTV and BTTV'
-    _VALID_URL = r'http://(?:www\.)?(?P<host>vgtv|bt)\.no/(?:(?:tv/)?#!/(?:video|live)/(?P<id>[0-9]+)|(?:[^/]+/)*(?P<path>[^/]+))'
+    _VALID_URL = r'''(?x)
+                    (?:
+                        vgtv:|
+                        http://(?:www\.)?
+                    )
+                    (?P<host>vgtv|bt)
+                    (?:
+                        :|
+                        \.no/(?:tv/)?#!/(?:video|live)/
+                    )
+                    (?P<id>[0-9]+)
+                    '''
     _TESTS = [
         {
             # streamType: vod
@@ -129,3 +140,29 @@ class VGTVIE(InfoExtractor):
             'view_count': data['displays'],
             'formats': formats,
         }
+
+
+class BTArticleIE(InfoExtractor):
+    IE_DESC = 'Bergens Tidende'
+    _VALID_URL = 'http://(?:www\.)?bt\.no/(?:[^/]+/)+(?P<id>[^/]+)-\d+\.html'
+    _TEST = {
+        'url': 'http://www.bt.no/nyheter/lokalt/Kjemper-for-internatet-1788214.html',
+        'md5': 'd055e8ee918ef2844745fcfd1a4175fb',
+        'info_dict': {
+            'id': '23199',
+            'ext': 'mp4',
+            'title': 'Alrekstad internat',
+            'description': 'md5:dc81a9056c874fedb62fc48a300dac58',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'duration': 191,
+            'timestamp': 1289991323,
+            'upload_date': '20101117',
+            'view_count': int,
+        },
+    }
+
+    def _real_extract(self, url):
+        webpage = self._download_webpage(url, self._match_id(url))
+        video_id = self._search_regex(
+            r'SVP\.Player\.load\(\s*(\d+)', webpage, 'video id')
+        return self.url_result('vgtv:bt:%s' % video_id, 'VGTV')
