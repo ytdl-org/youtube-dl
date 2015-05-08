@@ -505,7 +505,7 @@ from .streamcloud import StreamcloudIE
 from .streamcz import StreamCZIE
 from .streetvoice import StreetVoiceIE
 from .sunporno import SunPornoIE
-from .svtplay import (
+from .svt import (
     SVTIE,
     SVTPlayIE,
 )
