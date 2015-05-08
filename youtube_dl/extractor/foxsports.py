@@ -5,7 +5,7 @@ from ..utils import smuggle_url
 
 
 class FoxSportsIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?foxsports\.com/video\?vid=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?foxsports\.com/(?:[^/]+/)*(?P<id>[^/]+)'
 
     _TEST = {
         'url': 'http://www.foxsports.com/video?vid=432609859715',
