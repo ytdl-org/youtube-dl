@@ -21,7 +21,6 @@ class Ir90TvIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        # TODO more code goes here, for example ...
         title = self._html_search_regex(
             r'<title>\n90tv.ir :: (.*?)</title>', webpage, 'title')
 
@@ -29,8 +28,6 @@ class Ir90TvIE(InfoExtractor):
             r'<source[^>]+src="([^"]+)"', webpage, 'video url')
 
         thumbnail = self._search_regex(r'poster="([^"]+)"', webpage, 'thumbnail url')
-        print thumbnail
-
 
         return {
             'url': video_url,
