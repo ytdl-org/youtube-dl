@@ -4,7 +4,10 @@ import re
 
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    unescapeHTML
+)
 
 
 class EroProfileIE(InfoExtractor):
@@ -75,8 +78,8 @@ class EroProfileIE(InfoExtractor):
             [r"glbUpdViews\s*\('\d*','(\d+)'", r'p/report/video/(\d+)'],
             webpage, 'video id', default=None)
 
-        video_url = self._search_regex(
-            r'<source src="([^"]+)', webpage, 'video url')
+        video_url = unescapeHTML(self._search_regex(
+            r'<source src="([^"]+)', webpage, 'video url'))
         title = self._html_search_regex(
             r'Title:</th><td>([^<]+)</td>', webpage, 'title')
         thumbnail = self._search_regex(
