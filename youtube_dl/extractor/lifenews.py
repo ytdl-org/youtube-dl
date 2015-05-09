@@ -50,6 +50,9 @@ class LifeNewsIE(InfoExtractor):
             'upload_date': '20150505',
             'uploader': 'embed.life.ru',
         }
+    }, {
+        'url': 'http://lifenews.ru/video/13035',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
