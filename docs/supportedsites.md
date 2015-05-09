@@ -64,6 +64,8 @@
  - **BR**: Bayerischer Rundfunk Mediathek
  - **Break**
  - **Brightcove**
+ - **bt:article**: Bergens Tidende Articles
+ - **bt:vestlendingen**: Bergens Tidende - Vestlendingen
  - **BuzzFeed**
  - **BYUtv**
  - **Camdemy**
@@ -240,6 +242,7 @@
  - **LetvPlaylist**
  - **LetvTv**
  - **Libsyn**
+ - **life:embed**
  - **lifenews**: LIFE | NEWS
  - **LiveLeak**
  - **livestream**
@@ -328,6 +331,7 @@
  - **ntv.ru**
  - **Nuvid**
  - **NYTimes**
+ - **NYTimesArticle**
  - **ocw.mit.edu**
  - **Odnoklassniki**
  - **OktoberfestTV**
@@ -434,6 +438,7 @@
  - **southpark.cc.com**
  - **southpark.cc.com:español**
  - **southpark.de**
+ - **southpark.nl**
  - **Space**
  - **SpankBang**
  - **Spankwire**
@@ -453,6 +458,7 @@
  - **StreamCZ**
  - **StreetVoice**
  - **SunPorno**
+ - **SVT**
  - **SVTPlay**: SVT Play and Öppet arkiv
  - **SWRMediathek**
  - **Syfy**
@@ -529,7 +535,7 @@
  - **Vessel**
  - **Vesti**: Вести.Ru
  - **Vevo**
- - **VGTV**
+ - **VGTV**: VGTV and BTTV
  - **vh1.com**
  - **Vice**
  - **Viddler**
@@ -587,6 +593,7 @@
  - **XHamster**
  - **XMinus**
  - **XNXX**
+ - **Xstream**
  - **XTube**
  - **XTubeUser**: XTube user profile
  - **Xuite**
