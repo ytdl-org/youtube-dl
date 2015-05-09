@@ -9,6 +9,7 @@ from ..utils import (
     float_or_none,
     month_by_abbreviation,
     ExtractorError,
+    get_element_by_attribute,
 )
 
 
@@ -23,6 +24,7 @@ class YamIE(InfoExtractor):
             'id': '2283921',
             'ext': 'mp3',
             'title': '發現 - 趙薇 京華煙雲主題曲',
+            'description': '發現 - 趙薇 京華煙雲主題曲',
             'uploader_id': 'princekt',
             'upload_date': '20080807',
             'duration': 313.0,
@@ -55,6 +57,17 @@ class YamIE(InfoExtractor):
             'ext': 'mp4',
         },
         'skip': 'invalid YouTube URL',
+    }, {
+        'url': 'http://mymedia.yam.com/m/2373534',
+        'md5': '7ff74b91b7a817269d83796f8c5890b1',
+        'info_dict': {
+            'id': '2373534',
+            'ext': 'mp3',
+            'title': '林俊傑&蔡卓妍-小酒窩',
+            'description': 'md5:904003395a0fcce6cfb25028ff468420',
+            'upload_date': '20080928',
+            'uploader_id': 'onliner2',
+        }
     }]
 
     def _real_extract(self, url):
@@ -75,15 +88,19 @@ class YamIE(InfoExtractor):
         if youtube_url:
             return self.url_result(youtube_url, 'Youtube')
 
+        title = self._html_search_regex(
+            r'<h1[^>]+class="heading"[^>]*>\s*(.+)\s*</h1>', page, 'title')
+
         api_page = self._download_webpage(
             'http://mymedia.yam.com/api/a/?pID=' + video_id, video_id,
             note='Downloading API page')
         api_result_obj = compat_urlparse.parse_qs(api_page)
 
+        info_table = get_element_by_attribute('class', 'info', page)
         uploader_id = self._html_search_regex(
-            r'<!-- 發表作者 -->：[\n ]+<a href="/([a-z]+)"',
-            page, 'uploader id', fatal=False)
-        mobj = re.search(r'<!-- 發表於 -->(?P<mon>[A-Z][a-z]{2})  ' +
+            r'<!-- 發表作者 -->：[\n ]+<a href="/([a-z0-9]+)"',
+            info_table, 'uploader id', fatal=False)
+        mobj = re.search(r'<!-- 發表於 -->(?P<mon>[A-Z][a-z]{2})\s+' +
                          r'(?P<day>\d{1,2}), (?P<year>\d{4})', page)
         if mobj:
             upload_date = '%s%02d%02d' % (
@@ -97,7 +114,8 @@ class YamIE(InfoExtractor):
         return {
             'id': video_id,
             'url': api_result_obj['mp3file'][0],
-            'title': self._html_search_meta('description', page),
+            'title': title,
+            'description': self._html_search_meta('description', page),
             'duration': duration,
             'uploader_id': uploader_id,
             'upload_date': upload_date,
