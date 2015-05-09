@@ -40,6 +40,17 @@ class BRIE(InfoExtractor):
             }
         },
         {
+            'url': 'http://www.br.de/radio/br-klassik/sendungen/allegro/premiere-urauffuehrung-the-land-2015-dance-festival-muenchen-100.html',
+            'md5': '8b5b27c0b090f3b35eac4ab3f7a73d3d',
+            'info_dict': {
+                'id': '74c603c9-26d3-48bb-b85b-079aeed66e0b',
+                'ext': 'aac',
+                'title': 'Kurzweilig und sehr bewegend',
+                'description': '"The Land" von Peeping Tom: Kurzweilig und sehr bewegend',
+                'duration': 296,
+            }
+        },
+        {
             'url': 'http://www.br.de/radio/bayern1/service/team/videos/team-video-erdelt100.html',
             'md5': 'dbab0aef2e047060ea7a21fc1ce1078a',
             'info_dict': {
