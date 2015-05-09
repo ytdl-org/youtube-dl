@@ -414,19 +414,6 @@ class GenericIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
         },
-        # MLB articles
-        {
-            'url': 'http://m.mlb.com/news/article/118550098/blue-jays-kevin-pillar-goes-spidey-up-the-wall-to-rob-tim-beckham-of-a-homer',
-            'md5': 'b190e70141fb9a1552a85426b4da1b5d',
-            'info_dict': {
-                'id': '75609783',
-                'ext': 'mp4',
-                'title': 'Must C: Pillar climbs for catch',
-                'description': '4/15/15: Blue Jays outfielder Kevin Pillar continues his defensive dominance by climbing the wall in left to rob Tim Beckham of a home run',
-                'timestamp': 1429124820,
-                'upload_date': '20150415',
-            }
-        },
         # Wistia embed
         {
             'url': 'http://education-portal.com/academy/lesson/north-american-exploration-failed-colonies-of-spain-france-england.html#lesson',
