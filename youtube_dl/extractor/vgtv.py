@@ -103,11 +103,14 @@ class VGTVIE(InfoExtractor):
 
         hls_url = streams.get('hls')
         if hls_url:
-            formats.extend(self._extract_m3u8_formats(hls_url, video_id, 'mp4'))
+            formats.extend(self._extract_m3u8_formats(
+                hls_url, video_id, 'mp4', m3u8_id='hls'))
 
         hds_url = streams.get('hds')
         if hds_url:
-            formats.extend(self._extract_f4m_formats(hds_url + '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18', video_id))
+            formats.extend(self._extract_f4m_formats(
+                hds_url + '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18',
+                video_id, f4m_id='hds'))
 
         mp4_url = streams.get('mp4')
         if mp4_url:
