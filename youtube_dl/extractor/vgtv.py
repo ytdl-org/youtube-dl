@@ -17,7 +17,7 @@ class VGTVIE(InfoExtractor):
                     (?P<host>vgtv|bt)
                     (?:
                         :|
-                        \.no/(?:tv/)?#!/(?:video|live)/
+                        \.no/(?:tv/)?\#!/(?:video|live)/
                     )
                     (?P<id>[0-9]+)
                     '''
@@ -188,5 +188,3 @@ class BTVestlendingenIE(InfoExtractor):
 
     def _real_extract(self, url):
         return self.url_result('xstream:btno:%s' % self._match_id(url), 'Xstream')
-
-
