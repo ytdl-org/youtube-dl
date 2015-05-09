@@ -16,27 +16,27 @@ class BRIE(InfoExtractor):
 
     _TESTS = [
         {
-            'url': 'http://www.br.de/mediathek/video/sendungen/heimatsound/heimatsound-festival-2014-trailer-100.html',
-            'md5': '93556dd2bcb2948d9259f8670c516d59',
+            'url': 'http://www.br.de/mediathek/video/sendungen/abendschau/betriebliche-altersvorsorge-104.html',
+            'md5': '83a0477cf0b8451027eb566d88b51106',
             'info_dict': {
-                'id': '25e279aa-1ffd-40fd-9955-5325bd48a53a',
+                'id': '48f656ef-287e-486f-be86-459122db22cc',
                 'ext': 'mp4',
-                'title': 'Wenn das Traditions-Theater wackelt',
-                'description': 'Heimatsound-Festival 2014: Wenn das Traditions-Theater wackelt',
-                'duration': 34,
-                'uploader': 'BR',
-                'upload_date': '20140802',
+                'title': 'Die böse Überraschung',
+                'description': 'Betriebliche Altersvorsorge: Die böse Überraschung',
+                'duration': 180,
+                'uploader': 'Reinhard Weber',
+                'upload_date': '20150422',
             }
         },
         {
-            'url': 'http://www.br.de/nachrichten/schaeuble-haushaltsentwurf-bundestag-100.html',
-            'md5': '3db0df1a9a9cd9fa0c70e6ea8aa8e820',
+            'url': 'http://www.br.de/nachrichten/oberbayern/inhalt/muenchner-polizeipraesident-schreiber-gestorben-100.html',
+            'md5': 'a44396d73ab6a68a69a568fae10705bb',
             'info_dict': {
-                'id': 'c6aae3de-2cf9-43f2-957f-f17fef9afaab',
-                'ext': 'aac',
-                'title': '"Keine neuen Schulden im nächsten Jahr"',
-                'description': 'Haushaltsentwurf: "Keine neuen Schulden im nächsten Jahr"',
-                'duration': 64,
+                'id': 'a4b83e34-123d-4b81-9f4e-c0d3121a4e05',
+                'ext': 'mp4',
+                'title': 'Manfred Schreiber ist tot',
+                'description': 'Abendschau kompakt: Manfred Schreiber ist tot',
+                'duration': 26,
             }
         },
         {
