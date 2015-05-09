@@ -4,7 +4,9 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import (
+    determine_ext,
     int_or_none,
     unified_strdate,
     ExtractorError,
@@ -119,3 +121,48 @@ class LifeNewsIE(InfoExtractor):
             return make_entry(video_id, videos[0])
         else:
             return [make_entry(video_id, media, video_number + 1) for video_number, media in enumerate(videos)]
+
+
+class LifeEmbedIE(InfoExtractor):
+    IE_NAME = 'life:embed'
+    _VALID_URL = r'http://embed\.life\.ru/embed/(?P<id>[\da-f]{32})'
+
+    _TEST = {
+        'url': 'http://embed.life.ru/embed/e50c2dec2867350528e2574c899b8291',
+        'md5': 'b889715c9e49cb1981281d0e5458fbbe',
+        'info_dict': {
+            'id': 'e50c2dec2867350528e2574c899b8291',
+            'ext': 'mp4',
+            'title': 'e50c2dec2867350528e2574c899b8291',
+            'thumbnail': 're:http://.*\.jpg',
+        }
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        formats = []
+        for video_url in re.findall(r'"file"\s*:\s*"([^"]+)', webpage):
+            video_url = compat_urlparse.urljoin(url, video_url)
+            ext = determine_ext(video_url)
+            if ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    video_url, video_id, 'mp4', m3u8_id='m3u8'))
+            else:
+                formats.append({
+                    'url': video_url,
+                    'format_id': ext,
+                    'preference': 1,
+                })
+
+        thumbnail = self._search_regex(
+            r'"image"\s*:\s*"([^"]+)', webpage, 'thumbnail', default=None)
+
+        return {
+            'id': video_id,
+            'title': video_id,
+            'thumbnail': thumbnail,
+            'formats': formats,
+        }

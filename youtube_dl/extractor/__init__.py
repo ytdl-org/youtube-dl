@@ -258,7 +258,10 @@ from .letv import (
     LetvPlaylistIE
 )
 from .libsyn import LibsynIE
-from .lifenews import LifeNewsIE
+from .lifenews import (
+    LifeNewsIE,
+    LifeEmbedIE,
+)
 from .liveleak import LiveLeakIE
 from .livestream import (
     LivestreamIE,
