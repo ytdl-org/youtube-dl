@@ -40,7 +40,6 @@ from youtube_dl.utils import (
     read_batch_urls,
     sanitize_filename,
     sanitize_path,
-    sanitize_url_path_consecutive_slashes,
     prepend_extension,
     replace_extension,
     shell_quote,
@@ -175,26 +174,6 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_path('../../abc'), '..\\..\\abc')
         self.assertEqual(sanitize_path('./abc'), 'abc')
         self.assertEqual(sanitize_path('./../abc'), '..\\abc')
-
-    def test_sanitize_url_path_consecutive_slashes(self):
-        self.assertEqual(
-            sanitize_url_path_consecutive_slashes('http://hostname/foo//bar/filename.html'),
-            'http://hostname/foo/bar/filename.html')
-        self.assertEqual(
-            sanitize_url_path_consecutive_slashes('http://hostname//foo/bar/filename.html'),
-            'http://hostname/foo/bar/filename.html')
-        self.assertEqual(
-            sanitize_url_path_consecutive_slashes('http://hostname//'),
-            'http://hostname/')
-        self.assertEqual(
-            sanitize_url_path_consecutive_slashes('http://hostname/foo/bar/filename.html'),
-            'http://hostname/foo/bar/filename.html')
-        self.assertEqual(
-            sanitize_url_path_consecutive_slashes('http://hostname/'),
-            'http://hostname/')
-        self.assertEqual(
-            sanitize_url_path_consecutive_slashes('http://hostname/abc//'),
-            'http://hostname/abc/')
 
     def test_prepend_extension(self):
         self.assertEqual(prepend_extension('abc.ext', 'temp'), 'abc.temp.ext')
