@@ -14,7 +14,7 @@ from ..utils import (
 class LifeNewsIE(InfoExtractor):
     IE_NAME = 'lifenews'
     IE_DESC = 'LIFE | NEWS'
-    _VALID_URL = r'http://lifenews\.ru/(?:mobile/)?news/(?P<id>\d+)'
+    _VALID_URL = r'http://lifenews\.ru/(?:mobile/)?(?P<section>news|video)/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://lifenews.ru/news/126342',
@@ -55,12 +55,15 @@ class LifeNewsIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+        section = mobj.group('section')
 
-        webpage = self._download_webpage('http://lifenews.ru/news/%s' % video_id, video_id, 'Downloading page')
+        webpage = self._download_webpage(
+            'http://lifenews.ru/%s/%s' % (section, video_id),
+            video_id, 'Downloading page')
 
         videos = re.findall(r'<video.*?poster="(?P<poster>[^"]+)".*?src="(?P<video>[^"]+)".*?></video>', webpage)
         iframe_link = self._html_search_regex(
-            '<iframe[^>]+src="([^"]+)', webpage, 'iframe link', default=None)
+            '<iframe[^>]+src=["\']([^"\']+)["\']', webpage, 'iframe link', default=None)
         if not videos and not iframe_link:
             raise ExtractorError('No media links available for %s' % video_id)
 
