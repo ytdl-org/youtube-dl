@@ -448,6 +448,7 @@ from .rutube import (
     RutubePersonIE,
 )
 from .rutv import RUTVIE
+from .ruutu import RuutuIE
 from .sandia import SandiaIE
 from .safari import (
     SafariIE,
