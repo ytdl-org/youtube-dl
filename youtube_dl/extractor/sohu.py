@@ -8,10 +8,7 @@ from ..compat import (
     compat_str,
     compat_urllib_request
 )
-from ..utils import (
-    sanitize_url_path_consecutive_slashes,
-    ExtractorError,
-)
+from ..utils import ExtractorError
 
 
 class SohuIE(InfoExtractor):
@@ -31,7 +28,7 @@ class SohuIE(InfoExtractor):
         }
     }, {
         'url': 'http://tv.sohu.com/20150305/n409385080.shtml',
-        'md5': '699060e75cf58858dd47fb9c03c42cfb',
+        'md5': 'ac9a5d322b4bf9ae184d53e4711e4f1a',
         'info_dict': {
             'id': '409385080',
             'ext': 'mp4',
@@ -39,7 +36,7 @@ class SohuIE(InfoExtractor):
         }
     }, {
         'url': 'http://my.tv.sohu.com/us/232799889/78693464.shtml',
-        'md5': '9bf34be48f2f4dadcb226c74127e203c',
+        'md5': '49308ff6dafde5ece51137d04aec311e',
         'info_dict': {
             'id': '78693464',
             'ext': 'mp4',
@@ -53,7 +50,7 @@ class SohuIE(InfoExtractor):
             'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
         },
         'playlist': [{
-            'md5': 'bdbfb8f39924725e6589c146bc1883ad',
+            'md5': '492923eac023ba2f13ff69617c32754a',
             'info_dict': {
                 'id': '78910339_part1',
                 'ext': 'mp4',
@@ -61,7 +58,7 @@ class SohuIE(InfoExtractor):
                 'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
             }
         }, {
-            'md5': '3e1f46aaeb95354fd10e7fca9fc1804e',
+            'md5': 'de604848c0e8e9c4a4dde7e1347c0637',
             'info_dict': {
                 'id': '78910339_part2',
                 'ext': 'mp4',
@@ -69,7 +66,7 @@ class SohuIE(InfoExtractor):
                 'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
             }
         }, {
-            'md5': '8407e634175fdac706766481b9443450',
+            'md5': '93584716ee0657c0b205b8aa3d27aa13',
             'info_dict': {
                 'id': '78910339_part3',
                 'ext': 'mp4',
@@ -144,24 +141,21 @@ class SohuIE(InfoExtractor):
         for i in range(part_count):
             formats = []
             for format_id, format_data in formats_json.items():
-                allot = format_data['allot']
-                prot = format_data['prot']
-
                 data = format_data['data']
-                clips_url = data['clipsURL']
-                su = data['su']
 
-                part_str = self._download_webpage(
-                    'http://%s/?prot=%s&file=%s&new=%s' %
-                    (allot, prot, clips_url[i], su[i]),
-                    video_id,
-                    'Downloading %s video URL part %d of %d'
-                    % (format_id, i + 1, part_count))
-
-                part_info = part_str.split('|')
-
-                video_url = sanitize_url_path_consecutive_slashes(
-                    '%s%s?key=%s' % (part_info[0], su[i], part_info[3]))
+                # URLs starts with http://newflv.sohu.ccgslb.net/ is not usable
+                # so retry until got a working URL
+                video_url = 'newflv.sohu.ccgslb.net'
+                retries = 0
+                while 'newflv.sohu.ccgslb.net' in video_url and retries < 5:
+                    download_note = 'Download information from CDN gateway for format ' + format_id
+                    if retries > 0:
+                        download_note += ' (retry #%d)' % retries
+                    retries += 1
+                    cdn_info = self._download_json(
+                        'http://data.vod.itc.cn/cdnList?new=' + data['su'][i],
+                        video_id, download_note)
+                    video_url = cdn_info['url']
 
                 formats.append({
                     'url': video_url,
