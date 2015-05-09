@@ -76,7 +76,7 @@ class EroProfileIE(InfoExtractor):
             webpage, 'video id', default=None)
 
         video_url = self._search_regex(
-            r'<source src="([^"]+)', webpage, 'video url')
+            r'<source src="([^"]+)', webpage, 'video url').replace("&amp;", "&")
         title = self._html_search_regex(
             r'Title:</th><td>([^<]+)</td>', webpage, 'title')
         thumbnail = self._search_regex(
