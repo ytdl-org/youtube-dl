@@ -8,7 +8,10 @@ from ..compat import (
     compat_str,
     compat_urllib_request
 )
-from ..utils import sanitize_url_path_consecutive_slashes
+from ..utils import (
+    sanitize_url_path_consecutive_slashes,
+    ExtractorError,
+)
 
 
 class SohuIE(InfoExtractor):
@@ -117,6 +120,15 @@ class SohuIE(InfoExtractor):
             r'var vid ?= ?["\'](\d+)["\']',
             webpage, 'video path')
         vid_data = _fetch_data(vid, mytv)
+        if vid_data['play'] != 1:
+            if vid_data.get('status') == 12:
+                raise ExtractorError(
+                    'Sohu said: There\'s something wrong in the video.',
+                    expected=True)
+            else:
+                raise ExtractorError(
+                    'Sohu said: The video is only licensed to users in Mainland China.',
+                    expected=True)
 
         formats_json = {}
         for format_id in ('nor', 'high', 'super', 'ori', 'h2644k', 'h2654k'):
