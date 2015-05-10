@@ -36,7 +36,9 @@ class FFmpegPostProcessor(PostProcessor):
     def check_version(self):
         if not self.available:
             raise FFmpegPostProcessorError('ffmpeg or avconv not found. Please install one.')
+        self.check_outdated()
 
+    def check_outdated(self):
         required_version = '10-0' if self.basename == 'avconv' else '1.0'
         if is_outdated_version(
                 self._versions[self.basename], required_version):
@@ -44,6 +46,8 @@ class FFmpegPostProcessor(PostProcessor):
                 self.basename, self.basename, required_version)
             if self._downloader:
                 self._downloader.report_warning(warning)
+            return True
+        return False
 
     @staticmethod
     def get_versions(downloader=None):
