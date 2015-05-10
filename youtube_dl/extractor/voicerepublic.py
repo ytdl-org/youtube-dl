@@ -19,7 +19,6 @@ class VoiceRepublicIE(InfoExtractor):
             'title': 'Watching the Watchers: Building a Sousveillance State',
             'thumbnail': 'https://voicerepublic.com/system/flyer/2296.png',
             'description': 'md5:715ba964958afa2398df615809cfecb1',
-            'creator': 'M. C. McGrath',
         }
     }
 
@@ -51,5 +50,4 @@ class VoiceRepublicIE(InfoExtractor):
             'url': self._og_search_url(webpage),
             'thumbnail': thumbnail,
             'description': self._og_search_description(webpage),
-            'creator': self._html_search_meta('author', webpage),
         }
