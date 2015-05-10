@@ -2,10 +2,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-
-from ..compat import (
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_request
+from ..utils import ExtractorError
 
 
 class VoiceRepublicIE(InfoExtractor):
@@ -31,17 +29,16 @@ class VoiceRepublicIE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(webpage)
         video_id = self._search_regex(r'/(\d+)\.png', thumbnail, 'id')
 
-        if '<div class=\'vr-player jp-jplayer\'' in webpage:
-            formats = [{
-                'url': 'https://voicerepublic.com/vrmedia/{}-clean.{}'.format(video_id, ext),
-                'ext': ext,
-                'format_id': ext,
-                'vcodec': 'none',
-            } for ext in ['m4a', 'mp3', 'ogg']]
-            self._sort_formats(formats)
-        else:
-            # Audio is still queued for processing
-            formats = []
+        if '<a>Queued for processing, please stand by...</a>' in webpage:
+            raise ExtractorError('Audio is still queued for processing')
+
+        formats = [{
+            'url': 'https://voicerepublic.com/vrmedia/{}-clean.{}'.format(video_id, ext),
+            'ext': ext,
+            'format_id': ext,
+            'vcodec': 'none',
+        } for ext in ['m4a', 'mp3', 'ogg']]
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
