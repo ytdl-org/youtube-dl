@@ -324,7 +324,10 @@ from .nbc import (
     NBCSportsIE,
     NBCSportsVPlayerIE,
 )
-from .ndr import NDRIE
+from .ndr import (
+    NDRIE,
+    NJoyIE,
+)
 from .ndtv import NDTVIE
 from .netzkino import NetzkinoIE
 from .nerdcubed import NerdCubedFeedIE
