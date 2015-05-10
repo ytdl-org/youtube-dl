@@ -8,8 +8,7 @@ from ..utils import PostProcessingError
 
 
 class ExecAfterDownloadPP(PostProcessor):
-    def __init__(self, downloader=None, verboseOutput=None, exec_cmd=None):
-        self.verboseOutput = verboseOutput
+    def __init__(self, downloader=None, exec_cmd=None):
         self.exec_cmd = exec_cmd
 
     def run(self, information):

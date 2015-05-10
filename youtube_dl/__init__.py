@@ -246,7 +246,6 @@ def _real_main(argv=None):
     if opts.exec_cmd:
         postprocessors.append({
             'key': 'ExecAfterDownload',
-            'verboseOutput': opts.verbose,
             'exec_cmd': opts.exec_cmd,
         })
     if opts.xattr_set_filesize:
@@ -345,7 +344,6 @@ def _real_main(argv=None):
         'default_search': opts.default_search,
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
         'encoding': opts.encoding,
-        'exec_cmd': opts.exec_cmd,
         'extract_flat': opts.extract_flat,
         'merge_output_format': opts.merge_output_format,
         'postprocessors': postprocessors,
