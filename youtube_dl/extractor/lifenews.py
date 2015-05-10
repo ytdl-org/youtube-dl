@@ -156,6 +156,7 @@ class LifeEmbedIE(InfoExtractor):
                     'format_id': ext,
                     'preference': 1,
                 })
+        self._sort_formats(formats)
 
         thumbnail = self._search_regex(
             r'"image"\s*:\s*"([^"]+)', webpage, 'thumbnail', default=None)
