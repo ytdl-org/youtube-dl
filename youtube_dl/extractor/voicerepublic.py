@@ -51,5 +51,5 @@ class VoiceRepublicIE(InfoExtractor):
             'url': self._og_search_url(webpage),
             'thumbnail': thumbnail,
             'description': self._og_search_description(webpage),
-            'creator': self._search_regex(r'<meta content=\'([^\']*?)\' name=\'author\'>', webpage, 'author', fatal=False),
+            'creator': self._html_search_meta('author', webpage),
         }
