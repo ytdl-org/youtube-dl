@@ -52,6 +52,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                 'ext': 'mp4',
                 'uploader': 'IGN',
                 'title': 'Steam Machine Models, Pricing Listed on Steam Store - IGN News',
+                'upload_date': '20150306',
             }
         },
         # Vevo video
@@ -106,9 +107,9 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         age_limit = self._rta_search(webpage)
 
         video_upload_date = None
-        mobj = re.search(r'<div class="[^"]*uploaded_cont[^"]*" title="[^"]*">([0-9]{2})-([0-9]{2})-([0-9]{4})</div>', webpage)
+        mobj = re.search(r'<meta property="video:release_date" content="([0-9]{4})-([0-9]{2})-([0-9]{2}).+?"/>', webpage)
         if mobj is not None:
-            video_upload_date = mobj.group(3) + mobj.group(2) + mobj.group(1)
+            video_upload_date = mobj.group(1) + mobj.group(2) + mobj.group(3)
 
         embed_url = 'https://www.dailymotion.com/embed/video/%s' % video_id
         embed_request = self._build_request(embed_url)
