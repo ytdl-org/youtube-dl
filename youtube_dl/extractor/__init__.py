@@ -637,6 +637,7 @@ from .vk import (
     VKUserVideosIE,
 )
 from .vodlocker import VodlockerIE
+from .voicerepublic import VoiceRepublicIE
 from .vporn import VpornIE
 from .vrt import VRTIE
 from .vube import VubeIE
