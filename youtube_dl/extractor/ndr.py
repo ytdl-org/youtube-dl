@@ -84,7 +84,19 @@ class NDRIE(NDRBaseIE):
                 'title': 'Kartoffeltage in der Lewitz',
                 'description': 'md5:48c4c04dde604c8a9971b3d4e3b9eaa8',
                 'duration': 166,
-            }
+            },
+            'skip': '404 Not found',
+        },
+        {
+            'url': 'http://www.ndr.de/fernsehen/Party-Poette-und-Parade,hafengeburtstag988.html',
+            'md5': 'dadc003c55ae12a5d2f6bd436cd73f59',
+            'info_dict': {
+                'id': '988',
+                'ext': 'mp4',
+                'title': 'Party, Pötte und Parade',
+                'description': 'Hunderttausende feiern zwischen Speicherstadt und St. Pauli den 826. Hafengeburtstag. Die NDR Sondersendung zeigt die schönsten und spektakulärsten Bilder vom Auftakt.',
+                'duration': 3498,
+            },
         },
         {
             'url': 'http://www.ndr.de/info/audio51535.html',
