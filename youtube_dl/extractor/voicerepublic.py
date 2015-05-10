@@ -34,15 +34,12 @@ class VoiceRepublicIE(InfoExtractor):
         if '<a>Queued for processing, please stand by...</a>' in webpage:
             raise ExtractorError('Audio is still queued for processing')
 
-        ext_matches = re.finditer(r'data-\w+=\'/vrmedia/\d+-clean\.(\w+)\'', webpage)
-        exts = [match.group(1) for match in ext_matches]
-
         formats = [{
-            'url': 'https://voicerepublic.com/vrmedia/{}-clean.{}'.format(video_id, ext),
+            'url': 'https://voicerepublic.com' + path,
             'ext': ext,
             'format_id': ext,
             'vcodec': 'none',
-        } for ext in exts]
+        } for ext, path in re.findall(r"data-([^=]+)='(/[^']+\.\1)'", webpage)]
         self._sort_formats(formats)
 
         return {
