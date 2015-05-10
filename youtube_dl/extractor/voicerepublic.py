@@ -47,12 +47,10 @@ class VoiceRepublicIE(InfoExtractor):
             raise ExtractorError(
                 'Audio is still queued for processing', expected=True)
 
-        data = self._parse_json(
-            self._search_regex(
-                r'(?s)return ({.+?});\s*\n', webpage,
-                'data', default=None),
-            display_id, fatal=False)
-
+        config = self._search_regex(
+            r'(?s)return ({.+?});\s*\n', webpage,
+            'data', default=None)
+        data = self._parse_json(config, display_id, fatal=False) if config else None
         if data:
             title = data['title']
             description = data.get('teaser')
@@ -74,12 +72,14 @@ class VoiceRepublicIE(InfoExtractor):
                 [r"id='jc-(\d+)'", r"data-shareable-id='(\d+)'"],
                 webpage, 'talk id', default=None) or display_id
             duration = None
+            player = self._search_regex(
+                r"class='vr-player jp-jplayer'([^>]+)>", webpage, 'player')
             formats = [{
                 'url': compat_urlparse.urljoin(url, talk_url),
                 'format_id': format_id,
                 'ext': determine_ext(talk_url) or format_id,
                 'vcodec': 'none',
-            } for format_id, talk_url in re.findall(r"data-([^=]+)='([^']+)'", webpage)]
+            } for format_id, talk_url in re.findall(r"data-([^=]+)='([^']+)'", player)]
         self._sort_formats(formats)
 
         thumbnail = self._og_search_thumbnail(webpage)
