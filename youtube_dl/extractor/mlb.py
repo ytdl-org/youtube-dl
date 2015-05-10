@@ -12,13 +12,13 @@ from ..utils import (
 class MLBIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
-                        m(?:lb)?\.(?:[\da-z_-]+\.)?mlb\.com/
+                        (?:[\da-z_-]+\.)*mlb\.com/
                         (?:
                             (?:
                                 (?:.*?/)?video/(?:topic/[\da-z_-]+/)?v|
                                 (?:
                                     shared/video/embed/(?:embed|m-internal-embed)\.html|
-                                    [^/]+/video/play\.jsp
+                                    (?:[^/]+/)+(?:play|index)\.jsp|
                                 )\?.*?\bcontent_id=
                             )
                             (?P<id>n?\d+)|
@@ -114,6 +114,10 @@ class MLBIE(InfoExtractor):
             # From http://m.mlb.com/news/article/118550098/blue-jays-kevin-pillar-goes-spidey-up-the-wall-to-rob-tim-beckham-of-a-homer
             'url': 'http://mlb.mlb.com/shared/video/embed/m-internal-embed.html?content_id=75609783&property=mlb&autoplay=true&hashmode=false&siteSection=mlb/multimedia/article_118550098/article_embed&club=mlb',
             'only_matching': True,
+        },
+        {
+            'url': 'http://washington.nationals.mlb.com/mlb/gameday/index.jsp?c_id=was&gid=2015_05_09_atlmlb_wasmlb_1&lang=en&content_id=108309983&mode=video#',
+            'only_matching': True,
         }
     ]
 
@@ -125,7 +129,7 @@ class MLBIE(InfoExtractor):
             video_path = mobj.group('path')
             webpage = self._download_webpage(url, video_path)
             video_id = self._search_regex(
-                r'data-video-?id="(\d+)"', webpage, 'video id')
+                [r'data-video-?id="(\d+)"', r'content_id=(\d+)'], webpage, 'video id')
 
         detail = self._download_xml(
             'http://m.mlb.com/gen/multimedia/detail/%s/%s/%s/%s.xml'
