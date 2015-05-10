@@ -1086,9 +1086,10 @@ class YoutubeDL(object):
         if req_format is None:
             req_format_list = []
             if (self.params.get('outtmpl', DEFAULT_OUTTMPL) != '-'
-                    and info_dict['extractor'] in ['youtube', 'ted']
-                    and FFmpegMergerPP(self).available):
-                req_format_list.append('bestvideo+bestaudio')
+                    and info_dict['extractor'] in ['youtube', 'ted']):
+                merger = FFmpegMergerPP(self)
+                if merger.available and not merger.check_outdated():
+                    req_format_list.append('bestvideo+bestaudio')
             req_format_list.append('best')
             req_format = '/'.join(req_format_list)
         formats_to_download = []
