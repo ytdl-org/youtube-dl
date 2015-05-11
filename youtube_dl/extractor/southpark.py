@@ -58,8 +58,9 @@ class SouthParkNlIE(SouthParkIE):
         'playlist_count': 4,
     }]
 
+
 class SouthParkDkIE(SouthParkIE):
-    IE_NAME = 'southpark.dk'
+    IE_NAME = 'southparkstudios.dk'
     _VALID_URL = r'https?://(?:www\.)?(?P<url>southparkstudios\.dk/(?:clips|full-episodes)/(?P<id>.+?)(\?|#|$))'
     _FEED_URL = 'http://www.southparkstudios.dk/feeds/video-player/mrss/'
 
