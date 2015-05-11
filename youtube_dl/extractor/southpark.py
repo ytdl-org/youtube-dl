@@ -57,3 +57,13 @@ class SouthParkNlIE(SouthParkIE):
         'url': 'http://www.southpark.nl/full-episodes/s18e06-freemium-isnt-free',
         'playlist_count': 4,
     }]
+
+class SouthParkDkIE(SouthParkIE):
+    IE_NAME = 'southpark.dk'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southparkstudios\.dk/(?:clips|full-episodes)/(?P<id>.+?)(\?|#|$))'
+    _FEED_URL = 'http://www.southparkstudios.dk/feeds/video-player/mrss/'
+
+    _TESTS = [{
+        'url': 'http://www.southparkstudios.dk/full-episodes/s18e07-grounded-vindaloop',
+        'playlist_count': 4,
+    }]
