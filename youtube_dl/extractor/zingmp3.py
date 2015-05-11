@@ -22,7 +22,7 @@ class ZingMp3BaseInfoExtractor(InfoExtractor):
             'thumbnail': thumbnail,
         }
 
-    def _extract_player_xml(self, player_xml_url, id, playlist_title=None):
+    def _extract_player_xml(self, player_xml_url, id, playlist_title=None, upload_date=None):
         player_xml = self._download_xml(player_xml_url, id, 'Downloading Player XML')
         items = player_xml.findall('./item')
 
@@ -39,6 +39,8 @@ class ZingMp3BaseInfoExtractor(InfoExtractor):
             for i, item in enumerate(items, 1):
                 entry = self._extract_item(item)
                 entry['id'] = '%s-%d' % (id, i)
+                if upload_date is not None:
+                    entry['upload_date'] = upload_date
                 entries.append(entry)
 
             return {
@@ -102,6 +104,16 @@ class ZingMp3AlbumIE(ZingMp3BaseInfoExtractor):
         player_xml_url = self._search_regex(
             r'&amp;xmlURL=(?P<xml_url>[^&]+)&', webpage, 'player xml url')
 
+        release_date = None
+        mobj = re.search(r'Release Date: ([0-9]{4})\.([0-9]{2})\.([0-9]{2})', webpage)
+        if mobj is not None:
+            release_date = mobj.group(1) + mobj.group(2) + mobj.group(3)
+        else:
+            mobj = re.search(
+                r'<div class="inline" itemprop="copyrightYear">([0-9]{4})</div>', webpage)
+            if mobj is not None:
+                release_date = "%s0101" % mobj.group(1)
+
         return self._extract_player_xml(
             player_xml_url, album_id,
-            playlist_title=self._og_search_title(webpage))
+            playlist_title=self._og_search_title(webpage), upload_date=release_date)
