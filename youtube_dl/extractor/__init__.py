@@ -490,6 +490,7 @@ from .soundgasm import (
 from .southpark import (
     SouthParkIE,
     SouthParkDeIE,
+    SouthParkDkIE,
     SouthParkEsIE,
     SouthParkNlIE
 )
