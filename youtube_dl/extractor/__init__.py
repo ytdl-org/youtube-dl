@@ -543,7 +543,10 @@ from .thesixtyone import TheSixtyOneIE
 from .thisav import ThisAVIE
 from .tinypic import TinyPicIE
 from .tlc import TlcIE, TlcDeIE
-from .tmz import TMZIE
+from .tmz import (
+    TMZIE,
+    TMZArticleIE,
+)
 from .tnaflix import TNAFlixIE
 from .thvideo import (
     THVideoIE,
