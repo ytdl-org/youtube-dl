@@ -26,7 +26,7 @@ class DumpertIE(InfoExtractor):
         video_id = self._match_id(url)
 
         req = compat_urllib_request.Request(url)
-        req.add_header('Cookie', 'nsfw=1')
+        req.add_header('Cookie', 'nsfw=1; cpc=10')
         webpage = self._download_webpage(req, video_id)
 
         files_base64 = self._search_regex(
