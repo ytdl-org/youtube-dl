@@ -75,7 +75,7 @@ class VineIE(InfoExtractor):
         return {
             'id': video_id,
             'title': self._og_search_title(webpage),
-            'alt_title': self._og_search_description(webpage),
+            'alt_title': self._og_search_description(webpage, default=None),
             'description': data['description'],
             'thumbnail': data['thumbnailUrl'],
             'upload_date': unified_strdate(data['created']),
