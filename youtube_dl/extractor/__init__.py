@@ -489,8 +489,8 @@ from .soundgasm import (
 )
 from .southpark import (
     SouthParkIE,
-    SouthParkEsIE,
     SouthParkDeIE,
+    SouthParkEsIE,
     SouthParkNlIE
 )
 from .space import SpaceIE
