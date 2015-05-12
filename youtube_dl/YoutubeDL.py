@@ -914,6 +914,9 @@ class YoutubeDL(object):
         if not available_formats:
             return None
 
+        if not FFmpegMergerPP(self).available:
+            available_formats = filter(lambda x: x.get(u'protocol') != u'm3u8', available_formats)
+
         if format_spec in ['best', 'worst', None]:
             format_idx = 0 if format_spec == 'worst' else -1
             audiovideo_formats = [
