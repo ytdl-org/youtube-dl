@@ -212,10 +212,9 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
             list_id, 'Download toplist page')
 
         entries = []
-        jsonp_url = ""
         if list_type == 'top':
             jsonp_url = "http://y.qq.com/y/static/toplist/json/top/%s/1.js" % num_id
-        elif list_type == 'global':
+        else:
             jsonp_url = "http://y.qq.com/y/static/toplist/json/global/%s/1_1.js" % num_id
         
         list = self._download_json(jsonp_url, list_id, note='Retrieve toplist json', 
