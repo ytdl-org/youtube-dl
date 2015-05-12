@@ -1866,10 +1866,14 @@ def dfxp2srt(dfxp_data):
     paras = dfxp.findall(_x('.//ttml:p'))
 
     for para, index in zip(paras, itertools.count(1)):
+        begin_time = parse_dfxp_time_expr(para.attrib['begin'])
+        end_time = parse_dfxp_time_expr(para.attrib.get('end'))
+        if not end_time:
+            end_time = begin_time + parse_dfxp_time_expr(para.attrib['dur'])
         out.append('%d\n%s --> %s\n%s\n\n' % (
             index,
-            format_srt_time(parse_dfxp_time_expr(para.attrib.get('begin'))),
-            format_srt_time(parse_dfxp_time_expr(para.attrib.get('end'))),
+            format_srt_time(begin_time),
+            format_srt_time(end_time),
             parse_node(para)))
 
     return ''.join(out)

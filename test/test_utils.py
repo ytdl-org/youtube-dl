@@ -600,7 +600,7 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
                 <div xml:lang="en">
                     <p begin="0" end="1">The following line contains Chinese characters and special symbols</p>
                     <p begin="1" end="2">第二行<br/>♪♪</p>
-                    <p begin="2" end="3"><span>Third<br/>Line</span></p>
+                    <p begin="2" dur="1"><span>Third<br/>Line</span></p>
                 </div>
             </body>
             </tt>'''
