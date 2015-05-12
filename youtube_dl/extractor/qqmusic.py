@@ -188,6 +188,13 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
             'title': 'QQ音乐巅峰榜·欧美',
         },
         'playlist_count': 100,
+    }, {
+        'url': 'http://y.qq.com/#type=toplist&p=global_5',
+        'info_dict': {
+            'id': 'global_5',
+            'title': '韩国mnet排行榜',
+        },
+        'playlist_count': 50,
     }]
 
     @staticmethod
@@ -203,22 +210,23 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
         list_page = self._download_webpage(
             "http://y.qq.com/y/static/toplist/index/%s.html" % list_id, 
             list_id, 'Download toplist page')
+
         entries = []
+        jsonp_url = ""
         if list_type == 'top':
-            list = self._download_json(
-                "http://y.qq.com/y/static/toplist/json/top/%s/1.js" % num_id,
-                list_id, note='Retrieve toplist json', errnote='Unable to get toplist json', 
-                transform_source=self.strip_qq_jsonp)
-
-            for song in list['l']:
-                s = song['s']
-                song_mid = s.split("|")[20]
-                entries.append(self.url_result(
-                    'http://y.qq.com/#type=song&mid=' + song_mid, 'QQMusic',
-                    song_mid))
-
+            jsonp_url = "http://y.qq.com/y/static/toplist/json/top/%s/1.js" % num_id
         elif list_type == 'global':
-            entries = self.get_entries_from_page(list_page)
+            jsonp_url = "http://y.qq.com/y/static/toplist/json/global/%s/1_1.js" % num_id
+        
+        list = self._download_json(jsonp_url, list_id, note='Retrieve toplist json', 
+            errnote='Unable to get toplist json', transform_source=self.strip_qq_jsonp)
+            
+        for song in list['l']:
+            s = song['s']
+            song_mid = s.split("|")[20]
+            entries.append(self.url_result(
+                'http://y.qq.com/#type=song&mid=' + song_mid, 'QQMusic',
+                song_mid))
 
         list_name = self._html_search_regex(
             r'<h2 id="top_name">([^\']+)</h2>', list_page, 'top list name',
