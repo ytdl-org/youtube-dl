@@ -1835,12 +1835,8 @@ def parse_dfxp_time_expr(time_expr):
         return 3600 * int(mobj.group(1)) + 60 * int(mobj.group(2)) + float(mobj.group(3))
 
 
-def format_srt_time(seconds):
-    (mins, secs) = divmod(seconds, 60)
-    (hours, mins) = divmod(mins, 60)
-    millisecs = (secs - int(secs)) * 1000
-    secs = int(secs)
-    return '%02d:%02d:%02d,%03d' % (hours, mins, secs, millisecs)
+def srt_subtitles_timecode(seconds):
+    return '%02d:%02d:%02d,%03d' % (seconds / 3600, (seconds % 3600) / 60, seconds % 60, (seconds % 1) * 1000)
 
 
 def dfxp2srt(dfxp_data):
@@ -1872,8 +1868,8 @@ def dfxp2srt(dfxp_data):
             end_time = begin_time + parse_dfxp_time_expr(para.attrib['dur'])
         out.append('%d\n%s --> %s\n%s\n\n' % (
             index,
-            format_srt_time(begin_time),
-            format_srt_time(end_time),
+            srt_subtitles_timecode(begin_time),
+            srt_subtitles_timecode(end_time),
             parse_node(para)))
 
     return ''.join(out)

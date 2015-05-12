@@ -1072,9 +1072,6 @@ class InfoExtractor(object):
     def _get_automatic_captions(self, *args, **kwargs):
         raise NotImplementedError("This method must be implemented by subclasses")
 
-    def _subtitles_timecode(self, seconds):
-        return '%02d:%02d:%02d.%03d' % (seconds / 3600, (seconds % 3600) / 60, seconds % 60, (seconds % 1) * 1000)
-
 
 class SearchInfoExtractor(InfoExtractor):
     """
