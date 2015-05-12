@@ -200,12 +200,15 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
         list_type = list_id.split("_")[0]
         num_id = list_id.split("_")[1]
 
-        list_page = self._download_webpage("http://y.qq.com/y/static/toplist/index/%s.html" % list_id, list_id, 'Download toplist page')
+        list_page = self._download_webpage(
+            "http://y.qq.com/y/static/toplist/index/%s.html" % list_id, 
+            list_id, 'Download toplist page')
         entries = []
         if list_type == 'top':
             list = self._download_json(
                 "http://y.qq.com/y/static/toplist/json/top/%s/1.js" % num_id,
-                list_id, note='Retrieve toplist json', errnote='Unable to get toplist json', transform_source=self.strip_qq_jsonp)
+                list_id, note='Retrieve toplist json', errnote='Unable to get toplist json', 
+                transform_source=self.strip_qq_jsonp)
 
             for song in list['l']:
                 s = song['s']
@@ -223,3 +226,4 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
         list_desc = None
 
         return self.playlist_result(entries, list_id, list_name, list_desc)
+        
