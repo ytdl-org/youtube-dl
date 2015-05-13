@@ -282,6 +282,27 @@ class YoutubeDL(object):
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
         self.params = params
+        
+        #For use like an API rather than just a CLI tool; This helps to return useful parameters as objects rather than just print to console
+        # inspired by
+        # opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson or opts.dump_single_json
+        # any_printing = opts.print_json    
+        self.url = ""
+        self.play_path = ""
+        self.urls =[]   #TODO
+        self.title = ""
+        self.id = ""
+        self.thumbail = ""
+        self.description = ""
+        self.filename=""
+        self.format = ""
+        self.formats = [] #TODO
+          
+        self.ie_result = []
+        self.info_dict = []
+        self.info_dict_json = ""
+       
+      
         self.cache = Cache(self)
 
         if params.get('bidi_workaround', False):
@@ -1075,6 +1096,7 @@ class YoutubeDL(object):
             # element in the 'formats' field in info_dict is info_dict itself,
             # wich can't be exported to json
             info_dict['formats'] = formats
+            self.formats = formats
         if self.params.get('listformats'):
             self.list_formats(info_dict)
             return
@@ -1232,27 +1254,60 @@ class YoutubeDL(object):
         info_dict['_filename'] = filename = self.prepare_filename(info_dict)
 
         # Forced printings
+        self.title = info_dict['fulltitle']
         if self.params.get('forcetitle', False):
             self.to_stdout(info_dict['fulltitle'])
+        
+        self.id = info_dict['id']
         if self.params.get('forceid', False):
             self.to_stdout(info_dict['id'])
+            
+         
+        
         if self.params.get('forceurl', False):
-            if info_dict.get('requested_formats') is not None:
-                for f in info_dict['requested_formats']:
+             self.to_stdout(self.url)
+         
+        if info_dict.get('requested_formats') is not None:
+            for f in info_dict['requested_formats']:
+                self.urls.append((f['url'] + f.get('play_path', '')))
+                if self.params.get('forceurl', False):
                     self.to_stdout(f['url'] + f.get('play_path', ''))
-            else:
-                # For RTMP URLs, also include the playpath
-                self.to_stdout(info_dict['url'] + info_dict.get('play_path', ''))
+        else:
+            # For RTMP URLs, also include the playpath
+            self.url = info_dict['url'] + info_dict.get('play_path', '') 
+            self.play_path = info_dict.get('play_path', '') 
+            if self.params.get('forceurl', False):     
+                self.to_stdout(self.url)        
+          
+#         if self.params.get('forceurl', False):
+#             if info_dict.get('requested_formats') is not None:
+#                 for f in info_dict['requested_formats']:
+#                     self.to_stdout(f['url'] + f.get('play_path', ''))
+#             else:
+#                 # For RTMP URLs, also include the playpath
+#                 self.to_stdout(info_dict['url'] + info_dict.get('play_path', ''))
+        
         if self.params.get('forcethumbnail', False) and info_dict.get('thumbnail') is not None:
             self.to_stdout(info_dict['thumbnail'])
+        
         if self.params.get('forcedescription', False) and info_dict.get('description') is not None:
             self.to_stdout(info_dict['description'])
-        if self.params.get('forcefilename', False) and filename is not None:
-            self.to_stdout(filename)
+          
+        if filename is not None:  
+            self.filename = filename
+            if self.params.get('forcefilename', False): 
+                self.to_stdout(filename)
+            
         if self.params.get('forceduration', False) and info_dict.get('duration') is not None:
             self.to_stdout(formatSeconds(info_dict['duration']))
+            
+        self.format = info_dict['format']   
         if self.params.get('forceformat', False):
             self.to_stdout(info_dict['format'])
+        
+        self.info_dict = info_dict
+        self.info_dict_json = json.dumps(info_dict)
+        
         if self.params.get('forcejson', False):
             self.to_stdout(json.dumps(info_dict))
 
