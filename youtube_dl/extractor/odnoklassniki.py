@@ -6,6 +6,7 @@ from ..utils import (
     unified_strdate,
     int_or_none,
     qualities,
+    unescapeHTML,
 )
 
 
@@ -36,8 +37,8 @@ class OdnoklassnikiIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         player = self._parse_json(
-            self._search_regex(
-                r"OKVideo\.start\(({.+?})\s*,\s*'VideoAutoplay_player'", webpage, 'player'),
+            unescapeHTML(self._search_regex(
+                r'data-attributes="([^"]+)"', webpage, 'player')),
             video_id)
 
         metadata = self._parse_json(player['flashvars']['metadata'], video_id)
