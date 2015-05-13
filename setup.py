@@ -75,12 +75,12 @@ exec(compile(open('youtube_dl/version.py').read(),
              'youtube_dl/version.py', 'exec'))
 
 setup(
-    name='youtube_dl',
+    name='jake_youtube_dl',
     version=__version__,
     description='YouTube video downloader',
     long_description='Small command-line program to download videos from'
     ' YouTube.com and other video sites.',
-    url='https://github.com/rg3/youtube-dl',
+    url='https://github.com/GrumpyOldTroll/youtube-dl',
     author='Ricardo Garcia',
     author_email='ytdl@yt-dl.org',
     maintainer='Philipp Hagemeister',
