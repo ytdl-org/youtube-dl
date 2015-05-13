@@ -9,6 +9,7 @@ from .ffmpeg import FFmpegPostProcessor
 
 from ..utils import (
     check_executable,
+    encodeArgument,
     encodeFilename,
     PostProcessingError,
     prepend_extension,
@@ -52,7 +53,12 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             if not check_executable('AtomicParsley', ['-v']):
                 raise EmbedThumbnailPPError('AtomicParsley was not found. Please install.')
 
-            cmd = ['AtomicParsley', filename, '--artwork', thumbnail_filename, '-o', temp_filename]
+            cmd = [encodeFilename('AtomicParsley', True),
+                   encodeFilename(filename, True),
+                   encodeArgument('--artwork'),
+                   encodeFilename(thumbnail_filename, True),
+                   encodeArgument('-o'),
+                   encodeFilename(temp_filename, True)]
 
             self._downloader.to_screen('[atomicparsley] Adding thumbnail to "%s"' % filename)
 
