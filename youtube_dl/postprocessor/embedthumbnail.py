@@ -36,12 +36,12 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
 
         if info['ext'] == 'mp3':
             options = [
-                '-i', thumbnail_filename, '-c', 'copy', '-map', '0', '-map', '1',
+                '-c', 'copy', '-map', '0', '-map', '1',
                 '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"']
 
             self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
 
-            self.run_ffmpeg(filename, temp_filename, options)
+            self.run_ffmpeg_multiple_files([filename, thumbnail_filename], temp_filename, options)
 
             if not self._already_have_thumbnail:
                 os.remove(encodeFilename(thumbnail_filename))
