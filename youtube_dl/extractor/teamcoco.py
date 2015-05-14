@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import base64
 import binascii
 import re
+import json
 
 from .common import InfoExtractor
 from ..utils import (
@@ -68,41 +69,39 @@ class TeamcocoIE(InfoExtractor):
             video_id = self._html_search_regex(
                 self._VIDEO_ID_REGEXES, webpage, 'video id')
 
-        data = preload = None
-        preloads = re.findall(r'"preload":\s*"([^"]+)"', webpage)
-        if preloads:
-            preload = max([(len(p), p) for p in preloads])[1]
+        data = None
 
-        if not preload:
-            preload = ''.join(re.findall(r'this\.push\("([^"]+)"\);', webpage))
+        preload_codes = self._html_search_regex(
+            r'(function.+)setTimeout\(function\(\)\{playlist',
+            webpage, 'preload codes')
+        base64_fragments = re.findall(r'"([a-zA-z0-9+/=]+)"', preload_codes)
+        base64_fragments.remove('init')
 
-        if not preload:
-            preload = self._html_search_regex([
-                r'player,\[?"([^"]+)"\]?', r'player.init\(\[?"([^"]+)"\]?\)'
-            ], webpage.replace('","', ''), 'preload data', default=None)
-
-        if not preload:
-            preload_codes = self._html_search_regex(
-                r'(function.+)setTimeout\(function\(\)\{playlist',
-                webpage, 'preload codes')
-            base64_fragments = re.findall(r'"([a-zA-z0-9+/=]+)"', preload_codes)
-            base64_fragments.remove('init')
-            for i in range(len(base64_fragments)):
-                cur_sequence = (''.join(base64_fragments[i:] + base64_fragments[:i])).encode('ascii')
+        def _check_sequence(cur_fragments):
+            if not cur_fragments:
+                return
+            for i in range(len(cur_fragments)):
+                cur_sequence = (''.join(cur_fragments[i:] + cur_fragments[:i])).encode('ascii')
                 try:
                     raw_data = base64.b64decode(cur_sequence)
-                except (TypeError, binascii.Error):
+                    if compat_ord(raw_data[0]) == compat_ord('{'):
+                        return json.loads(raw_data.decode('utf-8'))
+                except (TypeError, binascii.Error, UnicodeDecodeError, ValueError):
                     continue
-                if compat_ord(raw_data[0]) == compat_ord('{'):
-                    data = self._parse_json(raw_data.decode('utf-8'), video_id, fatal=False)
 
-        if not preload and not data:
-            raise ExtractorError(
-                'Preload information could not be extracted', expected=True)
+        def _check_data():
+            for i in range(len(base64_fragments) + 1):
+                for j in range(i, len(base64_fragments) + 1):
+                    data = _check_sequence(base64_fragments[:i] + base64_fragments[j:])
+                    if data:
+                        return data
+
+        self.to_screen('Try to compute possible data sequence. This may take some time.')
+        data = _check_data()
 
         if not data:
-            data = self._parse_json(
-                base64.b64decode(preload.encode('ascii')).decode('utf-8'), video_id)
+            raise ExtractorError(
+                'Preload information could not be extracted', expected=True)
 
         formats = []
         get_quality = qualities(['500k', '480p', '1000k', '720p', '1080p'])
