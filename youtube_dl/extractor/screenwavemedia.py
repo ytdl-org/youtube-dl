@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class ScreenwaveMediaIE(InfoExtractor):
-    _VALID_URL = r'http://player\.screenwavemedia\.com/play/[a-zA-Z]+\.php\?[^"]*\bid=(?P<id>.+)'
+    _VALID_URL = r'http://player\d?\.screenwavemedia\.com/(?:play/)?[a-zA-Z]+\.php\?[^"]*\bid=(?P<id>.+)'
 
     _TESTS = [{
         'url': 'http://player.screenwavemedia.com/play/play.php?playerdiv=videoarea&companiondiv=squareAd&id=Cinemassacre-19911',
@@ -20,7 +20,10 @@ class ScreenwaveMediaIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        playerdata = self._download_webpage(url, video_id, 'Downloading player webpage')
+
+        playerdata = self._download_webpage(
+            'http://player.screenwavemedia.com/play/player.php?id=%s' % video_id,
+            video_id, 'Downloading player webpage')
 
         vidtitle = self._search_regex(
             r'\'vidtitle\'\s*:\s*"([^"]+)"', playerdata, 'vidtitle').replace('\\/', '/')
@@ -99,7 +102,7 @@ class TeamFourIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         playerdata_url = self._search_regex(
-            r'src="(http://player\.screenwavemedia\.com/play/[a-zA-Z]+\.php\?[^"]*\bid=.+?)"',
+            r'src="(http://player\d?\.screenwavemedia\.com/(?:play/)?[a-zA-Z]+\.php\?[^"]*\bid=.+?)"',
             webpage, 'player data URL')
 
         video_title = self._html_search_regex(
