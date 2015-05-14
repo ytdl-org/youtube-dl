@@ -336,7 +336,7 @@ class SoundcloudUserIE(SoundcloudIE):
             if len(new_entries) == 0:
                 self.to_screen('%s: End page received' % uploader)
                 break
-            entries.extend(self._extract_info_dict(e, quiet=True) for e in new_entries)
+            entries.extend(self.url_result(e['permalink_url'], 'Soundcloud') for e in new_entries)
 
         return {
             '_type': 'playlist',
