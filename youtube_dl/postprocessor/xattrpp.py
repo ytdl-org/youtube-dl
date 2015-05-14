@@ -25,6 +25,8 @@ class XAttrMetadataError(PostProcessingError):
         if (self.code in (errno.ENOSPC, errno.EDQUOT) or
                 'No space left' in self.msg or 'Disk quota excedded' in self.msg):
             self.reason = 'NO_SPACE'
+        elif self.code == errno.E2BIG or 'Argument list too long' in self.msg:
+            self.reason = 'VALUE_TOO_LONG'
         else:
             self.reason = 'NOT_SUPPORTED'
 
@@ -103,8 +105,11 @@ class XAttrMetadataPP(PostProcessor):
                                [encodeArgument(o) for o in opts] +
                                [encodeFilename(path, True)])
 
-                        p = subprocess.Popen(
-                            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+                        try:
+                            p = subprocess.Popen(
+                                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+                        except EnvironmentError as e:
+                            raise XAttrMetadataError(e.errno, e.strerror)
                         stdout, stderr = p.communicate()
                         stderr = stderr.decode('utf-8', 'replace')
                         if p.returncode != 0:
@@ -158,6 +163,9 @@ class XAttrMetadataPP(PostProcessor):
                 self._downloader.report_warning(
                     'There\'s no disk space left or disk quota exceeded. ' +
                     'Extended attributes are not written.')
+            elif e.reason == 'VALUE_TOO_LONG':
+                self._downloader.report_warning(
+                    'Unable to write extended attributes due to too long values.')
             else:
                 self._downloader.report_error(
                     'This filesystem doesn\'t support extended attributes. ' +
