@@ -167,7 +167,10 @@ class XAttrMetadataPP(PostProcessor):
                 self._downloader.report_warning(
                     'Unable to write extended attributes due to too long values.')
             else:
-                self._downloader.report_error(
-                    'This filesystem doesn\'t support extended attributes. ' +
-                    '(You may have to enable them in your /etc/fstab)')
+                msg = 'This filesystem doesn\'t support extended attributes. '
+                if os.name == 'nt':
+                    msg += 'You need to use NTFS.'
+                else:
+                    msg += '(You may have to enable them in your /etc/fstab)'
+                self._downloader.report_error(msg)
             return [], info
