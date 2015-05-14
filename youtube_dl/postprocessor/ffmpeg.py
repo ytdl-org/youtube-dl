@@ -591,6 +591,23 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return info['__files_to_merge'], info
 
+    def can_merge(self):
+        # TODO: figure out merge-capable ffmpeg version
+        if self.basename != 'avconv':
+            return True
+
+        required_version = '10-0'
+        if is_outdated_version(
+                self._versions[self.basename], required_version):
+            warning = ('Your copy of %s is outdated and unable to properly mux separate video and audio files, '
+                       'youtube-dl will download single file media. '
+                       'Update %s to version %s or newer to fix this.') % (
+                           self.basename, self.basename, required_version)
+            if self._downloader:
+                self._downloader.report_warning(warning)
+            return False
+        return True
+
 
 class FFmpegFixupStretchedPP(FFmpegPostProcessor):
     def run(self, info):
