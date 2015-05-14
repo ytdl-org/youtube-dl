@@ -1086,9 +1086,10 @@ class YoutubeDL(object):
         if req_format is None:
             req_format_list = []
             if (self.params.get('outtmpl', DEFAULT_OUTTMPL) != '-' and
-                    info_dict['extractor'] in ['youtube', 'ted'] and
-                    FFmpegMergerPP(self).available):
-                req_format_list.append('bestvideo+bestaudio')
+                    info_dict['extractor'] in ['youtube', 'ted']):
+                merger = FFmpegMergerPP(self)
+                if merger.available and merger.can_merge():
+                    req_format_list.append('bestvideo+bestaudio')
             req_format_list.append('best')
             req_format = '/'.join(req_format_list)
         formats_to_download = []
@@ -1848,7 +1849,7 @@ class YoutubeDL(object):
             thumb_ext = determine_ext(t['url'], 'jpg')
             suffix = '_%s' % t['id'] if len(thumbnails) > 1 else ''
             thumb_display_id = '%s ' % t['id'] if len(thumbnails) > 1 else ''
-            t['filename'] = thumb_filename = os.path.splitext(filename)[0] + suffix + '.' + thumb_ext
+            thumb_filename = os.path.splitext(filename)[0] + suffix + '.' + thumb_ext
 
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(thumb_filename)):
                 self.to_screen('[%s] %s: Thumbnail %sis already present' %
