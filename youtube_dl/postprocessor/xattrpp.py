@@ -3,16 +3,30 @@ from __future__ import unicode_literals
 import os
 import subprocess
 import sys
+import errno
 
 from .common import PostProcessor
-from ..compat import (
-    subprocess_check_output
-)
 from ..utils import (
     check_executable,
     hyphenate_date,
     version_tuple,
+    PostProcessingError,
+    encodeArgument,
+    encodeFilename,
 )
+
+
+class XAttrMetadataError(PostProcessingError):
+    def __init__(self, code=None, msg='Unknown error'):
+        super(XAttrMetadataError, self).__init__(msg)
+        self.code = code
+
+        # Parsing code and msg
+        if (self.code in (errno.ENOSPC, errno.EDQUOT) or
+                'No space left' in self.msg or 'Disk quota excedded' in self.msg):
+            self.reason = 'NO_SPACE'
+        else:
+            self.reason = 'NOT_SUPPORTED'
 
 
 class XAttrMetadataPP(PostProcessor):
@@ -51,7 +65,10 @@ class XAttrMetadataPP(PostProcessor):
                 raise ImportError
 
             def write_xattr(path, key, value):
-                return xattr.setxattr(path, key, value)
+                try:
+                    xattr.set(path, key, value)
+                except EnvironmentError as e:
+                    raise XAttrMetadataError(e.errno, e.strerror)
 
         except ImportError:
             if os.name == 'nt':
@@ -62,8 +79,11 @@ class XAttrMetadataPP(PostProcessor):
                     assert os.path.exists(path)
 
                     ads_fn = path + ":" + key
-                    with open(ads_fn, "wb") as f:
-                        f.write(value)
+                    try:
+                        with open(ads_fn, "wb") as f:
+                            f.write(value)
+                    except EnvironmentError as e:
+                        raise XAttrMetadataError(e.errno, e.strerror)
             else:
                 user_has_setfattr = check_executable("setfattr", ['--version'])
                 user_has_xattr = check_executable("xattr", ['-h'])
@@ -71,12 +91,24 @@ class XAttrMetadataPP(PostProcessor):
                 if user_has_setfattr or user_has_xattr:
 
                     def write_xattr(path, key, value):
+                        value = value.decode('utf-8')
                         if user_has_setfattr:
-                            cmd = ['setfattr', '-n', key, '-v', value, path]
+                            executable = 'setfattr'
+                            opts = ['-n', key, '-v', value]
                         elif user_has_xattr:
-                            cmd = ['xattr', '-w', key, value, path]
+                            executable = 'xattr'
+                            opts = ['-w', key, value]
 
-                        subprocess_check_output(cmd)
+                        cmd = ([encodeFilename(executable, True)] +
+                               [encodeArgument(o) for o in opts] +
+                               [encodeFilename(path, True)])
+
+                        p = subprocess.Popen(
+                            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+                        stdout, stderr = p.communicate()
+                        stderr = stderr.decode('utf-8', 'replace')
+                        if p.returncode != 0:
+                            raise XAttrMetadataError(p.returncode, stderr)
 
                 else:
                     # On Unix, and can't find pyxattr, setfattr, or xattr.
@@ -121,6 +153,13 @@ class XAttrMetadataPP(PostProcessor):
 
             return [], info
 
-        except (subprocess.CalledProcessError, OSError):
-            self._downloader.report_error("This filesystem doesn't support extended attributes. (You may have to enable them in your /etc/fstab)")
+        except XAttrMetadataError as e:
+            if e.reason == 'NO_SPACE':
+                self._downloader.report_warning(
+                    'There\'s no disk space left or disk quota exceeded. ' +
+                    'Extended attributes are not written.')
+            else:
+                self._downloader.report_error(
+                    'This filesystem doesn\'t support extended attributes. ' +
+                    '(You may have to enable them in your /etc/fstab)')
             return [], info
