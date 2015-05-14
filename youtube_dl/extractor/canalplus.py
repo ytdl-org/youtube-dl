@@ -25,14 +25,14 @@ class CanalplusIE(InfoExtractor):
     }
 
     _TESTS = [{
-        'url': 'http://www.canalplus.fr/c-infos-documentaires/pid1830-c-zapping.html?vid=922470',
-        'md5': '3db39fb48b9685438ecf33a1078023e4',
+        'url': 'http://www.canalplus.fr/c-emissions/pid1830-c-zapping.html?vid=1263092',
+        'md5': 'b3481d7ca972f61e37420798d0a9d934',
         'info_dict': {
-            'id': '922470',
+            'id': '1263092',
             'ext': 'flv',
-            'title': 'Zapping - 26/08/13',
-            'description': 'Le meilleur de toutes les chaînes, tous les jours.\nEmission du 26 août 2013',
-            'upload_date': '20130826',
+            'title': 'Le Zapping - 13/05/15',
+            'description': 'md5:09738c0d06be4b5d06a0940edb0da73f',
+            'upload_date': '20150513',
         },
     }, {
         'url': 'http://www.piwiplus.fr/videos-piwi/pid1405-le-labyrinthe-boing-super-ranger.html?vid=1108190',
@@ -56,7 +56,7 @@ class CanalplusIE(InfoExtractor):
         'skip': 'videos get deleted after a while',
     }, {
         'url': 'http://www.itele.fr/france/video/aubervilliers-un-lycee-en-colere-111559',
-        'md5': '65aa83ad62fe107ce29e564bb8712580',
+        'md5': 'f3a46edcdf28006598ffaf5b30e6a2d4',
         'info_dict': {
             'id': '1213714',
             'ext': 'flv',
