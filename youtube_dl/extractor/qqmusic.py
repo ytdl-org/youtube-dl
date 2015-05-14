@@ -204,8 +204,7 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
     def _real_extract(self, url):
         list_id = self._match_id(url)
 
-        list_type = list_id.split("_")[0]
-        num_id = list_id.split("_")[1]
+        list_type, num_id = list_id.split("_")
 
         list_page = self._download_webpage(
             "http://y.qq.com/y/static/toplist/index/%s.html" % list_id,
@@ -217,11 +216,11 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
         else:
             jsonp_url = "http://y.qq.com/y/static/toplist/json/global/%s/1_1.js" % num_id
 
-        list = self._download_json(
+        toplist_json = self._download_json(
             jsonp_url, list_id, note='Retrieve toplist json',
             errnote='Unable to get toplist json', transform_source=self.strip_qq_jsonp)
 
-        for song in list['l']:
+        for song in toplist_json['l']:
             s = song['s']
             song_mid = s.split("|")[20]
             entries.append(self.url_result(
@@ -231,6 +230,5 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
         list_name = self._html_search_regex(
             r'<h2 id="top_name">([^\']+)</h2>', list_page, 'top list name',
             default=None)
-        list_desc = None
 
-        return self.playlist_result(entries, list_id, list_name, list_desc)
+        return self.playlist_result(entries, list_id, list_name)
