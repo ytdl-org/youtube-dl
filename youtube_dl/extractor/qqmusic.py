@@ -15,6 +15,7 @@ from ..compat import compat_urllib_request
 
 
 class QQMusicIE(InfoExtractor):
+    IE_NAME = 'qqmusic'
     _VALID_URL = r'http://y.qq.com/#type=song&mid=(?P<id>[0-9A-Za-z]+)'
     _TESTS = [{
         'url': 'http://y.qq.com/#type=song&mid=004295Et37taLD',
@@ -97,6 +98,7 @@ class QQPlaylistBaseIE(InfoExtractor):
 
 
 class QQMusicSingerIE(QQPlaylistBaseIE):
+    IE_NAME = 'qqmusic:singer'
     _VALID_URL = r'http://y.qq.com/#type=singer&mid=(?P<id>[0-9A-Za-z]+)'
     _TEST = {
         'url': 'http://y.qq.com/#type=singer&mid=001BLpXF2DyJe2',
@@ -140,6 +142,7 @@ class QQMusicSingerIE(QQPlaylistBaseIE):
 
 
 class QQMusicAlbumIE(QQPlaylistBaseIE):
+    IE_NAME = 'qqmusic:album'
     _VALID_URL = r'http://y.qq.com/#type=album&mid=(?P<id>[0-9A-Za-z]+)'
 
     _TEST = {
@@ -172,6 +175,7 @@ class QQMusicAlbumIE(QQPlaylistBaseIE):
 
 
 class QQMusicToplistIE(QQPlaylistBaseIE):
+    IE_NAME = 'qqmusic:toplist'
     _VALID_URL = r'http://y\.qq\.com/#type=toplist&p=(?P<id>(top|global)_[0-9]+)'
 
     _TESTS = [{
