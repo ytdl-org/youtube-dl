@@ -26,6 +26,7 @@ class CanalplusIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.canalplus.fr/c-emissions/pid1830-c-zapping.html?vid=1263092',
+        'md5': 'b3481d7ca972f61e37420798d0a9d934',
         'info_dict': {
             'id': '1263092',
             'ext': 'flv',
@@ -55,6 +56,7 @@ class CanalplusIE(InfoExtractor):
         'skip': 'videos get deleted after a while',
     }, {
         'url': 'http://www.itele.fr/france/video/aubervilliers-un-lycee-en-colere-111559',
+        'md5': 'f3a46edcdf28006598ffaf5b30e6a2d4',
         'info_dict': {
             'id': '1213714',
             'ext': 'flv',
