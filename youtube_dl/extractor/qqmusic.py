@@ -173,7 +173,7 @@ class QQMusicAlbumIE(QQPlaylistBaseIE):
 
 class QQMusicToplistIE(QQPlaylistBaseIE):
     _VALID_URL = r'http://y\.qq\.com/#type=toplist&p=(?P<id>(top|global)_[0-9]+)'
-    
+
     _TESTS = [{
         'url': 'http://y.qq.com/#type=toplist&p=global_12',
         'info_dict': {
@@ -200,7 +200,7 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
     @staticmethod
     def strip_qq_jsonp(code):
         return js_to_json(re.sub(r'^MusicJsonCallback\((.*?)\)/\*.+?\*/$', r'\1', code))
-    
+
     def _real_extract(self, url):
         list_id = self._match_id(url)
 
@@ -208,7 +208,7 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
         num_id = list_id.split("_")[1]
 
         list_page = self._download_webpage(
-            "http://y.qq.com/y/static/toplist/index/%s.html" % list_id, 
+            "http://y.qq.com/y/static/toplist/index/%s.html" % list_id,
             list_id, 'Download toplist page')
 
         entries = []
@@ -216,10 +216,11 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
             jsonp_url = "http://y.qq.com/y/static/toplist/json/top/%s/1.js" % num_id
         else:
             jsonp_url = "http://y.qq.com/y/static/toplist/json/global/%s/1_1.js" % num_id
-        
-        list = self._download_json(jsonp_url, list_id, note='Retrieve toplist json', 
+
+        list = self._download_json(
+            jsonp_url, list_id, note='Retrieve toplist json',
             errnote='Unable to get toplist json', transform_source=self.strip_qq_jsonp)
-            
+
         for song in list['l']:
             s = song['s']
             song_mid = s.split("|")[20]
@@ -233,4 +234,3 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
         list_desc = None
 
         return self.playlist_result(entries, list_id, list_name, list_desc)
-        
