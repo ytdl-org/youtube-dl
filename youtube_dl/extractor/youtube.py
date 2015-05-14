@@ -1667,13 +1667,42 @@ class YoutubeWatchLaterIE(YoutubePlaylistIE):
         return self._extract_playlist('WL')
 
 
-class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
+class YoutubeHistoryIE(YoutubePlaylistIE):
     IE_NAME = 'youtube:history'
     IE_DESC = 'Youtube watch history, ":ythistory" for short (requires authentication)'
     _VALID_URL = 'https?://www\.youtube\.com/feed/history|:ythistory'
-    _FEED_NAME = 'history'
-    _PERSONAL_FEED = True
-    _PLAYLIST_TITLE = 'Youtube Watch History'
+    _TESTS = []
+
+    def _real_extract(self, url):
+        title = 'Youtube History'
+        page = self._download_webpage('https://www.youtube.com/feed/history', title)
+
+        # The extraction process is the same as for playlists, but the regex
+        # for the video ids doesn't contain an index
+        ids = []
+        more_widget_html = content_html = page
+
+        for page_num in itertools.count(1):
+            matches = re.findall(r'href="\s*/watch\?v=([0-9A-Za-z_-]{11})', content_html)
+            new_ids = orderedSet(matches)
+            ids.extend(new_ids)
+
+            mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
+            if not mobj:
+                break
+
+            more = self._download_json(
+                'https://youtube.com/%s' % mobj.group('more'), title,
+                'Downloading page #%s' % page_num,
+                transform_source=uppercase_escape)
+            content_html = more['content_html']
+            more_widget_html = more['load_more_widget_html']
+
+        return {
+            '_type': 'playlist',
+            'title': title,
+            'entries': self._ids_to_results(ids),
+        }
 
 
 class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
