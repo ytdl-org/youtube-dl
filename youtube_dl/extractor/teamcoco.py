@@ -62,7 +62,9 @@ class TeamcocoIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
 
         display_id = mobj.group('display_id')
-        webpage = self._download_webpage(url, display_id)
+        webpage, urlh = self._download_webpage_handle(url, display_id)
+        if 'src=expired' in urlh.geturl():
+            raise ExtractorError('This video is expired.', expected=True)
 
         video_id = mobj.group('video_id')
         if not video_id:
