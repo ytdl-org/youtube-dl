@@ -1425,7 +1425,7 @@ class GenericIE(InfoExtractor):
         # Look for Senate ISVP iframe
         senate_isvp_url = SenateISVPIE._search_iframe_url(webpage)
         if senate_isvp_url:
-            return self.url_result(surl, 'SenateISVP')
+            return self.url_result(senate_isvp_url, 'SenateISVP')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
