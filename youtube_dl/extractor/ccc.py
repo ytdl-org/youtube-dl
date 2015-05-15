@@ -16,7 +16,7 @@ class CCCIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://media.ccc.de/browse/congress/2013/30C3_-_5443_-_en_-_saal_g_-_201312281830_-_introduction_to_processor_design_-_byterazor.html#video',
-        'md5': '205a365d0d57c0b1e43a12c9ffe8f9be',
+        'md5': '3a1eda8f3a29515d27f5adb967d7e740',
         'info_dict': {
             'id': '20131228183',
             'ext': 'mp4',
@@ -51,7 +51,7 @@ class CCCIE(InfoExtractor):
 
         matches = re.finditer(r'''(?xs)
             <(?:span|div)\s+class='label\s+filetype'>(?P<format>.*?)</(?:span|div)>\s*
-            <a\s+href='(?P<http_url>[^']+)'>\s*
+            <a\s+download\s+href='(?P<http_url>[^']+)'>\s*
             (?:
                 .*?
                 <a\s+href='(?P<torrent_url>[^']+\.torrent)'
