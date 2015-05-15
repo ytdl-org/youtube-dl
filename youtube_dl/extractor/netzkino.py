@@ -22,7 +22,7 @@ class NetzkinoIE(InfoExtractor):
             'id': 'rakete-zum-mond',
             'ext': 'mp4',
             'title': 'Rakete zum Mond (Endstation Mond, Destination Moon)',
-            'comments': 'mincount:3',
+            'comments': 'mincount:2',
             'description': 'md5:1eddeacc7e62d5a25a2d1a7290c64a28',
             'upload_date': '20120813',
             'thumbnail': 're:https?://.*\.jpg$',
