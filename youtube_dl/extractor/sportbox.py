@@ -91,6 +91,12 @@ class SportBoxEmbedIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+src="(https?://news\.sportbox\.ru/vdl/player[^"]+)"',
+            webpage)
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
