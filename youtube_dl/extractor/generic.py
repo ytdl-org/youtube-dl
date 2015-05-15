@@ -32,6 +32,7 @@ from .brightcove import BrightcoveIE
 from .nbc import NBCSportsVPlayerIE
 from .ooyala import OoyalaIE
 from .rutv import RUTVIE
+from .sportbox import SportBoxEmbedIE
 from .smotri import SmotriIE
 from .condenast import CondeNastIE
 from .udn import UDNEmbedIE
@@ -1228,6 +1229,11 @@ class GenericIE(InfoExtractor):
         rutv_url = RUTVIE._extract_url(webpage)
         if rutv_url:
             return self.url_result(rutv_url, 'RUTV')
+
+        # Look for embedded SportBox player
+        sportbox_urls = SportBoxEmbedIE._extract_urls(webpage)
+        if sportbox_urls:
+            return _playlist_from_matches(sportbox_urls, ie='SportBoxEmbed')
 
         # Look for embedded TED player
         mobj = re.search(
