@@ -14,7 +14,7 @@ class SportBoxIE(InfoExtractor):
     _VALID_URL = r'https?://news\.sportbox\.ru/(?:[^/]+/)+spbvideo_NI\d+_(?P<display_id>.+)'
     _TESTS = [
         {
-            'url': 'http://news.sportbox.ru/Vidy_sporta/Avtosport/Rossijskij/spbvideo_NI483529_Gonka-2-zaezd-Obyedinenniy-2000-klassi-Turing-i-S',
+            'url': 'http://news.sportbox.ru/Vidy_sporta/Avtosport/Rossijskij/spbvideo_NI483529_Gonka-2-zaezd-Obyedinenniy-2000-klassi-Turing-i-S',            
             'md5': 'ff56a598c2cf411a9a38a69709e97079',
             'info_dict': {
                 'id': '80822',
@@ -42,11 +42,15 @@ class SportBoxIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        video_id = self._search_regex(
-            r'src="/vdl/player/media/(\d+)"', webpage, 'video id')
+        sobj = re.search(r'src="/vdl/player/(?P<media_type>\w+)/(?P<video_id>\d+)"', webpage)
+        if (sobj):
+            video_id = sobj.group('video_id')
+            media_type = sobj.group('media_type')
+        else:
+            raise RegexNotFoundError('Unable to extract video_id')
 
         player = self._download_webpage(
-            'http://news.sportbox.ru/vdl/player/media/%s' % video_id,
+            'http://news.sportbox.ru/vdl/player/%s/%s' % (media_type, video_id),
             display_id, 'Downloading player webpage')
 
         hls = self._search_regex(
