@@ -49,6 +49,11 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             # YouTube sets the expire time to about two months
             expire_time=time.time() + 2 * 30 * 24 * 3600)
 
+    def _ids_to_results(self, ids):
+        return [
+            self.url_result(vid_id, 'Youtube', video_id=vid_id)
+            for vid_id in ids]
+
     def _login(self):
         """
         Attempt to log in to YouTube.
@@ -1261,11 +1266,6 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
     def _real_initialize(self):
         self._login()
 
-    def _ids_to_results(self, ids):
-        return [
-            self.url_result(vid_id, 'Youtube', video_id=vid_id)
-            for vid_id in ids]
-
     def _extract_mix(self, playlist_id):
         # The mixes are generated from a single video
         # the id of the playlist is just 'RD' + video_id
@@ -1601,20 +1601,10 @@ class YoutubeShowIE(InfoExtractor):
 
 class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
     """
-    Base class for extractors that fetch info from
-    http://www.youtube.com/feed_ajax
+    Base class for feed extractors
     Subclasses must define the _FEED_NAME and _PLAYLIST_TITLE properties.
     """
     _LOGIN_REQUIRED = True
-    # use action_load_personal_feed instead of action_load_system_feed
-    _PERSONAL_FEED = False
-
-    @property
-    def _FEED_TEMPLATE(self):
-        action = 'action_load_system_feed'
-        if self._PERSONAL_FEED:
-            action = 'action_load_personal_feed'
-        return 'https://www.youtube.com/feed_ajax?%s=1&feed_name=%s&paging=%%s' % (action, self._FEED_NAME)
 
     @property
     def IE_NAME(self):
@@ -1624,58 +1614,8 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
         self._login()
 
     def _real_extract(self, url):
-        feed_entries = []
-        paging = 0
-        for i in itertools.count(1):
-            info = self._download_json(
-                self._FEED_TEMPLATE % paging,
-                '%s feed' % self._FEED_NAME,
-                'Downloading page %s' % i,
-                transform_source=uppercase_escape)
-            feed_html = info.get('feed_html') or info.get('content_html')
-            load_more_widget_html = info.get('load_more_widget_html') or feed_html
-            m_ids = re.finditer(r'"/watch\?v=(.*?)["&]', feed_html)
-            ids = orderedSet(m.group(1) for m in m_ids)
-            feed_entries.extend(
-                self.url_result(video_id, 'Youtube', video_id=video_id)
-                for video_id in ids)
-            mobj = re.search(
-                r'data-uix-load-more-href="/?[^"]+paging=(?P<paging>\d+)',
-                load_more_widget_html)
-            if mobj is None:
-                break
-            paging = mobj.group('paging')
-        return self.playlist_result(feed_entries, playlist_title=self._PLAYLIST_TITLE)
-
-
-class YoutubeRecommendedIE(YoutubeFeedsInfoExtractor):
-    IE_NAME = 'youtube:recommended'
-    IE_DESC = 'YouTube.com recommended videos, ":ytrec" for short (requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/feed/recommended|:ytrec(?:ommended)?'
-    _FEED_NAME = 'recommended'
-    _PLAYLIST_TITLE = 'Youtube Recommended videos'
-
-
-class YoutubeWatchLaterIE(YoutubePlaylistIE):
-    IE_NAME = 'youtube:watchlater'
-    IE_DESC = 'Youtube watch later list, ":ytwatchlater" for short (requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/(?:feed/watch_later|playlist\?list=WL)|:ytwatchlater'
-
-    _TESTS = []  # override PlaylistIE tests
-
-    def _real_extract(self, url):
-        return self._extract_playlist('WL')
-
-
-class YoutubeHistoryIE(YoutubePlaylistIE):
-    IE_NAME = 'youtube:history'
-    IE_DESC = 'Youtube watch history, ":ythistory" for short (requires authentication)'
-    _VALID_URL = 'https?://www\.youtube\.com/feed/history|:ythistory'
-    _TESTS = []
-
-    def _real_extract(self, url):
-        title = 'Youtube History'
-        page = self._download_webpage('https://www.youtube.com/feed/history', title)
+        page = self._download_webpage(
+            'https://www.youtube.com/feed/%s' % self._FEED_NAME, self._PLAYLIST_TITLE)
 
         # The extraction process is the same as for playlists, but the regex
         # for the video ids doesn't contain an index
@@ -1692,17 +1632,25 @@ class YoutubeHistoryIE(YoutubePlaylistIE):
                 break
 
             more = self._download_json(
-                'https://youtube.com/%s' % mobj.group('more'), title,
+                'https://youtube.com/%s' % mobj.group('more'), self._PLAYLIST_TITLE,
                 'Downloading page #%s' % page_num,
                 transform_source=uppercase_escape)
             content_html = more['content_html']
             more_widget_html = more['load_more_widget_html']
 
-        return {
-            '_type': 'playlist',
-            'title': title,
-            'entries': self._ids_to_results(ids),
-        }
+        return self.playlist_result(
+            self._ids_to_results(ids), playlist_title=self._PLAYLIST_TITLE)
+
+
+class YoutubeWatchLaterIE(YoutubePlaylistIE):
+    IE_NAME = 'youtube:watchlater'
+    IE_DESC = 'Youtube watch later list, ":ytwatchlater" for short (requires authentication)'
+    _VALID_URL = r'https?://www\.youtube\.com/(?:feed/watch_later|playlist\?list=WL)|:ytwatchlater'
+
+    _TESTS = []  # override PlaylistIE tests
+
+    def _real_extract(self, url):
+        return self._extract_playlist('WL')
 
 
 class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
@@ -1717,42 +1665,25 @@ class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
         return self.url_result(playlist_id, 'YoutubePlaylist')
 
 
-class YoutubeSubscriptionsIE(YoutubePlaylistIE):
-    IE_NAME = 'youtube:subscriptions'
+class YoutubeRecommendedIE(YoutubeFeedsInfoExtractor):
+    IE_DESC = 'YouTube.com recommended videos, ":ytrec" for short (requires authentication)'
+    _VALID_URL = r'https?://www\.youtube\.com/feed/recommended|:ytrec(?:ommended)?'
+    _FEED_NAME = 'recommended'
+    _PLAYLIST_TITLE = 'Youtube Recommended videos'
+
+
+class YoutubeSubscriptionsIE(YoutubeFeedsInfoExtractor):
     IE_DESC = 'YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)'
     _VALID_URL = r'https?://www\.youtube\.com/feed/subscriptions|:ytsubs(?:criptions)?'
-    _TESTS = []
+    _FEED_NAME = 'subscriptions'
+    _PLAYLIST_TITLE = 'Youtube Subscriptions'
 
-    def _real_extract(self, url):
-        title = 'Youtube Subscriptions'
-        page = self._download_webpage('https://www.youtube.com/feed/subscriptions', title)
 
-        # The extraction process is the same as for playlists, but the regex
-        # for the video ids doesn't contain an index
-        ids = []
-        more_widget_html = content_html = page
-
-        for page_num in itertools.count(1):
-            matches = re.findall(r'href="\s*/watch\?v=([0-9A-Za-z_-]{11})', content_html)
-            new_ids = orderedSet(matches)
-            ids.extend(new_ids)
-
-            mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
-            if not mobj:
-                break
-
-            more = self._download_json(
-                'https://youtube.com/%s' % mobj.group('more'), title,
-                'Downloading page #%s' % page_num,
-                transform_source=uppercase_escape)
-            content_html = more['content_html']
-            more_widget_html = more['load_more_widget_html']
-
-        return {
-            '_type': 'playlist',
-            'title': title,
-            'entries': self._ids_to_results(ids),
-        }
+class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
+    IE_DESC = 'Youtube watch history, ":ythistory" for short (requires authentication)'
+    _VALID_URL = 'https?://www\.youtube\.com/feed/history|:ythistory'
+    _FEED_NAME = 'history'
+    _PLAYLIST_TITLE = 'Youtube History'
 
 
 class YoutubeTruncatedURLIE(InfoExtractor):
