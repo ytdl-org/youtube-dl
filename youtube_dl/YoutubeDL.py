@@ -759,7 +759,9 @@ class YoutubeDL(object):
             if isinstance(ie_entries, list):
                 n_all_entries = len(ie_entries)
                 if playlistitems:
-                    entries = [ie_entries[i - 1] for i in playlistitems]
+                    entries = [
+                        ie_entries[i - 1] for i in playlistitems
+                        if -n_all_entries <= i - 1 < n_all_entries]
                 else:
                     entries = ie_entries[playliststart:playlistend]
                 n_entries = len(entries)
