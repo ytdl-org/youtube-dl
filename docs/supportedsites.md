@@ -291,6 +291,7 @@
  - **MySpass**
  - **myvideo**
  - **MyVidster**
+ - **N-JOY**
  - **n-tv.de**
  - **NationalGeographic**
  - **Naver**
@@ -368,9 +369,10 @@
  - **prosiebensat1**: ProSiebenSat.1 Digital
  - **Puls4**
  - **Pyvideo**
- - **QQMusic**
- - **QQMusicAlbum**
- - **QQMusicSinger**
+ - **qqmusic**
+ - **qqmusic:album**
+ - **qqmusic:singer**
+ - **qqmusic:toplist**
  - **QuickVid**
  - **R7**
  - **radio.de**
@@ -439,6 +441,7 @@
  - **southpark.cc.com:español**
  - **southpark.de**
  - **southpark.nl**
+ - **southparkstudios.dk**
  - **Space**
  - **SpankBang**
  - **Spankwire**
@@ -492,6 +495,7 @@
  - **tlc.com**
  - **tlc.de**
  - **TMZ**
+ - **TMZArticle**
  - **TNAFlix**
  - **tou.tv**
  - **Toypics**: Toypics user profile
@@ -569,6 +573,7 @@
  - **vk.com**
  - **vk.com:user-videos**: vk.com:All of a user's videos
  - **Vodlocker**
+ - **VoiceRepublic**
  - **Vporn**
  - **VRT**
  - **vube**: Vube.com
