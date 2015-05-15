@@ -11,10 +11,10 @@ from ..utils import (
 
 
 class SportBoxIE(InfoExtractor):
-    _VALID_URL = r'https?://news\.sportbox\.ru/Vidy_sporta/(?:[^/]+/)+spbvideo_NI\d+_(?P<display_id>.+)'
+    _VALID_URL = r'https?://news\.sportbox\.ru/(?:[^/]+/)+spbvideo_NI\d+_(?P<display_id>.+)'
     _TESTS = [
         {
-            'url': 'http://news.sportbox.ru/Vidy_sporta/Avtosport/Rossijskij/spbvideo_NI483529_Gonka-2-zaezd-Obyedinenniy-2000-klassi-Turing-i-S',
+            'url': 'http://news.sportbox.ru/Vidy_sporta/Avtosport/Rossijskij/spbvideo_NI483529_Gonka-2-zaezd-Obyedinenniy-2000-klassi-Turing-i-S',            
             'md5': 'ff56a598c2cf411a9a38a69709e97079',
             'info_dict': {
                 'id': '80822',
@@ -30,10 +30,29 @@ class SportBoxIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
-        }, {
+        }, 
+        {
+            'url': 'http://news.sportbox.ru/video/no_ads/spbvideo_NI536574_V_Novorossijske_proshel_detskij_turnir_Pole_slavy_bojevoj?ci=211355',            
+            'md5': 'ff56a598c2cf411a9a38a69709e97079',
+            'info_dict': {
+                'id': '211355',
+                'ext': 'mp4',
+                'title': 'В Новороссийске прошел детский турнир «Поле славы боевой»',
+                'description': '16 детских коллективов приняли участие в суперфинале турнира «Поле славы боевой».',
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'timestamp': 1426237001,
+                'upload_date': '20150313',
+                'duration': 292,
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
+        }, 
+        {
             'url': 'http://news.sportbox.ru/Vidy_sporta/billiard/spbvideo_NI486287_CHempionat-mira-po-dinamichnoy-piramide-4',
             'only_matching': True,
-        }
+        },
     ]
 
     def _real_extract(self, url):
@@ -42,15 +61,19 @@ class SportBoxIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        video_id = self._search_regex(
-            r'src="/vdl/player/media/(\d+)"', webpage, 'video id')
+        sobj = re.search(r'src="/vdl/player/(?P<media_type>\w+)/(?P<video_id>\d+)"', webpage)
+        if (sobj):
+            video_id = sobj.group('video_id')
+            media_type = sobj.group('media_type')
+        else:
+            raise RegexNotFoundError('Unable to extract video_id')
 
         player = self._download_webpage(
-            'http://news.sportbox.ru/vdl/player/media/%s' % video_id,
+            'http://news.sportbox.ru/vdl/player/%s/%s' % (media_type, video_id),
             display_id, 'Downloading player webpage')
 
         hls = self._search_regex(
-            r"var\s+original_hls_file\s*=\s*'([^']+)'", player, 'hls file')
+            r"sportboxPlayer\.jwplayer_common_params\.file\s*=\s*['\"]+([^\"]+)['\"]+", player, 'hls file')
 
         formats = self._extract_m3u8_formats(hls, display_id, 'mp4')
 
