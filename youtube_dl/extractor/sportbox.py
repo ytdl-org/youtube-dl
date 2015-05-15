@@ -30,10 +30,29 @@ class SportBoxIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
-        }, {
+        }, 
+        {
+            'url': 'http://news.sportbox.ru/video/no_ads/spbvideo_NI536574_V_Novorossijske_proshel_detskij_turnir_Pole_slavy_bojevoj?ci=211355',            
+            'md5': 'ff56a598c2cf411a9a38a69709e97079',
+            'info_dict': {
+                'id': '211355',
+                'ext': 'mp4',
+                'title': 'В Новороссийске прошел детский турнир «Поле славы боевой»',
+                'description': '16 детских коллективов приняли участие в суперфинале турнира «Поле славы боевой».',
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'timestamp': 1426237001,
+                'upload_date': '20150313',
+                'duration': 292,
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
+        }, 
+        {
             'url': 'http://news.sportbox.ru/Vidy_sporta/billiard/spbvideo_NI486287_CHempionat-mira-po-dinamichnoy-piramide-4',
             'only_matching': True,
-        }
+        },
     ]
 
     def _real_extract(self, url):
