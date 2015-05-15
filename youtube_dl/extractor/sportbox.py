@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class SportBoxIE(InfoExtractor):
-    _VALID_URL = r'https?://news\.sportbox\.ru/Vidy_sporta/(?:[^/]+/)+spbvideo_NI\d+_(?P<display_id>.+)'
+    _VALID_URL = r'https?://news\.sportbox\.ru/(?:[^/]+/)+spbvideo_NI\d+_(?P<display_id>.+)'
     _TESTS = [
         {
             'url': 'http://news.sportbox.ru/Vidy_sporta/Avtosport/Rossijskij/spbvideo_NI483529_Gonka-2-zaezd-Obyedinenniy-2000-klassi-Turing-i-S',
@@ -50,7 +50,7 @@ class SportBoxIE(InfoExtractor):
             display_id, 'Downloading player webpage')
 
         hls = self._search_regex(
-            r"var\s+original_hls_file\s*=\s*'([^']+)'", player, 'hls file')
+            r"sportboxPlayer\.jwplayer_common_params\.file\s*=\s*['\"]+([^\"]+)['\"]+", player, 'hls file')
 
         formats = self._extract_m3u8_formats(hls, display_id, 'mp4')
 
