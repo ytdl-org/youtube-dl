@@ -1621,10 +1621,16 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
         # for the video ids doesn't contain an index
         ids = []
         more_widget_html = content_html = page
-
         for page_num in itertools.count(1):
             matches = re.findall(r'href="\s*/watch\?v=([0-9A-Za-z_-]{11})', content_html)
-            new_ids = orderedSet(matches)
+
+            # 'recommended' feed has infinite 'load more' and each new portion spins
+            # the same videos in (sometimes) slightly different order, so we'll check
+            # for unicity and break when portion has no new videos
+            new_ids = filter(lambda video_id: video_id not in ids, orderedSet(matches))
+            if not new_ids:
+                break
+
             ids.extend(new_ids)
 
             mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
