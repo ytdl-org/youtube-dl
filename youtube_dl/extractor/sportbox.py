@@ -113,7 +113,7 @@ class SportBoxEmbedIE(InfoExtractor):
 
         thumbnail = self._search_regex(
             r'sportboxPlayer\.jwplayer_common_params\.image\s*=\s*"([^"]+)"',
-            webpage, 'thumbnail', fatal=False)
+            webpage, 'thumbnail', default=None)
 
         return {
             'id': video_id,
