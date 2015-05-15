@@ -225,6 +225,37 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        # SportBox embed
+        {
+            'url': 'http://www.vestifinance.ru/articles/25753',
+            'info_dict': {
+                'id': '25753',
+                'title': 'Вести Экономика ― Прямые трансляции с Форума-выставки "Госзаказ-2013"',
+            },
+            'playlist': [{
+                'info_dict': {
+                    'id': '370908',
+                    'title': 'Госзаказ. День 3',
+                    'ext': 'mp4',
+                }
+            }, {
+                'info_dict': {
+                    'id': '370905',
+                    'title': 'Госзаказ. День 2',
+                    'ext': 'mp4',
+                }
+            }, {
+                'info_dict': {
+                    'id': '370902',
+                    'title': 'Госзаказ. День 1',
+                    'ext': 'mp4',
+                }
+            }],
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
+        },
         # Embedded TED video
         {
             'url': 'http://en.support.wordpress.com/videos/ted-talks/',
