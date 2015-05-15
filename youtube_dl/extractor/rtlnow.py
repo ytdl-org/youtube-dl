@@ -20,7 +20,6 @@ class RTLnowIE(InfoExtractor):
                             (?P<domain>
                                 rtl-now\.rtl\.de|
                                 rtl2now\.rtl2\.de|
-                                (?:www\.)?voxnow\.de|
                                 (?:www\.)?rtlnitronow\.de|
                                 (?:www\.)?superrtlnow\.de|
                                 (?:www\.)?n-tvnow\.de)
@@ -60,20 +59,6 @@ class RTLnowIE(InfoExtractor):
                 'skip_download': True,
             },
             'skip': 'Only works from Germany',
-        },
-        {
-            'url': 'http://www.voxnow.de/voxtours/suedafrika-reporter-ii.php?film_id=13883&player=1&season=17',
-            'info_dict': {
-                'id': '13883',
-                'ext': 'flv',
-                'title': 'Voxtours - Südafrika-Reporter II',
-                'description': 'md5:de7f8d56be6fd4fed10f10f57786db00',
-                'upload_date': '20090627',
-                'duration': 1800,
-            },
-            'params': {
-                'skip_download': True,
-            },
         },
         {
             'url': 'http://superrtlnow.de/medicopter-117/angst.php?film_id=99205&player=1',
