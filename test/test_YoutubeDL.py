@@ -12,6 +12,7 @@ import copy
 
 from test.helper import FakeYDL, assertRegexpMatches
 from youtube_dl import YoutubeDL
+from youtube_dl.compat import compat_str
 from youtube_dl.extractor import YoutubeIE
 from youtube_dl.postprocessor.common import PostProcessor
 from youtube_dl.utils import match_filter_func
@@ -506,6 +507,51 @@ class TestYoutubeDL(unittest.TestCase):
         f = match_filter_func('filesize > 5KiB')
         res = get_videos(f)
         self.assertEqual(res, ['1'])
+
+    def test_playlist_items_selection(self):
+        entries = [{
+            'id': compat_str(i),
+            'title': compat_str(i),
+            'url': TEST_URL,
+        } for i in range(1, 5)]
+        playlist = {
+            '_type': 'playlist',
+            'id': 'test',
+            'entries': entries,
+            'extractor': 'test:playlist',
+            'extractor_key': 'test:playlist',
+            'webpage_url': 'http://example.com',
+        }
+
+        def get_ids(params):
+            ydl = YDL(params)
+            # make a copy because the dictionary can be modified
+            ydl.process_ie_result(playlist.copy())
+            return [int(v['id']) for v in ydl.downloaded_info_dicts]
+
+        result = get_ids({})
+        self.assertEqual(result, [1, 2, 3, 4])
+
+        result = get_ids({'playlistend': 10})
+        self.assertEqual(result, [1, 2, 3, 4])
+
+        result = get_ids({'playlistend': 2})
+        self.assertEqual(result, [1, 2])
+
+        result = get_ids({'playliststart': 10})
+        self.assertEqual(result, [])
+
+        result = get_ids({'playliststart': 2})
+        self.assertEqual(result, [2, 3, 4])
+
+        result = get_ids({'playlist_items': '2-4'})
+        self.assertEqual(result, [2, 3, 4])
+
+        result = get_ids({'playlist_items': '2,4'})
+        self.assertEqual(result, [2, 4])
+
+        result = get_ids({'playlist_items': '10'})
+        self.assertEqual(result, [])
 
 
 if __name__ == '__main__':
