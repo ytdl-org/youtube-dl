@@ -190,6 +190,7 @@ class RTSIE(InfoExtractor):
                 'tbr': media['rate'] or extract_bitrate(media['url']),
             } for media in info['media'] if media.get('rate')])
 
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         return {
