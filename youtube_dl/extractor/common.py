@@ -786,8 +786,8 @@ class InfoExtractor(object):
             return True
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError):
-                self.report_warning(
-                    '%s URL is invalid, skipping' % item, video_id)
+                self.to_screen(
+                    '%s: %s URL is invalid, skipping' % (video_id, item))
                 return False
             raise
 
