@@ -93,7 +93,7 @@ class VikiIE(InfoExtractor):
                     'Video %s is blocked from your location.' % video_id,
                     expected=True)
             else:
-                raise ExtractorError('Viki said: ' + err_msg)
+                raise ExtractorError('Viki said: %s %s' % (err_msg, url))
         mobj = re.search(
             r'<source[^>]+type="(?P<mime_type>[^"]+)"[^>]+src="(?P<url>[^"]+)"', info_webpage)
         if not mobj:
@@ -157,7 +157,15 @@ class VikiShowIE(InfoExtractor):
             'title': 'Boys Over Flowers',
             'description': 'md5:ecd3cff47967fe193cff37c0bec52790',
         },
-        'playlist_count': 25,
+        'playlist_count': 70,
+    }, {
+        'url': 'http://www.viki.com/tv/1354c-poor-nastya-complete',
+        'info_dict': {
+            'id': '1354c',
+            'title': 'Poor Nastya [COMPLETE]',
+            'description': 'md5:05bf5471385aa8b21c18ad450e350525',
+        },
+        'playlist_count': 127,
     }]
 
     def _real_extract(self, url):
@@ -167,13 +175,16 @@ class VikiShowIE(InfoExtractor):
         title = self._og_search_title(show_page)
         description = self._og_search_description(show_page)
 
-        show_json = self._download_json(
-            'http://api.viki.io/v4/containers/%s/episodes.json?app=100000a&per_page=999&sort=number&direction=asc' % show_id,
-            show_id, note='Retrieve show json', errnote='Unable to get show json')
         entries = []
-        for video in show_json['response']:
-            video_id = video['id']
-            entries.append(self.url_result(
-                'http://www.viki.com/videos/%s' % video_id, 'Viki', video_id))
+        for video_type in ['episodes', 'clips']:
+            json_url = 'http://api.viki.io/v4/containers/%s/%s.json?app=100000a&per_page=25&sort=number&direction=asc&with_paging=true&page=1' % (show_id, video_type)
+            while json_url is not None:
+                show_json = self._download_json(
+                    json_url, show_id, note='Retrieve show json', errnote='Unable to get show json')
+                for video in show_json['response']:
+                    video_id = video['id']
+                    entries.append(self.url_result(
+                        'http://www.viki.com/videos/%s' % video_id, 'Viki', video_id))
+                json_url = show_json['pagination']['next']
 
         return self.playlist_result(entries, show_id, title, description)
