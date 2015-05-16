@@ -145,3 +145,36 @@ class VikiIE(InfoExtractor):
                 'ext': 'vtt',
             }]
         return res
+
+
+class VikiShowIE(InfoExtractor):
+    IE_NAME = 'viki:show'
+    _VALID_URL = r'^https?://(?:www\.)?viki\.com/tv/(?P<id>[0-9]+c)'
+    _TESTS = [{
+        'url': 'http://www.viki.com/tv/50c-boys-over-flowers',
+        'info_dict': {
+            'id': '50c',
+            'title': 'Boys Over Flowers',
+            'description': 'md5:ecd3cff47967fe193cff37c0bec52790',
+        },
+        'playlist_count': 25,
+    }]
+
+    def _real_extract(self, url):
+        show_id = self._match_id(url)
+        show_page = self._download_webpage(url, show_id, 'Download show page')
+
+        title = self._og_search_title(show_page)
+        description = self._og_search_description(show_page)
+
+        show_json = self._download_json(
+            'http://api.viki.io/v4/containers/%s/episodes.json?app=100000a&per_page=999&sort=number&direction=asc' % show_id,
+            show_id, note='Retrieve show json', errnote='Unable to get show json'
+        )
+        entries = []
+        for video in show_json['response']:
+            video_id = video['id']
+            entries.append(self.url_result(
+                'http://www.viki.com/videos/%s' % video_id, 'Viki', video_id))
+
+        return self.playlist_result(entries, show_id, title, description)
