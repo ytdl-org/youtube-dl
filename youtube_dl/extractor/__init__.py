@@ -376,7 +376,10 @@ from .nytimes import (
 from .nuvid import NuvidIE
 from .odnoklassniki import OdnoklassnikiIE
 from .oktoberfesttv import OktoberfestTVIE
-from .ooyala import OoyalaIE
+from .ooyala import (
+    OoyalaIE,
+    OoyalaExternalIE,
+)
 from .openfilm import OpenFilmIE
 from .orf import (
     ORFTVthekIE,
