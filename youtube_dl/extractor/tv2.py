@@ -1,12 +1,15 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     int_or_none,
     float_or_none,
     parse_iso8601,
+    remove_end,
 )
 
 
@@ -91,3 +94,33 @@ class TV2IE(InfoExtractor):
             'categories': categories,
             'formats': formats,
         }
+
+
+class TV2ArticleIE(InfoExtractor):
+    _VALID_URL = 'http://(?:www\.)?tv2\.no/(?:a|\d{4}/\d{2}/\d{2}(/[^/]+)+)/(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'http://www.tv2.no/2015/05/16/nyheter/alesund/krim/pingvin/6930542',
+        'info_dict': {
+            'id': '6930542',
+            'title': 'Russen hetses etter pingvintyveri – innrømmer å ha åpnet luken på buret',
+            'description': 'md5:339573779d3eea3542ffe12006190954',
+        },
+        'playlist_count': 2,
+    }, {
+        'url': 'http://www.tv2.no/a/6930542',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result('http://www.tv2.no/v/%s' % video_id, 'TV2')
+            for video_id in re.findall(r'data-assetid="(\d+)"', webpage)]
+
+        title = remove_end(self._og_search_title(webpage), ' - TV2.no')
+        description = remove_end(self._og_search_description(webpage), ' - TV2.no')
+
+        return self.playlist_result(entries, playlist_id, title, description)

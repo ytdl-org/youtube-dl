@@ -572,7 +572,10 @@ from .tumblr import TumblrIE
 from .tunein import TuneInIE
 from .turbo import TurboIE
 from .tutv import TutvIE
-from .tv2 import TV2IE
+from .tv2 import (
+    TV2IE,
+    TV2ArticleIE,
+)
 from .tv4 import TV4IE
 from .tvigle import TvigleIE
 from .tvp import TvpIE, TvpSeriesIE
