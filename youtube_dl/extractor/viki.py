@@ -169,8 +169,7 @@ class VikiShowIE(InfoExtractor):
 
         show_json = self._download_json(
             'http://api.viki.io/v4/containers/%s/episodes.json?app=100000a&per_page=999&sort=number&direction=asc' % show_id,
-            show_id, note='Retrieve show json', errnote='Unable to get show json'
-        )
+            show_id, note='Retrieve show json', errnote='Unable to get show json')
         entries = []
         for video in show_json['response']:
             video_id = video['id']
