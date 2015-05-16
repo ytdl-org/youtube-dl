@@ -59,7 +59,7 @@ class OoyalaBaseIE(InfoExtractor):
         if not videos_info:
             formats = []
             auth_data = self._download_json(
-                'http://player.ooyala.com/sas/player_api/v1/authorization/embed_code/%s/%s?domain=www.example.org&supportedFormats=mp4,webm' % (embedCode, embedCode),
+                'http://player.ooyala.com/sas/player_api/v1/authorization/embed_code/%s/%s?domain=www.example.org&supportedFormats=mp4,webm' % (video_id, video_id),
                 video_id)
 
             cur_auth_data = auth_data['authorization_data'][video_id]
