@@ -33,16 +33,18 @@ class SBSIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
+
         webpage = self._download_webpage(url, video_id)
 
-        release_urls_json = js_to_json(self._search_regex(
+        player = self._search_regex(
             r'(?s)playerParams\.releaseUrls\s*=\s*(\{.*?\n\});\n',
-            webpage, ''))
-        release_urls = json.loads(release_urls_json)
-        theplatform_url = (
-            release_urls.get('progressive') or release_urls.get('standard'))
+            webpage, 'player')
+        player = re.sub(r"'\s*\+\s*[\da-zA-Z_]+\s*\+\s*'", '', player)
+
+        release_urls = self._parse_json(js_to_json(player), video_id)
+
+        theplatform_url = release_urls.get('progressive') or release_urls['standard']
 
         title = remove_end(self._og_search_title(webpage), ' (The Feed)')
         description = self._html_search_meta('description', webpage)
@@ -52,7 +54,6 @@ class SBSIE(InfoExtractor):
             '_type': 'url_transparent',
             'id': video_id,
             'url': theplatform_url,
-
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
