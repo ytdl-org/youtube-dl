@@ -147,8 +147,8 @@ class VikiIE(InfoExtractor):
         return res
 
 
-class VikiShowIE(InfoExtractor):
-    IE_NAME = 'viki:show'
+class VikiChannelIE(InfoExtractor):
+    IE_NAME = 'viki:channel'
     _VALID_URL = r'^https?://(?:www\.)?viki\.com/tv/(?P<id>[0-9]+c)'
     _TESTS = [{
         'url': 'http://www.viki.com/tv/50c-boys-over-flowers',
@@ -167,6 +167,7 @@ class VikiShowIE(InfoExtractor):
         },
         'playlist_count': 127,
     }]
+    _PER_PAGE = 25
 
     def _real_extract(self, url):
         show_id = self._match_id(url)
@@ -177,10 +178,12 @@ class VikiShowIE(InfoExtractor):
 
         entries = []
         for video_type in ['episodes', 'clips']:
-            json_url = 'http://api.viki.io/v4/containers/%s/%s.json?app=100000a&per_page=25&sort=number&direction=asc&with_paging=true&page=1' % (show_id, video_type)
+            json_url = 'http://api.viki.io/v4/containers/%s/%s.json?app=100000a&per_page=%d&sort=number&direction=asc&with_paging=true&page=1' % (show_id, video_type, self._PER_PAGE)
             while json_url is not None:
                 show_json = self._download_json(
-                    json_url, show_id, note='Retrieve show json', errnote='Unable to get show json')
+                    json_url, show_id,
+                    note='Downloading %s json page #%s' %
+                         (video_type, re.search(r'[?&]page=([0-9]+)', json_url).group(1)))
                 for video in show_json['response']:
                     video_id = video['id']
                     entries.append(self.url_result(
