@@ -29,15 +29,13 @@ class KarriereVideosIE(InfoExtractor):
 
         playlist = self._html_search_regex(r'/config/video/(.*?)\.xml', webpage, 'playlist')
         playlist = self._download_xml(
-            'http://www.karrierevideos.at/player-playlist.xml.php?p=%s' % playlist,
+            'http://www.karrierevideos.at/player-playlist.xml.php?p=' + playlist,
             video_id)
 
-        namespace = {
-            'jwplayer': 'http://developer.longtailvideo.com/trac/wiki/FlashFormats'
-        }
+        namespace = 'http://developer.longtailvideo.com/trac/wiki/FlashFormats'
 
         item = playlist.find('tracklist/item')
-        streamer = item.find('jwplayer:streamer', namespace).text
+        streamer = item.find('{%s}streamer' % namespace).text
 
         return {
             'id': video_id,
@@ -46,7 +44,7 @@ class KarriereVideosIE(InfoExtractor):
             'thumbnail': 'http://www.karrierevideos.at' + self._html_search_meta('thumbnail', webpage),
             'protocol': 'rtmp',
             'url': streamer.replace('rtmpt', 'http'),
-            'play_path': 'mp4:' + item.find('jwplayer:file', namespace).text,
+            'play_path': 'mp4:' + item.find('{%s}file' % namespace).text,
             'tc_url': streamer,
             'ext': 'mp4'
         }
