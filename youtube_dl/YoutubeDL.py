@@ -1368,7 +1368,7 @@ class YoutubeDL(object):
                         postprocessors = []
                         self.report_warning('You have requested multiple '
                                             'formats but ffmpeg or avconv are not installed.'
-                                            ' The formats won\'t be merged')
+                                            ' The formats won\'t be merged.')
                     else:
                         postprocessors = [merger]
 
@@ -1395,8 +1395,8 @@ class YoutubeDL(object):
                     requested_formats = info_dict['requested_formats']
                     if self.params.get('merge_output_format') is None and not compatible_formats(requested_formats):
                         info_dict['ext'] = 'mkv'
-                        self.report_warning('You have requested formats incompatible for merge. '
-                                            'The formats will be merged into mkv')
+                        self.report_warning(
+                            'Requested formats are incompatible for merge and will be merged into mkv.')
                     # Ensure filename always has a correct extension for successful merge
                     filename = '%s.%s' % (filename_wo_ext, info_dict['ext'])
                     if os.path.exists(encodeFilename(filename)):
