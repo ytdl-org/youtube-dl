@@ -38,11 +38,14 @@ class VierIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         video_id = self._search_regex(
-            r'"nid"\s*:\s*"(\d+)"', webpage, 'video id')
+            [r'data-nid="(\d+)"', r'"nid"\s*:\s*"(\d+)"'],
+            webpage, 'video id')
         application = self._search_regex(
-            r'"application"\s*:\s*"([^"]+)"', webpage, 'application', default='vier_vod')
+            [r'data-application="([^"]+)"', r'"application"\s*:\s*"([^"]+)"'],
+            webpage, 'application', default='vier_vod')
         filename = self._search_regex(
-            r'"filename"\s*:\s*"([^"]+)"', webpage, 'filename')
+            [r'data-filename="([^"]+)"', r'"filename"\s*:\s*"([^"]+)"'],
+            webpage, 'filename')
 
         playlist_url = 'http://vod.streamcloud.be/%s/mp4:_definst_/%s.mp4/playlist.m3u8' % (application, filename)
         formats = self._extract_m3u8_formats(playlist_url, display_id, 'mp4')
