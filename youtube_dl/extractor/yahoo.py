@@ -15,6 +15,7 @@ from ..utils import (
     unescapeHTML,
     ExtractorError,
     int_or_none,
+    mimetype2ext,
 )
 
 from .nbc import NBCSportsVPlayerIE
@@ -236,6 +237,22 @@ class YahooIE(InfoExtractor):
 
         self._sort_formats(formats)
 
+        closed_captions = self._html_search_regex(
+            r'"closedcaptions":(\[[^\]]+\])', webpage, 'closed captions',
+            default='[]')
+
+        cc_json = self._parse_json(closed_captions, video_id, fatal=False)
+        subtitles = {}
+        if cc_json:
+            for closed_caption in cc_json:
+                lang = closed_caption['lang']
+                if lang not in subtitles:
+                    subtitles[lang] = []
+                subtitles[lang].append({
+                    'url': closed_caption['url'],
+                    'ext': mimetype2ext(closed_caption['content_type']),
+                })
+
         return {
             'id': video_id,
             'display_id': display_id,
@@ -244,6 +261,7 @@ class YahooIE(InfoExtractor):
             'description': clean_html(meta['description']),
             'thumbnail': meta['thumbnail'] if meta.get('thumbnail') else self._og_search_thumbnail(webpage),
             'duration': int_or_none(meta.get('duration')),
+            'subtitles': subtitles,
         }
 
 
