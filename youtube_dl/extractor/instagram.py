@@ -7,9 +7,9 @@ from ..utils import int_or_none
 
 
 class InstagramIE(InfoExtractor):
-    _VALID_URL = r'https?://instagram\.com/p/(?P<id>[\da-zA-Z]+)'
+    _VALID_URL = r'https://instagram\.com/p/(?P<id>[\da-zA-Z]+)'
     _TEST = {
-        'url': 'http://instagram.com/p/aye83DjauH/?foo=bar#abc',
+        'url': 'https://instagram.com/p/aye83DjauH/?foo=bar#abc',
         'md5': '0d2da106a9d2631273e192b372806516',
         'info_dict': {
             'id': 'aye83DjauH',
@@ -41,11 +41,11 @@ class InstagramIE(InfoExtractor):
 
 
 class InstagramUserIE(InfoExtractor):
-    _VALID_URL = r'http://instagram\.com/(?P<username>[^/]{2,})/?(?:$|[?#])'
+    _VALID_URL = r'https://instagram\.com/(?P<username>[^/]{2,})/?(?:$|[?#])'
     IE_DESC = 'Instagram user profile'
     IE_NAME = 'instagram:user'
     _TEST = {
-        'url': 'http://instagram.com/porsche',
+        'url': 'https://instagram.com/porsche',
         'info_dict': {
             'id': 'porsche',
             'title': 'porsche',
