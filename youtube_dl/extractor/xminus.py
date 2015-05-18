@@ -43,7 +43,7 @@ class XMinusIE(InfoExtractor):
             r'minus_track\.dur_sec=\'([0-9]*?)\'',
             webpage, 'duration', fatal=False))
         filesize_approx = parse_filesize(self._html_search_regex(
-            r'<div class="filesize[^"]*"></div>\s*([0-9.]+\s*[a-zA-Z][bB])',
+            r'<div id="finfo"[^>]*>\s*↓\s*([0-9.]+\s*[a-zA-Z][bB])',
             webpage, 'approximate filesize', fatal=False))
         tbr = int_or_none(self._html_search_regex(
             r'<div class="quality[^"]*"></div>\s*([0-9]+)\s*kbps',
@@ -58,7 +58,7 @@ class XMinusIE(InfoExtractor):
             description = re.sub(' *\r *', '\n', description)
 
         enc_token = self._html_search_regex(
-            r'minus_track\.tkn="(.+?)"', webpage, 'enc_token')
+            r'minus_track\.s?tkn="(.+?)"', webpage, 'enc_token')
         token = ''.join(
             c if pos == 3 else compat_chr(compat_ord(c) - 1)
             for pos, c in enumerate(reversed(enc_token)))
