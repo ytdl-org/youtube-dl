@@ -60,6 +60,7 @@ class QQMusicIE(InfoExtractor):
         lrc_content = self._html_search_regex(
             r'<div class="content" id="lrc_content"[^<>]*>([^<>]+)</div>',
             detail_info_page, 'LRC lyrics', default=None)
+        lrc_content = re.sub(r"\\n", "\n", lrc_content)
 
         guid = self.m_r_get_ruin()
 
