@@ -26,7 +26,7 @@ class QQMusicIE(InfoExtractor):
             'title': '可惜没如果',
             'upload_date': '20141227',
             'creator': '林俊杰',
-            'description': 'md5:4348ff1dd24036906baa7b6f973f8d30',
+            'description': 'md5:d327722d0361576fde558f1ac68a7065',
         }
     }]
 
@@ -60,6 +60,8 @@ class QQMusicIE(InfoExtractor):
         lrc_content = self._html_search_regex(
             r'<div class="content" id="lrc_content"[^<>]*>([^<>]+)</div>',
             detail_info_page, 'LRC lyrics', default=None)
+        if lrc_content:
+            lrc_content = lrc_content.replace('\\n', '\n')
 
         guid = self.m_r_get_ruin()
 
