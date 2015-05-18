@@ -621,6 +621,21 @@ Line
 '''
         self.assertEqual(dfxp2srt(dfxp_data), srt_data)
 
+        dfxp_data_no_default_namespace = '''<?xml version="1.0" encoding="UTF-8"?>
+            <tt xml:lang="en" xmlns:tts="http://www.w3.org/ns/ttml#parameter">
+            <body>
+                <div xml:lang="en">
+                    <p begin="0" end="1">The first line</p>
+                </div>
+            </body>
+            </tt>'''
+        srt_data = '''1
+00:00:00,000 --> 00:00:01,000
+The first line
+
+'''
+        self.assertEqual(dfxp2srt(dfxp_data_no_default_namespace), srt_data)
+
 
 if __name__ == '__main__':
     unittest.main()

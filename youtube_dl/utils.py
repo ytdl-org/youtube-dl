@@ -1848,9 +1848,9 @@ def dfxp2srt(dfxp_data):
         out = str_or_empty(node.text)
 
         for child in node:
-            if child.tag == _x('ttml:br'):
+            if child.tag in (_x('ttml:br'), 'br'):
                 out += '\n' + str_or_empty(child.tail)
-            elif child.tag == _x('ttml:span'):
+            elif child.tag in (_x('ttml:span'), 'span'):
                 out += str_or_empty(parse_node(child))
             else:
                 out += str_or_empty(xml.etree.ElementTree.tostring(child))
@@ -1859,7 +1859,10 @@ def dfxp2srt(dfxp_data):
 
     dfxp = xml.etree.ElementTree.fromstring(dfxp_data.encode('utf-8'))
     out = []
-    paras = dfxp.findall(_x('.//ttml:p'))
+    paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall('.//p')
+
+    if not paras:
+        raise ValueError('Invalid dfxp/TTML subtitle')
 
     for para, index in zip(paras, itertools.count(1)):
         begin_time = parse_dfxp_time_expr(para.attrib['begin'])
