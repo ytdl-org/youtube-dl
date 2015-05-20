@@ -230,7 +230,7 @@ class VikiIE(VikiBaseIE):
 
 class VikiChannelIE(VikiBaseIE):
     IE_NAME = 'viki:channel'
-    _VALID_URL = r'https?://(?:www\.)?viki\.com/tv/(?P<id>[0-9]+c)'
+    _VALID_URL = r'https?://(?:www\.)?viki\.com/(?:tv|news|movies|artists)/(?P<id>[0-9]+c)'
     _TESTS = [{
         'url': 'http://www.viki.com/tv/50c-boys-over-flowers',
         'info_dict': {
@@ -247,6 +247,15 @@ class VikiChannelIE(VikiBaseIE):
             'description': 'md5:05bf5471385aa8b21c18ad450e350525',
         },
         'playlist_count': 127,
+    }, {
+        'url': 'http://www.viki.com/news/24569c-showbiz-korea',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.viki.com/movies/22047c-pride-and-prejudice-2005',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.viki.com/artists/2141c-shinee',
+        'only_matching': True,
     }]
 
     _PER_PAGE = 25
@@ -265,7 +274,7 @@ class VikiChannelIE(VikiBaseIE):
         description = descriptions.get('en') or descriptions[descriptions.keys()[0]]
 
         entries = []
-        for video_type in ('episodes', 'clips'):
+        for video_type in ('episodes', 'clips', 'movies'):
             for page_num in itertools.count(1):
                 page = self._call_api(
                     'containers/%s/%s.json?per_page=%d&sort=number&direction=asc&with_paging=true&page=%d'
