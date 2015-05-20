@@ -23,9 +23,7 @@ class SohuIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'MV：Far East Movement《The Illest》',
         },
-        'params': {
-            'cn_verification_proxy': 'proxy.uku.im:8888'
-        }
+        'skip': 'On available in China',
     }, {
         'url': 'http://tv.sohu.com/20150305/n409385080.shtml',
         'md5': 'ac9a5d322b4bf9ae184d53e4711e4f1a',

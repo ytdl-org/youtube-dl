@@ -50,9 +50,7 @@ class LetvIE(InfoExtractor):
             'title': '与龙共舞 完整版',
             'description': 'md5:7506a5eeb1722bb9d4068f85024e3986',
         },
-        'params': {
-            'cn_verification_proxy': 'http://proxy.uku.im:8888'
-        },
+        'skip': 'Only available in China',
     }]
 
     @staticmethod
