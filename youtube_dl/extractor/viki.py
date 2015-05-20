@@ -157,7 +157,7 @@ class VikiIE(VikiBaseIE):
             title = 'Episode %d' % video.get('number') if video.get('type') == 'episode' else video.get('id') or video_id
             container_titles = video.get('container', {}).get('titles')
             if container_titles:
-                container_title = container_titles.get('en') or container_titles[titles.keys()[0]]
+                container_title = container_titles.get('en') or container_titles[container_titles.keys()[0]]
                 title = '%s - %s' % (container_title, title)
 
         descriptions = video.get('descriptions')
