@@ -142,6 +142,7 @@
  - **Eporner**
  - **EroProfile**
  - **Escapist**
+ - **ESPN** (Currently broken)
  - **EveryonesMixtape**
  - **exfm**: ex.fm
  - **ExpoTV**
@@ -338,6 +339,7 @@
  - **OktoberfestTV**
  - **on.aol.com**
  - **Ooyala**
+ - **OoyalaExternal**
  - **OpenFilm**
  - **orf:fm4**: radio FM4
  - **orf:iptv**: iptv.ORF.at
@@ -451,6 +453,7 @@
  - **Spike**
  - **Sport5**
  - **SportBox**
+ - **SportBoxEmbed**
  - **SportDeutschland**
  - **Srf**
  - **SRMediathek**: Saarländischer Rundfunk
@@ -510,6 +513,8 @@
  - **Turbo**
  - **Tutv**
  - **tv.dfb.de**
+ - **TV2**
+ - **TV2Article**
  - **TV4**: tv4.se and tv4play.se
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvp.pl**
