@@ -121,32 +121,29 @@ class VikiIE(VikiBaseIE):
             'age_limit': 13,
         }
     }, {
+        # youtube external
+        'url': 'http://www.viki.com/videos/50562v-poor-nastya-complete-episode-1',
+        'md5': '216d1afdc0c64d1febc1e9f2bd4b864b',
+        'info_dict': {
+            'id': '50562v',
+            'ext': 'mp4',
+            'title': 'Poor Nastya [COMPLETE] - Episode 1',
+            'description': '',
+            'duration': 607,
+            'timestamp': 1274949505,
+            'upload_date': '20101213',
+            'uploader': 'ad14065n',
+            'uploader_id': 'ad14065n',
+            'like_count': int,
+            'age_limit': 13,
+        }
+    }, {
         'url': 'http://www.viki.com/player/44699v',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
-        streams = self._call_api(
-            'videos/%s/streams.json' % video_id, video_id,
-            'Downloading video streams JSON')
-
-        formats = []
-        for format_id, stream_dict in streams.items():
-            height = self._search_regex(
-                r'^(\d+)[pP]$', format_id, 'height', default=None)
-            for protocol, format_dict in stream_dict.items():
-                if format_id == 'm3u8':
-                    formats = self._extract_m3u8_formats(
-                        format_dict['url'], video_id, 'mp4', m3u8_id='m3u8-%s' % protocol)
-                else:
-                    formats.append({
-                        'url': format_dict['url'],
-                        'format_id': '%s-%s' % (format_id, protocol),
-                        'height': height,
-                    })
-        self._sort_formats(formats)
 
         video = self._call_api(
             'videos/%s.json' % video_id, video_id, 'Downloading video JSON')
@@ -186,7 +183,7 @@ class VikiIE(VikiBaseIE):
                     'videos/%s/subtitles/%s.%s' % (video_id, subtitle_lang, subtitles_format)),
             } for subtitles_format in ('srt', 'vtt')]
 
-        return {
+        result = {
             'id': video_id,
             'title': title,
             'description': description,
@@ -196,9 +193,38 @@ class VikiIE(VikiBaseIE):
             'like_count': like_count,
             'age_limit': age_limit,
             'thumbnails': thumbnails,
-            'formats': formats,
             'subtitles': subtitles,
         }
+
+        streams = self._call_api(
+            'videos/%s/streams.json' % video_id, video_id,
+            'Downloading video streams JSON')
+
+        if 'external' in streams:
+            result.update({
+                '_type': 'url_transparent',
+                'url': streams['external']['url'],
+            })
+            return result
+
+        formats = []
+        for format_id, stream_dict in streams.items():
+            height = self._search_regex(
+                r'^(\d+)[pP]$', format_id, 'height', default=None)
+            for protocol, format_dict in stream_dict.items():
+                if format_id == 'm3u8':
+                    formats = self._extract_m3u8_formats(
+                        format_dict['url'], video_id, 'mp4', m3u8_id='m3u8-%s' % protocol)
+                else:
+                    formats.append({
+                        'url': format_dict['url'],
+                        'format_id': '%s-%s' % (format_id, protocol),
+                        'height': height,
+                    })
+        self._sort_formats(formats)
+
+        result['formats'] = formats
+        return result
 
 
 class VikiChannelIE(InfoExtractor):
