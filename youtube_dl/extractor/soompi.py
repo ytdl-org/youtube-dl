@@ -14,12 +14,12 @@ class SoompiIE(CrunchyrollIE):
     IE_NAME = 'soompi'
     _VALID_URL = r'^https?://tv\.soompi\.com/en/watch/(?P<id>[0-9]+)'
     _TESTS = [{
-        'url': 'http://tv.soompi.com/en/watch/23363',
+        'url': 'http://tv.soompi.com/en/watch/29235',
         'info_dict': {
-            'id': '23363',
+            'id': '29235',
             'ext': 'mp4',
-            'title': 'Liar Game CM1',
-            'description': '15sec'
+            'title': 'Episode 1096',
+            'description': '2015-05-20'
         },
         'params': {
             'skip_download': True,
