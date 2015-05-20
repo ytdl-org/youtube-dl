@@ -80,12 +80,11 @@ class DramaFeverIE(InfoExtractor):
 
     def _get_subtitles(self, video_id, consumer_secret):
 
-        def match_episode(ep):
-            return ep['guid'] == video_id
-
         res = None
         info = self._get_episodes(
-            video_id.split(".")[0], consumer_secret, episode_filter=match_episode)
+            video_id.split(".")[0], consumer_secret,
+            episode_filter=lambda x: x['guid'] == video_id)
+
         if len(info) == 1 and info[0]['subfile'] != '':
             res = {'en': [{'url': info[0]['subfile'], 'ext': 'srt'}]}
         return res
