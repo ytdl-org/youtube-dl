@@ -482,6 +482,10 @@ from .smotri import (
 from .snotr import SnotrIE
 from .sockshare import SockshareIE
 from .sohu import SohuIE
+from .soompi import (
+    SoompiIE,
+    SoompiShowIE,
+)
 from .soundcloud import (
     SoundcloudIE,
     SoundcloudSetIE,
