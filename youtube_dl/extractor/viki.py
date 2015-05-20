@@ -1,29 +1,64 @@
 from __future__ import unicode_literals
 
 import re
+import time
+import hmac
+import hashlib
 
-from ..compat import (
-    compat_urlparse,
-    compat_urllib_request,
-)
 from ..utils import (
     ExtractorError,
-    unescapeHTML,
-    unified_strdate,
-    US_RATINGS,
-    determine_ext,
-    mimetype2ext,
+    int_or_none,
+    parse_age_limit,
+    parse_iso8601,
 )
 from .common import InfoExtractor
 
 
-class VikiIE(InfoExtractor):
+class VikiBaseIE(InfoExtractor):
+    _API_QUERY_TEMPLATE = '/v4/%sapp=%s&t=%s&site=www.viki.com'
+    _API_URL_TEMPLATE = 'http://api.viki.io%s&sig=%s'
+
+    _APP = '65535a'
+    _APP_VERSION = '2.2.5.1428709186'
+    _APP_SECRET = '-$iJ}@p7!G@SyU/je1bEyWg}upLu-6V6-Lg9VD(]siH,r.,m-r|ulZ,U4LC/SeR)'
+
+    def _prepare_call(self, path, timestamp=None):
+        path += '?' if '?' not in path else '&'
+        if not timestamp:
+            timestamp = int(time.time())
+        query = self._API_QUERY_TEMPLATE % (path, self._APP, timestamp)
+        sig = hmac.new(
+            self._APP_SECRET.encode('ascii'),
+            query.encode('ascii'),
+            hashlib.sha1
+        ).hexdigest()
+        return self._API_URL_TEMPLATE % (query, sig)
+
+    def _call_api(self, path, video_id, note, timestamp=None):
+        resp = self._download_json(
+            self._prepare_call(path, timestamp), video_id, note)
+
+        error = resp.get('error')
+        if error:
+            if error == 'invalid timestamp':
+                resp = self._download_json(
+                    self._prepare_call(path, int(resp['current_timestamp'])),
+                    video_id, '%s (retry)' % note)
+                error = resp.get('error')
+            if error:
+                self._raise_error(resp['error'])
+
+        return resp
+
+    def _raise_error(self, error):
+        raise ExtractorError(
+            '%s returned error: %s' % (self.IE_NAME, error),
+            expected=True)
+
+
+class VikiIE(VikiBaseIE):
     IE_NAME = 'viki'
-
-    # iPad2
-    _USER_AGENT = 'Mozilla/5.0(iPad; U; CPU OS 4_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8F191 Safari/6533.18.5'
-
-    _VALID_URL = r'https?://(?:www\.)?viki\.com/videos/(?P<id>[0-9]+v)'
+    _VALID_URL = r'https?://(?:www\.)?viki\.com/(?:videos|player)/(?P<id>[0-9]+v)'
     _TESTS = [{
         'url': 'http://www.viki.com/videos/1023585v-heirs-episode-14',
         'info_dict': {
@@ -37,114 +72,133 @@ class VikiIE(InfoExtractor):
         },
         'skip': 'Blocked in the US',
     }, {
+        # clip
         'url': 'http://www.viki.com/videos/1067139v-the-avengers-age-of-ultron-press-conference',
-        'md5': 'ca6493e6f0a6ec07da9aa8d6304b4b2c',
+        'md5': '86c0b5dbd4d83a6611a79987cc7a1989',
         'info_dict': {
             'id': '1067139v',
             'ext': 'mp4',
+            'title': "'The Avengers: Age of Ultron' Press Conference",
             'description': 'md5:d70b2f9428f5488321bfe1db10d612ea',
+            'duration': 352,
+            'timestamp': 1430380829,
             'upload_date': '20150430',
-            'title': '\'The Avengers: Age of Ultron\' Press Conference',
+            'uploader': 'Arirang TV',
+            'like_count': int,
+            'age_limit': 0,
         }
     }, {
         'url': 'http://www.viki.com/videos/1048879v-ankhon-dekhi',
         'info_dict': {
             'id': '1048879v',
             'ext': 'mp4',
-            'upload_date': '20140820',
-            'description': 'md5:54ff56d51bdfc7a30441ec967394e91c',
             'title': 'Ankhon Dekhi',
+            'duration': 6512,
+            'timestamp': 1408532356,
+            'upload_date': '20140820',
+            'uploader': 'Spuul',
+            'like_count': int,
+            'age_limit': 13,
         },
         'params': {
-            # requires ffmpeg
+            # m3u8 download
             'skip_download': True,
         }
+    }, {
+        # episode
+        'url': 'http://www.viki.com/videos/44699v-boys-over-flowers-episode-1',
+        'md5': '190f3ef426005ba3a080a63325955bc3',
+        'info_dict': {
+            'id': '44699v',
+            'ext': 'mp4',
+            'title': 'Boys Over Flowers - Episode 1',
+            'description': 'md5:52617e4f729c7d03bfd4bcbbb6e946f2',
+            'duration': 4155,
+            'timestamp': 1270496524,
+            'upload_date': '20100405',
+            'uploader': 'group8',
+            'like_count': int,
+            'age_limit': 13,
+        }
+    }, {
+        'url': 'http://www.viki.com/player/44699v',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
-        title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
-        thumbnail = self._og_search_thumbnail(webpage)
+        streams = self._call_api(
+            'videos/%s/streams.json' % video_id, video_id,
+            'Downloading video streams JSON')
 
-        uploader_m = re.search(
-            r'<strong>Broadcast Network: </strong>\s*([^<]*)<', webpage)
-        if uploader_m is None:
-            uploader = None
-        else:
-            uploader = uploader_m.group(1).strip()
+        formats = []
+        for format_id, stream_dict in streams.items():
+            height = self._search_regex(
+                r'^(\d+)[pP]$', format_id, 'height', default=None)
+            for protocol, format_dict in stream_dict.items():
+                if format_id == 'm3u8':
+                    formats = self._extract_m3u8_formats(
+                        format_dict['url'], video_id, 'mp4', m3u8_id='m3u8-%s' % protocol)
+                else:
+                    formats.append({
+                        'url': format_dict['url'],
+                        'format_id': '%s-%s' % (format_id, protocol),
+                        'height': height,
+                    })
+        self._sort_formats(formats)
 
-        rating_str = self._html_search_regex(
-            r'<strong>Rating: </strong>\s*([^<]*)<', webpage,
-            'rating information', default='').strip()
-        age_limit = US_RATINGS.get(rating_str)
+        video = self._call_api(
+            'videos/%s.json' % video_id, video_id, 'Downloading video JSON')
 
-        req = compat_urllib_request.Request(
-            'http://www.viki.com/player5_fragment/%s?action=show&controller=videos' % video_id)
-        req.add_header('User-Agent', self._USER_AGENT)
-        info_webpage = self._download_webpage(
-            req, video_id, note='Downloading info page')
-        err_msg = self._html_search_regex(r'<div[^>]+class="video-error[^>]+>(.+)</div>', info_webpage, 'error message', default=None)
-        if err_msg:
-            if 'not available in your region' in err_msg:
-                raise ExtractorError(
-                    'Video %s is blocked from your location.' % video_id,
-                    expected=True)
-            else:
-                raise ExtractorError('Viki said: %s %s' % (err_msg, url))
-        mobj = re.search(
-            r'<source[^>]+type="(?P<mime_type>[^"]+)"[^>]+src="(?P<url>[^"]+)"', info_webpage)
-        if not mobj:
-            raise ExtractorError('Unable to find video URL')
-        video_url = unescapeHTML(mobj.group('url'))
-        video_ext = mimetype2ext(mobj.group('mime_type'))
+        title = None
+        titles = video.get('titles')
+        if titles:
+            title = titles.get('en') or titles[titles.keys()[0]]
+        if not title:
+            title = 'Episode %d' % video.get('number') if video.get('type') == 'episode' else video.get('id') or video_id
+            container_titles = video.get('container', {}).get('titles')
+            if container_titles:
+                container_title = container_titles.get('en') or container_titles[titles.keys()[0]]
+                title = '%s - %s' % (container_title, title)
 
-        if determine_ext(video_url) == 'm3u8':
-            formats = self._extract_m3u8_formats(
-                video_url, video_id, ext=video_ext)
-        else:
-            formats = [{
-                'url': video_url,
-                'ext': video_ext,
-            }]
+        descriptions = video.get('descriptions')
+        description = descriptions.get('en') or descriptions[titles.keys()[0]] if descriptions else None
 
-        upload_date_str = self._html_search_regex(
-            r'"created_at":"([^"]+)"', info_webpage, 'upload date')
-        upload_date = (
-            unified_strdate(upload_date_str)
-            if upload_date_str is not None
-            else None
-        )
+        duration = int_or_none(video.get('duration'))
+        timestamp = parse_iso8601(video.get('created_at'))
+        uploader = video.get('author')
+        like_count = int_or_none(video.get('likes', {}).get('count'))
+        age_limit = parse_age_limit(video.get('rating'))
 
-        # subtitles
-        video_subtitles = self.extract_subtitles(video_id, info_webpage)
+        thumbnails = []
+        for thumbnail_id, thumbnail in video.get('images', {}).items():
+            thumbnails.append({
+                'id': thumbnail_id,
+                'url': thumbnail.get('url'),
+            })
+
+        subtitles = {}
+        for subtitle_lang, _ in video.get('subtitle_completions', {}).items():
+            subtitles[subtitle_lang] = [{
+                'ext': subtitles_format,
+                'url': self._prepare_call(
+                    'videos/%s/subtitles/%s.%s' % (video_id, subtitle_lang, subtitles_format)),
+            } for subtitles_format in ('srt', 'vtt')]
 
         return {
             'id': video_id,
             'title': title,
-            'formats': formats,
             'description': description,
-            'thumbnail': thumbnail,
-            'age_limit': age_limit,
+            'duration': duration,
+            'timestamp': timestamp,
             'uploader': uploader,
-            'subtitles': video_subtitles,
-            'upload_date': upload_date,
+            'like_count': like_count,
+            'age_limit': age_limit,
+            'thumbnails': thumbnails,
+            'formats': formats,
+            'subtitles': subtitles,
         }
-
-    def _get_subtitles(self, video_id, info_webpage):
-        res = {}
-        for sturl_html in re.findall(r'<track src="([^"]+)"', info_webpage):
-            sturl = unescapeHTML(sturl_html)
-            m = re.search(r'/(?P<lang>[a-z]+)\.vtt', sturl)
-            if not m:
-                continue
-            res[m.group('lang')] = [{
-                'url': compat_urlparse.urljoin('http://www.viki.com', sturl),
-                'ext': 'vtt',
-            }]
-        return res
 
 
 class VikiChannelIE(InfoExtractor):
