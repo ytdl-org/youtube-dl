@@ -4,6 +4,7 @@ import re
 import time
 import hmac
 import hashlib
+import itertools
 
 from ..utils import (
     ExtractorError,
@@ -227,7 +228,7 @@ class VikiIE(VikiBaseIE):
         return result
 
 
-class VikiChannelIE(InfoExtractor):
+class VikiChannelIE(VikiBaseIE):
     IE_NAME = 'viki:channel'
     _VALID_URL = r'https?://(?:www\.)?viki\.com/tv/(?P<id>[0-9]+c)'
     _TESTS = [{
@@ -247,16 +248,15 @@ class VikiChannelIE(InfoExtractor):
         },
         'playlist_count': 127,
     }]
-    _API_BASE = 'http://api.viki.io/v4/containers'
-    _APP = '100000a'
+
     _PER_PAGE = 25
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
 
-        channel = self._download_json(
-            '%s/%s.json?app=%s' % (self._API_BASE, channel_id, self._APP),
-            channel_id, 'Downloading channel JSON')
+        channel = self._call_api(
+            'containers/%s.json' % channel_id, channel_id,
+            'Downloading channel JSON')
 
         titles = channel['titles']
         title = titles.get('en') or titles[titles.keys()[0]]
@@ -266,16 +266,16 @@ class VikiChannelIE(InfoExtractor):
 
         entries = []
         for video_type in ('episodes', 'clips'):
-            page_url = '%s/%s/%s.json?app=%s&per_page=%d&sort=number&direction=asc&with_paging=true&page=1' % (self._API_BASE, channel_id, video_type, self._APP, self._PER_PAGE)
-            while page_url:
-                page = self._download_json(
-                    page_url, channel_id,
-                    'Downloading %s JSON page #%s'
-                    % (video_type, re.search(r'[?&]page=([0-9]+)', page_url).group(1)))
+            for page_num in itertools.count(1):
+                page = self._call_api(
+                    'containers/%s/%s.json?per_page=%d&sort=number&direction=asc&with_paging=true&page=%d'
+                    % (channel_id, video_type, self._PER_PAGE, page_num), channel_id,
+                    'Downloading %s JSON page #%d' % (video_type, page_num))
                 for video in page['response']:
                     video_id = video['id']
                     entries.append(self.url_result(
-                        'http://www.viki.com/videos/%s' % video_id, 'Viki', video_id))
-                page_url = page['pagination']['next']
+                        'http://www.viki.com/videos/%s' % video_id, 'Viki'))
+                if not page['pagination']['next']:
+                    break
 
         return self.playlist_result(entries, channel_id, title, description)
