@@ -645,7 +645,7 @@ from .vine import (
 )
 from .viki import (
     VikiIE,
-    VikiShowIE,
+    VikiChannelIE,
 )
 from .vk import (
     VKIE,
