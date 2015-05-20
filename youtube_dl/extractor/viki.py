@@ -23,7 +23,7 @@ class VikiIE(InfoExtractor):
     # iPad2
     _USER_AGENT = 'Mozilla/5.0(iPad; U; CPU OS 4_3 like Mac OS X; en-us) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8F191 Safari/6533.18.5'
 
-    _VALID_URL = r'^https?://(?:www\.)?viki\.com/videos/(?P<id>[0-9]+v)'
+    _VALID_URL = r'https?://(?:www\.)?viki\.com/videos/(?P<id>[0-9]+v)'
     _TESTS = [{
         'url': 'http://www.viki.com/videos/1023585v-heirs-episode-14',
         'info_dict': {
@@ -149,7 +149,7 @@ class VikiIE(InfoExtractor):
 
 class VikiChannelIE(InfoExtractor):
     IE_NAME = 'viki:channel'
-    _VALID_URL = r'^https?://(?:www\.)?viki\.com/tv/(?P<id>[0-9]+c)'
+    _VALID_URL = r'https?://(?:www\.)?viki\.com/tv/(?P<id>[0-9]+c)'
     _TESTS = [{
         'url': 'http://www.viki.com/tv/50c-boys-over-flowers',
         'info_dict': {
@@ -167,27 +167,35 @@ class VikiChannelIE(InfoExtractor):
         },
         'playlist_count': 127,
     }]
+    _API_BASE = 'http://api.viki.io/v4/containers'
+    _APP = '100000a'
     _PER_PAGE = 25
 
     def _real_extract(self, url):
-        show_id = self._match_id(url)
-        show_page = self._download_webpage(url, show_id, 'Download show page')
+        channel_id = self._match_id(url)
 
-        title = self._og_search_title(show_page)
-        description = self._og_search_description(show_page)
+        channel = self._download_json(
+            '%s/%s.json?app=%s' % (self._API_BASE, channel_id, self._APP),
+            channel_id, 'Downloading channel JSON')
+
+        titles = channel['titles']
+        title = titles.get('en') or titles[titles.keys()[0]]
+
+        descriptions = channel['descriptions']
+        description = descriptions.get('en') or descriptions[descriptions.keys()[0]]
 
         entries = []
-        for video_type in ['episodes', 'clips']:
-            json_url = 'http://api.viki.io/v4/containers/%s/%s.json?app=100000a&per_page=%d&sort=number&direction=asc&with_paging=true&page=1' % (show_id, video_type, self._PER_PAGE)
-            while json_url is not None:
-                show_json = self._download_json(
-                    json_url, show_id,
-                    note='Downloading %s json page #%s' %
-                         (video_type, re.search(r'[?&]page=([0-9]+)', json_url).group(1)))
-                for video in show_json['response']:
+        for video_type in ('episodes', 'clips'):
+            page_url = '%s/%s/%s.json?app=%s&per_page=%d&sort=number&direction=asc&with_paging=true&page=1' % (self._API_BASE, channel_id, video_type, self._APP, self._PER_PAGE)
+            while page_url:
+                page = self._download_json(
+                    page_url, channel_id,
+                    'Downloading %s JSON page #%s'
+                    % (video_type, re.search(r'[?&]page=([0-9]+)', page_url).group(1)))
+                for video in page['response']:
                     video_id = video['id']
                     entries.append(self.url_result(
                         'http://www.viki.com/videos/%s' % video_id, 'Viki', video_id))
-                json_url = show_json['pagination']['next']
+                page_url = page['pagination']['next']
 
-        return self.playlist_result(entries, show_id, title, description)
+        return self.playlist_result(entries, channel_id, title, description)
