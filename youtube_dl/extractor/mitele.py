@@ -20,7 +20,6 @@ class MiTeleIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/la-redaccion/programa-144/',
-        'md5': '6a75fe9d0d3275bead0cb683c616fddb',
         'info_dict': {
             'id': '0fce117d',
             'ext': 'mp4',
@@ -28,6 +27,10 @@ class MiTeleIE(InfoExtractor):
             'description': 'md5:3b6fce7eaa41b2d97358726378d9369f',
             'display_id': 'programa-144',
             'duration': 2913,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
     }]
 
@@ -56,12 +59,14 @@ class MiTeleIE(InfoExtractor):
             episode,
             transform_source=strip_jsonp
         )
+        formats = self._extract_m3u8_formats(
+            token_info['tokenizedUrl'], episode, ext='mp4')
 
         return {
             'id': embed_data['videoId'],
             'display_id': episode,
             'title': info_el.find('title').text,
-            'url': token_info['tokenizedUrl'],
+            'formats': formats,
             'description': get_element_by_attribute('class', 'text', webpage),
             'thumbnail': info_el.find('thumb').text,
             'duration': parse_duration(info_el.find('duration').text),
