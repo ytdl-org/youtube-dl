@@ -17,7 +17,7 @@ from ..utils import (
 
 
 def _decrypt_url(png):
-    encrypted_data = base64.b64decode(png)
+    encrypted_data = base64.b64decode(png.encode('utf-8'))
     text_index = encrypted_data.find(b'tEXt')
     text_chunk = encrypted_data[text_index - 4:]
     length = struct_unpack('!I', text_chunk[:4])[0]
