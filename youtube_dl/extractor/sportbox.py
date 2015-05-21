@@ -7,7 +7,7 @@ from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
     parse_duration,
-    parse_iso8601,
+    unified_strdate,
 )
 
 
@@ -20,11 +20,9 @@ class SportBoxIE(InfoExtractor):
             'id': '80822',
             'ext': 'mp4',
             'title': 'Гонка 2  заезд ««Объединенный 2000»: классы Туринг и Супер-продакшн',
-            'description': 'md5:81715fa9c4ea3d9e7915dc8180c778ed',
+            'description': 'md5:3d72dc4a006ab6805d82f037fdc637ad',
             'thumbnail': 're:^https?://.*\.jpg$',
-            'timestamp': 1411896237,
             'upload_date': '20140928',
-            'duration': 4846,
         },
         'params': {
             # m3u8 download
@@ -48,17 +46,13 @@ class SportBoxIE(InfoExtractor):
             r'src="/?(vdl/player/[^"]+)"', webpage, 'player')
 
         title = self._html_search_regex(
-            r'<h1 itemprop="name">([^<]+)</h1>', webpage, 'title')
-        description = self._html_search_regex(
-            r'(?s)<div itemprop="description">(.+?)</div>',
-            webpage, 'description', fatal=False)
+            [r'"nodetitle"\s*:\s*"([^"]+)"', r'class="node-header_{1,2}title">([^<]+)'],
+            webpage, 'title')
+        description = self._og_search_description(webpage) or self._html_search_meta(
+            'description', webpage, 'description')
         thumbnail = self._og_search_thumbnail(webpage)
-        timestamp = parse_iso8601(self._search_regex(
-            r'<span itemprop="uploadDate">([^<]+)</span>',
-            webpage, 'timestamp', fatal=False))
-        duration = parse_duration(self._html_search_regex(
-            r'<meta itemprop="duration" content="PT([^"]+)">',
-            webpage, 'duration', fatal=False))
+        upload_date = unified_strdate(self._html_search_meta(
+            'dateCreated', webpage, 'upload date'))
 
         return {
             '_type': 'url_transparent',
@@ -67,8 +61,7 @@ class SportBoxIE(InfoExtractor):
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
-            'timestamp': timestamp,
-            'duration': duration,
+            'upload_date': upload_date,
         }
 
 
