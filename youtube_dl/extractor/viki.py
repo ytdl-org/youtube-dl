@@ -15,6 +15,7 @@ from .common import InfoExtractor
 
 
 class VikiBaseIE(InfoExtractor):
+    _VALID_URL_BASE = r'https?://(?:www\.)?viki\.(?:com|net|mx|jp|fr)/'
     _API_QUERY_TEMPLATE = '/v4/%sapp=%s&t=%s&site=www.viki.com'
     _API_URL_TEMPLATE = 'http://api.viki.io%s&sig=%s'
 
@@ -58,7 +59,7 @@ class VikiBaseIE(InfoExtractor):
 
 class VikiIE(VikiBaseIE):
     IE_NAME = 'viki'
-    _VALID_URL = r'https?://(?:www\.)?viki\.com/(?:videos|player)/(?P<id>[0-9]+v)'
+    _VALID_URL = r'%s(?:videos|player)/(?P<id>[0-9]+v)' % VikiBaseIE._VALID_URL_BASE
     _TESTS = [{
         'url': 'http://www.viki.com/videos/1023585v-heirs-episode-14',
         'info_dict': {
@@ -229,7 +230,7 @@ class VikiIE(VikiBaseIE):
 
 class VikiChannelIE(VikiBaseIE):
     IE_NAME = 'viki:channel'
-    _VALID_URL = r'https?://(?:www\.)?viki\.com/(?:tv|news|movies|artists)/(?P<id>[0-9]+c)'
+    _VALID_URL = r'%s(?:tv|news|movies|artists)/(?P<id>[0-9]+c)' % VikiBaseIE._VALID_URL_BASE
     _TESTS = [{
         'url': 'http://www.viki.com/tv/50c-boys-over-flowers',
         'info_dict': {
