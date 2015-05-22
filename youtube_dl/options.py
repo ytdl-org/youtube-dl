@@ -537,7 +537,7 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option(
         '--dump-pages', '--dump-intermediate-pages',
         action='store_true', dest='dump_intermediate_pages', default=False,
-        help='Print downloaded pages to debug problems (very verbose)')
+        help='Print downloaded pages encoded using base64 to debug problems (very verbose)')
     verbosity.add_option(
         '--write-pages',
         action='store_true', dest='write_pages', default=False,
