@@ -104,7 +104,7 @@ class RUTVIE(InfoExtractor):
     @classmethod
     def _extract_url(cls, webpage):
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://player\.rutv\.ru/(?:iframe/(?:swf|video|live)/id|index/iframe/cast_id)/.+?)\1', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://player\.(?:rutv\.ru|vgtrk\.com)/(?:iframe/(?:swf|video|live)/id|index/iframe/cast_id)/.+?)\1', webpage)
         if mobj:
             return mobj.group('url')
 
