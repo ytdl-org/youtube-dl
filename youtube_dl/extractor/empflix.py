@@ -10,16 +10,18 @@ class EMPFlixIE(TNAFlixIE):
     _DESCRIPTION_REGEX = r'name="description" value="([^"]*)"'
     _CONFIG_REGEX = r'flashvars\.config\s*=\s*escape\("([^"]+)"'
 
-    _TEST = {
-        'url': 'http://www.empflix.com/videos/Amateur-Finger-Fuck-33051.html',
-        'md5': 'b1bc15b6412d33902d6e5952035fcabc',
-        'info_dict': {
-            'id': '33051',
-            'display_id': 'Amateur-Finger-Fuck',
-            'ext': 'mp4',
-            'title': 'Amateur Finger Fuck',
-            'description': 'Amateur solo finger fucking.',
-            'thumbnail': 're:https?://.*\.jpg$',
-            'age_limit': 18,
+    _TESTS = [
+        {
+            'url': 'http://www.empflix.com/videos/Amateur-Finger-Fuck-33051.html',
+            'md5': 'b1bc15b6412d33902d6e5952035fcabc',
+            'info_dict': {
+                'id': '33051',
+                'display_id': 'Amateur-Finger-Fuck',
+                'ext': 'mp4',
+                'title': 'Amateur Finger Fuck',
+                'description': 'Amateur solo finger fucking.',
+                'thumbnail': 're:https?://.*\.jpg$',
+                'age_limit': 18,
+            }
         }
-    }
+    ]

@@ -16,20 +16,26 @@ class TNAFlixIE(InfoExtractor):
     _DESCRIPTION_REGEX = r'<h3 itemprop="description">([^<]+)</h3>'
     _CONFIG_REGEX = r'flashvars\.config\s*=\s*escape\("([^"]+)"'
 
-    _TEST = {
-        'url': 'https://www.tnaflix.com/amateur-porn/bunzHD-Ms.Donk/video358632',
-        'md5': '6c431ea56756497e227fb3f01a687869',
-        'info_dict': {
-            'id': '358632',
-            'display_id': 'bunzHD-Ms.Donk',
-            'ext': 'mp4',
-            'title': 'bunzHD Ms.Donk',
-            'description': 'bubble booty ebony teen goddess Ms.Donk has a firm ass and acts like she is shy but really she is a freak in the sheets watch her 20 min XX rated vid at bunzHD.com click on the catalog link',
-            'thumbnail': 're:https?://.*\.jpg$',
-            'duration': 394,
-            'age_limit': 18,
+    _TESTS = [
+        {
+            'url': 'http://www.tnaflix.com/porn-stars/Carmella-Decesare-striptease/video553878',
+            'md5': 'ecf3498417d09216374fc5907f9c6ec0',
+            'info_dict': {
+                'id': '553878',
+                'display_id': 'Carmella-Decesare-striptease',
+                'ext': 'mp4',
+                'title': 'Carmella Decesare - striptease',
+                'description': '',
+                'thumbnail': 're:https?://.*\.jpg$',
+                'duration': 91,
+                'age_limit': 18,
+            }
+        },
+        {
+            'url': 'https://www.tnaflix.com/amateur-porn/bunzHD-Ms.Donk/video358632',
+            'matching_only': True,
         }
-    }
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
