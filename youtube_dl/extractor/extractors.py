@@ -1322,6 +1322,9 @@ from .yandexmusic import (
 from .yandexdisk import YandexDiskIE
 from .yesjapan import YesJapanIE
 from .yinyuetai import YinYueTaiIE
+from .yle import (
+    YLEAreenaIE,
+)
 from .ynet import YnetIE
 from .youjizz import YouJizzIE
 from .youku import (
