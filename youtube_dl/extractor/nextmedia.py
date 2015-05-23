@@ -90,7 +90,7 @@ class NextMediaActionNewsIE(NextMediaIE):
 
 
 class AppleDailyIE(NextMediaIE):
-    _VALID_URL = r'http://(www|ent).appledaily.com.tw/(animation|realtimenews|enews)/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
+    _VALID_URL = r'http://(www|ent).appledaily.com.tw/(?:animation|appledaily|enews|realtimenews)/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
     _TESTS = [{
         'url': 'http://ent.appledaily.com.tw/enews/article/entertainment/20150128/36354694',
         'md5': 'a843ab23d150977cc55ef94f1e2c1e4d',
@@ -138,6 +138,9 @@ class AppleDailyIE(NextMediaIE):
         'expected_warnings': [
             'video thumbnail',
         ]
+    }, {
+        'url': 'http://www.appledaily.com.tw/appledaily/article/supplement/20140417/35770334/',
+        'only_matching': True,
     }]
 
     _URL_PATTERN = r'\{url: \'(.+)\'\}'
