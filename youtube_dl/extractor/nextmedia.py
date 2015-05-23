@@ -89,8 +89,8 @@ class NextMediaActionNewsIE(NextMediaIE):
         return self._extract_from_nextmedia_page(news_id, url, article_page)
 
 
-class AppleDailyRealtimeNewsIE(NextMediaIE):
-    _VALID_URL = r'http://(www|ent).appledaily.com.tw/(realtimenews|enews)/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
+class AppleDailyIE(NextMediaIE):
+    _VALID_URL = r'http://(www|ent).appledaily.com.tw/(animation|realtimenews|enews)/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
     _TESTS = [{
         'url': 'http://ent.appledaily.com.tw/enews/article/entertainment/20150128/36354694',
         'md5': 'a843ab23d150977cc55ef94f1e2c1e4d',
@@ -99,7 +99,7 @@ class AppleDailyRealtimeNewsIE(NextMediaIE):
             'ext': 'mp4',
             'title': '周亭羽走過摩鐵陰霾2男陪吃 九把刀孤寒看醫生',
             'thumbnail': 're:^https?://.*\.jpg$',
-            'description': 'md5:b23787119933404ce515c6356a8c355c',
+            'description': 'md5:2acd430e59956dc47cd7f67cb3c003f4',
             'upload_date': '20150128',
         }
     }, {
@@ -110,26 +110,10 @@ class AppleDailyRealtimeNewsIE(NextMediaIE):
             'ext': 'mp4',
             'title': '不滿被踩腳　山東兩大媽一路打下車',
             'thumbnail': 're:^https?://.*\.jpg$',
-            'description': 'md5:2648aaf6fc4f401f6de35a91d111aa1d',
+            'description': 'md5:175b4260c1d7c085993474217e4ab1b4',
             'upload_date': '20150128',
         }
-    }]
-
-    _URL_PATTERN = r'\{url: \'(.+)\'\}'
-
-    def _fetch_title(self, page):
-        return self._html_search_regex(r'<h1 id="h1">([^<>]+)</h1>', page, 'news title')
-
-    def _fetch_thumbnail(self, page):
-        return self._html_search_regex(r"setInitialImage\(\'([^']+)'\)", page, 'video thumbnail', fatal=False)
-
-    def _fetch_timestamp(self, page):
-        return None
-
-
-class AppleDailyAnimationNewsIE(AppleDailyRealtimeNewsIE):
-    _VALID_URL = 'http://www.appledaily.com.tw/animation/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
-    _TESTS = [{
+    }, {
         'url': 'http://www.appledaily.com.tw/animation/realtimenews/new/20150128/5003671',
         'md5': '03df296d95dedc2d5886debbb80cb43f',
         'info_dict': {
@@ -156,8 +140,17 @@ class AppleDailyAnimationNewsIE(AppleDailyRealtimeNewsIE):
         ]
     }]
 
+    _URL_PATTERN = r'\{url: \'(.+)\'\}'
+
     def _fetch_title(self, page):
-        return self._html_search_meta('description', page, 'news title')
+        return (self._html_search_regex(r'<h1 id="h1">([^<>]+)</h1>', page, 'news title', default=None) or
+                self._html_search_meta('description', page, 'news title'))
+
+    def _fetch_thumbnail(self, page):
+        return self._html_search_regex(r"setInitialImage\(\'([^']+)'\)", page, 'video thumbnail', fatal=False)
+
+    def _fetch_timestamp(self, page):
+        return None
 
     def _fetch_description(self, page):
         return self._html_search_meta('description', page, 'news description')

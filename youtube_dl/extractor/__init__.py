@@ -338,8 +338,7 @@ from .newstube import NewstubeIE
 from .nextmedia import (
     NextMediaIE,
     NextMediaActionNewsIE,
-    AppleDailyRealtimeNewsIE,
-    AppleDailyAnimationNewsIE
+    AppleDailyIE,
 )
 from .nfb import NFBIE
 from .nfl import NFLIE
