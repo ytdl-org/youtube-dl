@@ -30,7 +30,7 @@ class HlsFD(FileDownloader):
 
         args = [
             encodeArgument(opt)
-            for opt in (ffpp.executable, '-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
+            for opt in (ffpp.executable, '-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc', '-fflags', '+bitexact', '-flags', '+bitexact')]
         args.append(encodeFilename(tmpfilename, True))
 
         retval = subprocess.call(args)

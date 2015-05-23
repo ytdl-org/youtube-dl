@@ -131,6 +131,7 @@ class FFmpegPostProcessor(PostProcessor):
             os.stat(encodeFilename(path)).st_mtime for path in input_paths)
 
         files_cmd = []
+        opts += ['-fflags', '+bitexact', '-flags', '+bitexact']
         for path in input_paths:
             files_cmd.extend([encodeArgument('-i'), encodeFilename(path, True)])
         cmd = ([encodeFilename(self.executable, True), encodeArgument('-y')] +
