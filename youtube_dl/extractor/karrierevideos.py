@@ -1,50 +1,96 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
+from ..utils import (
+    fix_xml_ampersands,
+    float_or_none,
+    xpath_with_ns,
+    xpath_text,
+)
 
 
 class KarriereVideosIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?karrierevideos\.at/berufsvideos/([a-z-]+)/(?P<id>[a-z-]+)'
-    _TEST = {
+    _VALID_URL = r'http://(?:www\.)?karrierevideos\.at(?:/[^/]+)+/(?P<id>[^/]+)'
+    _TESTS = [{
         'url': 'http://www.karrierevideos.at/berufsvideos/mittlere-hoehere-schulen/altenpflegerin',
         'info_dict': {
-            'id': 'altenpflegerin',
-            'ext': 'mp4',
+            'id': '32c91',
+            'ext': 'flv',
             'title': 'AltenpflegerIn',
-            'thumbnail': 're:^http://.*\.png\?v=[0-9]+',
-            'description': 'md5:dbadd1259fde2159a9b28667cb664ae2'
+            'description': 'md5:dbadd1259fde2159a9b28667cb664ae2',
+            'thumbnail': 're:^http://.*\.png',
         },
         'params': {
-            'skip_download': 'requires rtmpdump'
+            # rtmp download
+            'skip_download': True,
         }
-    }
+    }, {
+        # broken ampersands
+        'url': 'http://www.karrierevideos.at/orientierung/vaeterkarenz-und-neue-chancen-fuer-muetter-baby-was-nun',
+        'info_dict': {
+            'id': '5sniu',
+            'ext': 'flv',
+            'title': 'Väterkarenz und neue Chancen für Mütter - "Baby - was nun?"',
+            'description': 'md5:97092c6ad1fd7d38e9d6a5fdeb2bcc33',
+            'thumbnail': 're:^http://.*\.png',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+
         webpage = self._download_webpage(url, video_id)
 
+        title = (self._html_search_meta('title', webpage, default=None) or
+                 self._search_regex(r'<h1 class="title">([^<]+)</h1>'))
+
+        video_id = self._search_regex(
+            r'/config/video/(.+?)\.xml', webpage, 'video id')
+        playlist = self._download_xml(
+            'http://www.karrierevideos.at/player-playlist.xml.php?p=%s' % video_id,
+            video_id, transform_source=fix_xml_ampersands)
+
+        NS_MAP = {
+            'jwplayer': 'http://developer.longtailvideo.com/trac/wiki/FlashFormats'
+        }
+
+        def ns(path):
+            return xpath_with_ns(path, NS_MAP)
+
+        item = playlist.find('./tracklist/item')
+        video_file = xpath_text(
+            item, ns('./jwplayer:file'), 'video url', fatal=True)
+        streamer = xpath_text(
+            item, ns('./jwplayer:streamer'), 'streamer', fatal=True)
+
+        uploader = xpath_text(
+            item, ns('./jwplayer:author'), 'uploader')
+        duration = float_or_none(
+            xpath_text(item, ns('./jwplayer:duration'), 'duration'))
+
         description = self._html_search_regex(
-            r'<div class="leadtext">\n{0,}?\s{0,}<p>(.*?)</p>',
+            r'(?s)<div class="leadtext">(.+?)</div>',
             webpage, 'description')
 
-        playlist = self._html_search_regex(r'/config/video/(.*?)\.xml', webpage, 'playlist')
-        playlist = self._download_xml(
-            'http://www.karrierevideos.at/player-playlist.xml.php?p=' + playlist,
-            video_id)
-
-        namespace = 'http://developer.longtailvideo.com/trac/wiki/FlashFormats'
-
-        item = playlist.find('tracklist/item')
-        streamer = item.find('{%s}streamer' % namespace).text
+        thumbnail = self._html_search_meta(
+            'thumbnail', webpage, 'thumbnail')
+        if thumbnail:
+            thumbnail = compat_urlparse.urljoin(url, thumbnail)
 
         return {
             'id': video_id,
-            'title': self._html_search_meta('title', webpage),
+            'url': streamer.replace('rtmpt', 'rtmp'),
+            'play_path': 'mp4:%s' % video_file,
+            'ext': 'flv',
+            'title': title,
             'description': description,
-            'thumbnail': 'http://www.karrierevideos.at' + self._html_search_meta('thumbnail', webpage),
-            'protocol': 'rtmp',
-            'url': streamer.replace('rtmpt', 'http'),
-            'play_path': 'mp4:' + item.find('{%s}file' % namespace).text,
-            'tc_url': streamer,
-            'ext': 'mp4'
+            'thumbnail': thumbnail,
+            'uploader': uploader,
+            'duration': duration,
         }
