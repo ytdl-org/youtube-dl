@@ -20,7 +20,7 @@ class PinkbikeIE(InfoExtractor):
             'uploader_id': 'revelco',
             'upload_date': '20150406',
             'description': 'Official release: www.redbull.ca/rupertwalker',
-            'duration': '100'
+            'duration': 100
         }
     }, {
         'url': 'http://www.pinkbike.com/video/406629/',
@@ -34,7 +34,7 @@ class PinkbikeIE(InfoExtractor):
             'uploader_id': 'Chromagbikes',
             'upload_date': '20150505',
             'description': 'Reece Wallace shredding Virgin, Utah. Video by Virtu Media.',
-            'duration': '180'
+            'duration': 180
         }
     }]
 
@@ -69,7 +69,7 @@ class PinkbikeIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'description': description,
-            'duration': self._html_search_meta('video:duration', webpage, 'duration'),
+            'duration': int(self._html_search_meta('video:duration', webpage, 'duration')),
             'thumbnail': self._html_search_meta('og:image', webpage, 'thumbnail'),
             'uploader_id': uploader_id,
             'upload_date': upload_date,
