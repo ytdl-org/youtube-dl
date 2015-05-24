@@ -4,7 +4,7 @@ from .tnaflix import TNAFlixIE
 
 
 class EMPFlixIE(TNAFlixIE):
-    _VALID_URL = r'^https?://www\.empflix\.com/videos/(?P<display_id>[0-9a-zA-Z-]+)-(?P<id>[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?empflix\.com/videos/(?P<display_id>.+?)-(?P<id>[0-9]+)\.html'
 
     _TITLE_REGEX = r'name="title" value="(?P<title>[^"]*)"'
     _DESCRIPTION_REGEX = r'name="description" value="([^"]*)"'
@@ -23,5 +23,9 @@ class EMPFlixIE(TNAFlixIE):
                 'thumbnail': 're:https?://.*\.jpg$',
                 'age_limit': 18,
             }
+        },
+        {
+            'url': 'http://www.empflix.com/videos/[AROMA][ARMD-718]-Aoi-Yoshino-Sawa-25826.html',
+            'matching_only': True,
         }
     ]
