@@ -17,12 +17,12 @@ youtube-dl - download videos from youtube.com or other video platforms
 To install it right away for all UNIX users (Linux, OS X, etc.), type:
 
     sudo curl https://yt-dl.org/latest/youtube-dl -o /usr/local/bin/youtube-dl
-    sudo chmod a+xr /usr/local/bin/youtube-dl
+    sudo chmod a+rx /usr/local/bin/youtube-dl
 
 If you do not have curl, you can alternatively use a recent wget:
 
     sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
-    sudo chmod a+xr /usr/local/bin/youtube-dl
+    sudo chmod a+rx /usr/local/bin/youtube-dl
 
 Windows users can [download a .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in their home directory or any other location on their [PATH](http://en.wikipedia.org/wiki/PATH_%28variable%29).
 
