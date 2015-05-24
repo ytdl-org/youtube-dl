@@ -4,6 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import (
+    int_or_none,
+    remove_end,
+    remove_start
+)
 
 
 class PinkbikeIE(InfoExtractor):
@@ -43,10 +48,13 @@ class PinkbikeIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title')
-        title = title[:-len(' Video - Pinkbike')]
+        title = remove_end(title, ' Video - Pinkbike')
 
         description = self._html_search_meta('description', webpage, 'description')
-        description = description[len(title + '. '):]
+        description = remove_start(description, title + '. ')
+
+        duration = int_or_none(self._html_search_meta(
+            'video:duration', webpage, 'duration'))
 
         uploader_id = self._html_search_regex(r'un:\s*"(.*?)"', webpage, 'uploader_id')
 
@@ -63,13 +71,13 @@ class PinkbikeIE(InfoExtractor):
             r'<source data-quality=\\"([0-9]+)p\\" src=\\"(.*?)\\">',
             webpage)
 
-        formats = [{'url': fmt[1], 'height': fmt[0]} for fmt in formats]
+        formats = [{'url': fmt[1], 'height': int_or_none(fmt[0])} for fmt in formats]
 
         return {
             'id': video_id,
             'title': title,
             'description': description,
-            'duration': int(self._html_search_meta('video:duration', webpage, 'duration')),
+            'duration': duration,
             'thumbnail': self._html_search_meta('og:image', webpage, 'thumbnail'),
             'uploader_id': uploader_id,
             'upload_date': upload_date,
