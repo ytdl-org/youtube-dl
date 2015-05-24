@@ -1126,12 +1126,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     self.report_warning(
                         'Skipping DASH manifest: %r' % e, video_id)
                 else:
-                    # Hide the formats we found through non-DASH
+                    # Remove the formats we found through non-DASH, they
+                    # contain less info and it can be wrong, because we use
+                    # fixed values (for example the resolution). See
+                    # https://github.com/rg3/youtube-dl/issues/5774 for an
+                    # example.
                     dash_keys = set(df['format_id'] for df in dash_formats)
-                    for f in formats:
-                        if f['format_id'] in dash_keys:
-                            f['format_id'] = 'nondash-%s' % f['format_id']
-                            f['preference'] = f.get('preference', 0) - 10000
+                    formats = [f for f in formats if f['format_id'] not in dash_keys]
                     formats.extend(dash_formats)
 
         # Check for malformed aspect ratio
