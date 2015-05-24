@@ -1,10 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-import json
-
 from .common import InfoExtractor
+from ..utils import (
+    int_or_none,
+    unescapeHTML,
+)
 
 
 class RTBFIE(InfoExtractor):
@@ -16,25 +17,24 @@ class RTBFIE(InfoExtractor):
             'id': '1921274',
             'ext': 'mp4',
             'title': 'Les Diables au coeur (épisode 2)',
-            'description': 'Football - Diables Rouges',
             'duration': 3099,
-            'timestamp': 1398456336,
-            'upload_date': '20140425',
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
-        page = self._download_webpage('https://www.rtbf.be/video/embed?id=%s' % video_id, video_id)
+        webpage = self._download_webpage(
+            'http://www.rtbf.be/video/embed?id=%s' % video_id, video_id)
 
-        data = json.loads(self._html_search_regex(
-            r'<div class="js-player-embed(?: player-embed)?" data-video="([^"]+)"', page, 'data video'))['data']
+        data = self._parse_json(
+            unescapeHTML(self._search_regex(
+                r'data-video="([^"]+)"', webpage, 'data video')),
+            video_id)
 
         video_url = data.get('downloadUrl') or data.get('url')
 
-        if data['provider'].lower() == 'youtube':
+        if data.get('provider').lower() == 'youtube':
             return self.url_result(video_url, 'Youtube')
 
         return {
@@ -42,8 +42,8 @@ class RTBFIE(InfoExtractor):
             'url': video_url,
             'title': data['title'],
             'description': data.get('description') or data.get('subtitle'),
-            'thumbnail': data['thumbnail']['large'],
+            'thumbnail': data.get('thumbnail'),
             'duration': data.get('duration') or data.get('realDuration'),
-            'timestamp': data['created'],
-            'view_count': data['viewCount'],
+            'timestamp': int_or_none(data.get('created')),
+            'view_count': int_or_none(data.get('viewCount')),
         }
