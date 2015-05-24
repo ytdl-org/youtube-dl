@@ -394,6 +394,7 @@ from .pbs import PBSIE
 from .philharmoniedeparis import PhilharmonieDeParisIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
+from .pinkbike import PinkbikeIE
 from .planetaplay import PlanetaPlayIE
 from .pladform import PladformIE
 from .played import PlayedIE
