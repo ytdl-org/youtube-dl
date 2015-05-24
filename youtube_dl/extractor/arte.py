@@ -7,7 +7,6 @@ from .common import InfoExtractor
 from ..utils import (
     find_xpath_attr,
     unified_strdate,
-    get_element_by_id,
     get_element_by_attribute,
     int_or_none,
     qualities,
