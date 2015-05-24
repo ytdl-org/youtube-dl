@@ -195,7 +195,9 @@ class ArteTVFutureIE(ArteTVPlus7IE):
     def _real_extract(self, url):
         anchor_id, lang = self._extract_url_info(url)
         webpage = self._download_webpage(url, anchor_id)
-        row = get_element_by_id(anchor_id, webpage)
+        row = self._search_regex(
+            r'(?s)id="%s"[^>]*>.+?(<div[^>]*arte_vp_url[^>]*>)' % anchor_id,
+            webpage, 'row')
         return self._extract_from_webpage(row, anchor_id, lang)
 
 
