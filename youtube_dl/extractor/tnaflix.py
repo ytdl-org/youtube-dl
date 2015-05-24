@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class TNAFlixIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tnaflix\.com/(?P<cat_id>[^/]+)/(?P<display_id>[^/]+)/video(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?tnaflix\.com/[^/]+/(?P<display_id>[^/]+)/video(?P<id>\d+)'
 
     _TITLE_REGEX = r'<title>(.+?) - TNAFlix Porn Videos</title>'
     _DESCRIPTION_REGEX = r'<h3 itemprop="description">([^<]+)</h3>'
