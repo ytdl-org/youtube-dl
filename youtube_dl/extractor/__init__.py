@@ -355,6 +355,7 @@ from .normalboots import NormalbootsIE
 from .nosvideo import NosVideoIE
 from .novamov import NovaMovIE
 from .nowness import NownessIE
+from .nowtv import NowTvIE
 from .nowvideo import NowVideoIE
 from .npo import (
     NPOIE,
@@ -438,7 +439,6 @@ from .roxwel import RoxwelIE
 from .rtbf import RTBFIE
 from .rte import RteIE
 from .rtlnl import RtlNlIE
-from .rtlnow import RTLnowIE
 from .rtl2 import RTL2IE
 from .rtp import RTPIE
 from .rts import RTSIE
