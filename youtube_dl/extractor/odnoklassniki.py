@@ -47,7 +47,8 @@ class OdnoklassnikiIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(
+            'http://ok.ru/video/%s' % video_id, video_id)
 
         player = self._parse_json(
             unescapeHTML(self._search_regex(
