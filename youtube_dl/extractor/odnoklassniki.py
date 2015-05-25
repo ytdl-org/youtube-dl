@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse
 from ..utils import (
     unified_strdate,
     int_or_none,
@@ -11,8 +12,9 @@ from ..utils import (
 
 
 class OdnoklassnikiIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:odnoklassniki|ok)\.ru/(?:video|web-api/video/moviePlayer)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:odnoklassniki|ok)\.ru/(?:video|web-api/video/moviePlayer)/(?P<id>[\d-]+)'
     _TESTS = [{
+        # metadata in JSON
         'url': 'http://ok.ru/video/20079905452',
         'md5': '8e24ad2da6f387948e7a7d44eb8668fe',
         'info_dict': {
@@ -20,11 +22,22 @@ class OdnoklassnikiIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Культура меняет нас (прекрасный ролик!))',
             'duration': 100,
-            'upload_date': '20141207',
             'uploader_id': '330537914540',
             'uploader': 'Виталий Добровольский',
             'like_count': int,
-            'age_limit': 0,
+        },
+    }, {
+        # metadataUrl
+        'url': 'http://ok.ru/video/63567059965189-0',
+        'md5': '9676cf86eff5391d35dea675d224e131',
+        'info_dict': {
+            'id': '63567059965189-0',
+            'ext': 'mp4',
+            'title': 'Девушка без комплексов ...',
+            'duration': 191,
+            'uploader_id': '534380003155',
+            'uploader': 'Андрей Мещанинов',
+            'like_count': int,
         },
     }, {
         'url': 'http://ok.ru/web-api/video/moviePlayer/20079905452',
@@ -41,7 +54,15 @@ class OdnoklassnikiIE(InfoExtractor):
                 r'data-attributes="([^"]+)"', webpage, 'player')),
             video_id)
 
-        metadata = self._parse_json(player['flashvars']['metadata'], video_id)
+        flashvars = player['flashvars']
+
+        metadata = flashvars.get('metadata')
+        if metadata:
+            metadata = self._parse_json(metadata, video_id)
+        else:
+            metadata = self._download_json(
+                compat_urllib_parse.unquote(flashvars['metadataUrl']),
+                video_id, 'Downloading metadata JSON')
 
         movie = metadata['movie']
         title = movie['title']
@@ -53,11 +74,11 @@ class OdnoklassnikiIE(InfoExtractor):
         uploader = author.get('name')
 
         upload_date = unified_strdate(self._html_search_meta(
-            'ya:ovs:upload_date', webpage, 'upload date'))
+            'ya:ovs:upload_date', webpage, 'upload date', default=None))
 
         age_limit = None
         adult = self._html_search_meta(
-            'ya:ovs:adult', webpage, 'age limit')
+            'ya:ovs:adult', webpage, 'age limit', default=None)
         if adult:
             age_limit = 18 if adult == 'true' else 0
 
