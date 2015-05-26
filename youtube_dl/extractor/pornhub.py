@@ -71,7 +71,8 @@ class PornHubIE(InfoExtractor):
 
         video_urls = list(map(compat_urllib_parse.unquote, re.findall(r'"quality_[0-9]{3}p":"([^"]+)', webpage)))
         if webpage.find('"encrypted":true') != -1:
-            password = compat_urllib_parse.unquote_plus(self._html_search_regex(r'"video_title":"([^"]+)', webpage, 'password'))
+            password = compat_urllib_parse.unquote_plus(
+                self._search_regex(r'"video_title":"([^"]+)', webpage, 'password'))
             video_urls = list(map(lambda s: aes_decrypt_text(s, password, 32).decode('utf-8'), video_urls))
 
         formats = []
