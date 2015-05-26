@@ -254,6 +254,14 @@ class DailymotionUserIE(DailymotionPlaylistIE):
 class DailymotionUserHomeIE(DailymotionUserIE):
     IE_NAME = 'dailymotion:userhome'
     _VALID_URL = r'https?://(?:www\.)?dailymotion\.[a-z]{2,3}/(?P<user>[^/]+)/?$'
+    _TESTS = [{
+        'url': 'https://www.dailymotion.com/nqtv',
+        'info_dict': {
+            'id': 'nqtv',
+            'title': 'Rémi Gaillard',
+        },
+        'playlist_mincount': 100,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
