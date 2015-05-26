@@ -149,7 +149,6 @@ from .extremetube import ExtremeTubeIE
 from .facebook import FacebookIE
 from .faz import FazIE
 from .fc2 import FC2IE
-from .firedrive import FiredriveIE
 from .firstpost import FirstpostIE
 from .firsttv import FirstTVIE
 from .fivemin import FiveMinIE
@@ -480,7 +479,6 @@ from .smotri import (
     SmotriBroadcastIE,
 )
 from .snotr import SnotrIE
-from .sockshare import SockshareIE
 from .sohu import SohuIE
 from .soundcloud import (
     SoundcloudIE,
