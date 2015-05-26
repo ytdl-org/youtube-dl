@@ -250,3 +250,23 @@ class DailymotionUserIE(DailymotionPlaylistIE):
             'title': full_user,
             'entries': self._extract_entries(user),
         }
+
+class DailymotionUserHomeIE(DailymotionUserIE):
+    IE_NAME = 'dailymotion:userhome'
+    _VALID_URL = r'https?://(?:www\.)?dailymotion\.[a-z]{2,3}/(?P<user>[^/]+)/?$'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        user = mobj.group('user')
+        url = self._PAGE_TEMPLATE % (user, '')
+        webpage = self._download_webpage(url, user)
+        full_user = unescapeHTML(self._html_search_regex(
+            r'<a class="nav-image" title="([^"]+)" href="/%s">' % re.escape(user),
+            webpage, 'user'))
+
+        return {
+            '_type': 'playlist',
+            'id': user,
+            'title': full_user,
+            'entries': self._extract_entries(user),
+        }

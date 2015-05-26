@@ -103,6 +103,7 @@ from .dailymotion import (
     DailymotionIE,
     DailymotionPlaylistIE,
     DailymotionUserIE,
+    DailymotionUserHomeIE
 )
 from .daum import DaumIE
 from .dbtv import DBTVIE
