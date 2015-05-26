@@ -50,7 +50,10 @@ class FacebookIE(InfoExtractor):
             'id': '274175099429670',
             'ext': 'mp4',
             'title': 'Facebook video #274175099429670',
-        }
+        },
+        'expected_warnings': [
+            'title'
+        ]
     }, {
         'url': 'https://www.facebook.com/video.php?v=10204634152394104',
         'only_matching': True,
@@ -150,11 +153,11 @@ class FacebookIE(InfoExtractor):
 
         video_title = self._html_search_regex(
             r'<h2 class="uiHeaderTitle">([^<]*)</h2>', webpage, 'title',
-            fatal=False)
+            default=None)
         if not video_title:
             video_title = self._html_search_regex(
                 r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
-                webpage, 'alternative title', default=None)
+                webpage, 'alternative title', fatal=False)
             video_title = limit_length(video_title, 80)
         if not video_title:
             video_title = 'Facebook video #%s' % video_id
