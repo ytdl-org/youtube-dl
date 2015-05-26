@@ -80,9 +80,11 @@ class BiliBiliIE(InfoExtractor):
             note='Downloading HQ video info',
             fatal=False,
         )
-        hq_durls = hq_doc.findall('./durl') if hq_doc is not False else itertools.repeat(None)
-
-        assert len(lq_durls) == len(hq_durls)
+        if hq_doc is not False:
+            hq_durls = hq_doc.findall('./durl')
+            assert len(lq_durls) == len(hq_durls)
+        else:
+            hq_durls = itertools.repeat(None)
 
         i = 1
         for lq_durl, hq_durl in zip(lq_durls, hq_durls):
