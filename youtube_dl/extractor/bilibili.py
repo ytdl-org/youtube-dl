@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 import re
 import itertools
+import json
+import xml.etree.ElementTree as ET
 
 from .common import InfoExtractor
 from ..utils import (
@@ -67,11 +69,19 @@ class BiliBiliIE(InfoExtractor):
 
         entries = []
 
-        lq_doc = self._download_xml(
+        lq_page = self._download_webpage(
             'http://interface.bilibili.com/v_cdn_play?appkey=1&cid=%s' % cid,
             video_id,
             note='Downloading LQ video info'
         )
+        try:
+            err_info = json.loads(lq_page)
+            raise ExtractorError(
+                'BiliBili said: ' + err_info['error_text'], expected=True)
+        except ValueError:
+            pass
+
+        lq_doc = ET.fromstring(lq_page)
         lq_durls = lq_doc.findall('./durl')
 
         hq_doc = self._download_xml(
