@@ -60,6 +60,17 @@ class CinemassacreIE(InfoExtractor):
                 'uploader_id': 'Cinemassacre',
                 'title': 'AVGN: McKids',
             }
+        },
+        {
+            'url': 'http://cinemassacre.com/2015/05/25/mario-kart-64-nintendo-64-james-mike-mondays/',
+            'md5': '1376908e49572389e7b06251a53cdd08',
+            'info_dict': {
+                'id': 'Cinemassacre-555779690c440',
+                'ext': 'mp4',
+                'description': 'Let’s Play Mario Kart 64 !! Mario Kart 64 is a classic go-kart racing game released for the Nintendo 64 (N64). Today James & Mike do 4 player Battle Mode with Kyle and Bootsy!',
+                'title': 'Mario Kart 64 (Nintendo 64) James & Mike Mondays',
+                'upload_date': '20150525',
+            }
         }
     ]
 
@@ -72,7 +83,7 @@ class CinemassacreIE(InfoExtractor):
 
         playerdata_url = self._search_regex(
             [
-                r'src="(http://player\.screenwavemedia\.com/play/[a-zA-Z]+\.php\?[^"]*\bid=.+?)"',
+                r'src="(http://(?:player2\.screenwavemedia\.com|player\.screenwavemedia\.com/play)/[a-zA-Z]+\.php\?[^"]*\bid=.+?)"',
                 r'<iframe[^>]+src="((?:https?:)?//(?:[^.]+\.)?youtube\.com/.+?)"',
             ],
             webpage, 'player data URL', default=None)
