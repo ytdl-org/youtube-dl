@@ -400,6 +400,7 @@ from .playfm import PlayFMIE
 from .playvid import PlayvidIE
 from .playwire import PlaywireIE
 from .podomatic import PodomaticIE
+from .porn91 import Porn91IE
 from .pornhd import PornHdIE
 from .pornhub import (
     PornHubIE,
