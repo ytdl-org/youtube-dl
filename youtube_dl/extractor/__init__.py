@@ -355,7 +355,7 @@ from .normalboots import NormalbootsIE
 from .nosvideo import NosVideoIE
 from .novamov import NovaMovIE
 from .nowness import NownessIE
-from .nowtv import NowTvIE
+from .nowtv import NowTVIE
 from .nowvideo import NowVideoIE
 from .npo import (
     NPOIE,
