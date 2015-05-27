@@ -54,6 +54,24 @@ class NowTVIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
+        # rtlnitro
+        'url': 'http://www.nowtv.de/rtlnitro/alarm-fuer-cobra-11-die-autobahnpolizei/hals-und-beinbruch-2014-08-23-21-10-00/player',
+        'info_dict': {
+            'id': '165780',
+            'display_id': 'alarm-fuer-cobra-11-die-autobahnpolizei/hals-und-beinbruch-2014-08-23-21-10-00',
+            'ext': 'mp4',
+            'title': 'Hals- und Beinbruch',
+            'description': 'md5:b50d248efffe244e6f56737f0911ca57',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'timestamp': 1432415400,
+            'upload_date': '20150523',
+            'duration': 2742,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
         # superrtl
         'url': 'http://www.nowtv.de/superrtl/medicopter-117/angst/player',
         'info_dict': {
