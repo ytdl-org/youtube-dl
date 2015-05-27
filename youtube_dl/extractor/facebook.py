@@ -152,7 +152,7 @@ class FacebookIE(InfoExtractor):
             raise ExtractorError('Cannot find video formats')
 
         video_title = self._html_search_regex(
-            r'<h2 class="uiHeaderTitle">([^<]*)</h2>', webpage, 'title',
+            r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage, 'title',
             default=None)
         if not video_title:
             video_title = self._html_search_regex(
