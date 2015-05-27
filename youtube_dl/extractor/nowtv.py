@@ -120,10 +120,15 @@ class NowTVIE(InfoExtractor):
 
         video_id = compat_str(info['id'])
 
-        if info.get('geoblocked'):
-            raise ExtractorError(
-                'Video %s is not available from your location due to geo restriction' % video_id,
-                expected=True)
+        files = info['files']
+        if not files:
+            if info.get('geoblocked', False):
+                raise ExtractorError(
+                    'Video %s is not available from your location due to geo restriction' % video_id,
+                    expected=True)
+            if not info.get('free', True):
+                raise ExtractorError(
+                    'Video %s is not available for free' % video_id, expected=True)
 
         f = info.get('format', {})
         station = f.get('station') or station
@@ -138,7 +143,7 @@ class NowTVIE(InfoExtractor):
         }
 
         formats = []
-        for item in info['files']['items']:
+        for item in files['items']:
             item_path = remove_start(item['path'], '/')
             tbr = int_or_none(item['bitrate'])
             m3u8_url = 'http://hls.fra.%s.de/hls-vod-enc/%s.m3u8' % (STATIONS[station], item_path)
