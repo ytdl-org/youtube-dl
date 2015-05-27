@@ -266,7 +266,7 @@ class TestNRKSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['no']))
-        self.assertEqual(md5(subtitles['no']), '1d221e6458c95c5494dcd38e6a1f129a')
+        self.assertEqual(md5(subtitles['no']), '544fa917d3197fcbee64634559221cc2')
 
 
 class TestRaiSubtitles(BaseTestSubtitles):
