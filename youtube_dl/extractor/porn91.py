@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from ..compat import compat_urllib_parse
 from .common import InfoExtractor
@@ -29,30 +28,32 @@ class Porn91IE(InfoExtractor):
         url = 'http://91porn.com/view_video.php?viewkey=%s' % video_id
         self._set_cookie('91porn.com', 'language', 'cn_CN')
         webpage = self._download_webpage(url, video_id, "get HTML content")
-        title = re.search(
-            r'<div id="viewvideo-title">(.+?)</div>',
-            webpage,
-            re.DOTALL)
+        title = self._search_regex(
+            r'<div id="viewvideo-title">(?P<title>.+?)</div>',
+            webpage, 'title', flags=re.DOTALL)
         assert title
-        title = title.group(1).replace('\n', '')
+        title = title.replace('\n', '')
 
         # get real url
-        n1 = re.search(r'so.addVariable\(\'file\',\'(\d+)\'', webpage)
-        n2 = re.search(r'so.addVariable\(\'seccode\',\'(.+?)\'', webpage)
-        n3 = re.search(r'so.addVariable\(\'max_vid\',\'(\d+)\'', webpage)
+        n1 = self._search_regex(
+            r'so.addVariable\(\'file\',\'(?P<n1>\d+)\'', webpage, 'n1')
+        n2 = self._search_regex(
+            r'so.addVariable\(\'seccode\',\'(?P<n2>.+?)\'', webpage, 'n2')
+        n3 = self._search_regex(
+            r'so.addVariable\(\'max_vid\',\'(?P<n3>\d+)\'', webpage, 'n3')
         if not (n1 and n2 and n3):
             raise ExtractorError("You are Blocked by Server.")
-
         url_params = compat_urllib_parse.urlencode({
-            'VID': n1.group(1),
+            'VID': n1,
             'mp4': '1',
-            'seccode': n2.group(1),
-            'max_vid': n3.group(1),
+            'seccode': n2,
+            'max_vid': n3,
         })
         t_url = 'http://91porn.com/getfile.php?' + url_params
         info_cn = self._download_webpage(t_url, video_id, "get real video_url")
-        video_url = re.search(r'file=(http.+?)&', info_cn).group(1)
+        video_url = self._search_regex(r'file=(?P<url>http.+?)&', info_cn, 'url')
 
+        # construct info
         info = {
             'id': video_id,
             'title': title,
