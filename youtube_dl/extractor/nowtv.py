@@ -1,0 +1,169 @@
+# coding: utf-8
+from __future__ import unicode_literals
+
+import re
+
+from .common import InfoExtractor
+from ..compat import compat_str
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+    parse_iso8601,
+    parse_duration,
+    remove_start,
+)
+
+
+class NowTVIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?nowtv\.de/(?P<station>rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<id>.+?)/player'
+
+    _TESTS = [{
+        # rtl
+        'url': 'http://www.nowtv.de/rtl/bauer-sucht-frau/die-neuen-bauern-und-eine-hochzeit/player',
+        'info_dict': {
+            'id': '203519',
+            'display_id': 'bauer-sucht-frau/die-neuen-bauern-und-eine-hochzeit',
+            'ext': 'mp4',
+            'title': 'Die neuen Bauern und eine Hochzeit',
+            'description': 'md5:e234e1ed6d63cf06be5c070442612e7e',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'timestamp': 1432580700,
+            'upload_date': '20150525',
+            'duration': 2786,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        # rtl2
+        'url': 'http://www.nowtv.de/rtl2/berlin-tag-nacht/berlin-tag-nacht-folge-934/player',
+        'info_dict': {
+            'id': '203481',
+            'display_id': 'berlin-tag-nacht/berlin-tag-nacht-folge-934',
+            'ext': 'mp4',
+            'title': 'Berlin - Tag & Nacht (Folge 934)',
+            'description': 'md5:c85e88c2e36c552dfe63433bc9506dd0',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'timestamp': 1432666800,
+            'upload_date': '20150526',
+            'duration': 2641,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        # superrtl
+        'url': 'http://www.nowtv.de/superrtl/medicopter-117/angst/player',
+        'info_dict': {
+            'id': '99205',
+            'display_id': 'medicopter-117/angst',
+            'ext': 'mp4',
+            'title': 'Angst!',
+            'description': 'md5:30cbc4c0b73ec98bcd73c9f2a8c17c4e',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'timestamp': 1222632900,
+            'upload_date': '20080928',
+            'duration': 3025,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        # ntv
+        'url': 'http://www.nowtv.de/ntv/ratgeber-geld/thema-ua-der-erste-blick-die-apple-watch/player',
+        'info_dict': {
+            'id': '203521',
+            'display_id': 'ratgeber-geld/thema-ua-der-erste-blick-die-apple-watch',
+            'ext': 'mp4',
+            'title': 'Thema u.a.: Der erste Blick: Die Apple Watch',
+            'description': 'md5:4312b6c9d839ffe7d8caf03865a531af',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'timestamp': 1432751700,
+            'upload_date': '20150527',
+            'duration': 1083,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        # vox
+        'url': 'http://www.nowtv.de/vox/der-hundeprofi/buero-fall-chihuahua-joel/player',
+        'info_dict': {
+            'id': '128953',
+            'display_id': 'der-hundeprofi/buero-fall-chihuahua-joel',
+            'ext': 'mp4',
+            'title': "Büro-Fall / Chihuahua 'Joel'",
+            'description': 'md5:e62cb6bf7c3cc669179d4f1eb279ad8d',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'timestamp': 1432408200,
+            'upload_date': '20150523',
+            'duration': 3092,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        display_id = mobj.group('id')
+        station = mobj.group('station')
+
+        info = self._download_json(
+            'https://api.nowtv.de/v3/movies/%s?fields=*,format,files,breakpoints,paymentPaytypes,trailers,pictures' % display_id,
+            display_id)
+
+        video_id = compat_str(info['id'])
+
+        if info.get('geoblocked'):
+            raise ExtractorError(
+                'Video %s is not available from your location due to geo restriction' % video_id,
+                expected=True)
+
+        f = info.get('format', {})
+        station = f.get('station') or station
+
+        STATIONS = {
+            'rtl': 'rtlnow',
+            'rtl2': 'rtl2now',
+            'vox': 'voxnow',
+            'nitro': 'rtlnitronow',
+            'ntv': 'n-tvnow',
+            'superrtl': 'superrtlnow'
+        }
+
+        formats = []
+        for item in info['files']['items']:
+            item_path = remove_start(item['path'], '/')
+            tbr = int_or_none(item['bitrate'])
+            m3u8_url = 'http://hls.fra.%s.de/hls-vod-enc/%s.m3u8' % (STATIONS[station], item_path)
+            m3u8_url = m3u8_url.replace('now/', 'now/videos/')
+            formats.append({
+                'url': m3u8_url,
+                'format_id': '%s-%sk' % (item['id'], tbr),
+                'ext': 'mp4',
+                'tbr': tbr,
+            })
+        self._sort_formats(formats)
+
+        title = info['title']
+        description = info.get('articleLong') or info.get('articleShort')
+        timestamp = parse_iso8601(info.get('broadcastStartDate'), ' ')
+        duration = parse_duration(info.get('duration'))
+        thumbnail = f.get('defaultImage169Format') or f.get('defaultImage169Logo')
+
+        return {
+            'id': video_id,
+            'display_id': display_id,
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'timestamp': timestamp,
+            'duration': duration,
+            'formats': formats,
+        }
