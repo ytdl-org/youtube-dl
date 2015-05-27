@@ -10,6 +10,7 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     qualities,
+    determine_ext,
 )
 from ..compat import compat_ord
 
@@ -108,7 +109,7 @@ class TeamcocoIE(InfoExtractor):
         formats = []
         get_quality = qualities(['500k', '480p', '1000k', '720p', '1080p'])
         for filed in data['files']:
-            if filed['type'] == 'hls':
+            if determine_ext(filed['url']) == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     filed['url'], video_id, ext='mp4'))
             else:
