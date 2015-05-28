@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import sys
+pyvs = sys.version_info[0]
 import re
 import base64
 
@@ -34,16 +36,23 @@ class YoukuIE(InfoExtractor):
             for i in range(256):
                 t = (t + ls[i] + ord(s1[i%len(s1)])) % 256
                 ls[i], ls[t] = ls[t], ls[i]
-            s, x, y = '', 0, 0
+            s = '' if pyvs == 3 else b''
+            x, y = 0, 0
             for i in range(len(s2)):
                 y = (y + 1) % 256
                 x = (x + ls[y]) % 256
                 ls[x], ls[y] = ls[y], ls[x]
-                s += chr((s2[i] ^ ls[(ls[x]+ls[y]) % 256]))
+                if isinstance(s2[i], int):
+                    s += chr(s2[i] ^ ls[(ls[x]+ls[y]) % 256])
+                else:
+                    s += chr(ord(s2[i]) ^ ls[(ls[x]+ls[y]) % 256])
             return s
 
         sid, token = yk_t(
-            'becaf9be', base64.b64decode(bytes(data2['ep'], 'ascii'))
+            'becaf9be',
+            base64.b64decode(bytes(data2['ep'], 'ascii')) \
+                if pyvs == 3 \
+                else base64.b64decode(data2['ep'])
         ).split('_')
 
         # get oip
@@ -78,8 +87,15 @@ class YoukuIE(InfoExtractor):
             fileid = get_fileid(format, n)
             ep_t = yk_t(
                 'bf7e5f01',
-                bytes('%s_%s_%s' % (sid, fileid, token), 'ascii'))
-            ep = base64.b64encode(bytes(ep_t, 'latin')).decode()
+                bytes('%s_%s_%s' % (sid, fileid, token), 'ascii') \
+                if pyvs == 3 \
+                else ('%s_%s_%s' % (sid, fileid, token))
+            )
+            ep = base64.b64encode(
+                bytes(ep_t, 'latin') \
+                if pyvs == 3 \
+                else ep_t
+            ).decode()
             ep = ep.replace('+', '%2B')
             ep = ep.replace('/', '%2F')
             ep = ep.replace('=', '%2D')
