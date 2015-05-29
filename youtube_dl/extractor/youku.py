@@ -1,13 +1,15 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import sys
-pyvs = sys.version_info[0]
 import re
 import base64
 
 from .common import InfoExtractor
 from ..utils import ExtractorError
+
+from ..compat import compat_urllib_parse
+
+bytes_is_str = (bytes == str)  # for compatible
 
 class YoukuIE(InfoExtractor):
     IE_NAME = 'youku'
@@ -36,7 +38,7 @@ class YoukuIE(InfoExtractor):
             for i in range(256):
                 t = (t + ls[i] + ord(s1[i%len(s1)])) % 256
                 ls[i], ls[t] = ls[t], ls[i]
-            s = '' if pyvs == 3 else b''
+            s = '' if not bytes_is_str else b''
             x, y = 0, 0
             for i in range(len(s2)):
                 y = (y + 1) % 256
@@ -51,7 +53,7 @@ class YoukuIE(InfoExtractor):
         sid, token = yk_t(
             'becaf9be',
             base64.b64decode(bytes(data2['ep'], 'ascii')) \
-                if pyvs == 3 \
+                if not bytes_is_str \
                 else base64.b64decode(data2['ep'])
         ).split('_')
 
@@ -88,17 +90,14 @@ class YoukuIE(InfoExtractor):
             ep_t = yk_t(
                 'bf7e5f01',
                 bytes('%s_%s_%s' % (sid, fileid, token), 'ascii') \
-                if pyvs == 3 \
+                if not bytes_is_str \
                 else ('%s_%s_%s' % (sid, fileid, token))
             )
             ep = base64.b64encode(
                 bytes(ep_t, 'latin') \
-                if pyvs == 3 \
+                if not bytes_is_str \
                 else ep_t
             ).decode()
-            ep = ep.replace('+', '%2B')
-            ep = ep.replace('/', '%2F')
-            ep = ep.replace('=', '%2D')
             return ep
 
         # generate video_urls
@@ -107,20 +106,25 @@ class YoukuIE(InfoExtractor):
             video_urls = []
             for dt in data1['segs'][format]:
                 n = str(int(dt['no']))
+                param = {
+                    'K': dt['k'],
+                    'hd': self.get_hd(format),
+                    'myp': 0,
+                    'ts': dt['seconds'],
+                    'ypp': 0,
+                    'ctype': 12,
+                    'ev': 1,
+                    'token': token,
+                    'oip': oip,
+                    'ep': generate_ep(format, n)
+                }
                 video_url = \
                     'http://k.youku.com/player/getFlvPath/' + \
                     'sid/' + sid + \
                     '_' + str(int(n)+1).zfill(2) + \
                     '/st/' + self.parse_ext_l(format) + \
                     '/fileid/' + get_fileid(format, n)  + '?' + \
-                    'K=' + str(dt['k']) + \
-                    '&hd=' + self.get_hd(format) + \
-                    '&myp=0' + \
-                    '&ts=' + str(dt['seconds']) + \
-                    '&ypp=0&ctype=12&ev=1' + \
-                    '&token=' + str(token) + \
-                    '&oip=' + str(oip) + \
-                    '&ep=' + generate_ep(format, n)
+                    compat_urllib_parse.urlencode(param)
                 video_urls.append(video_url)
             video_urls_dict[format] = video_urls
 
