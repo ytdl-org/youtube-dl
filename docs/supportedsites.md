@@ -26,8 +26,7 @@
  - **anitube.se**
  - **AnySex**
  - **Aparat**
- - **AppleDailyAnimationNews**
- - **AppleDailyRealtimeNews**
+ - **AppleDaily**
  - **AppleTrailers**
  - **archive.org**: archive.org videos
  - **ARD**
@@ -152,7 +151,6 @@
  - **fc2**
  - **fernsehkritik.tv**
  - **fernsehkritik.tv:postecke**
- - **Firedrive**
  - **Firstpost**
  - **Flickr**
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
@@ -230,6 +228,7 @@
  - **KanalPlay**: Kanal 5/9/11 Play
  - **Kankan**
  - **Karaoketv**
+ - **KarriereVideos**
  - **keek**
  - **KeezMovies**
  - **KhanAcademy**
@@ -322,6 +321,7 @@
  - **NosVideo**
  - **novamov**: NovaMov
  - **Nowness**
+ - **NowTV**
  - **nowvideo**: NowVideo
  - **npo.nl**
  - **npo.nl:live**
@@ -393,7 +393,6 @@
  - **Rte**
  - **rtl.nl**: rtl.nl and rtlxl.nl
  - **RTL2**
- - **RTLnow**
  - **RTP**
  - **RTS**: RTS.ch
  - **rtve.es:alacarta**: RTVE a la carta
@@ -431,7 +430,6 @@
  - **smotri:community**: Smotri.com community videos
  - **smotri:user**: Smotri.com user videos
  - **Snotr**
- - **Sockshare**
  - **Sohu**
  - **soundcloud**
  - **soundcloud:playlist**
@@ -564,6 +562,7 @@
  - **vier:videos**
  - **Viewster**
  - **viki**
+ - **viki:channel**
  - **vimeo**
  - **vimeo:album**
  - **vimeo:channel**

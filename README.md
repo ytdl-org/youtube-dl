@@ -168,7 +168,7 @@ which means you can modify it, redistribute it or use it however you like.
     --no-progress                    Do not print progress bar
     --console-title                  Display progress in console titlebar
     -v, --verbose                    Print various debugging information
-    --dump-pages                     Print downloaded pages to debug problems (very verbose)
+    --dump-pages                     Print downloaded pages encoded using base64 to debug problems (very verbose)
     --write-pages                    Write downloaded intermediary pages to files in the current directory to debug problems
     --print-traffic                  Display sent and read HTTP traffic
     -C, --call-home                  Contact the youtube-dl server for debugging
@@ -220,7 +220,7 @@ which means you can modify it, redistribute it or use it however you like.
     --embed-thumbnail                Embed thumbnail in the audio as cover art
     --add-metadata                   Write metadata to the video file
     --metadata-from-title FORMAT     Parse additional metadata like song title / artist from the video title. The format syntax is the same as --output, the parsed
-                                     parameters replace existing values. Additional templates: %(album), %(artist). Example: --metadata-from-title "%(artist)s -
+                                     parameters replace existing values. Additional templates: %(album)s, %(artist)s. Example: --metadata-from-title "%(artist)s -
                                      %(title)s" matches a title like "Coldplay - Paradise"
     --xattrs                         Write metadata to the video file's xattrs (using dublin core and xdg standards)
     --fixup POLICY                   Automatically correct known faults of the file. One of never (do nothing), warn (only emit a warning), detect_or_warn(the default;
