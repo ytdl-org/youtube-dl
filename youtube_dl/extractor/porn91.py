@@ -31,7 +31,6 @@ class Porn91IE(InfoExtractor):
         title = self._search_regex(
             r'<div id="viewvideo-title">(?P<title>.+?)</div>',
             webpage, 'title', flags=re.DOTALL)
-        assert title
         title = title.replace('\n', '')
 
         # get real url
@@ -41,8 +40,6 @@ class Porn91IE(InfoExtractor):
             r'so.addVariable\(\'seccode\',\'(?P<n2>.+?)\'', webpage, 'n2')
         n3 = self._search_regex(
             r'so.addVariable\(\'max_vid\',\'(?P<n3>\d+)\'', webpage, 'n3')
-        if not (n1 and n2 and n3):
-            raise ExtractorError("You are Blocked by Server.")
         url_params = compat_urllib_parse.urlencode({
             'VID': n1,
             'mp4': '1',
