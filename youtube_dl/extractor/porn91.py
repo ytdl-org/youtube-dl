@@ -1,8 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from ..compat import compat_urllib_parse
 from .common import InfoExtractor
 
@@ -22,38 +20,34 @@ class Porn91IE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         url = 'http://91porn.com/view_video.php?viewkey=%s' % video_id
         self._set_cookie('91porn.com', 'language', 'cn_CN')
         webpage = self._download_webpage(url, video_id, "get HTML content")
         title = self._search_regex(
-            r'<div id="viewvideo-title">(?P<title>.+?)</div>',
-            webpage, 'title', flags=re.DOTALL)
+            r'<div id="viewvideo-title">([^<]+)</div>', webpage, 'title')
         title = title.replace('\n', '')
 
         # get real url
-        n1 = self._search_regex(
-            r'so.addVariable\(\'file\',\'(?P<n1>\d+)\'', webpage, 'n1')
-        n2 = self._search_regex(
-            r'so.addVariable\(\'seccode\',\'(?P<n2>.+?)\'', webpage, 'n2')
-        n3 = self._search_regex(
-            r'so.addVariable\(\'max_vid\',\'(?P<n3>\d+)\'', webpage, 'n3')
+        file_id = self._search_regex(
+            r'so.addVariable\(\'file\',\'(\d+)\'', webpage, 'file id')
+        sec_code = self._search_regex(
+            r'so.addVariable\(\'seccode\',\'([^\']+)\'', webpage, 'sec code')
+        max_vid = self._search_regex(
+            r'so.addVariable\(\'max_vid\',\'(\d+)\'', webpage, 'max vid')
         url_params = compat_urllib_parse.urlencode({
-            'VID': n1,
+            'VID': file_id,
             'mp4': '1',
-            'seccode': n2,
-            'max_vid': n3,
+            'seccode': sec_code,
+            'max_vid': max_vid,
         })
-        t_url = 'http://91porn.com/getfile.php?' + url_params
-        info_cn = self._download_webpage(t_url, video_id, "get real video_url")
-        video_url = self._search_regex(r'file=(?P<url>http.+?)&', info_cn, 'url')
+        info_cn = self._download_webpage(
+            'http://91porn.com/getfile.php?' + url_params, video_id,
+            "get real video url")
+        video_url = self._search_regex(r'file=([^&]+)&', info_cn, 'url')
 
-        # construct info
-        info = {
+        return {
             'id': video_id,
             'title': title,
             'url': video_url,
         }
-
-        return info
