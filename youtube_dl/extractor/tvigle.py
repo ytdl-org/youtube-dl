@@ -64,8 +64,8 @@ class TvigleIE(InfoExtractor):
         item = video_data['playlist']['items'][0]
 
         title = item['title']
-        description = item['description']
-        thumbnail = item['thumbnail']
+        description = item.get('description')
+        thumbnail = item.get('thumbnail')
         duration = float_or_none(item.get('durationMilliseconds'), 1000)
         age_limit = parse_age_limit(item.get('ageRestrictions'))
 
@@ -83,7 +83,7 @@ class TvigleIE(InfoExtractor):
                     'format_id': '%s-%s' % (vcodec, format_id),
                     'vcodec': vcodec,
                     'height': int_or_none(height),
-                    'filesize': item['video_files_size'][vcodec][format_id],
+                    'filesize': int_or_none(item.get('video_files_size', {}).get(vcodec, {}).get(format_id)),
                 })
         self._sort_formats(formats)
 
