@@ -894,7 +894,7 @@ class GenericIE(InfoExtractor):
             force_videoid = smuggled_data['force_videoid']
             video_id = force_videoid
         else:
-            video_id = os.path.splitext(url.rstrip('/').split('/')[-1])[0]
+            video_id = os.path.splitext(compat_urllib_parse.unquote(url.rstrip('/').split('/')[-1]))[0]
 
         self.to_screen('%s: Requesting header' % video_id)
 
@@ -927,7 +927,7 @@ class GenericIE(InfoExtractor):
                 head_response.headers.get('Last-Modified'))
             return {
                 'id': video_id,
-                'title': os.path.splitext(url_basename(url))[0],
+                'title': os.path.splitext(compat_urllib_parse.unquote(url_basename(url)))[0],
                 'direct': True,
                 'formats': [{
                     'format_id': m.group('format_id'),
@@ -953,7 +953,7 @@ class GenericIE(InfoExtractor):
                 head_response.headers.get('Last-Modified'))
             return {
                 'id': video_id,
-                'title': os.path.splitext(url_basename(url))[0],
+                'title': os.path.splitext(compat_urllib_parse.unquote(url_basename(url)))[0],
                 'direct': True,
                 'url': url,
                 'upload_date': upload_date,
