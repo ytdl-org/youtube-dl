@@ -49,6 +49,7 @@ from .utils import (
     ExtractorError,
     format_bytes,
     formatSeconds,
+    HEADRequest,
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
@@ -1720,7 +1721,8 @@ class YoutubeDL(object):
             if req_is_string:
                 req = url_escaped
             else:
-                req = compat_urllib_request.Request(
+                req_type = HEADRequest if req.get_method() == 'HEAD' else compat_urllib_request.Request
+                req = req_type(
                     url_escaped, data=req.data, headers=req.headers,
                     origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
 
