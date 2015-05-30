@@ -76,8 +76,8 @@ class CrunchyrollIE(InfoExtractor):
         self._login()
 
     def _decrypt_subtitles(self, data, iv, id):
-        data = bytes_to_intlist(base64.b64decode(data))
-        iv = bytes_to_intlist(base64.b64decode(iv))
+        data = bytes_to_intlist(base64.b64decode(data.encode('utf-8')))
+        iv = bytes_to_intlist(base64.b64decode(iv.encode('utf-8')))
         id = int(id)
 
         def obfuscate_key_aux(count, modulo, start):
