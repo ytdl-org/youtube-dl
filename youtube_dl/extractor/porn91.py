@@ -5,7 +5,6 @@ import re
 
 from ..compat import compat_urllib_parse
 from .common import InfoExtractor
-from ..utils import ExtractorError
 
 
 class Porn91IE(InfoExtractor):
@@ -13,13 +12,13 @@ class Porn91IE(InfoExtractor):
     _VALID_URL = r'(?:https?://)(?:www\.|)91porn\.com/.+?\?viewkey=(?P<id>[\w\d]+)'
 
     _TEST = {
-            'url': 'http://91porn.com/view_video.php?viewkey=7e42283b4f5ab36da134',
-            'md5': '6df8f6d028bc8b14f5dbd73af742fb20',
-            'info_dict': {
-                'id': '7e42283b4f5ab36da134',
-                'title': '18岁大一漂亮学妹，水嫩性感，再爽一次！',
-                'ext': 'mp4'
-            }
+        'url': 'http://91porn.com/view_video.php?viewkey=7e42283b4f5ab36da134',
+        'md5': '6df8f6d028bc8b14f5dbd73af742fb20',
+        'info_dict': {
+            'id': '7e42283b4f5ab36da134',
+            'title': '18岁大一漂亮学妹，水嫩性感，再爽一次！',
+            'ext': 'mp4'
+        }
     }
 
     def _real_extract(self, url):
