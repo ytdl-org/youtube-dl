@@ -59,7 +59,7 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20100513',
             }
         },
-        # Direct link to a media delivered compressed (requires Accept-Encoding == *)
+        # Direct link to media delivered compressed (until Accept-Encoding is *)
         {
             'url': 'http://calimero.tk/muzik/FictionJunction-Parallel_Hearts.flac',
             'md5': '128c42e68b13950268b648275386fc74',
