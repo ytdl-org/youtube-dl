@@ -138,6 +138,20 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20100513',
             }
         },
+        # Direct link to a media delivered compressed (requires Accept-Encoding == *)
+        {
+            'url': 'http://calimero.tk/muzik/FictionJunction-Parallel_Hearts.flac',
+            'md5': '128c42e68b13950268b648275386fc74',
+            'info_dict': {
+                'id': 'FictionJunction-Parallel_Hearts',
+                'ext': 'flac',
+                'title': 'FictionJunction-Parallel_Hearts',
+                'upload_date': '20140522',
+            },
+            'expected_warnings': [
+                'URL could be a direct video link, returning it as such.'
+            ]
+        },
         # ooyala video
         {
             'url': 'http://www.rollingstone.com/music/videos/norwegian-dj-cashmere-cat-goes-spartan-on-with-me-premiere-20131219',
