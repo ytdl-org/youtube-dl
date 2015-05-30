@@ -76,8 +76,8 @@ class CrunchyrollIE(InfoExtractor):
         self._login()
 
     def _decrypt_subtitles(self, data, iv, id):
-        data = bytes_to_intlist(data)
-        iv = bytes_to_intlist(iv)
+        data = bytes_to_intlist(base64.b64decode(data.encode('utf-8')))
+        iv = bytes_to_intlist(base64.b64decode(iv.encode('utf-8')))
         id = int(id)
 
         def obfuscate_key_aux(count, modulo, start):
@@ -179,6 +179,16 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         return output
 
+    def _extract_subtitles(self, subtitle):
+        sub_root = xml.etree.ElementTree.fromstring(subtitle)
+        return [{
+            'ext': 'srt',
+            'data': self._convert_subtitles_to_srt(sub_root),
+        }, {
+            'ext': 'ass',
+            'data': self._convert_subtitles_to_ass(sub_root),
+        }]
+
     def _get_subtitles(self, video_id, webpage):
         subtitles = {}
         for sub_id, sub_name in re.findall(r'\?ssid=([0-9]+)" title="([^"]+)', webpage):
@@ -190,25 +200,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             data = self._search_regex(r'<data>([^<]+)', sub_page, 'subtitle_data', fatal=False)
             if not id or not iv or not data:
                 continue
-            id = int(id)
-            iv = base64.b64decode(iv)
-            data = base64.b64decode(data)
-
             subtitle = self._decrypt_subtitles(data, iv, id).decode('utf-8')
             lang_code = self._search_regex(r'lang_code=["\']([^"\']+)', subtitle, 'subtitle_lang_code', fatal=False)
             if not lang_code:
                 continue
-            sub_root = xml.etree.ElementTree.fromstring(subtitle)
-            subtitles[lang_code] = [
-                {
-                    'ext': 'srt',
-                    'data': self._convert_subtitles_to_srt(sub_root),
-                },
-                {
-                    'ext': 'ass',
-                    'data': self._convert_subtitles_to_ass(sub_root),
-                },
-            ]
+            subtitles[lang_code] = self._extract_subtitles(subtitle)
         return subtitles
 
     def _real_extract(self, url):
