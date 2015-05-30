@@ -51,9 +51,9 @@ class SpiegeltvIE(InfoExtractor):
         is_wide = media_json['is_wide']
 
         server_json = self._download_json(
-            'http://www.spiegel.tv/streaming_servers/', video_id,
-            note='Downloading server information')
-        server = server_json[0]['endpoint']
+            'http://spiegeltv-prod-static.s3.amazonaws.com/projectConfigs/projectConfig.json',
+            video_id, note='Downloading server information')
+        server = server_json['streamingserver'][0]['endpoint']
 
         thumbnails = []
         for image in media_json['images']:
@@ -76,5 +76,6 @@ class SpiegeltvIE(InfoExtractor):
             'ext': 'm4v',
             'description': description,
             'duration': duration,
-            'thumbnails': thumbnails
+            'thumbnails': thumbnails,
+            'rtmp_live': True,
         }
