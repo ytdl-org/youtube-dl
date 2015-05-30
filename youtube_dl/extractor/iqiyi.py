@@ -4,20 +4,12 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
-from ..compat import (
-    compat_chr,
-    compat_parse_qs,
-    compat_urllib_parse,
-    compat_urllib_request,
-    compat_urlparse,
-    compat_str,
-)
+from ..compat import compat_urllib_parse
 
 from ..utils import ExtractorError
 
 import re
 import time
-import json
 import uuid
 import math
 import random
@@ -31,15 +23,15 @@ class IqiyiIE(InfoExtractor):
 
     _TEST = {
             'url': 'http://www.iqiyi.com/v_19rrojlavg.html',
-            'md5': '260f0f59686e65e886995d0ba791ab83',
+            'md5': '2cb594dc2781e6c941a110d8f358118b',
             'info_dict': {
                 'id': '9c1fb1b99d192b21c559e5a1a2cb3c73',
                 'title': '美国德州空中惊现奇异云团 酷似UFO',
-                'ext': 'f4v'
+                'ext': 'f4v',
             }
     }
 
-    def construct_video_urls(self, data, video_id, _uuid):
+    def construct_video_urls(self, data, video_id, _uuid, bid):
         def do_xor(x, y):
             a = y % 3
             if a == 1:
@@ -66,10 +58,21 @@ class IqiyiIE(InfoExtractor):
             return hashlib.md5(
                  (t+mg+x).encode('utf8')).hexdigest()
 
+        # get accept format
+        # getting all format will spend minutes for a big video.
+        if bid == 'best':
+            bids = [int(i['bid']) for i in data['vp']['tkl'][0]['vs'] \
+                   if 0 < int(i['bid']) <= 10]
+            bid = str(max(bids))
+
         video_urls_dict = {}
         for i in data['vp']['tkl'][0]['vs']:
             if 0 < int(i['bid']) <= 10:
                 format_id = self.get_format(i['bid'])
+            else:
+                continue
+
+            video_urls = []
 
             video_urls_info = i['fs']
             if not i['fs'][0]['l'].startswith('/'):
@@ -77,7 +80,12 @@ class IqiyiIE(InfoExtractor):
                 if t.endswith('mp4'):
                     video_urls_info = i['flvs']
 
-            video_urls = []
+            if int(i['bid']) != int(bid):  # ignore missing match format
+                video_urls.extend(
+                    [('http://example.com/v.flv', ii['b']) for ii in video_urls_info])
+                video_urls_dict[format_id] = video_urls
+                continue
+
             for ii in video_urls_info:
                 vl = ii['l']
                 if not vl.startswith('/'):
@@ -108,15 +116,27 @@ class IqiyiIE(InfoExtractor):
         return video_urls_dict
 
     def get_format(self, bid):
-        bid_dict = {
-            '1': 'standard',
-            '2': 'high',
-            '3': 'super',
-            '4': 'suprt-high',
-            '5': 'fullhd',
-            '10': '4k'
+        _dict = {
+            '1'  : 'h6',
+            '2'  : 'h5',
+            '3'  : 'h4',
+            '4'  : 'h3',
+            '5'  : 'h2',
+            '10' : 'h1'
         }
-        return bid_dict[str(bid)]
+        return _dict.get(str(bid), None)
+
+    def get_bid(self, format_id):
+        _dict = {
+            'h6'   : '1',
+            'h5'   : '2',
+            'h4'   : '3',
+            'h3'   : '4',
+            'h2'   : '5',
+            'h1'   : '10',
+            'best' : 'best'
+        }
+        return _dict.get(format_id, None)
 
     def get_raw_data(self, tvid, video_id, enc_key, _uuid):
         tm = str(int(time.time()))
@@ -173,8 +193,14 @@ class IqiyiIE(InfoExtractor):
 
         title = data['vi']['vn']
 
+        format = self._downloader.params.get('format', None)
+        bid = self.get_bid(format) if format else 'best'
+        if not bid:
+            raise ExtractorError('Can\'t get format.')
+
         # generate video_urls_dict
-        video_urls_dict = self.construct_video_urls(data, video_id, _uuid)
+        video_urls_dict = self.construct_video_urls(
+            data, video_id, _uuid, bid)
 
         # construct info
         entries = []
@@ -188,10 +214,12 @@ class IqiyiIE(InfoExtractor):
                         'url': video_url_info[0],
                         'filesize': video_url_info[-1],
                         'format_id': format_id,
+                        'preference': int(self.get_bid(format_id))
                     }
                 )
 
         for i in range(len(entries)):
+            self._sort_formats(entries[i]['formats'])
             entries[i].update(
                 {
                     'id': '_part%d' % (i+1),
