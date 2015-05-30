@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     parse_duration,
     int_or_none,
+    ExtractorError,
 )
 
 
@@ -29,6 +30,10 @@ class Porn91IE(InfoExtractor):
         url = 'http://91porn.com/view_video.php?viewkey=%s' % video_id
         self._set_cookie('91porn.com', 'language', 'cn_CN')
         webpage = self._download_webpage(url, video_id, "get HTML content")
+
+        if '作为游客，你每天只可观看10个视频' in webpage:
+            raise ExtractorError('91 Porn says: Daily limit 10 videos exceeded', expected=True)
+
         title = self._search_regex(
             r'<div id="viewvideo-title">([^<]+)</div>', webpage, 'title')
         title = title.replace('\n', '')
