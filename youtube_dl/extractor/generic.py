@@ -11,6 +11,7 @@ from ..compat import (
     compat_urllib_parse,
     compat_urlparse,
     compat_xml_parse_error,
+    compat_urllib_request,
 )
 from ..utils import (
     determine_ext,
@@ -916,7 +917,9 @@ class GenericIE(InfoExtractor):
 
         full_response = None
         if head_response is False:
-            full_response = self._request_webpage(url, video_id)
+            request = compat_urllib_request.Request(url)
+            request.add_header('Accept-Encoding', '*')
+            full_response = self._request_webpage(request, video_id)
             head_response = full_response
 
         # Check for direct link to a video
@@ -941,7 +944,17 @@ class GenericIE(InfoExtractor):
             self._downloader.report_warning('Falling back on generic information extractor.')
 
         if not full_response:
-            full_response = self._request_webpage(url, video_id)
+            request = compat_urllib_request.Request(url)
+            # Some webservers may serve compressed content of rather big size (e.g. gzipped flac)
+            # making it impossible to download only chunk of the file (yet we need only 512kB to
+            # test whether it's HTML or not). According to youtube-dl default Accept-Encoding
+            # that will always result in downloading the whole file that is not desirable.
+            # Therefore for extraction pass we have to override Accept-Encoding to any in order
+            # to accept raw bytes and being able to download only a chunk.
+            # It may probably better to solve this by checking Content-Type for application/octet-stream
+            # after HEAD request finishes, but not sure if we can rely on this.
+            request.add_header('Accept-Encoding', '*')
+            full_response = self._request_webpage(request, video_id)
 
         # Maybe it's a direct link to a video?
         # Be careful not to download the whole thing!
