@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     float_or_none,
+    int_or_none,
     parse_age_limit,
 )
 
@@ -24,17 +25,17 @@ class TvigleIE(InfoExtractor):
                 'display_id': 'sokrat',
                 'ext': 'flv',
                 'title': 'Сократ',
-                'description': 'md5:a05bd01be310074d5833efc6743be95e',
+                'description': 'md5:d6b92ffb7217b4b8ebad2e7665253c17',
                 'duration': 6586,
-                'age_limit': 0,
+                'age_limit': 12,
             },
         },
         {
             'url': 'http://www.tvigle.ru/video/vladimir-vysotskii/vedushchii-teleprogrammy-60-minut-ssha-o-vladimire-vysotskom/',
-            'md5': 'd9012d7c7c598fe7a11d7fb46dc1f574',
+            'md5': 'e7efe5350dd5011d0de6550b53c3ba7b',
             'info_dict': {
                 'id': '5142516',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'Ведущий телепрограммы «60 минут» (США) о Владимире Высоцком',
                 'description': 'md5:027f7dc872948f14c96d19b4178428a4',
                 'duration': 186.080,
@@ -54,7 +55,7 @@ class TvigleIE(InfoExtractor):
         if not video_id:
             webpage = self._download_webpage(url, display_id)
             video_id = self._html_search_regex(
-                r'<li class="video-preview current_playing" id="(\d+)">',
+                r'class="video-preview current_playing" id="(\d+)">',
                 webpage, 'video id')
 
         video_data = self._download_json(
@@ -70,13 +71,19 @@ class TvigleIE(InfoExtractor):
 
         formats = []
         for vcodec, fmts in item['videos'].items():
-            for quality, video_url in fmts.items():
+            for format_id, video_url in fmts.items():
+                if format_id == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        video_url, video_id, 'mp4', m3u8_id=vcodec))
+                    continue
+                height = self._search_regex(
+                    r'^(\d+)[pP]$', format_id, 'height', default=None)
                 formats.append({
                     'url': video_url,
-                    'format_id': '%s-%s' % (vcodec, quality),
+                    'format_id': '%s-%s' % (vcodec, format_id),
                     'vcodec': vcodec,
-                    'height': int(quality[:-1]),
-                    'filesize': item['video_files_size'][vcodec][quality],
+                    'height': int_or_none(height),
+                    'filesize': item['video_files_size'][vcodec][format_id],
                 })
         self._sort_formats(formats)
 
