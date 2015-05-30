@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import float_or_none
+from ..utils import (
+    ExtractorError,
+    float_or_none,
+)
 
 
 class VGTVIE(InfoExtractor):
@@ -96,6 +99,10 @@ class VGTVIE(InfoExtractor):
             'http://svp.vg.no/svp/api/v1/%s/assets/%s?appName=%s-website'
             % (host, video_id, HOST_WEBSITES[host]),
             video_id, 'Downloading media JSON')
+
+        if data.get('status') == 'inactive':
+            raise ExtractorError(
+                'Video %s is no longer available' % video_id, expected=True)
 
         streams = data['streamUrls']
 
