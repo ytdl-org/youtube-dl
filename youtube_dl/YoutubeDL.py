@@ -924,8 +924,9 @@ class YoutubeDL(object):
                 if f.get('vcodec') != 'none' and f.get('acodec') != 'none']
             if audiovideo_formats:
                 return audiovideo_formats[format_idx]
-            # for audio only urls, select the best/worst audio format
-            elif all(f.get('acodec') != 'none' for f in available_formats):
+            # for audio only (soundcloud) or video only (imgur) urls, select the best/worst audio format
+            elif (all(f.get('acodec') != 'none' for f in available_formats) or
+                  all(f.get('vcodec') != 'none' for f in available_formats)):
                 return available_formats[format_idx]
         elif format_spec == 'bestaudio':
             audio_formats = [
