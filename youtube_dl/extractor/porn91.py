@@ -3,6 +3,10 @@ from __future__ import unicode_literals
 
 from ..compat import compat_urllib_parse
 from .common import InfoExtractor
+from ..utils import (
+    parse_duration,
+    int_or_none,
+)
 
 
 class Porn91IE(InfoExtractor):
@@ -15,7 +19,8 @@ class Porn91IE(InfoExtractor):
         'info_dict': {
             'id': '7e42283b4f5ab36da134',
             'title': '18岁大一漂亮学妹，水嫩性感，再爽一次！',
-            'ext': 'mp4'
+            'ext': 'mp4',
+            'duration': 431,
         }
     }
 
@@ -46,8 +51,16 @@ class Porn91IE(InfoExtractor):
             "get real video url")
         video_url = self._search_regex(r'file=([^&]+)&', info_cn, 'url')
 
+        duration = parse_duration(self._search_regex(
+            r'时长:\s*</span>\s*(\d+:\d+)', webpage, 'duration', fatal=False))
+
+        comment_count = int_or_none(self._search_regex(
+            r'留言:\s*</span>\s*(\d+)', webpage, 'comment count', fatal=False))
+
         return {
             'id': video_id,
             'title': title,
             'url': video_url,
+            'duration': duration,
+            'comment_count': comment_count,
         }
