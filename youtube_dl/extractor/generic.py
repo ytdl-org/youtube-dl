@@ -9,9 +9,10 @@ from .common import InfoExtractor
 from .youtube import YoutubeIE
 from ..compat import (
     compat_urllib_parse,
+    compat_urllib_parse_unquote,
+    compat_urllib_request,
     compat_urlparse,
     compat_xml_parse_error,
-    compat_urllib_request,
 )
 from ..utils import (
     determine_ext,
@@ -895,7 +896,7 @@ class GenericIE(InfoExtractor):
             force_videoid = smuggled_data['force_videoid']
             video_id = force_videoid
         else:
-            video_id = os.path.splitext(compat_urllib_parse.unquote(url.rstrip('/').split('/')[-1]))[0]
+            video_id = compat_urllib_parse_unquote(os.path.splitext(url.rstrip('/').split('/')[-1])[0])
 
         self.to_screen('%s: Requesting header' % video_id)
 
@@ -930,7 +931,7 @@ class GenericIE(InfoExtractor):
                 head_response.headers.get('Last-Modified'))
             return {
                 'id': video_id,
-                'title': os.path.splitext(compat_urllib_parse.unquote(url_basename(url)))[0],
+                'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
                 'direct': True,
                 'formats': [{
                     'format_id': m.group('format_id'),
@@ -966,7 +967,7 @@ class GenericIE(InfoExtractor):
                 head_response.headers.get('Last-Modified'))
             return {
                 'id': video_id,
-                'title': os.path.splitext(compat_urllib_parse.unquote(url_basename(url)))[0],
+                'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
                 'direct': True,
                 'url': url,
                 'upload_date': upload_date,
