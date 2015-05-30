@@ -48,6 +48,97 @@ class GenericIE(InfoExtractor):
     _VALID_URL = r'.*'
     IE_NAME = 'generic'
     _TESTS = [
+        # Direct link to a video
+        {
+            'url': 'http://media.w3.org/2010/05/sintel/trailer.mp4',
+            'md5': '67d406c2bcb6af27fa886f31aa934bbe',
+            'info_dict': {
+                'id': 'trailer',
+                'ext': 'mp4',
+                'title': 'trailer',
+                'upload_date': '20100513',
+            }
+        },
+        # Direct link to a media delivered compressed (requires Accept-Encoding == *)
+        {
+            'url': 'http://calimero.tk/muzik/FictionJunction-Parallel_Hearts.flac',
+            'md5': '128c42e68b13950268b648275386fc74',
+            'info_dict': {
+                'id': 'FictionJunction-Parallel_Hearts',
+                'ext': 'flac',
+                'title': 'FictionJunction-Parallel_Hearts',
+                'upload_date': '20140522',
+            },
+            'expected_warnings': [
+                'URL could be a direct video link, returning it as such.'
+            ]
+        },
+        # Direct download with broken HEAD
+        {
+            'url': 'http://ai-radio.org:8000/radio.opus',
+            'info_dict': {
+                'id': 'radio',
+                'ext': 'opus',
+                'title': 'radio',
+            },
+            'params': {
+                'skip_download': True,  # infinite live stream
+            },
+            'expected_warnings': [
+                r'501.*Not Implemented'
+            ],
+        },
+        # Direct link with incorrect MIME type
+        {
+            'url': 'http://ftp.nluug.nl/video/nluug/2014-11-20_nj14/zaal-2/5_Lennart_Poettering_-_Systemd.webm',
+            'md5': '4ccbebe5f36706d85221f204d7eb5913',
+            'info_dict': {
+                'url': 'http://ftp.nluug.nl/video/nluug/2014-11-20_nj14/zaal-2/5_Lennart_Poettering_-_Systemd.webm',
+                'id': '5_Lennart_Poettering_-_Systemd',
+                'ext': 'webm',
+                'title': '5_Lennart_Poettering_-_Systemd',
+                'upload_date': '20141120',
+            },
+            'expected_warnings': [
+                'URL could be a direct video link, returning it as such.'
+            ]
+        },
+        # RSS feed
+        {
+            'url': 'http://phihag.de/2014/youtube-dl/rss2.xml',
+            'info_dict': {
+                'id': 'http://phihag.de/2014/youtube-dl/rss2.xml',
+                'title': 'Zero Punctuation',
+                'description': 're:.*groundbreaking video review series.*'
+            },
+            'playlist_mincount': 11,
+        },
+        # RSS feed with enclosure
+        {
+            'url': 'http://podcastfeeds.nbcnews.com/audio/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
+            'info_dict': {
+                'id': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
+                'ext': 'm4v',
+                'upload_date': '20150228',
+                'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
+            }
+        },
+        # google redirect
+        {
+            'url': 'http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&ved=0CCUQtwIwAA&url=http%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DcmQHVoWB5FY&ei=F-sNU-LLCaXk4QT52ICQBQ&usg=AFQjCNEw4hL29zgOohLXvpJ-Bdh2bils1Q&bvm=bv.61965928,d.bGE',
+            'info_dict': {
+                'id': 'cmQHVoWB5FY',
+                'ext': 'mp4',
+                'upload_date': '20130224',
+                'uploader_id': 'TheVerge',
+                'description': 're:^Chris Ziegler takes a look at the\.*',
+                'uploader': 'The Verge',
+                'title': 'First Firefox OS phones side-by-side',
+            },
+            'params': {
+                'skip_download': False,
+            }
+        },
         {
             'url': 'http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html',
             'md5': '85b90ccc9d73b4acd9138d3af4c27f89',
@@ -127,31 +218,6 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,  # m3u8 download
             },
         },
-        # Direct link to a video
-        {
-            'url': 'http://media.w3.org/2010/05/sintel/trailer.mp4',
-            'md5': '67d406c2bcb6af27fa886f31aa934bbe',
-            'info_dict': {
-                'id': 'trailer',
-                'ext': 'mp4',
-                'title': 'trailer',
-                'upload_date': '20100513',
-            }
-        },
-        # Direct link to a media delivered compressed (requires Accept-Encoding == *)
-        {
-            'url': 'http://calimero.tk/muzik/FictionJunction-Parallel_Hearts.flac',
-            'md5': '128c42e68b13950268b648275386fc74',
-            'info_dict': {
-                'id': 'FictionJunction-Parallel_Hearts',
-                'ext': 'flac',
-                'title': 'FictionJunction-Parallel_Hearts',
-                'upload_date': '20140522',
-            },
-            'expected_warnings': [
-                'URL could be a direct video link, returning it as such.'
-            ]
-        },
         # ooyala video
         {
             'url': 'http://www.rollingstone.com/music/videos/norwegian-dj-cashmere-cat-goes-spartan-on-with-me-premiere-20131219',
@@ -175,22 +241,6 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
             'add_ie': ['Ooyala'],
-        },
-        # google redirect
-        {
-            'url': 'http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&ved=0CCUQtwIwAA&url=http%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DcmQHVoWB5FY&ei=F-sNU-LLCaXk4QT52ICQBQ&usg=AFQjCNEw4hL29zgOohLXvpJ-Bdh2bils1Q&bvm=bv.61965928,d.bGE',
-            'info_dict': {
-                'id': 'cmQHVoWB5FY',
-                'ext': 'mp4',
-                'upload_date': '20130224',
-                'uploader_id': 'TheVerge',
-                'description': 're:^Chris Ziegler takes a look at the\.*',
-                'uploader': 'The Verge',
-                'title': 'First Firefox OS phones side-by-side',
-            },
-            'params': {
-                'skip_download': False,
-            }
         },
         # embed.ly video
         {
@@ -423,16 +473,6 @@ class GenericIE(InfoExtractor):
                 'title': 'Busty Blonde Siri Tit Fuck While Wank at HandjobHub.com',
             }
         },
-        # RSS feed
-        {
-            'url': 'http://phihag.de/2014/youtube-dl/rss2.xml',
-            'info_dict': {
-                'id': 'http://phihag.de/2014/youtube-dl/rss2.xml',
-                'title': 'Zero Punctuation',
-                'description': 're:.*groundbreaking video review series.*'
-            },
-            'playlist_mincount': 11,
-        },
         # Multiple brightcove videos
         # https://github.com/rg3/youtube-dl/issues/2283
         {
@@ -486,21 +526,6 @@ class GenericIE(InfoExtractor):
                 'uploader': 'thoughtworks.wistia.com',
             },
         },
-        # Direct download with broken HEAD
-        {
-            'url': 'http://ai-radio.org:8000/radio.opus',
-            'info_dict': {
-                'id': 'radio',
-                'ext': 'opus',
-                'title': 'radio',
-            },
-            'params': {
-                'skip_download': True,  # infinite live stream
-            },
-            'expected_warnings': [
-                r'501.*Not Implemented'
-            ],
-        },
         # Soundcloud embed
         {
             'url': 'http://nakedsecurity.sophos.com/2014/10/29/sscc-171-are-you-sure-that-1234-is-a-bad-password-podcast/',
@@ -531,21 +556,6 @@ class GenericIE(InfoExtractor):
                 'title': 'Unity 8 desktop-mode windows on Mir! - Ubuntu Discourse',
             },
             'playlist_mincount': 2,
-        },
-        # Direct link with incorrect MIME type
-        {
-            'url': 'http://ftp.nluug.nl/video/nluug/2014-11-20_nj14/zaal-2/5_Lennart_Poettering_-_Systemd.webm',
-            'md5': '4ccbebe5f36706d85221f204d7eb5913',
-            'info_dict': {
-                'url': 'http://ftp.nluug.nl/video/nluug/2014-11-20_nj14/zaal-2/5_Lennart_Poettering_-_Systemd.webm',
-                'id': '5_Lennart_Poettering_-_Systemd',
-                'ext': 'webm',
-                'title': '5_Lennart_Poettering_-_Systemd',
-                'upload_date': '20141120',
-            },
-            'expected_warnings': [
-                'URL could be a direct video link, returning it as such.'
-            ]
         },
         # Cinchcast embed
         {
@@ -704,16 +714,6 @@ class GenericIE(InfoExtractor):
                 'duration': 27,
                 'age_limit': 0,
             },
-        },
-        # RSS feed with enclosure
-        {
-            'url': 'http://podcastfeeds.nbcnews.com/audio/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
-            'info_dict': {
-                'id': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
-                'ext': 'm4v',
-                'upload_date': '20150228',
-                'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
-            }
         },
         # Crooks and Liars embed
         {
