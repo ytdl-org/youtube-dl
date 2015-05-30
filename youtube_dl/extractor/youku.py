@@ -132,25 +132,36 @@ class YoukuIE(InfoExtractor):
 
     def get_hd(self, fm):
         hd_id_dict = {
-            'flv': '0',
-            'mp4': '1',
-            'hd2': '2',
-            'hd3': '3',
-            '3gp': '0',
-            '3gphd': '1'
+            'flv'   : '0',
+            'mp4'   : '1',
+            'hd2'   : '2',
+            'hd3'   : '3',
+            '3gp'   : '0',
+            '3gphd' : '1'
         }
         return hd_id_dict[fm]
 
     def parse_ext_l(self, fm):
         ext_dict = {
-            'flv': 'flv',
-            'mp4': 'mp4',
-            'hd2': 'flv',
-            'hd3': 'flv',
-            '3gp': 'flv',
-            '3gphd': 'mp4',
+            'flv'   : 'flv',
+            'mp4'   : 'mp4',
+            'hd2'   : 'flv',
+            'hd3'   : 'flv',
+            '3gp'   : 'flv',
+            '3gphd' : 'mp4'
         }
         return ext_dict[fm]
+
+    def get_format_name(self, fm):
+        _dict = {
+            '3gp'   : 'h6',
+            '3gphd' : 'h5',
+            'flv'   : 'h4',
+            'mp4'   : 'h3',
+            'hd2'   : 'h2',
+            'hd3'   : 'h1'
+        }
+        return _dict[fm]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -191,7 +202,7 @@ class YoukuIE(InfoExtractor):
                 entries[i]['formats'].append(
                     {
                         'url': video_urls[i],
-                        'format_id': fm,
+                        'format_id': self.get_format_name(fm),
                         'ext': self.parse_ext_l(fm),
                         'filesize': int(data1['segs'][fm][i]['size'])
                     }
