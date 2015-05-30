@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import (
     int_or_none,
     js_to_json,
@@ -12,7 +13,7 @@ from ..utils import (
 
 
 class ImgurIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?P<id>[a-zA-Z0-9]+)(?:\.mp4|\.gifv)?'
+    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?P<id>[a-zA-Z0-9]+)'
 
     _TESTS = [{
         'url': 'https://i.imgur.com/A61SaA1.gifv',
@@ -34,7 +35,8 @@ class ImgurIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(
+            compat_urlparse.urljoin(url, video_id), video_id)
 
         width = int_or_none(self._search_regex(
             r'<param name="width" value="([0-9]+)"',
