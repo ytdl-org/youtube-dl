@@ -107,7 +107,8 @@ class VGTVIE(InfoExtractor):
                 hls_url, video_id, 'mp4', m3u8_id='hls'))
 
         hds_url = streams.get('hds')
-        if hds_url:
+        # wasLive hds are always 404
+        if hds_url and data.get('streamType') != 'wasLive':
             formats.extend(self._extract_f4m_formats(
                 hds_url + '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18',
                 video_id, f4m_id='hds'))
