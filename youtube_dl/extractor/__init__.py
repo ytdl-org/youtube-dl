@@ -687,6 +687,7 @@ from .xboxclips import XboxClipsIE
 from .xhamster import XHamsterIE
 from .xminus import XMinusIE
 from .xnxx import XNXXIE
+from .xvx import XVXIE
 from .xstream import XstreamIE
 from .xtube import XTubeUserIE, XTubeIE
 from .xuite import XuiteIE
