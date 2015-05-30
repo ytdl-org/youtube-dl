@@ -2,17 +2,31 @@
 from __future__ import unicode_literals
 
 import re
-import json
-import base64
-import xml.etree.ElementTree
 
-# Soompi uses the same subtitle encryption as crunchyroll
 from .crunchyroll import CrunchyrollIE
 
+from .common import InfoExtractor
+from ..compat import compat_HTTPError
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+    remove_start,
+    xpath_text,
+)
 
-class SoompiIE(CrunchyrollIE):
+
+class SoompiBaseIE(InfoExtractor):
+    def _get_episodes(self, webpage, episode_filter=None):
+        episodes = self._parse_json(
+            self._search_regex(
+                r'VIDEOS\s*=\s*(\[.+?\]);', webpage, 'episodes JSON'),
+            None)
+        return list(filter(episode_filter, episodes))
+
+
+class SoompiIE(SoompiBaseIE, CrunchyrollIE):
     IE_NAME = 'soompi'
-    _VALID_URL = r'^https?://tv\.soompi\.com/en/watch/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://tv\.soompi\.com/(?:en/)?watch/(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://tv.soompi.com/en/watch/29235',
         'info_dict': {
@@ -26,84 +40,86 @@ class SoompiIE(CrunchyrollIE):
         },
     }]
 
-    def _get_episodes(self, webpage, episode_filter=None):
-        episodes = json.loads(
-            self._search_regex(r'\s+VIDEOS\s+= (\[.+?\]);', webpage, "episodes meta"))
-        return [ep for ep in episodes if episode_filter is None or episode_filter(ep)]
+    def _get_episode(self, webpage, video_id):
+        return self._get_episodes(webpage, lambda x: x['id'] == video_id)[0]
 
-    def _get_subtitles(self, video_id, show_format_xml):
-        subtitles = {}
-        subtitle_info_nodes = show_format_xml.findall('./{default}preload/subtitles/subtitle')
-        subtitle_nodes = show_format_xml.findall('./{default}preload/subtitle')
-
+    def _get_subtitles(self, config, video_id):
         sub_langs = {}
-        for i in subtitle_info_nodes:
-            sub_langs[i.attrib["id"]] = i.attrib["title"]
+        for subtitle in config.findall('./{default}preload/subtitles/subtitle'):
+            sub_langs[subtitle.attrib['id']] = subtitle.attrib['title']
 
-        for s in subtitle_nodes:
-            lang_code = sub_langs.get(s.attrib["id"], None)
-            if lang_code is None:
+        subtitles = {}
+        for s in config.findall('./{default}preload/subtitle'):
+            lang_code = sub_langs.get(s.attrib['id'])
+            if not lang_code:
                 continue
-
-            sub_id = int(s.attrib["id"])
-            iv = base64.b64decode(s.find("iv").text)
-            data = base64.b64decode(s.find("data").text)
+            sub_id = s.get('id')
+            data = xpath_text(s, './data', 'data')
+            iv = xpath_text(s, './iv', 'iv')
+            if not id or not iv or not data:
+                continue
             subtitle = self._decrypt_subtitles(data, iv, sub_id).decode('utf-8')
-            sub_root = xml.etree.ElementTree.fromstring(subtitle)
-
-            subtitles[lang_code] = [{
-                'ext': 'srt', 'data': self._convert_subtitles_to_srt(sub_root)
-            }, {
-                'ext': 'ass', 'data': self._convert_subtitles_to_ass(sub_root)
-            }]
+            subtitles[lang_code] = self._extract_subtitles(subtitle)
         return subtitles
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(
-            url, video_id, note="Downloading episode page",
-            errnote="Video may not be available for your location")
-        vid_formats = re.findall(r"\?quality=q([0-9]+)", webpage)
-
-        show_meta = json.loads(
-            self._search_regex(r'\s+var show = (\{.+?\});', webpage, "show meta"))
-        episodes = self._get_episodes(
-            webpage, episode_filter=lambda x: x['id'] == video_id)
-
-        title = episodes[0]["name"]
-        description = episodes[0]["description"]
-        duration = int(episodes[0]["duration"])
-        slug = show_meta["slug"]
+        try:
+            webpage = self._download_webpage(
+                url, video_id, 'Downloading episode page')
+        except ExtractorError as ee:
+            if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
+                webpage = ee.cause.read()
+                block_message = self._html_search_regex(
+                    r'(?s)<div class="block-message">(.+?)</div>', webpage,
+                    'block message', default=None)
+                if block_message:
+                    raise ExtractorError(block_message, expected=True)
+            raise
 
         formats = []
-        show_format_xml = None
-        for vf in vid_formats:
-            show_format_url = "http://tv.soompi.com/en/show/%s/%s-config.xml?mode=hls&quality=q%s" \
-                              % (slug, video_id, vf)
-            show_format_xml = self._download_xml(
-                show_format_url, video_id, note="Downloading q%s show xml" % vf)
-            avail_formats = self._extract_m3u8_formats(
-                show_format_xml.find('./{default}preload/stream_info/file').text,
-                video_id, ext="mp4", m3u8_id=vf, preference=int(vf))
-            formats.extend(avail_formats)
+        config = None
+        for format_id in re.findall(r'\?quality=([0-9a-zA-Z]+)', webpage):
+            config = self._download_xml(
+                'http://tv.soompi.com/en/show/_/%s-config.xml?mode=hls&quality=%s' % (video_id, format_id),
+                video_id, 'Downloading %s XML' % format_id)
+            m3u8_url = xpath_text(
+                config, './{default}preload/stream_info/file',
+                '%s m3u8 URL' % format_id)
+            if not m3u8_url:
+                continue
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', m3u8_id=format_id))
         self._sort_formats(formats)
 
-        subtitles = self.extract_subtitles(video_id, show_format_xml)
+        episode = self._get_episode(webpage, video_id)
+
+        title = episode['name']
+        description = episode.get('description')
+        duration = int_or_none(episode.get('duration'))
+
+        thumbnails = [{
+            'id': thumbnail_id,
+            'url': thumbnail_url,
+        } for thumbnail_id, thumbnail_url in episode.get('img_url', {}).items()]
+
+        subtitles = self.extract_subtitles(config, video_id)
 
         return {
             'id': video_id,
             'title': title,
             'description': description,
+            'thumbnails': thumbnails,
             'duration': duration,
             'formats': formats,
             'subtitles': subtitles
         }
 
 
-class SoompiShowIE(SoompiIE):
+class SoompiShowIE(SoompiBaseIE):
     IE_NAME = 'soompi:show'
-    _VALID_URL = r'^https?://tv\.soompi\.com/en/shows/(?P<id>[0-9a-zA-Z\-_]+)'
+    _VALID_URL = r'https?://tv\.soompi\.com/en/shows/(?P<id>[0-9a-zA-Z\-_]+)'
     _TESTS = [{
         'url': 'http://tv.soompi.com/en/shows/liar-game',
         'info_dict': {
@@ -117,14 +133,14 @@ class SoompiShowIE(SoompiIE):
     def _real_extract(self, url):
         show_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, show_id, note="Downloading show page")
-        title = self._og_search_title(webpage).replace("SoompiTV | ", "")
+        webpage = self._download_webpage(
+            url, show_id, 'Downloading show page')
+
+        title = remove_start(self._og_search_title(webpage), 'SoompiTV | ')
         description = self._og_search_description(webpage)
 
-        episodes = self._get_episodes(webpage)
-        entries = []
-        for ep in episodes:
-            entries.append(self.url_result(
-                'http://tv.soompi.com/en/watch/%s' % ep['id'], 'Soompi', ep['id']))
+        entries = [
+            self.url_result('http://tv.soompi.com/en/watch/%s' % episode['id'], 'Soompi')
+            for episode in self._get_episodes(webpage)]
 
         return self.playlist_result(entries, show_id, title, description)
