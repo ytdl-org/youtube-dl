@@ -13,6 +13,9 @@ from ..utils import (
     timeconvert,
 )
 
+# default value for 'partsuffix' option
+DEFAULT_PART_SUFFIX = '.part'
+
 
 class FileDownloader(object):
     """File Downloader class.
@@ -37,6 +40,7 @@ class FileDownloader(object):
     logtostderr:        Log messages to stderr instead of stdout.
     consoletitle:       Display progress in console window's titlebar.
     nopart:             Do not use temporary .part files.
+    partsuffix:         Suffix for .part files.
     updatetime:         Use the Last-modified header to set output file timestamps.
     test:               Download only first bytes to test the downloader.
     min_filesize:       Skip files smaller than this size
@@ -173,11 +177,12 @@ class FileDownloader(object):
         if self.params.get('nopart', False) or filename == '-' or \
                 (os.path.exists(encodeFilename(filename)) and not os.path.isfile(encodeFilename(filename))):
             return filename
-        return filename + '.part'
+        return filename + self.params.get('partsuffix', DEFAULT_PART_SUFFIX)
 
     def undo_temp_name(self, filename):
-        if filename.endswith('.part'):
-            return filename[:-len('.part')]
+        suffix = self.params.get('partsuffix', DEFAULT_PART_SUFFIX)
+        if filename.endswith(suffix):
+            return filename[:-len(suffix)]
         return filename
 
     def try_rename(self, old_filename, new_filename):

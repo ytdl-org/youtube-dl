@@ -308,6 +308,7 @@ def _real_main(argv=None):
         'logtostderr': opts.outtmpl == '-',
         'consoletitle': opts.consoletitle,
         'nopart': opts.nopart,
+        'partsuffix': opts.partsuffix,
         'updatetime': opts.updatetime,
         'writedescription': opts.writedescription,
         'writeannotations': opts.writeannotations,

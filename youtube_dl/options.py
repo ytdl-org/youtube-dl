@@ -623,6 +623,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='nopart', default=False,
         help='Do not use .part files - write directly into output file')
     filesystem.add_option(
+        '--part-suffix',
+        action='store', dest='partsuffix', default='.part', metavar='SUFFIX',
+        help='Suffix to use for .part files (default is "%default")')
+    filesystem.add_option(
         '--no-mtime',
         action='store_false', dest='updatetime', default=True,
         help='Do not use the Last-modified header to set the file modification time')
