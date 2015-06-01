@@ -6,11 +6,11 @@ from ..utils import int_or_none
 
 
 class AftonbladetIE(InfoExtractor):
-    _VALID_URL = r'http://tv\.aftonbladet\.se/webbtv.+?(?P<id>article[0-9]+)\.ab(?:$|[?#])'
+    _VALID_URL = r'http://tv\.aftonbladet\.se/abtv/articles/(?P<id>[0-9]+)'
     _TEST = {
-        'url': 'http://tv.aftonbladet.se/webbtv/nyheter/vetenskap/rymden/article36015.ab',
+        'url': 'http://tv.aftonbladet.se/abtv/articles/36015',
         'info_dict': {
-            'id': 'article36015',
+            'id': '36015',
             'ext': 'mp4',
             'title': 'Vulkanutbrott i rymden - nu släpper NASA bilderna',
             'description': 'Jupiters måne mest aktiv av alla himlakroppar',
@@ -25,8 +25,9 @@ class AftonbladetIE(InfoExtractor):
 
         # find internal video meta data
         meta_url = 'http://aftonbladet-play.drlib.aptoma.no/video/%s.json'
-        internal_meta_id = self._html_search_regex(
-            r'data-aptomaId="([\w\d]+)"', webpage, 'internal_meta_id')
+        player_config = self._parse_json(self._html_search_regex(
+            r'data-player-config="([^"]+)"', webpage, 'player config'), video_id)
+        internal_meta_id = player_config['videoId']
         internal_meta_url = meta_url % internal_meta_id
         internal_meta_json = self._download_json(
             internal_meta_url, video_id, 'Downloading video meta data')
