@@ -60,6 +60,9 @@ class NovaIE(InfoExtractor):
     }, {
         'url': 'http://prask.nova.cz/clanek/novinky/co-si-na-sobe-nase-hvezdy-nechaly-pojistit.html',
         'only_matching': True,
+    }, {
+        'url': 'http://tv.nova.cz/clanek/novinky/zivot-je-zivot-bondovsky-trailer.html',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
