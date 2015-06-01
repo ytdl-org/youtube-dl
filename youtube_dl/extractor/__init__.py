@@ -352,6 +352,7 @@ from .ninegag import NineGagIE
 from .noco import NocoIE
 from .normalboots import NormalbootsIE
 from .nosvideo import NosVideoIE
+from .nova import NovaIE
 from .novamov import NovaMovIE
 from .nowness import NownessIE
 from .nowtv import NowTVIE
