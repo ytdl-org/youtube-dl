@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import determine_ext
+from ..utils import clean_html, determine_ext
 
 
 class NovaIE(InfoExtractor):
@@ -42,7 +42,7 @@ class NovaIE(InfoExtractor):
             'display_id': '5591-policie-modrava-15-dil-blondynka-na-hrbitove',
             'ext': 'mp4',
             'title': 'Policie Modrava - 15. díl - Blondýnka na hřbitově',
-            'description': 'md5:d804ba6b30bc7da2705b1fea961bddfe',
+            'description': 'md5:dc24e50be5908df83348e50d1431295e',
             'thumbnail': 're:^https?://.*\.(?:jpg)',
         },
         'params': {
@@ -140,7 +140,7 @@ class NovaIE(InfoExtractor):
         video_url = video_url.replace('&{}:'.format(ext), '')
 
         title = mediafile.get('meta', {}).get('title') or self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
+        description = clean_html(self._og_search_description(webpage, default=None))
         thumbnail = config.get('poster')
 
         mobj = None
