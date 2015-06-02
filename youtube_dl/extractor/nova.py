@@ -141,7 +141,7 @@ class NovaIE(InfoExtractor):
         mediafile = config['mediafile']
         video_url = mediafile['src']
         ext = determine_ext(video_url)
-        video_url = video_url.replace('&{}:'.format(ext), '')
+        video_url = video_url.replace('&%s:' % ext, '')
 
         title = mediafile.get('meta', {}).get('title') or self._og_search_title(webpage)
         description = clean_html(self._og_search_description(webpage, default=None))
