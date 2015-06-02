@@ -4,7 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import clean_html, determine_ext
+from ..utils import (
+    clean_html,
+    determine_ext,
+    unified_strdate,
+)
 
 
 class NovaIE(InfoExtractor):
@@ -143,14 +147,12 @@ class NovaIE(InfoExtractor):
         description = clean_html(self._og_search_description(webpage, default=None))
         thumbnail = config.get('poster')
 
-        mobj = None
         if site == 'novaplus':
-            mobj = re.search(r'(?P<day>\d{1,2})-(?P<month>\d{1,2})-(?P<year>\d{4})$', display_id)
-        if site == 'fanda':
-            mobj = re.search(
-                r'<span class="date_time">(?P<day>\d{1,2})\.(?P<month>\d{1,2})\.(?P<year>\d{4})\b', webpage)
-        if mobj:
-            upload_date = '{}{:02d}{:02d}'.format(mobj.group('year'), int(mobj.group('month')), int(mobj.group('day')))
+            upload_date = unified_strdate(self._search_regex(
+                r'(\d{1,2}-\d{1,2}-\d{4})$', display_id, 'upload date', default=None))
+        elif site == 'fanda':
+            upload_date = unified_strdate(self._search_regex(
+                r'<span class="date_time">(\d{1,2}\.\d{1,2}\.\d{4})', webpage, 'upload date', default=None))
         else:
             upload_date = None
 
