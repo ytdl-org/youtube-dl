@@ -46,7 +46,7 @@ class NovaIE(InfoExtractor):
             'display_id': '5591-policie-modrava-15-dil-blondynka-na-hrbitove',
             'ext': 'mp4',
             'title': 'Policie Modrava - 15. díl - Blondýnka na hřbitově',
-            'description': 'md5:dc24e50be5908df83348e50d1431295e',
+            'description': 'md5:dc24e50be5908df83348e50d1431295e',  # Make sure this description is clean of html tags
             'thumbnail': 're:^https?://.*\.(?:jpg)',
         },
         'params': {
