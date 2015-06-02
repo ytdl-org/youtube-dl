@@ -8,7 +8,7 @@ from .common import InfoExtractor
 
 class NovaIE(InfoExtractor):
     IE_DESC = 'TN.cz, Prásk.tv, Nova.cz, Novaplus.cz, FANDA.tv, Krásná.cz and Doma.cz'
-    _VALID_URL = 'http://(?:[^.]+\.)?(?P<site>tv(?:noviny)?|tn|novaplus|vymena|fanda|krasna|doma|prask)\.nova\.cz/(?:[^/]+/)+(?P<id>[^/]+)(?:\.html|/?)'
+    _VALID_URL = 'http://(?:[^.]+\.)?(?P<site>tv(?:noviny)?|tn|novaplus|vymena|fanda|krasna|doma|prask)\.nova\.cz/(?:[^/]+/)+(?P<id>[^/]+?)(?:\.html|/?)$'
     _TESTS = [{
         'url': 'http://tvnoviny.nova.cz/clanek/novinky/co-na-sebe-sportaci-praskli-vime-jestli-pujde-hrdlicka-na-materskou.html',
         'info_dict': {
