@@ -50,6 +50,33 @@ class NovaIE(InfoExtractor):
             'skip_download': True,
         }
     }, {
+        'url': 'http://novaplus.nova.cz/porad/televizni-noviny/video/5585-televizni-noviny-30-5-2015/',
+        'info_dict': {
+            'id': '1756858',
+            'ext': 'mp4',
+            'title': 'Televizní noviny - 30. 5. 2015',
+            'thumbnail': 're:^https?://.*\.(?:jpg)',
+            'upload_date': '20150530',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        }
+    }, {
+        'url': 'http://fanda.nova.cz/clanek/fun-and-games/krvavy-epos-zaklinac-3-divoky-hon-vychazi-vyhrajte-ho-pro-sebe.html',
+        'info_dict': {
+            'id': '1753621',
+            'ext': 'mp4',
+            'title': 'Zaklínač 3: Divoký hon',
+            'description': 're:.*Pokud se stejně jako my nemůžete.*',
+            'thumbnail': 're:https?://.*\.jpg(\?.*)?',
+            'upload_date': '20150521',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        }
+    }, {
         'url': 'http://sport.tn.nova.cz/clanek/sport/hokej/nhl/zivot-jde-dal-hodnotil-po-vyrazeni-z-playoff-jiri-sekac.html',
         'only_matching': True,
     }, {
@@ -116,11 +143,23 @@ class NovaIE(InfoExtractor):
         description = self._og_search_description(webpage)
         thumbnail = config.get('poster')
 
+        mobj = None
+        if site == 'novaplus':
+            mobj = re.search(r'(?P<day>\d{1,2})-(?P<month>\d{1,2})-(?P<year>\d{4})$', display_id)
+        if site == 'fanda':
+            mobj = re.search(
+                r'<span class="date_time">(?P<day>\d{1,2})\.(?P<month>\d{1,2})\.(?P<year>\d{4})\b', webpage)
+        if mobj:
+            upload_date = '{}{:02d}{:02d}'.format(mobj.group('year'), int(mobj.group('month')), int(mobj.group('day')))
+        else:
+            upload_date = None
+
         return {
             'id': video_id,
             'display_id': display_id,
             'title': title,
             'description': description,
+            'upload_date': upload_date,
             'thumbnail': thumbnail,
             'url': video_url,
             'ext': ext,
