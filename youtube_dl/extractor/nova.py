@@ -132,7 +132,7 @@ class NovaIE(InfoExtractor):
         config = self._download_json(
             config_url, display_id,
             'Downloading config JSON',
-            transform_source=lambda s: re.sub(r'var\s+[\da-zA-Z_]+\s*=\s*({.+?});', r'\1', s))
+            transform_source=lambda s: s[s.index('{'):s.rindex('}') + 1])
 
         mediafile = config['mediafile']
         video_url = mediafile['src']
