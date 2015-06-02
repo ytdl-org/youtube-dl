@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import determine_ext
 
 
 class NovaIE(InfoExtractor):
@@ -39,7 +40,7 @@ class NovaIE(InfoExtractor):
         'info_dict': {
             'id': '1756825',
             'display_id': '5591-policie-modrava-15-dil-blondynka-na-hrbitove',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Policie Modrava - 15. díl - Blondýnka na hřbitově',
             'description': 'md5:d804ba6b30bc7da2705b1fea961bddfe',
             'thumbnail': 're:^https?://.*\.(?:jpg)',
@@ -108,21 +109,8 @@ class NovaIE(InfoExtractor):
 
         mediafile = config['mediafile']
         video_url = mediafile['src']
-
-        m = re.search(r'^(?P<url>rtmpe?://[^/]+/(?P<app>[^/]+?))/&*(?P<playpath>.+)$', video_url)
-        if m:
-            formats = [{
-                'url': m.group('url'),
-                'app': m.group('app'),
-                'play_path': m.group('playpath'),
-                'player_path': 'http://tvnoviny.nova.cz/static/shared/app/videojs/video-js.swf',
-                'ext': 'flv',
-            }]
-        else:
-            formats = [{
-                'url': video_url,
-            }]
-        self._sort_formats(formats)
+        ext = determine_ext(video_url)
+        video_url = video_url.replace('&{}:'.format(ext), '')
 
         title = mediafile.get('meta', {}).get('title') or self._og_search_title(webpage)
         description = self._og_search_description(webpage)
@@ -134,5 +122,6 @@ class NovaIE(InfoExtractor):
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
-            'formats': formats,
+            'url': video_url,
+            'ext': ext,
         }
