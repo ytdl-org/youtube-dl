@@ -72,6 +72,7 @@ from .chirbit import (
 )
 from .cinchcast import CinchcastIE
 from .cinemassacre import CinemassacreIE
+from .clickhole import ClickholeIE
 from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
 from .clipsyndicate import ClipsyndicateIE
