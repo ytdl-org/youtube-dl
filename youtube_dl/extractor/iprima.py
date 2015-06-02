@@ -24,7 +24,7 @@ class IPrimaIE(InfoExtractor):
             'id': '39152',
             'ext': 'flv',
             'title': 'Partička (92)',
-            'description': 'md5:db00b9bc10ffd26fb148fa6a3a67c40b',
+            'description': 'md5:74e9617e51bca67c3ecfb2c6f9766f45',
             'thumbnail': 'http://play.iprima.cz/sites/default/files/image_crops/image_620x349/3/491483_particka-92_image_620x349.jpg',
         },
         'params': {
@@ -36,13 +36,11 @@ class IPrimaIE(InfoExtractor):
             'id': '9718337',
             'ext': 'flv',
             'title': 'Tchibo Partička - Jarní móda',
-            'description': 'md5:db00b9bc10ffd26fb148fa6a3a67c40b',
             'thumbnail': 're:^http:.*\.jpg$',
         },
         'params': {
             'skip_download': True,  # requires rtmpdump
         },
-        'skip': 'Do not have permission to access this page',
     }, {
         'url': 'http://play.iprima.cz/zpravy-ftv-prima-2752015',
         'only_matching': True,
@@ -109,5 +107,7 @@ class IPrimaIE(InfoExtractor):
             'title': remove_end(self._og_search_title(webpage), ' | Prima PLAY'),
             'thumbnail': self._og_search_thumbnail(webpage),
             'formats': formats,
-            'description': self._og_search_description(webpage),
+            'description': self._search_regex(
+                r'<p[^>]+itemprop="description"[^>]*>([^<]+)',
+                webpage, 'description', default=None),
         }
