@@ -11,11 +11,12 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    remove_end,
 )
 
 
 class IPrimaIE(InfoExtractor):
-    _VALID_URL = r'https?://play\.iprima\.cz/([^/]+/)*(?P<id>[^?#]+)'
+    _VALID_URL = r'https?://play\.iprima\.cz/(?:[^/]+/)*(?P<id>[^?#]+)'
 
     _TESTS = [{
         'url': 'http://play.iprima.cz/particka/particka-92',
@@ -105,7 +106,7 @@ class IPrimaIE(InfoExtractor):
 
         return {
             'id': real_id,
-            'title': self._og_search_title(webpage).replace(' | Prima PLAY', ''),
+            'title': remove_end(self._og_search_title(webpage), ' | Prima PLAY'),
             'thumbnail': self._og_search_thumbnail(webpage),
             'formats': formats,
             'description': self._og_search_description(webpage),
