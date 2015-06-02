@@ -2,6 +2,10 @@ from __future__ import unicode_literals
 
 import base64
 from math import ceil
+try:
+    from Crypto.Cipher import AES
+except:
+    pass
 
 from .utils import bytes_to_intlist, intlist_to_bytes
 
@@ -18,6 +22,12 @@ def aes_ctr_decrypt(data, key, counter):
                                returns the next counter block
     @returns {int[]}           decrypted data
     """
+    if 'AES' in globals():
+        obj = AES.new(intlist_to_bytes(key), AES.MODE_CTR,
+                      counter = lambda: intlist_to_bytes(counter.next_value()))
+        decrypted_data = obj.decrypt(intlist_to_bytes(data))
+        return bytes_to_intlist(decrypted_data)
+
     expanded_key = key_expansion(key)
     block_count = int(ceil(float(len(data)) / BLOCK_SIZE_BYTES))
 
@@ -43,15 +53,20 @@ def aes_cbc_decrypt(data, key, iv):
     @param {int[]} iv          16-Byte IV
     @returns {int[]}           decrypted data
     """
-    expanded_key = key_expansion(key)
     block_count = int(ceil(float(len(data)) / BLOCK_SIZE_BYTES))
+    data += [0] * (block_count * BLOCK_SIZE_BYTES - len(data))
+
+    if 'AES' in globals():
+        obj = AES.new(intlist_to_bytes(key), AES.MODE_CBC, intlist_to_bytes(iv))
+        decrypted_data = obj.decrypt(intlist_to_bytes(data))
+        return bytes_to_intlist(decrypted_data)
+
+    expanded_key = key_expansion(key)
 
     decrypted_data = []
     previous_cipher_block = iv
     for i in range(block_count):
         block = data[i * BLOCK_SIZE_BYTES: (i + 1) * BLOCK_SIZE_BYTES]
-        block += [0] * (BLOCK_SIZE_BYTES - len(block))
-
         decrypted_block = aes_decrypt(block, expanded_key)
         decrypted_data += xor(decrypted_block, previous_cipher_block)
         previous_cipher_block = block
