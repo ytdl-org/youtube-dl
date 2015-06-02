@@ -13,9 +13,9 @@ from ..utils import (
 
 class NovaIE(InfoExtractor):
     IE_DESC = 'TN.cz, Prásk.tv, Nova.cz, Novaplus.cz, FANDA.tv, Krásná.cz and Doma.cz'
-    _VALID_URL = 'http://(?:[^.]+\.)?(?P<site>tv(?:noviny)?|tn|novaplus|vymena|fanda|krasna|doma|prask)\.nova\.cz/(?:[^/]+/)+(?P<id>[^/]+?)(?:\.html|/?)$'
+    _VALID_URL = 'http://(?:[^.]+\.)?(?P<site>tv(?:noviny)?|tn|novaplus|vymena|fanda|krasna|doma|prask)\.nova\.cz/(?:[^/]+/)+(?P<id>[^/]+?)(?:\.html|/|$)'
     _TESTS = [{
-        'url': 'http://tvnoviny.nova.cz/clanek/novinky/co-na-sebe-sportaci-praskli-vime-jestli-pujde-hrdlicka-na-materskou.html',
+        'url': 'http://tvnoviny.nova.cz/clanek/novinky/co-na-sebe-sportaci-praskli-vime-jestli-pujde-hrdlicka-na-materskou.html?utm_source=tvnoviny&utm_medium=cpfooter&utm_campaign=novaplus',
         'info_dict': {
             'id': '1608920',
             'display_id': 'co-na-sebe-sportaci-praskli-vime-jestli-pujde-hrdlicka-na-materskou',
@@ -29,7 +29,7 @@ class NovaIE(InfoExtractor):
             'skip_download': True,
         }
     }, {
-        'url': 'http://tn.nova.cz/clanek/tajemstvi-ukryte-v-podzemi-specialni-nemocnice-v-prazske-krci.html',
+        'url': 'http://tn.nova.cz/clanek/tajemstvi-ukryte-v-podzemi-specialni-nemocnice-v-prazske-krci.html#player_13260',
         'md5': '1dd7b9d5ea27bc361f110cd855a19bd3',
         'info_dict': {
             'id': '1757139',
@@ -40,7 +40,7 @@ class NovaIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.(?:jpg)',
         }
     }, {
-        'url': 'http://novaplus.nova.cz/porad/policie-modrava/video/5591-policie-modrava-15-dil-blondynka-na-hrbitove/',
+        'url': 'http://novaplus.nova.cz/porad/policie-modrava/video/5591-policie-modrava-15-dil-blondynka-na-hrbitove',
         'info_dict': {
             'id': '1756825',
             'display_id': '5591-policie-modrava-15-dil-blondynka-na-hrbitove',
