@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     float_or_none,
     int_or_none,
     parse_age_limit,
@@ -62,6 +63,13 @@ class TvigleIE(InfoExtractor):
             'http://cloud.tvigle.ru/api/play/video/%s/' % video_id, display_id)
 
         item = video_data['playlist']['items'][0]
+
+        videos = item.get('videos')
+
+        error_message = item.get('errorMessage')
+        if not videos and error_message:
+            raise ExtractorError(
+                '%s returned error: %s' % (self.IE_NAME, error_message), expected=True)
 
         title = item['title']
         description = item.get('description')
