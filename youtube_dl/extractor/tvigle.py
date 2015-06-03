@@ -30,6 +30,7 @@ class TvigleIE(InfoExtractor):
                 'duration': 6586,
                 'age_limit': 12,
             },
+            'skip': 'georestricted',
         },
         {
             'url': 'http://www.tvigle.ru/video/vladimir-vysotskii/vedushchii-teleprogrammy-60-minut-ssha-o-vladimire-vysotskom/',
@@ -42,6 +43,7 @@ class TvigleIE(InfoExtractor):
                 'duration': 186.080,
                 'age_limit': 0,
             },
+            'skip': 'georestricted',
         }, {
             'url': 'https://cloud.tvigle.ru/video/5267604/',
             'only_matching': True,
