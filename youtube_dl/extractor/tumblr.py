@@ -28,6 +28,17 @@ class TumblrIE(InfoExtractor):
             'description': 'md5:dba62ac8639482759c8eb10ce474586a',
             'thumbnail': 're:http://.*\.jpg',
         }
+    }, {
+        'url': 'http://naked-yogi.tumblr.com/post/118312946248/naked-smoking-stretching',
+        'md5': 'de07e5211d60d4f3a2c3df757ea9f6ab',
+        'info_dict': {
+            'id': 'Wmur',
+            'ext': 'mp4',
+            'title': 'naked smoking & stretching',
+            'upload_date': '20150506',
+            'timestamp': 1430931613,
+        },
+        'add_ie': ['Vidme'],
     }]
 
     def _real_extract(self, url):
@@ -37,6 +48,12 @@ class TumblrIE(InfoExtractor):
 
         url = 'http://%s.tumblr.com/post/%s/' % (blog, video_id)
         webpage = self._download_webpage(url, video_id)
+
+        vid_me_embed_url = self._search_regex(
+            r'src=[\'"](https?://vid\.me/[^\'"]+)[\'"]',
+            webpage, 'vid.me embed', default=None)
+        if vid_me_embed_url is not None:
+            return self.url_result(vid_me_embed_url, 'Vidme')
 
         iframe_url = self._search_regex(
             r'src=\'(https?://www\.tumblr\.com/video/[^\']+)\'',
