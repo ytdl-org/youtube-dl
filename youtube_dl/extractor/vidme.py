@@ -10,7 +10,7 @@ from ..utils import (
 
 class VidmeIE(InfoExtractor):
     _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://vid.me/QNB',
         'md5': 'f42d05e7149aeaec5c037b17e5d3dc82',
         'info_dict': {
@@ -23,9 +23,14 @@ class VidmeIE(InfoExtractor):
             'upload_date': '20140725',
             'thumbnail': 're:^https?://.*\.jpg',
         },
-    }
+    }, {
+        # From http://naked-yogi.tumblr.com/post/118312946248/naked-smoking-stretching
+        'url': 'https://vid.me/e/Wmur',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
+        url = url.replace('vid.me/e/', 'vid.me/')
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
