@@ -802,6 +802,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     # TODO implement WebVTT downloading
                     pass
                 elif mime_type.startswith('audio/') or mime_type.startswith('video/'):
+                    segment_list = r.find('{urn:mpeg:DASH:schema:MPD:2011}SegmentList')
                     format_id = r.attrib['id']
                     video_url = url_el.text
                     filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength'))
@@ -815,6 +816,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         'filesize': filesize,
                         'fps': int_or_none(r.attrib.get('frameRate')),
                     }
+                    if segment_list:
+                        f.update({
+                            'initialization_url': segment_list.find('{urn:mpeg:DASH:schema:MPD:2011}Initialization').attrib['sourceURL'],
+                            'segment_urls': [segment.attrib.get('media') for segment in segment_list.findall('{urn:mpeg:DASH:schema:MPD:2011}SegmentURL')]
+                        })
                     try:
                         existing_format = next(
                             fo for fo in formats

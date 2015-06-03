@@ -6,6 +6,7 @@ import socket
 import time
 
 from .common import FileDownloader
+from .dash import DashSegmentsFD
 from ..compat import (
     compat_urllib_request,
     compat_urllib_error,
@@ -19,6 +20,9 @@ from ..utils import (
 
 class HttpFD(FileDownloader):
     def real_download(self, filename, info_dict):
+        if info_dict.get('initialization_url') and list(filter(None, info_dict.get('segment_urls', []))):
+            return DashSegmentsFD(self.ydl, self.params).real_download(filename, info_dict)
+
         url = info_dict['url']
         tmpfilename = self.temp_name(filename)
         stream = None
