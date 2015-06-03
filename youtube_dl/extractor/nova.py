@@ -4,13 +4,17 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import (
+    clean_html,
+    unified_strdate,
+)
 
 
 class NovaIE(InfoExtractor):
     IE_DESC = 'TN.cz, Prásk.tv, Nova.cz, Novaplus.cz, FANDA.tv, Krásná.cz and Doma.cz'
-    _VALID_URL = 'http://(?:[^.]+\.)?(?P<site>tv(?:noviny)?|tn|novaplus|vymena|fanda|krasna|doma|prask)\.nova\.cz/(?:[^/]+/)+(?P<id>[^/]+)(?:\.html|/?)'
+    _VALID_URL = 'http://(?:[^.]+\.)?(?P<site>tv(?:noviny)?|tn|novaplus|vymena|fanda|krasna|doma|prask)\.nova\.cz/(?:[^/]+/)+(?P<id>[^/]+?)(?:\.html|/|$)'
     _TESTS = [{
-        'url': 'http://tvnoviny.nova.cz/clanek/novinky/co-na-sebe-sportaci-praskli-vime-jestli-pujde-hrdlicka-na-materskou.html',
+        'url': 'http://tvnoviny.nova.cz/clanek/novinky/co-na-sebe-sportaci-praskli-vime-jestli-pujde-hrdlicka-na-materskou.html?utm_source=tvnoviny&utm_medium=cpfooter&utm_campaign=novaplus',
         'info_dict': {
             'id': '1608920',
             'display_id': 'co-na-sebe-sportaci-praskli-vime-jestli-pujde-hrdlicka-na-materskou',
@@ -24,7 +28,7 @@ class NovaIE(InfoExtractor):
             'skip_download': True,
         }
     }, {
-        'url': 'http://tn.nova.cz/clanek/tajemstvi-ukryte-v-podzemi-specialni-nemocnice-v-prazske-krci.html',
+        'url': 'http://tn.nova.cz/clanek/tajemstvi-ukryte-v-podzemi-specialni-nemocnice-v-prazske-krci.html#player_13260',
         'md5': '1dd7b9d5ea27bc361f110cd855a19bd3',
         'info_dict': {
             'id': '1757139',
@@ -35,14 +39,41 @@ class NovaIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.(?:jpg)',
         }
     }, {
-        'url': 'http://novaplus.nova.cz/porad/policie-modrava/video/5591-policie-modrava-15-dil-blondynka-na-hrbitove/',
+        'url': 'http://novaplus.nova.cz/porad/policie-modrava/video/5591-policie-modrava-15-dil-blondynka-na-hrbitove',
         'info_dict': {
             'id': '1756825',
             'display_id': '5591-policie-modrava-15-dil-blondynka-na-hrbitove',
             'ext': 'flv',
             'title': 'Policie Modrava - 15. díl - Blondýnka na hřbitově',
-            'description': 'md5:d804ba6b30bc7da2705b1fea961bddfe',
+            'description': 'md5:dc24e50be5908df83348e50d1431295e',  # Make sure this description is clean of html tags
             'thumbnail': 're:^https?://.*\.(?:jpg)',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        }
+    }, {
+        'url': 'http://novaplus.nova.cz/porad/televizni-noviny/video/5585-televizni-noviny-30-5-2015/',
+        'info_dict': {
+            'id': '1756858',
+            'ext': 'flv',
+            'title': 'Televizní noviny - 30. 5. 2015',
+            'thumbnail': 're:^https?://.*\.(?:jpg)',
+            'upload_date': '20150530',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        }
+    }, {
+        'url': 'http://fanda.nova.cz/clanek/fun-and-games/krvavy-epos-zaklinac-3-divoky-hon-vychazi-vyhrajte-ho-pro-sebe.html',
+        'info_dict': {
+            'id': '1753621',
+            'ext': 'mp4',
+            'title': 'Zaklínač 3: Divoký hon',
+            'description': 're:.*Pokud se stejně jako my nemůžete.*',
+            'thumbnail': 're:https?://.*\.jpg(\?.*)?',
+            'upload_date': '20150521',
         },
         'params': {
             # rtmp download
@@ -104,7 +135,7 @@ class NovaIE(InfoExtractor):
         config = self._download_json(
             config_url, display_id,
             'Downloading config JSON',
-            transform_source=lambda s: re.sub(r'var\s+[\da-zA-Z_]+\s*=\s*({.+?});', r'\1', s))
+            transform_source=lambda s: s[s.index('{'):s.rindex('}') + 1])
 
         mediafile = config['mediafile']
         video_url = mediafile['src']
@@ -125,14 +156,24 @@ class NovaIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = mediafile.get('meta', {}).get('title') or self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
+        description = clean_html(self._og_search_description(webpage, default=None))
         thumbnail = config.get('poster')
+
+        if site == 'novaplus':
+            upload_date = unified_strdate(self._search_regex(
+                r'(\d{1,2}-\d{1,2}-\d{4})$', display_id, 'upload date', default=None))
+        elif site == 'fanda':
+            upload_date = unified_strdate(self._search_regex(
+                r'<span class="date_time">(\d{1,2}\.\d{1,2}\.\d{4})', webpage, 'upload date', default=None))
+        else:
+            upload_date = None
 
         return {
             'id': video_id,
             'display_id': display_id,
             'title': title,
             'description': description,
+            'upload_date': upload_date,
             'thumbnail': thumbnail,
             'formats': formats,
         }
