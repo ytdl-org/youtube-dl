@@ -6,7 +6,6 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     clean_html,
-    determine_ext,
     unified_strdate,
 )
 
@@ -44,7 +43,7 @@ class NovaIE(InfoExtractor):
         'info_dict': {
             'id': '1756825',
             'display_id': '5591-policie-modrava-15-dil-blondynka-na-hrbitove',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Policie Modrava - 15. díl - Blondýnka na hřbitově',
             'description': 'md5:dc24e50be5908df83348e50d1431295e',  # Make sure this description is clean of html tags
             'thumbnail': 're:^https?://.*\.(?:jpg)',
@@ -57,7 +56,7 @@ class NovaIE(InfoExtractor):
         'url': 'http://novaplus.nova.cz/porad/televizni-noviny/video/5585-televizni-noviny-30-5-2015/',
         'info_dict': {
             'id': '1756858',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Televizní noviny - 30. 5. 2015',
             'thumbnail': 're:^https?://.*\.(?:jpg)',
             'upload_date': '20150530',
@@ -140,8 +139,21 @@ class NovaIE(InfoExtractor):
 
         mediafile = config['mediafile']
         video_url = mediafile['src']
-        ext = determine_ext(video_url)
-        video_url = video_url.replace('&%s:' % ext, '')
+
+        m = re.search(r'^(?P<url>rtmpe?://[^/]+/(?P<app>[^/]+?))/&*(?P<playpath>.+)$', video_url)
+        if m:
+            formats = [{
+                'url': m.group('url'),
+                'app': m.group('app'),
+                'play_path': m.group('playpath'),
+                'player_path': 'http://tvnoviny.nova.cz/static/shared/app/videojs/video-js.swf',
+                'ext': 'flv',
+            }]
+        else:
+            formats = [{
+                'url': video_url,
+            }]
+        self._sort_formats(formats)
 
         title = mediafile.get('meta', {}).get('title') or self._og_search_title(webpage)
         description = clean_html(self._og_search_description(webpage, default=None))
@@ -163,6 +175,5 @@ class NovaIE(InfoExtractor):
             'description': description,
             'upload_date': upload_date,
             'thumbnail': thumbnail,
-            'url': video_url,
-            'ext': ext,
+            'formats': formats,
         }
