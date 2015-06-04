@@ -9,7 +9,6 @@ from .common import InfoExtractor
 from ..utils import (
     strip_jsonp,
     unescapeHTML,
-    js_to_json,
 )
 from ..compat import compat_urllib_request
 
