@@ -26,6 +26,6 @@ class EMPFlixIE(TNAFlixIE):
         },
         {
             'url': 'http://www.empflix.com/videos/[AROMA][ARMD-718]-Aoi-Yoshino-Sawa-25826.html',
-            'matching_only': True,
+            'only_matching': True,
         }
     ]
