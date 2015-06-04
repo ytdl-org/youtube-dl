@@ -222,6 +222,7 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
             ) for song in toplist_json['songlist']
         ]
 
-        list_name = toplist_json['topinfo']['ListName']
-        list_description = toplist_json['topinfo']['info']
+        topinfo = toplist_json.get('topinfo', {})
+        list_name = topinfo.get('ListName')
+        list_description = topinfo.get('info')
         return self.playlist_result(entries, list_id, list_name, list_description)
