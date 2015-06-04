@@ -31,8 +31,8 @@ class QQMusicIE(InfoExtractor):
     }]
 
     _FORMATS = {
-        'mp3-320': {'prefix': 'M800', 'ext': 'mp3', 'preference': 40},
-        'mp3-128': {'prefix': 'M500', 'ext': 'mp3', 'preference': 30},
+        'mp3-320': {'prefix': 'M800', 'ext': 'mp3', 'preference': 40, 'abr': 320},
+        'mp3-128': {'prefix': 'M500', 'ext': 'mp3', 'preference': 30, 'abr': 128},
         'm4a': {'prefix': 'C200', 'ext': 'm4a', 'preference': 10}
     }
 
@@ -77,11 +77,12 @@ class QQMusicIE(InfoExtractor):
             transform_source=strip_jsonp)['key']
 
         formats = []
-        for k, sf in self._FORMATS.items():
+        for k, f in self._FORMATS.items():
             formats.append({
                 'url': 'http://cc.stream.qqmusic.qq.com/%s%s.%s?vkey=%s&guid=%s&fromtag=0'
-                       % (sf['prefix'], mid, sf['ext'], vkey, guid),
-                'format': k, 'format_id': k, 'preference': sf['preference']
+                       % (f['prefix'], mid, f['ext'], vkey, guid),
+                'format': k, 'format_id': k, 'preference': f['preference'],
+                'abr': f.get('abr')
             })
         self._sort_formats(formats)
 
