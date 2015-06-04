@@ -19,16 +19,22 @@ class QQMusicIE(InfoExtractor):
     _VALID_URL = r'http://y.qq.com/#type=song&mid=(?P<id>[0-9A-Za-z]+)'
     _TESTS = [{
         'url': 'http://y.qq.com/#type=song&mid=004295Et37taLD',
-        'md5': 'bed90b6db2a7a7a7e11bc585f471f63a',
+        'md5': '9ce1c1c8445f561506d2e3cfb0255705',
         'info_dict': {
             'id': '004295Et37taLD',
-            'ext': 'm4a',
+            'ext': 'mp3',
             'title': '可惜没如果',
             'upload_date': '20141227',
             'creator': '林俊杰',
             'description': 'md5:d327722d0361576fde558f1ac68a7065',
         }
     }]
+
+    _FORMATS = {
+        'mp3-320': {'prefix': 'M800', 'ext': 'mp3', 'preference': 40},
+        'mp3-128': {'prefix': 'M500', 'ext': 'mp3', 'preference': 30},
+        'm4a': {'prefix': 'C200', 'ext': 'm4a', 'preference': 10}
+    }
 
     # Reference: m_r_GetRUin() in top_player.js
     # http://imgcache.gtimg.cn/music/portal_v3/y/top_player.js
@@ -69,11 +75,19 @@ class QQMusicIE(InfoExtractor):
             'http://base.music.qq.com/fcgi-bin/fcg_musicexpress.fcg?json=3&guid=%s' % guid,
             mid, note='Retrieve vkey', errnote='Unable to get vkey',
             transform_source=strip_jsonp)['key']
-        song_url = 'http://cc.stream.qqmusic.qq.com/C200%s.m4a?vkey=%s&guid=%s&fromtag=0' % (mid, vkey, guid)
+
+        formats = []
+        for k, sf in self._FORMATS.items():
+            formats.append({
+                'url': 'http://cc.stream.qqmusic.qq.com/%s%s.%s?vkey=%s&guid=%s&fromtag=0'
+                       % (sf['prefix'], mid, sf['ext'], vkey, guid),
+                'format': k, 'format_id': k, 'preference': sf['preference']
+            })
+        self._sort_formats(formats)
 
         return {
             'id': mid,
-            'url': song_url,
+            'formats': formats,
             'title': song_name,
             'upload_date': publish_time,
             'creator': singer,
