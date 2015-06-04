@@ -51,9 +51,8 @@ class TNAFlixIE(InfoExtractor):
 
         age_limit = self._rta_search(webpage)
 
-        duration = self._html_search_meta('duration', webpage, 'duration', default=None)
-        if duration:
-            duration = parse_duration(duration[1:])
+        duration = parse_duration(self._html_search_meta(
+            'duration', webpage, 'duration', default=None))
 
         cfg_url = self._proto_relative_url(self._html_search_regex(
             self._CONFIG_REGEX, webpage, 'flashvars.config'), 'http:')
