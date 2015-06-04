@@ -33,7 +33,7 @@ class TNAFlixIE(InfoExtractor):
         },
         {
             'url': 'https://www.tnaflix.com/amateur-porn/bunzHD-Ms.Donk/video358632',
-            'matching_only': True,
+            'only_matching': True,
         }
     ]
 
