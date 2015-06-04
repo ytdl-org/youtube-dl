@@ -21,7 +21,7 @@ PROTOCOL_MAP = {
     'mms': RtspFD,
     'rtsp': RtspFD,
     'f4m': F4mFD,
-    'dash_segments': DashSegmentsFD,
+    'http_dash_segments': DashSegmentsFD,
 }
 
 
