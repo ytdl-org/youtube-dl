@@ -10,6 +10,7 @@
  - **56.com**
  - **5min**
  - **8tracks**
+ - **91porn**
  - **9gag**
  - **abc.net.au**
  - **Abc7News**
@@ -319,6 +320,7 @@
  - **Noco**
  - **Normalboots**
  - **NosVideo**
+ - **Nova**: TN.cz, Prásk.tv, Nova.cz, Novaplus.cz, FANDA.tv, Krásná.cz and Doma.cz
  - **novamov**: NovaMov
  - **Nowness**
  - **NowTV**
@@ -431,6 +433,8 @@
  - **smotri:user**: Smotri.com user videos
  - **Snotr**
  - **Sohu**
+ - **soompi**
+ - **soompi:show**
  - **soundcloud**
  - **soundcloud:playlist**
  - **soundcloud:set**
@@ -505,6 +509,7 @@
  - **Trilulilu**
  - **TruTube**
  - **Tube8**
+ - **TubiTv**
  - **Tudou**
  - **Tumblr**
  - **TuneIn**
