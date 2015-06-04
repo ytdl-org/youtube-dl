@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
-from .common import FileDownloader
-from ..compat import compat_urllib_request
 
 import re
+
+from .common import FileDownloader
+from ..compat import compat_urllib_request
 
 
 class DashSegmentsFD(FileDownloader):
