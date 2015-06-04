@@ -61,14 +61,15 @@ class TNAFlixIE(InfoExtractor):
             cfg_url, display_id, note='Downloading metadata',
             transform_source=fix_xml_ampersands)
 
-        thumbnail = cfg_xml.find('./startThumb').text
+        thumbnail = self._proto_relative_url(
+            cfg_xml.find('./startThumb').text, 'http:')
 
         formats = []
         for item in cfg_xml.findall('./quality/item'):
             video_url = re.sub('speed=\d+', 'speed=', item.find('videoLink').text)
             format_id = item.find('res').text
             fmt = {
-                'url': video_url,
+                'url': self._proto_relative_url(video_url, 'http:'),
                 'format_id': format_id,
             }
             m = re.search(r'^(\d+)', format_id)
