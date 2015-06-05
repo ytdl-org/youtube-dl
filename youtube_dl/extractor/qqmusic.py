@@ -76,14 +76,14 @@ class QQMusicIE(InfoExtractor):
             transform_source=strip_jsonp)['key']
 
         formats = []
-        for k, f in self._FORMATS.items():
+        for format_id, details in self._FORMATS.items():
             formats.append({
                 'url': 'http://cc.stream.qqmusic.qq.com/%s%s.%s?vkey=%s&guid=%s&fromtag=0'
-                       % (f['prefix'], mid, f['ext'], vkey, guid),
-                'format': k,
-                'format_id': k,
-                'preference': f['preference'],
-                'abr': f.get('abr')
+                       % (details['prefix'], mid, details['ext'], vkey, guid),
+                'format': format_id,
+                'format_id': format_id,
+                'preference': details['preference'],
+                'abr': details.get('abr'),
             })
         self._sort_formats(formats)
 
