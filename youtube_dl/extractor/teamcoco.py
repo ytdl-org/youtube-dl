@@ -51,6 +51,17 @@ class TeamcocoIE(InfoExtractor):
             'params': {
                 'skip_download': True,  # m3u8 downloads
             }
+        }, {
+            'url': 'http://teamcoco.com/video/full-episode-mon-6-1-joel-mchale-jake-tapper-and-musical-guest-courtney-barnett?playlist=x;eyJ0eXBlIjoidGFnIiwiaWQiOjl9',
+            'info_dict': {
+                'id': '89341',
+                'ext': 'mp4',
+                'title': 'Full Episode - Mon. 6/1 - Joel McHale, Jake Tapper, And Musical Guest Courtney Barnett',
+                'description': 'Guests: Joel McHale, Jake Tapper, And Musical Guest Courtney Barnett',
+            },
+            'params': {
+                'skip_download': True,  # m3u8 downloads
+            }
         }
     ]
     _VIDEO_ID_REGEXES = (
@@ -110,9 +121,23 @@ class TeamcocoIE(InfoExtractor):
         get_quality = qualities(['500k', '480p', '1000k', '720p', '1080p'])
         for filed in data['files']:
             if determine_ext(filed['url']) == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    filed['url'], video_id, ext='mp4'))
+                # compat_urllib_parse.urljoin does not work here
+                if filed['url'].startswith('/'):
+                    m3u8_url = 'http://ht.cdn.turner.com/tbs/big/teamcoco' + filed['url']
+                else:
+                    m3u8_url = filed['url']
+                m3u8_formats = self._extract_m3u8_formats(
+                    m3u8_url, video_id, ext='mp4')
+                for m3u8_format in m3u8_formats:
+                    if m3u8_format not in formats:
+                        formats.append(m3u8_format)
+            elif determine_ext(filed['url']) == 'f4m':
+                # TODO Correct f4m extraction
+                continue
             else:
+                if filed['url'].startswith('/mp4:protected/'):
+                    # TODO Correct extraction for these files
+                    continue
                 m_format = re.search(r'(\d+(k|p))\.mp4', filed['url'])
                 if m_format is not None:
                     format_id = m_format.group(1)
