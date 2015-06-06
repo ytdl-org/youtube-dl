@@ -62,6 +62,8 @@ class RuutuIE(InfoExtractor):
                 formats.extend(self._extract_f4m_formats(url, media_id, f4m_id='hds'))
                 parsed_urls.append(url)
             else:
+                if not fmt.tag.startswith('HTTP'):
+                    continue
                 proto = compat_urllib_parse_urlparse(url).scheme
                 width_str, height_str = fmt.get('resolution').split('x')
                 tbr = int(fmt.get('bitrate', 0))
