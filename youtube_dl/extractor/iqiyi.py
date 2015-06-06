@@ -16,19 +16,20 @@ import random
 import zlib
 import hashlib
 
+
 class IqiyiIE(InfoExtractor):
     IE_NAME = 'iqiyi'
 
     _VALID_URL = r'http://(?:www\.)iqiyi.com/.+?\.html'
 
     _TEST = {
-            'url': 'http://www.iqiyi.com/v_19rrojlavg.html',
-            'md5': '2cb594dc2781e6c941a110d8f358118b',
-            'info_dict': {
-                'id': '9c1fb1b99d192b21c559e5a1a2cb3c73',
-                'title': '美国德州空中惊现奇异云团 酷似UFO',
-                'ext': 'f4v',
-            }
+        'url': 'http://www.iqiyi.com/v_19rrojlavg.html',
+        'md5': '2cb594dc2781e6c941a110d8f358118b',
+        'info_dict': {
+            'id': '9c1fb1b99d192b21c559e5a1a2cb3c73',
+            'title': '美国德州空中惊现奇异云团 酷似UFO',
+            'ext': 'f4v',
+        }
     }
 
     def construct_video_urls(self, data, video_id, _uuid, bid):
@@ -46,7 +47,7 @@ class IqiyiIE(InfoExtractor):
             c = len(b)
             s = ''
             for i in range(c - 1, -1, -1):
-                a = do_xor(int(b[c-i-1], 16), i)
+                a = do_xor(int(b[c - i - 1], 16), i)
                 s += chr(a)
             return s[::-1]
 
@@ -54,15 +55,14 @@ class IqiyiIE(InfoExtractor):
             mg = ')(*&^flash@#$%a'
             tm = self._download_json(
                 'http://data.video.qiyi.com/t?tn=' + str(random.random()), video_id)['t']
-            t = str(int(math.floor(int(tm)/(600.0))))
-            return hashlib.md5(
-                 (t+mg+x).encode('utf8')).hexdigest()
+            t = str(int(math.floor(int(tm) / (600.0))))
+            return hashlib.md5((t + mg + x).encode('utf8')).hexdigest()
 
         # get accept format
         # getting all format will spend minutes for a big video.
         if bid == 'best':
-            bids = [int(i['bid']) for i in data['vp']['tkl'][0]['vs'] \
-                   if 0 < int(i['bid']) <= 10]
+            bids = [int(i['bid']) for i in data['vp']['tkl'][0]['vs']
+                    if 0 < int(i['bid']) <= 10]
             bid = str(max(bids))
 
         video_urls_dict = {}
@@ -117,24 +117,24 @@ class IqiyiIE(InfoExtractor):
 
     def get_format(self, bid):
         _dict = {
-            '1'  : 'h6',
-            '2'  : 'h5',
-            '3'  : 'h4',
-            '4'  : 'h3',
-            '5'  : 'h2',
-            '10' : 'h1'
+            '1': 'h6',
+            '2': 'h5',
+            '3': 'h4',
+            '4': 'h3',
+            '5': 'h2',
+            '10': 'h1'
         }
         return _dict.get(str(bid), None)
 
     def get_bid(self, format_id):
         _dict = {
-            'h6'   : '1',
-            'h5'   : '2',
-            'h4'   : '3',
-            'h3'   : '4',
-            'h2'   : '5',
-            'h1'   : '10',
-            'best' : 'best'
+            'h6': '1',
+            'h5': '2',
+            'h4': '3',
+            'h3': '4',
+            'h2': '5',
+            'h1': '10',
+            'best': 'best'
         }
         return _dict.get(format_id, None)
 
@@ -207,7 +207,7 @@ class IqiyiIE(InfoExtractor):
         for format_id in video_urls_dict:
             video_urls = video_urls_dict[format_id]
             for i, video_url_info in enumerate(video_urls):
-                if len(entries) < i+1:
+                if len(entries) < i + 1:
                     entries.append({'formats': []})
                 entries[i]['formats'].append(
                     {
@@ -222,7 +222,7 @@ class IqiyiIE(InfoExtractor):
             self._sort_formats(entries[i]['formats'])
             entries[i].update(
                 {
-                    'id': '_part%d' % (i+1),
+                    'id': '_part%d' % (i + 1),
                     'title': title,
                 }
             )
