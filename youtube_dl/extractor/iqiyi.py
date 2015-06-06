@@ -171,7 +171,10 @@ class IqiyiIE(InfoExtractor):
         enc_key = self.get_enc_key(swf_url, video_id)
 
         raw_data = self.get_raw_data(tvid, video_id, enc_key, _uuid)
-        assert raw_data['code'] == 'A000000'
+
+        if raw_data['code'] != 'A000000':
+            raise ExtractorError('Unable to load data. Error code: ' + raw_data['code'])
+
         if not raw_data['data']['vp']['tkl']:
             raise ExtractorError('No support iQiqy VIP video')
 
