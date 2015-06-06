@@ -17,7 +17,7 @@ from ..utils import ExtractorError
 class IqiyiIE(InfoExtractor):
     IE_NAME = 'iqiyi'
 
-    _VALID_URL = r'http://(?:www\.)iqiyi.com/.+?\.html'
+    _VALID_URL = r'http://(?:www\.)iqiyi.com/v_.+?\.html'
 
     _TESTS = [{
         'url': 'http://www.iqiyi.com/v_19rrojlavg.html',
