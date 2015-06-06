@@ -229,6 +229,7 @@ from .infoq import InfoQIE
 from .instagram import InstagramIE, InstagramUserIE
 from .internetvideoarchive import InternetVideoArchiveIE
 from .iprima import IPrimaIE
+from .iqiyi import IqiyiIE
 from .ivi import (
     IviIE,
     IviCompilationIE
