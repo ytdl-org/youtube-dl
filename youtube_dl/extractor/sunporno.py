@@ -44,7 +44,7 @@ class SunPornoIE(InfoExtractor):
             webpage, 'duration', fatal=False))
 
         view_count = int_or_none(self._html_search_regex(
-            r'class="views">\s*(\d+)\s*<',
+            r'class="views">(?:<noscript>)?\s*(\d+)\s*<',
             webpage, 'view count', fatal=False))
         comment_count = int_or_none(self._html_search_regex(
             r'(\d+)</b> Comments?',
