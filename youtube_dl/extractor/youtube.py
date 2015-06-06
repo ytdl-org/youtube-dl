@@ -1406,10 +1406,12 @@ class YoutubeChannelIE(InfoExtractor):
         channel_page = self._download_webpage(
             url + '?view=57', channel_id,
             'Downloading channel page', fatal=False)
-        channel_playlist_id = self._search_regex(
-            [r'<meta itemprop="channelId" content="([^"]+)">',
-             r'data-channel-external-id="([^"]+)"'],
-            channel_page, 'channel id', default=None)
+        channel_playlist_id = self._html_search_meta(
+            'channelId', channel_page, 'channel id', default=None)
+        if not channel_playlist_id:
+            channel_playlist_id = self._search_regex(
+                r'data-channel-external-id="([^"]+)"',
+                channel_page, 'channel id', default=None)
         if channel_playlist_id and channel_playlist_id.startswith('UC'):
             playlist_id = 'UU' + channel_playlist_id[2:]
             return self.url_result(
