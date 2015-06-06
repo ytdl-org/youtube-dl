@@ -19,7 +19,7 @@ class IqiyiIE(InfoExtractor):
 
     _VALID_URL = r'http://(?:www\.)iqiyi.com/.+?\.html'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.iqiyi.com/v_19rrojlavg.html',
         'md5': '2cb594dc2781e6c941a110d8f358118b',
         'info_dict': {
@@ -27,7 +27,70 @@ class IqiyiIE(InfoExtractor):
             'title': '美国德州空中惊现奇异云团 酷似UFO',
             'ext': 'f4v',
         }
-    }
+    }, {
+        'url': 'http://www.iqiyi.com/v_19rrhnnclk.html',
+        'info_dict': {
+            'id': 'e3f585b550a280af23c98b6cb2be19fb',
+            'title': '名侦探柯南第752集',
+        },
+        'playlist': [{
+            'md5': '7e49376fecaffa115d951634917fe105',
+            'info_dict': {
+                'id': 'e3f585b550a280af23c98b6cb2be19fb_part1',
+                'ext': 'f4v',
+                'title': '名侦探柯南第752集',
+            },
+        }, {
+            'md5': '41b75ba13bb7ac0e411131f92bc4f6ca',
+            'info_dict': {
+                'id': 'e3f585b550a280af23c98b6cb2be19fb_part2',
+                'ext': 'f4v',
+                'title': '名侦探柯南第752集',
+            },
+        }, {
+            'md5': '0cee1dd0a3d46a83e71e2badeae2aab0',
+            'info_dict': {
+                'id': 'e3f585b550a280af23c98b6cb2be19fb_part3',
+                'ext': 'f4v',
+                'title': '名侦探柯南第752集',
+            },
+        }, {
+            'md5': '4f8ad72373b0c491b582e7c196b0b1f9',
+            'info_dict': {
+                'id': 'e3f585b550a280af23c98b6cb2be19fb_part4',
+                'ext': 'f4v',
+                'title': '名侦探柯南第752集',
+            },
+        }, {
+            'md5': 'd89ad028bcfad282918e8098e811711d',
+            'info_dict': {
+                'id': 'e3f585b550a280af23c98b6cb2be19fb_part5',
+                'ext': 'f4v',
+                'title': '名侦探柯南第752集',
+            },
+        }, {
+            'md5': '9cb1e5c95da25dff0660c32ae50903b7',
+            'info_dict': {
+                'id': 'e3f585b550a280af23c98b6cb2be19fb_part6',
+                'ext': 'f4v',
+                'title': '名侦探柯南第752集',
+            },
+        }, {
+            'md5': '155116e0ff1867bbc9b98df294faabc9',
+            'info_dict': {
+                'id': 'e3f585b550a280af23c98b6cb2be19fb_part7',
+                'ext': 'f4v',
+                'title': '名侦探柯南第752集',
+            },
+        }, {
+            'md5': '53f5db77622ae14fa493ed2a278a082b',
+            'info_dict': {
+                'id': 'e3f585b550a280af23c98b6cb2be19fb_part8',
+                'ext': 'f4v',
+                'title': '名侦探柯南第752集',
+            },
+        }],
+    }]
 
     def construct_video_urls(self, data, video_id, _uuid):
         def do_xor(x, y):
