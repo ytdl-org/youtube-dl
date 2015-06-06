@@ -1,20 +1,17 @@
 # coding: utf-8
-
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
-
-from ..compat import compat_urllib_parse
-
-from ..utils import ExtractorError
-
+import hashlib
+import math
+import random
 import re
 import time
 import uuid
-import math
-import random
 import zlib
-import hashlib
+
+from .common import InfoExtractor
+from ..compat import compat_urllib_parse
+from ..utils import ExtractorError
 
 
 class IqiyiIE(InfoExtractor):
