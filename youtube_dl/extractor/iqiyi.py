@@ -92,6 +92,15 @@ class IqiyiIE(InfoExtractor):
         }],
     }]
 
+    _FORMATS_MAP = [
+        ('1', 'h6'),
+        ('2', 'h5'),
+        ('3', 'h4'),
+        ('4', 'h3'),
+        ('5', 'h2'),
+        ('10', 'h1'),
+    ]
+
     def construct_video_urls(self, data, video_id, _uuid):
         def do_xor(x, y):
             a = y % 3
@@ -167,27 +176,12 @@ class IqiyiIE(InfoExtractor):
         return video_urls_dict
 
     def get_format(self, bid):
-        _dict = {
-            '1': 'h6',
-            '2': 'h5',
-            '3': 'h4',
-            '4': 'h3',
-            '5': 'h2',
-            '10': 'h1'
-        }
-        return _dict.get(str(bid), None)
+        matched_format_ids = [_format_id for _bid, _format_id in self._FORMATS_MAP if _bid == str(bid)]
+        return matched_format_ids[0] if len(matched_format_ids) else None
 
     def get_bid(self, format_id):
-        _dict = {
-            'h6': '1',
-            'h5': '2',
-            'h4': '3',
-            'h3': '4',
-            'h2': '5',
-            'h1': '10',
-            'best': 'best'
-        }
-        return _dict.get(format_id, None)
+        matched_bids = [_bid for _bid, _format_id in self._FORMATS_MAP if _format_id == format_id]
+        return matched_bids[0] if len(matched_bids) else None
 
     def get_raw_data(self, tvid, video_id, enc_key, _uuid):
         tm = str(int(time.time()))
