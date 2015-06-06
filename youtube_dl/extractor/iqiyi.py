@@ -48,35 +48,37 @@ class IqiyiIE(InfoExtractor):
                 s += chr(a)
             return s[::-1]
 
-        def get_path_key(x):
+        def get_path_key(x, format_id, segment_index):
             mg = ')(*&^flash@#$%a'
             tm = self._download_json(
-                'http://data.video.qiyi.com/t?tn=' + str(random.random()), video_id)['t']
+                'http://data.video.qiyi.com/t?tn=' + str(random.random()), video_id,
+                note='Download path key of segment %d for format %s' % (segment_index + 1, format_id)
+            )['t']
             t = str(int(math.floor(int(tm) / (600.0))))
             return hashlib.md5((t + mg + x).encode('utf8')).hexdigest()
 
         video_urls_dict = {}
-        for i in data['vp']['tkl'][0]['vs']:
-            if 0 < int(i['bid']) <= 10:
-                format_id = self.get_format(i['bid'])
+        for format_item in data['vp']['tkl'][0]['vs']:
+            if 0 < int(format_item['bid']) <= 10:
+                format_id = self.get_format(format_item['bid'])
             else:
                 continue
 
             video_urls = []
 
-            video_urls_info = i['fs']
-            if not i['fs'][0]['l'].startswith('/'):
-                t = get_encode_code(i['fs'][0]['l'])
+            video_urls_info = format_item['fs']
+            if not format_item['fs'][0]['l'].startswith('/'):
+                t = get_encode_code(format_item['fs'][0]['l'])
                 if t.endswith('mp4'):
-                    video_urls_info = i['flvs']
+                    video_urls_info = format_item['flvs']
 
-            for ii in video_urls_info:
-                vl = ii['l']
+            for segment_index, segment in enumerate(video_urls_info):
+                vl = segment['l']
                 if not vl.startswith('/'):
                     vl = get_encode_code(vl)
                 key = get_path_key(
-                    vl.split('/')[-1].split('.')[0])
-                filesize = ii['b']
+                    vl.split('/')[-1].split('.')[0], format_id, segment_index)
+                filesize = segment['b']
                 base_url = data['vp']['du'].split('/')
                 base_url.insert(-1, key)
                 base_url = '/'.join(base_url)
@@ -91,7 +93,9 @@ class IqiyiIE(InfoExtractor):
                 }
                 api_video_url = base_url + vl + '?' + \
                     compat_urllib_parse.urlencode(param)
-                js = self._download_json(api_video_url, video_id)
+                js = self._download_json(
+                    api_video_url, video_id,
+                    note='Download video info of segment %d for format %s' % (segment_index + 1, format_id))
                 video_url = js['l']
                 video_urls.append(
                     (video_url, filesize))
