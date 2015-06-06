@@ -207,7 +207,7 @@ class IqiyiIE(InfoExtractor):
             self._sort_formats(entries[i]['formats'])
             entries[i].update(
                 {
-                    'id': '_part%d' % (i + 1),
+                    'id': '%s_part%d' % (video_id, i + 1),
                     'title': title,
                 }
             )
