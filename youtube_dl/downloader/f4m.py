@@ -21,6 +21,31 @@ from ..utils import (
     xpath_text,
 )
 
+class FlvPacket(object):
+    def __init__(self, stream):
+        self.packet_type = stream.read_unsigned_char()
+        payload_len = stream.read_unsigned_int_24()
+        timestamp_low = stream.read_unsigned_int_24()
+        timestamp_high = stream.read_unsigned_char()
+        self.timestamp = (timestamp_high << 24) + timestamp_low
+        if self.timestamp & 0x80000000 != 0:
+            self.timestamp &= 0x7FFFFFFF
+
+        self.stream_id = stream.read_unsigned_int_24()
+        self.payload = stream.read(payload_len)
+        self.total_packet_len = stream.read_unsigned_int()
+
+    def write(self, stream):
+        write_unsigned_char(stream, self.packet_type)
+        write_unsigned_int_24(stream, len(self.payload))
+        timestamp_low = self.timestamp & 0x00FFFFFF;
+        timestamp_high = (self.timestamp & 0xFF000000) >> 24;
+        write_unsigned_int_24(stream, timestamp_low)
+        write_unsigned_char(stream, timestamp_high)
+        write_unsigned_int_24(stream, self.stream_id)
+        stream.write(self.payload)
+        write_unsigned_int(stream, self.total_packet_len)
+
 
 class FlvReader(io.BytesIO):
     """
@@ -34,6 +59,10 @@ class FlvReader(io.BytesIO):
 
     def read_unsigned_int(self):
         return struct_unpack('!I', self.read(4))[0]
+
+    def read_unsigned_int_24(self):
+        v = b'\x00' + bytearray(self.read(3))
+        return struct_unpack('!I', v)[0]
 
     def read_unsigned_char(self):
         return struct_unpack('!B', self.read(1))[0]
@@ -170,6 +199,11 @@ class FlvReader(io.BytesIO):
         assert box_type == b'abst'
         return FlvReader(box_data).read_abst()
 
+    def read_packets(self, endoffset):
+        packets = []
+        while self.tell() < endoffset:
+            packets.append(FlvPacket(self))
+        return packets
 
 def read_bootstrap_info(bootstrap_bytes):
     return FlvReader(bootstrap_bytes).read_bootstrap_info()
@@ -191,6 +225,9 @@ def build_fragments_list(boot_info):
 
     return res
 
+
+def write_unsigned_char(stream, val):
+    stream.write(struct_pack('!B', val))
 
 def write_unsigned_int(stream, val):
     stream.write(struct_pack('!I', val))
@@ -284,6 +321,18 @@ class F4mFD(FileDownloader):
             bootstrap = base64.b64decode(node.text.encode('ascii'))
             boot_info = read_bootstrap_info(bootstrap)
         return (boot_info, bootstrap_url)
+
+    def adjust_timestamps(self, packets, timebase):
+        for p in packets:
+            if timebase is None:
+                timebase = p.timestamp
+            if p.timestamp >= timebase and timebase > 1000:
+                p.timestamp = p.timestamp - timebase
+        return (packets, timebase)
+
+    def write_packets(self, dest_stream, packets):
+        for p in packets:
+            p.write(dest_stream)
 
     def real_download(self, filename, info_dict):
         man_url = info_dict['url']
@@ -382,6 +431,7 @@ class F4mFD(FileDownloader):
 
         http_dl.add_progress_hook(frag_progress_hook)
 
+        timebase = None
         frags_filenames = []
         while fragments_list:
             seg_i, frag_i = fragments_list.pop(0)
@@ -402,7 +452,9 @@ class F4mFD(FileDownloader):
                     while True:
                         _, box_type, box_data = reader.read_box_info()
                         if box_type == b'mdat':
-                            dest_stream.write(box_data)
+                            packets = FlvReader(box_data).read_packets(len(box_data))
+                            packets, timebase = self.adjust_timestamps(packets, timebase)
+                            self.write_packets(dest_stream, packets)
                             break
                 if live:
                     os.remove(frag_filename)
