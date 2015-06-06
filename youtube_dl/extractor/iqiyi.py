@@ -32,7 +32,7 @@ class IqiyiIE(InfoExtractor):
         }
     }
 
-    def construct_video_urls(self, data, video_id, _uuid, bid):
+    def construct_video_urls(self, data, video_id, _uuid):
         def do_xor(x, y):
             a = y % 3
             if a == 1:
@@ -58,13 +58,6 @@ class IqiyiIE(InfoExtractor):
             t = str(int(math.floor(int(tm) / (600.0))))
             return hashlib.md5((t + mg + x).encode('utf8')).hexdigest()
 
-        # get accept format
-        # getting all format will spend minutes for a big video.
-        if bid == 'best':
-            bids = [int(i['bid']) for i in data['vp']['tkl'][0]['vs']
-                    if 0 < int(i['bid']) <= 10]
-            bid = str(max(bids))
-
         video_urls_dict = {}
         for i in data['vp']['tkl'][0]['vs']:
             if 0 < int(i['bid']) <= 10:
@@ -79,12 +72,6 @@ class IqiyiIE(InfoExtractor):
                 t = get_encode_code(i['fs'][0]['l'])
                 if t.endswith('mp4'):
                     video_urls_info = i['flvs']
-
-            if int(i['bid']) != int(bid):  # ignore missing match format
-                video_urls.extend(
-                    [('http://example.com/v.flv', ii['b']) for ii in video_urls_info])
-                video_urls_dict[format_id] = video_urls
-                continue
 
             for ii in video_urls_info:
                 vl = ii['l']
@@ -193,14 +180,9 @@ class IqiyiIE(InfoExtractor):
 
         title = data['vi']['vn']
 
-        format = self._downloader.params.get('format', None)
-        bid = self.get_bid(format) if format else 'best'
-        if not bid:
-            raise ExtractorError('Can\'t get format.')
-
         # generate video_urls_dict
         video_urls_dict = self.construct_video_urls(
-            data, video_id, _uuid, bid)
+            data, video_id, _uuid)
 
         # construct info
         entries = []
