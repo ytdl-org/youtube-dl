@@ -12,17 +12,22 @@ class TlcIE(DiscoveryIE):
     IE_NAME = 'tlc.com'
     _VALID_URL = r'http://www\.tlc\.com\/[a-zA-Z0-9\-]*/[a-zA-Z0-9\-]*/videos/(?P<id>[a-zA-Z0-9\-]*)(.htm)?'
 
-    _TEST = {
+    # DiscoveryIE has _TESTS
+    _TESTS = [{
         'url': 'http://www.tlc.com/tv-shows/cake-boss/videos/too-big-to-fly.htm',
-        'md5': 'c4038f4a9b44d0b5d74caaa64ed2a01a',
         'info_dict': {
-            'id': '853232',
+            'id': '104493',
             'ext': 'mp4',
-            'title': 'Cake Boss: Too Big to Fly',
+            'title': 'Too Big to Fly',
             'description': 'Buddy has taken on a high flying task.',
             'duration': 119,
+            'timestamp': 1393365060,
+            'upload_date': '20140225',
         },
-    }
+        'params': {
+            'skip_download': True,  # requires ffmpef
+        },
+    }]
 
 
 class TlcDeIE(InfoExtractor):
