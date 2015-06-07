@@ -100,7 +100,9 @@ class InstagramUserIE(InfoExtractor):
                 thumbnails_el = it.get('images', {})
                 thumbnail = thumbnails_el.get('thumbnail', {}).get('url')
 
-                title = it.get('caption', {}).get('text', it['id'])
+                # In some cases caption is null, which corresponds to None
+                # in python. As a result, it.get('caption', {}) gives None
+                title = (it.get('caption') or {}).get('text', it['id'])
 
                 entries.append({
                     'id': it['id'],
