@@ -846,7 +846,7 @@ class InfoExtractor(object):
 
     def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
                               entry_protocol='m3u8', preference=None,
-                              m3u8_id=None):
+                              m3u8_id=None, note=None, errnote=None):
 
         formats = [{
             'format_id': '-'.join(filter(None, [m3u8_id, 'meta'])),
@@ -865,8 +865,8 @@ class InfoExtractor(object):
 
         m3u8_doc = self._download_webpage(
             m3u8_url, video_id,
-            note='Downloading m3u8 information',
-            errnote='Failed to download m3u8 information')
+            note=note or 'Downloading m3u8 information',
+            errnote=errnote or 'Failed to download m3u8 information')
         last_info = None
         last_media = None
         kv_rex = re.compile(
