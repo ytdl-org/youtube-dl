@@ -172,7 +172,7 @@ class BrightcoveIE(InfoExtractor):
         """Return a list of all Brightcove URLs from the webpage """
 
         url_m = re.search(
-            r'<meta\s+property="og:video"\s+content="(https?://(?:secure|c)\.brightcove.com/[^"]+)"',
+            r'<meta\s+property=[\'"]og:video[\'"]\s+content=[\'"](https?://(?:secure|c)\.brightcove.com/[^\'"]+)[\'"]',
             webpage)
         if url_m:
             url = unescapeHTML(url_m.group(1))

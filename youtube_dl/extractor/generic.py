@@ -789,6 +789,18 @@ class GenericIE(InfoExtractor):
                 # rtmpe downloads
                 'skip_download': True,
             }
+        },
+        # Brightcove URL in single quotes
+        {
+            'url': 'http://www.sportsnet.ca/baseball/mlb/sn-presents-russell-martin-world-citizen/',
+            'md5': '4ae374f1f8b91c889c4b9203c8c752af',
+            'info_dict': {
+                'id': '4255764656001',
+                'ext': 'mp4',
+                'title': 'SN Presents: Russell Martin, World Citizen',
+                'description': 'To understand why he was the Toronto Blue Jays’ top off-season priority is to appreciate his background and upbringing in Montreal, where he first developed his baseball skills. Written and narrated by Stephen Brunt.',
+                'uploader': 'Rogers Sportsnet',
+            },
         }
     ]
 
