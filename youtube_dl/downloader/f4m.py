@@ -257,16 +257,26 @@ class F4mFD(FileDownloader):
         bootstrap = self.ydl.urlopen(bootstrap_url).read()
         return read_bootstrap_info(bootstrap)
 
+    def _retry_wait_time(self, boot_info):
+        fragments = boot_info[u'fragments'][0]['fragments']
+        durations = [frag['duration'] for frag in fragments]
+        if durations:
+            min_duration_sec = min(durations)/1000.0
+            return max(min(min_duration_sec/2, 5.0), 1.0)
+        else:
+            return 5.0
+
     def _update_live_fragments(self, bootstrap_url, latest_fragment):
         fragments_list = []
         retries = 30
         while (not fragments_list) and (retries > 0):
             boot_info = self._get_bootstrap_from_url(bootstrap_url)
             fragments_list = build_fragments_list(boot_info)
+            retry_wait = self._retry_wait_time(boot_info)
             fragments_list = [f for f in fragments_list if f[1] > latest_fragment]
             if not fragments_list:
                 # Retry after a while
-                time.sleep(5.0)
+                time.sleep(retry_wait)
                 retries -= 1
 
         if not fragments_list:
