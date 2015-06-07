@@ -582,6 +582,7 @@ from .tv2 import (
     TV2ArticleIE,
 )
 from .tv4 import TV4IE
+from .tvc import TVCIE
 from .tvigle import TvigleIE
 from .tvp import TvpIE, TvpSeriesIE
 from .tvplay import TVPlayIE
