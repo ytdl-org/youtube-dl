@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    limit_length,
+)
 
 
 class InstagramIE(InfoExtractor):
@@ -106,7 +109,7 @@ class InstagramUserIE(InfoExtractor):
 
                 entries.append({
                     'id': it['id'],
-                    'title': title,
+                    'title': limit_length(title, 80),
                     'formats': formats,
                     'thumbnail': thumbnail,
                     'webpage_url': it.get('link'),
