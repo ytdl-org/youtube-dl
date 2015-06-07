@@ -145,7 +145,7 @@ def parseOpts(overrideArguments=None):
     general.add_option(
         '--list-extractors',
         action='store_true', dest='list_extractors', default=False,
-        help='List all supported extractors and the URLs they would handle')
+        help='List all supported extractors')
     general.add_option(
         '--extractor-descriptions',
         action='store_true', dest='list_extractor_descriptions', default=False,
