@@ -11,7 +11,7 @@ from ..utils import (
 
 class CNETIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?cnet\.com/videos/(?P<id>[^/]+)/'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.cnet.com/videos/hands-on-with-microsofts-windows-8-1-update/',
         'info_dict': {
             'id': '56f4ea68-bd21-4852-b08c-4de5b8354c60',
@@ -25,7 +25,20 @@ class CNETIE(InfoExtractor):
         'params': {
             'skip_download': 'requires rtmpdump',
         }
-    }
+    }, {
+        'url': 'http://www.cnet.com/videos/whiny-pothole-tweets-at-local-government-when-hit-by-cars-tomorrow-daily-187/',
+        'info_dict': {
+            'id': '56527b93-d25d-44e3-b738-f989ce2e49ba',
+            'ext': 'flv',
+            'description': 'Khail and Ashley wonder what other civic woes can be solved by self-tweeting objects, investigate a new kind of VR camera and watch an origami robot self-assemble, walk, climb, dig and dissolve. #TDPothole',
+            'uploader_id': 'b163284d-6b73-44fc-b3e6-3da66c392d40',
+            'uploader': 'Ashley Esqueda',
+            'title': 'Whiny potholes tweet at local government when hit by cars (Tomorrow Daily 187)',
+        },
+        'params': {
+            'skip_download': True,  # requires rtmpdump
+        },
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
@@ -42,7 +55,7 @@ class CNETIE(InfoExtractor):
             raise ExtractorError('Cannot find video data')
 
         mpx_account = data['config']['players']['default']['mpx_account']
-        vid = vdata['files']['rtmp']
+        vid = vdata['files'].get('rtmp', vdata['files']['hds'])
         tp_link = 'http://link.theplatform.com/s/%s/%s' % (mpx_account, vid)
 
         video_id = vdata['id']
