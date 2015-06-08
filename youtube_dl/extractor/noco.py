@@ -166,6 +166,10 @@ class NocoIE(InfoExtractor):
         self._sort_formats(formats)
 
         timestamp = parse_iso8601(show.get('online_date_start_utc'), ' ')
+
+        if timestamp is not None and timestamp < 0:
+            timestamp = None
+
         uploader = show.get('partner_name')
         uploader_id = show.get('partner_key')
         duration = float_or_none(show.get('duration_ms'), 1000)
