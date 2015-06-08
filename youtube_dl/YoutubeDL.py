@@ -1016,13 +1016,13 @@ class YoutubeDL(object):
             info_dict['display_id'] = info_dict['id']
 
         if info_dict.get('upload_date') is None and info_dict.get('timestamp') is not None:
-            # Working around negative timestamps in Windows
-            # (see http://bugs.python.org/issue1646728)
-            if info_dict['timestamp'] < 0 and os.name == 'nt':
-                info_dict['timestamp'] = 0
-            upload_date = datetime.datetime.utcfromtimestamp(
-                info_dict['timestamp'])
-            info_dict['upload_date'] = upload_date.strftime('%Y%m%d')
+            # Working around out-of-range timestamp values (e.g. negative ones on Windows,
+            # see http://bugs.python.org/issue1646728)
+            try:
+                upload_date = datetime.datetime.utcfromtimestamp(info_dict['timestamp'])
+                info_dict['upload_date'] = upload_date.strftime('%Y%m%d')
+            except (ValueError, OverflowError, OSError):
+                pass
 
         if self.params.get('listsubtitles', False):
             if 'automatic_captions' in info_dict:
