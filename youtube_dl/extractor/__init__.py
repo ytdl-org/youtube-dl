@@ -152,6 +152,7 @@ from .fc2 import FC2IE
 from .firstpost import FirstpostIE
 from .firsttv import FirstTVIE
 from .fivemin import FiveMinIE
+from .fivetv import FiveTVIE
 from .fktv import (
     FKTVIE,
     FKTVPosteckeIE,
