@@ -28,6 +28,14 @@ class KickStarterIE(InfoExtractor):
             'uploader': 'Pebble Technology',
             'title': 'Pebble iOS Notifications',
         }
+    }, {
+        'url': 'https://www.kickstarter.com/projects/1420158244/power-drive-2000/widget/video.html',
+        'info_dict': {
+            'id': '1420158244',
+            'ext': 'mp4',
+            'title': 'Power Drive 2000',
+        },
+        'expected_warnings': ['OpenGraph description'],
     }]
 
     def _real_extract(self, url):
@@ -48,10 +56,15 @@ class KickStarterIE(InfoExtractor):
                 'title': title,
             }
 
+        thumbnail = self._og_search_thumbnail(webpage, default=None)
+        if thumbnail is None:
+            thumbnail = self._html_search_regex(
+                r'<img[^>]+class="[^"]+\s*poster\s*[^"]+"[^>]+src="([^"]+)"',
+                webpage, 'thumbnail image', fatal=False)
         return {
             'id': video_id,
             'url': video_url,
             'title': title,
             'description': self._og_search_description(webpage),
-            'thumbnail': self._og_search_thumbnail(webpage),
+            'thumbnail': thumbnail,
         }
