@@ -26,7 +26,7 @@ _x = lambda p: xpath_with_ns(p, {'smil': 'http://www.w3.org/2005/SMIL21/Language
 class ThePlatformIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         (?:https?://(?:link|player)\.theplatform\.com/[sp]/(?P<provider_id>[^/]+)/
-           (?:(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/)|(?P<media>(?:[^/]+/)+select/media/))?
+           (?:(?P<media>(?:[^/]+/)+select/media/)|(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/))?
          |theplatform:)(?P<id>[^/\?&]+)'''
 
     _TESTS = [{
