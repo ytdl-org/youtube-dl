@@ -785,7 +785,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             s = mobj.group(1)
             dec_s = self._decrypt_signature(s, video_id, player_url, age_gate)
             return '/signature/%s' % dec_s
-        dash_manifest_url = re.sub(r'/s/([\w\.]+)', decrypt_sig, dash_manifest_url)
+        dash_manifest_url = re.sub(r'/s/([a-fA-F0-9\.]+)', decrypt_sig, dash_manifest_url)
         dash_doc = self._download_xml(
             dash_manifest_url, video_id,
             note='Downloading DASH manifest',
