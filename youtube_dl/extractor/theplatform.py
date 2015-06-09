@@ -26,7 +26,7 @@ _x = lambda p: xpath_with_ns(p, {'smil': 'http://www.w3.org/2005/SMIL21/Language
 class ThePlatformIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         (?:https?://(?:link|player)\.theplatform\.com/[sp]/(?P<provider_id>[^/]+)/
-           (?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/)?
+           (?:(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/)|(?P<media>(?:[^/]+/)+select/media/))?
          |theplatform:)(?P<id>[^/\?&]+)'''
 
     _TESTS = [{
@@ -56,6 +56,17 @@ class ThePlatformIE(InfoExtractor):
             # rtmp download
             'skip_download': True,
         }
+    }, {
+        'url': 'https://player.theplatform.com/p/D6x-PC/pulse_preview/embed/select/media/yMBg9E8KFxZD',
+        'info_dict': {
+            'id': 'yMBg9E8KFxZD',
+            'ext': 'mp4',
+            'description': 'md5:644ad9188d655b742f942bf2e06b002d',
+            'title': 'HIGHLIGHTS: USA bag first ever series Cup win',
+        }
+    }, {
+        'url': 'http://player.theplatform.com/p/NnzsPC/widget/select/media/4Y0TlYUr_ZT7',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -85,6 +96,11 @@ class ThePlatformIE(InfoExtractor):
         if not provider_id:
             provider_id = 'dJ5BDC'
 
+        path = provider_id
+        if mobj.group('media'):
+            path += '/media'
+        path += '/' + video_id
+
         if smuggled_data.get('force_smil_url', False):
             smil_url = url
         elif mobj.group('config'):
@@ -94,8 +110,7 @@ class ThePlatformIE(InfoExtractor):
             config = self._download_json(config_url, video_id, 'Downloading config')
             smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4&manifest=f4m'
         else:
-            smil_url = ('http://link.theplatform.com/s/{0}/{1}/meta.smil?'
-                        'format=smil&mbr=true'.format(provider_id, video_id))
+            smil_url = 'http://link.theplatform.com/s/%s/meta.smil?format=smil&mbr=true' % path
 
         sig = smuggled_data.get('sig')
         if sig:
@@ -112,7 +127,7 @@ class ThePlatformIE(InfoExtractor):
         else:
             raise ExtractorError(error_msg, expected=True)
 
-        info_url = 'http://link.theplatform.com/s/{0}/{1}?format=preview'.format(provider_id, video_id)
+        info_url = 'http://link.theplatform.com/s/%s?format=preview' % path
         info_json = self._download_webpage(info_url, video_id)
         info = json.loads(info_json)
 
