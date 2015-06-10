@@ -213,7 +213,8 @@ which means you can modify it, redistribute it or use it however you like.
     --audio-format FORMAT            Specify audio format: "best", "aac", "vorbis", "mp3", "m4a", "opus", or "wav"; "best" by default
     --audio-quality QUALITY          Specify ffmpeg/avconv audio quality, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default
                                      5)
-    --recode-video FORMAT            Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm|mkv)
+    --recode-video FORMAT            Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm|mkv|xvid)
+    --pp-params                      Extra parameters for video post-processor. The params will be splited on spaces.
     -k, --keep-video                 Keep the video file on disk after the post-processing; the video is erased by default
     --no-post-overwrites             Do not overwrite post-processed files; the post-processed files are overwritten by default
     --embed-subs                     Embed subtitles in the video (only for mkv and mp4 videos)

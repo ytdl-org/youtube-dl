@@ -169,8 +169,10 @@ def _real_main(argv=None):
         if not opts.audioquality.isdigit():
             parser.error('invalid audio quality specified')
     if opts.recodevideo is not None:
-        if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv']:
+        if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv', 'xvid']:
             parser.error('invalid video recode format specified')
+    if opts.pp_params is not None:
+        opts.pp_params = opts.pp_params.split()
     if opts.convertsubtitles is not None:
         if opts.convertsubtitles not in ['srt', 'vtt', 'ass']:
             parser.error('invalid subtitle format specified')
@@ -227,6 +229,7 @@ def _real_main(argv=None):
         postprocessors.append({
             'key': 'FFmpegVideoConvertor',
             'preferedformat': opts.recodevideo,
+            'extra_params': opts.pp_params
         })
     if opts.convertsubtitles:
         postprocessors.append({

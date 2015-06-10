@@ -287,22 +287,28 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
 
 class FFmpegVideoConvertorPP(FFmpegPostProcessor):
-    def __init__(self, downloader=None, preferedformat=None):
+    def __init__(self, downloader=None, preferedformat=None, extra_params=[]):
         super(FFmpegVideoConvertorPP, self).__init__(downloader)
         self._preferedformat = preferedformat
+        self._extra_params = extra_params
 
     def run(self, information):
         path = information['filepath']
         prefix, sep, ext = path.rpartition('.')
-        outpath = prefix + sep + self._preferedformat
+        ext = self._preferedformat
+        options = self._extra_params
+        if self._preferedformat == 'xvid':
+            ext = 'avi'
+            options.extend(['-c:v', 'libxvid', '-vtag', 'XVID'])
+        outpath = prefix + sep + ext
         if information['ext'] == self._preferedformat:
             self._downloader.to_screen('[ffmpeg] Not converting video file %s - already is in target format %s' % (path, self._preferedformat))
             return [], information
         self._downloader.to_screen('[' + 'ffmpeg' + '] Converting video from %s to %s, Destination: ' % (information['ext'], self._preferedformat) + outpath)
-        self.run_ffmpeg(path, outpath, [])
+        self.run_ffmpeg(path, outpath, options)
         information['filepath'] = outpath
         information['format'] = self._preferedformat
-        information['ext'] = self._preferedformat
+        information['ext'] = ext
         return [path], information
 
 
