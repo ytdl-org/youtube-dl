@@ -816,7 +816,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         'filesize': filesize,
                         'fps': int_or_none(r.attrib.get('frameRate')),
                     }
-                    if len(segment_list):
+                    if segment_list is not None:
                         f.update({
                             'initialization_url': segment_list.find('{urn:mpeg:DASH:schema:MPD:2011}Initialization').attrib['sourceURL'],
                             'segment_urls': [segment.attrib.get('media') for segment in segment_list.findall('{urn:mpeg:DASH:schema:MPD:2011}SegmentURL')],
