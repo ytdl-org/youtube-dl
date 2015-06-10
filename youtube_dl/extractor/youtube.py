@@ -516,6 +516,24 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'skip_download': 'requires avconv',
             }
         },
+        # DASH manifest with segment_list
+        {
+            'url': 'https://www.youtube.com/embed/CsmdDsKjzN8',
+            'md5': '8ce563a1d667b599d21064e982ab9e31',
+            'info_dict': {
+                'id': 'CsmdDsKjzN8',
+                'ext': 'mp4',
+                'upload_date': '20150510',
+                'uploader': 'Airtek',
+                'description': 'Retransmisión en directo de la XVIII media maratón de Zaragoza.',
+                'uploader_id': 'UCzTzUmjXxxacNnL8I3m4LnQ',
+                'title': 'Retransmisión XVIII Media maratón Zaragoza 2015',
+            },
+            'params': {
+                'youtube_include_dash_manifest': True,
+                'format': '135',  # bestvideo
+            }
+        }
     ]
 
     def __init__(self, *args, **kwargs):
