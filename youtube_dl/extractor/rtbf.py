@@ -21,6 +21,13 @@ class RTBFIE(InfoExtractor):
         }
     }
 
+    _QUALITIES = [
+        ('mobile', 'mobile'),
+        ('web', 'SD'),
+        ('url', 'MD'),
+        ('high', 'HD'),
+    ]
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -32,14 +39,21 @@ class RTBFIE(InfoExtractor):
                 r'data-video="([^"]+)"', webpage, 'data video')),
             video_id)
 
-        video_url = data.get('downloadUrl') or data.get('url')
-
         if data.get('provider').lower() == 'youtube':
+            video_url = data.get('downloadUrl') or data.get('url')
             return self.url_result(video_url, 'Youtube')
+        formats = []
+        for key, format_id in self._QUALITIES:
+            format_url = data['sources'].get(key)
+            if format_url:
+                formats.append({
+                    'format_id': format_id,
+                    'url': format_url,
+                })
 
         return {
             'id': video_id,
-            'url': video_url,
+            'formats': formats,
             'title': data['title'],
             'description': data.get('description') or data.get('subtitle'),
             'thumbnail': data.get('thumbnail'),
