@@ -19,7 +19,7 @@ class NFLIE(InfoExtractor):
     _VALID_URL = r'''(?x)https?://
         (?P<host>(?:www\.)?(?:nfl\.com|.*?\.clubs\.nfl\.com))/
         (?:.+?/)*
-        (?P<id>(?:\d[a-z]{2}\d{13}|\w{8}\-(?:\w{4}\-){3}\w{12}))'''
+        (?P<id>(?:[a-z0-9]{16}|\w{8}\-(?:\w{4}\-){3}\w{12}))'''
     _TESTS = [
         {
             'url': 'http://www.nfl.com/videos/nfl-game-highlights/0ap3000000398478/Week-3-Redskins-vs-Eagles-highlights',
@@ -58,6 +58,10 @@ class NFLIE(InfoExtractor):
                 'upload_date': '20150202',
             },
         },
+        {
+            'url': 'http://www.nfl.com/videos/nfl-network-top-ten/09000d5d810a6bd4/Top-10-Gutsiest-Performances-Jack-Youngblood',
+            'only_matching': True,
+        }
     ]
 
     @staticmethod
