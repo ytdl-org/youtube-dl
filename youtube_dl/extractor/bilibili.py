@@ -105,7 +105,7 @@ class BiliBiliIE(InfoExtractor):
                 'filesize': int_or_none(
                     lq_durl.find('./size'), get_attr='text'),
             }]
-            if hq_durl:
+            if hq_durl is not None:
                 formats.append({
                     'format_id': 'hq',
                     'quality': 2,
