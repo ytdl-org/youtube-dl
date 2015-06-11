@@ -1073,7 +1073,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded rtl.nl player
         matches = re.findall(
-            r'<iframe\s+(?:[a-zA-Z-]+="[^"]+"\s+)*?src="((?:https?:)?//(?:www\.)?rtl\.nl/system/videoplayer/[^"]+video_embed[^"]+)"',
+            r'<iframe[^>]+?src="((?:https?:)?//(?:www\.)?rtl\.nl/system/videoplayer/[^"]+(?:video_)?embed[^"]+)"',
             webpage)
         if matches:
             return _playlist_from_matches(matches, ie='RtlNl')
