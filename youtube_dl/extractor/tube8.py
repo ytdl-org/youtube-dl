@@ -47,7 +47,7 @@ class Tube8IE(InfoExtractor):
         webpage = self._download_webpage(req, display_id)
 
         flashvars = json.loads(self._html_search_regex(
-            r'flashvars\s*=\s*({.+?})', webpage, 'flashvars'))
+            r'flashvars\s*=\s*({.+?});\r?\n', webpage, 'flashvars'))
 
         video_url = flashvars['video_url']
         if flashvars.get('encrypted') is True:
