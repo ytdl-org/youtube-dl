@@ -1090,17 +1090,10 @@ class GenericIE(InfoExtractor):
             return _playlist_from_matches(matches, ie='RtlNl')
 
         # Look for embedded (iframe) Vimeo player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/.+?)\1', webpage)
-        if mobj:
-            player_url = unescapeHTML(mobj.group('url'))
-            surl = smuggle_url(player_url, {'Referer': url})
-            return self.url_result(surl)
-        # Look for embedded (swf embed) Vimeo player
-        mobj = re.search(
-            r'<embed[^>]+?src="((?:https?:)?//(?:www\.)?vimeo\.com/moogaloop\.swf.+?)"', webpage)
-        if mobj:
-            return self.url_result(mobj.group(1))
+        matches = re.findall(
+            r'<(?:iframe|embed)[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:player\.vimeo\.com/video/|(?:www\.)?vimeo\.com/moogaloop\.swf).+?)\1', webpage)
+        if matches:
+            return _playlist_from_matches(matches, lambda m: smuggle_url(m[1], {'Referer': url}) )
 
         # Look for embedded YouTube player
         matches = re.findall(r'''(?x)
