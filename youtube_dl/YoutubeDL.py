@@ -662,7 +662,7 @@ class YoutubeDL(object):
                     }
                 self.add_default_extra_info(ie_result, ie, url)
                 if process:
-                    return self.process_ie_result(ie_result, download, extra_info, force_generic_extractor=False)
+                    return self.process_ie_result(ie_result, download, extra_info)
                 else:
                     return ie_result
             except ExtractorError as de:  # An error we somewhat expected
@@ -687,7 +687,7 @@ class YoutubeDL(object):
             'extractor_key': ie.ie_key(),
         })
 
-    def process_ie_result(self, ie_result, download=True, extra_info={}, force_generic_extractor=False):
+    def process_ie_result(self, ie_result, download=True, extra_info={}):
         """
         Take the result of the ie(may be modified) and resolve all unresolved
         references (URLs, playlist items).
@@ -715,8 +715,7 @@ class YoutubeDL(object):
             return self.extract_info(ie_result['url'],
                                      download,
                                      ie_key=ie_result.get('ie_key'),
-                                     extra_info=extra_info,
-                                     force_generic_extractor=force_generic_extractor)
+                                     extra_info=extra_info)
         elif result_type == 'url_transparent':
             # Use the information from the embedding page
             info = self.extract_info(
