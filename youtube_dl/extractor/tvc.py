@@ -101,7 +101,7 @@ class TVCArticleIE(InfoExtractor):
         webpage = self._download_webpage(url, self._match_id(url))
         return {
             '_type': 'url_transparent',
-            'ie_key': 'TVCEmbed',
+            'ie_key': 'TVC',
             'url': self._og_search_video_url(webpage),
             'title': clean_html(self._og_search_title(webpage)),
             'description': clean_html(self._og_search_description(webpage)),
