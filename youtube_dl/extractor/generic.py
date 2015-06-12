@@ -34,6 +34,7 @@ from .brightcove import BrightcoveIE
 from .nbc import NBCSportsVPlayerIE
 from .ooyala import OoyalaIE
 from .rutv import RUTVIE
+from .tvc import TVCIE
 from .sportbox import SportBoxEmbedIE
 from .smotri import SmotriIE
 from .condenast import CondeNastIE
@@ -289,6 +290,15 @@ class GenericIE(InfoExtractor):
             'params': {
                 # m3u8 download
                 'skip_download': True,
+            },
+        },
+        # TVC embed
+        {
+            'url': 'http://sch1298sz.mskobr.ru/dou_edu/karamel_ki/filial_galleries/video/iframe_src_http_tvc_ru_video_iframe_id_55304_isplay_false_acc_video_id_channel_brand_id_11_show_episodes_episode_id_32307_frameb/',
+            'info_dict': {
+                'id': '55304',
+                'ext': 'mp4',
+                'title': 'Дошкольное воспитание',
             },
         },
         # SportBox embed
@@ -1300,6 +1310,11 @@ class GenericIE(InfoExtractor):
         rutv_url = RUTVIE._extract_url(webpage)
         if rutv_url:
             return self.url_result(rutv_url, 'RUTV')
+
+        # Look for embedded TVC player
+        rutv_url = TVCIE._extract_url(webpage)
+        if rutv_url:
+            return self.url_result(rutv_url, 'TVC')
 
         # Look for embedded SportBox player
         sportbox_urls = SportBoxEmbedIE._extract_urls(webpage)
