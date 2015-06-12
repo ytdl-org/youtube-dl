@@ -34,7 +34,7 @@ from .brightcove import BrightcoveIE
 from .nbc import NBCSportsVPlayerIE
 from .ooyala import OoyalaIE
 from .rutv import RUTVIE
-from .tvc import TVCEmbedIE
+from .tvc import TVCIE
 from .sportbox import SportBoxEmbedIE
 from .smotri import SmotriIE
 from .condenast import CondeNastIE
@@ -1303,7 +1303,7 @@ class GenericIE(InfoExtractor):
             return self.url_result(rutv_url, 'RUTV')
 
         # Look for embedded TVC player
-        rutv_url = TVCEmbedIE._extract_url(webpage)
+        rutv_url = TVCIE._extract_url(webpage)
         if rutv_url:
             return self.url_result(rutv_url, 'TVCEmbed')
 
