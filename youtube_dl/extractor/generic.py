@@ -1322,6 +1322,7 @@ class GenericIE(InfoExtractor):
         if sportbox_urls:
             return _playlist_from_matches(sportbox_urls, ie='SportBoxEmbed')
 
+        # Look for embedded PornHub player
         pornhub_url = PornHubIE._extract_url(webpage)
         if pornhub_url:
             return self.url_result(pornhub_url, 'PornHub')

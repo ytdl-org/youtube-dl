@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from .pornhub import PornHubIE
 
 
 class TumblrIE(InfoExtractor):
@@ -54,6 +55,10 @@ class TumblrIE(InfoExtractor):
             webpage, 'vid.me embed', default=None)
         if vid_me_embed_url is not None:
             return self.url_result(vid_me_embed_url, 'Vidme')
+
+        pornhub_url = PornHubIE._extract_url(webpage)
+        if pornhub_url:
+            return self.url_result(pornhub_url, 'PornHub')
 
         iframe_url = self._search_regex(
             r'src=\'(https?://www\.tumblr\.com/video/[^\']+)\'',
