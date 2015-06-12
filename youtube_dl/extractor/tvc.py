@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     clean_html,
@@ -21,6 +23,13 @@ class TVCEmbedIE(InfoExtractor):
             'duration': 1122,
         },
     }
+
+    @classmethod
+    def _extract_url(cls, webpage):
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:http://)?(?:www\.)?tvc\.ru/video/iframe/id/[^"]+)\1', webpage)
+        if mobj:
+            return mobj.group('url')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
