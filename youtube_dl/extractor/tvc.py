@@ -27,7 +27,7 @@ class TVCIE(InfoExtractor):
     @classmethod
     def _extract_url(cls, webpage):
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:http://)?(?:www\.)?tvc\.ru/video/iframe/id/[^"]+)\1', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:http:)?//(?:www\.)?tvc\.ru/video/iframe/id/[^"]+)\1', webpage)
         if mobj:
             return mobj.group('url')
 
