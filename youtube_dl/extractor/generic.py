@@ -1305,7 +1305,7 @@ class GenericIE(InfoExtractor):
         # Look for embedded TVC player
         rutv_url = TVCIE._extract_url(webpage)
         if rutv_url:
-            return self.url_result(rutv_url, 'TVCEmbed')
+            return self.url_result(rutv_url, 'TVC')
 
         # Look for embedded SportBox player
         sportbox_urls = SportBoxEmbedIE._extract_urls(webpage)
