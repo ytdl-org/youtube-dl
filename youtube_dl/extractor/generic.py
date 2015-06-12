@@ -42,6 +42,7 @@ from .udn import UDNEmbedIE
 from .senateisvp import SenateISVPIE
 from .bliptv import BlipTVIE
 from .svt import SVTIE
+from .pornhub import PornHubIE
 
 
 class GenericIE(InfoExtractor):
@@ -1320,6 +1321,10 @@ class GenericIE(InfoExtractor):
         sportbox_urls = SportBoxEmbedIE._extract_urls(webpage)
         if sportbox_urls:
             return _playlist_from_matches(sportbox_urls, ie='SportBoxEmbed')
+
+        pornhub_url = PornHubIE._extract_url(webpage)
+        if pornhub_url:
+            return self.url_result(pornhub_url, 'PornHub')
 
         # Look for embedded Tvigle player
         mobj = re.search(

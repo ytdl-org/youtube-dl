@@ -32,6 +32,13 @@ class PornHubIE(InfoExtractor):
         }
     }
 
+    @classmethod
+    def _extract_url(cls, webpage):
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?pornhub\.com/embed/\d+)\1', webpage)
+        if mobj:
+            return mobj.group('url')
+
     def _extract_count(self, pattern, webpage, name):
         return str_to_int(self._search_regex(
             pattern, webpage, '%s count' % name, fatal=False))
