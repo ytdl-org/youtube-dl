@@ -283,7 +283,6 @@ class YoutubeDL(object):
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
-        self._force_generic_extractor_required = params.get('force_generic_extractor', False)
         self.params = params
         self.cache = Cache(self)
 
@@ -1504,6 +1503,7 @@ class YoutubeDL(object):
 
         for url in url_list:
             try:
+                self._force_generic_extractor_required = self.params.get('force_generic_extractor', False)
                 # It also downloads the videos
                 res = self.extract_info(url)
             except UnavailableVideoError:
