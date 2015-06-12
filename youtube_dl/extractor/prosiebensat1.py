@@ -206,8 +206,8 @@ class ProSiebenSat1IE(InfoExtractor):
     def _extract_clip(self, url, webpage):
         clip_id = self._html_search_regex(self._CLIPID_REGEXES, webpage, 'clip id')
 
-        access_token = 'testclient'
-        client_name = 'kolibri-1.2.5'
+        access_token = 'prosieben'
+        client_name = 'kolibri-1.12.6'
         client_location = url
 
         videos_api_url = 'http://vas.sim-technik.de/vas/live/v2/videos?%s' % compat_urllib_parse.urlencode({
@@ -275,13 +275,17 @@ class ProSiebenSat1IE(InfoExtractor):
         for source in urls_sources:
             protocol = source['protocol']
             if protocol == 'rtmp' or protocol == 'rtmpe':
-                mobj = re.search(r'^(?P<url>rtmpe?://[^/]+/(?P<app>[^/]+))/(?P<playpath>.+)$', source['url'])
+                mobj = re.search(r'^(?P<url>rtmpe?://[^/]+)/(?P<path>.+)$', source['url'])
                 if not mobj:
                     continue
+                path = mobj.group('path')
+                mp4colon_index = path.rfind('mp4:')
+                app = path[:mp4colon_index]
+                play_path = path[mp4colon_index:]
                 formats.append({
-                    'url': mobj.group('url'),
-                    'app': mobj.group('app'),
-                    'play_path': mobj.group('playpath'),
+                    'url': '%s/%s' % (mobj.group('url'), app),
+                    'app': app,
+                    'play_path': play_path,
                     'player_url': 'http://livepassdl.conviva.com/hf/ver/2.79.0.17083/LivePassModuleMain.swf',
                     'page_url': 'http://www.prosieben.de',
                     'vbr': fix_bitrate(source['bitrate']),
