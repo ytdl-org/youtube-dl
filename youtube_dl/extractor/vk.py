@@ -119,8 +119,8 @@ class VKIE(InfoExtractor):
             'act': 'login',
             'role': 'al_frame',
             'expire': '1',
-            'email': username,
-            'pass': password,
+            'email': username.encode('cp1251'),
+            'pass': password.encode('cp1251'),
         }
 
         request = compat_urllib_request.Request('https://login.vk.com/?act=login',
