@@ -139,6 +139,7 @@ class YoutubeDL(object):
     outtmpl:           Template for output names.
     restrictfilenames: Do not allow "&" and spaces in file names
     ignoreerrors:      Do not stop on download errors.
+    force_generic_extractor: Force downloader to use the generic extractor
     nooverwrites:      Prevent overwriting files.
     playliststart:     Playlist item to start at.
     playlistend:       Playlist item to end at.
@@ -282,6 +283,7 @@ class YoutubeDL(object):
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
+        self._force_generic_extractor_required = params.get('force_generic_extractor', False)
         self.params = params
         self.cache = Cache(self)
 
@@ -632,6 +634,10 @@ class YoutubeDL(object):
         If 'download', also downloads the videos.
         extra_info is a dict containing the extra values to add to each result
         '''
+
+        if not ie_key and self._force_generic_extractor_required:
+            self._force_generic_extractor_required = False
+            ie_key = 'Generic'
 
         if ie_key:
             ies = [self.get_info_extractor(ie_key)]
