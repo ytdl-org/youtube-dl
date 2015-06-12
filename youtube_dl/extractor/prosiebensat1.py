@@ -177,6 +177,7 @@ class ProSiebenSat1IE(InfoExtractor):
         r'<header class="clearfix">\s*<h3>(.+?)</h3>',
         r'<!-- start video -->\s*<h1>(.+?)</h1>',
         r'<h1 class="att-name">\s*(.+?)</h1>',
+        r'<header class="module_header">\s*<h2>([^<]+)</h2>\s*</header>',
     ]
     _DESCRIPTION_REGEXES = [
         r'<p itemprop="description">\s*(.+?)</p>',
