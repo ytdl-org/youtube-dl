@@ -188,7 +188,19 @@ class BrightcoveIE(InfoExtractor):
                 [^>]*?>\s*<param\s+name="movie"\s+value="https?://[^/]*brightcove\.com/
             ).+?>\s*</object>''',
             webpage)
-        return list(filter(None, [cls._build_brighcove_url(m) for m in matches]))
+        if matches:
+            return list(filter(None, [cls._build_brighcove_url(m) for m in matches]))
+
+        custombcs = re.findall(r'customBC.\createVideo\((.+?)\);',webpage)
+        if custombcs:
+            urls = []
+            for match in custombcs:
+                # brightcove playerkey begins with AQ and is 50 characters in length,
+                # however it's appended to itself in places, so truncate.
+                f = re.search(r'["\'](AQ[^"\']{48}).*?["\'](\d+)["\']', match)
+                if f:
+                    urls.append('brightcove:playerKey='+f.group(1)+'&%40videoPlayer='+f.group(2))
+            return urls
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
