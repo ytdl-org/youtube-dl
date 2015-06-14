@@ -95,6 +95,9 @@ class LiveLeakIE(InfoExtractor):
             'url': s['file'],
         } for i, s in enumerate(sources)]
         for i, s in enumerate(sources):
+            # Removing '.h264_*.mp4' gives the raw video, which is essentially
+            # the same video without the LiveLeak logo at the top (see
+            # https://github.com/rg3/youtube-dl/pull/4768)
             orig_url = re.sub(r'\.h264_.+?\.mp4', '', s['file'])
             if s['file'] != orig_url:
                 formats.append({
