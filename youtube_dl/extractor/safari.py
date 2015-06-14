@@ -83,7 +83,7 @@ class SafariIE(SafariBaseIE):
                                     library/view/[^/]+|
                                     api/v1/book
                                 )/
-                                (?P<course_id>\d+)/
+                                (?P<course_id>[^/]+)/
                                     (?:chapter(?:-content)?/)?
                                 (?P<part>part\d+)\.html
     '''
@@ -122,7 +122,7 @@ class SafariCourseIE(SafariBaseIE):
     IE_NAME = 'safari:course'
     IE_DESC = 'safaribooksonline.com online courses'
 
-    _VALID_URL = r'https?://(?:www\.)?safaribooksonline\.com/(?:library/view/[^/]+|api/v1/book)/(?P<id>\d+)/?(?:[#?]|$)'
+    _VALID_URL = r'https?://(?:www\.)?safaribooksonline\.com/(?:library/view/[^/]+|api/v1/book)/(?P<id>[^/]+)/?(?:[#?]|$)'
 
     _TESTS = [{
         'url': 'https://www.safaribooksonline.com/library/view/hadoop-fundamentals-livelessons/9780133392838/',
