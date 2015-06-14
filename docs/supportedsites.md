@@ -120,6 +120,8 @@
  - **divxstage**: DivxStage
  - **Dotsub**
  - **DouyuTV**
+ - **dramafever**
+ - **dramafever:series**
  - **DRBonanza**
  - **Dropbox**
  - **DrTuber**
@@ -153,6 +155,7 @@
  - **fernsehkritik.tv**
  - **fernsehkritik.tv:postecke**
  - **Firstpost**
+ - **FiveTV**
  - **Flickr**
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
  - **FootyRoom**
@@ -217,6 +220,7 @@
  - **instagram:user**: Instagram user profile
  - **InternetVideoArchive**
  - **IPrima**
+ - **iqiyi**
  - **ivi**: ivi.ru
  - **ivi:compilation**: ivi.ru compilations
  - **Izlesene**
@@ -407,6 +411,7 @@
  - **rutube:movie**: Rutube movies
  - **rutube:person**: Rutube person videos
  - **RUTV**: RUTV.RU
+ - **Ruutu**
  - **safari**: safaribooksonline.com online video
  - **safari:course**: safaribooksonline.com online courses
  - **Sandia**: Sandia National Laboratories
@@ -519,6 +524,8 @@
  - **TV2**
  - **TV2Article**
  - **TV4**: tv4.se and tv4play.se
+ - **TVC**
+ - **TVCArticle**
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvp.pl**
  - **tvp.pl:Series**
