@@ -112,6 +112,10 @@ from .dfb import DFBIE
 from .dhm import DHMIE
 from .dotsub import DotsubIE
 from .douyutv import DouyuTVIE
+from .dramafever import (
+    DramaFeverIE,
+    DramaFeverSeriesIE,
+)
 from .dreisat import DreiSatIE
 from .drbonanza import DRBonanzaIE
 from .drtuber import DrTuberIE
