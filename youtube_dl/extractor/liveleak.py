@@ -85,7 +85,7 @@ class LiveLeakIE(InfoExtractor):
             'url': s['file'],
         } for i, s in enumerate(sources)]
         for i, s in enumerate(sources):
-            orig_url = s['file'].replace('.h264_base.mp4', '')
+            orig_url = re.sub(r'.h264_.+\.mp4', '', s['file'])
             if s['file'] != orig_url:
                 formats.append({
                     'format_id': 'original-%s' % i,
