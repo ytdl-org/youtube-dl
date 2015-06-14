@@ -40,6 +40,16 @@ class LiveLeakIE(InfoExtractor):
             'title': 'Man is Fatally Struck by Reckless Car While Packing up a Moving Truck',
             'age_limit': 18,
         }
+    }, {
+        'url': 'http://www.liveleak.com/view?i=801_1409392012',
+        'md5': '0b3bec2d888c20728ca2ad3642f0ef15',
+        'info_dict': {
+            'id': '801_1409392012',
+            'ext': 'mp4',
+            'description': "Happened on 27.7.2014. \r\nAt 0:53 you can see people still swimming at near beach.",
+            'uploader': 'bony333',
+            'title': 'Crazy Hungarian tourist films close call waterspout in Croatia'
+        }
     }]
 
     def _real_extract(self, url):
