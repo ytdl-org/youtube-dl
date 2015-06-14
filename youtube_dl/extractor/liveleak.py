@@ -41,6 +41,7 @@ class LiveLeakIE(InfoExtractor):
             'age_limit': 18,
         }
     }, {
+        # Covers https://github.com/rg3/youtube-dl/pull/5983
         'url': 'http://www.liveleak.com/view?i=801_1409392012',
         'md5': '0b3bec2d888c20728ca2ad3642f0ef15',
         'info_dict': {
