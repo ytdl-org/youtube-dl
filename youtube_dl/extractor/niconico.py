@@ -184,6 +184,11 @@ class NiconicoIE(InfoExtractor):
             extension = determine_ext(video_real_url)
         video_format = extension.upper()
 
+        if video_real_url.endswith('low'):
+            format_note = 'low'
+        else:
+            format_note = 'src'
+
         thumbnail = (
             xpath_text(video_info, './/thumbnail_url') or
             self._html_search_meta('image', webpage, 'thumbnail', default=None) or
@@ -242,6 +247,7 @@ class NiconicoIE(InfoExtractor):
             'title': title,
             'ext': extension,
             'format': video_format,
+            'format_note' : format_note,
             'thumbnail': thumbnail,
             'description': description,
             'uploader': uploader,
