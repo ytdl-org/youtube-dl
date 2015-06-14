@@ -119,7 +119,7 @@ class DramaFeverSeriesIE(InfoExtractor):
     }]
 
     _CONSUMER_SECRET = 'DA59dtVXYLxajktV'
-    _PAGE_SIZE = 5  # max is 60 (see http://api.drama9.com/#get--api-4-episode-series-)
+    _PAGE_SIZE = 60  # max is 60 (see http://api.drama9.com/#get--api-4-episode-series-)
 
     def _get_consumer_secret(self, video_id):
         mainjs = self._download_webpage(
