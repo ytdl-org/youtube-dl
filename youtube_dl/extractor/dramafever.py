@@ -99,7 +99,7 @@ class DramaFeverIE(InfoExtractor):
 
 class DramaFeverSeriesIE(InfoExtractor):
     IE_NAME = 'dramafever:series'
-    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/drama/(?P<id>[0-9]+)(?:/(?:(?!\d).+)?)?$'
+    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/drama/(?P<id>[0-9]+)(?:/(?:(?!\d+(?:/|$)).+)?)?$'
     _TESTS = [{
         'url': 'http://www.dramafever.com/drama/4512/Cooking_with_Shin/',
         'info_dict': {
