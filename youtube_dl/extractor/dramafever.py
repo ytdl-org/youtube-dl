@@ -19,7 +19,7 @@ from ..utils import (
 
 class DramaFeverIE(InfoExtractor):
     IE_NAME = 'dramafever'
-    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/drama/(?P<id>[0-9]+/[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/drama/(?P<id>[0-9]+/[0-9]+)(?:/|$)'
     _TEST = {
         'url': 'http://www.dramafever.com/drama/4512/1/Cooking_with_Shin/',
         'info_dict': {
