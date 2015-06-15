@@ -45,6 +45,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
             georestricted = False
 
         formats = []
+        fatal = len(info['videos']) == 1
         for video in info['videos']:
             if video['statut'] != 'ONLINE':
                 continue
@@ -63,9 +64,9 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                     'http://hdfauth.francetv.fr/esi/urltokengen2.html?url=%s' % video_url_parsed.path,
                     video_id, 'Downloading f4m manifest token', fatal=False)
                 if f4m_url:
-                    formats.extend(self._extract_f4m_formats(f4m_url, video_id, 1, format_id))
+                    formats.extend(self._extract_f4m_formats(f4m_url, video_id, 1, format_id, fatal))
             elif ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(video_url, video_id, 'mp4', m3u8_id=format_id))
+                formats.extend(self._extract_m3u8_formats(video_url, video_id, 'mp4', m3u8_id=format_id, fatal=fatal))
             elif video_url.startswith('rtmp'):
                 formats.append({
                     'url': video_url,
