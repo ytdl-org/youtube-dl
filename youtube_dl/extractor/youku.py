@@ -176,13 +176,15 @@ class YoukuIE(InfoExtractor):
 
         error_code = data1.get('error_code')
         if error_code:
-            # -8 means blocked outside China.
-            # Chinese and English, separated by newline.
             error = data1.get('error')
-            raise ExtractorError(
-                error or 'Server reported error %i' %
-                error_code,
-                expected=True)
+            if error is not None and '因版权原因无法观看此视频' in error:
+                raise ExtractorError(
+                    'Youku said: Sorry, this video is available in China only', expected=True)
+            else:
+                msg = 'Youku server reported error %i' % error_code
+                if error is not None:
+                    msg += ': ' + error
+                raise ExtractorError(msg)
 
         title = data1['title']
 
