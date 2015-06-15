@@ -1033,12 +1033,6 @@ class YoutubeDL(object):
             info_dict['id'], info_dict.get('subtitles'),
             info_dict.get('automatic_captions'))
 
-        # This extractors handle format selection themselves
-        if info_dict['extractor'] in ['Youku']:
-            if download:
-                self.process_info(info_dict)
-            return info_dict
-
         # We now pick which formats have to be downloaded
         if info_dict.get('formats') is None:
             # There's only one format available

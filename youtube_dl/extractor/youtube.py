@@ -1504,7 +1504,7 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubePlaylistIE):
 
         for pagenum in itertools.count(1):
             url_query = {
-                'search_query': query,
+                'search_query': query.encode('utf-8'),
                 'page': pagenum,
                 'spf': 'navigate',
             }
