@@ -21,7 +21,7 @@ class YoukuIE(InfoExtractor):
         (?P<id>[A-Za-z0-9]+)(?:\.html|/v\.swf|)
     '''
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://v.youku.com/v_show/id_XMTc1ODE5Njcy.html',
         'md5': '5f3af4192eabacc4501508d54a8cabd7',
         'info_dict': {
@@ -29,7 +29,10 @@ class YoukuIE(InfoExtractor):
             'title': '★Smile﹗♡ Git Fresh -Booty Music舞蹈.',
             'ext': 'flv'
         }
-    }
+    }, {
+        'url': 'http://player.youku.com/player.php/sid/XNDgyMDQ2NTQw/v.swf',
+        'only_matching': True,
+    }]
 
     def construct_video_urls(self, data1, data2):
         # get sid, token
