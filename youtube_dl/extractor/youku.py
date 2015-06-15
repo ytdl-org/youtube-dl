@@ -216,22 +216,18 @@ class YoukuIE(InfoExtractor):
             for i in range(len(video_urls)):
                 if len(entries) < i + 1:
                     entries.append({'formats': []})
-                entries[i]['formats'].append(
-                    {
-                        'url': video_urls[i],
-                        'format_id': self.get_format_name(fm),
-                        'ext': self.parse_ext_l(fm),
-                        'filesize': int(data1['segs'][fm][i]['size'])
-                    }
-                )
+                entries[i]['formats'].append({
+                    'url': video_urls[i],
+                    'format_id': self.get_format_name(fm),
+                    'ext': self.parse_ext_l(fm),
+                    'filesize': int(data1['segs'][fm][i]['size'])
+                })
 
         for i in range(len(entries)):
-            entries[i].update(
-                {
-                    'id': '%s_part%d' % (video_id, i + 1),
-                    'title': title,
-                }
-            )
+            entries[i].update({
+                'id': '%s_part%d' % (video_id, i + 1),
+                'title': title,
+            })
 
         return {
             '_type': 'multi_video',
