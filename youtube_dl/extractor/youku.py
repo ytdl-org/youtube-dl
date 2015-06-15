@@ -11,6 +11,7 @@ from ..compat import compat_urllib_parse
 
 bytes_is_str = (bytes == str)  # for compatible
 
+
 class YoukuIE(InfoExtractor):
     IE_NAME = 'youku'
     _VALID_URL = r'''(?x)
@@ -21,13 +22,13 @@ class YoukuIE(InfoExtractor):
     '''
 
     _TEST = {
-            'url': 'http://v.youku.com/v_show/id_XMTc1ODE5Njcy.html',
-            'md5': '5f3af4192eabacc4501508d54a8cabd7',
-            'info_dict': {
-                'id': 'XMTc1ODE5Njcy',
-                'title': '★Smile﹗♡ Git Fresh -Booty Music舞蹈.',
-                'ext': 'flv'
-            }
+        'url': 'http://v.youku.com/v_show/id_XMTc1ODE5Njcy.html',
+        'md5': '5f3af4192eabacc4501508d54a8cabd7',
+        'info_dict': {
+            'id': 'XMTc1ODE5Njcy',
+            'title': '★Smile﹗♡ Git Fresh -Booty Music舞蹈.',
+            'ext': 'flv'
+        }
     }
 
     def construct_video_urls(self, data1, data2):
@@ -36,7 +37,7 @@ class YoukuIE(InfoExtractor):
             ls = list(range(256))
             t = 0
             for i in range(256):
-                t = (t + ls[i] + ord(s1[i%len(s1)])) % 256
+                t = (t + ls[i] + ord(s1[i % len(s1)])) % 256
                 ls[i], ls[t] = ls[t], ls[i]
             s = '' if not bytes_is_str else b''
             x, y = 0, 0
@@ -45,16 +46,16 @@ class YoukuIE(InfoExtractor):
                 x = (x + ls[y]) % 256
                 ls[x], ls[y] = ls[y], ls[x]
                 if isinstance(s2[i], int):
-                    s += chr(s2[i] ^ ls[(ls[x]+ls[y]) % 256])
+                    s += chr(s2[i] ^ ls[(ls[x] + ls[y]) % 256])
                 else:
-                    s += chr(ord(s2[i]) ^ ls[(ls[x]+ls[y]) % 256])
+                    s += chr(ord(s2[i]) ^ ls[(ls[x] + ls[y]) % 256])
             return s
 
         sid, token = yk_t(
             'becaf9be',
-            base64.b64decode(bytes(data2['ep'], 'ascii')) \
-                if not bytes_is_str \
-                else base64.b64decode(data2['ep'])
+            base64.b64decode(bytes(data2['ep'], 'ascii'))
+            if not bytes_is_str
+            else base64.b64decode(data2['ep'])
         ).split('_')
 
         # get oip
@@ -89,13 +90,13 @@ class YoukuIE(InfoExtractor):
             fileid = get_fileid(format, n)
             ep_t = yk_t(
                 'bf7e5f01',
-                bytes('%s_%s_%s' % (sid, fileid, token), 'ascii') \
-                if not bytes_is_str \
+                bytes('%s_%s_%s' % (sid, fileid, token), 'ascii')
+                if not bytes_is_str
                 else ('%s_%s_%s' % (sid, fileid, token))
             )
             ep = base64.b64encode(
-                bytes(ep_t, 'latin') \
-                if not bytes_is_str \
+                bytes(ep_t, 'latin')
+                if not bytes_is_str
                 else ep_t
             ).decode()
             return ep
@@ -121,9 +122,9 @@ class YoukuIE(InfoExtractor):
                 video_url = \
                     'http://k.youku.com/player/getFlvPath/' + \
                     'sid/' + sid + \
-                    '_' + str(int(n)+1).zfill(2) + \
+                    '_' + str(int(n) + 1).zfill(2) + \
                     '/st/' + self.parse_ext_l(format) + \
-                    '/fileid/' + get_fileid(format, n)  + '?' + \
+                    '/fileid/' + get_fileid(format, n) + '?' + \
                     compat_urllib_parse.urlencode(param)
                 video_urls.append(video_url)
             video_urls_dict[format] = video_urls
@@ -132,34 +133,34 @@ class YoukuIE(InfoExtractor):
 
     def get_hd(self, fm):
         hd_id_dict = {
-            'flv'   : '0',
-            'mp4'   : '1',
-            'hd2'   : '2',
-            'hd3'   : '3',
-            '3gp'   : '0',
-            '3gphd' : '1'
+            'flv': '0',
+            'mp4': '1',
+            'hd2': '2',
+            'hd3': '3',
+            '3gp': '0',
+            '3gphd': '1'
         }
         return hd_id_dict[fm]
 
     def parse_ext_l(self, fm):
         ext_dict = {
-            'flv'   : 'flv',
-            'mp4'   : 'mp4',
-            'hd2'   : 'flv',
-            'hd3'   : 'flv',
-            '3gp'   : 'flv',
-            '3gphd' : 'mp4'
+            'flv': 'flv',
+            'mp4': 'mp4',
+            'hd2': 'flv',
+            'hd3': 'flv',
+            '3gp': 'flv',
+            '3gphd': 'mp4'
         }
         return ext_dict[fm]
 
     def get_format_name(self, fm):
         _dict = {
-            '3gp'   : 'h6',
-            '3gphd' : 'h5',
-            'flv'   : 'h4',
-            'mp4'   : 'h3',
-            'hd2'   : 'h2',
-            'hd3'   : 'h1'
+            '3gp': 'h6',
+            '3gphd': 'h5',
+            'flv': 'h4',
+            'mp4': 'h3',
+            'hd2': 'h2',
+            'hd3': 'h1'
         }
         return _dict[fm]
 
@@ -194,10 +195,9 @@ class YoukuIE(InfoExtractor):
         # construct info
         entries = []
         for fm in data1['streamtypes']:
-            #formats = []
             video_urls = video_urls_dict[fm]
             for i in range(len(video_urls)):
-                if len(entries) < i+1:
+                if len(entries) < i + 1:
                     entries.append({'formats': []})
                 entries[i]['formats'].append(
                     {
@@ -211,7 +211,7 @@ class YoukuIE(InfoExtractor):
         for i in range(len(entries)):
             entries[i].update(
                 {
-                    'id': '_part%d' % (i+1),
+                    'id': '_part%d' % (i + 1),
                     'title': title,
                 }
             )
