@@ -13,6 +13,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     orderedSet,
+    str_to_int,
     unescapeHTML,
     unified_strdate,
 )
@@ -34,6 +35,7 @@ class VKIE(InfoExtractor):
                 'uploader': 're:(?:Noize MC|Alexander Ilyashenko).*',
                 'duration': 195,
                 'upload_date': '20120212',
+                'view_count': int,
             },
         },
         {
@@ -45,7 +47,8 @@ class VKIE(InfoExtractor):
                 'uploader': 'Tom Cruise',
                 'title': 'No name',
                 'duration': 9,
-                'upload_date': '20130721'
+                'upload_date': '20130721',
+                'view_count': int,
             }
         },
         {
@@ -59,6 +62,7 @@ class VKIE(InfoExtractor):
                 'title': 'Lin Dan',
                 'duration': 101,
                 'upload_date': '20120730',
+                'view_count': int,
             }
         },
         {
@@ -73,7 +77,8 @@ class VKIE(InfoExtractor):
                 'uploader': 'Триллеры',
                 'title': '► Бойцовский клуб / Fight Club 1999 [HD 720]',
                 'duration': 8352,
-                'upload_date': '20121218'
+                'upload_date': '20121218',
+                'view_count': int,
             },
             'skip': 'Requires vk account credentials',
         },
@@ -100,6 +105,7 @@ class VKIE(InfoExtractor):
                 'title': 'Книга Илая',
                 'duration': 6771,
                 'upload_date': '20140626',
+                'view_count': int,
             },
             'skip': 'Only works from Russia',
         },
@@ -194,6 +200,10 @@ class VKIE(InfoExtractor):
             mobj.group(1) + ' ' + mobj.group(2)
             upload_date = unified_strdate(mobj.group(1) + ' ' + mobj.group(2))
 
+        view_count = str_to_int(self._search_regex(
+            r'"mv_views_count_number"[^>]*>([\d,.]+) views<',
+            info_page, 'view count', fatal=False))
+
         formats = [{
             'format_id': k,
             'url': v,
@@ -210,6 +220,7 @@ class VKIE(InfoExtractor):
             'uploader': data.get('md_author'),
             'duration': data.get('duration'),
             'upload_date': upload_date,
+            'view_count': view_count,
         }
 
 
