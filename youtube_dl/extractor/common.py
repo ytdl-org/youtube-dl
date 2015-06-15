@@ -815,10 +815,14 @@ class InfoExtractor(object):
         self.to_screen(msg)
         time.sleep(timeout)
 
-    def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None):
+    def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None, fatal=True):
         manifest = self._download_xml(
-            manifest_url, video_id, 'Downloading f4m manifest',
-            'Unable to download f4m manifest')
+            manifest_url, video_id, note='Downloading f4m manifest',
+            errnote='Unable to download f4m manifest', fatal=fatal)
+
+        if manifest is False:
+            assert not fatal
+            return []
 
         formats = []
         manifest_version = '1.0'
@@ -846,7 +850,7 @@ class InfoExtractor(object):
 
     def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
                               entry_protocol='m3u8', preference=None,
-                              m3u8_id=None, note=None, errnote=None):
+                              m3u8_id=None, note=None, errnote=None, fatal=True):
 
         formats = [{
             'format_id': '-'.join(filter(None, [m3u8_id, 'meta'])),
@@ -866,7 +870,13 @@ class InfoExtractor(object):
         m3u8_doc = self._download_webpage(
             m3u8_url, video_id,
             note=note or 'Downloading m3u8 information',
-            errnote=errnote or 'Failed to download m3u8 information')
+            errnote=errnote or 'Failed to download m3u8 information',
+            fatal=fatal)
+
+        if m3u8_doc is False:
+            assert not fatal
+            return []
+
         last_info = None
         last_media = None
         kv_rex = re.compile(
