@@ -60,7 +60,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                     continue
                 video_url_parsed = compat_urllib_parse_urlparse(video_url)
                 f4m_url = self._download_webpage(
-                    'http://hdfauth.francetv.fr/esi/urltokengen2.html?url=%s' % video_url_parsed.path,
+                    'http://hdfauth.francetv.fr/esi/TA?url=%s' % video_url_parsed.path,
                     video_id, 'Downloading f4m manifest token', fatal=False)
                 if f4m_url:
                     formats.extend(self._extract_f4m_formats(f4m_url, video_id, 1, format_id))
