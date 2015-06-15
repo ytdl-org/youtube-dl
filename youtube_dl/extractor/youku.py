@@ -7,9 +7,10 @@ import base64
 from .common import InfoExtractor
 from ..utils import ExtractorError
 
-from ..compat import compat_urllib_parse
-
-bytes_is_str = (bytes == str)  # for compatible
+from ..compat import (
+    compat_urllib_parse,
+    compat_ord,
+)
 
 
 class YoukuIE(InfoExtractor):
@@ -37,26 +38,20 @@ class YoukuIE(InfoExtractor):
             ls = list(range(256))
             t = 0
             for i in range(256):
-                t = (t + ls[i] + ord(s1[i % len(s1)])) % 256
+                t = (t + ls[i] + compat_ord(s1[i % len(s1)])) % 256
                 ls[i], ls[t] = ls[t], ls[i]
-            s = '' if not bytes_is_str else b''
+            s = bytearray()
             x, y = 0, 0
             for i in range(len(s2)):
                 y = (y + 1) % 256
                 x = (x + ls[y]) % 256
                 ls[x], ls[y] = ls[y], ls[x]
-                if isinstance(s2[i], int):
-                    s += chr(s2[i] ^ ls[(ls[x] + ls[y]) % 256])
-                else:
-                    s += chr(ord(s2[i]) ^ ls[(ls[x] + ls[y]) % 256])
-            return s
+                s.append(compat_ord(s2[i]) ^ ls[(ls[x] + ls[y]) % 256])
+            return bytes(s)
 
         sid, token = yk_t(
-            'becaf9be',
-            base64.b64decode(bytes(data2['ep'], 'ascii'))
-            if not bytes_is_str
-            else base64.b64decode(data2['ep'])
-        ).split('_')
+            b'becaf9be', base64.b64decode(data2['ep'].encode('ascii'))
+        ).decode('ascii').split('_')
 
         # get oip
         oip = data2['ip']
@@ -89,16 +84,10 @@ class YoukuIE(InfoExtractor):
         def generate_ep(format, n):
             fileid = get_fileid(format, n)
             ep_t = yk_t(
-                'bf7e5f01',
-                bytes('%s_%s_%s' % (sid, fileid, token), 'ascii')
-                if not bytes_is_str
-                else ('%s_%s_%s' % (sid, fileid, token))
+                b'bf7e5f01',
+                ('%s_%s_%s' % (sid, fileid, token)).encode('ascii')
             )
-            ep = base64.b64encode(
-                bytes(ep_t, 'latin')
-                if not bytes_is_str
-                else ep_t
-            ).decode()
+            ep = base64.b64encode(ep_t).decode('ascii')
             return ep
 
         # generate video_urls
