@@ -100,6 +100,10 @@ class SafariIE(SafariBaseIE):
     }, {
         'url': 'https://www.safaribooksonline.com/api/v1/book/9780133392838/chapter/part00.html',
         'only_matching': True,
+    }, {
+        # non-digits in course id
+        'url': 'https://www.safaribooksonline.com/library/view/create-a-nodejs/100000006A0210/part00.html',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
