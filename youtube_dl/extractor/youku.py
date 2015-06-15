@@ -9,6 +9,7 @@ from ..utils import ExtractorError
 from ..compat import (
     compat_urllib_parse,
     compat_ord,
+    compat_urllib_request,
 )
 
 
@@ -39,6 +40,14 @@ class YoukuIE(InfoExtractor):
             'title': '武媚娘传奇 85',
         },
         'playlist_count': 11,
+    }, {
+        'url': 'http://v.youku.com/v_show/id_XMTI1OTczNDM5Mg==.html',
+        'info_dict': {
+            'id': 'XMTI1OTczNDM5Mg',
+            'title': '花千骨 04',
+        },
+        'playlist_count': 13,
+        'skip': 'Available in China only',
     }]
 
     def construct_video_urls(self, data1, data2):
@@ -165,14 +174,23 @@ class YoukuIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        # request basic data
-        data1_url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s' % video_id
-        data2_url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s/Pf/4/ctype/12/ev/1' % video_id
+        def retrieve_data(req_url, note):
+            req = compat_urllib_request.Request(req_url)
 
-        raw_data1 = self._download_json(data1_url, video_id)
-        raw_data2 = self._download_json(data2_url, video_id)
-        data1 = raw_data1['data'][0]
-        data2 = raw_data2['data'][0]
+            cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
+            if cn_verification_proxy:
+                req.add_header('Ytdl-request-proxy', cn_verification_proxy)
+
+            raw_data = self._download_json(req, video_id, note=note)
+            return raw_data['data'][0]
+
+        # request basic data
+        data1 = retrieve_data(
+            'http://v.youku.com/player/getPlayList/VideoIDS/%s' % video_id,
+            'Downloading JSON metadata 1')
+        data2 = retrieve_data(
+            'http://v.youku.com/player/getPlayList/VideoIDS/%s/Pf/4/ctype/12/ev/1' % video_id,
+            'Downloading JSON metadata 2')
 
         error_code = data1.get('error_code')
         if error_code:
