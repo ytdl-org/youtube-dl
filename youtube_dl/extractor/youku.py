@@ -25,13 +25,20 @@ class YoukuIE(InfoExtractor):
         'url': 'http://v.youku.com/v_show/id_XMTc1ODE5Njcy.html',
         'md5': '5f3af4192eabacc4501508d54a8cabd7',
         'info_dict': {
-            'id': 'XMTc1ODE5Njcy',
+            'id': 'XMTc1ODE5Njcy_part1',
             'title': '★Smile﹗♡ Git Fresh -Booty Music舞蹈.',
             'ext': 'flv'
         }
     }, {
         'url': 'http://player.youku.com/player.php/sid/XNDgyMDQ2NTQw/v.swf',
         'only_matching': True,
+    }, {
+        'url': 'http://v.youku.com/v_show/id_XODgxNjg1Mzk2_ev_1.html',
+        'info_dict': {
+            'id': 'XODgxNjg1Mzk2',
+            'title': '武媚娘传奇 85',
+        },
+        'playlist_count': 11,
     }]
 
     def construct_video_urls(self, data1, data2):
@@ -201,20 +208,14 @@ class YoukuIE(InfoExtractor):
         for i in range(len(entries)):
             entries[i].update(
                 {
-                    'id': '_part%d' % (i + 1),
+                    'id': '%s_part%d' % (video_id, i + 1),
                     'title': title,
                 }
             )
 
-        if len(entries) > 1:
-            info = {
-                '_type': 'multi_video',
-                'id': video_id,
-                'title': title,
-                'entries': entries,
-            }
-        else:
-            info = entries[0]
-            info['id'] = video_id
-
-        return info
+        return {
+            '_type': 'multi_video',
+            'id': video_id,
+            'title': title,
+            'entries': entries,
+        }
