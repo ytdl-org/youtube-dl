@@ -175,16 +175,16 @@ class VKIE(InfoExtractor):
                 m_rutube.group(1).replace('\\', ''))
             return self.url_result(rutube_url)
 
-        m_opts = re.search(r'(?s)var\s+opts\s*=\s*({.*?});', info_page)
+        m_opts = re.search(r'(?s)var\s+opts\s*=\s*({.+?});', info_page)
         if m_opts:
-            m_opts_url = re.search(r"url\s*:\s*'([^']+)", m_opts.group(1))
+            m_opts_url = re.search(r"url\s*:\s*'((?!/\b)[^']+)", m_opts.group(1))
             if m_opts_url:
                 opts_url = m_opts_url.group(1)
                 if opts_url.startswith('//'):
                     opts_url = 'http:' + opts_url
                 return self.url_result(opts_url)
 
-        data_json = self._search_regex(r'var vars = ({.*?});', info_page, 'vars')
+        data_json = self._search_regex(r'var\s+vars\s*=\s*({.+?});', info_page, 'vars')
         data = json.loads(data_json)
 
         # Extract upload date
