@@ -28,8 +28,6 @@ class ThisAmericanLifeIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        # TODO check to see if there's a free mp3. if so, download that, otherwise get the m3u8 stream.
-
         return {
             'id': video_id,
             'title': self._html_search_regex(r'<meta property="twitter:title" content="(.*?)"', webpage, 'title'),
