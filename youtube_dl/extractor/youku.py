@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import base64
 
 from .common import InfoExtractor
@@ -154,8 +153,7 @@ class YoukuIE(InfoExtractor):
         return _dict[fm]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         # request basic data
         data1_url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s' % video_id
