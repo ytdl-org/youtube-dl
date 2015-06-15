@@ -1,123 +1,230 @@
 # coding: utf-8
-
 from __future__ import unicode_literals
 
-import math
-import random
 import re
-import time
+import base64
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-)
+from ..utils import ExtractorError
 
+from ..compat import compat_urllib_parse
+
+bytes_is_str = (bytes == str)  # for compatible
 
 class YoukuIE(InfoExtractor):
+    IE_NAME = 'youku'
     _VALID_URL = r'''(?x)
         (?:
             http://(?:v|player)\.youku\.com/(?:v_show/id_|player\.php/sid/)|
             youku:)
         (?P<id>[A-Za-z0-9]+)(?:\.html|/v\.swf|)
     '''
+
     _TEST = {
-        'url': 'http://v.youku.com/v_show/id_XNDgyMDQ2NTQw.html',
-        'md5': 'ffe3f2e435663dc2d1eea34faeff5b5b',
-        'params': {
-            'test': False
-        },
-        'info_dict': {
-            'id': 'XNDgyMDQ2NTQw_part00',
-            'ext': 'flv',
-            'title': 'youtube-dl test video "\'/\\ä↭𝕐'
-        }
+            'url': 'http://v.youku.com/v_show/id_XMTc1ODE5Njcy.html',
+            'md5': '5f3af4192eabacc4501508d54a8cabd7',
+            'info_dict': {
+                'id': 'XMTc1ODE5Njcy',
+                'title': '★Smile﹗♡ Git Fresh -Booty Music舞蹈.',
+                'ext': 'flv'
+            }
     }
 
-    def _gen_sid(self):
-        nowTime = int(time.time() * 1000)
-        random1 = random.randint(1000, 1998)
-        random2 = random.randint(1000, 9999)
+    def construct_video_urls(self, data1, data2):
+        # get sid, token
+        def yk_t(s1, s2):
+            ls = list(range(256))
+            t = 0
+            for i in range(256):
+                t = (t + ls[i] + ord(s1[i%len(s1)])) % 256
+                ls[i], ls[t] = ls[t], ls[i]
+            s = '' if not bytes_is_str else b''
+            x, y = 0, 0
+            for i in range(len(s2)):
+                y = (y + 1) % 256
+                x = (x + ls[y]) % 256
+                ls[x], ls[y] = ls[y], ls[x]
+                if isinstance(s2[i], int):
+                    s += chr(s2[i] ^ ls[(ls[x]+ls[y]) % 256])
+                else:
+                    s += chr(ord(s2[i]) ^ ls[(ls[x]+ls[y]) % 256])
+            return s
 
-        return "%d%d%d" % (nowTime, random1, random2)
+        sid, token = yk_t(
+            'becaf9be',
+            base64.b64decode(bytes(data2['ep'], 'ascii')) \
+                if not bytes_is_str \
+                else base64.b64decode(data2['ep'])
+        ).split('_')
 
-    def _get_file_ID_mix_string(self, seed):
-        mixed = []
-        source = list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\:._-1234567890")
-        seed = float(seed)
-        for i in range(len(source)):
-            seed = (seed * 211 + 30031) % 65536
-            index = math.floor(seed / 65536 * len(source))
-            mixed.append(source[int(index)])
-            source.remove(source[int(index)])
-        # return ''.join(mixed)
-        return mixed
+        # get oip
+        oip = data2['ip']
 
-    def _get_file_id(self, fileId, seed):
-        mixed = self._get_file_ID_mix_string(seed)
-        ids = fileId.split('*')
-        realId = []
-        for ch in ids:
-            if ch:
-                realId.append(mixed[int(ch)])
-        return ''.join(realId)
+        # get fileid
+        string_ls = list(
+            'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\:._-1234567890')
+        shuffled_string_ls = []
+        seed = data1['seed']
+        N = len(string_ls)
+        for ii in range(N):
+            seed = (seed * 0xd3 + 0x754f) % 0x10000
+            idx = seed * len(string_ls) // 0x10000
+            shuffled_string_ls.append(string_ls[idx])
+            del string_ls[idx]
+
+        fileid_dict = {}
+        for format in data1['streamtypes']:
+            streamfileid = [
+                int(i) for i in data1['streamfileids'][format].strip('*').split('*')]
+            fileid = ''.join(
+                [shuffled_string_ls[i] for i in streamfileid])
+            fileid_dict[format] = fileid[:8] + '%s' + fileid[10:]
+
+        def get_fileid(format, n):
+            fileid = fileid_dict[format] % hex(int(n))[2:].upper().zfill(2)
+            return fileid
+
+        # get ep
+        def generate_ep(format, n):
+            fileid = get_fileid(format, n)
+            ep_t = yk_t(
+                'bf7e5f01',
+                bytes('%s_%s_%s' % (sid, fileid, token), 'ascii') \
+                if not bytes_is_str \
+                else ('%s_%s_%s' % (sid, fileid, token))
+            )
+            ep = base64.b64encode(
+                bytes(ep_t, 'latin') \
+                if not bytes_is_str \
+                else ep_t
+            ).decode()
+            return ep
+
+        # generate video_urls
+        video_urls_dict = {}
+        for format in data1['streamtypes']:
+            video_urls = []
+            for dt in data1['segs'][format]:
+                n = str(int(dt['no']))
+                param = {
+                    'K': dt['k'],
+                    'hd': self.get_hd(format),
+                    'myp': 0,
+                    'ts': dt['seconds'],
+                    'ypp': 0,
+                    'ctype': 12,
+                    'ev': 1,
+                    'token': token,
+                    'oip': oip,
+                    'ep': generate_ep(format, n)
+                }
+                video_url = \
+                    'http://k.youku.com/player/getFlvPath/' + \
+                    'sid/' + sid + \
+                    '_' + str(int(n)+1).zfill(2) + \
+                    '/st/' + self.parse_ext_l(format) + \
+                    '/fileid/' + get_fileid(format, n)  + '?' + \
+                    compat_urllib_parse.urlencode(param)
+                video_urls.append(video_url)
+            video_urls_dict[format] = video_urls
+
+        return video_urls_dict
+
+    def get_hd(self, fm):
+        hd_id_dict = {
+            'flv'   : '0',
+            'mp4'   : '1',
+            'hd2'   : '2',
+            'hd3'   : '3',
+            '3gp'   : '0',
+            '3gphd' : '1'
+        }
+        return hd_id_dict[fm]
+
+    def parse_ext_l(self, fm):
+        ext_dict = {
+            'flv'   : 'flv',
+            'mp4'   : 'mp4',
+            'hd2'   : 'flv',
+            'hd3'   : 'flv',
+            '3gp'   : 'flv',
+            '3gphd' : 'mp4'
+        }
+        return ext_dict[fm]
+
+    def get_format_name(self, fm):
+        _dict = {
+            '3gp'   : 'h6',
+            '3gphd' : 'h5',
+            'flv'   : 'h4',
+            'mp4'   : 'h3',
+            'hd2'   : 'h2',
+            'hd3'   : 'h1'
+        }
+        return _dict[fm]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        info_url = 'http://v.youku.com/player/getPlayList/VideoIDS/' + video_id
+        # request basic data
+        data1_url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s' % video_id
+        data2_url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s/Pf/4/ctype/12/ev/1' % video_id
 
-        config = self._download_json(info_url, video_id)
+        raw_data1 = self._download_json(data1_url, video_id)
+        raw_data2 = self._download_json(data2_url, video_id)
+        data1 = raw_data1['data'][0]
+        data2 = raw_data2['data'][0]
 
-        error_code = config['data'][0].get('error_code')
+        error_code = data1.get('error_code')
         if error_code:
             # -8 means blocked outside China.
-            error = config['data'][0].get('error')  # Chinese and English, separated by newline.
-            raise ExtractorError(error or 'Server reported error %i' % error_code,
-                                 expected=True)
+            # Chinese and English, separated by newline.
+            error = data1.get('error')
+            raise ExtractorError(
+                error or 'Server reported error %i' %
+                error_code,
+                expected=True)
 
-        video_title = config['data'][0]['title']
-        seed = config['data'][0]['seed']
+        title = data1['title']
 
-        format = self._downloader.params.get('format', None)
-        supported_format = list(config['data'][0]['streamfileids'].keys())
+        # generate video_urls_dict
+        video_urls_dict = self.construct_video_urls(data1, data2)
 
-        # TODO proper format selection
-        if format is None or format == 'best':
-            if 'hd2' in supported_format:
-                format = 'hd2'
-            else:
-                format = 'flv'
-            ext = 'flv'
-        elif format == 'worst':
-            format = 'mp4'
-            ext = 'mp4'
-        else:
-            format = 'flv'
-            ext = 'flv'
+        # construct info
+        entries = []
+        for fm in data1['streamtypes']:
+            #formats = []
+            video_urls = video_urls_dict[fm]
+            for i in range(len(video_urls)):
+                if len(entries) < i+1:
+                    entries.append({'formats': []})
+                entries[i]['formats'].append(
+                    {
+                        'url': video_urls[i],
+                        'format_id': self.get_format_name(fm),
+                        'ext': self.parse_ext_l(fm),
+                        'filesize': int(data1['segs'][fm][i]['size'])
+                    }
+                )
 
-        fileid = config['data'][0]['streamfileids'][format]
-        keys = [s['k'] for s in config['data'][0]['segs'][format]]
-        # segs is usually a dictionary, but an empty *list* if an error occured.
+        for i in range(len(entries)):
+            entries[i].update(
+                {
+                    'id': '_part%d' % (i+1),
+                    'title': title,
+                }
+            )
 
-        files_info = []
-        sid = self._gen_sid()
-        fileid = self._get_file_id(fileid, seed)
-
-        # column 8,9 of fileid represent the segment number
-        # fileid[7:9] should be changed
-        for index, key in enumerate(keys):
-            temp_fileid = '%s%02X%s' % (fileid[0:8], index, fileid[10:])
-            download_url = 'http://k.youku.com/player/getFlvPath/sid/%s_%02X/st/flv/fileid/%s?k=%s' % (sid, index, temp_fileid, key)
-
+        if len(entries) > 1:
             info = {
-                'id': '%s_part%02d' % (video_id, index),
-                'url': download_url,
-                'uploader': None,
-                'upload_date': None,
-                'title': video_title,
-                'ext': ext,
+                '_type': 'multi_video',
+                'id': video_id,
+                'title': title,
+                'entries': entries,
             }
-            files_info.append(info)
+        else:
+            info = entries[0]
+            info['id'] = video_id
 
-        return files_info
+        return info
