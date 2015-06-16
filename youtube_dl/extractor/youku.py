@@ -210,24 +210,22 @@ class YoukuIE(InfoExtractor):
         video_urls_dict = self.construct_video_urls(data1, data2)
 
         # construct info
-        entries = []
+        entries = [{
+            'id': '%s_part%d' % (video_id, i + 1),
+            'title': title,
+            'formats': [],
+            # some formats are not available for all parts, we have to detect
+            # which one has all
+        } for i in range(max(len(v) for v in data1['segs'].values()))]
         for fm in data1['streamtypes']:
             video_urls = video_urls_dict[fm]
-            for i in range(len(video_urls)):
-                if len(entries) < i + 1:
-                    entries.append({'formats': []})
-                entries[i]['formats'].append({
-                    'url': video_urls[i],
+            for video_url, seg, entry in zip(video_urls, data1['segs'][fm], entries):
+                entry['formats'].append({
+                    'url': video_url,
                     'format_id': self.get_format_name(fm),
                     'ext': self.parse_ext_l(fm),
-                    'filesize': int(data1['segs'][fm][i]['size'])
+                    'filesize': int(seg['size']),
                 })
-
-        for i in range(len(entries)):
-            entries[i].update({
-                'id': '%s_part%d' % (video_id, i + 1),
-                'title': title,
-            })
 
         return {
             '_type': 'multi_video',
