@@ -22,7 +22,8 @@ class PostProcessor(object):
     of the chain is reached.
 
     PostProcessor objects follow a "mutual registration" process similar
-    to InfoExtractor objects.
+    to InfoExtractor objects. And it can receive parameters from CLI trough
+    --pp-params.
     """
 
     _downloader = None

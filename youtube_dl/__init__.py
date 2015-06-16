@@ -171,8 +171,10 @@ def _real_main(argv=None):
     if opts.recodevideo is not None:
         if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv', 'xvid']:
             parser.error('invalid video recode format specified')
-    if opts.pp_params is not None:
-        opts.pp_params = opts.pp_params.split()
+    if opts.pp_params is None:
+        opts.pp_params = []
+    else:
+        opts.pp_params = shlex.split(opts.pp_params)
     if opts.convertsubtitles is not None:
         if opts.convertsubtitles not in ['srt', 'vtt', 'ass']:
             parser.error('invalid subtitle format specified')

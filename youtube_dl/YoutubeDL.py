@@ -261,6 +261,7 @@ class YoutubeDL(object):
     The following options are used by the post processors:
     prefer_ffmpeg:     If True, use ffmpeg instead of avconv if both are available,
                        otherwise prefer avconv.
+    pp_params:         Extra parameters for external apps, like avconv.
     """
 
     params = None
