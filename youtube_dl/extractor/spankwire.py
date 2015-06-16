@@ -27,7 +27,7 @@ class SpankwireIE(InfoExtractor):
             'description': 'Crazy Bitch X rated music video.',
             'uploader': 'oreusz',
             'uploader_id': '124697',
-            'upload_date': '20070508',
+            'upload_date': '20070507',
             'age_limit': 18,
         }
     }
@@ -44,7 +44,7 @@ class SpankwireIE(InfoExtractor):
         title = self._html_search_regex(
             r'<h1>([^<]+)', webpage, 'title')
         description = self._html_search_regex(
-            r'<div\s+id="descriptionContent">([^<]+)<',
+            r'(?s)<div\s+id="descriptionContent">(.+?)</div>',
             webpage, 'description', fatal=False)
         thumbnail = self._html_search_regex(
             r'playerData\.screenShot\s*=\s*["\']([^"\']+)["\']',
@@ -64,12 +64,12 @@ class SpankwireIE(InfoExtractor):
             r'<div id="viewsCounter"><span>([\d,\.]+)</span> views</div>',
             webpage, 'view count', fatal=False))
         comment_count = str_to_int(self._html_search_regex(
-            r'Comments<span[^>]+>\s*\(([\d,\.]+)\)</span>',
+            r'<span\s+id="spCommentCount"[^>]*>([\d,\.]+)</span>',
             webpage, 'comment count', fatal=False))
 
         video_urls = list(map(
             compat_urllib_parse.unquote,
-            re.findall(r'playerData\.cdnPath[0-9]{3,}\s*=\s*["\']([^"\']+)["\']', webpage)))
+            re.findall(r'playerData\.cdnPath[0-9]{3,}\s*=\s*(?:encodeURIComponent\()?["\']([^"\']+)["\']', webpage)))
         if webpage.find('flashvars\.encrypted = "true"') != -1:
             password = self._search_regex(
                 r'flashvars\.video_title = "([^"]+)',
