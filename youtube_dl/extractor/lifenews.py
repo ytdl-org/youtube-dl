@@ -8,6 +8,7 @@ from ..compat import compat_urlparse
 from ..utils import (
     determine_ext,
     int_or_none,
+    remove_end,
     unified_strdate,
     ExtractorError,
 )
@@ -72,10 +73,9 @@ class LifeNewsIE(InfoExtractor):
         if not videos and not iframe_link:
             raise ExtractorError('No media links available for %s' % video_id)
 
-        title = self._og_search_title(webpage)
-        TITLE_SUFFIX = ' - Первый по срочным новостям — LIFE | NEWS'
-        if title.endswith(TITLE_SUFFIX):
-            title = title[:-len(TITLE_SUFFIX)]
+        title = remove_end(
+            self._og_search_title(webpage),
+            ' - Первый по срочным новостям — LIFE | NEWS')
 
         description = self._og_search_description(webpage)
 
