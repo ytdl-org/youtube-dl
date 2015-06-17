@@ -82,10 +82,11 @@ class LifeNewsIE(InfoExtractor):
         view_count = self._html_search_regex(
             r'<div class=\'views\'>\s*(\d+)\s*</div>', webpage, 'view count', fatal=False)
         comment_count = self._html_search_regex(
-            r'<div class=\'comments\'>\s*<span class=\'counter\'>\s*(\d+)\s*</span>', webpage, 'comment count', fatal=False)
+            r'=\'commentCount\'[^>]*>\s*(\d+)\s*<',
+            webpage, 'comment count', fatal=False)
 
         upload_date = self._html_search_regex(
-            r'<time datetime=\'([^\']+)\'>', webpage, 'upload date', fatal=False)
+            r'<time[^>]*datetime=\'([^\']+)\'', webpage, 'upload date', fatal=False)
         if upload_date is not None:
             upload_date = unified_strdate(upload_date)
 
