@@ -427,6 +427,7 @@ from .qqmusic import (
     QQMusicSingerIE,
     QQMusicAlbumIE,
     QQMusicToplistIE,
+    QQMusicPlaylistIE,
 )
 from .quickvid import QuickVidIE
 from .r7 import R7IE
