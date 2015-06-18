@@ -35,6 +35,11 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
 
         thumbnail_filename = info['thumbnails'][-1]['filename']
 
+        if not os.path.exists(encodeFilename(thumbnail_filename)):
+            self._downloader.report_warning(
+                'Skipping embedding the thumbnail because the file is missing.')
+            return [], info
+
         if info['ext'] == 'mp3':
             options = [
                 '-c', 'copy', '-map', '0', '-map', '1',
