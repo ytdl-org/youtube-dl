@@ -257,6 +257,15 @@ from .keek import KeekIE
 from .kontrtube import KontrTubeIE
 from .krasview import KrasViewIE
 from .ku6 import Ku6IE
+from .kuwo import (
+    KuwoIE,
+    KuwoAlbumIE,
+    KuwoChartIE,
+    KuwoSingerIE,
+    KuwoSingerMusicIE,
+    KuwoCategoryIE,
+    KuwoMvIE,
+)
 from .la7 import LA7IE
 from .laola1tv import Laola1TvIE
 from .letv import (
