@@ -1,5 +1,7 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
+import json
 import time
 import hmac
 import hashlib
@@ -11,6 +13,7 @@ from ..utils import (
     parse_age_limit,
     parse_iso8601,
 )
+from ..compat import compat_urllib_request
 from .common import InfoExtractor
 
 
@@ -23,7 +26,9 @@ class VikiBaseIE(InfoExtractor):
     _APP_VERSION = '2.2.5.1428709186'
     _APP_SECRET = '-$iJ}@p7!G@SyU/je1bEyWg}upLu-6V6-Lg9VD(]siH,r.,m-r|ulZ,U4LC/SeR)'
 
-    def _prepare_call(self, path, timestamp=None):
+    _NETRC_MACHINE = 'viki'
+
+    def _prepare_call(self, path, timestamp=None, post_data=None):
         path += '?' if '?' not in path else '&'
         if not timestamp:
             timestamp = int(time.time())
@@ -33,17 +38,19 @@ class VikiBaseIE(InfoExtractor):
             query.encode('ascii'),
             hashlib.sha1
         ).hexdigest()
-        return self._API_URL_TEMPLATE % (query, sig)
+        url = self._API_URL_TEMPLATE % (query, sig)
+        return compat_urllib_request.Request(
+            url, json.dumps(post_data).encode('utf-8')) if post_data else url
 
-    def _call_api(self, path, video_id, note, timestamp=None):
+    def _call_api(self, path, video_id, note, timestamp=None, post_data=None):
         resp = self._download_json(
-            self._prepare_call(path, timestamp), video_id, note)
+            self._prepare_call(path, timestamp, post_data), video_id, note)
 
         error = resp.get('error')
         if error:
             if error == 'invalid timestamp':
                 resp = self._download_json(
-                    self._prepare_call(path, int(resp['current_timestamp'])),
+                    self._prepare_call(path, int(resp['current_timestamp']), post_data),
                     video_id, '%s (retry)' % note)
                 error = resp.get('error')
             if error:
@@ -55,6 +62,23 @@ class VikiBaseIE(InfoExtractor):
         raise ExtractorError(
             '%s returned error: %s' % (self.IE_NAME, error),
             expected=True)
+
+    def _real_initialize(self):
+        self._login()
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            return
+
+        login_form = {
+            'login_id': username,
+            'password': password,
+        }
+
+        self._call_api(
+            'sessions.json', None,
+            'Logging in as %s' % username, post_data=login_form)
 
 
 class VikiIE(VikiBaseIE):
