@@ -19,8 +19,8 @@ from ..aes import (
 
 
 class PornHubIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/(?:view_video\.php\?viewkey=|embed/)(?P<id>[0-9a-f]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/(?:view_video\.php\?viewkey=|embed/)(?P<id>[0-9a-z]+)'
+    _TESTS = [{
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
         'md5': '882f488fa1f0026f023f33576004a2ed',
         'info_dict': {
@@ -30,7 +30,10 @@ class PornHubIE(InfoExtractor):
             "title": "Seductive Indian beauty strips down and fingers her pink pussy",
             "age_limit": 18
         }
-    }
+    }, {
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=ph557bbb6676d2d',
+        'only_matching': True,
+    }]
 
     @classmethod
     def _extract_url(cls, webpage):
