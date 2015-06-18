@@ -89,7 +89,8 @@ class QQMusicIE(InfoExtractor):
 
         thumbnail_url = None
         albummid = self._search_regex(
-            [r'albummid:\'([0-9a-zA-Z]+)\'', r'"albummid":"([0-9a-zA-Z]+)"'], detail_info_page, 'album mid', default=None)
+            [r'albummid:\'([0-9a-zA-Z]+)\'', r'"albummid":"([0-9a-zA-Z]+)"'],
+            detail_info_page, 'album mid', default=None)
         if albummid:
             thumbnail_url = "http://i.gtimg.cn/music/photo/mid_album_500/%s/%s/%s.jpg" \
                             % (albummid[-2:-1], albummid[-1], albummid)
