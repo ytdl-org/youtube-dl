@@ -9,13 +9,8 @@ from .common import InfoExtractor
 from ..utils import (
     strip_jsonp,
     unescapeHTML,
-    HEADRequest,
-    ExtractorError,
 )
-from ..compat import (
-    compat_urllib_request,
-    compat_HTTPError,
-)
+from ..compat import compat_urllib_request
 
 
 class QQMusicIE(InfoExtractor):
@@ -104,24 +99,15 @@ class QQMusicIE(InfoExtractor):
 
         formats = []
         for format_id, details in self._FORMATS.items():
-            video_url = 'http://cc.stream.qqmusic.qq.com/%s%s.%s?vkey=%s&guid=%s&fromtag=0' \
-                        % (details['prefix'], mid, details['ext'], vkey, guid)
-            req = HEADRequest(video_url)
-            try:
-                res = self._request_webpage(
-                    req, mid, note='Testing %s video URL' % format_id, fatal=False)
-            except ExtractorError as e:
-                if isinstance(e.cause, compat_HTTPError) and e.cause.code in [400, 404]:
-                    self.report_warning('Invalid %s video URL' % format_id, mid)
-            else:
-                if res:
-                    formats.append({
-                        'url': video_url,
-                        'format': format_id,
-                        'format_id': format_id,
-                        'preference': details['preference'],
-                        'abr': details.get('abr'),
-                    })
+            formats.append({
+                'url': 'http://cc.stream.qqmusic.qq.com/%s%s.%s?vkey=%s&guid=%s&fromtag=0'
+                       % (details['prefix'], mid, details['ext'], vkey, guid),
+                'format': format_id,
+                'format_id': format_id,
+                'preference': details['preference'],
+                'abr': details.get('abr'),
+            })
+        self._check_formats(formats, mid)
         self._sort_formats(formats)
 
         return {
