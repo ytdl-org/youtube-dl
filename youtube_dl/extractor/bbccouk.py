@@ -267,7 +267,7 @@ class BBCCoUkIE(InfoExtractor):
                 programme_id, 'Downloading media selection XML')
         except ExtractorError as ee:
             if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
-                media_selection = xml.etree.ElementTree.fromstring(ee.cause.read().encode('utf-8'))
+                media_selection = xml.etree.ElementTree.fromstring(ee.cause.read().decode('utf-8'))
             else:
                 raise
 
