@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
+    parse_duration,
     int_or_none,
 )
 from ..compat import compat_HTTPError
@@ -45,22 +46,6 @@ class BBCNewsIE(BBCCoUkIE):
         }
     }]
 
-    def _duration_str2int(self, str):
-        if not str:
-            return None
-        ret = re.match(r'^\d+$', str)
-        if ret:
-            return int(ret.group(0))
-        ret = re.match(r'PT((?P<h>\d+)H)?((?P<m>\d+)M)?(?P<s>\d+)S$', str)
-        if ret:
-            total=int(ret.group('s'))
-            if ret.group('m'):
-                total+=(int(ret.group('m'))*60)
-            if ret.group('h'):
-                total+=(int(ret.group('h'))*3600)
-            return total
-        return None
-
     def _real_extract(self, url):
         list_id = self._match_id(url)
         webpage = self._download_webpage(url, list_id)
@@ -88,7 +73,7 @@ class BBCNewsIE(BBCCoUkIE):
             xml_url = jent.get('href', None)
 
             title = jent['caption']
-            duration = self._duration_str2int(jent.get('duration',None))
+            duration = parse_duration(jent.get('duration',None))
             description = list_title + ' - ' + jent.get('caption','')
             thumbnail = None
             if jent.has_key('image'):

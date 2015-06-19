@@ -50,7 +50,6 @@
  - **Bandcamp**
  - **Bandcamp:album**
  - **bbc.co.uk**: BBC iPlayer
- - **bbc.com**: BBC news videos
  - **BeatportPro**
  - **Beeg**
  - **BehindKink**
