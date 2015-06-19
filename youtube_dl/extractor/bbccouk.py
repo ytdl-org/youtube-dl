@@ -15,6 +15,8 @@ class BBCCoUkIE(InfoExtractor):
     IE_DESC = 'BBC iPlayer'
     _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:(?:(?:programmes|iplayer(?:/[^/]+)?/(?:episode|playlist))/)|music/clips[/#])(?P<id>[\da-z]{8})'
 
+    mediaselector_url = 'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s'
+
     _TESTS = [
         {
             'url': 'http://www.bbc.co.uk/programmes/b039g8p7',
@@ -277,7 +279,7 @@ class BBCCoUkIE(InfoExtractor):
     def _download_media_selector(self, programme_id):
         try:
             media_selection = self._download_xml(
-                'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s' % programme_id,
+                self.mediaselector_url % programme_id,
                 programme_id, 'Downloading media selection XML')
         except ExtractorError as ee:
             if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:

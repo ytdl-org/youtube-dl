@@ -14,6 +14,8 @@ class BBCNewsIE(BBCCoUkIE):
     IE_DESC = 'BBC news'
     _VALID_URL = r'https?://(?:www\.)?(?:bbc\.co\.uk|bbc\.com)/news/(?P<id>[^/]+)'
 
+    mediaselector_url = 'http://open.live.bbc.co.uk/mediaselector/4/mtis/stream/%s'
+
     _TESTS = [{
         'url': 'http://www.bbc.com/news/world-europe-32668511',
         'info_dict': {
@@ -58,46 +60,6 @@ class BBCNewsIE(BBCCoUkIE):
                 total+=(int(ret.group('h'))*3600)
             return total
         return None
-
-    def _download_media_selector(self, programme_id):
-        # bbc news uses http://open.live.bbc.co.uk/mediaselector/4/mtis/stream/ not
-        # http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/
-        # Could add third urlspec arg to BBCCoUkIE._download_media_selector instead of duplicating it
-
-        try:
-            media_selection = self._download_xml(
-               'http://open.live.bbc.co.uk/mediaselector/4/mtis/stream/%s' % programme_id,
-                programme_id, 'Downloading media selection XML')
-        except ExtractorError as ee:
-            if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
-                media_selection = xml.etree.ElementTree.fromstring(ee.cause.read().encode('utf-8'))
-            else:
-                raise
-        formats = []
-        subtitles = None
-
-        for media in self._extract_medias(media_selection):
-            kind = media.get('kind')
-            if kind == 'audio':
-                formats.extend(self._extract_audio(media, programme_id))
-            elif kind == 'video':
-                formats.extend(self._extract_video(media, programme_id))
-            elif kind == 'captions':
-                subtitles = self.extract_subtitles(media, programme_id)
-
-        formats = []
-        subtitles = None
-
-        for media in self._extract_medias(media_selection):
-            kind = media.get('kind')
-            if kind == 'audio':
-                formats.extend(self._extract_audio(media, programme_id))
-            elif kind == 'video':
-                formats.extend(self._extract_video(media, programme_id))
-            elif kind == 'captions':
-                subtitles = self.extract_subtitles(media, programme_id)
-
-        return formats, subtitles
 
     def _real_extract(self, url):
         list_id = self._match_id(url)
