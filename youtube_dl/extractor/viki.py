@@ -28,11 +28,15 @@ class VikiBaseIE(InfoExtractor):
 
     _NETRC_MACHINE = 'viki'
 
+    _token = None
+
     def _prepare_call(self, path, timestamp=None, post_data=None):
         path += '?' if '?' not in path else '&'
         if not timestamp:
             timestamp = int(time.time())
         query = self._API_QUERY_TEMPLATE % (path, self._APP, timestamp)
+        if self._token:
+            query += '&token=%s' % self._token
         sig = hmac.new(
             self._APP_SECRET.encode('ascii'),
             query.encode('ascii'),
@@ -76,9 +80,13 @@ class VikiBaseIE(InfoExtractor):
             'password': password,
         }
 
-        self._call_api(
+        login = self._call_api(
             'sessions.json', None,
             'Logging in as %s' % username, post_data=login_form)
+
+        self._token = login.get('token')
+        if not self._token:
+            self.report_warning('Unable to get session token, login has probably failed')
 
 
 class VikiIE(VikiBaseIE):
