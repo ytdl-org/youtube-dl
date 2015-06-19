@@ -7,12 +7,14 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     remove_end,
-    remove_start
+    remove_start,
+    str_to_int,
+    unified_strdate,
 )
 
 
 class PinkbikeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?pinkbike\.com/video/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:(?:www\.)?pinkbike\.com/video/|es\.pinkbike\.org/i/kvid/kvid-y5\.swf\?id=)(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://www.pinkbike.com/video/402811/',
         'md5': '4814b8ca7651034cd87e3361d5c2155a',
@@ -20,67 +22,75 @@ class PinkbikeIE(InfoExtractor):
             'id': '402811',
             'ext': 'mp4',
             'title': 'Brandon Semenuk - RAW 100',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            'location': 'Victoria, British Columbia, Canada',
-            'uploader_id': 'revelco',
-            'upload_date': '20150406',
             'description': 'Official release: www.redbull.ca/rupertwalker',
-            'duration': 100
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'duration': 100,
+            'upload_date': '20150406',
+            'uploader': 'revelco',
+            'location': 'Victoria, British Columbia, Canada',
+            'view_count': int,
+            'comment_count': int,
         }
     }, {
-        'url': 'http://www.pinkbike.com/video/406629/',
-        'md5': 'c7a3e19a2bd5cde5a1cda6b2b46caa74',
-        'info_dict': {
-            'id': '406629',
-            'ext': 'mp4',
-            'title': 'Chromag: Reece Wallace in Utah',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            'location': 'Whistler, British Columbia, Canada',
-            'uploader_id': 'Chromagbikes',
-            'upload_date': '20150505',
-            'description': 'Reece Wallace shredding Virgin, Utah. Video by Virtu Media.',
-            'duration': 180
-        }
+        'url': 'http://es.pinkbike.org/i/kvid/kvid-y5.swf?id=406629',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title')
-        title = remove_end(title, ' Video - Pinkbike')
+        webpage = self._download_webpage(
+            'http://www.pinkbike.com/video/%s' % video_id, video_id)
 
-        description = self._html_search_meta('description', webpage, 'description')
-        description = remove_start(description, title + '. ')
+        formats = []
+        for _, format_id, src in re.findall(
+            r'data-quality=((?:\\)?["\'])(.+?)\1[^>]+src=\1(.+?)\1', webpage):
+            height = int_or_none(self._search_regex(
+                r'^(\d+)[pP]$', format_id, 'height', default=None))
+            formats.append({
+                'url': src,
+                'format_id': format_id,
+                'height': height,
+            })
+        self._sort_formats(formats)
 
+        title = remove_end(self._og_search_title(webpage), ' Video - Pinkbike')
+        description = self._html_search_regex(
+            r'(?s)id="media-description"[^>]*>(.+?)<',
+            webpage, 'description', default=None) or remove_start(
+            self._og_search_description(webpage), title + '. ')
+        thumbnail = self._og_search_thumbnail(webpage)
         duration = int_or_none(self._html_search_meta(
             'video:duration', webpage, 'duration'))
 
-        uploader_id = self._html_search_regex(r'un:\s*"(.*?)"', webpage, 'uploader_id')
-
-        upload_date = self._html_search_regex(
-            r'class="fullTime"\s*title="([0-9]{4}(?:-[0-9]{2}){2})"',
-            webpage, 'upload_date')
-        upload_date = upload_date.replace('-', '')
+        uploader = self._search_regex(
+            r'un:\s*"([^"]+)"', webpage, 'uploader', fatal=False)
+        upload_date = unified_strdate(self._search_regex(
+            r'class="fullTime"[^>]+title="([^"]+)"',
+            webpage, 'upload date', fatal=False))
 
         location = self._html_search_regex(
-            r'<dt>Location</dt>\n?\s*<dd>\n?(.*?)\s*<img',
-            webpage, 'location')
+            r'(?s)<dt>Location</dt>\s*<dd>(.+?)<',
+            webpage, 'location', fatal=False)
 
-        formats = re.findall(
-            r'<source data-quality=\\"([0-9]+)p\\" src=\\"(.*?)\\">',
-            webpage)
+        def extract_count(webpage, label):
+            return str_to_int(self._search_regex(
+                r'<span[^>]+class="stat-num"[^>]*>([\d,.]+)</span>\s*<span[^>]+class="stat-label"[^>]*>%s' % label,
+                webpage, label, fatal=False))
 
-        formats = [{'url': fmt[1], 'height': int_or_none(fmt[0])} for fmt in formats]
+        view_count = extract_count(webpage, 'Views')
+        comment_count = extract_count(webpage, 'Comments')
 
         return {
             'id': video_id,
             'title': title,
             'description': description,
+            'thumbnail': thumbnail,
             'duration': duration,
-            'thumbnail': self._html_search_meta('og:image', webpage, 'thumbnail'),
-            'uploader_id': uploader_id,
             'upload_date': upload_date,
+            'uploader': uploader,
             'location': location,
+            'view_count': view_count,
+            'comment_count': comment_count,
             'formats': formats
         }
