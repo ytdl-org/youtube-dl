@@ -185,8 +185,11 @@ class DramaFeverSeriesIE(DramaFeverBaseIE):
                 % (consumer_secret, series_id, self._PAGE_SIZE, page_num),
                 series_id, 'Downloading episodes JSON page #%d' % page_num)
             for episode in episodes.get('value', []):
+                episode_url = episode.get('episode_url')
+                if not episode_url:
+                    continue
                 entries.append(self.url_result(
-                    compat_urlparse.urljoin(url, episode['episode_url']),
+                    compat_urlparse.urljoin(url, episode_url),
                     'DramaFever', episode.get('guid')))
             if page_num == episodes['num_pages']:
                 break
