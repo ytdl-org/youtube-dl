@@ -502,7 +502,7 @@ class BBCNewsIE(BBCCoUkIE):
 
         for jent in jsent:
             programme_id = jent.get('externalId')
-            xml_url = jent.get('hxref')
+            xml_url = jent.get('href')
 
             title = jent.get('caption',list_title)
 
