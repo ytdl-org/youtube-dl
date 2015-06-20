@@ -457,15 +457,15 @@ class BBCNewsIE(BBCCoUkIE):
         for ent in matches:
             jent = self._parse_json(ent,list_id)
 
-            programme_id = jent.get('externalId',None)
-            xml_url = jent.get('href', None)
+            programme_id = jent.get('externalId')
+            xml_url = jent.get('href')
 
             title = jent['caption']
-            duration = parse_duration(jent.get('duration',None))
+            duration = parse_duration(jent.get('duration')
             description = list_title + ' - ' + jent.get('caption','')
             thumbnail = None
             if jent.has_key('image'):
-               thumbnail=jent['image'].get('href',None)
+               thumbnail=jent['image'].get('href')
 
             if programme_id:
                formats, subtitles = self._download_media_selector(programme_id)
