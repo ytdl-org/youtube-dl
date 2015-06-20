@@ -401,7 +401,7 @@ class BBCCoUkIE(InfoExtractor):
 class BBCNewsIE(BBCCoUkIE):
     IE_NAME = 'bbc.com'
     IE_DESC = 'BBC news'
-    _VALID_URL = r'https?://(?:www\.)?(?:bbc\.co\.uk|bbc\.com)/news/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?bbc\.com/.+?/(?P<id>[^/]+)$'
 
     mediaselector_url = 'http://open.live.bbc.co.uk/mediaselector/4/mtis/stream/%s'
 
@@ -432,56 +432,115 @@ class BBCNewsIE(BBCCoUkIE):
         'params': {
             'skip_download': True,
         }
+    },{
+        'url': 'http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu',
+        'note': 'Video',
+        'info_dict': {
+            'id': 'NA',
+            'ext': 'mp4',
+            'title': 'YPG - Tel Abyad..n tamam. kontrol.m.zde',
+            'duration': 47,
+        },
+        'params': {
+            'skip_download': True,
+        }
+    },{
+        'url': 'http://www.bbc.com/mundo/video_fotos/2015/06/150619_video_honduras_militares_hospitales_corrupcion_aw',
+        'note': 'Video',
+        'info_dict': {
+            'id': '39275083',
+            'ext': 'mp4',
+            'title': 'Honduras militariza sus hospitales por nuevo esc.ndalo de corrupci.n',
+            'duration': 87,
+        },
+        'params': {
+            'skip_download': True,
+        }
     }]
 
     def _real_extract(self, url):
         list_id = self._match_id(url)
         webpage = self._download_webpage(url, list_id)
 
-        list_title = self._html_search_regex(r'<title>(.*?)(?:\s*-\s*BBC News)?</title>', webpage, 'list title')
+        list_title = self._html_search_regex(r'<title>(.*?)(?:\s*-\s*BBC [^ ]+)?</title>', webpage, 'list title')
 
         pubdate = self._html_search_regex(r'"datePublished":\s*"(\d+-\d+-\d+)', webpage, 'date', default=None)
         if pubdate:
            pubdate = pubdate.replace('-','')
 
         ret = []
+        jsent = []
+
         # works with bbc.com/news/something-something-123456 articles
-        matches = re.findall(r"data-media-meta='({[^']+})'", webpage)
-        if not matches:
+        jsent = map(
+           lambda m: self._parse_json(m,list_id),
+           re.findall(r"data-media-meta='({[^']+})'", webpage)
+        )
+
+        if len(jsent) == 0:
+           # http://www.bbc.com/news/video_and_audio/international
+           # and single-video articles
+           masset = self._html_search_regex(r'mediaAssetPage\.init\(\s*({.+?}), "/', webpage, 'mediaassets', default=None)
+           if masset:
+              jmasset = self._parse_json(masset,list_id)
+              for key, val in jmasset.get('videos',{}).items():
+                  for skey, sval in val.items():
+                      sval['id'] = skey
+                      jsent.append(sval)
+
+        if len(jsent) == 0:
            # stubbornly generic extractor for {json with "image":{allvideoshavethis},etc}
            # in http://www.bbc.com/news/video_and_audio/international
-           matches = re.findall(r"({[^{}]+image\":{[^}]+}[^}]+})", webpage)
-        if not matches:
+           # prone to breaking if entries have sourceFiles list
+           jsent = map(
+               lambda m: self._parse_json(m,list_id),
+               re.findall(r"({[^{}]+image\":{[^}]+}[^}]+})", webpage)
+           )          
+
+        if len(jsent) == 0:
            raise ExtractorError('No video found', expected=True)
 
-        for ent in matches:
-            jent = self._parse_json(ent,list_id)
-
+        for jent in jsent:
             programme_id = jent.get('externalId')
-            xml_url = jent.get('href')
+            xml_url = jent.get('hxref')
 
-            title = jent['caption']
+            title = jent.get('caption',list_title)
+
             duration = parse_duration(jent.get('duration'))
             description = list_title + ' - ' + jent.get('caption','')
             thumbnail = None
             if jent.has_key('image'):
                thumbnail=jent['image'].get('href')
 
+            formats = []
+            subtitles = []
+
             if programme_id:
                formats, subtitles = self._download_media_selector(programme_id)
+            elif jent.has_key('sourceFiles'):
+               # mediaselector not used at
+               # http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu
+               for key, val in jent['sourceFiles'].items():
+                  formats.append( {
+                     'ext': val.get('encoding'),
+                     'url': val.get('url'),
+                     'filesize': int(val.get('filesize')),
+                     'format_id': key
+                  } )
             elif xml_url:
                # Cheap fallback
                # http://playlists.bbc.co.uk/news/(list_id)[ABC..]/playlist.sxml
                xml = self._download_webpage(xml_url, programme_id, 'Downloading playlist.sxml for externalId (fallback)')
                programme_id = self._search_regex(r'<mediator [^>]*identifier="(.+?)"', xml, 'playlist.sxml (externalId fallback)')
                formats, subtitles = self._download_media_selector(programme_id)
-            else:
-               raise ExtractorError('data-media-meta entry has no externalId or href value.')
+
+            if len(formats) == 0:
+               raise ExtractorError('unsupported json media entry.\n    '+str(jent)+'\n')
                
             self._sort_formats(formats)
 
             ret.append( {
-                'id': programme_id,
+                'id': jent.get('programme_id',jent.get('id')),
                 'uploader': 'BBC News',
                 'upload_date': pubdate,
                 'title': title,
