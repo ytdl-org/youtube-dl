@@ -5,10 +5,12 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
+    compat_urllib_request,
 )
 from ..utils import (
     clean_html,
     ExtractorError,
+    determine_ext,
 )
 
 
@@ -25,6 +27,8 @@ class XVideosIE(InfoExtractor):
         }
     }
 
+    _ANDROID_USER_AGENT = 'Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19'
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
@@ -40,9 +44,30 @@ class XVideosIE(InfoExtractor):
         video_thumbnail = self._search_regex(
             r'url_bigthumb=(.+?)&amp', webpage, 'thumbnail', fatal=False)
 
+        formats = [{
+            'url': video_url,
+        }]
+
+        android_req = compat_urllib_request.Request(url)
+        android_req.add_header('User-Agent', self._ANDROID_USER_AGENT)
+        android_webpage = self._download_webpage(android_req, video_id, fatal=False)
+
+        if android_webpage is not None:
+            player_params_str = self._search_regex(
+                'mobileReplacePlayerDivTwoQual\(([^)]+)\)',
+                android_webpage, 'player parameters', default='')
+            player_params = list(map(lambda s: s.strip(' \''), player_params_str.split(',')))
+            if player_params:
+                formats.extend([{
+                    'url': param,
+                    'preference': -10,
+                } for param in player_params if determine_ext(param) == 'mp4'])
+
+        self._sort_formats(formats)
+
         return {
             'id': video_id,
-            'url': video_url,
+            'formats': formats,
             'title': video_title,
             'ext': 'flv',
             'thumbnail': video_thumbnail,
