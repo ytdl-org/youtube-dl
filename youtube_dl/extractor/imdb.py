@@ -46,7 +46,7 @@ class ImdbIE(InfoExtractor):
             format_info = info['videoPlayerObject']['video']
             formats.append({
                 'format_id': f_id,
-                'url': format_info['url'],
+                'url': format_info['videoInfoList'][0]['videoUrl'],
             })
 
         return {
