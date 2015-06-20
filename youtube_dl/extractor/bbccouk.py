@@ -461,7 +461,7 @@ class BBCNewsIE(BBCCoUkIE):
             xml_url = jent.get('href')
 
             title = jent['caption']
-            duration = parse_duration(jent.get('duration')
+            duration = parse_duration(jent.get('duration'))
             description = list_title + ' - ' + jent.get('caption','')
             thumbnail = None
             if jent.has_key('image'):
