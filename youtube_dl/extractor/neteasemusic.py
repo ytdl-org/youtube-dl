@@ -50,6 +50,10 @@ class NetEaseMusicBaseIE(InfoExtractor):
             })
         return formats
 
+    @classmethod
+    def convert_milliseconds(cls, ms):
+        return int(round(ms/1000.0))
+
     def query_api(self, endpoint, video_id, note):
         req = compat_urllib_request.Request('%s%s' % (self._API_BASE, endpoint))
         req.add_header('Referer', self._API_BASE)
@@ -143,9 +147,9 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'title': info['name'],
             'alt_title': alt_title,
             'creator': ' / '.join([artist['name'] for artist in info.get('artists', [])]),
-            'timestamp': int(info.get('album', {}).get('publishTime')/1000),
+            'timestamp': self.convert_milliseconds(info.get('album', {}).get('publishTime')),
             'thumbnail': info.get('album', {}).get('picUrl'),
-            'duration': int(info.get('duration', 0)/1000),
+            'duration': self.convert_milliseconds(info.get('duration', 0)),
             'description': lyrics,
             'formats': formats,
         }
@@ -255,7 +259,8 @@ class NetEaseMusicListIE(NetEaseMusicBaseIE):
         desc = info.get('description')
 
         if info.get('specialType') == 10:  # is a chart/toplist
-            datestamp = datetime.fromtimestamp(info['updateTime']/1000).strftime('%Y-%m-%d')
+            datestamp = datetime.fromtimestamp(
+                self.convert_milliseconds(info['updateTime'])).strftime('%Y-%m-%d')
             name = '%s %s' % (name, datestamp)
 
         entries = [
@@ -302,7 +307,7 @@ class NetEaseMusicMvIE(NetEaseMusicBaseIE):
             'upload_date': info['publishTime'].replace('-', ''),
             'formats': formats,
             'thumbnail': info.get('cover'),
-            'duration': int(info.get('duration', 0)/1000),
+            'duration': self.convert_milliseconds(info.get('duration', 0)),
         }
 
 
@@ -317,7 +322,7 @@ class NetEaseMusicProgramIE(NetEaseMusicBaseIE):
             'title': '不丹足球背后的故事',
             'description': '喜马拉雅人的足球梦 ...',
             'creator': '大话西藏',
-            'timestamp': 1434179341,
+            'timestamp': 1434179342,
             'upload_date': '20150613',
             'duration': 900,
         },
@@ -338,7 +343,7 @@ class NetEaseMusicProgramIE(NetEaseMusicBaseIE):
             'ext': 'mp3',
             'title': '25岁，你是自在如风的少年<27°C>',
             'description': 'md5:8d594db46cc3e6509107ede70a4aaa3b',
-            'timestamp': 1434450840,
+            'timestamp': 1434450841,
             'upload_date': '20150616',
         },
         'params': {
@@ -370,9 +375,9 @@ class NetEaseMusicProgramIE(NetEaseMusicBaseIE):
                 'title': name,
                 'description': description,
                 'creator': info['dj']['brand'],
-                'timestamp': int(info['createTime']/1000),
+                'timestamp': self.convert_milliseconds(info['createTime']),
                 'thumbnail': info['coverUrl'],
-                'duration': int(info.get('duration', 0)/1000),
+                'duration': self.convert_milliseconds(info.get('duration', 0)),
                 'formats': formats,
             }
 
