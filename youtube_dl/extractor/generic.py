@@ -44,6 +44,7 @@ from .bliptv import BlipTVIE
 from .svt import SVTIE
 from .pornhub import PornHubIE
 from .vimeo import VimeoIE
+from .dailymotion import DailymotionCloudIE
 
 
 class GenericIE(InfoExtractor):
@@ -813,6 +814,17 @@ class GenericIE(InfoExtractor):
                 'description': 'To understand why he was the Toronto Blue Jays’ top off-season priority is to appreciate his background and upbringing in Montreal, where he first developed his baseball skills. Written and narrated by Stephen Brunt.',
                 'uploader': 'Rogers Sportsnet',
             },
+        },
+        # Dailymotion Cloud video
+        {
+            'url': 'http://replay.publicsenat.fr/vod/le-debat/florent-kolandjian,dominique-cena,axel-decourtye,laurence-abeille,bruno-parmentier/175910',
+            'md5': '49444254273501a64675a7e68c502681',
+            'info_dict': {
+                'id': '5585de919473990de4bee11b',
+                'ext': 'mp4',
+                'title': 'Le débat',
+                'thumbnail': 're:^https?://.*\.jpe?g$',
+            }
         }
     ]
 
@@ -1485,6 +1497,11 @@ class GenericIE(InfoExtractor):
         senate_isvp_url = SenateISVPIE._search_iframe_url(webpage)
         if senate_isvp_url:
             return self.url_result(senate_isvp_url, 'SenateISVP')
+
+        # Look for Dailymotion Cloud videos
+        dmcloud_url = DailymotionCloudIE._extract_dmcloud_url(webpage)
+        if dmcloud_url:
+            return self.url_result(dmcloud_url, 'DailymotionCloud')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
