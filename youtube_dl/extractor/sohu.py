@@ -6,10 +6,10 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
-    compat_urllib_request
+    compat_urllib_request,
+    compat_urllib_parse,
 )
 from ..utils import (
-    sanitize_url_path_consecutive_slashes,
     ExtractorError,
 )
 
@@ -143,23 +143,41 @@ class SohuIE(InfoExtractor):
             formats = []
             for format_id, format_data in formats_json.items():
                 allot = format_data['allot']
-                prot = format_data['prot']
 
                 data = format_data['data']
                 clips_url = data['clipsURL']
                 su = data['su']
 
-                part_str = self._download_webpage(
-                    'http://%s/?prot=%s&file=%s&new=%s' %
-                    (allot, prot, clips_url[i], su[i]),
-                    video_id,
-                    'Downloading %s video URL part %d of %d'
-                    % (format_id, i + 1, part_count))
+                video_url = 'newflv.sohu.ccgslb.net'
+                cdnId = None
+                retries = 0
 
-                part_info = part_str.split('|')
+                while 'newflv.sohu.ccgslb.net' in video_url:
+                    params = {
+                        'prot': 9,
+                        'file': clips_url[i],
+                        'new': su[i],
+                        'prod': 'flash',
+                    }
 
-                video_url = sanitize_url_path_consecutive_slashes(
-                    '%s%s?key=%s' % (part_info[0], su[i], part_info[3]))
+                    if cdnId is not None:
+                        params['idc'] = cdnId
+
+                    download_note = 'Downloading %s video URL part %d of %d' % (
+                        format_id, i + 1, part_count)
+
+                    if retries > 0:
+                        download_note += ' (retry #%d)' % retries
+                    part_info = self._parse_json(self._download_webpage(
+                        'http://%s/?%s' % (allot, compat_urllib_parse.urlencode(params)),
+                        video_id, download_note), video_id)
+
+                    video_url = part_info['url']
+                    cdnId = part_info.get('nid')
+
+                    retries += 1
+                    if retries > 5:
+                        raise ExtractorError('Failed to get video URL')
 
                 formats.append({
                     'url': video_url,
