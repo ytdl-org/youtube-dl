@@ -5,6 +5,8 @@ from ..utils import (
     parse_duration,
     unified_strdate,
     str_to_int,
+    float_or_none,
+    ISO639Utils,
 )
 
 
@@ -68,4 +70,61 @@ class AdobeTVIE(InfoExtractor):
             'duration': duration,
             'view_count': view_count,
             'formats': formats,
+        }
+
+
+class AdobeTVVideoIE(InfoExtractor):
+    _VALID_URL = r'https?://video\.tv\.adobe\.com/v/(?P<id>\d+)'
+
+    _TEST = {
+        'url': 'https://video.tv.adobe.com/v/2456/',
+        'md5': '43662b577c018ad707a63766462b1e87',
+        'info_dict': {
+            'id': '2456',
+            'ext': 'mp4',
+            'title': 'New experience with Acrobat DC',
+            'description': 'New experience with Acrobat DC',
+            'duration': 248.667,
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        player_params = self._parse_json(self._search_regex(
+            r'var\s+bridge\s*=\s*([^;]+);', webpage, 'player parameters'),
+            video_id)
+
+        formats = [{
+            'url': source['src'],
+            'width': source.get('width'),
+            'height': source.get('height'),
+            'tbr': source.get('bitrate'),
+        } for source in player_params['sources']]
+
+        # For both metadata and downloaded files the duration varies among
+        # formats. I just pick the max one
+        duration = max(filter(None, [
+            float_or_none(source.get('duration'), scale=1000)
+            for source in player_params['sources']]))
+
+        subtitles = {}
+        for translation in player_params.get('translations', []):
+            lang_id = translation.get('language_w3c') or ISO639Utils.long2short(translation['language_medium'])
+            if lang_id not in subtitles:
+                subtitles[lang_id] = []
+            subtitles[lang_id].append({
+                'url': translation['vttPath'],
+                'ext': 'vtt',
+            })
+
+        return {
+            'id': video_id,
+            'formats': formats,
+            'title': player_params['title'],
+            'description': self._og_search_description(webpage),
+            'duration': duration,
+            'subtitles': subtitles,
         }
