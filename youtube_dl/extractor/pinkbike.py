@@ -44,7 +44,7 @@ class PinkbikeIE(InfoExtractor):
 
         formats = []
         for _, format_id, src in re.findall(
-            r'data-quality=((?:\\)?["\'])(.+?)\1[^>]+src=\1(.+?)\1', webpage):
+                r'data-quality=((?:\\)?["\'])(.+?)\1[^>]+src=\1(.+?)\1', webpage):
             height = int_or_none(self._search_regex(
                 r'^(\d+)[pP]$', format_id, 'height', default=None))
             formats.append({
