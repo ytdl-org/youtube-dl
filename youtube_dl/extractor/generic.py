@@ -43,6 +43,7 @@ from .senateisvp import SenateISVPIE
 from .bliptv import BlipTVIE
 from .svt import SVTIE
 from .pornhub import PornHubIE
+from .xhamster import XHamsterEmbedIE
 from .vimeo import VimeoIE
 from .dailymotion import DailymotionCloudIE
 
@@ -1330,6 +1331,11 @@ class GenericIE(InfoExtractor):
         pornhub_url = PornHubIE._extract_url(webpage)
         if pornhub_url:
             return self.url_result(pornhub_url, 'PornHub')
+
+        # Look for embedded XHamster player
+        xhamster_urls = XHamsterEmbedIE._extract_urls(webpage)
+        if xhamster_urls:
+            return _playlist_from_matches(xhamster_urls, ie='XHamsterEmbed')
 
         # Look for embedded Tvigle player
         mobj = re.search(
