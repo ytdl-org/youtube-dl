@@ -336,6 +336,15 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        # XHamster embed
+        {
+            'url': 'http://www.numisc.com/forum/showthread.php?11696-FM15-which-pumiscer-was-this-%28-vid-%29-%28-alfa-as-fuck-srx-%29&s=711f5db534502e22260dec8c5e2d66d8',
+            'info_dict': {
+                'id': 'showthread',
+                'title': '[NSFL] [FM15] which pumiscer was this ( vid ) ( alfa as fuck srx )',
+            },
+            'playlist_mincount': 7,
+        },
         # Embedded TED video
         {
             'url': 'http://en.support.wordpress.com/videos/ted-talks/',
