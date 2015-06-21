@@ -18,6 +18,7 @@ from ..utils import (
     parse_duration,
     determine_ext,
 )
+from .dailymotion import DailymotionCloudIE
 
 
 class FranceTVBaseInfoExtractor(InfoExtractor):
@@ -131,12 +132,26 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
             'skip_download': 'HLS (reqires ffmpeg)'
         },
         'skip': 'Ce direct est terminé et sera disponible en rattrapage dans quelques minutes.',
+    }, {
+        'url': 'http://www.francetvinfo.fr/economie/entreprises/les-entreprises-familiales-le-secret-de-la-reussite_933271.html',
+        'md5': 'f485bda6e185e7d15dbc69b72bae993e',
+        'info_dict': {
+            'id': '556e03339473995ee145930c',
+            'ext': 'mp4',
+            'title': 'Les entreprises familiales : le secret de la réussite',
+            'thumbnail': 're:^https?://.*\.jpe?g$',
+        }
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         page_title = mobj.group('title')
         webpage = self._download_webpage(url, page_title)
+
+        dmcloud_url = DailymotionCloudIE._extract_dmcloud_url(webpage)
+        if dmcloud_url:
+            return self.url_result(dmcloud_url, 'DailymotionCloud')
+
         video_id, catalogue = self._search_regex(
             r'id-video=([^@]+@[^"]+)', webpage, 'video id').split('@')
         return self._extract_video(video_id, catalogue)
