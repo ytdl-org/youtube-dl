@@ -251,25 +251,10 @@ class BBCCoUkIE(InfoExtractor):
         for connection in self._extract_connections(media):
             captions = self._download_xml(connection.get('href'), programme_id, 'Downloading captions')
             lang = captions.get('{http://www.w3.org/XML/1998/namespace}lang', 'en')
-            ps = captions.findall('./{0}body/{0}div/{0}p'.format('{http://www.w3.org/2006/10/ttaf1}'))
-            srt = ''
-
-            def _extract_text(p):
-                if p.text is not None:
-                    stripped_text = p.text.strip()
-                    if stripped_text:
-                        return stripped_text
-                return ' '.join(span.text.strip() for span in p.findall('{http://www.w3.org/2006/10/ttaf1}span'))
-            for pos, p in enumerate(ps):
-                srt += '%s\r\n%s --> %s\r\n%s\r\n\r\n' % (str(pos), p.get('begin'), p.get('end'), _extract_text(p))
             subtitles[lang] = [
                 {
                     'url': connection.get('href'),
                     'ext': 'ttml',
-                },
-                {
-                    'data': srt,
-                    'ext': 'srt',
                 },
             ]
         return subtitles
