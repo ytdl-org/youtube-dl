@@ -701,7 +701,10 @@ from .wrzuta import WrzutaIE
 from .wsj import WSJIE
 from .xbef import XBefIE
 from .xboxclips import XboxClipsIE
-from .xhamster import XHamsterIE
+from .xhamster import (
+    XHamsterIE,
+    XHamsterEmbedIE,
+)
 from .xminus import XMinusIE
 from .xnxx import XNXXIE
 from .xstream import XstreamIE
