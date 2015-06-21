@@ -22,6 +22,7 @@ from ..utils import (
     unified_strdate,
     unsmuggle_url,
     urlencode_postdata,
+    unescapeHTML,
 )
 
 
@@ -172,6 +173,21 @@ class VimeoIE(VimeoBaseInfoExtractor):
             },
         },
     ]
+
+    @staticmethod
+    def _extract_vimeo_url(url, webpage):
+        # Look for embedded (iframe) Vimeo player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/.+?)\1', webpage)
+        if mobj:
+            player_url = unescapeHTML(mobj.group('url'))
+            surl = smuggle_url(player_url, {'Referer': url})
+            return surl
+        # Look for embedded (swf embed) Vimeo player
+        mobj = re.search(
+            r'<embed[^>]+?src="((?:https?:)?//(?:www\.)?vimeo\.com/moogaloop\.swf.+?)"', webpage)
+        if mobj:
+            return mobj.group(1)
 
     def _verify_video_password(self, url, video_id, webpage):
         password = self._downloader.params.get('videopassword', None)

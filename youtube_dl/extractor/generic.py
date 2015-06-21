@@ -43,6 +43,7 @@ from .senateisvp import SenateISVPIE
 from .bliptv import BlipTVIE
 from .svt import SVTIE
 from .pornhub import PornHubIE
+from .vimeo import VimeoIE
 
 
 class GenericIE(InfoExtractor):
@@ -1089,18 +1090,9 @@ class GenericIE(InfoExtractor):
         if matches:
             return _playlist_from_matches(matches, ie='RtlNl')
 
-        # Look for embedded (iframe) Vimeo player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/.+?)\1', webpage)
-        if mobj:
-            player_url = unescapeHTML(mobj.group('url'))
-            surl = smuggle_url(player_url, {'Referer': url})
-            return self.url_result(surl)
-        # Look for embedded (swf embed) Vimeo player
-        mobj = re.search(
-            r'<embed[^>]+?src="((?:https?:)?//(?:www\.)?vimeo\.com/moogaloop\.swf.+?)"', webpage)
-        if mobj:
-            return self.url_result(mobj.group(1))
+        vimeo_url = VimeoIE._extract_vimeo_url(url, webpage)
+        if vimeo_url is not None:
+            return self.url_result(vimeo_url)
 
         # Look for embedded YouTube player
         matches = re.findall(r'''(?x)
