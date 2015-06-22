@@ -835,6 +835,18 @@ class GenericIE(InfoExtractor):
                 'title': 'Le débat',
                 'thumbnail': 're:^https?://.*\.jpe?g$',
             }
+        },
+        # AdobeTVVideo embed
+        {
+            'url': 'https://helpx.adobe.com/acrobat/how-to/new-experience-acrobat-dc.html?set=acrobat--get-started--essential-beginners',
+            'md5': '43662b577c018ad707a63766462b1e87',
+            'info_dict': {
+                'id': '2456',
+                'ext': 'mp4',
+                'title': 'New experience with Acrobat DC',
+                'description': 'New experience with Acrobat DC',
+                'duration': 248.667,
+            },
         }
     ]
 
@@ -1517,6 +1529,15 @@ class GenericIE(InfoExtractor):
         dmcloud_url = DailymotionCloudIE._extract_dmcloud_url(webpage)
         if dmcloud_url:
             return self.url_result(dmcloud_url, 'DailymotionCloud')
+
+        # Look for AdobeTVVideo embeds
+        mobj = re.search(
+            r'<iframe[^>]+src=[\'"]((?:https?:)?//video\.tv\.adobe\.com/v/\d+[^"]+)[\'"]',
+            webpage)
+        if mobj is not None:
+            return self.url_result(
+                self._proto_relative_url(unescapeHTML(mobj.group(1))),
+                'AdobeTVVideo')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
