@@ -6,9 +6,9 @@ from .common import InfoExtractor
 
 class FazIE(InfoExtractor):
     IE_NAME = 'faz.net'
-    _VALID_URL = r'https?://www\.faz\.net/multimedia/videos/.*?-(?P<id>\d+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?faz\.net/(?:[^/]+/)*.*?-(?P<id>\d+)\.html'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.faz.net/multimedia/videos/stockholm-chemie-nobelpreis-fuer-drei-amerikanische-forscher-12610585.html',
         'info_dict': {
             'id': '12610585',
@@ -16,7 +16,22 @@ class FazIE(InfoExtractor):
             'title': 'Stockholm: Chemie-Nobelpreis für drei amerikanische Forscher',
             'description': 'md5:1453fbf9a0d041d985a47306192ea253',
         },
-    }
+    }, {
+        'url': 'http://www.faz.net/aktuell/politik/berlin-gabriel-besteht-zerreissprobe-ueber-datenspeicherung-13659345.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.faz.net/berlin-gabriel-besteht-zerreissprobe-ueber-datenspeicherung-13659345.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.faz.net/-13659345.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.faz.net/aktuell/politik/-13659345.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.faz.net/foobarblafasel-13659345.html',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
