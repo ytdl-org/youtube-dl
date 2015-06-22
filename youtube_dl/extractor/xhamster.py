@@ -164,4 +164,4 @@ class XHamsterEmbedIE(InfoExtractor):
             r'href="(https?://xhamster\.com/movies/%s/[^"]+\.html[^"]*)"' % video_id,
             webpage, 'xhamster url')
 
-        return self.url_result(video_url, 'XHamster');
+        return self.url_result(video_url, 'XHamster')
