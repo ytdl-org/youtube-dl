@@ -175,19 +175,15 @@ class VimeoIE(VimeoBaseInfoExtractor):
     ]
 
     @staticmethod
-    def _extract_vimeo_url(url, webpage):
+    def _extract_vimeo_urls(url, webpage):
         # Look for embedded (iframe) Vimeo player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/.+?)\1', webpage)
+        mobj = re.findall(
+            r'<(?:iframe|embed)[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:player\.vimeo\.com/video/|(?:www\.)?vimeo\.com/moogaloop\.swf).+?)\1', webpage)
         if mobj:
-            player_url = unescapeHTML(mobj.group('url'))
-            surl = smuggle_url(player_url, {'Referer': url})
-            return surl
-        # Look for embedded (swf embed) Vimeo player
-        mobj = re.search(
-            r'<embed[^>]+?src="((?:https?:)?//(?:www\.)?vimeo\.com/moogaloop\.swf.+?)"', webpage)
-        if mobj:
-            return mobj.group(1)
+            return map(
+               lambda m: smuggle_url(unescapeHTML(m[1]), {'Referer': url}),
+               mobj
+            )
 
     def _verify_video_password(self, url, video_id, webpage):
         password = self._downloader.params.get('videopassword', None)

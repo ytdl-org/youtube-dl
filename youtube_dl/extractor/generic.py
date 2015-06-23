@@ -1124,9 +1124,9 @@ class GenericIE(InfoExtractor):
         if matches:
             return _playlist_from_matches(matches, ie='RtlNl')
 
-        vimeo_url = VimeoIE._extract_vimeo_url(url, webpage)
-        if vimeo_url is not None:
-            return self.url_result(vimeo_url)
+        vimeo_urls = VimeoIE._extract_vimeo_urls(url, webpage)
+        if vimeo_urls is not None:
+            return _playlist_from_matches(vimeo_urls, ie='Vimeo')
 
         # Look for embedded YouTube player
         matches = re.findall(r'''(?x)
