@@ -977,10 +977,10 @@ class GenericIE(InfoExtractor):
                 'upload_date': upload_date,
             }
 
-        if (not self._downloader.params.get('test', False) and
-                not is_intentional and
-                not self._downloader.params.get('force_generic_extractor', False)):
-            self._downloader.report_warning('Falling back on generic information extractor.')
+        if not self._downloader.params.get('test', False) and not is_intentional:
+            force = self._downloader.params.get('force_generic_extractor', False)
+            self._downloader.report_warning(
+                '%s on generic information extractor.' % ('Forcing' if force else 'Falling back'))
 
         if not full_response:
             request = compat_urllib_request.Request(url)
