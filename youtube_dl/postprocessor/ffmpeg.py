@@ -364,6 +364,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
             metadata['comment'] = info['description']
         if info.get('webpage_url') is not None:
             metadata['purl'] = info['webpage_url']
+            metadata['copyright'] = info['webpage_url']
         if info.get('album') is not None:
             metadata['album'] = info['album']
 
