@@ -72,9 +72,14 @@ class TumblrIE(InfoExtractor):
         if pornhub_url:
             return self.url_result(pornhub_url, 'PornHub')
 
-        vimeo_url = VimeoIE._extract_vimeo_url(url, webpage)
-        if vimeo_url:
-            return self.url_result(vimeo_url, 'Vimeo')
+        vimeo_urls = VimeoIE._extract_vimeo_urls(url, webpage)
+        if vimeo_urls:
+            entries = [{
+                '_type': 'url',
+                'url': vurl,
+                'ie_key': 'Vimeo'
+            } for vurl in vimeo_urls]
+            return self.playlist_result(entries)
 
         iframe_url = self._search_regex(
             r'src=\'(https?://www\.tumblr\.com/video/[^\']+)\'',
