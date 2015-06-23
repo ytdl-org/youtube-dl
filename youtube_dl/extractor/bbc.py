@@ -540,7 +540,7 @@ class BBCNewsIE(BBCCoUkIE):
             self._sort_formats(formats)
 
             ret.append( {
-                'id': jent.get('programme_id',jent.get('id')),
+                'id': jent.get('id') if programme_id == None else programme_id,
                 'uploader': 'BBC News',
                 'upload_date': pubdate,
                 'title': title,
