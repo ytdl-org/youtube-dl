@@ -46,6 +46,7 @@ from .pornhub import PornHubIE
 from .xhamster import XHamsterEmbedIE
 from .vimeo import VimeoIE
 from .dailymotion import DailymotionCloudIE
+from .onionstudios import OnionStudiosIE
 
 
 class GenericIE(InfoExtractor):
@@ -1531,6 +1532,11 @@ class GenericIE(InfoExtractor):
         dmcloud_url = DailymotionCloudIE._extract_dmcloud_url(webpage)
         if dmcloud_url:
             return self.url_result(dmcloud_url, 'DailymotionCloud')
+
+        # Look for OnionStudios embeds
+        onionstudios_url = OnionStudiosIE._extract_url(webpage)
+        if onionstudios_url:
+            return self.url_result(onionstudios_url)
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(
