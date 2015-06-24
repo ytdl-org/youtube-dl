@@ -195,7 +195,7 @@ class NocoIE(InfoExtractor):
         if episode_number:
             title += ' #' + compat_str(episode_number)
         if episode:
-            title += ' - ' + episode
+            title += ' - ' + compat_str(episode)
 
         description = show.get('show_resume') or show.get('family_resume')
 
