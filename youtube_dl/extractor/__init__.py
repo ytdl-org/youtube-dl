@@ -196,6 +196,7 @@ from .gamestar import GameStarIE
 from .gametrailers import GametrailersIE
 from .gazeta import GazetaIE
 from .gdcvault import GDCVaultIE
+from .geeksandsundry import GeeksAndSundryIE
 from .generic import GenericIE
 from .gfycat import GfycatIE
 from .giantbomb import GiantBombIE
