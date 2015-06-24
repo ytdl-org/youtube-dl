@@ -307,6 +307,9 @@ class SoundcloudUserIE(SoundcloudIE):
             'title': 'The Royal Concept',
         },
         'playlist_mincount': 1,
+    }, {
+        'url': 'https://soundcloud.com/the-akashic-chronicler/tracks',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
