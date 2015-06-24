@@ -708,6 +708,16 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='addmetadata', default=False,
         help='Write metadata to the video file')
     postproc.add_option(
+        '--custom-meta',
+        action='append', dest='custommeta', default=[],
+        help='Write specific information to a metadata tag.'
+             'Syntax: "tagname=string to add with %(format)s" '
+             'The formatting syntax is the same as output. '
+             'Example: --custom-meta "comment=%(webpage_url)s\\n%(description)s" will '
+             'add a line with the url, then the description in the "comment" tag. '
+             'Tags are format-specific, common ones include: artist, comment, title, copyright, uploader. '
+             'This can be invoked multiple times for different tags.')
+    postproc.add_option(
         '--metadata-from-title',
         metavar='FORMAT', dest='metafromtitle',
         help='Parse additional metadata like song title / artist from the video title. '

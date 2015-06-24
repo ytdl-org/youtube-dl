@@ -367,6 +367,10 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         if info.get('album') is not None:
             metadata['album'] = info['album']
 
+        for m in self._downloader.params.get('custommeta'):
+            key,val = m.split('=',1)
+            metadata[key] = val.replace('\\n', '\n') % info
+
         if not metadata:
             self._downloader.to_screen('[ffmpeg] There isn\'t any metadata to add')
             return [], info
