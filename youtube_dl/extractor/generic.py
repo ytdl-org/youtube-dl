@@ -837,6 +837,18 @@ class GenericIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*\.jpe?g$',
             }
         },
+        # OnionStudios embed
+        {
+            'url': 'http://www.clickhole.com/video/dont-understand-bitcoin-man-will-mumble-explanatio-2537',
+            'info_dict': {
+                'id': '2855',
+                'ext': 'mp4',
+                'title': 'Don’t Understand Bitcoin? This Man Will Mumble An Explanation At You',
+                'thumbnail': 're:^https?://.*\.jpe?g$',
+                'uploader': 'ClickHole',
+                'uploader_id': 'clickhole',
+            }
+        },
         # AdobeTVVideo embed
         {
             'url': 'https://helpx.adobe.com/acrobat/how-to/new-experience-acrobat-dc.html?set=acrobat--get-started--essential-beginners',
