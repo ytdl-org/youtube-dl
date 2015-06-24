@@ -388,6 +388,7 @@ from .nytimes import (
 from .nuvid import NuvidIE
 from .odnoklassniki import OdnoklassnikiIE
 from .oktoberfesttv import OktoberfestTVIE
+from .onionstudios import OnionStudiosIE
 from .ooyala import (
     OoyalaIE,
     OoyalaExternalIE,
