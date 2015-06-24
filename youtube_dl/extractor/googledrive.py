@@ -4,11 +4,11 @@ from ..utils import RegexNotFoundError
 class GoogleDriveIE(InfoExtractor):
     _VALID_URL = r'(?:https?://)?(?:video\.google\.com/get_player\?.*?docid=|(?:docs|drive)\.google\.com/(?:uc\?.*?id=|file/d/))(?P<id>.+?)(?:&|/|$)'
     _TEST = {
-        'url': 'https://drive.google.com/file/d/0BzpExh0WzJF0NlR5WUlxdEVsY0U/edit?pli=1',
+        'url': 'https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/edit?pli=1',
         'info_dict': {
-            'id': '0BzpExh0WzJF0NlR5WUlxdEVsY0U',
+            'id': '0ByeS4oOUV-49Zzh4R1J6R09zazQ',
             'ext': 'mp4',
-            'title': '[AHSH] Fairy Tail S2 - 01 [720p].mp4',
+            'title': 'Big Buck Bunny.mp4',
         }
     }
     _formats = {
