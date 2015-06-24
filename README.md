@@ -379,7 +379,7 @@ In February 2015, the new YouTube player contained a character sequence in a str
 
 ### HTTP Error 429: Too Many Requests or 402: Payment Required
 
-These two error codes indicate that the service is blocking your IP address because of overuse. Contact the service and ask them to unblock your IP address, or - if you have acquired a whitelisted IP address already - use the [`--proxy` or `--network-address` options](#network-options) to select another IP address.
+These two error codes indicate that the service is blocking your IP address because of overuse. Contact the service and ask them to unblock your IP address, or - if you have acquired a whitelisted IP address already - use the [`--proxy` or `--source-address` options](#network-options) to select another IP address.
 
 ### SyntaxError: Non-ASCII character ###
 
