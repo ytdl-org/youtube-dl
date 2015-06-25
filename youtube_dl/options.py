@@ -709,7 +709,7 @@ def parseOpts(overrideArguments=None):
         help='Write metadata to the video file')
     postproc.add_option(
         '--custom-meta',
-        action='append', dest='custommeta', default=[],
+        action='append', dest='custommeta', default=[], metavar='TAG=FORMAT',
         help='Write specific information to a metadata tag.'
              'Syntax: "tagname=string to add with %(format)s" '
              'The formatting syntax is the same as output. '
