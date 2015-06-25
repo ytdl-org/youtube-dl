@@ -9,9 +9,9 @@ from ..compat import (
 
 
 class InfoQIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?infoq\.com/[^/]+/(?P<id>[^/]+)$'
+    _VALID_URL = r'https?://(?:www\.)?infoq\.com/(?:[^/]+/)+(?P<id>[^/]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.infoq.com/presentations/A-Few-of-My-Favorite-Python-Things',
         'md5': 'b5ca0e0a8c1fed93b0e65e48e462f9a2',
         'info_dict': {
@@ -20,7 +20,10 @@ class InfoQIE(InfoExtractor):
             'description': 'Mike Pirnat presents some tips and tricks, standard libraries and third party packages that make programming in Python a richer experience.',
             'title': 'A Few of My Favorite [Python] Things',
         },
-    }
+    }, {
+        'url': 'http://www.infoq.com/fr/presentations/changez-avis-sur-javascript',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
