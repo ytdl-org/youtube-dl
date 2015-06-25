@@ -428,6 +428,8 @@ class BBCNewsIE(BBCCoUkIE):
             'title': 'Aerial footage showed the site of the crash in the Alps - courtesy BFM TV',
             'description': 'Germanwings plane crash site in aerial video - Aerial footage showed the site of the crash in the Alps - courtesy BFM TV',
             'duration': 47,
+            'upload_date': '20150324',
+            'uploader': 'BBC News',
         },
         'params': {
             'skip_download': True,
@@ -438,8 +440,11 @@ class BBCNewsIE(BBCCoUkIE):
         'info_dict': {
             'id': 'NA',
             'ext': 'mp4',
-            'title': 'YPG - Tel Abyad..n tamam. kontrol.m.zde',
+            'title': 'YPG: Tel Abyad\'\u0131n tamam\u0131 kontrol\xfcm\xfczde',
+            'description': 'YPG: Tel Abyad\'\u0131n tamam\u0131 kontrol\xfcm\xfczde',
             'duration': 47,
+            'upload_date': '20150615',
+            'uploader': 'BBC News',
         },
         'params': {
             'skip_download': True,
@@ -450,8 +455,11 @@ class BBCNewsIE(BBCCoUkIE):
         'info_dict': {
             'id': '39275083',
             'ext': 'mp4',
-            'title': 'Honduras militariza sus hospitales por nuevo esc.ndalo de corrupci.n',
+            'title': 'Honduras militariza sus hospitales por nuevo esc\xe1ndalo de corrupci\xf3n',
+            'description': 'Honduras militariza sus hospitales por nuevo esc\xe1ndalo de corrupci\xf3n',
             'duration': 87,
+            'upload_date': '20150619',
+            'uploader': 'BBC News',
         },
         'params': {
             'skip_download': True,
@@ -507,7 +515,9 @@ class BBCNewsIE(BBCCoUkIE):
             title = jent.get('caption',list_title)
 
             duration = parse_duration(jent.get('duration'))
-            description = list_title + ' - ' + jent.get('caption','')
+            description = list_title
+            if jent.get('caption'):
+               description += ' - ' + jent.get('caption')
             thumbnail = None
             if jent.has_key('image'):
                thumbnail=jent['image'].get('href')
@@ -539,8 +549,12 @@ class BBCNewsIE(BBCCoUkIE):
                
             self._sort_formats(formats)
 
+            id = jent.get('id') if programme_id == None else programme_id
+            if id == None:
+               id = 'NA'
+
             ret.append( {
-                'id': jent.get('id') if programme_id == None else programme_id,
+                'id': id,
                 'uploader': 'BBC News',
                 'upload_date': pubdate,
                 'title': title,
