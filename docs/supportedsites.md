@@ -17,6 +17,7 @@
  - **AcademicEarth:Course**
  - **AddAnime**
  - **AdobeTV**
+ - **AdobeTVVideo**
  - **AdultSwim**
  - **Aftenposten**
  - **Aftonbladet**
@@ -110,6 +111,7 @@
  - **dailymotion**
  - **dailymotion:playlist**
  - **dailymotion:user**
+ - **DailymotionCloud**
  - **daum.net**
  - **DBTV**
  - **DctpTv**
@@ -344,6 +346,7 @@
  - **Odnoklassniki**
  - **OktoberfestTV**
  - **on.aol.com**
+ - **OnionStudios**
  - **Ooyala**
  - **OoyalaExternal**
  - **OpenFilm**
@@ -357,6 +360,7 @@
  - **PhilharmonieDeParis**: Philharmonie de Paris
  - **Phoenix**
  - **Photobucket**
+ - **Pinkbike**
  - **Pladform**
  - **PlanetaPlay**
  - **play.fm**
@@ -612,6 +616,7 @@
  - **XBef**
  - **XboxClips**
  - **XHamster**
+ - **XHamsterEmbed**
  - **XMinus**
  - **XNXX**
  - **Xstream**
@@ -628,7 +633,7 @@
  - **YesJapan**
  - **Ynet**
  - **YouJizz**
- - **Youku**
+ - **youku**
  - **YouPorn**
  - **YourUpload**
  - **youtube**: YouTube.com

@@ -54,6 +54,7 @@ which means you can modify it, redistribute it or use it however you like.
     --dump-user-agent                Display the current browser identification
     --list-extractors                List all supported extractors
     --extractor-descriptions         Output descriptions of all supported extractors
+    --force-generic-extractor        Force extraction to use the generic extractor
     --default-search PREFIX          Use this prefix for unqualified URLs. For example "gvsearch2:" downloads two videos from google videos for youtube-dl "large apple".
                                      Use the value "auto" to let youtube-dl guess ("auto_warning" to emit a warning when guessing). "error" just throws an error. The
                                      default value "fixup_error" repairs broken URLs, but emits an error if this is not possible instead of searching.
