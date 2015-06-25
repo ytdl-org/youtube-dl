@@ -234,6 +234,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '44': {'ext': 'webm', 'width': 854, 'height': 480},
         '45': {'ext': 'webm', 'width': 1280, 'height': 720},
         '46': {'ext': 'webm', 'width': 1920, 'height': 1080},
+        '59': {'ext': 'mp4', 'width': 854, 'height': 480},
+        '78': {'ext': 'mp4', 'width': 854, 'height': 480},
 
 
         # 3d videos

@@ -4,7 +4,10 @@ from .abc import ABCIE
 from .abc7news import Abc7NewsIE
 from .academicearth import AcademicEarthCourseIE
 from .addanime import AddAnimeIE
-from .adobetv import AdobeTVIE
+from .adobetv import (
+    AdobeTVIE,
+    AdobeTVVideoIE,
+)
 from .adultswim import AdultSwimIE
 from .aftenposten import AftenpostenIE
 from .aftonbladet import AftonbladetIE
@@ -103,6 +106,7 @@ from .dailymotion import (
     DailymotionIE,
     DailymotionPlaylistIE,
     DailymotionUserIE,
+    DailymotionCloudIE,
 )
 from .daum import DaumIE
 from .dbtv import DBTVIE
@@ -401,6 +405,7 @@ from .pbs import PBSIE
 from .philharmoniedeparis import PhilharmonieDeParisIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
+from .pinkbike import PinkbikeIE
 from .planetaplay import PlanetaPlayIE
 from .pladform import PladformIE
 from .played import PlayedIE
@@ -696,7 +701,10 @@ from .wrzuta import WrzutaIE
 from .wsj import WSJIE
 from .xbef import XBefIE
 from .xboxclips import XboxClipsIE
-from .xhamster import XHamsterIE
+from .xhamster import (
+    XHamsterIE,
+    XHamsterEmbedIE,
+)
 from .xminus import XMinusIE
 from .xnxx import XNXXIE
 from .xstream import XstreamIE

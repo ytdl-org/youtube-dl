@@ -13,7 +13,6 @@ from ..utils import (
 
 
 class XHamsterIE(InfoExtractor):
-    """Information Extractor for xHamster"""
     _VALID_URL = r'(?P<proto>https?)://(?:.+?\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.+?)\.html(?:\?.*)?'
     _TESTS = [
         {
@@ -133,3 +132,36 @@ class XHamsterIE(InfoExtractor):
             'age_limit': age_limit,
             'formats': formats,
         }
+
+
+class XHamsterEmbedIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?xhamster\.com/xembed\.php\?video=(?P<id>\d+)'
+    _TEST = {
+        'url': 'http://xhamster.com/xembed.php?video=3328539',
+        'info_dict': {
+            'id': '3328539',
+            'ext': 'mp4',
+            'title': 'Pen Masturbation',
+            'upload_date': '20140728',
+            'uploader_id': 'anonymous',
+            'duration': 5,
+            'age_limit': 18,
+        }
+    }
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return [url for _, url in re.findall(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?xhamster\.com/xembed\.php\?video=\d+)\1',
+            webpage)]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        video_url = self._search_regex(
+            r'href="(https?://xhamster\.com/movies/%s/[^"]+\.html[^"]*)"' % video_id,
+            webpage, 'xhamster url')
+
+        return self.url_result(video_url, 'XHamster')

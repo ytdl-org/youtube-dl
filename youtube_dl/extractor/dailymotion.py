@@ -251,3 +251,45 @@ class DailymotionUserIE(DailymotionPlaylistIE):
             'title': full_user,
             'entries': self._extract_entries(user),
         }
+
+
+class DailymotionCloudIE(DailymotionBaseInfoExtractor):
+    _VALID_URL = r'http://api\.dmcloud\.net/embed/[^/]+/(?P<id>[^/?]+)'
+
+    _TEST = {
+        # From http://www.francetvinfo.fr/economie/entreprises/les-entreprises-familiales-le-secret-de-la-reussite_933271.html
+        # Tested at FranceTvInfo_2
+        'url': 'http://api.dmcloud.net/embed/4e7343f894a6f677b10006b4/556e03339473995ee145930c?auth=1464865870-0-jyhsm84b-ead4c701fb750cf9367bf4447167a3db&autoplay=1',
+        'only_matching': True,
+    }
+
+    @classmethod
+    def _extract_dmcloud_url(self, webpage):
+        mobj = re.search(r'<iframe[^>]+src=[\'"](http://api\.dmcloud\.net/embed/[^/]+/[^\'"]+)[\'"]', webpage)
+        if mobj:
+            return mobj.group(1)
+
+        mobj = re.search(r'<input[^>]+id=[\'"]dmcloudUrlEmissionSelect[\'"][^>]+value=[\'"](http://api\.dmcloud\.net/embed/[^/]+/[^\'"]+)[\'"]', webpage)
+        if mobj:
+            return mobj.group(1)
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        request = self._build_request(url)
+        webpage = self._download_webpage(request, video_id)
+
+        title = self._html_search_regex(r'<title>([^>]+)</title>', webpage, 'title')
+
+        video_info = self._parse_json(self._search_regex(
+            r'var\s+info\s*=\s*([^;]+);', webpage, 'video info'), video_id)
+
+        # TODO: parse ios_url, which is in fact a manifest
+        video_url = video_info['mp4_url']
+
+        return {
+            'id': video_id,
+            'url': video_url,
+            'title': title,
+            'thumbnail': video_info.get('thumbnail_url'),
+        }

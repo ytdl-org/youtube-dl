@@ -13,6 +13,7 @@ from ..compat import (
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urlparse,
+    compat_xml_parse_error,
 )
 from ..utils import (
     determine_ext,
@@ -119,7 +120,7 @@ class BrightcoveIE(InfoExtractor):
 
         try:
             object_doc = xml.etree.ElementTree.fromstring(object_str.encode('utf-8'))
-        except xml.etree.ElementTree.ParseError:
+        except compat_xml_parse_error:
             return
 
         fv_el = find_xpath_attr(object_doc, './param', 'name', 'flashVars')

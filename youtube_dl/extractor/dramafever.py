@@ -6,6 +6,8 @@ import itertools
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
+    compat_urllib_parse,
+    compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
@@ -17,7 +19,39 @@ from ..utils import (
 )
 
 
-class DramaFeverIE(InfoExtractor):
+class DramaFeverBaseIE(InfoExtractor):
+    _LOGIN_URL = 'https://www.dramafever.com/accounts/login/'
+    _NETRC_MACHINE = 'dramafever'
+
+    def _real_initialize(self):
+        self._login()
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            return
+
+        login_form = {
+            'username': username,
+            'password': password,
+        }
+
+        request = compat_urllib_request.Request(
+            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+        response = self._download_webpage(
+            request, None, 'Logging in as %s' % username)
+
+        if all(logout_pattern not in response
+               for logout_pattern in ['href="/accounts/logout/"', '>Log out<']):
+            error = self._html_search_regex(
+                r'(?s)class="hidden-xs prompt"[^>]*>(.+?)<',
+                response, 'error message', default=None)
+            if error:
+                raise ExtractorError('Unable to login: %s' % error, expected=True)
+            raise ExtractorError('Unable to log in')
+
+
+class DramaFeverIE(DramaFeverBaseIE):
     IE_NAME = 'dramafever'
     _VALID_URL = r'https?://(?:www\.)?dramafever\.com/drama/(?P<id>[0-9]+/[0-9]+)(?:/|$)'
     _TEST = {
@@ -97,7 +131,7 @@ class DramaFeverIE(InfoExtractor):
         }
 
 
-class DramaFeverSeriesIE(InfoExtractor):
+class DramaFeverSeriesIE(DramaFeverBaseIE):
     IE_NAME = 'dramafever:series'
     _VALID_URL = r'https?://(?:www\.)?dramafever\.com/drama/(?P<id>[0-9]+)(?:/(?:(?!\d+(?:/|$)).+)?)?$'
     _TESTS = [{
@@ -151,8 +185,11 @@ class DramaFeverSeriesIE(InfoExtractor):
                 % (consumer_secret, series_id, self._PAGE_SIZE, page_num),
                 series_id, 'Downloading episodes JSON page #%d' % page_num)
             for episode in episodes.get('value', []):
+                episode_url = episode.get('episode_url')
+                if not episode_url:
+                    continue
                 entries.append(self.url_result(
-                    compat_urlparse.urljoin(url, episode['episode_url']),
+                    compat_urlparse.urljoin(url, episode_url),
                     'DramaFever', episode.get('guid')))
             if page_num == episodes['num_pages']:
                 break

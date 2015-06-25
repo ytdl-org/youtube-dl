@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from .pornhub import PornHubIE
+from .vimeo import VimeoIE
 
 
 class TumblrIE(InfoExtractor):
@@ -40,6 +41,17 @@ class TumblrIE(InfoExtractor):
             'timestamp': 1430931613,
         },
         'add_ie': ['Vidme'],
+    }, {
+        'url': 'http://camdamage.tumblr.com/post/98846056295/',
+        'md5': 'a9e0c8371ea1ca306d6554e3fecf50b6',
+        'info_dict': {
+            'id': '105463834',
+            'ext': 'mp4',
+            'title': 'Cam Damage-HD 720p',
+            'uploader': 'John Moyer',
+            'uploader_id': 'user32021558',
+        },
+        'add_ie': ['Vimeo'],
     }]
 
     def _real_extract(self, url):
@@ -59,6 +71,10 @@ class TumblrIE(InfoExtractor):
         pornhub_url = PornHubIE._extract_url(webpage)
         if pornhub_url:
             return self.url_result(pornhub_url, 'PornHub')
+
+        vimeo_url = VimeoIE._extract_vimeo_url(url, webpage)
+        if vimeo_url:
+            return self.url_result(vimeo_url, 'Vimeo')
 
         iframe_url = self._search_regex(
             r'src=\'(https?://www\.tumblr\.com/video/[^\']+)\'',
