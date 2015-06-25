@@ -17,7 +17,7 @@ class TheSixtyOneIE(InfoExtractor):
             song
         )/(?P<id>[A-Za-z0-9]+)/?$'''
     _SONG_URL_TEMPLATE = 'http://thesixtyone.com/s/{0:}'
-    _SONG_FILE_URL_TEMPLATE = 'http://{audio_server:}.thesixtyone.com/thesixtyone_production/audio/{0:}_stream'
+    _SONG_FILE_URL_TEMPLATE = 'http://{audio_server:}/thesixtyone_production/audio/{0:}_stream'
     _THUMBNAIL_URL_TEMPLATE = '{photo_base_url:}_desktop'
     _TESTS = [
         {
@@ -78,6 +78,12 @@ class TheSixtyOneIE(InfoExtractor):
 
         song_data = json.loads(self._search_regex(
             r'"%s":\s(\{.*?\})' % song_id, webpage, 'song_data'))
+
+        if self._search_regex(r'(t61\.s3_audio_load\s*=\s*1\.0;)', webpage, 's3_audio_load marker', default=None):
+            song_data['audio_server'] = 's3.amazonaws.com'
+        else:
+            song_data['audio_server'] = song_data['audio_server'] + '.thesixtyone.com'
+
         keys = [self._DECODE_MAP.get(s, s) for s in song_data['key']]
         url = self._SONG_FILE_URL_TEMPLATE.format(
             "".join(reversed(keys)), **song_data)
