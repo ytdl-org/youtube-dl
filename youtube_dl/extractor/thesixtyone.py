@@ -1,9 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
-import re
-
 from .common import InfoExtractor
 from ..utils import unified_strdate
 
@@ -70,14 +67,13 @@ class TheSixtyOneIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        song_id = mobj.group('id')
+        song_id = self._match_id(url)
 
         webpage = self._download_webpage(
             self._SONG_URL_TEMPLATE.format(song_id), song_id)
 
-        song_data = json.loads(self._search_regex(
-            r'"%s":\s(\{.*?\})' % song_id, webpage, 'song_data'))
+        song_data = self._parse_json(self._search_regex(
+            r'"%s":\s(\{.*?\})' % song_id, webpage, 'song_data'), song_id)
 
         if self._search_regex(r'(t61\.s3_audio_load\s*=\s*1\.0;)', webpage, 's3_audio_load marker', default=None):
             song_data['audio_server'] = 's3.amazonaws.com'
