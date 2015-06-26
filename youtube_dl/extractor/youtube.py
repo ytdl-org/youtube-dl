@@ -824,6 +824,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     except StopIteration:
                         full_info = self._formats.get(format_id, {}).copy()
                         full_info.update(f)
+                        codecs = r.attrib.get('codecs')
+                        if codecs:
+                            if full_info.get('acodec') == 'none' and 'vcodec' not in full_info:
+                                full_info['vcodec'] = codecs
+                            elif full_info.get('vcodec') == 'none' and 'acodec' not in full_info:
+                                full_info['acodec'] = codecs
                         formats.append(full_info)
                     else:
                         existing_format.update(f)
