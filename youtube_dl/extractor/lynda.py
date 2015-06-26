@@ -65,7 +65,7 @@ class LyndaBaseIE(InfoExtractor):
                     'stayPut': 'false',
                 }
                 request = compat_urllib_request.Request(
-                    self._LOGIN_URL, compat_urllib_parse.urlencode(confirm_form))
+                    self._LOGIN_URL, compat_urllib_parse.urlencode(confirm_form).encode('utf-8'))
                 login_page = self._download_webpage(
                     request, None,
                     'Confirming log in and log out from another device')
