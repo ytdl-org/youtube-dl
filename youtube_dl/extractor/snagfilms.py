@@ -31,7 +31,6 @@ class SnagFilmsIE(InfoExtractor):
             r'"data":{"film":(?P<data>{.*?}})}',
             webpage,
             'data',
-            group='data'
         ), display_id)
         title = json_data['title']
         video_id = json_data['id']
@@ -44,7 +43,6 @@ class SnagFilmsIE(InfoExtractor):
             r'sources: (?P<sources>\[.*?\])',
             embed_webpage,
             'sources',
-            group='sources',
             flags=DOTALL
         )), video_id)
 
