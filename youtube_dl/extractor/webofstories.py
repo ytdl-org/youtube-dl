@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import int_or_none
 
@@ -98,3 +100,26 @@ class WebOfStoriesIE(InfoExtractor):
             'description': description,
             'duration': duration,
         }
+
+
+class WebOfStoriesPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?webofstories\.com/playAll/(?P<id>[^/]+)'
+    _TESTS = []
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result('http://www.webofstories.com/play/%s' % video_number, 'WebOfStories')
+            for video_number in set(re.findall('href="/playAll/%s\?sId=(\d+)"' % playlist_id, webpage))
+        ]
+
+        title = self._html_search_regex(
+            r'<title>([^<]+)\s*-\s*Web\sof\sStories</title>', webpage, 'title')
+
+        description = self._html_search_meta(
+            'description', webpage, 'description')
+
+        return self.playlist_result(entries, playlist_id, title, description)
