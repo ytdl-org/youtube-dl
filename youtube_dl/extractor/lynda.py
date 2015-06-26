@@ -36,7 +36,7 @@ class LyndaBaseIE(InfoExtractor):
             'stayPut': 'false'
         }
         request = compat_urllib_request.Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
+            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         login_page = self._download_webpage(
             request, None, 'Logging in as %s' % username)
 
