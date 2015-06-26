@@ -1148,8 +1148,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     # fixed values (for example the resolution). See
                     # https://github.com/rg3/youtube-dl/issues/5774 for an
                     # example.
-                    dash_keys = set(df['format_id'] for df in dash_formats.values())
-                    formats = [f for f in formats if f['format_id'] not in dash_keys]
+                    formats = [f for f in formats if f['format_id'] not in dash_formats.keys()]
                     formats.extend(dash_formats.values())
 
         # Check for malformed aspect ratio
