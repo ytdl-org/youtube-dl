@@ -850,6 +850,15 @@ class GenericIE(InfoExtractor):
                 'uploader_id': 'clickhole',
             }
         },
+        # SnagFilms embed
+        {
+            'url': 'http://whilewewatch.blogspot.ru/2012/06/whilewewatch-whilewewatch-gripping.html',
+            'info_dict': {
+                'id': '74849a00-85a9-11e1-9660-123139220831',
+                'ext': 'mp4',
+                'title': '#whilewewatch',
+            }
+        },
         # AdobeTVVideo embed
         {
             'url': 'https://helpx.adobe.com/acrobat/how-to/new-experience-acrobat-dc.html?set=acrobat--get-started--essential-beginners',
