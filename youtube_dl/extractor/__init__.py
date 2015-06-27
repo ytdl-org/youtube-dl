@@ -493,6 +493,7 @@ from .smotri import (
     SmotriUserIE,
     SmotriBroadcastIE,
 )
+from .snagfilms import SnagFilmsIE
 from .snotr import SnotrIE
 from .sohu import SohuIE
 from .soompi import (
