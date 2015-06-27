@@ -9,19 +9,7 @@ from ..utils import str_to_int
 class MovieFapIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?moviefap\.com/videos/(?P<id>[0-9a-f]+)/(?P<name>[a-z-_]+)'
     _TESTS = [{
-        'url': 'http://www.moviefap.com/videos/e5da0d3edce5404418f5/jeune-couple-russe.html',
-        'md5': 'fa56683e291fc80635907168a743c9ad',
-        'info_dict': {
-            'id': 'e5da0d3edce5404418f5',
-            'ext': 'flv',
-            'title': 'Jeune Couple Russe',
-            'description': 'Amateur',
-            'thumbnail': 'http://pic.moviefap.com/thumbs/e5/949-18l.jpg',
-            'uploader_id': 'whiskeyjar',
-            'display_id': 'jeune-couple-russe',
-            'categories': ['Amateur', 'Teen']
-        }
-    }, {
+        # normal, multi-format video
         'url': 'http://www.moviefap.com/videos/be9867c9416c19f54a4a/experienced-milf-amazing-handjob.html',
         'md5': '26624b4e2523051b550067d547615906',
         'info_dict': {
@@ -33,6 +21,20 @@ class MovieFapIE(InfoExtractor):
             'uploader_id': 'darvinfred06',
             'display_id': 'experienced-milf-amazing-handjob',
             'categories': ['Amateur', 'Masturbation', 'Mature', 'Flashing']
+        }
+    }, {
+        # quirky single-format case where the extension is given as fid, but the video is really an flv
+        'url': 'http://www.moviefap.com/videos/e5da0d3edce5404418f5/jeune-couple-russe.html',
+        'md5': 'fa56683e291fc80635907168a743c9ad',
+        'info_dict': {
+            'id': 'e5da0d3edce5404418f5',
+            'ext': 'flv',
+            'title': 'Jeune Couple Russe',
+            'description': 'Amateur',
+            'thumbnail': 'http://pic.moviefap.com/thumbs/e5/949-18l.jpg',
+            'uploader_id': 'whiskeyjar',
+            'display_id': 'jeune-couple-russe',
+            'categories': ['Amateur', 'Teen']
         }
     }]
 
