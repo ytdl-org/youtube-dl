@@ -518,6 +518,20 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'skip_download': 'requires avconv',
             }
         },
+        # Extraction from multiple DASH manifests (https://github.com/rg3/youtube-dl/pull/6097)
+        {
+            'url': 'https://www.youtube.com/watch?v=FIl7x6_3R5Y',
+            'info_dict': {
+                'id': 'FIl7x6_3R5Y',
+                'ext': 'mp4',
+                'title': 'md5:7b81415841e02ecd4313668cde88737a',
+                'description': 'md5:116377fd2963b81ec4ce64b542173306',
+                'upload_date': '20150625',
+                'uploader_id': 'dorappi2000',
+                'uploader': 'dorappi2000',
+                'formats': 'mincount:33',
+            },
+        }
     ]
 
     def __init__(self, *args, **kwargs):
