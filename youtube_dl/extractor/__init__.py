@@ -621,6 +621,7 @@ from .twitch import (
     TwitchBookmarksIE,
     TwitchStreamIE,
 )
+from .twitter import TwitterCardIE
 from .ubu import UbuIE
 from .udemy import (
     UdemyIE,
