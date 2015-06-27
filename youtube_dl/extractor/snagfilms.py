@@ -43,7 +43,7 @@ class SnagFilmsEmbedIE(InfoExtractor):
 
         if '>This film is not playable in your area.<' in webpage:
             raise ExtractorError(
-                'This film is not playable in your area.', expected=True)
+                'Film %s is not playable in your area.' % video_id, expected=True)
 
         formats = []
         for source in self._parse_json(js_to_json(self._search_regex(
@@ -115,6 +115,10 @@ class SnagFilmsIE(InfoExtractor):
         display_id = self._match_id(url)
 
         webpage = self._download_webpage(url, display_id)
+
+        if ">Sorry, the Film you're looking for is not available.<" in webpage:
+            raise ExtractorError(
+                'Film %s is not available.' % display_id, expected=True)
 
         film_id = self._search_regex(r'filmId=([\da-f-]{36})"', webpage, 'film id')
 
