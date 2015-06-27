@@ -131,5 +131,6 @@ def list_external_downloaders():
 def get_external_downloader(external_downloader):
     """ Given the name of the executable, see whether we support the given
         downloader . """
-    bn = os.path.basename(external_downloader)
+    # Drop .exe extension on Windows
+    bn = os.path.splitext(os.path.basename(external_downloader))[0]
     return _BY_NAME[bn]
