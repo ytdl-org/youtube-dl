@@ -91,9 +91,10 @@ class SnagFilmsIE(InfoExtractor):
 
         formats = []
         for source in sources:
-            if source['type'] == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(source['file'], video_id))
-            else:
+            if source['type'] != 'm3u8':
+# The extraction of m3u8 fails most of the time
+#                formats.extend(self._extract_m3u8_formats(source['file'], video_id))
+#            else:
                 formats.append({'url': source['file'],'ext': source['type'], 'resolution': source['label']})
         self._sort_formats(formats)
 
