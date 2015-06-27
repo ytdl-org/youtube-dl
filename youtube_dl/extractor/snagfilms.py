@@ -4,6 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     clean_html,
     determine_ext,
     int_or_none,
@@ -30,7 +31,8 @@ class SnagFilmsEmbedIE(InfoExtractor):
     @staticmethod
     def _extract_url(webpage):
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:embed\.)?snagfilms\.com/embed/player.+?)\1', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:embed\.)?snagfilms\.com/embed/player.+?)\1',
+            webpage)
         if mobj:
             return mobj.group('url')
 
@@ -38,6 +40,10 @@ class SnagFilmsEmbedIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
+
+        if '>This film is not playable in your area.<' in webpage:
+            raise ExtractorError(
+                'This film is not playable in your area.', expected=True)
 
         formats = []
         for source in self._parse_json(js_to_json(self._search_regex(
