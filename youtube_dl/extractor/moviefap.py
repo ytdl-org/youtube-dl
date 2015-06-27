@@ -82,8 +82,36 @@ class MovieFapIE(InfoExtractor):
                 r'flashvars\.config = escape\("(.+?)"', webpage, 'player parameters')
         xml = self._download_xml(info_url, video_id)
 
-        info = {
+        # find the video container
+        if xml.find('videoConfig') is not None:
+            ext = xml.find('videoConfig').find('type').text
+        else:
+            ext = 'flv'  # guess...
+
+        # work out the video URL(s)
+        formats = []
+        if xml.find('videoLink') is not None:
+            # single format available
+            formats.append({
+                'url': xpath_text(xml, 'videoLink', 'url', True),
+                'ext': ext
+            })
+        else:
+            # multiple formats available
+            for item in xml.find('quality').findall('item'):
+                resolution = xpath_text(item, 'res', 'resolution', True)  # 480p etc.
+                formats.append({
+                    'url': xpath_text(item, 'videoLink', 'url', True),
+                    'ext': ext,
+                    'resolution': resolution,
+                    'height': int(re.findall(r'\d+', resolution)[0])
+                })
+
+            self._sort_formats(formats)
+
+        return {
             'id': video_id,
+            'formats': formats,
             'title': self._html_search_regex( \
                     r'<div id="view_title"><h1>(.*?)</h1>', webpage, 'title'),
             'display_id': re.compile(self._VALID_URL).match(url).group('name'),
@@ -105,29 +133,3 @@ class MovieFapIE(InfoExtractor):
             'categories': self._html_search_regex( \
                     r'</div>\s*(.*?)\s*<br>', webpage, 'categories', fatal=False).split(', ')
         }
-
-        # find and add the format
-        if xml.find('videoConfig') is not None:
-            info['ext'] = xml.find('videoConfig').find('type').text
-        else:
-            info['ext'] = 'flv'  # guess...
-
-        # work out the video URL(s)
-        if xml.find('videoLink') is not None:
-            # single format available
-            info['url'] = xpath_text(xml, 'videoLink', 'url', True)
-        else:
-            # multiple formats available
-            info['formats'] = []
-
-            for item in xml.find('quality').findall('item'):
-                resolution = xpath_text(item, 'res', 'resolution', True)  # 480p etc.
-                info['formats'].append({
-                    'url': xpath_text(item, 'videoLink', 'url', True),
-                    'resolution': resolution,
-                    'height': int(re.findall(r'\d+', resolution)[0])
-                })
-
-            self._sort_formats(info['formats'])
-
-        return info
