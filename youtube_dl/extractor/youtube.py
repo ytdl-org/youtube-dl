@@ -883,6 +883,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             add_dash_mpd(video_info)
         else:
             age_gate = False
+            video_info = None
             # Try looking directly into the video webpage
             mobj = re.search(r';ytplayer\.config\s*=\s*({.*?});', video_webpage)
             if mobj:
