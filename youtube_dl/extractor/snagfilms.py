@@ -27,6 +27,13 @@ class SnagFilmsEmbedIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:embed\.)?snagfilms\.com/embed/player.+?)\1', webpage)
+        if mobj:
+            return mobj.group('url')
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
