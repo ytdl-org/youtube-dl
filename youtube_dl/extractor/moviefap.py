@@ -21,16 +21,16 @@ class MovieFapIE(InfoExtractor):
             'display_id': 'jeune-couple-russe'
         }
     }, {
-        'url': 'http://www.moviefap.com/videos/3080837f6712355015c2/busty-british-blonde-takes-backdoor-in-fake-taxi.html',
-        'md5': 'bedef72cb23d27a20755fc430a6d7a0e',
+        'url': 'http://www.moviefap.com/videos/be9867c9416c19f54a4a/experienced-milf-amazing-handjob.html',
+        'md5': '26624b4e2523051b550067d547615906',
         'info_dict': {
-            'id': '3080837f6712355015c2',
+            'id': 'be9867c9416c19f54a4a',
             'ext': 'mp4',
-            'title': 'Busty British blonde takes backdoor in fake taxi',
-            'description': 'Big boobs British blonde flashing in fake taxi then giving titsjob and rimjob in the back seat before getting big cock up her tight ass',
-            'thumbnail': 'http://img.moviefap.com/a16:9w990r/thumbs/30/322021-18l.jpg',
-            'uploader_id': 'momcikoper',
-            'display_id': 'busty-british-blonde-takes-backdoor-in-fake-taxi'
+            'title': 'Experienced MILF Amazing Handjob',
+            'description': 'Experienced MILF giving an Amazing Handjob',
+            'thumbnail': 'http://img.moviefap.com/a16:9w990r/thumbs/be/322032-20l.jpg',
+            'uploader_id': 'darvinfred06',
+            'display_id': 'experienced-milf-amazing-handjob'
         }
     }]
 
