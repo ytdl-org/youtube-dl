@@ -28,6 +28,18 @@ class SnagFilmsIE(InfoExtractor):
             'description': 'A gripping portrait of the Occupy Wall Street media revolution,&nbsp;#WHILEWEWATCH is the first definitive film to emerge from Zuccotti Park—with full access and cooperation from masterminds who made #OccupyWallStreet a reality.&nbsp;The #OccupyWallStreet media team had no fear of a critical city government, big corporations, hostile police or a lagging mainstream media to tell their story. Through rain, snow, grueling days and sleeping on concrete, they pump out exhilarating ideas to the world. With little money, they rely on Twitter, texting, Wi-Fi, posters, Tumblr, live streams, YouTube, Facebook, dramatic marches, drumbeats and chants. As the film unfolds, we witness the burgeoning power of social media.<br />',
             'categories': ['Documentary','Politics']
         }
+    },{
+        'url': 'http://www.snagfilms.com/show/the_world_cut_project/india',
+        'info_dict':
+        {
+            'id': '00000145-d75c-d96e-a9c7-ff5c67b20000',
+            'display_id': 'india',
+            'ext': 'mp4',
+            'title': 'India',
+            'duration': 979,
+            'description': 'Soccer brings women together to end the cycle of child marriages and human trafficking in India. Through soccer they can be safe.',
+            'categories': ['Documentary','Sports','Politics']
+        }
     }]
 
     def _real_extract(self, url):
