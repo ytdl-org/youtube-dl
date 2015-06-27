@@ -121,20 +121,27 @@ class VKIE(InfoExtractor):
         if username is None:
             return
 
-        login_form = {
-            'act': 'login',
-            'role': 'al_frame',
-            'expire': '1',
+        login_page = self._download_webpage(
+            'https://vk.com', None, 'Downloading login page')
+
+        login_form = dict(re.findall(
+            r'<input\s+type="hidden"\s+name="([^"]+)"\s+(?:id="[^"]+"\s+)?value="([^"]*)"',
+            login_page))
+
+        login_form.update({
             'email': username.encode('cp1251'),
             'pass': password.encode('cp1251'),
-        }
+        })
 
-        request = compat_urllib_request.Request('https://login.vk.com/?act=login',
-                                                compat_urllib_parse.urlencode(login_form).encode('utf-8'))
-        login_page = self._download_webpage(request, None, note='Logging in as %s' % username)
+        request = compat_urllib_request.Request(
+            'https://login.vk.com/?act=login',
+            compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+        login_page = self._download_webpage(
+            request, None, note='Logging in as %s' % username)
 
         if re.search(r'onLoginFailed', login_page):
-            raise ExtractorError('Unable to login, incorrect username and/or password', expected=True)
+            raise ExtractorError(
+                'Unable to login, incorrect username and/or password', expected=True)
 
     def _real_initialize(self):
         self._login()
