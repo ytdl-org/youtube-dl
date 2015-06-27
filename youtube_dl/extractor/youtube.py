@@ -894,27 +894,28 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     # Convert to the same format returned by compat_parse_qs
                     video_info = dict((k, [v]) for k, v in args.items())
                     add_dash_mpd(video_info)
-            # We also try looking in get_video_info since it may contain different dashmpd
-            # URL that points to a DASH manifest with possibly different itag set (some itags
-            # are missing from DASH manifest pointed by webpage's dashmpd, some - from DASH
-            # manifest pointed by get_video_info's dashmpd).
-            # The general idea is to take a union of itags of both DASH manifests (for example
-            # video with such 'manifest behavior' see https://github.com/rg3/youtube-dl/issues/6093)
-            self.report_video_info_webpage_download(video_id)
-            for el_type in ['&el=info', '&el=embedded', '&el=detailpage', '&el=vevo', '']:
-                video_info_url = (
-                    '%s://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
-                    % (proto, video_id, el_type))
-                video_info_webpage = self._download_webpage(
-                    video_info_url,
-                    video_id, note=False,
-                    errnote='unable to download video info webpage')
-                get_video_info = compat_parse_qs(video_info_webpage)
-                add_dash_mpd(get_video_info)
-                if not video_info:
-                    video_info = get_video_info
-                if 'token' in get_video_info:
-                    break
+            if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
+                # We also try looking in get_video_info since it may contain different dashmpd
+                # URL that points to a DASH manifest with possibly different itag set (some itags
+                # are missing from DASH manifest pointed by webpage's dashmpd, some - from DASH
+                # manifest pointed by get_video_info's dashmpd).
+                # The general idea is to take a union of itags of both DASH manifests (for example
+                # video with such 'manifest behavior' see https://github.com/rg3/youtube-dl/issues/6093)
+                self.report_video_info_webpage_download(video_id)
+                for el_type in ['&el=info', '&el=embedded', '&el=detailpage', '&el=vevo', '']:
+                    video_info_url = (
+                        '%s://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
+                        % (proto, video_id, el_type))
+                    video_info_webpage = self._download_webpage(
+                        video_info_url,
+                        video_id, note=False,
+                        errnote='unable to download video info webpage')
+                    get_video_info = compat_parse_qs(video_info_webpage)
+                    add_dash_mpd(get_video_info)
+                    if not video_info:
+                        video_info = get_video_info
+                    if 'token' in get_video_info:
+                        break
         if 'token' not in video_info:
             if 'reason' in video_info:
                 raise ExtractorError(
