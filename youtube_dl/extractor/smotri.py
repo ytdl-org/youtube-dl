@@ -152,6 +152,10 @@ class SmotriIE(InfoExtractor):
             'getvideoinfo': '1',
         }
 
+        video_password = self._downloader.params.get('videopassword', None)
+        if video_password:
+            video_form['pass'] = hashlib.md5(video_password.encode('utf-8')).hexdigest()
+
         request = compat_urllib_request.Request(
             'http://smotri.com/video/view/url/bot/', compat_urllib_parse.urlencode(video_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
@@ -161,12 +165,17 @@ class SmotriIE(InfoExtractor):
         video_url = video.get('_vidURL') or video.get('_vidURL_mp4')
 
         if not video_url:
-            if video.get('_moderate_no') or not video.get('moderated'):
+            if video.get('_moderate_no'):
                 raise ExtractorError(
                     'Video %s has not been approved by moderator' % video_id, expected=True)
 
             if video.get('error'):
                 raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+
+            if video.get('_pass_protected') == 1:
+                msg = ('Invalid video password' if video_password
+                       else 'This video is protected by a password, use the --video-password option')
+                raise ExtractorError(msg, expected=True)
 
         title = video['title']
         thumbnail = video['_imgURL']
