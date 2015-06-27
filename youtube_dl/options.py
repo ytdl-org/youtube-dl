@@ -351,7 +351,8 @@ def parseOpts(overrideArguments=None):
         '--merge-output-format',
         action='store', dest='merge_output_format', metavar='FORMAT', default=None,
         help=(
-            'If a merge is required (e.g. bestvideo+bestaudio), output to given container format. One of mkv, mp4, ogg, webm, flv.'
+            'If a merge is required (e.g. bestvideo+bestaudio), '
+            'output to given container format. One of mkv, mp4, ogg, webm, flv. '
             'Ignored if no merge is required'))
 
     subtitles = optparse.OptionGroup(parser, 'Subtitle Options')
