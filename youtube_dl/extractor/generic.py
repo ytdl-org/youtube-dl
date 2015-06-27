@@ -47,6 +47,7 @@ from .xhamster import XHamsterEmbedIE
 from .vimeo import VimeoIE
 from .dailymotion import DailymotionCloudIE
 from .onionstudios import OnionStudiosIE
+from .snagfilms import SnagFilmsEmbedIE
 
 
 class GenericIE(InfoExtractor):
@@ -1549,6 +1550,11 @@ class GenericIE(InfoExtractor):
         onionstudios_url = OnionStudiosIE._extract_url(webpage)
         if onionstudios_url:
             return self.url_result(onionstudios_url)
+
+        # Look for SnagFilms embeds
+        snagfilms_url = SnagFilmsEmbedIE._extract_url(webpage)
+        if snagfilms_url:
+            return self.url_result(snagfilms_url)
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(
