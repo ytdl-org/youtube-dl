@@ -34,7 +34,6 @@ class SnagFilmsIE(InfoExtractor):
         display_id, video_id = match(self._VALID_URL,url).groups()
         if display_id is None:
             embed_webpage = self._download_webpage('http://www.snagfilms.com/embed/player?filmId=' + video_id, video_id)
-
             display_id = self._html_search_regex(
                 r"snagfilms\.com/films/title/(?P<display_id>.+?)(?:/|')",
                 embed_webpage,
@@ -48,15 +47,15 @@ class SnagFilmsIE(InfoExtractor):
             'data'
         ), display_id)
 
+        if video_id is None:
+            video_id = json_data['id']
+            embed_webpage = self._download_webpage('http://www.snagfilms.com/embed/player?filmId=' + video_id, video_id)
+
         title = json_data['title']
         duration = int(json_data['duration'])
         description = json_data['synopsis']
         categories = [category['title'] for category in json_data['categories']]
         thumbnail = json_data['image']
-
-        if video_id is None:
-            video_id = json_data['id']
-            embed_webpage = self._download_webpage('http://www.snagfilms.com/embed/player?filmId=' + video_id, video_id)
 
         sources = self._parse_json(js_to_json(self._html_search_regex(
             r'sources: (?P<sources>\[.*?\])',
