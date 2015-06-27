@@ -32,6 +32,7 @@ from ..utils import (
     unescapeHTML,
     unified_strdate,
     uppercase_escape,
+    ISO3166Utils,
 )
 
 
@@ -903,6 +904,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         break
         if 'token' not in video_info:
             if 'reason' in video_info:
+                if 'The uploader has not made this video available in your country.' in video_info['reason']:
+                    regions_allowed = self._html_search_meta('regionsAllowed', video_webpage, default=None)
+                    if regions_allowed is not None:
+                        raise ExtractorError('YouTube said: This video is available in %s only' % (
+                            ', '.join(map(ISO3166Utils.short2full, regions_allowed.split(',')))),
+                            expected=True)
                 raise ExtractorError(
                     'YouTube said: %s' % video_info['reason'][0],
                     expected=True, video_id=video_id)
