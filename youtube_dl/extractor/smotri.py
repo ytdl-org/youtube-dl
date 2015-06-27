@@ -90,21 +90,6 @@ class SmotriIE(InfoExtractor):
             },
             'skip': 'Video is not approved by moderator',
         },
-        # not approved by moderator, but available
-        {
-            'url': 'http://smotri.com/video/view/?id=v28888533b73',
-            'md5': 'f44bc7adac90af518ef1ecf04893bb34',
-            'info_dict': {
-                'id': 'v28888533b73',
-                'ext': 'mp4',
-                'title': 'Russian Spies Killed By ISIL Child Soldier',
-                'uploader': 'Mopeder',
-                'uploader_id': 'mopeder',
-                'duration': 71,
-                'thumbnail': 'http://frame9.loadup.ru/d7/32/2888853.2.3.jpg',
-                'upload_date': '20150114',
-            },
-        },
         # swf player
         {
             'url': 'http://pics.smotri.com/scrubber_custom8.swf?file=v9188090500',
