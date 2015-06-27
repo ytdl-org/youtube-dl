@@ -53,7 +53,7 @@ class SmotriIE(InfoExtractor):
                 'thumbnail': 'http://frame4.loadup.ru/03/ed/57591.2.3.jpg',
             },
         },
-        # video-password
+        # video-password, not approved by moderator
         {
             'url': 'http://smotri.com/video/view/?id=v1390466a13c',
             'md5': 'f6331cef33cad65a0815ee482a54440b',
@@ -71,7 +71,24 @@ class SmotriIE(InfoExtractor):
             },
             'skip': 'Video is not approved by moderator',
         },
-        # age limit + video-password
+        # video-password
+        {
+            'url': 'http://smotri.com/video/view/?id=v6984858774#',
+            'md5': 'f11e01d13ac676370fc3b95b9bda11b0',
+            'info_dict': {
+                'id': 'v6984858774',
+                'ext': 'mp4',
+                'title': 'Дача Солженицина ПАРОЛЬ 223322',
+                'uploader': 'psavari1',
+                'uploader_id': 'psavari1',
+                'upload_date': '20081103',
+                'thumbnail': 're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'videopassword': '223322',
+            },
+        },
+        # age limit + video-password, not approved by moderator
         {
             'url': 'http://smotri.com/video/view/?id=v15408898bcf',
             'md5': '91e909c9f0521adf5ee86fbe073aad70',
@@ -89,6 +106,24 @@ class SmotriIE(InfoExtractor):
                 'videopassword': '333'
             },
             'skip': 'Video is not approved by moderator',
+        },
+        # age limit + video-password
+        {
+            'url': 'http://smotri.com/video/view/?id=v7780025814',
+            'md5': 'b4599b068422559374a59300c5337d72',
+            'info_dict': {
+                'id': 'v7780025814',
+                'ext': 'mp4',
+                'title': 'Sexy Beach (пароль 123)',
+                'uploader': 'вАся',
+                'uploader_id': 'asya_prosto',
+                'upload_date': '20081218',
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'age_limit': 18,
+            },
+            'params': {
+                'videopassword': '123'
+            },
         },
         # swf player
         {
