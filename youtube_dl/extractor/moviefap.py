@@ -18,7 +18,8 @@ class MovieFapIE(InfoExtractor):
             'description': 'Amateur',
             'thumbnail': 'http://pic.moviefap.com/thumbs/e5/949-18l.jpg',
             'uploader_id': 'whiskeyjar',
-            'display_id': 'jeune-couple-russe'
+            'display_id': 'jeune-couple-russe',
+            'categories': ['Amateur', 'Teen']
         }
     }, {
         'url': 'http://www.moviefap.com/videos/be9867c9416c19f54a4a/experienced-milf-amazing-handjob.html',
@@ -30,7 +31,8 @@ class MovieFapIE(InfoExtractor):
             'description': 'Experienced MILF giving an Amazing Handjob',
             'thumbnail': 'http://img.moviefap.com/a16:9w990r/thumbs/be/322032-20l.jpg',
             'uploader_id': 'darvinfred06',
-            'display_id': 'experienced-milf-amazing-handjob'
+            'display_id': 'experienced-milf-amazing-handjob',
+            'categories': ['Amateur', 'Masturbation', 'Mature', 'Flashing']
         }
     }]
 
