@@ -78,23 +78,32 @@ class MovieFapIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         # find and retrieve the XML document detailing video download URLs
-        info_url = self._html_search_regex(r'flashvars\.config = escape\("(.+?)"', webpage, 'player parameters')
+        info_url = self._html_search_regex( \
+                r'flashvars\.config = escape\("(.+?)"', webpage, 'player parameters')
         xml = self._download_xml(info_url, video_id)
 
         info = {
             'id': video_id,
-            'title': self._html_search_regex(r'<div id="view_title"><h1>(.*?)</h1>', webpage, 'title'),
+            'title': self._html_search_regex( \
+                    r'<div id="view_title"><h1>(.*?)</h1>', webpage, 'title'),
             'display_id': re.compile(self._VALID_URL).match(url).group('name'),
             'thumbnails': self.__get_thumbnail_data(xml),
             'thumbnail': xpath_text(xml, 'startThumb', 'thumbnail'),
-            'description': self._html_search_regex(r'name="description" value="(.*?)"', webpage, 'description', fatal=False),
-            'uploader_id': self._html_search_regex(r'name="username" value="(.*?)"', webpage, 'uploader_id', fatal=False),
-            'view_count': str_to_int(self._html_search_regex(r'<br>Views <strong>([0-9]+)</strong>', webpage, 'view_count, fatal=False')),
-            'average_rating': float(self._html_search_regex(r'Current Rating<br> <strong>(.*?)</strong>', webpage, 'average_rating', fatal=False)),
-            'comment_count': str_to_int(self._html_search_regex(r'<span id="comCount">([0-9]+)</span>', webpage, 'comment_count', fatal=False)),
+            'description': self._html_search_regex( \
+                    r'name="description" value="(.*?)"', webpage, 'description', fatal=False),
+            'uploader_id': self._html_search_regex( \
+                    r'name="username" value="(.*?)"', webpage, 'uploader_id', fatal=False),
+            'view_count': str_to_int(self._html_search_regex( \
+                    r'<br>Views <strong>([0-9]+)</strong>', webpage, 'view_count, fatal=False')),
+            'average_rating': float(self._html_search_regex( \
+                    r'Current Rating<br> <strong>(.*?)</strong>', webpage, 'average_rating', fatal=False)),
+            'comment_count': str_to_int(self._html_search_regex( \
+                    r'<span id="comCount">([0-9]+)</span>', webpage, 'comment_count', fatal=False)),
             'age_limit': 18,
-            'webpage_url': self._html_search_regex(r'name="link" value="(.*?)"', webpage, 'webpage_url', fatal=False),
-            'categories': self._html_search_regex(r'</div>\s*(.*?)\s*<br>', webpage, 'categories', fatal=False).split(', ')
+            'webpage_url': self._html_search_regex( \
+                    r'name="link" value="(.*?)"', webpage, 'webpage_url', fatal=False),
+            'categories': self._html_search_regex( \
+                    r'</div>\s*(.*?)\s*<br>', webpage, 'categories', fatal=False).split(', ')
         }
 
         # find and add the format
