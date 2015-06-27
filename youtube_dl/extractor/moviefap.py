@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import str_to_int
+from ..utils import (
+    xpath_text,
+    str_to_int
+)
 
 
 class MovieFapIE(InfoExtractor):
@@ -82,7 +85,7 @@ class MovieFapIE(InfoExtractor):
             'title': self._html_search_regex(r'<div id="view_title"><h1>(.*?)</h1>', webpage, 'title'),
             'display_id': re.compile(self._VALID_URL).match(url).group('name'),
             'thumbnails': self.__get_thumbnail_data(xml),
-            'thumbnail': xml.find('startThumb').text,
+            'thumbnail': xpath_text(xml, 'startThumb', 'thumbnail'),
             'description': self._html_search_regex(r'name="description" value="(.*?)"', webpage, 'description', fatal=False),
             'uploader_id': self._html_search_regex(r'name="username" value="(.*?)"', webpage, 'uploader_id', fatal=False),
             'view_count': str_to_int(self._html_search_regex(r'<br>Views <strong>([0-9]+)</strong>', webpage, 'view_count, fatal=False')),
@@ -102,7 +105,7 @@ class MovieFapIE(InfoExtractor):
         # work out the video URL(s)
         if xml.find('videoLink') is not None:
             # single format available
-            info['url'] = xml.find('videoLink').text
+            info['url'] = xpath_text(xml, 'videoLink', 'url', True)
         else:
             # multiple formats available
             info['formats'] = []
@@ -110,8 +113,8 @@ class MovieFapIE(InfoExtractor):
             # N.B. formats are already in ascending order of quality
             for item in xml.find('quality').findall('item'):
                 info['formats'].append({
-                    'url': item.find('videoLink').text,
-                    'resolution': item.find('res').text  # 480p etc.
+                    'url': xpath_text(item, 'videoLink', 'url', True),
+                    'resolution': xpath_text(item, 'res', 'resolution', True)  # 480p etc.
                 })
 
         return info
