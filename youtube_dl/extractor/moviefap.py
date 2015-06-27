@@ -7,6 +7,7 @@ from ..utils import (
     xpath_text,
     str_to_int
 )
+from ..compat import compat_str
 
 
 class MovieFapIE(InfoExtractor):
@@ -65,7 +66,7 @@ class MovieFapIE(InfoExtractor):
         thumbnails = []
         for i in range(first, last + 1):
             thumbnails.append({
-                'url': pattern.replace('#', str(i)),
+                'url': pattern.replace('#', compat_str(i)),
                 'width': width,
                 'height': height
             })
