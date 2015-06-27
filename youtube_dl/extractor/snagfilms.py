@@ -76,8 +76,8 @@ class SnagFilmsEmbedIE(InfoExtractor):
 
 
 class SnagFilmsIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?snagfilms\.com/films/title/(?P<id>[^/]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?snagfilms\.com/(?:films/title|show)/(?P<id>[^?#]+)'
+    _TESTS = [{
         'url': 'http://www.snagfilms.com/films/title/lost_for_life',
         'md5': '19844f897b35af219773fd63bdec2942',
         'info_dict': {
@@ -90,7 +90,20 @@ class SnagFilmsIE(InfoExtractor):
             'duration': 4489,
             'categories': ['Documentary', 'Crime', 'Award Winning', 'Festivals']
         }
-    }
+    }, {
+        'url': 'http://www.snagfilms.com/show/the_world_cut_project/india',
+        'md5': 'e6292e5b837642bbda82d7f8bf3fbdfd',
+        'info_dict': {
+            'id': '00000145-d75c-d96e-a9c7-ff5c67b20000',
+            'display_id': 'the_world_cut_project/india',
+            'ext': 'mp4',
+            'title': 'India',
+            'description': 'md5:5c168c5a8f4719c146aad2e0dfac6f5f',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'duration': 979,
+            'categories': ['Documentary', 'Sports', 'Politics']
+        }
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
