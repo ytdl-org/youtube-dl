@@ -111,11 +111,14 @@ class MovieFapIE(InfoExtractor):
             # multiple formats available
             info['formats'] = []
 
-            # N.B. formats are already in ascending order of quality
             for item in xml.find('quality').findall('item'):
+                resolution = xpath_text(item, 'res', 'resolution', True)  # 480p etc.
                 info['formats'].append({
                     'url': xpath_text(item, 'videoLink', 'url', True),
-                    'resolution': xpath_text(item, 'res', 'resolution', True)  # 480p etc.
+                    'resolution': resolution,
+                    'height': int(re.findall(r'\d+', resolution)[0])
                 })
+
+            self._sort_formats(info['formats'])
 
         return info
