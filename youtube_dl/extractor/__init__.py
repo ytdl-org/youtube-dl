@@ -311,6 +311,7 @@ from .morningstar import MorningstarIE
 from .motherless import MotherlessIE
 from .motorsport import MotorsportIE
 from .movieclips import MovieClipsIE
+from .moviefap import MovieFapIE
 from .moviezine import MoviezineIE
 from .movshare import MovShareIE
 from .mtv import (
