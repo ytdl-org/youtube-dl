@@ -109,6 +109,14 @@ class SnagFilmsIE(InfoExtractor):
             'duration': 979,
             'categories': ['Documentary', 'Sports', 'Politics']
         }
+    }, {
+        # Film is not playable in your area.
+        'url': 'http://www.snagfilms.com/films/title/inside_mecca',
+        'only_matching': True,
+    }, {
+        # Film is not available.
+        'url': 'http://www.snagfilms.com/show/augie_alone/flirting',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
