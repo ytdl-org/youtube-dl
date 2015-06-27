@@ -1,9 +1,9 @@
-from re import match,DOTALL
+from re import match,search,DOTALL
 from .common import InfoExtractor
 from ..utils import js_to_json
 
 class SnagFilmsIE(InfoExtractor):
-    _VALID_URL = r'(?:https?://)?(?:www.|embed.)?snagfilms\.com/(?:films/title/(?P<display_id>.+?)|embed/player\?.*filmId=(?P<id>.+?))(?:&|/|$)'
+    _VALID_URL = r'(?:https?://)?(?:www.|embed.)?snagfilms\.com/(?:(?:films/title|show/(?P<show_name>.+?))/(?P<display_id>.+?)|embed/player\?.*filmId=(?P<id>.+?))(?=&|/|$)'
     _TESTS = [{
         'url': 'http://www.snagfilms.com/films/title/lost_for_life',
         'info_dict':
@@ -31,15 +31,14 @@ class SnagFilmsIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        display_id, video_id = match(self._VALID_URL,url).groups()
+        show_name, display_id, video_id = match(self._VALID_URL,url).groups()
         if display_id is None:
             embed_webpage = self._download_webpage('http://www.snagfilms.com/embed/player?filmId=' + video_id, video_id)
-            display_id = self._html_search_regex(
-                r"snagfilms\.com/films/title/(?P<display_id>.+?)(?:/|')",
-                embed_webpage,
-                'display_id'
-            )
-        webpage = self._download_webpage('http://www.snagfilms.com/films/title/' + display_id, display_id)
+            url, show_name, display_id = search(
+                r"(?:https?://)?(?:www.)?snagfilms\.com/(?:films/title|show/(?P<show_name>.+?))/(?P<display_id>.+?)(?=/|')",
+                embed_webpage
+            ).group(0,1,2)
+        webpage = self._download_webpage(url, display_id)
 
         json_data = self._parse_json(self._html_search_regex(
             r'"data":{"film":(?P<data>{.*?}})}',
