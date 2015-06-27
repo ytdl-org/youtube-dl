@@ -1,9 +1,9 @@
 from re import match,search,DOTALL
 from .common import InfoExtractor
-from ..utils import js_to_json
+from ..utils import RegexNotFoundError,ExtractorError,js_to_json
 
 class SnagFilmsIE(InfoExtractor):
-    _VALID_URL = r'(?:https?://)?(?:www.|embed.)?snagfilms\.com/(?:(?:films/title|show/(?P<show_name>.+?))/(?P<display_id>.+?)|embed/player\?.*filmId=(?P<id>.+?))(?=&|/|$)'
+    _VALID_URL = r'(?:https?://)(?:www.|embed.)?snagfilms\.com/(?:(?:films/title|show/(?P<show_name>.+?))/(?P<display_id>.+?)|embed/player\?.*filmId=(?P<id>.+?))(?=&|/|$)'
     _TESTS = [{
         'url': 'http://www.snagfilms.com/films/title/lost_for_life',
         'info_dict':
@@ -46,34 +46,48 @@ class SnagFilmsIE(InfoExtractor):
         show_name, display_id, video_id = match(self._VALID_URL,url).groups()
         if display_id is None:
             embed_webpage = self._download_webpage('http://www.snagfilms.com/embed/player?filmId=' + video_id, video_id)
-            url, show_name, display_id = search(
-                r"(?:https?://)?(?:www.)?snagfilms\.com/(?:films/title|show/(?P<show_name>.+?))/(?P<display_id>.+?)(?=/|')",
+            p = search(
+                r"(?:https?://)(?:www.)?snagfilms\.com/(?:films/title|show/(?P<show_name>.+?))/(?P<display_id>.+?)(?=/|')",
                 embed_webpage
-            ).group(0,1,2)
+            )
+            if p is None:
+                if 'This film is not playable in your area.' in embed_webpage:
+                    raise ExtractorError('This film is not playable in your area')
+                else:
+                    raise ExtractorError('the Film you\'re looking for is not available')
+            url, show_name, display_id = p.group(0,1,2)
         webpage = self._download_webpage(url, display_id)
 
-        json_data = self._parse_json(self._html_search_regex(
-            r'"data":{"film":(?P<data>{.*?}})}',
-            webpage,
-            'data'
-        ), display_id)
+        try:
+            json_data = self._parse_json(self._html_search_regex(
+                r'"data":{"film":(?P<data>{.*?}})}',
+                webpage,
+                'data'
+            ), display_id)
+        except RegexNotFoundError:
+            raise ExtractorError('the Film you\'re looking for is not available')
 
         if video_id is None:
             video_id = json_data['id']
             embed_webpage = self._download_webpage('http://www.snagfilms.com/embed/player?filmId=' + video_id, video_id)
 
+        try:
+            sources = self._parse_json(js_to_json(self._html_search_regex(
+                r'sources: (?P<sources>\[.*?\])',
+                embed_webpage,
+                'sources',
+                flags=DOTALL
+            )), video_id)
+        except RegexNotFoundError:
+            if 'This film is not playable in your area.' in embed_webpage:
+                raise ExtractorError('This film is not playable in your area')
+            else:
+                raise ExtractorError('the Film you\'re looking for is not available')
         title = json_data['title']
         duration = int(json_data['duration'])
         description = json_data['synopsis']
         categories = [category['title'] for category in json_data['categories']]
         thumbnail = json_data['image']
-
-        sources = self._parse_json(js_to_json(self._html_search_regex(
-            r'sources: (?P<sources>\[.*?\])',
-            embed_webpage,
-            'sources',
-            flags=DOTALL
-        )), video_id)
 
         formats = []
         for source in sources:
