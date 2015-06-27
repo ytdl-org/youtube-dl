@@ -70,19 +70,13 @@ class MovieFapIE(InfoExtractor):
 
     def _real_extract(self, url):
 
-        # find the video ID
         video_id = self._match_id(url)
-
-        # retrieve the page HTML
         webpage = self._download_webpage(url, video_id)
 
-        # find the URL of the XML document detailing video download URLs
+        # find and retrieve the XML document detailing video download URLs
         info_url = self._html_search_regex(r'flashvars\.config = escape\("(.+?)"', webpage, 'player parameters')
-
-        # download that XML
         xml = self._download_xml(info_url, video_id)
 
-        # create dictionary of properties we know so far, or can find easily
         info = {
             'id': video_id,
             'title': self._html_search_regex(r'<div id="view_title"><h1>(.*?)</h1>', webpage, 'title'),
