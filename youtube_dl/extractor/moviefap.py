@@ -48,17 +48,19 @@ class MovieFapIE(InfoExtractor):
             return []
 
         # get the required information from the XML
-        attrs = {attr: str_to_int(timeline.find(attr).text)
-                 for attr in ['imageWidth', 'imageHeight', 'imageFirst', 'imageLast']}
+        width = str_to_int(timeline.find('imageWidth').text)
+        height = str_to_int(timeline.find('imageHeight').text)
+        first = str_to_int(timeline.find('imageFirst').text)
+        last = str_to_int(timeline.find('imageLast').text)
         pattern = timeline.find('imagePattern').text
 
         # generate the list of thumbnail information dicts
         thumbnails = []
-        for i in range(attrs['imageFirst'], attrs['imageLast'] + 1):
+        for i in range(first, last + 1):
             thumbnails.append({
                 'url': pattern.replace('#', str(i)),
-                'width': attrs['imageWidth'],
-                'height': attrs['imageHeight']
+                'width': width,
+                'height': height
             })
         return thumbnails
 
