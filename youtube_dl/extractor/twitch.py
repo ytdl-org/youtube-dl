@@ -189,17 +189,17 @@ class TwitchVodIE(TwitchItemBaseIE):
     _ITEM_SHORTCUT = 'v'
 
     _TEST = {
-        'url': 'http://www.twitch.tv/ksptv/v/3622000',
+        'url': 'http://www.twitch.tv/riotgames/v/6528877',
         'info_dict': {
-            'id': 'v3622000',
+            'id': 'v6528877',
             'ext': 'mp4',
-            'title': '''KSPTV: Squadcast: "Everyone's on vacation so here's Dahud" Edition!''',
+            'title': 'LCK Summer Split - Week 6 Day 1',
             'thumbnail': 're:^https?://.*\.jpg$',
-            'duration': 6951,
-            'timestamp': 1419028564,
-            'upload_date': '20141219',
-            'uploader': 'KSPTV',
-            'uploader_id': 'ksptv',
+            'duration': 17208,
+            'timestamp': 1435131709,
+            'upload_date': '20150624',
+            'uploader': 'Riot Games',
+            'uploader_id': 'riotgames',
             'view_count': int,
         },
         'params': {
