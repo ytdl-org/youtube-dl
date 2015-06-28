@@ -215,7 +215,7 @@ class TwitchVodIE(TwitchItemBaseIE):
             '%s/api/vods/%s/access_token' % (self._API_BASE, item_id), item_id,
             'Downloading %s access token' % self._ITEM_TYPE)
         formats = self._extract_m3u8_formats(
-            '%s/vod/%s?nauth=%s&nauthsig=%s'
+            '%s/vod/%s?nauth=%s&nauthsig=%s&allow_source=true'
             % (self._USHER_BASE, item_id, access_token['token'], access_token['sig']),
             item_id, 'mp4')
         self._prefer_source(formats)
