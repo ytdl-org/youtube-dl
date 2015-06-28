@@ -62,6 +62,8 @@ std_headers = {
 }
 
 
+NO_DEFAULT = object()
+
 ENGLISH_MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December']
@@ -171,13 +173,15 @@ def xpath_with_ns(path, ns_map):
     return '/'.join(replaced)
 
 
-def xpath_text(node, xpath, name=None, fatal=False):
+def xpath_text(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
     if sys.version_info < (2, 7):  # Crazy 2.6
         xpath = xpath.encode('ascii')
 
     n = node.find(xpath)
     if n is None or n.text is None:
-        if fatal:
+        if default is not NO_DEFAULT:
+            return default
+        elif fatal:
             name = xpath if name is None else name
             raise ExtractorError('Could not find XML element %s' % name)
         else:
