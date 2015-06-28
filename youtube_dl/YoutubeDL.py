@@ -990,7 +990,10 @@ class YoutubeDL(object):
                 format_spec = selector.selector
 
                 def selector_function(formats):
-                    if format_spec in ['best', 'worst', None]:
+                    if format_spec == 'all':
+                        for f in formats:
+                            yield f
+                    elif format_spec in ['best', 'worst', None]:
                         format_idx = 0 if format_spec == 'worst' else -1
                         audiovideo_formats = [
                             f for f in formats
@@ -1226,12 +1229,8 @@ class YoutubeDL(object):
                     req_format_list.append('bestvideo+bestaudio')
             req_format_list.append('best')
             req_format = '/'.join(req_format_list)
-        formats_to_download = []
-        if req_format == 'all':
-            formats_to_download = formats
-        else:
-            format_selector = self.build_format_selector(req_format)
-            formats_to_download = list(format_selector(formats))
+        format_selector = self.build_format_selector(req_format)
+        formats_to_download = list(format_selector(formats))
         if not formats_to_download:
             raise ExtractorError('requested format not available',
                                  expected=True)
