@@ -1008,7 +1008,7 @@ class YoutubeDL(object):
                 t.get('preference'), t.get('width'), t.get('height'),
                 t.get('id'), t.get('url')))
             for i, t in enumerate(thumbnails):
-                if 'width' in t and 'height' in t:
+                if t.get('width') and t.get('height'):
                     t['resolution'] = '%dx%d' % (t['width'], t['height'])
                 if t.get('id') is None:
                     t['id'] = '%d' % i
