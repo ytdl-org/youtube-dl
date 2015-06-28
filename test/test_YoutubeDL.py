@@ -229,21 +229,30 @@ class TestFormatSelection(unittest.TestCase):
             '141', '172', '140', '171', '139',
         ]
 
-        for f1id, f2id in zip(order, order[1:]):
-            f1 = YoutubeIE._formats[f1id].copy()
-            f1['format_id'] = f1id
-            f1['url'] = 'url:' + f1id
-            f2 = YoutubeIE._formats[f2id].copy()
-            f2['format_id'] = f2id
-            f2['url'] = 'url:' + f2id
+        def format_info(f_id):
+            info = YoutubeIE._formats[f_id].copy()
+            info['format_id'] = f_id
+            info['url'] = 'url:' + f_id
+            return info
+        formats_order = [format_info(f_id) for f_id in order]
 
+        info_dict = _make_result(list(formats_order), extractor='youtube')
+        ydl = YDL({'format': 'bestvideo+bestaudio'})
+        yie = YoutubeIE(ydl)
+        yie._sort_formats(info_dict['formats'])
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], '137+141')
+        self.assertEqual(downloaded['ext'], 'mp4')
+
+        for f1, f2 in zip(formats_order, formats_order[1:]):
             info_dict = _make_result([f1, f2], extractor='youtube')
             ydl = YDL({'format': 'best/bestvideo'})
             yie = YoutubeIE(ydl)
             yie._sort_formats(info_dict['formats'])
             ydl.process_ie_result(info_dict)
             downloaded = ydl.downloaded_info_dicts[0]
-            self.assertEqual(downloaded['format_id'], f1id)
+            self.assertEqual(downloaded['format_id'], f1['format_id'])
 
             info_dict = _make_result([f2, f1], extractor='youtube')
             ydl = YDL({'format': 'best/bestvideo'})
@@ -251,7 +260,7 @@ class TestFormatSelection(unittest.TestCase):
             yie._sort_formats(info_dict['formats'])
             ydl.process_ie_result(info_dict)
             downloaded = ydl.downloaded_info_dicts[0]
-            self.assertEqual(downloaded['format_id'], f1id)
+            self.assertEqual(downloaded['format_id'], f1['format_id'])
 
     def test_format_filtering(self):
         formats = [
