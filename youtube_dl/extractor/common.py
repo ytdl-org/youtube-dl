@@ -22,6 +22,7 @@ from ..compat import (
     compat_str,
 )
 from ..utils import (
+    NO_DEFAULT,
     age_restricted,
     bug_reports_message,
     clean_html,
@@ -33,7 +34,7 @@ from ..utils import (
     sanitize_filename,
     unescapeHTML,
 )
-_NO_DEFAULT = object()
+
 
 
 class InfoExtractor(object):
@@ -523,7 +524,7 @@ class InfoExtractor(object):
             video_info['description'] = playlist_description
         return video_info
 
-    def _search_regex(self, pattern, string, name, default=_NO_DEFAULT, fatal=True, flags=0, group=None):
+    def _search_regex(self, pattern, string, name, default=NO_DEFAULT, fatal=True, flags=0, group=None):
         """
         Perform a regex search on the given string, using a single or a list of
         patterns returning the first matching group.
@@ -549,7 +550,7 @@ class InfoExtractor(object):
                 return next(g for g in mobj.groups() if g is not None)
             else:
                 return mobj.group(group)
-        elif default is not _NO_DEFAULT:
+        elif default is not NO_DEFAULT:
             return default
         elif fatal:
             raise RegexNotFoundError('Unable to extract %s' % _name)
@@ -557,7 +558,7 @@ class InfoExtractor(object):
             self._downloader.report_warning('unable to extract %s' % _name + bug_reports_message())
             return None
 
-    def _html_search_regex(self, pattern, string, name, default=_NO_DEFAULT, fatal=True, flags=0, group=None):
+    def _html_search_regex(self, pattern, string, name, default=NO_DEFAULT, fatal=True, flags=0, group=None):
         """
         Like _search_regex, but strips HTML tags and unescapes entities.
         """

@@ -144,7 +144,6 @@ from .ellentv import (
 )
 from .elpais import ElPaisIE
 from .embedly import EmbedlyIE
-from .empflix import EMPFlixIE
 from .engadget import EngadgetIE
 from .eporner import EpornerIE
 from .eroprofile import EroProfileIE
@@ -577,7 +576,11 @@ from .tmz import (
     TMZIE,
     TMZArticleIE,
 )
-from .tnaflix import TNAFlixIE
+from .tnaflix import (
+    TNAFlixIE,
+    EMPFlixIE,
+    MovieFapIE,
+)
 from .thvideo import (
     THVideoIE,
     THVideoPlaylistIE
