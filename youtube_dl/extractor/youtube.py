@@ -29,6 +29,7 @@ from ..utils import (
     get_element_by_id,
     int_or_none,
     orderedSet,
+    str_to_int,
     unescapeHTML,
     unified_strdate,
     uppercase_escape,
@@ -1005,12 +1006,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 video_description = ''
 
         def _extract_count(count_name):
-            count = self._search_regex(
-                r'id="watch-%s"[^>]*>.*?([\d,]+)\s*</span>' % re.escape(count_name),
-                video_webpage, count_name, default=None)
-            if count is not None:
-                return int(count.replace(',', ''))
-            return None
+            return str_to_int(self._search_regex(
+                r'-%s-button[^>]+><span[^>]+class="yt-uix-button-content"[^>]*>([\d,]+)</span>'
+                % re.escape(count_name),
+                video_webpage, count_name, default=None))
+
         like_count = _extract_count('like')
         dislike_count = _extract_count('dislike')
 
