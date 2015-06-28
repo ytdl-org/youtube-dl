@@ -36,7 +36,6 @@ from ..utils import (
 )
 
 
-
 class InfoExtractor(object):
     """Information Extractor class.
 
