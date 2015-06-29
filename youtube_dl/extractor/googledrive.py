@@ -1,8 +1,37 @@
+import re
+
 from .common import InfoExtractor
 from ..utils import RegexNotFoundError
 
+class GoogleDriveEmbedIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:video\.google\.com/get_player\?.*?docid=|(?:docs|drive)\.google\.com/file/d/)(?P<id>[a-zA-Z0-9-]{28})(?:/preview)'
+    _TEST = {
+        'url': 'https://docs.google.com/file/d/0B8KB9DRosYGKMXNoeWxqa3JYclE/preview',
+        'info_dict': {
+            'id': '0B8KB9DRosYGKMXNoeWxqa3JYclE',
+            'ext': 'mp4',
+            'title': 'Jimmy Fallon Sings Since You\'ve Been Gone.wmv',
+        }
+    }
+
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe src="https?://(?:video\.google\.com/get_player\?.*?docid=|(?:docs|drive)\.google\.com/file/d/)(?P<id>[a-zA-Z0-9-]{28})(?:/preview)',
+            webpage)
+        if mobj:
+            return 'https://drive.google.com/file/d/%s' % mobj.group('id')
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        return {
+            '_type': 'url',
+            'ie-key': 'GoogleDrive',
+            'url': 'https://drive.google.com/file/d/%s' % video_id
+        }
+
 class GoogleDriveIE(InfoExtractor):
-    _VALID_URL = r'(?:https?://)?(?:video\.google\.com/get_player\?.*?docid=|(?:docs|drive)\.google\.com/(?:uc\?.*?id=|file/d/))(?P<id>.+?)(?:&|/|$)'
+    _VALID_URL = r'https?://(?:docs|drive)\.google\.com/(?:uc\?.*?id=|file/d/)(?P<id>[a-zA-Z0-9-]{28})'
     _TEST = {
         'url': 'https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/edit?pli=1',
         'info_dict': {
