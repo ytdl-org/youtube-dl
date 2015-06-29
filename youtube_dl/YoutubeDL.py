@@ -920,6 +920,7 @@ class YoutubeDL(object):
         PICKFIRST = 'PICKFIRST'
         MERGE = 'MERGE'
         SINGLE = 'SINGLE'
+        GROUP = 'GROUP'
         FormatSelector = collections.namedtuple('FormatSelector', ['type', 'selector', 'filters'])
 
         def _parse_filter(tokens):
@@ -942,6 +943,10 @@ class YoutubeDL(object):
                 elif type == tokenize.OP:
                     if string in endwith:
                         break
+                    elif string == ')':
+                        # ')' will be handled by the parentheses group
+                        tokens.restore_last_token()
+                        break
                     if string == ',':
                         selectors.append(current_selector)
                         current_selector = None
@@ -955,6 +960,10 @@ class YoutubeDL(object):
                             current_selector = FormatSelector(SINGLE, 'best', [])
                         format_filter = _parse_filter(tokens)
                         current_selector.filters.append(format_filter)
+                    elif string == '(':
+                        if current_selector:
+                            raise syntax_error('Unexpected "("', start)
+                        current_selector = FormatSelector(GROUP, _parse_format_selection(tokens, [')']), [])
                     elif string == '+':
                         video_selector = current_selector
                         audio_selector = _parse_format_selection(tokens, [','])
@@ -977,6 +986,8 @@ class YoutubeDL(object):
                         for format in f(formats):
                             yield format
                 return selector_function
+            elif selector.type == GROUP:
+                selector_function = _build_selector_function(selector.selector)
             elif selector.type == PICKFIRST:
                 fs = [_build_selector_function(s) for s in selector.selector]
 
@@ -1084,8 +1095,32 @@ class YoutubeDL(object):
             return final_selector
 
         stream = io.BytesIO(format_spec.encode('utf-8'))
-        tokens = compat_tokenize_tokenize(stream.readline)
-        parsed_selector = _parse_format_selection(tokens)
+        try:
+            tokens = list(compat_tokenize_tokenize(stream.readline))
+        except tokenize.TokenError:
+            raise syntax_error('Missing closing/opening brackets or parenthesis', (0, len(format_spec)))
+
+        class TokenIterator(object):
+            def __init__(self, tokens):
+                self.tokens = tokens
+                self.counter = 0
+
+            def __iter__(self):
+                return self
+
+            def __next__(self):
+                if self.counter >= len(self.tokens):
+                    raise StopIteration()
+                value = self.tokens[self.counter]
+                self.counter += 1
+                return value
+
+            next = __next__
+
+            def restore_last_token(self):
+                self.counter -= 1
+
+        parsed_selector = _parse_format_selection(iter(TokenIterator(tokens)))
         return _build_selector_function(parsed_selector)
 
     def _calc_headers(self, info_dict):

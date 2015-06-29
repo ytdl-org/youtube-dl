@@ -245,6 +245,30 @@ class TestFormatSelection(unittest.TestCase):
         self.assertEqual(downloaded['format_id'], '137+141')
         self.assertEqual(downloaded['ext'], 'mp4')
 
+        info_dict = _make_result(list(formats_order), extractor='youtube')
+        ydl = YDL({'format': '(bestvideo[ext=mp4],bestvideo[ext=webm])+bestaudio'})
+        yie = YoutubeIE(ydl)
+        yie._sort_formats(info_dict['formats'])
+        ydl.process_ie_result(info_dict)
+        downloaded_ids = [info['format_id'] for info in ydl.downloaded_info_dicts]
+        self.assertEqual(downloaded_ids, ['137+141', '248+141'])
+
+        info_dict = _make_result(list(formats_order), extractor='youtube')
+        ydl = YDL({'format': '(bestvideo[ext=mp4],bestvideo[ext=webm])[height<=720]+bestaudio'})
+        yie = YoutubeIE(ydl)
+        yie._sort_formats(info_dict['formats'])
+        ydl.process_ie_result(info_dict)
+        downloaded_ids = [info['format_id'] for info in ydl.downloaded_info_dicts]
+        self.assertEqual(downloaded_ids, ['136+141', '247+141'])
+
+        info_dict = _make_result(list(formats_order), extractor='youtube')
+        ydl = YDL({'format': '(bestvideo[ext=none]/bestvideo[ext=webm])+bestaudio'})
+        yie = YoutubeIE(ydl)
+        yie._sort_formats(info_dict['formats'])
+        ydl.process_ie_result(info_dict)
+        downloaded_ids = [info['format_id'] for info in ydl.downloaded_info_dicts]
+        self.assertEqual(downloaded_ids, ['248+141'])
+
         for f1, f2 in zip(formats_order, formats_order[1:]):
             info_dict = _make_result([f1, f2], extractor='youtube')
             ydl = YDL({'format': 'best/bestvideo'})
