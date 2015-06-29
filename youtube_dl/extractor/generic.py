@@ -48,6 +48,7 @@ from .vimeo import VimeoIE
 from .dailymotion import DailymotionCloudIE
 from .onionstudios import OnionStudiosIE
 from .snagfilms import SnagFilmsEmbedIE
+from .googledrive import GoogleDriveEmbedIE
 
 
 class GenericIE(InfoExtractor):
@@ -1598,6 +1599,11 @@ class GenericIE(InfoExtractor):
         nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
         if nbc_sports_url:
             return self.url_result(nbc_sports_url, 'NBCSportsVPlayer')
+
+        # Look for Google Drive embeds
+        google_drive_url = GoogleDriveEmbedIE._extract_url(webpage)
+        if google_drive_url:
+            return self.url_result(google_drive_url, 'GoogleDrive')
 
         # Look for UDN embeds
         mobj = re.search(
