@@ -32,7 +32,7 @@ class HentaiStigmaIE(InfoExtractor):
         wrap_webpage = self._download_webpage(wrap_url, video_id)
 
         video_url = self._html_search_regex(
-            r'clip:\s*{\s*url: "([^"]*)"', wrap_webpage, 'video url')
+            r'file:"([^"]+)"', wrap_webpage, 'video url')
 
         return {
             'id': video_id,
