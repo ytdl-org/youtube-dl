@@ -209,7 +209,10 @@ from .globo import GloboIE
 from .godtube import GodTubeIE
 from .goldenmoustache import GoldenMoustacheIE
 from .golem import GolemIE
-from .googledrive import GoogleDriveIE
+from .googledrive import (
+    GoogleDriveEmbedIE,
+    GoogleDriveIE,
+)
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
 from .gorillavid import GorillaVidIE
