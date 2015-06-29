@@ -520,6 +520,20 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'skip_download': 'requires avconv',
             }
         },
+        # Extraction from multiple DASH manifests (https://github.com/rg3/youtube-dl/pull/6097)
+        {
+            'url': 'https://www.youtube.com/watch?v=FIl7x6_3R5Y',
+            'info_dict': {
+                'id': 'FIl7x6_3R5Y',
+                'ext': 'mp4',
+                'title': 'md5:7b81415841e02ecd4313668cde88737a',
+                'description': 'md5:116377fd2963b81ec4ce64b542173306',
+                'upload_date': '20150625',
+                'uploader_id': 'dorappi2000',
+                'uploader': 'dorappi2000',
+                'formats': 'mincount:33',
+            },
+        }
     ]
 
     def __init__(self, *args, **kwargs):
@@ -855,6 +869,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             player_url = None
 
+        dash_mpds = []
+
+        def add_dash_mpd(video_info):
+            dash_mpd = video_info.get('dashmpd')
+            if dash_mpd and dash_mpd[0] not in dash_mpds:
+                dash_mpds.append(dash_mpd[0])
+
         # Get video info
         embed_webpage = None
         if re.search(r'player-age-gate-content">', video_webpage) is not None:
@@ -875,24 +896,29 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 note='Refetching age-gated info webpage',
                 errnote='unable to download video info webpage')
             video_info = compat_parse_qs(video_info_webpage)
+            add_dash_mpd(video_info)
         else:
             age_gate = False
-            try:
-                # Try looking directly into the video webpage
-                mobj = re.search(r';ytplayer\.config\s*=\s*({.*?});', video_webpage)
-                if not mobj:
-                    raise ValueError('Could not find ytplayer.config')  # caught below
+            video_info = None
+            # Try looking directly into the video webpage
+            mobj = re.search(r';ytplayer\.config\s*=\s*({.*?});', video_webpage)
+            if mobj:
                 json_code = uppercase_escape(mobj.group(1))
                 ytplayer_config = json.loads(json_code)
                 args = ytplayer_config['args']
-                # Convert to the same format returned by compat_parse_qs
-                video_info = dict((k, [v]) for k, v in args.items())
-                if not args.get('url_encoded_fmt_stream_map'):
-                    raise ValueError('No stream_map present')  # caught below
-            except ValueError:
-                # We fallback to the get_video_info pages (used by the embed page)
+                if args.get('url_encoded_fmt_stream_map'):
+                    # Convert to the same format returned by compat_parse_qs
+                    video_info = dict((k, [v]) for k, v in args.items())
+                    add_dash_mpd(video_info)
+            if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
+                # We also try looking in get_video_info since it may contain different dashmpd
+                # URL that points to a DASH manifest with possibly different itag set (some itags
+                # are missing from DASH manifest pointed by webpage's dashmpd, some - from DASH
+                # manifest pointed by get_video_info's dashmpd).
+                # The general idea is to take a union of itags of both DASH manifests (for example
+                # video with such 'manifest behavior' see https://github.com/rg3/youtube-dl/issues/6093)
                 self.report_video_info_webpage_download(video_id)
-                for el_type in ['&el=embedded', '&el=detailpage', '&el=vevo', '']:
+                for el_type in ['&el=info', '&el=embedded', '&el=detailpage', '&el=vevo', '']:
                     video_info_url = (
                         '%s://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
                         % (proto, video_id, el_type))
@@ -900,8 +926,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         video_info_url,
                         video_id, note=False,
                         errnote='unable to download video info webpage')
-                    video_info = compat_parse_qs(video_info_webpage)
-                    if 'token' in video_info:
+                    get_video_info = compat_parse_qs(video_info_webpage)
+                    add_dash_mpd(get_video_info)
+                    if not video_info:
+                        video_info = get_video_info
+                    if 'token' in get_video_info:
                         break
         if 'token' not in video_info:
             if 'reason' in video_info:
@@ -1125,24 +1154,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # Look for the DASH manifest
         if self._downloader.params.get('youtube_include_dash_manifest', True):
-            dash_mpd = video_info.get('dashmpd')
-            if dash_mpd:
-                dash_manifest_url = dash_mpd[0]
+            for dash_manifest_url in dash_mpds:
+                dash_formats = {}
                 try:
-                    dash_formats = self._parse_dash_manifest(
-                        video_id, dash_manifest_url, player_url, age_gate)
+                    for df in self._parse_dash_manifest(
+                            video_id, dash_manifest_url, player_url, age_gate):
+                        # Do not overwrite DASH format found in some previous DASH manifest
+                        if df['format_id'] not in dash_formats:
+                            dash_formats[df['format_id']] = df
                 except (ExtractorError, KeyError) as e:
                     self.report_warning(
                         'Skipping DASH manifest: %r' % e, video_id)
-                else:
+                if dash_formats:
                     # Remove the formats we found through non-DASH, they
                     # contain less info and it can be wrong, because we use
                     # fixed values (for example the resolution). See
                     # https://github.com/rg3/youtube-dl/issues/5774 for an
                     # example.
-                    dash_keys = set(df['format_id'] for df in dash_formats)
-                    formats = [f for f in formats if f['format_id'] not in dash_keys]
-                    formats.extend(dash_formats)
+                    formats = [f for f in formats if f['format_id'] not in dash_formats.keys()]
+                    formats.extend(dash_formats.values())
 
         # Check for malformed aspect ratio
         stretched_m = re.search(
