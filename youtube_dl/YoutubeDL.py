@@ -931,7 +931,7 @@ class YoutubeDL(object):
                 else:
                     filter_parts.append(string)
 
-        def _parse_format_selection(tokens, endwith=[]):
+        def _parse_format_selection(tokens, inside_merge=False, inside_choice=False, inside_group=False):
             selectors = []
             current_selector = None
             for type, string, start, _, _ in tokens:
@@ -941,18 +941,23 @@ class YoutubeDL(object):
                 elif type in [tokenize.NAME, tokenize.NUMBER]:
                     current_selector = FormatSelector(SINGLE, string, [])
                 elif type == tokenize.OP:
-                    if string in endwith:
+                    if string == ')':
+                        if not inside_group:
+                            # ')' will be handled by the parentheses group
+                            tokens.restore_last_token()
                         break
-                    elif string == ')':
-                        # ')' will be handled by the parentheses group
+                    elif inside_merge and string in ['/', ',']:
                         tokens.restore_last_token()
                         break
-                    if string == ',':
+                    elif inside_choice and string == ',':
+                        tokens.restore_last_token()
+                        break
+                    elif string == ',':
                         selectors.append(current_selector)
                         current_selector = None
                     elif string == '/':
                         first_choice = current_selector
-                        second_choice = _parse_format_selection(tokens, [','])
+                        second_choice = _parse_format_selection(tokens, inside_choice=True)
                         current_selector = None
                         selectors.append(FormatSelector(PICKFIRST, (first_choice, second_choice), []))
                     elif string == '[':
@@ -963,12 +968,12 @@ class YoutubeDL(object):
                     elif string == '(':
                         if current_selector:
                             raise syntax_error('Unexpected "("', start)
-                        current_selector = FormatSelector(GROUP, _parse_format_selection(tokens, [')']), [])
+                        group = _parse_format_selection(tokens, inside_group=True)
+                        current_selector = FormatSelector(GROUP, group, [])
                     elif string == '+':
                         video_selector = current_selector
-                        audio_selector = _parse_format_selection(tokens, [','])
-                        current_selector = None
-                        selectors.append(FormatSelector(MERGE, (video_selector, audio_selector), []))
+                        audio_selector = _parse_format_selection(tokens, inside_merge=True)
+                        current_selector = FormatSelector(MERGE, (video_selector, audio_selector), [])
                     else:
                         raise syntax_error('Operator not recognized: "{0}"'.format(string), start)
                 elif type == tokenize.ENDMARKER:

@@ -246,6 +246,14 @@ class TestFormatSelection(unittest.TestCase):
         self.assertEqual(downloaded['ext'], 'mp4')
 
         info_dict = _make_result(list(formats_order), extractor='youtube')
+        ydl = YDL({'format': 'bestvideo[height>=999999]+bestaudio/best'})
+        yie = YoutubeIE(ydl)
+        yie._sort_formats(info_dict['formats'])
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], '38')
+
+        info_dict = _make_result(list(formats_order), extractor='youtube')
         ydl = YDL({'format': '(bestvideo[ext=mp4],bestvideo[ext=webm])+bestaudio'})
         yie = YoutubeIE(ydl)
         yie._sort_formats(info_dict['formats'])
