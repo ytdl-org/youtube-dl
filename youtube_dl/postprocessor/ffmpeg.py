@@ -29,8 +29,8 @@ class FFmpegPostProcessorError(PostProcessingError):
 
 
 class FFmpegPostProcessor(PostProcessor):
-    def __init__(self, downloader=None):
-        PostProcessor.__init__(self, downloader)
+    def __init__(self, downloader=None, extra_cmd_args=None):
+        PostProcessor.__init__(self, downloader, extra_cmd_args)
         self._determine_executables()
 
     def check_version(self):
@@ -287,16 +287,15 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
 
 class FFmpegVideoConvertorPP(FFmpegPostProcessor):
-    def __init__(self, downloader=None, preferedformat=None, extra_params=[]):
-        super(FFmpegVideoConvertorPP, self).__init__(downloader)
+    def __init__(self, downloader=None, preferedformat=None, extra_cmd_args=None):
+        super(FFmpegVideoConvertorPP, self).__init__(downloader, extra_cmd_args)
         self._preferedformat = preferedformat
-        self._extra_params = extra_params
 
     def run(self, information):
         path = information['filepath']
         prefix, sep, ext = path.rpartition('.')
         ext = self._preferedformat
-        options = self._extra_params
+        options = self._extra_cmd_args
         if self._preferedformat == 'xvid':
             ext = 'avi'
             options.extend(['-c:v', 'libxvid', '-vtag', 'XVID'])

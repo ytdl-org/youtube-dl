@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import os
+import shlex
 
 from ..utils import (
     PostProcessingError,
@@ -23,12 +24,13 @@ class PostProcessor(object):
 
     PostProcessor objects follow a "mutual registration" process similar
     to InfoExtractor objects. And it can receive parameters from CLI trough
-    --pp-params.
+    --postprocessor-args.
     """
 
     _downloader = None
 
-    def __init__(self, downloader=None):
+    def __init__(self, downloader=None, extra_cmd_args=None):
+        self._extra_cmd_args = shlex.split(extra_cmd_args or '')
         self._downloader = downloader
 
     def set_downloader(self, downloader):

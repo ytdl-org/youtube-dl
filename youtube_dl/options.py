@@ -688,8 +688,8 @@ def parseOpts(overrideArguments=None):
         metavar='FORMAT', dest='recodevideo', default=None,
         help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm|mkv|xvid)')
     postproc.add_option(
-        '--pp-params',
-        dest='pp_params', default=None, metavar='ARGS',
+        '--postprocessor-args',
+        dest='postprocessor_args', default=None, metavar='ARGS',
         help='Extra parameters for video post-processor.')
     postproc.add_option(
         '-k', '--keep-video',
