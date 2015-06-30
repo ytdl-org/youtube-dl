@@ -999,15 +999,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             video_thumbnail = compat_urllib_parse.unquote_plus(video_info['thumbnail_url'][0])
 
         # upload date
-        upload_date = None
-        mobj = re.search(r'(?s)id="eow-date.*?>(.*?)</span>', video_webpage)
-        if mobj is None:
-            mobj = re.search(
-                r'id="watch-uploader-info".*?>.*?(?:Published|Uploaded|Streamed live|Started) on (.*?)</strong>',
-                video_webpage)
-        if mobj is not None:
-            upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
-            upload_date = unified_strdate(upload_date)
+        upload_date = self._html_search_meta(
+            'datePublished', video_webpage, 'upload date', default=None)
+        if not upload_date:
+            upload_date = self._search_regex(
+                [r'(?s)id="eow-date.*?>(.*?)</span>',
+                 r'id="watch-uploader-info".*?>.*?(?:Published|Uploaded|Streamed live|Started) on (.+?)</strong>'],
+                video_webpage, 'upload date', default=None)
+            if upload_date:
+                upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
+        upload_date = unified_strdate(upload_date)
 
         m_cat_container = self._search_regex(
             r'(?s)<h4[^>]*>\s*Category\s*</h4>\s*<ul[^>]*>(.*?)</ul>',
