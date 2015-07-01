@@ -227,7 +227,6 @@ def _real_main(argv=None):
         postprocessors.append({
             'key': 'FFmpegVideoConvertor',
             'preferedformat': opts.recodevideo,
-            'extra_cmd_args': opts.postprocessor_args,
         })
     if opts.convertsubtitles:
         postprocessors.append({
@@ -354,6 +353,7 @@ def _real_main(argv=None):
         'extract_flat': opts.extract_flat,
         'merge_output_format': opts.merge_output_format,
         'postprocessors': postprocessors,
+        'postprocessor_args': shlex.split(opts.postprocessor_args or ''),
         'fixup': opts.fixup,
         'source_address': opts.source_address,
         'call_home': opts.call_home,

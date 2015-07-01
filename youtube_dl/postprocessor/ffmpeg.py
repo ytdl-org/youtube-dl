@@ -29,8 +29,8 @@ class FFmpegPostProcessorError(PostProcessingError):
 
 
 class FFmpegPostProcessor(PostProcessor):
-    def __init__(self, downloader=None, extra_cmd_args=None):
-        PostProcessor.__init__(self, downloader, extra_cmd_args)
+    def __init__(self, downloader=None):
+        PostProcessor.__init__(self, downloader)
         self._determine_executables()
 
     def check_version(self):
@@ -287,8 +287,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
 
 class FFmpegVideoConvertorPP(FFmpegPostProcessor):
-    def __init__(self, downloader=None, preferedformat=None, extra_cmd_args=None):
-        super(FFmpegVideoConvertorPP, self).__init__(downloader, extra_cmd_args)
+    def __init__(self, downloader=None, preferedformat=None):
+        super(FFmpegVideoConvertorPP, self).__init__(downloader)
         self._preferedformat = preferedformat
 
     def run(self, information):

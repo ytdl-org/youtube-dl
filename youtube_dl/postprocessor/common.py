@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import os
-import shlex
 
 from ..utils import (
     PostProcessingError,
@@ -29,8 +28,8 @@ class PostProcessor(object):
 
     _downloader = None
 
-    def __init__(self, downloader=None, extra_cmd_args=None):
-        self._extra_cmd_args = shlex.split(extra_cmd_args or '')
+    def __init__(self, downloader=None):
+        self._extra_cmd_args = downloader.params.get('postprocessor_args')
         self._downloader = downloader
 
     def set_downloader(self, downloader):
