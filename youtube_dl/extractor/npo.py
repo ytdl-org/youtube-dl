@@ -18,6 +18,7 @@ class NPOBaseIE(InfoExtractor):
             video_id, note='Downloading token')
         token = self._search_regex(
             r'npoplayer\.token = "(.+?)"', token_page, 'token')
+        # Decryption algorithm extracted from http://npoplayer.omroep.nl/csjs/npoplayer-min.js
         token_l = list(token)
         first = second = None
         for i in range(5, len(token_l) - 4):
