@@ -35,6 +35,9 @@ class PBSIE(InfoExtractor):
                 'description': 'md5:ba0c207295339c8d6eced00b7c363c6a',
                 'duration': 3190,
             },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            },
         },
         {
             'url': 'http://www.pbs.org/wgbh/pages/frontline/losing-iraq/',
@@ -46,6 +49,9 @@ class PBSIE(InfoExtractor):
                 'description': 'md5:f5bfbefadf421e8bb8647602011caf8e',
                 'duration': 5050,
             },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            }
         },
         {
             'url': 'http://www.pbs.org/newshour/bb/education-jan-june12-cyberschools_02-23/',
@@ -68,7 +74,10 @@ class PBSIE(InfoExtractor):
                 'title': 'Dudamel Conducts Verdi Requiem at the Hollywood Bowl - Full',
                 'duration': 6559,
                 'thumbnail': 're:^https?://.*\.jpg$',
-            }
+            },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            },
         },
         {
             'url': 'http://www.pbs.org/wgbh/nova/earth/killer-typhoon.html',
@@ -82,7 +91,10 @@ class PBSIE(InfoExtractor):
                 'duration': 3172,
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'upload_date': '20140122',
-            }
+            },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            },
         },
         {
             'url': 'http://www.pbs.org/wgbh/pages/frontline/united-states-of-secrets/',
@@ -104,7 +116,7 @@ class PBSIE(InfoExtractor):
             },
             'params': {
                 'skip_download': True,  # requires ffmpeg
-            }
+            },
         }
     ]
 
