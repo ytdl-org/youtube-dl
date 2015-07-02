@@ -90,6 +90,21 @@ class PBSIE(InfoExtractor):
                 'id': 'united-states-of-secrets',
             },
             'playlist_count': 2,
+        },
+        {
+            'url': 'http://www.pbs.org/wgbh/americanexperience/films/death/player/',
+            'info_dict': {
+                'id': '2280706814',
+                'display_id': 'player',
+                'ext': 'mp4',
+                'title': 'Death and the Civil War',
+                'description': 'American Experience, TV’s most-watched history series, brings to life the compelling stories from our past that inform our understanding of the world today.',
+                'duration': 6705,
+                'thumbnail': 're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            }
         }
     ]
 
@@ -123,7 +138,7 @@ class PBSIE(InfoExtractor):
                 return media_id, presumptive_id, upload_date
 
             url = self._search_regex(
-                r'<iframe\s+(?:class|id)=["\']partnerPlayer["\'].*?\s+src=["\'](.*?)["\']>',
+                r'<iframe\s+[^>]*\s+src=["\']([^\'"]+partnerplayer[^\'"]+)["\']',
                 webpage, 'player URL')
             mobj = re.match(self._VALID_URL, url)
 
