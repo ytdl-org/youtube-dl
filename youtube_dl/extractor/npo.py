@@ -16,8 +16,23 @@ class NPOBaseIE(InfoExtractor):
         token_page = self._download_webpage(
             'http://ida.omroep.nl/npoplayer/i.js',
             video_id, note='Downloading token')
-        return self._search_regex(
+        token = self._search_regex(
             r'npoplayer\.token = "(.+?)"', token_page, 'token')
+        token_l = list(token)
+        first = second = None
+        for i in range(5, len(token_l) - 4):
+            if token_l[i].isdigit():
+                if first is None:
+                    first = i
+                elif second is None:
+                    second = i
+        if first is None or second is None:
+            first = 12
+            second = 13
+
+        token_l[first], token_l[second] = token_l[second], token_l[first]
+
+        return ''.join(token_l)
 
 
 class NPOIE(NPOBaseIE):
@@ -92,7 +107,7 @@ class NPOIE(NPOBaseIE):
 
     def _get_info(self, video_id):
         metadata = self._download_json(
-            'http://e.omroep.nl/metadata/aflevering/%s' % video_id,
+            'http://e.omroep.nl/metadata/%s' % video_id,
             video_id,
             # We have to remove the javascript callback
             transform_source=strip_jsonp,
