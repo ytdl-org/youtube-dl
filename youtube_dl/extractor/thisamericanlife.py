@@ -1,38 +1,40 @@
-# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
 
 class ThisAmericanLifeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?thisamericanlife\.org/radio-archives/episode/(?P<id>\d+)'
-
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?thisamericanlife\.org/(?:radio-archives/episode/|play_full\.php\?play=)(?P<id>\d+)'
+    _TESTS = [{
         'url': 'http://www.thisamericanlife.org/radio-archives/episode/487/harper-high-school-part-one',
-        'md5': '5cda28076c9f9d1fd0b0f5cff5959948',
+        'md5': '8f7d2da8926298fdfca2ee37764c11ce',
         'info_dict': {
             'id': '487',
+            'ext': 'm4a',
             'title': '487: Harper High School, Part One',
-            'url' : 'http://stream.thisamericanlife.org/487/stream/487_64k.m3u8',
-            'ext': 'aac',
-            'thumbnail': 'http://www.thisamericanlife.org/sites/default/files/imagecache/large_square/episodes/487_lg_2.jpg',
-            'description': 'We spent five months at Harper High School in Chicago, where last year alone 29 current and recent students were shot. 29. We went to get a sense of what it means to live in the midst of all this gun violence, how teens and adults navigate a world of funerals and Homecoming dances.',
+            'description': 'md5:ee40bdf3fb96174a9027f76dbecea655',
+            'thumbnail': 're:^https?://.*\.jpg$',
         },
-        'params': {
-            # m38u download
-            'skip_download': True,
-        },
-    }
+    }, {
+        'url': 'http://www.thisamericanlife.org/play_full.php?play=487',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+
+        webpage = self._download_webpage(
+            'http://www.thisamericanlife.org/radio-archives/episode/%s' % video_id, video_id)
 
         return {
             'id': video_id,
-            'title': self._html_search_regex(r'<meta property="twitter:title" content="(.*?)"', webpage, 'title'),
-            'url': 'http://stream.thisamericanlife.org/' + video_id + '/stream/' + video_id + '_64k.m3u8',
-            'ext': 'aac',
-            'thumbnail': self._html_search_regex(r'<meta property="og:image" content="(.*?)"', webpage, 'thumbnail'),
-            'description': self._html_search_regex(r'<meta name="description" content="(.*?)"', webpage, 'description'),
+            'url': 'http://stream.thisamericanlife.org/{0}/stream/{0}_64k.m3u8'.format(video_id),
+            'protocol': 'm3u8_native',
+            'ext': 'm4a',
+            'acodec': 'aac',
+            'vcodec': 'none',
+            'abr': 64,
+            'title': self._html_search_meta(r'twitter:title', webpage, 'title', fatal=True),
+            'description': self._html_search_meta(r'description', webpage, 'description'),
+            'thumbnail': self._og_search_thumbnail(webpage),
         }
