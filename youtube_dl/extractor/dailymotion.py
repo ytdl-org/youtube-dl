@@ -254,22 +254,30 @@ class DailymotionUserIE(DailymotionPlaylistIE):
 
 
 class DailymotionCloudIE(DailymotionBaseInfoExtractor):
-    _VALID_URL = r'http://api\.dmcloud\.net/embed/[^/]+/(?P<id>[^/?]+)'
+    _VALID_URL_PREFIX = r'http://api\.dmcloud\.net/(?:player/)?embed/'
+    _VALID_URL = r'%s[^/]+/(?P<id>[^/?]+)' % _VALID_URL_PREFIX
+    _VALID_EMBED_URL = r'%s[^/]+/[^\'"]+' % _VALID_URL_PREFIX
 
-    _TEST = {
+    _TESTS = [{
         # From http://www.francetvinfo.fr/economie/entreprises/les-entreprises-familiales-le-secret-de-la-reussite_933271.html
         # Tested at FranceTvInfo_2
         'url': 'http://api.dmcloud.net/embed/4e7343f894a6f677b10006b4/556e03339473995ee145930c?auth=1464865870-0-jyhsm84b-ead4c701fb750cf9367bf4447167a3db&autoplay=1',
         'only_matching': True,
-    }
+    }, {
+        # http://www.francetvinfo.fr/societe/larguez-les-amarres-le-cobaturage-se-developpe_980101.html
+        'url': 'http://api.dmcloud.net/player/embed/4e7343f894a6f677b10006b4/559545469473996d31429f06?auth=1467430263-0-90tglw2l-a3a4b64ed41efe48d7fccad85b8b8fda&autoplay=1',
+        'only_matching': True,
+    }]
 
     @classmethod
     def _extract_dmcloud_url(self, webpage):
-        mobj = re.search(r'<iframe[^>]+src=[\'"](http://api\.dmcloud\.net/embed/[^/]+/[^\'"]+)[\'"]', webpage)
+        mobj = re.search(r'<iframe[^>]+src=[\'"](%s)[\'"]' % self._VALID_EMBED_URL, webpage)
         if mobj:
             return mobj.group(1)
 
-        mobj = re.search(r'<input[^>]+id=[\'"]dmcloudUrlEmissionSelect[\'"][^>]+value=[\'"](http://api\.dmcloud\.net/embed/[^/]+/[^\'"]+)[\'"]', webpage)
+        mobj = re.search(
+            r'<input[^>]+id=[\'"]dmcloudUrlEmissionSelect[\'"][^>]+value=[\'"](%s)[\'"]' % self._VALID_EMBED_URL,
+            webpage)
         if mobj:
             return mobj.group(1)
 
