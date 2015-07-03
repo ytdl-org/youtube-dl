@@ -5,6 +5,7 @@ import base64
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
+    compat_urlparse,
 )
 
 
@@ -45,7 +46,7 @@ class InfoQIE(InfoExtractor):
         video_id, extension = video_filename.split('.')
 
         http_base = self._search_regex(
-            r'EXPRESSINSTALL_SWF\s*=\s*"(https?://[^/"]+/)', webpage,
+            r'EXPRESSINSTALL_SWF\s*=\s*[^"]*"((?:https?:)?//[^/"]+/)', webpage,
             'HTTP base URL')
 
         formats = [{
@@ -55,7 +56,7 @@ class InfoQIE(InfoExtractor):
             'play_path': playpath,
         }, {
             'format_id': 'http',
-            'url': http_base + real_id,
+            'url': compat_urlparse.urljoin(url, http_base) + real_id,
         }]
         self._sort_formats(formats)
 
