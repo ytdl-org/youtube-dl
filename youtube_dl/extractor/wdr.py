@@ -12,6 +12,7 @@ from ..compat import (
 from ..utils import (
     determine_ext,
     unified_strdate,
+    qualities
 )
 
 
@@ -78,7 +79,7 @@ class WDRIE(InfoExtractor):
             'url': 'http://www1.wdr.de/mediathek/video/livestream/index.html',  # Test live tv
             'info_dict': {
                 'id': 'mdb-103364',
-                'title': 're:^24 Stunden Livestream [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+                'title': 're:^WDR Fernsehen Live [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
                 'description': 'md5:ae2ff888510623bf8d4b115f95a9b7c9',
                 'ext': 'flv',
                 'upload_date': '20150101',
@@ -151,25 +152,24 @@ class WDRIE(InfoExtractor):
 
         formats.append({'ext': ext, 'url': video_url})
 
-        m3u8_url = re.search(r'<li>\n<a rel="adaptiv" type="application/vnd\.apple\.mpegURL" href="(?P<link>.+?)"', webpage)
+        m3u8_url = re.search(r'<li>\n<a rel="adaptiv" type="application/vnd\.apple\.mpegURL" href="(?P<link>.+?)"', playerpage)
 
         if m3u8_url is not None:
             m3u8_url = m3u8_url.group('link')
-            formats.append({'ext': 'm3u8', 'url': m3u8_url})
+            formats.extend(self._extract_m3u8_formats(m3u8_url, page_id))
 
-        webL_quality = -1
+        quality = qualities(['webS', 'webM', 'webL_Lo', 'webL_Hi'])
+        webL_first = True  # There are two videos tagged as webL. The first one is usually of better quality
         for video_vars in re.findall(r'<li>\n<a rel="(?P<format_id>web.?)"  href=".+?/(?P<link>fsk.+?)"', playerpage):
             format_id = video_vars[0]
-            video_url = 'http://ondemand-ww.wdr.de/medstdp/' + video_vars[1]
+            video_url = 'http://ondemand-ww.wdr.de/medstdp/' + video_vars[1]  # Just using the href results in a warning page (that tells you to install flash player) and not the actual media
             ext = determine_ext(video_url)
-            if format_id == 'webL':
-                quality = webL_quality
-                webL_quality -= 1
-            if format_id == 'webM':
-                quality = -3
-            if format_id == 'webS':
-                quality = -4
-            formats.append({'format_id': format_id, 'ext': ext, 'url': video_url, 'source_preference': quality})
+            if format_id == 'webL' and webL_first is True:
+                format_id = 'webL_Hi'
+                webL_first = False
+            elif format_id == 'webL' and webL_first is False:
+                format_id = 'webL_Lo'
+            formats.append({'format_id': format_id, 'ext': ext, 'url': video_url, 'source_preference': quality(format_id)})
 
         self._sort_formats(formats)
 
@@ -197,6 +197,7 @@ class WDRIE(InfoExtractor):
             for href in re.findall(r'<a href="/?(.+?%s\.html)" rel="nofollow"' % self._PLAYER_REGEX, webpage)
         ]
 
+        # The url doesn't seem to contain any information if the current page is a playlist or page with a single media item
         if not entries and mobj.group('player') is None:  # Playlist page
             return self._playlist_extract(page_url, page_id, webpage)
 
