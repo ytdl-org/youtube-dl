@@ -21,54 +21,41 @@ class WDRIE(InfoExtractor):
     _VALID_URL = r'(?P<url>https?://www\d?\.(?:wdr\d?|funkhauseuropa)\.de/)(?P<id>.+?)\.html'
     _TESTS = [
         {
-            'url': 'http://www1.wdr.de/mediathek/video/sendungen/servicezeit/videoservicezeit560-videoplayer_size-L.html',
+            'url': 'http://www1.wdr.de/mediathek/video/sendungen/hier_und_heute/videostreetfoodpioniere100.html',
             'info_dict': {
-                'id': 'mdb-362427',
-                'ext': 'flv',
-                'title': 'Servicezeit',
-                'description': 'md5:c8f43e5e815eeb54d0b96df2fba906cb',
-                'upload_date': '20140310',
+                'id': 'mdb-750693',
+                'ext': 'mp4',
+                'title': 'Streetfood-Pioniere',
+                'description': 'md5:bff1fdc6de7df044ac2bec13ab46e6a9',
+                'upload_date': '20150703',
                 'is_live': False
             },
             'params': {
                 'skip_download': True,
+                'format': 'best'
             },
         },
         {
-            'url': 'http://www1.wdr.de/themen/av/videomargaspiegelisttot101-videoplayer.html',
+            'url': 'http://www1.wdr.de/mediathek/audio/1live/einslive-bahnansage-100.html',
+            'md5': '87c389aac18ee6fc041aa1ced52aac76',
             'info_dict': {
-                'id': 'mdb-363194',
-                'ext': 'flv',
-                'title': 'Marga Spiegel ist tot',
-                'description': 'md5:2309992a6716c347891c045be50992e4',
-                'upload_date': '20140311',
-                'is_live': False
-            },
-            'params': {
-                'skip_download': True,
-            },
-        },
-        {
-            'url': 'http://www1.wdr.de/themen/kultur/audioerlebtegeschichtenmargaspiegel100-audioplayer.html',
-            'md5': '83e9e8fefad36f357278759870805898',
-            'info_dict': {
-                'id': 'mdb-194332',
+                'id': 'mdb-726385',
                 'ext': 'mp3',
-                'title': 'Erlebte Geschichten: Marga Spiegel (29.11.2009)',
-                'description': 'md5:2309992a6716c347891c045be50992e4',
-                'upload_date': '20091129',
+                'title': 'Weselsky | 1LIVE Bahnansage (04.06.2015)',
+                'description': 'md5:8b9ef2af8c1bb01394ab98f3450ff04d',
+                'upload_date': '20150604',
                 'is_live': False
             },
         },
         {
-            'url': 'http://www.funkhauseuropa.de/av/audioflaviacoelhoamaramar100-audioplayer.html',
-            'md5': '99a1443ff29af19f6c52cf6f4dc1f4aa',
+            'url': 'http://www.funkhauseuropa.de/musik/musikspecials/roskilde-zweitausendfuenfzehn-100.html',
+            'md5': 'e50e0c8900f6558ae12cd9953aca5a20',
             'info_dict': {
-                'id': 'mdb-478135',
+                'id': 'mdb-752045',
                 'ext': 'mp3',
-                'title': 'Flavia Coelho: Amar é Amar',
-                'description': 'md5:7b29e97e10dfb6e265238b32fa35b23a',
-                'upload_date': '20140717',
+                'title': 'Roskilde Festival 2015',
+                'description': 'md5:48e7a0a884c0e841a9d9174e27c67df3',
+                'upload_date': '20150702',
                 'is_live': False
             },
         },
@@ -83,10 +70,10 @@ class WDRIE(InfoExtractor):
             'url': 'http://www1.wdr.de/mediathek/video/livestream/index.html',
             'info_dict': {
                 'id': 'mdb-103364',
-                'title': 're:^WDR Fernsehen [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+                'title': 're:^24 Stunden Livestream [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
                 'description': 'md5:ae2ff888510623bf8d4b115f95a9b7c9',
                 'ext': 'flv',
-                'upload_date': '20150212',
+                'upload_date': '20150101',
                 'is_live': True
             },
             'params': {
@@ -122,7 +109,7 @@ class WDRIE(InfoExtractor):
         webpage = self._download_webpage(url, page_id)
         entries = re.search(r'%s' % self._PLAYER_REGEX, webpage)
 
-        if entries == None: # Overview page
+        if entries is None:  # Overview page
             return self._overiew_page_extractor(page_url, page_id, webpage)
 
         jsonpage = self._download_webpage(entries.group(0), entries.group(0))
@@ -138,7 +125,8 @@ class WDRIE(InfoExtractor):
                 video_url = video_field['audioURL']
             else:
                 break
-            is_live = video_field.get('flashvarsExt', {'isLive': '0'}) == {'isLive': '1'}
+            is_live = video_field.get('flashvarsExt', {'isLive': '0'})
+            is_live = is_live.get('isLive', '0') == '1'
 
             if video_url.endswith('.f4m'):
                 video_url += '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18'
@@ -156,7 +144,7 @@ class WDRIE(InfoExtractor):
             formats.append({'url': video_url, 'ext': ext, 'format_id': _id})
 
         thumbnail = re.search('<div class="illustrationCont w960">\n<div class="linkCont">\n<img src="(?P<thumbnail>.+?)"', webpage)
-        if thumbnail != None:
+        if thumbnail is not None:
             thumbnail = page_url + thumbnail.group('thumbnail')
 
         if is_live:
