@@ -1005,6 +1005,9 @@ class YoutubeDL(object):
                 format_spec = selector.selector
 
                 def selector_function(formats):
+                    formats = list(formats)
+                    if not formats:
+                        return
                     if format_spec == 'all':
                         for f in formats:
                             yield f

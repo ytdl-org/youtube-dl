@@ -15,7 +15,7 @@ from youtube_dl import YoutubeDL
 from youtube_dl.compat import compat_str
 from youtube_dl.extractor import YoutubeIE
 from youtube_dl.postprocessor.common import PostProcessor
-from youtube_dl.utils import match_filter_func
+from youtube_dl.utils import ExtractorError, match_filter_func
 
 TEST_URL = 'http://localhost/sample.mp4'
 
@@ -361,6 +361,13 @@ class TestFormatSelection(unittest.TestCase):
         ydl.process_ie_result(info_dict)
         downloaded_ids = [info['format_id'] for info in ydl.downloaded_info_dicts]
         self.assertEqual(downloaded_ids, ['B', 'C', 'D'])
+
+        ydl = YDL({'format': 'best[height<40]'})
+        try:
+            ydl.process_ie_result(info_dict)
+        except ExtractorError:
+            pass
+        self.assertEqual(ydl.downloaded_info_dicts, [])
 
 
 class TestYoutubeDL(unittest.TestCase):
