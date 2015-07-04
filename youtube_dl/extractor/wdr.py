@@ -21,7 +21,7 @@ class WDRIE(InfoExtractor):
 
     _TESTS = [
         {
-            'url': 'http://www1.wdr.de/mediathek/video/sendungen/hier_und_heute/videostreetfoodpioniere100.html',
+            'url': 'http://www1.wdr.de/mediathek/video/sendungen/hier_und_heute/videostreetfoodpioniere100.html',  # Test single media extraction (video)
             'info_dict': {
                 'id': 'mdb-750693',
                 'ext': 'mp4',
@@ -36,38 +36,46 @@ class WDRIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://www1.wdr.de/mediathek/audio/1live/einslive-bahnansage-100.html',
+            'url': 'http://www1.wdr.de/mediathek/audio/1live/einslive-bahnansage-100.html',  # Test single media extraction (audio)
             'md5': '87c389aac18ee6fc041aa1ced52aac76',
             'info_dict': {
                 'id': 'mdb-726385',
                 'ext': 'mp3',
                 'title': '1LIVE Bahnansage',
-                'description': 'md5:36016b06288e1f1a5b2602c8fe947b8d',
+                'description': 'md5:8b9ef2af8c1bb01394ab98f3450ff04d',
                 'upload_date': '20150604',
                 'is_live': False
             },
         },
         {
-            'url': 'http://www.funkhauseuropa.de/musik/musikspecials/roskilde-zweitausendfuenfzehn-100.html',
+            'url': 'http://www.funkhauseuropa.de/musik/musikspecials/roskilde-zweitausendfuenfzehn-100.html',  # Test single media extraction (audio)
             'md5': 'e50e0c8900f6558ae12cd9953aca5a20',
             'info_dict': {
                 'id': 'mdb-752045',
                 'ext': 'mp3',
                 'title': 'Roskilde Festival 2015',
-                'description': 'md5:7b29e97e10dfb6e265238b32fa35b23a',
+                'description': 'md5:48e7a0a884c0e841a9d9174e27c67df3',
                 'upload_date': '20150702',
                 'is_live': False
             },
         },
         {
-            'url': 'http://www1.wdr.de/mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100.html',
+            'url': 'http://www1.wdr.de/mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100.html',  # Test playlist extraction (containing links to webpages)
             'playlist_mincount': 146,
             'info_dict': {
                 'id': 'mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100',
+                'title': 'md5:31d3634678b18f90a9fc4e7cd34ba3b2'
             }
         },
         {
-            'url': 'http://www1.wdr.de/mediathek/video/livestream/index.html',
+            'url': 'http://www.funkhauseuropa.de/index.html',  # Test playlist extraction (containing links to playerpages)
+            'playlist_mincount': 3,
+            'info_dict': {
+                'id': 'index',
+            }
+        },
+        {
+            'url': 'http://www1.wdr.de/mediathek/video/livestream/index.html',  # Test live tv
             'info_dict': {
                 'id': 'mdb-103364',
                 'title': 're:^24 Stunden Livestream [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
@@ -82,23 +90,7 @@ class WDRIE(InfoExtractor):
         }
     ]
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        page_url = mobj.group('url')
-        page_id = mobj.group('id')
-
-        webpage = self._download_webpage(url, page_id)
-
-        if mobj.group('player') is None:
-            entries = [
-                self.url_result(page_url + href, 'WDR')
-                for href in re.findall(r'<a href="/?(.+?%s\.html)" rel="nofollow"' % self._PLAYER_REGEX, webpage)
-            ]
-
-            if entries:  # Playlist page
-                return self.playlist_result(entries, page_id)
-
-            # Overview page
+    def _playlist_extract(self, page_url, page_id, webpage):
             entries = []
             for page_num in itertools.count(2):
                 hrefs = re.findall(
@@ -115,11 +107,17 @@ class WDRIE(InfoExtractor):
                 webpage = self._download_webpage(
                     next_url, page_id,
                     note='Downloading playlist page %d' % page_num)
-            return self.playlist_result(entries, page_id)
+            return self.playlist_result(entries, page_id, webpage)
 
+    def _media_extract(self, page_url, page_id, mobj, webpage, entries):
+        if mobj.group('player') is None:
+            mobj = re.search(self._VALID_URL, entries[0]['url'])
+            playerpage = self._download_webpage(entries[0]['url'], mobj.group('id') + mobj.group('player'))
+        else:
+            playerpage = webpage
         formats = []
         flashvars = compat_parse_qs(
-            self._html_search_regex(r'<param name="flashvars" value="([^"]+)"', webpage, 'flashvars'))
+            self._html_search_regex(r'<param name="flashvars" value="([^"]+)"', playerpage, 'flashvars'))
 
         page_id = flashvars['trackerClipId'][0]
         video_url = flashvars['dslSrc'][0]
@@ -160,7 +158,7 @@ class WDRIE(InfoExtractor):
             formats.append({'ext': 'm3u8', 'url': m3u8_url})
 
         webL_quality = -1
-        for video_vars in re.findall(r'<li>\n<a rel="(?P<format_id>web.?)"  href=".+?/(?P<link>fsk.+?)"', webpage):
+        for video_vars in re.findall(r'<li>\n<a rel="(?P<format_id>web.?)"  href=".+?/(?P<link>fsk.+?)"', playerpage):
             format_id = video_vars[0]
             video_url = 'http://ondemand-ww.wdr.de/medstdp/' + video_vars[1]
             ext = determine_ext(video_url)
@@ -175,7 +173,7 @@ class WDRIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        description = self._html_search_meta('Description', webpage, 'content')
+        description = self._html_search_meta('Description', webpage, 'content')  # Using the webpage works better with funkhauseuropa
 
         return {
             'id': page_id,
@@ -186,6 +184,29 @@ class WDRIE(InfoExtractor):
             'upload_date': upload_date,
             'is_live': is_live
         }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        page_url = mobj.group('url')
+        page_id = mobj.group('id')
+
+        webpage = self._download_webpage(url, page_id)
+
+        entries = [
+            self.url_result(page_url + href, 'WDR')
+            for href in re.findall(r'<a href="/?(.+?%s\.html)" rel="nofollow"' % self._PLAYER_REGEX, webpage)
+        ]
+
+        if not entries and mobj.group('player') is None:  # Playlist page
+            return self._playlist_extract(page_url, page_id, webpage)
+
+        elif entries and len(entries) > 1:  # Different playlist page
+            return self.playlist_result(entries, page_id)
+
+        elif mobj.group('player') is not None or (entries and len(entries) == 1):  # Media page (either just a single player link on the webpage or the webpage is the player)
+            if not entries:
+                entries = None
+            return self._media_extract(page_url, page_id, mobj, webpage, entries)
 
 
 class WDRMobileIE(InfoExtractor):
