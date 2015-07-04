@@ -283,6 +283,7 @@
  - **Motherless**
  - **Motorsport**: motorsport.com
  - **MovieClips**
+ - **MovieFap**
  - **Moviezine**
  - **movshare**: MovShare
  - **MPORA**
@@ -440,6 +441,8 @@
  - **smotri:broadcast**: Smotri.com broadcasts
  - **smotri:community**: Smotri.com community videos
  - **smotri:user**: Smotri.com user videos
+ - **SnagFilms**
+ - **SnagFilmsEmbed**
  - **Snotr**
  - **Sohu**
  - **soompi**
@@ -502,6 +505,7 @@
  - **TheOnion**
  - **ThePlatform**
  - **TheSixtyOne**
+ - **ThisAmericanLife**
  - **ThisAV**
  - **THVideo**
  - **THVideoPlaylist**
@@ -542,6 +546,7 @@
  - **twitch:stream**
  - **twitch:video**
  - **twitch:vod**
+ - **TwitterCard**
  - **Ubu**
  - **udemy**
  - **udemy:course**
