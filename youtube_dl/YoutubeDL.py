@@ -958,8 +958,7 @@ class YoutubeDL(object):
                     elif string == '/':
                         first_choice = current_selector
                         second_choice = _parse_format_selection(tokens, inside_choice=True)
-                        current_selector = None
-                        selectors.append(FormatSelector(PICKFIRST, (first_choice, second_choice), []))
+                        current_selector = FormatSelector(PICKFIRST, (first_choice, second_choice), [])
                     elif string == '[':
                         if not current_selector:
                             current_selector = FormatSelector(SINGLE, 'best', [])
