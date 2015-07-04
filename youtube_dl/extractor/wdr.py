@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import itertools
 import re
+import json
 
 from .common import InfoExtractor
 from ..compat import (
@@ -16,9 +17,8 @@ from ..utils import (
 
 
 class WDRIE(InfoExtractor):
-    _PLAYER_REGEX = '-(?:video|audio)player(?:_size-[LMS])?'
-    _VALID_URL = r'(?P<url>https?://www\d?\.(?:wdr\d?|funkhauseuropa)\.de/)(?P<id>.+?)(?P<player>%s)?\.html' % _PLAYER_REGEX
-
+    _PLAYER_REGEX = 'https?://deviceids-medstdp.wdr.de/ondemand/.+?/.+?\.js'
+    _VALID_URL = r'(?P<url>https?://www\d?\.(?:wdr\d?|funkhauseuropa)\.de/)(?P<id>.+?)\.html'
     _TESTS = [
         {
             'url': 'http://www1.wdr.de/mediathek/video/sendungen/servicezeit/videoservicezeit560-videoplayer_size-L.html',
@@ -95,80 +95,86 @@ class WDRIE(InfoExtractor):
         }
     ]
 
+    def _overiew_page_extractor(self, page_url, page_id, webpage):
+        entries = []
+        for page_num in itertools.count(2):
+            hrefs = re.findall(
+                r'<li class="mediathekvideo"\s*>\s*<img[^>]*>\s*<a href="(/mediathek/video/[^"]+)"',
+                webpage)
+            entries.extend(
+                self.url_result(page_url + href, 'WDR')
+                for href in hrefs)
+            next_url_m = re.search(
+                r'<li class="nextToLast">\s*<a href="([^"]+)"', webpage)
+            if not next_url_m:
+                break
+            next_url = page_url + next_url_m.group(1)
+            webpage = self._download_webpage(
+                next_url, page_id,
+                note='Downloading playlist page %d' % page_num)
+        return self.playlist_result(entries, page_id)
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         page_url = mobj.group('url')
         page_id = mobj.group('id')
 
         webpage = self._download_webpage(url, page_id)
+        entries = re.search(r'%s' % self._PLAYER_REGEX, webpage)
 
-        if mobj.group('player') is None:
-            entries = [
-                self.url_result(page_url + href, 'WDR')
-                for href in re.findall(r'<a href="/?(.+?%s\.html)" rel="nofollow"' % self._PLAYER_REGEX, webpage)
-            ]
+        if entries == None: # Overview page
+            return self._overiew_page_extractor(page_url, page_id, webpage)
 
-            if entries:  # Playlist page
-                return self.playlist_result(entries, page_id)
+        jsonpage = self._download_webpage(entries.group(0), entries.group(0))
+        jsonvars = json.loads(jsonpage[38:-2])
 
-            # Overview page
-            entries = []
-            for page_num in itertools.count(2):
-                hrefs = re.findall(
-                    r'<li class="mediathekvideo"\s*>\s*<img[^>]*>\s*<a href="(/mediathek/video/[^"]+)"',
-                    webpage)
-                entries.extend(
-                    self.url_result(page_url + href, 'WDR')
-                    for href in hrefs)
-                next_url_m = re.search(
-                    r'<li class="nextToLast">\s*<a href="([^"]+)"', webpage)
-                if not next_url_m:
-                    break
-                next_url = page_url + next_url_m.group(1)
-                webpage = self._download_webpage(
-                    next_url, page_id,
-                    note='Downloading playlist page %d' % page_num)
-            return self.playlist_result(entries, page_id)
+        page_id = jsonvars['trackerData']['trackerClipId']
+        title = jsonvars['trackerData']['trackerClipTitle']
+        formats = []
+        for _id, video_field in jsonvars['mediaResource'].items():
+            if 'videoURL' in video_field:
+                video_url = video_field['videoURL']
+            elif 'audioURL' in video_field:
+                video_url = video_field['audioURL']
+            else:
+                break
+            is_live = video_field.get('flashvarsExt', {'isLive': '0'}) == {'isLive': '1'}
 
-        flashvars = compat_parse_qs(
-            self._html_search_regex(r'<param name="flashvars" value="([^"]+)"', webpage, 'flashvars'))
+            if video_url.endswith('.f4m'):
+                video_url += '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18'
+                ext = 'flv'
+            elif video_url.endswith('.smil'):
+                fmt = self._extract_smil_formats(video_url, page_id)[0]
+                video_url = fmt['url']
+                sep = '&' if '?' in video_url else '?'
+                video_url += sep
+                video_url += 'hdcore=3.3.0&plugin=aasp-3.3.0.99.43'
+                ext = fmt['ext']
+            else:
+                ext = determine_ext(video_url)
 
-        page_id = flashvars['trackerClipId'][0]
-        video_url = flashvars['dslSrc'][0]
-        title = flashvars['trackerClipTitle'][0]
-        thumbnail = flashvars['startPicture'][0] if 'startPicture' in flashvars else None
-        is_live = flashvars.get('isLive', ['0'])[0] == '1'
+            formats.append({'url': video_url, 'ext': ext, 'format_id': _id})
+
+        thumbnail = re.search('<div class="illustrationCont w960">\n<div class="linkCont">\n<img src="(?P<thumbnail>.+?)"', webpage)
+        if thumbnail != None:
+            thumbnail = page_url + thumbnail.group('thumbnail')
 
         if is_live:
             title = self._live_title(title)
 
-        if 'trackerClipAirTime' in flashvars:
-            upload_date = flashvars['trackerClipAirTime'][0]
+        if 'trackerClipAirTime' in jsonvars['trackerData']:
+            upload_date = jsonvars['trackerData']['trackerClipAirTime']
         else:
-            upload_date = self._html_search_meta('DC.Date', webpage, 'upload date')
+            upload_date = self._html_search_meta('DC.Date', webpage, 'content')
 
         if upload_date:
             upload_date = unified_strdate(upload_date)
 
-        if video_url.endswith('.f4m'):
-            video_url += '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18'
-            ext = 'flv'
-        elif video_url.endswith('.smil'):
-            fmt = self._extract_smil_formats(video_url, page_id)[0]
-            video_url = fmt['url']
-            sep = '&' if '?' in video_url else '?'
-            video_url += sep
-            video_url += 'hdcore=3.3.0&plugin=aasp-3.3.0.99.43'
-            ext = fmt['ext']
-        else:
-            ext = determine_ext(video_url)
-
-        description = self._html_search_meta('Description', webpage, 'description')
+        description = self._html_search_meta('Description', webpage, 'content')
 
         return {
             'id': page_id,
-            'url': video_url,
-            'ext': ext,
+            'formats': formats,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
