@@ -51,7 +51,7 @@ class RtlNlIE(InfoExtractor):
     def _real_extract(self, url):
         uuid = self._match_id(url)
         info = self._download_json(
-            'http://www.rtl.nl/system/s4m/vfd/version=2/uuid=%s/fmt=flash/' % uuid,
+            'http://www.rtl.nl/system/s4m/vfd/version=2/uuid=%s/fmt=adaptive/' % uuid,
             uuid)
 
         material = info['material'][0]
@@ -60,8 +60,8 @@ class RtlNlIE(InfoExtractor):
         description = material.get('synopsis') or info['episodes'][0]['synopsis']
 
         # Use unencrypted m3u8 streams (See https://github.com/rg3/youtube-dl/issues/4118)
-        videopath = material['videopath'].replace('.f4m', '.m3u8')
-        m3u8_url = 'http://manifest.us.rtl.nl' + videopath
+        videopath = material['videopath'].replace('adaptive', 'flash')
+        m3u8_url = info['meta']['videohost'] + videopath
 
         formats = self._extract_m3u8_formats(m3u8_url, uuid, ext='mp4')
 
