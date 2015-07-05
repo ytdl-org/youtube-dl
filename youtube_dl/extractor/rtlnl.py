@@ -66,6 +66,9 @@ class RtlNlIE(InfoExtractor):
         meta = info.get('meta', {})
 
         # Use unencrypted m3u8 streams (See https://github.com/rg3/youtube-dl/issues/4118)
+        # NB: nowadays, recent ffmpeg and avconv can handle these encrypted streams, so
+        # this adaptive -> flash workaround is not required in general, but it also
+        # allows bypassing georestriction therefore is retained for now.
         videopath = material['videopath'].replace('/adaptive/', '/flash/')
         m3u8_url = meta.get('videohost', 'http://manifest.us.rtl.nl') + videopath
 
