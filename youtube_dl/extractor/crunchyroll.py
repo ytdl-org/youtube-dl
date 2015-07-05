@@ -27,7 +27,7 @@ from ..aes import (
 
 
 class CrunchyrollIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:[^/]*/[^/?&]*?|media/\?id=)(?P<video_id>[0-9]+))(?:[/?&]|$)'
+    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:media(?:-|/\?id=)|[^/]*/[^/?&]*?)(?P<video_id>[0-9]+))(?:[/?&]|$)'
     _NETRC_MACHINE = 'crunchyroll'
     _TESTS = [{
         'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
@@ -45,6 +45,22 @@ class CrunchyrollIE(InfoExtractor):
             # rtmp
             'skip_download': True,
         },
+    }, {
+        'url': 'http://www.crunchyroll.com/media-589804/culture-japan-1',
+        'info_dict': {
+            'id': '589804',
+            'ext': 'flv',
+            'title': 'Culture Japan Episode 1 – Rebuilding Japan after the 3.11',
+            'description': 'md5:fe2743efedb49d279552926d0bd0cd9e',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'uploader': 'Danny Choo Network',
+            'upload_date': '20120213',
+        },
+        'params': {
+            # rtmp
+            'skip_download': True,
+        },
+
     }, {
         'url': 'http://www.crunchyroll.fr/girl-friend-beta/episode-11-goodbye-la-mode-661697',
         'only_matching': True,
@@ -251,16 +267,17 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         for fmt in re.findall(r'showmedia\.([0-9]{3,4})p', webpage):
             stream_quality, stream_format = self._FORMAT_IDS[fmt]
             video_format = fmt + 'p'
-            streamdata_req = compat_urllib_request.Request('http://www.crunchyroll.com/xml/')
-            # urlencode doesn't work!
-            streamdata_req.data = 'req=RpcApiVideoEncode%5FGetStreamInfo&video%5Fencode%5Fquality=' + stream_quality + '&media%5Fid=' + stream_id + '&video%5Fformat=' + stream_format
+            streamdata_req = compat_urllib_request.Request(
+                'http://www.crunchyroll.com/xml/?req=RpcApiVideoPlayer_GetStandardConfig&media_id=%s&video_format=%s&video_quality=%s'
+                % (stream_id, stream_format, stream_quality),
+                compat_urllib_parse.urlencode({'current_page': url}).encode('utf-8'))
             streamdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
-            streamdata_req.add_header('Content-Length', str(len(streamdata_req.data)))
             streamdata = self._download_xml(
                 streamdata_req, video_id,
                 note='Downloading media info for %s' % video_format)
-            video_url = streamdata.find('./host').text
-            video_play_path = streamdata.find('./file').text
+            stream_info = streamdata.find('./{default}preload/stream_info')
+            video_url = stream_info.find('./host').text
+            video_play_path = stream_info.find('./file').text
             formats.append({
                 'url': video_url,
                 'play_path': video_play_path,
