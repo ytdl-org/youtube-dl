@@ -59,9 +59,11 @@ class RtlNlIE(InfoExtractor):
         subtitle = material['title'] or info['episodes'][0]['name']
         description = material.get('synopsis') or info['episodes'][0]['synopsis']
 
+        meta = info.get('meta', {})
+
         # Use unencrypted m3u8 streams (See https://github.com/rg3/youtube-dl/issues/4118)
-        videopath = material['videopath'].replace('adaptive', 'flash')
-        m3u8_url = info['meta']['videohost'] + videopath
+        videopath = material['videopath'].replace('/adaptive/', '/flash/')
+        m3u8_url = meta.get('videohost', 'http://manifest.us.rtl.nl') + videopath
 
         formats = self._extract_m3u8_formats(m3u8_url, uuid, ext='mp4')
 
@@ -82,7 +84,7 @@ class RtlNlIE(InfoExtractor):
         self._sort_formats(formats)
 
         thumbnails = []
-        meta = info.get('meta', {})
+
         for p in ('poster_base_url', '"thumb_base_url"'):
             if not meta.get(p):
                 continue
