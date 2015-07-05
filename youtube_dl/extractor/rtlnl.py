@@ -44,6 +44,10 @@ class RtlNlIE(InfoExtractor):
             'description': 'Er zijn nieuwe beelden vrijgegeven die vlak na de aanslag in Kopenhagen zijn gemaakt. Op de video is goed te zien hoe omstanders zich bekommeren om één van de slachtoffers, terwijl de eerste agenten ter plaatse komen.',
         }
     }, {
+        # encrypted m3u8 streams
+        'url': 'http://www.rtlxl.nl/#!/afl-2-257632/52a74543-c504-4cde-8aa8-ec66fe8d68a7',
+        'only_matching': True,
+    }, {
         'url': 'http://www.rtl.nl/system/videoplayer/derden/embed.html#!/uuid=bb0353b0-d6a4-1dad-90e9-18fe75b8d1f0',
         'only_matching': True,
     }]
@@ -51,7 +55,7 @@ class RtlNlIE(InfoExtractor):
     def _real_extract(self, url):
         uuid = self._match_id(url)
         info = self._download_json(
-            'http://www.rtl.nl/system/s4m/vfd/version=2/uuid=%s/fmt=flash/' % uuid,
+            'http://www.rtl.nl/system/s4m/vfd/version=2/uuid=%s/fmt=adaptive/' % uuid,
             uuid)
 
         material = info['material'][0]
@@ -59,9 +63,11 @@ class RtlNlIE(InfoExtractor):
         subtitle = material['title'] or info['episodes'][0]['name']
         description = material.get('synopsis') or info['episodes'][0]['synopsis']
 
+        meta = info.get('meta', {})
+
         # Use unencrypted m3u8 streams (See https://github.com/rg3/youtube-dl/issues/4118)
-        videopath = material['videopath'].replace('.f4m', '.m3u8')
-        m3u8_url = 'http://manifest.us.rtl.nl' + videopath
+        videopath = material['videopath'].replace('/adaptive/', '/flash/')
+        m3u8_url = meta.get('videohost', 'http://manifest.us.rtl.nl') + videopath
 
         formats = self._extract_m3u8_formats(m3u8_url, uuid, ext='mp4')
 
@@ -82,7 +88,7 @@ class RtlNlIE(InfoExtractor):
         self._sort_formats(formats)
 
         thumbnails = []
-        meta = info.get('meta', {})
+
         for p in ('poster_base_url', '"thumb_base_url"'):
             if not meta.get(p):
                 continue
