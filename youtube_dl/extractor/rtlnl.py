@@ -44,7 +44,7 @@ class RtlNlIE(InfoExtractor):
             'description': 'Er zijn nieuwe beelden vrijgegeven die vlak na de aanslag in Kopenhagen zijn gemaakt. Op de video is goed te zien hoe omstanders zich bekommeren om één van de slachtoffers, terwijl de eerste agenten ter plaatse komen.',
         }
     }, {
-        # encrypted m3u8 streams
+        # encrypted m3u8 streams, georestricted
         'url': 'http://www.rtlxl.nl/#!/afl-2-257632/52a74543-c504-4cde-8aa8-ec66fe8d68a7',
         'only_matching': True,
     }, {
