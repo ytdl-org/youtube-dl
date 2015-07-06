@@ -27,6 +27,20 @@ class QQMusicIE(InfoExtractor):
             'upload_date': '20141227',
             'creator': '林俊杰',
             'description': 'md5:d327722d0361576fde558f1ac68a7065',
+            'thumbnail': 're:^https?://.*\.jpg$',
+        }
+    }, {
+        'note': 'There is no mp3-320 version of this song.',
+        'url': 'http://y.qq.com/#type=song&mid=004MsGEo3DdNxV',
+        'md5': 'fa3926f0c585cda0af8fa4f796482e3e',
+        'info_dict': {
+            'id': '004MsGEo3DdNxV',
+            'ext': 'mp3',
+            'title': '如果',
+            'upload_date': '20050626',
+            'creator': '李季美',
+            'description': 'md5:46857d5ed62bc4ba84607a805dccf437',
+            'thumbnail': 're:^https?://.*\.jpg$',
         }
     }]
 
@@ -69,6 +83,14 @@ class QQMusicIE(InfoExtractor):
         if lrc_content:
             lrc_content = lrc_content.replace('\\n', '\n')
 
+        thumbnail_url = None
+        albummid = self._search_regex(
+            [r'albummid:\'([0-9a-zA-Z]+)\'', r'"albummid":"([0-9a-zA-Z]+)"'],
+            detail_info_page, 'album mid', default=None)
+        if albummid:
+            thumbnail_url = "http://i.gtimg.cn/music/photo/mid_album_500/%s/%s/%s.jpg" \
+                            % (albummid[-2:-1], albummid[-1], albummid)
+
         guid = self.m_r_get_ruin()
 
         vkey = self._download_json(
@@ -86,6 +108,7 @@ class QQMusicIE(InfoExtractor):
                 'preference': details['preference'],
                 'abr': details.get('abr'),
             })
+        self._check_formats(formats, mid)
         self._sort_formats(formats)
 
         return {
@@ -95,6 +118,7 @@ class QQMusicIE(InfoExtractor):
             'upload_date': publish_time,
             'creator': singer,
             'description': lrc_content,
+            'thumbnail': thumbnail_url,
         }
 
 
