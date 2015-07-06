@@ -194,7 +194,7 @@ class QQMusicAlbumIE(QQPlaylistBaseIE):
                 'http://y.qq.com/#type=song&mid=' + song['songmid'], 'QQMusic', song['songmid']
             ) for song in album['list']
         ]
-        album_name = album['name']
+        album_name = album.get('name')
         album_detail = album.get('desc')
         if album_detail is not None:
             album_detail = album_detail.strip()
