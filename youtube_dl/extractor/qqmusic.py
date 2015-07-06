@@ -164,31 +164,38 @@ class QQMusicAlbumIE(QQPlaylistBaseIE):
     IE_NAME = 'qqmusic:album'
     _VALID_URL = r'http://y.qq.com/#type=album&mid=(?P<id>[0-9A-Za-z]+)'
 
-    _TEST = {
-        'url': 'http://y.qq.com/#type=album&mid=000gXCTb2AhRR1&play=0',
+    _TESTS = [{
+        'url': 'http://y.qq.com/#type=album&mid=000gXCTb2AhRR1',
         'info_dict': {
             'id': '000gXCTb2AhRR1',
             'title': '我们都是这样长大的',
-            'description': 'md5:d216c55a2d4b3537fe4415b8767d74d6',
+            'description': 'md5:712f0cdbfc7e776820d08150e6df593d',
         },
         'playlist_count': 4,
-    }
+    }, {
+        'url': 'http://y.qq.com/#type=album&mid=002Y5a3b3AlCu3',
+        'info_dict': {
+            'id': '002Y5a3b3AlCu3',
+            'title': '그리고...',
+            'description': 'md5:b1d133b8c9bac8fed4e1a97df759f4cf',
+        },
+        'playlist_count': 8,
+    }]
 
     def _real_extract(self, url):
         mid = self._match_id(url)
 
-        album_page = self._download_webpage(
-            self.qq_static_url('album', mid), mid, 'Download album page')
+        album = self._download_json(
+            'http://i.y.qq.com/v8/fcg-bin/fcg_v8_album_info_cp.fcg?albummid=%s&format=json' % mid,
+            mid, 'Download album page')['data']
 
-        entries = self.get_entries_from_page(album_page)
-
-        album_name = self._html_search_regex(
-            r"albumname\s*:\s*'([^']+)',", album_page, 'album name',
-            default=None)
-
-        album_detail = self._html_search_regex(
-            r'<div class="album_detail close_detail">\s*<p>((?:[^<>]+(?:<br />)?)+)</p>',
-            album_page, 'album details', default=None)
+        entries = [
+            self.url_result(
+                'http://y.qq.com/#type=song&mid=' + song['songmid'], 'QQMusic', song['songmid']
+            ) for song in album['list']
+        ]
+        album_name = album['name']
+        album_detail = album.get('desc')
 
         return self.playlist_result(entries, mid, album_name, album_detail)
 
