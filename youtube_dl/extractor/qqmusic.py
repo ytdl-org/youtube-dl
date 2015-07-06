@@ -169,7 +169,7 @@ class QQMusicAlbumIE(QQPlaylistBaseIE):
         'info_dict': {
             'id': '000gXCTb2AhRR1',
             'title': '我们都是这样长大的',
-            'description': 'md5:712f0cdbfc7e776820d08150e6df593d',
+            'description': 'md5:179c5dce203a5931970d306aa9607ea6',
         },
         'playlist_count': 4,
     }, {
@@ -177,7 +177,7 @@ class QQMusicAlbumIE(QQPlaylistBaseIE):
         'info_dict': {
             'id': '002Y5a3b3AlCu3',
             'title': '그리고...',
-            'description': 'md5:b1d133b8c9bac8fed4e1a97df759f4cf',
+            'description': 'md5:a48823755615508a95080e81b51ba729',
         },
         'playlist_count': 8,
     }]
@@ -196,6 +196,8 @@ class QQMusicAlbumIE(QQPlaylistBaseIE):
         ]
         album_name = album['name']
         album_detail = album.get('desc')
+        if album_detail is not None:
+            album_detail = album_detail.strip()
 
         return self.playlist_result(entries, mid, album_name, album_detail)
 
