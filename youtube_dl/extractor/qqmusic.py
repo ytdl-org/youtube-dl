@@ -274,6 +274,6 @@ class QQMusicPlaylistIE(QQPlaylistBaseIE):
             ) for song in list_json['songlist']
         ]
 
-        list_name = list_json['dissname']
+        list_name = list_json.get('dissname')
         list_description = clean_html(unescapeHTML(list_json.get('desc')))
         return self.playlist_result(entries, list_id, list_name, list_description)
