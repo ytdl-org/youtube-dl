@@ -733,6 +733,7 @@ from .yandexmusic import (
     YandexMusicPlaylistIE,
 )
 from .yesjapan import YesJapanIE
+from .yinyuetai import YinYueTaiIE
 from .ynet import YnetIE
 from .youjizz import YouJizzIE
 from .youku import YoukuIE
