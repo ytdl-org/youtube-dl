@@ -9,6 +9,7 @@ from .common import InfoExtractor
 from ..utils import (
     strip_jsonp,
     unescapeHTML,
+    clean_html,
 )
 from ..compat import compat_urllib_request
 
@@ -242,4 +243,37 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
         topinfo = toplist_json.get('topinfo', {})
         list_name = topinfo.get('ListName')
         list_description = topinfo.get('info')
+        return self.playlist_result(entries, list_id, list_name, list_description)
+
+
+class QQMusicPlaylistIE(QQPlaylistBaseIE):
+    IE_NAME = 'qqmusic:playlist'
+    _VALID_URL = r'http://y\.qq\.com/#type=taoge&id=(?P<id>[0-9]+)'
+
+    _TEST = {
+        'url': 'http://y.qq.com/#type=taoge&id=3462654915',
+        'info_dict': {
+            'id': '3462654915',
+            'title': '韩国5月新歌精选下旬',
+            'description': 'md5:d2c9d758a96b9888cf4fe82f603121d4',
+        },
+        'playlist_count': 40,
+    }
+
+    def _real_extract(self, url):
+        list_id = self._match_id(url)
+
+        list_json = self._download_json(
+            'http://i.y.qq.com/qzone-music/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg?type=1&json=1&utf8=1&onlysong=0&disstid=%s'
+            % list_id, list_id, 'Download list page',
+            transform_source=strip_jsonp)['cdlist'][0]
+
+        entries = [
+            self.url_result(
+                'http://y.qq.com/#type=song&mid=' + song['songmid'], 'QQMusic', song['songmid']
+            ) for song in list_json['songlist']
+        ]
+
+        list_name = list_json.get('dissname')
+        list_description = clean_html(unescapeHTML(list_json.get('desc')))
         return self.playlist_result(entries, list_id, list_name, list_description)
