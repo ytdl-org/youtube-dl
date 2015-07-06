@@ -27,7 +27,7 @@ class QQMusicIE(InfoExtractor):
             'upload_date': '20141227',
             'creator': '林俊杰',
             'description': 'md5:d327722d0361576fde558f1ac68a7065',
-            'thumbnail': 'http://i.gtimg.cn/music/photo/mid_album_500/7/p/001IV22P1RDX7p.jpg',
+            'thumbnail': 're:^https?://.*\.jpg$',
         }
     }, {
         'note': 'There is no mp3-320 version of this song.',
@@ -40,7 +40,7 @@ class QQMusicIE(InfoExtractor):
             'upload_date': '20050626',
             'creator': '李季美',
             'description': 'md5:46857d5ed62bc4ba84607a805dccf437',
-            'thumbnail': 'http://i.gtimg.cn/music/photo/mid_album_500/r/Q/0042owYj46IxrQ.jpg',
+            'thumbnail': 're:^https?://.*\.jpg$',
         }
     }]
 
