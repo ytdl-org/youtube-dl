@@ -384,6 +384,7 @@
  - **Pyvideo**
  - **qqmusic**
  - **qqmusic:album**
+ - **qqmusic:playlist**
  - **qqmusic:singer**
  - **qqmusic:toplist**
  - **QuickVid**
