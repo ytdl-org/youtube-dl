@@ -10,8 +10,8 @@ from ..utils import (
 
 
 class GfycatIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?gfycat\.com/(?P<id>[^/?#]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?gfycat\.com/(?:ifr/)?(?P<id>[^/?#]+)'
+    _TESTS = [{
         'url': 'http://gfycat.com/DeadlyDecisiveGermanpinscher',
         'info_dict': {
             'id': 'DeadlyDecisiveGermanpinscher',
@@ -27,7 +27,23 @@ class GfycatIE(InfoExtractor):
             'categories': list,
             'age_limit': 0,
         }
-    }
+    }, {
+        'url': 'http://gfycat.com/ifr/JauntyTimelyAmazontreeboa',
+        'info_dict': {
+            'id': 'JauntyTimelyAmazontreeboa',
+            'ext': 'mp4',
+            'title': 'JauntyTimelyAmazontreeboa',
+            'timestamp': 1411720126,
+            'upload_date': '20140926',
+            'uploader': 'anonymous',
+            'duration': 3.52,
+            'view_count': int,
+            'like_count': int,
+            'dislike_count': int,
+            'categories': list,
+            'age_limit': 0,
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
