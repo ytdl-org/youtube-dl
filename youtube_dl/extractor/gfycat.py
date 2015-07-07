@@ -6,6 +6,7 @@ from ..utils import (
     int_or_none,
     float_or_none,
     qualities,
+    ExtractorError,
 )
 
 
@@ -50,7 +51,10 @@ class GfycatIE(InfoExtractor):
 
         gfy = self._download_json(
             'http://gfycat.com/cajax/get/%s' % video_id,
-            video_id, 'Downloading video info')['gfyItem']
+            video_id, 'Downloading video info')
+        if 'error' in gfy:
+            raise ExtractorError('Gfycat said: ' + gfy['error'], expected=True)
+        gfy = gfy['gfyItem']
 
         title = gfy.get('title') or gfy['gfyName']
         description = gfy.get('description')
