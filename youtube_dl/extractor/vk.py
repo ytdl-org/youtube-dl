@@ -120,6 +120,21 @@ class VKIE(InfoExtractor):
             'skip': 'Only works from Russia',
         },
         {
+            # youtube embed
+            'url': 'https://vk.com/video276849682_170681728',
+            'info_dict': {
+                'id': 'V3K4mi0SYkc',
+                'ext': 'mp4',
+                'title': "DSWD Awards 'Children's Joy Foundation, Inc.' Certificate of Registration and License to Operate",
+                'description': 'md5:bf9c26cfa4acdfb146362682edd3827a',
+                'duration': 179,
+                'upload_date': '20130116',
+                'uploader': "Children's Joy Foundation",
+                'uploader_id': 'thecjf',
+                'view_count': int,
+            },
+        },
+        {
             # removed video, just testing that we match the pattern
             'url': 'http://vk.com/feed?z=video-43215063_166094326%2Fbb50cacd3177146d7a',
             'only_matching': True,
@@ -199,7 +214,7 @@ class VKIE(InfoExtractor):
             r'<iframe[^>]+src="((?:https?:)?//www.youtube.com/embed/[^"]+)"',
             info_page, 'youtube iframe', default=None)
         if youtube_url:
-            return self.url_result(youtube_url, 'Youtube', video_id)
+            return self.url_result(youtube_url, 'Youtube')
 
         m_rutube = re.search(
             r'\ssrc="((?:https?:)?//rutube\.ru\\?/video\\?/embed(?:.*?))\\?"', info_page)
