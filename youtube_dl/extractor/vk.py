@@ -21,7 +21,17 @@ from ..utils import (
 
 class VKIE(InfoExtractor):
     IE_NAME = 'vk.com'
-    _VALID_URL = r'https?://(?:m\.)?vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|(?:.+?\?.*?z=)?video(?P<videoid>[^s].*?)(?:\?|%2F|$))'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:m\.)?vk\.com/video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|
+                            (?:
+                                (?:m\.)?vk\.com/(?:.+?\?.*?z=)?video|
+                                (?:www\.)?biqle\.ru/watch/
+                            )
+                            (?P<videoid>[^s].*?)(?:\?|%2F|$)
+                        )
+                    '''
     _NETRC_MACHINE = 'vk'
 
     _TESTS = [
@@ -114,6 +124,11 @@ class VKIE(InfoExtractor):
             'url': 'http://vk.com/feed?z=video-43215063_166094326%2Fbb50cacd3177146d7a',
             'only_matching': True,
         },
+        {
+            # vk wrapper
+            'url': 'http://www.biqle.ru/watch/847655_160197695',
+            'only_matching': True,
+        }
     ]
 
     def _login(self):
