@@ -762,6 +762,7 @@ from .zingmp3 import (
     ZingMp3SongIE,
     ZingMp3AlbumIE,
 )
+from .animeram import AnimeRamIE
 
 _ALL_CLASSES = [
     klass
