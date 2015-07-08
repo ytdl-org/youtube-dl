@@ -45,6 +45,7 @@ from .beatportpro import BeatportProIE
 from .bet import BetIE
 from .bild import BildIE
 from .bilibili import BiliBiliIE
+from .biqle import BiqleIE
 from .blinkx import BlinkxIE
 from .bliptv import BlipTVIE, BlipTVUserIE
 from .bloomberg import BloombergIE
