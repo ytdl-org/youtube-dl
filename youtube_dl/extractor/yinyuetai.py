@@ -32,12 +32,14 @@ class YinYueTaiIE(InfoExtractor):
         if info['error']:
             raise ExtractorError(info['errorMsg'], expected=True)
 
-        formats = [
-            {'url': format_info['videoUrl'], 'format_id': format_info['qualityLevel'],
-             'format': format_info['qualityLevelName'], 'filesize': format_info['fileSize'],
-             'ext': 'mp4', 'preference': format_info['bitrate']}
-            for format_info in info['videoUrlModels']
-        ]
+        formats = [{
+            'url': format_info['videoUrl'],
+            'format_id': format_info['qualityLevel'],
+            'format': format_info['qualityLevelName'],
+            'filesize': format_info['fileSize'],
+            'ext': 'mp4',
+            'preference': format_info['bitrate'],
+        } for format_info in info['videoUrlModels']]
         self._sort_formats(formats)
 
         return {
