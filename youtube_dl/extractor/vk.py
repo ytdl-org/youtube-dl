@@ -195,10 +195,11 @@ class VKIE(InfoExtractor):
             if re.search(error_re, info_page):
                 raise ExtractorError(error_msg % video_id, expected=True)
 
-        m_yt = re.search(r'src="(http://www.youtube.com/.*?)"', info_page)
-        if m_yt is not None:
-            self.to_screen('Youtube video detected')
-            return self.url_result(m_yt.group(1), 'Youtube')
+        youtube_url = self._search_regex(
+            r'<iframe[^>]+src="((?:https?:)?//www.youtube.com/embed/[^"]+)"',
+            info_page, 'youtube iframe', default=None)
+        if youtube_url:
+            return self.url_result(youtube_url, 'Youtube', video_id)
 
         m_rutube = re.search(
             r'\ssrc="((?:https?:)?//rutube\.ru\\?/video\\?/embed(?:.*?))\\?"', info_page)
