@@ -8,7 +8,7 @@ from ..utils import ExtractorError
 class YinYueTaiIE(InfoExtractor):
     IE_NAME = 'yinyuetai:video'
     _VALID_URL = r'https?://v\.yinyuetai\.com/video(/h5)?/(?P<id>[0-9]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://v.yinyuetai.com/video/2322376',
         'md5': '6e3abe28d38e3a54b591f9f040595ce0',
         'info_dict': {
@@ -17,7 +17,10 @@ class YinYueTaiIE(InfoExtractor):
             'title': '少女时代_PARTY_Music Video Teaser',
             'creator': '少女时代',
         },
-    }
+    }, {
+        'url': 'http://v.yinyuetai.com/video/h5/2322376',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
