@@ -16,6 +16,8 @@ class YinYueTaiIE(InfoExtractor):
             'ext': 'mp4',
             'title': '少女时代_PARTY_Music Video Teaser',
             'creator': '少女时代',
+            'duration': 25,
+            'thumbnail': 're:^https?://.*\.jpg$',
         },
     }, {
         'url': 'http://v.yinyuetai.com/video/h5/2322376',
@@ -35,18 +37,19 @@ class YinYueTaiIE(InfoExtractor):
         formats = [{
             'url': format_info['videoUrl'],
             'format_id': format_info['qualityLevel'],
-            'format': format_info['qualityLevelName'],
-            'filesize': format_info['fileSize'],
+            'format': format_info.get('qualityLevelName'),
+            'filesize': format_info.get('fileSize'),
+            # though URLs ends with .flv, the downloaded files are in fact mp4
             'ext': 'mp4',
-            'preference': format_info['bitrate'],
+            'tbr': format_info.get('bitrate'),
         } for format_info in info['videoUrlModels']]
         self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': info['videoName'],
-            'thumbnail': info['bigHeadImage'],
-            'creator': info['artistNames'],
-            'duration': info['duration'],
+            'thumbnail': info.get('bigHeadImage'),
+            'creator': info.get('artistNames'),
+            'duration': info.get('duration'),
             'formats': formats,
         }
