@@ -13,11 +13,12 @@ class MyviEmbedIE(SprutoBaseIE):
                             (?:
                                 (?:
                                     embed/html|
+                                    flash|
                                     api/Video/Get
                                 )/|
                                 content/preloader\.swf\?.*\bid=
                             )
-                            (?P<id>[\da-zA-Z_]+)
+                            (?P<id>[\da-zA-Z_-]+)
                     '''
     _TESTS = [{
         'url': 'http://myvi.ru/player/embed/html/oOy4euHA6LVwNNAjhD9_Jq5Ha2Qf0rtVMVFMAZav8wObeRTZaCATzucDQIDph8hQU0',
@@ -38,12 +39,15 @@ class MyviEmbedIE(SprutoBaseIE):
     }, {
         'url': 'http://myvi.tv/embed/html/oTGTNWdyz4Zwy_u1nraolwZ1odenTd9WkTnRfIL9y8VOgHYqOHApE575x4_xxS9Vn0?ap=0',
         'only_matching': True,
+    }, {
+        'url': 'http://myvi.ru/player/flash/ocp2qZrHI-eZnHKQBK4cZV60hslH8LALnk0uBfKsB-Q4WnY26SeGoYPi8HWHxu0O30',
+        'only_matching': True,
     }]
 
     @classmethod
     def _extract_url(cls, webpage):
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//myvi\.(?:ru/player|tv)/embed/html/[^"]+)\1', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//myvi\.(?:ru/player|tv)/(?:embed/html|flash)/[^"]+)\1', webpage)
         if mobj:
             return mobj.group('url')
 
