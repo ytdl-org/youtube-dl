@@ -339,6 +339,17 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        # Myvi.ru embed
+        {
+            'url': 'http://www.kinomyvi.tv/news/detail/Pervij-dublirovannij-trejler--Uzhastikov-_nOw1',
+            'info_dict': {
+                'id': 'f4dafcad-ff21-423d-89b5-146cfd89fa1e',
+                'ext': 'mp4',
+                'title': 'Ужастики, русский трейлер (2015)',
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'duration': 153,
+            }
+        },
         # XHamster embed
         {
             'url': 'http://www.numisc.com/forum/showthread.php?11696-FM15-which-pumiscer-was-this-%28-vid-%29-%28-alfa-as-fuck-srx-%29&s=711f5db534502e22260dec8c5e2d66d8',
