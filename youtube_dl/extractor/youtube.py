@@ -798,7 +798,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         return self._download_webpage(url, video_id, note='Searching for annotations.', errnote='Unable to download video annotations.')
 
     def _parse_dash_manifest(
-            self, video_id, dash_manifest_url, player_url, age_gate):
+            self, video_id, dash_manifest_url, player_url, age_gate, fatal=True):
         def decrypt_sig(mobj):
             s = mobj.group(1)
             dec_s = self._decrypt_signature(s, video_id, player_url, age_gate)
@@ -807,7 +807,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         dash_doc = self._download_xml(
             dash_manifest_url, video_id,
             note='Downloading DASH manifest',
-            errnote='Could not download DASH manifest')
+            errnote='Could not download DASH manifest',
+            fatal=fatal)
+
+        if dash_doc is False:
+            return []
 
         formats = []
         for a in dash_doc.findall('.//{urn:mpeg:DASH:schema:MPD:2011}AdaptationSet'):
@@ -1161,14 +1165,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # Look for the DASH manifest
         if self._downloader.params.get('youtube_include_dash_manifest', True):
+            dash_mpd_fatal = True
             for dash_manifest_url in dash_mpds:
                 dash_formats = {}
                 try:
                     for df in self._parse_dash_manifest(
-                            video_id, dash_manifest_url, player_url, age_gate):
+                            video_id, dash_manifest_url, player_url, age_gate, dash_mpd_fatal):
                         # Do not overwrite DASH format found in some previous DASH manifest
                         if df['format_id'] not in dash_formats:
                             dash_formats[df['format_id']] = df
+                        # Additional DASH manifests may end up in HTTP Error 403 therefore
+                        # allow them to fail without bug report message if we already have
+                        # some DASH manifest succeeded. This is temporary workaround to reduce
+                        # burst of bug reports until we figure out the reason and whether it
+                        # can be fixed at all.
+                        dash_mpd_fatal = False
                 except (ExtractorError, KeyError) as e:
                     self.report_warning(
                         'Skipping DASH manifest: %r' % e, video_id)
