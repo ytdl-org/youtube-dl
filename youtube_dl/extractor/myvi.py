@@ -7,7 +7,7 @@ from .vimple import SprutoBaseIE
 class MyviEmbedIE(SprutoBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
-                        myvi\.ru/player/
+                        myvi\.(?:ru/player|tv)/
                             (?:
                                 (?:
                                     embed/html|
@@ -32,6 +32,9 @@ class MyviEmbedIE(SprutoBaseIE):
         'only_matching': True,
     }, {
         'url': 'http://myvi.ru/player/api/Video/Get/oOy4euHA6LVwNNAjhD9_Jq5Ha2Qf0rtVMVFMAZav8wObeRTZaCATzucDQIDph8hQU0',
+        'only_matching': True,
+    }, {
+        'url': 'http://myvi.tv/embed/html/oTGTNWdyz4Zwy_u1nraolwZ1odenTd9WkTnRfIL9y8VOgHYqOHApE575x4_xxS9Vn0?ap=0',
         'only_matching': True,
     }]
 
