@@ -6,7 +6,7 @@ import re
 from .vimple import SprutoBaseIE
 
 
-class MyviEmbedIE(SprutoBaseIE):
+class MyviIE(SprutoBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         myvi\.(?:ru/player|tv)/
