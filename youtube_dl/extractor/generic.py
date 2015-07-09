@@ -37,6 +37,7 @@ from .rutv import RUTVIE
 from .tvc import TVCIE
 from .sportbox import SportBoxEmbedIE
 from .smotri import SmotriIE
+from .myvi import MyviEmbedIE
 from .condenast import CondeNastIE
 from .udn import UDNEmbedIE
 from .senateisvp import SenateISVPIE
@@ -1424,6 +1425,11 @@ class GenericIE(InfoExtractor):
         smotri_url = SmotriIE._extract_url(webpage)
         if smotri_url:
             return self.url_result(smotri_url, 'Smotri')
+
+        # Look for embedded Myvi.ru player
+        myvi_url = MyviEmbedIE._extract_url(webpage)
+        if myvi_url:
+            return self.url_result(myvi_url)
 
         # Look for embeded soundcloud player
         mobj = re.search(
