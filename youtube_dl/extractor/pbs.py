@@ -224,6 +224,14 @@ class PBSIE(InfoExtractor):
             rating_str = rating_str.rpartition('-')[2]
         age_limit = US_RATINGS.get(rating_str)
 
+        subtitles = {}
+        closed_captions_url = info.get('closed_captions_url')
+        if closed_captions_url:
+            subtitles['en'] = [{
+                'ext': 'ttml',
+                'url': closed_captions_url,
+            }]
+
         return {
             'id': video_id,
             'display_id': display_id,
@@ -234,4 +242,5 @@ class PBSIE(InfoExtractor):
             'age_limit': age_limit,
             'upload_date': upload_date,
             'formats': formats,
+            'subtitles': subtitles,
         }
