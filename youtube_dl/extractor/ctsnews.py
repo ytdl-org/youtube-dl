@@ -6,6 +6,7 @@ from ..utils import parse_iso8601, ExtractorError
 
 
 class CtsNewsIE(InfoExtractor):
+    IE_DESC = '華視新聞'
     # https connection failed (Connection reset)
     _VALID_URL = r'http://news\.cts\.com\.tw/[a-z]+/[a-z]+/\d+/(?P<id>\d+)\.html'
     _TESTS = [{
