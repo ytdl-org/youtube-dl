@@ -74,11 +74,12 @@ class TwitchBaseIE(InfoExtractor):
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)
 
-        m = re.search(
-            r"id=([\"'])login_error_message\1[^>]*>(?P<msg>[^<]+)", response)
-        if m:
+        error_message = self._search_regex(
+            r'<div[^>]+class="subwindow_notice"[^>]*>([^<]+)</div>',
+            response, 'error message', default=None)
+        if error_message:
             raise ExtractorError(
-                'Unable to login: %s' % m.group('msg').strip(), expected=True)
+                'Unable to login. Twitch said: %s' % error_message, expected=True)
 
     def _prefer_source(self, formats):
         try:
