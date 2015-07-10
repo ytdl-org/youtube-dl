@@ -142,9 +142,8 @@ class KuwoAlbumIE(InfoExtractor):
             '%s简介：' % album_name)
 
         entries = [
-            self.url_result('http://www.kuwo.cn/yinyue/%s/' % song_id, 'Kuwo', song_id)
-            for song_id in re.findall(
-                r'<p[^>]+class="listen"><a[^>]+href="http://www\.kuwo\.cn/yinyue/(\d+)/"',
+            self.url_result(song_url, 'Kuwo') for song_url in re.findall(
+                r'<p[^>]+class="listen"><a[^>]+href="(http://www\.kuwo\.cn/yinyue/\d+/)"',
                 webpage)
         ]
         return self.playlist_result(entries, album_id, album_name, album_intro)
@@ -176,9 +175,8 @@ class KuwoChartIE(InfoExtractor):
             r'<p[^>]+class="tabDef">(\d{4}第\d{2}期)</p>', webpage, 'chart desc')
 
         entries = [
-            self.url_result('http://www.kuwo.cn/yinyue/%s/' % song_id, 'Kuwo', song_id)
-            for song_id in re.findall(
-                r'<a[^>]+href="http://www\.kuwo\.cn/yinyue/(\d+)/"', webpage)
+            self.url_result(song_url, 'Kuwo') for song_url in re.findall(
+                r'<a[^>]+href="(http://www\.kuwo\.cn/yinyue/\d+)/"', webpage)
         ]
         return self.playlist_result(entries, chart_id, chart_name, chart_desc)
 
@@ -221,9 +219,8 @@ class KuwoSingerIE(InfoExtractor):
                 errnote='Unable to get song list page #%d' % page_num)
 
             entries.extend([
-                self.url_result('http://www.kuwo.cn/yinyue/%s/' % song_id, 'Kuwo', song_id)
-                for song_id in re.findall(
-                    r'<p[^>]+class="m_name"><a[^>]+href="http://www\.kuwo\.cn/yinyue/([0-9]+)/',
+                self.url_result(song_url, 'Kuwo') for song_url in re.findall(
+                    r'<p[^>]+class="m_name"><a[^>]+href="(http://www\.kuwo\.cn/yinyue/\d+)/',
                     webpage)
             ][:10 if first_page_only else None])
 
@@ -263,9 +260,7 @@ class KuwoCategoryIE(InfoExtractor):
             r'var\s+jsonm\s*=\s*([^;]+);', webpage, 'category songs'), category_id)
 
         entries = [
-            self.url_result(
-                'http://www.kuwo.cn/yinyue/%s/' % song['musicrid'],
-                'Kuwo', song['musicrid'])
+            self.url_result('http://www.kuwo.cn/yinyue/%s/' % song['musicrid'], 'Kuwo')
             for song in jsonm['musiclist']
         ]
         return self.playlist_result(entries, category_id, category_name, category_desc)
