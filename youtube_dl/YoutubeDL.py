@@ -953,6 +953,8 @@ class YoutubeDL(object):
                         tokens.restore_last_token()
                         break
                     elif string == ',':
+                        if not current_selector:
+                            raise syntax_error('"," must follow a format selector', start)
                         selectors.append(current_selector)
                         current_selector = None
                     elif string == '/':
@@ -972,6 +974,8 @@ class YoutubeDL(object):
                     elif string == '+':
                         video_selector = current_selector
                         audio_selector = _parse_format_selection(tokens, inside_merge=True)
+                        if not video_selector or not audio_selector:
+                            raise syntax_error('"+" must be between two format selectors', start)
                         current_selector = FormatSelector(MERGE, (video_selector, audio_selector), [])
                     else:
                         raise syntax_error('Operator not recognized: "{0}"'.format(string), start)
