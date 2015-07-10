@@ -64,8 +64,8 @@ class TwitchBaseIE(InfoExtractor):
             login_page))
 
         login_form.update({
-            'login': username,
-            'password': password,
+            'login': username.encode('utf-8'),
+            'password': password.encode('utf-8'),
         })
 
         request = compat_urllib_request.Request(
