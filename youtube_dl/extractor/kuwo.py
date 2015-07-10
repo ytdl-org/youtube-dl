@@ -13,32 +13,7 @@ from ..utils import (
 )
 
 
-class KuwoIE(InfoExtractor):
-    IE_NAME = 'kuwo:song'
-    _VALID_URL = r'http://www\.kuwo\.cn/yinyue/(?P<id>[0-9]+?)/'
-    _TESTS = [{
-        'url': 'http://www.kuwo.cn/yinyue/635632/',
-        'info_dict': {
-            'id': '635632',
-            'ext': 'ape',
-            'title': '爱我别走',
-            'creator': '张震岳',
-            'upload_date': '20080122',
-            'description': 'md5:ed13f58e3c3bf3f7fd9fbc4e5a7aa75c'
-        },
-    }, {
-        'url': 'http://www.kuwo.cn/yinyue/6446136/',
-        'info_dict': {
-            'id': '6446136',
-            'ext': 'mp3',
-            'title': '心',
-            'creator': 'IU',
-            'upload_date': '20150518',
-        },
-        'params': {
-            'format': 'mp3-320'
-        },
-    }]
+class KuwoBaseIE(InfoExtractor):
     _FORMATS = [
         {'format': 'ape', 'ext': 'ape', 'preference': 100},
         {'format': 'mp3-320', 'ext': 'mp3', 'br': '320kmp3', 'abr': 320, 'preference': 80},
@@ -66,6 +41,34 @@ class KuwoIE(InfoExtractor):
                 })
         self._sort_formats(formats)
         return formats
+
+
+class KuwoIE(KuwoBaseIE):
+    IE_NAME = 'kuwo:song'
+    _VALID_URL = r'http://www\.kuwo\.cn/yinyue/(?P<id>[0-9]+?)/'
+    _TESTS = [{
+        'url': 'http://www.kuwo.cn/yinyue/635632/',
+        'info_dict': {
+            'id': '635632',
+            'ext': 'ape',
+            'title': '爱我别走',
+            'creator': '张震岳',
+            'upload_date': '20080122',
+            'description': 'md5:ed13f58e3c3bf3f7fd9fbc4e5a7aa75c'
+        },
+    }, {
+        'url': 'http://www.kuwo.cn/yinyue/6446136/',
+        'info_dict': {
+            'id': '6446136',
+            'ext': 'mp3',
+            'title': '心',
+            'creator': 'IU',
+            'upload_date': '20150518',
+        },
+        'params': {
+            'format': 'mp3-320'
+        },
+    }]
 
     def _real_extract(self, url):
         song_id = self._match_id(url)
@@ -268,10 +271,10 @@ class KuwoCategoryIE(InfoExtractor):
         return self.playlist_result(entries, category_id, category_name, category_desc)
 
 
-class KuwoMvIE(KuwoIE):
+class KuwoMvIE(KuwoBaseIE):
     IE_NAME = 'kuwo:mv'
     _VALID_URL = r'http://www\.kuwo\.cn/mv/(?P<id>[0-9]+?)/'
-    _TESTS = [{
+    _TEST = {
         'url': 'http://www.kuwo.cn/mv/6480076/',
         'info_dict': {
             'id': '6480076',
@@ -279,8 +282,8 @@ class KuwoMvIE(KuwoIE):
             'title': '我们家MV',
             'creator': '2PM',
         },
-    }]
-    _FORMATS = KuwoIE._FORMATS + [
+    }
+    _FORMATS = KuwoBaseIE._FORMATS + [
         {'format': 'mkv', 'ext': 'mkv', 'preference': 250},
         {'format': 'mp4', 'ext': 'mp4', 'preference': 200},
     ]
