@@ -81,6 +81,9 @@ class TwitchBaseIE(InfoExtractor):
             raise ExtractorError(
                 'Unable to login. Twitch said: %s' % error_message, expected=True)
 
+        if '>Reset your password<' in response:
+            self.report_warning('Twitch asks you to reset your password, go to https://secure.twitch.tv/reset/submit')
+
     def _prefer_source(self, formats):
         try:
             source = next(f for f in formats if f['format_id'] == 'Source')
