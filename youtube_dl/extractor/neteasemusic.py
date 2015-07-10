@@ -63,6 +63,7 @@ class NetEaseMusicBaseIE(InfoExtractor):
 
 class NetEaseMusicIE(NetEaseMusicBaseIE):
     IE_NAME = 'netease:song'
+    IE_DESC = '网易云音乐'
     _VALID_URL = r'https?://music\.163\.com/(#/)?song\?id=(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://music.163.com/#/song?id=32102397',
