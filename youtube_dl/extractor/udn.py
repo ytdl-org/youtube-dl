@@ -11,6 +11,7 @@ from ..compat import compat_urlparse
 
 
 class UDNEmbedIE(InfoExtractor):
+    IE_DESC = '聯合影音'
     _VALID_URL = r'https?://video\.udn\.com/(?:embed|play)/news/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://video.udn.com/embed/news/300040',
