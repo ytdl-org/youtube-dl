@@ -27,9 +27,9 @@ class KuwoBaseIE(InfoExtractor):
         formats = []
         for file_format in self._FORMATS:
             song_url = self._download_webpage(
-                "http://antiserver.kuwo.cn/anti.s?format=%s&br=%s&rid=MUSIC_%s&type=convert_url&response=url" %
+                'http://antiserver.kuwo.cn/anti.s?format=%s&br=%s&rid=MUSIC_%s&type=convert_url&response=url' %
                 (file_format['ext'], file_format.get('br', ''), song_id),
-                song_id, note="Download %s url info" % file_format["format"],
+                song_id, note='Download %s url info' % file_format['format'],
             )
             if song_url.startswith('http://') or song_url.startswith('https://'):
                 formats.append({
@@ -81,7 +81,7 @@ class KuwoIE(KuwoBaseIE):
         singer_name = self._html_search_regex(
             r'<div[^>]+class="s_img">\s*<a[^>]+title="([^>]+)"',
             webpage, 'singer name', default=None)
-        lrc_content = clean_html(get_element_by_id("lrcContent", webpage))
+        lrc_content = clean_html(get_element_by_id('lrcContent', webpage))
         if lrc_content == '暂无':     # indicates no lyrics
             lrc_content = None
 
@@ -94,7 +94,7 @@ class KuwoIE(KuwoBaseIE):
         publish_time = None
         if album_id is not None:
             album_info_page = self._download_webpage(
-                "http://www.kuwo.cn/album/%s/" % album_id, song_id,
+                'http://www.kuwo.cn/album/%s/' % album_id, song_id,
                 note='Download album detail info',
                 errnote='Unable to get album detail info')
 
@@ -138,11 +138,11 @@ class KuwoAlbumIE(InfoExtractor):
             r'<div[^>]+class="comm"[^<]+<h1[^>]+title="([^"]+)"', webpage,
             'album name')
         album_intro = remove_start(
-            clean_html(get_element_by_id("intro", webpage)),
+            clean_html(get_element_by_id('intro', webpage)),
             '%s简介：' % album_name)
 
         entries = [
-            self.url_result("http://www.kuwo.cn/yinyue/%s/" % song_id, 'Kuwo', song_id)
+            self.url_result('http://www.kuwo.cn/yinyue/%s/' % song_id, 'Kuwo', song_id)
             for song_id in re.findall(
                 r'<p[^>]+class="listen"><a[^>]+href="http://www\.kuwo\.cn/yinyue/(\d+)/"',
                 webpage)
@@ -176,7 +176,7 @@ class KuwoChartIE(InfoExtractor):
             r'<p[^>]+class="tabDef">(\d{4}第\d{2}期)</p>', webpage, 'chart desc')
 
         entries = [
-            self.url_result("http://www.kuwo.cn/yinyue/%s/" % song_id, 'Kuwo', song_id)
+            self.url_result('http://www.kuwo.cn/yinyue/%s/' % song_id, 'Kuwo', song_id)
             for song_id in re.findall(
                 r'<a[^>]+href="http://www\.kuwo\.cn/yinyue/(\d+)/"', webpage)
         ]
@@ -221,7 +221,7 @@ class KuwoSingerIE(InfoExtractor):
                 errnote='Unable to get song list page #%d' % page_num)
 
             entries.extend([
-                self.url_result("http://www.kuwo.cn/yinyue/%s/" % song_id, 'Kuwo', song_id)
+                self.url_result('http://www.kuwo.cn/yinyue/%s/' % song_id, 'Kuwo', song_id)
                 for song_id in re.findall(
                     r'<p[^>]+class="m_name"><a[^>]+href="http://www\.kuwo\.cn/yinyue/([0-9]+)/',
                     webpage)
@@ -256,7 +256,7 @@ class KuwoCategoryIE(InfoExtractor):
             r'<h1[^>]+title="([^<>]+?)">[^<>]+?</h1>', webpage, 'category name')
 
         category_desc = remove_start(
-            get_element_by_id("intro", webpage).strip(),
+            get_element_by_id('intro', webpage).strip(),
             '%s简介：' % category_name)
 
         jsonm = self._parse_json(self._html_search_regex(
@@ -264,7 +264,7 @@ class KuwoCategoryIE(InfoExtractor):
 
         entries = [
             self.url_result(
-                "http://www.kuwo.cn/yinyue/%s/" % song['musicrid'],
+                'http://www.kuwo.cn/yinyue/%s/' % song['musicrid'],
                 'Kuwo', song['musicrid'])
             for song in jsonm['musiclist']
         ]
@@ -301,7 +301,7 @@ class KuwoMvIE(KuwoBaseIE):
             song_name = mobj.group('song')
             singer_name = mobj.group('singer')
         else:
-            raise ExtractorError("Unable to find song or singer names")
+            raise ExtractorError('Unable to find song or singer names')
 
         formats = self._get_formats(song_id)
 
