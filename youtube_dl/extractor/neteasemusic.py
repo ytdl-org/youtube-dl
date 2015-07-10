@@ -229,7 +229,7 @@ class NetEaseMusicSingerIE(NetEaseMusicBaseIE):
         if info['artist']['trans']:
             name = '%s - %s' % (name, info['artist']['trans'])
         if info['artist']['alias']:
-            name = '%s - %s' % (name, ";".join(info['artist']['alias']))
+            name = '%s - %s' % (name, ';'.join(info['artist']['alias']))
 
         entries = [
             self.url_result('http://music.163.com/#/song?id=%s' % song['id'],

@@ -9,6 +9,7 @@ from ..utils import (
     get_element_by_id,
     clean_html,
     ExtractorError,
+    remove_start,
 )
 
 
@@ -73,10 +74,10 @@ class KuwoIE(InfoExtractor):
             errnote='Unable to get song detail info')
 
         song_name = self._html_search_regex(
-            r'<h1 title="(.+?)">', webpage, 'song name')
+            r'<h1[^>]+title="([^"]+)">', webpage, 'song name')
         singer_name = self._html_search_regex(
-            r'<div class="s_img">.+?title="(.+?)".+?</div>', webpage, 'singer name',
-            flags=re.DOTALL, default=None)
+            r'<div[^>]+class="s_img">\s*<a[^>]+title="([^>]+)"',
+            webpage, 'singer name', default=None)
         lrc_content = clean_html(get_element_by_id("lrcContent", webpage))
         if lrc_content == '暂无':     # indicates no lyrics
             lrc_content = None
@@ -84,7 +85,7 @@ class KuwoIE(InfoExtractor):
         formats = self._get_formats(song_id)
 
         album_id = self._html_search_regex(
-            r'<p class="album" title=".+?">.+?<a href="http://www\.kuwo\.cn/album/([0-9]+)/" ',
+            r'<p[^>]+class="album"[^<]+<a[^>]+href="http://www\.kuwo\.cn/album/(\d+)/"',
             webpage, 'album id', default=None, fatal=False)
 
         publish_time = None
@@ -131,15 +132,16 @@ class KuwoAlbumIE(InfoExtractor):
             errnote='Unable to get album info')
 
         album_name = self._html_search_regex(
-            r'<div class="comm".+?<h1 title="(.+?)">.+?</h1>', webpage,
-            'album name', flags=re.DOTALL)
-        album_intro = clean_html(
-            re.sub(r'^.+简介：', '', get_element_by_id("intro", webpage).strip()))
+            r'<div[^>]+class="comm"[^<]+<h1[^>]+title="([^"]+)"', webpage,
+            'album name')
+        album_intro = remove_start(
+            clean_html(get_element_by_id("intro", webpage)),
+            '%s简介：' % album_name)
 
         entries = [
             self.url_result("http://www.kuwo.cn/yinyue/%s/" % song_id, 'Kuwo', song_id)
             for song_id in re.findall(
-                r'<p class="listen"><a href="http://www\.kuwo\.cn/yinyue/([0-9]+)/" target="_blank" title="试听.*?"></a></p>',
+                r'<p[^>]+class="listen"><a[^>]+href="http://www\.kuwo\.cn/yinyue/(\d+)/"',
                 webpage)
         ]
         return self.playlist_result(entries, album_id, album_name, album_intro)
@@ -147,7 +149,7 @@ class KuwoAlbumIE(InfoExtractor):
 
 class KuwoChartIE(InfoExtractor):
     IE_NAME = 'kuwo:chart'
-    _VALID_URL = r'http://yinyue\.kuwo\.cn/billboard_(?P<id>.+?).htm'
+    _VALID_URL = r'http://yinyue\.kuwo\.cn/billboard_(?P<id>[^.]+).htm'
     _TEST = {
         'url': 'http://yinyue.kuwo.cn/billboard_香港中文龙虎榜.htm',
         'info_dict': {
@@ -165,15 +167,15 @@ class KuwoChartIE(InfoExtractor):
             errnote='Unable to get chart info')
 
         chart_name = self._html_search_regex(
-            r'<h1 class="unDis">(.+?)</h1>', webpage, 'chart name')
+            r'<h1[^>]+class="unDis">([^<]+)</h1>', webpage, 'chart name')
 
         chart_desc = self._html_search_regex(
-            r'<p class="tabDef">([0-9]{4}第[0-9]{2}期)</p>', webpage, 'chart desc')
+            r'<p[^>]+class="tabDef">(\d{4}第\d{2}期)</p>', webpage, 'chart desc')
 
         entries = [
             self.url_result("http://www.kuwo.cn/yinyue/%s/" % song_id, 'Kuwo', song_id)
             for song_id in re.findall(
-                r'<a href="http://www\.kuwo\.cn/yinyue/([0-9]+)/" .+?>.+?</a>', webpage)
+                r'<a[^>]+href="http://www\.kuwo\.cn/yinyue/(\d+)/"', webpage)
         ]
         return self.playlist_result(entries, chart_id, chart_name, chart_desc)
 
@@ -204,11 +206,11 @@ class KuwoSingerIE(InfoExtractor):
             errnote='Unable to get singer info')
 
         singer_name = self._html_search_regex(
-            r'<div class="title clearfix">[\n\s\t]*?<h1>(.+?)<span', webpage, 'singer name'
+            r'<div class="title clearfix">\s*<h1>([^<]+)<span', webpage, 'singer name'
         )
 
         entries = []
-        first_page_only = False if re.match(r'.+/music(?:_[0-9]+)?\.htm', url) else True
+        first_page_only = False if re.search(r'/music(?:_[0-9]+)?\.htm', url) else True
         for page_num in itertools.count(1):
             webpage = self._download_webpage(
                 'http://www.kuwo.cn/mingxing/%s/music_%d.htm' % (singer_id, page_num),
@@ -218,11 +220,11 @@ class KuwoSingerIE(InfoExtractor):
             entries.extend([
                 self.url_result("http://www.kuwo.cn/yinyue/%s/" % song_id, 'Kuwo', song_id)
                 for song_id in re.findall(
-                    r'<p class="m_name"><a href="http://www\.kuwo\.cn/yinyue/([0-9]+)/',
+                    r'<p[^>]+class="m_name"><a[^>]+href="http://www\.kuwo\.cn/yinyue/([0-9]+)/',
                     webpage)
             ][:10 if first_page_only else None])
 
-            if first_page_only or not re.search(r'<a href="[^"]+">下一页</a>', webpage):
+            if first_page_only or not re.search(r'<a[^>]+href="[^"]+">下一页</a>', webpage):
                 break
 
         return self.playlist_result(entries, singer_id, singer_name)
@@ -248,13 +250,14 @@ class KuwoCategoryIE(InfoExtractor):
             errnote='Unable to get category info')
 
         category_name = self._html_search_regex(
-            r'<h1 title="([^<>]+?)">[^<>]+?</h1>', webpage, 'category name')
+            r'<h1[^>]+title="([^<>]+?)">[^<>]+?</h1>', webpage, 'category name')
 
-        category_desc = re.sub(
-            r'^.+简介：', '', get_element_by_id("intro", webpage).strip())
+        category_desc = remove_start(
+            get_element_by_id("intro", webpage).strip(),
+            '%s简介：' % category_name)
 
         jsonm = self._parse_json(self._html_search_regex(
-            r'var jsonm = (\{.+?\});', webpage, 'category songs'), category_id)
+            r'var\s+jsonm\s*=\s*([^;]+);', webpage, 'category songs'), category_id)
 
         entries = [
             self.url_result(
@@ -289,7 +292,7 @@ class KuwoMvIE(KuwoIE):
             errnote='Unable to get mv detail info: %s' % song_id)
 
         mobj = re.search(
-            r'<h1 title="(?P<song>.+?)">[^<>]+<span .+?title="(?P<singer>.+?)".+?>[^<>]+</span></h1>',
+            r'<h1[^>]+title="(?P<song>[^"]+)">[^<]+<span[^>]+title="(?P<singer>[^"]+)"',
             webpage)
         if mobj:
             song_name = mobj.group('song')
