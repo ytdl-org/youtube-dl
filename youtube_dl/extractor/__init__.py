@@ -262,7 +262,6 @@ from .kuwo import (
     KuwoAlbumIE,
     KuwoChartIE,
     KuwoSingerIE,
-    KuwoSingerMusicIE,
     KuwoCategoryIE,
     KuwoMvIE,
 )
