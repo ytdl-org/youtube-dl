@@ -38,9 +38,7 @@ class PlayedIE(InfoExtractor):
         if m_error:
             raise ExtractorError(m_error.group('msg'), expected=True)
 
-        fields = re.findall(
-            r'type="hidden" name="([^"]+)"\s+value="([^"]+)">', orig_webpage)
-        data = dict(fields)
+        data = self._form_hidden_inputs(orig_webpage)
 
         self._sleep(2, video_id)
 
