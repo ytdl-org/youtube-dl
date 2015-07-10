@@ -59,9 +59,7 @@ class TwitchBaseIE(InfoExtractor):
         login_page = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login page')
 
-        login_form = dict(re.findall(
-            r'<input\s+type="hidden"\s+name="([^"]+)"\s+(?:id="[^"]+"\s+)?value="([^"]*)"',
-            login_page))
+        login_form = self._form_hidden_inputs(login_page)
 
         login_form.update({
             'login': username.encode('utf-8'),
