@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from hashlib import md5
 from base64 import b64encode
 from datetime import datetime
-import itertools
 import re
 
 from .common import InfoExtractor
@@ -12,6 +11,7 @@ from ..compat import (
     compat_urllib_request,
     compat_urllib_parse,
     compat_str,
+    compat_itertools_count,
 )
 
 
@@ -428,7 +428,7 @@ class NetEaseMusicDjRadioIE(NetEaseMusicBaseIE):
         name = None
         desc = None
         entries = []
-        for offset in itertools.count(start=0, step=self._PAGE_SIZE):
+        for offset in compat_itertools_count(start=0, step=self._PAGE_SIZE):
             info = self.query_api(
                 'dj/program/byradio?asc=false&limit=%d&radioId=%s&offset=%d'
                 % (self._PAGE_SIZE, dj_id, offset),
