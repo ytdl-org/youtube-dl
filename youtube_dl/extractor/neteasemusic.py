@@ -52,7 +52,7 @@ class NetEaseMusicBaseIE(InfoExtractor):
 
     @classmethod
     def convert_milliseconds(cls, ms):
-        return int(round(ms/1000.0))
+        return int(round(ms / 1000.0))
 
     def query_api(self, endpoint, video_id, note):
         req = compat_urllib_request.Request('%s%s' % (self._API_BASE, endpoint))
@@ -146,7 +146,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
         self._sort_formats(formats)
 
         lyrics_info = self.query_api(
-            'song/lyric?id=%s&lv=-1&tv=-1' % song_id, 
+            'song/lyric?id=%s&lv=-1&tv=-1' % song_id,
             song_id, 'Downloading lyrics data')
         lyrics = self._process_lyrics(lyrics_info)
 
@@ -183,7 +183,7 @@ class NetEaseMusicAlbumIE(NetEaseMusicBaseIE):
         album_id = self._match_id(url)
 
         info = self.query_api(
-            'album/%s?id=%s' % (album_id, album_id), 
+            'album/%s?id=%s' % (album_id, album_id),
             album_id, 'Downloading album data')['album']
 
         name = info['name']
@@ -221,7 +221,7 @@ class NetEaseMusicSingerIE(NetEaseMusicBaseIE):
         singer_id = self._match_id(url)
 
         info = self.query_api(
-            'artist/%s?id=%s' % (singer_id, singer_id), 
+            'artist/%s?id=%s' % (singer_id, singer_id),
             singer_id, 'Downloading singer data')
 
         name = info['artist']['name']
@@ -264,7 +264,7 @@ class NetEaseMusicListIE(NetEaseMusicBaseIE):
         list_id = self._match_id(url)
 
         info = self.query_api(
-            'playlist/detail?id=%s&lv=-1&tv=-1' % list_id, 
+            'playlist/detail?id=%s&lv=-1&tv=-1' % list_id,
             list_id, 'Downloading playlist data')['result']
 
         name = info['name']
@@ -378,7 +378,7 @@ class NetEaseMusicProgramIE(NetEaseMusicBaseIE):
                 self.to_screen(
                     'Downloading just the main audio %s because of --no-playlist'
                     % info['mainSong']['id'])
-            
+
             formats = self.extract_formats(info['mainSong'])
             self._sort_formats(formats)
 
@@ -429,7 +429,7 @@ class NetEaseMusicDjRadioIE(NetEaseMusicBaseIE):
         entries = []
         for offset in itertools.count(start=0, step=self._PAGE_SIZE):
             info = self.query_api(
-                'dj/program/byradio?asc=false&limit=%d&radioId=%s&offset=%d' 
+                'dj/program/byradio?asc=false&limit=%d&radioId=%s&offset=%d'
                 % (self._PAGE_SIZE, dj_id, offset),
                 dj_id, 'Downloading dj programs - %d' % offset)
 
