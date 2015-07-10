@@ -343,6 +343,15 @@ from .ndtv import NDTVIE
 from .netzkino import NetzkinoIE
 from .nerdcubed import NerdCubedFeedIE
 from .nerdist import NerdistIE
+from .neteasemusic import (
+    NetEaseMusicIE,
+    NetEaseMusicAlbumIE,
+    NetEaseMusicSingerIE,
+    NetEaseMusicListIE,
+    NetEaseMusicMvIE,
+    NetEaseMusicProgramIE,
+    NetEaseMusicDjRadioIE,
+)
 from .newgrounds import NewgroundsIE
 from .newstube import NewstubeIE
 from .nextmedia import (

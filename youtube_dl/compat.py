@@ -9,6 +9,7 @@ import shutil
 import socket
 import subprocess
 import sys
+import itertools
 
 
 try:
@@ -388,6 +389,15 @@ else:
             pass
         return _terminal_size(columns, lines)
 
+try:
+    itertools.count(start=0, step=1)
+    compat_itertools_count = itertools.count
+except TypeError:  # Python 2.6
+    def compat_itertools_count(start=0, step=1):
+        n = start
+        while True:
+            yield n
+            n += step
 
 __all__ = [
     'compat_HTTPError',
@@ -401,6 +411,7 @@ __all__ = [
     'compat_html_entities',
     'compat_http_client',
     'compat_http_server',
+    'compat_itertools_count',
     'compat_kwargs',
     'compat_ord',
     'compat_parse_qs',
