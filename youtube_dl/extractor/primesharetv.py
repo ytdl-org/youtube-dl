@@ -31,12 +31,7 @@ class PrimeShareTVIE(InfoExtractor):
         if '>File not exist<' in webpage:
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
-        fields = dict(re.findall(r'''(?x)<input\s+
-            type="hidden"\s+
-            name="([^"]+)"\s+
-            (?:id="[^"]+"\s+)?
-            value="([^"]*)"
-            ''', webpage))
+        fields = self._form_hidden_inputs(webpage)
 
         headers = {
             'Referer': url,
