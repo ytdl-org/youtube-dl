@@ -45,6 +45,7 @@ class KuwoBaseIE(InfoExtractor):
 
 class KuwoIE(KuwoBaseIE):
     IE_NAME = 'kuwo:song'
+    IE_DESC = '酷我音乐'
     _VALID_URL = r'http://www\.kuwo\.cn/yinyue/(?P<id>\d+?)/'
     _TESTS = [{
         'url': 'http://www.kuwo.cn/yinyue/635632/',
