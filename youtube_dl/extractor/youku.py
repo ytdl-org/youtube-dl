@@ -15,6 +15,7 @@ from ..compat import (
 
 class YoukuIE(InfoExtractor):
     IE_NAME = 'youku'
+    IE_DESC = '优酷'
     _VALID_URL = r'''(?x)
         (?:
             http://(?:v|player)\.youku\.com/(?:v_show/id_|player\.php/sid/)|
