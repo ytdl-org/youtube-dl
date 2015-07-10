@@ -143,6 +143,7 @@ class QQPlaylistBaseIE(InfoExtractor):
 
 class QQMusicSingerIE(QQPlaylistBaseIE):
     IE_NAME = 'qqmusic:singer'
+    IE_DESC = 'QQ音乐 - 歌手'
     _VALID_URL = r'http://y.qq.com/#type=singer&mid=(?P<id>[0-9A-Za-z]+)'
     _TEST = {
         'url': 'http://y.qq.com/#type=singer&mid=001BLpXF2DyJe2',
@@ -187,6 +188,7 @@ class QQMusicSingerIE(QQPlaylistBaseIE):
 
 class QQMusicAlbumIE(QQPlaylistBaseIE):
     IE_NAME = 'qqmusic:album'
+    IE_DESC = 'QQ音乐 - 专辑'
     _VALID_URL = r'http://y.qq.com/#type=album&mid=(?P<id>[0-9A-Za-z]+)'
 
     _TESTS = [{
@@ -229,6 +231,7 @@ class QQMusicAlbumIE(QQPlaylistBaseIE):
 
 class QQMusicToplistIE(QQPlaylistBaseIE):
     IE_NAME = 'qqmusic:toplist'
+    IE_DESC = 'QQ音乐 - 排行榜'
     _VALID_URL = r'http://y\.qq\.com/#type=toplist&p=(?P<id>(top|global)_[0-9]+)'
 
     _TESTS = [{
@@ -282,6 +285,7 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
 
 class QQMusicPlaylistIE(QQPlaylistBaseIE):
     IE_NAME = 'qqmusic:playlist'
+    IE_DESC = 'QQ音乐 - 歌单'
     _VALID_URL = r'http://y\.qq\.com/#type=taoge&id=(?P<id>[0-9]+)'
 
     _TEST = {
