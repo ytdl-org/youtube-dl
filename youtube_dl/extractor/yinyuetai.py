@@ -7,6 +7,7 @@ from ..utils import ExtractorError
 
 class YinYueTaiIE(InfoExtractor):
     IE_NAME = 'yinyuetai:video'
+    IE_DESC = '音悦Tai'
     _VALID_URL = r'https?://v\.yinyuetai\.com/video(?:/h5)?/(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://v.yinyuetai.com/video/2322376',
