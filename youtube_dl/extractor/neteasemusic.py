@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from hashlib import md5
+from base64 import b64encode
 from datetime import datetime
 import itertools
 import re
@@ -20,14 +21,14 @@ class NetEaseMusicBaseIE(InfoExtractor):
 
     @classmethod
     def _encrypt(cls, dfsid):
-        salt_bytes = bytearray(str(cls._NETEASE_SALT))
+        salt_bytes = bytearray(cls._NETEASE_SALT, 'utf-8')
         string_bytes = bytearray(str(dfsid))
         salt_len = len(salt_bytes)
-        for i in xrange(len(string_bytes)):
+        for i in range(len(string_bytes)):
             string_bytes[i] = string_bytes[i] ^ salt_bytes[i % salt_len]
         m = md5()
         m.update(string_bytes)
-        result = m.digest().encode('base64')[:-1]
+        result = b64encode(m.digest())
         return result.replace('/', '_').replace('+', '-')
 
     @classmethod
@@ -41,12 +42,11 @@ class NetEaseMusicBaseIE(InfoExtractor):
                 'url': 'http://m1.music.126.net/%s/%s.%s' %
                        (cls._encrypt(details['dfsId']), details['dfsId'],
                         details['extension']),
-                'ext': details['extension'],
-                'abr': details['bitrate'] / 1000,
-                'preference': details['bitrate'],
+                'ext': details.get('extension'),
+                'abr': details.get('bitrate', 0) / 1000,
                 'format_id': song_format,
-                'filesize': details['size'],
-                'asr': details['sr']
+                'filesize': details.get('size'),
+                'asr': details.get('sr')
             })
         return formats
 
@@ -98,6 +98,19 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'upload_date': '20080211',
             'timestamp': 1202745600,
         },
+    }, {
+        'note': 'Has translated name.',
+        'url': 'http://music.163.com/#/song?id=22735043',
+        'info_dict': {
+            'id': '22735043',
+            'ext': 'mp3',
+            'title': '소원을 말해봐 (Genie)',
+            'creator': '少女时代',
+            'description': 'md5:79d99cc560e4ca97e0c4d86800ee4184',
+            'upload_date': '20100127',
+            'timestamp': 1264608000,
+            'alt_title': '说出愿望吧(Genie)',
+        }
     }]
 
     def _process_lyrics(self, lyrics_info):
@@ -109,10 +122,9 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
 
         lyrics_expr = r'(\[[0-9]{2}:[0-9]{2}\.[0-9]{2,}\])([^\n]+)'
         original_ts_texts = re.findall(lyrics_expr, original)
-        translation_ts_dict = {
-            time_stamp: text for time_stamp, text in re.findall(lyrics_expr, translated)
-        }
-
+        translation_ts_dict = dict(
+            (time_stamp, text) for time_stamp, text in re.findall(lyrics_expr, translated)
+        )
         lyrics = '\n'.join([
             '%s%s / %s' % (time_stamp, text, translation_ts_dict.get(time_stamp, ''))
             for time_stamp, text in original_ts_texts
@@ -139,8 +151,8 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
         lyrics = self._process_lyrics(lyrics_info)
 
         alt_title = None
-        if info.get('alias'):
-            alt_title = '/'.join(info.get('alias'))
+        if info.get('transNames'):
+            alt_title = '/'.join(info.get('transNames'))
 
         return {
             'id': song_id,
@@ -294,7 +306,7 @@ class NetEaseMusicMvIE(NetEaseMusicBaseIE):
             mv_id, 'Downloading mv info')['data']
 
         formats = [
-            {'url': mv_url, 'ext': 'mp4', 'format_id': '%sp' % brs, 'preference': int(brs)}
+            {'url': mv_url, 'ext': 'mp4', 'format_id': '%sp' % brs, 'height': int(brs)}
             for brs, mv_url in info['brs'].items()
         ]
         self._sort_formats(formats)
