@@ -22,8 +22,8 @@ class TwitchBaseIE(InfoExtractor):
 
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'http://usher.twitch.tv'
-    _LOGIN_URL = 'https://secure.twitch.tv/user/login'
-    _LOGIN_POST_URL = 'https://secure-login.twitch.tv/login'
+    _LOGIN_URL = 'https://secure.twitch.tv/login'
+    _LOGIN_POST_URL = 'https://passport.twitch.tv/authorize'
     _NETRC_MACHINE = 'twitch'
 
     def _handle_error(self, response):
@@ -59,20 +59,14 @@ class TwitchBaseIE(InfoExtractor):
         login_page = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login page')
 
-        authenticity_token = self._search_regex(
-            r'<input name="authenticity_token" type="hidden" value="([^"]+)"',
-            login_page, 'authenticity token')
+        login_form = dict(re.findall(
+            r'<input\s+type="hidden"\s+name="([^"]+)"\s+(?:id="[^"]+"\s+)?value="([^"]*)"',
+            login_page))
 
-        login_form = {
-            'utf8': '✓'.encode('utf-8'),
-            'authenticity_token': authenticity_token,
-            'redirect_on_login': '',
-            'embed_form': 'false',
-            'mp_source_action': 'login-button',
-            'follow': '',
+        login_form.update({
             'login': username,
             'password': password,
-        }
+        })
 
         request = compat_urllib_request.Request(
             self._LOGIN_POST_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
