@@ -20,6 +20,7 @@ from ..utils import (
 
 class IqiyiIE(InfoExtractor):
     IE_NAME = 'iqiyi'
+    IE_DESC = '爱奇艺'
 
     _VALID_URL = r'http://(?:www\.)iqiyi.com/v_.+?\.html'
 
