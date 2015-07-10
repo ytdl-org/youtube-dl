@@ -13,6 +13,7 @@ from ..utils import (
 
 
 class XuiteIE(InfoExtractor):
+    IE_DESC = '隨意窩Xuite影音'
     _REGEX_BASE64 = r'(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?'
     _VALID_URL = r'https?://vlog\.xuite\.net/(?:play|embed)/(?P<id>%s)' % _REGEX_BASE64
     _TESTS = [{
