@@ -117,6 +117,7 @@ class KuwoIE(KuwoBaseIE):
 
 class KuwoAlbumIE(InfoExtractor):
     IE_NAME = 'kuwo:album'
+    IE_DESC = '酷我音乐 - 专辑'
     _VALID_URL = r'http://www\.kuwo\.cn/album/(?P<id>\d+?)/'
     _TEST = {
         'url': 'http://www.kuwo.cn/album/502294/',
@@ -152,6 +153,7 @@ class KuwoAlbumIE(InfoExtractor):
 
 class KuwoChartIE(InfoExtractor):
     IE_NAME = 'kuwo:chart'
+    IE_DESC = '酷我音乐 - 排行榜'
     _VALID_URL = r'http://yinyue\.kuwo\.cn/billboard_(?P<id>[^.]+).htm'
     _TEST = {
         'url': 'http://yinyue.kuwo.cn/billboard_香港中文龙虎榜.htm',
@@ -184,6 +186,7 @@ class KuwoChartIE(InfoExtractor):
 
 class KuwoSingerIE(InfoExtractor):
     IE_NAME = 'kuwo:singer'
+    IE_DESC = '酷我音乐 - 歌手'
     _VALID_URL = r'http://www\.kuwo\.cn/mingxing/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://www.kuwo.cn/mingxing/bruno+mars/',
@@ -233,6 +236,7 @@ class KuwoSingerIE(InfoExtractor):
 
 class KuwoCategoryIE(InfoExtractor):
     IE_NAME = 'kuwo:category'
+    IE_DESC = '酷我音乐 - 分类'
     _VALID_URL = r'http://yinyue\.kuwo\.cn/yy/cinfo_(?P<id>\d+?).htm'
     _TEST = {
         'url': 'http://yinyue.kuwo.cn/yy/cinfo_86375.htm',
@@ -269,6 +273,7 @@ class KuwoCategoryIE(InfoExtractor):
 
 class KuwoMvIE(KuwoBaseIE):
     IE_NAME = 'kuwo:mv'
+    IE_DESC = '酷我音乐 - MV'
     _VALID_URL = r'http://www\.kuwo\.cn/mv/(?P<id>\d+?)/'
     _TEST = {
         'url': 'http://www.kuwo.cn/mv/6480076/',
