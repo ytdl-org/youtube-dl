@@ -249,10 +249,10 @@ class KuwoCategoryIE(InfoExtractor):
 
         category_name = self._html_search_regex(
             r'<h1 title="([^<>]+?)">[^<>]+?</h1>', webpage, 'category name')
-        
+
         category_desc = re.sub(
             r'^.+简介：', '', get_element_by_id("intro", webpage).strip())
-        
+
         jsonm = self._parse_json(self._html_search_regex(
             r'var jsonm = (\{.+?\});', webpage, 'category songs'), category_id)
 
