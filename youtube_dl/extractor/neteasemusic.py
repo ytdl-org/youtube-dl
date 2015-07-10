@@ -11,6 +11,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urllib_request,
     compat_urllib_parse,
+    compat_str,
 )
 
 
@@ -21,14 +22,14 @@ class NetEaseMusicBaseIE(InfoExtractor):
 
     @classmethod
     def _encrypt(cls, dfsid):
-        salt_bytes = bytearray(cls._NETEASE_SALT, 'utf-8')
-        string_bytes = bytearray(str(dfsid))
+        salt_bytes = bytearray(cls._NETEASE_SALT.encode('utf-8'))
+        string_bytes = bytearray(compat_str(dfsid).encode('ascii'))
         salt_len = len(salt_bytes)
         for i in range(len(string_bytes)):
             string_bytes[i] = string_bytes[i] ^ salt_bytes[i % salt_len]
         m = md5()
-        m.update(string_bytes)
-        result = b64encode(m.digest())
+        m.update(bytes(string_bytes))
+        result = b64encode(m.digest()).decode('ascii')
         return result.replace('/', '_').replace('+', '-')
 
     @classmethod
