@@ -21,7 +21,17 @@ from ..utils import (
 
 class VKIE(InfoExtractor):
     IE_NAME = 'vk.com'
-    _VALID_URL = r'https?://(?:m\.)?vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|(?:.+?\?.*?z=)?video(?P<videoid>[^s].*?)(?:\?|%2F|$))'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:m\.)?vk\.com/video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|
+                            (?:
+                                (?:m\.)?vk\.com/(?:.+?\?.*?z=)?video|
+                                (?:www\.)?biqle\.ru/watch/
+                            )
+                            (?P<videoid>[^s].*?)(?:\?|%2F|$)
+                        )
+                    '''
     _NETRC_MACHINE = 'vk'
 
     _TESTS = [
@@ -110,10 +120,30 @@ class VKIE(InfoExtractor):
             'skip': 'Only works from Russia',
         },
         {
+            # youtube embed
+            'url': 'https://vk.com/video276849682_170681728',
+            'info_dict': {
+                'id': 'V3K4mi0SYkc',
+                'ext': 'mp4',
+                'title': "DSWD Awards 'Children's Joy Foundation, Inc.' Certificate of Registration and License to Operate",
+                'description': 'md5:bf9c26cfa4acdfb146362682edd3827a',
+                'duration': 179,
+                'upload_date': '20130116',
+                'uploader': "Children's Joy Foundation",
+                'uploader_id': 'thecjf',
+                'view_count': int,
+            },
+        },
+        {
             # removed video, just testing that we match the pattern
             'url': 'http://vk.com/feed?z=video-43215063_166094326%2Fbb50cacd3177146d7a',
             'only_matching': True,
         },
+        {
+            # vk wrapper
+            'url': 'http://www.biqle.ru/watch/847655_160197695',
+            'only_matching': True,
+        }
     ]
 
     def _login(self):
@@ -153,8 +183,13 @@ class VKIE(InfoExtractor):
         if not video_id:
             video_id = '%s_%s' % (mobj.group('oid'), mobj.group('id'))
 
-        info_url = 'http://vk.com/al_video.php?act=show&al=1&module=video&video=%s' % video_id
+        info_url = 'https://vk.com/al_video.php?act=show&al=1&module=video&video=%s' % video_id
         info_page = self._download_webpage(info_url, video_id)
+
+        if re.search(r'<!>/login\.php\?.*\bact=security_check', info_page):
+            raise ExtractorError(
+                'You are trying to log in from an unusual location. You should confirm ownership at vk.com to log in with this IP.',
+                expected=True)
 
         ERRORS = {
             r'>Видеозапись .*? была изъята из публичного доступа в связи с обращением правообладателя.<':
@@ -175,10 +210,11 @@ class VKIE(InfoExtractor):
             if re.search(error_re, info_page):
                 raise ExtractorError(error_msg % video_id, expected=True)
 
-        m_yt = re.search(r'src="(http://www.youtube.com/.*?)"', info_page)
-        if m_yt is not None:
-            self.to_screen('Youtube video detected')
-            return self.url_result(m_yt.group(1), 'Youtube')
+        youtube_url = self._search_regex(
+            r'<iframe[^>]+src="((?:https?:)?//www.youtube.com/embed/[^"]+)"',
+            info_page, 'youtube iframe', default=None)
+        if youtube_url:
+            return self.url_result(youtube_url, 'Youtube')
 
         m_rutube = re.search(
             r'\ssrc="((?:https?:)?//rutube\.ru\\?/video\\?/embed(?:.*?))\\?"', info_page)

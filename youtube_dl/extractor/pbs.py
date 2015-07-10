@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -35,6 +36,9 @@ class PBSIE(InfoExtractor):
                 'description': 'md5:ba0c207295339c8d6eced00b7c363c6a',
                 'duration': 3190,
             },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            },
         },
         {
             'url': 'http://www.pbs.org/wgbh/pages/frontline/losing-iraq/',
@@ -46,6 +50,9 @@ class PBSIE(InfoExtractor):
                 'description': 'md5:f5bfbefadf421e8bb8647602011caf8e',
                 'duration': 5050,
             },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            }
         },
         {
             'url': 'http://www.pbs.org/newshour/bb/education-jan-june12-cyberschools_02-23/',
@@ -68,7 +75,10 @@ class PBSIE(InfoExtractor):
                 'title': 'Dudamel Conducts Verdi Requiem at the Hollywood Bowl - Full',
                 'duration': 6559,
                 'thumbnail': 're:^https?://.*\.jpg$',
-            }
+            },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            },
         },
         {
             'url': 'http://www.pbs.org/wgbh/nova/earth/killer-typhoon.html',
@@ -82,7 +92,10 @@ class PBSIE(InfoExtractor):
                 'duration': 3172,
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'upload_date': '20140122',
-            }
+            },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            },
         },
         {
             'url': 'http://www.pbs.org/wgbh/pages/frontline/united-states-of-secrets/',
@@ -90,6 +103,21 @@ class PBSIE(InfoExtractor):
                 'id': 'united-states-of-secrets',
             },
             'playlist_count': 2,
+        },
+        {
+            'url': 'http://www.pbs.org/wgbh/americanexperience/films/death/player/',
+            'info_dict': {
+                'id': '2280706814',
+                'display_id': 'player',
+                'ext': 'mp4',
+                'title': 'Death and the Civil War',
+                'description': 'American Experience, TV’s most-watched history series, brings to life the compelling stories from our past that inform our understanding of the world today.',
+                'duration': 6705,
+                'thumbnail': 're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            },
         }
     ]
 
@@ -123,7 +151,7 @@ class PBSIE(InfoExtractor):
                 return media_id, presumptive_id, upload_date
 
             url = self._search_regex(
-                r'<iframe\s+(?:class|id)=["\']partnerPlayer["\'].*?\s+src=["\'](.*?)["\']>',
+                r'<iframe\s+[^>]*\s+src=["\']([^\'"]+partnerplayer[^\'"]+)["\']',
                 webpage, 'player URL')
             mobj = re.match(self._VALID_URL, url)
 
@@ -196,6 +224,14 @@ class PBSIE(InfoExtractor):
             rating_str = rating_str.rpartition('-')[2]
         age_limit = US_RATINGS.get(rating_str)
 
+        subtitles = {}
+        closed_captions_url = info.get('closed_captions_url')
+        if closed_captions_url:
+            subtitles['en'] = [{
+                'ext': 'ttml',
+                'url': closed_captions_url,
+            }]
+
         return {
             'id': video_id,
             'display_id': display_id,
@@ -206,4 +242,5 @@ class PBSIE(InfoExtractor):
             'age_limit': age_limit,
             'upload_date': upload_date,
             'formats': formats,
+            'subtitles': subtitles,
         }

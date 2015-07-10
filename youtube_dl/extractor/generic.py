@@ -37,6 +37,7 @@ from .rutv import RUTVIE
 from .tvc import TVCIE
 from .sportbox import SportBoxEmbedIE
 from .smotri import SmotriIE
+from .myvi import MyviIE
 from .condenast import CondeNastIE
 from .udn import UDNEmbedIE
 from .senateisvp import SenateISVPIE
@@ -337,6 +338,17 @@ class GenericIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
+        },
+        # Myvi.ru embed
+        {
+            'url': 'http://www.kinomyvi.tv/news/detail/Pervij-dublirovannij-trejler--Uzhastikov-_nOw1',
+            'info_dict': {
+                'id': 'f4dafcad-ff21-423d-89b5-146cfd89fa1e',
+                'ext': 'mp4',
+                'title': 'Ужастики, русский трейлер (2015)',
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'duration': 153,
+            }
         },
         # XHamster embed
         {
@@ -667,6 +679,18 @@ class GenericIE(InfoExtractor):
                 'uploader_id': 'MonumentalSports-Kaltura@perfectsensedigital.com',
                 'timestamp': int,
                 'title': 'John Carlson Postgame 2/25/15',
+            },
+        },
+        # Kaltura embed (different embed code)
+        {
+            'url': 'http://www.premierchristianradio.com/Shows/Saturday/Unbelievable/Conference-Videos/Os-Guinness-Is-It-Fools-Talk-Unbelievable-Conference-2014',
+            'info_dict': {
+                'id': '1_a52wc67y',
+                'ext': 'flv',
+                'upload_date': '20150127',
+                'uploader_id': 'PremierMedia',
+                'timestamp': int,
+                'title': 'Os Guinness // Is It Fools Talk? // Unbelievable? Conference 2014',
             },
         },
         # Eagle.Platform embed (generic URL)
@@ -1413,6 +1437,11 @@ class GenericIE(InfoExtractor):
         if smotri_url:
             return self.url_result(smotri_url, 'Smotri')
 
+        # Look for embedded Myvi.ru player
+        myvi_url = MyviIE._extract_url(webpage)
+        if myvi_url:
+            return self.url_result(myvi_url)
+
         # Look for embeded soundcloud player
         mobj = re.search(
             r'<iframe\s+(?:[a-zA-Z0-9_-]+="[^"]+"\s+)*src="(?P<url>https?://(?:w\.)?soundcloud\.com/player[^"]+)"',
@@ -1492,8 +1521,8 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'Zapiks')
 
         # Look for Kaltura embeds
-        mobj = re.search(
-            r"(?s)kWidget\.(?:thumb)?[Ee]mbed\(\{.*?'wid'\s*:\s*'_?(?P<partner_id>[^']+)',.*?'entry_id'\s*:\s*'(?P<id>[^']+)',", webpage)
+        mobj = (re.search(r"(?s)kWidget\.(?:thumb)?[Ee]mbed\(\{.*?'wid'\s*:\s*'_?(?P<partner_id>[^']+)',.*?'entry_id'\s*:\s*'(?P<id>[^']+)',", webpage) or
+                re.search(r'(?s)(["\'])(?:https?:)?//cdnapisec\.kaltura\.com/.*?(?:p|partner_id)/(?P<partner_id>\d+).*?\1.*?entry_id\s*:\s*(["\'])(?P<id>[^\2]+?)\2', webpage))
         if mobj is not None:
             return self.url_result('kaltura:%(partner_id)s:%(id)s' % mobj.groupdict(), 'Kaltura')
 

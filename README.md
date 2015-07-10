@@ -108,7 +108,7 @@ which means you can modify it, redistribute it or use it however you like.
     --playlist-reverse               Download playlist videos in reverse order
     --xattr-set-filesize             Set file xattribute ytdl.filesize with expected filesize (experimental)
     --hls-prefer-native              Use the native HLS downloader instead of ffmpeg (experimental)
-    --external-downloader COMMAND    Use the specified external downloader. Currently supports aria2c,curl,wget
+    --external-downloader COMMAND    Use the specified external downloader. Currently supports aria2c,curl,httpie,wget
     --external-downloader-args ARGS  Give these arguments to the external downloader
 
 ## Filesystem Options:
@@ -190,8 +190,8 @@ which means you can modify it, redistribute it or use it however you like.
     --all-formats                    Download all available video formats
     --prefer-free-formats            Prefer free video formats unless a specific one is requested
     -F, --list-formats               List all available formats
-    --youtube-skip-dash-manifest     Do not download the DASH manifest on YouTube videos
-    --merge-output-format FORMAT     If a merge is required (e.g. bestvideo+bestaudio), output to given container format. One of mkv, mp4, ogg, webm, flv.Ignored if no
+    --youtube-skip-dash-manifest     Do not download the DASH manifests and related data on YouTube videos
+    --merge-output-format FORMAT     If a merge is required (e.g. bestvideo+bestaudio), output to given container format. One of mkv, mp4, ogg, webm, flv. Ignored if no
                                      merge is required
 
 ## Subtitle Options:

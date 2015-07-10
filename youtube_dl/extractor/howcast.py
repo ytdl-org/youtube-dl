@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
+from ..utils import parse_iso8601
 
 
 class HowcastIE(InfoExtractor):
@@ -13,29 +12,31 @@ class HowcastIE(InfoExtractor):
         'info_dict': {
             'id': '390161',
             'ext': 'mp4',
-            'description': 'The square knot, also known as the reef knot, is one of the oldest, most basic knots to tie, and can be used in many different ways. Here\'s the proper way to tie a square knot.',
             'title': 'How to Tie a Square Knot Properly',
-        }
+            'description': 'md5:dbe792e5f6f1489027027bf2eba188a3',
+            'timestamp': 1276081287,
+            'upload_date': '20100609',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
+        video_id = self._match_id(url)
 
-        video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
 
-        self.report_extraction(video_id)
-
-        video_url = self._search_regex(r'\'?file\'?: "(http://mobile-media\.howcast\.com/[0-9]+\.mp4)',
-                                       webpage, 'video URL')
-
-        video_description = self._html_search_regex(r'<meta content=(?:"([^"]+)"|\'([^\']+)\') name=\'description\'',
-                                                    webpage, 'description', fatal=False)
+        embed_code = self._search_regex(
+            r'<iframe[^>]+src="[^"]+\bembed_code=([^\b]+)\b',
+            webpage, 'ooyala embed code')
 
         return {
+            '_type': 'url_transparent',
+            'ie_key': 'Ooyala',
+            'url': 'ooyala:%s' % embed_code,
             'id': video_id,
-            'url': video_url,
-            'title': self._og_search_title(webpage),
-            'description': video_description,
-            'thumbnail': self._og_search_thumbnail(webpage),
+            'timestamp': parse_iso8601(self._html_search_meta(
+                'article:published_time', webpage, 'timestamp')),
         }

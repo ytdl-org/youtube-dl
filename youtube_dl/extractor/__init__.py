@@ -323,6 +323,7 @@ from .musicvault import MusicVaultIE
 from .muzu import MuzuTVIE
 from .myspace import MySpaceIE, MySpaceAlbumIE
 from .myspass import MySpassIE
+from .myvi import MyviIE
 from .myvideo import MyVideoIE
 from .myvidster import MyVidsterIE
 from .nationalgeographic import NationalGeographicIE
@@ -432,6 +433,7 @@ from .qqmusic import (
     QQMusicSingerIE,
     QQMusicAlbumIE,
     QQMusicToplistIE,
+    QQMusicPlaylistIE,
 )
 from .quickvid import QuickVidIE
 from .r7 import R7IE
@@ -569,6 +571,7 @@ from .tf1 import TF1IE
 from .theonion import TheOnionIE
 from .theplatform import ThePlatformIE
 from .thesixtyone import TheSixtyOneIE
+from .thisamericanlife import ThisAmericanLifeIE
 from .thisav import ThisAVIE
 from .tinypic import TinyPicIE
 from .tlc import TlcIE, TlcDeIE
@@ -732,6 +735,7 @@ from .yandexmusic import (
     YandexMusicPlaylistIE,
 )
 from .yesjapan import YesJapanIE
+from .yinyuetai import YinYueTaiIE
 from .ynet import YnetIE
 from .youjizz import YouJizzIE
 from .youku import YoukuIE
