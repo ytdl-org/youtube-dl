@@ -80,7 +80,7 @@ class KuwoIE(KuwoBaseIE):
             r'<h1[^>]+title="([^"]+)">', webpage, 'song name')
         singer_name = self._html_search_regex(
             r'<div[^>]+class="s_img">\s*<a[^>]+title="([^>]+)"',
-            webpage, 'singer name', default=None)
+            webpage, 'singer name', fatal=False)
         lrc_content = clean_html(get_element_by_id('lrcContent', webpage))
         if lrc_content == '暂无':     # indicates no lyrics
             lrc_content = None
@@ -89,7 +89,7 @@ class KuwoIE(KuwoBaseIE):
 
         album_id = self._html_search_regex(
             r'<p[^>]+class="album"[^<]+<a[^>]+href="http://www\.kuwo\.cn/album/(\d+)/"',
-            webpage, 'album id', default=None, fatal=False)
+            webpage, 'album id', fatal=False)
 
         publish_time = None
         if album_id is not None:
@@ -100,7 +100,7 @@ class KuwoIE(KuwoBaseIE):
 
             publish_time = self._html_search_regex(
                 r'发行时间：(\d{4}-\d{2}-\d{2})', album_info_page,
-                'publish time', default=None)
+                'publish time', fatal=False)
             if publish_time:
                 publish_time = publish_time.replace('-', '')
 
