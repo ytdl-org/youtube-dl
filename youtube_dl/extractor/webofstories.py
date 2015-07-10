@@ -104,7 +104,14 @@ class WebOfStoriesIE(InfoExtractor):
 
 class WebOfStoriesPlaylistIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?webofstories\.com/playAll/(?P<id>[^/]+)'
-    _TESTS = []
+    _TEST = {
+        'url': 'http://www.webofstories.com/playAll/donald.knuth',
+        'info_dict': {
+            'id': 'donald.knuth',
+            'title': 'Donald Knuth (Scientist)',
+        },
+        'playlist_mincount': 97,
+    }
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
@@ -116,10 +123,19 @@ class WebOfStoriesPlaylistIE(InfoExtractor):
             for video_number in set(re.findall('href="/playAll/%s\?sId=(\d+)"' % playlist_id, webpage))
         ]
 
-        title = self._html_search_regex(
-            r'<title>([^<]+)\s*-\s*Web\sof\sStories</title>', webpage, 'title')
+        title = self._search_regex(
+            r'<div id="speakerName">\s*<span>([^<]+)</span>',
+            webpage, 'speaker', default=None)
+        if title:
+            field = self._search_regex(
+                r'<span id="primaryField">([^<]+)</span>',
+                webpage, 'field', default=None)
+            if field:
+                title += ' (%s)' % field
 
-        description = self._html_search_meta(
-            'description', webpage, 'description')
+        if not title:
+            title = self._search_regex(
+                r'<title>Play\s+all\s+stories\s*-\s*([^<]+)\s*-\s*Web\s+of\s+Stories</title>',
+                webpage, 'title')
 
-        return self.playlist_result(entries, playlist_id, title, description)
+        return self.playlist_result(entries, playlist_id, title)
