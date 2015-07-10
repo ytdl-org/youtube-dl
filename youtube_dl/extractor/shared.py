@@ -35,8 +35,7 @@ class SharedIE(InfoExtractor):
             raise ExtractorError(
                 'Video %s does not exist' % video_id, expected=True)
 
-        download_form = dict(re.findall(
-            r'<input type="hidden" name="([^"]+)" value="([^"]*)"', webpage))
+        download_form = self._form_hidden_inputs(webpage)
         request = compat_urllib_request.Request(
             url, compat_urllib_parse.urlencode(download_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
