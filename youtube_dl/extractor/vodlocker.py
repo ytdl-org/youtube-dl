@@ -28,12 +28,7 @@ class VodlockerIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        fields = dict(re.findall(r'''(?x)<input\s+
-            type="hidden"\s+
-            name="([^"]+)"\s+
-            (?:id="[^"]+"\s+)?
-            value="([^"]*)"
-            ''', webpage))
+        fields = self._form_hidden_inputs(webpage)
 
         if fields['op'] == 'download1':
             self._sleep(3, video_id)  # they do detect when requests happen too fast!
