@@ -45,7 +45,7 @@ class KuwoBaseIE(InfoExtractor):
 
 class KuwoIE(KuwoBaseIE):
     IE_NAME = 'kuwo:song'
-    _VALID_URL = r'http://www\.kuwo\.cn/yinyue/(?P<id>[0-9]+?)/'
+    _VALID_URL = r'http://www\.kuwo\.cn/yinyue/(?P<id>\d+?)/'
     _TESTS = [{
         'url': 'http://www.kuwo.cn/yinyue/635632/',
         'info_dict': {
@@ -116,7 +116,7 @@ class KuwoIE(KuwoBaseIE):
 
 class KuwoAlbumIE(InfoExtractor):
     IE_NAME = 'kuwo:album'
-    _VALID_URL = r'http://www\.kuwo\.cn/album/(?P<id>[0-9]+?)/'
+    _VALID_URL = r'http://www\.kuwo\.cn/album/(?P<id>\d+?)/'
     _TEST = {
         'url': 'http://www.kuwo.cn/album/502294/',
         'info_dict': {
@@ -157,7 +157,7 @@ class KuwoChartIE(InfoExtractor):
         'info_dict': {
             'id': '香港中文龙虎榜',
             'title': '香港中文龙虎榜',
-            'description': 're:[0-9]{4}第[0-9]{2}期',
+            'description': 're:\d{4}第\d{2}期',
         },
         'playlist_mincount': 10,
     }
@@ -211,7 +211,7 @@ class KuwoSingerIE(InfoExtractor):
         )
 
         entries = []
-        first_page_only = False if re.search(r'/music(?:_[0-9]+)?\.htm', url) else True
+        first_page_only = False if re.search(r'/music(?:_\d+)?\.htm', url) else True
         for page_num in itertools.count(1):
             webpage = self._download_webpage(
                 'http://www.kuwo.cn/mingxing/%s/music_%d.htm' % (singer_id, page_num),
@@ -232,7 +232,7 @@ class KuwoSingerIE(InfoExtractor):
 
 class KuwoCategoryIE(InfoExtractor):
     IE_NAME = 'kuwo:category'
-    _VALID_URL = r'http://yinyue\.kuwo\.cn/yy/cinfo_(?P<id>[0-9]+?).htm'
+    _VALID_URL = r'http://yinyue\.kuwo\.cn/yy/cinfo_(?P<id>\d+?).htm'
     _TEST = {
         'url': 'http://yinyue.kuwo.cn/yy/cinfo_86375.htm',
         'info_dict': {
@@ -268,7 +268,7 @@ class KuwoCategoryIE(InfoExtractor):
 
 class KuwoMvIE(KuwoBaseIE):
     IE_NAME = 'kuwo:mv'
-    _VALID_URL = r'http://www\.kuwo\.cn/mv/(?P<id>[0-9]+?)/'
+    _VALID_URL = r'http://www\.kuwo\.cn/mv/(?P<id>\d+?)/'
     _TEST = {
         'url': 'http://www.kuwo.cn/mv/6480076/',
         'info_dict': {
