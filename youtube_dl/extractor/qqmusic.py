@@ -16,6 +16,7 @@ from ..compat import compat_urllib_request
 
 class QQMusicIE(InfoExtractor):
     IE_NAME = 'qqmusic'
+    IE_DESC = 'QQ音乐'
     _VALID_URL = r'http://y.qq.com/#type=song&mid=(?P<id>[0-9A-Za-z]+)'
     _TESTS = [{
         'url': 'http://y.qq.com/#type=song&mid=004295Et37taLD',
