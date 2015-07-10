@@ -19,6 +19,7 @@ from ..utils import (
 
 
 class LetvIE(InfoExtractor):
+    IE_DESC = '乐视网'
     _VALID_URL = r'http://www\.letv\.com/ptv/vplay/(?P<id>\d+).html'
 
     _TESTS = [{
