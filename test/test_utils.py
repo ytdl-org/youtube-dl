@@ -320,6 +320,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unified_strdate('July 15th, 2013'), '20130715')
         self.assertEqual(unified_strdate('September 1st, 2013'), '20130901')
         self.assertEqual(unified_strdate('Sep 2nd, 2013'), '20130902')
+        self.assertEqual(unified_strdate('10.04.2015 07:52:34'), '20150410')
 
     def test_unified_timestamps(self):
         self.assertEqual(unified_timestamp('December 21, 2010'), 1292889600)
@@ -343,6 +344,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unified_timestamp('Feb 7, 2016 at 6:35 pm'), 1454870100)
         self.assertEqual(unified_timestamp('2017-03-30T17:52:41Q'), 1490896361)
         self.assertEqual(unified_timestamp('Sep 11, 2013 | 5:49 AM'), 1378878540)
+        self.assertEqual(unified_timestamp('10.04.2015 07:52:34'), 1428652354)
 
     def test_determine_ext(self):
         self.assertEqual(determine_ext('http://example.com/foo/bar.mp4/?download'), 'mp4')

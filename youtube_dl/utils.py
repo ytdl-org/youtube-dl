@@ -168,6 +168,7 @@ DATE_FORMATS_DAY_FIRST.extend([
     '%d.%m.%y',
     '%d/%m/%Y',
     '%d/%m/%y',
+    '%d.%m.%Y %H:%M:%S',
     '%d/%m/%Y %H:%M:%S',
 ])
 

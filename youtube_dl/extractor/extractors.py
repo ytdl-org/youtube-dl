@@ -1324,6 +1324,7 @@ from .yesjapan import YesJapanIE
 from .yinyuetai import YinYueTaiIE
 from .yle import (
     YLEAreenaIE,
+    YLEElavaArkistoIE,
 )
 from .ynet import YnetIE
 from .youjizz import YouJizzIE

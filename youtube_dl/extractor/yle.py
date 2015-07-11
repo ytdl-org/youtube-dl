@@ -15,6 +15,8 @@ from ..utils import (
     intlist_to_bytes,
     parse_duration,
     parse_iso8601,
+    strip_jsonp,
+    unified_timestamp,
     ExtractorError,
 )
 from ..aes import (
@@ -240,3 +242,97 @@ class YLEAreenaIE(InfoExtractor):
         plaintext = intlist_to_bytes(decrypted_data)
 
         return plaintext
+
+
+class YLEElavaArkistoIE(YLEAreenaIE):
+    _VALID_URL = r'http://(?:www\.)?yle\.fi/aihe.*/(?P<id>[^?#]+).*'
+    _PROTOCOLS = ['RTMPE', 'HDS']
+
+    _TESTS = [
+        {
+            'url': 'http://yle.fi/aihe/artikkeli/2006/10/02/sukellusvenematkailu',
+            'info_dict': {
+                'title': 'Sukellusvenematkailu',
+                'description': 'md5:73535674a03844ee4c42f48f857d1a24',
+            },
+            'playlist': [
+                {
+                    'info_dict': {
+                        'id': '6-2ab2e2094cea469bbaf800246ce71145',
+                        'ext': 'flv',
+                        'title': 'Wärtsilä rakentaa sukellusveneen',
+                        'description': 'md5:04d5d641fc744e1244e698f9e4523c24',
+                        'duration': 45,
+                        'thumbnail': 're:^https?://.*\.jpg$',
+                        'timestamp': 1317652519,
+                        'upload_date': '20111003',
+                    },
+                },
+                {
+                    'info_dict': {
+                        'id': '6-60c5f932221940d9a5a0814aafb0b709',
+                        'ext': 'flv',
+                        'title': 'Sukellusvenejuttu ja säätiedotus',
+                        'description': 'md5:04d5d641fc744e1244e698f9e4523c24',
+                        'duration': 162,
+                        'thumbnail': 're:^https?://.*\.jpg$',
+                        'timestamp': 1317652519,
+                        'upload_date': '20111003',
+                    },
+                },
+            ],
+            'params': {
+                'skip_download': True,
+            },
+        },
+    ]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id, 'Downloading article')
+
+        clip_ids = re.findall(r'data-id="([^"]+)"', self._search_regex(
+            r'(?s)<div[^>]+class=(["\']).*?\bcontent\b.*?\1[^>]*>(?P<content>.*?)<div[^>]*class=(["\'])ydd-categories\3[^>]*>',
+            webpage, 'Article content', default='', group='content'))
+
+        playlist = []
+        for clip_id in clip_ids:
+            mediaid = clip_id.split('-')[-1]
+            mediaurl = 'http://player.yle.fi/api/v1/elavaarkisto.jsonp?' \
+                'id={mediaid}'.format(mediaid=mediaid)
+
+            data = self._download_json(
+                mediaurl, mediaid, transform_source=strip_jsonp).get(
+                'data', {}).get('ea', {})
+
+            media_kanta_id = data.get('mediakantaId', None)
+
+            if not media_kanta_id:
+                continue
+            media_id = '6-' + media_kanta_id
+
+            formats, subtitles = self._extract_formats(media_id)
+            self._sort_formats(formats)
+
+            playlist.append({
+                'id': media_id,
+                'title': data.get('otsikko'),
+                'description': data.get('description'),
+                'formats': formats,
+                'timestamp': unified_timestamp(data.get('published_DateTime')),
+                'duration': parse_duration(data.get('duration')),
+                'subtitles': subtitles,
+                'thumbnail': data.get('previewImage'),
+                'series': data.get('originalTitle'),
+            })
+
+        if not playlist:
+            raise ExtractorError('Unable to extract metadata')
+
+        if len(playlist) == 1:
+            return playlist[0]
+
+        return self.playlist_result(
+            playlist,
+            playlist_title=self._og_search_title(webpage),
+            playlist_description=self._og_search_description(webpage))
