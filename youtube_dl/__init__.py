@@ -263,6 +263,9 @@ def _real_main(argv=None):
     external_downloader_args = None
     if opts.external_downloader_args:
         external_downloader_args = shlex.split(opts.external_downloader_args)
+    postprocessor_args = None
+    if opts.postprocessor_args:
+        postprocessor_args = shlex.split(opts.postprocessor_args)
     match_filter = (
         None if opts.match_filter is None
         else match_filter_func(opts.match_filter))
@@ -354,7 +357,6 @@ def _real_main(argv=None):
         'extract_flat': opts.extract_flat,
         'merge_output_format': opts.merge_output_format,
         'postprocessors': postprocessors,
-        'postprocessor_args': shlex.split(opts.postprocessor_args or ''),
         'fixup': opts.fixup,
         'source_address': opts.source_address,
         'call_home': opts.call_home,
@@ -368,6 +370,7 @@ def _real_main(argv=None):
         'ffmpeg_location': opts.ffmpeg_location,
         'hls_prefer_native': opts.hls_prefer_native,
         'external_downloader_args': external_downloader_args,
+        'postprocessor_args': postprocessor_args,
         'cn_verification_proxy': opts.cn_verification_proxy,
     }
 
