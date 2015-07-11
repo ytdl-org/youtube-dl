@@ -222,6 +222,9 @@ class VKIE(InfoExtractor):
 
             r'<!>Видео временно недоступно':
             'Video %s is temporarily unavailable.',
+
+            r'<!>Access denied':
+            'Access denied to video %s.',
         }
 
         for error_re, error_msg in ERRORS.items():
