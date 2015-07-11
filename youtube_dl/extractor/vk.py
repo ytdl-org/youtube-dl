@@ -29,7 +29,7 @@ class VKIE(InfoExtractor):
                                 (?:m\.)?vk\.com/(?:.+?\?.*?z=)?video|
                                 (?:www\.)?biqle\.ru/watch/
                             )
-                            (?P<videoid>[^s].*?)(?:\?|%2F|$)
+                            (?P<videoid>[^s].*?)(?:\?(?:.*\blist=(?P<list_id>[\da-f]+))?|%2F|$)
                         )
                     '''
     _NETRC_MACHINE = 'vk'
@@ -120,6 +120,20 @@ class VKIE(InfoExtractor):
             'skip': 'Only works from Russia',
         },
         {
+            # video (removed?) only available with list id
+            'url': 'https://vk.com/video30481095_171201961?list=8764ae2d21f14088d4',
+            'md5': '091287af5402239a1051c37ec7b92913',
+            'info_dict': {
+                'id': '171201961',
+                'ext': 'mp4',
+                'title': 'ТюменцевВВ_09.07.2015',
+                'uploader': 'Anton Ivanov',
+                'duration': 109,
+                'upload_date': '20150709',
+                'view_count': int,
+            },
+        },
+        {
             # youtube embed
             'url': 'https://vk.com/video276849682_170681728',
             'info_dict': {
@@ -182,6 +196,12 @@ class VKIE(InfoExtractor):
             video_id = '%s_%s' % (mobj.group('oid'), mobj.group('id'))
 
         info_url = 'https://vk.com/al_video.php?act=show&al=1&module=video&video=%s' % video_id
+
+        # Some videos (removed?) can only be downloaded with list id specified
+        list_id = mobj.group('list_id')
+        if list_id:
+            info_url += '&list=%s' % list_id
+
         info_page = self._download_webpage(info_url, video_id)
 
         if re.search(r'<!>/login\.php\?.*\bact=security_check', info_page):
