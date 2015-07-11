@@ -295,12 +295,10 @@ class FFmpegVideoConvertorPP(FFmpegPostProcessor):
     def run(self, information):
         path = information['filepath']
         prefix, sep, ext = path.rpartition('.')
-        ext = self._preferedformat
+        outpath = prefix + sep + self._preferedformat
         options = self._extra_cmd_args
-        if self._preferedformat == 'xvid':
-            ext = 'avi'
+        if self._preferedformat == 'avi':
             options.extend(['-c:v', 'libxvid', '-vtag', 'XVID'])
-        outpath = prefix + sep + ext
         if information['ext'] == self._preferedformat:
             self._downloader.to_screen('[ffmpeg] Not converting video file %s - already is in target format %s' % (path, self._preferedformat))
             return [], information
@@ -308,7 +306,7 @@ class FFmpegVideoConvertorPP(FFmpegPostProcessor):
         self.run_ffmpeg(path, outpath, options)
         information['filepath'] = outpath
         information['format'] = self._preferedformat
-        information['ext'] = ext
+        information['ext'] = self._preferedformat
         return [path], information
 
 
