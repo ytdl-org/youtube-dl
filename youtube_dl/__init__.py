@@ -169,7 +169,7 @@ def _real_main(argv=None):
         if not opts.audioquality.isdigit():
             parser.error('invalid audio quality specified')
     if opts.recodevideo is not None:
-        if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv']:
+        if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv', 'xvid']:
             parser.error('invalid video recode format specified')
     if opts.convertsubtitles is not None:
         if opts.convertsubtitles not in ['srt', 'vtt', 'ass']:
@@ -354,6 +354,7 @@ def _real_main(argv=None):
         'extract_flat': opts.extract_flat,
         'merge_output_format': opts.merge_output_format,
         'postprocessors': postprocessors,
+        'postprocessor_args': shlex.split(opts.postprocessor_args or ''),
         'fixup': opts.fixup,
         'source_address': opts.source_address,
         'call_home': opts.call_home,
