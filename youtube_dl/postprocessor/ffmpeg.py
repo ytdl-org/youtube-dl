@@ -131,6 +131,8 @@ class FFmpegPostProcessor(PostProcessor):
         oldest_mtime = min(
             os.stat(encodeFilename(path)).st_mtime for path in input_paths)
 
+        opts += self._configuration_args()
+
         files_cmd = []
         for path in input_paths:
             files_cmd.extend([encodeArgument('-i'), encodeFilename(path, True)])
@@ -294,13 +296,16 @@ class FFmpegVideoConvertorPP(FFmpegPostProcessor):
 
     def run(self, information):
         path = information['filepath']
-        prefix, sep, ext = path.rpartition('.')
-        outpath = prefix + sep + self._preferedformat
         if information['ext'] == self._preferedformat:
             self._downloader.to_screen('[ffmpeg] Not converting video file %s - already is in target format %s' % (path, self._preferedformat))
             return [], information
+        options = []
+        if self._preferedformat == 'avi':
+            options.extend(['-c:v', 'libxvid', '-vtag', 'XVID'])
+        prefix, sep, ext = path.rpartition('.')
+        outpath = prefix + sep + self._preferedformat
         self._downloader.to_screen('[' + 'ffmpeg' + '] Converting video from %s to %s, Destination: ' % (information['ext'], self._preferedformat) + outpath)
-        self.run_ffmpeg(path, outpath, [])
+        self.run_ffmpeg(path, outpath, options)
         information['filepath'] = outpath
         information['format'] = self._preferedformat
         information['ext'] = self._preferedformat
