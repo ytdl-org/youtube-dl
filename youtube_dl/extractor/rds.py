@@ -12,9 +12,9 @@ from ..utils import (
 
 class RDSIE(InfoExtractor):
     IE_DESC = 'RDS.ca'
-    _VALID_URL = r'https?://(?:www\.)?rds\.ca/videos/(?:[^/]+/)+(?P<display_id>[^/]+)-(?P<id>\d+\.\d+)'
+    _VALID_URL = r'https?://(?:www\.)?rds\.ca/vid(?:[eé]|%C3%A9)os/(?:[^/]+/)*(?P<display_id>[^/]+)-(?P<id>\d+\.\d+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.rds.ca/videos/football/nfl/fowler-jr-prend-la-direction-de-jacksonville-3.1132799',
         'info_dict': {
             'id': '3.1132799',
@@ -27,7 +27,10 @@ class RDSIE(InfoExtractor):
             'duration': 154.354,
             'age_limit': 0,
         }
-    }
+    }, {
+        'url': 'http://www.rds.ca/vid%C3%A9os/un-voyage-positif-3.877934',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
