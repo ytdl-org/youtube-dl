@@ -116,7 +116,8 @@ class NRKPlaylistIE(InfoExtractor):
 
 
 class NRKTVIE(InfoExtractor):
-    _VALID_URL = r'(?P<baseurl>https?://tv\.nrk(?:super)?\.no/)(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})(?:/\d{2}-\d{2}-\d{4})?(?:#del=(?P<part_id>\d+))?'
+    IE_DESC = 'NRK TV and NRK Radio'
+    _VALID_URL = r'(?P<baseurl>https?://(?:tv|radio)\.nrk(?:super)?\.no/)(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})(?:/\d{2}-\d{2}-\d{4})?(?:#del=(?P<part_id>\d+))?'
 
     _TESTS = [
         {
@@ -188,6 +189,10 @@ class NRKTVIE(InfoExtractor):
                 'duration': 6947.5199999999995,
             },
             'skip': 'Only works from Norway',
+        },
+        {
+            'url': 'https://radio.nrk.no/serie/dagsnytt/NPUB21019315/12-07-2015#',
+            'only_matching': True,
         }
     ]
 
