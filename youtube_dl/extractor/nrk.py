@@ -288,3 +288,36 @@ class NRKTVIE(InfoExtractor):
             'formats': formats,
             'subtitles': subtitles,
         }
+
+
+class NRKRadioIE(InfoExtractor):
+    _VALID_URL = r'(?P<baseurl>https?://radio\.nrk(?:super)?\.no/)(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})(?:/\d{2}-\d{2}-\d{4})?(?:#del=(?P<part_id>\d+))?'
+
+    _TEST = {
+        'url': 'https://radio.nrk.no/serie/dagsnytt/NPUB21019315/12-07-2015',
+        'md5': '988d14c27498759cf1b762aa5cea9e42',
+        'info_dict': {
+            'id': 'NPUB21019315',
+            'ext': 'mp4a',
+            'title': 'NRK Radio - Dagsnytt - 12.07.2015',
+            'description': 'Nyhetssending',
+        }
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title')
+        desc = self._html_search_meta('description', webpage, 'description')
+
+        m3u8_url = re.search(r'data-hls-media="([^"]+)"', webpage)
+        formats = self._extract_m3u8_formats(m3u8_url.group(1), video_id, 'mp4a')
+
+        return {
+            'id': video_id,
+            'title': title,
+            'description': desc,
+            'formats': formats,
+        }
