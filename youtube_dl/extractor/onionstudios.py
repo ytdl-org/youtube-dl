@@ -49,19 +49,21 @@ class OnionStudiosIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = self._search_regex(
-            r'share_title\s*=\s*"([^"]+)"', webpage, 'title')
+            r'share_title\s*=\s*(["\'])(?P<title>[^\1]+?)\1',
+            webpage, 'title', group='title')
         description = self._search_regex(
-            r'share_description\s*=\s*"([^"]+)"', webpage,
-            'description', default=None)
+            r'share_description\s*=\s*(["\'])(?P<description>[^\1]+?)\1',
+            webpage, 'description', default=None, group='description')
         thumbnail = self._search_regex(
-            r'poster="([^"]+)"', webpage, 'thumbnail', default=False)
+            r'poster\s*=\s*(["\'])(?P<thumbnail>[^\1]+?)\1',
+            webpage, 'thumbnail', default=False, group='thumbnail')
 
         uploader_id = self._search_regex(
-            r'twitter_handle\s*=\s*"([^"]+)"',
-            webpage, 'uploader id', fatal=False)
+            r'twitter_handle\s*=\s*(["\'])(?P<uploader_id>[^\1]+?)\1',
+            webpage, 'uploader id', fatal=False, group='uploader_id')
         uploader = self._search_regex(
-            r'window\.channelName\s*=\s*"Embedded:([^"]+)"',
-            webpage, 'uploader', default=False)
+            r'window\.channelName\s*=\s*(["\'])Embedded:(?P<uploader>[^\1]+?)\1',
+            webpage, 'uploader', default=False, group='uploader')
 
         return {
             'id': video_id,
