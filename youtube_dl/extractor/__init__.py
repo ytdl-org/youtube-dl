@@ -460,7 +460,7 @@ from .radiobremen import RadioBremenIE
 from .radiofrance import RadioFranceIE
 from .rai import RaiIE
 from .rbmaradio import RBMARadioIE
-from .rdsca import RDScaIE
+from .rds import RDSIE
 from .redtube import RedTubeIE
 from .restudy import RestudyIE
 from .reverbnation import ReverbNationIE
