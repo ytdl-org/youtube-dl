@@ -550,6 +550,7 @@ from .sportbox import (
     SportBoxEmbedIE,
 )
 from .sportdeutschland import SportDeutschlandIE
+from .sportschau import SportschauIE
 from .srf import SrfIE
 from .srmediathek import SRMediathekIE
 from .ssa import SSAIE
