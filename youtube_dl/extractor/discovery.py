@@ -41,19 +41,27 @@ class DiscoveryIE(InfoExtractor):
         info = self._download_json(url + '?flat=1', video_id)
 
         video_title = info.get('playlist_title') or info.get('video_title')
-
-        entries = [{
-            'id': compat_str(video_info['id']),
-            'formats': self._extract_m3u8_formats(
-                video_info['src'], video_id, ext='mp4',
-                note='Download m3u8 information for video %d' % (idx + 1)),
-            'title': video_info['title'],
-            'description': video_info.get('description'),
-            'duration': parse_duration(video_info.get('video_length')),
-            'webpage_url': video_info.get('href'),
-            'thumbnail': video_info.get('thumbnailURL'),
-            'alt_title': video_info.get('secondary_title'),
-            'timestamp': parse_iso8601(video_info.get('publishedDate')),
-        } for idx, video_info in enumerate(info['playlist'])]
+        entries = []
+        collected = {}
+        for idx, video_info in enumerate(info['playlist']):
+            if collected.get( video_info.get('id') ): 
+                 continue
+            collected[video_info.get('id')] = True
+            if video_info['src'] == '':
+                 self.report_warning('video "%s" does not have a src url' % video_info.get('id','UNKNOWN'))
+                 continue
+            entries.append({
+                'id': compat_str(video_info['id']),
+                'formats': self._extract_m3u8_formats(
+                    video_info['src'], video_id, ext='mp4',
+                    note='Download m3u8 information for video %d' % (idx + 1)),
+                'title': video_info['title'],
+                'description': video_info.get('description'),
+                'duration': parse_duration(video_info.get('video_length')),
+                'webpage_url': video_info.get('href'),
+                'thumbnail': video_info.get('thumbnailURL'),
+                'alt_title': video_info.get('secondary_title'),
+                'timestamp': parse_iso8601(video_info.get('publishedDate')),
+            })
 
         return self.playlist_result(entries, video_id, video_title)
