@@ -1438,13 +1438,15 @@ class GenericIE(InfoExtractor):
         # Last-ditch attempt to find matching plugin for embeds
         # (this can potentially replace many lines of code above)
         elist = self._extract_plugin_embeds(webpage, url)
-        if elist:
+        if len(elist) > 1:
             return {
                 '_type': 'playlist',
                 'title': video_title,
                 'id': video_id,
                 'entries': elist,
             }
+        if len(elist) == 1:
+            return elist[0]
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
