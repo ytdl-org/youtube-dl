@@ -1005,7 +1005,8 @@ class GenericIE(InfoExtractor):
                if notbefore_blacklist.get(ie.IE_NAME,False) == True:
                   continue
                if ie.suitable(u):
-                   print (' EMBED ['+ie.IE_NAME+'] '+u)
+                   if self._downloader.params.get('verbose', False):
+                       self.to_screen('EMBED [%s] %s' % (ie.IE_NAME, u))
                    found = True
                    elist.append({
                         '_type': 'url',
@@ -1014,10 +1015,11 @@ class GenericIE(InfoExtractor):
                    })
                    break
             if not found:
-                 #self._downloader.params.get('verbose', False):
-                print (' EMBED [-none-] '+u)
+                if self._downloader.params.get('verbose', False):
+                    self.to_screen('EMBED [-none-] %s' % (u))
         if elist:
-            print(''+str(len(elist))+' embeds')
+            if self._downloader.params.get('verbose', False):
+                self.to_screen('Will download %s embeds.' % str(len(elist)))
         return elist
 
 
