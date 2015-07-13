@@ -38,7 +38,7 @@ from .azubu import AzubuIE
 from .baidu import BaiduVideoIE
 from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE
-from .bbccouk import BBCCoUkIE
+from .bbc import BBCCoUkIE, BBCNewsIE
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
 from .beatportpro import BeatportProIE
@@ -112,6 +112,7 @@ from .daum import DaumIE
 from .dbtv import DBTVIE
 from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE
+from .democracynow import DemocracynowIE
 from .dfb import DFBIE
 from .dhm import DHMIE
 from .dotsub import DotsubIE
@@ -256,6 +257,12 @@ from .karrierevideos import KarriereVideosIE
 from .keezmovies import KeezMoviesIE
 from .khanacademy import KhanAcademyIE
 from .kickstarter import KickStarterIE
+from .kissanime import (
+    KissAnimeIE,
+    KissCartoonIE,
+    KissAnimePlaylistIE,
+    KissCartoonPlaylistIE,
+)
 from .keek import KeekIE
 from .kontrtube import KontrTubeIE
 from .krasview import KrasViewIE
@@ -299,6 +306,7 @@ from .malemotion import MalemotionIE
 from .mdr import MDRIE
 from .megavideoz import MegaVideozIE
 from .metacafe import MetacafeIE
+from .memri import MemriIE
 from .metacritic import MetacriticIE
 from .mgoon import MgoonIE
 from .minhateca import MinhatecaIE
@@ -757,6 +765,7 @@ from .yandexmusic import (
 from .yesjapan import YesJapanIE
 from .yinyuetai import YinYueTaiIE
 from .ynet import YnetIE
+from .yospace import YospaceIE, ReutersIE
 from .youjizz import YouJizzIE
 from .youku import YoukuIE
 from .youporn import YouPornIE
@@ -814,3 +823,9 @@ def list_extractors(age_limit):
 def get_info_extractor(ie_name):
     """Returns the info extractor class with the given ie_name"""
     return globals()[ie_name + 'IE']
+
+
+def add_extractors(extractors):
+    for k, c in extractors.items():
+       globals()[k] = c
+       _ALL_CLASSES[:0] = [c]
