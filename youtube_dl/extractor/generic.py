@@ -1655,7 +1655,7 @@ class GenericIE(InfoExtractor):
                 'AdobeTVVideo')
 
         # Last-ditch attempt to find matching plugin for embeds
-        # (this can potentially replace alot of code above)
+        # (this can potentially replace many lines of code above)
         elist = self._extract_plugin_embeds(webpage, url)
         if elist:
             return {
