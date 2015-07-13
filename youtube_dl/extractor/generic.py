@@ -1015,7 +1015,7 @@ class GenericIE(InfoExtractor):
                    break
             if not found:
                  #self._downloader.params.get('verbose', False):
-                print (' EMBED [?!] '+u)
+                print (' EMBED [-none-] '+u)
         if elist:
             print(''+str(len(elist))+' embeds')
         return elist
