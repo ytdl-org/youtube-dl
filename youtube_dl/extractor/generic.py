@@ -1283,6 +1283,11 @@ class GenericIE(InfoExtractor):
         if bliptv_url:
             return self.url_result(bliptv_url, 'BlipTV')
 
+        # Look for SVT player
+        svt_url = SVTIE._extract_url(webpage)
+        if svt_url:
+            return self.url_result(svt_url, 'SVT')
+
         # Look for embedded condenast player
         matches = re.findall(
             r'<iframe\s+(?:[a-zA-Z-]+="[^"]+"\s+)*?src="(https?://player\.cnevids\.com/embed/[^"]+")',
