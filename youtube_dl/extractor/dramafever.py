@@ -23,8 +23,23 @@ class DramaFeverBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://www.dramafever.com/accounts/login/'
     _NETRC_MACHINE = 'dramafever'
 
+    _CONSUMER_SECRET = 'DA59dtVXYLxajktV'
+
+    _consumer_secret = None
+
+    def _get_consumer_secret(self):
+        mainjs = self._download_webpage(
+            'http://www.dramafever.com/static/51afe95/df2014/scripts/main.js',
+            None, 'Downloading main.js', fatal=False)
+        if not mainjs:
+            return self._CONSUMER_SECRET
+        return self._search_regex(
+            r"var\s+cs\s*=\s*'([^']+)'", mainjs,
+            'consumer secret', default=self._CONSUMER_SECRET)
+
     def _real_initialize(self):
         self._login()
+        self._consumer_secret = self._get_consumer_secret()
 
     def _login(self):
         (username, password) = self._get_login_info()
@@ -119,6 +134,23 @@ class DramaFeverIE(DramaFeverBaseIE):
                 'url': href,
             }]
 
+        series_id, episode_number = video_id.split('.')
+        episode_info = self._download_json(
+            # We only need a single episode info, so restricting page size to one episode
+            # and dealing with page number as with episode number
+            r'http://www.dramafever.com/api/4/episode/series/?cs=%s&series_id=%s&page_number=%s&page_size=1'
+            % (self._consumer_secret, series_id, episode_number),
+            video_id, 'Downloading episode info JSON', fatal=False)
+        if episode_info:
+            value = episode_info.get('value')
+            if value:
+                subfile = value[0].get('subfile') or value[0].get('new_subfile')
+                if subfile and subfile != 'http://www.dramafever.com/st/':
+                    subtitles.setdefault('English', []).append({
+                        'ext': 'srt',
+                        'url': subfile,
+                    })
+
         return {
             'id': video_id,
             'title': title,
@@ -152,27 +184,14 @@ class DramaFeverSeriesIE(DramaFeverBaseIE):
         'playlist_count': 20,
     }]
 
-    _CONSUMER_SECRET = 'DA59dtVXYLxajktV'
     _PAGE_SIZE = 60  # max is 60 (see http://api.drama9.com/#get--api-4-episode-series-)
-
-    def _get_consumer_secret(self, video_id):
-        mainjs = self._download_webpage(
-            'http://www.dramafever.com/static/51afe95/df2014/scripts/main.js',
-            video_id, 'Downloading main.js', fatal=False)
-        if not mainjs:
-            return self._CONSUMER_SECRET
-        return self._search_regex(
-            r"var\s+cs\s*=\s*'([^']+)'", mainjs,
-            'consumer secret', default=self._CONSUMER_SECRET)
 
     def _real_extract(self, url):
         series_id = self._match_id(url)
 
-        consumer_secret = self._get_consumer_secret(series_id)
-
         series = self._download_json(
             'http://www.dramafever.com/api/4/series/query/?cs=%s&series_id=%s'
-            % (consumer_secret, series_id),
+            % (self._consumer_secret, series_id),
             series_id, 'Downloading series JSON')['series'][series_id]
 
         title = clean_html(series['name'])
@@ -182,7 +201,7 @@ class DramaFeverSeriesIE(DramaFeverBaseIE):
         for page_num in itertools.count(1):
             episodes = self._download_json(
                 'http://www.dramafever.com/api/4/episode/series/?cs=%s&series_id=%s&page_size=%d&page_number=%d'
-                % (consumer_secret, series_id, self._PAGE_SIZE, page_num),
+                % (self._consumer_secret, series_id, self._PAGE_SIZE, page_num),
                 series_id, 'Downloading episodes JSON page #%d' % page_num)
             for episode in episodes.get('value', []):
                 episode_url = episode.get('episode_url')
