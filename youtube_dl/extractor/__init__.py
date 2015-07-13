@@ -757,6 +757,7 @@ from .yandexmusic import (
 from .yesjapan import YesJapanIE
 from .yinyuetai import YinYueTaiIE
 from .ynet import YnetIE
+from .yospace import YospaceIE, ReutersIE
 from .youjizz import YouJizzIE
 from .youku import YoukuIE
 from .youporn import YouPornIE
