@@ -970,6 +970,57 @@ class GenericIE(InfoExtractor):
             'title': title,
         }
 
+    def _extract_plugin_embeds(self, webpage, url):
+        match = re.findall(
+            r'<(?:[^>]+?data-video-url|meta[^>]+?content|(?:embed|iframe)[^>]+?src)\s*=\s*(["\'])(?P<url>(?:https?:)?//.+?)\1', webpage)
+
+        # In addition to 'generic', ignore matches from these plugins
+        # ..however _extract_plugin_embeds should run last
+        notbefore_blacklist = {
+            # test 37 (Wistia) http://thoughtworks.wistia.com/medias/uxjb0lwrcz
+            #  duplicate embed causes test failure
+            'Wistia': True,
+            # test 46 for rtl.nl (http://www.rtlnieuws.nl/nieuws/buitenland/aanslagen-kopenhagen)
+            #  has a broken youtube embed, download & test failure
+            'youtube': True,
+        }
+        elist = []
+        if not match:
+            return elist
+        # eliminate duplicate checks
+        checked = {url: True}
+        for m in match:
+            u=unescapeHTML(m[1])
+
+            if checked.get(u,False) == True:
+               continue
+            checked[u] = True
+
+            for ie in self._downloader._ies:
+               found = False
+               if ie.IE_NAME == self.IE_NAME:
+                  continue
+               if not ie.working():
+                  continue
+               if notbefore_blacklist.get(ie.IE_NAME,False) == True:
+                  continue
+               if ie.suitable(u):
+                   print (' EMBED ['+ie.IE_NAME+'] '+u)
+                   found = True
+                   elist.append({
+                        '_type': 'url',
+                        'url': u,
+                        'ie_key': ie.ie_key(),
+                   })
+                   break
+            if not found:
+                 #self._downloader.params.get('verbose', False):
+                print (' EMBED [?!] '+u)
+        if elist:
+            print(''+str(len(elist))+' embeds')
+        return elist
+
+
     def _real_extract(self, url):
         if url.startswith('//'):
             return {
@@ -1602,6 +1653,17 @@ class GenericIE(InfoExtractor):
             return self.url_result(
                 self._proto_relative_url(unescapeHTML(mobj.group(1))),
                 'AdobeTVVideo')
+
+        # Last-ditch attempt to find matching plugin for embeds
+        # (this can potentially replace alot of code above)
+        elist = self._extract_plugin_embeds(webpage, url)
+        if elist:
+            return {
+                '_type': 'playlist',
+                'title': video_title,
+                'id': video_id,
+                'entries': elist,
+            }
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
