@@ -990,7 +990,7 @@ class GenericIE(InfoExtractor):
         # eliminate duplicate checks
         checked = {url: True}
         for m in match:
-            u=unescapeHTML(m[1])
+            u=self._proto_relative_url(unescapeHTML(m[1]))
 
             if checked.get(u,False) == True:
                continue
