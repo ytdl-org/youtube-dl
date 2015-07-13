@@ -7,7 +7,7 @@ from .compat import (
 )
 
 
-mdirs = [ os.path.dirname(__file__)+'/auto' ]
+mdirs = [ os.path.join(os.path.dirname(__file__),'/auto') ]
 
 def confdirs():
     cfg_home = compat_getenv('XDG_CONFIG_HOME') or compat_getenv('appdata') or os.path.join(compat_expanduser('~'), '.config')
@@ -27,7 +27,7 @@ def load_dynamic_extractors(module_dir=None):
 
     ret = {}
     for mdir in mdirs:
-        files = glob.glob(mdir+"/*.py")
+        files = glob.glob(os.path.join(mdir,"*.py"))
         for f in [ os.path.basename(f)[:-3] for f in files]:
            # force extractor namespace upon /any/path.py
            fh, filename, desc = imp.find_module(f, [mdir])
