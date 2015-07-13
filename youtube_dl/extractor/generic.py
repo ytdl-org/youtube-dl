@@ -1217,17 +1217,6 @@ class GenericIE(InfoExtractor):
                 'entries': entries,
             }
 
-        # Look for embedded rtl.nl player
-        matches = re.findall(
-            r'<iframe[^>]+?src="((?:https?:)?//(?:www\.)?rtl\.nl/system/videoplayer/[^"]+(?:video_)?embed[^"]+)"',
-            webpage)
-        if matches:
-            return _playlist_from_matches(matches, ie='RtlNl')
-
-        vimeo_url = VimeoIE._extract_vimeo_url(url, webpage)
-        if vimeo_url is not None:
-            return self.url_result(vimeo_url)
-
         # Look for embedded YouTube player
         matches = re.findall(r'''(?x)
             (?:
@@ -1250,13 +1239,6 @@ class GenericIE(InfoExtractor):
             r'class="lazyYT" data-youtube-id="([^"]+)"', webpage)
         if matches:
             return _playlist_from_matches(matches, lambda m: unescapeHTML(m))
-
-        # Look for embedded Dailymotion player
-        matches = re.findall(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/embed/video/.+?)\1', webpage)
-        if matches:
-            return _playlist_from_matches(
-                matches, lambda m: unescapeHTML(m[1]))
 
         # Look for embedded Dailymotion playlist player (#3822)
         m = re.search(
@@ -1299,11 +1281,6 @@ class GenericIE(InfoExtractor):
         if bliptv_url:
             return self.url_result(bliptv_url, 'BlipTV')
 
-        # Look for SVT player
-        svt_url = SVTIE._extract_url(webpage)
-        if svt_url:
-            return self.url_result(svt_url, 'SVT')
-
         # Look for embedded condenast player
         matches = re.findall(
             r'<iframe\s+(?:[a-zA-Z-]+="[^"]+"\s+)*?src="(https?://player\.cnevids\.com/embed/[^"]+")',
@@ -1327,29 +1304,10 @@ class GenericIE(InfoExtractor):
             # Don't set the extractor because it can be a track url or an album
             return self.url_result(burl)
 
-        # Look for embedded Vevo player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:cache\.)?vevo\.com/.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'))
-
         # Look for embedded Viddler player
         mobj = re.search(
             r'<(?:iframe[^>]+?src|param[^>]+?value)=(["\'])(?P<url>(?:https?:)?//(?:www\.)?viddler\.com/(?:embed|player)/.+?)\1',
             webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'))
-
-        # Look for NYTimes player
-        mobj = re.search(
-            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//graphics8\.nytimes\.com/bcvideo/[^/]+/iframe/embed\.html.+?)\1>',
-            webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'))
-
-        # Look for Libsyn player
-        mobj = re.search(
-            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//html5-player\.libsyn\.com/embed/.+?)\1', webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'))
 
@@ -1369,16 +1327,6 @@ class GenericIE(InfoExtractor):
                 return _playlist_from_matches(
                     embeds, getter=lambda v: OoyalaIE._url_for_embed_code(v['provider_video_id']), ie='Ooyala')
 
-        # Look for Aparat videos
-        mobj = re.search(r'<iframe .*?src="(http://www\.aparat\.com/video/[^"]+)"', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group(1), 'Aparat')
-
-        # Look for MPORA videos
-        mobj = re.search(r'<iframe .*?src="(http://mpora\.(?:com|de)/videos/[^"]+)"', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group(1), 'Mpora')
-
         # Look for embedded NovaMov-based player
         mobj = re.search(
             r'''(?x)<(?:pagespeed_)?iframe[^>]+?src=(["\'])
@@ -1392,28 +1340,6 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'))
 
-        # Look for embedded Facebook player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https://www\.facebook\.com/video/embed.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Facebook')
-
-        # Look for embedded VK player
-        mobj = re.search(r'<iframe[^>]+?src=(["\'])(?P<url>https?://vk\.com/video_ext\.php.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'VK')
-
-        # Look for embedded ivi player
-        mobj = re.search(r'<embed[^>]+?src=(["\'])(?P<url>https?://(?:www\.)?ivi\.ru/video/player.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Ivi')
-
-        # Look for embedded Huffington Post player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://embed\.live\.huffingtonpost\.com/.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'HuffPost')
-
         # Look for embed.ly
         mobj = re.search(r'class=["\']embedly-card["\'][^>]href=["\'](?P<url>[^"\']+)', webpage)
         if mobj is not None:
@@ -1421,12 +1347,6 @@ class GenericIE(InfoExtractor):
         mobj = re.search(r'class=["\']embedly-embed["\'][^>]src=["\'][^"\']*url=(?P<url>[^&]+)', webpage)
         if mobj is not None:
             return self.url_result(compat_urllib_parse.unquote(mobj.group('url')))
-
-        # Look for funnyordie embed
-        matches = re.findall(r'<iframe[^>]+?src="(https?://(?:www\.)?funnyordie\.com/embed/[^"]+)"', webpage)
-        if matches:
-            return _playlist_from_matches(
-                matches, getter=unescapeHTML, ie='FunnyOrDie')
 
         # Look for BBC iPlayer embed
         matches = re.findall(r'setPlaylist\("(https?://www\.bbc\.co\.uk/iplayer/[^/]+/[\da-z]{8})"\)', webpage)
@@ -1438,43 +1358,10 @@ class GenericIE(InfoExtractor):
         if rutv_url:
             return self.url_result(rutv_url, 'RUTV')
 
-        # Look for embedded TVC player
-        tvc_url = TVCIE._extract_url(webpage)
-        if tvc_url:
-            return self.url_result(tvc_url, 'TVC')
-
-        # Look for embedded SportBox player
-        sportbox_urls = SportBoxEmbedIE._extract_urls(webpage)
-        if sportbox_urls:
-            return _playlist_from_matches(sportbox_urls, ie='SportBoxEmbed')
-
-        # Look for embedded PornHub player
-        pornhub_url = PornHubIE._extract_url(webpage)
-        if pornhub_url:
-            return self.url_result(pornhub_url, 'PornHub')
-
         # Look for embedded XHamster player
         xhamster_urls = XHamsterEmbedIE._extract_urls(webpage)
         if xhamster_urls:
             return _playlist_from_matches(xhamster_urls, ie='XHamsterEmbed')
-
-        # Look for embedded Tvigle player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//cloud\.tvigle\.ru/video/.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Tvigle')
-
-        # Look for embedded TED player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://embed(?:-ssl)?\.ted\.com/.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'TED')
-
-        # Look for embedded Ustream videos
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>http://www\.ustream\.tv/embed/.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Ustream')
 
         # Look for embedded arte.tv player
         mobj = re.search(
@@ -1483,16 +1370,6 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'ArteTVEmbed')
 
-        # Look for embedded smotri.com player
-        smotri_url = SmotriIE._extract_url(webpage)
-        if smotri_url:
-            return self.url_result(smotri_url, 'Smotri')
-
-        # Look for embedded Myvi.ru player
-        myvi_url = MyviIE._extract_url(webpage)
-        if myvi_url:
-            return self.url_result(myvi_url)
-
         # Look for embeded soundcloud player
         mobj = re.search(
             r'<iframe\s+(?:[a-zA-Z0-9_-]+="[^"]+"\s+)*src="(?P<url>https?://(?:w\.)?soundcloud\.com/player[^"]+)"',
@@ -1500,29 +1377,6 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             url = unescapeHTML(mobj.group('url'))
             return self.url_result(url)
-
-        # Look for embedded vulture.com player
-        mobj = re.search(
-            r'<iframe src="(?P<url>https?://video\.vulture\.com/[^"]+)"',
-            webpage)
-        if mobj is not None:
-            url = unescapeHTML(mobj.group('url'))
-            return self.url_result(url, ie='Vulture')
-
-        # Look for embedded mtvservices player
-        mobj = re.search(
-            r'<iframe src="(?P<url>https?://media\.mtvnservices\.com/embed/[^"]+)"',
-            webpage)
-        if mobj is not None:
-            url = unescapeHTML(mobj.group('url'))
-            return self.url_result(url, ie='MTVServicesEmbedded')
-
-        # Look for embedded yahoo player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://(?:screen|movies)\.yahoo\.com/.+?\.html\?format=embed)\1',
-            webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Yahoo')
 
         # Look for embedded sbs.com.au player
         mobj = re.search(
@@ -1535,13 +1389,6 @@ class GenericIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'SBS')
-
-        # Look for embedded Cinchcast player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://player\.cinchcast\.com/.+?)\1',
-            webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Cinchcast')
 
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>https?://m(?:lb)?\.mlb\.com/shared/video/embed/embed\.html\?.+?)\1',
@@ -1559,41 +1406,17 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(self._proto_relative_url(mobj.group('url'), scheme='http:'), 'CondeNast')
 
-        mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://new\.livestream\.com/[^"]+/player[^"]+)"',
-            webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Livestream')
-
-        # Look for Zapiks embed
-        mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://(?:www\.)?zapiks\.fr/index\.php\?.+?)"', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Zapiks')
-
         # Look for Kaltura embeds
         mobj = (re.search(r"(?s)kWidget\.(?:thumb)?[Ee]mbed\(\{.*?'wid'\s*:\s*'_?(?P<partner_id>[^']+)',.*?'entry_id'\s*:\s*'(?P<id>[^']+)',", webpage) or
                 re.search(r'(?s)(["\'])(?:https?:)?//cdnapisec\.kaltura\.com/.*?(?:p|partner_id)/(?P<partner_id>\d+).*?\1.*?entry_id\s*:\s*(["\'])(?P<id>[^\2]+?)\2', webpage))
         if mobj is not None:
             return self.url_result('kaltura:%(partner_id)s:%(id)s' % mobj.groupdict(), 'Kaltura')
 
-        # Look for Eagle.Platform embeds
-        mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://.+?\.media\.eagleplatform\.com/index/player\?.+?)"', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'EaglePlatform')
-
         # Look for ClipYou (uses Eagle.Platform) embeds
         mobj = re.search(
             r'<iframe[^>]+src="https?://(?P<host>media\.clipyou\.ru)/index/player\?.*\brecord_id=(?P<id>\d+).*"', webpage)
         if mobj is not None:
             return self.url_result('eagleplatform:%(host)s:%(id)s' % mobj.groupdict(), 'EaglePlatform')
-
-        # Look for Pladform embeds
-        mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://out\.pladform\.ru/player\?.+?)"', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Pladform')
 
         # Look for Playwire embeds
         mobj = re.search(
@@ -1613,46 +1436,10 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'))
 
-        # Look for NBC Sports VPlayer embeds
-        nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
-        if nbc_sports_url:
-            return self.url_result(nbc_sports_url, 'NBCSportsVPlayer')
-
-        # Look for UDN embeds
-        mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>%s)"' % UDNEmbedIE._VALID_URL, webpage)
-        if mobj is not None:
-            return self.url_result(
-                compat_urlparse.urljoin(url, mobj.group('url')), 'UDNEmbed')
-
-        # Look for Senate ISVP iframe
-        senate_isvp_url = SenateISVPIE._search_iframe_url(webpage)
-        if senate_isvp_url:
-            return self.url_result(senate_isvp_url, 'SenateISVP')
-
         # Look for Dailymotion Cloud videos
         dmcloud_url = DailymotionCloudIE._extract_dmcloud_url(webpage)
         if dmcloud_url:
             return self.url_result(dmcloud_url, 'DailymotionCloud')
-
-        # Look for OnionStudios embeds
-        onionstudios_url = OnionStudiosIE._extract_url(webpage)
-        if onionstudios_url:
-            return self.url_result(onionstudios_url)
-
-        # Look for SnagFilms embeds
-        snagfilms_url = SnagFilmsEmbedIE._extract_url(webpage)
-        if snagfilms_url:
-            return self.url_result(snagfilms_url)
-
-        # Look for AdobeTVVideo embeds
-        mobj = re.search(
-            r'<iframe[^>]+src=[\'"]((?:https?:)?//video\.tv\.adobe\.com/v/\d+[^"]+)[\'"]',
-            webpage)
-        if mobj is not None:
-            return self.url_result(
-                self._proto_relative_url(unescapeHTML(mobj.group(1))),
-                'AdobeTVVideo')
 
         # Last-ditch attempt to find matching plugin for embeds
         # (this can potentially replace many lines of code above)
