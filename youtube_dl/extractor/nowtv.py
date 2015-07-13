@@ -133,7 +133,7 @@ class NowTVIE(InfoExtractor):
         station = mobj.group('station')
 
         info = self._download_json(
-            'https://api.nowtv.de/v3/movies/%s?fields=*,format,files' % display_id,
+            'https://api.nowtv.de/v3/movies/%s?fields=id,title,free,geoblocked,articleLong,articleShort,broadcastStartDate,seoUrl,duration,format,files' % display_id,
             display_id)
 
         video_id = compat_str(info['id'])
