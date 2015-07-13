@@ -143,6 +143,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='dump_user_agent', default=False,
         help='Display the current browser identification')
     general.add_option(
+        '--module-dir',
+        dest='module_dir', default=None, metavar='DIR',
+        help='Load additional extractor modules from DIR. Modules are also loaded from $XDG_CACHE_HOME/youtube-dl/modules or ~/.config/youtube-dl/modules.')
+    general.add_option(
         '--list-extractors',
         action='store_true', dest='list_extractors', default=False,
         help='List all supported extractors')
@@ -716,6 +720,16 @@ def parseOpts(overrideArguments=None):
         '--add-metadata',
         action='store_true', dest='addmetadata', default=False,
         help='Write metadata to the video file')
+    postproc.add_option(
+        '--custom-meta',
+        action='append', dest='custommeta', default=[], metavar='TAG=FORMAT',
+        help='Write specific information to a metadata tag.'
+             'Syntax: "tagname=string to add with %(format)s" '
+             'The formatting syntax is the same as output. '
+             'Example: --custom-meta "comment=%(webpage_url)s\\n%(description)s" will '
+             'add a line with the url, then the description in the "comment" tag. '
+             'Tags are format-specific, common ones include: artist, comment, title, copyright, uploader. '
+             'This can be invoked multiple times for different tags.')
     postproc.add_option(
         '--metadata-from-title',
         metavar='FORMAT', dest='metafromtitle',
