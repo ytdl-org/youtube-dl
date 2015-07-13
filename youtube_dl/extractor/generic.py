@@ -1370,14 +1370,6 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'ArteTVEmbed')
 
-        # Look for embeded soundcloud player
-        mobj = re.search(
-            r'<iframe\s+(?:[a-zA-Z0-9_-]+="[^"]+"\s+)*src="(?P<url>https?://(?:w\.)?soundcloud\.com/player[^"]+)"',
-            webpage)
-        if mobj is not None:
-            url = unescapeHTML(mobj.group('url'))
-            return self.url_result(url)
-
         # Look for embedded sbs.com.au player
         mobj = re.search(
             r'''(?x)
