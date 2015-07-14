@@ -37,13 +37,13 @@ class DFBIE(InfoExtractor):
             self._proto_relative_url(video_info.find('url').text.strip()), display_id)
         token_el = f4m_info.find('token')
         manifest_url = token_el.attrib['url'] + '?' + 'hdnea=' + token_el.attrib['auth'] + '&hdcore=3.2.0'
+        formats = self._extract_f4m_formats(manifest_url, display_id)
 
         return {
             'id': video_id,
             'display_id': display_id,
             'title': video_info.find('title').text,
-            'url': manifest_url,
-            'ext': 'flv',
             'thumbnail': self._og_search_thumbnail(webpage),
             'upload_date': unified_strdate(video_info.find('time_date').text),
+            'formats': formats,
         }
