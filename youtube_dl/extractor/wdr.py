@@ -22,7 +22,22 @@ class WDRIE(InfoExtractor):
 
     _TESTS = [
         {
-            'url': 'http://www1.wdr.de/mediathek/video/sendungen/hier_und_heute/videostreetfoodpioniere100.html',  # Test single media extraction (video)
+            'url': 'http://www1.wdr.de/mediathek/video/sendungen/hier_und_heute/videostreetfoodpioniere100.html',  # Test single media extraction (video, link to webpage)
+            'info_dict': {
+                'id': 'mdb-750693',
+                'ext': 'mp4',
+                'title': 'HIER UND HEUTE: Streetfood-Pioniere',
+                'description': 'md5:bff1fdc6de7df044ac2bec13ab46e6a9',
+                'upload_date': '20150703',
+                'is_live': False
+            },
+            'params': {
+                'skip_download': True,
+                'format': 'best'
+            },
+        },
+        {
+            'url': 'http://www1.wdr.de/mediathek/video/sendungen/hier_und_heute/videostreetfoodpioniere100-videoplayer_size-L.html',  # Test single media extraction (video, link to playerpage)
             'info_dict': {
                 'id': 'mdb-750693',
                 'ext': 'mp4',
@@ -49,14 +64,26 @@ class WDRIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://www.funkhauseuropa.de/musik/musikspecials/roskilde-zweitausendfuenfzehn-100.html',  # Test single media extraction (audio)
+            'url': 'http://www.funkhauseuropa.de/av/audioroskildefestival100-audioplayer.html',  # Test single media extraction (audio)
             'md5': 'e50e0c8900f6558ae12cd9953aca5a20',
             'info_dict': {
                 'id': 'mdb-752045',
                 'ext': 'mp3',
                 'title': 'Roskilde Festival 2015',
-                'description': 'md5:48e7a0a884c0e841a9d9174e27c67df3',
+                'description': 'md5:7b29e97e10dfb6e265238b32fa35b23a',
                 'upload_date': '20150702',
+                'is_live': False
+            },
+        },
+        {
+            'url': 'http://www.funkhauseuropa.de/themen/aktuell/zwanzig-jahre-mpdrei-100.html',  # Test single media extraction (audio)
+            'md5': 'a0966afb15714a5c5a364b8d36a6e721',
+            'info_dict': {
+                'id': 'mdb-762163',
+                'ext': 'mp3',
+                'title': '20 Jahre mp3',
+                'description': 'md5:5b1d78b210443081e9a08a9d0fb78306',
+                'upload_date': '20150714',
                 'is_live': False
             },
         },
@@ -65,7 +92,7 @@ class WDRIE(InfoExtractor):
             'playlist_mincount': 146,
             'info_dict': {
                 'id': 'mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100',
-                'title': 'md5:31d3634678b18f90a9fc4e7cd34ba3b2'
+                'title': 'md5:acf18a9eb2e3342d05de07380f1672b4'
             }
         },
         {
@@ -110,11 +137,11 @@ class WDRIE(InfoExtractor):
                     note='Downloading playlist page %d' % page_num)
             return self.playlist_result(entries, page_id, webpage)
 
-    def _media_extract(self, page_url, page_id, mobj, webpage, entries):
-        if mobj.group('player') is None:
-            mobj = re.search(self._VALID_URL, entries[0]['url'])
-            playerpage = self._download_webpage(entries[0]['url'], mobj.group('id') + mobj.group('player'))
-        else:
+    def _media_extract(self, page_url, page_id, webpage, mobj=None, entrie=None):
+        if entrie is not None:
+            mobj = re.search(self._VALID_URL, entrie['url'])
+            playerpage = self._download_webpage(entrie['url'], mobj.group('id') + mobj.group('player'))
+        elif mobj is not None:
             playerpage = webpage
         formats = []
         flashvars = compat_parse_qs(
@@ -198,16 +225,17 @@ class WDRIE(InfoExtractor):
         ]
 
         # The url doesn't seem to contain any information if the current page is a playlist or page with a single media item
-        if not entries and mobj.group('player') is None:  # Playlist page
+        if not entries and mobj.group('player') is None:  # Playlist containing links to webpages
             return self._playlist_extract(page_url, page_id, webpage)
 
-        elif entries and len(entries) > 1:  # Different playlist page
+        elif entries and len(entries) > 1:  # Playlist containing multiple playerpages
             return self.playlist_result(entries, page_id)
 
-        elif mobj.group('player') is not None or (entries and len(entries) == 1):  # Media page (either just a single player link on the webpage or the webpage is the player)
-            if not entries:
-                entries = None
-            return self._media_extract(page_url, page_id, mobj, webpage, entries)
+        elif mobj.group('player') is not None:  # Mediaextractor (used if a playlist containes multiple playerpages)
+            return self._media_extract(page_url, page_id, webpage, mobj=mobj)
+
+        elif entries and len(entries) == 1:  # Mediaextractor (a page with a single video is usally not a playlist)
+            return self._media_extract(page_url, page_id, webpage, entrie=entries[0])
 
 
 class WDRMobileIE(InfoExtractor):
