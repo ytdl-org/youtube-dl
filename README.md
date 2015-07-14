@@ -238,6 +238,26 @@ which means you can modify it, redistribute it or use it however you like.
 
 You can configure youtube-dl by placing default arguments (such as `--extract-audio --no-mtime` to always extract the audio and not copy the mtime) into `/etc/youtube-dl.conf` and/or `~/.config/youtube-dl/config`. On Windows, the configuration file locations are `%APPDATA%\youtube-dl\config.txt` and `C:\Users\<user name>\youtube-dl.conf`.
 
+### Authentication with `.netrc` file ###
+
+You may also want to configure automatic credentials storage for extractors that support authentication (by providing login and password with `--username` and `--password`) in order not to pass credentials as command line arguments on every youtube-dl execution and prevent tracking plain text passwords in shell command history. You can achieve this using [`.netrc` file](http://stackoverflow.com/tags/.netrc/info) on per extractor basis. For that you will need to create `.netrc` file in your `$HOME` and restrict permissions to read/write by you only:
+```
+touch $HOME/.netrc
+chmod a-rwx,u+rw $HOME/.netrc
+```
+After that you can add credentials for extractor in the following format, where *extractor* is the name of extractor in lowercase:
+```
+machine <extractor> login <login> password <password>
+```
+For example:
+```
+machine youtube login myaccount@gmail.com password my_youtube_password
+machine twitch login my_twitch_account_name password my_twitch_password
+```
+To activate authentication with `.netrc` file you should pass `--netrc` to youtube-dl or to place it in [configuration file](#configuration).
+
+On Windows you may also need to setup `%HOME%` environment variable manually.
+
 # OUTPUT TEMPLATE
 
 The `-o` option allows users to indicate a template for the output file names. The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format `%(NAME)s`. To clarify, that is a percent symbol followed by a name in parenthesis, followed by a lowercase S. Allowed names are:
