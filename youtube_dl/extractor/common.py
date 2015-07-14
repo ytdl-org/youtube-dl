@@ -718,6 +718,12 @@ class InfoExtractor(object):
                 ''', html)
         ])
 
+    def _form_hidden_inputs(self, form_id, html):
+        form = self._search_regex(
+            r'(?s)<form[^>]+?id=(["\'])%s\1[^>]*>(?P<form>.+?)</form>' % form_id,
+            html, '%s form' % form_id, group='form')
+        return self._hidden_inputs(form)
+
     def _sort_formats(self, formats, field_preference=None):
         if not formats:
             raise ExtractorError('No video formats found')
