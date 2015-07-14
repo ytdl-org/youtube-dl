@@ -83,7 +83,6 @@ class UdemyIE(InfoExtractor):
         login_form = self._form_hidden_inputs('login-form', login_popup)
 
         login_form.update({
-            'displayType': 'json',
             'email': username.encode('utf-8'),
             'password': password.encode('utf-8'),
         })
