@@ -164,6 +164,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             'thumbnail': info['thumbnail_url'],
             'age_limit': age_limit,
             'view_count': view_count,
+            'duration': info['duration']
         }
 
     def _get_subtitles(self, video_id, webpage):
