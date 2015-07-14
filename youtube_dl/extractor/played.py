@@ -38,7 +38,7 @@ class PlayedIE(InfoExtractor):
         if m_error:
             raise ExtractorError(m_error.group('msg'), expected=True)
 
-        data = self._form_hidden_inputs(orig_webpage)
+        data = self._hidden_inputs(orig_webpage)
 
         self._sleep(2, video_id)
 

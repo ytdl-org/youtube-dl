@@ -168,7 +168,7 @@ class VKIE(InfoExtractor):
         login_page = self._download_webpage(
             'https://vk.com', None, 'Downloading login page')
 
-        login_form = self._form_hidden_inputs(login_page)
+        login_form = self._hidden_inputs(login_page)
 
         login_form.update({
             'email': username.encode('cp1251'),

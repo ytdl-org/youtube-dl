@@ -706,10 +706,17 @@ class InfoExtractor(object):
                                       'twitter card player')
 
     @staticmethod
-    def _form_hidden_inputs(html):
-        return dict(re.findall(
-            r'<input\s+type="hidden"\s+name="([^"]+)"\s+(?:id="[^"]+"\s+)?value="([^"]*)"',
-            html))
+    def _hidden_inputs(html):
+        return dict([
+            (input.group('name'), input.group('value')) for input in re.finditer(
+                r'''(?x)
+                    <input\s+
+                        type=(?P<q_hidden>["\'])hidden(?P=q_hidden)\s+
+                        name=(?P<q_name>["\'])(?P<name>.+?)(?P=q_name)\s+
+                        (?:id=(?P<q_id>["\']).+?(?P=q_id)\s+)?
+                        value=(?P<q_value>["\'])(?P<value>.*?)(?P=q_value)
+                ''', html)
+        ])
 
     def _sort_formats(self, formats, field_preference=None):
         if not formats:

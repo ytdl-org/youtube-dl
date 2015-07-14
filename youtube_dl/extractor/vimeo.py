@@ -452,7 +452,7 @@ class VimeoChannelIE(InfoExtractor):
         password = self._downloader.params.get('videopassword', None)
         if password is None:
             raise ExtractorError('This album is protected by a password, use the --video-password option', expected=True)
-        fields = self._form_hidden_inputs(login_form)
+        fields = self._hidden_inputs(login_form)
         token = self._search_regex(r'xsrft[\s=:"\']+([^"\']+)', webpage, 'login token')
         fields['token'] = token
         fields['password'] = password

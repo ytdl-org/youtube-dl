@@ -35,7 +35,7 @@ class PromptFileIE(InfoExtractor):
             raise ExtractorError('Video %s does not exist' % video_id,
                                  expected=True)
 
-        fields = self._form_hidden_inputs(webpage)
+        fields = self._hidden_inputs(webpage)
         post = compat_urllib_parse.urlencode(fields)
         req = compat_urllib_request.Request(url, post)
         req.add_header('Content-type', 'application/x-www-form-urlencoded')

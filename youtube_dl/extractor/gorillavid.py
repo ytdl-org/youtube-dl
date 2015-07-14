@@ -78,7 +78,7 @@ class GorillaVidIE(InfoExtractor):
         if re.search(self._FILE_NOT_FOUND_REGEX, webpage) is not None:
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
-        fields = self._form_hidden_inputs(webpage)
+        fields = self._hidden_inputs(webpage)
 
         if fields['op'] == 'download1':
             countdown = int_or_none(self._search_regex(
