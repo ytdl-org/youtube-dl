@@ -10,13 +10,13 @@ class DFBIE(InfoExtractor):
     _VALID_URL = r'https?://tv\.dfb\.de/video/[^/]+/(?P<id>\d+)'
 
     _TEST = {
-        'url': 'http://tv.dfb.de/video/highlights-des-empfangs-in-berlin/9070/',
+        'url': 'http://tv.dfb.de/video/u-19-em-stimmen-zum-spiel-gegen-russland/11633/',
         # The md5 is different each time
         'info_dict': {
-            'id': '9070',
+            'id': '11633',
             'ext': 'flv',
-            'title': 'Highlights des Empfangs in Berlin',
-            'upload_date': '20140716',
+            'title': 'U 19-EM: Stimmen zum Spiel gegen Russland',
+            'upload_date': '20150714',
         },
     }
 
