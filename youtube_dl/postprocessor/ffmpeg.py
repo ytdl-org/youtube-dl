@@ -265,7 +265,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         # If we download foo.mp3 and convert it to... foo.mp3, then don't delete foo.mp3, silly.
         if (new_path == path or
                 (self._nopostoverwrites and os.path.exists(encodeFilename(new_path)))):
-            self._downloader.to_screen('[youtube] Post-process file %s exists, skipping' % new_path)
+            self._downloader.to_screen('[ffmpeg] Post-process file %s exists, skipping' % new_path)
             return [], information
 
         try:
