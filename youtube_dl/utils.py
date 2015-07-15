@@ -1852,6 +1852,7 @@ def dfxp2srt(dfxp_data):
 
 
     def text_or_empty(v):
+        """ return string that contains something other than whitespace, or '' """
         str = str_or_none(v, '')
         return '' if not re.search(r'[^\s]',str,re.DOTALL) else str
 
