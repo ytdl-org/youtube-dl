@@ -22,6 +22,11 @@ class ProSiebenSat1IE(InfoExtractor):
 
     _TESTS = [
         {
+            # Tests changes introduced in https://github.com/rg3/youtube-dl/pull/6242
+            # in response to fixing https://github.com/rg3/youtube-dl/issues/6215:
+            # - malformed f4m manifest support
+            # - proper handling of URLs starting with `https?://` in 2.0 manifests
+            # - recursive child f4m manifests extraction
             'url': 'http://www.prosieben.de/tv/circus-halligalli/videos/218-staffel-2-episode-18-jahresrueckblick-ganze-folge',
             'info_dict': {
                 'id': '2104602',
