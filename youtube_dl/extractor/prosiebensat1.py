@@ -9,8 +9,9 @@ from ..compat import (
     compat_urllib_parse,
 )
 from ..utils import (
-    unified_strdate,
+    fix_xml_ampersands,
     int_or_none,
+    unified_strdate,
 )
 
 
@@ -208,7 +209,7 @@ class ProSiebenSat1IE(InfoExtractor):
         clip_id = self._html_search_regex(self._CLIPID_REGEXES, webpage, 'clip id')
 
         access_token = 'prosieben'
-        client_name = 'kolibri-1.12.6'
+        client_name = 'kolibri-2.0.19-splec4'
         client_location = url
 
         videos_api_url = 'http://vas.sim-technik.de/vas/live/v2/videos?%s' % compat_urllib_parse.urlencode({
@@ -275,8 +276,9 @@ class ProSiebenSat1IE(InfoExtractor):
 
         for source in urls_sources:
             protocol = source['protocol']
+            source_url = source['url']
             if protocol == 'rtmp' or protocol == 'rtmpe':
-                mobj = re.search(r'^(?P<url>rtmpe?://[^/]+)/(?P<path>.+)$', source['url'])
+                mobj = re.search(r'^(?P<url>rtmpe?://[^/]+)/(?P<path>.+)$', source_url)
                 if not mobj:
                     continue
                 path = mobj.group('path')
@@ -293,9 +295,18 @@ class ProSiebenSat1IE(InfoExtractor):
                     'ext': 'mp4',
                     'format_id': '%s_%s' % (source['cdn'], source['bitrate']),
                 })
+            elif 'f4mgenerator' in source_url:
+                manifest = self._download_xml(
+                    source_url, clip_id, 'Downloading generated f4m manifest',
+                    transform_source=lambda s: fix_xml_ampersands(s).strip())
+                for media in manifest.findall('./{http://ns.adobe.com/f4m/2.0}media'):
+                    manifest_url = media.get('href')
+                    if manifest_url:
+                        formats.extend(self._extract_f4m_formats(
+                            manifest_url, clip_id, f4m_id='hds'))
             else:
                 formats.append({
-                    'url': source['url'],
+                    'url': source_url,
                     'vbr': fix_bitrate(source['bitrate']),
                 })
 
