@@ -1865,7 +1865,7 @@ def dfxp2srt(dfxp_data):
 
         return out
 
-    dfxp = xml.etree.ElementTree.fromstring(dfxp_data.encode('utf-8'))
+    dfxp = xml.etree.ElementTree.fromstring(dfxp_data.replace('\n','').encode('utf-8'))
     out = []
     paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall(_x('.//ttaf1:p')) or dfxp.findall('.//p')
 
