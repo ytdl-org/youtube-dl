@@ -852,7 +852,9 @@ class InfoExtractor(object):
             media_nodes = manifest.findall('{http://ns.adobe.com/f4m/2.0}media')
         for i, media_el in enumerate(media_nodes):
             if manifest_version == '2.0':
-                media_url = media_el.attrib.get('href') or media_el.attrib['url']
+                media_url = media_el.attrib.get('href') or media_el.attrib.get('url')
+                if not media_url:
+                    continue
                 manifest_url = (
                     media_url if media_url.startswith('http://') or media_url.startswith('https://')
                     else ('/'.join(manifest_url.split('/')[:-1]) + '/' + media_url))
