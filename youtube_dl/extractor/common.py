@@ -28,6 +28,7 @@ from ..utils import (
     clean_html,
     compiled_regex_type,
     ExtractorError,
+    fix_xml_ampersands,
     float_or_none,
     int_or_none,
     RegexNotFoundError,
@@ -837,7 +838,10 @@ class InfoExtractor(object):
     def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None):
         manifest = self._download_xml(
             manifest_url, video_id, 'Downloading f4m manifest',
-            'Unable to download f4m manifest')
+            'Unable to download f4m manifest',
+            # Some manifests may be malformed, e.g. prosiebensat1 generated manifests
+            # (see https://github.com/rg3/youtube-dl/issues/6215#issuecomment-121704244)
+            transform_source=lambda s: fix_xml_ampersands(s).strip())
 
         formats = []
         manifest_version = '1.0'
