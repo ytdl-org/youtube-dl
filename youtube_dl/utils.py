@@ -1850,6 +1850,12 @@ def dfxp2srt(dfxp_data):
         'ttaf1': 'http://www.w3.org/2006/10/ttaf1',
     })
 
+
+    def text_or_empty(v):
+        str = str_or_none(v, '')
+        return '' if not re.search(r'[^\s]',str,re.DOTALL) else str
+
+
     def parse_node(node):
         str_or_empty = functools.partial(str_or_none, default='')
 
@@ -1859,7 +1865,7 @@ def dfxp2srt(dfxp_data):
             if child.tag in (_x('ttml:br'), _x('ttaf1:br'), 'br'):
                 out += '\n' + str_or_empty(child.tail)
             elif child.tag in (_x('ttml:span'), _x('ttaf1:span'), 'span'):
-                out += str_or_empty(parse_node(child))
+                out += str_or_empty(parse_node(child)) + text_or_empty(child.tail)
             else:
                 out += str_or_empty(xml.etree.ElementTree.tostring(child))
 
