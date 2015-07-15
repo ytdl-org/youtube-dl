@@ -94,6 +94,8 @@ except ImportError:
             try:
                 if not item:
                     raise ValueError
+                if not re.match('[0-9a-fA-F][0-9a-fA-F]',item[:2]):
+                    raise ValueError
                 pct_sequence += item[:2].decode('hex')
                 rest = item[2:]
                 if not rest:
