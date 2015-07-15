@@ -9,7 +9,7 @@ from ..compat import (
     compat_urllib_parse,
 )
 from ..utils import (
-    fix_xml_ampersands,
+    determine_ext,
     int_or_none,
     unified_strdate,
 )
@@ -295,15 +295,8 @@ class ProSiebenSat1IE(InfoExtractor):
                     'ext': 'mp4',
                     'format_id': '%s_%s' % (source['cdn'], source['bitrate']),
                 })
-            elif 'f4mgenerator' in source_url:
-                manifest = self._download_xml(
-                    source_url, clip_id, 'Downloading generated f4m manifest',
-                    transform_source=lambda s: fix_xml_ampersands(s).strip())
-                for media in manifest.findall('./{http://ns.adobe.com/f4m/2.0}media'):
-                    manifest_url = media.get('href')
-                    if manifest_url:
-                        formats.extend(self._extract_f4m_formats(
-                            manifest_url, clip_id, f4m_id='hds'))
+            elif 'f4mgenerator' in source_url or determine_ext(source_url) == 'f4m':
+                formats.extend(self._extract_f4m_formats(source_url, clip_id))
             else:
                 formats.append({
                     'url': source_url,
