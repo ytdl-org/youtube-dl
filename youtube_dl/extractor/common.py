@@ -27,6 +27,7 @@ from ..utils import (
     bug_reports_message,
     clean_html,
     compiled_regex_type,
+    determine_ext,
     ExtractorError,
     fix_xml_ampersands,
     float_or_none,
@@ -855,6 +856,13 @@ class InfoExtractor(object):
                 manifest_url = (
                     media_url if media_url.startswith('http://') or media_url.startswith('https://')
                     else ('/'.join(manifest_url.split('/')[:-1]) + '/' + media_url))
+                # If media_url is itself a f4m manifest do the recursive extraction
+                # since bitrates in parent manifest (this one) and media_url manifest
+                # may differ leading to inability to resolve the format by requested
+                # bitrate in f4m downloader
+                if determine_ext(manifest_url) == 'f4m':
+                    formats.extend(self._extract_f4m_formats(manifest_url, video_id, preference, f4m_id))
+                    continue
             tbr = int_or_none(media_el.attrib.get('bitrate'))
             formats.append({
                 'format_id': '-'.join(filter(None, [f4m_id, compat_str(i if tbr is None else tbr)])),
