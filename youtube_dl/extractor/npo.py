@@ -428,6 +428,15 @@ class VPROIE(NPOIE):
                 'title': 'Sergio Herman: Fucking perfect',
             },
             'playlist_count': 2,
+        },
+        {
+            # playlist with youtube embed
+            'url': 'http://www.vpro.nl/programmas/2doc/2015/education-education.html',
+            'info_dict': {
+                'id': 'education-education',
+                'title': '2Doc',
+            },
+            'playlist_count': 2,
         }
     ]
 
@@ -437,7 +446,7 @@ class VPROIE(NPOIE):
         webpage = self._download_webpage(url, playlist_id)
 
         entries = [
-            self.url_result('npo:%s' % video_id, 'NPO')
+            self.url_result('npo:%s' % video_id if not video_id.startswith('http') else video_id)
             for video_id in re.findall(r'data-media-id="([^"]+)"', webpage)
         ]
 
