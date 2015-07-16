@@ -87,7 +87,7 @@ class NPOIE(NPOBaseIE):
                 'id': 'VPWON_1169289',
                 'ext': 'm4v',
                 'title': 'Tegenlicht',
-                'description': 'md5:d6476bceb17a8c103c76c3b708f05dd1',
+                'description': 'md5:52cf4eefbc96fffcbdc06d024147abea',
                 'upload_date': '20130225',
                 'duration': 3000,
             },
