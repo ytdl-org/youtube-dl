@@ -72,7 +72,7 @@ class NPOIE(NPOBaseIE):
             'info_dict': {
                 'id': 'VARA_101191800',
                 'ext': 'm4v',
-                'title': 'De Mega Mike & Mega Thomas show',
+                'title': 'De Mega Mike & Mega Thomas show: The best of.',
                 'description': 'md5:3b74c97fc9d6901d5a665aac0e5400f4',
                 'upload_date': '20090227',
                 'duration': 2400,
@@ -84,7 +84,7 @@ class NPOIE(NPOBaseIE):
             'info_dict': {
                 'id': 'VPWON_1169289',
                 'ext': 'm4v',
-                'title': 'Tegenlicht',
+                'title': 'Tegenlicht: De toekomst komt uit Afrika',
                 'description': 'md5:52cf4eefbc96fffcbdc06d024147abea',
                 'upload_date': '20130225',
                 'duration': 3000,
@@ -156,6 +156,13 @@ class NPOIE(NPOBaseIE):
         # http://www.omroepwnl.nl/video/fragment/vandaag-de-dag-verkiezingen__POMS_WNL_853698
         # video id is POMS_WNL_853698 but prid is POW_00996502)
         video_id = metadata.get('prid') or video_id
+
+        # titel is too generic in some cases so utilize aflevering_titel as well
+        # when available (e.g. http://tegenlicht.vpro.nl/afleveringen/2014-2015/access-to-africa.html)
+        title = metadata['titel']
+        sub_title = metadata.get('aflevering_titel')
+        if sub_title and sub_title != title:
+            title += ': %s' % sub_title
 
         token = self._get_token(video_id)
 
@@ -229,9 +236,7 @@ class NPOIE(NPOBaseIE):
 
         return {
             'id': video_id,
-            # prefer aflevering_titel if any since titel may be too generic, e.g.
-            # http://tegenlicht.vpro.nl/afleveringen/2014-2015/access-to-africa.html
-            'title': metadata.get('aflevering_titel') or metadata['titel'],
+            'title': title,
             'description': metadata.get('info'),
             'thumbnail': metadata.get('images', [{'url': None}])[-1]['url'],
             'upload_date': unified_strdate(metadata.get('gidsdatum')),
