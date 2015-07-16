@@ -217,7 +217,6 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                     'title')
             duration = self._search_regex(r'duration":(\d+),', embed_page,
                 'video info-v5duration', flags=re.MULTILINE, fatal=False)
-            print(duration)
             return  {
                 'id':       video_id,
                 'formats': formats,
@@ -228,6 +227,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                 'thumbnail': v5thumbnailurl,
                 'age_limit': age_limit,
                 'view_count': view_count,
+                'duration': duration
             } 
         
 
