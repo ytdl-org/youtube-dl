@@ -234,7 +234,9 @@ class NPOIE(NPOBaseIE):
 
         return {
             'id': video_id,
-            'title': metadata['titel'],
+            # prefer aflevering_titel if any since titel may be too generic, e.g.
+            # http://tegenlicht.vpro.nl/afleveringen/2014-2015/access-to-africa.html
+            'title': metadata.get('aflevering_titel') or metadata['titel'],
             'description': metadata['info'],
             'thumbnail': metadata.get('images', [{'url': None}])[-1]['url'],
             'upload_date': unified_strdate(metadata.get('gidsdatum')),
@@ -414,7 +416,7 @@ class VPROIE(NPOIE):
             'info_dict': {
                 'id': 'VPWON_1169289',
                 'ext': 'm4v',
-                'title': 'Tegenlicht',
+                'title': 'De toekomst komt uit Afrika',
                 'description': 'md5:52cf4eefbc96fffcbdc06d024147abea',
                 'upload_date': '20130225',
             },
