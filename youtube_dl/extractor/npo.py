@@ -1,6 +1,12 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_request,
+    compat_urllib_parse,
+)
 from ..utils import (
     fix_xml_ampersands,
     parse_duration,
@@ -39,7 +45,16 @@ class NPOBaseIE(InfoExtractor):
 class NPOIE(NPOBaseIE):
     IE_NAME = 'npo'
     IE_DESC = 'npo.nl and ntr.nl'
-    _VALID_URL = r'https?://(?:www\.)?(?:npo|ntr)\.nl/(?!live|radio)(?:[^/]+/){2,}(?P<id>[^/?#]+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?
+                        (?:
+                            npo\.nl/(?!live|radio)(?:[^/]+/){2}|
+                            ntr\.nl/(?:[^/]+/){2,}|
+                            omroepwnl\.nl/video/fragment/[^/]+__
+                        )
+                        (?P<id>[^/?#]+)
+                '''
 
     _TESTS = [
         {
@@ -112,6 +127,18 @@ class NPOIE(NPOBaseIE):
                 'upload_date': '20150508',
                 'duration': 599,
             },
+        },
+        {
+            'url': 'http://www.omroepwnl.nl/video/fragment/vandaag-de-dag-verkiezingen__POMS_WNL_853698',
+            'md5': 'd30cd8417b8b9bca1fdff27428860d08',
+            'info_dict': {
+                'id': 'POW_00996502',
+                'ext': 'm4v',
+                'title': '''"Dit is wel een 'landslide'..."''',
+                'description': 'md5:f8d66d537dfb641380226e31ca57b8e8',
+                'upload_date': '20150508',
+                'duration': 462,
+            },
         }
     ]
 
@@ -126,6 +153,11 @@ class NPOIE(NPOBaseIE):
             # We have to remove the javascript callback
             transform_source=strip_jsonp,
         )
+
+        # For some videos actual video id (prid) is different (e.g. for
+        # http://www.omroepwnl.nl/video/fragment/vandaag-de-dag-verkiezingen__POMS_WNL_853698
+        # video id is POMS_WNL_853698 but prid is POW_00996502)
+        video_id = metadata.get('prid') or video_id
 
         token = self._get_token(video_id)
 
