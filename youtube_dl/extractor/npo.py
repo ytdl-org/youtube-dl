@@ -404,9 +404,8 @@ class NPORadioFragmentIE(InfoExtractor):
         }
 
 
-class TegenlichtVproIE(NPOIE):
-    IE_NAME = 'tegenlicht.vpro.nl'
-    _VALID_URL = r'https?://tegenlicht\.vpro\.nl/afleveringen/.*?'
+class VPROIE(NPOIE):
+    _VALID_URL = r'https?://(?:www\.)?(?:tegenlicht\.)?vpro\.nl/(?:[^/]+/){2,}(?P<id>[^/]+)\.html'
 
     _TESTS = [
         {
@@ -416,19 +415,35 @@ class TegenlichtVproIE(NPOIE):
                 'id': 'VPWON_1169289',
                 'ext': 'm4v',
                 'title': 'Tegenlicht',
-                'description': 'md5:d6476bceb17a8c103c76c3b708f05dd1',
+                'description': 'md5:52cf4eefbc96fffcbdc06d024147abea',
                 'upload_date': '20130225',
             },
         },
+        {
+            'url': 'http://www.vpro.nl/programmas/2doc/2015/sergio-herman.html',
+            'info_dict': {
+                'id': 'sergio-herman',
+                'title': 'Sergio Herman: Fucking perfect',
+            },
+            'playlist_count': 2,
+        }
     ]
 
     def _real_extract(self, url):
-        name = url_basename(url)
-        webpage = self._download_webpage(url, name)
-        urn = self._html_search_meta('mediaurn', webpage)
-        info_page = self._download_json(
-            'http://rs.vpro.nl/v2/api/media/%s.json' % urn, name)
-        return self._get_info(info_page['mid'])
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result('npo:%s' % video_id, 'NPO')
+            for video_id in re.findall(r'data-media-id="([^"]+)"', webpage)
+        ]
+
+        playlist_title = self._search_regex(
+            r'<title>\s*([^>]+?)\s*-\s*Teledoc\s*-\s*VPRO\s*</title>',
+            webpage, 'playlist title', default=None) or self._og_search_title(webpage)
+
+        return self.playlist_result(entries, playlist_id, playlist_title)
 
 
 class WNLIE(InfoExtractor):
