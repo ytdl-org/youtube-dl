@@ -37,8 +37,9 @@ class NPOBaseIE(InfoExtractor):
 
 
 class NPOIE(NPOBaseIE):
-    IE_NAME = 'npo.nl'
-    _VALID_URL = r'https?://(?:www\.)?npo\.nl/(?!live|radio)[^/]+/[^/]+/(?P<id>[^/?]+)'
+    IE_NAME = 'npo'
+    IE_DESC = 'npo.nl and ntr.nl'
+    _VALID_URL = r'https?://(?:www\.)?(?:npo|ntr)\.nl/(?!live|radio)(?:[^/]+/){2,}(?P<id>[^/?#]+)'
 
     _TESTS = [
         {
@@ -100,6 +101,18 @@ class NPOIE(NPOBaseIE):
                 'title': 'Hoe gaat Europa verder na Parijs?',
             },
         },
+        {
+            'url': 'http://www.ntr.nl/Aap-Poot-Pies/27/detail/Aap-poot-pies/VPWON_1233944#content',
+            'md5': '01c6a2841675995da1f0cf776f03a9c3',
+            'info_dict': {
+                'id': 'VPWON_1233944',
+                'ext': 'm4v',
+                'title': 'Aap, poot, pies',
+                'description': 'md5:c9c8005d1869ae65b858e82c01a91fde',
+                'upload_date': '20150508',
+                'duration': 599,
+            },
+        }
     ]
 
     def _real_extract(self, url):
