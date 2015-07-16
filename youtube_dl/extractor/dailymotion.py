@@ -19,6 +19,7 @@ from ..utils import (
     unescapeHTML,
 )
 
+
 class DailymotionBaseInfoExtractor(InfoExtractor):
     @staticmethod
     def _build_request(url):
@@ -33,6 +34,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
 
     _VALID_URL = r'(?i)(?:https?://)?(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(embed|#)/)?video/(?P<id>[^/?_]+)'
     IE_NAME = 'dailymotion'
+
     _FORMATS = [
         ('stream_h264_ld_url', 'ld'),
         ('stream_h264_url', 'standard'),
@@ -121,10 +123,12 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         embed_request = self._build_request(embed_url)
         embed_page = self._download_webpage(
             embed_request, video_id, 'Downloading embed page')
-        info = self._search_regex(r'var info = ({.*?}),$', embed_page,
-                                  'video info', flags=re.MULTILINE, fatal=False)
-        """For normal embed pages with info JSON"""
-        if info is not None: 
+        checkv5 = self._search_regex(r'playerV5(.)', embed_page,
+                                'checkv5', default=None, fatal=False)
+        """For normal embed pages with info variable"""
+        if checkv5 is None:
+            info = self._search_regex(r'var info = ({.*?}),$', embed_page,
+                                  'video info', flags=re.MULTILINE)
             info = json.loads(info)
             if info.get('error') is not None:
                 msg = 'Couldn\'t get video, Dailymotion says: %s' % info['error']['title']
@@ -148,9 +152,11 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             if not formats:
                 raise ExtractorError('Unable to extract video URL')
             video_subtitles = self.extract_subtitles(video_id, webpage)
-            view_count = str_to_int(self._search_regex(
-                r'video_views_count[^>]+>\s+([\d\.,]+)',
-                webpage, 'view count', fatal=False))
+            view_count = self._search_regex(
+                r'video_views_count[^>]+>\s+([\d\. ]+)\s+views',
+                webpage, 'view count', fatal=False)
+            view_count = view_count.replace(" ", "")
+            view_count = str_to_int(view_count)
             title = self._og_search_title(webpage, default=None)
             if title is None:
                 title = self._html_search_regex(
@@ -171,38 +177,44 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         else:
             formats = []
             for (key, format_id) in self._FORMATSv5:
-                video_url = self._search_regex(r'%s+".{30}(.*?)"' % key, embed_page,
-                                               'video info', flags=re.MULTILINE, fatal=False)
-                if video_url:
+                """Verify format is available"""
+                checkformat = self._search_regex(r'%s+":(.)' % key, embed_page,
+                                            'checkformat', default=None)
+                if checkformat is not None:
+                    video_url = self._search_regex(r'%s+".{30}(.*?)"' % key, embed_page,
+                                                   'video info', flags=re.MULTILINE)
                     video_url = video_url.replace("\\", "")
-                if video_url is not None:
-                    m_size = re.search(r'H264-(\d+)x(\d+)', video_url)
-                    if m_size is not None:
-                        width, height = map(int_or_none, (m_size.group(1), m_size.group(2)))
-                    else:
-                        width, height = None, None
-                    formats.append({
-                                    'url': video_url,
-                                    'ext': 'mp4',
-                                    'format_id': format_id,
-                                    'width': width,
-                                    'height': height,
-                                    })
+                    if video_url is not None:
+                        m_size = re.search(r'H264-(\d+)x(\d+)', video_url)
+                        if m_size is not None:
+                            width, height = map(int_or_none, (m_size.group(1), m_size.group(2)))
+                        else:
+                            width, height = None, None
+                        formats.append({
+                                        'url': video_url,
+                                        'ext': 'mp4',
+                                        'format_id': format_id,
+                                        'width': width,
+                                        'height': height,
+                                        })
             if not formats:
                 raise ExtractorError('Unable to extract video URL from playerv5 page')
             v5screenname = self._search_regex(r'screenname":"(.*?)"', embed_page,
-            'video info', flags=re.MULTILINE)
+            'video info-v5screenname', flags=re.MULTILINE, fatal=False)
             v5thumbnailurl = self._search_regex(r'poster_url":"(.*?)"', embed_page,
-            'video info', flags=re.MULTILINE) 
+            'video info-v5thumbnailurl', flags=re.MULTILINE, fatal=False) 
+            if v5thumbnailurl is not None:
+                v5thumbnailurl = v5thumbnailurl.replace("\\", "")
             video_subtitles = self.extract_subtitles(video_id, webpage)
-            view_count = str_to_int(self._search_regex(
-                r'video_views_count[^>]+>\s+([\d\.,]+)',
-                webpage, 'view count', fatal=False))
+            view_count = self._search_regex(r'video_views_count[^>]+>\s+([\d\. ]+)\s+views',
+                webpage, 'view count', fatal=False)
+            view_count = view_count.replace(" ", "")
+            view_count = str_to_int(view_count)
             title = self._og_search_title(webpage, default=None)
             if title is None:
                 title = self._html_search_regex(
                     r'(?s)<span\s+id="video_title"[^>]*>(.*?)</span>', webpage,
-                    'title')       
+                    'title')      
             return  {
                 'id':       video_id,
                 'formats': formats,
