@@ -46,12 +46,15 @@ class NPOIE(NPOBaseIE):
     IE_NAME = 'npo'
     IE_DESC = 'npo.nl and ntr.nl'
     _VALID_URL = r'''(?x)
-                    https?://
-                        (?:www\.)?
-                        (?:
-                            npo\.nl/(?!live|radio)(?:[^/]+/){2}|
-                            ntr\.nl/(?:[^/]+/){2,}|
-                            omroepwnl\.nl/video/fragment/[^/]+__
+                    (?:
+                        npo:|
+                        https?://
+                            (?:www\.)?
+                            (?:
+                                npo\.nl/(?!live|radio)(?:[^/]+/){2}|
+                                ntr\.nl/(?:[^/]+/){2,}|
+                                omroepwnl\.nl/video/fragment/[^/]+__
+                            )
                         )
                         (?P<id>[^/?#]+)
                 '''
@@ -426,3 +429,33 @@ class TegenlichtVproIE(NPOIE):
         info_page = self._download_json(
             'http://rs.vpro.nl/v2/api/media/%s.json' % urn, name)
         return self._get_info(info_page['mid'])
+
+
+class WNLIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?omroepwnl\.nl/video/detail/(?P<id>[^/]+)__\d+'
+
+    _TEST = {
+        'url': 'http://www.omroepwnl.nl/video/detail/vandaag-de-dag-6-mei__060515',
+        'info_dict': {
+            'id': 'vandaag-de-dag-6-mei',
+            'title': 'Vandaag de Dag 6 mei',
+        },
+        'playlist_count': 4,
+    }
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result('npo:%s' % video_id, 'NPO')
+            for video_id, part in re.findall(
+                r'<a[^>]+href="([^"]+)"[^>]+class="js-mid"[^>]*>(Deel \d+)', webpage)
+        ]
+
+        playlist_title = self._html_search_regex(
+            r'(?s)<h1[^>]+class="subject"[^>]*>(.+?)</h1>',
+            webpage, 'playlist title')
+
+        return self.playlist_result(entries, playlist_id, playlist_title)

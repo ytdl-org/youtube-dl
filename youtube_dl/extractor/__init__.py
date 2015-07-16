@@ -390,6 +390,7 @@ from .npo import (
     NPORadioIE,
     NPORadioFragmentIE,
     TegenlichtVproIE,
+    WNLIE
 )
 from .nrk import (
     NRKIE,
