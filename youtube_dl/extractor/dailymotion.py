@@ -214,7 +214,10 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             if title is None:
                 title = self._html_search_regex(
                     r'(?s)<span\s+id="video_title"[^>]*>(.*?)</span>', webpage,
-                    'title')      
+                    'title')
+            duration = self._search_regex(r'duration":(\d+),', embed_page,
+                'video info-v5duration', flags=re.MULTILINE, fatal=False)
+            print(duration)
             return  {
                 'id':       video_id,
                 'formats': formats,
