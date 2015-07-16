@@ -3,17 +3,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-    compat_urllib_parse,
-)
 from ..utils import (
     fix_xml_ampersands,
     parse_duration,
     qualities,
     strip_jsonp,
     unified_strdate,
-    url_basename,
 )
 
 
