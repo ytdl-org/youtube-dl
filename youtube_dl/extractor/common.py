@@ -27,7 +27,9 @@ from ..utils import (
     bug_reports_message,
     clean_html,
     compiled_regex_type,
+    determine_ext,
     ExtractorError,
+    fix_xml_ampersands,
     float_or_none,
     int_or_none,
     RegexNotFoundError,
@@ -837,7 +839,10 @@ class InfoExtractor(object):
     def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None):
         manifest = self._download_xml(
             manifest_url, video_id, 'Downloading f4m manifest',
-            'Unable to download f4m manifest')
+            'Unable to download f4m manifest',
+            # Some manifests may be malformed, e.g. prosiebensat1 generated manifests
+            # (see https://github.com/rg3/youtube-dl/issues/6215#issuecomment-121704244)
+            transform_source=lambda s: fix_xml_ampersands(s).strip())
 
         formats = []
         manifest_version = '1.0'
@@ -847,8 +852,19 @@ class InfoExtractor(object):
             media_nodes = manifest.findall('{http://ns.adobe.com/f4m/2.0}media')
         for i, media_el in enumerate(media_nodes):
             if manifest_version == '2.0':
-                manifest_url = ('/'.join(manifest_url.split('/')[:-1]) + '/' +
-                                (media_el.attrib.get('href') or media_el.attrib.get('url')))
+                media_url = media_el.attrib.get('href') or media_el.attrib.get('url')
+                if not media_url:
+                    continue
+                manifest_url = (
+                    media_url if media_url.startswith('http://') or media_url.startswith('https://')
+                    else ('/'.join(manifest_url.split('/')[:-1]) + '/' + media_url))
+                # If media_url is itself a f4m manifest do the recursive extraction
+                # since bitrates in parent manifest (this one) and media_url manifest
+                # may differ leading to inability to resolve the format by requested
+                # bitrate in f4m downloader
+                if determine_ext(manifest_url) == 'f4m':
+                    formats.extend(self._extract_f4m_formats(manifest_url, video_id, preference, f4m_id))
+                    continue
             tbr = int_or_none(media_el.attrib.get('bitrate'))
             formats.append({
                 'format_id': '-'.join(filter(None, [f4m_id, compat_str(i if tbr is None else tbr)])),
