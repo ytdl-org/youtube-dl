@@ -237,7 +237,7 @@ class NPOIE(NPOBaseIE):
             # prefer aflevering_titel if any since titel may be too generic, e.g.
             # http://tegenlicht.vpro.nl/afleveringen/2014-2015/access-to-africa.html
             'title': metadata.get('aflevering_titel') or metadata['titel'],
-            'description': metadata['info'],
+            'description': metadata.get('info'),
             'thumbnail': metadata.get('images', [{'url': None}])[-1]['url'],
             'upload_date': unified_strdate(metadata.get('gidsdatum')),
             'duration': parse_duration(metadata.get('tijdsduur')),
