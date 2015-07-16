@@ -381,3 +381,29 @@ class TegenlichtVproIE(NPOIE):
         info_page = self._download_json(
             'http://rs.vpro.nl/v2/api/media/%s.json' % urn, name)
         return self._get_info(info_page['mid'])
+
+
+class NTRIE(NPOIE):
+    IE_NAME = 'ntr.nl'
+    _VALID_URL = r'https?://(?:www\.)?ntr\.nl/.*/(?P<id>[^/#?]+)'
+
+    _TESTS = [
+        {
+            'url': 'http://www.ntr.nl/North-Sea-Jazz/5/detail/Concert-Marcus-Miller--Afrodeezia-3-nummers-video/WO_NTR_1352953',
+            'info_dict': {
+                'id': 'WO_NTR_1352953',
+                'ext': 'mp4',
+                'title': 'North Sea Jazz 2015',
+                'description': 'Concert Marcus Miller - Afrodeezia (3 nummers) op North Sea Jazz 2015',
+                'thumbnail': 'http://images.poms.omroep.nl/image/s720/c720x405/630038.jpg',
+            },
+            'params': {
+                # only available in NL
+                'skip_download': True,
+            },
+        },
+    ]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        return self._get_info(video_id)
