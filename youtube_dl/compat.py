@@ -75,8 +75,13 @@ except ImportError:
     import BaseHTTPServer as compat_http_server
 
 try:
+    from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
     from urllib.parse import unquote as compat_urllib_parse_unquote
-except ImportError:
+except ImportError:  # Python 2
+    # HACK: The following are the correct unquote_to_bytes and unquote
+    # implementations from cpython 3.4.3's stdlib. Python 2's version
+    # is apparently broken (see https://github.com/rg3/youtube-dl/pull/6244)
+
     def compat_urllib_parse_unquote_to_bytes(string):
         """unquote_to_bytes('abc%20def') -> b'abc def'."""
         # Note: strings are encoded as UTF-8. This is only an issue if it contains
@@ -85,31 +90,21 @@ except ImportError:
             # Is it a string-like object?
             string.split
             return b''
-        if isinstance(string, str):
+        if isinstance(string, unicode):
             string = string.encode('utf-8')
-            # string = encode('utf-8')
-
-        # python3 -> 2: must implicitly convert to bits
-        bits = bytes(string).split(b'%')
-
+        bits = string.split(b'%')
         if len(bits) == 1:
             return string
         res = [bits[0]]
         append = res.append
-
         for item in bits[1:]:
-            if item == '':
-                append(b'%')
-                continue
             try:
-                append(item[:2].decode('hex'))
+                append(compat_urllib_parse._hextochr[item[:2]])
                 append(item[2:])
-            except:
+            except KeyError:
                 append(b'%')
                 append(item)
         return b''.join(res)
-
-    compat_urllib_parse_asciire = re.compile('([\x00-\x7f]+)')
 
     def compat_urllib_parse_unquote(string, encoding='utf-8', errors='replace'):
         """Replace %xx escapes by their single-character equivalent. The optional
@@ -121,7 +116,6 @@ except ImportError:
 
         unquote('abc%20def') -> 'abc def'.
         """
-
         if '%' not in string:
             string.split
             return string
@@ -129,20 +123,12 @@ except ImportError:
             encoding = 'utf-8'
         if errors is None:
             errors = 'replace'
-
-        bits = compat_urllib_parse_asciire.split(string)
+        bits = compat_urllib_parse._asciire.split(string)
         res = [bits[0]]
         append = res.append
         for i in range(1, len(bits), 2):
-            foo = compat_urllib_parse_unquote_to_bytes(bits[i])
-            foo = foo.decode(encoding, errors)
-            append(foo)
-
-            if bits[i + 1]:
-                bar = bits[i + 1]
-                if not isinstance(bar, unicode):
-                    bar = bar.decode('utf-8')
-                append(bar)
+            append(compat_urllib_parse_unquote_to_bytes(bits[i]).decode(encoding, errors))
+            append(bits[i + 1])
         return ''.join(res)
 
 try:
@@ -454,7 +440,6 @@ __all__ = [
     'compat_subprocess_get_DEVNULL',
     'compat_urllib_error',
     'compat_urllib_parse',
-    'compat_urllib_parse_asciire',
     'compat_urllib_parse_unquote',
     'compat_urllib_parse_unquote_to_bytes',
     'compat_urllib_parse_urlparse',
