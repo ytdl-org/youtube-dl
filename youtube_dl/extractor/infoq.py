@@ -4,7 +4,7 @@ import base64
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_unquote,
     compat_urlparse,
 )
 
@@ -39,7 +39,7 @@ class InfoQIE(InfoExtractor):
         # Extract video URL
         encoded_id = self._search_regex(
             r"jsclassref\s*=\s*'([^']*)'", webpage, 'encoded id')
-        real_id = compat_urllib_parse.unquote(base64.b64decode(encoded_id.encode('ascii')).decode('utf-8'))
+        real_id = compat_urllib_parse_unquote(base64.b64decode(encoded_id.encode('ascii')).decode('utf-8'))
         playpath = 'mp4:' + real_id
 
         video_filename = playpath.split('/')[-1]
