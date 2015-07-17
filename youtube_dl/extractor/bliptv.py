@@ -102,6 +102,20 @@ class BlipTVIE(InfoExtractor):
                 'vcodec': 'none',
             }
         },
+        {
+            # missing duration
+            'url': 'http://blip.tv/rss/flash/6700880',
+            'info_dict': {
+                'id': '6684191',
+                'ext': 'm4v',
+                'title': 'Cowboy Bebop: Gateway Shuffle Review',
+                'description': 'md5:3acc480c0f9ae157f5fe88547ecaf3f8',
+                'timestamp': 1386639757,
+                'upload_date': '20131210',
+                'uploader': 'sfdebris',
+                'uploader_id': '706520',
+            }
+        }
     ]
 
     @staticmethod
