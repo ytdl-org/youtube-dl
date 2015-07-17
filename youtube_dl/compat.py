@@ -74,10 +74,81 @@ try:
 except ImportError:
     import BaseHTTPServer as compat_http_server
 
+from pprint import (pprint, pformat)
+
+
+def dprint(fmt):
+    sys.stderr.write(pformat(fmt) + "\n")
+
 try:
     from urllib.parse import unquote as compat_urllib_parse_unquote
 except ImportError:
-    def compat_urllib_parse_unquote(string, encoding='utf-8', errors='replace'):
+    def compat_urllib_parse_unquote_to_bytes(string):
+        """unquote_to_bytes('abc%20def') -> b'abc def'."""
+        # Note: strings are encoded as UTF-8. This is only an issue if it contains
+        # unescaped non-ASCII characters, which URIs should not.
+        if not string:
+            # Is it a string-like object?
+            string.split
+            return b''
+        if isinstance(string, str):
+            string = string.encode('utf-8')
+            # string = encode('utf-8')
+
+        # python3 -> 2: must implicitly convert to bits
+        bits = bytes(string).split(b'%')
+
+        if len(bits) == 1:
+            return string
+        res = [bits[0]]
+        append = res.append
+
+        for item in bits[1:]:
+            try:
+                append(item[:2].decode('hex'))
+                append(item[2:])
+            except:
+                append(b'%')
+                append(item)
+        return b''.join(res)
+
+    compat_urllib_parse_asciire = re.compile('([\x00-\x7f]+)')
+
+    def new_compat_urllib_parse_unquote(string, encoding='utf-8', errors='replace'):
+        """Replace %xx escapes by their single-character equivalent. The optional
+        encoding and errors parameters specify how to decode percent-encoded
+        sequences into Unicode characters, as accepted by the bytes.decode()
+        method.
+        By default, percent-encoded sequences are decoded with UTF-8, and invalid
+        sequences are replaced by a placeholder character.
+
+        unquote('abc%20def') -> 'abc def'.
+        """
+
+        if '%' not in string:
+            string.split
+            return string
+        if encoding is None:
+            encoding = 'utf-8'
+        if errors is None:
+            errors = 'replace'
+
+        bits = compat_urllib_parse_asciire.split(string)
+        res = [bits[0]]
+        append = res.append
+        for i in range(1, len(bits), 2):
+            foo = compat_urllib_parse_unquote_to_bytes(bits[i])
+            foo = foo.decode(encoding, errors)
+            append(foo)
+
+            if bits[i + 1]:
+                bar = bits[i + 1]
+                if not isinstance(bar, unicode):
+                    bar = bar.decode('utf-8')
+                append(bar)
+        return ''.join(res)
+
+    def old_compat_urllib_parse_unquote(string, encoding='utf-8', errors='replace'):
         if string == '':
             return string
         res = string.split('%')
@@ -113,6 +184,8 @@ except ImportError:
             # Flush the final pct_sequence
             string += pct_sequence.decode(encoding, errors)
         return string
+
+    compat_urllib_parse_unquote = new_compat_urllib_parse_unquote
 
 try:
     compat_str = unicode  # Python 2
