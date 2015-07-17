@@ -8,7 +8,6 @@ import re
 from .common import InfoExtractor
 from .youtube import YoutubeIE
 from ..compat import (
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
     compat_urllib_request,
     compat_urlparse,
@@ -1369,7 +1368,7 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'))
         mobj = re.search(r'class=["\']embedly-embed["\'][^>]src=["\'][^"\']*url=(?P<url>[^&]+)', webpage)
         if mobj is not None:
-            return self.url_result(compat_urllib_parse.unquote(mobj.group('url')))
+            return self.url_result(compat_urllib_parse_unquote(mobj.group('url')))
 
         # Look for funnyordie embed
         matches = re.findall(r'<iframe[^>]+?src="(https?://(?:www\.)?funnyordie\.com/embed/[^"]+)"', webpage)
@@ -1682,7 +1681,7 @@ class GenericIE(InfoExtractor):
         entries = []
         for video_url in found:
             video_url = compat_urlparse.urljoin(url, video_url)
-            video_id = compat_urllib_parse.unquote(os.path.basename(video_url))
+            video_id = compat_urllib_parse_unquote(os.path.basename(video_url))
 
             # Sometimes, jwplayer extraction will result in a YouTube URL
             if YoutubeIE.suitable(video_url):
