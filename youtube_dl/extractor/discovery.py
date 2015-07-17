@@ -44,12 +44,12 @@ class DiscoveryIE(InfoExtractor):
         entries = []
         collected = {}
         for idx, video_info in enumerate(info['playlist']):
-            if collected.get( video_info.get('id') ): 
-                 continue
+            if collected.get(video_info.get('id')):
+                continue
             collected[video_info.get('id')] = True
             if video_info['src'] == '':
-                 self.report_warning('video "%s" does not have a src url' % video_info.get('id','UNKNOWN'))
-                 continue
+                self.report_warning('video "%s" does not have a src url' % video_info.get('id', 'UNKNOWN'))
+                continue
             entries.append({
                 'id': compat_str(video_info['id']),
                 'formats': self._extract_m3u8_formats(
