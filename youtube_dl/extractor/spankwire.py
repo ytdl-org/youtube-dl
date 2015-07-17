@@ -4,7 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
 )
@@ -68,7 +68,7 @@ class SpankwireIE(InfoExtractor):
             webpage, 'comment count', fatal=False))
 
         video_urls = list(map(
-            compat_urllib_parse.unquote,
+            compat_urllib_parse_unquote,
             re.findall(r'playerData\.cdnPath[0-9]{3,}\s*=\s*(?:encodeURIComponent\()?["\']([^"\']+)["\']', webpage)))
         if webpage.find('flashvars\.encrypted = "true"') != -1:
             password = self._search_regex(
