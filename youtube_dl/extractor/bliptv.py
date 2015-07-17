@@ -145,7 +145,11 @@ class BlipTVIE(InfoExtractor):
         timestamp = parse_iso8601(item.find(blip('datestamp')).text)
         uploader = item.find(blip('user')).text
         uploader_id = item.find(blip('userid')).text
-        duration = int(item.find(blip('runtime')).text)
+        #some videos lack a runtime
+        if item.find(blip('runtime')):
+            duration = int(item.find(blip('runtime')).text)
+        else:
+            duration = None
         media_thumbnail = item.find(media('thumbnail'))
         thumbnail = media_thumbnail.get('url') if media_thumbnail is not None else item.find(itunes('image')).text
         categories = [category.text for category in item.findall('category')]
