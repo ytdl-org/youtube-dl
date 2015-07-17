@@ -77,6 +77,7 @@ except ImportError:
 try:
     from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
     from urllib.parse import unquote as compat_urllib_parse_unquote
+    from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
 except ImportError:  # Python 2
     # HACK: The following are the correct unquote_to_bytes and unquote
     # implementations from cpython 3.4.3's stdlib. Python 2's version
@@ -130,6 +131,15 @@ except ImportError:  # Python 2
             append(compat_urllib_parse_unquote_to_bytes(bits[i]).decode(encoding, errors))
             append(bits[i + 1])
         return ''.join(res)
+
+    def compat_urllib_parse_unquote_plus(string, encoding='utf-8', errors='replace'):
+        """Like unquote(), but also replace plus signs by spaces, as required for
+        unquoting HTML form values.
+
+        unquote_plus('%7e/abc+def') -> '~/abc def'
+        """
+        string = string.replace('+', ' ')
+        return compat_urllib_parse_unquote(string, encoding, errors)
 
 try:
     compat_str = unicode  # Python 2
@@ -441,6 +451,7 @@ __all__ = [
     'compat_urllib_error',
     'compat_urllib_parse',
     'compat_urllib_parse_unquote',
+    'compat_urllib_parse_unquote_plus',
     'compat_urllib_parse_unquote_to_bytes',
     'compat_urllib_parse_urlparse',
     'compat_urllib_request',
