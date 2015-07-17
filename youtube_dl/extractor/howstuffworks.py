@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class HowStuffWorksIE(InfoExtractor):
-    _VALID_URL = r'https?://[\da-z-]+\.howstuffworks\.com/(?:[^/]+/)*(\d+-)*(?P<id>.+?)-video\.htm'
+    _VALID_URL = r'https?://[\da-z-]+\.howstuffworks\.com/(?:[^/]+/)*(?:\d+-)?(?P<id>.+?)-video\.htm'
     _TESTS = [
         {
             'url': 'http://adventure.howstuffworks.com/5266-cool-jobs-iditarod-musher-video.htm',
