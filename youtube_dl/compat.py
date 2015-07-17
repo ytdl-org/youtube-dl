@@ -79,7 +79,7 @@ try:
     from urllib.parse import unquote as compat_urllib_parse_unquote
     from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
 except ImportError:  # Python 2
-    # HACK: The following are the correct unquote_to_bytes and unquote
+    # HACK: The following are the correct unquote_to_bytes, unquote and unquote_plus
     # implementations from cpython 3.4.3's stdlib. Python 2's version
     # is apparently broken (see https://github.com/rg3/youtube-dl/pull/6244)
 
