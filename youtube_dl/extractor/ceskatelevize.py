@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urllib_request,
     compat_urllib_parse,
+    compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
@@ -88,7 +89,7 @@ class CeskaTelevizeIE(InfoExtractor):
         if playlist_url == 'error_region':
             raise ExtractorError(NOT_AVAILABLE_STRING, expected=True)
 
-        req = compat_urllib_request.Request(compat_urllib_parse.unquote(playlist_url))
+        req = compat_urllib_request.Request(compat_urllib_parse_unquote(playlist_url))
         req.add_header('Referer', url)
 
         playlist = self._download_json(req, video_id)
