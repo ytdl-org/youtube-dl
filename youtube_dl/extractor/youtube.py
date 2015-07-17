@@ -17,6 +17,8 @@ from ..compat import (
     compat_chr,
     compat_parse_qs,
     compat_urllib_parse,
+    compat_urllib_parse_unquote,
+    compat_urllib_parse_unquote_plus,
     compat_urllib_request,
     compat_urlparse,
     compat_str,
@@ -865,7 +867,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # Extract original video URL from URL with redirection, like age verification, using next_url parameter
         mobj = re.search(self._NEXT_URL_RE, url)
         if mobj:
-            url = proto + '://www.youtube.com/' + compat_urllib_parse.unquote(mobj.group(1)).lstrip('/')
+            url = proto + '://www.youtube.com/' + compat_urllib_parse_unquote(mobj.group(1)).lstrip('/')
         video_id = self.extract_id(url)
 
         # Get video webpage
@@ -973,7 +975,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # uploader
         if 'author' not in video_info:
             raise ExtractorError('Unable to extract uploader name')
-        video_uploader = compat_urllib_parse.unquote_plus(video_info['author'][0])
+        video_uploader = compat_urllib_parse_unquote_plus(video_info['author'][0])
 
         # uploader_id
         video_uploader_id = None
@@ -1000,7 +1002,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             self._downloader.report_warning('unable to extract video thumbnail')
             video_thumbnail = None
         else:   # don't panic if we can't find it
-            video_thumbnail = compat_urllib_parse.unquote_plus(video_info['thumbnail_url'][0])
+            video_thumbnail = compat_urllib_parse_unquote_plus(video_info['thumbnail_url'][0])
 
         # upload date
         upload_date = self._html_search_meta(
@@ -1062,7 +1064,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             self._downloader.report_warning('unable to extract video duration')
             video_duration = None
         else:
-            video_duration = int(compat_urllib_parse.unquote_plus(video_info['length_seconds'][0]))
+            video_duration = int(compat_urllib_parse_unquote_plus(video_info['length_seconds'][0]))
 
         # annotations
         video_annotations = None
@@ -1609,7 +1611,7 @@ class YoutubeSearchURLIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        query = compat_urllib_parse.unquote_plus(mobj.group('query'))
+        query = compat_urllib_parse_unquote_plus(mobj.group('query'))
 
         webpage = self._download_webpage(url, query)
         result_code = self._search_regex(
