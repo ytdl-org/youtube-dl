@@ -79,6 +79,8 @@ try:
     from urllib.parse import unquote as compat_urllib_parse_unquote
     from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
 except ImportError:  # Python 2
+    _asciire = re.compile('([\x00-\x7f]+)') if sys.version_info < (2, 7) else compat_urllib_parse._asciire
+
     # HACK: The following are the correct unquote_to_bytes, unquote and unquote_plus
     # implementations from cpython 3.4.3's stdlib. Python 2's version
     # is apparently broken (see https://github.com/rg3/youtube-dl/pull/6244)
@@ -124,7 +126,7 @@ except ImportError:  # Python 2
             encoding = 'utf-8'
         if errors is None:
             errors = 'replace'
-        bits = compat_urllib_parse._asciire.split(string)
+        bits = _asciire.split(string)
         res = [bits[0]]
         append = res.append
         for i in range(1, len(bits), 2):
