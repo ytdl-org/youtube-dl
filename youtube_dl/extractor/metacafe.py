@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
     compat_urllib_parse,
+    compat_urllib_parse_unquote,
     compat_urllib_request,
 )
 from ..utils import (
@@ -155,7 +156,7 @@ class MetacafeIE(InfoExtractor):
         video_url = None
         mobj = re.search(r'(?m)&mediaURL=([^&]+)', webpage)
         if mobj is not None:
-            mediaURL = compat_urllib_parse.unquote(mobj.group(1))
+            mediaURL = compat_urllib_parse_unquote(mobj.group(1))
             video_ext = mediaURL[-3:]
 
             # Extract gdaKey if available
