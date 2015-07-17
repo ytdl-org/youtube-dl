@@ -5,7 +5,7 @@ import json
 from .common import InfoExtractor
 from ..utils import (
     parse_iso8601,
-    compat_urllib_parse,
+    compat_urllib_parse_unquote_plus,
     parse_age_limit,
     int_or_none,
 )
@@ -37,7 +37,7 @@ class OpenFilmIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        player = compat_urllib_parse.unquote_plus(
+        player = compat_urllib_parse_unquote_plus(
             self._og_search_video_url(webpage))
 
         video = json.loads(self._search_regex(
