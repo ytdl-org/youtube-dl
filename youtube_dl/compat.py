@@ -98,6 +98,9 @@ except ImportError:
         append = res.append
 
         for item in bits[1:]:
+            if item == '':
+                append(b'%')
+                continue
             try:
                 append(item[:2].decode('hex'))
                 append(item[2:])
