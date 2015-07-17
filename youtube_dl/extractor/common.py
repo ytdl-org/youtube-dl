@@ -836,13 +836,14 @@ class InfoExtractor(object):
         self.to_screen(msg)
         time.sleep(timeout)
 
-    def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None):
+    def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None,
+                             transform_source=lambda s: fix_xml_ampersands(s).strip()):
         manifest = self._download_xml(
             manifest_url, video_id, 'Downloading f4m manifest',
             'Unable to download f4m manifest',
             # Some manifests may be malformed, e.g. prosiebensat1 generated manifests
             # (see https://github.com/rg3/youtube-dl/issues/6215#issuecomment-121704244)
-            transform_source=lambda s: fix_xml_ampersands(s).strip())
+            transform_source=transform_source)
 
         formats = []
         manifest_version = '1.0'
