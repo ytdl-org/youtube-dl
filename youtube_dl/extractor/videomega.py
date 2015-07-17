@@ -8,7 +8,7 @@ from ..compat import compat_urllib_request
 
 
 class VideoMegaIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?videomega\.tv/(?:(?:view|iframe|cdn)\.php)?\?ref=(?P<id>[A-Za-z0-9]+)'
+    _VALID_URL = r'(?:videomega:|https?://(?:www\.)?videomega\.tv/(?:(?:view|iframe|cdn)\.php)?\?ref=)(?P<id>[A-Za-z0-9]+)'
     _TESTS = [{
         'url': 'http://videomega.tv/cdn.php?ref=AOSQBJYKIDDIKYJBQSOA',
         'md5': 'cc1920a58add3f05c6a93285b84fb3aa',
