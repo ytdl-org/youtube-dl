@@ -10,7 +10,7 @@ from ..compat import compat_urllib_request
 class VideoMegaIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?videomega\.tv/(?:(?:view|iframe|cdn)\.php)?\?ref=(?P<id>[A-Za-z0-9]+)'
     _TEST = {
-        'url': 'http://videomega.tv/cdn.php?ref=AOSQBJYKIDDIKYJBQSOA&width=1070&height=600',
+        'url': 'http://videomega.tv/cdn.php?ref=AOSQBJYKIDDIKYJBQSOA',
         'md5': 'cc1920a58add3f05c6a93285b84fb3aa',
         'info_dict': {
             'id': 'AOSQBJYKIDDIKYJBQSOA',
@@ -23,7 +23,8 @@ class VideoMegaIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        req = compat_urllib_request.Request(url)
+        iframe_url = 'http://videomega.tv/cdn.php?ref=%s' % video_id
+        req = compat_urllib_request.Request(iframe_url)
         req.add_header('Referer', url)
         req.add_header('Cookie', 'noadvtday=0')
         webpage = self._download_webpage(req, video_id)
@@ -43,6 +44,6 @@ class VideoMegaIE(InfoExtractor):
             'url': video_url,
             'thumbnail': thumbnail,
             'http_headers': {
-                'Referer': url,
+                'Referer': iframe_url,
             },
         }
