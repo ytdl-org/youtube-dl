@@ -369,7 +369,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
 
         for m in self._downloader.params.get('custommeta'):
             key, val = m.split('=', 1)
-            metadata[key] = val.replace('\\n', '\n') % collections.defaultdict(lambda: 'NA', info)
+            metadata[key] = val.replace('\\n', '\n') % collections.defaultdict(lambda: '', info)
 
         if not metadata:
             self._downloader.to_screen('[ffmpeg] There isn\'t any metadata to add')
