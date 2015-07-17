@@ -9,7 +9,7 @@ from ..compat import compat_urllib_request
 
 class VideoMegaIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?videomega\.tv/(?:(?:view|iframe|cdn)\.php)?\?ref=(?P<id>[A-Za-z0-9]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://videomega.tv/cdn.php?ref=AOSQBJYKIDDIKYJBQSOA',
         'md5': 'cc1920a58add3f05c6a93285b84fb3aa',
         'info_dict': {
@@ -18,7 +18,13 @@ class VideoMegaIE(InfoExtractor):
             'title': '1254207',
             'thumbnail': 're:^https?://.*\.jpg$',
         }
-    }
+    }, {
+        'url': 'http://videomega.tv/cdn.php?ref=AOSQBJYKIDDIKYJBQSOA&width=1070&height=600',
+        'only_matching': True,
+    }, {
+        'url': 'http://videomega.tv/view.php?ref=090051111052065112106089103052052103089106112065052111051090',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
