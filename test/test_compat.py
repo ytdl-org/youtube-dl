@@ -15,6 +15,7 @@ from youtube_dl.compat import (
     compat_getenv,
     compat_expanduser,
     compat_urllib_parse_unquote,
+    compat_urllib_parse_unquote_plus,
 )
 
 
@@ -44,6 +45,8 @@ class TestCompat(unittest.TestCase):
         self.assertEqual(all_names, sorted(present_names))
 
     def test_compat_urllib_parse_unquote(self):
+        self.assertEqual(compat_urllib_parse_unquote('abc%20def'), 'abc def')
+        self.assertEqual(compat_urllib_parse_unquote('%7e/abc+def'), '~/abc+def')
         self.assertEqual(compat_urllib_parse_unquote(''), '')
         self.assertEqual(compat_urllib_parse_unquote('%'), '%')
         self.assertEqual(compat_urllib_parse_unquote('%%'), '%%')
@@ -59,6 +62,10 @@ class TestCompat(unittest.TestCase):
         self.assertEqual(
             compat_urllib_parse_unquote('''%28%5E%E2%97%A3_%E2%97%A2%5E%29%E3%81%A3%EF%B8%BB%E3%83%87%E2%95%90%E4%B8%80    %E2%87%80    %E2%87%80    %E2%87%80    %E2%87%80    %E2%87%80    %E2%86%B6%I%Break%25Things%'''),
             '''(^◣_◢^)っ︻デ═一    ⇀    ⇀    ⇀    ⇀    ⇀    ↶%I%Break%Things%''')
+
+    def test_compat_urllib_parse_unquote_plus(self):
+        self.assertEqual(compat_urllib_parse_unquote_plus('abc%20def'), 'abc def')
+        self.assertEqual(compat_urllib_parse_unquote_plus('%7e/abc+def'), '~/abc def')
 
 if __name__ == '__main__':
     unittest.main()
