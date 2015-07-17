@@ -497,11 +497,13 @@ class BBCNewsIE(BBCCoUkIE):
             programme_id = jent.get('externalId')
             xml_url = jent.get('href')
 
-            title = jent.get('caption',list_title)
+            title = jent.get('caption','')
+            if title == '':
+               title = list_title
 
             duration = parse_duration(jent.get('duration'))
             description = list_title
-            if jent.get('caption'):
+            if jent.get('caption', '') != '':
                description += ' - ' + jent.get('caption')
             thumbnail = None
             if jent.has_key('image'):
