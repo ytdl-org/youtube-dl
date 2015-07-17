@@ -46,6 +46,17 @@ class HowStuffWorksIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
         },
+        {
+            'url': 'http://shows.howstuffworks.com/stuff-to-blow-your-mind/optical-illusions-video.htm',
+            'info_dict': {
+                'id': '855410',
+                'ext': 'mp4',
+                'title': 'Stuff to Blow Your Mind',
+                'description': 'When it comes to optical illusions it’s pretty easy to jailbreak the operating system of your mind and load a new program onto it. Find out why your visual system willingly makes errors in interpretation.',
+                'display_id': 'optical-illusions',
+                'thumbnail': 're:^https?://.*\.jpg$',
+            },
+        }
     ]
 
     def _real_extract(self, url):
