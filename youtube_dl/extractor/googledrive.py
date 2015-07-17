@@ -4,7 +4,7 @@ from .common import InfoExtractor
 from ..utils import RegexNotFoundError
 
 class GoogleDriveEmbedIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:video\.google\.com/get_player\?.*?docid=|(?:docs|drive)\.google\.com/file/d/)(?P<id>[a-zA-Z0-9-]{28})(?:/preview)'
+    _VALID_URL = r'https?://(?:video\.google\.com/get_player\?.*?docid=|(?:docs|drive)\.google\.com/file/d/)(?P<id>[a-zA-Z0-9_-]{28})'
     _TEST = {
         'url': 'https://docs.google.com/file/d/0B8KB9DRosYGKMXNoeWxqa3JYclE/preview',
         'info_dict': {
@@ -17,7 +17,7 @@ class GoogleDriveEmbedIE(InfoExtractor):
     @staticmethod
     def _extract_url(webpage):
         mobj = re.search(
-            r'<iframe src="https?://(?:video\.google\.com/get_player\?.*?docid=|(?:docs|drive)\.google\.com/file/d/)(?P<id>[a-zA-Z0-9-]{28})(?:/preview)',
+            r'<iframe src="https?://(?:video\.google\.com/get_player\?.*?docid=|(?:docs|drive)\.google\.com/file/d/)(?P<id>[a-zA-Z0-9_-]{28})',
             webpage)
         if mobj:
             return 'https://drive.google.com/file/d/%s' % mobj.group('id')
@@ -31,7 +31,7 @@ class GoogleDriveEmbedIE(InfoExtractor):
         }
 
 class GoogleDriveIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:docs|drive)\.google\.com/(?:uc\?.*?id=|file/d/)(?P<id>[a-zA-Z0-9-]{28})'
+    _VALID_URL = r'https?://(?:docs|drive)\.google\.com/(?:uc\?.*?id=|file/d/)(?P<id>[a-zA-Z0-9_-]{28})'
     _TEST = {
         'url': 'https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/edit?pli=1',
         'info_dict': {
