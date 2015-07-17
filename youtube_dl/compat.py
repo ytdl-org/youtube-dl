@@ -74,12 +74,6 @@ try:
 except ImportError:
     import BaseHTTPServer as compat_http_server
 
-from pprint import (pprint, pformat)
-
-
-def dprint(fmt):
-    sys.stderr.write(pformat(fmt) + "\n")
-
 try:
     from urllib.parse import unquote as compat_urllib_parse_unquote
 except ImportError:
