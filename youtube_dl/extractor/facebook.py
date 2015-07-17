@@ -9,7 +9,7 @@ from ..compat import (
     compat_http_client,
     compat_str,
     compat_urllib_error,
-    compat_urllib_parse,
+    compat_urllib_parse_unquote,
     compat_urllib_request,
 )
 from ..utils import (
@@ -136,7 +136,7 @@ class FacebookIE(InfoExtractor):
             else:
                 raise ExtractorError('Cannot parse data')
         data = dict(json.loads(m.group(1)))
-        params_raw = compat_urllib_parse.unquote(data['params'])
+        params_raw = compat_urllib_parse_unquote(data['params'])
         params = json.loads(params_raw)
         video_data = params['video_data'][0]
 
