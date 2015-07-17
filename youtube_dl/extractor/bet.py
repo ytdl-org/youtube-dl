@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     xpath_text,
     xpath_with_ns,
@@ -57,7 +57,7 @@ class BetIE(InfoExtractor):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
 
-        media_url = compat_urllib_parse.unquote(self._search_regex(
+        media_url = compat_urllib_parse_unquote(self._search_regex(
             [r'mediaURL\s*:\s*"([^"]+)"', r"var\s+mrssMediaUrl\s*=\s*'([^']+)'"],
             webpage, 'media URL'))
 
