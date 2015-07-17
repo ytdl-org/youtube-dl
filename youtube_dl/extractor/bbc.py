@@ -397,14 +397,14 @@ class BBCNewsIE(BBCCoUkIE):
             'title': 'Russia stages massive WW2 parade despite Western boycott',
         },
         'playlist_count': 2,
-    },{
+    }, {
         'url': 'http://www.bbc.com/news/business-28299555',
         'info_dict': {
             'id': 'business-28299555',
             'title': 'Farnborough Airshow: Video highlights',
         },
         'playlist_count': 9,
-    },{
+    }, {
         'url': 'http://www.bbc.com/news/world-europe-32041533',
         'note': 'Video',
         'info_dict': {
@@ -419,7 +419,7 @@ class BBCNewsIE(BBCCoUkIE):
         'params': {
             'skip_download': True,
         }
-    },{
+    }, {
         'url': 'http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu',
         'note': 'Video',
         'info_dict': {
@@ -434,7 +434,7 @@ class BBCNewsIE(BBCCoUkIE):
         'params': {
             'skip_download': True,
         }
-    },{
+    }, {
         'url': 'http://www.bbc.com/mundo/video_fotos/2015/06/150619_video_honduras_militares_hospitales_corrupcion_aw',
         'note': 'Video',
         'info_dict': {
@@ -459,88 +459,88 @@ class BBCNewsIE(BBCCoUkIE):
 
         pubdate = self._html_search_regex(r'"datePublished":\s*"(\d+-\d+-\d+)', webpage, 'date', default=None)
         if pubdate:
-           pubdate = pubdate.replace('-','')
+            pubdate = pubdate.replace('-', '')
 
         ret = []
         jsent = []
 
         # works with bbc.com/news/something-something-123456 articles
         jsent = map(
-           lambda m: self._parse_json(m,list_id),
-           re.findall(r"data-media-meta='({[^']+})'", webpage)
+            lambda m: self._parse_json(m, list_id),
+            re.findall(r"data-media-meta='({[^']+})'", webpage)
         )
 
         if len(jsent) == 0:
-           # http://www.bbc.com/news/video_and_audio/international
-           # and single-video articles
-           masset = self._html_search_regex(r'mediaAssetPage\.init\(\s*({.+?}), "/', webpage, 'mediaassets', default=None)
-           if masset:
-              jmasset = self._parse_json(masset,list_id)
-              for key, val in jmasset.get('videos',{}).items():
-                  for skey, sval in val.items():
-                      sval['id'] = skey
-                      jsent.append(sval)
+            # http://www.bbc.com/news/video_and_audio/international
+            # and single-video articles
+            masset = self._html_search_regex(r'mediaAssetPage\.init\(\s*({.+?}), "/', webpage, 'mediaassets', default=None)
+            if masset:
+                jmasset = self._parse_json(masset, list_id)
+                for key, val in jmasset.get('videos', {}).items():
+                    for skey, sval in val.items():
+                        sval['id'] = skey
+                        jsent.append(sval)
 
         if len(jsent) == 0:
-           # stubbornly generic extractor for {json with "image":{allvideoshavethis},etc}
-           # in http://www.bbc.com/news/video_and_audio/international
-           # prone to breaking if entries have sourceFiles list
-           jsent = map(
-               lambda m: self._parse_json(m,list_id),
-               re.findall(r"({[^{}]+image\":{[^}]+}[^}]+})", webpage)
-           )          
+            # stubbornly generic extractor for {json with "image":{allvideoshavethis},etc}
+            # in http://www.bbc.com/news/video_and_audio/international
+            # prone to breaking if entries have sourceFiles list
+            jsent = map(
+                lambda m: self._parse_json(m, list_id),
+                re.findall(r"({[^{}]+image\":{[^}]+}[^}]+})", webpage)
+            )
 
         if len(jsent) == 0:
-           raise ExtractorError('No video found', expected=True)
+            raise ExtractorError('No video found', expected=True)
 
         for jent in jsent:
             programme_id = jent.get('externalId')
             xml_url = jent.get('href')
 
-            title = jent.get('caption','')
+            title = jent.get('caption', '')
             if title == '':
-               title = list_title
+                title = list_title
 
             duration = parse_duration(jent.get('duration'))
             description = list_title
             if jent.get('caption', '') != '':
-               description += ' - ' + jent.get('caption')
+                description += ' - ' + jent.get('caption')
             thumbnail = None
-            if jent.has_key('image'):
-               thumbnail=jent['image'].get('href')
+            if jent.get('image') is not None:
+                thumbnail = jent['image'].get('href')
 
             formats = []
             subtitles = []
 
             if programme_id:
-               formats, subtitles = self._download_media_selector(programme_id)
-            elif jent.has_key('sourceFiles'):
-               # mediaselector not used at
-               # http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu
-               for key, val in jent['sourceFiles'].items():
-                  formats.append( {
-                     'ext': val.get('encoding'),
-                     'url': val.get('url'),
-                     'filesize': int(val.get('filesize')),
-                     'format_id': key
-                  } )
+                formats, subtitles = self._download_media_selector(programme_id)
+            elif jent.get('sourceFiles') is not None:
+                # mediaselector not used at
+                # http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu
+                for key, val in jent['sourceFiles'].items():
+                    formats.append({
+                        'ext': val.get('encoding'),
+                        'url': val.get('url'),
+                        'filesize': int(val.get('filesize')),
+                        'format_id': key
+                    })
             elif xml_url:
-               # Cheap fallback
-               # http://playlists.bbc.co.uk/news/(list_id)[ABC..]/playlist.sxml
-               xml = self._download_webpage(xml_url, programme_id, 'Downloading playlist.sxml for externalId (fallback)')
-               programme_id = self._search_regex(r'<mediator [^>]*identifier="(.+?)"', xml, 'playlist.sxml (externalId fallback)')
-               formats, subtitles = self._download_media_selector(programme_id)
+                # Cheap fallback
+                # http://playlists.bbc.co.uk/news/(list_id)[ABC..]/playlist.sxml
+                xml = self._download_webpage(xml_url, programme_id, 'Downloading playlist.sxml for externalId (fallback)')
+                programme_id = self._search_regex(r'<mediator [^>]*identifier="(.+?)"', xml, 'playlist.sxml (externalId fallback)')
+                formats, subtitles = self._download_media_selector(programme_id)
 
             if len(formats) == 0:
-               raise ExtractorError('unsupported json media entry.\n    '+str(jent)+'\n')
-               
+                raise ExtractorError('unsupported json media entry.\n    ' + str(jent) + '\n')
+
             self._sort_formats(formats)
 
-            id = jent.get('id') if programme_id == None else programme_id
-            if id == None:
-               id = 'NA'
+            id = jent.get('id') if programme_id is None else programme_id
+            if id is None:
+                id = 'NA'
 
-            ret.append( {
+            ret.append({
                 'id': id,
                 'uploader': 'BBC News',
                 'upload_date': pubdate,
@@ -550,8 +550,8 @@ class BBCNewsIE(BBCCoUkIE):
                 'duration': duration,
                 'formats': formats,
                 'subtitles': subtitles,
-            } )
+            })
 
         if len(ret) > 0:
-           return self.playlist_result(ret, list_id, list_title)
+            return self.playlist_result(ret, list_id, list_title)
         raise ExtractorError('No video found', expected=True)
