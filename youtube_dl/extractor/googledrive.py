@@ -26,7 +26,7 @@ class GoogleDriveEmbedIE(InfoExtractor):
         video_id = self._match_id(url)
         return {
             '_type': 'url',
-            'ie-key': 'GoogleDrive',
+            'ie_key': 'GoogleDrive',
             'url': 'https://drive.google.com/file/d/%s' % video_id
         }
 
@@ -66,34 +66,34 @@ class GoogleDriveIE(InfoExtractor):
         )
         try:
             title = self._html_search_regex(
-                r'"title"\s+,\s+"[^"]+',
+                r'"title"\s*,\s*"([^"]+)',
                 webpage,
                 'title'
             )
             fmt_stream_map = self._html_search_regex(
-                r'"fmt_stream_map"\s+,\s+"[^"]+',
+                r'"fmt_stream_map"\s*,\s*"([^"]+)',
                 webpage,
                 'fmt_stream_map'
             )
             fmt_list = self._html_search_regex(
-                r'"fmt_list"\s+,\s+"[^"]+',
+                r'"fmt_list"\s*,\s*"([^"]+)',
                 webpage,
                 'fmt_list'
             )
 #			timestamp = self._html_search_regex(
-#				r'"timestamp"\s+,\s+"[^"]+',
+#				r'"timestamp"\s*,\s*"([^"]+)',
 #				webpage,
 #				'timestamp'
 #			)
             length_seconds = self._html_search_regex(
-                r'"length_seconds"\s+,\s+"[^"]+',
+                r'"length_seconds"\s*,\s*"([^"]+)',
                 webpage,
                 'length_seconds'
             )
         except RegexNotFoundError:
             try:
                 reason = self._html_search_regex(
-                    r'"reason","[^"]+',
+                    r'"reason","([^"]+)',
                     webpage,
                     'reason'
                 )
