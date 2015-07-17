@@ -12,6 +12,7 @@ from math import pow, sqrt, floor
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
+    compat_urllib_parse_unquote,
     compat_urllib_request,
 )
 from ..utils import (
@@ -254,7 +255,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             video_upload_date = unified_strdate(video_upload_date)
         video_uploader = self._html_search_regex(r'<div>\s*Publisher:(.+?)</div>', webpage, 'video_uploader', fatal=False, flags=re.DOTALL)
 
-        playerdata_url = compat_urllib_parse.unquote(self._html_search_regex(r'"config_url":"([^"]+)', webpage, 'playerdata_url'))
+        playerdata_url = compat_urllib_parse_unquote(self._html_search_regex(r'"config_url":"([^"]+)', webpage, 'playerdata_url'))
         playerdata_req = compat_urllib_request.Request(playerdata_url)
         playerdata_req.data = compat_urllib_parse.urlencode({'current_page': webpage_url})
         playerdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
