@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     unified_strdate,
     int_or_none,
@@ -62,7 +62,7 @@ class OdnoklassnikiIE(InfoExtractor):
             metadata = self._parse_json(metadata, video_id)
         else:
             metadata = self._download_json(
-                compat_urllib_parse.unquote(flashvars['metadataUrl']),
+                compat_urllib_parse_unquote(flashvars['metadataUrl']),
                 video_id, 'Downloading metadata JSON')
 
         movie = metadata['movie']
