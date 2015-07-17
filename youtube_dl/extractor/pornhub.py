@@ -5,7 +5,8 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_unquote,
+    compat_urllib_parse_unquote_plus,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
 )
@@ -69,7 +70,7 @@ class PornHubIE(InfoExtractor):
             webpage, 'uploader', fatal=False)
         thumbnail = self._html_search_regex(r'"image_url":"([^"]+)', webpage, 'thumbnail', fatal=False)
         if thumbnail:
-            thumbnail = compat_urllib_parse.unquote(thumbnail)
+            thumbnail = compat_urllib_parse_unquote(thumbnail)
 
         view_count = self._extract_count(
             r'<span class="count">([\d,\.]+)</span> views', webpage, 'view')
@@ -80,9 +81,9 @@ class PornHubIE(InfoExtractor):
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
-        video_urls = list(map(compat_urllib_parse.unquote, re.findall(r'"quality_[0-9]{3}p":"([^"]+)', webpage)))
+        video_urls = list(map(compat_urllib_parse_unquote, re.findall(r'"quality_[0-9]{3}p":"([^"]+)', webpage)))
         if webpage.find('"encrypted":true') != -1:
-            password = compat_urllib_parse.unquote_plus(
+            password = compat_urllib_parse_unquote_plus(
                 self._search_regex(r'"video_title":"([^"]+)', webpage, 'password'))
             video_urls = list(map(lambda s: aes_decrypt_text(s, password, 32).decode('utf-8'), video_urls))
 
