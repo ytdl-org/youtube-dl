@@ -62,46 +62,40 @@ class GoogleDriveIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(
-            'http://docs.google.com/file/d/'+video_id, video_id, encoding='unicode_escape'
+            'http://docs.google.com/file/d/' + video_id, video_id, encoding='unicode_escape'
         )
         try:
             title = self._html_search_regex(
-                r'"title","(?P<title>.*?)"',
+                r'"title"\s+,\s+"[^"]+',
                 webpage,
-                'title',
-                group='title'
+                'title'
             )
             fmt_stream_map = self._html_search_regex(
-                r'"fmt_stream_map","(?P<fmt_stream_map>.*?)"',
+                r'"fmt_stream_map"\s+,\s+"[^"]+',
                 webpage,
-                'fmt_stream_map',
-                group='fmt_stream_map'
+                'fmt_stream_map'
             )
             fmt_list = self._html_search_regex(
-                r'"fmt_list","(?P<fmt_list>.*?)"',
+                r'"fmt_list"\s+,\s+"[^"]+',
                 webpage,
-                'fmt_list',
-                group='fmt_list'
+                'fmt_list'
             )
 #			timestamp = self._html_search_regex(
-#				r'"timestamp","(?P<timestamp>.*?)"',
+#				r'"timestamp"\s+,\s+"[^"]+',
 #				webpage,
-#				'timestamp',
-#				group='timestamp'
+#				'timestamp'
 #			)
             length_seconds = self._html_search_regex(
-                r'"length_seconds","(?P<length_seconds>.*?)"',
+                r'"length_seconds"\s+,\s+"[^"]+',
                 webpage,
-                'length_seconds',
-                group='length_seconds'
+                'length_seconds'
             )
         except RegexNotFoundError:
             try:
                 reason = self._html_search_regex(
-                    r'"reason","(?P<reason>.*?)"',
+                    r'"reason","[^"]+',
                     webpage,
-                    'reason',
-                    group='reason'
+                    'reason'
                 )
                 self.report_warning(reason)
                 return
