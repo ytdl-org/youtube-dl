@@ -4,7 +4,7 @@ import io
 import os
 import subprocess
 import time
-
+import collections
 
 from .common import AudioConversionError, PostProcessor
 
@@ -368,8 +368,8 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
             metadata['album'] = info['album']
 
         for m in self._downloader.params.get('custommeta'):
-            key,val = m.split('=',1)
-            metadata[key] = val.replace('\\n', '\n') % info
+            key, val = m.split('=', 1)
+            metadata[key] = val.replace('\\n', '\n') % collections.defaultdict(lambda: 'NA', info)
 
         if not metadata:
             self._downloader.to_screen('[ffmpeg] There isn\'t any metadata to add')
