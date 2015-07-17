@@ -1,19 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
-import time
-import hmac
-import hashlib
-import itertools
 import re
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    parse_age_limit,
-    parse_iso8601,
-)
-from ..compat import compat_urllib_request
 from .common import InfoExtractor
 
 
@@ -30,7 +18,7 @@ class DemocracynowIE(InfoExtractor):
             'uploader': 'Democracy Now',
             'upload_date': None,
         },
-     },{
+    }, {
         'url': 'http://www.democracynow.org/2015/7/3/this_flag_comes_down_today_bree',
         'info_dict': {
             'id': '2015-0703-001',
@@ -40,7 +28,6 @@ class DemocracynowIE(InfoExtractor):
             'uploader': 'Democracy Now',
             'upload_date': None,
         },
-
     }]
 
     def _real_extract(self, url):
@@ -49,7 +36,7 @@ class DemocracynowIE(InfoExtractor):
         if display_id == '':
             display_id = 'home'
         webpage = self._download_webpage(url, display_id)
-        re_desc = re.search(r'<meta property=.og:description. content=(["\'])(.+?)\1',webpage,re.DOTALL)
+        re_desc = re.search(r'<meta property=.og:description. content=(["\'])(.+?)\1', webpage, re.DOTALL)
         description = re_desc.group(2) if re_desc else ''
 
         jstr = self._search_regex(r'({.+?"related_video_xml".+?})', webpage, 'json', default=None)
@@ -57,30 +44,30 @@ class DemocracynowIE(InfoExtractor):
         video_id = None
         formats = []
         subtitles = {}
-        for key in ('caption_file','.......'):
+        for key in ('caption_file', '.......'):
             # ....... = pending vtt support that doesn't clobber srt 'chapter_file':
-            url = js.get(key,'')
-            if url == '' or url == None:
+            url = js.get(key, '')
+            if url == '' or url is None:
                 continue
-            if not re.match(r'^https?://',url):
+            if not re.match(r'^https?://', url):
                 url = base_host + url
-            ext = re.search(r'\.([^\.]+)$',url).group(1)
+            ext = re.search(r'\.([^\.]+)$', url).group(1)
             subtitles['eng'] = [{
                 'ext': ext,
                 'url': url,
             }]
         for key in ('file', 'audio'):
-            url = js.get(key,'')
-            if url == '' or url == None:
+            url = js.get(key, '')
+            if url == '' or url is None:
                 continue
-            if not re.match(r'^https?://',url):
+            if not re.match(r'^https?://', url):
                 url = base_host + url
-            purl = re.search(r'/(?P<dir>[^/]+)/(?:dn)?(?P<fn>[^/]+?)\.(?P<ext>[^\.\?]+)(?P<hasparams>\?|$)',url)
-            if video_id == None:
+            purl = re.search(r'/(?P<dir>[^/]+)/(?:dn)?(?P<fn>[^/]+?)\.(?P<ext>[^\.\?]+)(?P<hasparams>\?|$)', url)
+            if video_id is None:
                 video_id = purl.group('fn')
-            if js.get('start') != None:
+            if js.get('start') is not None:
                 url += '&' if purl.group('hasparams') == '?' else '?'
-                url = url + 'start='+str(js.get('start'))
+                url = url + 'start=' + str(js.get('start'))
             formats.append({
                 'format_id': purl.group('dir'),
                 'ext': purl.group('ext'),
@@ -92,9 +79,7 @@ class DemocracynowIE(InfoExtractor):
             'title': js.get('title'),
             'description': description,
             'uploader': 'Democracy Now',
-#            'thumbnails': thumbnails,
             'subtitles': subtitles,
             'formats': formats,
         }
         return ret
-#
