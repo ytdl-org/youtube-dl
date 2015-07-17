@@ -3,9 +3,9 @@ from __future__ import unicode_literals
 import json
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse_unquote_plus
 from ..utils import (
     parse_iso8601,
-    compat_urllib_parse_unquote_plus,
     parse_age_limit,
     int_or_none,
 )
