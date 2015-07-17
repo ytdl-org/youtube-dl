@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_unquote_plus
 from ..utils import (
     js_to_json,
 )
@@ -24,7 +24,7 @@ class KaraoketvIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         page_video_url = self._og_search_video_url(webpage, video_id)
-        config_json = compat_urllib_parse.unquote_plus(self._search_regex(
+        config_json = compat_urllib_parse_unquote_plus(self._search_regex(
             r'config=(.*)', page_video_url, 'configuration'))
 
         urls_info_json = self._download_json(
