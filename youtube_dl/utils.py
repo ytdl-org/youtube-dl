@@ -1850,12 +1850,10 @@ def dfxp2srt(dfxp_data):
         'ttaf1': 'http://www.w3.org/2006/10/ttaf1',
     })
 
-
     def text_or_empty(v):
         """ return string that contains something other than whitespace, or '' """
         str = str_or_none(v, '')
-        return '' if not re.search(r'[^\s]',str,re.DOTALL) else str
-
+        return '' if not re.search(r'[^\s]', str, re.DOTALL) else str
 
     def parse_node(node):
         str_or_empty = functools.partial(str_or_none, default='')
@@ -1872,7 +1870,7 @@ def dfxp2srt(dfxp_data):
 
         return out
 
-    dfxp = xml.etree.ElementTree.fromstring(dfxp_data.replace('\n','').encode('utf-8'))
+    dfxp = xml.etree.ElementTree.fromstring(dfxp_data.replace('\n', '').encode('utf-8'))
     out = []
     paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall(_x('.//ttaf1:p')) or dfxp.findall('.//p')
 
