@@ -51,7 +51,6 @@ class TestCompat(unittest.TestCase):
         self.assertEqual(compat_urllib_parse_unquote('%2F'), '/')
         self.assertEqual(compat_urllib_parse_unquote('%2f'), '/')
         self.assertEqual(compat_urllib_parse_unquote('%E6%B4%A5%E6%B3%A2'), '津波')
-        self.assertEqual(compat_urllib_parse_unquote(str('%E6%B4%A5%E6%B3%A2')), '津波')
         self.assertEqual(
             compat_urllib_parse_unquote('''<meta property="og:description" content="%E2%96%81%E2%96%82%E2%96%83%E2%96%84%25%E2%96%85%E2%96%86%E2%96%87%E2%96%88" />
 %<a href="https://ar.wikipedia.org/wiki/%D8%AA%D8%B3%D9%88%D9%86%D8%A7%D9%85%D9%8A">%a'''),
