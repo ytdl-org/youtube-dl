@@ -110,7 +110,7 @@ class ThePlatformIE(InfoExtractor):
             config = self._download_json(config_url, video_id, 'Downloading config')
             smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4&manifest=f4m'
         else:
-            smil_url = 'http://link.theplatform.com/s/%s/meta.smil?format=smil&mbr=true' % path
+            smil_url = 'http://link.theplatform.com/s/%s/meta.smil?format=smil&mbr=true&manifest=m3u' % path
 
         sig = smuggled_data.get('sig')
         if sig:
@@ -144,17 +144,20 @@ class ThePlatformIE(InfoExtractor):
         head = meta.find(_x('smil:head'))
         body = meta.find(_x('smil:body'))
 
-        f4m_node = body.find(_x('smil:seq//smil:video'))
-        if f4m_node is None:
-            f4m_node = body.find(_x('smil:seq/smil:video'))
-        if f4m_node is not None and '.f4m' in f4m_node.attrib['src']:
-            f4m_url = f4m_node.attrib['src']
-            if 'manifest.f4m?' not in f4m_url:
-                f4m_url += '?'
-            # the parameters are from syfy.com, other sites may use others,
-            # they also work for nbc.com
-            f4m_url += '&g=UXWGVKRWHFSP&hdcore=3.0.3'
-            formats = self._extract_f4m_formats(f4m_url, video_id)
+        node = body.find(_x('smil:seq//smil:video'))
+        if node is None:
+            node = body.find(_x('smil:seq/smil:video'))
+        if node is not None:
+            if '.m3u8' in node.attrib['src']:
+                formats = self._extract_m3u8_formats(node.attrib['src'], video_id)
+            if '.f4m' in node.attrib['src']:
+                f4m_url = node.attrib['src']
+                if 'manifest.f4m?' not in f4m_url:
+                    f4m_url += '?'
+                # the parameters are from syfy.com, other sites may use others,
+                # they also work for nbc.com
+                f4m_url += '&g=UXWGVKRWHFSP&hdcore=3.0.3'
+                formats = self._extract_f4m_formats(f4m_url, video_id)
         else:
             formats = []
             switch = body.find(_x('smil:switch'))
