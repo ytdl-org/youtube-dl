@@ -44,6 +44,21 @@ class RtlNlIE(InfoExtractor):
             'description': 'Er zijn nieuwe beelden vrijgegeven die vlak na de aanslag in Kopenhagen zijn gemaakt. Op de video is goed te zien hoe omstanders zich bekommeren om één van de slachtoffers, terwijl de eerste agenten ter plaatse komen.',
         }
     }, {
+        # empty synopsis and missing episodes (see https://github.com/rg3/youtube-dl/issues/6275)
+        'url': 'http://www.rtl.nl/system/videoplayer/derden/rtlnieuws/video_embed.html#uuid=f536aac0-1dc3-4314-920e-3bd1c5b3811a/autoplay=false',
+        'info_dict': {
+            'id': 'f536aac0-1dc3-4314-920e-3bd1c5b3811a',
+            'ext': 'mp4',
+            'title': 'RTL Nieuws - Meer beelden van overval juwelier',
+            'thumbnail': 're:^https?://screenshots\.rtl\.nl/system/thumb/sz=[0-9]+x[0-9]+/uuid=f536aac0-1dc3-4314-920e-3bd1c5b3811a$',
+            'timestamp': 1437233400,
+            'upload_date': '20150718',
+            'duration': 30.474,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         # encrypted m3u8 streams, georestricted
         'url': 'http://www.rtlxl.nl/#!/afl-2-257632/52a74543-c504-4cde-8aa8-ec66fe8d68a7',
         'only_matching': True,
@@ -59,9 +74,11 @@ class RtlNlIE(InfoExtractor):
             uuid)
 
         material = info['material'][0]
-        progname = info['abstracts'][0]['name']
-        subtitle = material['title'] or info['episodes'][0]['name']
-        description = material.get('synopsis') or info['episodes'][0]['synopsis']
+        title = info['abstracts'][0]['name']
+        subtitle = material.get('title')
+        if subtitle:
+            title += ' - %s' % subtitle
+        description = material.get('synopsis')
 
         meta = info.get('meta', {})
 
@@ -107,7 +124,7 @@ class RtlNlIE(InfoExtractor):
 
         return {
             'id': uuid,
-            'title': '%s - %s' % (progname, subtitle),
+            'title': title,
             'formats': formats,
             'timestamp': material['original_date'],
             'description': description,
