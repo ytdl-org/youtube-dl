@@ -30,10 +30,9 @@ class DcnIE(InfoExtractor):
             video_id
         )
         m3u8_url = self._html_search_regex(
-            r'file: "(?P<m3u8_url>.*?)"',
+            r'file:\s*"([^"]+)',
             webpage,
-            'm3u8_url',
-            group='m3u8_url'
+            'm3u8_url'
         )
         formats = self._extract_m3u8_formats(m3u8_url, video_id)
         return {
