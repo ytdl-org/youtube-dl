@@ -155,6 +155,11 @@ class VKIE(InfoExtractor):
             'only_matching': True,
         },
         {
+            # age restricted video, requires vk account credentials
+            'url': 'https://vk.com/video205387401_164765225',
+            'only_matching': True,
+        },
+        {
             # vk wrapper
             'url': 'http://www.biqle.ru/watch/847655_160197695',
             'only_matching': True,
