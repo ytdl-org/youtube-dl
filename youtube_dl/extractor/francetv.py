@@ -160,11 +160,19 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
 class FranceTVIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'francetv'
     IE_DESC = 'France 2, 3, 4, 5 and Ô'
-    _VALID_URL = r'''(?x)https?://www\.france[2345o]\.fr/
-        (?:
-            emissions/.*?/(videos|emissions)/(?P<id>[^/?]+)
-        |   (emissions?|jt)/(?P<key>[^/?]+)
-        )'''
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?france[2345o]\.fr/
+                                (?:
+                                    emissions/[^/]+/(?:videos|diffusions)?|
+                                    videos
+                                )
+                            /|
+                            embed\.francetv\.fr/\?ue=
+                        )
+                        (?P<id>[^/?]+)
+                    '''
 
     _TESTS = [
         # france2
@@ -232,13 +240,33 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
                 'timestamp': 1410822000,
             },
         },
+        {
+            # francetv embed
+            'url': 'http://embed.francetv.fr/?ue=8d7d3da1e3047c42ade5a5d7dfd3fc87',
+            'info_dict': {
+                'id': 'EV_30231',
+                'ext': 'flv',
+                'title': 'Alcaline, le concert avec Calogero',
+                'description': 'md5:',
+                'upload_date': '20150226',
+                'timestamp': 1424989860,
+            },
+        },
+        {
+            'url': 'http://www.france4.fr/emission/highlander/diffusion-du-17-07-2015-04h05',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://www.franceo.fr/videos/125377617',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        webpage = self._download_webpage(url, mobj.group('key') or mobj.group('id'))
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
         video_id, catalogue = self._html_search_regex(
-            r'href="http://videos\.francetv\.fr/video/([^@]+@[^"]+)"',
+            r'href="http://videos?\.francetv\.fr/video/([^@]+@[^"]+)"',
             webpage, 'video ID').split('@')
         return self._extract_video(video_id, catalogue)
 
