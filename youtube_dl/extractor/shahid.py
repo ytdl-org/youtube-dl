@@ -35,9 +35,9 @@ class ShahidIE(InfoExtractor):
             video_id
         )
         title = json_data['name']
-        thumbnail = json_data['image']
-        categories = json_data['genre']
-        description = json_data['description']
+        thumbnail = json_data.get('image')
+        categories = json_data.get('genre')
+        description = json_data.get('description')
         player_json_data = self._download_json(
             'https://shahid.mbc.net/arContent/getPlayerContent-param-.id-'+video_id+'.type-player.html',
             video_id
