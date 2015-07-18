@@ -314,7 +314,7 @@ class VKUserVideosIE(InfoExtractor):
         entries = [
             self.url_result(
                 'http://vk.com/video' + video_id, 'VK', video_id=video_id)
-            for video_id in set(re.findall(r'href="/video(-?[0-9_]+)"', webpage))]
+            for video_id in orderedSet(re.findall(r'href="/video(-?[0-9_]+)"', webpage))]
 
         title = unescapeHTML(self._search_regex(
             r'<title>\s*([^<]+?)\s+\|\s+\d+\s+videos',
