@@ -25,8 +25,11 @@ class NationalGeographicIE(InfoExtractor):
         name = url_basename(url)
 
         webpage = self._download_webpage(url, name)
-        feed_url = self._search_regex(r'data-feed-url="([^"]+)"', webpage, 'feed url')
-        guid = self._search_regex(r'data-video-guid="([^"]+)"', webpage, 'guid')
+        feed_url = self._search_regex(
+            r'data-feed-url="([^"]+)"', webpage, 'feed url')
+        guid = self._search_regex(
+            r'id="(?:videoPlayer|player-container)"[^>]+data-guid="([^"]+)"',
+            webpage, 'guid')
 
         feed = self._download_xml('%s?byGuid=%s' % (feed_url, guid), name)
         content = feed.find('.//{http://search.yahoo.com/mrss/}content')
