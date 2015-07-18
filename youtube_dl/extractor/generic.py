@@ -407,6 +407,26 @@ class GenericIE(InfoExtractor):
                 'skip_download': 'Requires rtmpdump'
             }
         },
+        # francetv embed
+        {
+            'url': 'http://www.tsprod.com/replay-du-concert-alcaline-de-calogero',
+            'info_dict': {
+                'id': 'EV_30231',
+                'ext': 'mp4',
+                'title': 'Alcaline, le concert avec Calogero',
+                'description': 'md5:61f08036dcc8f47e9cfc33aed08ffaff',
+                'upload_date': '20150226',
+                'timestamp': 1424989860,
+                'duration': 5400,
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            },
+            'expected_warnings': [
+                'Forbidden'
+            ]
+        },
         # Condé Nast embed
         {
             'url': 'http://www.wired.com/2014/04/honda-asimo/',
@@ -1430,6 +1450,13 @@ class GenericIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'ArteTVEmbed')
+
+        # Look for embedded francetv player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?://)?embed\.francetv\.fr/\?ue=.+?)\1',
+            webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'))
 
         # Look for embedded smotri.com player
         smotri_url = SmotriIE._extract_url(webpage)
