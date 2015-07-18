@@ -2,7 +2,7 @@ from .common import InfoExtractor
 from ..utils import (
     get_element_by_id,
     ExtractorError,
-}
+)
 
 class ShahidIE(InfoExtractor):
     _VALID_URL = r'https?://shahid\.mbc\.net/ar/episode/(?P<id>\d+)/?'
