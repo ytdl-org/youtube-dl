@@ -346,6 +346,10 @@ class TwitchStreamIE(TwitchBaseIE):
                 'http://www.twitch.tv/%s/profile' % channel_id,
                 'TwitchProfile', channel_id)
 
+        # Channel name may be typed if different case than the original channel name
+        # (e.g. http://www.twitch.tv/TWITCHPLAYSPOKEMON) that will lead to constructing
+        # an invalid m3u8 URL. Working around by use of original channel name from stream
+        # JSON and fallback to lowercase if it's not available.
         channel_id = stream.get('channel', {}).get('name') or channel_id.lower()
 
         access_token = self._download_json(
