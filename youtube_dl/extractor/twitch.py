@@ -346,6 +346,8 @@ class TwitchStreamIE(TwitchBaseIE):
                 'http://www.twitch.tv/%s/profile' % channel_id,
                 'TwitchProfile', channel_id)
 
+        channel_id = stream.get('channel', {}).get('name') or channel_id.lower()
+
         access_token = self._download_json(
             '%s/api/channels/%s/access_token' % (self._API_BASE, channel_id), channel_id,
             'Downloading channel access token')
