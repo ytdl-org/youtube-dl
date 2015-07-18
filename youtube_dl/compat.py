@@ -79,7 +79,8 @@ try:
     from urllib.parse import unquote as compat_urllib_parse_unquote
     from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
 except ImportError:  # Python 2
-    _asciire = re.compile('([\x00-\x7f]+)') if sys.version_info < (2, 7) else compat_urllib_parse._asciire
+    _asciire = (compat_urllib_parse._asciire if hasattr(compat_urllib_parse, '_asciire')
+                else re.compile('([\x00-\x7f]+)'))
 
     # HACK: The following are the correct unquote_to_bytes, unquote and unquote_plus
     # implementations from cpython 3.4.3's stdlib. Python 2's version
