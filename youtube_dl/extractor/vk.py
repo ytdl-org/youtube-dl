@@ -20,7 +20,8 @@ from ..utils import (
 
 
 class VKIE(InfoExtractor):
-    IE_NAME = 'vk.com'
+    IE_NAME = 'vk'
+    IE_DESC = 'VK'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
@@ -289,8 +290,8 @@ class VKIE(InfoExtractor):
 
 
 class VKUserVideosIE(InfoExtractor):
-    IE_NAME = 'vk.com:user-videos'
-    IE_DESC = 'vk.com:All of a user\'s videos'
+    IE_NAME = 'vk:uservideos'
+    IE_DESC = "VK - User's Videos"
     _VALID_URL = r'https?://vk\.com/videos(?P<id>-?[0-9]+)$'
     _TEMPLATE_URL = 'https://vk.com/videos'
     _TESTS = [{
