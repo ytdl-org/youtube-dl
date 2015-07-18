@@ -148,15 +148,15 @@ class ThePlatformIE(InfoExtractor):
         if node is None:
             node = body.find(_x('smil:seq/smil:video'))
         if node is not None and '.m3u8' in node.attrib['src']:
-                formats = self._extract_m3u8_formats(node.attrib['src'], video_id)
+            formats = self._extract_m3u8_formats(node.attrib['src'], video_id)
         if node is not None and '.f4m' in node.attrib['src']:
-                f4m_url = node.attrib['src']
-                if 'manifest.f4m?' not in f4m_url:
-                    f4m_url += '?'
-                # the parameters are from syfy.com, other sites may use others,
-                # they also work for nbc.com
-                f4m_url += '&g=UXWGVKRWHFSP&hdcore=3.0.3'
-                formats = self._extract_f4m_formats(f4m_url, video_id)
+            f4m_url = node.attrib['src']
+            if 'manifest.f4m?' not in f4m_url:
+                f4m_url += '?'
+            # the parameters are from syfy.com, other sites may use others,
+            # they also work for nbc.com
+            f4m_url += '&g=UXWGVKRWHFSP&hdcore=3.0.3'
+            formats = self._extract_f4m_formats(f4m_url, video_id)
         else:
             formats = []
             switch = body.find(_x('smil:switch'))
