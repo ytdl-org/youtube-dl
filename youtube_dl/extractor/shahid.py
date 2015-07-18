@@ -1,5 +1,8 @@
 from .common import InfoExtractor
-from ..utils import get_element_by_id
+from ..utils import (
+    get_element_by_id,
+    ExtractorError,
+}
 
 class ShahidIE(InfoExtractor):
     _VALID_URL = r'https?://shahid\.mbc\.net/ar/episode/(?P<id>\d+)/?'
@@ -43,7 +46,7 @@ class ShahidIE(InfoExtractor):
             m3u8_url = player_json_data['url']
         else:
             for error in json_data['error'].values():
-                self.report_warning(error)
+                raise ExtractorError(error)
             return
         formats = self._extract_m3u8_formats(m3u8_url, video_id)
         return {
