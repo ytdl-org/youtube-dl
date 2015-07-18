@@ -996,7 +996,7 @@ class InfoExtractor(object):
     def _parse_smil_video(self, video, video_id, base, rtmp_count):
         src = video.get('src')
         if not src:
-            return ([], rtmp_count)
+            return [], rtmp_count
         bitrate = int_or_none(video.get('system-bitrate') or video.get('systemBitrate'), 1000)
         width = int_or_none(video.get('width'))
         height = int_or_none(video.get('height'))
@@ -1009,7 +1009,7 @@ class InfoExtractor(object):
                     proto = 'http'
         ext = video.get('ext')
         if proto == 'm3u8':
-            return (self._extract_m3u8_formats(src, video_id, ext), rtmp_count)
+            return self._extract_m3u8_formats(src, video_id, ext), rtmp_count
         elif proto == 'rtmp':
             rtmp_count += 1
             streamer = video.get('streamer') or base
