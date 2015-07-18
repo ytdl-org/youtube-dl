@@ -1,7 +1,10 @@
 import re
 
 from .common import InfoExtractor
-from ..utils import RegexNotFoundError
+from ..utils import (
+    RegexNotFoundError,
+    ExtractorError,
+)
 
 class GoogleDriveEmbedIE(InfoExtractor):
     _VALID_URL = r'https?://(?:video\.google\.com/get_player\?.*?docid=|(?:docs|drive)\.google\.com/file/d/)(?P<id>[a-zA-Z0-9_-]{28})'
@@ -97,10 +100,10 @@ class GoogleDriveIE(InfoExtractor):
                     webpage,
                     'reason'
                 )
-                self.report_warning(reason)
+                raise ExtractorError(reason)
                 return
             except RegexNotFoundError:
-                self.report_warning('not a video')
+                raise ExtractorError('not a video')
                 return
 
         fmt_stream_map = fmt_stream_map.split(',')
