@@ -3,19 +3,13 @@ from __future__ import unicode_literals
 
 import hashlib
 import math
-import os.path
 import random
-import re
 import time
 import uuid
-import zlib
 
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse
-from ..utils import (
-    ExtractorError,
-    url_basename,
-)
+from ..utils import ExtractorError
 
 
 class IqiyiIE(InfoExtractor):
