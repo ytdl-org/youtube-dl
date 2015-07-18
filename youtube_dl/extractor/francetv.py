@@ -87,7 +87,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
             'title': info['titre'],
             'description': clean_html(info['synopsis']),
             'thumbnail': compat_urlparse.urljoin('http://pluzz.francetv.fr', info['image']),
-            'duration': float_or_none(info.get('real_duration'), 1000) or parse_duration(info['duree']),
+            'duration': int_or_none(info.get('real_duration')) or parse_duration(info['duree']),
             'timestamp': int_or_none(info['diffusion']['timestamp']),
             'formats': formats,
         }
@@ -250,6 +250,7 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
                 'description': 'md5:',
                 'upload_date': '20150226',
                 'timestamp': 1424989860,
+                'duration': 5400,
             },
         },
         {
