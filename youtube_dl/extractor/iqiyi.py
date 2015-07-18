@@ -212,20 +212,7 @@ class IqiyiIE(InfoExtractor):
         return raw_data
 
     def get_enc_key(self, swf_url, video_id):
-        filename, _ = os.path.splitext(url_basename(swf_url))
-        enc_key_json = self._downloader.cache.load('iqiyi-enc-key', filename)
-        if enc_key_json is not None:
-            return enc_key_json[0]
-
-        req = self._request_webpage(
-            swf_url, video_id, note='download swf content')
-        cn = req.read()
-        cn = zlib.decompress(cn[8:])
-        pt = re.compile(b'MixerRemote\x08(?P<enc_key>.+?)\$&vv')
-        enc_key = self._search_regex(pt, cn, 'enc_key').decode('utf8')
-
-        self._downloader.cache.store('iqiyi-enc-key', filename, [enc_key])
-
+        enc_key = '8e29ab5666d041c3a1ea76e06dabdffb'
         return enc_key
 
     def _real_extract(self, url):
