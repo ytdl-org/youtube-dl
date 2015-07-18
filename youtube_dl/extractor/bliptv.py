@@ -5,7 +5,6 @@ import re
 from .common import InfoExtractor
 
 from ..compat import (
-    compat_str,
     compat_urllib_request,
     compat_urlparse,
 )
