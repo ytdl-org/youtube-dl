@@ -291,23 +291,32 @@ class VKIE(InfoExtractor):
 class VKUserVideosIE(InfoExtractor):
     IE_NAME = 'vk.com:user-videos'
     IE_DESC = 'vk.com:All of a user\'s videos'
-    _VALID_URL = r'https?://vk\.com/videos(?P<id>[0-9]+)(?:m\?.*)?'
+    _VALID_URL = r'https?://vk\.com/videos(?P<id>-?[0-9]+)$'
     _TEMPLATE_URL = 'https://vk.com/videos'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://vk.com/videos205387401',
         'info_dict': {
             'id': '205387401',
+            'title': "Tom Cruise's Videos",
         },
         'playlist_mincount': 4,
-    }
+    }, {
+        'url': 'http://vk.com/videos-77521',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         page_id = self._match_id(url)
-        page = self._download_webpage(url, page_id)
-        video_ids = orderedSet(
-            m.group(1) for m in re.finditer(r'href="/video([0-9_]+)"', page))
-        url_entries = [
+
+        webpage = self._download_webpage(url, page_id)
+
+        entries = [
             self.url_result(
                 'http://vk.com/video' + video_id, 'VK', video_id=video_id)
-            for video_id in video_ids]
-        return self.playlist_result(url_entries, page_id)
+            for video_id in set(re.findall(r'href="/video(-?[0-9_]+)"', webpage))]
+
+        title = unescapeHTML(self._search_regex(
+            r'<title>\s*([^<]+?)\s+\|\s+\d+\s+videos',
+            webpage, 'title', default=page_id))
+
+        return self.playlist_result(entries, page_id, title)
