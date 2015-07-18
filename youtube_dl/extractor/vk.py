@@ -205,6 +205,12 @@ class VKIE(InfoExtractor):
 
         info_page = self._download_webpage(info_url, video_id)
 
+        error_message = self._html_search_regex(
+            r'(?s)<!><div[^>]+class="video_layer_message"[^>]*>(.+?)</div>',
+            info_page, 'error message', default=None)
+        if error_message:
+            raise ExtractorError(error_message, expected=True)
+
         if re.search(r'<!>/login\.php\?.*\bact=security_check', info_page):
             raise ExtractorError(
                 'You are trying to log in from an unusual location. You should confirm ownership at vk.com to log in with this IP.',
