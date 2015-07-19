@@ -23,17 +23,18 @@ class ARDMediathekIE(InfoExtractor):
     _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.daserste\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
-        'url': 'http://mediathek.daserste.de/sendungen_a-z/328454_anne-will/22429276_vertrauen-ist-gut-spionieren-ist-besser-geht',
-        'only_matching': True,
-    }, {
-        'url': 'http://www.ardmediathek.de/tv/Tatort/Das-Wunder-von-Wolbeck-Video-tgl-ab-20/Das-Erste/Video?documentId=22490580&bcastId=602916',
+        'url': 'http://www.ardmediathek.de/tv/Dokumentation-und-Reportage/Ich-liebe-das-Leben-trotzdem/rbb-Fernsehen/Video?documentId=29582122&bcastId=3822114',
         'info_dict': {
-            'id': '22490580',
+            'id': '29582122',
             'ext': 'mp4',
-            'title': 'Das Wunder von Wolbeck (Video tgl. ab 20 Uhr)',
-            'description': 'Auf einem restaurierten Hof bei Wolbeck wird der Heilpraktiker Raffael Lembeck eines morgens von seiner Frau Stella tot aufgefunden. Das Opfer war offensichtlich in seiner Praxis zu Fall gekommen und ist dann verblutet, erklärt Prof. Boerne am Tatort.',
+            'title': 'Ich liebe das Leben trotzdem',
+            'description': 'md5:45e4c225c72b27993314b31a84a5261c',
+            'duration': 4557,
         },
-        'skip': 'Blocked outside of Germany',
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         # audio
         'url': 'http://www.ardmediathek.de/tv/WDR-H%C3%B6rspiel-Speicher/Tod-eines-Fu%C3%9Fballers/WDR-3/Audio-Podcast?documentId=28488308&bcastId=23074086',
@@ -45,6 +46,9 @@ class ARDMediathekIE(InfoExtractor):
             'description': 'md5:f6e39f3461f0e1f54bfa48c8875c86ef',
             'duration': 3240,
         },
+    }, {
+        'url': 'http://mediathek.daserste.de/sendungen_a-z/328454_anne-will/22429276_vertrauen-ist-gut-spionieren-ist-besser-geht',
+        'only_matching': True,
     }]
 
     def _extract_media_info(self, media_info_url, webpage, video_id):
