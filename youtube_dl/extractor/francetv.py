@@ -229,15 +229,16 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
         },
         # franceo
         {
-            'url': 'http://www.franceo.fr/jt/info-afrique/04-12-2013',
-            'md5': '52f0bfe202848b15915a2f39aaa8981b',
+            'url': 'http://www.franceo.fr/jt/info-soir/18-07-2015',
+            'md5': '47d5816d3b24351cdce512ad7ab31da8',
             'info_dict': {
-                'id': '108634970',
+                'id': '125377621',
                 'ext': 'flv',
-                'title': 'Infô Afrique',
-                'description': 'md5:ebf346da789428841bee0fd2a935ea55',
-                'upload_date': '20140915',
-                'timestamp': 1410822000,
+                'title': 'Infô soir',
+                'description': 'md5:01b8c6915a3d93d8bbbd692651714309',
+                'upload_date': '20150718',
+                'timestamp': 1437241200,
+                'duration': 414,
             },
         },
         {
