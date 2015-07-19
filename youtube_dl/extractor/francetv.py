@@ -14,7 +14,6 @@ from ..utils import (
     clean_html,
     ExtractorError,
     int_or_none,
-    float_or_none,
     parse_duration,
     determine_ext,
 )
