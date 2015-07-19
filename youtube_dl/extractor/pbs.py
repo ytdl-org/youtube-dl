@@ -249,8 +249,8 @@ class PBSIE(InfoExtractor):
 
         # video.pbs.org video.pbs.org/videoInfo/... frequently provides an obscure 'title' value, like
         # 'Full Episode', 'Episode 5', etc. prepend program->title
-        alt_title = info.get('program', {}).get('title', '')
-        if alt_title != '':
+        alt_title = info.get('program', {}).get('title')
+        if alt_title:
             info['title'] = alt_title + ' - ' + re.sub(r'^' + alt_title + '[\s\-\:]+', '', info['title'])
 
         return {
