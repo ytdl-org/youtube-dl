@@ -36,6 +36,16 @@ class ARDMediathekIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
+        'url': 'http://www.ardmediathek.de/tv/Tatort/Tatort-Scheinwelten-H%C3%B6rfassung-Video/Das-Erste/Video?documentId=29522730&bcastId=602916',
+        'md5': 'f4d98b10759ac06c0072bbcd1f0b9e3e',
+        'info_dict': {
+            'id': '29522730',
+            'ext': 'mp4',
+            'title': 'Tatort: Scheinwelten - Hörfassung (Video tgl. ab 20 Uhr)',
+            'description': 'md5:196392e79876d0ac94c94e8cdb2875f1',
+            'duration': 5252,
+        },
+    }, {
         # audio
         'url': 'http://www.ardmediathek.de/tv/WDR-H%C3%B6rspiel-Speicher/Tod-eines-Fu%C3%9Fballers/WDR-3/Audio-Podcast?documentId=28488308&bcastId=23074086',
         'md5': '219d94d8980b4f538c7fcb0865eb7f2c',
