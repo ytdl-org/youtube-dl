@@ -81,6 +81,9 @@ class IqiyiIE(InfoExtractor):
                 'title': '名侦探柯南第752集',
             },
         }],
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     _FORMATS_MAP = [
