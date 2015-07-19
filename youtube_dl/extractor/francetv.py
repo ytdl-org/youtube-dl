@@ -248,7 +248,7 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
                 'id': 'EV_30231',
                 'ext': 'flv',
                 'title': 'Alcaline, le concert avec Calogero',
-                'description': 'md5:',
+                'description': 'md5:61f08036dcc8f47e9cfc33aed08ffaff',
                 'upload_date': '20150226',
                 'timestamp': 1424989860,
                 'duration': 5400,
