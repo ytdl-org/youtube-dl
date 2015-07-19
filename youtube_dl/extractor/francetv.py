@@ -62,7 +62,8 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                     'http://hdfauth.francetv.fr/esi/TA?url=%s' % video_url,
                     video_id, 'Downloading f4m manifest token', fatal=False)
                 if f4m_url:
-                    formats.extend(self._extract_f4m_formats(f4m_url, video_id, 1, format_id))
+                    formats.extend(self._extract_f4m_formats(
+                        f4m_url + '&hdcore=3.7.0&plugin=aasp-3.7.0.39.44', video_id, 1, format_id))
             elif ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(video_url, video_id, 'mp4', m3u8_id=format_id))
             elif video_url.startswith('rtmp'):
