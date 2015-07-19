@@ -7,20 +7,34 @@ from ..utils import ExtractorError
 
 
 class ViceIE(InfoExtractor):
-    _VALID_URL = r'http://www\.vice\.com/.*?/(?P<name>.+)'
+    _VALID_URL = r'https?://(.+?\.)?vice\.com/.*?/(?P<name>.+)'
 
-    _TEST = {
-        'url': 'http://www.vice.com/Fringes/cowboy-capitalists-part-1',
-        'info_dict': {
-            'id': '43cW1mYzpia9IlestBjVpd23Yu3afAfp',
-            'ext': 'mp4',
-            'title': 'VICE_COWBOYCAPITALISTS_PART01_v1_VICE_WM_1080p.mov',
-        },
-        'params': {
-            # Requires ffmpeg (m3u8 manifest)
-            'skip_download': True,
-        },
-    }
+    _TESTS = [
+        {
+            'url': 'http://www.vice.com/Fringes/cowboy-capitalists-part-1',
+            'info_dict': {
+                'id': '43cW1mYzpia9IlestBjVpd23Yu3afAfp',
+                'ext': 'mp4',
+                'title': 'VICE_COWBOYCAPITALISTS_PART01_v1_VICE_WM_1080p.mov',
+            },
+            'params': {
+                # Requires ffmpeg (m3u8 manifest)
+                'skip_download': True,
+            },
+        }, {
+            'url': 'https://news.vice.com/video/experimenting-on-animals-inside-the-monkey-lab',
+            'info_dict': {
+                'id': 'N2bzkydjraWDGwnt8jAttCF6Y0PDv4Zj',
+                'ext': 'mp4',
+                'title': 'VICE News - Inside the Monkey Lab',
+                'description': 'md5:1f660d467d3515f29d11e5ef742a4b82',
+            },
+            'params': {
+                # Requires ffmpeg (m3u8 manifest)
+                'skip_download': True,
+            },
+        }
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
