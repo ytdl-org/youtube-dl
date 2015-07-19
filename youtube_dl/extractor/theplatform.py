@@ -150,7 +150,7 @@ class ThePlatformIE(InfoExtractor):
             node = body.find(_x('smil:seq/smil:video'))
         if node is not None and '.m3u8' in node.attrib['src']:
             formats.extend(self._extract_m3u8_formats(node.attrib['src'], video_id))
-        if node is not None and '.f4m' in node.attrib['src']:
+        elif node is not None and '.f4m' in node.attrib['src']:
             f4m_url = node.attrib['src']
             if 'manifest.f4m?' not in f4m_url:
                 f4m_url += '?'
