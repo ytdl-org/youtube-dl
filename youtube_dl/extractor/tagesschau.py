@@ -4,11 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import parse_filesize
+from ..utils import parse_filesize, ExtractorError
 
 
 class TagesschauIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/(?:sendung/ts|video/video)(?P<id>-?[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/(?:sendung/(ts|tsg|tt|nm)|video/video|tsvorzwanzig)(?P<id>-?[0-9]+)\.html'
 
     _TESTS = [{
         'url': 'http://www.tagesschau.de/multimedia/video/video1399128.html',
@@ -28,6 +28,46 @@ class TagesschauIE(InfoExtractor):
             'ext': 'mp4',
             'description': 'md5:695c01bfd98b7e313c501386327aea59',
             'title': 'Sendung: tagesschau \t04.12.2014 20:00 Uhr',
+            'thumbnail': 're:^http:.*\.jpg$',
+        }
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/sendung/tsg-3771.html',
+        'md5': '90757268b49ef56deae90c7b48928d58',
+        'info_dict': {
+            'id': '3771',
+            'ext': 'mp4',
+            'description': '',
+            'title': 'Sendung: tagesschau (mit Gebärdensprache) \t14.07.2015 20:00 Uhr',
+            'thumbnail': 're:^http:.*\.jpg$',
+        }
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/sendung/tt-3827.html',
+        'md5': '6e3ebdc75e8d67da966a8d06721eda71',
+        'info_dict': {
+            'id': '3827',
+            'ext': 'mp4',
+            'description': 'md5:d511d0e278b0ad341a95ad9ab992ce66',
+            'title': 'Sendung: tagesthemen \t14.07.2015 22:15 Uhr',
+            'thumbnail': 're:^http:.*\.jpg$',
+        }
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/sendung/nm-3475.html',
+        'md5': '8a8875a568f0a5ae5ceef93c501a225f',
+        'info_dict': {
+            'id': '3475',
+            'ext': 'mp4',
+            'description': 'md5:ed149f5649cda3dac86813a9d777e131',
+            'title': 'Sendung: nachtmagazin \t15.07.2015 00:15 Uhr',
+            'thumbnail': 're:^http:.*\.jpg$',
+        }
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/tsvorzwanzig-959.html',
+        'md5': 'be4d6f0421f2acd8abe25ea29f6f015b',
+        'info_dict': {
+            'id': '959',
+            'ext': 'mp4',
+            'description': '',
+            'title': 'Sendung: tagesschau vor 20 Jahren \t14.07.2015 22:45 Uhr',
             'thumbnail': 're:^http:.*\.jpg$',
         }
     }]
@@ -102,9 +142,14 @@ class TagesschauIE(InfoExtractor):
             thumbnail_fn = self._search_regex(
                 r'(?s)<img alt="Sendungsbild".*?src="([^"]+)"',
                 webpage, 'thumbnail', fatal=False)
-            description = self._html_search_regex(
-                r'(?s)<p class="teasertext">(.*?)</p>',
-                webpage, 'description', fatal=False)
+            # there are some videos without description
+            description = ""
+            try:
+                description = self._html_search_regex(
+                    r'(?s)<p class="teasertext">(.*?)</p>',
+                    webpage, 'description', fatal=False)
+            except ExtractorError:
+                pass
             title = self._html_search_regex(
                 r'<span class="headline".*?>(.*?)</span>', webpage, 'title')
 
