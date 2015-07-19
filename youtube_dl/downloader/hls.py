@@ -13,8 +13,9 @@ from ..compat import (
 from ..utils import (
     encodeArgument,
     encodeFilename,
+    sanitize_open,
 )
-
+from .http import HttpFD
 
 class HlsFD(FileDownloader):
     def real_download(self, filename, info_dict):
@@ -58,6 +59,7 @@ class NativeHlsFD(FileDownloader):
         url = info_dict['url']
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
+        (dest_stream, tmpfilename) = sanitize_open(tmpfilename, 'wb')
 
         self.to_screen(
             '[hlsnative] %s: Downloading m3u8 manifest' % info_dict['id'])
@@ -73,32 +75,32 @@ class NativeHlsFD(FileDownloader):
                     else compat_urlparse.urljoin(url, line))
                 segment_urls.append(segment_url)
 
-        is_test = self.params.get('test', False)
-        remaining_bytes = self._TEST_FILE_SIZE if is_test else None
-        byte_counter = 0
-        with open(tmpfilename, 'wb') as outf:
-            for i, segurl in enumerate(segment_urls):
-                self.to_screen(
-                    '[hlsnative] %s: Downloading segment %d / %d' %
-                    (info_dict['id'], i + 1, len(segment_urls)))
-                seg_req = compat_urllib_request.Request(segurl)
-                if remaining_bytes is not None:
-                    seg_req.add_header('Range', 'bytes=0-%d' % (remaining_bytes - 1))
-
-                segment = self.ydl.urlopen(seg_req).read()
-                if remaining_bytes is not None:
-                    segment = segment[:remaining_bytes]
-                    remaining_bytes -= len(segment)
-                outf.write(segment)
-                byte_counter += len(segment)
-                if remaining_bytes is not None and remaining_bytes <= 0:
-                    break
-
+        downloader = HttpFD(
+            self.ydl,
+            {
+                'continuedl': True,
+                'quiet': True,
+                'noprogress': True,
+            }
+        )
+        for i, segurl in enumerate(segment_urls):
+            self.to_screen(
+                '[hlsnative] %s: Downloading segment %d / %d' %
+                (info_dict['id'], i + 1, len(segment_urls)))
+            success = downloader.download(tmpfilename + str(i), {'url': segurl})
+            if not success:
+                return False
+        for i, segurl in enumerate(segment_urls):
+            with open(tmpfilename + str(i), 'rb') as down:
+                dest_stream.write(down.read())
+            os.remove(tmpfilename + str(i))
+        dest_stream.close()
+        self.try_rename(tmpfilename, filename)
+        fsize = os.path.getsize(encodeFilename(filename))
         self._hook_progress({
-            'downloaded_bytes': byte_counter,
-            'total_bytes': byte_counter,
+            'downloaded_bytes': fsize,
+            'total_bytes': fsize,
             'filename': filename,
             'status': 'finished',
         })
-        self.try_rename(tmpfilename, filename)
         return True
