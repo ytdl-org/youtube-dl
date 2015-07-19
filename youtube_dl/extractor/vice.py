@@ -23,16 +23,7 @@ class ViceIE(InfoExtractor):
             },
         }, {
             'url': 'https://news.vice.com/video/experimenting-on-animals-inside-the-monkey-lab',
-            'info_dict': {
-                'id': 'N2bzkydjraWDGwnt8jAttCF6Y0PDv4Zj',
-                'ext': 'mp4',
-                'title': 'VICE News - Inside the Monkey Lab',
-                'description': 'md5:1f660d467d3515f29d11e5ef742a4b82',
-            },
-            'params': {
-                # Requires ffmpeg (m3u8 manifest)
-                'skip_download': True,
-            },
+            'only_matching': True,
         }
     ]
 
