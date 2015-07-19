@@ -34,6 +34,17 @@ class ARDMediathekIE(InfoExtractor):
             'description': 'Auf einem restaurierten Hof bei Wolbeck wird der Heilpraktiker Raffael Lembeck eines morgens von seiner Frau Stella tot aufgefunden. Das Opfer war offensichtlich in seiner Praxis zu Fall gekommen und ist dann verblutet, erklärt Prof. Boerne am Tatort.',
         },
         'skip': 'Blocked outside of Germany',
+    }, {
+        # audio
+        'url': 'http://www.ardmediathek.de/tv/WDR-H%C3%B6rspiel-Speicher/Tod-eines-Fu%C3%9Fballers/WDR-3/Audio-Podcast?documentId=28488308&bcastId=23074086',
+        'md5': '219d94d8980b4f538c7fcb0865eb7f2c',
+        'info_dict': {
+            'id': '28488308',
+            'ext': 'mp3',
+            'title': 'Tod eines Fußballers',
+            'description': 'md5:f6e39f3461f0e1f54bfa48c8875c86ef',
+            'duration': 3240,
+        },
     }]
 
     def _extract_media_info(self, media_info_url, webpage, video_id):
@@ -252,7 +263,7 @@ class ARDIE(InfoExtractor):
 class SportschauIE(ARDMediathekIE):
     IE_NAME = 'Sportschau'
     _VALID_URL = r'(?P<baseurl>https?://(?:www\.)?sportschau\.de/(?:[^/]+/)+video(?P<id>[^/#?]+))\.html'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.sportschau.de/tourdefrance/videoseppeltkokainhatnichtsmitklassischemdopingzutun100.html',
         'info_dict': {
             'id': 'seppeltkokainhatnichtsmitklassischemdopingzutun100',
@@ -265,7 +276,7 @@ class SportschauIE(ARDMediathekIE):
             # m3u8 download
             'skip_download': True,
         },
-    }
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
