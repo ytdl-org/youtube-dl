@@ -164,7 +164,8 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
                             (?:www\.)?france[2345o]\.fr/
                                 (?:
                                     emissions/[^/]+/(?:videos|diffusions)?|
-                                    videos
+                                    videos|
+                                    jt
                                 )
                             /|
                             embed\.francetv\.fr/\?ue=
