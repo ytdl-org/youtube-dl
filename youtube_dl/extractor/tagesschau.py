@@ -36,7 +36,7 @@ class TagesschauIE(InfoExtractor):
         'info_dict': {
             'id': '3771',
             'ext': 'mp4',
-            'description': '',
+            'description': None,
             'title': 'Sendung: tagesschau (mit Gebärdensprache) \t14.07.2015 20:00 Uhr',
             'thumbnail': 're:^http:.*\.jpg$',
         }
@@ -66,7 +66,7 @@ class TagesschauIE(InfoExtractor):
         'info_dict': {
             'id': '959',
             'ext': 'mp4',
-            'description': '',
+            'description': None,
             'title': 'Sendung: tagesschau vor 20 Jahren \t14.07.2015 22:45 Uhr',
             'thumbnail': 're:^http:.*\.jpg$',
         }
@@ -76,7 +76,7 @@ class TagesschauIE(InfoExtractor):
         'info_dict': {
             'id': '3299',
             'ext': 'mp4',
-            'description': '',
+            'description': None,
             'title': 'Nach dem Referendum: Schaltgespräch nach Athen',
             'thumbnail': 're:^http:.*\.jpg$',
         }
@@ -154,12 +154,9 @@ class TagesschauIE(InfoExtractor):
                 webpage, 'thumbnail', fatal=False)
             # there are some videos without description
             description = ""
-            try:
-                description = self._html_search_regex(
-                    r'(?s)<p class="teasertext">(.*?)</p>',
-                    webpage, 'description', fatal=False)
-            except ExtractorError:
-                pass
+            description = self._html_search_regex(
+                r'(?s)<p class="teasertext">(.*?)</p>',
+                webpage, 'description', fatal=False, default=None)
             title = self._html_search_regex(
                 r'<span class="headline".*?>(.*?)</span>', webpage, 'title')
 
