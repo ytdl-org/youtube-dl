@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-import re
 
 from .common import InfoExtractor
 from .ooyala import OoyalaIE
@@ -7,7 +6,7 @@ from ..utils import ExtractorError
 
 
 class ViceIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:.+?\.)?vice\.com/.*?/(?P<name>.+)'
+    _VALID_URL = r'https?://(?:.+?\.)?vice\.com/(?:[^/]+/)+(?P<id>.+)'
 
     _TESTS = [
         {
@@ -28,9 +27,8 @@ class ViceIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        name = mobj.group('name')
-        webpage = self._download_webpage(url, name)
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
         try:
             embed_code = self._search_regex(
                 r'embedCode=([^&\'"]+)', webpage,
