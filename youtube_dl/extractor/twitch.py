@@ -310,9 +310,9 @@ class TwitchBookmarksIE(TwitchPlaylistBaseIE):
 
 class TwitchStreamIE(TwitchBaseIE):
     IE_NAME = 'twitch:stream'
-    _VALID_URL = r'%s/(?P<id>[^/]+)/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
+    _VALID_URL = r'%s/(?P<id>[^/#?]+)/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.twitch.tv/shroomztv',
         'info_dict': {
             'id': '12772022048',
@@ -331,7 +331,10 @@ class TwitchStreamIE(TwitchBaseIE):
             # m3u8 download
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'http://www.twitch.tv/miracle_doto#profile-0',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
