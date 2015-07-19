@@ -35,6 +35,87 @@ class ARDMediathekIE(InfoExtractor):
         'skip': 'Blocked outside of Germany',
     }]
 
+    def _extract_media_info(self, media_info_url, webpage, video_id):
+        media_info = self._download_json(
+            media_info_url, video_id, 'Downloading media JSON')
+
+        formats = self._extract_formats(media_info, video_id)
+
+        if not formats:
+            if '"fsk"' in webpage:
+                raise ExtractorError(
+                    'This video is only available after 20:00', expected=True)
+            elif media_info.get('_geoblocked'):
+                raise ExtractorError('This video is not available due to geo restriction', expected=True)
+
+        self._sort_formats(formats)
+
+        duration = int_or_none(media_info.get('_duration'))
+        thumbnail = media_info.get('_previewImage')
+
+        subtitles = {}
+        subtitle_url = media_info.get('_subtitleUrl')
+        if subtitle_url:
+            subtitles['de'] = [{
+                'ext': 'srt',
+                'url': subtitle_url,
+            }]
+
+        return {
+            'id': video_id,
+            'duration': duration,
+            'thumbnail': thumbnail,
+            'formats': formats,
+            'subtitles': subtitles,
+        }
+
+    def _extract_formats(self, media_info, video_id):
+        type_ = media_info.get('_type')
+        media_array = media_info.get('_mediaArray', [])
+        formats = []
+        for num, media in enumerate(media_array):
+            for stream in media.get('_mediaStreamArray', []):
+                stream_urls = stream.get('_stream')
+                if not stream_urls:
+                    continue
+                if not isinstance(stream_urls, list):
+                    stream_urls = [stream_urls]
+                quality = stream.get('_quality')
+                server = stream.get('_server')
+                for stream_url in stream_urls:
+                    ext = determine_ext(stream_url)
+                    if ext == 'f4m':
+                        formats.extend(self._extract_f4m_formats(
+                            stream_url + '?hdcore=3.1.1&plugin=aasp-3.1.1.69.124',
+                            video_id, preference=-1, f4m_id='hds'))
+                    elif ext == 'm3u8':
+                        formats.extend(self._extract_m3u8_formats(
+                            stream_url, video_id, 'mp4', preference=1, m3u8_id='hls'))
+                    else:
+                        if server and server.startswith('rtmp'):
+                            f = {
+                                'url': server,
+                                'play_path': stream_url,
+                                'format_id': 'a%s-rtmp-%s' % (num, quality),
+                            }
+                        elif stream_url.startswith('http'):
+                            f = {
+                                'url': stream_url,
+                                'format_id': 'a%s-%s-%s' % (num, ext, quality)
+                            }
+                        else:
+                            continue
+                        m = re.search(r'_(?P<width>\d+)x(?P<height>\d+)\.mp4$', stream_url)
+                        if m:
+                            f.update({
+                                'width': int(m.group('width')),
+                                'height': int(m.group('height')),
+                            })
+                        if type_ == 'audio':
+                            f['vcodec'] = 'none'
+                        formats.append(f)
+        return formats
+
     def _real_extract(self, url):
         # determine video id from url
         m = re.match(self._VALID_URL, url)
@@ -92,46 +173,22 @@ class ARDMediathekIE(InfoExtractor):
                     'format_id': fid,
                     'url': furl,
                 })
+            self._sort_formats(formats)
+            info = {
+                'formats': formats,
+            }
         else:  # request JSON file
-            media_info = self._download_json(
-                'http://www.ardmediathek.de/play/media/%s' % video_id, video_id)
-            # The second element of the _mediaArray contains the standard http urls
-            streams = media_info['_mediaArray'][1]['_mediaStreamArray']
-            if not streams:
-                if '"fsk"' in webpage:
-                    raise ExtractorError('This video is only available after 20:00')
+            info = self._extract_media_info(
+                'http://www.ardmediathek.de/play/media/%s' % video_id, webpage, video_id)
 
-            formats = []
-            for s in streams:
-                if type(s['_stream']) == list:
-                    for index, url in enumerate(s['_stream'][::-1]):
-                        quality = s['_quality'] + index
-                        formats.append({
-                            'quality': quality,
-                            'url': url,
-                            'format_id': '%s-%s' % (determine_ext(url), quality)
-                        })
-                    continue
-
-                format = {
-                    'quality': s['_quality'],
-                    'url': s['_stream'],
-                }
-
-                format['format_id'] = '%s-%s' % (
-                    determine_ext(format['url']), format['quality'])
-
-                formats.append(format)
-
-        self._sort_formats(formats)
-
-        return {
+        info.update({
             'id': video_id,
             'title': title,
             'description': description,
-            'formats': formats,
             'thumbnail': thumbnail,
-        }
+        })
+
+        return info
 
 
 class ARDIE(InfoExtractor):
