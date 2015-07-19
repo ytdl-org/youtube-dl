@@ -8,7 +8,7 @@ from ..utils import parse_filesize, ExtractorError
 
 
 class TagesschauIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/(?:sendung/(ts|tsg|tt|nm)|video/video|tsvorzwanzig)(?P<id>-?[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/(?:sendung/(ts|tsg|tt|nm|bab/bab)|video/video|tsvorzwanzig)(?P<id>-?[0-9]+)(?:~[-_a-zA-Z0-9]*)?\.html'
 
     _TESTS = [{
         'url': 'http://www.tagesschau.de/multimedia/video/video1399128.html',
@@ -68,6 +68,16 @@ class TagesschauIE(InfoExtractor):
             'ext': 'mp4',
             'description': '',
             'title': 'Sendung: tagesschau vor 20 Jahren \t14.07.2015 22:45 Uhr',
+            'thumbnail': 're:^http:.*\.jpg$',
+        }
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/sendung/bab/bab-3299~_bab-sendung-209.html',
+        'md5': '42e3757018d9908581481a80cc1806da',
+        'info_dict': {
+            'id': '3299',
+            'ext': 'mp4',
+            'description': '',
+            'title': 'Nach dem Referendum: Schaltgespräch nach Athen',
             'thumbnail': 're:^http:.*\.jpg$',
         }
     }]
