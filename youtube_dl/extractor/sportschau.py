@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import get_element_by_attribute
 
 
 class SportschauIE(InfoExtractor):
@@ -12,7 +13,7 @@ class SportschauIE(InfoExtractor):
         'info_dict': {
             'id': 'seppeltkokainhatnichtsmitklassischemdopingzutun100',
             'ext': 'mp4',
-            'title': 'Seppelt: "Kokain hat nichts mit klassischem Doping zu tun" - Tour de France - sportschau.de',
+            'title': 'Seppelt: "Kokain hat nichts mit klassischem Doping zu tun"',
             'thumbnail': 're:^https?://.*\.jpg$',
             'description': 'Der ARD-Doping Experte Hajo Seppelt gibt seine Einschätzung zum ersten Dopingfall der diesjährigen Tour de France um den Italiener Luca Paolini ab.',
         },
@@ -34,7 +35,7 @@ class SportschauIE(InfoExtractor):
         m3u8_formats = self._extract_m3u8_formats(m3u8_url, video_id, ext="mp4")
 
         webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title')
+        title = get_element_by_attribute('class', 'headline', webpage)
         desc = self._html_search_meta('description', webpage)
 
         return {
