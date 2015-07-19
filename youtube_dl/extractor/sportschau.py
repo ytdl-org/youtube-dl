@@ -9,14 +9,17 @@ class SportschauIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?sportschau\.de/\w+(?:/\w+)?/video(?P<id>\w+)\.html'
     _TEST = {
         'url': 'http://www.sportschau.de/tourdefrance/videoseppeltkokainhatnichtsmitklassischemdopingzutun100.html',
-        'md5': 'a6ef460ab9f4089b079832e06d554cec',
         'info_dict': {
             'id': 'seppeltkokainhatnichtsmitklassischemdopingzutun100',
             'ext': 'mp4',
             'title': 'Seppelt: "Kokain hat nichts mit klassischem Doping zu tun" - Tour de France - sportschau.de',
             'thumbnail': 're:^https?://.*\.jpg$',
             'description': 'Der ARD-Doping Experte Hajo Seppelt gibt seine Einschätzung zum ersten Dopingfall der diesjährigen Tour de France um den Italiener Luca Paolini ab.',
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):
