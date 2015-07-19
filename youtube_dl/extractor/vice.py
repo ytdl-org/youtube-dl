@@ -7,7 +7,7 @@ from ..utils import ExtractorError
 
 
 class ViceIE(InfoExtractor):
-    _VALID_URL = r'https?://(.+?\.)?vice\.com/.*?/(?P<name>.+)'
+    _VALID_URL = r'https?://(?:.+?\.)?vice\.com/.*?/(?P<name>.+)'
 
     _TESTS = [
         {
