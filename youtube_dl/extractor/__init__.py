@@ -22,7 +22,11 @@ from .aparat import AparatIE
 from .appleconnect import AppleConnectIE
 from .appletrailers import AppleTrailersIE
 from .archiveorg import ArchiveOrgIE
-from .ard import ARDIE, ARDMediathekIE
+from .ard import (
+    ARDIE,
+    ARDMediathekIE,
+    SportschauIE,
+)
 from .arte import (
     ArteTvIE,
     ArteTVPlus7IE,
@@ -553,7 +557,6 @@ from .sportbox import (
     SportBoxEmbedIE,
 )
 from .sportdeutschland import SportDeutschlandIE
-from .sportschau import SportschauIE
 from .srf import SrfIE
 from .srmediathek import SRMediathekIE
 from .ssa import SSAIE
