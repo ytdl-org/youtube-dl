@@ -11,13 +11,13 @@ class TagesschauIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/(?:sendung/ts|video/video)(?P<id>-?[0-9]+)\.html'
 
     _TESTS = [{
-        'url': 'http://www.tagesschau.de/multimedia/video/video1399128.html',
-        'md5': 'bcdeac2194fb296d599ce7929dfa4009',
+        'url': 'http://www.tagesschau.de/multimedia/video/video-102143.html',
+        'md5': '917a228bc7df7850783bc47979673a09',
         'info_dict': {
-            'id': '1399128',
+            'id': '102143',
             'ext': 'mp4',
-            'title': 'Harald Range, Generalbundesanwalt, zu den Ermittlungen',
-            'description': 'md5:69da3c61275b426426d711bde96463ab',
+            'title': 'Regierungsumbildung in Athen: Neue Minister in Griechenland vereidigt',
+            'description': 'md5:171feccd9d9b3dd54d05d501568f6359',
             'thumbnail': 're:^http:.*\.jpg$',
         },
     }, {
