@@ -16,6 +16,10 @@ class FoxSportsIE(InfoExtractor):
             'description': 'Courtney Lee talks about Memphis being focused.',
         },
         'add_ie': ['ThePlatform'],
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):
