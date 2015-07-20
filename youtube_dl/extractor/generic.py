@@ -1196,6 +1196,12 @@ class GenericIE(InfoExtractor):
         if vimeo_url is not None:
             return self.url_result(vimeo_url)
 
+        vid_me_embed_url = self._search_regex(
+            r'src=[\'"](https?://vid\.me/[^\'"]+)[\'"]',
+            webpage, 'vid.me embed', default=None)
+        if vid_me_embed_url is not None:
+            return self.url_result(vid_me_embed_url, 'Vidme')
+
         # Look for embedded YouTube player
         matches = re.findall(r'''(?x)
             (?:
