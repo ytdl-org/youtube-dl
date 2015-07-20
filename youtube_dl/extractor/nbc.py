@@ -81,14 +81,19 @@ class NBCSportsVPlayerIE(InfoExtractor):
         'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_share/select/9CsDKds0kvHI',
         'info_dict': {
             'id': '9CsDKds0kvHI',
-            'ext': 'flv',
+            'ext': 'm3u8',
             'description': 'md5:df390f70a9ba7c95ff1daace988f0d8d',
             'title': 'Tyler Kalinoski hits buzzer-beater to lift Davidson',
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         'url': 'http://vplayer.nbcsports.com/p/BxmELC/nbc_embedshare/select/_hqLjQ95yx8Z',
         'only_matching': True,
-    }]
+    },
+    ]
 
     @staticmethod
     def _extract_url(webpage):
@@ -112,10 +117,14 @@ class NBCSportsIE(InfoExtractor):
         'url': 'http://www.nbcsports.com//college-basketball/ncaab/tom-izzo-michigan-st-has-so-much-respect-duke',
         'info_dict': {
             'id': 'PHJSaFWbrTY9',
-            'ext': 'flv',
+            'ext': 'm3u8',
             'title': 'Tom Izzo, Michigan St. has \'so much respect\' for Duke',
             'description': 'md5:ecb459c9d59e0766ac9c7d5d0eda8113',
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):
