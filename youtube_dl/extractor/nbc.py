@@ -24,9 +24,13 @@ class NBCIE(InfoExtractor):
             # md5 checksum is not stable
             'info_dict': {
                 'id': 'c9xnCo0YPOPH',
-                'ext': 'flv',
+                'ext': 'm3u8',
                 'title': 'Jimmy Fallon Surprises Fans at Ben & Jerry\'s',
                 'description': 'Jimmy gives out free scoops of his new "Tonight Dough" ice cream flavor by surprising customers at the Ben & Jerry\'s scoop shop.',
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
             },
         },
         {
