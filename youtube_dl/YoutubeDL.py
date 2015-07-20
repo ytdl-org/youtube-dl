@@ -140,6 +140,7 @@ class YoutubeDL(object):
     restrictfilenames: Do not allow "&" and spaces in file names
     ignoreerrors:      Do not stop on download errors.
     force_generic_extractor: Force downloader to use the generic extractor
+    fallback_generic:  Try again with generic extractor
     nooverwrites:      Prevent overwriting files.
     playliststart:     Playlist item to start at.
     playlistend:       Playlist item to end at.
@@ -644,6 +645,8 @@ class YoutubeDL(object):
         else:
             ies = self._ies
 
+        fallback_ok = self.params.get('fallback_generic', False) and extra_info.get('extractor_key') != 'Generic' and not extra_info.get('failed')
+
         for ie in ies:
             if not ie.suitable(url):
                 continue
@@ -668,8 +671,13 @@ class YoutubeDL(object):
                 else:
                     return ie_result
             except ExtractorError as de:  # An error we somewhat expected
-                self.report_error(compat_str(de), de.format_traceback())
-                break
+                if fallback_ok and ie.ie_key() != 'Generic':
+                    self.report_warning('[' + ie.IE_NAME + '] ' + compat_str(de))
+                    extra_info['failed'] = True  # extra precaution against multiple fallbacks
+                    continue  # should continue to generic
+                else:
+                    self.report_error(compat_str(de), de.format_traceback())
+                    break
             except MaxDownloadsReached:
                 raise
             except Exception as e:
@@ -816,6 +824,8 @@ class YoutubeDL(object):
                     'webpage_url': ie_result['webpage_url'],
                     'webpage_url_basename': url_basename(ie_result['webpage_url']),
                     'extractor_key': ie_result['extractor_key'],
+                    'arg_url': extra_info.get('arg_url', ie_result['webpage_url']),
+                    'failed': extra_info.get('failed'),
                 }
 
                 reason = self._match_entry(entry, incomplete=True)
@@ -842,6 +852,8 @@ class YoutubeDL(object):
                         'webpage_url': ie_result['webpage_url'],
                         'webpage_url_basename': url_basename(ie_result['webpage_url']),
                         'extractor_key': ie_result['extractor_key'],
+                        'arg_url': extra_info.get('arg_url', ie_result['webpage_url']),
+                        'failed': extra_info.get('failed'),
                     }
                 )
                 return r
@@ -1500,7 +1512,7 @@ class YoutubeDL(object):
             try:
                 # It also downloads the videos
                 res = self.extract_info(
-                    url, force_generic_extractor=self.params.get('force_generic_extractor', False))
+                    url, force_generic_extractor=self.params.get('force_generic_extractor', False), extra_info={'arg_url': url, 'failed': None})
             except UnavailableVideoError:
                 self.report_error('unable to download video')
             except MaxDownloadsReached:

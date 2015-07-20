@@ -155,6 +155,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='force_generic_extractor', default=False,
         help='Force extraction to use the generic extractor')
     general.add_option(
+        '--fallback-generic',
+        action='store_true', dest='fallback_generic', default=False,
+        help='Try the generic extractor if a site-specific extractor fails')
+    general.add_option(
         '--default-search',
         dest='default_search', metavar='PREFIX',
         help='Use this prefix for unqualified URLs. For example "gvsearch2:" downloads two videos from google videos for youtube-dl "large apple". Use the value "auto" to let youtube-dl guess ("auto_warning" to emit a warning when guessing). "error" just throws an error. The default value "fixup_error" repairs broken URLs, but emits an error if this is not possible instead of searching.')
