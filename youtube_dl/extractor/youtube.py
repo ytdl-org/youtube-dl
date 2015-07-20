@@ -915,6 +915,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # Get video info
         embed_webpage = None
+        is_live = None
         if re.search(r'player-age-gate-content">', video_webpage) is not None:
             age_gate = True
             # We simulate the access to the video from www.youtube.com/v/{video_id}
@@ -947,6 +948,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     # Convert to the same format returned by compat_parse_qs
                     video_info = dict((k, [v]) for k, v in args.items())
                     add_dash_mpd(video_info)
+                if args.get('livestream') == '1' or args.get('live_playback') == 1:
+                    is_live = True
             if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
                 # We also try looking in get_video_info since it may contain different dashmpd
                 # URL that points to a DASH manifest with possibly different itag set (some itags
@@ -1251,6 +1254,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'dislike_count': dislike_count,
             'average_rating': float_or_none(video_info.get('avg_rating', [None])[0]),
             'formats': formats,
+            'is_live': is_live,
         }
 
 
