@@ -60,10 +60,14 @@ class ThePlatformIE(InfoExtractor):
         'url': 'https://player.theplatform.com/p/D6x-PC/pulse_preview/embed/select/media/yMBg9E8KFxZD',
         'info_dict': {
             'id': 'yMBg9E8KFxZD',
-            'ext': 'mp4',
+            'ext': 'm3u8',
             'description': 'md5:644ad9188d655b742f942bf2e06b002d',
             'title': 'HIGHLIGHTS: USA bag first ever series Cup win',
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         'url': 'http://player.theplatform.com/p/NnzsPC/widget/select/media/4Y0TlYUr_ZT7',
         'only_matching': True,

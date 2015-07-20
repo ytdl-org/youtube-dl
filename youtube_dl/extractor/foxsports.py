@@ -11,7 +11,7 @@ class FoxSportsIE(InfoExtractor):
         'url': 'http://www.foxsports.com/video?vid=432609859715',
         'info_dict': {
             'id': 'gA0bHB3Ladz3',
-            'ext': 'flv',
+            'ext': 'm3u8',
             'title': 'Courtney Lee on going up 2-0 in series vs. Blazers',
             'description': 'Courtney Lee talks about Memphis being focused.',
         },
@@ -29,4 +29,4 @@ class FoxSportsIE(InfoExtractor):
             video_id)
 
         return self.url_result(smuggle_url(
-            config['releaseURL'] + '&manifest=f4m', {'force_smil_url': True}))
+            config['releaseURL'] + '&manifest=m3u', {'force_smil_url': True}))
