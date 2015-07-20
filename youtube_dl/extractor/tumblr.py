@@ -4,8 +4,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .pornhub import PornHubIE
-from .vimeo import VimeoIE
 
 
 class TumblrIE(InfoExtractor):
@@ -60,25 +58,14 @@ class TumblrIE(InfoExtractor):
         blog = m_url.group('blog_name')
 
         url = 'http://%s.tumblr.com/post/%s/' % (blog, video_id)
-        webpage = self._download_webpage(url, video_id)
-
-        vid_me_embed_url = self._search_regex(
-            r'src=[\'"](https?://vid\.me/[^\'"]+)[\'"]',
-            webpage, 'vid.me embed', default=None)
-        if vid_me_embed_url is not None:
-            return self.url_result(vid_me_embed_url, 'Vidme')
-
-        pornhub_url = PornHubIE._extract_url(webpage)
-        if pornhub_url:
-            return self.url_result(pornhub_url, 'PornHub')
-
-        vimeo_url = VimeoIE._extract_vimeo_url(url, webpage)
-        if vimeo_url:
-            return self.url_result(vimeo_url, 'Vimeo')
+        webpage, urlh = self._download_webpage_handle(url, video_id)
 
         iframe_url = self._search_regex(
             r'src=\'(https?://www\.tumblr\.com/video/[^\']+)\'',
-            webpage, 'iframe url')
+            webpage, 'iframe url', default=None)
+        if iframe_url is None:
+            return self.url_result(urlh.geturl(), 'Generic')
+
         iframe = self._download_webpage(iframe_url, video_id)
         video_url = self._search_regex(r'<source src="([^"]+)"',
                                        iframe, 'video url')
