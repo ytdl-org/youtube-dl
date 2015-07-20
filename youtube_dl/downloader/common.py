@@ -137,7 +137,8 @@ class FileDownloader(object):
         return int(round(number * multiplier))
 
     def to_screen(self, *args, **kargs):
-        self.ydl.to_screen(*args, **kargs)
+        if not self.params.get('quiet'):
+            self.ydl.to_screen(*args, **kargs)
 
     def to_stderr(self, message):
         self.ydl.to_screen(message)

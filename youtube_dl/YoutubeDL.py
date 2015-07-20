@@ -71,7 +71,6 @@ from .utils import (
     write_json_file,
     write_string,
     YoutubeDLHandler,
-    prepend_extension,
     replace_extension,
     args_to_str,
     age_restricted,
@@ -1377,7 +1376,6 @@ class YoutubeDL(object):
                     return fd.download(name, info)
 
                 if info_dict.get('requested_formats') is not None:
-                    downloaded = []
                     success = True
                     merger = FFmpegMergerPP(self)
                     if not merger.available:
@@ -1420,16 +1418,8 @@ class YoutubeDL(object):
                             '[download] %s has already been downloaded and '
                             'merged' % filename)
                     else:
-                        for f in requested_formats:
-                            new_info = dict(info_dict)
-                            new_info.update(f)
-                            fname = self.prepare_filename(new_info)
-                            fname = prepend_extension(fname, 'f%s' % f['format_id'], new_info['ext'])
-                            downloaded.append(fname)
-                            partial_success = dl(fname, new_info)
-                            success = success and partial_success
+                        success = dl(filename, info_dict)
                         info_dict['__postprocessors'] = postprocessors
-                        info_dict['__files_to_merge'] = downloaded
                 else:
                     # Just a single file
                     success = dl(filename, info_dict)

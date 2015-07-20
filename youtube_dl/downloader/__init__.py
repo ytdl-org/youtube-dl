@@ -9,6 +9,7 @@ from .http import HttpFD
 from .rtsp import RtspFD
 from .rtmp import RtmpFD
 from .dash import DashSegmentsFD
+from .merge import MergeFD
 
 from ..utils import (
     determine_protocol,
@@ -27,6 +28,9 @@ PROTOCOL_MAP = {
 
 def get_suitable_downloader(info_dict, params={}):
     """Get the downloader class that can handle the info dict."""
+    if info_dict.get('requested_formats') is not None:
+        return MergeFD
+
     protocol = determine_protocol(info_dict)
     info_dict['protocol'] = protocol
 
