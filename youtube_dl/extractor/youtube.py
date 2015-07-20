@@ -19,6 +19,7 @@ from ..compat import (
     compat_urllib_parse,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
+    compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urlparse,
     compat_str,
@@ -31,6 +32,7 @@ from ..utils import (
     get_element_by_id,
     int_or_none,
     orderedSet,
+    parse_duration,
     str_to_int,
     unescapeHTML,
     unified_strdate,
@@ -317,7 +319,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     IE_NAME = 'youtube'
     _TESTS = [
         {
-            'url': 'http://www.youtube.com/watch?v=BaW_jenozKc',
+            'url': 'http://www.youtube.com/watch?v=BaW_jenozKcj&t=1s',
             'info_dict': {
                 'id': 'BaW_jenozKc',
                 'ext': 'mp4',
@@ -329,6 +331,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'categories': ['Science & Technology'],
                 'like_count': int,
                 'dislike_count': int,
+                'start_time': 1,
             }
         },
         {
@@ -889,6 +892,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'http' if self._downloader.params.get('prefer_insecure', False)
             else 'https')
 
+        start_time = None
+        parsed_url = compat_urllib_parse_urlparse(url)
+        for component in [parsed_url.fragment, parsed_url.query]:
+            query = compat_parse_qs(component)
+            if 't' in query:
+                start_time = parse_duration(query['t'][0])
+                break
+
         # Extract original video URL from URL with redirection, like age verification, using next_url parameter
         mobj = re.search(self._NEXT_URL_RE, url)
         if mobj:
@@ -1255,6 +1266,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'average_rating': float_or_none(video_info.get('avg_rating', [None])[0]),
             'formats': formats,
             'is_live': is_live,
+            'start_time': start_time,
         }
 
 
