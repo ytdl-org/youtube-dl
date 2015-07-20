@@ -535,7 +535,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'dorappi2000',
                 'formats': 'mincount:33',
             },
-        }
+        },
+        # DASH manifest with segment_list
+        {
+            'url': 'https://www.youtube.com/embed/CsmdDsKjzN8',
+            'md5': '8ce563a1d667b599d21064e982ab9e31',
+            'info_dict': {
+                'id': 'CsmdDsKjzN8',
+                'ext': 'mp4',
+                'upload_date': '20150510',
+                'uploader': 'Airtek',
+                'description': 'Retransmisión en directo de la XVIII media maratón de Zaragoza.',
+                'uploader_id': 'UCzTzUmjXxxacNnL8I3m4LnQ',
+                'title': 'Retransmisión XVIII Media maratón Zaragoza 2015',
+            },
+            'params': {
+                'youtube_include_dash_manifest': True,
+                'format': '135',  # bestvideo
+            }
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -826,6 +844,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     # TODO implement WebVTT downloading
                     pass
                 elif mime_type.startswith('audio/') or mime_type.startswith('video/'):
+                    segment_list = r.find('{urn:mpeg:DASH:schema:MPD:2011}SegmentList')
                     format_id = r.attrib['id']
                     video_url = url_el.text
                     filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength'))
@@ -839,6 +858,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         'filesize': filesize,
                         'fps': int_or_none(r.attrib.get('frameRate')),
                     }
+                    if segment_list is not None:
+                        f.update({
+                            'initialization_url': segment_list.find('{urn:mpeg:DASH:schema:MPD:2011}Initialization').attrib['sourceURL'],
+                            'segment_urls': [segment.attrib.get('media') for segment in segment_list.findall('{urn:mpeg:DASH:schema:MPD:2011}SegmentURL')],
+                            'protocol': 'http_dash_segments',
+                        })
                     try:
                         existing_format = next(
                             fo for fo in formats
