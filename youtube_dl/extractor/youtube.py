@@ -543,7 +543,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'info_dict': {
                 'id': 'CsmdDsKjzN8',
                 'ext': 'mp4',
-                'upload_date': '20150510',
+                'upload_date': '20150501',  # According to '<meta itemprop="datePublished"', but in other places it's 20150510
                 'uploader': 'Airtek',
                 'description': 'Retransmisión en directo de la XVIII media maratón de Zaragoza.',
                 'uploader_id': 'UCzTzUmjXxxacNnL8I3m4LnQ',
