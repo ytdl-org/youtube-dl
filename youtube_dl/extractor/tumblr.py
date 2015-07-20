@@ -66,7 +66,8 @@ class TumblrIE(InfoExtractor):
         if iframe_url is None:
             return self.url_result(urlh.geturl(), 'Generic')
 
-        iframe = self._download_webpage(iframe_url, video_id)
+        iframe = self._download_webpage(iframe_url, video_id,
+                                        'Downloading iframe page')
         video_url = self._search_regex(r'<source src="([^"]+)"',
                                        iframe, 'video url')
 
