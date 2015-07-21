@@ -424,6 +424,10 @@ def parseOpts(overrideArguments=None):
         '--external-downloader-args',
         dest='external_downloader_args', metavar='ARGS',
         help='Give these arguments to the external downloader')
+    downloader.add_option(
+        '--parallel-dash-downloads',
+        action='store_true', dest='parallel_dash_downloads', default=False,
+        help='(Experimental) download dash formats in parallel')
 
     workarounds = optparse.OptionGroup(parser, 'Workarounds')
     workarounds.add_option(

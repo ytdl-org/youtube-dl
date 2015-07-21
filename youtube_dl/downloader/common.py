@@ -14,6 +14,10 @@ from ..utils import (
 )
 
 
+class StopDownload(Exception):
+    pass
+
+
 class FileDownloader(object):
     """File Downloader class.
 
@@ -232,6 +236,9 @@ class FileDownloader(object):
         self.to_console_title('youtube-dl ' + msg)
 
     def report_progress(self, s):
+        if s.get('_skip_report_progress'):
+            return
+
         if s['status'] == 'finished':
             if self.params.get('noprogress', False):
                 self.to_screen('[download] Download completed')
