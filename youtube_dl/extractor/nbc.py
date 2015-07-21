@@ -30,16 +30,6 @@ class NBCIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://www.nbc.com/the-tonight-show/episodes/176',
-            'info_dict': {
-                'id': 'XwU9KZkp98TH',
-                'ext': 'flv',
-                'title': 'Ricky Gervais, Steven Van Zandt, ILoveMakonnen',
-                'description': 'A brand new episode of The Tonight Show welcomes Ricky Gervais, Steven Van Zandt and ILoveMakonnen.',
-            },
-            'skip': 'Only works from US',
-        },
-        {
             'url': 'http://www.nbc.com/saturday-night-live/video/star-wars-teaser/2832821',
             'info_dict': {
                 'id': '8iUuyzWDdYUZ',
@@ -148,16 +138,6 @@ class NBCNewsIE(InfoExtractor):
                 'description': 'md5:65a0bd5d76fe114f3c2727aa3a81fe64',
             },
             'add_ie': ['ThePlatform'],
-        },
-        {
-            'url': 'http://www.nbcnews.com/feature/dateline-full-episodes/full-episode-family-business-n285156',
-            'md5': 'fdbf39ab73a72df5896b6234ff98518a',
-            'info_dict': {
-                'id': 'Wjf9EDR3A_60',
-                'ext': 'mp4',
-                'title': 'FULL EPISODE: Family Business',
-                'description': 'md5:757988edbaae9d7be1d585eb5d55cc04',
-            },
         },
         {
             'url': 'http://www.nbcnews.com/nightly-news/video/nightly-news-with-brian-williams-full-broadcast-february-4-394064451844',
