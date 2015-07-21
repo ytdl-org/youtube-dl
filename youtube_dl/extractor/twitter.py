@@ -70,3 +70,47 @@ class TwitterCardIE(InfoExtractor):
             'duration': duration,
             'formats': formats,
         }
+
+
+class TwitterIE(TwitterCardIE):
+    _VALID_URL = r'https?://(?:www|m|mobile)?\.?twitter\.com/(?P<id>[^/]+/status/\d+)'
+
+    _TESTS = [{
+        'url': 'https://m.twitter.com/thereaIbanksy/status/614301758345490432',
+        'md5': '8bbccb487bd7a31349b775915fcd412f',
+        'info_dict': {
+            'id': '614301758345490432',
+            'ext': 'mp4',
+            'title': 'thereaIbanksy - This time lapse is so pretty \U0001f60d\U0001f60d',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'duration': 29.5,
+            'description': 'banksy on Twitter: "This time lapse is so pretty \U0001f60d\U0001f60d http://t.co/QB8DDbqiR1"',
+            'uploader': 'banksy',
+            'uploader_id': 'thereaIbanksy',
+        },
+    }]
+
+    def _real_extract(self, url):
+        id = self._match_id(url)
+        username, twid = re.match(r'([^/]+)/status/(\d+)', id).groups()
+        name = username
+        url = re.sub(r'https?://(m|mobile)\.', 'https://', url)
+        webpage = self._download_webpage(url, 'tweet: ' + url)
+        description = unescapeHTML(self._search_regex('<title>\s*(.+?)\s*</title>', webpage, 'title'))
+        title = description.replace('\n', ' ')
+        splitdesc = re.match(r'^(.+?)\s*on Twitter:\s* "(.+?)"$', title)
+        if splitdesc:
+            name, title = splitdesc.groups()
+        title = re.sub(r'\s*https?://[^ ]+', '', title)  # strip  'https -_t.co_BJYgOjSeGA' junk from filenames
+        card_id = self._search_regex(r'["\']/i/cards/tfw/v1/(\d+)', webpage, '/i/card/...')
+        card_url = 'https://twitter.com/i/cards/tfw/v1/' + card_id
+        return {
+            '_type': 'url_transparent',
+            'ie_key': 'TwitterCard',
+            'uploader_id': username,
+            'uploader': name,
+            'url': card_url,
+            'webpage_url': url,
+            'description': description,
+            'title': username + ' - ' + title,
+        }
