@@ -63,7 +63,7 @@ class SnagFilmsEmbedIE(InfoExtractor):
             type_ = source.get('type')
             ext = determine_ext(file_)
             format_id = source.get('label') or ext
-            if all(_ == 'm3u8' for _ in (type_, ext)):
+            if all(v == 'm3u8' for v in (type_, ext)):
                 formats.extend(self._extract_m3u8_formats(
                     file_, video_id, 'mp4', m3u8_id='hls'))
             else:
