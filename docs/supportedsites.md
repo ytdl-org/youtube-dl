@@ -28,6 +28,7 @@
  - **anitube.se**
  - **AnySex**
  - **Aparat**
+ - **AppleConnect**
  - **AppleDaily**: 臺灣蘋果日報
  - **AppleTrailers**
  - **archive.org**: archive.org videos
@@ -486,6 +487,7 @@
  - **SportBox**
  - **SportBoxEmbed**
  - **SportDeutschland**
+ - **Sportschau**
  - **Srf**
  - **SRMediathek**: Saarländischer Rundfunk
  - **SSA**
@@ -611,8 +613,8 @@
  - **Vimple**: Vimple - one-click video hosting
  - **Vine**
  - **vine:user**
- - **vk.com**
- - **vk.com:user-videos**: vk.com:All of a user's videos
+ - **vk**: VK
+ - **vk:uservideos**: VK - User's Videos
  - **Vodlocker**
  - **VoiceRepublic**
  - **Vporn**
