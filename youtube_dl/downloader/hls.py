@@ -28,12 +28,12 @@ class HlsFD(FileDownloader):
             return False
         ffpp.check_version()
 
-        cookies = ''
-        for cookie in self.ydl.cookiejar:
-            cookies += '%s=%s; path=%s; domain=%s;\r\n' % (cookie.name, cookie.value, cookie.path, cookie.domain)
+        headers = ''
+        for key, val in info_dict['http_headers'].items():
+            headers += '%s: %s\r\n' % (key, val)
         args = [
             encodeArgument(opt)
-            for opt in (ffpp.executable, '-y', '-user-agent', info_dict['http_headers']['User-Agent'], '-cookies', cookies,'-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
+            for opt in (ffpp.executable, '-y', '-headers', headers, '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
         args.append(encodeFilename(tmpfilename, True))
 
         retval = subprocess.call(args)
