@@ -347,7 +347,16 @@ class FileDownloader(object):
             self.to_screen('[download] Sleeping %s seconds...' % sleep_interval)
             time.sleep(sleep_interval)
 
-        return self.real_download(filename, info_dict)
+        try:
+            return self.real_download(filename, info_dict)
+        except (KeyboardInterrupt, StopDownload):
+            if info_dict.get('is_live'):
+                self.to_screen('[download] Stopping recording of livestream: {0}'.format(filename))
+                tmpfilename = self.temp_name(filename)
+                if os.path.exists(encodeFilename(tmpfilename)):
+                    self.try_rename(tmpfilename, filename)
+                return True
+            raise
 
     def real_download(self, filename, info_dict):
         """Real download process. Redefine in subclasses."""
