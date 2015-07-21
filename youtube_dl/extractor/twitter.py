@@ -12,17 +12,30 @@ from ..utils import (
 
 class TwitterCardIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?twitter\.com/i/cards/tfw/v1/(?P<id>\d+)'
-    _TEST = {
-        'url': 'https://twitter.com/i/cards/tfw/v1/560070183650213889',
-        'md5': 'a74f50b310c83170319ba16de6955192',
-        'info_dict': {
-            'id': '560070183650213889',
-            'ext': 'mp4',
-            'title': 'TwitterCard',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            'duration': 30.033,
+    _TESTS = [
+        {
+            'url': 'https://twitter.com/i/cards/tfw/v1/560070183650213889',
+            'md5': 'a74f50b310c83170319ba16de6955192',
+            'info_dict': {
+                'id': '560070183650213889',
+                'ext': 'mp4',
+                'title': 'TwitterCard',
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'duration': 30.033,
+            }
         },
-    }
+        {
+            'url': 'https://twitter.com/i/cards/tfw/v1/623160978427936768',
+            'md5': '7ee2a553b63d1bccba97fbed97d9e1c8',
+            'info_dict': {
+                'id': '623160978427936768',
+                'ext': 'mp4',
+                'title': 'TwitterCard',
+                'thumbnail': 're:^https?://.*\.jpg',
+                'duration': 80.155,
+            },
+        }
+    ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -44,6 +57,20 @@ class TwitterCardIE(InfoExtractor):
                 unescapeHTML(self._search_regex(
                     r'data-player-config="([^"]+)"', webpage, 'data player config')),
                 video_id)
+            if 'playlist' not in config:
+                if 'vmapUrl' in config:
+                    webpage = self._download_webpage(config['vmapUrl'], video_id + ' (xml)')
+                    video_url = self._search_regex(
+                        r'<MediaFile>\s*<!\[CDATA\[(https?://.+?)\]\]>', webpage, 'data player config (xml)')
+                    f = {
+                        'url': video_url,
+                    }
+                    ext = re.search(r'\.([a-z0-9]{2,4})(\?.+)?$', video_url)
+                    if ext:
+                        f['ext'] = ext.group(1)
+                    formats.append(f)
+                    break   # same video regardless of UA
+                continue
 
             video_url = config['playlist'][0]['source']
 
