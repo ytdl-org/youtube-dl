@@ -561,7 +561,10 @@ from .srf import SrfIE
 from .srmediathek import SRMediathekIE
 from .ssa import SSAIE
 from .stanfordoc import StanfordOpenClassroomIE
-from .steam import SteamIE
+from .steam import (
+    SteamIE,
+    SteamBroadcastsIE,
+)
 from .streamcloud import StreamcloudIE
 from .streamcz import StreamCZIE
 from .streetvoice import StreetVoiceIE

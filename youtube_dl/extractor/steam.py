@@ -5,7 +5,9 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
+    int_or_none,
     unescapeHTML,
+    xpath_with_ns,
 )
 
 
@@ -121,3 +123,76 @@ class SteamIE(InfoExtractor):
             raise ExtractorError('Could not find any videos')
 
         return self.playlist_result(videos, playlist_id, playlist_title)
+
+
+class SteamBroadcastsIE(InfoExtractor):
+    IE_DESC = 'Steam and Dota 2 live broadcasts'
+    _VALID_URL = r'https?://(?:www\.)?(?:steamcommunity\.com/broadcast|dota2\.com)/watch/(?P<id>\d+)'
+
+    # Only livestreams, test urls can be obtained from
+    # https://steamcommunity.com/?subsection=broadcasts or
+    # https://www.dota2.com/watch/
+    _TESTS = [
+        {
+            'url': 'http://www.dota2.com/watch/76561197986987526',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://steamcommunity.com/broadcast/watch/76561197986987526',
+            'only_matching': True,
+        },
+    ]
+
+    def _extract_dash_manifest_formats(self, manifest_url, video_id):
+        manifest = self._download_xml(manifest_url, video_id)
+
+        _x = lambda p: xpath_with_ns(p, {'ns': 'urn:mpeg:DASH:schema:MPD:2011'})
+        formats = []
+        for ad_set in manifest.findall(_x('ns:Period/ns:AdaptationSet')):
+            set_id = ad_set.attrib['id']
+            if set_id == 'game':
+                continue
+            for repr in ad_set.findall(_x('ns:Representation')):
+                repr_id = repr.attrib['id']
+                if set_id == 'audio':
+                    ext = 'm4a'
+                    vcodec = 'none'
+                    acodec = repr.attrib.get('codecs')
+                    preference = -10
+                else:
+                    ext = 'mp4'
+                    vcodec = repr.attrib.get('codecs')
+                    acodec = 'none'
+                    preference = 0
+                formats.append({
+                    'url': manifest_url,
+                    'ext': ext,
+                    'format_id': '{0}-{1}'.format(set_id, repr_id),
+                    'protocol': 'http_dash_segments',
+                    'mpd_set_id': set_id,
+                    'mpd_representation_id': repr_id,
+                    'height': int_or_none(repr.attrib.get('height')),
+                    'width': int_or_none(repr.attrib.get('width')),
+                    'vcodec': vcodec,
+                    'acodec': acodec,
+                    'preference': preference,
+                })
+        return formats
+
+    def _real_extract(self, url):
+        steamid = self._match_id(url)
+
+        broadcast_mpd_info = self._download_json('https://steamcommunity.com/broadcast/getbroadcastmpd/?steamid={0}&broadcastid=0'.format(steamid), steamid)
+        broadcast_id = broadcast_mpd_info['broadcastid']
+        broadcast_info = self._download_json('https://steamcommunity.com/broadcast/getbroadcastinfo/?steamid={0}&broadcastid={1}'.format(steamid, broadcast_id), steamid)
+
+        manifest_url = broadcast_mpd_info['url']
+        formats = self._extract_dash_manifest_formats(manifest_url, steamid)
+        self._sort_formats(formats)
+
+        return {
+            'id': steamid,
+            'title': broadcast_info['title'],
+            'formats': formats,
+            'is_live': True,
+        }
