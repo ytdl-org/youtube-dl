@@ -88,7 +88,7 @@ class ViewsterIE(InfoExtractor):
                 self.url_result(
                     'http://www.viewster.com/movie/%s' % episode['OriginId'], 'Viewster')
                 for episode in episodes]
-            title = info.get('Title') or info['Synopsis']['Title']
+            title = (info.get('Title') or info['Synopsis']['Title']).strip()
             description = info.get('Synopsis', {}).get('Detailed')
             return self.playlist_result(entries, video_id, title, description)
 
@@ -122,7 +122,7 @@ class ViewsterIE(InfoExtractor):
 
         synopsis = info.get('Synopsis', {})
         # Prefer title outside synopsis since it's less messy
-        title = info.get('Title') or synopsis['Title'].strip()
+        title = (info.get('Title') or synopsis['Title']).strip()
         description = synopsis.get('Detailed') or info.get('Synopsis', {}).get('Short')
         duration = int_or_none(info.get('Duration'))
         timestamp = parse_iso8601(info.get('ReleaseDate'))
