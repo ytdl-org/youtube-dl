@@ -814,10 +814,14 @@ class GenericIE(InfoExtractor):
             'url': 'http://www.riderfans.com/forum/showthread.php?121827-Freeman&s=e98fa1ea6dc08e886b1678d35212494a',
             'info_dict': {
                 'id': 'ln7x1qSThw4k',
-                'ext': 'flv',
+                'ext': 'm3u8',
                 'title': "PFT Live: New leader in the 'new-look' defense",
                 'description': 'md5:65a19b4bbfb3b0c0c5768bed1dfad74e',
             },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            }
         },
         # UDN embed
         {
