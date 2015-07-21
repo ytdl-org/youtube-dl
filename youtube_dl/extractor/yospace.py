@@ -36,7 +36,7 @@ class YospaceIE(InfoExtractor):
     def _extract_formats(self, mas_url, video_id):
         formats = []
         hls_url = None
-        jfpage = self._download_webpage(mas_url, video_id)
+        jfpage = self._download_webpage(mas_url, 'json')
         jf = self._parse_json(jfpage, video_id, transform_source=js_to_json)
         for ent in jf:
             if ent.get('type', '') == 'application/x-mpeg-url':
@@ -117,7 +117,7 @@ class ReutersIE(YospaceIE):
         ret = []
         rdata = {}
 
-        javascript_chunks = re.findall(r'<script[^>]+text/javascript[^>]*>(.*?)</script>', webpage, re.DOTALL)
+        javascript_chunks = re.findall(r'<script[^>]*>(.*?)</script>', webpage, re.DOTALL)
         if not javascript_chunks:
             return
 
@@ -125,40 +125,51 @@ class ReutersIE(YospaceIE):
             s = m.group(1)
             if rdata.get(s):
                 s = rdata.get(s)
-                return ': "' + s + '",\n'
-            return ': False,\n'
+                return ': ' + s + m.group(2) + ''
+            return ': False' + m.group(2) + ''
+
+        def cleanjsonvars(str):  # just str/int variables that won't break js_to_json
+            # restr=r'[\'"]([^\'"]+)[\'"]\s*:\s*(([\'"])(|.*?[^\\])\3|\d+|[a-zA-Z0-9\._]+)\s*[,\}\]]'
+            restr = r"""(?x)
+                       [\'"]([^\'"]+)[\'"]   # quoted key
+                       \s*:\s*               # key -> var
+                       (                     # var: str/int/bareword
+                           ([\'"])           # str: startquote -> \3
+                           (                 #
+                               |             # str: blank
+                               .*?[^\\]      # str: accounting for \'s
+                           )                 #
+                           \3|               # str: endquote
+                           \d+|              # int
+                           [a-zA-Z0-9\._]+   # bareword
+                       )                     #
+                       \s*[,\}\]]            # end with , or } ] if nested
+                   """
+            m = re.findall(restr, str)
+            return '{' + '\n'.join(["'" + f[0] + "': " + f[1] + ','
+                                   for f in m]) + '}'
 
         vidnum = 0
         for innerhtml in javascript_chunks:
-            drawplayer_js = re.search(r'Reuters.yovideo.drawPlayer\((\{[^\}]+://.+?\})\);', innerhtml, re.DOTALL)
+
+            js_vars = re.findall(r'^\s*(Reuters\.[a-zA-Z0-9\._]+)\s*=\s*([\'"](?:|.*?[^\\][\'"])|\d+);', innerhtml, re.M)
+            if js_vars:
+                for ent in js_vars:
+                    if not ent[1]:
+                        continue
+                    rdata[ent[0]] = ent[1]
+
+            drawplayer_js = re.search(r'Reuters.yovideo.drawPlayer\((\{.+?\})\);', innerhtml, re.DOTALL)
             if drawplayer_js:
                 vidnum += 1
-                drawplayer_js = re.sub(r'".+?"\s*:\s*[^\d"\'].+?,\n', '', drawplayer_js.group(1))
-                vdata = self._parse_json(drawplayer_js, 'javascript chunk', transform_source=js_to_json)
+                js = cleanjsonvars(drawplayer_js.group(1))
+                js = re.sub(r':\s*(Reuters\.[a-zA-Z_]+\.[a-zA-Z_]+)\s*([,\}])', msub, js)
+                vdata = self._parse_json(js, 'javascript chunk', transform_source=js_to_json)
                 desc = re.search(r'var RTR_VideoBlurb\s*=\s*"(.+?)";', innerhtml, re.DOTALL)
                 if desc:
                     vdata['description'] = desc.group(1)
                 vdata['vidnum'] = vidnum
                 ret.append(vdata)
-            else:
-                if re.search(r'^\s*Reuters\.([^\s\[\]\.]+\.[^\[\]]+?)\s*=\s*[\'\"\d].+?;\s*\n', innerhtml, re.M):
-                    js_vars = re.findall(r'^\s*Reuters\.([^\s\[\]\.]+\.[^\s\[\]\.]+)\s*=\s*[\'"]?(.*?)[\'"]?;\s*\n', innerhtml, re.M)
-                    for ent in js_vars:
-                        if not ent[1]:
-                            continue
-                        if re.search(r'["\'].+?[\(\)\+]', ent[1]):
-                            continue
-                        rdata[ent[0]] = ent[1]
-                drawplayer_js = re.search(r'Reuters.yovideo.drawPlayer\((\{.+?\})\);', innerhtml, re.DOTALL)
-                if drawplayer_js:
-                    vidnum += 1
-                    ds = drawplayer_js.group(1)
-                    ds = re.sub(r':\s*Reuters\.([a-zA-Z_]+\.[a-zA-Z_]+)\s*,\s*\n', msub, ds)
-                    # "stuff_with": "variables like "+this("breaks")+" js_to_json";
-                    ds = re.sub(r'[\'"].+?[\'"]\s*:\s*\(.+,\s*\n', '', ds)
-                    vdata = self._parse_json(ds, 'parsed javascript chunk', transform_source=js_to_json)
-                    vdata['vidnum'] = vidnum
-                    ret.append(vdata)
         return ret
 
     def _real_extract(self, url):
