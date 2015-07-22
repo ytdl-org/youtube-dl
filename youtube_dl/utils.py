@@ -1309,10 +1309,10 @@ def parse_duration(s):
     m = re.match(
         r'''(?ix)(?:P?T)?
         (?:
-            (?P<only_mins>[0-9.]+)\s*(?:mins?|minutes?)\s*|
+            (?P<only_mins>[0-9.]+)\s*(?:mins?\.?|minutes?)\s*|
             (?P<only_hours>[0-9.]+)\s*(?:hours?)|
 
-            \s*(?P<hours_reversed>[0-9]+)\s*(?:[:h]|hours?)\s*(?P<mins_reversed>[0-9]+)\s*(?:[:m]|mins?|minutes?)\s*|
+            \s*(?P<hours_reversed>[0-9]+)\s*(?:[:h]|hours?)\s*(?P<mins_reversed>[0-9]+)\s*(?:[:m]|mins?\.?|minutes?)\s*|
             (?:
                 (?:
                     (?:(?P<days>[0-9]+)\s*(?:[:d]|days?)\s*)?
