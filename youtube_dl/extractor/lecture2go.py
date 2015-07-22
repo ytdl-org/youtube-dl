@@ -4,7 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import determine_ext
+from ..utils import (
+    determine_ext,
+    parse_duration,
+    int_or_none,
+)
 
 
 class Lecture2GoIE(InfoExtractor):
@@ -17,6 +21,7 @@ class Lecture2GoIE(InfoExtractor):
             'ext': 'flv',
             'title': '2 - Endliche Automaten und reguläre Sprachen',
             'creator': 'Frank Heitmann',
+            'duration': 5220,
         }
     }
 
@@ -41,10 +46,16 @@ class Lecture2GoIE(InfoExtractor):
         self._sort_formats(formats)
 
         creator = self._html_search_regex(r'<div[^>]+id="description">([^<]+)</div>', webpage, 'creator')
+        duration = parse_duration(self._html_search_regex(
+            r'Duration:\s*</em>\s*<em[^>]*>([^<]+)</em>', webpage, 'duration', fatal=False))
+        view_count = int_or_none(self._html_search_regex(
+            r'Views:\s*</em>\s*<em[^>]+>(\d+)</em>', webpage, 'view count', fatal=False))
 
         return {
             'id': video_id,
             'title': title,
             'formats': formats,
-            'creator': creator
+            'creator': creator,
+            'duration': duration,
+            'view_count': view_count,
         }
