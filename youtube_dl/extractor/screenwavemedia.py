@@ -35,7 +35,22 @@ class ScreenwaveMediaIE(InfoExtractor):
 
         videoserver = self._search_regex(r"'videoserver'\s*:\s*'([^']+)", playerconfig, 'videoserver')
 
-        sources = self._parse_json(js_to_json(self._search_regex(r"sources\s*:\s*(\[[^\]]+?\])", playerconfig, 'sources', flags=re.DOTALL).replace("' + thisObj.options.videoserver + '", videoserver).replace("' + thisObj.options.attributes.vidid + '", video_id)), video_id)
+        sources = self._parse_json(
+            js_to_json(
+                self._search_regex(
+                    r"sources\s*:\s*(\[[^\]]+?\])", playerconfig,
+                    'sources',
+                    flags=re.DOTALL
+                ).replace(
+                    "' + thisObj.options.videoserver + '",
+                    videoserver
+                ).replace(
+                    "' + thisObj.options.attributes.vidid + '",
+                    video_id
+                )
+            ),
+            video_id
+        )
 
         formats = []
         for source in sources:
