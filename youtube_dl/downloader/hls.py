@@ -13,6 +13,7 @@ from ..compat import (
 from ..utils import (
     encodeArgument,
     encodeFilename,
+    function_pool,
 )
 
 
@@ -28,9 +29,20 @@ class HlsFD(FileDownloader):
             return False
         ffpp.check_version()
 
+        input_arg = url
+        if info_dict.get('hls_transform_source_key'):
+            transform_source = function_pool[info_dict['hls_transform_source_key']]
+            self.to_screen(
+                '[hls] %s: Downloading m3u8 manifest' % info_dict['id'])
+            data = self.ydl.urlopen(url).read()
+            data = transform_source(data)
+            input_arg = '%s.m3u8' % filename
+            with open(input_arg, 'wb') as f:
+                f.write(data)
+
         args = [
             encodeArgument(opt)
-            for opt in (ffpp.executable, '-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
+            for opt in (ffpp.executable, '-y', '-i', input_arg, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
         args.append(encodeFilename(tmpfilename, True))
 
         retval = subprocess.call(args)
@@ -44,6 +56,8 @@ class HlsFD(FileDownloader):
                 'filename': filename,
                 'status': 'finished',
             })
+            if info_dict.get('hls_transform_source_key'):
+                os.remove(input_arg)
             return True
         else:
             self.to_stderr('\n')
@@ -62,6 +76,9 @@ class NativeHlsFD(FileDownloader):
         self.to_screen(
             '[hlsnative] %s: Downloading m3u8 manifest' % info_dict['id'])
         data = self.ydl.urlopen(url).read()
+        if info_dict.get('hls_transform_source_key'):
+            transform_source = function_pool.get(info_dict['hls_transform_source_key'])
+            data = transform_source(data)
         s = data.decode('utf-8', 'ignore')
         segment_urls = []
         for line in s.splitlines():
