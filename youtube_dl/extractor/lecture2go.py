@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class Lecture2GoIE(InfoExtractor):
-    _VALID_URL = r'https?://lecture2go.uni-hamburg.de/veranstaltungen/-/v/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://lecture2go\.uni-hamburg\.de/veranstaltungen/-/v/(?P<id>\d+)'
     _TEST = {
         'url': 'https://lecture2go.uni-hamburg.de/veranstaltungen/-/v/17473',
         'md5': 'a9e76f83b3ef58019c4b7dbc35f406c1',
@@ -21,9 +21,9 @@ class Lecture2GoIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(r'<em class="title">(.*?)</em>', webpage, 'title')
+        title = self._html_search_regex(r'<em[^>]+class="title">(.+)</em>', webpage, 'title')
         video_url = self._search_regex(r'b.isFirefox..a.useHTML5\).b.setOption.a,"src","(.*.mp4)"\).else', webpage, 'video_url')
-        creator = self._html_search_regex(r'<div id="description">(.*)</div>', webpage, 'creator')
+        creator = self._html_search_regex(r'<div[^>]+id="description">([^<]+)</div>', webpage, 'creator')
 
         return {
             'id': video_id,
