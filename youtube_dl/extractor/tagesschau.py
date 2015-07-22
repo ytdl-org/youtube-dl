@@ -4,11 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import parse_filesize
+from ..utils import parse_filesize, ExtractorError
 
 
 class TagesschauIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/(?:sendung/ts|video/video)(?P<id>-?[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/(?:[^/]+/)*?[^/#?]+?(?P<id>-?[0-9]+)(?:~_[^/#?]+?)?\.html'
 
     _TESTS = [{
         'url': 'http://www.tagesschau.de/multimedia/video/video-102143.html',
@@ -29,7 +29,31 @@ class TagesschauIE(InfoExtractor):
             'description': 'md5:695c01bfd98b7e313c501386327aea59',
             'title': 'Sendung: tagesschau \t04.12.2014 20:00 Uhr',
             'thumbnail': 're:^http:.*\.jpg$',
-        }
+        },
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/sendung/tsg-3771.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/sendung/tt-3827.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/sendung/nm-3475.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/sendung/weltspiegel-3167.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/tsvorzwanzig-959.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/sendung/bab/bab-3299~_bab-sendung-209.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/video/video-102303~_bab-sendung-211.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/politikimradio/audio-18407.html',
+        'only_matching': True,
     }]
 
     _FORMATS = {
@@ -104,7 +128,7 @@ class TagesschauIE(InfoExtractor):
                 webpage, 'thumbnail', fatal=False)
             description = self._html_search_regex(
                 r'(?s)<p class="teasertext">(.*?)</p>',
-                webpage, 'description', fatal=False)
+                webpage, 'description', default=None)
             title = self._html_search_regex(
                 r'<span class="headline".*?>(.*?)</span>', webpage, 'title')
 
