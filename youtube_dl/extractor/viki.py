@@ -242,8 +242,8 @@ class VikiIE(VikiBaseIE):
 
         formats = []
         for format_id, stream_dict in streams.items():
-            height = self._search_regex(
-                r'^(\d+)[pP]$', format_id, 'height', default=None)
+            height = int_or_none(self._search_regex(
+                r'^(\d+)[pP]$', format_id, 'height', default=None))
             for protocol, format_dict in stream_dict.items():
                 if format_id == 'm3u8':
                     formats = self._extract_m3u8_formats(
