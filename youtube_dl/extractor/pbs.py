@@ -247,8 +247,8 @@ class PBSIE(InfoExtractor):
                 'url': closed_captions_url,
             }]
 
-        # video.pbs.org video.pbs.org/videoInfo/... frequently provides an obscure 'title' value, like
-        # 'Full Episode', 'Episode 5', etc. prepend program->title
+        # info['title'] is often incomplete (e.g. 'Full Episode', 'Episode 5', etc)
+        # Try turning it to 'program - title' naming scheme if possible
         alt_title = info.get('program', {}).get('title')
         if alt_title:
             info['title'] = alt_title + ' - ' + re.sub(r'^' + alt_title + '[\s\-\:]+', '', info['title'])
