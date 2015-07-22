@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 
+import base64
 import calendar
 import codecs
 import contextlib
@@ -1793,6 +1794,10 @@ def urlhandle_detect_ext(url_handle):
                 return e
 
     return mimetype2ext(getheader('Content-Type'))
+
+
+def encode_data_uri(data, mime_type):
+    return 'data:%s;base64,%s' % (mime_type, base64.b64encode(data).decode('ascii'))
 
 
 def age_restricted(content_limit, age_limit):
