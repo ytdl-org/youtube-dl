@@ -18,7 +18,7 @@ class TagesschauIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Regierungsumbildung in Athen: Neue Minister in Griechenland vereidigt',
             'description': 'md5:171feccd9d9b3dd54d05d501568f6359',
-            'thumbnail': 're:^http:.*\.jpg$',
+            'thumbnail': 're:^https?:.*\.jpg$',
         },
     }, {
         'url': 'http://www.tagesschau.de/multimedia/sendung/ts-5727.html',
@@ -28,7 +28,7 @@ class TagesschauIE(InfoExtractor):
             'ext': 'mp4',
             'description': 'md5:695c01bfd98b7e313c501386327aea59',
             'title': 'Sendung: tagesschau \t04.12.2014 20:00 Uhr',
-            'thumbnail': 're:^http:.*\.jpg$',
+            'thumbnail': 're:^https?:.*\.jpg$',
         },
     }, {
         'url': 'http://www.tagesschau.de/multimedia/politikimradio/audio-18407.html',
