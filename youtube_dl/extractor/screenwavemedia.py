@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     unified_strdate,
+    js_to_json,
 )
 
 
@@ -22,59 +23,34 @@ class ScreenwaveMediaIE(InfoExtractor):
         video_id = self._match_id(url)
 
         playerdata = self._download_webpage(
-            'http://player.screenwavemedia.com/play/player.php?id=%s' % video_id,
+            'http://player.screenwavemedia.com/player.php?id=%s' % video_id,
             video_id, 'Downloading player webpage')
 
         vidtitle = self._search_regex(
             r'\'vidtitle\'\s*:\s*"([^"]+)"', playerdata, 'vidtitle').replace('\\/', '/')
-        vidurl = self._search_regex(
-            r'\'vidurl\'\s*:\s*"([^"]+)"', playerdata, 'vidurl').replace('\\/', '/')
 
-        videolist_url = None
+        playerconfig = self._download_webpage(
+            'http://player.screenwavemedia.com/player.js',
+            video_id, 'Downloading playerconfig webpage')
 
-        mobj = re.search(r"'videoserver'\s*:\s*'(?P<videoserver>[^']+)'", playerdata)
-        if mobj:
-            videoserver = mobj.group('videoserver')
-            mobj = re.search(r'\'vidid\'\s*:\s*"(?P<vidid>[^\']+)"', playerdata)
-            vidid = mobj.group('vidid') if mobj else video_id
-            videolist_url = 'http://%s/vod/smil:%s.smil/jwplayer.smil' % (videoserver, vidid)
-        else:
-            mobj = re.search(r"file\s*:\s*'(?P<smil>http.+?/jwplayer\.smil)'", playerdata)
-            if mobj:
-                videolist_url = mobj.group('smil')
+        videoserver = self._search_regex(r"'videoserver'\s*:\s*'([^']+)", playerconfig, 'videoserver')
 
-        if videolist_url:
-            videolist = self._download_xml(videolist_url, video_id, 'Downloading videolist XML')
-            formats = []
-            baseurl = vidurl[:vidurl.rfind('/') + 1]
-            for video in videolist.findall('.//video'):
-                src = video.get('src')
-                if not src:
-                    continue
-                file_ = src.partition(':')[-1]
-                width = int_or_none(video.get('width'))
-                height = int_or_none(video.get('height'))
-                bitrate = int_or_none(video.get('system-bitrate'), scale=1000)
-                format = {
-                    'url': baseurl + file_,
-                    'format_id': src.rpartition('.')[0].rpartition('_')[-1],
-                }
-                if width or height:
-                    format.update({
-                        'tbr': bitrate,
-                        'width': width,
-                        'height': height,
-                    })
-                else:
-                    format.update({
-                        'abr': bitrate,
-                        'vcodec': 'none',
-                    })
-                formats.append(format)
-        else:
-            formats = [{
-                'url': vidurl,
-            }]
+        sources = self._parse_json(js_to_json(self._search_regex(r"sources\s*:\s*(\[[^\]]+?\])", playerconfig, 'sources', flags=re.DOTALL).replace("' + thisObj.options.videoserver + '", videoserver).replace("' + thisObj.options.attributes.vidid + '", video_id)), video_id)
+
+        formats = []
+        for source in sources:
+            if source['type'] == 'hls':
+                formats.extend(self._extract_m3u8_formats(source['file'], video_id))
+            else:
+                format_label = source.get('label')
+                height = int_or_none(self._search_regex(
+                    r'^(\d+)[pP]', format_label, 'height', default=None))
+                formats.append({
+                    'url': source['file'],
+                    'format': format_label,
+                    'ext': source.get('type'),
+                    'height': height,
+                })
         self._sort_formats(formats)
 
         return {
