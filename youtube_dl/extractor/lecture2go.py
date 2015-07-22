@@ -1,7 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
+from ..utils import determine_ext
 
 
 class Lecture2GoIE(InfoExtractor):
@@ -22,12 +25,26 @@ class Lecture2GoIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_regex(r'<em[^>]+class="title">(.+)</em>', webpage, 'title')
-        video_url = self._search_regex(r'b.isFirefox..a.useHTML5\).b.setOption.a,"src","(.*.mp4)"\).else', webpage, 'video_url')
+
+        formats = []
+        for url in set(re.findall(r'"src","([^"]+)"', webpage)):
+            ext = determine_ext(url)
+            if ext == 'f4m':
+                formats.extend(self._extract_f4m_formats(url, video_id))
+            elif ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(url, video_id))
+            else:
+                formats.append({
+                    'url': url,
+                })
+
+        self._sort_formats(formats)
+
         creator = self._html_search_regex(r'<div[^>]+id="description">([^<]+)</div>', webpage, 'creator')
 
         return {
             'id': video_id,
             'title': title,
-            'url': video_url,
+            'formats': formats,
             'creator': creator
         }
