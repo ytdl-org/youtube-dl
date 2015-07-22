@@ -86,12 +86,12 @@ class RtlNlIE(InfoExtractor):
         # NB: nowadays, recent ffmpeg and avconv can handle these encrypted streams, so
         # this adaptive -> flash workaround is not required in general, but it also
         # allows bypassing georestriction therefore is retained for now.
-        videopath = material['videopath'].replace('/adaptive/', '/flash/')
+        videopath = material['videopath']
         m3u8_url = meta.get('videohost', 'http://manifest.us.rtl.nl') + videopath
 
         formats = self._extract_m3u8_formats(m3u8_url, uuid, ext='mp4')
 
-        video_urlpart = videopath.split('/flash/')[1][:-5]
+        video_urlpart = videopath.split('/adaptive/')[1][:-5]
         PG_URL_TEMPLATE = 'http://pg.us.rtl.nl/rtlxl/network/%s/progressive/%s.mp4'
 
         formats.extend([
