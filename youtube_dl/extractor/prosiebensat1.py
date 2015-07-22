@@ -11,6 +11,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     determine_ext,
+    float_or_none,
     int_or_none,
     unified_strdate,
 )
@@ -230,7 +231,7 @@ class ProSiebenSat1IE(InfoExtractor):
         if video.get('is_protected') is True:
             raise ExtractorError('This video is DRM protected.', expected=True)
 
-        duration = float(video['duration'])
+        duration = float_or_none(video.get('duration'))
         source_ids = [source['id'] for source in video['sources']]
         source_ids_str = ','.join(map(str, source_ids))
 
