@@ -1,8 +1,6 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -40,7 +38,6 @@ class ScreenwaveMediaIE(InfoExtractor):
                 self._search_regex(
                     r"sources\s*:\s*(\[[^\]]+?\])", playerconfig,
                     'sources',
-                    flags=re.DOTALL
                 ).replace(
                     "' + thisObj.options.videoserver + '",
                     videoserver
