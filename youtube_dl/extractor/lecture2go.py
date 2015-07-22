@@ -11,12 +11,12 @@ class Lecture2GoIE(InfoExtractor):
     _VALID_URL = r'https?://lecture2go\.uni-hamburg\.de/veranstaltungen/-/v/(?P<id>\d+)'
     _TEST = {
         'url': 'https://lecture2go.uni-hamburg.de/veranstaltungen/-/v/17473',
-        'md5': 'a9e76f83b3ef58019c4b7dbc35f406c1',
+        'md5': 'ac02b570883020d208d405d5a3fd2f7f',
         'info_dict': {
             'id': '17473',
-            'ext': 'mp4',
-            'url': 'https://fms1.rrz.uni-hamburg.de/abo/64.050_FrankHeitmann_2015-04-13_14-35.mp4',
-            'title': '2 - Endliche Automaten und reguläre Sprachen'
+            'ext': 'flv',
+            'title': '2 - Endliche Automaten und reguläre Sprachen',
+            'creator': 'Frank Heitmann',
         }
     }
 
