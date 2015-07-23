@@ -210,12 +210,12 @@ class BBCCoUkIE(InfoExtractor):
 
     def _extract_video(self, media, programme_id):
         formats = []
-        vbr = int(media.get('bitrate'))
+        vbr = int_or_none(media.get('bitrate'))
         vcodec = media.get('encoding')
         service = media.get('service')
-        width = int(media.get('width'))
-        height = int(media.get('height'))
-        file_size = int(media.get('media_file_size'))
+        width = int_or_none(media.get('width'))
+        height = int_or_none(media.get('height'))
+        file_size = int_or_none(media.get('media_file_size'))
         for connection in self._extract_connections(media):
             conn_formats = self._extract_connection(connection, programme_id)
             for format in conn_formats:
@@ -232,7 +232,7 @@ class BBCCoUkIE(InfoExtractor):
 
     def _extract_audio(self, media, programme_id):
         formats = []
-        abr = int(media.get('bitrate'))
+        abr = int_or_none(media.get('bitrate'))
         acodec = media.get('encoding')
         service = media.get('service')
         for connection in self._extract_connections(media):
@@ -300,7 +300,7 @@ class BBCCoUkIE(InfoExtractor):
                     if kind != 'programme' and kind != 'radioProgramme':
                         continue
                     programme_id = item.get('vpid')
-                    duration = int(item.get('duration'))
+                    duration = int_or_none(item.get('duration'))
                     formats, subtitles = self._download_media_selector(programme_id)
                 return programme_id, title, description, duration, formats, subtitles
         except ExtractorError as ee:
@@ -332,7 +332,7 @@ class BBCCoUkIE(InfoExtractor):
             title = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}title').text
             description = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}summary').text
             programme_id = item.get('identifier')
-            duration = int(item.get('duration'))
+            duration = int_or_none(item.get('duration'))
             formats, subtitles = self._download_media_selector(programme_id)
 
         return programme_id, title, description, duration, formats, subtitles
