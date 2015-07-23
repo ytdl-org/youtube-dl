@@ -65,7 +65,7 @@ class InfoExtractor(object):
 
                     Potential fields:
                     * url        Mandatory. The URL of the video file
-                    * ext        Will be calculated from url if missing
+                    * ext        Will be calculated from URL if missing
                     * format     A human-readable description of the format
                                  ("mp4 container with h264/opus").
                                  Calculated from the format_id, width, height.
@@ -155,7 +155,7 @@ class InfoExtractor(object):
                     lower to higher preference, each element is a dictionary
                     with the "ext" entry and one of:
                         * "data": The subtitles file contents
-                        * "url": A url pointing to the subtitles file
+                        * "url": A URL pointing to the subtitles file
     automatic_captions: Like 'subtitles', used by the YoutubeIE for
                     automatically generated captions
     duration:       Length of the video in seconds, as an integer.
@@ -176,7 +176,7 @@ class InfoExtractor(object):
                                      Set to "root" to indicate that this is a
                                      comment to the original video.
     age_limit:      Age restriction for the video, as an integer (years)
-    webpage_url:    The url to the video webpage, if given to youtube-dl it
+    webpage_url:    The URL to the video webpage, if given to youtube-dl it
                     should allow to get the same result again. (It will be set
                     by YoutubeDL if it's missing)
     categories:     A list of categories that the video falls in, for example
@@ -184,9 +184,9 @@ class InfoExtractor(object):
     is_live:        True, False, or None (=unknown). Whether this video is a
                     live stream that goes on instead of a fixed-length video.
     start_time:     Time in seconds where the reproduction should start, as
-                    specified in the url.
+                    specified in the URL.
     end_time:       Time in seconds where the reproduction should end, as
-                    specified in the url.
+                    specified in the URL.
 
     Unless mentioned otherwise, the fields should be Unicode strings.
 
@@ -505,7 +505,7 @@ class InfoExtractor(object):
     # Methods for following #608
     @staticmethod
     def url_result(url, ie=None, video_id=None, video_title=None):
-        """Returns a url that points to a page that should be processed"""
+        """Returns a URL that points to a page that should be processed"""
         # TODO: ie should be the class used for getting the info
         video_info = {'_type': 'url',
                       'url': url,
@@ -639,7 +639,7 @@ class InfoExtractor(object):
         return unescapeHTML(escaped)
 
     def _og_search_thumbnail(self, html, **kargs):
-        return self._og_search_property('image', html, 'thumbnail url', fatal=False, **kargs)
+        return self._og_search_property('image', html, 'thumbnail URL', fatal=False, **kargs)
 
     def _og_search_description(self, html, **kargs):
         return self._og_search_property('description', html, fatal=False, **kargs)
@@ -1120,7 +1120,7 @@ class InfoExtractor(object):
 class SearchInfoExtractor(InfoExtractor):
     """
     Base class for paged search queries extractors.
-    They accept urls in the format _SEARCH_KEY(|all|[0-9]):{query}
+    They accept URLs in the format _SEARCH_KEY(|all|[0-9]):{query}
     Instances should define _SEARCH_KEY and _MAX_RESULTS.
     """
 
