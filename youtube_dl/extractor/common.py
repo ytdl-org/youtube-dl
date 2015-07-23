@@ -185,6 +185,8 @@ class InfoExtractor(object):
                     live stream that goes on instead of a fixed-length video.
     start_time:     Time in seconds where the reproduction should start, as
                     specified in the url.
+    end_time:       Time in seconds where the reproduction should end, as
+                    specified in the url.
 
     Unless mentioned otherwise, the fields should be Unicode strings.
 

@@ -319,7 +319,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     IE_NAME = 'youtube'
     _TESTS = [
         {
-            'url': 'http://www.youtube.com/watch?v=BaW_jenozKcj&t=1s',
+            'url': 'http://www.youtube.com/watch?v=BaW_jenozKcj&t=1s&end=9',
             'info_dict': {
                 'id': 'BaW_jenozKc',
                 'ext': 'mp4',
@@ -332,6 +332,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'like_count': int,
                 'dislike_count': int,
                 'start_time': 1,
+                'end_time': 9,
             }
         },
         {
@@ -893,12 +894,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             else 'https')
 
         start_time = None
+        end_time = None
         parsed_url = compat_urllib_parse_urlparse(url)
         for component in [parsed_url.fragment, parsed_url.query]:
             query = compat_parse_qs(component)
-            if 't' in query:
+            if start_time is None and 't' in query:
                 start_time = parse_duration(query['t'][0])
-                break
+            if end_time is None and 'end' in query:
+                end_time = parse_duration(query['end'][0])
 
         # Extract original video URL from URL with redirection, like age verification, using next_url parameter
         mobj = re.search(self._NEXT_URL_RE, url)
@@ -1267,6 +1270,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'formats': formats,
             'is_live': is_live,
             'start_time': start_time,
+            'end_time': end_time,
         }
 
 
