@@ -37,7 +37,7 @@ class DashSegmentsFD(FileDownloader):
         def combine_url(base_url, target_url):
             if re.match(r'^https?://', target_url):
                 return target_url
-            return '%s/%s' % (base_url, target_url)
+            return '%s%s%s' % (base_url, '' if base_url.endswith('/') else '/', target_url)
 
         with open(tmpfilename, 'wb') as outf:
             append_url_to_file(
