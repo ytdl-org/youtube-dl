@@ -42,7 +42,14 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         ('stream_h264_hd_url', 'hd'),
         ('stream_h264_hd1080_url', 'hd180'),
     ]
-
+    """Formats for 'playerv5' pages"""
+    _FORMATSv5 = [
+        ('240', 'ld'),
+        ('380', 'standard'),
+        ('480', 'hq'),
+        ('720', 'hd'),
+        ('1080', 'hd1080'),
+    ]
     _TESTS = [
         {
             'url': 'https://www.dailymotion.com/video/x2iuewm_steam-machine-models-pricing-listed-on-steam-store-ign-news_videogames',
@@ -116,57 +123,113 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         embed_request = self._build_request(embed_url)
         embed_page = self._download_webpage(
             embed_request, video_id, 'Downloading embed page')
-        info = self._search_regex(r'var info = ({.*?}),$', embed_page,
+        checkv5 = self._search_regex(r'playerV5(.)', embed_page,
+                                'checkv5', default=None, fatal=False)
+        """For normal embed pages with info variable"""
+        if checkv5 is None:
+            info = self._search_regex(r'var info = ({.*?}),$', embed_page,
                                   'video info', flags=re.MULTILINE)
-        info = json.loads(info)
-        if info.get('error') is not None:
-            msg = 'Couldn\'t get video, Dailymotion says: %s' % info['error']['title']
-            raise ExtractorError(msg, expected=True)
-
-        formats = []
-        for (key, format_id) in self._FORMATS:
-            video_url = info.get(key)
-            if video_url is not None:
-                m_size = re.search(r'H264-(\d+)x(\d+)', video_url)
-                if m_size is not None:
-                    width, height = map(int_or_none, (m_size.group(1), m_size.group(2)))
-                else:
-                    width, height = None, None
-                formats.append({
-                    'url': video_url,
-                    'ext': 'mp4',
-                    'format_id': format_id,
-                    'width': width,
-                    'height': height,
-                })
-        if not formats:
-            raise ExtractorError('Unable to extract video URL')
-
-        # subtitles
-        video_subtitles = self.extract_subtitles(video_id, webpage)
-
-        view_count = str_to_int(self._search_regex(
-            r'video_views_count[^>]+>\s+([\d\.,]+)',
-            webpage, 'view count', fatal=False))
-
-        title = self._og_search_title(webpage, default=None)
-        if title is None:
-            title = self._html_search_regex(
+            info = json.loads(info)
+            if info.get('error') is not None:
+                msg = 'Couldn\'t get video, Dailymotion says: %s' % info['error']['title']
+                raise ExtractorError(msg, expected=True)
+            formats = []
+            for (key, format_id) in self._FORMATS:
+                video_url = info.get(key)
+                if video_url is not None:
+                    m_size = re.search(r'H264-(\d+)x(\d+)', video_url)
+                    if m_size is not None:
+                        width, height = map(int_or_none, (m_size.group(1), m_size.group(2)))
+                    else:
+                        width, height = None, None
+                    formats.append({
+                        'url': video_url,
+                        'ext': 'mp4',
+                        'format_id': format_id,
+                        'width': width,
+                        'height': height,
+                    })
+            if not formats:
+                raise ExtractorError('Unable to extract video URL')
+            video_subtitles = self.extract_subtitles(video_id, webpage)
+            view_count = self._search_regex(
+                r'video_views_count[^>]+>\s+([\d\. ]+)\s+views',
+                webpage, 'view count', fatal=False)
+            view_count = view_count.replace(" ", "")
+            view_count = str_to_int(view_count)
+            title = self._og_search_title(webpage, default=None)
+            if title is None:
+                title = self._html_search_regex(
                 r'(?s)<span\s+id="video_title"[^>]*>(.*?)</span>', webpage,
-                'title')
-
-        return {
-            'id': video_id,
-            'formats': formats,
-            'uploader': info['owner.screenname'],
-            'upload_date': video_upload_date,
-            'title': title,
-            'subtitles': video_subtitles,
-            'thumbnail': info['thumbnail_url'],
-            'age_limit': age_limit,
-            'view_count': view_count,
-            'duration': info['duration']
-        }
+                    'title')
+            return {
+                'id': video_id,
+                'formats': formats,
+                'uploader': info['owner.screenname'],
+                'upload_date': video_upload_date,
+                'title': title,
+                'subtitles': video_subtitles,
+                'thumbnail': info['thumbnail_url'],
+                'age_limit': age_limit,
+                'view_count': view_count,
+                'duration': info['duration']
+                }
+        else:
+            formats = []
+            for (key, format_id) in self._FORMATSv5:
+                """Verify format is available"""
+                checkformat = self._search_regex(r'%s+":(.)' % key, embed_page,
+                                            'checkformat', default=None)
+                if checkformat is not None:
+                    video_url = self._search_regex(r'%s+".{30}(.*?)"' % key, embed_page,
+                                                   'video info', flags=re.MULTILINE)
+                    video_url = video_url.replace("\\", "")
+                    if video_url is not None:
+                        m_size = re.search(r'H264-(\d+)x(\d+)', video_url)
+                        if m_size is not None:
+                            width, height = map(int_or_none, (m_size.group(1), m_size.group(2)))
+                        else:
+                            width, height = None, None
+                        formats.append({
+                                        'url': video_url,
+                                        'ext': 'mp4',
+                                        'format_id': format_id,
+                                        'width': width,
+                                        'height': height,
+                                        })
+            if not formats:
+                raise ExtractorError('Unable to extract video URL from playerv5 page')
+            v5screenname = self._search_regex(r'screenname":"(.*?)"', embed_page,
+            'video info-v5screenname', flags=re.MULTILINE, fatal=False)
+            v5thumbnailurl = self._search_regex(r'poster_url":"(.*?)"', embed_page,
+            'video info-v5thumbnailurl', flags=re.MULTILINE, fatal=False) 
+            if v5thumbnailurl is not None:
+                v5thumbnailurl = v5thumbnailurl.replace("\\", "")
+            video_subtitles = self.extract_subtitles(video_id, webpage)
+            view_count = self._search_regex(r'video_views_count[^>]+>\s+([\d\. ]+)\s+views',
+                webpage, 'view count', fatal=False)
+            view_count = view_count.replace(" ", "")
+            view_count = str_to_int(view_count)
+            title = self._og_search_title(webpage, default=None)
+            if title is None:
+                title = self._html_search_regex(
+                    r'(?s)<span\s+id="video_title"[^>]*>(.*?)</span>', webpage,
+                    'title')
+            duration = self._search_regex(r'duration":(\d+),', embed_page,
+                'video info-v5duration', flags=re.MULTILINE, fatal=False)
+            return  {
+                'id':       video_id,
+                'formats': formats,
+                'uploader': v5screenname,
+                'upload_date':  video_upload_date,
+                'title':    self._og_search_title(webpage),
+                'subtitles':    video_subtitles,
+                'thumbnail': v5thumbnailurl,
+                'age_limit': age_limit,
+                'view_count': view_count,
+                'duration': duration
+            } 
+        
 
     def _get_subtitles(self, video_id, webpage):
         try:
