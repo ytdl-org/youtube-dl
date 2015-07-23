@@ -8,18 +8,30 @@ from ..utils import (
 
 
 class NationalGeographicIE(InfoExtractor):
-    _VALID_URL = r'http://video\.nationalgeographic\.com/video/.*?'
+    _VALID_URL = r'http://video\.nationalgeographic\.com/.*?'
 
-    _TEST = {
-        'url': 'http://video.nationalgeographic.com/video/news/150210-news-crab-mating-vin?source=featuredvideo',
-        'info_dict': {
-            'id': '4DmDACA6Qtk_',
-            'ext': 'flv',
-            'title': 'Mating Crabs Busted by Sharks',
-            'description': 'md5:16f25aeffdeba55aaa8ec37e093ad8b3',
+    _TESTS = [
+        {
+            'url': 'http://video.nationalgeographic.com/video/news/150210-news-crab-mating-vin?source=featuredvideo',
+            'info_dict': {
+                'id': '4DmDACA6Qtk_',
+                'ext': 'flv',
+                'title': 'Mating Crabs Busted by Sharks',
+                'description': 'md5:16f25aeffdeba55aaa8ec37e093ad8b3',
+            },
+            'add_ie': ['ThePlatform'],
         },
-        'add_ie': ['ThePlatform'],
-    }
+        {
+            'url': 'http://video.nationalgeographic.com/wild/when-sharks-attack/the-real-jaws',
+            'info_dict': {
+                'id': '_JeBD_D7PlS5',
+                'ext': 'flv',
+                'title': 'The Real Jaws',
+                'description': 'md5:8d3e09d9d53a85cd397b4b21b2c77be6',
+            },
+            'add_ie': ['ThePlatform'],
+        },
+    ]
 
     def _real_extract(self, url):
         name = url_basename(url)
@@ -37,5 +49,6 @@ class NationalGeographicIE(InfoExtractor):
 
         return self.url_result(smuggle_url(
             'http://link.theplatform.com/s/ngs/%s?format=SMIL&formats=MPEG4&manifest=f4m' % theplatform_id,
-            # For some reason, the normal links don't work and we must force the use of f4m
+            # For some reason, the normal links don't work and we must force
+            # the use of f4m
             {'force_smil_url': True}))
