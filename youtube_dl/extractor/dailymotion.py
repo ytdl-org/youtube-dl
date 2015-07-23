@@ -302,7 +302,7 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
 
 class DailymotionUserIE(DailymotionPlaylistIE):
     IE_NAME = 'dailymotion:user'
-    _VALID_URL = r'https?://(?:www\.)?dailymotion\.[a-z]{2,3}/(?:(?:old/)?user/)?(?P<user>[^/]+)$'
+    _VALID_URL = r'https?://(?:www\.)?dailymotion\.[a-z]{2,3}/(?!(?:embed|#|video|playlist)/)(?:(?:old/)?user/)?(?P<user>[^/]+)'
     _PAGE_TEMPLATE = 'http://www.dailymotion.com/user/%s/%s'
     _TESTS = [{
         'url': 'https://www.dailymotion.com/user/nqtv',
