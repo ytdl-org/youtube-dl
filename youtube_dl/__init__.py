@@ -320,6 +320,7 @@ def _real_main(argv=None):
         'write_all_thumbnails': opts.write_all_thumbnails,
         'writesubtitles': opts.writesubtitles,
         'writeautomaticsub': opts.writeautomaticsub,
+        'writeplaylists': opts.writeplaylists,
         'allsubtitles': opts.allsubtitles,
         'listsubtitles': opts.listsubtitles,
         'subtitlesformat': opts.subtitlesformat,

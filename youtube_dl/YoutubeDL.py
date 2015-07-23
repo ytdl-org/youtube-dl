@@ -835,6 +835,15 @@ class YoutubeDL(object):
                                                       extra_info=extra)
                 playlist_results.append(entry_result)
             ie_result['entries'] = playlist_results
+
+            if download and self.params.get('writeplaylists'):
+                ie_result['ext'] = 'm3u'
+                playlist_filename = self.prepare_filename(ie_result)
+                playlist_file = open(playlist_filename, 'w')
+                for entry in ie_result['entries']:
+                    filename = self.prepare_filename(entry)
+                    playlist_file.write(filename + '\n')
+
             self.to_screen('[download] Finished downloading playlist: %s' % playlist)
             return ie_result
         elif result_type == 'compat_list':
