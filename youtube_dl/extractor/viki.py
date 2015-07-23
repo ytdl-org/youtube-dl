@@ -88,6 +88,14 @@ class VikiBaseIE(InfoExtractor):
         if not self._token:
             self.report_warning('Unable to get session token, login has probably failed')
 
+    @staticmethod
+    def dict_selection(dict_obj, preferred_key):
+        if preferred_key in dict_obj:
+            return dict_obj.get(preferred_key)
+
+        filtered_dict = list(filter(None, [dict_obj.get(k) for k in dict_obj.keys()]))
+        return filtered_dict[0] if filtered_dict else None
+
 
 class VikiIE(VikiBaseIE):
     IE_NAME = 'viki'
@@ -194,23 +202,14 @@ class VikiIE(VikiBaseIE):
         video = self._call_api(
             'videos/%s.json' % video_id, video_id, 'Downloading video JSON')
 
-        title = None
-        titles = video.get('titles')
-        if titles:
-            title = titles.get('en') or titles[titles.keys()[0]]
+        title = self.dict_selection(video.get('titles', {}), 'en')
         if not title:
             title = 'Episode %d' % video.get('number') if video.get('type') == 'episode' else video.get('id') or video_id
-            container_titles = video.get('container', {}).get('titles')
-            if container_titles:
-                container_title = container_titles.get('en') or container_titles[container_titles.keys()[0]]
-                title = '%s - %s' % (container_title, title)
+            container_titles = video.get('container', {}).get('titles', {})
+            container_title = self.dict_selection(container_titles, 'en')
+            title = '%s - %s' % (container_title, title)
 
-        descriptions = video.get('descriptions', {})
-        description = descriptions.get('en')
-        if description is None:
-            filtered_descriptions = list(filter(None, [descriptions.get(k) for k in titles.keys()]))
-            if filtered_descriptions:
-                description = filtered_descriptions[0]
+        description = self.dict_selection(video.get('descriptions', {}), 'en')
 
         duration = int_or_none(video.get('duration'))
         timestamp = parse_iso8601(video.get('created_at'))
@@ -316,11 +315,9 @@ class VikiChannelIE(VikiBaseIE):
             'containers/%s.json' % channel_id, channel_id,
             'Downloading channel JSON')
 
-        titles = channel['titles']
-        title = titles.get('en') or titles[titles.keys()[0]]
+        title = self.dict_selection(channel['titles'], 'en')
 
-        descriptions = channel['descriptions']
-        description = descriptions.get('en') or descriptions[descriptions.keys()[0]]
+        description = self.dict_selection(channel['descriptions'], 'en')
 
         entries = []
         for video_type in ('episodes', 'clips', 'movies'):
