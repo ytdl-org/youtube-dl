@@ -900,6 +900,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             query = compat_parse_qs(component)
             if start_time is None and 't' in query:
                 start_time = parse_duration(query['t'][0])
+            if start_time is None and 'start' in query:
+                start_time = parse_duration(query['start'][0])
             if end_time is None and 'end' in query:
                 end_time = parse_duration(query['end'][0])
 
