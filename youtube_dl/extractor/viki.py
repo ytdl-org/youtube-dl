@@ -173,6 +173,19 @@ class VikiIE(VikiBaseIE):
     }, {
         'url': 'http://www.viki.com/player/44699v',
         'only_matching': True,
+    }, {
+        # non-English description
+        'url': 'http://www.viki.com/videos/158036v-love-in-magic',
+        'md5': '1713ae35df5a521b31f6dc40730e7c9c',
+        'info_dict': {
+            'id': '158036v',
+            'ext': 'mp4',
+            'uploader': 'I Planet Entertainment',
+            'upload_date': '20111122',
+            'timestamp': 1321985454,
+            'description': 'md5:44b1e46619df3a072294645c770cef36',
+            'title': 'Love In Magic',
+        },
     }]
 
     def _real_extract(self, url):
@@ -192,8 +205,12 @@ class VikiIE(VikiBaseIE):
                 container_title = container_titles.get('en') or container_titles[container_titles.keys()[0]]
                 title = '%s - %s' % (container_title, title)
 
-        descriptions = video.get('descriptions')
-        description = descriptions.get('en') or descriptions[titles.keys()[0]] if descriptions else None
+        descriptions = video.get('descriptions', {})
+        description = descriptions.get('en')
+        if description is None:
+            filtered_descriptions = list(filter(None, [descriptions.get(k) for k in titles.keys()]))
+            if filtered_descriptions:
+                description = filtered_descriptions[0]
 
         duration = int_or_none(video.get('duration'))
         timestamp = parse_iso8601(video.get('created_at'))
