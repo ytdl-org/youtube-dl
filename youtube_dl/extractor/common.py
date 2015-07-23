@@ -183,6 +183,10 @@ class InfoExtractor(object):
                     ["Sports", "Berlin"]
     is_live:        True, False, or None (=unknown). Whether this video is a
                     live stream that goes on instead of a fixed-length video.
+    start_time:     Time in seconds where the reproduction should start, as
+                    specified in the url.
+    end_time:       Time in seconds where the reproduction should end, as
+                    specified in the url.
 
     Unless mentioned otherwise, the fields should be Unicode strings.
 
