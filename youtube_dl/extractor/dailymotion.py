@@ -13,8 +13,10 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    determine_ext,
     int_or_none,
     orderedSet,
+    parse_iso8601,
     str_to_int,
     unescapeHTML,
 )
@@ -28,10 +30,12 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
         request.add_header('Cookie', 'family_filter=off; ff=off')
         return request
 
+    def _download_webpage_no_ff(self, url, *args, **kwargs):
+        request = self._build_request(url)
+        return self._download_webpage(request, *args, **kwargs)
+
 
 class DailymotionIE(DailymotionBaseInfoExtractor):
-    """Information Extractor for Dailymotion"""
-
     _VALID_URL = r'(?i)(?:https?://)?(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(embed|#)/)?video/(?P<id>[^/?_]+)'
     IE_NAME = 'dailymotion'
 
@@ -50,10 +54,17 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             'info_dict': {
                 'id': 'x2iuewm',
                 'ext': 'mp4',
-                'uploader': 'IGN',
                 'title': 'Steam Machine Models, Pricing Listed on Steam Store - IGN News',
-                'upload_date': '20150306',
+                'description': 'Several come bundled with the Steam Controller.',
+                'thumbnail': 're:^https?:.*\.(?:jpg|png)$',
                 'duration': 74,
+                'timestamp': 1425657362,
+                'upload_date': '20150306',
+                'uploader': 'IGN',
+                'uploader_id': 'xijv66',
+                'age_limit': 0,
+                'view_count': int,
+                'comment_count': int,
             }
         },
         # Vevo video
@@ -87,38 +98,106 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        url = 'https://www.dailymotion.com/video/%s' % video_id
 
-        # Retrieve video webpage to extract further information
-        request = self._build_request(url)
-        webpage = self._download_webpage(request, video_id)
-
-        # Extract URL, uploader and title from webpage
-        self.report_extraction(video_id)
-
-        # It may just embed a vevo video:
-        m_vevo = re.search(
-            r'<link rel="video_src" href="[^"]*?vevo.com[^"]*?video=(?P<id>[\w]*)',
-            webpage)
-        if m_vevo is not None:
-            vevo_id = m_vevo.group('id')
-            self.to_screen('Vevo video detected: %s' % vevo_id)
-            return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
+        webpage = self._download_webpage_no_ff(
+            'https://www.dailymotion.com/video/%s' % video_id, video_id)
 
         age_limit = self._rta_search(webpage)
 
-        video_upload_date = None
-        mobj = re.search(r'<meta property="video:release_date" content="([0-9]{4})-([0-9]{2})-([0-9]{2}).+?"/>', webpage)
-        if mobj is not None:
-            video_upload_date = mobj.group(1) + mobj.group(2) + mobj.group(3)
+        description = self._og_search_description(webpage) or self._html_search_meta(
+            'description', webpage, 'description')
 
-        embed_url = 'https://www.dailymotion.com/embed/video/%s' % video_id
-        embed_request = self._build_request(embed_url)
-        embed_page = self._download_webpage(
-            embed_request, video_id, 'Downloading embed page')
-        info = self._search_regex(r'var info = ({.*?}),$', embed_page,
-                                  'video info', flags=re.MULTILINE)
-        info = json.loads(info)
+        view_count = str_to_int(self._search_regex(
+            [r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserPlays:(\d+)"',
+             r'video_views_count[^>]+>\s+([\d\.,]+)'],
+            webpage, 'view count', fatal=False))
+        comment_count = int_or_none(self._search_regex(
+            r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserComments:(\d+)"',
+            webpage, 'comment count', fatal=False))
+
+        player_v5 = self._search_regex(
+            r'playerV5\s*=\s*dmp\.create\([^,]+?,\s*({.+?})\);',
+            webpage, 'player v5', default=None)
+        if player_v5:
+            player = self._parse_json(player_v5, video_id)
+            metadata = player['metadata']
+            formats = []
+            for quality, media_list in metadata['qualities'].items():
+                for media in media_list:
+                    media_url = media.get('url')
+                    if not media_url:
+                        continue
+                    type_ = media.get('type')
+                    if type_ == 'application/vnd.lumberjack.manifest':
+                        continue
+                    if type_ == 'application/x-mpegURL' or determine_ext(media_url) == 'm3u8':
+                        formats.extend(self._extract_m3u8_formats(
+                            media_url, video_id, 'mp4', m3u8_id='hls'))
+                    else:
+                        f = {
+                            'url': media_url,
+                            'format_id': quality,
+                        }
+                        m = re.search(r'H264-(?P<width>\d+)x(?P<height>\d+)', media_url)
+                        if m:
+                            f.update({
+                                'width': int(m.group('width')),
+                                'height': int(m.group('height')),
+                            })
+                        formats.append(f)
+            self._sort_formats(formats)
+
+            title = metadata['title']
+            duration = int_or_none(metadata.get('duration'))
+            timestamp = int_or_none(metadata.get('created_time'))
+            thumbnail = metadata.get('poster_url')
+            uploader = metadata.get('owner', {}).get('screenname')
+            uploader_id = metadata.get('owner', {}).get('id')
+
+            subtitles = {}
+            for subtitle_lang, subtitle in metadata.get('subtitles', {}).get('data', {}).items():
+                subtitles[subtitle_lang] = [{
+                    'ext': determine_ext(subtitle_url),
+                    'url': subtitle_url,
+                } for subtitle_url in subtitle.get('urls', [])]
+
+            return {
+                'id': video_id,
+                'title': title,
+                'description': description,
+                'thumbnail': thumbnail,
+                'duration': duration,
+                'timestamp': timestamp,
+                'uploader': uploader,
+                'uploader_id': uploader_id,
+                'age_limit': age_limit,
+                'view_count': view_count,
+                'comment_count': comment_count,
+                'formats': formats,
+                'subtitles': subtitles,
+            }
+
+        # vevo embed
+        vevo_id = self._search_regex(
+            r'<link rel="video_src" href="[^"]*?vevo.com[^"]*?video=(?P<id>[\w]*)',
+            webpage, 'vevo embed', default=None)
+        if vevo_id:
+            return self.url_result('vevo:%s' % vevo_id, 'Vevo')
+
+        # fallback old player
+        embed_page = self._download_webpage_no_ff(
+            'https://www.dailymotion.com/embed/video/%s' % video_id,
+            video_id, 'Downloading embed page')
+
+        timestamp = parse_iso8601(self._html_search_meta(
+            'video:release_date', webpage, 'upload date'))
+
+        info = self._parse_json(
+            self._search_regex(
+                r'var info = ({.*?}),$', embed_page,
+                'video info', flags=re.MULTILINE),
+            video_id)
+
         if info.get('error') is not None:
             msg = 'Couldn\'t get video, Dailymotion says: %s' % info['error']['title']
             raise ExtractorError(msg, expected=True)
@@ -139,15 +218,10 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                     'width': width,
                     'height': height,
                 })
-        if not formats:
-            raise ExtractorError('Unable to extract video URL')
+        self._sort_formats(formats)
 
         # subtitles
         video_subtitles = self.extract_subtitles(video_id, webpage)
-
-        view_count = str_to_int(self._search_regex(
-            r'video_views_count[^>]+>\s+([\d\.,]+)',
-            webpage, 'view count', fatal=False))
 
         title = self._og_search_title(webpage, default=None)
         if title is None:
@@ -159,8 +233,9 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             'id': video_id,
             'formats': formats,
             'uploader': info['owner.screenname'],
-            'upload_date': video_upload_date,
+            'timestamp': timestamp,
             'title': title,
+            'description': description,
             'subtitles': video_subtitles,
             'thumbnail': info['thumbnail_url'],
             'age_limit': age_limit,
@@ -201,9 +276,9 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
     def _extract_entries(self, id):
         video_ids = []
         for pagenum in itertools.count(1):
-            request = self._build_request(self._PAGE_TEMPLATE % (id, pagenum))
-            webpage = self._download_webpage(request,
-                                             id, 'Downloading page %s' % pagenum)
+            webpage = self._download_webpage_no_ff(
+                self._PAGE_TEMPLATE % (id, pagenum),
+                id, 'Downloading page %s' % pagenum)
 
             video_ids.extend(re.findall(r'data-xid="(.+?)"', webpage))
 
@@ -286,8 +361,7 @@ class DailymotionCloudIE(DailymotionBaseInfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        request = self._build_request(url)
-        webpage = self._download_webpage(request, video_id)
+        webpage = self._download_webpage_no_ff(url, video_id)
 
         title = self._html_search_regex(r'<title>([^>]+)</title>', webpage, 'title')
 
