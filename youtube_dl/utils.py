@@ -586,6 +586,23 @@ class ContentTooShortError(Exception):
         self.expected = expected
 
 
+class OptionalDependencyNotFound(Exception):
+    """Optional dependency not found
+
+    This exception may be raised by YoutubeDL, when the user tries to use a
+    feature that requires an optional dependency which could not be found.
+    """
+
+    def __init__(self, module_name, feature_name):
+        self.module_name = str(module_name)
+        self.feature_name = str(feature_name)
+
+    def __str__(self):
+        return ("Unable to use '{feature}', because it depends on '{module}' "
+                "which was not found.").format(
+            feature=self.feature_name, module=self.module_name)
+
+
 def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
     # Working around python 2 bug (see http://bugs.python.org/issue17849) by limiting
     # expected HTTP responses to meet HTTP/1.0 or later (see also
