@@ -30,6 +30,10 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
         request.add_header('Cookie', 'family_filter=off; ff=off')
         return request
 
+    def _download_webpage_handle_no_ff(self, url, *args, **kwargs):
+        request = self._build_request(url)
+        return self._download_webpage_handle(request, *args, **kwargs)
+
     def _download_webpage_no_ff(self, url, *args, **kwargs):
         request = self._build_request(url)
         return self._download_webpage(request, *args, **kwargs)
@@ -275,10 +279,17 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
 
     def _extract_entries(self, id):
         video_ids = []
+        processed_urls = set()
         for pagenum in itertools.count(1):
-            webpage = self._download_webpage_no_ff(
-                self._PAGE_TEMPLATE % (id, pagenum),
-                id, 'Downloading page %s' % pagenum)
+            page_url = self._PAGE_TEMPLATE % (id, pagenum)
+            webpage, urlh = self._download_webpage_handle_no_ff(
+                page_url, id, 'Downloading page %s' % pagenum)
+            if urlh.geturl() in processed_urls:
+                self.report_warning('Stopped at duplicated page %s, which is the same as %s' % (
+                    page_url, urlh.geturl()), id)
+                break
+
+            processed_urls.add(urlh.geturl())
 
             video_ids.extend(re.findall(r'data-xid="(.+?)"', webpage))
 
@@ -311,6 +322,17 @@ class DailymotionUserIE(DailymotionPlaylistIE):
             'title': 'Rémi Gaillard',
         },
         'playlist_mincount': 100,
+    }, {
+        'url': 'http://www.dailymotion.com/user/UnderProject',
+        'info_dict': {
+            'id': 'UnderProject',
+            'title': 'UnderProject',
+        },
+        'playlist_mincount': 1800,
+        'expected_warnings': [
+            'Stopped at duplicated page',
+        ],
+        'skip': 'Takes too long time',
     }]
 
     def _real_extract(self, url):
