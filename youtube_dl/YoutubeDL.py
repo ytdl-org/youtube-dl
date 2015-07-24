@@ -23,6 +23,12 @@ import sys
 import time
 import traceback
 
+# Try to import socks
+try:
+    import socks
+except ImportError:
+    pass
+
 if os.name == 'nt':
     import ctypes
 
@@ -1824,6 +1830,28 @@ class YoutubeDL(object):
             if 'http' in proxies and 'https' not in proxies:
                 proxies['https'] = proxies['http']
         proxy_handler = PerRequestProxyHandler(proxies)
+
+        if 'socks' in sys.modules:  # Check if socks was imported
+            opts_socks = self.params.get('socksproxy')
+
+            print("Socks {}".format(opts_socks))
+            if opts_socks is not None and opts_socks:
+                pair = opts_socks.split(':')
+                if len(pair) == 2:
+                    socks.setdefaultproxy(
+                        socks.PROXY_TYPE_SOCKS5,
+                        pair[0],
+                        int(pair[1]))
+                else:
+                    socks.setdefaultproxy(
+                        socks.PROXY_TYPE_SOCKS5,
+                        'localhost',
+                        int(pair[0]))
+
+                socks.wrapmodule(compat_urllib_request)
+        else:  # Socks was not imported, but the use tried to use it. Tell them
+            if self.params.get('socksproxy'):
+                self.to_stdout("Can't use socks proxy, socks module not found")
 
         debuglevel = 1 if self.params.get('debug_printtraffic') else 0
         https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)

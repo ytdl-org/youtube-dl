@@ -346,6 +346,7 @@ def _real_main(argv=None):
         'nocheckcertificate': opts.no_check_certificate,
         'prefer_insecure': opts.prefer_insecure,
         'proxy': opts.proxy,
+        'socksproxy': opts.socksproxy,
         'socket_timeout': opts.socket_timeout,
         'bidi_workaround': opts.bidi_workaround,
         'debug_printtraffic': opts.debug_printtraffic,
