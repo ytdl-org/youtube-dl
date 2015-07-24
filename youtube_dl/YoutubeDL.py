@@ -1834,7 +1834,6 @@ class YoutubeDL(object):
         if 'socks' in sys.modules:  # Check if socks was imported
             opts_socks = self.params.get('socksproxy')
 
-            print("Socks {}".format(opts_socks))
             if opts_socks is not None and opts_socks:
                 pair = opts_socks.split(':')
                 if len(pair) == 2:
@@ -1851,7 +1850,7 @@ class YoutubeDL(object):
                 socks.wrapmodule(compat_urllib_request)
         else:  # Socks was not imported, but the use tried to use it. Tell them
             if self.params.get('socksproxy'):
-                self.to_stdout("Can't use socks proxy, socks module not found")
+                self.report_warning("Can't use socks proxy, socks module not found")
 
         debuglevel = 1 if self.params.get('debug_printtraffic') else 0
         https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)
