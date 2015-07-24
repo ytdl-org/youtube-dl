@@ -29,6 +29,7 @@ from .utils import (
     DownloadError,
     match_filter_func,
     MaxDownloadsReached,
+    OptionalDependencyNotFound,
     preferredencoding,
     read_batch_urls,
     SameFileError,
@@ -346,6 +347,7 @@ def _real_main(argv=None):
         'nocheckcertificate': opts.no_check_certificate,
         'prefer_insecure': opts.prefer_insecure,
         'proxy': opts.proxy,
+        'socksproxy': opts.socksproxy,
         'socket_timeout': opts.socket_timeout,
         'bidi_workaround': opts.bidi_workaround,
         'debug_printtraffic': opts.debug_printtraffic,
@@ -414,5 +416,7 @@ def main(argv=None):
         sys.exit('ERROR: fixed output name but more than one file to download')
     except KeyboardInterrupt:
         sys.exit('\nERROR: Interrupted by user')
+    except OptionalDependencyNotFound:
+        sys.exit('ERROR: Dependency not found')
 
 __all__ = ['main', 'YoutubeDL', 'gen_extractors', 'list_extractors']
