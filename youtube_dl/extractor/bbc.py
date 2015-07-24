@@ -5,15 +5,19 @@ import xml.etree.ElementTree
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
+    parse_duration,
     int_or_none,
 )
 from ..compat import compat_HTTPError
+import re
 
 
 class BBCCoUkIE(InfoExtractor):
     IE_NAME = 'bbc.co.uk'
     IE_DESC = 'BBC iPlayer'
     _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:(?:(?:programmes|iplayer(?:/[^/]+)?/(?:episode|playlist))/)|music/clips[/#])(?P<id>[\da-z]{8})'
+
+    mediaselector_url = 'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s'
 
     _TESTS = [
         {
@@ -262,7 +266,7 @@ class BBCCoUkIE(InfoExtractor):
     def _download_media_selector(self, programme_id):
         try:
             media_selection = self._download_xml(
-                'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s' % programme_id,
+                self.mediaselector_url % programme_id,
                 programme_id, 'Downloading media selection XML')
         except ExtractorError as ee:
             if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
@@ -377,3 +381,177 @@ class BBCCoUkIE(InfoExtractor):
             'formats': formats,
             'subtitles': subtitles,
         }
+
+
+class BBCNewsIE(BBCCoUkIE):
+    IE_NAME = 'bbc.com'
+    IE_DESC = 'BBC news'
+    _VALID_URL = r'https?://(?:www\.)?bbc\.com/.+?/(?P<id>[^/]+)$'
+
+    mediaselector_url = 'http://open.live.bbc.co.uk/mediaselector/4/mtis/stream/%s'
+
+    _TESTS = [{
+        'url': 'http://www.bbc.com/news/world-europe-32668511',
+        'info_dict': {
+            'id': 'world-europe-32668511',
+            'title': 'Russia stages massive WW2 parade despite Western boycott',
+        },
+        'playlist_count': 2,
+    }, {
+        'url': 'http://www.bbc.com/news/business-28299555',
+        'info_dict': {
+            'id': 'business-28299555',
+            'title': 'Farnborough Airshow: Video highlights',
+        },
+        'playlist_count': 9,
+    }, {
+        'url': 'http://www.bbc.com/news/world-europe-32041533',
+        'note': 'Video',
+        'info_dict': {
+            'id': 'p02mprgb',
+            'ext': 'mp4',
+            'title': 'Aerial footage showed the site of the crash in the Alps - courtesy BFM TV',
+            'description': 'Germanwings plane crash site in aerial video - Aerial footage showed the site of the crash in the Alps - courtesy BFM TV',
+            'duration': 47,
+            'upload_date': '20150324',
+            'uploader': 'BBC News',
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }, {
+        'url': 'http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu',
+        'note': 'Video',
+        'info_dict': {
+            'id': 'NA',
+            'ext': 'mp4',
+            'title': 'YPG: Tel Abyad\'\u0131n tamam\u0131 kontrol\xfcm\xfczde',
+            'description': 'YPG: Tel Abyad\'\u0131n tamam\u0131 kontrol\xfcm\xfczde',
+            'duration': 47,
+            'upload_date': '20150615',
+            'uploader': 'BBC News',
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }, {
+        'url': 'http://www.bbc.com/mundo/video_fotos/2015/06/150619_video_honduras_militares_hospitales_corrupcion_aw',
+        'note': 'Video',
+        'info_dict': {
+            'id': '39275083',
+            'ext': 'mp4',
+            'title': 'Honduras militariza sus hospitales por nuevo esc\xe1ndalo de corrupci\xf3n',
+            'description': 'Honduras militariza sus hospitales por nuevo esc\xe1ndalo de corrupci\xf3n',
+            'duration': 87,
+            'upload_date': '20150619',
+            'uploader': 'BBC News',
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }]
+
+    def _real_extract(self, url):
+        list_id = self._match_id(url)
+        webpage = self._download_webpage(url, list_id)
+
+        list_title = self._html_search_regex(r'<title>(.*?)(?:\s*-\s*BBC [^ ]+)?</title>', webpage, 'list title')
+
+        pubdate = self._html_search_regex(r'"datePublished":\s*"(\d+-\d+-\d+)', webpage, 'date', default=None)
+        if pubdate:
+            pubdate = pubdate.replace('-', '')
+
+        ret = []
+        jsent = []
+
+        # works with bbc.com/news/something-something-123456 articles
+        jsent = map(
+            lambda m: self._parse_json(m, list_id),
+            re.findall(r"data-media-meta='({[^']+})'", webpage)
+        )
+
+        if len(jsent) == 0:
+            # http://www.bbc.com/news/video_and_audio/international
+            # and single-video articles
+            masset = self._html_search_regex(r'mediaAssetPage\.init\(\s*({.+?}), "/', webpage, 'mediaassets', default=None)
+            if masset:
+                jmasset = self._parse_json(masset, list_id)
+                for key, val in jmasset.get('videos', {}).items():
+                    for skey, sval in val.items():
+                        sval['id'] = skey
+                        jsent.append(sval)
+
+        if len(jsent) == 0:
+            # stubbornly generic extractor for {json with "image":{allvideoshavethis},etc}
+            # in http://www.bbc.com/news/video_and_audio/international
+            # prone to breaking if entries have sourceFiles list
+            jsent = map(
+                lambda m: self._parse_json(m, list_id),
+                re.findall(r"({[^{}]+image\":{[^}]+}[^}]+})", webpage)
+            )
+
+        if len(jsent) == 0:
+            raise ExtractorError('No video found', expected=True)
+
+        for jent in jsent:
+            programme_id = jent.get('externalId')
+            xml_url = jent.get('href')
+
+            title = jent.get('caption', '')
+            if title == '':
+                title = list_title
+
+            duration = parse_duration(jent.get('duration'))
+            description = list_title
+            if jent.get('caption', '') != '':
+                description += ' - ' + jent.get('caption')
+            thumbnail = None
+            if jent.get('image') is not None:
+                thumbnail = jent['image'].get('href')
+
+            formats = []
+            subtitles = []
+
+            if programme_id:
+                formats, subtitles = self._download_media_selector(programme_id)
+            elif jent.get('sourceFiles') is not None:
+                # mediaselector not used at
+                # http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu
+                for key, val in jent['sourceFiles'].items():
+                    formats.append({
+                        'ext': val.get('encoding'),
+                        'url': val.get('url'),
+                        'filesize': int(val.get('filesize')),
+                        'format_id': key
+                    })
+            elif xml_url:
+                # Cheap fallback
+                # http://playlists.bbc.co.uk/news/(list_id)[ABC..]/playlist.sxml
+                xml = self._download_webpage(xml_url, programme_id, 'Downloading playlist.sxml for externalId (fallback)')
+                programme_id = self._search_regex(r'<mediator [^>]*identifier="(.+?)"', xml, 'playlist.sxml (externalId fallback)')
+                formats, subtitles = self._download_media_selector(programme_id)
+
+            if len(formats) == 0:
+                raise ExtractorError('unsupported json media entry.\n    ' + str(jent) + '\n')
+
+            self._sort_formats(formats)
+
+            id = jent.get('id') if programme_id is None else programme_id
+            if id is None:
+                id = 'NA'
+
+            ret.append({
+                'id': id,
+                'uploader': 'BBC News',
+                'upload_date': pubdate,
+                'title': title,
+                'description': description,
+                'thumbnail': thumbnail,
+                'duration': duration,
+                'formats': formats,
+                'subtitles': subtitles,
+            })
+
+        if len(ret) > 0:
+            return self.playlist_result(ret, list_id, list_title)
+        raise ExtractorError('No video found', expected=True)
