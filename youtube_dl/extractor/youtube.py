@@ -993,7 +993,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if 'reason' in video_info:
                 if 'The uploader has not made this video available in your country.' in video_info['reason']:
                     regions_allowed = self._html_search_meta('regionsAllowed', video_webpage, default=None)
-                    if regions_allowed is not None:
+                    if regions_allowed:
                         raise ExtractorError('YouTube said: This video is available in %s only' % (
                             ', '.join(map(ISO3166Utils.short2full, regions_allowed.split(',')))),
                             expected=True)
