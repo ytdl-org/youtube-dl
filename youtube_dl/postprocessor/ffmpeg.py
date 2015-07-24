@@ -349,23 +349,24 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
 class FFmpegMetadataPP(FFmpegPostProcessor):
     def run(self, info):
         metadata = {}
-        if info.get('title') is not None:
-            metadata['title'] = info['title']
-        if info.get('upload_date') is not None:
-            metadata['date'] = info['upload_date']
-        if info.get('artist') is not None:
-            metadata['artist'] = info['artist']
-        elif info.get('uploader') is not None:
-            metadata['artist'] = info['uploader']
-        elif info.get('uploader_id') is not None:
-            metadata['artist'] = info['uploader_id']
-        if info.get('description') is not None:
-            metadata['description'] = info['description']
-            metadata['comment'] = info['description']
-        if info.get('webpage_url') is not None:
-            metadata['purl'] = info['webpage_url']
-        if info.get('album') is not None:
-            metadata['album'] = info['album']
+        if self._downloader.params.get('addmetadata'):
+            if info.get('title') is not None:
+                metadata['title'] = info['title']
+            if info.get('upload_date') is not None:
+                metadata['date'] = info['upload_date']
+            if info.get('artist') is not None:
+                metadata['artist'] = info['artist']
+            elif info.get('uploader') is not None:
+                metadata['artist'] = info['uploader']
+            elif info.get('uploader_id') is not None:
+                metadata['artist'] = info['uploader_id']
+            if info.get('description') is not None:
+                metadata['description'] = info['description']
+                metadata['comment'] = info['description']
+            if info.get('webpage_url') is not None:
+                metadata['purl'] = info['webpage_url']
+            if info.get('album') is not None:
+                metadata['album'] = info['album']
 
         for m in self._downloader.params.get('custommeta'):
             key, val = m.split('=', 1)

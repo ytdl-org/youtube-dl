@@ -367,6 +367,7 @@ def _real_main(argv=None):
         'hls_prefer_native': opts.hls_prefer_native,
         'external_downloader_args': external_downloader_args,
         'cn_verification_proxy': opts.cn_verification_proxy,
+        'addmetadata': opts.addmetadata,
         'custommeta': opts.custommeta,
     }
 
