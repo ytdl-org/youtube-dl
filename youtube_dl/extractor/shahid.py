@@ -1,7 +1,8 @@
 from .common import InfoExtractor
 from ..utils import (
-    get_element_by_id,
+    js_to_json,
     ExtractorError,
+    int_or_none
 )
 
 class ShahidIE(InfoExtractor):
@@ -12,8 +13,9 @@ class ShahidIE(InfoExtractor):
             'info_dict': {
                 'id': '108084',
                 'ext': 'm3u8',
-                'title': 'بسم الله',
-                'description': 'بسم الله'
+                'title': 'خواطر الموسم 11 الحلقة 1',
+                'description': 'بسم الله',
+                'duration': 1166,
             },
             'params': {
                 # m3u8 download
@@ -30,16 +32,33 @@ class ShahidIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        json_data = self._parse_json(
-            get_element_by_id('jsonld', webpage),
+        player_info = ''
+        for line in self._search_regex( 'var flashvars = ({[^}]+})', webpage, 'flashvars').splitlines():
+            if '+' not in line and '(' not in line and ')' not in line:
+                player_info += line
+        player_info = self._parse_json(js_to_json(player_info), video_id)
+        video_id = player_info['id']
+        player_type = player_info['playerType']
+
+        video_info = self._download_json(
+            player_info['url'] + '/' + player_type + '/' + video_id + 
+                '?apiKey=sh%40hid0nlin3&hash=b2wMCTHpSmyxGqQjJFOycRmLSex%2BBpTK%2Fooxy6vHaqs%3D',
             video_id
-        )
-        title = json_data['name']
-        thumbnail = json_data.get('image')
-        categories = json_data.get('genre')
-        description = json_data.get('description')
+        )['data']
+        if video_info['error']:
+            for error in video_info['error']:
+                raise ExtractorError(error)
+        video_info = video_info[player_type]
+        if video_info.get('availabilities').get('plus'):
+            raise ExtractorError('plus members only')
+        title = video_info['title']
+        thumbnail = video_info.get('thumbnailUrl')
+        categories = [category['name'] for category in video_info.get('genres')]
+        description = video_info.get('description')
+        duration = int_or_none(video_info.get('duration'))
+
         player_json_data = self._download_json(
-            'https://shahid.mbc.net/arContent/getPlayerContent-param-.id-'+video_id+'.type-player.html',
+            'https://shahid.mbc.net/arContent/getPlayerContent-param-.id-' + video_id + '.type-' + player_info['type'] + '.html',
             video_id
         )['data']
         if 'url' in player_json_data:
@@ -55,5 +74,6 @@ class ShahidIE(InfoExtractor):
             'thumbnail': thumbnail,
             'categories': categories,
             'description': description,
+            'duration': duration,
             'formats': formats,
         }
