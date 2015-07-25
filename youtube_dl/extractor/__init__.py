@@ -243,6 +243,7 @@ from .instagram import InstagramIE, InstagramUserIE
 from .internetvideoarchive import InternetVideoArchiveIE
 from .iprima import IPrimaIE
 from .iqiyi import IqiyiIE
+from .ir90tv import Ir90TvIE
 from .ivi import (
     IviIE,
     IviCompilationIE
