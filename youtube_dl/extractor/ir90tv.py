@@ -31,7 +31,7 @@ class Ir90TvIE(InfoExtractor):
         video_url = self._search_regex(
             r'<source[^>]+src="([^"]+)"', webpage, 'video url')
 
-        thumbnail = self._search_regex(r'poster="([^"]+)"', webpage, 'thumbnail url')
+        thumbnail = self._search_regex(r'poster="([^"]+)"', webpage, 'thumbnail url', fatal=False)
 
         return {
             'url': video_url,
