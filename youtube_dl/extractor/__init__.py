@@ -43,7 +43,10 @@ from .azubu import AzubuIE
 from .baidu import BaiduVideoIE
 from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE
-from .bbccouk import BBCCoUkIE
+from .bbc import (
+    BBCCoUkIE,
+    BBCIE,
+)
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
 from .beatportpro import BeatportProIE
