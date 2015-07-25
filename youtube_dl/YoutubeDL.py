@@ -916,6 +916,23 @@ class YoutubeDL(object):
 
         return (new_format_spec, new_formats)
 
+    def _bestaudio_for_lossless_extract(self, audio_formats):
+        pps = self.params["postprocessors"]
+        if not pps:
+            return None
+        [pp for pp in pps if pp["key"] == "FFmpegExtractAudio"]
+        if not pp:
+            return None
+        pc = pp["preferredcodec"]
+        if pc == "m4a":
+            pc = "aac"
+        if not pc:
+            return None
+        for af in audio_formats:
+            if af["acodec"] == pc:
+                return af
+        return None
+
     def select_format(self, format_spec, available_formats):
         while format_spec.endswith(']'):
             format_spec, available_formats = self._apply_format_filter(
@@ -939,6 +956,9 @@ class YoutubeDL(object):
                 f for f in available_formats
                 if f.get('vcodec') == 'none']
             if audio_formats:
+                af = self._bestaudio_for_lossless_extract(audio_formats)
+                if af:
+                    return af
                 return audio_formats[-1]
         elif format_spec == 'worstaudio':
             audio_formats = [
