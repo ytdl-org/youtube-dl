@@ -150,6 +150,7 @@ class YoutubeDL(object):
     logger:            Log messages to a logging.Logger instance.
     logtostderr:       Log messages to stderr instead of stdout.
     writedescription:  Write the video description to a .description file
+    writetags:         Write out the tags of the video to the bottom of the .description file.
     writeinfojson:     Write the video description to a .info.json file
     writeannotations:  Write the video annotations to a .annotations.xml file
     writethumbnail:    Write the thumbnail image to a file
@@ -1291,7 +1292,7 @@ class YoutubeDL(object):
             self.report_error('unable to create directory ' + compat_str(err))
             return
 
-        if self.params.get('writedescription', False):
+        if self.params.get('writedescription', False) or (self.params.get('writetags', False) and 'tags' in info_dict):
             descfn = replace_extension(filename, 'description', info_dict.get('ext'))
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(descfn)):
                 self.to_screen('[info] Video description is already present')
@@ -1302,6 +1303,8 @@ class YoutubeDL(object):
                     self.to_screen('[info] Writing video description to: ' + descfn)
                     with io.open(encodeFilename(descfn), 'w', encoding='utf-8') as descfile:
                         descfile.write(info_dict['description'])
+                        if self.params.get('writetags', False):
+                            descfile.write("\nKeywords: %s\n" % (info_dict['tags'],))
                 except (OSError, IOError):
                     self.report_error('Cannot write description file ' + descfn)
                     return
