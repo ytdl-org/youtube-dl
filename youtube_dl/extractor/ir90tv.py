@@ -37,6 +37,6 @@ class Ir90TvIE(InfoExtractor):
             'url': video_url,
             'id': video_id,
             'title': title,
-            'video_url' : video_url,
-            'thumbnail' : thumbnail,
+            'video_url': video_url,
+            'thumbnail': thumbnail,
         }
