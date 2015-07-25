@@ -64,7 +64,7 @@ class ShahidIE(InfoExtractor):
         if 'url' in player_json_data:
             m3u8_url = player_json_data['url']
         else:
-            for error in json_data['error'].values():
+            for error in player_json_data['error'].values():
                 raise ExtractorError(error)
             return
         formats = self._extract_m3u8_formats(m3u8_url, video_id)
