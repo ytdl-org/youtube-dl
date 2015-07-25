@@ -172,6 +172,7 @@ class BBCCoUkIE(InfoExtractor):
         supplier = connection.get('supplier')
         if protocol == 'http':
             href = connection.get('href')
+            transfer_format = connection.get('transferFormat')
             # ASX playlist
             if supplier == 'asx':
                 for i, ref in enumerate(self._extract_asx_playlist(connection, programme_id)):
@@ -179,6 +180,9 @@ class BBCCoUkIE(InfoExtractor):
                         'url': ref,
                         'format_id': 'ref%s_%s' % (i, supplier),
                     })
+            # Skip DASH until supported
+            elif transfer_format == 'dash':
+                pass
             # Direct link
             else:
                 formats.append({
