@@ -1089,7 +1089,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             else:
                 video_description = ''
 
-        if not smuggled_data.get('force_singlefeed', False) and 'multifeed_metadata_list' in video_info:
+        if (not self._downloader.params.get('noplaylist') and
+                not smuggled_data.get('force_singlefeed', False) and
+                'multifeed_metadata_list' in video_info):
             entries = []
             multifeed_metadata_list = compat_urllib_parse_unquote_plus(video_info['multifeed_metadata_list'][0])
             for feed in multifeed_metadata_list.split(','):
