@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 class Ir90TvIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?90tv\.ir/video/(?P<id>[0-9]+)/.*'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://90tv.ir/video/95719/%D8%B4%D8%A7%DB%8C%D8%B9%D8%A7%D8%AA-%D9%86%D9%82%D9%84-%D9%88-%D8%A7%D9%86%D8%AA%D9%82%D8%A7%D9%84%D8%A7%D8%AA-%D9%85%D9%87%D9%85-%D9%81%D9%88%D8%AA%D8%A8%D8%A7%D9%84-%D8%A7%D8%B1%D9%88%D9%BE%D8%A7-940218',
         'md5': '411dbd94891381960cb9e13daa47a869',
         'info_dict': {
@@ -15,7 +15,10 @@ class Ir90TvIE(InfoExtractor):
             'title': 'شایعات نقل و انتقالات مهم فوتبال اروپا 94/02/18',
             'thumbnail': 're:^https?://.*\.jpg$',
         }
-    }
+    }, {
+        'url': 'http://www.90tv.ir/video/95719/%D8%B4%D8%A7%DB%8C%D8%B9%D8%A7%D8%AA-%D9%86%D9%82%D9%84-%D9%88-%D8%A7%D9%86%D8%AA%D9%82%D8%A7%D9%84%D8%A7%D8%AA-%D9%85%D9%87%D9%85-%D9%81%D9%88%D8%AA%D8%A8%D8%A7%D9%84-%D8%A7%D8%B1%D9%88%D9%BE%D8%A7-940218',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
