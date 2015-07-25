@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import remove_start
 
 
 class Ir90TvIE(InfoExtractor):
@@ -24,8 +25,8 @@ class Ir90TvIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(
-            r'<title>\n90tv.ir :: (.*?)</title>', webpage, 'title')
+        title = remove_start(self._html_search_regex(
+            r'<title>([^<]+)</title>', webpage, 'title'), '90tv.ir :: ')
 
         video_url = self._search_regex(
             r'<source[^>]+src="([^"]+)"', webpage, 'video url')
