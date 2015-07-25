@@ -423,7 +423,7 @@ class BBCIE(BBCCoUkIE):
     _VALID_URL = r'https?://(?:www\.)?bbc\.(?:com|co\.uk)/(?:[^/]+/)+(?P<id>[^/#?]+)'
 
     # fails with notukerror for some videos
-    #_MEDIASELECTOR_URL = 'http://open.live.bbc.co.uk/mediaselector/4/mtis/stream/%s'
+    # _MEDIASELECTOR_URL = 'http://open.live.bbc.co.uk/mediaselector/4/mtis/stream/%s'
     _MEDIASELECTOR_URL = 'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/journalism-pc/vpid/%s'
 
     _TESTS = [{
