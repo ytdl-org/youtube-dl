@@ -90,9 +90,9 @@ class IqiyiIE(InfoExtractor):
         ('1', 'h6'),
         ('2', 'h5'),
         ('3', 'h4'),
-        ('4', 'h3'),
-        ('5', 'h2'),
-        ('10', 'h1'),
+        ('4', 'h3', '720p'),
+        ('5', 'h2', '1080p'),
+        ('10', 'h1', '4K'),
     ]
 
     def construct_video_urls(self, data, video_id, _uuid):
@@ -126,7 +126,7 @@ class IqiyiIE(InfoExtractor):
         video_urls_dict = {}
         for format_item in data['vp']['tkl'][0]['vs']:
             if 0 < int(format_item['bid']) <= 10:
-                format_id = self.get_format(format_item['bid'])
+                format_id = self.get_format(format_item['bid'])[0]
             else:
                 continue
 
@@ -170,11 +170,24 @@ class IqiyiIE(InfoExtractor):
         return video_urls_dict
 
     def get_format(self, bid):
-        matched_format_ids = [_format_id for _bid, _format_id in self._FORMATS_MAP if _bid == str(bid)]
+        matched_format_ids = []
+        for _item in self._FORMATS_MAP:
+            _bid, _format_id = _item[0], _item[1]
+            _format = None
+            try:
+                _format = _item[2]
+            except IndexError:
+                pass
+            if _bid == str(bid):
+                matched_format_ids.append((_format_id, _format))
         return matched_format_ids[0] if len(matched_format_ids) else None
 
     def get_bid(self, format_id):
-        matched_bids = [_bid for _bid, _format_id in self._FORMATS_MAP if _format_id == format_id]
+        matched_bids = []
+        for _item in self._FORMATS_MAP:
+            _bid, _format_id = _item[0], _item[1]
+            if _format_id == format_id:
+                matched_bids.append(_bid)
         return matched_bids[0] if len(matched_bids) else None
 
     def get_raw_data(self, tvid, video_id, enc_key, _uuid):
@@ -237,17 +250,19 @@ class IqiyiIE(InfoExtractor):
         entries = []
         for format_id in video_urls_dict:
             video_urls = video_urls_dict[format_id]
+            _format = self.get_format(self.get_bid(format_id))[1]
             for i, video_url_info in enumerate(video_urls):
                 if len(entries) < i + 1:
                     entries.append({'formats': []})
-                entries[i]['formats'].append(
-                    {
-                        'url': video_url_info[0],
-                        'filesize': video_url_info[-1],
-                        'format_id': format_id,
-                        'preference': int(self.get_bid(format_id))
-                    }
-                )
+                _item = {
+                    'url': video_url_info[0],
+                    'filesize': video_url_info[-1],
+                    'format_id': format_id,
+                    'preference': int(self.get_bid(format_id))
+                }
+                if _format != None:
+                    _item['format'] = _format
+                entries[i]['formats'].append(_item)
 
         for i in range(len(entries)):
             self._sort_formats(entries[i]['formats'])
