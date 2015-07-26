@@ -36,7 +36,7 @@ class ComCarCoffIE(InfoExtractor):
             webpage, 'full data json'))
 
         video_id = full_data['activeVideo']['video']
-        video_data = full_data['videos'][video_id]
+        video_data = full_data.get('videos', {}).get(video_id) or full_data['singleshots'][video_id]
         thumbnails = [{
             'url': video_data['images']['thumb'],
         }, {
