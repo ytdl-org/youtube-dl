@@ -9,7 +9,7 @@ from .spiegeltv import SpiegeltvIE
 
 
 class SpiegelIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/video/[^/]*-(?P<id>[0-9]+)(?:-embed)?(?:\.html)?(?:#.*)?$'
+    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/video/[^/]*-(?P<id>[0-9]+)(?:-embed|-iframe)?(?:\.html)?(?:#.*)?$'
     _TESTS = [{
         'url': 'http://www.spiegel.de/video/vulkan-tungurahua-in-ecuador-ist-wieder-aktiv-video-1259285.html',
         'md5': '2c2754212136f35fb4b19767d242f66e',
@@ -32,6 +32,15 @@ class SpiegelIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.spiegel.de/video/astronaut-alexander-gerst-von-der-iss-station-beantwortet-fragen-video-1519126-embed.html',
+        'md5': 'd8eeca6bfc8f1cd6f490eb1f44695d51',
+        'info_dict': {
+            'id': '1519126',
+            'ext': 'mp4',
+            'description': 'SPIEGEL ONLINE-Nutzer durften den deutschen Astronauten Alexander Gerst über sein Leben auf der ISS-Station befragen. Hier kommen seine Antworten auf die besten sechs Fragen.',
+            'title': 'Fragen an Astronaut Alexander Gerst: "Bekommen Sie die Tageszeiten mit?"',
+        }
+    }, {
+        'url': 'http://www.spiegel.de/video/astronaut-alexander-gerst-von-der-iss-station-beantwortet-fragen-video-1519126-iframe.html',
         'md5': 'd8eeca6bfc8f1cd6f490eb1f44695d51',
         'info_dict': {
             'id': '1519126',
