@@ -56,8 +56,7 @@ class CBCIE(InfoExtractor):
         name = url_basename(url)
 
         webpage = self._download_webpage(url, name)
-        title = unescapeHTML(
-            self._search_regex('<title>\s*(.+?)\s*</title>', webpage, 'title'))
+        title = self._html_search_regex('<title>\s*(.+?)\s*</title>', webpage, 'title')
 
         cbcapp = re.findall(
             r'CBC.APP.Caffeine.initInstance\((.+?)\);', webpage, re.DOTALL)
