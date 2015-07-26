@@ -203,7 +203,7 @@ class IqiyiIE(InfoExtractor):
                 (enc_key + tm + tvid).encode('utf8')).hexdigest(),
             'qyid': _uuid,
             'tn': random.random(),
-            'um': 0,
+            'um': 1,
             'authkey': hashlib.md5(
                 (tm + tvid).encode('utf8')).hexdigest()
         }
