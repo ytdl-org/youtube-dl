@@ -184,7 +184,8 @@ def parseOpts(overrideArguments=None):
     network.add_option(
         '--socks-proxy', dest='socksproxy', default=None, metavar='URL',
         help=('Use the specified socks proxy. Pass in an empty string '
-              '(--socks-proxy "") for direct connection'))
+              '(--socks-proxy "") for direct connection. This feature requires'
+              'the pysocks library.'))
     network.add_option(
         '--socket-timeout',
         dest='socket_timeout', type=float, default=None, metavar='SECONDS',

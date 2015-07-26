@@ -29,6 +29,7 @@ from .utils import (
     DownloadError,
     match_filter_func,
     MaxDownloadsReached,
+    OptionalDependencyNotFound,
     preferredencoding,
     read_batch_urls,
     SameFileError,
@@ -415,5 +416,7 @@ def main(argv=None):
         sys.exit('ERROR: fixed output name but more than one file to download')
     except KeyboardInterrupt:
         sys.exit('\nERROR: Interrupted by user')
+    except OptionalDependencyNotFound:
+        sys.exit('ERROR: Dependency not found')
 
 __all__ = ['main', 'YoutubeDL', 'gen_extractors', 'list_extractors']

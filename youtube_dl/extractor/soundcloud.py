@@ -282,9 +282,11 @@ class SoundcloudSetIE(SoundcloudIE):
             msgs = (compat_str(err['error_message']) for err in info['errors'])
             raise ExtractorError('unable to download video webpage: %s' % ','.join(msgs))
 
+        entries = [self.url_result(track['permalink_url'], 'Soundcloud') for track in info['tracks']]
+
         return {
             '_type': 'playlist',
-            'entries': [self._extract_info_dict(track, secret_token=token) for track in info['tracks']],
+            'entries': entries,
             'id': '%s' % info['id'],
             'title': info['title'],
         }
@@ -379,9 +381,7 @@ class SoundcloudPlaylistIE(SoundcloudIE):
         data = self._download_json(
             base_url + data, playlist_id, 'Downloading playlist')
 
-        entries = [
-            self._extract_info_dict(t, quiet=True, secret_token=token)
-            for t in data['tracks']]
+        entries = [self.url_result(track['permalink_url'], 'Soundcloud') for track in data['tracks']]
 
         return {
             '_type': 'playlist',
