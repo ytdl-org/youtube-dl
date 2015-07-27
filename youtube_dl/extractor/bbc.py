@@ -451,6 +451,14 @@ class BBCIE(BBCCoUkIE):
         'playlist_count': 9,
         'skip': 'Save time',
     }, {
+        # article with multiple videos embedded with `new SMP()`
+        'url': 'http://www.bbc.co.uk/blogs/adamcurtis/entries/3662a707-0af9-3149-963f-47bea720b460',
+        'info_dict': {
+            'id': '3662a707-0af9-3149-963f-47bea720b460',
+            'title': 'BBC Blogs - Adam Curtis - BUGGER',
+        },
+        'playlist_count': 18,
+    }, {
         # single video embedded with mediaAssetPage.init()
         'url': 'http://www.bbc.com/news/world-europe-32041533',
         'info_dict': {
@@ -637,12 +645,30 @@ class BBCIE(BBCCoUkIE):
 
         playlist_title = self._html_search_regex(
             r'<title>(.*?)(?:\s*-\s*BBC [^ ]+)?</title>', webpage, 'playlist title')
-        playlist_description = self._og_search_description(webpage)
+        playlist_description = self._og_search_description(webpage, default=None)
+
+        def extract_all(pattern):
+            return list(filter(None, map(
+                lambda s: self._parse_json(s, playlist_id, fatal=False),
+                re.findall(pattern, webpage))))
+
+        # Multiple video article (e.g.
+        # http://www.bbc.co.uk/blogs/adamcurtis/entries/3662a707-0af9-3149-963f-47bea720b460)
+        EMBED_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:[^/]+/)+[\da-z]{8}(?:\b[^"]*)?'
+        entries = []
+        for match in extract_all(r'new\s+SMP\(({.+?})\)'):
+            embed_url = match.get('playerSettings', {}).get('externalEmbedUrl')
+            if embed_url and re.match(EMBED_URL, embed_url):
+                entries.append(embed_url)
+        entries.extend(re.findall(
+            r'setPlaylist\("(%s)"\)' % EMBED_URL, webpage))
+        if entries:
+            return self.playlist_result(
+                [self.url_result(entry, 'BBCCoUk') for entry in entries],
+                playlist_id, playlist_title, playlist_description)
 
         # Multiple video article (e.g. http://www.bbc.com/news/world-europe-32668511)
-        medias = list(filter(None, map(
-            lambda s: self._parse_json(s, playlist_id, fatal=False),
-            re.findall(r"data-media-meta='({[^']+})'", webpage))))
+        medias = extract_all(r"data-media-meta='({[^']+})'")
 
         if not medias:
             # Single video article (e.g. http://www.bbc.com/news/video_and_audio/international)

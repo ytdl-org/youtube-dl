@@ -276,14 +276,6 @@ class GenericIE(InfoExtractor):
                 'description': 'Episode 18: President Barack Obama sits down with Zach Galifianakis for his most memorable interview yet.',
             },
         },
-        # BBC iPlayer embeds
-        {
-            'url': 'http://www.bbc.co.uk/blogs/adamcurtis/posts/BUGGER',
-            'info_dict': {
-                'title': 'BBC - Blogs -  Adam Curtis - BUGGER',
-            },
-            'playlist_mincount': 18,
-        },
         # RUTV embed
         {
             'url': 'http://www.rg.ru/2014/03/15/reg-dfo/anklav-anons.html',
