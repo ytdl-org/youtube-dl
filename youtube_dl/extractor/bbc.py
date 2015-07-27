@@ -654,7 +654,7 @@ class BBCIE(BBCCoUkIE):
 
         # Multiple video article (e.g.
         # http://www.bbc.co.uk/blogs/adamcurtis/entries/3662a707-0af9-3149-963f-47bea720b460)
-        EMBED_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:[^/]+/)+[\da-z]{8}(?:\b[^"]*)?'
+        EMBED_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:[^/]+/)+[\da-z]{8}(?:\b[^"]+)?'
         entries = []
         for match in extract_all(r'new\s+SMP\(({.+?})\)'):
             embed_url = match.get('playerSettings', {}).get('externalEmbedUrl')
