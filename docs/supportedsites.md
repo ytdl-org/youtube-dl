@@ -51,6 +51,7 @@
  - **bambuser:channel**
  - **Bandcamp**
  - **Bandcamp:album**
+ - **bbc**: BBC
  - **bbc.co.uk**: BBC iPlayer
  - **BeatportPro**
  - **Beeg**
@@ -224,6 +225,7 @@
  - **InternetVideoArchive**
  - **IPrima**
  - **iqiyi**: 爱奇艺
+ - **Ir90Tv**
  - **ivi**: ivi.ru
  - **ivi:compilation**: ivi.ru compilations
  - **Izlesene**
@@ -252,6 +254,7 @@
  - **kuwo:song**: 酷我音乐
  - **la7.tv**
  - **Laola1Tv**
+ - **Lecture2Go**
  - **Letv**: 乐视网
  - **LetvPlaylist**
  - **LetvTv**
