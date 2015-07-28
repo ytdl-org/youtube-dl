@@ -636,6 +636,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='writedescription', default=False,
         help='Write video description to a .description file')
     filesystem.add_option(
+        '--write-tags',
+        action='store_true', dest='writetags', default=False,
+        help='Write out the tags of the video to the bottom of the .description file. Implies --write-description.')
+    filesystem.add_option(
         '--write-info-json',
         action='store_true', dest='writeinfojson', default=False,
         help='Write video metadata to a .info.json file')
