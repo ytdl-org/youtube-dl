@@ -329,6 +329,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'upload_date': '20121002',
                 'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
                 'categories': ['Science & Technology'],
+                'tags': ['youtube-dl'],
                 'like_count': int,
                 'dislike_count': int,
                 'start_time': 1,
@@ -343,7 +344,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'upload_date': '20120506',
                 'title': 'Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]',
-                'description': 'md5:fea86fda2d5a5784273df5c7cc994d9f',
+                'description': 'md5:782e8651347686cba06e58f71ab51773',
+                'tags': ['Icona Pop i love it', 'sweden', 'pop music', 'big beat records', 'big beat', 'charli',
+                         'xcx', 'charli xcx', 'girls', 'hbo', 'i love it', "i don't care", 'icona', 'pop',
+                         'iconic ep', 'iconic', 'love', 'it'],
                 'uploader': 'Icona Pop',
                 'uploader_id': 'IconaPop',
             }
@@ -1072,6 +1076,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             video_categories = None
 
+        video_tags = [
+            unescapeHTML(m.group('content'))
+            for m in re.finditer(self._meta_regex('og:video:tag'), video_webpage)]
+
         # description
         video_description = get_element_by_id("eow-description", video_webpage)
         if video_description:
@@ -1260,6 +1268,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'thumbnail': video_thumbnail,
             'description': video_description,
             'categories': video_categories,
+            'tags': video_tags,
             'subtitles': video_subtitles,
             'automatic_captions': automatic_captions,
             'duration': video_duration,
