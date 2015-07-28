@@ -187,6 +187,7 @@ class InfoExtractor(object):
                     specified in the URL.
     end_time:       Time in seconds where the reproduction should end, as
                     specified in the URL.
+    tags:           A list of keywords attached to the video.
 
     Unless mentioned otherwise, the fields should be Unicode strings.
 
