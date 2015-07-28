@@ -181,13 +181,13 @@ class InfoExtractor(object):
                     by YoutubeDL if it's missing)
     categories:     A list of categories that the video falls in, for example
                     ["Sports", "Berlin"]
+    tags:           A list of tags assigned to the video, e.g. ["sweden", "pop music"]
     is_live:        True, False, or None (=unknown). Whether this video is a
                     live stream that goes on instead of a fixed-length video.
     start_time:     Time in seconds where the reproduction should start, as
                     specified in the URL.
     end_time:       Time in seconds where the reproduction should end, as
                     specified in the URL.
-    tags:           A list of keywords attached to the video.
 
     Unless mentioned otherwise, the fields should be Unicode strings.
 
@@ -631,6 +631,12 @@ class InfoExtractor(object):
             template % (content_re, property_re),
         ]
 
+    @staticmethod
+    def _meta_regex(prop):
+        return r'''(?isx)<meta
+                    (?=[^>]+(?:itemprop|name|property)=(["\']?)%s\1)
+                    [^>]+?content=(["\'])(?P<content>.*?)\2''' % re.escape(prop)
+
     def _og_search_property(self, prop, html, name=None, **kargs):
         if name is None:
             name = 'OpenGraph %s' % prop
@@ -661,9 +667,7 @@ class InfoExtractor(object):
         if display_name is None:
             display_name = name
         return self._html_search_regex(
-            r'''(?isx)<meta
-                    (?=[^>]+(?:itemprop|name|property)=(["\']?)%s\1)
-                    [^>]+?content=(["\'])(?P<content>.*?)\2''' % re.escape(name),
+            self._meta_regex(name),
             html, display_name, fatal=fatal, group='content', **kwargs)
 
     def _dc_search_uploader(self, html):
