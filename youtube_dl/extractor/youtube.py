@@ -1072,9 +1072,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             video_categories = None
 
-        m = re.findall(r'''<meta(?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]+|="[^"]+"|='[^']+'))*?\s+property=['"]?og:video:tag['"]?(?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]+|="[^"]+"|='[^']+'))*?\s+content=['"]?([^>'"]+?)['"]?\s*>'''
+        video_tags = re.findall(r'''<meta(?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]+|="[^"]+"|='[^']+'))*?\s+property=['"]?og:video:tag['"]?(?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]+|="[^"]+"|='[^']+'))*?\s+content=['"]?([^>'"]+?)['"]?\s*>'''
         , video_webpage, re.DOTALL | re.IGNORECASE);
-        video_tags = ", ".join(m)
         # description
         video_description = get_element_by_id("eow-description", video_webpage)
         if video_description:
