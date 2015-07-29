@@ -1089,22 +1089,27 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             else:
                 video_description = ''
 
-        if (not self._downloader.params.get('noplaylist') and
-                not smuggled_data.get('force_singlefeed', False) and
-                'multifeed_metadata_list' in video_info):
-            entries = []
-            multifeed_metadata_list = compat_urllib_parse_unquote_plus(video_info['multifeed_metadata_list'][0])
-            for feed in multifeed_metadata_list.split(','):
-                feed_data = compat_parse_qs(feed)
-                entries.append({
-                    '_type': 'url_transparent',
-                    'ie_key': 'Youtube',
-                    'url': smuggle_url(
-                        '%s://www.youtube.com/watch?v=%s' % (proto, feed_data['id'][0]),
-                        {'force_singlefeed': True}),
-                    'title': '%s (%s)' % (video_title, feed_data['title'][0]),
-                })
-            return self.playlist_result(entries, video_id, video_title, video_description)
+        if 'multifeed_metadata_list' in video_info and not smuggled_data.get('force_singlefeed', False):
+            if not self._downloader.params.get('noplaylist'):
+                entries = []
+                feed_ids = []
+                multifeed_metadata_list = compat_urllib_parse_unquote_plus(video_info['multifeed_metadata_list'][0])
+                for feed in multifeed_metadata_list.split(','):
+                    feed_data = compat_parse_qs(feed)
+                    entries.append({
+                        '_type': 'url_transparent',
+                        'ie_key': 'Youtube',
+                        'url': smuggle_url(
+                            '%s://www.youtube.com/watch?v=%s' % (proto, feed_data['id'][0]),
+                            {'force_singlefeed': True}),
+                        'title': '%s (%s)' % (video_title, feed_data['title'][0]),
+                    })
+                    feed_ids.append(feed_data['id'][0])
+                self.to_screen(
+                    'Downloading multifeed video (%s) - add --no-playlist to just download video %s'
+                    % (', '.join(feed_ids), video_id))
+                return self.playlist_result(entries, video_id, video_title, video_description)
+            self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
 
         if 'view_count' in video_info:
             view_count = int(video_info['view_count'][0])
