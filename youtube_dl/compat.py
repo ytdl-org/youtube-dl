@@ -43,6 +43,11 @@ except ImportError:  # Python 2
     import cookielib as compat_cookiejar
 
 try:
+    import http.cookies as compat_cookies
+except ImportError:  # Python 2
+    import Cookie as compat_cookies
+
+try:
     import html.entities as compat_html_entities
 except ImportError:  # Python 2
     import htmlentitydefs as compat_html_entities
@@ -436,6 +441,7 @@ __all__ = [
     'compat_basestring',
     'compat_chr',
     'compat_cookiejar',
+    'compat_cookies',
     'compat_expanduser',
     'compat_get_terminal_size',
     'compat_getenv',

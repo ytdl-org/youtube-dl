@@ -14,10 +14,12 @@ import xml.etree.ElementTree
 
 from ..compat import (
     compat_cookiejar,
+    compat_cookies,
     compat_HTTPError,
     compat_http_client,
     compat_urllib_error,
     compat_urllib_parse_urlparse,
+    compat_urllib_request,
     compat_urlparse,
     compat_str,
 )
@@ -1073,6 +1075,12 @@ class InfoExtractor(object):
             0, name, value, None, None, domain, None,
             None, '/', True, False, expire_time, '', None, None, None)
         self._downloader.cookiejar.set_cookie(cookie)
+
+    def _get_cookies(self, url):
+        """ Return a compat_cookies.SimpleCookie with the cookies for the url """
+        req = compat_urllib_request.Request(url)
+        self._downloader.cookiejar.add_cookie_header(req)
+        return compat_cookies.SimpleCookie(req.get_header('Cookie'))
 
     def get_testcases(self, include_onlymatching=False):
         t = getattr(self, '_TEST', None)
