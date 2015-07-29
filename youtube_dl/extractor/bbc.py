@@ -14,12 +14,15 @@ from ..utils import (
 )
 from ..compat import compat_HTTPError
 
+
 class BBCCoUkIE(InfoExtractor):
     IE_NAME = 'bbc.co.uk'
     IE_DESC = 'BBC iPlayer'
     _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:(?:(?:programmes|iplayer(?:/[^/]+)?/(?:episode|playlist))/)|music/clips[/#])(?P<id>[\da-z]{8})'
 
-    _MEDIASELECTOR_URL = 'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s'
+    _MEDIASELECTOR_URLS = [
+        'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s',
+    ]
 
     _TESTS = [
         {
@@ -161,6 +164,10 @@ class BBCCoUkIE(InfoExtractor):
         }
     ]
 
+    class MediaSelectionError(Exception):
+        def __init__(self, id):
+            self.id = id
+
     def _extract_asx_playlist(self, connection, programme_id):
         asx = self._download_xml(connection.get('href'), programme_id, 'Downloading ASX playlist')
         return [ref.get('href') for ref in asx.findall('./Entry/ref')]
@@ -211,8 +218,7 @@ class BBCCoUkIE(InfoExtractor):
     def _extract_medias(self, media_selection):
         error = media_selection.find('./{http://bbc.co.uk/2008/mp/mediaselection}error')
         if error is not None:
-            raise ExtractorError(
-                '%s returned error: %s' % (self.IE_NAME, error.get('id')), expected=True)
+            raise BBCCoUkIE.MediaSelectionError(error.get('id'))
         return media_selection.findall('./{http://bbc.co.uk/2008/mp/mediaselection}media')
 
     def _extract_connections(self, media):
@@ -269,17 +275,23 @@ class BBCCoUkIE(InfoExtractor):
             ]
         return subtitles
 
+    def _raise_extractor_error(self, media_selection_error):
+        raise ExtractorError(
+            '%s returned error: %s' % (self.IE_NAME, media_selection_error.id),
+            expected=True)
+
     def _download_media_selector(self, programme_id):
-        try:
-            return self._download_media_selector_url(
-                self._MEDIASELECTOR_URL % programme_id, programme_id)
-        except ExtractorError as e:
-            if hasattr(self, '_MEDIASELECTOR_ALT_URL') and str(e) == 'bbc returned error: notukerror':
-                 # notukerror on bbc.com/travel using bbc news mediaselector: fallback to /mediaselector/5/
-                 return self._download_media_selector_url(
-                     self._MEDIASELECTOR_ALT_URL % programme_id, programme_id)
-            else:
-                 raise
+        last_exception = None
+        for mediaselector_url in self._MEDIASELECTOR_URLS:
+            try:
+                return self._download_media_selector_url(
+                    mediaselector_url % programme_id, programme_id)
+            except BBCCoUkIE.MediaSelectionError as e:
+                if e.id == 'notukerror':
+                    last_exception = e
+                    continue
+                self._raise_extractor_error(e)
+        self._raise_extractor_error(last_exception)
 
     def _download_media_selector_url(self, url, programme_id=None):
         try:
@@ -432,10 +444,14 @@ class BBCIE(BBCCoUkIE):
     IE_DESC = 'BBC'
     _VALID_URL = r'https?://(?:www\.)?bbc\.(?:com|co\.uk)/(?:[^/]+/)+(?P<id>[^/#?]+)'
 
-    # fails with notukerror for some videos ( non news sites such as bbc.com/travel )
-    _MEDIASELECTOR_URL = 'http://open.live.bbc.co.uk/mediaselector/4/mtis/stream/%s'
-    # limited selection of formats but may work where the above does not
-    _MEDIASELECTOR_ALT_URL = 'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/journalism-pc/vpid/%s'
+    _MEDIASELECTOR_URLS = [
+        # Provides more formats, namely direct mp4 links, but fails on some videos with
+        # notukerror for non UK (?) users (e.g.
+        # http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
+        'http://open.live.bbc.co.uk/mediaselector/4/mtis/stream/%s',
+        # Provides fewer formats, but works everywhere for everybody (hopefully)
+        'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/journalism-pc/vpid/%s',
+    ]
 
     _TESTS = [{
         # article with multiple videos embedded with data-media-meta containing
