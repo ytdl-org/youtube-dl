@@ -42,7 +42,7 @@ class ScreenwaveMediaIE(InfoExtractor):
                     "' + thisObj.options.videoserver + '",
                     videoserver
                 ).replace(
-                    "' + thisObj.options.attributes.vidid + '",
+                    "' + playerVidId + '",
                     video_id
                 )
             ),
