@@ -14,7 +14,6 @@ from ..utils import (
 )
 from ..compat import compat_HTTPError
 
-
 class BBCCoUkIE(InfoExtractor):
     IE_NAME = 'bbc.co.uk'
     IE_DESC = 'BBC iPlayer'
@@ -271,8 +270,16 @@ class BBCCoUkIE(InfoExtractor):
         return subtitles
 
     def _download_media_selector(self, programme_id):
-        return self._download_media_selector_url(
-            self._MEDIASELECTOR_URL % programme_id, programme_id)
+        try:
+            return self._download_media_selector_url(
+                self._MEDIASELECTOR_URL % programme_id, programme_id)
+        except ExtractorError as e:
+            if hasattr(self, '_MEDIASELECTOR_ALT_URL') and str(e) == 'bbc returned error: notukerror':
+                 # notukerror on bbc.com/travel using bbc news mediaselector: fallback to /mediaselector/5/
+                 return self._download_media_selector_url(
+                     self._MEDIASELECTOR_ALT_URL % programme_id, programme_id)
+            else:
+                 raise
 
     def _download_media_selector_url(self, url, programme_id=None):
         try:
@@ -297,7 +304,6 @@ class BBCCoUkIE(InfoExtractor):
                 formats.extend(self._extract_video(media, programme_id))
             elif kind == 'captions':
                 subtitles = self.extract_subtitles(media, programme_id)
-
         return formats, subtitles
 
     def _download_playlist(self, playlist_id):
@@ -426,9 +432,10 @@ class BBCIE(BBCCoUkIE):
     IE_DESC = 'BBC'
     _VALID_URL = r'https?://(?:www\.)?bbc\.(?:com|co\.uk)/(?:[^/]+/)+(?P<id>[^/#?]+)'
 
-    # fails with notukerror for some videos
-    # _MEDIASELECTOR_URL = 'http://open.live.bbc.co.uk/mediaselector/4/mtis/stream/%s'
-    _MEDIASELECTOR_URL = 'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/journalism-pc/vpid/%s'
+    # fails with notukerror for some videos ( non news sites such as bbc.com/travel )
+    _MEDIASELECTOR_URL = 'http://open.live.bbc.co.uk/mediaselector/4/mtis/stream/%s'
+    # limited selection of formats but may work where the above does not
+    _MEDIASELECTOR_ALT_URL = 'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/journalism-pc/vpid/%s'
 
     _TESTS = [{
         # article with multiple videos embedded with data-media-meta containing
@@ -463,7 +470,7 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/news/world-europe-32041533',
         'info_dict': {
             'id': 'p02mprgb',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Aerial footage showed the site of the crash in the Alps - courtesy BFM TV',
             'duration': 47,
             'timestamp': 1427219242,
@@ -523,7 +530,7 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/autos/story/20130513-hyundais-rock-star',
         'info_dict': {
             'id': 'p018zqqg',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Hyundai Santa Fe Sport: Rock star',
             'description': 'md5:b042a26142c4154a6e472933cf20793d',
             'timestamp': 1368473503,
@@ -538,7 +545,7 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/sport/0/football/33653409',
         'info_dict': {
             'id': 'p02xycnp',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Transfers: Cristiano Ronaldo to Man Utd, Arsenal to spend?',
             'description': 'md5:398fca0e2e701c609d726e034fa1fc89',
             'duration': 140,
