@@ -1,5 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
+from http import cookies
 
 from .common import InfoExtractor
 from ..compat import (
@@ -62,7 +63,6 @@ class ViewsterIE(InfoExtractor):
     }]
 
     _ACCEPT_HEADER = 'application/json, text/javascript, */*; q=0.01'
-    _AUTH_TOKEN = '/YqhSYsx8EaU9Bsta3ojlA=='
 
     def _download_json(self, url, video_id, note='Downloading JSON metadata', fatal=True):
         request = compat_urllib_request.Request(url)
@@ -72,6 +72,10 @@ class ViewsterIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        request = compat_urllib_request.urlopen(url)
+        C = cookies.SimpleCookie()
+        C.load(request.getheader('Set-Cookie'))
+        self._AUTH_TOKEN = compat_urllib_parse.unquote(C['api_token'].value)
 
         info = self._download_json(
             'https://public-api.viewster.com/search/%s' % video_id,
