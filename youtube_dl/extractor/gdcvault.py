@@ -7,7 +7,10 @@ from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
 )
-from ..utils import remove_end
+from ..utils import (
+    remove_end,
+    HEADRequest,
+)
 
 
 class GDCVaultIE(InfoExtractor):
@@ -73,10 +76,20 @@ class GDCVaultIE(InfoExtractor):
         return video_formats
 
     def _parse_flv(self, xml_description):
-        video_formats = []
+        formats = []
         akamai_url = xml_description.find('./metadata/akamaiHost').text
+        audios = xml_description.find('./metadata/audios')
+        if audios is not None:
+            for audio in audios:
+                formats.append({
+                    'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
+                    'play_path': remove_end(audio.get('url'), '.flv'),
+                    'ext': 'flv',
+                    'vcodec': 'none',
+                    'format_id': audio.get('code'),
+                })
         slide_video_path = xml_description.find('./metadata/slideVideo').text
-        video_formats.append({
+        formats.append({
             'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
             'play_path': remove_end(slide_video_path, '.flv'),
             'ext': 'flv',
@@ -86,7 +99,7 @@ class GDCVaultIE(InfoExtractor):
             'format_id': 'slides',
         })
         speaker_video_path = xml_description.find('./metadata/speakerVideo').text
-        video_formats.append({
+        formats.append({
             'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
             'play_path': remove_end(speaker_video_path, '.flv'),
             'ext': 'flv',
@@ -95,7 +108,7 @@ class GDCVaultIE(InfoExtractor):
             'preference': -1,
             'format_id': 'speaker',
         })
-        return video_formats
+        return formats
 
     def _login(self, webpage_url, display_id):
         (username, password) = self._get_login_info()
@@ -133,16 +146,18 @@ class GDCVaultIE(InfoExtractor):
             r's1\.addVariable\("file",\s*encodeURIComponent\("(/[^"]+)"\)\);',
             start_page, 'url', default=None)
         if direct_url:
-            video_url = 'http://www.gdcvault.com/' + direct_url
             title = self._html_search_regex(
                 r'<td><strong>Session Name</strong></td>\s*<td>(.*?)</td>',
                 start_page, 'title')
+            video_url = 'http://www.gdcvault.com' + direct_url
+            # resolve the url so that we can detect the correct extension
+            head = self._request_webpage(HEADRequest(video_url), video_id)
+            video_url = head.geturl()
 
             return {
                 'id': video_id,
                 'display_id': display_id,
                 'url': video_url,
-                'ext': 'flv',
                 'title': title,
             }
 
