@@ -5,6 +5,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urllib_request,
     compat_urllib_parse,
+    compat_urllib_parse_unquote,
 )
 from ..utils import (
     determine_ext,
@@ -74,7 +75,7 @@ class ViewsterIE(InfoExtractor):
         # Get 'api_token' cookie
         self._request_webpage(url, video_id)
         cookies = self._get_cookies(url)
-        self._AUTH_TOKEN = compat_urllib_parse.unquote(cookies['api_token'].value)
+        self._AUTH_TOKEN = compat_urllib_parse_unquote(cookies['api_token'].value)
 
         info = self._download_json(
             'https://public-api.viewster.com/search/%s' % video_id,
