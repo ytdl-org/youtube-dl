@@ -438,6 +438,7 @@
  - **rutube:person**: Rutube person videos
  - **RUTV**: RUTV.RU
  - **Ruutu**
+ - **ruv.is**
  - **safari**: safaribooksonline.com online video
  - **safari:course**: safaribooksonline.com online courses
  - **Sandia**: Sandia National Laboratories
