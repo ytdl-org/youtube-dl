@@ -50,6 +50,7 @@ class VidmeIE(InfoExtractor):
         like_count = str_to_int(self._html_search_regex(
             r'class="score js-video-vote-score"[^>]+data-score="([\d,\.\s]+)">',
             webpage, 'like count', fatal=False))
+        uploader = self._html_search_regex('class="video_author_username">([^<]+)', webpage, 'uploader', fatal=False)
 
         return {
             'id': video_id,
@@ -63,4 +64,5 @@ class VidmeIE(InfoExtractor):
             'duration': duration,
             'view_count': view_count,
             'like_count': like_count,
+            'uploader': uploader,
         }
