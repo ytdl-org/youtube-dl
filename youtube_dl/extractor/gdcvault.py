@@ -10,6 +10,7 @@ from ..compat import (
 from ..utils import (
     remove_end,
     determine_ext,
+    HEADRequest,
 )
 
 
@@ -150,8 +151,8 @@ class GDCVaultIE(InfoExtractor):
                 r'<td><strong>Session Name</strong></td>\s*<td>(.*?)</td>',
                 start_page, 'title')
             video_url = 'http://www.gdcvault.com' + direct_url
-            request = compat_urllib_request.Request(video_url, method='HEAD')
-            head = compat_urllib_request.urlopen(request)
+            request = HEADRequest(video_url)
+            head = self._request_webpage(request, video_id)
 
             return {
                 'id': video_id,
