@@ -29,7 +29,7 @@ class SoundcloudIE(InfoExtractor):
     _VALID_URL = r'''(?x)^(?:https?://)?
                     (?:(?:(?:www\.|m\.)?soundcloud\.com/
                             (?P<uploader>[\w\d-]+)/
-                            (?!(?:tracks|sets|reposts|likes|spotlight)/?(?:$|[?#]))
+                            (?!(?:tracks|sets(?:/[^/?#]+)?|reposts|likes|spotlight)/?(?:$|[?#]))
                             (?P<title>[\w\d-]+)/?
                             (?P<token>[^?]+?)?(?:[?].*)?$)
                        |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+)
@@ -293,7 +293,15 @@ class SoundcloudSetIE(SoundcloudIE):
 
 
 class SoundcloudUserIE(SoundcloudIE):
-    _VALID_URL = r'https?://(?:(?:www|m)\.)?soundcloud\.com/(?P<user>[^/]+)/?((?P<rsrc>tracks|sets|reposts|likes|spotlight)/?)?(\?.*)?$'
+    _VALID_URL = r'''(?x)
+                        https?://
+                            (?:(?:www|m)\.)?soundcloud\.com/
+                            (?P<user>[^/]+)
+                            (?:/
+                                (?P<rsrc>tracks|sets|reposts|likes|spotlight)
+                            )?
+                            /?(?:[?#].*)?$
+                    '''
     IE_NAME = 'soundcloud:user'
     _TESTS = [{
         'url': 'https://soundcloud.com/the-akashic-chronicler',
