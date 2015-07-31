@@ -214,7 +214,7 @@ class IqiyiIE(InfoExtractor):
         return raw_data
 
     def get_enc_key(self, swf_url, video_id):
-        enc_key = '8e29ab5666d041c3a1ea76e06dabdffb'
+        enc_key = '7c4d2505ad0544b88c7679c65d6748a1'
         return enc_key
 
     def _real_extract(self, url):
