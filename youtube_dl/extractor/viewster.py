@@ -11,6 +11,7 @@ from ..utils import (
     determine_ext,
     int_or_none,
     parse_iso8601,
+    HEADRequest,
 )
 
 
@@ -73,7 +74,8 @@ class ViewsterIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         # Get 'api_token' cookie
-        self._request_webpage(url, video_id)
+        request = HEADRequest(url)
+        self._request_webpage(request, video_id)
         cookies = self._get_cookies(url)
         self._AUTH_TOKEN = compat_urllib_parse_unquote(cookies['api_token'].value)
 
