@@ -999,8 +999,7 @@ class InfoExtractor(object):
             assert not fatal
             return []
 
-        namespace = self._search_regex(
-            r'{([^}]+)?}smil', smil.tag, 'namespace', default=None)
+        namespace = self._parse_smil_namespace(smil)
 
         return self._parse_smil_formats(
             smil, smil_url, video_id, namespace=namespace, f4m_params=f4m_params)
@@ -1017,8 +1016,7 @@ class InfoExtractor(object):
             'Unable to download SMIL file', fatal=fatal)
 
     def _parse_smil(self, smil, smil_url, video_id, f4m_params=None):
-        namespace = self._search_regex(
-            r'{([^}]+)?}smil', smil.tag, 'namespace', default=None)
+        namespace = self._parse_smil_namespace(smil)
 
         formats = self._parse_smil_formats(
             smil, smil_url, video_id, namespace=namespace, f4m_params=f4m_params)
@@ -1044,6 +1042,10 @@ class InfoExtractor(object):
             'formats': formats,
             'subtitles': subtitles,
         }
+
+    def _parse_smil_namespace(self, smil):
+        return self._search_regex(
+            r'(?i)^{([^}]+)?}smil$', smil.tag, 'namespace', default=None)
 
     def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None):
         base = smil_url
