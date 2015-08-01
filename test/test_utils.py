@@ -235,12 +235,21 @@ class TestUtil(unittest.TestCase):
             <node x="a"/>
             <node x="a" y="c" />
             <node x="b" y="d" />
+            <node x="" />
         </root>'''
         doc = xml.etree.ElementTree.fromstring(testxml)
 
+        self.assertEqual(find_xpath_attr(doc, './/fourohfour', 'n'), None)
         self.assertEqual(find_xpath_attr(doc, './/fourohfour', 'n', 'v'), None)
+        self.assertEqual(find_xpath_attr(doc, './/node', 'n'), None)
+        self.assertEqual(find_xpath_attr(doc, './/node', 'n', 'v'), None)
+        self.assertEqual(find_xpath_attr(doc, './/node', 'x'), doc[1])
         self.assertEqual(find_xpath_attr(doc, './/node', 'x', 'a'), doc[1])
+        self.assertEqual(find_xpath_attr(doc, './/node', 'x', 'b'), doc[3])
+        self.assertEqual(find_xpath_attr(doc, './/node', 'y'), doc[2])
         self.assertEqual(find_xpath_attr(doc, './/node', 'y', 'c'), doc[2])
+        self.assertEqual(find_xpath_attr(doc, './/node', 'y', 'd'), doc[3])
+        self.assertEqual(find_xpath_attr(doc, './/node', 'x', ''), doc[4])
 
     def test_xpath_with_ns(self):
         testxml = '''<root xmlns:media="http://example.com/">

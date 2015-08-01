@@ -139,21 +139,24 @@ def write_json_file(obj, fn):
 
 
 if sys.version_info >= (2, 7):
-    def find_xpath_attr(node, xpath, key, val):
+    def find_xpath_attr(node, xpath, key, val=None):
         """ Find the xpath xpath[@key=val] """
         assert re.match(r'^[a-zA-Z-]+$', key)
-        assert re.match(r'^[a-zA-Z0-9@\s:._-]*$', val)
-        expr = xpath + "[@%s='%s']" % (key, val)
+        if val:
+            assert re.match(r'^[a-zA-Z0-9@\s:._-]*$', val)
+        expr = xpath + ('[@%s]' % key if val is None else "[@%s='%s']" % (key, val))
         return node.find(expr)
 else:
-    def find_xpath_attr(node, xpath, key, val):
+    def find_xpath_attr(node, xpath, key, val=None):
         # Here comes the crazy part: In 2.6, if the xpath is a unicode,
         # .//node does not match if a node is a direct child of . !
         if isinstance(xpath, compat_str):
             xpath = xpath.encode('ascii')
 
         for f in node.findall(xpath):
-            if f.attrib.get(key) == val:
+            if key not in f.attrib:
+                continue
+            if val is None or f.attrib.get(key) == val:
                 return f
         return None
 
