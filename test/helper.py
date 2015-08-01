@@ -133,8 +133,8 @@ def expect_info_dict(self, got_dict, expected_dict):
             elif isinstance(expected, compat_str) and expected.startswith('mincount:'):
                 got = got_dict.get(info_field)
                 self.assertTrue(
-                    isinstance(got, list),
-                    'Expected field %s to be a list, but it is of type %s' % (
+                    isinstance(got, (list, dict)),
+                    'Expected field %s to be a list or a dict, but it is of type %s' % (
                         info_field, type(got).__name__))
                 expected_num = int(expected.partition(':')[2])
                 assertGreaterEqual(
