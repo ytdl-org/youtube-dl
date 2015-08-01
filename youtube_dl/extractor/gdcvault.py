@@ -183,8 +183,8 @@ class GDCVaultIE(InfoExtractor):
             # Fallback to the older format
             xml_name = self._html_search_regex(r'<iframe src=".*?\?xmlURL=xml/(?P<xml_file>.+?\.xml).*?".*?</iframe>', start_page, 'xml filename')
 
-        xml_decription_url = xml_root + 'xml/' + xml_name
-        xml_description = self._download_xml(xml_decription_url, display_id)
+        xml_description_url = xml_root + 'xml/' + xml_name
+        xml_description = self._download_xml(xml_description_url, display_id)
 
         video_title = xml_description.find('./metadata/title').text
         video_formats = self._parse_mp4(xml_description)
