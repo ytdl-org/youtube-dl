@@ -1110,11 +1110,13 @@ class GenericIE(InfoExtractor):
 
         self.report_extraction(video_id)
 
-        # Is it an RSS feed?
+        # Is it an RSS feed or a SMIL file?
         try:
             doc = parse_xml(webpage)
             if doc.tag == 'rss':
                 return self._extract_rss(url, video_id, doc)
+            elif re.match(r'^(?:{[^}]+})?smil$', doc.tag):
+                return self._parse_smil(doc, url, video_id)
         except compat_xml_parse_error:
             pass
 
