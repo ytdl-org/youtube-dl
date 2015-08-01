@@ -1101,7 +1101,7 @@ class InfoExtractor(object):
                         'plugin': 'flowplayer-3.2.0.1',
                     }
                 f4m_url += '&' if '?' in f4m_url else '?'
-                f4m_url += compat_urllib_parse.urlencode(f4m_params).encode('utf-8')
+                f4m_url += compat_urllib_parse.urlencode(f4m_params)
                 formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds'))
                 continue
 
