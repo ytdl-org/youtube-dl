@@ -4,6 +4,7 @@ import errno
 import os
 import socket
 import time
+import re
 
 from .common import FileDownloader
 from ..compat import (
