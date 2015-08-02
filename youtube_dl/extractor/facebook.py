@@ -17,6 +17,8 @@ from ..utils import (
     int_or_none,
     limit_length,
     urlencode_postdata,
+    get_element_by_id,
+    clean_html,
 )
 
 
@@ -42,6 +44,7 @@ class FacebookIE(InfoExtractor):
             'id': '637842556329505',
             'ext': 'mp4',
             'title': 're:Did you know Kei Nishikori is the first Asian man to ever reach a Grand Slam',
+            'uploader': 'Tennis on Facebook',
         }
     }, {
         'note': 'Video without discernible title',
@@ -50,6 +53,7 @@ class FacebookIE(InfoExtractor):
             'id': '274175099429670',
             'ext': 'mp4',
             'title': 'Facebook video #274175099429670',
+            'uploader': 'Asif Nawab Butt',
         },
         'expected_warnings': [
             'title'
@@ -161,6 +165,7 @@ class FacebookIE(InfoExtractor):
             video_title = limit_length(video_title, 80)
         if not video_title:
             video_title = 'Facebook video #%s' % video_id
+        uploader = clean_html(get_element_by_id('fbPhotoPageAuthorName', webpage))
 
         return {
             'id': video_id,
@@ -168,4 +173,5 @@ class FacebookIE(InfoExtractor):
             'formats': formats,
             'duration': int_or_none(video_data.get('video_duration')),
             'thumbnail': video_data.get('thumbnail_src'),
+            'uploader': uploader,
         }
