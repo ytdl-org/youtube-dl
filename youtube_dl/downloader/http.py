@@ -66,6 +66,7 @@ class HttpFD(FileDownloader):
                     if content_range_m and resume_len == int(content_range_m.group(1)):
                         break
                     # Content-Range is invalid - wipe the file and do entire redownload
+                    self.report_unable_to_resume()
                     resume_len = 0
                     open_mode = 'wb'
                 break
