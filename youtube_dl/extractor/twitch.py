@@ -7,12 +7,15 @@ import random
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_parse_qs,
     compat_str,
     compat_urllib_parse,
+    compat_urllib_parse_urlparse,
     compat_urllib_request,
 )
 from ..utils import (
     ExtractorError,
+    parse_duration,
     parse_iso8601,
 )
 
@@ -185,7 +188,7 @@ class TwitchVodIE(TwitchItemBaseIE):
     _ITEM_SHORTCUT = 'v'
 
     _TEST = {
-        'url': 'http://www.twitch.tv/riotgames/v/6528877',
+        'url': 'http://www.twitch.tv/riotgames/v/6528877?t=5m10s',
         'info_dict': {
             'id': 'v6528877',
             'ext': 'mp4',
@@ -197,6 +200,7 @@ class TwitchVodIE(TwitchItemBaseIE):
             'uploader': 'Riot Games',
             'uploader_id': 'riotgames',
             'view_count': int,
+            'start_time': 310,
         },
         'params': {
             # m3u8 download
@@ -216,6 +220,12 @@ class TwitchVodIE(TwitchItemBaseIE):
             item_id, 'mp4')
         self._prefer_source(formats)
         info['formats'] = formats
+
+        parsed_url = compat_urllib_parse_urlparse(url)
+        query = compat_parse_qs(parsed_url.query)
+        if 't' in query:
+            info['start_time'] = parse_duration(query['t'][0])
+
         return info
 
 
