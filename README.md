@@ -439,6 +439,12 @@ Either prepend `http://www.youtube.com/watch?v=` or separate the ID from the opt
     youtube-dl -- -wNyEUrxzFU
     youtube-dl "http://www.youtube.com/watch?v=-wNyEUrxzFU"
 
+### How do I pass cookies to youtube-dl?
+
+Use the `--cookies` option, for example `--cookies /path/to/cookies/file.txt`. Note that cookies file must be in Mozilla/Netscape format and the first line of cookies file must be either `# HTTP Cookie File` or `# Netscape HTTP Cookie File`. Make sure you have correct [newline format](https://en.wikipedia.org/wiki/Newline) in cookies file and convert newlines if necessary to correspond your OS, namely `CRLF` (`\r\n`) for Windows, `LF` (`\n`) for Linux and `CR` (`\r`) for Mac OS. `HTTP Error 400: Bad Request` when using `--cookies` is a good sign of invalid newline format.
+
+Passing cookies to youtube-dl is a good way to workaround login when particular extractor does not implement it explicitly.
+
 ### Can you add support for this anime video site, or site which shows current movies for free?
 
 As a matter of policy (as well as legality), youtube-dl does not include support for services that specialize in infringing copyright. As a rule of thumb, if you cannot easily find a video that the service is quite obviously allowed to distribute (i.e. that has been uploaded by the creator, the creator's distributor, or is published under a free license), the service is probably unfit for inclusion to youtube-dl.
