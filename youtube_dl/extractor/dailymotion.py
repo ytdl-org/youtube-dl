@@ -15,7 +15,6 @@ from ..utils import (
     ExtractorError,
     determine_ext,
     int_or_none,
-    orderedSet,
     parse_iso8601,
     str_to_int,
     unescapeHTML,
@@ -278,7 +277,7 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
     }]
 
     def _extract_entries(self, id):
-        video_ids = []
+        video_ids = set()
         processed_urls = set()
         for pagenum in itertools.count(1):
             page_url = self._PAGE_TEMPLATE % (id, pagenum)
@@ -291,12 +290,13 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
 
             processed_urls.add(urlh.geturl())
 
-            video_ids.extend(re.findall(r'data-xid="(.+?)"', webpage))
+            for video_id in re.findall(r'data-xid="(.+?)"', webpage):
+                if video_id not in video_ids:
+                    yield self.url_result('http://www.dailymotion.com/video/%s' % video_id, 'Dailymotion')
+                    video_ids.add(video_id)
 
             if re.search(self._MORE_PAGES_INDICATOR, webpage) is None:
                 break
-        return [self.url_result('http://www.dailymotion.com/video/%s' % video_id, 'Dailymotion')
-                for video_id in orderedSet(video_ids)]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
