@@ -58,20 +58,16 @@ class HttpFD(FileDownloader):
             # Establish connection
             try:
                 data = self.ydl.urlopen(request)
-
                 if resume_len > 0:
                     content_range = data.headers.get('Content-Range')
                     if content_range:
                         content_range_m = re.search(r'bytes (\d+)-', content_range)
-                        if content_range_m:
-                            # Content-Range is correct - go on
-                            if resume_len == int(content_range_m.group(1)):
-                                break
-
+                        # Content-Range is correct - go on
+                    if content_range_m and resume_len == int(content_range_m.group(1)):
+                        break
                     # Content-Range is invalid - wipe the file and do entire redownload
                     resume_len = 0
                     open_mode = 'wb'
-
                 break
             except (compat_urllib_error.HTTPError, ) as err:
                 if (err.code < 500 or err.code >= 600) and err.code != 416:
