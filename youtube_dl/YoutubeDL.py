@@ -1120,11 +1120,9 @@ class YoutubeDL(object):
                 # the first that is available, starting from left
                 req_formats = rfstr.split('/')
                 for rf in req_formats:
-                    if re.match(r'.+?\+.+?', rf) is not None:
+                    if '+' in rf:
                         # Two formats have been requested like '137+139'
-                        format_1, format_2 = rf.split('+')
-                        formats_info = (self.select_format(format_1, formats),
-                                        self.select_format(format_2, formats))
+                        formats_info = [self.select_format(selected_format, formats) for selected_format in rf.split('+')]
                         if all(formats_info):
                             # The first format must contain the video and the
                             # second the audio
@@ -1139,10 +1137,8 @@ class YoutubeDL(object):
                                 else self.params['merge_output_format'])
                             selected_format = {
                                 'requested_formats': formats_info,
-                                'format': '%s+%s' % (formats_info[0].get('format'),
-                                                     formats_info[1].get('format')),
-                                'format_id': '%s+%s' % (formats_info[0].get('format_id'),
-                                                        formats_info[1].get('format_id')),
+                                'format': rf,
+                                'format_id': rf,
                                 'width': formats_info[0].get('width'),
                                 'height': formats_info[0].get('height'),
                                 'resolution': formats_info[0].get('resolution'),
@@ -1390,17 +1386,18 @@ class YoutubeDL(object):
                         postprocessors = [merger]
 
                     def compatible_formats(formats):
-                        video, audio = formats
                         # Check extension
-                        video_ext, audio_ext = audio.get('ext'), video.get('ext')
-                        if video_ext and audio_ext:
+                        video_ext = formats[0].get('ext')
+                        if video_ext:
                             COMPATIBLE_EXTS = (
                                 ('mp3', 'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v'),
                                 ('webm')
                             )
                             for exts in COMPATIBLE_EXTS:
-                                if video_ext in exts and audio_ext in exts:
-                                    return True
+                                for audio_format in formats[1:]:
+                                    if video_ext not in exts or audio_format.get('ext') not in exts:
+                                        return False
+                            return True
                         # TODO: Check acodec/vcodec
                         return False
 
