@@ -94,7 +94,7 @@ class PornHubIE(InfoExtractor):
             format = path.split('/')[5].split('_')[:2]
             format = "-".join(format)
 
-            m = re.match(r'^(?P<height>[0-9]+)P-(?P<tbr>[0-9]+)K$', format)
+            m = re.match(r'^(?P<height>[0-9]+)[pP]-(?P<tbr>[0-9]+)[kK]$', format)
             if m is None:
                 height = None
                 tbr = None
