@@ -436,6 +436,11 @@ except TypeError:  # Python 2.6
             yield n
             n += step
 
+if sys.version_info >= (3, 0):
+    from tokenize import tokenize as compat_tokenize_tokenize
+else:
+    from tokenize import generate_tokens as compat_tokenize_tokenize
+
 __all__ = [
     'compat_HTTPError',
     'compat_basestring',
@@ -457,6 +462,7 @@ __all__ = [
     'compat_socket_create_connection',
     'compat_str',
     'compat_subprocess_get_DEVNULL',
+    'compat_tokenize_tokenize',
     'compat_urllib_error',
     'compat_urllib_parse',
     'compat_urllib_parse_unquote',
