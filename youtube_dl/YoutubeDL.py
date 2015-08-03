@@ -960,6 +960,8 @@ class YoutubeDL(object):
                         selectors.append(current_selector)
                         current_selector = None
                     elif string == '/':
+                        if not current_selector:
+                            raise syntax_error('"/" must follow a format selector', start)
                         first_choice = current_selector
                         second_choice = _parse_format_selection(tokens, inside_choice=True)
                         current_selector = FormatSelector(PICKFIRST, (first_choice, second_choice), [])
