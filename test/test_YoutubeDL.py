@@ -105,6 +105,7 @@ class TestFormatSelection(unittest.TestCase):
     def test_format_selection(self):
         formats = [
             {'format_id': '35', 'ext': 'mp4', 'preference': 1, 'url': TEST_URL},
+            {'format_id': 'example-with-dashes', 'ext': 'webm', 'preference': 1, 'url': TEST_URL},
             {'format_id': '45', 'ext': 'webm', 'preference': 2, 'url': TEST_URL},
             {'format_id': '47', 'ext': 'webm', 'preference': 3, 'url': TEST_URL},
             {'format_id': '2', 'ext': 'flv', 'preference': 4, 'url': TEST_URL},
@@ -135,6 +136,11 @@ class TestFormatSelection(unittest.TestCase):
         ydl.process_ie_result(info_dict.copy())
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], '35')
+
+        ydl = YDL({'format': 'example-with-dashes'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'example-with-dashes')
 
     def test_format_selection_audio(self):
         formats = [
