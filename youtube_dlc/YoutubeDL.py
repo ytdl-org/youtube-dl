@@ -1216,11 +1216,13 @@ class YoutubeDL(object):
                         group = _parse_format_selection(tokens, inside_group=True)
                         current_selector = FormatSelector(GROUP, group, [])
                     elif string == '+':
-                        video_selector = current_selector
-                        audio_selector = _parse_format_selection(tokens, inside_merge=True)
-                        if not video_selector or not audio_selector:
-                            raise syntax_error('"+" must be between two format selectors', start)
-                        current_selector = FormatSelector(MERGE, (video_selector, audio_selector), [])
+                        if not current_selector:
+                            raise syntax_error('Unexpected "+"', start)
+                        selector_1 = current_selector
+                        selector_2 = _parse_format_selection(tokens, inside_merge=True)
+                        if not selector_2:
+                            raise syntax_error('Expected a selector', start)
+                        current_selector = FormatSelector(MERGE, (selector_1, selector_2), [])
                     else:
                         raise syntax_error('Operator not recognized: "{0}"'.format(string), start)
                 elif type == tokenize.ENDMARKER:
@@ -1305,47 +1307,59 @@ class YoutubeDL(object):
                         if matches:
                             yield matches[-1]
             elif selector.type == MERGE:
-                def _merge(formats_info):
-                    format_1, format_2 = [f['format_id'] for f in formats_info]
-                    # The first format must contain the video and the
-                    # second the audio
-                    if formats_info[0].get('vcodec') == 'none':
-                        self.report_error('The first format must '
-                                          'contain the video, try using '
-                                          '"-f %s+%s"' % (format_2, format_1))
-                        return
-                    # Formats must be opposite (video+audio)
-                    if formats_info[0].get('acodec') == 'none' and formats_info[1].get('acodec') == 'none':
-                        self.report_error(
-                            'Both formats %s and %s are video-only, you must specify "-f video+audio"'
-                            % (format_1, format_2))
-                        return
-                    output_ext = (
-                        formats_info[0]['ext']
-                        if self.params.get('merge_output_format') is None
-                        else self.params['merge_output_format'])
-                    return {
+                def _merge(formats_pair):
+                    format_1, format_2 = formats_pair
+
+                    formats_info = []
+                    formats_info.extend(format_1.get('requested_formats', (format_1,)))
+                    formats_info.extend(format_2.get('requested_formats', (format_2,)))
+
+                    video_fmts = [fmt_info for fmt_info in formats_info if fmt_info.get('vcodec') != 'none']
+                    audio_fmts = [fmt_info for fmt_info in formats_info if fmt_info.get('acodec') != 'none']
+
+                    the_only_video = video_fmts[0] if len(video_fmts) == 1 else None
+                    the_only_audio = audio_fmts[0] if len(audio_fmts) == 1 else None
+
+                    output_ext = self.params.get('merge_output_format')
+                    if not output_ext:
+                        if the_only_video:
+                            output_ext = the_only_video['ext']
+                        elif the_only_audio and not video_fmts:
+                            output_ext = the_only_audio['ext']
+                        else:
+                            output_ext = 'mkv'
+
+                    new_dict = {
                         'requested_formats': formats_info,
-                        'format': '%s+%s' % (formats_info[0].get('format'),
-                                             formats_info[1].get('format')),
-                        'format_id': '%s+%s' % (formats_info[0].get('format_id'),
-                                                formats_info[1].get('format_id')),
-                        'width': formats_info[0].get('width'),
-                        'height': formats_info[0].get('height'),
-                        'resolution': formats_info[0].get('resolution'),
-                        'fps': formats_info[0].get('fps'),
-                        'vcodec': formats_info[0].get('vcodec'),
-                        'vbr': formats_info[0].get('vbr'),
-                        'stretched_ratio': formats_info[0].get('stretched_ratio'),
-                        'acodec': formats_info[1].get('acodec'),
-                        'abr': formats_info[1].get('abr'),
+                        'format': '+'.join(fmt_info.get('format') for fmt_info in formats_info),
+                        'format_id': '+'.join(fmt_info.get('format_id') for fmt_info in formats_info),
                         'ext': output_ext,
                     }
-                video_selector, audio_selector = map(_build_selector_function, selector.selector)
+
+                    if the_only_video:
+                        new_dict.update({
+                            'width': the_only_video.get('width'),
+                            'height': the_only_video.get('height'),
+                            'resolution': the_only_video.get('resolution'),
+                            'fps': the_only_video.get('fps'),
+                            'vcodec': the_only_video.get('vcodec'),
+                            'vbr': the_only_video.get('vbr'),
+                            'stretched_ratio': the_only_video.get('stretched_ratio'),
+                        })
+
+                    if the_only_audio:
+                        new_dict.update({
+                            'acodec': the_only_audio.get('acodec'),
+                            'abr': the_only_audio.get('abr'),
+                        })
+
+                    return new_dict
+
+                selector_1, selector_2 = map(_build_selector_function, selector.selector)
 
                 def selector_function(ctx):
                     for pair in itertools.product(
-                            video_selector(copy.deepcopy(ctx)), audio_selector(copy.deepcopy(ctx))):
+                            selector_1(copy.deepcopy(ctx)), selector_2(copy.deepcopy(ctx))):
                         yield _merge(pair)
 
             filters = [self._build_format_filter(f) for f in selector.filters]
@@ -1875,17 +1889,21 @@ class YoutubeDL(object):
                         postprocessors = [merger]
 
                     def compatible_formats(formats):
-                        video, audio = formats
+                        # TODO: some formats actually allow this (mkv, webm, ogg, mp4), but not all of them.
+                        video_formats = [format for format in formats if format.get('vcodec') != 'none']
+                        audio_formats = [format for format in formats if format.get('acodec') != 'none']
+                        if len(video_formats) > 2 or len(audio_formats) > 2:
+                            return False
+
                         # Check extension
-                        video_ext, audio_ext = video.get('ext'), audio.get('ext')
-                        if video_ext and audio_ext:
-                            COMPATIBLE_EXTS = (
-                                ('mp3', 'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v', 'ismv', 'isma'),
-                                ('webm')
-                            )
-                            for exts in COMPATIBLE_EXTS:
-                                if video_ext in exts and audio_ext in exts:
-                                    return True
+                        exts = set(format.get('ext') for format in formats)
+                        COMPATIBLE_EXTS = (
+                            set(('mp3', 'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v', 'ismv', 'isma')),
+                            set(('webm',)),
+                        )
+                        for ext_sets in COMPATIBLE_EXTS:
+                            if ext_sets.issuperset(exts):
+                                return True
                         # TODO: Check acodec/vcodec
                         return False
 
@@ -2064,7 +2082,7 @@ class YoutubeDL(object):
             except PostProcessingError as e:
                 self.report_error(e.msg)
             if files_to_delete and not self.params.get('keepvideo', False):
-                for old_filename in files_to_delete:
+                for old_filename in set(files_to_delete):
                     self.to_screen('Deleting original file %s (pass -k to keep)' % old_filename)
                     try:
                         os.remove(encodeFilename(old_filename))
