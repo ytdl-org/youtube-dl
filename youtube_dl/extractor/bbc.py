@@ -527,6 +527,18 @@ class BBCIE(BBCCoUkIE):
             'skip_download': True,
         }
     }, {
+        # single video from video playlist embedded with vxp-playlist-data JSON
+        'url': 'http://www.bbc.com/news/video_and_audio/must_see/33376376',
+        'info_dict': {
+            'id': 'p02w6qjc',
+            'ext': 'mp4',
+            'title': '''Judge Mindy Glazer: "I'm sorry to see you here... I always wondered what happened to you"''',
+            'duration': 56,
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }, {
         # single video story with digitalData
         'url': 'http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret',
         'info_dict': {
@@ -695,13 +707,36 @@ class BBCIE(BBCCoUkIE):
 
         if not medias:
             # Single video article (e.g. http://www.bbc.com/news/video_and_audio/international)
-            media_asset_page = self._parse_json(
+            media_asset = self._search_regex(
+                r'mediaAssetPage\.init\(\s*({.+?}), "/',
+                webpage, 'media asset', default=None)
+            if media_asset:
+                media_asset_page = self._parse_json(media_asset, playlist_id, fatal=False)
+                medias = []
+                for video in media_asset_page.get('videos', {}).values():
+                    medias.extend(video.values())
+
+        if not medias:
+            # Multiple video playlist with single `now playing` entry (e.g.
+            # http://www.bbc.com/news/video_and_audio/must_see/33767813)
+            vxp_playlist = self._parse_json(
                 self._search_regex(
-                    r'mediaAssetPage\.init\(\s*({.+?}), "/', webpage, 'media asset'),
+                    r'<script[^>]+class="vxp-playlist-data"[^>]+type="application/json"[^>]*>([^<]+)</script>',
+                    webpage, 'playlist data'),
                 playlist_id)
-            medias = []
-            for video in media_asset_page.get('videos', {}).values():
-                medias.extend(video.values())
+            playlist_medias = []
+            for item in vxp_playlist:
+                media = item.get('media')
+                if not media:
+                    continue
+                playlist_medias.append(media)
+                # Download single video if found media with asset id matching the video id from URL
+                if item.get('advert', {}).get('assetId') == playlist_id:
+                    medias = [media]
+                    break
+            # Fallback to the whole playlist
+            if not medias:
+                medias = playlist_medias
 
         entries = []
         for num, media_meta in enumerate(medias, start=1):
