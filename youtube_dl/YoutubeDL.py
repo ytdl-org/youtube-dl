@@ -941,7 +941,7 @@ class YoutubeDL(object):
                 if type == getattr(tokenize, 'ENCODING', None):
                     continue
                 elif type in [tokenize.NAME, tokenize.NUMBER]:
-                    current_selector = FormatSelector(SINGLE, string, [])
+                    current_selector = FormatSelector(SINGLE, string.replace('UNTOKENIZEDDASH','-'), [])
                 elif type == tokenize.OP:
                     if string == ')':
                         if not inside_group:
@@ -1109,7 +1109,7 @@ class YoutubeDL(object):
                 return selector_function(formats)
             return final_selector
 
-        stream = io.BytesIO(format_spec.encode('utf-8'))
+        stream = io.BytesIO(format_spec.replace('-','UNTOKENIZEDDASH').encode('utf-8'))
         try:
             tokens = list(compat_tokenize_tokenize(stream.readline))
         except tokenize.TokenError:
