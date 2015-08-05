@@ -22,7 +22,7 @@ class XHamsterIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'FemaleAgent Shy beauty takes the bait',
                 'upload_date': '20121014',
-                'uploader_id': 'Ruseful2011',
+                'uploader': 'Ruseful2011',
                 'duration': 893,
                 'age_limit': 18,
             }
@@ -34,7 +34,7 @@ class XHamsterIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Britney Spears  Sexy Booty',
                 'upload_date': '20130914',
-                'uploader_id': 'jojo747400',
+                'uploader': 'jojo747400',
                 'duration': 200,
                 'age_limit': 18,
             }
@@ -75,8 +75,9 @@ class XHamsterIE(InfoExtractor):
         if upload_date:
             upload_date = unified_strdate(upload_date)
 
-        uploader_id = self._html_search_regex(r'<a href=\'/user/[^>]+>(?P<uploader_id>[^<]+)',
-                                              webpage, 'uploader id', default='anonymous')
+        uploader = self._html_search_regex(
+            r"<a href='[^']+xhamster\.com/user/[^>]+>(?P<uploader>[^<]+)",
+            webpage, 'uploader', default='anonymous')
 
         thumbnail = self._search_regex(
             [r'''thumb\s*:\s*(?P<q>["'])(?P<thumbnail>.+?)(?P=q)''',
@@ -127,7 +128,7 @@ class XHamsterIE(InfoExtractor):
             'title': title,
             'description': description,
             'upload_date': upload_date,
-            'uploader_id': uploader_id,
+            'uploader': uploader,
             'thumbnail': thumbnail,
             'duration': duration,
             'view_count': view_count,
