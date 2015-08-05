@@ -17,7 +17,6 @@ from ..utils import (
 
 class LyndaBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://www.lynda.com/login/login.aspx'
-    _SUCCESSFUL_LOGIN_REGEX = r'isLoggedIn\s*:\s*true'
     _ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to provide lynda.com account credentials.'
     _NETRC_MACHINE = 'lynda'
 
@@ -41,7 +40,7 @@ class LyndaBaseIE(InfoExtractor):
             request, None, 'Logging in as %s' % username)
 
         # Not (yet) logged in
-        m = re.search(r'loginResultJson = \'(?P<json>[^\']+)\';', login_page)
+        m = re.search(r'loginResultJson\s*=\s*\'(?P<json>[^\']+)\';', login_page)
         if m is not None:
             response = m.group('json')
             response_json = json.loads(response)
@@ -70,7 +69,7 @@ class LyndaBaseIE(InfoExtractor):
                     request, None,
                     'Confirming log in and log out from another device')
 
-        if re.search(self._SUCCESSFUL_LOGIN_REGEX, login_page) is None:
+        if all(not re.search(p, login_page) for p in ('isLoggedIn\s*:\s*true', r'logout\.aspx', r'>Log out<')):
             raise ExtractorError('Unable to log in')
 
 
