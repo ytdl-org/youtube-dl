@@ -4,7 +4,6 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
     unified_strdate,
     str_to_int,
     int_or_none,
