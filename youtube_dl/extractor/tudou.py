@@ -29,6 +29,8 @@ class TudouIE(InfoExtractor):
         }
     }]
 
+    _PLAYER_URL = 'http://js.tudouui.com/bin/lingtong/PortalPlayer_177.swf'
+	
     def _url_for_id(self, id, quality=None):
         info_url = "http://v2.tudou.com/f?id=" + str(id)
         if quality:
@@ -76,6 +78,9 @@ class TudouIE(InfoExtractor):
                 'ext': ext,
                 'title': title,
                 'thumbnail': thumbnail_url,
+                'http_headers': {
+                    'Referer': self._PLAYER_URL,
+                },
             }
             result.append(part_info)
 
