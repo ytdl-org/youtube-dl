@@ -78,7 +78,10 @@ class XHamsterIE(InfoExtractor):
         uploader_id = self._html_search_regex(r'<a href=\'/user/[^>]+>(?P<uploader_id>[^<]+)',
                                               webpage, 'uploader id', default='anonymous')
 
-        thumbnail = self._html_search_regex(r'<video\s+.*?poster="([^"]+)".*?>', webpage, 'thumbnail', fatal=False)
+        thumbnail = self._search_regex(
+            [r'''thumb\s*:\s*(?P<q>["'])(?P<thumbnail>.+?)(?P=q)''',
+             r'''<video[^>]+poster=(?P<q>["'])(?P<thumbnail>.+?)(?P=q)[^>]*>'''],
+             webpage, 'thumbnail', fatal=False, group='thumbnail')
 
         duration = parse_duration(self._html_search_regex(r'<span>Runtime:</span> (\d+:\d+)</div>',
                                                           webpage, 'duration', fatal=False))
