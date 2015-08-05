@@ -46,12 +46,12 @@ class XHamsterIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        def extract_video_url(webpage):
-            mp4 = re.search(r'file:\s+\'([^\']+)\'', webpage)
-            if mp4 is None:
-                raise ExtractorError('Unable to extract media URL')
-            else:
-                return mp4.group(1)
+        def extract_video_url(webpage, name):
+            return self._search_regex(
+                [r'''file\s*:\s*(?P<q>["'])(?P<mp4>.+?)(?P=q)''',
+                 r'''<a\s+href=(?P<q>["'])(?P<mp4>.+?)(?P=q)\s+class=["']mp4Thumb''',
+                 r'''<video[^>]+file=(?P<q>["'])(?P<mp4>.+?)(?P=q)[^>]*>'''],
+                webpage, name, group='mp4')
 
         def is_hd(webpage):
             return '<div class=\'icon iconHD\'' in webpage
@@ -97,7 +97,9 @@ class XHamsterIE(InfoExtractor):
 
         hd = is_hd(webpage)
 
-        video_url = extract_video_url(webpage)
+        format_id = 'hd' if hd else 'sd'
+
+        video_url = extract_video_url(webpage, format_id)
         formats = [{
             'url': video_url,
             'format_id': 'hd' if hd else 'sd',
@@ -108,7 +110,7 @@ class XHamsterIE(InfoExtractor):
             mrss_url = self._search_regex(r'<link rel="canonical" href="([^"]+)', webpage, 'mrss_url')
             webpage = self._download_webpage(mrss_url + '?hd', video_id, note='Downloading HD webpage')
             if is_hd(webpage):
-                video_url = extract_video_url(webpage)
+                video_url = extract_video_url(webpage, 'hd')
                 formats.append({
                     'url': video_url,
                     'format_id': 'hd',
