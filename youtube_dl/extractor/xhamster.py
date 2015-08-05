@@ -47,7 +47,7 @@ class XHamsterIE(InfoExtractor):
 
     def _real_extract(self, url):
         def extract_video_url(webpage):
-            mp4 = re.search(r'<video\s+.*?file="([^"]+)".*?>', webpage)
+            mp4 = re.search(r'file:\s+\'([^\']+)\'', webpage)
             if mp4 is None:
                 raise ExtractorError('Unable to extract media URL')
             else:
