@@ -81,7 +81,7 @@ class XHamsterIE(InfoExtractor):
         thumbnail = self._search_regex(
             [r'''thumb\s*:\s*(?P<q>["'])(?P<thumbnail>.+?)(?P=q)''',
              r'''<video[^>]+poster=(?P<q>["'])(?P<thumbnail>.+?)(?P=q)[^>]*>'''],
-             webpage, 'thumbnail', fatal=False, group='thumbnail')
+            webpage, 'thumbnail', fatal=False, group='thumbnail')
 
         duration = parse_duration(self._html_search_regex(r'<span>Runtime:</span> (\d+:\d+)</div>',
                                                           webpage, 'duration', fatal=False))
