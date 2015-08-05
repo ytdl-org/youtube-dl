@@ -1655,7 +1655,7 @@ class GenericIE(InfoExtractor):
         if not found:
             # Broaden the findall a little bit: JWPlayer JS loader
             found = filter_video(re.findall(
-                r'[^A-Za-z0-9]?file["\']?:\s*["\'](http(?![^\'"]+\.[0-9]+[\'"])[^\'"]+)["\']', webpage))
+                r'[^A-Za-z0-9]?(?:file|video_url)["\']?:\s*["\'](http(?![^\'"]+\.[0-9]+[\'"])[^\'"]+)["\']', webpage))
         if not found:
             # Flow player
             found = filter_video(re.findall(r'''(?xs)
