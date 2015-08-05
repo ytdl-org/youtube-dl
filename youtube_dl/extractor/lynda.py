@@ -17,7 +17,7 @@ from ..utils import (
 
 class LyndaBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://www.lynda.com/login/login.aspx'
-    _SUCCESSFUL_LOGIN_REGEX = r'isLoggedIn: true'
+    _SUCCESSFUL_LOGIN_REGEX = r'isLoggedIn\s*:\s*true'
     _ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to provide lynda.com account credentials.'
     _NETRC_MACHINE = 'lynda'
 
