@@ -83,6 +83,16 @@ class CurlFD(ExternalFD):
         return cmd
 
 
+class AxelFD(ExternalFD):
+    def _make_cmd(self, tmpfilename, info_dict):
+        cmd = [self.exe, '-o', tmpfilename]
+        for key, val in info_dict['http_headers'].items():
+            cmd += ['-H', '%s: %s' % (key, val)]
+        cmd += self._configuration_args()
+        cmd += ['--', info_dict['url']]
+        return cmd
+
+
 class WgetFD(ExternalFD):
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-O', tmpfilename, '-nv', '--no-cookies']
