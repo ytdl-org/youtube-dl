@@ -28,7 +28,6 @@ if os.name == 'nt':
     import ctypes
 
 from .compat import (
-    compat_basestring,
     compat_cookiejar,
     compat_expanduser,
     compat_get_terminal_size,
@@ -40,7 +39,6 @@ from .compat import (
     compat_urllib_request,
 )
 from .utils import (
-    escape_url,
     ContentTooShortError,
     date_from_str,
     DateRange,
@@ -51,7 +49,6 @@ from .utils import (
     ExtractorError,
     format_bytes,
     formatSeconds,
-    HEADRequest,
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
