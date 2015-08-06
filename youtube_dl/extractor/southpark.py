@@ -53,6 +53,7 @@ class SouthParkDeIE(SouthParkIE):
         # non-ASCII characters in redirect URL
         'url': 'http://www.southpark.de/alle-episoden/s18e09',
         'playlist_count': 4,
+        'skip': 'Broken python 3',
     }]
 
 
