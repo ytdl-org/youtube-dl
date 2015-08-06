@@ -715,6 +715,17 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             gz = io.BytesIO(self.deflate(resp.read()))
             resp = self.addinfourl_wrapper(gz, old_resp.headers, old_resp.url, old_resp.code)
             resp.msg = old_resp.msg
+        # Percent-encode redirect URL of Location HTTP header to satisfy RFC 3986
+        if 300 <= resp.code < 400:
+            location = resp.headers.get('Location')
+            if location:
+                # As of RFC 2616 default charset is iso-8859-1 that is respected by python 3
+                if sys.version_info >= (3, 0):
+                    location = location.encode('iso-8859-1').decode('utf-8')
+                location_escaped = escape_url(location)
+                if location != location_escaped:
+                    del resp.headers['Location']
+                    resp.headers['Location'] = location_escaped
         return resp
 
     https_request = http_request
