@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class DCNIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?(?:video/.+|show/\d+/.+?)/(?P<id>\d+)/?'
+    _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?(?:video/.+|show/\d+/.+?)/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.dcndigital.ae/#/show/199074/%D8%B1%D8%AD%D9%84%D8%A9-%D8%A7%D9%84%D8%B9%D9%85%D8%B1-%D8%A7%D9%84%D8%AD%D9%84%D9%82%D8%A9-1/17375/6887',
         'info_dict':
