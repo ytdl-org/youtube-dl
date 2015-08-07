@@ -127,6 +127,9 @@ class NowTVIE(InfoExtractor):
     }, {
         'url': 'http://www.nowtv.de/rtl/bauer-sucht-frau/die-neuen-bauern-und-eine-hochzeit/preview',
         'only_matching': True,
+    }, {
+        'url': 'http://www.nowtv.at/rtl/bauer-sucht-frau/die-neuen-bauern-und-eine-hochzeit/preview?return=/rtl/bauer-sucht-frau/die-neuen-bauern-und-eine-hochzeit',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
