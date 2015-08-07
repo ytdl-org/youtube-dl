@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class NowTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nowtv\.(?:de|at)/(?:rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<id>.+?)/(?:player|preview)'
+    _VALID_URL = r'https?://(?:www\.)?nowtv\.(?:de|at|ch)/(?:rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<id>.+?)/(?:player|preview)'
 
     _TESTS = [{
         # rtl
