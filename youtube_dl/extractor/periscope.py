@@ -76,3 +76,24 @@ class PeriscopeIE(InfoExtractor):
             'thumbnails': thumbnails,
             'formats': formats,
         }
+
+
+class QuickscopeIE(InfoExtractor):
+    IE_DESC = 'Quisck Scope'
+    _VALID_URL = r'https?://watchonperiscope\.com/broadcast/(?P<id>\d+)'
+    _TEST = {
+        'url': 'https://watchonperiscope.com/broadcast/56180087',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        broadcast_id = self._match_id(url)
+        request = compat_urllib_request.Request(
+            'https://watchonperiscope.com/api/accessChannel', compat_urllib_parse.urlencode({
+                'broadcast_id': broadcast_id,
+                'entry_ticket': '',
+                'from_push': 'false',
+                'uses_sessions': 'true',
+            }).encode('utf-8'))
+        return self.url_result(
+            self._download_json(request, broadcast_id)['share_url'], 'Periscope')
