@@ -13,13 +13,13 @@ class ShahidIE(InfoExtractor):
     _VALID_URL = r'https?://shahid\.mbc\.net/ar/episode/(?P<id>\d+)/?'
     _TESTS = [
         {
-            'url': 'https://shahid.mbc.net/ar/episode/108084/%D8%AE%D9%88%D8%A7%D8%B7%D8%B1-%D8%A7%D9%84%D9%85%D9%88%D8%B3%D9%85-11-%D8%A7%D9%84%D8%AD%D9%84%D9%82%D8%A9-1.html',
+            'url': 'https://shahid.mbc.net/ar/episode/90574/%D8%A7%D9%84%D9%85%D9%84%D9%83-%D8%B9%D8%A8%D8%AF%D8%A7%D9%84%D9%84%D9%87-%D8%A7%D9%84%D8%A5%D9%86%D8%B3%D8%A7%D9%86-%D8%A7%D9%84%D9%85%D9%88%D8%B3%D9%85-1-%D9%83%D9%84%D9%8A%D8%A8-3.html',
             'info_dict': {
-                'id': '108084',
+                'id': '90574',
                 'ext': 'm3u8',
-                'title': 'خواطر الموسم 11 الحلقة 1',
-                'description': 'بسم الله',
-                'duration': 1166,
+                'title': 'الملك عبدالله الإنسان الموسم 1 كليب 3',
+                'description': 'الفيلم الوثائقي - الملك عبد الله الإنسان',
+                'duration': 2972,
             },
             'params': {
                 # m3u8 download
@@ -28,7 +28,7 @@ class ShahidIE(InfoExtractor):
         },
         {
             # shahid plus subscriber only
-            'url': 'https://shahid.mbc.net/ar/series/90497/%D9%85%D8%B1%D8%A7%D9%8A%D8%A7-2011.html',
+            'url': 'https://shahid.mbc.net/ar/episode/90511/%D9%85%D8%B1%D8%A7%D9%8A%D8%A7-2011-%D8%A7%D9%84%D9%85%D9%88%D8%B3%D9%85-1-%D8%A7%D9%84%D8%AD%D9%84%D9%82%D8%A9-1.html',
             'only_matching': True
         }
     ]
