@@ -236,6 +236,19 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Ooyala'],
         },
+        {
+            # ooyala video embedded with http://player.ooyala.com/iframe.js
+            'url': 'http://www.macrumors.com/2015/07/24/steve-jobs-the-man-in-the-machine-first-trailer/',
+            'info_dict': {
+                'id': 'p0MGJndjoG5SOKqO_hZJuZFPB-Tr5VgB',
+                'ext': 'mp4',
+                'title': '"Steve Jobs: Man in the Machine" trailer',
+                'description': 'The first trailer for the Alex Gibney documentary "Steve Jobs: Man in the Machine."',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
         # multiple ooyala embeds on SBN network websites
         {
             'url': 'http://www.sbnation.com/college-football-recruiting/2015/2/3/7970291/national-signing-day-rationalizations-itll-be-ok-itll-be-ok',
