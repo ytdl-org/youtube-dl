@@ -756,6 +756,7 @@ from .xstream import XstreamIE
 from .xtube import XTubeUserIE, XTubeIE
 from .xuite import XuiteIE
 from .xvideos import XVideosIE
+from .xvx import XVXIE
 from .xxxymovies import XXXYMoviesIE
 from .yahoo import (
     YahooIE,
