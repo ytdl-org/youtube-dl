@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import compat_urllib_request
+from ..utils import int_or_none
 
 
 class DcnIE(InfoExtractor):
@@ -16,7 +17,7 @@ class DcnIE(InfoExtractor):
             'title': 'رحلة العمر : الحلقة 1',
             'description': 'في هذه الحلقة من برنامج رحلة العمر يقدّم الدكتور عمر عبد الكافي تبسيطاً لمناسك الحج والعمرة ويجيب مباشرة على استفسارات حجاج بيت الله الحرام بخصوص مناسك الحج والعمرة\n1',
             'thumbnail': 'http://admin.mangomolo.com/analytics/uploads/71/images/media/2/2cefc09d7bec80afa754682f40e49503.jpg',
-            'duration': '2041'
+            'duration': 2041
         },
         'params': {
             # m3u8 download
@@ -32,9 +33,9 @@ class DcnIE(InfoExtractor):
         )
         json_data = self._download_json(request, video_id)
         title = json_data['title_ar']
-        thumbnail = 'http://admin.mangomolo.com/analytics/' + json_data['img']
-        duration = json_data['duration']
-        description = json_data['description_ar']
+        thumbnail = 'http://admin.mangomolo.com/analytics/' + json_data.get('img')
+        duration = int_or_none(json_data.get('duration'))
+        description = json_data.get('description_ar')
         webpage = self._download_webpage(
             'http://admin.mangomolo.com/analytics/index.php/customers/embed/video?id=' + json_data['id'] + '&user_id=' + json_data['user_id'] + '&countries=Q0M=&w=100%&h=100%&filter=DENY&signature=' + json_data['signature'],
             video_id
