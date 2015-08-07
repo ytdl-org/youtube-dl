@@ -636,7 +636,7 @@ class InfoExtractor(object):
     @staticmethod
     def _meta_regex(prop):
         return r'''(?isx)<meta
-                    (?=[^>]+(?:itemprop|name|property)=(["\']?)%s\1)
+                    (?=[^>]+(?:itemprop|name|property|id)=(["\']?)%s\1)
                     [^>]+?content=(["\'])(?P<content>.*?)\2''' % re.escape(prop)
 
     def _og_search_property(self, prop, html, name=None, **kargs):
