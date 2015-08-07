@@ -25,21 +25,17 @@ class PeriscopeIE(InfoExtractor):
         'skip': 'Expires in 24 hours',
     }
 
+    def _call_api(self, method, token):
+        return self._download_json(
+            'https://api.periscope.tv/api/v2/%s?token=%s' % (method, token), token)
+
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        token = self._match_id(url)
 
-        replay = self._download_json(
-            'https://api.periscope.tv/api/v2/getAccessPublic?token=%s' % video_id, video_id)
-
+        replay = self._call_api('getAccessPublic', token)
         video_url = replay['replay_url']
 
-        webpage = self._download_webpage(url, video_id)
-
-        broadcast_data = self._parse_json(
-            unescapeHTML(self._html_search_meta(
-                'broadcast-data', webpage, 'broadcast data', fatal=True)),
-            video_id)
-
+        broadcast_data = self._call_api('getBroadcastPublic', token)
         broadcast = broadcast_data['broadcast']
         status = broadcast['status']
 
@@ -54,7 +50,7 @@ class PeriscopeIE(InfoExtractor):
         } for image in ('image_url', 'image_url_small') if broadcast.get(image)]
 
         return {
-            'id': broadcast.get('id') or video_id,
+            'id': broadcast.get('id') or token,
             'url': video_url,
             'ext': 'mp4',
             'protocol': 'm3u8_native',
