@@ -130,6 +130,74 @@ class GenericIE(InfoExtractor):
                 'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
             }
         },
+        # SMIL from http://videolectures.net/promogram_igor_mekjavic_eng
+        {
+            'url': 'http://videolectures.net/promogram_igor_mekjavic_eng/video/1/smil.xml',
+            'info_dict': {
+                'id': 'smil',
+                'ext': 'mp4',
+                'title': 'Automatics, robotics and biocybernetics',
+                'description': 'md5:815fc1deb6b3a2bff99de2d5325be482',
+                'formats': 'mincount:16',
+                'subtitles': 'mincount:1',
+            },
+            'params': {
+                'force_generic_extractor': True,
+                'skip_download': True,
+            },
+        },
+        # SMIL from http://www1.wdr.de/mediathek/video/livestream/index.html
+        {
+            'url': 'http://metafilegenerator.de/WDR/WDR_FS/hds/hds.smil',
+            'info_dict': {
+                'id': 'hds',
+                'ext': 'flv',
+                'title': 'hds',
+                'formats': 'mincount:1',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        # SMIL from https://www.restudy.dk/video/play/id/1637
+        {
+            'url': 'https://www.restudy.dk/awsmedia/SmilDirectory/video_1637.xml',
+            'info_dict': {
+                'id': 'video_1637',
+                'ext': 'flv',
+                'title': 'video_1637',
+                'formats': 'mincount:3',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        # SMIL from http://adventure.howstuffworks.com/5266-cool-jobs-iditarod-musher-video.htm
+        {
+            'url': 'http://services.media.howstuffworks.com/videos/450221/smil-service.smil',
+            'info_dict': {
+                'id': 'smil-service',
+                'ext': 'flv',
+                'title': 'smil-service',
+                'formats': 'mincount:1',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        # SMIL from http://new.livestream.com/CoheedandCambria/WebsterHall/videos/4719370
+        {
+            'url': 'http://api.new.livestream.com/accounts/1570303/events/1585861/videos/4719370.smil',
+            'info_dict': {
+                'id': '4719370',
+                'ext': 'mp4',
+                'title': '571de1fd-47bc-48db-abf9-238872a58d1f',
+                'formats': 'mincount:3',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
         # google redirect
         {
             'url': 'http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&ved=0CCUQtwIwAA&url=http%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DcmQHVoWB5FY&ei=F-sNU-LLCaXk4QT52ICQBQ&usg=AFQjCNEw4hL29zgOohLXvpJ-Bdh2bils1Q&bvm=bv.61965928,d.bGE',
@@ -1123,11 +1191,13 @@ class GenericIE(InfoExtractor):
 
         self.report_extraction(video_id)
 
-        # Is it an RSS feed?
+        # Is it an RSS feed or a SMIL file?
         try:
             doc = parse_xml(webpage)
             if doc.tag == 'rss':
                 return self._extract_rss(url, video_id, doc)
+            elif re.match(r'^(?:{[^}]+})?smil$', doc.tag):
+                return self._parse_smil(doc, url, video_id)
         except compat_xml_parse_error:
             pass
 
