@@ -79,7 +79,7 @@ class PeriscopeIE(InfoExtractor):
 
 
 class QuickscopeIE(InfoExtractor):
-    IE_DESC = 'Quisck Scope'
+    IE_DESC = 'Quick Scope'
     _VALID_URL = r'https?://watchonperiscope\.com/broadcast/(?P<id>\d+)'
     _TEST = {
         'url': 'https://watchonperiscope.com/broadcast/56180087',
