@@ -51,6 +51,9 @@ class ExternalFD(FileDownloader):
             return []
         return [command_option, source_address]
 
+    def _no_check_certificate(self, command_option):
+        return [command_option] if self.params.get('nocheckcertificate', False) else []
+
     def _configuration_args(self, default=[]):
         ex_args = self.params.get('external_downloader_args')
         if ex_args is None:
@@ -99,6 +102,7 @@ class WgetFD(ExternalFD):
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._source_address('--bind-address')
+        cmd += self._no_check_certificate('--no-check-certificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
