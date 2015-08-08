@@ -116,7 +116,8 @@ class NRKPlaylistIE(InfoExtractor):
 
 
 class NRKTVIE(InfoExtractor):
-    _VALID_URL = r'(?P<baseurl>https?://tv\.nrk(?:super)?\.no/)(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})(?:/\d{2}-\d{2}-\d{4})?(?:#del=(?P<part_id>\d+))?'
+    IE_DESC = 'NRK TV and NRK Radio'
+    _VALID_URL = r'(?P<baseurl>https?://(?:tv|radio)\.nrk(?:super)?\.no/)(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})(?:/\d{2}-\d{2}-\d{4})?(?:#del=(?P<part_id>\d+))?'
 
     _TESTS = [
         {
@@ -188,6 +189,10 @@ class NRKTVIE(InfoExtractor):
                 'duration': 6947.5199999999995,
             },
             'skip': 'Only works from Norway',
+        },
+        {
+            'url': 'https://radio.nrk.no/serie/dagsnytt/NPUB21019315/12-07-2015#',
+            'only_matching': True,
         }
     ]
 
@@ -206,7 +211,8 @@ class NRKTVIE(InfoExtractor):
         ]}
 
     def _extract_f4m(self, manifest_url, video_id):
-        return self._extract_f4m_formats(manifest_url + '?hdcore=3.1.1&plugin=aasp-3.1.1.69.124', video_id)
+        return self._extract_f4m_formats(
+            manifest_url + '?hdcore=3.1.1&plugin=aasp-3.1.1.69.124', video_id, f4m_id='hds')
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -268,7 +274,7 @@ class NRKTVIE(InfoExtractor):
 
         m3u8_url = re.search(r'data-hls-media="([^"]+)"', webpage)
         if m3u8_url:
-            formats.extend(self._extract_m3u8_formats(m3u8_url.group(1), video_id, 'mp4'))
+            formats.extend(self._extract_m3u8_formats(m3u8_url.group(1), video_id, 'mp4', m3u8_id='hls'))
         self._sort_formats(formats)
 
         subtitles_url = self._html_search_regex(

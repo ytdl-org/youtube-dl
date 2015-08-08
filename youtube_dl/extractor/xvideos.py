@@ -4,7 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_unquote,
     compat_urllib_request,
 )
 from ..utils import (
@@ -37,7 +37,7 @@ class XVideosIE(InfoExtractor):
         if mobj:
             raise ExtractorError('%s said: %s' % (self.IE_NAME, clean_html(mobj.group(1))), expected=True)
 
-        video_url = compat_urllib_parse.unquote(
+        video_url = compat_urllib_parse_unquote(
             self._search_regex(r'flv_url=(.+?)&', webpage, 'video URL'))
         video_title = self._html_search_regex(
             r'<title>(.*?)\s+-\s+XVID', webpage, 'title')

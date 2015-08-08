@@ -8,7 +8,6 @@ import re
 from .common import InfoExtractor
 from .youtube import YoutubeIE
 from ..compat import (
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
     compat_urllib_request,
     compat_urlparse,
@@ -37,6 +36,7 @@ from .rutv import RUTVIE
 from .tvc import TVCIE
 from .sportbox import SportBoxEmbedIE
 from .smotri import SmotriIE
+from .myvi import MyviIE
 from .condenast import CondeNastIE
 from .udn import UDNEmbedIE
 from .senateisvp import SenateISVPIE
@@ -129,6 +129,74 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20150228',
                 'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
             }
+        },
+        # SMIL from http://videolectures.net/promogram_igor_mekjavic_eng
+        {
+            'url': 'http://videolectures.net/promogram_igor_mekjavic_eng/video/1/smil.xml',
+            'info_dict': {
+                'id': 'smil',
+                'ext': 'mp4',
+                'title': 'Automatics, robotics and biocybernetics',
+                'description': 'md5:815fc1deb6b3a2bff99de2d5325be482',
+                'formats': 'mincount:16',
+                'subtitles': 'mincount:1',
+            },
+            'params': {
+                'force_generic_extractor': True,
+                'skip_download': True,
+            },
+        },
+        # SMIL from http://www1.wdr.de/mediathek/video/livestream/index.html
+        {
+            'url': 'http://metafilegenerator.de/WDR/WDR_FS/hds/hds.smil',
+            'info_dict': {
+                'id': 'hds',
+                'ext': 'flv',
+                'title': 'hds',
+                'formats': 'mincount:1',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        # SMIL from https://www.restudy.dk/video/play/id/1637
+        {
+            'url': 'https://www.restudy.dk/awsmedia/SmilDirectory/video_1637.xml',
+            'info_dict': {
+                'id': 'video_1637',
+                'ext': 'flv',
+                'title': 'video_1637',
+                'formats': 'mincount:3',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        # SMIL from http://adventure.howstuffworks.com/5266-cool-jobs-iditarod-musher-video.htm
+        {
+            'url': 'http://services.media.howstuffworks.com/videos/450221/smil-service.smil',
+            'info_dict': {
+                'id': 'smil-service',
+                'ext': 'flv',
+                'title': 'smil-service',
+                'formats': 'mincount:1',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        # SMIL from http://new.livestream.com/CoheedandCambria/WebsterHall/videos/4719370
+        {
+            'url': 'http://api.new.livestream.com/accounts/1570303/events/1585861/videos/4719370.smil',
+            'info_dict': {
+                'id': '4719370',
+                'ext': 'mp4',
+                'title': '571de1fd-47bc-48db-abf9-238872a58d1f',
+                'formats': 'mincount:3',
+            },
+            'params': {
+                'skip_download': True,
+            },
         },
         # google redirect
         {
@@ -236,6 +304,19 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Ooyala'],
         },
+        {
+            # ooyala video embedded with http://player.ooyala.com/iframe.js
+            'url': 'http://www.macrumors.com/2015/07/24/steve-jobs-the-man-in-the-machine-first-trailer/',
+            'info_dict': {
+                'id': 'p0MGJndjoG5SOKqO_hZJuZFPB-Tr5VgB',
+                'ext': 'mp4',
+                'title': '"Steve Jobs: Man in the Machine" trailer',
+                'description': 'The first trailer for the Alex Gibney documentary "Steve Jobs: Man in the Machine."',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
         # multiple ooyala embeds on SBN network websites
         {
             'url': 'http://www.sbnation.com/college-football-recruiting/2015/2/3/7970291/national-signing-day-rationalizations-itll-be-ok-itll-be-ok',
@@ -275,14 +356,6 @@ class GenericIE(InfoExtractor):
                 'title': 'Between Two Ferns with Zach Galifianakis: President Barack Obama',
                 'description': 'Episode 18: President Barack Obama sits down with Zach Galifianakis for his most memorable interview yet.',
             },
-        },
-        # BBC iPlayer embeds
-        {
-            'url': 'http://www.bbc.co.uk/blogs/adamcurtis/posts/BUGGER',
-            'info_dict': {
-                'title': 'BBC - Blogs -  Adam Curtis - BUGGER',
-            },
-            'playlist_mincount': 18,
         },
         # RUTV embed
         {
@@ -337,6 +410,17 @@ class GenericIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
+        },
+        # Myvi.ru embed
+        {
+            'url': 'http://www.kinomyvi.tv/news/detail/Pervij-dublirovannij-trejler--Uzhastikov-_nOw1',
+            'info_dict': {
+                'id': 'f4dafcad-ff21-423d-89b5-146cfd89fa1e',
+                'ext': 'mp4',
+                'title': 'Ужастики, русский трейлер (2015)',
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'duration': 153,
+            }
         },
         # XHamster embed
         {
@@ -395,6 +479,26 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': 'Requires rtmpdump'
             }
+        },
+        # francetv embed
+        {
+            'url': 'http://www.tsprod.com/replay-du-concert-alcaline-de-calogero',
+            'info_dict': {
+                'id': 'EV_30231',
+                'ext': 'mp4',
+                'title': 'Alcaline, le concert avec Calogero',
+                'description': 'md5:61f08036dcc8f47e9cfc33aed08ffaff',
+                'upload_date': '20150226',
+                'timestamp': 1424989860,
+                'duration': 5400,
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            },
+            'expected_warnings': [
+                'Forbidden'
+            ]
         },
         # Condé Nast embed
         {
@@ -1087,11 +1191,13 @@ class GenericIE(InfoExtractor):
 
         self.report_extraction(video_id)
 
-        # Is it an RSS feed?
+        # Is it an RSS feed or a SMIL file?
         try:
             doc = parse_xml(webpage)
             if doc.tag == 'rss':
                 return self._extract_rss(url, video_id, doc)
+            elif re.match(r'^(?:{[^}]+})?smil$', doc.tag):
+                return self._parse_smil(doc, url, video_id)
         except compat_xml_parse_error:
             pass
 
@@ -1103,7 +1209,7 @@ class GenericIE(InfoExtractor):
         # Sometimes embedded video player is hidden behind percent encoding
         # (e.g. https://github.com/rg3/youtube-dl/issues/2448)
         # Unescaping the whole page allows to handle those cases in a generic way
-        webpage = compat_urllib_parse.unquote(webpage)
+        webpage = compat_urllib_parse_unquote(webpage)
 
         # it's tempting to parse this further, but you would
         # have to take into account all the variations like
@@ -1164,6 +1270,12 @@ class GenericIE(InfoExtractor):
         vimeo_url = VimeoIE._extract_vimeo_url(url, webpage)
         if vimeo_url is not None:
             return self.url_result(vimeo_url)
+
+        vid_me_embed_url = self._search_regex(
+            r'src=[\'"](https?://vid\.me/[^\'"]+)[\'"]',
+            webpage, 'vid.me embed', default=None)
+        if vid_me_embed_url is not None:
+            return self.url_result(vid_me_embed_url, 'Vidme')
 
         # Look for embedded YouTube player
         matches = re.findall(r'''(?x)
@@ -1291,7 +1403,7 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'))
 
         # Look for Ooyala videos
-        mobj = (re.search(r'player\.ooyala\.com/[^"?]+\?[^"]*?(?:embedCode|ec)=(?P<ec>[^"&]+)', webpage) or
+        mobj = (re.search(r'player\.ooyala\.com/[^"?]+[?#][^"]*?(?:embedCode|ec)=(?P<ec>[^"&]+)', webpage) or
                 re.search(r'OO\.Player\.create\([\'"].*?[\'"],\s*[\'"](?P<ec>.{32})[\'"]', webpage) or
                 re.search(r'SBN\.VideoLinkset\.ooyala\([\'"](?P<ec>.{32})[\'"]\)', webpage) or
                 re.search(r'data-ooyala-video-id\s*=\s*[\'"](?P<ec>.{32})[\'"]', webpage))
@@ -1357,7 +1469,7 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'))
         mobj = re.search(r'class=["\']embedly-embed["\'][^>]src=["\'][^"\']*url=(?P<url>[^&]+)', webpage)
         if mobj is not None:
-            return self.url_result(compat_urllib_parse.unquote(mobj.group('url')))
+            return self.url_result(compat_urllib_parse_unquote(mobj.group('url')))
 
         # Look for funnyordie embed
         matches = re.findall(r'<iframe[^>]+?src="(https?://(?:www\.)?funnyordie\.com/embed/[^"]+)"', webpage)
@@ -1420,10 +1532,22 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'ArteTVEmbed')
 
+        # Look for embedded francetv player
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?://)?embed\.francetv\.fr/\?ue=.+?)\1',
+            webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'))
+
         # Look for embedded smotri.com player
         smotri_url = SmotriIE._extract_url(webpage)
         if smotri_url:
             return self.url_result(smotri_url, 'Smotri')
+
+        # Look for embedded Myvi.ru player
+        myvi_url = MyviIE._extract_url(webpage)
+        if myvi_url:
+            return self.url_result(myvi_url)
 
         # Look for embeded soundcloud player
         mobj = re.search(
@@ -1614,7 +1738,7 @@ class GenericIE(InfoExtractor):
         if not found:
             # Broaden the findall a little bit: JWPlayer JS loader
             found = filter_video(re.findall(
-                r'[^A-Za-z0-9]?file["\']?:\s*["\'](http(?![^\'"]+\.[0-9]+[\'"])[^\'"]+)["\']', webpage))
+                r'[^A-Za-z0-9]?(?:file|video_url)["\']?:\s*["\'](http(?![^\'"]+\.[0-9]+[\'"])[^\'"]+)["\']', webpage))
         if not found:
             # Flow player
             found = filter_video(re.findall(r'''(?xs)
@@ -1653,7 +1777,7 @@ class GenericIE(InfoExtractor):
                 if refresh_header:
                     found = re.search(REDIRECT_REGEX, refresh_header)
             if found:
-                new_url = compat_urlparse.urljoin(url, found.group(1))
+                new_url = compat_urlparse.urljoin(url, unescapeHTML(found.group(1)))
                 self.report_following_redirect(new_url)
                 return {
                     '_type': 'url',
@@ -1665,7 +1789,7 @@ class GenericIE(InfoExtractor):
         entries = []
         for video_url in found:
             video_url = compat_urlparse.urljoin(url, video_url)
-            video_id = compat_urllib_parse.unquote(os.path.basename(video_url))
+            video_id = compat_urllib_parse_unquote(os.path.basename(video_url))
 
             # Sometimes, jwplayer extraction will result in a YouTube URL
             if YoutubeIE.suitable(video_url):

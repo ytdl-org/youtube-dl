@@ -20,8 +20,19 @@ from ..utils import (
 
 
 class VKIE(InfoExtractor):
-    IE_NAME = 'vk.com'
-    _VALID_URL = r'https?://(?:m\.)?vk\.com/(?:video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|(?:.+?\?.*?z=)?video(?P<videoid>[^s].*?)(?:\?|%2F|$))'
+    IE_NAME = 'vk'
+    IE_DESC = 'VK'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:m\.)?vk\.com/video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|
+                            (?:
+                                (?:m\.)?vk\.com/(?:.+?\?.*?z=)?video|
+                                (?:www\.)?biqle\.ru/watch/
+                            )
+                            (?P<videoid>[^s].*?)(?:\?(?:.*\blist=(?P<list_id>[\da-f]+))?|%2F|$)
+                        )
+                    '''
     _NETRC_MACHINE = 'vk'
 
     _TESTS = [
@@ -110,10 +121,49 @@ class VKIE(InfoExtractor):
             'skip': 'Only works from Russia',
         },
         {
+            # video (removed?) only available with list id
+            'url': 'https://vk.com/video30481095_171201961?list=8764ae2d21f14088d4',
+            'md5': '091287af5402239a1051c37ec7b92913',
+            'info_dict': {
+                'id': '171201961',
+                'ext': 'mp4',
+                'title': 'ТюменцевВВ_09.07.2015',
+                'uploader': 'Anton Ivanov',
+                'duration': 109,
+                'upload_date': '20150709',
+                'view_count': int,
+            },
+        },
+        {
+            # youtube embed
+            'url': 'https://vk.com/video276849682_170681728',
+            'info_dict': {
+                'id': 'V3K4mi0SYkc',
+                'ext': 'mp4',
+                'title': "DSWD Awards 'Children's Joy Foundation, Inc.' Certificate of Registration and License to Operate",
+                'description': 'md5:bf9c26cfa4acdfb146362682edd3827a',
+                'duration': 179,
+                'upload_date': '20130116',
+                'uploader': "Children's Joy Foundation",
+                'uploader_id': 'thecjf',
+                'view_count': int,
+            },
+        },
+        {
             # removed video, just testing that we match the pattern
             'url': 'http://vk.com/feed?z=video-43215063_166094326%2Fbb50cacd3177146d7a',
             'only_matching': True,
         },
+        {
+            # age restricted video, requires vk account credentials
+            'url': 'https://vk.com/video205387401_164765225',
+            'only_matching': True,
+        },
+        {
+            # vk wrapper
+            'url': 'http://www.biqle.ru/watch/847655_160197695',
+            'only_matching': True,
+        }
     ]
 
     def _login(self):
@@ -124,9 +174,7 @@ class VKIE(InfoExtractor):
         login_page = self._download_webpage(
             'https://vk.com', None, 'Downloading login page')
 
-        login_form = dict(re.findall(
-            r'<input\s+type="hidden"\s+name="([^"]+)"\s+(?:id="[^"]+"\s+)?value="([^"]*)"',
-            login_page))
+        login_form = self._hidden_inputs(login_page)
 
         login_form.update({
             'email': username.encode('cp1251'),
@@ -153,8 +201,25 @@ class VKIE(InfoExtractor):
         if not video_id:
             video_id = '%s_%s' % (mobj.group('oid'), mobj.group('id'))
 
-        info_url = 'http://vk.com/al_video.php?act=show&al=1&module=video&video=%s' % video_id
+        info_url = 'https://vk.com/al_video.php?act=show&al=1&module=video&video=%s' % video_id
+
+        # Some videos (removed?) can only be downloaded with list id specified
+        list_id = mobj.group('list_id')
+        if list_id:
+            info_url += '&list=%s' % list_id
+
         info_page = self._download_webpage(info_url, video_id)
+
+        error_message = self._html_search_regex(
+            r'(?s)<!><div[^>]+class="video_layer_message"[^>]*>(.+?)</div>',
+            info_page, 'error message', default=None)
+        if error_message:
+            raise ExtractorError(error_message, expected=True)
+
+        if re.search(r'<!>/login\.php\?.*\bact=security_check', info_page):
+            raise ExtractorError(
+                'You are trying to log in from an unusual location. You should confirm ownership at vk.com to log in with this IP.',
+                expected=True)
 
         ERRORS = {
             r'>Видеозапись .*? была изъята из публичного доступа в связи с обращением правообладателя.<':
@@ -169,16 +234,20 @@ class VKIE(InfoExtractor):
 
             r'<!>Видео временно недоступно':
             'Video %s is temporarily unavailable.',
+
+            r'<!>Access denied':
+            'Access denied to video %s.',
         }
 
         for error_re, error_msg in ERRORS.items():
             if re.search(error_re, info_page):
                 raise ExtractorError(error_msg % video_id, expected=True)
 
-        m_yt = re.search(r'src="(http://www.youtube.com/.*?)"', info_page)
-        if m_yt is not None:
-            self.to_screen('Youtube video detected')
-            return self.url_result(m_yt.group(1), 'Youtube')
+        youtube_url = self._search_regex(
+            r'<iframe[^>]+src="((?:https?:)?//www.youtube.com/embed/[^"]+)"',
+            info_page, 'youtube iframe', default=None)
+        if youtube_url:
+            return self.url_result(youtube_url, 'Youtube')
 
         m_rutube = re.search(
             r'\ssrc="((?:https?:)?//rutube\.ru\\?/video\\?/embed(?:.*?))\\?"', info_page)
@@ -232,25 +301,34 @@ class VKIE(InfoExtractor):
 
 
 class VKUserVideosIE(InfoExtractor):
-    IE_NAME = 'vk.com:user-videos'
-    IE_DESC = 'vk.com:All of a user\'s videos'
-    _VALID_URL = r'https?://vk\.com/videos(?P<id>[0-9]+)(?:m\?.*)?'
+    IE_NAME = 'vk:uservideos'
+    IE_DESC = "VK - User's Videos"
+    _VALID_URL = r'https?://vk\.com/videos(?P<id>-?[0-9]+)$'
     _TEMPLATE_URL = 'https://vk.com/videos'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://vk.com/videos205387401',
         'info_dict': {
             'id': '205387401',
+            'title': "Tom Cruise's Videos",
         },
         'playlist_mincount': 4,
-    }
+    }, {
+        'url': 'http://vk.com/videos-77521',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         page_id = self._match_id(url)
-        page = self._download_webpage(url, page_id)
-        video_ids = orderedSet(
-            m.group(1) for m in re.finditer(r'href="/video([0-9_]+)"', page))
-        url_entries = [
+
+        webpage = self._download_webpage(url, page_id)
+
+        entries = [
             self.url_result(
                 'http://vk.com/video' + video_id, 'VK', video_id=video_id)
-            for video_id in video_ids]
-        return self.playlist_result(url_entries, page_id)
+            for video_id in orderedSet(re.findall(r'href="/video(-?[0-9_]+)"', webpage))]
+
+        title = unescapeHTML(self._search_regex(
+            r'<title>\s*([^<]+?)\s+\|\s+\d+\s+videos',
+            webpage, 'title', default=page_id))
+
+        return self.playlist_result(entries, page_id, title)

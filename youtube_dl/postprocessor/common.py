@@ -23,6 +23,9 @@ class PostProcessor(object):
 
     PostProcessor objects follow a "mutual registration" process similar
     to InfoExtractor objects.
+
+    Optionally PostProcessor can use a list of additional command-line arguments
+    with self._configuration_args.
     """
 
     _downloader = None
@@ -56,6 +59,13 @@ class PostProcessor(object):
             os.utime(encodeFilename(path), (atime, mtime))
         except Exception:
             self._downloader.report_warning(errnote)
+
+    def _configuration_args(self, default=[]):
+        pp_args = self._downloader.params.get('postprocessor_args')
+        if pp_args is None:
+            return default
+        assert isinstance(pp_args, list)
+        return pp_args
 
 
 class AudioConversionError(PostProcessingError):

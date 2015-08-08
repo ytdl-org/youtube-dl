@@ -5,6 +5,7 @@ import json
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
+    compat_urllib_parse_unquote,
     compat_urlparse,
 )
 from ..utils import (
@@ -48,7 +49,7 @@ class MiTeleIE(InfoExtractor):
             domain = 'http://' + domain
         info_url = compat_urlparse.urljoin(
             domain,
-            compat_urllib_parse.unquote(embed_data['flashvars']['host'])
+            compat_urllib_parse_unquote(embed_data['flashvars']['host'])
         )
         info_el = self._download_xml(info_url, episode).find('./video/info')
 

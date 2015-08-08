@@ -3,9 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-)
+from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     ExtractorError,
     HEADRequest,
@@ -60,7 +58,7 @@ class MixcloudIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         uploader = mobj.group(1)
         cloudcast_name = mobj.group(2)
-        track_id = compat_urllib_parse.unquote('-'.join((uploader, cloudcast_name)))
+        track_id = compat_urllib_parse_unquote('-'.join((uploader, cloudcast_name)))
 
         webpage = self._download_webpage(url, track_id)
 

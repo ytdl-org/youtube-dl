@@ -15,10 +15,12 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     parse_iso8601,
+    int_or_none,
 )
 
 
 class LetvIE(InfoExtractor):
+    IE_DESC = '乐视网'
     _VALID_URL = r'http://www\.letv\.com/ptv/vplay/(?P<id>\d+).html'
 
     _TESTS = [{
@@ -133,7 +135,7 @@ class LetvIE(InfoExtractor):
                 }
 
                 if format_id[-1:] == 'p':
-                    url_info_dict['height'] = format_id[:-1]
+                    url_info_dict['height'] = int_or_none(format_id[:-1])
 
                 urls.append(url_info_dict)
 

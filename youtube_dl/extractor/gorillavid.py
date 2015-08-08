@@ -78,12 +78,7 @@ class GorillaVidIE(InfoExtractor):
         if re.search(self._FILE_NOT_FOUND_REGEX, webpage) is not None:
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
-        fields = dict(re.findall(r'''(?x)<input\s+
-            type="hidden"\s+
-            name="([^"]+)"\s+
-            (?:id="[^"]+"\s+)?
-            value="([^"]*)"
-            ''', webpage))
+        fields = self._hidden_inputs(webpage)
 
         if fields['op'] == 'download1':
             countdown = int_or_none(self._search_regex(

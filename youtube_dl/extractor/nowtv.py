@@ -1,12 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     ExtractorError,
+    determine_ext,
     int_or_none,
     parse_iso8601,
     parse_duration,
@@ -15,7 +14,7 @@ from ..utils import (
 
 
 class NowTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nowtv\.de/(?P<station>rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<id>.+?)/player'
+    _VALID_URL = r'https?://(?:www\.)?nowtv\.(?:de|at|ch)/(?:rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<id>.+?)/(?:player|preview)'
 
     _TESTS = [{
         # rtl
@@ -23,7 +22,7 @@ class NowTVIE(InfoExtractor):
         'info_dict': {
             'id': '203519',
             'display_id': 'bauer-sucht-frau/die-neuen-bauern-und-eine-hochzeit',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Die neuen Bauern und eine Hochzeit',
             'description': 'md5:e234e1ed6d63cf06be5c070442612e7e',
             'thumbnail': 're:^https?://.*\.jpg$',
@@ -32,7 +31,7 @@ class NowTVIE(InfoExtractor):
             'duration': 2786,
         },
         'params': {
-            # m3u8 download
+            # rtmp download
             'skip_download': True,
         },
     }, {
@@ -41,7 +40,7 @@ class NowTVIE(InfoExtractor):
         'info_dict': {
             'id': '203481',
             'display_id': 'berlin-tag-nacht/berlin-tag-nacht-folge-934',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Berlin - Tag & Nacht (Folge 934)',
             'description': 'md5:c85e88c2e36c552dfe63433bc9506dd0',
             'thumbnail': 're:^https?://.*\.jpg$',
@@ -50,7 +49,7 @@ class NowTVIE(InfoExtractor):
             'duration': 2641,
         },
         'params': {
-            # m3u8 download
+            # rtmp download
             'skip_download': True,
         },
     }, {
@@ -59,7 +58,7 @@ class NowTVIE(InfoExtractor):
         'info_dict': {
             'id': '165780',
             'display_id': 'alarm-fuer-cobra-11-die-autobahnpolizei/hals-und-beinbruch-2014-08-23-21-10-00',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Hals- und Beinbruch',
             'description': 'md5:b50d248efffe244e6f56737f0911ca57',
             'thumbnail': 're:^https?://.*\.jpg$',
@@ -68,7 +67,7 @@ class NowTVIE(InfoExtractor):
             'duration': 2742,
         },
         'params': {
-            # m3u8 download
+            # rtmp download
             'skip_download': True,
         },
     }, {
@@ -77,7 +76,7 @@ class NowTVIE(InfoExtractor):
         'info_dict': {
             'id': '99205',
             'display_id': 'medicopter-117/angst',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Angst!',
             'description': 'md5:30cbc4c0b73ec98bcd73c9f2a8c17c4e',
             'thumbnail': 're:^https?://.*\.jpg$',
@@ -86,7 +85,7 @@ class NowTVIE(InfoExtractor):
             'duration': 3025,
         },
         'params': {
-            # m3u8 download
+            # rtmp download
             'skip_download': True,
         },
     }, {
@@ -95,7 +94,7 @@ class NowTVIE(InfoExtractor):
         'info_dict': {
             'id': '203521',
             'display_id': 'ratgeber-geld/thema-ua-der-erste-blick-die-apple-watch',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Thema u.a.: Der erste Blick: Die Apple Watch',
             'description': 'md5:4312b6c9d839ffe7d8caf03865a531af',
             'thumbnail': 're:^https?://.*\.jpg$',
@@ -104,7 +103,7 @@ class NowTVIE(InfoExtractor):
             'duration': 1083,
         },
         'params': {
-            # m3u8 download
+            # rtmp download
             'skip_download': True,
         },
     }, {
@@ -113,7 +112,7 @@ class NowTVIE(InfoExtractor):
         'info_dict': {
             'id': '128953',
             'display_id': 'der-hundeprofi/buero-fall-chihuahua-joel',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': "Büro-Fall / Chihuahua 'Joel'",
             'description': 'md5:e62cb6bf7c3cc669179d4f1eb279ad8d',
             'thumbnail': 're:^https?://.*\.jpg$',
@@ -122,18 +121,22 @@ class NowTVIE(InfoExtractor):
             'duration': 3092,
         },
         'params': {
-            # m3u8 download
+            # rtmp download
             'skip_download': True,
         },
+    }, {
+        'url': 'http://www.nowtv.de/rtl/bauer-sucht-frau/die-neuen-bauern-und-eine-hochzeit/preview',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nowtv.at/rtl/bauer-sucht-frau/die-neuen-bauern-und-eine-hochzeit/preview?return=/rtl/bauer-sucht-frau/die-neuen-bauern-und-eine-hochzeit',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        display_id = mobj.group('id')
-        station = mobj.group('station')
+        display_id = self._match_id(url)
 
         info = self._download_json(
-            'https://api.nowtv.de/v3/movies/%s?fields=*,format,files' % display_id,
+            'https://api.nowtv.de/v3/movies/%s?fields=id,title,free,geoblocked,articleLong,articleShort,broadcastStartDate,seoUrl,duration,format,files' % display_id,
             display_id)
 
         video_id = compat_str(info['id'])
@@ -148,29 +151,19 @@ class NowTVIE(InfoExtractor):
                 raise ExtractorError(
                     'Video %s is not available for free' % video_id, expected=True)
 
-        f = info.get('format', {})
-        station = f.get('station') or station
-
-        STATIONS = {
-            'rtl': 'rtlnow',
-            'rtl2': 'rtl2now',
-            'vox': 'voxnow',
-            'nitro': 'rtlnitronow',
-            'ntv': 'n-tvnow',
-            'superrtl': 'superrtlnow'
-        }
-
         formats = []
         for item in files['items']:
-            item_path = remove_start(item['path'], '/')
-            tbr = int_or_none(item['bitrate'])
-            m3u8_url = 'http://hls.fra.%s.de/hls-vod-enc/%s.m3u8' % (STATIONS[station], item_path)
-            m3u8_url = m3u8_url.replace('now/', 'now/videos/')
+            if determine_ext(item['path']) != 'f4v':
+                continue
+            app, play_path = remove_start(item['path'], '/').split('/', 1)
             formats.append({
-                'url': m3u8_url,
-                'format_id': '%s-%sk' % (item['id'], tbr),
-                'ext': 'mp4',
-                'tbr': tbr,
+                'url': 'rtmpe://fms.rtl.de',
+                'app': app,
+                'play_path': 'mp4:%s' % play_path,
+                'ext': 'flv',
+                'page_url': url,
+                'player_url': 'http://rtl-now.rtl.de/includes/nc_player.swf',
+                'tbr': int_or_none(item.get('bitrate')),
             })
         self._sort_formats(formats)
 
@@ -178,6 +171,8 @@ class NowTVIE(InfoExtractor):
         description = info.get('articleLong') or info.get('articleShort')
         timestamp = parse_iso8601(info.get('broadcastStartDate'), ' ')
         duration = parse_duration(info.get('duration'))
+
+        f = info.get('format', {})
         thumbnail = f.get('defaultImage169Format') or f.get('defaultImage169Logo')
 
         return {

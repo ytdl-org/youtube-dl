@@ -29,7 +29,7 @@ class MDRIE(InfoExtractor):
         doc = self._download_xml(domain + xmlurl, video_id)
         formats = []
         for a in doc.findall('./assets/asset'):
-            url_el = a.find('.//progressiveDownloadUrl')
+            url_el = a.find('./progressiveDownloadUrl')
             if url_el is None:
                 continue
             abr = int(a.find('bitrateAudio').text) // 1000

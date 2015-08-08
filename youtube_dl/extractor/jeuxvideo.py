@@ -8,9 +8,9 @@ from .common import InfoExtractor
 
 
 class JeuxVideoIE(InfoExtractor):
-    _VALID_URL = r'http://.*?\.jeuxvideo\.com/.*/(.*?)-\d+\.htm'
+    _VALID_URL = r'http://.*?\.jeuxvideo\.com/.*/(.*?)\.htm'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.jeuxvideo.com/reportages-videos-jeux/0004/00046170/tearaway-playstation-vita-gc-2013-tearaway-nous-presente-ses-papiers-d-identite-00115182.htm',
         'md5': '046e491afb32a8aaac1f44dd4ddd54ee',
         'info_dict': {
@@ -19,7 +19,10 @@ class JeuxVideoIE(InfoExtractor):
             'title': 'Tearaway : GC 2013 : Tearaway nous présente ses papiers d\'identité',
             'description': 'Lorsque les développeurs de LittleBigPlanet proposent un nouveau titre, on ne peut que s\'attendre à un résultat original et fort attrayant.',
         },
-    }
+    }, {
+        'url': 'http://www.jeuxvideo.com/videos/chroniques/434220/l-histoire-du-jeu-video-la-saturn.htm',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

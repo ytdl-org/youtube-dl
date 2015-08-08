@@ -41,8 +41,15 @@ class BiliBiliIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        if self._search_regex(r'(此视频不存在或被删除)', webpage, 'error message', default=None):
-            raise ExtractorError('The video does not exist or was deleted', expected=True)
+        if '(此视频不存在或被删除)' in webpage:
+            raise ExtractorError(
+                'The video does not exist or was deleted', expected=True)
+
+        if '>你没有权限浏览！ 由于版权相关问题 我们不对您所在的地区提供服务<' in webpage:
+            raise ExtractorError(
+                'The video is not available in your region due to copyright reasons',
+                expected=True)
+
         video_code = self._search_regex(
             r'(?s)<div itemprop="video".*?>(.*?)</div>', webpage, 'video code')
 

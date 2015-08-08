@@ -2,9 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-)
+from ..compat import compat_urllib_parse_unquote
 
 
 class XNXXIE(InfoExtractor):
@@ -26,7 +24,7 @@ class XNXXIE(InfoExtractor):
 
         video_url = self._search_regex(r'flv_url=(.*?)&amp;',
                                        webpage, 'video URL')
-        video_url = compat_urllib_parse.unquote(video_url)
+        video_url = compat_urllib_parse_unquote(video_url)
 
         video_title = self._html_search_regex(r'<title>(.*?)\s+-\s+XNXX.COM',
                                               webpage, 'title')

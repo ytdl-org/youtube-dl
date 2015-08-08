@@ -32,7 +32,7 @@ class PBSIE(InfoExtractor):
             'info_dict': {
                 'id': '2365006249',
                 'ext': 'mp4',
-                'title': 'A More Perfect Union',
+                'title': 'Constitution USA with Peter Sagal - A More Perfect Union',
                 'description': 'md5:ba0c207295339c8d6eced00b7c363c6a',
                 'duration': 3190,
             },
@@ -46,7 +46,7 @@ class PBSIE(InfoExtractor):
             'info_dict': {
                 'id': '2365297690',
                 'ext': 'mp4',
-                'title': 'Losing Iraq',
+                'title': 'FRONTLINE - Losing Iraq',
                 'description': 'md5:f5bfbefadf421e8bb8647602011caf8e',
                 'duration': 5050,
             },
@@ -60,7 +60,7 @@ class PBSIE(InfoExtractor):
             'info_dict': {
                 'id': '2201174722',
                 'ext': 'mp4',
-                'title': 'Cyber Schools Gain Popularity, but Quality Questions Persist',
+                'title': 'PBS NewsHour - Cyber Schools Gain Popularity, but Quality Questions Persist',
                 'description': 'md5:5871c15cba347c1b3d28ac47a73c7c28',
                 'duration': 801,
             },
@@ -72,7 +72,7 @@ class PBSIE(InfoExtractor):
                 'id': '2365297708',
                 'ext': 'mp4',
                 'description': 'md5:68d87ef760660eb564455eb30ca464fe',
-                'title': 'Dudamel Conducts Verdi Requiem at the Hollywood Bowl - Full',
+                'title': 'Great Performances - Dudamel Conducts Verdi Requiem at the Hollywood Bowl - Full',
                 'duration': 6559,
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
@@ -88,7 +88,7 @@ class PBSIE(InfoExtractor):
                 'display_id': 'killer-typhoon',
                 'ext': 'mp4',
                 'description': 'md5:c741d14e979fc53228c575894094f157',
-                'title': 'Killer Typhoon',
+                'title': 'NOVA - Killer Typhoon',
                 'duration': 3172,
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'upload_date': '20140122',
@@ -110,9 +110,24 @@ class PBSIE(InfoExtractor):
                 'id': '2280706814',
                 'display_id': 'player',
                 'ext': 'mp4',
-                'title': 'Death and the Civil War',
+                'title': 'American Experience - Death and the Civil War',
                 'description': 'American Experience, TV’s most-watched history series, brings to life the compelling stories from our past that inform our understanding of the world today.',
                 'duration': 6705,
+                'thumbnail': 're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            },
+        },
+        {
+            'url': 'http://video.pbs.org/video/2365367186/',
+            'info_dict': {
+                'id': '2365367186',
+                'display_id': '2365367186',
+                'ext': 'mp4',
+                'title': 'To Catch A Comet - Full Episode',
+                'description': 'On November 12, 2014, billions of kilometers from Earth, spacecraft orbiter Rosetta and lander Philae did what no other had dared to attempt \u2014 land on the volatile surface of a comet as it zooms around the sun at 67,000 km/hr. The European Space Agency hopes this mission can help peer into our past and unlock secrets of our origins.',
+                'duration': 3342,
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
             'params': {
@@ -224,6 +239,20 @@ class PBSIE(InfoExtractor):
             rating_str = rating_str.rpartition('-')[2]
         age_limit = US_RATINGS.get(rating_str)
 
+        subtitles = {}
+        closed_captions_url = info.get('closed_captions_url')
+        if closed_captions_url:
+            subtitles['en'] = [{
+                'ext': 'ttml',
+                'url': closed_captions_url,
+            }]
+
+        # info['title'] is often incomplete (e.g. 'Full Episode', 'Episode 5', etc)
+        # Try turning it to 'program - title' naming scheme if possible
+        alt_title = info.get('program', {}).get('title')
+        if alt_title:
+            info['title'] = alt_title + ' - ' + re.sub(r'^' + alt_title + '[\s\-:]+', '', info['title'])
+
         return {
             'id': video_id,
             'display_id': display_id,
@@ -234,4 +263,5 @@ class PBSIE(InfoExtractor):
             'age_limit': age_limit,
             'upload_date': upload_date,
             'formats': formats,
+            'subtitles': subtitles,
         }

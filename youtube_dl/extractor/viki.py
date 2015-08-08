@@ -88,6 +88,14 @@ class VikiBaseIE(InfoExtractor):
         if not self._token:
             self.report_warning('Unable to get session token, login has probably failed')
 
+    @staticmethod
+    def dict_selection(dict_obj, preferred_key):
+        if preferred_key in dict_obj:
+            return dict_obj.get(preferred_key)
+
+        filtered_dict = list(filter(None, [dict_obj.get(k) for k in dict_obj.keys()]))
+        return filtered_dict[0] if filtered_dict else None
+
 
 class VikiIE(VikiBaseIE):
     IE_NAME = 'viki'
@@ -173,6 +181,19 @@ class VikiIE(VikiBaseIE):
     }, {
         'url': 'http://www.viki.com/player/44699v',
         'only_matching': True,
+    }, {
+        # non-English description
+        'url': 'http://www.viki.com/videos/158036v-love-in-magic',
+        'md5': '1713ae35df5a521b31f6dc40730e7c9c',
+        'info_dict': {
+            'id': '158036v',
+            'ext': 'mp4',
+            'uploader': 'I Planet Entertainment',
+            'upload_date': '20111122',
+            'timestamp': 1321985454,
+            'description': 'md5:44b1e46619df3a072294645c770cef36',
+            'title': 'Love In Magic',
+        },
     }]
 
     def _real_extract(self, url):
@@ -181,19 +202,14 @@ class VikiIE(VikiBaseIE):
         video = self._call_api(
             'videos/%s.json' % video_id, video_id, 'Downloading video JSON')
 
-        title = None
-        titles = video.get('titles')
-        if titles:
-            title = titles.get('en') or titles[titles.keys()[0]]
+        title = self.dict_selection(video.get('titles', {}), 'en')
         if not title:
             title = 'Episode %d' % video.get('number') if video.get('type') == 'episode' else video.get('id') or video_id
-            container_titles = video.get('container', {}).get('titles')
-            if container_titles:
-                container_title = container_titles.get('en') or container_titles[container_titles.keys()[0]]
-                title = '%s - %s' % (container_title, title)
+            container_titles = video.get('container', {}).get('titles', {})
+            container_title = self.dict_selection(container_titles, 'en')
+            title = '%s - %s' % (container_title, title)
 
-        descriptions = video.get('descriptions')
-        description = descriptions.get('en') or descriptions[titles.keys()[0]] if descriptions else None
+        description = self.dict_selection(video.get('descriptions', {}), 'en')
 
         duration = int_or_none(video.get('duration'))
         timestamp = parse_iso8601(video.get('created_at'))
@@ -242,8 +258,8 @@ class VikiIE(VikiBaseIE):
 
         formats = []
         for format_id, stream_dict in streams.items():
-            height = self._search_regex(
-                r'^(\d+)[pP]$', format_id, 'height', default=None)
+            height = int_or_none(self._search_regex(
+                r'^(\d+)[pP]$', format_id, 'height', default=None))
             for protocol, format_dict in stream_dict.items():
                 if format_id == 'm3u8':
                     formats = self._extract_m3u8_formats(
@@ -299,11 +315,9 @@ class VikiChannelIE(VikiBaseIE):
             'containers/%s.json' % channel_id, channel_id,
             'Downloading channel JSON')
 
-        titles = channel['titles']
-        title = titles.get('en') or titles[titles.keys()[0]]
+        title = self.dict_selection(channel['titles'], 'en')
 
-        descriptions = channel['descriptions']
-        description = descriptions.get('en') or descriptions[descriptions.keys()[0]]
+        description = self.dict_selection(channel['descriptions'], 'en')
 
         entries = []
         for video_type in ('episodes', 'clips', 'movies'):

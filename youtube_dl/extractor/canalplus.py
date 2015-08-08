@@ -106,15 +106,11 @@ class CanalplusIE(InfoExtractor):
                 continue
             format_id = fmt.tag
             if format_id == 'HLS':
-                hls_formats = self._extract_m3u8_formats(format_url, video_id, 'flv')
-                for fmt in hls_formats:
-                    fmt['preference'] = preference(format_id)
-                formats.extend(hls_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', preference=preference(format_id)))
             elif format_id == 'HDS':
-                hds_formats = self._extract_f4m_formats(format_url + '?hdcore=2.11.3', video_id)
-                for fmt in hds_formats:
-                    fmt['preference'] = preference(format_id)
-                formats.extend(hds_formats)
+                formats.extend(self._extract_f4m_formats(
+                    format_url + '?hdcore=2.11.3', video_id, preference=preference(format_id)))
             else:
                 formats.append({
                     'url': format_url,

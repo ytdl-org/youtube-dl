@@ -124,7 +124,7 @@ class NBCSportsIE(InfoExtractor):
 class NBCNewsIE(InfoExtractor):
     _VALID_URL = r'''(?x)https?://(?:www\.)?nbcnews\.com/
         (?:video/.+?/(?P<id>\d+)|
-        (?:feature|nightly-news)/[^/]+/(?P<title>.+))
+        (?:watch|feature|nightly-news)/[^/]+/(?P<title>.+))
         '''
 
     _TESTS = [
@@ -168,6 +168,10 @@ class NBCNewsIE(InfoExtractor):
                 'title': 'Nightly News with Brian Williams Full Broadcast (February 4)',
                 'description': 'md5:1c10c1eccbe84a26e5debb4381e2d3c5',
             },
+        },
+        {
+            'url': 'http://www.nbcnews.com/watch/dateline/full-episode--deadly-betrayal-386250819952',
+            'only_matching': True,
         },
     ]
 

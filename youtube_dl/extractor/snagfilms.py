@@ -24,6 +24,15 @@ class SnagFilmsEmbedIE(InfoExtractor):
             'title': '#whilewewatch',
         }
     }, {
+        # invalid labels, 360p is better that 480p
+        'url': 'http://www.snagfilms.com/embed/player?filmId=17ca0950-a74a-11e0-a92a-0026bb61d036',
+        'md5': '882fca19b9eb27ef865efeeaed376a48',
+        'info_dict': {
+            'id': '17ca0950-a74a-11e0-a92a-0026bb61d036',
+            'ext': 'mp4',
+            'title': 'Life in Limbo',
+        }
+    }, {
         'url': 'http://www.snagfilms.com/embed/player?filmId=0000014c-de2f-d5d6-abcf-ffef58af0017',
         'only_matching': True,
     }]
@@ -52,14 +61,15 @@ class SnagFilmsEmbedIE(InfoExtractor):
             if not file_:
                 continue
             type_ = source.get('type')
-            format_id = source.get('label')
             ext = determine_ext(file_)
-            if any(_ == 'm3u8' for _ in (type_, ext)):
+            format_id = source.get('label') or ext
+            if all(v == 'm3u8' for v in (type_, ext)):
                 formats.extend(self._extract_m3u8_formats(
                     file_, video_id, 'mp4', m3u8_id='hls'))
             else:
                 bitrate = int_or_none(self._search_regex(
-                    r'(\d+)kbps', file_, 'bitrate', default=None))
+                    [r'(\d+)kbps', r'_\d{1,2}x\d{1,2}_(\d{3,})\.%s' % ext],
+                    file_, 'bitrate', default=None))
                 height = int_or_none(self._search_regex(
                     r'^(\d+)[pP]$', format_id, 'height', default=None))
                 formats.append({

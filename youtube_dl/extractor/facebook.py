@@ -9,7 +9,7 @@ from ..compat import (
     compat_http_client,
     compat_str,
     compat_urllib_error,
-    compat_urllib_parse,
+    compat_urllib_parse_unquote,
     compat_urllib_request,
 )
 from ..utils import (
@@ -17,6 +17,8 @@ from ..utils import (
     int_or_none,
     limit_length,
     urlencode_postdata,
+    get_element_by_id,
+    clean_html,
 )
 
 
@@ -42,6 +44,7 @@ class FacebookIE(InfoExtractor):
             'id': '637842556329505',
             'ext': 'mp4',
             'title': 're:Did you know Kei Nishikori is the first Asian man to ever reach a Grand Slam',
+            'uploader': 'Tennis on Facebook',
         }
     }, {
         'note': 'Video without discernible title',
@@ -50,6 +53,7 @@ class FacebookIE(InfoExtractor):
             'id': '274175099429670',
             'ext': 'mp4',
             'title': 'Facebook video #274175099429670',
+            'uploader': 'Asif Nawab Butt',
         },
         'expected_warnings': [
             'title'
@@ -136,7 +140,7 @@ class FacebookIE(InfoExtractor):
             else:
                 raise ExtractorError('Cannot parse data')
         data = dict(json.loads(m.group(1)))
-        params_raw = compat_urllib_parse.unquote(data['params'])
+        params_raw = compat_urllib_parse_unquote(data['params'])
         params = json.loads(params_raw)
         video_data = params['video_data'][0]
 
@@ -161,6 +165,7 @@ class FacebookIE(InfoExtractor):
             video_title = limit_length(video_title, 80)
         if not video_title:
             video_title = 'Facebook video #%s' % video_id
+        uploader = clean_html(get_element_by_id('fbPhotoPageAuthorName', webpage))
 
         return {
             'id': video_id,
@@ -168,4 +173,5 @@ class FacebookIE(InfoExtractor):
             'formats': formats,
             'duration': int_or_none(video_data.get('video_duration')),
             'thumbnail': video_data.get('thumbnail_src'),
+            'uploader': uploader,
         }

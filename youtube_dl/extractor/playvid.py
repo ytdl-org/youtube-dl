@@ -4,7 +4,8 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_unquote,
+    compat_urllib_parse_unquote_plus,
 )
 from ..utils import (
     clean_html,
@@ -44,7 +45,7 @@ class PlayvidIE(InfoExtractor):
         flashvars = self._html_search_regex(
             r'flashvars="(.+?)"', webpage, 'flashvars')
 
-        infos = compat_urllib_parse.unquote(flashvars).split(r'&')
+        infos = compat_urllib_parse_unquote(flashvars).split(r'&')
         for info in infos:
             videovars_match = re.match(r'^video_vars\[(.+?)\]=(.+?)$', info)
             if videovars_match:
@@ -52,7 +53,7 @@ class PlayvidIE(InfoExtractor):
                 val = videovars_match.group(2)
 
                 if key == 'title':
-                    video_title = compat_urllib_parse.unquote_plus(val)
+                    video_title = compat_urllib_parse_unquote_plus(val)
                 if key == 'duration':
                     try:
                         duration = int(val)

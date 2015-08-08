@@ -5,7 +5,7 @@ import json
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_unquote,
     compat_urlparse,
 )
 from ..utils import (
@@ -75,7 +75,7 @@ class GameSpotIE(InfoExtractor):
         return {
             'id': data_video['guid'],
             'display_id': page_id,
-            'title': compat_urllib_parse.unquote(data_video['title']),
+            'title': compat_urllib_parse_unquote(data_video['title']),
             'formats': formats,
             'description': self._html_search_meta('description', webpage),
             'thumbnail': self._og_search_thumbnail(webpage),

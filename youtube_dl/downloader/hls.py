@@ -4,12 +4,11 @@ import os
 import re
 import subprocess
 
-from ..postprocessor.ffmpeg import FFmpegPostProcessor
 from .common import FileDownloader
-from ..compat import (
-    compat_urlparse,
-    compat_urllib_request,
-)
+from .fragment import FragmentFD
+
+from ..compat import compat_urlparse
+from ..postprocessor.ffmpeg import FFmpegPostProcessor
 from ..utils import (
     encodeArgument,
     encodeFilename,
@@ -51,54 +50,50 @@ class HlsFD(FileDownloader):
             return False
 
 
-class NativeHlsFD(FileDownloader):
+class NativeHlsFD(FragmentFD):
     """ A more limited implementation that does not require ffmpeg """
 
-    def real_download(self, filename, info_dict):
-        url = info_dict['url']
-        self.report_destination(filename)
-        tmpfilename = self.temp_name(filename)
+    FD_NAME = 'hlsnative'
 
-        self.to_screen(
-            '[hlsnative] %s: Downloading m3u8 manifest' % info_dict['id'])
-        data = self.ydl.urlopen(url).read()
-        s = data.decode('utf-8', 'ignore')
-        segment_urls = []
+    def real_download(self, filename, info_dict):
+        man_url = info_dict['url']
+        self.to_screen('[%s] Downloading m3u8 manifest' % self.FD_NAME)
+        manifest = self.ydl.urlopen(man_url).read()
+
+        s = manifest.decode('utf-8', 'ignore')
+        fragment_urls = []
         for line in s.splitlines():
             line = line.strip()
             if line and not line.startswith('#'):
                 segment_url = (
                     line
                     if re.match(r'^https?://', line)
-                    else compat_urlparse.urljoin(url, line))
-                segment_urls.append(segment_url)
-
-        is_test = self.params.get('test', False)
-        remaining_bytes = self._TEST_FILE_SIZE if is_test else None
-        byte_counter = 0
-        with open(tmpfilename, 'wb') as outf:
-            for i, segurl in enumerate(segment_urls):
-                self.to_screen(
-                    '[hlsnative] %s: Downloading segment %d / %d' %
-                    (info_dict['id'], i + 1, len(segment_urls)))
-                seg_req = compat_urllib_request.Request(segurl)
-                if remaining_bytes is not None:
-                    seg_req.add_header('Range', 'bytes=0-%d' % (remaining_bytes - 1))
-
-                segment = self.ydl.urlopen(seg_req).read()
-                if remaining_bytes is not None:
-                    segment = segment[:remaining_bytes]
-                    remaining_bytes -= len(segment)
-                outf.write(segment)
-                byte_counter += len(segment)
-                if remaining_bytes is not None and remaining_bytes <= 0:
+                    else compat_urlparse.urljoin(man_url, line))
+                fragment_urls.append(segment_url)
+                # We only download the first fragment during the test
+                if self.params.get('test', False):
                     break
 
-        self._hook_progress({
-            'downloaded_bytes': byte_counter,
-            'total_bytes': byte_counter,
+        ctx = {
             'filename': filename,
-            'status': 'finished',
-        })
-        self.try_rename(tmpfilename, filename)
+            'total_frags': len(fragment_urls),
+        }
+
+        self._prepare_and_start_frag_download(ctx)
+
+        frags_filenames = []
+        for i, frag_url in enumerate(fragment_urls):
+            frag_filename = '%s-Frag%d' % (ctx['tmpfilename'], i)
+            success = ctx['dl'].download(frag_filename, {'url': frag_url})
+            if not success:
+                return False
+            with open(frag_filename, 'rb') as down:
+                ctx['dest_stream'].write(down.read())
+            frags_filenames.append(frag_filename)
+
+        self._finish_frag_download(ctx)
+
+        for frag_file in frags_filenames:
+            os.remove(frag_file)
+
         return True

@@ -6,15 +6,11 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlparse,
-    compat_urlparse,
-)
+from ..compat import compat_urlparse
 from ..utils import (
     clean_html,
     ExtractorError,
     int_or_none,
-    float_or_none,
     parse_duration,
     determine_ext,
 )
@@ -59,12 +55,12 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                     # See https://github.com/rg3/youtube-dl/issues/3963
                     # m3u8 urls work fine
                     continue
-                video_url_parsed = compat_urllib_parse_urlparse(video_url)
                 f4m_url = self._download_webpage(
-                    'http://hdfauth.francetv.fr/esi/TA?url=%s' % video_url_parsed.path,
+                    'http://hdfauth.francetv.fr/esi/TA?url=%s' % video_url,
                     video_id, 'Downloading f4m manifest token', fatal=False)
                 if f4m_url:
-                    formats.extend(self._extract_f4m_formats(f4m_url, video_id, 1, format_id))
+                    formats.extend(self._extract_f4m_formats(
+                        f4m_url + '&hdcore=3.7.0&plugin=aasp-3.7.0.39.44', video_id, 1, format_id))
             elif ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(video_url, video_id, 'mp4', m3u8_id=format_id))
             elif video_url.startswith('rtmp'):
@@ -87,7 +83,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
             'title': info['titre'],
             'description': clean_html(info['synopsis']),
             'thumbnail': compat_urlparse.urljoin('http://pluzz.francetv.fr', info['image']),
-            'duration': float_or_none(info.get('real_duration'), 1000) or parse_duration(info['duree']),
+            'duration': int_or_none(info.get('real_duration')) or parse_duration(info['duree']),
             'timestamp': int_or_none(info['diffusion']['timestamp']),
             'formats': formats,
         }
@@ -160,11 +156,21 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
 class FranceTVIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'francetv'
     IE_DESC = 'France 2, 3, 4, 5 and Ô'
-    _VALID_URL = r'''(?x)https?://www\.france[2345o]\.fr/
-        (?:
-            emissions/.*?/(videos|emissions)/(?P<id>[^/?]+)
-        |   (emissions?|jt)/(?P<key>[^/?]+)
-        )'''
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?france[2345o]\.fr/
+                                (?:
+                                    emissions/[^/]+/(?:videos|diffusions)|
+                                    emission/[^/]+|
+                                    videos|
+                                    jt
+                                )
+                            /|
+                            embed\.francetv\.fr/\?ue=
+                        )
+                        (?P<id>[^/?]+)
+                    '''
 
     _TESTS = [
         # france2
@@ -221,24 +227,46 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
         },
         # franceo
         {
-            'url': 'http://www.franceo.fr/jt/info-afrique/04-12-2013',
-            'md5': '52f0bfe202848b15915a2f39aaa8981b',
+            'url': 'http://www.franceo.fr/jt/info-soir/18-07-2015',
+            'md5': '47d5816d3b24351cdce512ad7ab31da8',
             'info_dict': {
-                'id': '108634970',
+                'id': '125377621',
                 'ext': 'flv',
-                'title': 'Infô Afrique',
-                'description': 'md5:ebf346da789428841bee0fd2a935ea55',
-                'upload_date': '20140915',
-                'timestamp': 1410822000,
+                'title': 'Infô soir',
+                'description': 'md5:01b8c6915a3d93d8bbbd692651714309',
+                'upload_date': '20150718',
+                'timestamp': 1437241200,
+                'duration': 414,
             },
         },
+        {
+            # francetv embed
+            'url': 'http://embed.francetv.fr/?ue=8d7d3da1e3047c42ade5a5d7dfd3fc87',
+            'info_dict': {
+                'id': 'EV_30231',
+                'ext': 'flv',
+                'title': 'Alcaline, le concert avec Calogero',
+                'description': 'md5:61f08036dcc8f47e9cfc33aed08ffaff',
+                'upload_date': '20150226',
+                'timestamp': 1424989860,
+                'duration': 5400,
+            },
+        },
+        {
+            'url': 'http://www.france4.fr/emission/highlander/diffusion-du-17-07-2015-04h05',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://www.franceo.fr/videos/125377617',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        webpage = self._download_webpage(url, mobj.group('key') or mobj.group('id'))
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
         video_id, catalogue = self._html_search_regex(
-            r'href="http://videos\.francetv\.fr/video/([^@]+@[^"]+)"',
+            r'href="http://videos?\.francetv\.fr/video/([^@]+@[^"]+)"',
             webpage, 'video ID').split('@')
         return self._extract_video(video_id, catalogue)
 

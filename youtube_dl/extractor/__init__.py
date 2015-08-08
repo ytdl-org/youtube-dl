@@ -19,9 +19,14 @@ from .anysex import AnySexIE
 from .aol import AolIE
 from .allocine import AllocineIE
 from .aparat import AparatIE
+from .appleconnect import AppleConnectIE
 from .appletrailers import AppleTrailersIE
 from .archiveorg import ArchiveOrgIE
-from .ard import ARDIE, ARDMediathekIE
+from .ard import (
+    ARDIE,
+    ARDMediathekIE,
+    SportschauIE,
+)
 from .arte import (
     ArteTvIE,
     ArteTVPlus7IE,
@@ -38,7 +43,10 @@ from .azubu import AzubuIE
 from .baidu import BaiduVideoIE
 from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE
-from .bbccouk import BBCCoUkIE
+from .bbc import (
+    BBCCoUkIE,
+    BBCIE,
+)
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
 from .beatportpro import BeatportProIE
@@ -110,6 +118,7 @@ from .dailymotion import (
 )
 from .daum import DaumIE
 from .dbtv import DBTVIE
+from .dcn import DCNIE
 from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE
 from .dfb import DFBIE
@@ -238,6 +247,7 @@ from .instagram import InstagramIE, InstagramUserIE
 from .internetvideoarchive import InternetVideoArchiveIE
 from .iprima import IPrimaIE
 from .iqiyi import IqiyiIE
+from .ir90tv import Ir90TvIE
 from .ivi import (
     IviIE,
     IviCompilationIE
@@ -260,8 +270,17 @@ from .keek import KeekIE
 from .kontrtube import KontrTubeIE
 from .krasview import KrasViewIE
 from .ku6 import Ku6IE
+from .kuwo import (
+    KuwoIE,
+    KuwoAlbumIE,
+    KuwoChartIE,
+    KuwoSingerIE,
+    KuwoCategoryIE,
+    KuwoMvIE,
+)
 from .la7 import LA7IE
 from .laola1tv import Laola1TvIE
+from .lecture2go import Lecture2GoIE
 from .letv import (
     LetvIE,
     LetvTvIE,
@@ -323,6 +342,7 @@ from .musicvault import MusicVaultIE
 from .muzu import MuzuTVIE
 from .myspace import MySpaceIE, MySpaceAlbumIE
 from .myspass import MySpassIE
+from .myvi import MyviIE
 from .myvideo import MyVideoIE
 from .myvidster import MyVidsterIE
 from .nationalgeographic import NationalGeographicIE
@@ -342,6 +362,15 @@ from .ndtv import NDTVIE
 from .netzkino import NetzkinoIE
 from .nerdcubed import NerdCubedFeedIE
 from .nerdist import NerdistIE
+from .neteasemusic import (
+    NetEaseMusicIE,
+    NetEaseMusicAlbumIE,
+    NetEaseMusicSingerIE,
+    NetEaseMusicListIE,
+    NetEaseMusicMvIE,
+    NetEaseMusicProgramIE,
+    NetEaseMusicDjRadioIE,
+)
 from .newgrounds import NewgroundsIE
 from .newstube import NewstubeIE
 from .nextmedia import (
@@ -371,7 +400,8 @@ from .npo import (
     NPOLiveIE,
     NPORadioIE,
     NPORadioFragmentIE,
-    TegenlichtVproIE,
+    VPROIE,
+    WNLIE
 )
 from .nrk import (
     NRKIE,
@@ -402,6 +432,10 @@ from .orf import (
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
+from .periscope import (
+    PeriscopeIE,
+    QuickscopeIE,
+)
 from .philharmoniedeparis import PhilharmonieDeParisIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
@@ -432,6 +466,7 @@ from .qqmusic import (
     QQMusicSingerIE,
     QQMusicAlbumIE,
     QQMusicToplistIE,
+    QQMusicPlaylistIE,
 )
 from .quickvid import QuickVidIE
 from .r7 import R7IE
@@ -441,6 +476,7 @@ from .radiobremen import RadioBremenIE
 from .radiofrance import RadioFranceIE
 from .rai import RaiIE
 from .rbmaradio import RBMARadioIE
+from .rds import RDSIE
 from .redtube import RedTubeIE
 from .restudy import RestudyIE
 from .reverbnation import ReverbNationIE
@@ -702,7 +738,10 @@ from .wdr import (
     WDRMobileIE,
     WDRMausIE,
 )
-from .webofstories import WebOfStoriesIE
+from .webofstories import (
+    WebOfStoriesIE,
+    WebOfStoriesPlaylistIE,
+)
 from .weibo import WeiboIE
 from .wimp import WimpIE
 from .wistia import WistiaIE
@@ -733,6 +772,7 @@ from .yandexmusic import (
     YandexMusicPlaylistIE,
 )
 from .yesjapan import YesJapanIE
+from .yinyuetai import YinYueTaiIE
 from .ynet import YnetIE
 from .youjizz import YouJizzIE
 from .youku import YoukuIE

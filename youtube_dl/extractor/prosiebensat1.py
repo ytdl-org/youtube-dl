@@ -9,8 +9,11 @@ from ..compat import (
     compat_urllib_parse,
 )
 from ..utils import (
-    unified_strdate,
+    ExtractorError,
+    determine_ext,
+    float_or_none,
     int_or_none,
+    unified_strdate,
 )
 
 
@@ -21,6 +24,11 @@ class ProSiebenSat1IE(InfoExtractor):
 
     _TESTS = [
         {
+            # Tests changes introduced in https://github.com/rg3/youtube-dl/pull/6242
+            # in response to fixing https://github.com/rg3/youtube-dl/issues/6215:
+            # - malformed f4m manifest support
+            # - proper handling of URLs starting with `https?://` in 2.0 manifests
+            # - recursive child f4m manifests extraction
             'url': 'http://www.prosieben.de/tv/circus-halligalli/videos/218-staffel-2-episode-18-jahresrueckblick-ganze-folge',
             'info_dict': {
                 'id': '2104602',
@@ -208,7 +216,7 @@ class ProSiebenSat1IE(InfoExtractor):
         clip_id = self._html_search_regex(self._CLIPID_REGEXES, webpage, 'clip id')
 
         access_token = 'prosieben'
-        client_name = 'kolibri-1.12.6'
+        client_name = 'kolibri-2.0.19-splec4'
         client_location = url
 
         videos_api_url = 'http://vas.sim-technik.de/vas/live/v2/videos?%s' % compat_urllib_parse.urlencode({
@@ -218,10 +226,13 @@ class ProSiebenSat1IE(InfoExtractor):
             'ids': clip_id,
         })
 
-        videos = self._download_json(videos_api_url, clip_id, 'Downloading videos JSON')
+        video = self._download_json(videos_api_url, clip_id, 'Downloading videos JSON')[0]
 
-        duration = float(videos[0]['duration'])
-        source_ids = [source['id'] for source in videos[0]['sources']]
+        if video.get('is_protected') is True:
+            raise ExtractorError('This video is DRM protected.', expected=True)
+
+        duration = float_or_none(video.get('duration'))
+        source_ids = [source['id'] for source in video['sources']]
         source_ids_str = ','.join(map(str, source_ids))
 
         g = '01!8d8F_)r9]4s[qeuXfP%'
@@ -275,8 +286,9 @@ class ProSiebenSat1IE(InfoExtractor):
 
         for source in urls_sources:
             protocol = source['protocol']
+            source_url = source['url']
             if protocol == 'rtmp' or protocol == 'rtmpe':
-                mobj = re.search(r'^(?P<url>rtmpe?://[^/]+)/(?P<path>.+)$', source['url'])
+                mobj = re.search(r'^(?P<url>rtmpe?://[^/]+)/(?P<path>.+)$', source_url)
                 if not mobj:
                     continue
                 path = mobj.group('path')
@@ -293,9 +305,11 @@ class ProSiebenSat1IE(InfoExtractor):
                     'ext': 'mp4',
                     'format_id': '%s_%s' % (source['cdn'], source['bitrate']),
                 })
+            elif 'f4mgenerator' in source_url or determine_ext(source_url) == 'f4m':
+                formats.extend(self._extract_f4m_formats(source_url, clip_id))
             else:
                 formats.append({
-                    'url': source['url'],
+                    'url': source_url,
                     'vbr': fix_bitrate(source['bitrate']),
                 })
 

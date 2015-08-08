@@ -6,6 +6,7 @@ from ..utils import parse_iso8601
 
 
 class NextMediaIE(InfoExtractor):
+    IE_DESC = '蘋果日報'
     _VALID_URL = r'http://hk.apple.nextmedia.com/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://hk.apple.nextmedia.com/realtime/news/20141108/53109199',
@@ -66,6 +67,7 @@ class NextMediaIE(InfoExtractor):
 
 
 class NextMediaActionNewsIE(NextMediaIE):
+    IE_DESC = '蘋果日報 - 動新聞'
     _VALID_URL = r'http://hk.dv.nextmedia.com/actionnews/[^/]+/(?P<date>\d+)/(?P<id>\d+)/\d+'
     _TESTS = [{
         'url': 'http://hk.dv.nextmedia.com/actionnews/hit/20150121/19009428/20061460',
@@ -90,6 +92,7 @@ class NextMediaActionNewsIE(NextMediaIE):
 
 
 class AppleDailyIE(NextMediaIE):
+    IE_DESC = '臺灣蘋果日報'
     _VALID_URL = r'http://(www|ent).appledaily.com.tw/(?:animation|appledaily|enews|realtimenews)/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
     _TESTS = [{
         'url': 'http://ent.appledaily.com.tw/enews/article/entertainment/20150128/36354694',
