@@ -92,6 +92,9 @@ youtube-dl.fish: youtube_dl/*.py youtube_dl/*/*.py devscripts/fish-completion.in
 
 fish-completion: youtube-dl.fish
 
+remove-porn:
+	python devscripts/remove-porn.py
+
 youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
 	@tar -czf youtube-dl.tar.gz --transform "s|^|youtube-dl/|" --owner 0 --group 0 \
 		--exclude '*.DS_Store' \
