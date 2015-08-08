@@ -25,6 +25,7 @@ class OdnoklassnikiIE(InfoExtractor):
             'uploader_id': '330537914540',
             'uploader': 'Виталий Добровольский',
             'like_count': int,
+            'age_limit': 0,
         },
     }, {
         # metadataUrl
@@ -38,6 +39,7 @@ class OdnoklassnikiIE(InfoExtractor):
             'uploader_id': '534380003155',
             'uploader': 'Андрей Мещанинов',
             'like_count': int,
+            'age_limit': 0,
         },
     }, {
         'url': 'http://ok.ru/web-api/video/moviePlayer/20079905452',
