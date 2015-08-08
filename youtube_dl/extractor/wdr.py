@@ -151,6 +151,11 @@ class WDRIE(InfoExtractor):
         video_url = flashvars['dslSrc'][0]
         title = flashvars['trackerClipTitle'][0]
         thumbnail = flashvars['startPicture'][0] if 'startPicture' in flashvars else None
+
+        if thumbnail is not None:
+            double_url_regex = r'(' + re.escape(page_url) + r'*){2,}'
+            thumbnail = re.sub(double_url_regex, page_url, thumbnail)
+
         is_live = flashvars.get('isLive', ['0'])[0] == '1'
 
         if is_live:
