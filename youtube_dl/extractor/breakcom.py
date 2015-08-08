@@ -18,6 +18,7 @@ class BreakIE(InfoExtractor):
             'id': '2468056',
             'ext': 'mp4',
             'title': 'When Girls Act Like D-Bags',
+            'age_limit': 13,
         }
     }, {
         'url': 'http://www.break.com/video/ugc/baby-flex-2773063',
