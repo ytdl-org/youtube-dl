@@ -16,12 +16,13 @@ class OdnoklassnikiIE(InfoExtractor):
     _TESTS = [{
         # metadata in JSON
         'url': 'http://ok.ru/video/20079905452',
-        'md5': '8e24ad2da6f387948e7a7d44eb8668fe',
+        'md5': '6ba728d85d60aa2e6dd37c9e70fdc6bc',
         'info_dict': {
             'id': '20079905452',
             'ext': 'mp4',
             'title': 'Культура меняет нас (прекрасный ролик!))',
             'duration': 100,
+            'upload_date': '20141207',
             'uploader_id': '330537914540',
             'uploader': 'Виталий Добровольский',
             'like_count': int,
@@ -36,8 +37,9 @@ class OdnoklassnikiIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Девушка без комплексов ...',
             'duration': 191,
+            'upload_date': '20150518',
             'uploader_id': '534380003155',
-            'uploader': 'Андрей Мещанинов',
+            'uploader': '☭ Андрей Мещанинов ☭',
             'like_count': int,
             'age_limit': 0,
         },
