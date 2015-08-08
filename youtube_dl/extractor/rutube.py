@@ -30,6 +30,7 @@ class RutubeIE(InfoExtractor):
             'uploader': 'NTDRussian',
             'uploader_id': '29790',
             'upload_date': '20131016',
+            'age_limit': 0,
         },
         'params': {
             # It requires ffmpeg (m3u8 download)
