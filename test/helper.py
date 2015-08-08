@@ -160,7 +160,7 @@ def expect_info_dict(self, got_dict, expected_dict):
     # Are checkable fields missing from the test case definition?
     test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'md5:' + md5(value))
                           for key, value in got_dict.items()
-                          if value and key in ('id', 'title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location'))
+                          if value and key in ('id', 'title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location', 'age_limit'))
     missing_keys = set(test_info_dict.keys()) - set(expected_dict.keys())
     if missing_keys:
         def _repr(v):
