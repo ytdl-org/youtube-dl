@@ -13,7 +13,7 @@ class TweakersIE(InfoExtractor):
     _VALID_URL = r'https?://tweakers\.net/video/(?P<id>\d+)'
     _TEST = {
         'url': 'https://tweakers.net/video/9926/new-nintendo-3ds-xl-op-alle-fronten-beter.html',
-        'md5': '1b5afa817403bb5baa08359dca31e6df',
+        'md5': '3147e4ddad366f97476a93863e4557c8',
         'info_dict': {
             'id': '9926',
             'ext': 'mp4',
