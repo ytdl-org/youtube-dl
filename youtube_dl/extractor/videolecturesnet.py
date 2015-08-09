@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class VideoLecturesNetIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?videolectures\.net/(?P<id>[^/#?]+)(?:/?[#?].*)?$'
+    _VALID_URL = r'http://(?:www\.)?videolectures\.net/(?P<id>[^/#?]+)/*(?:[#?].*)?$'
     IE_NAME = 'videolectures.net'
 
     _TEST = {
