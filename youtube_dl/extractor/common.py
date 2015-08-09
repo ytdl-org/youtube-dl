@@ -39,6 +39,8 @@ from ..utils import (
     sanitize_filename,
     unescapeHTML,
     url_basename,
+    xpath_text,
+    xpath_with_ns,
 )
 
 
@@ -1141,6 +1143,45 @@ class InfoExtractor(object):
                 'ext': ext,
             })
         return subtitles
+
+    def _extract_xspf_playlist(self, playlist_url, playlist_id):
+        playlist = self._download_xml(
+            playlist_url, playlist_id, 'Downloading xpsf playlist',
+            'Unable to download xspf manifest')
+
+        NS_MAP = {
+            'xspf': 'http://xspf.org/ns/0/',
+            's1': 'http://static.streamone.nl/player/ns/0',
+        }
+
+        entries = []
+        for track in playlist.findall(xpath_with_ns('./xspf:trackList/xspf:track', NS_MAP)):
+            title = xpath_text(
+                track, xpath_with_ns('./xspf:title', NS_MAP), 'title')
+            description = xpath_text(
+                track, xpath_with_ns('./xspf:annotation', NS_MAP), 'description')
+            thumbnail = xpath_text(
+                track, xpath_with_ns('./xspf:image', NS_MAP), 'thumbnail')
+            duration = float_or_none(
+                xpath_text(track, xpath_with_ns('./xspf:duration', NS_MAP), 'duration'), 1000)
+
+            formats = [{
+                'url': location.text,
+                'format_id': location.get(xpath_with_ns('s1:label', NS_MAP)),
+                'width': int_or_none(location.get(xpath_with_ns('s1:width', NS_MAP))),
+                'height': int_or_none(location.get(xpath_with_ns('s1:height', NS_MAP))),
+            } for location in track.findall(xpath_with_ns('./xspf:location', NS_MAP))]
+            self._sort_formats(formats)
+
+            entries.append({
+                'id': playlist_id,
+                'title': title,
+                'description': description,
+                'thumbnail': thumbnail,
+                'duration': duration,
+                'formats': formats,
+            })
+        return entries
 
     def _live_title(self, name):
         """ Generate the title for a live video """
