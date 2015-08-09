@@ -198,6 +198,21 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        # XSPF playlist from http://www.telegraaf.nl/tv/nieuws/binnenland/24353229/__Tikibad_ontruimd_wegens_brand__.html
+        {
+            'url': 'http://www.telegraaf.nl/xml/playlist/2015/8/7/mZlp2ctYIUEB.xspf',
+            'info_dict': {
+                'id': 'mZlp2ctYIUEB',
+                'ext': 'mp4',
+                'title': 'Tikibad ontruimd wegens brand',
+                'description': 'md5:05ca046ff47b931f9b04855015e163a4',
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'duration': 33,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
         # google redirect
         {
             'url': 'http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&ved=0CCUQtwIwAA&url=http%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DcmQHVoWB5FY&ei=F-sNU-LLCaXk4QT52ICQBQ&usg=AFQjCNEw4hL29zgOohLXvpJ-Bdh2bils1Q&bvm=bv.61965928,d.bGE',
