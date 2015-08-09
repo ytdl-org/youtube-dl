@@ -1157,7 +1157,7 @@ class InfoExtractor(object):
         entries = []
         for track in playlist.findall(xpath_with_ns('./xspf:trackList/xspf:track', NS_MAP)):
             title = xpath_text(
-                track, xpath_with_ns('./xspf:title', NS_MAP), 'title')
+                track, xpath_with_ns('./xspf:title', NS_MAP), 'title', default=playlist_id)
             description = xpath_text(
                 track, xpath_with_ns('./xspf:annotation', NS_MAP), 'description')
             thumbnail = xpath_text(
