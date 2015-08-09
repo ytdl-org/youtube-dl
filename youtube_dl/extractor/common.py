@@ -1144,11 +1144,15 @@ class InfoExtractor(object):
             })
         return subtitles
 
-    def _extract_xspf_playlist(self, playlist_url, playlist_id):
-        playlist = self._download_xml(
+    def _extract_xspf_playlist(self, playlist_url, playlist_id, fatal=True):
+        xspf = self._download_xml(
             playlist_url, playlist_id, 'Downloading xpsf playlist',
-            'Unable to download xspf manifest')
+            'Unable to download xspf manifest', fatal=fatal)
+        if xspf is False:
+            return []
+        return self._parse_xspf(xspf, playlist_id)
 
+    def _parse_xspf(self, playlist, playlist_id):
         NS_MAP = {
             'xspf': 'http://xspf.org/ns/0/',
             's1': 'http://static.streamone.nl/player/ns/0',
