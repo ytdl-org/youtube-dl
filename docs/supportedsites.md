@@ -86,7 +86,7 @@
  - **chirbit:profile**
  - **Cinchcast**
  - **Cinemassacre**
- - **clipfish**
+ - **Clipfish**
  - **cliphunter**
  - **Clipsyndicate**
  - **Cloudy**
@@ -116,6 +116,7 @@
  - **DailymotionCloud**
  - **daum.net**
  - **DBTV**
+ - **DCN**
  - **DctpTv**
  - **DeezerPlaylist**
  - **defense.gouv.fr**
@@ -351,7 +352,6 @@
  - **NowTV**
  - **nowvideo**: NowVideo
  - **npo**: npo.nl and ntr.nl
- - **npo**: npo.nl and ntr.nl
  - **npo.nl:live**
  - **npo.nl:radio**
  - **npo.nl:radio:fragment**
@@ -377,6 +377,7 @@
  - **parliamentlive.tv**: UK parliament videos
  - **Patreon**
  - **PBS**
+ - **Periscope**: Periscope
  - **PhilharmonieDeParis**: Philharmonie de Paris
  - **Phoenix**
  - **Photobucket**
@@ -406,6 +407,7 @@
  - **qqmusic:playlist**: QQ音乐 - 歌单
  - **qqmusic:singer**: QQ音乐 - 歌手
  - **qqmusic:toplist**: QQ音乐 - 排行榜
+ - **Quickscope**: Quick Scope
  - **QuickVid**
  - **R7**
  - **radio.de**
@@ -518,6 +520,7 @@
  - **ted**
  - **TeleBruxelles**
  - **telecinco.es**
+ - **Telegraaf**
  - **TeleMB**
  - **TeleTask**
  - **TenPlay**
@@ -621,6 +624,7 @@
  - **Vodlocker**
  - **VoiceRepublic**
  - **Vporn**
+ - **vpro**: npo.nl and ntr.nl
  - **VRT**
  - **vube**: Vube.com
  - **VuClip**
