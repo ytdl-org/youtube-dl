@@ -1206,7 +1206,7 @@ class GenericIE(InfoExtractor):
 
         self.report_extraction(video_id)
 
-        # Is it an RSS feed or a SMIL file?
+        # Is it an RSS feed, a SMIL file or a XSPF playlist?
         try:
             doc = parse_xml(webpage)
             if doc.tag == 'rss':
