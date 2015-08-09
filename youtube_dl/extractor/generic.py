@@ -1198,6 +1198,8 @@ class GenericIE(InfoExtractor):
                 return self._extract_rss(url, video_id, doc)
             elif re.match(r'^(?:{[^}]+})?smil$', doc.tag):
                 return self._parse_smil(doc, url, video_id)
+            elif doc.tag == '{http://xspf.org/ns/0/}playlist':
+                return self.playlist_result(self._parse_xspf(doc, video_id), video_id)
         except compat_xml_parse_error:
             pass
 
@@ -1799,7 +1801,8 @@ class GenericIE(InfoExtractor):
             # here's a fun little line of code for you:
             video_id = os.path.splitext(video_id)[0]
 
-            if determine_ext(video_url) == 'smil':
+            ext = determine_ext(video_url)
+            if ext == 'smil':
                 entries.append({
                     'id': video_id,
                     'formats': self._extract_smil_formats(video_url, video_id),
@@ -1807,6 +1810,8 @@ class GenericIE(InfoExtractor):
                     'title': video_title,
                     'age_limit': age_limit,
                 })
+            elif ext == 'xspf':
+                return self.playlist_result(self._extract_xspf_playlist(video_url, video_id), video_id)
             else:
                 entries.append({
                     'id': video_id,
