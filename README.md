@@ -9,6 +9,7 @@ youtube-dl - download videos from youtube.com or other video platforms
 - [VIDEO SELECTION](#video-selection)
 - [FAQ](#faq)
 - [DEVELOPER INSTRUCTIONS](#developer-instructions)
+- [EMBEDDING YOUTUBE-DL](#embedding-youtube-dl)
 - [BUGS](#bugs)
 - [COPYRIGHT](#copyright)
 
