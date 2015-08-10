@@ -92,6 +92,7 @@ class PBSIE(InfoExtractor):
                 'duration': 3172,
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'upload_date': '20140122',
+                'age_limit': 10,
             },
             'params': {
                 'skip_download': True,  # requires ffmpeg
