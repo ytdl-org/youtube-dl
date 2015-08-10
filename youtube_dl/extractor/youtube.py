@@ -365,6 +365,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'md5:64249768eec3bc4276236606ea996373',
                 'uploader': 'justintimberlakeVEVO',
                 'uploader_id': 'justintimberlakeVEVO',
+                'age_limit': 18,
             }
         },
         {
@@ -475,6 +476,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'The Witcher',
                 'uploader_id': 'WitcherGame',
                 'upload_date': '20140605',
+                'age_limit': 18,
             },
         },
         # Age-gate video with encrypted signature
@@ -488,6 +490,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'LloydVEVO',
                 'uploader_id': 'LloydVEVO',
                 'upload_date': '20110629',
+                'age_limit': 18,
             },
         },
         # video_info is None (https://github.com/rg3/youtube-dl/issues/4421)
