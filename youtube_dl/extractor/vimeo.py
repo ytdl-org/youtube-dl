@@ -431,6 +431,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
     IE_NAME = 'vimeo:channel'
     _VALID_URL = r'https://vimeo\.com/channels/(?P<id>[^/?#]+)/?(?:$|[?#])'
     _MORE_PAGES_INDICATOR = r'<a.+?rel="next"'
+    _TITLE = None
     _TITLE_RE = r'<link rel="alternate"[^>]+?title="(.*?)"'
     _TESTS = [{
         'url': 'https://vimeo.com/channels/tributes',
@@ -445,7 +446,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         return '%s/videos/page:%d/' % (base_url, pagenum)
 
     def _extract_list_title(self, webpage):
-        return self._html_search_regex(self._TITLE_RE, webpage, 'list title')
+        return self._TITLE or self._html_search_regex(self._TITLE_RE, webpage, 'list title')
 
     def _login_list_password(self, page_url, list_id, webpage):
         login_form = self._search_regex(
@@ -611,11 +612,11 @@ class VimeoReviewIE(InfoExtractor):
 class VimeoWatchLaterIE(VimeoChannelIE):
     IE_NAME = 'vimeo:watchlater'
     IE_DESC = 'Vimeo watch later list, "vimeowatchlater" keyword (requires authentication)'
-    _VALID_URL = r'https://vimeo\.com/home/watchlater|:vimeowatchlater'
+    _VALID_URL = r'https://vimeo\.com/(?:home/)?watchlater|:vimeowatchlater'
+    _TITLE = 'Watch Later'
     _LOGIN_REQUIRED = True
-    _TITLE_RE = r'href="/home/watchlater".*?>(.*?)<'
     _TESTS = [{
-        'url': 'https://vimeo.com/home/watchlater',
+        'url': 'https://vimeo.com/watchlater',
         'only_matching': True,
     }]
 
@@ -631,7 +632,7 @@ class VimeoWatchLaterIE(VimeoChannelIE):
         return request
 
     def _real_extract(self, url):
-        return self._extract_videos('watchlater', 'https://vimeo.com/home/watchlater')
+        return self._extract_videos('watchlater', 'https://vimeo.com/watchlater')
 
 
 class VimeoLikesIE(InfoExtractor):
