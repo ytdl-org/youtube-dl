@@ -395,7 +395,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'tags': ['youtube-dl'],
                 'like_count': int,
                 'dislike_count': int,
-            }
+            },
+            'params': {
+                'skip_download': True,
+            },
         },
         {
             'url': 'http://www.youtube.com/watch?v=a9LDPn-MO4I',
