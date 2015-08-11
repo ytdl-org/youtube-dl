@@ -238,6 +238,8 @@ which means you can modify it, redistribute it or use it however you like.
 
 You can configure youtube-dl by placing default arguments (such as `--extract-audio --no-mtime` to always extract the audio and not copy the mtime) into `/etc/youtube-dl.conf` and/or `~/.config/youtube-dl/config`. On Windows, the configuration file locations are `%APPDATA%\youtube-dl\config.txt` and `C:\Users\<user name>\youtube-dl.conf`.
 
+The default arguments are to be written like on the command line, esp. with the (double-) dashes in front.
+
 ### Authentication with `.netrc` file ###
 
 You may also want to configure automatic credentials storage for extractors that support authentication (by providing login and password with `--username` and `--password`) in order not to pass credentials as command line arguments on every youtube-dl execution and prevent tracking plain text passwords in shell command history. You can achieve this using [`.netrc` file](http://stackoverflow.com/tags/.netrc/info) on per extractor basis. For that you will need to create `.netrc` file in your `$HOME` and restrict permissions to read/write by you only:
