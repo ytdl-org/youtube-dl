@@ -566,9 +566,11 @@ class YoutubeDL(object):
                                  if v is not None)
             template_dict = collections.defaultdict(lambda: 'NA', template_dict)
 
-            outtmpl = sanitize_path(self.params.get('outtmpl', DEFAULT_OUTTMPL))
+            outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
             tmpl = compat_expanduser(outtmpl)
-            filename = tmpl % template_dict
+            # Backwards compatibility fix (deprecated): %(foo)s -> {foo}, %% -> %
+            tmpl = re.sub(r'(?<!%)((?:%)*)\1%\(([^)]*)\)s', r'\1{\2}', tmpl).replace('%%','%')
+            filename = sanitize_path(tmpl.format(**template_dict))
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
             # to workaround encoding issues with subprocess on python2 @ Windows
