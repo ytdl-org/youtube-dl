@@ -201,7 +201,7 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
 
         uri = mMovieParams[0][1]
         # Correct cc.com in uri
-        uri = re.sub(r'(episode:[^.]+)(\.cc)?\.com', r'\1.cc.com', uri)
+        uri = re.sub(r'(episode:[^.]+)(\.cc)?\.com', r'\1.com', uri)
 
         index_url = 'http://%s.cc.com/feeds/mrss?%s' % (show_name, compat_urllib_parse.urlencode({'uri': uri}))
         idoc = self._download_xml(

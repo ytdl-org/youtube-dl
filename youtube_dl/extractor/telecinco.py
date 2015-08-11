@@ -16,6 +16,10 @@ class TelecincoIE(MiTeleIE):
             'title': 'Con Martín Berasategui, hacer un bacalao al ...',
             'duration': 662,
         },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         'url': 'http://www.telecinco.es/informativos/nacional/Pablo_Iglesias-Informativos_Telecinco-entrevista-Pedro_Piqueras_2_1945155182.html',
         'only_matching': True,

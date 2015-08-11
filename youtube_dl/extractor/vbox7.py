@@ -5,6 +5,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
+    compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
@@ -26,11 +27,21 @@ class Vbox7IE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        redirect_page, urlh = self._download_webpage_handle(url, video_id)
-        new_location = self._search_regex(r'window\.location = \'(.*)\';',
-                                          redirect_page, 'redirect location')
-        redirect_url = urlh.geturl() + new_location
-        webpage = self._download_webpage(redirect_url, video_id,
+        # need to get the page 3 times for the correct jsSecretToken cookie
+        # which is necessary for the correct title
+        def get_session_id():
+            redirect_page = self._download_webpage(url, video_id)
+            session_id_url = self._search_regex(
+                r'var\s*url\s*=\s*\'([^\']+)\';', redirect_page,
+                'session id url')
+            self._download_webpage(
+                compat_urlparse.urljoin(url, session_id_url), video_id,
+                'Getting session id')
+
+        get_session_id()
+        get_session_id()
+
+        webpage = self._download_webpage(url, video_id,
                                          'Downloading redirect page')
 
         title = self._html_search_regex(r'<title>(.*)</title>',

@@ -2,11 +2,11 @@ from __future__ import unicode_literals
 
 import os.path
 import subprocess
-import sys
 
 from .common import FileDownloader
 from ..utils import (
     encodeFilename,
+    encodeArgument,
 )
 
 
@@ -51,6 +51,9 @@ class ExternalFD(FileDownloader):
             return []
         return [command_option, source_address]
 
+    def _no_check_certificate(self, command_option):
+        return [command_option] if self.params.get('nocheckcertificate', False) else []
+
     def _configuration_args(self, default=[]):
         ex_args = self.params.get('external_downloader_args')
         if ex_args is None:
@@ -60,17 +63,9 @@ class ExternalFD(FileDownloader):
 
     def _call_downloader(self, tmpfilename, info_dict):
         """ Either overwrite this or implement _make_cmd """
-        cmd = self._make_cmd(tmpfilename, info_dict)
+        cmd = [encodeArgument(a) for a in self._make_cmd(tmpfilename, info_dict)]
 
-        if sys.platform == 'win32' and sys.version_info < (3, 0):
-            # Windows subprocess module does not actually support Unicode
-            # on Python 2.x
-            # See http://stackoverflow.com/a/9951851/35070
-            subprocess_encoding = sys.getfilesystemencoding()
-            cmd = [a.encode(subprocess_encoding, 'ignore') for a in cmd]
-        else:
-            subprocess_encoding = None
-        self._debug_cmd(cmd, subprocess_encoding)
+        self._debug_cmd(cmd)
 
         p = subprocess.Popen(
             cmd, stderr=subprocess.PIPE)
@@ -91,12 +86,23 @@ class CurlFD(ExternalFD):
         return cmd
 
 
+class AxelFD(ExternalFD):
+    def _make_cmd(self, tmpfilename, info_dict):
+        cmd = [self.exe, '-o', tmpfilename]
+        for key, val in info_dict['http_headers'].items():
+            cmd += ['-H', '%s: %s' % (key, val)]
+        cmd += self._configuration_args()
+        cmd += ['--', info_dict['url']]
+        return cmd
+
+
 class WgetFD(ExternalFD):
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-O', tmpfilename, '-nv', '--no-cookies']
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._source_address('--bind-address')
+        cmd += self._no_check_certificate('--no-check-certificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
@@ -117,6 +123,14 @@ class Aria2cFD(ExternalFD):
         cmd += ['--', info_dict['url']]
         return cmd
 
+
+class HttpieFD(ExternalFD):
+    def _make_cmd(self, tmpfilename, info_dict):
+        cmd = ['http', '--download', '--output', tmpfilename, info_dict['url']]
+        for key, val in info_dict['http_headers'].items():
+            cmd += ['%s:%s' % (key, val)]
+        return cmd
+
 _BY_NAME = dict(
     (klass.get_basename(), klass)
     for name, klass in globals().items()
@@ -131,5 +145,6 @@ def list_external_downloaders():
 def get_external_downloader(external_downloader):
     """ Given the name of the executable, see whether we support the given
         downloader . """
-    bn = os.path.basename(external_downloader)
+    # Drop .exe extension on Windows
+    bn = os.path.splitext(os.path.basename(external_downloader))[0]
     return _BY_NAME[bn]

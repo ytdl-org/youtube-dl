@@ -15,7 +15,7 @@ class TwentyFourVideoIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.24video.net/video/view/1044982',
-            'md5': '48dd7646775690a80447a8dca6a2df76',
+            'md5': 'd041af8b5b4246ea466226a0d6693345',
             'info_dict': {
                 'id': '1044982',
                 'ext': 'mp4',
@@ -54,7 +54,7 @@ class TwentyFourVideoIE(InfoExtractor):
             webpage, 'upload date'))
 
         uploader = self._html_search_regex(
-            r'Загрузил\s*<a href="/jsecUser/movies/[^"]+" class="link">([^<]+)</a>',
+            r'class="video-uploaded"[^>]*>\s*<a href="/jsecUser/movies/[^"]+"[^>]*>([^<]+)</a>',
             webpage, 'uploader', fatal=False)
 
         view_count = int_or_none(self._html_search_regex(

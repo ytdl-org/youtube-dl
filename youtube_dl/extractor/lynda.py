@@ -17,7 +17,6 @@ from ..utils import (
 
 class LyndaBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://www.lynda.com/login/login.aspx'
-    _SUCCESSFUL_LOGIN_REGEX = r'isLoggedIn: true'
     _ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to provide lynda.com account credentials.'
     _NETRC_MACHINE = 'lynda'
 
@@ -30,18 +29,18 @@ class LyndaBaseIE(InfoExtractor):
             return
 
         login_form = {
-            'username': username,
-            'password': password,
+            'username': username.encode('utf-8'),
+            'password': password.encode('utf-8'),
             'remember': 'false',
             'stayPut': 'false'
         }
         request = compat_urllib_request.Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
+            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         login_page = self._download_webpage(
             request, None, 'Logging in as %s' % username)
 
         # Not (yet) logged in
-        m = re.search(r'loginResultJson = \'(?P<json>[^\']+)\';', login_page)
+        m = re.search(r'loginResultJson\s*=\s*\'(?P<json>[^\']+)\';', login_page)
         if m is not None:
             response = m.group('json')
             response_json = json.loads(response)
@@ -65,12 +64,12 @@ class LyndaBaseIE(InfoExtractor):
                     'stayPut': 'false',
                 }
                 request = compat_urllib_request.Request(
-                    self._LOGIN_URL, compat_urllib_parse.urlencode(confirm_form))
+                    self._LOGIN_URL, compat_urllib_parse.urlencode(confirm_form).encode('utf-8'))
                 login_page = self._download_webpage(
                     request, None,
                     'Confirming log in and log out from another device')
 
-        if re.search(self._SUCCESSFUL_LOGIN_REGEX, login_page) is None:
+        if all(not re.search(p, login_page) for p in ('isLoggedIn\s*:\s*true', r'logout\.aspx', r'>Log out<')):
             raise ExtractorError('Unable to log in')
 
 

@@ -24,6 +24,7 @@ from youtube_dl.utils import (
     encodeFilename,
     escape_rfc3986,
     escape_url,
+    ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
     InAdvancePagedList,
@@ -39,6 +40,8 @@ from youtube_dl.utils import (
     read_batch_urls,
     sanitize_filename,
     sanitize_path,
+    prepend_extension,
+    replace_extension,
     shell_quote,
     smuggle_url,
     str_to_int,
@@ -49,12 +52,16 @@ from youtube_dl.utils import (
     unified_strdate,
     unsmuggle_url,
     uppercase_escape,
+    lowercase_escape,
     url_basename,
     urlencode_postdata,
     version_tuple,
     xpath_with_ns,
+    xpath_text,
     render_table,
     match_str,
+    parse_dfxp_time_expr,
+    dfxp2srt,
 )
 
 
@@ -168,6 +175,22 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_path('./abc'), 'abc')
         self.assertEqual(sanitize_path('./../abc'), '..\\abc')
 
+    def test_prepend_extension(self):
+        self.assertEqual(prepend_extension('abc.ext', 'temp'), 'abc.temp.ext')
+        self.assertEqual(prepend_extension('abc.ext', 'temp', 'ext'), 'abc.temp.ext')
+        self.assertEqual(prepend_extension('abc.unexpected_ext', 'temp', 'ext'), 'abc.unexpected_ext.temp')
+        self.assertEqual(prepend_extension('abc', 'temp'), 'abc.temp')
+        self.assertEqual(prepend_extension('.abc', 'temp'), '.abc.temp')
+        self.assertEqual(prepend_extension('.abc.ext', 'temp'), '.abc.temp.ext')
+
+    def test_replace_extension(self):
+        self.assertEqual(replace_extension('abc.ext', 'temp'), 'abc.temp')
+        self.assertEqual(replace_extension('abc.ext', 'temp', 'ext'), 'abc.temp')
+        self.assertEqual(replace_extension('abc.unexpected_ext', 'temp', 'ext'), 'abc.unexpected_ext.temp')
+        self.assertEqual(replace_extension('abc', 'temp'), 'abc.temp')
+        self.assertEqual(replace_extension('.abc', 'temp'), '.abc.temp')
+        self.assertEqual(replace_extension('.abc.ext', 'temp'), '.abc.temp')
+
     def test_ordered_set(self):
         self.assertEqual(orderedSet([1, 1, 2, 3, 4, 4, 5, 6, 7, 3, 5]), [1, 2, 3, 4, 5, 6, 7])
         self.assertEqual(orderedSet([]), [])
@@ -177,6 +200,8 @@ class TestUtil(unittest.TestCase):
 
     def test_unescape_html(self):
         self.assertEqual(unescapeHTML('%20;'), '%20;')
+        self.assertEqual(unescapeHTML('&#x2F;'), '/')
+        self.assertEqual(unescapeHTML('&#47;'), '/')
         self.assertEqual(
             unescapeHTML('&eacute;'), 'é')
 
@@ -202,6 +227,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(
             unified_strdate('2/2/2015 6:47:40 PM', day_first=False),
             '20150202')
+        self.assertEqual(unified_strdate('25-09-2014'), '20140925')
 
     def test_find_xpath_attr(self):
         testxml = '''<root>
@@ -209,12 +235,21 @@ class TestUtil(unittest.TestCase):
             <node x="a"/>
             <node x="a" y="c" />
             <node x="b" y="d" />
+            <node x="" />
         </root>'''
         doc = xml.etree.ElementTree.fromstring(testxml)
 
+        self.assertEqual(find_xpath_attr(doc, './/fourohfour', 'n'), None)
         self.assertEqual(find_xpath_attr(doc, './/fourohfour', 'n', 'v'), None)
+        self.assertEqual(find_xpath_attr(doc, './/node', 'n'), None)
+        self.assertEqual(find_xpath_attr(doc, './/node', 'n', 'v'), None)
+        self.assertEqual(find_xpath_attr(doc, './/node', 'x'), doc[1])
         self.assertEqual(find_xpath_attr(doc, './/node', 'x', 'a'), doc[1])
+        self.assertEqual(find_xpath_attr(doc, './/node', 'x', 'b'), doc[3])
+        self.assertEqual(find_xpath_attr(doc, './/node', 'y'), doc[2])
         self.assertEqual(find_xpath_attr(doc, './/node', 'y', 'c'), doc[2])
+        self.assertEqual(find_xpath_attr(doc, './/node', 'y', 'd'), doc[3])
+        self.assertEqual(find_xpath_attr(doc, './/node', 'x', ''), doc[4])
 
     def test_xpath_with_ns(self):
         testxml = '''<root xmlns:media="http://example.com/">
@@ -228,6 +263,17 @@ class TestUtil(unittest.TestCase):
         self.assertTrue(find('media:song') is not None)
         self.assertEqual(find('media:song/media:author').text, 'The Author')
         self.assertEqual(find('media:song/url').text, 'http://server.com/download.mp3')
+
+    def test_xpath_text(self):
+        testxml = '''<root>
+            <div>
+                <p>Foo</p>
+            </div>
+        </root>'''
+        doc = xml.etree.ElementTree.fromstring(testxml)
+        self.assertEqual(xpath_text(doc, 'div/p'), 'Foo')
+        self.assertTrue(xpath_text(doc, 'div/bar') is None)
+        self.assertRaises(ExtractorError, xpath_text, doc, 'div/bar', fatal=True)
 
     def test_smuggle_url(self):
         data = {"ö": "ö", "abc": [3]}
@@ -287,6 +333,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_duration('02:03:04'), 7384)
         self.assertEqual(parse_duration('01:02:03:04'), 93784)
         self.assertEqual(parse_duration('1 hour 3 minutes'), 3780)
+        self.assertEqual(parse_duration('87 Min.'), 5220)
 
     def test_fix_xml_ampersands(self):
         self.assertEqual(
@@ -361,6 +408,10 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(uppercase_escape('aä'), 'aä')
         self.assertEqual(uppercase_escape('\\U0001d550'), '𝕐')
 
+    def test_lowercase_escape(self):
+        self.assertEqual(lowercase_escape('aä'), 'aä')
+        self.assertEqual(lowercase_escape('\\u0026'), '&')
+
     def test_limit_length(self):
         self.assertEqual(limit_length(None, 12), None)
         self.assertEqual(limit_length('foo', 12), 'foo')
@@ -433,6 +484,12 @@ class TestUtil(unittest.TestCase):
         d = json.loads(on)
         self.assertEqual(d['x'], 1)
         self.assertEqual(d['y'], 'a')
+
+        on = js_to_json('["abc", "def",]')
+        self.assertEqual(json.loads(on), ['abc', 'def'])
+
+        on = js_to_json('{"abc": "def",}')
+        self.assertEqual(json.loads(on), {'abc': 'def'})
 
     def test_clean_html(self):
         self.assertEqual(clean_html('a:\nb'), 'a: b')
@@ -537,6 +594,57 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
         self.assertFalse(match_str(
             'like_count > 100 & dislike_count <? 50 & description',
             {'like_count': 190, 'dislike_count': 10}))
+
+    def test_parse_dfxp_time_expr(self):
+        self.assertEqual(parse_dfxp_time_expr(None), 0.0)
+        self.assertEqual(parse_dfxp_time_expr(''), 0.0)
+        self.assertEqual(parse_dfxp_time_expr('0.1'), 0.1)
+        self.assertEqual(parse_dfxp_time_expr('0.1s'), 0.1)
+        self.assertEqual(parse_dfxp_time_expr('00:00:01'), 1.0)
+        self.assertEqual(parse_dfxp_time_expr('00:00:01.100'), 1.1)
+
+    def test_dfxp2srt(self):
+        dfxp_data = '''<?xml version="1.0" encoding="UTF-8"?>
+            <tt xmlns="http://www.w3.org/ns/ttml" xml:lang="en" xmlns:tts="http://www.w3.org/ns/ttml#parameter">
+            <body>
+                <div xml:lang="en">
+                    <p begin="0" end="1">The following line contains Chinese characters and special symbols</p>
+                    <p begin="1" end="2">第二行<br/>♪♪</p>
+                    <p begin="2" dur="1"><span>Third<br/>Line</span></p>
+                </div>
+            </body>
+            </tt>'''
+        srt_data = '''1
+00:00:00,000 --> 00:00:01,000
+The following line contains Chinese characters and special symbols
+
+2
+00:00:01,000 --> 00:00:02,000
+第二行
+♪♪
+
+3
+00:00:02,000 --> 00:00:03,000
+Third
+Line
+
+'''
+        self.assertEqual(dfxp2srt(dfxp_data), srt_data)
+
+        dfxp_data_no_default_namespace = '''<?xml version="1.0" encoding="UTF-8"?>
+            <tt xml:lang="en" xmlns:tts="http://www.w3.org/ns/ttml#parameter">
+            <body>
+                <div xml:lang="en">
+                    <p begin="0" end="1">The first line</p>
+                </div>
+            </body>
+            </tt>'''
+        srt_data = '''1
+00:00:00,000 --> 00:00:01,000
+The first line
+
+'''
+        self.assertEqual(dfxp2srt(dfxp_data_no_default_namespace), srt_data)
 
 
 if __name__ == '__main__':

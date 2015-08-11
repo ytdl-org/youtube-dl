@@ -21,6 +21,9 @@ class NHLBaseInfoExtractor(InfoExtractor):
         return json_string.replace('\\\'', '\'')
 
     def _real_extract_video(self, video_id):
+        vid_parts = video_id.split(',')
+        if len(vid_parts) == 3:
+            video_id = '%s0%s%s-X-h' % (vid_parts[0][:4], vid_parts[1], vid_parts[2].rjust(4, '0'))
         json_url = 'http://video.nhl.com/videocenter/servlets/playlist?ids=%s&format=json' % video_id
         data = self._download_json(
             json_url, video_id, transform_source=self._fix_json)
@@ -47,7 +50,7 @@ class NHLBaseInfoExtractor(InfoExtractor):
             video_url = initial_video_url
 
         join = compat_urlparse.urljoin
-        return {
+        ret = {
             'id': video_id,
             'title': info['name'],
             'url': video_url,
@@ -56,11 +59,20 @@ class NHLBaseInfoExtractor(InfoExtractor):
             'thumbnail': join(join(video_url, '/u/'), info['bigImage']),
             'upload_date': unified_strdate(info['releaseDate'].split('.')[0]),
         }
+        if video_url.startswith('rtmp:'):
+            mobj = re.match(r'(?P<tc_url>rtmp://[^/]+/(?P<app>[a-z0-9/]+))/(?P<play_path>mp4:.*)', video_url)
+            ret.update({
+                'tc_url': mobj.group('tc_url'),
+                'play_path': mobj.group('play_path'),
+                'app': mobj.group('app'),
+                'no_resume': True,
+            })
+        return ret
 
 
 class NHLIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com'
-    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/(?:console)?(?:\?(?:.*?[?&])?)id=(?P<id>[-0-9a-zA-Z]+)'
+    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/(?:console)?(?:\?(?:.*?[?&])?)(?:id|hlg)=(?P<id>[-0-9a-zA-Z,]+)'
 
     _TESTS = [{
         'url': 'http://video.canucks.nhl.com/videocenter/console?catid=6?id=453614',
@@ -101,6 +113,29 @@ class NHLIE(NHLBaseInfoExtractor):
     }, {
         'url': 'http://video.nhl.com/videocenter/?id=736722',
         'only_matching': True,
+    }, {
+        'url': 'http://video.nhl.com/videocenter/console?hlg=20142015,2,299&lang=en',
+        'md5': '076fcb88c255154aacbf0a7accc3f340',
+        'info_dict': {
+            'id': '2014020299-X-h',
+            'ext': 'mp4',
+            'title': 'Penguins at Islanders / Game Highlights',
+            'description': 'Home broadcast - Pittsburgh Penguins at New York Islanders - November 22, 2014',
+            'duration': 268,
+            'upload_date': '20141122',
+        }
+    }, {
+        'url': 'http://video.oilers.nhl.com/videocenter/console?id=691469&catid=4',
+        'info_dict': {
+            'id': '691469',
+            'ext': 'mp4',
+            'title': 'RAW | Craig MacTavish Full Press Conference',
+            'description': 'Oilers GM Craig MacTavish addresses the media at Rexall Place on Friday.',
+            'upload_date': '20141205',
+        },
+        'params': {
+            'skip_download': True,  # Requires rtmpdump
+        }
     }]
 
     def _real_extract(self, url):

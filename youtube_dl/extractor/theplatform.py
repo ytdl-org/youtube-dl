@@ -17,6 +17,7 @@ from ..utils import (
     ExtractorError,
     xpath_with_ns,
     unsmuggle_url,
+    int_or_none,
 )
 
 _x = lambda p: xpath_with_ns(p, {'smil': 'http://www.w3.org/2005/SMIL21/Language'})
@@ -25,10 +26,10 @@ _x = lambda p: xpath_with_ns(p, {'smil': 'http://www.w3.org/2005/SMIL21/Language
 class ThePlatformIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         (?:https?://(?:link|player)\.theplatform\.com/[sp]/(?P<provider_id>[^/]+)/
-           (?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/)?
+           (?:(?P<media>(?:[^/]+/)+select/media/)|(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/))?
          |theplatform:)(?P<id>[^/\?&]+)'''
 
-    _TEST = {
+    _TESTS = [{
         # from http://www.metacafe.com/watch/cb-e9I_cZgTgIPd/blackberrys_big_bold_z30/
         'url': 'http://link.theplatform.com/s/dJ5BDC/e9I_cZgTgIPd/meta.smil?format=smil&Tracking=true&mbr=true',
         'info_dict': {
@@ -42,7 +43,31 @@ class ThePlatformIE(InfoExtractor):
             # rtmp download
             'skip_download': True,
         },
-    }
+    }, {
+        # from http://www.cnet.com/videos/tesla-model-s-a-second-step-towards-a-cleaner-motoring-future/
+        'url': 'http://link.theplatform.com/s/kYEXFC/22d_qsQ6MIRT',
+        'info_dict': {
+            'id': '22d_qsQ6MIRT',
+            'ext': 'flv',
+            'description': 'md5:ac330c9258c04f9d7512cf26b9595409',
+            'title': 'Tesla Model S: A second step towards a cleaner motoring future',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        }
+    }, {
+        'url': 'https://player.theplatform.com/p/D6x-PC/pulse_preview/embed/select/media/yMBg9E8KFxZD',
+        'info_dict': {
+            'id': 'yMBg9E8KFxZD',
+            'ext': 'mp4',
+            'description': 'md5:644ad9188d655b742f942bf2e06b002d',
+            'title': 'HIGHLIGHTS: USA bag first ever series Cup win',
+        }
+    }, {
+        'url': 'http://player.theplatform.com/p/NnzsPC/widget/select/media/4Y0TlYUr_ZT7',
+        'only_matching': True,
+    }]
 
     @staticmethod
     def _sign_url(url, sig_key, sig_secret, life=600, include_qs=False):
@@ -71,6 +96,11 @@ class ThePlatformIE(InfoExtractor):
         if not provider_id:
             provider_id = 'dJ5BDC'
 
+        path = provider_id
+        if mobj.group('media'):
+            path += '/media'
+        path += '/' + video_id
+
         if smuggled_data.get('force_smil_url', False):
             smil_url = url
         elif mobj.group('config'):
@@ -80,8 +110,7 @@ class ThePlatformIE(InfoExtractor):
             config = self._download_json(config_url, video_id, 'Downloading config')
             smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4&manifest=f4m'
         else:
-            smil_url = ('http://link.theplatform.com/s/{0}/{1}/meta.smil?'
-                        'format=smil&mbr=true'.format(provider_id, video_id))
+            smil_url = 'http://link.theplatform.com/s/%s/meta.smil?format=smil&mbr=true' % path
 
         sig = smuggled_data.get('sig')
         if sig:
@@ -92,13 +121,13 @@ class ThePlatformIE(InfoExtractor):
             error_msg = next(
                 n.attrib['abstract']
                 for n in meta.findall(_x('.//smil:ref'))
-                if n.attrib.get('title') == 'Geographic Restriction')
+                if n.attrib.get('title') == 'Geographic Restriction' or n.attrib.get('title') == 'Expired')
         except StopIteration:
             pass
         else:
             raise ExtractorError(error_msg, expected=True)
 
-        info_url = 'http://link.theplatform.com/s/{0}/{1}?format=preview'.format(provider_id, video_id)
+        info_url = 'http://link.theplatform.com/s/%s?format=preview' % path
         info_json = self._download_webpage(info_url, video_id)
         info = json.loads(info_json)
 
@@ -116,6 +145,8 @@ class ThePlatformIE(InfoExtractor):
         body = meta.find(_x('smil:body'))
 
         f4m_node = body.find(_x('smil:seq//smil:video'))
+        if f4m_node is None:
+            f4m_node = body.find(_x('smil:seq/smil:video'))
         if f4m_node is not None and '.f4m' in f4m_node.attrib['src']:
             f4m_url = f4m_node.attrib['src']
             if 'manifest.f4m?' not in f4m_url:
@@ -127,13 +158,19 @@ class ThePlatformIE(InfoExtractor):
         else:
             formats = []
             switch = body.find(_x('smil:switch'))
+            if switch is None:
+                switch = body.find(_x('smil:par//smil:switch'))
+            if switch is None:
+                switch = body.find(_x('smil:par/smil:switch'))
+            if switch is None:
+                switch = body.find(_x('smil:par'))
             if switch is not None:
                 base_url = head.find(_x('smil:meta')).attrib['base']
                 for f in switch.findall(_x('smil:video')):
                     attr = f.attrib
-                    width = int(attr['width'])
-                    height = int(attr['height'])
-                    vbr = int(attr['system-bitrate']) // 1000
+                    width = int_or_none(attr.get('width'))
+                    height = int_or_none(attr.get('height'))
+                    vbr = int_or_none(attr.get('system-bitrate'), 1000)
                     format_id = '%dx%d_%dk' % (width, height, vbr)
                     formats.append({
                         'format_id': format_id,
@@ -146,9 +183,11 @@ class ThePlatformIE(InfoExtractor):
                     })
             else:
                 switch = body.find(_x('smil:seq//smil:switch'))
+                if switch is None:
+                    switch = body.find(_x('smil:seq/smil:switch'))
                 for f in switch.findall(_x('smil:video')):
                     attr = f.attrib
-                    vbr = int(attr['system-bitrate']) // 1000
+                    vbr = int_or_none(attr.get('system-bitrate'), 1000)
                     ext = determine_ext(attr['src'])
                     if ext == 'once':
                         ext = 'mp4'
@@ -167,5 +206,5 @@ class ThePlatformIE(InfoExtractor):
             'formats': formats,
             'description': info['description'],
             'thumbnail': info['defaultThumbnailUrl'],
-            'duration': info['duration'] // 1000,
+            'duration': int_or_none(info.get('duration'), 1000),
         }

@@ -13,6 +13,7 @@ from ..compat import (
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urlparse,
+    compat_xml_parse_error,
 )
 from ..utils import (
     determine_ext,
@@ -117,7 +118,10 @@ class BrightcoveIE(InfoExtractor):
         object_str = re.sub(r'(<object[^>]*)(xmlns=".*?")', r'\1', object_str)
         object_str = fix_xml_ampersands(object_str)
 
-        object_doc = xml.etree.ElementTree.fromstring(object_str.encode('utf-8'))
+        try:
+            object_doc = xml.etree.ElementTree.fromstring(object_str.encode('utf-8'))
+        except compat_xml_parse_error:
+            return
 
         fv_el = find_xpath_attr(object_doc, './param', 'name', 'flashVars')
         if fv_el is not None:
@@ -153,6 +157,28 @@ class BrightcoveIE(InfoExtractor):
         linkBase = find_param('linkBaseURL')
         if linkBase is not None:
             params['linkBaseURL'] = linkBase
+        return cls._make_brightcove_url(params)
+
+    @classmethod
+    def _build_brighcove_url_from_js(cls, object_js):
+        # The layout of JS is as follows:
+        # customBC.createVideo = function (width, height, playerID, playerKey, videoPlayer, VideoRandomID) {
+        #   // build Brightcove <object /> XML
+        # }
+        m = re.search(
+            r'''(?x)customBC.\createVideo\(
+                .*?                                                  # skipping width and height
+                ["\'](?P<playerID>\d+)["\']\s*,\s*                   # playerID
+                ["\'](?P<playerKey>AQ[^"\']{48})[^"\']*["\']\s*,\s*  # playerKey begins with AQ and is 50 characters
+                                                                     # in length, however it's appended to itself
+                                                                     # in places, so truncate
+                ["\'](?P<videoID>\d+)["\']                           # @videoPlayer
+            ''', object_js)
+        if m:
+            return cls._make_brightcove_url(m.groupdict())
+
+    @classmethod
+    def _make_brightcove_url(cls, params):
         data = compat_urllib_parse.urlencode(params)
         return cls._FEDERATED_URL_TEMPLATE % data
 
@@ -169,7 +195,7 @@ class BrightcoveIE(InfoExtractor):
         """Return a list of all Brightcove URLs from the webpage """
 
         url_m = re.search(
-            r'<meta\s+property="og:video"\s+content="(https?://(?:secure|c)\.brightcove.com/[^"]+)"',
+            r'<meta\s+property=[\'"]og:video[\'"]\s+content=[\'"](https?://(?:secure|c)\.brightcove.com/[^\'"]+)[\'"]',
             webpage)
         if url_m:
             url = unescapeHTML(url_m.group(1))
@@ -183,9 +209,14 @@ class BrightcoveIE(InfoExtractor):
             (?:
                 [^>]+?class=[\'"][^>]*?BrightcoveExperience.*?[\'"] |
                 [^>]*?>\s*<param\s+name="movie"\s+value="https?://[^/]*brightcove\.com/
-            ).+?</object>''',
+            ).+?>\s*</object>''',
             webpage)
-        return [cls._build_brighcove_url(m) for m in matches]
+        if matches:
+            return list(filter(None, [cls._build_brighcove_url(m) for m in matches]))
+
+        return list(filter(None, [
+            cls._build_brighcove_url_from_js(custom_bc)
+            for custom_bc in re.findall(r'(customBC\.createVideo\(.+?\);)', webpage)]))
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})

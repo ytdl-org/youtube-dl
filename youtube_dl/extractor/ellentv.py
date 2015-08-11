@@ -6,56 +6,42 @@ import json
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    parse_iso8601,
 )
 
 
 class EllenTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?(?:ellentv|ellentube)\.com/videos/(?P<id>[a-z0-9_-]+)'
-    _TESTS = [{
-        'url': 'http://www.ellentv.com/videos/0-7jqrsr18/',
-        'md5': 'e4af06f3bf0d5f471921a18db5764642',
+    _TEST = {
+        'url': 'http://www.ellentv.com/videos/0-ipq1gsai/',
+        'md5': '8e3c576bf2e9bfff4d76565f56f94c9c',
         'info_dict': {
-            'id': '0-7jqrsr18',
+            'id': '0_ipq1gsai',
             'ext': 'mp4',
-            'title': 'What\'s Wrong with These Photos? A Whole Lot',
-            'description': 'md5:35f152dc66b587cf13e6d2cf4fa467f6',
-            'timestamp': 1406876400,
-            'upload_date': '20140801',
+            'title': 'Fast Fingers of Fate',
+            'description': 'md5:587e79fbbd0d73b148bc596d99ce48e6',
+            'timestamp': 1428035648,
+            'upload_date': '20150403',
+            'uploader_id': 'batchUser',
         }
-    }, {
-        'url': 'http://ellentube.com/videos/0-dvzmabd5/',
-        'md5': '98238118eaa2bbdf6ad7f708e3e4f4eb',
-        'info_dict': {
-            'id': '0-dvzmabd5',
-            'ext': 'mp4',
-            'title': '1 year old twin sister makes her brother laugh',
-            'description': '1 year old twin sister makes her brother laugh',
-            'timestamp': 1419542075,
-            'upload_date': '20141225',
-        }
-    }]
+    }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
-        video_url = self._html_search_meta('VideoURL', webpage, 'url')
-        title = self._og_search_title(webpage, default=None) or self._search_regex(
-            r'pageName\s*=\s*"([^"]+)"', webpage, 'title')
-        description = self._html_search_meta(
-            'description', webpage, 'description') or self._og_search_description(webpage)
-        timestamp = parse_iso8601(self._search_regex(
-            r'<span class="publish-date"><time datetime="([^"]+)">',
-            webpage, 'timestamp'))
+        webpage = self._download_webpage(
+            'http://widgets.ellentube.com/videos/%s' % video_id,
+            video_id)
 
-        return {
-            'id': video_id,
-            'url': video_url,
-            'title': title,
-            'description': description,
-            'timestamp': timestamp,
-        }
+        partner_id = self._search_regex(
+            r"var\s+partnerId\s*=\s*'([^']+)", webpage, 'partner id')
+
+        kaltura_id = self._search_regex(
+            [r'id="kaltura_player_([^"]+)"',
+             r"_wb_entry_id\s*:\s*'([^']+)",
+             r'data-kaltura-entry-id="([^"]+)'],
+            webpage, 'kaltura id')
+
+        return self.url_result('kaltura:%s:%s' % (partner_id, kaltura_id), 'Kaltura')
 
 
 class EllenTVClipsIE(InfoExtractor):
@@ -67,7 +53,7 @@ class EllenTVClipsIE(InfoExtractor):
             'id': 'meryl-streep-vanessa-hudgens',
             'title': 'Meryl Streep, Vanessa Hudgens',
         },
-        'playlist_mincount': 9,
+        'playlist_mincount': 7,
     }
 
     def _real_extract(self, url):
@@ -91,4 +77,8 @@ class EllenTVClipsIE(InfoExtractor):
             raise ExtractorError('Failed to download JSON', cause=ve)
 
     def _extract_entries(self, playlist):
-        return [self.url_result(item['url'], 'EllenTV') for item in playlist]
+        return [
+            self.url_result(
+                'kaltura:%s:%s' % (item['kaltura_partner_id'], item['kaltura_entry_id']),
+                'Kaltura')
+            for item in playlist]

@@ -8,7 +8,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl import YoutubeDL
-from youtube_dl.compat import compat_http_server
+from youtube_dl.compat import compat_http_server, compat_urllib_request
 import ssl
 import threading
 
@@ -67,6 +67,53 @@ class TestHTTP(unittest.TestCase):
         ydl = YoutubeDL({'logger': FakeLogger(), 'nocheckcertificate': True})
         r = ydl.extract_info('https://localhost:%d/video.html' % self.port)
         self.assertEqual(r['url'], 'https://localhost:%d/vid.mp4' % self.port)
+
+
+def _build_proxy_handler(name):
+    class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
+        proxy_name = name
+
+        def log_message(self, format, *args):
+            pass
+
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/plain; charset=utf-8')
+            self.end_headers()
+            self.wfile.write('{self.proxy_name}: {self.path}'.format(self=self).encode('utf-8'))
+    return HTTPTestRequestHandler
+
+
+class TestProxy(unittest.TestCase):
+    def setUp(self):
+        self.proxy = compat_http_server.HTTPServer(
+            ('localhost', 0), _build_proxy_handler('normal'))
+        self.port = self.proxy.socket.getsockname()[1]
+        self.proxy_thread = threading.Thread(target=self.proxy.serve_forever)
+        self.proxy_thread.daemon = True
+        self.proxy_thread.start()
+
+        self.cn_proxy = compat_http_server.HTTPServer(
+            ('localhost', 0), _build_proxy_handler('cn'))
+        self.cn_port = self.cn_proxy.socket.getsockname()[1]
+        self.cn_proxy_thread = threading.Thread(target=self.cn_proxy.serve_forever)
+        self.cn_proxy_thread.daemon = True
+        self.cn_proxy_thread.start()
+
+    def test_proxy(self):
+        cn_proxy = 'localhost:{0}'.format(self.cn_port)
+        ydl = YoutubeDL({
+            'proxy': 'localhost:{0}'.format(self.port),
+            'cn_verification_proxy': cn_proxy,
+        })
+        url = 'http://foo.com/bar'
+        response = ydl.urlopen(url).read().decode('utf-8')
+        self.assertEqual(response, 'normal: {0}'.format(url))
+
+        req = compat_urllib_request.Request(url)
+        req.add_header('Ytdl-request-proxy', cn_proxy)
+        response = ydl.urlopen(req).read().decode('utf-8')
+        self.assertEqual(response, 'cn: {0}'.format(url))
 
 if __name__ == '__main__':
     unittest.main()

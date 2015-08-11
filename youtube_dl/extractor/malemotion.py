@@ -2,9 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-)
+from ..compat import compat_urllib_parse_unquote
 
 
 class MalemotionIE(InfoExtractor):
@@ -24,7 +22,7 @@ class MalemotionIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        video_url = compat_urllib_parse.unquote(self._search_regex(
+        video_url = compat_urllib_parse_unquote(self._search_regex(
             r'<source type="video/mp4" src="(.+?)"', webpage, 'video URL'))
         video_title = self._html_search_regex(
             r'<title>(.*?)</title', webpage, 'title')

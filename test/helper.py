@@ -133,8 +133,8 @@ def expect_info_dict(self, got_dict, expected_dict):
             elif isinstance(expected, compat_str) and expected.startswith('mincount:'):
                 got = got_dict.get(info_field)
                 self.assertTrue(
-                    isinstance(got, list),
-                    'Expected field %s to be a list, but it is of type %s' % (
+                    isinstance(got, (list, dict)),
+                    'Expected field %s to be a list or a dict, but it is of type %s' % (
                         info_field, type(got).__name__))
                 expected_num = int(expected.partition(':')[2])
                 assertGreaterEqual(
@@ -150,7 +150,7 @@ def expect_info_dict(self, got_dict, expected_dict):
                              'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
 
     # Check for the presence of mandatory fields
-    if got_dict.get('_type') != 'playlist':
+    if got_dict.get('_type') not in ('playlist', 'multi_video'):
         for key in ('id', 'title', 'ext'):
             self.assertTrue(got_dict.get(key), 'Missing mandatory field %s' % key)
     self.assertTrue(any(key in info_dict.keys() and info_dict[key] for key in ('url', 'parts')))
@@ -161,7 +161,7 @@ def expect_info_dict(self, got_dict, expected_dict):
     # Are checkable fields missing from the test case definition?
     test_info_dict = dict((key, value if not isinstance(value, compat_str) or len(value) < 250 else 'md5:' + md5(value))
                           for key, value in got_dict.items()
-                          if value and key in ('id', 'title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location'))
+                          if value and key in ('id', 'title', 'description', 'uploader', 'upload_date', 'timestamp', 'uploader_id', 'location', 'age_limit'))
     missing_keys = set(test_info_dict.keys()) - set(expected_dict.keys())
     if missing_keys:
         def _repr(v):

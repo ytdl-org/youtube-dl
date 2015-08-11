@@ -8,8 +8,8 @@ from ..utils import PostProcessingError
 
 
 class ExecAfterDownloadPP(PostProcessor):
-    def __init__(self, downloader=None, verboseOutput=None, exec_cmd=None):
-        self.verboseOutput = verboseOutput
+    def __init__(self, downloader, exec_cmd):
+        super(ExecAfterDownloadPP, self).__init__(downloader)
         self.exec_cmd = exec_cmd
 
     def run(self, information):
@@ -25,4 +25,4 @@ class ExecAfterDownloadPP(PostProcessor):
             raise PostProcessingError(
                 'Command returned error code %d' % retCode)
 
-        return None, information  # by default, keep file and do nothing
+        return [], information

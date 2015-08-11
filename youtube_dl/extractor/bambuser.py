@@ -1,12 +1,18 @@
 from __future__ import unicode_literals
 
 import re
-import json
 import itertools
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_urllib_parse,
     compat_urllib_request,
+    compat_str,
+)
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+    float_or_none,
 )
 
 
@@ -14,6 +20,8 @@ class BambuserIE(InfoExtractor):
     IE_NAME = 'bambuser'
     _VALID_URL = r'https?://bambuser\.com/v/(?P<id>\d+)'
     _API_KEY = '005f64509e19a868399060af746a00aa'
+    _LOGIN_URL = 'https://bambuser.com/user'
+    _NETRC_MACHINE = 'bambuser'
 
     _TEST = {
         'url': 'http://bambuser.com/v/4050584',
@@ -26,6 +34,9 @@ class BambuserIE(InfoExtractor):
             'duration': 3741,
             'uploader': 'pixelversity',
             'uploader_id': '344706',
+            'timestamp': 1382976692,
+            'upload_date': '20131028',
+            'view_count': int,
         },
         'params': {
             # It doesn't respect the 'Range' header, it would download the whole video
@@ -34,23 +45,60 @@ class BambuserIE(InfoExtractor):
         },
     }
 
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            return
+
+        login_form = {
+            'form_id': 'user_login',
+            'op': 'Log in',
+            'name': username,
+            'pass': password,
+        }
+
+        request = compat_urllib_request.Request(
+            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+        request.add_header('Referer', self._LOGIN_URL)
+        response = self._download_webpage(
+            request, None, 'Logging in as %s' % username)
+
+        login_error = self._html_search_regex(
+            r'(?s)<div class="messages error">(.+?)</div>',
+            response, 'login error', default=None)
+        if login_error:
+            raise ExtractorError(
+                'Unable to login: %s' % login_error, expected=True)
+
+    def _real_initialize(self):
+        self._login()
+
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        info_url = ('http://player-c.api.bambuser.com/getVideo.json?'
-                    '&api_key=%s&vid=%s' % (self._API_KEY, video_id))
-        info_json = self._download_webpage(info_url, video_id)
-        info = json.loads(info_json)['result']
+        video_id = self._match_id(url)
+
+        info = self._download_json(
+            'http://player-c.api.bambuser.com/getVideo.json?api_key=%s&vid=%s'
+            % (self._API_KEY, video_id), video_id)
+
+        error = info.get('error')
+        if error:
+            raise ExtractorError(
+                '%s returned error: %s' % (self.IE_NAME, error), expected=True)
+
+        result = info['result']
 
         return {
             'id': video_id,
-            'title': info['title'],
-            'url': info['url'],
-            'thumbnail': info.get('preview'),
-            'duration': int(info['length']),
-            'view_count': int(info['views_total']),
-            'uploader': info['username'],
-            'uploader_id': info['owner']['uid'],
+            'title': result['title'],
+            'url': result['url'],
+            'thumbnail': result.get('preview'),
+            'duration': int_or_none(result.get('length')),
+            'uploader': result.get('username'),
+            'uploader_id': compat_str(result.get('owner', {}).get('uid')),
+            'timestamp': int_or_none(result.get('created')),
+            'fps': float_or_none(result.get('framerate')),
+            'view_count': int_or_none(result.get('views_total')),
+            'comment_count': int_or_none(result.get('comment_count')),
         }
 
 

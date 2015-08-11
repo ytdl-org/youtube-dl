@@ -5,7 +5,8 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_unquote,
+    compat_urllib_parse_unquote_plus,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
 )
@@ -19,8 +20,8 @@ from ..aes import (
 
 
 class PornHubIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/view_video\.php\?viewkey=(?P<id>[0-9a-f]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/(?:view_video\.php\?viewkey=|embed/)(?P<id>[0-9a-z]+)'
+    _TESTS = [{
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
         'md5': '882f488fa1f0026f023f33576004a2ed',
         'info_dict': {
@@ -30,18 +31,27 @@ class PornHubIE(InfoExtractor):
             "title": "Seductive Indian beauty strips down and fingers her pink pussy",
             "age_limit": 18
         }
-    }
+    }, {
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=ph557bbb6676d2d',
+        'only_matching': True,
+    }]
+
+    @classmethod
+    def _extract_url(cls, webpage):
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?pornhub\.com/embed/\d+)\1', webpage)
+        if mobj:
+            return mobj.group('url')
 
     def _extract_count(self, pattern, webpage, name):
-        count = self._html_search_regex(pattern, webpage, '%s count' % name, fatal=False)
-        if count:
-            count = str_to_int(count)
-        return count
+        return str_to_int(self._search_regex(
+            pattern, webpage, '%s count' % name, fatal=False))
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        req = compat_urllib_request.Request(url)
+        req = compat_urllib_request.Request(
+            'http://www.pornhub.com/view_video.php?viewkey=%s' % video_id)
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
@@ -60,17 +70,21 @@ class PornHubIE(InfoExtractor):
             webpage, 'uploader', fatal=False)
         thumbnail = self._html_search_regex(r'"image_url":"([^"]+)', webpage, 'thumbnail', fatal=False)
         if thumbnail:
-            thumbnail = compat_urllib_parse.unquote(thumbnail)
+            thumbnail = compat_urllib_parse_unquote(thumbnail)
 
-        view_count = self._extract_count(r'<span class="count">([\d,\.]+)</span> views', webpage, 'view')
-        like_count = self._extract_count(r'<span class="votesUp">([\d,\.]+)</span>', webpage, 'like')
-        dislike_count = self._extract_count(r'<span class="votesDown">([\d,\.]+)</span>', webpage, 'dislike')
+        view_count = self._extract_count(
+            r'<span class="count">([\d,\.]+)</span> views', webpage, 'view')
+        like_count = self._extract_count(
+            r'<span class="votesUp">([\d,\.]+)</span>', webpage, 'like')
+        dislike_count = self._extract_count(
+            r'<span class="votesDown">([\d,\.]+)</span>', webpage, 'dislike')
         comment_count = self._extract_count(
-            r'All comments \(<var class="videoCommentCount">([\d,\.]+)</var>', webpage, 'comment')
+            r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
-        video_urls = list(map(compat_urllib_parse.unquote, re.findall(r'"quality_[0-9]{3}p":"([^"]+)', webpage)))
+        video_urls = list(map(compat_urllib_parse_unquote, re.findall(r"player_quality_[0-9]{3}p\s*=\s*'([^']+)'", webpage)))
         if webpage.find('"encrypted":true') != -1:
-            password = compat_urllib_parse.unquote_plus(self._html_search_regex(r'"video_title":"([^"]+)', webpage, 'password'))
+            password = compat_urllib_parse_unquote_plus(
+                self._search_regex(r'"video_title":"([^"]+)', webpage, 'password'))
             video_urls = list(map(lambda s: aes_decrypt_text(s, password, 32).decode('utf-8'), video_urls))
 
         formats = []
@@ -80,7 +94,7 @@ class PornHubIE(InfoExtractor):
             format = path.split('/')[5].split('_')[:2]
             format = "-".join(format)
 
-            m = re.match(r'^(?P<height>[0-9]+)P-(?P<tbr>[0-9]+)K$', format)
+            m = re.match(r'^(?P<height>[0-9]+)[pP]-(?P<tbr>[0-9]+)[kK]$', format)
             if m is None:
                 height = None
                 tbr = None

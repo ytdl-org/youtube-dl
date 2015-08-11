@@ -58,11 +58,7 @@ class HostingBulkIE(InfoExtractor):
             r'<img src="([^"]+)".+?class="pic"',
             webpage, 'thumbnail', fatal=False)
 
-        fields = dict(re.findall(r'''(?x)<input\s+
-            type="hidden"\s+
-            name="([^"]+)"\s+
-            value="([^"]*)"
-            ''', webpage))
+        fields = self._hidden_inputs(webpage)
 
         request = compat_urllib_request.Request(url, urlencode_postdata(fields))
         request.add_header('Content-type', 'application/x-www-form-urlencoded')

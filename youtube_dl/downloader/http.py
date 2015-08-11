@@ -4,6 +4,7 @@ import errno
 import os
 import socket
 import time
+import re
 
 from .common import FileDownloader
 from ..compat import (
@@ -28,13 +29,8 @@ class HttpFD(FileDownloader):
         add_headers = info_dict.get('http_headers')
         if add_headers:
             headers.update(add_headers)
-        data = info_dict.get('http_post_data')
-        http_method = info_dict.get('http_method')
-        basic_request = compat_urllib_request.Request(url, data, headers)
-        request = compat_urllib_request.Request(url, data, headers)
-        if http_method is not None:
-            basic_request.get_method = lambda: http_method
-            request.get_method = lambda: http_method
+        basic_request = compat_urllib_request.Request(url, None, headers)
+        request = compat_urllib_request.Request(url, None, headers)
 
         is_test = self.params.get('test', False)
 
@@ -49,7 +45,7 @@ class HttpFD(FileDownloader):
 
         open_mode = 'wb'
         if resume_len != 0:
-            if self.params.get('continuedl', False):
+            if self.params.get('continuedl', True):
                 self.report_resuming_byte(resume_len)
                 request.add_header('Range', 'bytes=%d-' % resume_len)
                 open_mode = 'ab'
@@ -62,6 +58,24 @@ class HttpFD(FileDownloader):
             # Establish connection
             try:
                 data = self.ydl.urlopen(request)
+                # When trying to resume, Content-Range HTTP header of response has to be checked
+                # to match the value of requested Range HTTP header. This is due to a webservers
+                # that don't support resuming and serve a whole file with no Content-Range
+                # set in response despite of requested Range (see
+                # https://github.com/rg3/youtube-dl/issues/6057#issuecomment-126129799)
+                if resume_len > 0:
+                    content_range = data.headers.get('Content-Range')
+                    if content_range:
+                        content_range_m = re.search(r'bytes (\d+)-', content_range)
+                        # Content-Range is present and matches requested Range, resume is possible
+                        if content_range_m and resume_len == int(content_range_m.group(1)):
+                            break
+                    # Content-Range is either not present or invalid. Assuming remote webserver is
+                    # trying to send the whole file, resume is not possible, so wiping the local file
+                    # and performing entire redownload
+                    self.report_unable_to_resume()
+                    resume_len = 0
+                    open_mode = 'wb'
                 break
             except (compat_urllib_error.HTTPError, ) as err:
                 if (err.code < 500 or err.code >= 600) and err.code != 416:

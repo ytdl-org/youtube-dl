@@ -26,7 +26,7 @@ class TutvIE(InfoExtractor):
 
         data_content = self._download_webpage(
             'http://tu.tv/flvurl.php?codVideo=%s' % internal_id, video_id, 'Downloading video info')
-        video_url = base64.b64decode(compat_parse_qs(data_content)['kpt'][0]).decode('utf-8')
+        video_url = base64.b64decode(compat_parse_qs(data_content)['kpt'][0].encode('utf-8')).decode('utf-8')
 
         return {
             'id': internal_id,

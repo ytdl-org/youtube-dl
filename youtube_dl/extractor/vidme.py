@@ -10,7 +10,7 @@ from ..utils import (
 
 class VidmeIE(InfoExtractor):
     _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://vid.me/QNB',
         'md5': 'f42d05e7149aeaec5c037b17e5d3dc82',
         'info_dict': {
@@ -22,10 +22,36 @@ class VidmeIE(InfoExtractor):
             'timestamp': 1406313244,
             'upload_date': '20140725',
             'thumbnail': 're:^https?://.*\.jpg',
+            'view_count': int,
+            'like_count': int,
         },
-    }
+    }, {
+        # tests uploader field
+        'url': 'https://vid.me/4Iib',
+        'info_dict': {
+            'id': '4Iib',
+            'ext': 'mp4',
+            'title': 'The Carver',
+            'description': 'md5:e9c24870018ae8113be936645b93ba3c',
+            'duration': 97.859999999999999,
+            'timestamp': 1433203629,
+            'upload_date': '20150602',
+            'uploader': 'Thomas',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'view_count': int,
+            'like_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        # From http://naked-yogi.tumblr.com/post/118312946248/naked-smoking-stretching
+        'url': 'https://vid.me/e/Wmur',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
+        url = url.replace('vid.me/e/', 'vid.me/')
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
@@ -35,16 +61,23 @@ class VidmeIE(InfoExtractor):
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage, default='')
         thumbnail = self._og_search_thumbnail(webpage)
-        timestamp = int_or_none(self._og_search_property('updated_time', webpage, fatal=False))
-        width = int_or_none(self._og_search_property('video:width', webpage, fatal=False))
-        height = int_or_none(self._og_search_property('video:height', webpage, fatal=False))
+        timestamp = int_or_none(self._og_search_property(
+            'updated_time', webpage, fatal=False))
+        width = int_or_none(self._og_search_property(
+            'video:width', webpage, fatal=False))
+        height = int_or_none(self._og_search_property(
+            'video:height', webpage, fatal=False))
         duration = float_or_none(self._html_search_regex(
             r'data-duration="([^"]+)"', webpage, 'duration', fatal=False))
         view_count = str_to_int(self._html_search_regex(
-            r'<(?:li|span) class="video_views">\s*([\d,\.]+)\s*plays?', webpage, 'view count', fatal=False))
+            r'<(?:li|span) class="video_views">\s*([\d,\.]+)\s*plays?',
+            webpage, 'view count', fatal=False))
         like_count = str_to_int(self._html_search_regex(
             r'class="score js-video-vote-score"[^>]+data-score="([\d,\.\s]+)">',
             webpage, 'like count', fatal=False))
+        uploader = self._html_search_regex(
+            'class="video_author_username"[^>]*>([^<]+)',
+            webpage, 'uploader', default=None)
 
         return {
             'id': video_id,
@@ -58,4 +91,5 @@ class VidmeIE(InfoExtractor):
             'duration': duration,
             'view_count': view_count,
             'like_count': like_count,
+            'uploader': uploader,
         }

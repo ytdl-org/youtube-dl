@@ -5,7 +5,7 @@ from .mtv import MTVServicesInfoExtractor
 
 class SpikeIE(MTVServicesInfoExtractor):
     _VALID_URL = r'''(?x)https?://
-        (?:www\.spike\.com/(?:video-clips|(?:full-)?episodes)/.+|
+        (?:www\.spike\.com/(?:video-(?:clips|playlists)|(?:full-)?episodes)/.+|
          m\.spike\.com/videos/video\.rbml\?id=(?P<id>[^&]+))
         '''
     _TEST = {

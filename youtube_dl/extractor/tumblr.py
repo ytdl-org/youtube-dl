@@ -28,6 +28,28 @@ class TumblrIE(InfoExtractor):
             'description': 'md5:dba62ac8639482759c8eb10ce474586a',
             'thumbnail': 're:http://.*\.jpg',
         }
+    }, {
+        'url': 'http://naked-yogi.tumblr.com/post/118312946248/naked-smoking-stretching',
+        'md5': 'de07e5211d60d4f3a2c3df757ea9f6ab',
+        'info_dict': {
+            'id': 'Wmur',
+            'ext': 'mp4',
+            'title': 'naked smoking & stretching',
+            'upload_date': '20150506',
+            'timestamp': 1430931613,
+        },
+        'add_ie': ['Vidme'],
+    }, {
+        'url': 'http://camdamage.tumblr.com/post/98846056295/',
+        'md5': 'a9e0c8371ea1ca306d6554e3fecf50b6',
+        'info_dict': {
+            'id': '105463834',
+            'ext': 'mp4',
+            'title': 'Cam Damage-HD 720p',
+            'uploader': 'John Moyer',
+            'uploader_id': 'user32021558',
+        },
+        'add_ie': ['Vimeo'],
     }]
 
     def _real_extract(self, url):
@@ -36,12 +58,16 @@ class TumblrIE(InfoExtractor):
         blog = m_url.group('blog_name')
 
         url = 'http://%s.tumblr.com/post/%s/' % (blog, video_id)
-        webpage = self._download_webpage(url, video_id)
+        webpage, urlh = self._download_webpage_handle(url, video_id)
 
         iframe_url = self._search_regex(
             r'src=\'(https?://www\.tumblr\.com/video/[^\']+)\'',
-            webpage, 'iframe url')
-        iframe = self._download_webpage(iframe_url, video_id)
+            webpage, 'iframe url', default=None)
+        if iframe_url is None:
+            return self.url_result(urlh.geturl(), 'Generic')
+
+        iframe = self._download_webpage(iframe_url, video_id,
+                                        'Downloading iframe page')
         video_url = self._search_regex(r'<source src="([^"]+)"',
                                        iframe, 'video url')
 
@@ -56,6 +82,6 @@ class TumblrIE(InfoExtractor):
             'url': video_url,
             'ext': 'mp4',
             'title': video_title,
-            'description': self._og_search_description(webpage),
-            'thumbnail': self._og_search_thumbnail(webpage),
+            'description': self._og_search_description(webpage, default=None),
+            'thumbnail': self._og_search_thumbnail(webpage, default=None),
         }

@@ -210,16 +210,16 @@ class ORFIPTVIE(InfoExtractor):
     _VALID_URL = r'http://iptv\.orf\.at/(?:#/)?stories/(?P<id>\d+)'
 
     _TEST = {
-        'url': 'http://iptv.orf.at/stories/2267952',
-        'md5': '26ffa4bab6dbce1eee78bbc7021016cd',
+        'url': 'http://iptv.orf.at/stories/2275236/',
+        'md5': 'c8b22af4718a4b4af58342529453e3e5',
         'info_dict': {
-            'id': '339775',
+            'id': '350612',
             'ext': 'flv',
-            'title': 'Kreml-Kritiker Nawalny wieder frei',
-            'description': 'md5:6f24e7f546d364dacd0e616a9e409236',
-            'duration': 84.729,
+            'title': 'Weitere Evakuierungen um Vulkan Calbuco',
+            'description': 'md5:d689c959bdbcf04efeddedbf2299d633',
+            'duration': 68.197,
             'thumbnail': 're:^https?://.*\.jpg$',
-            'upload_date': '20150306',
+            'upload_date': '20150425',
         },
     }
 

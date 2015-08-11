@@ -24,6 +24,7 @@ class QuickVidIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.(?:png|jpg|gif)$',
             'view_count': int,
         },
+        'skip': 'Not accessible from Travis CI server',
     }
 
     def _real_extract(self, url):

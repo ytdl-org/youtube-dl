@@ -7,8 +7,7 @@ import os
 import time
 import xml.etree.ElementTree as etree
 
-from .common import FileDownloader
-from .http import HttpFD
+from .fragment import FragmentFD
 from ..compat import (
     compat_urlparse,
     compat_urllib_error,
@@ -16,8 +15,6 @@ from ..compat import (
 from ..utils import (
     struct_pack,
     struct_unpack,
-    encodeFilename,
-    sanitize_open,
     xpath_text,
 )
 
@@ -226,15 +223,12 @@ def _add_ns(prop):
     return '{http://ns.adobe.com/f4m/1.0}%s' % prop
 
 
-class HttpQuietDownloader(HttpFD):
-    def to_screen(self, *args, **kargs):
-        pass
-
-
-class F4mFD(FileDownloader):
+class F4mFD(FragmentFD):
     """
     A downloader for f4m manifests or AdobeHDS.
     """
+
+    FD_NAME = 'f4m'
 
     def _get_unencrypted_media(self, doc):
         media = doc.findall(_add_ns('media'))
@@ -288,7 +282,7 @@ class F4mFD(FileDownloader):
     def real_download(self, filename, info_dict):
         man_url = info_dict['url']
         requested_bitrate = info_dict.get('tbr')
-        self.to_screen('[download] Downloading f4m manifest')
+        self.to_screen('[%s] Downloading f4m manifest' % self.FD_NAME)
         manifest = self.ydl.urlopen(man_url).read()
 
         doc = etree.fromstring(manifest)
@@ -320,67 +314,20 @@ class F4mFD(FileDownloader):
         # For some akamai manifests we'll need to add a query to the fragment url
         akamai_pv = xpath_text(doc, _add_ns('pv-2.0'))
 
-        self.report_destination(filename)
-        http_dl = HttpQuietDownloader(
-            self.ydl,
-            {
-                'continuedl': True,
-                'quiet': True,
-                'noprogress': True,
-                'ratelimit': self.params.get('ratelimit', None),
-                'test': self.params.get('test', False),
-            }
-        )
-        tmpfilename = self.temp_name(filename)
-        (dest_stream, tmpfilename) = sanitize_open(tmpfilename, 'wb')
+        ctx = {
+            'filename': filename,
+            'total_frags': total_frags,
+        }
+
+        self._prepare_frag_download(ctx)
+
+        dest_stream = ctx['dest_stream']
 
         write_flv_header(dest_stream)
         if not live:
             write_metadata_tag(dest_stream, metadata)
 
-        # This dict stores the download progress, it's updated by the progress
-        # hook
-        state = {
-            'status': 'downloading',
-            'downloaded_bytes': 0,
-            'frag_index': 0,
-            'frag_count': total_frags,
-            'filename': filename,
-            'tmpfilename': tmpfilename,
-        }
-        start = time.time()
-
-        def frag_progress_hook(s):
-            if s['status'] not in ('downloading', 'finished'):
-                return
-
-            frag_total_bytes = s.get('total_bytes', 0)
-            if s['status'] == 'finished':
-                state['downloaded_bytes'] += frag_total_bytes
-                state['frag_index'] += 1
-
-            estimated_size = (
-                (state['downloaded_bytes'] + frag_total_bytes) /
-                (state['frag_index'] + 1) * total_frags)
-            time_now = time.time()
-            state['total_bytes_estimate'] = estimated_size
-            state['elapsed'] = time_now - start
-
-            if s['status'] == 'finished':
-                progress = self.calc_percent(state['frag_index'], total_frags)
-            else:
-                frag_downloaded_bytes = s['downloaded_bytes']
-                frag_progress = self.calc_percent(frag_downloaded_bytes,
-                                                  frag_total_bytes)
-                progress = self.calc_percent(state['frag_index'], total_frags)
-                progress += frag_progress / float(total_frags)
-
-                state['eta'] = self.calc_eta(
-                    start, time_now, estimated_size, state['downloaded_bytes'] + frag_downloaded_bytes)
-                state['speed'] = s.get('speed')
-            self._hook_progress(state)
-
-        http_dl.add_progress_hook(frag_progress_hook)
+        self._start_frag_download(ctx)
 
         frags_filenames = []
         while fragments_list:
@@ -389,9 +336,11 @@ class F4mFD(FileDownloader):
             url = base_url + name
             if akamai_pv:
                 url += '?' + akamai_pv.strip(';')
-            frag_filename = '%s-%s' % (tmpfilename, name)
+            if info_dict.get('extra_param_to_segment_url'):
+                url += info_dict.get('extra_param_to_segment_url')
+            frag_filename = '%s-%s' % (ctx['tmpfilename'], name)
             try:
-                success = http_dl.download(frag_filename, {'url': url})
+                success = ctx['dl'].download(frag_filename, {'url': url})
                 if not success:
                     return False
                 with open(frag_filename, 'rb') as down:
@@ -423,20 +372,9 @@ class F4mFD(FileDownloader):
                     msg = 'Missed %d fragments' % (fragments_list[0][1] - (frag_i + 1))
                     self.report_warning(msg)
 
-        dest_stream.close()
+        self._finish_frag_download(ctx)
 
-        elapsed = time.time() - start
-        self.try_rename(tmpfilename, filename)
         for frag_file in frags_filenames:
             os.remove(frag_file)
-
-        fsize = os.path.getsize(encodeFilename(filename))
-        self._hook_progress({
-            'downloaded_bytes': fsize,
-            'total_bytes': fsize,
-            'filename': filename,
-            'status': 'finished',
-            'elapsed': elapsed,
-        })
 
         return True

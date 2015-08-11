@@ -8,14 +8,16 @@ import time
 from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
+    ExtractorError,
     float_or_none,
     remove_end,
+    std_headers,
     struct_unpack,
 )
 
 
 def _decrypt_url(png):
-    encrypted_data = base64.b64decode(png)
+    encrypted_data = base64.b64decode(png.encode('utf-8'))
     text_index = encrypted_data.find(b'tEXt')
     text_chunk = encrypted_data[text_index - 4:]
     length = struct_unpack('!I', text_chunk[:4])[0]
@@ -84,13 +86,22 @@ class RTVEALaCartaIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    def _real_initialize(self):
+        user_agent_b64 = base64.b64encode(std_headers['User-Agent'].encode('utf-8')).decode('utf-8')
+        manager_info = self._download_json(
+            'http://www.rtve.es/odin/loki/' + user_agent_b64,
+            None, 'Fetching manager info')
+        self._manager = manager_info['manager']
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         info = self._download_json(
             'http://www.rtve.es/api/videos/%s/config/alacarta_videos.json' % video_id,
             video_id)['page']['items'][0]
-        png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/default/videos/%s.png' % video_id
+        if info['state'] == 'DESPU':
+            raise ExtractorError('The video is no longer available', expected=True)
+        png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/%s/videos/%s.png' % (self._manager, video_id)
         png = self._download_webpage(png_url, video_id, 'Downloading url information')
         video_url = _decrypt_url(png)
         if not video_url.endswith('.f4m'):

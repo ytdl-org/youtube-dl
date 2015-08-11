@@ -5,13 +5,14 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
+    limit_length,
 )
 
 
 class InstagramIE(InfoExtractor):
-    _VALID_URL = r'http://instagram\.com/p/(?P<id>.*?)/'
+    _VALID_URL = r'https://instagram\.com/p/(?P<id>[\da-zA-Z]+)'
     _TEST = {
-        'url': 'http://instagram.com/p/aye83DjauH/?foo=bar#abc',
+        'url': 'https://instagram.com/p/aye83DjauH/?foo=bar#abc',
         'md5': '0d2da106a9d2631273e192b372806516',
         'info_dict': {
             'id': 'aye83DjauH',
@@ -23,8 +24,8 @@ class InstagramIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
+
         webpage = self._download_webpage(url, video_id)
         uploader_id = self._search_regex(r'"owner":{"username":"(.+?)"',
                                          webpage, 'uploader id', fatal=False)
@@ -43,11 +44,11 @@ class InstagramIE(InfoExtractor):
 
 
 class InstagramUserIE(InfoExtractor):
-    _VALID_URL = r'http://instagram\.com/(?P<username>[^/]{2,})/?(?:$|[?#])'
+    _VALID_URL = r'https://instagram\.com/(?P<username>[^/]{2,})/?(?:$|[?#])'
     IE_DESC = 'Instagram user profile'
     IE_NAME = 'instagram:user'
     _TEST = {
-        'url': 'http://instagram.com/porsche',
+        'url': 'https://instagram.com/porsche',
         'info_dict': {
             'id': 'porsche',
             'title': 'porsche',
@@ -102,11 +103,13 @@ class InstagramUserIE(InfoExtractor):
                 thumbnails_el = it.get('images', {})
                 thumbnail = thumbnails_el.get('thumbnail', {}).get('url')
 
-                title = it.get('caption', {}).get('text', it['id'])
+                # In some cases caption is null, which corresponds to None
+                # in python. As a result, it.get('caption', {}) gives None
+                title = (it.get('caption') or {}).get('text', it['id'])
 
                 entries.append({
                     'id': it['id'],
-                    'title': title,
+                    'title': limit_length(title, 80),
                     'formats': formats,
                     'thumbnail': thumbnail,
                     'webpage_url': it.get('link'),

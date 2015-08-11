@@ -9,6 +9,7 @@ from ..compat import (
     compat_urllib_parse,
     compat_urllib_request,
 )
+from ..utils import ExtractorError
 
 
 class MonikerIE(InfoExtractor):
@@ -39,6 +40,15 @@ class MonikerIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         orig_webpage = self._download_webpage(url, video_id)
+
+        if '>File Not Found<' in orig_webpage:
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+
+        error = self._search_regex(
+            r'class="err">([^<]+)<', orig_webpage, 'error', default=None)
+        if error:
+            raise ExtractorError(
+                '%s returned error: %s' % (self.IE_NAME, error), expected=True)
 
         fields = re.findall(r'type="hidden" name="(.+?)"\s* value="?(.+?)">', orig_webpage)
         data = dict(fields)

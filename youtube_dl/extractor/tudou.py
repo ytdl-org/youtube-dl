@@ -30,6 +30,8 @@ class TudouIE(InfoExtractor):
         }
     }]
 
+    _PLAYER_URL = 'http://js.tudouui.com/bin/lingtong/PortalPlayer_177.swf'
+
     def _url_for_id(self, id, quality=None):
         info_url = "http://v2.tudou.com/f?id=" + str(id)
         if quality:
@@ -55,6 +57,10 @@ class TudouIE(InfoExtractor):
         thumbnail_url = self._search_regex(
             r",pic:\s*[\"'](.+?)[\"']", webpage, 'thumbnail URL', fatal=False)
 
+        player_url = self._search_regex(
+            r"playerUrl\s*:\s*['\"](.+?\.swf)[\"']",
+            webpage, 'player URL', default=self._PLAYER_URL)
+
         segs_json = self._search_regex(r'segs: \'(.*)\'', webpage, 'segments')
         segments = json.loads(segs_json)
         # It looks like the keys are the arguments that have to be passed as
@@ -77,6 +83,9 @@ class TudouIE(InfoExtractor):
                 'ext': ext,
                 'title': title,
                 'thumbnail': thumbnail_url,
+                'http_headers': {
+                    'Referer': player_url,
+                },
             }
             result.append(part_info)
 

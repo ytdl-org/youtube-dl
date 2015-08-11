@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     float_or_none,
+    srt_subtitles_timecode,
 )
 
 
@@ -39,8 +40,8 @@ class KanalPlayIE(InfoExtractor):
             '%s\r\n%s --> %s\r\n%s'
             % (
                 num,
-                self._subtitles_timecode(item['startMillis'] / 1000.0),
-                self._subtitles_timecode(item['endMillis'] / 1000.0),
+                srt_subtitles_timecode(item['startMillis'] / 1000.0),
+                srt_subtitles_timecode(item['endMillis'] / 1000.0),
                 item['text'],
             ) for num, item in enumerate(subs, 1))
 

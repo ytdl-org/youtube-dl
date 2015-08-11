@@ -19,7 +19,16 @@ from ..utils import (
 
 class RTSIE(InfoExtractor):
     IE_DESC = 'RTS.ch'
-    _VALID_URL = r'https?://(?:www\.)?rts\.ch/(?:(?:[^/]+/){2,}(?P<id>[0-9]+)-(?P<display_id>.+?)\.html|play/tv/[^/]+/video/(?P<display_id_new>.+?)\?id=(?P<id_new>[0-9]+))'
+    _VALID_URL = r'''(?x)
+                    (?:
+                        rts:(?P<rts_id>\d+)|
+                        https?://
+                            (?:www\.)?rts\.ch/
+                            (?:
+                                (?:[^/]+/){2,}(?P<id>[0-9]+)-(?P<display_id>.+?)\.html|
+                                play/tv/[^/]+/video/(?P<display_id_new>.+?)\?id=(?P<id_new>[0-9]+)
+                            )
+                    )'''
 
     _TESTS = [
         {
@@ -123,6 +132,15 @@ class RTSIE(InfoExtractor):
             },
         },
         {
+            # article with videos on rhs
+            'url': 'http://www.rts.ch/sport/hockey/6693917-hockey-davos-decroche-son-31e-titre-de-champion-de-suisse.html',
+            'info_dict': {
+                'id': '6693917',
+                'title': 'Hockey: Davos décroche son 31e titre de champion de Suisse',
+            },
+            'playlist_mincount': 5,
+        },
+        {
             'url': 'http://www.rts.ch/play/tv/le-19h30/video/le-chantier-du-nouveau-parlement-vaudois-a-permis-une-trouvaille-historique?id=6348280',
             'only_matching': True,
         }
@@ -130,7 +148,7 @@ class RTSIE(InfoExtractor):
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
-        video_id = m.group('id') or m.group('id_new')
+        video_id = m.group('rts_id') or m.group('id') or m.group('id_new')
         display_id = m.group('display_id') or m.group('display_id_new')
 
         def download_json(internal_id):
@@ -143,6 +161,15 @@ class RTSIE(InfoExtractor):
         # video_id extracted out of URL is not always a real id
         if 'video' not in all_info and 'audio' not in all_info:
             page = self._download_webpage(url, display_id)
+
+            # article with videos on rhs
+            videos = re.findall(
+                r'<article[^>]+class="content-item"[^>]*>\s*<a[^>]+data-video-urn="urn:rts:video:(\d+)"',
+                page)
+            if videos:
+                entries = [self.url_result('rts:%s' % video_urn, 'RTS') for video_urn in videos]
+                return self.playlist_result(entries, video_id, self._og_search_title(page))
+
             internal_id = self._html_search_regex(
                 r'<(?:video|audio) data-id="([0-9]+)"', page,
                 'internal video id')
@@ -190,6 +217,7 @@ class RTSIE(InfoExtractor):
                 'tbr': media['rate'] or extract_bitrate(media['url']),
             } for media in info['media'] if media.get('rate')])
 
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         return {

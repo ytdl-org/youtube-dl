@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import re
 import base64
 
 from .common import InfoExtractor
@@ -35,8 +34,7 @@ class SharedIE(InfoExtractor):
             raise ExtractorError(
                 'Video %s does not exist' % video_id, expected=True)
 
-        download_form = dict(re.findall(
-            r'<input type="hidden" name="([^"]+)" value="([^"]*)"', webpage))
+        download_form = self._hidden_inputs(webpage)
         request = compat_urllib_request.Request(
             url, compat_urllib_parse.urlencode(download_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
@@ -47,7 +45,7 @@ class SharedIE(InfoExtractor):
         video_url = self._html_search_regex(
             r'data-url="([^"]+)"', video_page, 'video URL')
         title = base64.b64decode(self._html_search_meta(
-            'full:title', webpage, 'title')).decode('utf-8')
+            'full:title', webpage, 'title').encode('utf-8')).decode('utf-8')
         filesize = int_or_none(self._html_search_meta(
             'full:size', webpage, 'file size', fatal=False))
         thumbnail = self._html_search_regex(

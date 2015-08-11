@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class RaiIE(InfoExtractor):
-    _VALID_URL = r'(?P<url>http://(?:.+?\.)?(?:rai\.it|rai\.tv|rainews\.it)/dl/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})(?:-.+?)?\.html)'
+    _VALID_URL = r'(?P<url>(?P<host>http://(?:.+?\.)?(?:rai\.it|rai\.tv|rainews\.it))/dl/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})(?:-.+?)?\.html)'
     _TESTS = [
         {
             'url': 'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-cb27157f-9dd0-4aee-b788-b1f67643a391.html',
@@ -62,34 +62,78 @@ class RaiIE(InfoExtractor):
                 'description': 'Edizione delle ore 20:30 ',
             }
         },
+        {
+            'url': 'http://www.ilcandidato.rai.it/dl/ray/media/Il-Candidato---Primo-episodio-Le-Primarie-28e5525a-b495-45e8-a7c3-bc48ba45d2b6.html',
+            'md5': '02b64456f7cc09f96ff14e7dd489017e',
+            'info_dict': {
+                'id': '28e5525a-b495-45e8-a7c3-bc48ba45d2b6',
+                'ext': 'flv',
+                'title': 'Il Candidato - Primo episodio: "Le Primarie"',
+                'description': 'Primo appuntamento con "Il candidato" con Filippo Timi, alias Piero Zucca presidente!',
+                'uploader': 'RaiTre',
+            }
+        }
     ]
+
+    def _extract_relinker_url(self, webpage):
+        return self._proto_relative_url(self._search_regex(
+            [r'name="videourl" content="([^"]+)"', r'var\s+videoURL(?:_MP4)?\s*=\s*"([^"]+)"'],
+            webpage, 'relinker url', default=None))
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+        host = mobj.group('host')
 
-        media = self._download_json('%s?json' % mobj.group('url'), video_id, 'Downloading video JSON')
+        webpage = self._download_webpage(url, video_id)
 
-        title = media.get('name')
-        description = media.get('desc')
-        thumbnail = media.get('image_300') or media.get('image_medium') or media.get('image')
-        duration = parse_duration(media.get('length'))
-        uploader = media.get('author')
-        upload_date = unified_strdate(media.get('date'))
+        relinker_url = self._extract_relinker_url(webpage)
 
-        formats = []
+        if not relinker_url:
+            iframe_path = self._search_regex(
+                r'<iframe[^>]+src="/?(dl/[^"]+\?iframe\b[^"]*)"',
+                webpage, 'iframe')
+            webpage = self._download_webpage(
+                '%s/%s' % (host, iframe_path), video_id)
+            relinker_url = self._extract_relinker_url(webpage)
 
-        for format_id in ['wmv', 'm3u8', 'mediaUri', 'h264']:
-            media_url = media.get(format_id)
-            if not media_url:
-                continue
-            formats.append({
+        relinker = self._download_json(
+            '%s&output=47' % relinker_url, video_id)
+
+        media_url = relinker['video'][0]
+        ct = relinker.get('ct')
+        if ct == 'f4m':
+            formats = self._extract_f4m_formats(
+                media_url + '&hdcore=3.7.0&plugin=aasp-3.7.0.39.44', video_id)
+        else:
+            formats = [{
                 'url': media_url,
-                'format_id': format_id,
-                'ext': 'mp4',
-            })
+                'format_id': ct,
+            }]
 
-        subtitles = self.extract_subtitles(video_id, url)
+        json_link = self._html_search_meta(
+            'jsonlink', webpage, 'JSON link', default=None)
+        if json_link:
+            media = self._download_json(
+                host + json_link, video_id, 'Downloading video JSON')
+            title = media.get('name')
+            description = media.get('desc')
+            thumbnail = media.get('image_300') or media.get('image_medium') or media.get('image')
+            duration = parse_duration(media.get('length'))
+            uploader = media.get('author')
+            upload_date = unified_strdate(media.get('date'))
+        else:
+            title = (self._search_regex(
+                r'var\s+videoTitolo\s*=\s*"(.+?)";',
+                webpage, 'title', default=None) or self._og_search_title(webpage)).replace('\\"', '"')
+            description = self._og_search_description(webpage)
+            thumbnail = self._og_search_thumbnail(webpage)
+            duration = None
+            uploader = self._html_search_meta('Editore', webpage, 'uploader')
+            upload_date = unified_strdate(self._html_search_meta(
+                'item-date', webpage, 'upload date', default=None))
+
+        subtitles = self.extract_subtitles(video_id, webpage)
 
         return {
             'id': video_id,
@@ -103,8 +147,7 @@ class RaiIE(InfoExtractor):
             'subtitles': subtitles,
         }
 
-    def _get_subtitles(self, video_id, url):
-        webpage = self._download_webpage(url, video_id)
+    def _get_subtitles(self, video_id, webpage):
         subtitles = {}
         m = re.search(r'<meta name="closedcaption" content="(?P<captions>[^"]+)"', webpage)
         if m:

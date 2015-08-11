@@ -15,10 +15,12 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     parse_iso8601,
+    int_or_none,
 )
 
 
 class LetvIE(InfoExtractor):
+    IE_DESC = '乐视网'
     _VALID_URL = r'http://www\.letv\.com/ptv/vplay/(?P<id>\d+).html'
 
     _TESTS = [{
@@ -50,9 +52,7 @@ class LetvIE(InfoExtractor):
             'title': '与龙共舞 完整版',
             'description': 'md5:7506a5eeb1722bb9d4068f85024e3986',
         },
-        'params': {
-            'cn_verification_proxy': 'http://proxy.uku.im:8888'
-        },
+        'skip': 'Only available in China',
     }]
 
     @staticmethod
@@ -88,12 +88,13 @@ class LetvIE(InfoExtractor):
         play_json_req = compat_urllib_request.Request(
             'http://api.letv.com/mms/out/video/playJson?' + compat_urllib_parse.urlencode(params)
         )
-        play_json_req.add_header(
-            'Ytdl-request-proxy',
-            self._downloader.params.get('cn_verification_proxy'))
+        cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
+        if cn_verification_proxy:
+            play_json_req.add_header('Ytdl-request-proxy', cn_verification_proxy)
+
         play_json = self._download_json(
             play_json_req,
-            media_id, 'playJson data')
+            media_id, 'Downloading playJson data')
 
         # Check for errors
         playstatus = play_json['playstatus']
@@ -134,7 +135,7 @@ class LetvIE(InfoExtractor):
                 }
 
                 if format_id[-1:] == 'p':
-                    url_info_dict['height'] = format_id[:-1]
+                    url_info_dict['height'] = int_or_none(format_id[:-1])
 
                 urls.append(url_info_dict)
 

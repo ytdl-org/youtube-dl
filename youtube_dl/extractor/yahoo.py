@@ -15,12 +15,15 @@ from ..utils import (
     unescapeHTML,
     ExtractorError,
     int_or_none,
+    mimetype2ext,
 )
+
+from .nbc import NBCSportsVPlayerIE
 
 
 class YahooIE(InfoExtractor):
     IE_DESC = 'Yahoo screen and movies'
-    _VALID_URL = r'(?P<url>(?P<host>https?://(?:[a-zA-Z]{2}\.)?[\da-zA-Z_-]+\.yahoo\.com)/(?:[^/]+/)*(?P<display_id>.+?)-(?P<id>[0-9]+)(?:-[a-z]+)?\.html)'
+    _VALID_URL = r'(?P<url>(?P<host>https?://(?:[a-zA-Z]{2}\.)?[\da-zA-Z_-]+\.yahoo\.com)/(?:[^/]+/)*(?P<display_id>.+)?-(?P<id>[0-9]+)(?:-[a-z]+)?\.html)'
     _TESTS = [
         {
             'url': 'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
@@ -129,12 +132,24 @@ class YahooIE(InfoExtractor):
         }, {
             'url': 'https://gma.yahoo.com/pizza-delivery-man-surprised-huge-tip-college-kids-195200785.html',
             'only_matching': True,
+        }, {
+            'note': 'NBC Sports embeds',
+            'url': 'http://sports.yahoo.com/blogs/ncaab-the-dagger/tyler-kalinoski-s-buzzer-beater-caps-davidson-s-comeback-win-185609842.html?guid=nbc_cbk_davidsonbuzzerbeater_150313',
+            'info_dict': {
+                'id': '9CsDKds0kvHI',
+                'ext': 'flv',
+                'description': 'md5:df390f70a9ba7c95ff1daace988f0d8d',
+                'title': 'Tyler Kalinoski hits buzzer-beater to lift Davidson',
+            }
+        }, {
+            'url': 'https://tw.news.yahoo.com/-100120367.html',
+            'only_matching': True,
         }
     ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        display_id = mobj.group('display_id')
+        display_id = mobj.group('display_id') or self._match_id(url)
         page_id = mobj.group('id')
         url = mobj.group('url')
         host = mobj.group('host')
@@ -151,6 +166,10 @@ class YahooIE(InfoExtractor):
                 items = json.loads(items_json)
                 video_id = items[0]['id']
                 return self._get_info(video_id, display_id, webpage)
+        # Look for NBCSports iframes
+        nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
+        if nbc_sports_url:
+            return self.url_result(nbc_sports_url, 'NBCSportsVPlayer')
 
         items_json = self._search_regex(
             r'mediaItems: ({.*?})$', webpage, 'items', flags=re.MULTILINE,
@@ -218,6 +237,22 @@ class YahooIE(InfoExtractor):
 
         self._sort_formats(formats)
 
+        closed_captions = self._html_search_regex(
+            r'"closedcaptions":(\[[^\]]+\])', webpage, 'closed captions',
+            default='[]')
+
+        cc_json = self._parse_json(closed_captions, video_id, fatal=False)
+        subtitles = {}
+        if cc_json:
+            for closed_caption in cc_json:
+                lang = closed_caption['lang']
+                if lang not in subtitles:
+                    subtitles[lang] = []
+                subtitles[lang].append({
+                    'url': closed_caption['url'],
+                    'ext': mimetype2ext(closed_caption['content_type']),
+                })
+
         return {
             'id': video_id,
             'display_id': display_id,
@@ -226,6 +261,7 @@ class YahooIE(InfoExtractor):
             'description': clean_html(meta['description']),
             'thumbnail': meta['thumbnail'] if meta.get('thumbnail') else self._og_search_thumbnail(webpage),
             'duration': int_or_none(meta.get('duration')),
+            'subtitles': subtitles,
         }
 
 

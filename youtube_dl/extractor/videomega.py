@@ -4,63 +4,50 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
-from ..utils import (
-    ExtractorError,
-    remove_start,
-)
+from ..compat import compat_urllib_request
 
 
 class VideoMegaIE(InfoExtractor):
-    _VALID_URL = r'''(?x)https?://
-        (?:www\.)?videomega\.tv/
-        (?:iframe\.php)?\?ref=(?P<id>[A-Za-z0-9]+)
-        '''
-    _TEST = {
-        'url': 'http://videomega.tv/?ref=QR0HCUHI1661IHUCH0RQ',
-        'md5': 'bf5c2f95c4c917536e80936af7bc51e1',
+    _VALID_URL = r'(?:videomega:|https?://(?:www\.)?videomega\.tv/(?:(?:view|iframe|cdn)\.php)?\?ref=)(?P<id>[A-Za-z0-9]+)'
+    _TESTS = [{
+        'url': 'http://videomega.tv/cdn.php?ref=AOSQBJYKIDDIKYJBQSOA',
+        'md5': 'cc1920a58add3f05c6a93285b84fb3aa',
         'info_dict': {
-            'id': 'QR0HCUHI1661IHUCH0RQ',
+            'id': 'AOSQBJYKIDDIKYJBQSOA',
             'ext': 'mp4',
-            'title': 'Big Buck Bunny',
+            'title': '1254207',
             'thumbnail': 're:^https?://.*\.jpg$',
         }
-    }
+    }, {
+        'url': 'http://videomega.tv/cdn.php?ref=AOSQBJYKIDDIKYJBQSOA&width=1070&height=600',
+        'only_matching': True,
+    }, {
+        'url': 'http://videomega.tv/view.php?ref=090051111052065112106089103052052103089106112065052111051090',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        iframe_url = 'http://videomega.tv/iframe.php?ref={0:}'.format(video_id)
+        iframe_url = 'http://videomega.tv/cdn.php?ref=%s' % video_id
         req = compat_urllib_request.Request(iframe_url)
         req.add_header('Referer', url)
+        req.add_header('Cookie', 'noadvtday=0')
         webpage = self._download_webpage(req, video_id)
 
-        try:
-            escaped_data = re.findall(r'unescape\("([^"]+)"\)', webpage)[-1]
-        except IndexError:
-            raise ExtractorError('Unable to extract escaped data')
-
-        playlist = compat_urllib_parse.unquote(escaped_data)
-
+        title = self._html_search_regex(
+            r'<title>(.+?)</title>', webpage, 'title')
+        title = re.sub(
+            r'(?:^[Vv]ideo[Mm]ega\.tv\s-\s*|\s*-\svideomega\.tv$)', '', title)
         thumbnail = self._search_regex(
-            r'image:\s*"([^"]+)"', playlist, 'thumbnail', fatal=False)
-        video_url = self._search_regex(r'file:\s*"([^"]+)"', playlist, 'URL')
-        title = remove_start(self._html_search_regex(
-            r'<title>(.*?)</title>', webpage, 'title'), 'VideoMega.tv - ')
-
-        formats = [{
-            'format_id': 'sd',
-            'url': video_url,
-        }]
-        self._sort_formats(formats)
+            r'<video[^>]+?poster="([^"]+)"', webpage, 'thumbnail', fatal=False)
+        video_url = self._search_regex(
+            r'<source[^>]+?src="([^"]+)"', webpage, 'video URL')
 
         return {
             'id': video_id,
             'title': title,
-            'formats': formats,
+            'url': video_url,
             'thumbnail': thumbnail,
             'http_headers': {
                 'Referer': iframe_url,

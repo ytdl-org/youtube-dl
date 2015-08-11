@@ -27,9 +27,6 @@ class VpornIE(InfoExtractor):
                 'duration': 393,
                 'age_limit': 18,
                 'view_count': int,
-                'like_count': int,
-                'dislike_count': int,
-                'comment_count': int,
             }
         },
         {
@@ -47,9 +44,6 @@ class VpornIE(InfoExtractor):
                 'duration': 588,
                 'age_limit': 18,
                 'view_count': int,
-                'like_count': int,
-                'dislike_count': int,
-                'comment_count': int,
             }
         },
     ]
@@ -64,29 +58,29 @@ class VpornIE(InfoExtractor):
         title = self._html_search_regex(
             r'videoname\s*=\s*\'([^\']+)\'', webpage, 'title').strip()
         description = self._html_search_regex(
-            r'<div class="description_txt">(.*?)</div>', webpage, 'description', fatal=False)
+            r'class="(?:descr|description_txt)">(.*?)</div>',
+            webpage, 'description', fatal=False)
         thumbnail = self._html_search_regex(
             r'flashvars\.imageUrl\s*=\s*"([^"]+)"', webpage, 'description', fatal=False, default=None)
         if thumbnail:
             thumbnail = 'http://www.vporn.com' + thumbnail
 
         uploader = self._html_search_regex(
-            r'(?s)UPLOADED BY.*?<a href="/user/[^"]+">([^<]+)</a>',
+            r'(?s)Uploaded by:.*?<a href="/user/[^"]+"[^>]*>(.+?)</a>',
             webpage, 'uploader', fatal=False)
 
-        categories = re.findall(r'<a href="/cat/[^"]+">([^<]+)</a>', webpage)
+        categories = re.findall(r'<a href="/cat/[^"]+"[^>]*>([^<]+)</a>', webpage)
 
         duration = parse_duration(self._search_regex(
-            r'duration (\d+ min \d+ sec)', webpage, 'duration', fatal=False))
+            r'Runtime:\s*</span>\s*(\d+ min \d+ sec)',
+            webpage, 'duration', fatal=False))
 
-        view_count = str_to_int(self._html_search_regex(
-            r'<span>([\d,\.]+) VIEWS</span>', webpage, 'view count', fatal=False))
-        like_count = str_to_int(self._html_search_regex(
-            r'<span id="like" class="n">([\d,\.]+)</span>', webpage, 'like count', fatal=False))
-        dislike_count = str_to_int(self._html_search_regex(
-            r'<span id="dislike" class="n">([\d,\.]+)</span>', webpage, 'dislike count', fatal=False))
+        view_count = str_to_int(self._search_regex(
+            r'class="views">([\d,\.]+) [Vv]iews<',
+            webpage, 'view count', fatal=False))
         comment_count = str_to_int(self._html_search_regex(
-            r'<h4>Comments \(<b>([\d,\.]+)</b>\)</h4>', webpage, 'comment count', fatal=False))
+            r"'Comments \(([\d,\.]+)\)'",
+            webpage, 'comment count', default=None))
 
         formats = []
 
@@ -117,8 +111,6 @@ class VpornIE(InfoExtractor):
             'categories': categories,
             'duration': duration,
             'view_count': view_count,
-            'like_count': like_count,
-            'dislike_count': dislike_count,
             'comment_count': comment_count,
             'age_limit': 18,
             'formats': formats,

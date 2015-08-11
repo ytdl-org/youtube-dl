@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import re
-import json
 import itertools
 
 from .common import InfoExtractor
@@ -9,8 +8,8 @@ from ..utils import unified_strdate
 
 
 class VineIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vine\.co/v/(?P<id>\w+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?vine\.co/(?:v|oembed)/(?P<id>\w+)'
+    _TESTS = [{
         'url': 'https://vine.co/v/b9KOOWX7HUx',
         'md5': '2f36fed6235b16da96ce9b4dc890940d',
         'info_dict': {
@@ -23,29 +22,60 @@ class VineIE(InfoExtractor):
             'uploader': 'Jack Dorsey',
             'uploader_id': '76',
         },
-    }
+    }, {
+        'url': 'https://vine.co/v/MYxVapFvz2z',
+        'md5': '7b9a7cbc76734424ff942eb52c8f1065',
+        'info_dict': {
+            'id': 'MYxVapFvz2z',
+            'ext': 'mp4',
+            'title': 'Fuck Da Police #Mikebrown #justice #ferguson #prayforferguson #protesting #NMOS14',
+            'alt_title': 'Vine by Luna',
+            'description': 'Fuck Da Police #Mikebrown #justice #ferguson #prayforferguson #protesting #NMOS14',
+            'upload_date': '20140815',
+            'uploader': 'Luna',
+            'uploader_id': '1102363502380728320',
+        },
+    }, {
+        'url': 'https://vine.co/v/bxVjBbZlPUH',
+        'md5': 'ea27decea3fa670625aac92771a96b73',
+        'info_dict': {
+            'id': 'bxVjBbZlPUH',
+            'ext': 'mp4',
+            'title': '#mw3 #ac130 #killcam #angelofdeath',
+            'alt_title': 'Vine by Z3k3',
+            'description': '#mw3 #ac130 #killcam #angelofdeath',
+            'upload_date': '20130430',
+            'uploader': 'Z3k3',
+            'uploader_id': '936470460173008896',
+        },
+    }, {
+        'url': 'https://vine.co/oembed/MYxVapFvz2z.json',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage('https://vine.co/v/' + video_id, video_id)
 
-        data = json.loads(self._html_search_regex(
-            r'window\.POST_DATA = { %s: ({.+?}) }' % video_id, webpage, 'vine data'))
+        data = self._parse_json(
+            self._html_search_regex(
+                r'window\.POST_DATA = { %s: ({.+?}) };\s*</script>' % video_id,
+                webpage, 'vine data'),
+            video_id)
 
         formats = [{
-            'url': data['videoLowURL'],
-            'ext': 'mp4',
-            'format_id': 'low',
-        }, {
-            'url': data['videoUrl'],
-            'ext': 'mp4',
-            'format_id': 'standard',
-        }]
+            'format_id': '%(format)s-%(rate)s' % f,
+            'vcodec': f['format'],
+            'quality': f['rate'],
+            'url': f['videoUrl'],
+        } for f in data['videoUrls']]
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': self._og_search_title(webpage),
-            'alt_title': self._og_search_description(webpage),
+            'alt_title': self._og_search_description(webpage, default=None),
             'description': data['description'],
             'thumbnail': data['thumbnailUrl'],
             'upload_date': unified_strdate(data['created']),

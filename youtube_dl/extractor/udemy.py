@@ -15,7 +15,8 @@ from ..utils import (
 class UdemyIE(InfoExtractor):
     IE_NAME = 'udemy'
     _VALID_URL = r'https?://www\.udemy\.com/(?:[^#]+#/lecture/|lecture/view/?\?lectureId=)(?P<id>\d+)'
-    _LOGIN_URL = 'https://www.udemy.com/join/login-submit/'
+    _LOGIN_URL = 'https://www.udemy.com/join/login-popup/?displayType=ajax&showSkipButton=1'
+    _ORIGIN_URL = 'https://www.udemy.com'
     _NETRC_MACHINE = 'udemy'
 
     _TESTS = [{
@@ -74,29 +75,36 @@ class UdemyIE(InfoExtractor):
                 expected=True)
 
         login_popup = self._download_webpage(
-            'https://www.udemy.com/join/login-popup?displayType=ajax&showSkipButton=1', None,
-            'Downloading login popup')
+            self._LOGIN_URL, None, 'Downloading login popup')
 
-        if login_popup == '<div class="run-command close-popup redirect" data-url="https://www.udemy.com/"></div>':
+        def is_logged(webpage):
+            return any(p in webpage for p in ['href="https://www.udemy.com/user/logout/', '>Logout<'])
+
+        # already logged in
+        if is_logged(login_popup):
             return
 
-        csrf = self._html_search_regex(
-            r'<input type="hidden" name="csrf" value="(.+?)"',
-            login_popup, 'csrf token')
+        login_form = self._form_hidden_inputs('login-form', login_popup)
 
-        login_form = {
-            'email': username,
-            'password': password,
-            'csrf': csrf,
-            'displayType': 'json',
-            'isSubmitted': '1',
-        }
+        login_form.update({
+            'email': username.encode('utf-8'),
+            'password': password.encode('utf-8'),
+        })
+
         request = compat_urllib_request.Request(
             self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
-        response = self._download_json(
+        request.add_header('Referer', self._ORIGIN_URL)
+        request.add_header('Origin', self._ORIGIN_URL)
+
+        response = self._download_webpage(
             request, None, 'Logging in as %s' % username)
 
-        if 'returnUrl' not in response:
+        if not is_logged(response):
+            error = self._html_search_regex(
+                r'(?s)<div[^>]+class="form-errors[^"]*">(.+?)</div>',
+                response, 'error message', default=None)
+            if error:
+                raise ExtractorError('Unable to login: %s' % error, expected=True)
             raise ExtractorError('Unable to log in')
 
     def _real_extract(self, url):
