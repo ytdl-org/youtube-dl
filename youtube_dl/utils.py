@@ -1657,7 +1657,7 @@ def qualities(quality_ids):
     return q
 
 
-DEFAULT_OUTTMPL = '%(title)s-%(id)s.%(ext)s'
+DEFAULT_OUTTMPL = '{title}-{id}.{ext}'
 
 
 def limit_length(s, length):
