@@ -45,12 +45,6 @@ class ExternalFD(FileDownloader):
     def supports(cls, info_dict):
         return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps')
 
-    def _source_address(self, command_option):
-        source_address = self.params.get('source_address')
-        if source_address is None:
-            return []
-        return [command_option, source_address]
-
     def _option(self, command_option, param):
         param = self.params.get(param)
         if param is None:
@@ -58,9 +52,6 @@ class ExternalFD(FileDownloader):
         if isinstance(param, bool):
             return [command_option]
         return [command_option, param]
-
-    def _no_check_certificate(self, command_option):
-        return [command_option] if self.params.get('nocheckcertificate', False) else []
 
     def _configuration_args(self, default=[]):
         ex_args = self.params.get('external_downloader_args')
@@ -88,7 +79,7 @@ class CurlFD(ExternalFD):
         cmd = [self.exe, '--location', '-o', tmpfilename]
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
-        cmd += self._source_address('--interface')
+        cmd += self._option('--interface', 'source_address')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
@@ -109,9 +100,9 @@ class WgetFD(ExternalFD):
         cmd = [self.exe, '-O', tmpfilename, '-nv', '--no-cookies']
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
-        cmd += self._source_address('--bind-address')
+        cmd += self._option('--bind-address', 'source_address')
         cmd += self._option('--proxy', 'proxy')
-        cmd += self._no_check_certificate('--no-check-certificate')
+        cmd += self._option('--no-check-certificate', 'nocheckcertificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
@@ -128,7 +119,7 @@ class Aria2cFD(ExternalFD):
         cmd += ['--out', os.path.basename(tmpfilename)]
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
-        cmd += self._source_address('--interface')
+        cmd += self._option('--interface', 'source_address')
         cmd += self._option('--all-proxy', 'proxy')
         cmd += ['--', info_dict['url']]
         return cmd
