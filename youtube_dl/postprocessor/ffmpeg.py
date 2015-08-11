@@ -403,7 +403,7 @@ class FFmpegJoinVideosPP(FFmpegPostProcessor):
         filename = information['filepath']
         parts = information.get('parts')
         if parts is None or len(parts) == 1:
-            return (True, information)
+            return [], information
         parts_files = [build_part_filename(filename, i) for (i, _) in enumerate(parts)]
         files_file = u'%s.videos' % filename
         with io.open(encodeFilename(files_file), 'w', encoding='utf-8') as f:
@@ -413,13 +413,11 @@ class FFmpegJoinVideosPP(FFmpegPostProcessor):
         try:
             self.run_ffmpeg(files_file, filename, ['-c', 'copy'], ['-f', 'concat'])
         except FFmpegPostProcessorError:
-            return False, information
+            return [filename], information
         os.remove(encodeFilename(files_file))
-        # We have to manually remove the parts if requested
         if not self._downloader.params.get('keepvideo', False):
-            for part_file in parts_files:
-                os.remove(encodeFilename(part_file))
-        return (True, information)
+            return parts_files, information
+        return [], information
 
 
 class FFmpegMergerPP(FFmpegPostProcessor):
