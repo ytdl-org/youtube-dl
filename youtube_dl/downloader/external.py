@@ -51,6 +51,14 @@ class ExternalFD(FileDownloader):
             return []
         return [command_option, source_address]
 
+    def _option(self, command_option, param):
+        param = self.params.get(param)
+        if param is None:
+            return []
+        if isinstance(param, bool):
+            return [command_option]
+        return [command_option, param]
+
     def _no_check_certificate(self, command_option):
         return [command_option] if self.params.get('nocheckcertificate', False) else []
 
@@ -102,6 +110,7 @@ class WgetFD(ExternalFD):
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._source_address('--bind-address')
+        cmd += self._option('--proxy', 'proxy')
         cmd += self._no_check_certificate('--no-check-certificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
@@ -120,6 +129,7 @@ class Aria2cFD(ExternalFD):
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._source_address('--interface')
+        cmd += self._option('--all-proxy', 'proxy')
         cmd += ['--', info_dict['url']]
         return cmd
 
