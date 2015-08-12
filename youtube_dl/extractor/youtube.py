@@ -213,7 +213,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                              |(?:                                             # or the v= param in all its forms
                                  (?:(?:watch|movie)(?:_popup)?(?:\.php)?/?)?  # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
                                  (?:\?|\#!?)                                  # the params delimiter ? or # or #!
-                                 (?:.*?&)?                                    # any other preceding param (like /?s=tuff&v=xxxx)
+                                 (?:.*?&)??                                   # any other preceding param (like /?s=tuff&v=xxxx)
                                  v=
                              )
                          ))
@@ -365,6 +365,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'md5:64249768eec3bc4276236606ea996373',
                 'uploader': 'justintimberlakeVEVO',
                 'uploader_id': 'justintimberlakeVEVO',
+                'age_limit': 18,
             }
         },
         {
@@ -379,6 +380,26 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'SET India',
                 'uploader_id': 'setindia'
             }
+        },
+        {
+            'url': 'http://www.youtube.com/watch?v=BaW_jenozKcj&v=UxxajLWwzqY',
+            'note': 'Use the first video ID in the URL',
+            'info_dict': {
+                'id': 'BaW_jenozKc',
+                'ext': 'mp4',
+                'title': 'youtube-dl test video "\'/\\ä↭𝕐',
+                'uploader': 'Philipp Hagemeister',
+                'uploader_id': 'phihag',
+                'upload_date': '20121002',
+                'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
+                'categories': ['Science & Technology'],
+                'tags': ['youtube-dl'],
+                'like_count': int,
+                'dislike_count': int,
+            },
+            'params': {
+                'skip_download': True,
+            },
         },
         {
             'url': 'http://www.youtube.com/watch?v=a9LDPn-MO4I',
@@ -421,7 +442,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'id': 'nfWlot6h_JM',
                 'ext': 'm4a',
                 'title': 'Taylor Swift - Shake It Off',
-                'description': 'md5:2acfda1b285bdd478ccec22f9918199d',
+                'description': 'md5:95f66187cd7c8b2c13eb78e1223b63c3',
                 'uploader': 'TaylorSwiftVEVO',
                 'uploader_id': 'TaylorSwiftVEVO',
                 'upload_date': '20140818',
@@ -455,6 +476,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'The Witcher',
                 'uploader_id': 'WitcherGame',
                 'upload_date': '20140605',
+                'age_limit': 18,
             },
         },
         # Age-gate video with encrypted signature
@@ -468,6 +490,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'LloydVEVO',
                 'uploader_id': 'LloydVEVO',
                 'upload_date': '20110629',
+                'age_limit': 18,
             },
         },
         # video_info is None (https://github.com/rg3/youtube-dl/issues/4421)
@@ -492,7 +515,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'info_dict': {
                 'id': 'lqQg6PlCWgI',
                 'ext': 'mp4',
-                'upload_date': '20120731',
+                'upload_date': '20120724',
                 'uploader_id': 'olympic',
                 'description': 'HO09  - Women -  GER-AUS - Hockey - 31 July 2012 - London 2012 Olympic Games',
                 'uploader': 'Olympics',
@@ -521,7 +544,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'qEJwOuvDf7I',
             'info_dict': {
                 'id': 'qEJwOuvDf7I',
-                'ext': 'mp4',
+                'ext': 'webm',
                 'title': 'Обсуждение судебной практики по выборам 14 сентября 2014 года в Санкт-Петербурге',
                 'description': '',
                 'upload_date': '20150404',

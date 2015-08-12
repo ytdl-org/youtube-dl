@@ -118,6 +118,7 @@ from .dailymotion import (
 )
 from .daum import DaumIE
 from .dbtv import DBTVIE
+from .dcn import DCNIE
 from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE
 from .dfb import DFBIE
@@ -431,6 +432,10 @@ from .orf import (
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
+from .periscope import (
+    PeriscopeIE,
+    QuickscopeIE,
+)
 from .philharmoniedeparis import PhilharmonieDeParisIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
@@ -591,6 +596,7 @@ from .techtalks import TechTalksIE
 from .ted import TEDIE
 from .telebruxelles import TeleBruxellesIE
 from .telecinco import TelecincoIE
+from .telegraaf import TelegraafIE
 from .telemb import TeleMBIE
 from .teletask import TeleTaskIE
 from .tenplay import TenPlayIE

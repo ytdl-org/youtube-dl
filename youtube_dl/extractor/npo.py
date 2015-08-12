@@ -407,6 +407,7 @@ class NPORadioFragmentIE(InfoExtractor):
 
 
 class VPROIE(NPOIE):
+    IE_NAME = 'vpro'
     _VALID_URL = r'https?://(?:www\.)?(?:tegenlicht\.)?vpro\.nl/(?:[^/]+/){2,}(?P<id>[^/]+)\.html'
 
     _TESTS = [

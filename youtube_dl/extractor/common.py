@@ -18,6 +18,7 @@ from ..compat import (
     compat_HTTPError,
     compat_http_client,
     compat_urllib_error,
+    compat_urllib_parse,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urlparse,
@@ -37,6 +38,9 @@ from ..utils import (
     RegexNotFoundError,
     sanitize_filename,
     unescapeHTML,
+    url_basename,
+    xpath_text,
+    xpath_with_ns,
 )
 
 
@@ -200,8 +204,8 @@ class InfoExtractor(object):
     There must be a key "entries", which is a list, an iterable, or a PagedList
     object, each element of which is a valid dictionary by this specification.
 
-    Additionally, playlists can have "title" and "id" attributes with the same
-    semantics as videos (see above).
+    Additionally, playlists can have "title", "description" and "id" attributes
+    with the same semantics as videos (see above).
 
 
     _type "multi_video" indicates that there are multiple videos that
@@ -636,7 +640,7 @@ class InfoExtractor(object):
     @staticmethod
     def _meta_regex(prop):
         return r'''(?isx)<meta
-                    (?=[^>]+(?:itemprop|name|property)=(["\']?)%s\1)
+                    (?=[^>]+(?:itemprop|name|property|id)=(["\']?)%s\1)
                     [^>]+?content=(["\'])(?P<content>.*?)\2''' % re.escape(prop)
 
     def _og_search_property(self, prop, html, name=None, **kargs):
@@ -978,69 +982,210 @@ class InfoExtractor(object):
         self._sort_formats(formats)
         return formats
 
-    # TODO: improve extraction
-    def _extract_smil_formats(self, smil_url, video_id, fatal=True):
-        smil = self._download_xml(
-            smil_url, video_id, 'Downloading SMIL file',
-            'Unable to download SMIL file', fatal=fatal)
+    @staticmethod
+    def _xpath_ns(path, namespace=None):
+        if not namespace:
+            return path
+        out = []
+        for c in path.split('/'):
+            if not c or c == '.':
+                out.append(c)
+            else:
+                out.append('{%s}%s' % (namespace, c))
+        return '/'.join(out)
+
+    def _extract_smil_formats(self, smil_url, video_id, fatal=True, f4m_params=None):
+        smil = self._download_smil(smil_url, video_id, fatal=fatal)
+
         if smil is False:
             assert not fatal
             return []
 
-        base = smil.find('./head/meta').get('base')
+        namespace = self._parse_smil_namespace(smil)
+
+        return self._parse_smil_formats(
+            smil, smil_url, video_id, namespace=namespace, f4m_params=f4m_params)
+
+    def _extract_smil_info(self, smil_url, video_id, fatal=True, f4m_params=None):
+        smil = self._download_smil(smil_url, video_id, fatal=fatal)
+        if smil is False:
+            return {}
+        return self._parse_smil(smil, smil_url, video_id, f4m_params=f4m_params)
+
+    def _download_smil(self, smil_url, video_id, fatal=True):
+        return self._download_xml(
+            smil_url, video_id, 'Downloading SMIL file',
+            'Unable to download SMIL file', fatal=fatal)
+
+    def _parse_smil(self, smil, smil_url, video_id, f4m_params=None):
+        namespace = self._parse_smil_namespace(smil)
+
+        formats = self._parse_smil_formats(
+            smil, smil_url, video_id, namespace=namespace, f4m_params=f4m_params)
+        subtitles = self._parse_smil_subtitles(smil, namespace=namespace)
+
+        video_id = os.path.splitext(url_basename(smil_url))[0]
+        title = None
+        description = None
+        for meta in smil.findall(self._xpath_ns('./head/meta', namespace)):
+            name = meta.attrib.get('name')
+            content = meta.attrib.get('content')
+            if not name or not content:
+                continue
+            if not title and name == 'title':
+                title = content
+            elif not description and name in ('description', 'abstract'):
+                description = content
+
+        return {
+            'id': video_id,
+            'title': title or video_id,
+            'description': description,
+            'formats': formats,
+            'subtitles': subtitles,
+        }
+
+    def _parse_smil_namespace(self, smil):
+        return self._search_regex(
+            r'(?i)^{([^}]+)?}smil$', smil.tag, 'namespace', default=None)
+
+    def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None):
+        base = smil_url
+        for meta in smil.findall(self._xpath_ns('./head/meta', namespace)):
+            b = meta.get('base') or meta.get('httpBase')
+            if b:
+                base = b
+                break
 
         formats = []
         rtmp_count = 0
-        if smil.findall('./body/seq/video'):
-            video = smil.findall('./body/seq/video')[0]
-            fmts, rtmp_count = self._parse_smil_video(video, video_id, base, rtmp_count)
-            formats.extend(fmts)
-        else:
-            for video in smil.findall('./body/switch/video'):
-                fmts, rtmp_count = self._parse_smil_video(video, video_id, base, rtmp_count)
-                formats.extend(fmts)
+        http_count = 0
+
+        videos = smil.findall(self._xpath_ns('.//video', namespace))
+        for video in videos:
+            src = video.get('src')
+            if not src:
+                continue
+
+            bitrate = int_or_none(video.get('system-bitrate') or video.get('systemBitrate'), 1000)
+            filesize = int_or_none(video.get('size') or video.get('fileSize'))
+            width = int_or_none(video.get('width'))
+            height = int_or_none(video.get('height'))
+            proto = video.get('proto')
+            ext = video.get('ext')
+            src_ext = determine_ext(src)
+            streamer = video.get('streamer') or base
+
+            if proto == 'rtmp' or streamer.startswith('rtmp'):
+                rtmp_count += 1
+                formats.append({
+                    'url': streamer,
+                    'play_path': src,
+                    'ext': 'flv',
+                    'format_id': 'rtmp-%d' % (rtmp_count if bitrate is None else bitrate),
+                    'tbr': bitrate,
+                    'filesize': filesize,
+                    'width': width,
+                    'height': height,
+                })
+                continue
+
+            src_url = src if src.startswith('http') else compat_urlparse.urljoin(base, src)
+
+            if proto == 'm3u8' or src_ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    src_url, video_id, ext or 'mp4', m3u8_id='hls'))
+                continue
+
+            if src_ext == 'f4m':
+                f4m_url = src_url
+                if not f4m_params:
+                    f4m_params = {
+                        'hdcore': '3.2.0',
+                        'plugin': 'flowplayer-3.2.0.1',
+                    }
+                f4m_url += '&' if '?' in f4m_url else '?'
+                f4m_url += compat_urllib_parse.urlencode(f4m_params)
+                formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds'))
+                continue
+
+            if src_url.startswith('http'):
+                http_count += 1
+                formats.append({
+                    'url': src_url,
+                    'ext': ext or src_ext or 'flv',
+                    'format_id': 'http-%d' % (bitrate or http_count),
+                    'tbr': bitrate,
+                    'filesize': filesize,
+                    'width': width,
+                    'height': height,
+                })
+                continue
 
         self._sort_formats(formats)
 
         return formats
 
-    def _parse_smil_video(self, video, video_id, base, rtmp_count):
-        src = video.get('src')
-        if not src:
-            return [], rtmp_count
-        bitrate = int_or_none(video.get('system-bitrate') or video.get('systemBitrate'), 1000)
-        width = int_or_none(video.get('width'))
-        height = int_or_none(video.get('height'))
-        proto = video.get('proto')
-        if not proto:
-            if base:
-                if base.startswith('rtmp'):
-                    proto = 'rtmp'
-                elif base.startswith('http'):
-                    proto = 'http'
-        ext = video.get('ext')
-        if proto == 'm3u8':
-            return self._extract_m3u8_formats(src, video_id, ext), rtmp_count
-        elif proto == 'rtmp':
-            rtmp_count += 1
-            streamer = video.get('streamer') or base
-            return ([{
-                'url': streamer,
-                'play_path': src,
-                'ext': 'flv',
-                'format_id': 'rtmp-%d' % (rtmp_count if bitrate is None else bitrate),
-                'tbr': bitrate,
-                'width': width,
-                'height': height,
-            }], rtmp_count)
-        elif proto.startswith('http'):
-            return ([{
-                'url': base + src,
-                'ext': ext or 'flv',
-                'tbr': bitrate,
-                'width': width,
-                'height': height,
-            }], rtmp_count)
+    def _parse_smil_subtitles(self, smil, namespace=None):
+        subtitles = {}
+        for num, textstream in enumerate(smil.findall(self._xpath_ns('.//textstream', namespace))):
+            src = textstream.get('src')
+            if not src:
+                continue
+            ext = textstream.get('ext') or determine_ext(src)
+            if not ext:
+                type_ = textstream.get('type')
+                if type_ == 'text/srt':
+                    ext = 'srt'
+            lang = textstream.get('systemLanguage') or textstream.get('systemLanguageName')
+            subtitles.setdefault(lang, []).append({
+                'url': src,
+                'ext': ext,
+            })
+        return subtitles
+
+    def _extract_xspf_playlist(self, playlist_url, playlist_id, fatal=True):
+        xspf = self._download_xml(
+            playlist_url, playlist_id, 'Downloading xpsf playlist',
+            'Unable to download xspf manifest', fatal=fatal)
+        if xspf is False:
+            return []
+        return self._parse_xspf(xspf, playlist_id)
+
+    def _parse_xspf(self, playlist, playlist_id):
+        NS_MAP = {
+            'xspf': 'http://xspf.org/ns/0/',
+            's1': 'http://static.streamone.nl/player/ns/0',
+        }
+
+        entries = []
+        for track in playlist.findall(xpath_with_ns('./xspf:trackList/xspf:track', NS_MAP)):
+            title = xpath_text(
+                track, xpath_with_ns('./xspf:title', NS_MAP), 'title', default=playlist_id)
+            description = xpath_text(
+                track, xpath_with_ns('./xspf:annotation', NS_MAP), 'description')
+            thumbnail = xpath_text(
+                track, xpath_with_ns('./xspf:image', NS_MAP), 'thumbnail')
+            duration = float_or_none(
+                xpath_text(track, xpath_with_ns('./xspf:duration', NS_MAP), 'duration'), 1000)
+
+            formats = [{
+                'url': location.text,
+                'format_id': location.get(xpath_with_ns('s1:label', NS_MAP)),
+                'width': int_or_none(location.get(xpath_with_ns('s1:width', NS_MAP))),
+                'height': int_or_none(location.get(xpath_with_ns('s1:height', NS_MAP))),
+            } for location in track.findall(xpath_with_ns('./xspf:location', NS_MAP))]
+            self._sort_formats(formats)
+
+            entries.append({
+                'id': playlist_id,
+                'title': title,
+                'description': description,
+                'thumbnail': thumbnail,
+                'duration': duration,
+                'formats': formats,
+            })
+        return entries
 
     def _live_title(self, name):
         """ Generate the title for a live video """

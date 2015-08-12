@@ -108,7 +108,7 @@ which means you can modify it, redistribute it or use it however you like.
     --playlist-reverse               Download playlist videos in reverse order
     --xattr-set-filesize             Set file xattribute ytdl.filesize with expected filesize (experimental)
     --hls-prefer-native              Use the native HLS downloader instead of ffmpeg (experimental)
-    --external-downloader COMMAND    Use the specified external downloader. Currently supports aria2c,curl,httpie,wget
+    --external-downloader COMMAND    Use the specified external downloader. Currently supports aria2c,axel,curl,httpie,wget
     --external-downloader-args ARGS  Give these arguments to the external downloader
 
 ## Filesystem Options:

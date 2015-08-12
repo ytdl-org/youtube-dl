@@ -28,7 +28,6 @@ if os.name == 'nt':
     import ctypes
 
 from .compat import (
-    compat_basestring,
     compat_cookiejar,
     compat_expanduser,
     compat_get_terminal_size,
@@ -40,7 +39,6 @@ from .compat import (
     compat_urllib_request,
 )
 from .utils import (
-    escape_url,
     ContentTooShortError,
     date_from_str,
     DateRange,
@@ -51,7 +49,6 @@ from .utils import (
     ExtractorError,
     format_bytes,
     formatSeconds,
-    HEADRequest,
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
@@ -1860,27 +1857,6 @@ class YoutubeDL(object):
 
     def urlopen(self, req):
         """ Start an HTTP download """
-
-        # According to RFC 3986, URLs can not contain non-ASCII characters, however this is not
-        # always respected by websites, some tend to give out URLs with non percent-encoded
-        # non-ASCII characters (see telemb.py, ard.py [#3412])
-        # urllib chokes on URLs with non-ASCII characters (see http://bugs.python.org/issue3991)
-        # To work around aforementioned issue we will replace request's original URL with
-        # percent-encoded one
-        req_is_string = isinstance(req, compat_basestring)
-        url = req if req_is_string else req.get_full_url()
-        url_escaped = escape_url(url)
-
-        # Substitute URL if any change after escaping
-        if url != url_escaped:
-            if req_is_string:
-                req = url_escaped
-            else:
-                req_type = HEADRequest if req.get_method() == 'HEAD' else compat_urllib_request.Request
-                req = req_type(
-                    url_escaped, data=req.data, headers=req.headers,
-                    origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
-
         return self._opener.open(req, timeout=self._socket_timeout)
 
     def print_debug_header(self):

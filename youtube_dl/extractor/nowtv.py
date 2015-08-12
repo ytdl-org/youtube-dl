@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class NowTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nowtv\.de/(?:rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<id>.+?)/(?:player|preview)'
+    _VALID_URL = r'https?://(?:www\.)?nowtv\.(?:de|at|ch)/(?:rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<id>.+?)/(?:player|preview)'
 
     _TESTS = [{
         # rtl
@@ -126,6 +126,9 @@ class NowTVIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.nowtv.de/rtl/bauer-sucht-frau/die-neuen-bauern-und-eine-hochzeit/preview',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nowtv.at/rtl/bauer-sucht-frau/die-neuen-bauern-und-eine-hochzeit/preview?return=/rtl/bauer-sucht-frau/die-neuen-bauern-und-eine-hochzeit',
         'only_matching': True,
     }]
 

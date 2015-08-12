@@ -651,6 +651,26 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
         return ret
 
     def http_request(self, req):
+        # According to RFC 3986, URLs can not contain non-ASCII characters, however this is not
+        # always respected by websites, some tend to give out URLs with non percent-encoded
+        # non-ASCII characters (see telemb.py, ard.py [#3412])
+        # urllib chokes on URLs with non-ASCII characters (see http://bugs.python.org/issue3991)
+        # To work around aforementioned issue we will replace request's original URL with
+        # percent-encoded one
+        # Since redirects are also affected (e.g. http://www.southpark.de/alle-episoden/s18e09)
+        # the code of this workaround has been moved here from YoutubeDL.urlopen()
+        url = req.get_full_url()
+        url_escaped = escape_url(url)
+
+        # Substitute URL if any change after escaping
+        if url != url_escaped:
+            req_type = HEADRequest if req.get_method() == 'HEAD' else compat_urllib_request.Request
+            new_req = req_type(
+                url_escaped, data=req.data, headers=req.headers,
+                origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
+            new_req.timeout = req.timeout
+            req = new_req
+
         for h, v in std_headers.items():
             # Capitalize is needed because of Python bug 2275: http://bugs.python.org/issue2275
             # The dict keys are capitalized because of this bug by urllib
@@ -695,6 +715,17 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             gz = io.BytesIO(self.deflate(resp.read()))
             resp = self.addinfourl_wrapper(gz, old_resp.headers, old_resp.url, old_resp.code)
             resp.msg = old_resp.msg
+        # Percent-encode redirect URL of Location HTTP header to satisfy RFC 3986
+        if 300 <= resp.code < 400:
+            location = resp.headers.get('Location')
+            if location:
+                # As of RFC 2616 default charset is iso-8859-1 that is respected by python 3
+                if sys.version_info >= (3, 0):
+                    location = location.encode('iso-8859-1').decode('utf-8')
+                location_escaped = escape_url(location)
+                if location != location_escaped:
+                    del resp.headers['Location']
+                    resp.headers['Location'] = location_escaped
         return resp
 
     https_request = http_request

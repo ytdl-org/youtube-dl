@@ -22,6 +22,7 @@ class Porn91IE(InfoExtractor):
             'title': '18岁大一漂亮学妹，水嫩性感，再爽一次！',
             'ext': 'mp4',
             'duration': 431,
+            'age_limit': 18,
         }
     }
 
@@ -68,4 +69,5 @@ class Porn91IE(InfoExtractor):
             'url': video_url,
             'duration': duration,
             'comment_count': comment_count,
+            'age_limit': self._rta_search(webpage),
         }
