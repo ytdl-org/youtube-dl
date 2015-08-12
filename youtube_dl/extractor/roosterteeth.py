@@ -8,6 +8,7 @@ from ..utils import (
     clean_html,
     js_to_json,
     ExtractorError,
+    compat_parse_qs,
     compat_urllib_parse_urlparse,
     compat_urllib_parse,
     compat_urllib_request
@@ -48,7 +49,7 @@ class RoosterteethShowIE(InfoExtractor):
 
         if '#;' in url:
             url, params = url.split('#;')
-            ep_filter = compat_urllib_parse.parse_qs(params)
+            ep_filter = compat_parse_qs(params)
 
         playlist_id = self._match_id(url)
         html = self._download_webpage(url, playlist_id)
@@ -183,7 +184,7 @@ class RoosterteethIE(InfoExtractor):
     def _real_extract(self, url):
         if '#;' in url:
             url, params = url.split('#;')
-            params = compat_urllib_parse.parse_qs(params)
+            params = compat_parse_qs(params)
         else:
             params = {}
 
