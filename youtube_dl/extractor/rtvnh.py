@@ -35,6 +35,6 @@ class RTVNHIE(InfoExtractor):
         return {
             'id': video_id,
             'title': meta['title'].strip(),
-            'thumbnail': meta['image'],
+            'thumbnail': meta.get('image'),
             'formats': formats
         }
