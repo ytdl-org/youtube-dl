@@ -17,7 +17,7 @@ class RtvnhNlIE(InfoExtractor):
             'id': '131946',
             'ext': 'mp4',
             'title': 'Grote zoektocht in zee bij Zandvoort naar vermiste vrouw',
-            'thumbnail': 're:^https?://rtvnh-webfiles\.[^.]+\.amazonaws\.com/data/cache/[0-9]+/basedata/pf_image/[0-9.]+/[0-9\-a-f]+\.jpg$'
+            'thumbnail': 're:^http:.*\.jpg$'
         }
     }
 
