@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 
 
-class RtvnhNlIE(InfoExtractor):
+class RTVNHIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?rtvnh\.nl/video/(?P<id>[0-9]+)'
     _TEST = {
         'params': {
@@ -17,7 +17,7 @@ class RtvnhNlIE(InfoExtractor):
             'id': '131946',
             'ext': 'mp4',
             'title': 'Grote zoektocht in zee bij Zandvoort naar vermiste vrouw',
-            'thumbnail': 're:^http:.*\.jpg$'
+            'thumbnail': 're:^https?:.*\.jpg$'
         }
     }
 
