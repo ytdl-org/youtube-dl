@@ -23,7 +23,7 @@ class RTVNHIE(InfoExtractor):
         meta = self._parse_json(self._download_webpage(
             'http://www.rtvnh.nl/video/json?m=' + video_id, video_id), video_id)
         formats = self._extract_smil_formats(
-            'http://www.rtvnh.nl/video/smil?m=' + video_id, video_id)
+            'http://www.rtvnh.nl/video/smil?m=' + video_id, video_id, fatal=False)
 
         for item in meta['source']['fb']:
             if item.get('type') == 'hls':
