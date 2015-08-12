@@ -11,7 +11,9 @@ from ..utils import (
     compat_parse_qs,
     compat_urllib_parse_urlparse,
     compat_urllib_parse,
-    compat_urllib_request
+    compat_urllib_request,
+    smuggle_url,
+    unsmuggle_url
 )
 
 
@@ -92,9 +94,11 @@ class RoosterteethShowIE(InfoExtractor):
 
                 url = clean_html(ep.group('url'))
                 res = self.url_result(url, 'Roosterteeth')
+                res['title'] = clean_html(ep.group('title'))
 
                 if sec_title:
-                    res['season'] = sec_title
+                    res['url'] = smuggle_url(res['url'], {'season': sec_title})
+                    res['title'] = '%s: %s' % (sec_title, res['title'])
 
                 results.append(res)
 
@@ -109,11 +113,6 @@ class RoosterteethIE(InfoExtractor):
     _VALID_URL = r'http://(?P<domain>(?:www\.)?(?:roosterteeth\.com|achievementhunter\.com|fun\.haus))/episode/(?P<id>[^/]+)'
     _TESTS = [
         {
-            'params': {
-                # Without this parameter ytdl downloads the whole file.
-                'hls_prefer_native': True
-            },
-
             'url': 'http://achievementhunter.com/episode/rage-quit-season-1-episode-199',
             'md5': '828fe30ccdddf5d85e444e33686d531a',
             'info_dict': {
@@ -122,7 +121,7 @@ class RoosterteethIE(InfoExtractor):
                 'title': 'Rage Quit - No Time to Explain',
                 'description': 'There\'s no time to explain this video.',
                 'thumbnail': r're:^http://s3\.amazonaws\.com/cdn\.roosterteeth\.com/uploads/images/[a-f0-9-]+/md/[a-z0-9-]+\.jpeg$',
-                'protocol': 'm3u8',
+                'protocol': 'm3u8_native',
                 'url': r're:^http://[a-zA-Z0-9.]+\.taucdn\.net/[0-9a-zA-Z]+/video/uploads/videos/[0-9a-f-]+/[0-9A-Z]+\.m3u8$',
             }
         },
@@ -133,7 +132,7 @@ class RoosterteethIE(InfoExtractor):
                 'id': 'red-vs-blue-season-1-episode-1',
                 'ext': 'mp4',
                 
-                'title': 'Why Are We Here? - Episode 1 - Red vs. Blue Season 1',
+                'title': 'Episode 1',
                 'thumbnail': r're:^https://i\.ytimg\.com/vi/[0-9a-zA-Z]+/maxresdefault\.jpg$',
                 'url': r're:^https://[0-9a-z-]+\.googlevideo\.com/videoplayback',
 
@@ -152,6 +151,7 @@ class RoosterteethIE(InfoExtractor):
         self._authed = {}
 
     def _real_extract(self, url):
+        url, data = unsmuggle_url(url)
         video_id = self._match_id(url)
         html = self._download_webpage(url, video_id)
 
@@ -174,7 +174,7 @@ class RoosterteethIE(InfoExtractor):
                 else:
                     raise ExtractorError('This is a sponsor-only video and although I tried to login, it did not work.')
 
-        js = self._html_search_regex(r'<script src="https?://(?:roosterteeth\.com|achievementhunter\.com|fun\.haus)/scripts/lib/(?:jwplayer|youtube)\.min\.js"></script>\s*<script>\s*([^<]+)\s*</script>', html, 'video info')
+        js = self._html_search_regex(r'<script src="https?://(?:www\.)?(?:roosterteeth\.com|achievementhunter\.com|fun\.haus)/scripts/lib/(?:jwplayer|youtube)\.min\.js"></script>\s*<script>\s*([^<]+)\s*</script>', html, 'video info')
         info = re.search(r'RT\.(?P<player>youtube|jwplayer)\.player\((?P<json>\{(?:[^}]|\}(?!\);))+\})\);', js)
         if not info:
             raise ExtractorError("Can't parse the video metadata! (%s)" % js)
@@ -193,8 +193,7 @@ class RoosterteethIE(InfoExtractor):
 
             res = {
                 'id': video_id,
-                'title': meta['videoTitle'].strip(),
-                'formats': self._extract_m3u8_formats(meta['manifest'], video_id, ext='mp4'),
+                'formats': self._extract_m3u8_formats(meta['manifest'], video_id, ext='mp4', entry_protocol='m3u8_native'),
                 'thumbnail': video_image
             }
         elif player == 'youtube':
@@ -210,6 +209,13 @@ class RoosterteethIE(InfoExtractor):
         desc = self._og_search_description(html)
         if desc:
             res['description'] = desc.strip()
+
+        res['raw_title'] = self._html_search_regex(r'<title>([^<]+)</title>', html, 'video title')
+        if data and 'season' in data:
+            res['title'] = '%s: %s' % (data['season'], res['raw_title'])
+            res['season'] = data['season']
+        else:
+            res['title'] = res['raw_title']
 
         return res
 
