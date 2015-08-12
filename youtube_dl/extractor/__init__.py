@@ -491,6 +491,7 @@ from .rtl2 import RTL2IE
 from .rtp import RTPIE
 from .rts import RTSIE
 from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE
+from .rtvnhnl import RtvnhNlIE
 from .ruhd import RUHDIE
 from .rutube import (
     RutubeIE,
