@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import ExtractorError
 
 
 class RTVNHIE(InfoExtractor):
@@ -22,6 +23,12 @@ class RTVNHIE(InfoExtractor):
 
         meta = self._parse_json(self._download_webpage(
             'http://www.rtvnh.nl/video/json?m=' + video_id, video_id), video_id)
+
+        status = meta.get('status')
+        if status != 200:
+            raise ExtractorError(
+                '%s returned error code %d' % (self.IE_NAME, status), expected=True)
+
         formats = self._extract_smil_formats(
             'http://www.rtvnh.nl/video/smil?m=' + video_id, video_id, fatal=False)
 
@@ -31,7 +38,7 @@ class RTVNHIE(InfoExtractor):
                     item['file'], video_id, ext='mp4', entry_protocol='m3u8_native'))
             elif item.get('type') == '':
                 formats.append({'url': item['file']})
-        
+
         return {
             'id': video_id,
             'title': meta['title'].strip(),
