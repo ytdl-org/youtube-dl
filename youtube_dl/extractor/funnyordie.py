@@ -53,7 +53,7 @@ class FunnyOrDieIE(InfoExtractor):
         for bitrate in bitrates:
             for link in links:
                 formats.append({
-                    'url': '%s%d.%s' % (link[0], bitrate, link[1]),
+                    'url': self._proto_relative_url('%s%d.%s' % (link[0], bitrate, link[1])),
                     'format_id': '%s-%d' % (link[1], bitrate),
                     'vbr': bitrate,
                 })
