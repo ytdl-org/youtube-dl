@@ -26,14 +26,6 @@ class RoosterteethShowIE(InfoExtractor):
         },
         'playlist_count': 23
     }, {
-        'url': 'http://roosterteeth.com/show/red-vs-blue#;season=.* 1$',
-        'info_dict': {
-            'id': 'red-vs-blue',
-            'description': 'In the distant future, two groups of soldiers battle for control of the least desirable piece of real estate in the known universe - a box canyon in the middle of nowhere.',
-            'title': 'Red vs. Blue',
-        },
-        'playlist_count': 24
-    }, {
         'url': 'http://roosterteeth.com/show/red-vs-blue',
         'info_dict': {
             'id': 'red-vs-blue',
@@ -45,12 +37,6 @@ class RoosterteethShowIE(InfoExtractor):
     }]
     
     def _real_extract(self, url):
-        ep_filter = {}
-
-        if '#;' in url:
-            url, params = url.split('#;')
-            ep_filter = compat_parse_qs(params)
-
         playlist_id = self._match_id(url)
         html = self._download_webpage(url, playlist_id)
 
@@ -105,34 +91,18 @@ class RoosterteethShowIE(InfoExtractor):
                     raise ExtractorError("Failed to parse an episode of season %s! (%s, %s)" % (sec_title or '0', playlist_id, ep_part))
 
                 url = clean_html(ep.group('url'))
-                if sec_title:
-                    # Pass the season title to the video extractor.
-                    url += '#;' + compat_urllib_parse.urlencode({'season': sec_title})
-                    res = self.url_result(url, 'Roosterteeth')
-                    res['season'] = sec_title
-                else:
-                    res = self.url_result(url, 'Roosterteeth')
+                res = self.url_result(url, 'Roosterteeth')
 
-                if self._match_filter(res, ep_filter):
-                    results.append(res)
+                if sec_title:
+                    res['season'] = sec_title
+
+                results.append(res)
 
         if len(sections) == 1 and sections[0][0] is None:
             # If the page didn't contain sections, then the episodes are in reverse order.
             results = list(reversed(results))
 
         return self.playlist_result(results, playlist_id, title, description)
-
-    def _match_filter(self, item, filter_rules):
-        for k, v in filter_rules.items():
-            if isinstance(v, list) and len(v) > 1:
-                # A list of acceptable values
-                if item.get(k) not in v:
-                    return False
-            else:
-                if not re.match(v[0], item.get(k)):
-                    return False
-
-        return True
 
 
 class RoosterteethIE(InfoExtractor):
@@ -182,12 +152,6 @@ class RoosterteethIE(InfoExtractor):
         self._authed = {}
 
     def _real_extract(self, url):
-        if '#;' in url:
-            url, params = url.split('#;')
-            params = compat_parse_qs(params)
-        else:
-            params = {}
-
         video_id = self._match_id(url)
         html = self._download_webpage(url, video_id)
 
@@ -210,7 +174,7 @@ class RoosterteethIE(InfoExtractor):
                 else:
                     raise ExtractorError('This is a sponsor-only video and although I tried to login, it did not work.')
 
-        js = self._html_search_regex(r'<script src="https?://roosterteeth\.com/scripts/lib/(?:jwplayer|youtube)\.min\.js"></script>\s*<script>\s*([^<]+)\s*</script>', html, 'video info')
+        js = self._html_search_regex(r'<script src="https?://(?:roosterteeth\.com|achievementhunter\.com|fun\.haus)/scripts/lib/(?:jwplayer|youtube)\.min\.js"></script>\s*<script>\s*([^<]+)\s*</script>', html, 'video info')
         info = re.search(r'RT\.(?P<player>youtube|jwplayer)\.player\((?P<json>\{(?:[^}]|\}(?!\);))+\})\);', js)
         if not info:
             raise ExtractorError("Can't parse the video metadata! (%s)" % js)
@@ -243,13 +207,10 @@ class RoosterteethIE(InfoExtractor):
         else:
             raise ExtractorError('Unknown player type %s!' % player)
 
-        if 'season' in params:
-            res['season'] = params['season'][0]
-
         desc = self._og_search_description(html)
         if desc:
             res['description'] = desc.strip()
-        
+
         return res
 
     def _login(self, domain='roosterteeth.com'):
