@@ -442,7 +442,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'id': 'nfWlot6h_JM',
                 'ext': 'm4a',
                 'title': 'Taylor Swift - Shake It Off',
-                'description': 'md5:2acfda1b285bdd478ccec22f9918199d',
+                'description': 'md5:95f66187cd7c8b2c13eb78e1223b63c3',
                 'uploader': 'TaylorSwiftVEVO',
                 'uploader_id': 'TaylorSwiftVEVO',
                 'upload_date': '20140818',
@@ -515,7 +515,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'info_dict': {
                 'id': 'lqQg6PlCWgI',
                 'ext': 'mp4',
-                'upload_date': '20120731',
+                'upload_date': '20120724',
                 'uploader_id': 'olympic',
                 'description': 'HO09  - Women -  GER-AUS - Hockey - 31 July 2012 - London 2012 Olympic Games',
                 'uploader': 'Olympics',
@@ -544,7 +544,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'qEJwOuvDf7I',
             'info_dict': {
                 'id': 'qEJwOuvDf7I',
-                'ext': 'mp4',
+                'ext': 'webm',
                 'title': 'Обсуждение судебной практики по выборам 14 сентября 2014 года в Санкт-Петербурге',
                 'description': '',
                 'upload_date': '20150404',
