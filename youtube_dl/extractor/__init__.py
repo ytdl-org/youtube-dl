@@ -498,6 +498,10 @@ from .restudy import RestudyIE
 from .reverbnation import ReverbNationIE
 from .ringtv import RingTVIE
 from .ro220 import Ro220IE
+from .roosterteeth import (
+    RoosterteethIE,
+    RoosterteethShowIE
+)
 from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtbf import RTBFIE
