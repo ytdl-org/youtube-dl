@@ -120,9 +120,9 @@ class RoosterteethIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Rage Quit - No Time to Explain',
                 'description': 'There\'s no time to explain this video.',
-                'thumbnail': r're:^http://s3\.amazonaws\.com/cdn\.roosterteeth\.com/uploads/images/[a-f0-9-]+/md/[a-z0-9-]+\.jpeg$',
+                'thumbnail': r're:^https?://.*\.jpeg$',
                 'protocol': 'm3u8_native',
-                'url': r're:^http://[a-zA-Z0-9.]+\.taucdn\.net/[0-9a-zA-Z]+/video/uploads/videos/[0-9a-f-]+/[0-9A-Z]+\.m3u8$',
+                'url': r're:^https?://[a-zA-Z0-9.]+\.taucdn\.net/.*\.m3u8$',
             }
         },
         {
