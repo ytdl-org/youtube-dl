@@ -7,10 +7,6 @@ from .common import InfoExtractor
 class RTVNHIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?rtvnh\.nl/video/(?P<id>[0-9]+)'
     _TEST = {
-        'params': {
-            'hls_prefer_native': True
-        },
-
         'url': 'http://www.rtvnh.nl/video/131946',
         'md5': '6e1d0ab079e2a00b6161442d3ceacfc1',
         'info_dict': {
@@ -28,7 +24,7 @@ class RTVNHIE(InfoExtractor):
 
         for item in meta['source']['fb']:
             if item.get('type') == 'hls':
-                formats.extend(self._extract_m3u8_formats(item['file'], video_id, ext='mp4'))
+                formats.extend(self._extract_m3u8_formats(item['file'], video_id, ext='mp4', entry_protocol='m3u8_native'))
             elif item.get('type') == '':
                 formats.append({'url': item['file']})
         
