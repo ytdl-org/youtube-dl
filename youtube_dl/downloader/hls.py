@@ -27,9 +27,12 @@ class HlsFD(FileDownloader):
             return False
         ffpp.check_version()
 
+        headers = ''
+        for key, val in info_dict['http_headers'].items():
+            headers += '%s: %s\r\n' % (key, val)
         args = [
             encodeArgument(opt)
-            for opt in (ffpp.executable, '-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
+            for opt in (ffpp.executable, '-y', '-headers', headers, '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
         args.append(encodeFilename(tmpfilename, True))
 
         retval = subprocess.call(args)

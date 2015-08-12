@@ -9,12 +9,16 @@ class CBSSportsIE(InfoExtractor):
     _VALID_URL = r'http://www\.cbssports\.com/video/player/(?P<section>[^/]+)/(?P<id>[^/]+)'
 
     _TEST = {
-        'url': 'http://www.cbssports.com/video/player/tennis/318462531970/0/us-open-flashbacks-1990s',
+        'url': 'http://www.cbssports.com/video/player/tennis/482755139719/0/serena-williams-wins-2015-wimbledon-championship',
         'info_dict': {
-            'id': '_d5_GbO8p1sT',
+            'id': 'GQGZp_4tBqW6',
             'ext': 'flv',
-            'title': 'US Open flashbacks: 1990s',
-            'description': 'Bill Macatee relives the best moments in US Open history from the 1990s.',
+            'title': 'Serena Williams wins 2015 Wimbledon Championship',
+            'description': 'Serena Williams completed the Serena Slam on Saturday and now holds all four major titles. Jamie Erdahl has the latest on what the win means for Serena.',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
         },
     }
 

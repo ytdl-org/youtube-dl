@@ -29,14 +29,15 @@ class CNETIE(InfoExtractor):
         'url': 'http://www.cnet.com/videos/whiny-pothole-tweets-at-local-government-when-hit-by-cars-tomorrow-daily-187/',
         'info_dict': {
             'id': '56527b93-d25d-44e3-b738-f989ce2e49ba',
-            'ext': 'flv',
+            'ext': 'm3u8',
             'description': 'Khail and Ashley wonder what other civic woes can be solved by self-tweeting objects, investigate a new kind of VR camera and watch an origami robot self-assemble, walk, climb, dig and dissolve. #TDPothole',
             'uploader_id': 'b163284d-6b73-44fc-b3e6-3da66c392d40',
             'uploader': 'Ashley Esqueda',
             'title': 'Whiny potholes tweet at local government when hit by cars (Tomorrow Daily 187)',
         },
         'params': {
-            'skip_download': True,  # requires rtmpdump
+            # m3u8 download
+            'skip_download': True,
         },
     }]
 

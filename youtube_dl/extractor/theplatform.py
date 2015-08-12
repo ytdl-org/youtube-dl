@@ -60,10 +60,14 @@ class ThePlatformIE(InfoExtractor):
         'url': 'https://player.theplatform.com/p/D6x-PC/pulse_preview/embed/select/media/yMBg9E8KFxZD',
         'info_dict': {
             'id': 'yMBg9E8KFxZD',
-            'ext': 'mp4',
+            'ext': 'm3u8',
             'description': 'md5:644ad9188d655b742f942bf2e06b002d',
             'title': 'HIGHLIGHTS: USA bag first ever series Cup win',
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         'url': 'http://player.theplatform.com/p/NnzsPC/widget/select/media/4Y0TlYUr_ZT7',
         'only_matching': True,
@@ -108,9 +112,9 @@ class ThePlatformIE(InfoExtractor):
             config_url = config_url.replace('swf/', 'config/')
             config_url = config_url.replace('onsite/', 'onsite/config/')
             config = self._download_json(config_url, video_id, 'Downloading config')
-            smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4&manifest=f4m'
+            smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4&manifest=m3u'
         else:
-            smil_url = 'http://link.theplatform.com/s/%s/meta.smil?format=smil&mbr=true' % path
+            smil_url = 'http://link.theplatform.com/s/%s/meta.smil?format=smil&mbr=true&manifest=m3u' % path
 
         sig = smuggled_data.get('sig')
         if sig:
@@ -144,19 +148,21 @@ class ThePlatformIE(InfoExtractor):
         head = meta.find(_x('smil:head'))
         body = meta.find(_x('smil:body'))
 
-        f4m_node = body.find(_x('smil:seq//smil:video'))
-        if f4m_node is None:
-            f4m_node = body.find(_x('smil:seq/smil:video'))
-        if f4m_node is not None and '.f4m' in f4m_node.attrib['src']:
-            f4m_url = f4m_node.attrib['src']
+        formats = []
+        node = body.find(_x('smil:seq//smil:video'))
+        if node is None:
+            node = body.find(_x('smil:seq/smil:video'))
+        if node is not None and '.m3u8' in node.attrib['src']:
+            formats.extend(self._extract_m3u8_formats(node.attrib['src'], video_id))
+        elif node is not None and '.f4m' in node.attrib['src']:
+            f4m_url = node.attrib['src']
             if 'manifest.f4m?' not in f4m_url:
                 f4m_url += '?'
             # the parameters are from syfy.com, other sites may use others,
             # they also work for nbc.com
             f4m_url += '&g=UXWGVKRWHFSP&hdcore=3.0.3'
-            formats = self._extract_f4m_formats(f4m_url, video_id)
+            formats.extend(self._extract_f4m_formats(f4m_url, video_id))
         else:
-            formats = []
             switch = body.find(_x('smil:switch'))
             if switch is None:
                 switch = body.find(_x('smil:par//smil:switch'))

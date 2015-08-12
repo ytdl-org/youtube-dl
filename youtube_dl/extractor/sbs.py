@@ -15,11 +15,15 @@ class SBSIE(InfoExtractor):
         'md5': '3150cf278965eeabb5b4cea1c963fe0a',
         'info_dict': {
             'id': '320403011771',
-            'ext': 'mp4',
+            'ext': 'm3u8',
             'title': 'Dingo Conservation (The Feed)',
             'description': 'md5:f250a9856fca50d22dec0b5b8015f8a5',
             'thumbnail': 're:http://.*\.jpg',
             'duration': 308,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
     }, {
         'url': 'http://www.sbs.com.au/ondemand/video/320403011771/Dingo-Conservation-The-Feed',
