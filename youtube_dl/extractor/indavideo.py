@@ -44,7 +44,6 @@ class IndavideoEmbedIE(InfoExtractor):
             'http://amfphp.indavideo.hu/SYm0json.php/player.playerHandler.getVideoData/%s' % video_id,
             video_id)['data']
 
-        video_id = video['id']
         title = video['title']
 
         video_urls = video.get('video_files', [])
@@ -78,7 +77,7 @@ class IndavideoEmbedIE(InfoExtractor):
         tags = [tag['title'] for tag in video.get('tags', [])]
 
         return {
-            'id': video_id,
+            'id': video.get('id') or video_id,
             'title': title,
             'description': video.get('description'),
             'thumbnails': thumbnails,
@@ -93,8 +92,8 @@ class IndavideoEmbedIE(InfoExtractor):
 
 
 class IndavideoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?indavideo\.hu/video/(?P<id>[^/#?]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:.+?\.)?indavideo\.hu/video/(?P<id>[^/#?]+)'
+    _TESTS = [{
         'url': 'http://indavideo.hu/video/Vicces_cica_1',
         'md5': '8c82244ba85d2a2310275b318eb51eac',
         'info_dict': {
@@ -112,7 +111,22 @@ class IndavideoIE(InfoExtractor):
             'age_limit': 0,
             'tags': ['vicces', 'macska', 'cica', 'ügyes', 'nevetés', 'játszik', 'Cukiság', 'Jet_Pack'],
         },
-    }
+    }, {
+        'url': 'http://index.indavideo.hu/video/2015_0728_beregszasz',
+        'only_matching': True,
+    }, {
+        'url': 'http://auto.indavideo.hu/video/Sajat_utanfutoban_a_kis_tacsko',
+        'only_matching': True,
+    }, {
+        'url': 'http://erotika.indavideo.hu/video/Amator_tini_punci',
+        'only_matching': True,
+    }, {
+        'url': 'http://film.indavideo.hu/video/f_hrom_nagymamm_volt',
+        'only_matching': True,
+    }, {
+        'url': 'http://palyazat.indavideo.hu/video/Embertelen_dal_Dodgem_egyuttes',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
