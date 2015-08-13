@@ -108,7 +108,11 @@ class ThePlatformIE(InfoExtractor):
             config_url = config_url.replace('swf/', 'config/')
             config_url = config_url.replace('onsite/', 'onsite/config/')
             config = self._download_json(config_url, video_id, 'Downloading config')
-            smil_url = config['releaseUrl'] + '&format=SMIL&formats=MPEG4&manifest=f4m'
+            if 'releaseUrl' in config:
+                release_url = config['releaseUrl']
+            else:
+                release_url = 'http://link.theplatform.com/s/%s?mbr=true' % path
+            smil_url = release_url + '&format=SMIL&formats=MPEG4&manifest=f4m'
         else:
             smil_url = 'http://link.theplatform.com/s/%s/meta.smil?format=smil&mbr=true' % path
 
