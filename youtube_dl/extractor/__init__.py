@@ -242,7 +242,10 @@ from .imdb import (
 )
 from .imgur import ImgurIE
 from .ina import InaIE
-from .indavideo import IndavideoIE
+from .indavideo import (
+    IndavideoIE,
+    IndavideoEmbedIE,
+)
 from .infoq import InfoQIE
 from .instagram import InstagramIE, InstagramUserIE
 from .internetvideoarchive import InternetVideoArchiveIE
