@@ -335,6 +335,7 @@ from .motorsport import MotorsportIE
 from .movieclips import MovieClipsIE
 from .moviezine import MoviezineIE
 from .movshare import MovShareIE
+from .msnbc import MSNBCIE
 from .mtv import (
     MTVIE,
     MTVServicesEmbeddedIE,
