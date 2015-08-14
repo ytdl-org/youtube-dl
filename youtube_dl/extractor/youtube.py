@@ -46,7 +46,7 @@ from ..utils import (
 class YoutubeBaseInfoExtractor(InfoExtractor):
     """Provide base functions for Youtube extractors"""
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
-    _TWOFACTOR_URL = 'https://accounts.google.com/SecondFactor'
+    _TWOFACTOR_URL = 'https://accounts.google.com/signin/challenge'
     _NETRC_MACHINE = 'youtube'
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
@@ -128,7 +128,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         # Two-Factor
         # TODO add SMS and phone call support - these require making a request and then prompting the user
 
-        if re.search(r'(?i)<form[^>]* id="gaia_secondfactorform"', login_results) is not None:
+        if re.search(r'(?i)<form[^>]* id="challenge"', login_results) is not None:
             tfa_code = self._get_tfa_info()
 
             if tfa_code is None:
@@ -136,31 +136,27 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 self._downloader.report_warning('(Note that only TOTP (Google Authenticator App) codes work at this time.)')
                 return False
 
-            # Unlike the first login form, secTok and timeStmp are both required for the TFA form
+            def find_value(element_id):
+                match = re.search(r'id="%s"\s+value="(.+?)">' % element_id, login_results, re.M | re.U)
+                if match is None:
+                    self._downloader.report_warning('Failed to get %s - did the page structure change?' % id)
+                return match.group(1)
 
-            match = re.search(r'id="secTok"\n\s+value=\'(.+)\'/>', login_results, re.M | re.U)
-            if match is None:
-                self._downloader.report_warning('Failed to get secTok - did the page structure change?')
-            secTok = match.group(1)
-            match = re.search(r'id="timeStmp"\n\s+value=\'(.+)\'/>', login_results, re.M | re.U)
-            if match is None:
-                self._downloader.report_warning('Failed to get timeStmp - did the page structure change?')
-            timeStmp = match.group(1)
+            challengeId = find_value('challengeId')
+            challengeType = find_value('challengeType')
+            gxf = find_value('gxf')
 
             tfa_form_strs = {
+                'challengeId': challengeId,
+                'challengeType': challengeType,  # This doesn't appear to change
                 'continue': 'https://www.youtube.com/signin?action_handle_signin=true&feature=sign_in_button&hl=en_US&nomobiletemp=1',
-                'smsToken': '',
-                'smsUserPin': tfa_code,
-                'smsVerifyPin': 'Verify',
-
-                'PersistentCookie': 'yes',
-                'checkConnection': '',
-                'checkedDomains': 'youtube',
-                'pstMsg': '1',
-                'secTok': secTok,
-                'timeStmp': timeStmp,
                 'service': 'youtube',
                 'hl': 'en_US',
+                'checkedDomains': 'youtube',
+                'pstMsg': '0',
+                'gxf': gxf,
+                'Pin': tfa_code,
+                'TrustDevice': 'on',
             }
             tfa_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k, v in tfa_form_strs.items())
             tfa_data = compat_urllib_parse.urlencode(tfa_form).encode('ascii')
@@ -173,7 +169,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             if tfa_results is False:
                 return False
 
-            if re.search(r'(?i)<form[^>]* id="gaia_secondfactorform"', tfa_results) is not None:
+            if re.search(r'(?i)<form[^>]* id="challenge"', tfa_results) is not None:
                 self._downloader.report_warning('Two-factor code expired. Please try again, or use a one-use backup code instead.')
                 return False
             if re.search(r'(?i)<form[^>]* id="gaia_loginform"', tfa_results) is not None:
