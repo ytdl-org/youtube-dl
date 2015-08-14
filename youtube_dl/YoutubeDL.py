@@ -17,6 +17,7 @@ import os
 import platform
 import re
 import shutil
+import string
 import subprocess
 import socket
 import sys
@@ -570,7 +571,7 @@ class YoutubeDL(object):
             tmpl = compat_expanduser(outtmpl)
             # Backwards compatibility fix (deprecated): %(foo)s -> {foo}, %% -> %
             tmpl = re.sub(r'(?<!%)((?:%)*)\1%\(([^)]*)\)s', r'\1{\2}', tmpl).replace('%%','%')
-            filename = sanitize_path(tmpl.format(**template_dict))
+            filename = sanitize_path(string.Formatter().vformat(tmpl, None, template_dict))
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
             # to workaround encoding issues with subprocess on python2 @ Windows
