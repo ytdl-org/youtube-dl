@@ -32,6 +32,8 @@ class HlsFD(FileDownloader):
             for opt in (ffpp.executable, '-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
         args.append(encodeFilename(tmpfilename, True))
 
+        self._debug_cmd(args)
+
         retval = subprocess.call(args)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))

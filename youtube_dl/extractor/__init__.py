@@ -242,6 +242,10 @@ from .imdb import (
 )
 from .imgur import ImgurIE
 from .ina import InaIE
+from .indavideo import (
+    IndavideoIE,
+    IndavideoEmbedIE,
+)
 from .infoq import InfoQIE
 from .instagram import InstagramIE, InstagramUserIE
 from .internetvideoarchive import InternetVideoArchiveIE
@@ -491,6 +495,7 @@ from .rtl2 import RTL2IE
 from .rtp import RTPIE
 from .rts import RTSIE
 from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE
+from .rtvnh import RTVNHIE
 from .ruhd import RUHDIE
 from .rutube import (
     RutubeIE,

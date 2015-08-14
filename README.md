@@ -272,6 +272,7 @@ The `-o` option allows users to indicate a template for the output file names. T
  - `autonumber`: The sequence will be replaced by a five-digit number that will be increased with each download, starting at zero.
  - `playlist`: The name or the id of the playlist that contains the video.
  - `playlist_index`: The index of the video in the playlist, a five-digit number.
+ - `format_id`: The sequence will be replaced by the format code specified by `--format`.
 
 The current default template is `%(title)s-%(id)s.%(ext)s`.
 
