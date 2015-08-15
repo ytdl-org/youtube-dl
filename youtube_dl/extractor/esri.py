@@ -12,7 +12,7 @@ from ..utils import (
 )
 
 
-class VideoEsriIE(InfoExtractor):
+class EsriVideoIE(InfoExtractor):
     _VALID_URL = r'https?://video\.esri\.com/watch/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'https://video.esri.com/watch/1124/arcgis-online-_dash_-developing-applications',
