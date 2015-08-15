@@ -15,6 +15,7 @@ import xml.etree.ElementTree
 from ..compat import (
     compat_cookiejar,
     compat_cookies,
+    compat_getpass,
     compat_HTTPError,
     compat_http_client,
     compat_urllib_error,
@@ -610,7 +611,7 @@ class InfoExtractor(object):
 
         return (username, password)
 
-    def _get_tfa_info(self):
+    def _get_tfa_info(self, note='two-factor verification code'):
         """
         Get the two-factor authentication info
         TODO - asking the user will be required for sms/phone verify
@@ -624,7 +625,7 @@ class InfoExtractor(object):
         if downloader_params.get('twofactor', None) is not None:
             return downloader_params['twofactor']
 
-        return None
+        return compat_getpass('Type %s and press [Return]: ' % note)
 
     # Helper functions for extracting OpenGraph info
     @staticmethod
