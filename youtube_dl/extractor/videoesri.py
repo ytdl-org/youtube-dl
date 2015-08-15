@@ -1,90 +1,74 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import os
 import re
 
 from .common import InfoExtractor
-
+from ..compat import compat_urlparse
 from ..utils import (
-    unified_strdate
+    int_or_none,
+    parse_filesize,
+    unified_strdate,
 )
 
 
 class VideoEsriIE(InfoExtractor):
     _VALID_URL = r'https?://video\.esri\.com/watch/(?P<id>[0-9]+)'
     _TEST = {
-        'url': 'https://video.esri.com/watch/4228',
-        'md5': '170b4d513c2466ed483c150a48384133',
+        'url': 'https://video.esri.com/watch/1124/arcgis-online-_dash_-developing-applications',
+        'md5': 'd4aaf1408b221f1b38227a9bbaeb95bc',
         'info_dict': {
-            'id': '4228',
+            'id': '1124',
             'ext': 'mp4',
-            'title': 'AppStudio for ArcGIS',
+            'title': 'ArcGIS Online - Developing Applications',
+            'description': 'Jeremy Bartley demonstrates how to develop applications with ArcGIS Online.',
             'thumbnail': 're:^https?://.*\.jpg$',
-            'upload_date': '20150310',
+            'duration': 185,
+            'upload_date': '20120419',
         }
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(r'<h1>(.*?)</h1>', webpage, 'title')
-
-        upload_date_raw = self._search_regex(
-            r'http-equiv="last-modified" content="(.*)"',
-            webpage, 'upload date')
-        upload_date = unified_strdate(upload_date_raw)
-
-        settings_info = self._search_regex(
-            r'evPlayerSettings = {(.*?);\s*$',
-            webpage, 'settings info', flags=re.MULTILINE | re.DOTALL)
-
-        # thumbnail includes '_x' for large, also has {_m,_t,_s} or
-        # without size suffix returns full image
-        thumbnail_path = re.findall(
-            r'image\': \'(\/thumbs.*)\'',
-            settings_info)[0]
-
-        if thumbnail_path:
-            thumbnail = '/'.join(['http://video.esri.com', thumbnail_path])
-
-        # note that this misses the (exceedly rare) webm files
-        video_paths = re.findall(r'mp4:(.*)\'', settings_info)
-
-        # find possible http servers of the mp4 files (also has rtsp)
-        base_url = re.findall(
-            r'netstreambasepath\':\s\'(h.*)\'', settings_info)[0]
-
-        # these are the numbers used internally, but really map
-        # to other resolutions, e.g. 960 is 720p.
-        heights = [480, 720, 960]
-        videos_by_res = {}
-        for video_path in video_paths:
-            url = "{base_url}{video_path}".format(
-                base_url=base_url,
-                video_path=video_path)
-            filename, ext = os.path.splitext(video_path)
-            height_label = int(filename.split('_')[1])
-            videos_by_res[height_label] = {
-                'url': url,
-                'ext': ext[1:],
-                'protocol': 'http',  # http-only supported currently
-            }
-
         formats = []
-        for height in heights:
-            if height in videos_by_res:
-                formats.append(videos_by_res[height])
+        for width, height, content in re.findall(
+                r'(?s)<li><strong>(\d+)x(\d+):</strong>(.+?)</li>', webpage):
+            for video_url, ext, filesize in re.findall(
+                    r'<a[^>]+href="([^"]+)">([^<]+)&nbsp;\(([^<]+)\)</a>', content):
+                formats.append({
+                    'url': compat_urlparse.urljoin(url, video_url),
+                    'ext': ext.lower(),
+                    'format_id': '%s-%s' % (ext.lower(), height),
+                    'width': int(width),
+                    'height': int(height),
+                    'filesize_approx': parse_filesize(filesize),
+                })
+        self._sort_formats(formats)
 
-        result = {
+        title = self._html_search_meta('title', webpage, 'title')
+        description = self._html_search_meta(
+            'description', webpage, 'description', fatal=False)
+
+        thumbnail = self._html_search_meta('thumbnail', webpage, 'thumbnail', fatal=False)
+        if thumbnail:
+            thumbnail = re.sub(r'_[st]\.jpg$', '_x.jpg', thumbnail)
+
+        duration = int_or_none(self._search_regex(
+            [r'var\s+videoSeconds\s*=\s*(\d+)', r"'duration'\s*:\s*(\d+)"],
+            webpage, 'duration', fatal=False))
+
+        upload_date = unified_strdate(self._html_search_meta(
+            'last-modified', webpage, 'upload date', fatal=None))
+
+        return {
             'id': video_id,
             'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'duration': duration,
             'upload_date': upload_date,
-            'formats': formats,
+            'formats': formats
         }
-
-        if thumbnail:
-            result['thumbnail'] = thumbnail
-
-        return result
