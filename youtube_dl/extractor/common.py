@@ -724,16 +724,18 @@ class InfoExtractor(object):
 
     @staticmethod
     def _hidden_inputs(html):
-        return dict([
-            (input.group('name'), input.group('value')) for input in re.finditer(
-                r'''(?x)
-                    <input\s+
-                        type=(?P<q_hidden>["\'])hidden(?P=q_hidden)\s+
-                        name=(?P<q_name>["\'])(?P<name>.+?)(?P=q_name)\s+
-                        (?:id=(?P<q_id>["\']).+?(?P=q_id)\s+)?
-                        value=(?P<q_value>["\'])(?P<value>.*?)(?P=q_value)
-                ''', html)
-        ])
+        hidden_inputs = {}
+        for input in re.findall(r'<input([^>]+)>', html):
+            if not re.search(r'type=(["\'])hidden\1', input):
+                continue
+            name = re.search(r'name=(["\'])(?P<value>.+?)\1', input)
+            if not name:
+                continue
+            value = re.search(r'value=(["\'])(?P<value>.*?)\1', input)
+            if not value:
+                continue
+            hidden_inputs[name.group('value')] = value.group('value')
+        return hidden_inputs
 
     def _form_hidden_inputs(self, form_id, html):
         form = self._search_regex(
