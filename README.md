@@ -236,7 +236,14 @@ which means you can modify it, redistribute it or use it however you like.
 
 # CONFIGURATION
 
-You can configure youtube-dl by placing default arguments (such as `--extract-audio --no-mtime` to always extract the audio and not copy the mtime) into `/etc/youtube-dl.conf` and/or `~/.config/youtube-dl/config`. On Windows, the configuration file locations are `%APPDATA%\youtube-dl\config.txt` and `C:\Users\<user name>\youtube-dl.conf`.
+You can configure youtube-dl by placing any supported command line option to a configuration file. On Linux, system wide configuration file is located at `/etc/youtube-dl.conf` and user wide configuration file at `~/.config/youtube-dl/config`. On Windows, the user wide configuration file locations are `%APPDATA%\youtube-dl\config.txt` or `C:\Users\<user name>\youtube-dl.conf`. For example, with the following configration file youtube-dl will always extract the audio, not copy the mtime and use proxy:
+```
+--extract-audio
+--no-mtime
+--proxy 127.0.0.1:3128
+```
+
+You can use `--ignore-config` if you want to disable configuration file for a particular youtube-dl run.
 
 ### Authentication with `.netrc` file ###
 
