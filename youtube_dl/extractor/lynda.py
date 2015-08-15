@@ -11,6 +11,7 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    clean_html,
     int_or_none,
 )
 
@@ -70,6 +71,15 @@ class LyndaBaseIE(InfoExtractor):
                     'Confirming log in and log out from another device')
 
         if all(not re.search(p, login_page) for p in ('isLoggedIn\s*:\s*true', r'logout\.aspx', r'>Log out<')):
+            if 'login error' in login_page:
+                mobj = re.search(
+                    r'(?s)<h1[^>]+class="topmost">(?P<title>[^<]+)</h1>\s*<div>(?P<description>.+?)</div>',
+                    login_page)
+                if mobj:
+                    raise ExtractorError(
+                        'lynda returned error: %s - %s'
+                        % (mobj.group('title'), clean_html(mobj.group('description'))),
+                        expected=True)
             raise ExtractorError('Unable to log in')
 
 
