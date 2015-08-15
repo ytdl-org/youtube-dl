@@ -245,6 +245,8 @@ You can configure youtube-dl by placing any supported command line option to a c
 
 You can use `--ignore-config` if you want to disable configuration file for a particular youtube-dl run.
 
+The default arguments are to be written like on the command line, esp. with the (double-) dashes in front.
+
 ### Authentication with `.netrc` file ###
 
 You may also want to configure automatic credentials storage for extractors that support authentication (by providing login and password with `--username` and `--password`) in order not to pass credentials as command line arguments on every youtube-dl execution and prevent tracking plain text passwords in shell command history. You can achieve this using [`.netrc` file](http://stackoverflow.com/tags/.netrc/info) on per extractor basis. For that you will need to create `.netrc` file in your `$HOME` and restrict permissions to read/write by you only:
