@@ -150,6 +150,7 @@
  - **EroProfile**
  - **Escapist**
  - **ESPN** (Currently broken)
+ - **EsriVideo**
  - **EveryonesMixtape**
  - **exfm**: ex.fm
  - **ExpoTV**
@@ -220,6 +221,8 @@
  - **imdb:list**: Internet Movie Database lists
  - **Imgur**
  - **Ina**
+ - **Indavideo**
+ - **IndavideoEmbed**
  - **InfoQ**
  - **Instagram**
  - **instagram:user**: Instagram user profile
@@ -386,6 +389,7 @@
  - **PlanetaPlay**
  - **play.fm**
  - **played.to**
+ - **Playtvak**: Playtvak.cz, iDNES.cz and Lidovky.cz
  - **Playvid**
  - **Playwire**
  - **plus.google**: Google Plus
@@ -432,6 +436,7 @@
  - **rtve.es:alacarta**: RTVE a la carta
  - **rtve.es:infantil**: RTVE infantil
  - **rtve.es:live**: RTVE.es live streams
+ - **RTVNH**
  - **RUHD**
  - **rutube**: Rutube videos
  - **rutube:channel**: Rutube channels
@@ -455,6 +460,7 @@
  - **ServingSys**
  - **Sexu**
  - **SexyKarma**: Sexy Karma and Watch Indian Porn
+ - **Shahid**
  - **Shared**
  - **ShareSix**
  - **Sina**
