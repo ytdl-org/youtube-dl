@@ -33,6 +33,7 @@ from ..utils import (
     int_or_none,
     orderedSet,
     parse_duration,
+    remove_start,
     smuggle_url,
     str_to_int,
     unescapeHTML,
@@ -129,35 +130,23 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         # TODO add SMS and phone call support - these require making a request and then prompting the user
 
         if re.search(r'(?i)<form[^>]* id="challenge"', login_results) is not None:
-            tfa_code = self._get_tfa_info()
+            tfa_code = self._get_tfa_info('2-step verification code')
 
-            if tfa_code is None:
-                self._downloader.report_warning('Two-factor authentication required. Provide it with --twofactor <code>')
-                self._downloader.report_warning('(Note that only TOTP (Google Authenticator App) codes work at this time.)')
+            if not tfa_code:
+                self._downloader.report_warning(
+                    'Two-factor authentication required. Provide it either interactively or with --twofactor <code>'
+                    '(Note that only TOTP (Google Authenticator App) codes work at this time.)')
                 return False
 
-            def find_value(element_id):
-                match = re.search(r'id="%s"\s+value="(.+?)">' % element_id, login_results, re.M | re.U)
-                if match is None:
-                    self._downloader.report_warning('Failed to get %s - did the page structure change?' % id)
-                return match.group(1)
+            tfa_code = remove_start(tfa_code, 'G-')
 
-            challengeId = find_value('challengeId')
-            challengeType = find_value('challengeType')
-            gxf = find_value('gxf')
+            tfa_form_strs = self._form_hidden_inputs('challenge', login_results)
 
-            tfa_form_strs = {
-                'challengeId': challengeId,
-                'challengeType': challengeType,  # This doesn't appear to change
-                'continue': 'https://www.youtube.com/signin?action_handle_signin=true&feature=sign_in_button&hl=en_US&nomobiletemp=1',
-                'service': 'youtube',
-                'hl': 'en_US',
-                'checkedDomains': 'youtube',
-                'pstMsg': '0',
-                'gxf': gxf,
+            tfa_form_strs.update({
                 'Pin': tfa_code,
                 'TrustDevice': 'on',
-            }
+            })
+
             tfa_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k, v in tfa_form_strs.items())
             tfa_data = compat_urllib_parse.urlencode(tfa_form).encode('ascii')
 
@@ -170,7 +159,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 return False
 
             if re.search(r'(?i)<form[^>]* id="challenge"', tfa_results) is not None:
-                self._downloader.report_warning('Two-factor code expired. Please try again, or use a one-use backup code instead.')
+                self._downloader.report_warning('Two-factor code expired or invalid. Please try again, or use a one-use backup code instead.')
                 return False
             if re.search(r'(?i)<form[^>]* id="gaia_loginform"', tfa_results) is not None:
                 self._downloader.report_warning('unable to log in - did the page structure change?')
