@@ -158,6 +158,7 @@ from .eporner import EpornerIE
 from .eroprofile import EroProfileIE
 from .escapist import EscapistIE
 from .espn import ESPNIE
+from .esri import EsriVideoIE
 from .everyonesmixtape import EveryonesMixtapeIE
 from .exfm import ExfmIE
 from .expotv import ExpoTVIE
@@ -695,7 +696,6 @@ from .vice import ViceIE
 from .viddler import ViddlerIE
 from .videobam import VideoBamIE
 from .videodetective import VideoDetectiveIE
-from .esri import EsriVideoIE
 from .videolecturesnet import VideoLecturesNetIE
 from .videofyme import VideofyMeIE
 from .videomega import VideoMegaIE
