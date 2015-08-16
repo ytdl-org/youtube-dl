@@ -1,6 +1,8 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -35,15 +37,18 @@ class ScreenwaveMediaIE(InfoExtractor):
 
         sources = self._parse_json(
             js_to_json(
-                self._search_regex(
-                    r"sources\s*:\s*(\[[^\]]+?\])", playerconfig,
-                    'sources',
-                ).replace(
-                    "' + thisObj.options.videoserver + '",
-                    videoserver
-                ).replace(
-                    "' + playerVidId + '",
-                    video_id
+                re.sub(
+                    r'(?s)/\*.*?\*/', '',
+                    self._search_regex(
+                        r"sources\s*:\s*(\[[^\]]+?\])", playerconfig,
+                        'sources',
+                    ).replace(
+                        "' + thisObj.options.videoserver + '",
+                        videoserver
+                    ).replace(
+                        "' + playerVidId + '",
+                        video_id
+                    )
                 )
             ),
             video_id
