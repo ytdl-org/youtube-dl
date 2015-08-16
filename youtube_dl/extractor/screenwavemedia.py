@@ -51,19 +51,38 @@ class ScreenwaveMediaIE(InfoExtractor):
                     )
                 )
             ),
-            video_id
+            video_id, fatal=False
         )
+
+        # Fallback to hardcoded sources if JS changes again
+        if not sources:
+            sources = [{
+                'file': 'http://%s/vod/%s_%s.mp4' % (videoserver, video_id, format_id),
+                'type': 'mp4',
+                'label': format_label,
+            } for format_id, format_label in (
+                ('low', '144p Low'), ('med', '160p Med'), ('high', '360p High'), ('hd1', '720p HD1'))]
+            sources.append({
+                'file': 'http://%s/vod/smil:%s.smil/playlist.m3u8' % (videoserver, video_id),
+                'type': 'hls',
+            })
 
         formats = []
         for source in sources:
             if source['type'] == 'hls':
                 formats.extend(self._extract_m3u8_formats(source['file'], video_id))
             else:
+                file_ = source.get('file')
+                if not file_:
+                    continue
                 format_label = source.get('label')
+                format_id = self._search_regex(
+                    r'_(.+?)\.[^.]+$', file_, 'format id', default=None)
                 height = int_or_none(self._search_regex(
                     r'^(\d+)[pP]', format_label, 'height', default=None))
                 formats.append({
                     'url': source['file'],
+                    'format_id': format_id,
                     'format': format_label,
                     'ext': source.get('type'),
                     'height': height,
