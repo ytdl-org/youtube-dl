@@ -71,6 +71,19 @@ class PlaytvakIE(InfoExtractor):
             'upload_date': '20150808',
             'is_live': False,
         }
+    }, {  # metro.cz
+        'url': 'http://www.metro.cz/video-pod-billboardem-se-na-vltavske-roztocil-kolotoc-deti-vozil-jen-par-hodin-1hx-/metro-extra.aspx?c=A141111_173251_metro-extra_row',
+        'md5': '84fc1deedcac37b7d4a6ccae7c716668',
+        'info_dict': {
+            'id': 'A141111_173251_metro-extra_row',
+            'ext': 'mp4',
+            'title': 'Recesisté udělali z billboardu kolotoč',
+            'description': 'md5:7369926049588c3989a66c9c1a043c4c',
+            'thumbnail': 're:(?i)^https?://.*\.(?:jpg|png)$',
+            'timestamp': 1415725500,
+            'upload_date': '20141111',
+            'is_live': False,
+        }
     }, {
         'url': 'http://www.playtvak.cz/embed.aspx?idvideo=V150729_141549_play-porad_kuko',
         'only_matching': True,
@@ -146,6 +159,8 @@ class PlaytvakIE(InfoExtractor):
         is_live = item['type'] == 'stream'
         if is_live:
             title = self._live_title(title)
+        description = self._og_search_description(webpage, default=None) or self._html_search_meta(
+            'description', webpage, 'description')
         timestamp = None
         duration = None
         if not is_live:
@@ -157,7 +172,7 @@ class PlaytvakIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'description': self._og_search_description(webpage),
+            'description': description,
             'thumbnail': item.get('image'),
             'duration': duration,
             'timestamp': timestamp,
