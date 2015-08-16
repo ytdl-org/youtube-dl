@@ -120,7 +120,7 @@ class PlaytvakIE(InfoExtractor):
         if not item:
             raise ExtractorError('No suitable stream found')
 
-        quality = qualities(['low', 'middle', 'high'])
+        quality = qualities(('low', 'middle', 'high'))
 
         formats = []
         for fmt in item['video']:
@@ -132,7 +132,7 @@ class PlaytvakIE(InfoExtractor):
             format_id = '%s_%s' % (format_, fmt['quality'])
             preference = None
 
-            if format_ in ['mp4', 'webm']:
+            if format_ in ('mp4', 'webm'):
                 ext = format_
             elif format_ == 'rtmp':
                 ext = 'flv'
