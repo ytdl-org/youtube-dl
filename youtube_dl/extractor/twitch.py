@@ -15,6 +15,7 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    int_or_none,
     parse_duration,
     parse_iso8601,
 )
@@ -133,13 +134,13 @@ class TwitchItemBaseIE(TwitchBaseIE):
         return {
             'id': info['_id'],
             'title': info.get('title') or 'Untitled Broadcast',
-            'description': info['description'],
-            'duration': info['length'],
-            'thumbnail': info['preview'],
-            'uploader': info['channel']['display_name'],
-            'uploader_id': info['channel']['name'],
-            'timestamp': parse_iso8601(info['recorded_at']),
-            'view_count': info['views'],
+            'description': info.get('description'),
+            'duration': int_or_none(info.get('length')),
+            'thumbnail': info.get('preview'),
+            'uploader': info.get('channel', {}).get('display_name'),
+            'uploader_id': info.get('channel', {}).get('name'),
+            'timestamp': parse_iso8601(info.get('recorded_at')),
+            'view_count': int_or_none(info.get('views')),
         }
 
     def _real_extract(self, url):
