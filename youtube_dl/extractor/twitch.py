@@ -132,7 +132,7 @@ class TwitchItemBaseIE(TwitchBaseIE):
     def _extract_info(self, info):
         return {
             'id': info['_id'],
-            'title': info['title'],
+            'title': info.get('title') or 'Untitled Broadcast',
             'description': info['description'],
             'duration': info['length'],
             'thumbnail': info['preview'],
