@@ -12,6 +12,7 @@ from ..compat import (
     compat_urllib_parse,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
+    compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
@@ -27,7 +28,7 @@ class TwitchBaseIE(InfoExtractor):
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'http://usher.twitch.tv'
     _LOGIN_URL = 'https://secure.twitch.tv/login'
-    _LOGIN_POST_URL = 'https://passport.twitch.tv/authorize'
+    _LOGIN_POST_URL = 'https://passport.twitch.tv/authentications/new'
     _NETRC_MACHINE = 'twitch'
 
     def _handle_error(self, response):
@@ -70,8 +71,15 @@ class TwitchBaseIE(InfoExtractor):
             'password': password.encode('utf-8'),
         })
 
+        post_url = self._search_regex(
+            r'<form[^>]+action=(["\'])(?P<url>.+?)\1', login_page,
+            'post url', default=self._LOGIN_POST_URL, group='url')
+
+        if not post_url.startswith('http'):
+            post_url = compat_urlparse.urljoin(self._LOGIN_URL, post_url)
+
         request = compat_urllib_request.Request(
-            self._LOGIN_POST_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+            post_url, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         request.add_header('Referer', self._LOGIN_URL)
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)
