@@ -14,11 +14,13 @@ from ..compat import (
     compat_urllib_parse,
     compat_urllib_parse_unquote,
     compat_urllib_request,
+    compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
     bytes_to_intlist,
     intlist_to_bytes,
+    remove_end,
     unified_strdate,
     urlencode_postdata,
 )
@@ -279,6 +281,20 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             stream_info = streamdata.find('./{default}preload/stream_info')
             video_url = stream_info.find('./host').text
             video_play_path = stream_info.find('./file').text
+
+            if '.fplive.net/' in video_url:
+                video_url = re.sub(r'^rtmpe?://', 'http://', video_url.strip())
+                parsed_video_url = compat_urlparse.urlparse(video_url)
+                direct_video_url = compat_urlparse.urlunparse(parsed_video_url._replace(
+                    netloc='v.lvlt.crcdn.net',
+                    path='%s/%s' % (remove_end(parsed_video_url.path, '/'), video_play_path.split(':')[-1])))
+                if self._is_valid_url(direct_video_url, video_id, video_format):
+                    formats.append({
+                        'url': direct_video_url,
+                        'format_id': video_format,
+                    })
+                    continue
+
             formats.append({
                 'url': video_url,
                 'play_path': video_play_path,
