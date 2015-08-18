@@ -106,7 +106,7 @@ class PlaytvakIE(InfoExtractor):
         })
 
         info_url = compat_urlparse.urlunparse(
-            parsed_url._replace(query = compat_urllib_parse.urlencode(qs, True)))
+            parsed_url._replace(query=compat_urllib_parse.urlencode(qs, True)))
 
         json_info = self._download_json(
             info_url, video_id,
