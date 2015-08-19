@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import json
 import time
 import hmac
 import binascii
@@ -59,8 +58,7 @@ class ThePlatformBaseIE(InfoExtractor):
 
     def get_metadata(self, path, video_id):
         info_url = 'http://link.theplatform.com/s/%s?format=preview' % path
-        info_json = self._download_webpage(info_url, video_id)
-        info = json.loads(info_json)
+        info = self._download_json(info_url, video_id)
 
         subtitles = {}
         captions = info.get('captions')
