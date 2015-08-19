@@ -1135,7 +1135,7 @@ class InfoExtractor(object):
 
         return formats
 
-    def _parse_smil_subtitles(self, smil, namespace=None):
+    def _parse_smil_subtitles(self, smil, namespace=None, subtitles_lang='en'):
         subtitles = {}
         for num, textstream in enumerate(smil.findall(self._xpath_ns('.//textstream', namespace))):
             src = textstream.get('src')
@@ -1146,7 +1146,7 @@ class InfoExtractor(object):
                 type_ = textstream.get('type')
                 if type_ == 'text/srt':
                     ext = 'srt'
-            lang = textstream.get('systemLanguage') or textstream.get('systemLanguageName')
+            lang = textstream.get('systemLanguage') or textstream.get('systemLanguageName') or subtitles_lang
             subtitles.setdefault(lang, []).append({
                 'url': src,
                 'ext': ext,
