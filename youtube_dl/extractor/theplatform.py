@@ -9,6 +9,10 @@ import hashlib
 
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_parse_qs,
+    compat_urllib_parse_urlparse,
+)
 from ..utils import (
     determine_ext,
     ExtractorError,
@@ -120,6 +124,20 @@ class ThePlatformIE(ThePlatformBaseIE):
     }, {
         'url': 'http://player.theplatform.com/p/NnzsPC/widget/select/media/4Y0TlYUr_ZT7',
         'only_matching': True,
+    }, {
+        'url': 'http://player.theplatform.com/p/2E2eJC/nbcNewsOffsite?guid=tdy_or_siri_150701',
+        'md5': '734f3790fb5fc4903da391beeebc4836',
+        'info_dict': {
+            'id': 'tdy_or_siri_150701',
+            'ext': 'mp4',
+            'title': 'iPhone Siri’s sassy response to a math question has people talking',
+            'description': 'md5:a565d1deadd5086f3331d57298ec6333',
+            'duration': 83.0,
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'timestamp': 1435752600,
+            'upload_date': '20150701',
+            'categories': ['Today/Shows/Orange Room', 'Today/Sections/Money', 'Today/Topics/Tech', "Today/Topics/Editor's picks"],
+        },
     }]
 
     @staticmethod
@@ -153,6 +171,24 @@ class ThePlatformIE(ThePlatformBaseIE):
         if mobj.group('media'):
             path += '/media'
         path += '/' + video_id
+
+        qs_dict = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+        if 'guid' in qs_dict:
+            webpage = self._download_webpage(url, video_id)
+            scripts = re.findall(r'<script[^>]+src="([^"]+)"', webpage)
+            feed_id = None
+            # feed id usually locates in the last script.
+            # Seems there's no pattern for the interested script filename, so
+            # I try one by one
+            for script in reversed(scripts):
+                feed_script = self._download_webpage(script, video_id, 'Downloading feed script')
+                feed_id = self._search_regex(r'defaultFeedId\s*:\s*"([^"]+)"', feed_script, 'default feed id', default=None)
+                if feed_id is not None:
+                    break
+            if feed_id is None:
+                raise ExtractorError('Unable to find feed id')
+            return self.url_result('http://feed.theplatform.com/f/%s/%s?byGuid=%s' % (
+                provider_id, feed_id, qs_dict['guid'][0]))
 
         if smuggled_data.get('force_smil_url', False):
             smil_url = url
