@@ -1052,7 +1052,7 @@ class InfoExtractor(object):
         return self._search_regex(
             r'(?i)^{([^}]+)?}smil$', smil.tag, 'namespace', default=None)
 
-    def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None):
+    def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None, transform_rtmp_url=None):
         base = smil_url
         for meta in smil.findall(self._xpath_ns('./head/meta', namespace)):
             b = meta.get('base') or meta.get('httpBase')
@@ -1091,6 +1091,12 @@ class InfoExtractor(object):
                     'width': width,
                     'height': height,
                 })
+                if transform_rtmp_url:
+                    streamer, src = transform_rtmp_url(streamer, src)
+                    formats[-1].update({
+                        'url': streamer,
+                        'play_path': src,
+                    })
                 continue
 
             src_url = src if src.startswith('http') else compat_urlparse.urljoin(base, src)

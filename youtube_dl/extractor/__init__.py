@@ -359,6 +359,7 @@ from .nbc import (
     NBCNewsIE,
     NBCSportsIE,
     NBCSportsVPlayerIE,
+    MSNBCIE,
 )
 from .ndr import (
     NDRIE,
@@ -613,7 +614,10 @@ from .testurl import TestURLIE
 from .testtube import TestTubeIE
 from .tf1 import TF1IE
 from .theonion import TheOnionIE
-from .theplatform import ThePlatformIE
+from .theplatform import (
+    ThePlatformIE,
+    ThePlatformFeedIE,
+)
 from .thesixtyone import TheSixtyOneIE
 from .thisamericanlife import ThisAmericanLifeIE
 from .thisav import ThisAVIE

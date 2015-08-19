@@ -236,3 +236,28 @@ class NBCNewsIE(InfoExtractor):
                 'url': info['videoAssets'][-1]['publicUrl'],
                 'ie_key': 'ThePlatform',
             }
+
+
+class MSNBCIE(InfoExtractor):
+    # https URLs redirect to corresponding http ones
+    _VALID_URL = r'http://www\.msnbc\.com/[^/]+/watch/(?P<id>[^/]+)'
+    _TEST = {
+        'url': 'http://www.msnbc.com/all-in-with-chris-hayes/watch/the-chaotic-gop-immigration-vote-314487875924',
+        'md5': '6d236bf4f3dddc226633ce6e2c3f814d',
+        'info_dict': {
+            'id': 'n_hayes_Aimm_140801_272214',
+            'ext': 'mp4',
+            'title': 'The chaotic GOP immigration vote',
+            'description': 'The Republican House votes on a border bill that has no chance of getting through the Senate or signed by the President and is drawing criticism from all sides.',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'timestamp': 1406937606,
+            'upload_date': '20140802',
+            'categories': ['MSNBC/Topics/Franchise/Best of last night', 'MSNBC/Topics/General/Congress'],
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        embed_url = self._html_search_meta('embedURL', webpage)
+        return self.url_result(embed_url)
