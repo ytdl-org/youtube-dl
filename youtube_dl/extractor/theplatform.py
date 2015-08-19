@@ -15,13 +15,68 @@ from ..utils import (
     xpath_with_ns,
     unsmuggle_url,
     int_or_none,
+    url_basename,
+    float_or_none,
 )
 
 default_ns = 'http://www.w3.org/2005/SMIL21/Language'
 _x = lambda p: xpath_with_ns(p, {'smil': default_ns})
 
 
-class ThePlatformIE(InfoExtractor):
+class ThePlatformBaseIE(InfoExtractor):
+    def _extract_theplatform_smil_formats(self, smil_url, video_id, note='Downloading SMIL data'):
+        meta = self._download_xml(smil_url, video_id, note=note)
+        try:
+            error_msg = next(
+                n.attrib['abstract']
+                for n in meta.findall(_x('.//smil:ref'))
+                if n.attrib.get('title') == 'Geographic Restriction' or n.attrib.get('title') == 'Expired')
+        except StopIteration:
+            pass
+        else:
+            raise ExtractorError(error_msg, expected=True)
+
+        formats = self._parse_smil_formats(
+            meta, smil_url, video_id, namespace=default_ns,
+            # the parameters are from syfy.com, other sites may use others,
+            # they also work for nbc.com
+            f4m_params={'g': 'UXWGVKRWHFSP', 'hdcore': '3.0.3'},
+            transform_rtmp_url=lambda streamer, src: (streamer, 'mp4:' + src))
+
+        for _format in formats:
+            ext = determine_ext(_format['url'])
+            if ext == 'once':
+                _format['ext'] = 'mp4'
+
+        self._sort_formats(formats)
+
+        return formats
+
+    def get_metadata(self, path, video_id):
+        info_url = 'http://link.theplatform.com/s/%s?format=preview' % path
+        info_json = self._download_webpage(info_url, video_id)
+        info = json.loads(info_json)
+
+        subtitles = {}
+        captions = info.get('captions')
+        if isinstance(captions, list):
+            for caption in captions:
+                lang, src, mime = caption.get('lang', 'en'), caption.get('src'), caption.get('type')
+                subtitles[lang] = [{
+                    'ext': 'srt' if mime == 'text/srt' else 'ttml',
+                    'url': src,
+                }]
+
+        return {
+            'title': info['title'],
+            'subtitles': subtitles,
+            'description': info['description'],
+            'thumbnail': info['defaultThumbnailUrl'],
+            'duration': int_or_none(info.get('duration'), 1000),
+        }
+
+
+class ThePlatformIE(ThePlatformBaseIE):
     _VALID_URL = r'''(?x)
         (?:https?://(?:link|player)\.theplatform\.com/[sp]/(?P<provider_id>[^/]+)/
            (?:(?P<media>(?:[^/]+/)+select/media/)|(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/))?
@@ -118,51 +173,78 @@ class ThePlatformIE(InfoExtractor):
         if sig:
             smil_url = self._sign_url(smil_url, sig['key'], sig['secret'])
 
-        meta = self._download_xml(smil_url, video_id)
-        try:
-            error_msg = next(
-                n.attrib['abstract']
-                for n in meta.findall(_x('.//smil:ref'))
-                if n.attrib.get('title') == 'Geographic Restriction' or n.attrib.get('title') == 'Expired')
-        except StopIteration:
-            pass
-        else:
-            raise ExtractorError(error_msg, expected=True)
+        formats = self._extract_theplatform_smil_formats(smil_url, video_id)
 
-        info_url = 'http://link.theplatform.com/s/%s?format=preview' % path
-        info_json = self._download_webpage(info_url, video_id)
-        info = json.loads(info_json)
+        ret = self.get_metadata(path, video_id)
+        ret.update({
+            'id': video_id,
+            'formats': formats,
+        })
 
-        subtitles = {}
-        captions = info.get('captions')
-        if isinstance(captions, list):
-            for caption in captions:
-                lang, src, mime = caption.get('lang', 'en'), caption.get('src'), caption.get('type')
-                subtitles[lang] = [{
-                    'ext': 'srt' if mime == 'text/srt' else 'ttml',
-                    'url': src,
-                }]
+        return ret
 
-        formats = self._parse_smil_formats(
-            meta, smil_url, video_id, namespace=default_ns,
-            # the parameters are from syfy.com, other sites may use others,
-            # they also work for nbc.com
-            f4m_params={'g': 'UXWGVKRWHFSP', 'hdcore': '3.0.3'},
-            transform_rtmp_url=lambda streamer, src: (streamer, 'mp4:' + src))
 
-        for _format in formats:
-            ext = determine_ext(_format['url'])
-            if ext == 'once':
-                _format['ext'] = 'mp4'
+class ThePlatformFeedIE(ThePlatformBaseIE):
+    _URL_TEMPLATE = '%s//feed.theplatform.com/f/%s/%s?form=json&byGuid=%s'
+    _VALID_URL = r'https?://feed\.theplatform\.com/f/(?P<provider_id>[^/]+)/(?P<feed_id>[^?/]+)\?(?:[^&]+&)*byGuid=(?P<id>[a-zA-Z0-9_]+)'
+    _TEST = {
+        # From http://player.theplatform.com/p/7wvmTC/MSNBCEmbeddedOffSite?guid=n_hardball_5biden_140207
+        'url': 'http://feed.theplatform.com/f/7wvmTC/msnbc_video-p-test?form=json&pretty=true&range=-40&byGuid=n_hardball_5biden_140207',
+        'md5': '22d2b84f058d3586efcd99e57d59d314',
+        'info_dict': {
+            'id': 'n_hardball_5biden_140207',
+            'ext': 'mp4',
+            'title': 'The Biden factor: will Joe run in 2016?',
+            'description': 'Could Vice President Joe Biden be preparing a 2016 campaign? Mark Halperin and Sam Stein weigh in.',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'upload_date': '20140208',
+            'timestamp': 1391824260,
+            'duration': 467.0,
+            'categories': ['MSNBC/Issues/Democrats', 'MSNBC/Issues/Elections/Election 2016'],
+        },
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+
+        video_id = mobj.group('id')
+        provider_id = mobj.group('provider_id')
+        feed_id = mobj.group('feed_id')
+
+        real_url = self._URL_TEMPLATE % (self.http_scheme(), provider_id, feed_id, video_id)
+        feed = self._download_json(real_url, video_id)
+        entry = feed['entries'][0]
+
+        formats = []
+        first_video_id = None
+        duration = None
+        for item in entry['media$content']:
+            smil_url = item['plfile$url'] + '&format=SMIL&Tracking=true&Embedded=true&formats=MPEG4,F4M'
+            cur_video_id = url_basename(smil_url)
+            if first_video_id is None:
+                first_video_id = cur_video_id
+                duration = float_or_none(item.get('plfile$duration'))
+            formats.extend(self._extract_theplatform_smil_formats(smil_url, video_id, 'Downloading SMIL data for %s' % cur_video_id))
 
         self._sort_formats(formats)
 
-        return {
+        thumbnails = [{
+            'url': thumbnail['plfile$url'],
+            'width': int_or_none(thumbnail.get('plfile$width')),
+            'height': int_or_none(thumbnail.get('plfile$height')),
+        } for thumbnail in entry.get('media$thumbnails', [])]
+
+        timestamp = int_or_none(entry.get('media$availableDate'), scale=1000)
+        categories = [item['media$name'] for item in entry.get('media$categories', [])]
+
+        ret = self.get_metadata('%s/%s' % (provider_id, first_video_id), video_id)
+        ret.update({
             'id': video_id,
-            'title': info['title'],
-            'subtitles': subtitles,
             'formats': formats,
-            'description': info['description'],
-            'thumbnail': info['defaultThumbnailUrl'],
-            'duration': int_or_none(info.get('duration'), 1000),
-        }
+            'thumbnails': thumbnails,
+            'duration': duration,
+            'timestamp': timestamp,
+            'categories': categories,
+        })
+
+        return ret
