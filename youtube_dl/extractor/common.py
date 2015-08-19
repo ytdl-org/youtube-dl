@@ -1144,8 +1144,13 @@ class InfoExtractor(object):
             ext = textstream.get('ext') or determine_ext(src)
             if not ext:
                 type_ = textstream.get('type')
-                if type_ == 'text/srt':
-                    ext = 'srt'
+                SUBTITLES_TYPES = {
+                    'text/vtt': 'vtt',
+                    'text/srt': 'srt',
+                    'application/smptett+xml': 'tt',
+                }
+                if type_ in SUBTITLES_TYPES:
+                    ext = SUBTITLES_TYPES[type_]
             lang = textstream.get('systemLanguage') or textstream.get('systemLanguageName') or subtitles_lang
             subtitles.setdefault(lang, []).append({
                 'url': src,
