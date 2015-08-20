@@ -1279,6 +1279,26 @@ class InfoExtractor(object):
     def _get_subtitles(self, *args, **kwargs):
         raise NotImplementedError("This method must be implemented by subclasses")
 
+    @staticmethod
+    def _merge_subtitle_items(subtitle_list1, subtitle_list2):
+        """ Merge subtitle items for one language. Items with duplicated URLs
+        will be dropped. """
+        list1_urls = set([item['url'] for item in subtitle_list1])
+        ret = list(subtitle_list1)
+        ret.extend([item for item in subtitle_list2 if item['url'] not in list1_urls])
+        return ret
+
+    @classmethod
+    def _merge_subtitles(kls, subtitle_dict1, subtitle_dict2):
+        """ Merge two subtitle dictionaries, language by language. """
+        print(subtitle_dict1)
+        print(subtitle_dict2)
+        ret = dict(subtitle_dict1)
+        for lang in subtitle_dict2:
+            ret[lang] = kls._merge_subtitle_items(subtitle_dict1.get(lang, []), subtitle_dict2[lang])
+        print(ret)
+        return ret
+
     def extract_automatic_captions(self, *args, **kwargs):
         if (self._downloader.params.get('writeautomaticsub', False) or
                 self._downloader.params.get('listsubtitles')):
