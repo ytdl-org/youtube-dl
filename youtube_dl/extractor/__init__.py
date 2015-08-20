@@ -735,6 +735,7 @@ from .vk import (
     VKIE,
     VKUserVideosIE,
 )
+from .vlive import VLiveIE
 from .vodlocker import VodlockerIE
 from .voicerepublic import VoiceRepublicIE
 from .vporn import VpornIE
