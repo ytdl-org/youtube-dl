@@ -25,6 +25,7 @@ from youtube_dl.extractor import (
     RaiIE,
     VikiIE,
     ThePlatformIE,
+    ThePlatformFeedIE,
     RTVEALaCartaIE,
     FunnyOrDieIE,
 )
@@ -305,6 +306,18 @@ class TestThePlatformSubtitles(BaseTestSubtitles):
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['en']))
         self.assertEqual(md5(subtitles['en']), '97e7670cbae3c4d26ae8bcc7fdd78d4b')
+
+
+class TestThePlatformFeedSubtitles(BaseTestSubtitles):
+    url = 'http://feed.theplatform.com/f/7wvmTC/msnbc_video-p-test?form=json&pretty=true&range=-40&byGuid=n_hardball_5biden_140207'
+    IE = ThePlatformFeedIE
+
+    def test_allsubtitles(self):
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['en']))
+        self.assertEqual(md5(subtitles['en']), '48649a22e82b2da21c9a67a395eedade')
 
 
 class TestRtveSubtitles(BaseTestSubtitles):
