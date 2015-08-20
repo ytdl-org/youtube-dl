@@ -28,7 +28,7 @@ _x = lambda p: xpath_with_ns(p, {'smil': default_ns})
 
 
 class ThePlatformBaseIE(InfoExtractor):
-    def _extract_theplatform_smil_formats(self, smil_url, video_id, note='Downloading SMIL data'):
+    def _extract_theplatform_smil(self, smil_url, video_id, note='Downloading SMIL data'):
         meta = self._download_xml(smil_url, video_id, note=note)
         try:
             error_msg = next(
@@ -54,7 +54,9 @@ class ThePlatformBaseIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        return formats
+        subtitles = self._parse_smil_subtitles(meta, default_ns)
+
+        return formats, subtitles
 
     def get_metadata(self, path, video_id):
         info_url = 'http://link.theplatform.com/s/%s?format=preview' % path
@@ -208,12 +210,14 @@ class ThePlatformIE(ThePlatformBaseIE):
         if sig:
             smil_url = self._sign_url(smil_url, sig['key'], sig['secret'])
 
-        formats = self._extract_theplatform_smil_formats(smil_url, video_id)
+        formats, subtitles = self._extract_theplatform_smil(smil_url, video_id)
 
         ret = self.get_metadata(path, video_id)
+        combined_subtitles = self._merge_subtitles(ret.get('subtitles', {}), subtitles)
         ret.update({
             'id': video_id,
             'formats': formats,
+            'subtitles': combined_subtitles,
         })
 
         return ret
@@ -251,6 +255,7 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
         entry = feed['entries'][0]
 
         formats = []
+        subtitles = {}
         first_video_id = None
         duration = None
         for item in entry['media$content']:
@@ -259,7 +264,9 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
             if first_video_id is None:
                 first_video_id = cur_video_id
                 duration = float_or_none(item.get('plfile$duration'))
-            formats.extend(self._extract_theplatform_smil_formats(smil_url, video_id, 'Downloading SMIL data for %s' % cur_video_id))
+            cur_formats, cur_subtitles = self._extract_theplatform_smil(smil_url, video_id, 'Downloading SMIL data for %s' % cur_video_id)
+            formats.extend(cur_formats)
+            subtitles = self._merge_subtitles(subtitles, cur_subtitles)
 
         self._sort_formats(formats)
 
@@ -273,9 +280,11 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
         categories = [item['media$name'] for item in entry.get('media$categories', [])]
 
         ret = self.get_metadata('%s/%s' % (provider_id, first_video_id), video_id)
+        subtitles = self._merge_subtitles(subtitles, ret['subtitles'])
         ret.update({
             'id': video_id,
             'formats': formats,
+            'subtitles': subtitles,
             'thumbnails': thumbnails,
             'duration': duration,
             'timestamp': timestamp,
