@@ -1151,7 +1151,7 @@ class InfoExtractor(object):
                 }
                 if type_ in SUBTITLES_TYPES:
                     ext = SUBTITLES_TYPES[type_]
-            lang = textstream.get('systemLanguage') or textstream.get('systemLanguageName') or subtitles_lang
+            lang = textstream.get('systemLanguage') or textstream.get('systemLanguageName') or textstream.get('lang') or subtitles_lang
             subtitles.setdefault(lang, []).append({
                 'url': src,
                 'ext': ext,
