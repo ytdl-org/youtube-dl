@@ -15,6 +15,10 @@ class RTL2IE(InfoExtractor):
             'title': 'GRIP sucht den Sommerkönig',
             'description': 'Matthias, Det und Helge treten gegeneinander an.'
         },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
     }, {
         'url': 'http://www.rtl2.de/sendung/koeln-50667/video/5512-anna/21040-anna-erwischt-alex/',
         'md5': 'ffcd517d2805b57ce11a58a2980c2b02',
