@@ -43,7 +43,6 @@ class RTL2IE(InfoExtractor):
         vivi_id = self._html_search_regex(
             r'vivi_id\s*:\s*([0-9]+)', webpage, 'vivi_id')
         info_url = 'http://www.rtl2.de/video/php/get_video.php?vico_id=' + vico_id + '&vivi_id=' + vivi_id
-        webpage = self._download_webpage(info_url, '')
 
         info = self._download_json(info_url, video_id)
         video_info = info['video']
