@@ -1289,11 +1289,11 @@ class InfoExtractor(object):
         return ret
 
     @classmethod
-    def _merge_subtitles(kls, subtitle_dict1, subtitle_dict2):
+    def _merge_subtitles(cls, subtitle_dict1, subtitle_dict2):
         """ Merge two subtitle dictionaries, language by language. """
         ret = dict(subtitle_dict1)
         for lang in subtitle_dict2:
-            ret[lang] = kls._merge_subtitle_items(subtitle_dict1.get(lang, []), subtitle_dict2[lang])
+            ret[lang] = cls._merge_subtitle_items(subtitle_dict1.get(lang, []), subtitle_dict2[lang])
         return ret
 
     def extract_automatic_captions(self, *args, **kwargs):
