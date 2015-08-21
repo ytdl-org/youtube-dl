@@ -9,7 +9,6 @@ class RTL2IE(InfoExtractor):
     _VALID_URL = r'http?://(?:www\.)?rtl2\.de/[^?#]*?/(?P<id>[^?#/]*?)(?:$|/(?:$|[?#]))'
     _TESTS = [{
         'url': 'http://www.rtl2.de/sendung/grip-das-motormagazin/folge/folge-203-0',
-        'md5': 'bfcc179030535b08dc2b36b469b5adc7',
         'info_dict': {
             'id': 'folge-203-0',
             'ext': 'f4v',
@@ -22,7 +21,6 @@ class RTL2IE(InfoExtractor):
         },
     }, {
         'url': 'http://www.rtl2.de/sendung/koeln-50667/video/5512-anna/21040-anna-erwischt-alex/',
-        'md5': 'ffcd517d2805b57ce11a58a2980c2b02',
         'info_dict': {
             'id': '21040-anna-erwischt-alex',
             'ext': 'mp4',
