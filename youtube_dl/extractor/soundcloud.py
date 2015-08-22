@@ -309,7 +309,7 @@ class SoundcloudUserIE(SoundcloudIE):
             'id': '114582580',
             'title': 'The Akashic Chronicler (All)',
         },
-        'playlist_mincount': 112,
+        'playlist_mincount': 111,
     }, {
         'url': 'https://soundcloud.com/the-akashic-chronicler/tracks',
         'info_dict': {
@@ -330,14 +330,14 @@ class SoundcloudUserIE(SoundcloudIE):
             'id': '114582580',
             'title': 'The Akashic Chronicler (Reposts)',
         },
-        'playlist_mincount': 9,
+        'playlist_mincount': 7,
     }, {
         'url': 'https://soundcloud.com/the-akashic-chronicler/likes',
         'info_dict': {
             'id': '114582580',
             'title': 'The Akashic Chronicler (Likes)',
         },
-        'playlist_mincount': 333,
+        'playlist_mincount': 321,
     }, {
         'url': 'https://soundcloud.com/grynpyret/spotlight',
         'info_dict': {
