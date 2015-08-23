@@ -21,7 +21,6 @@ class PluralsightIE(InfoExtractor):
     IE_NAME = 'pluralsight'
     _VALID_URL = r'https?://(?:www\.)?pluralsight\.com/training/player\?author=(?P<author>[^&]+)&name=(?P<name>[^&]+)(?:&mode=live)?&clip=(?P<clip>\d+)&course=(?P<course>[^&]+)'
     _LOGIN_URL = 'https://www.pluralsight.com/id/'
-    _ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to provide lynda.com account credentials.'
     _NETRC_MACHINE = 'pluralsight'
 
     _TEST = {
