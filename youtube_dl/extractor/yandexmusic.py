@@ -1,4 +1,4 @@
-# coding=utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -64,7 +64,15 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
         return self._get_track_info(track)
 
 
-class YandexMusicAlbumIE(YandexMusicBaseIE):
+class YandexMusicPlaylistBaseIE(InfoExtractor):
+    def _build_playlist(self, tracks):
+        return [
+            self.url_result(
+                'http://music.yandex.ru/album/%s/track/%s' % (track['albums'][0]['id'], track['id']))
+            for track in tracks]
+
+
+class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
     IE_NAME = 'yandexmusic:album'
     IE_DESC = 'Яндекс.Музыка - Альбом'
     _VALID_URL = r'https?://music\.yandex\.(?:ru|kz|ua|by)/album/(?P<id>\d+)/?(\?|$)'
@@ -85,7 +93,7 @@ class YandexMusicAlbumIE(YandexMusicBaseIE):
             'http://music.yandex.ru/handlers/album.jsx?album=%s' % album_id,
             album_id, 'Downloading album JSON')
 
-        entries = [self._get_track_info(track) for track in album['volumes'][0]]
+        entries = self._build_playlist(album['volumes'][0])
 
         title = '%s - %s' % (album['artists'][0]['name'], album['title'])
         year = album.get('year')
@@ -95,7 +103,7 @@ class YandexMusicAlbumIE(YandexMusicBaseIE):
         return self.playlist_result(entries, compat_str(album['id']), title)
 
 
-class YandexMusicPlaylistIE(YandexMusicBaseIE):
+class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
     IE_NAME = 'yandexmusic:playlist'
     IE_DESC = 'Яндекс.Музыка - Плейлист'
     _VALID_URL = r'https?://music\.yandex\.(?:ru|kz|ua|by)/users/[^/]+/playlists/(?P<id>\d+)'
@@ -120,8 +128,7 @@ class YandexMusicPlaylistIE(YandexMusicBaseIE):
                 r'var\s+Mu\s*=\s*({.+?});\s*</script>', webpage, 'player'),
             playlist_id)['pageData']['playlist']
 
-        entries = [self._get_track_info(track) for track in playlist['tracks']]
-
         return self.playlist_result(
-            entries, compat_str(playlist_id),
+            self._build_playlist(playlist['tracks']),
+            compat_str(playlist_id),
             playlist['title'], playlist.get('description'))
