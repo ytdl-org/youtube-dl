@@ -12,7 +12,23 @@ from ..utils import (
 )
 
 
-class YandexMusicBaseIE(InfoExtractor):
+class YandexMusicTrackIE(InfoExtractor):
+    IE_NAME = 'yandexmusic:track'
+    IE_DESC = 'Яндекс.Музыка - Трек'
+    _VALID_URL = r'https?://music\.yandex\.(?:ru|kz|ua|by)/album/(?P<album_id>\d+)/track/(?P<id>\d+)'
+
+    _TEST = {
+        'url': 'http://music.yandex.ru/album/540508/track/4878838',
+        'md5': 'f496818aa2f60b6c0062980d2e00dc20',
+        'info_dict': {
+            'id': '4878838',
+            'ext': 'mp3',
+            'title': 'Carlo Ambrosio - Gypsy Eyes 1',
+            'filesize': 4628061,
+            'duration': 193.04,
+        }
+    }
+
     def _get_track_url(self, storage_dir, track_id):
         data = self._download_json(
             'http://music.yandex.ru/api/v1.5/handlers/api-jsonp.jsx?action=getTrackSrc&p=download-info/%s'
@@ -34,24 +50,6 @@ class YandexMusicBaseIE(InfoExtractor):
             'filesize': int_or_none(track.get('fileSize')),
             'duration': float_or_none(track.get('durationMs'), 1000),
         }
-
-
-class YandexMusicTrackIE(YandexMusicBaseIE):
-    IE_NAME = 'yandexmusic:track'
-    IE_DESC = 'Яндекс.Музыка - Трек'
-    _VALID_URL = r'https?://music\.yandex\.(?:ru|kz|ua|by)/album/(?P<album_id>\d+)/track/(?P<id>\d+)'
-
-    _TEST = {
-        'url': 'http://music.yandex.ru/album/540508/track/4878838',
-        'md5': 'f496818aa2f60b6c0062980d2e00dc20',
-        'info_dict': {
-            'id': '4878838',
-            'ext': 'mp3',
-            'title': 'Carlo Ambrosio - Gypsy Eyes 1',
-            'filesize': 4628061,
-            'duration': 193.04,
-        }
-    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
