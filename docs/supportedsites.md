@@ -301,6 +301,7 @@
  - **Moviezine**
  - **movshare**: MovShare
  - **MPORA**
+ - **MSNBC**
  - **MTV**
  - **mtviggy.com**
  - **mtvservices:embedded**
@@ -308,6 +309,7 @@
  - **MusicPlayOn**
  - **MusicVault**
  - **muzu.tv**
+ - **Mwave**
  - **MySpace**
  - **MySpace:album**
  - **MySpass**
@@ -392,6 +394,8 @@
  - **Playtvak**: Playtvak.cz, iDNES.cz and Lidovky.cz
  - **Playvid**
  - **Playwire**
+ - **pluralsight**
+ - **pluralsight:course**
  - **plus.google**: Google Plus
  - **pluzz.francetv.fr**
  - **podomatic**
@@ -534,6 +538,7 @@
  - **TF1**
  - **TheOnion**
  - **ThePlatform**
+ - **ThePlatformFeed**
  - **TheSixtyOne**
  - **ThisAmericanLife**
  - **ThisAV**
@@ -599,7 +604,6 @@
  - **Viddler**
  - **video.google:search**: Google Video search
  - **video.mit.edu**
- - **VideoBam**
  - **VideoDetective**
  - **videofy.me**
  - **videolectures.net**
