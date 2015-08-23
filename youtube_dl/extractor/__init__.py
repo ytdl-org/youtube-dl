@@ -454,6 +454,10 @@ from .playfm import PlayFMIE
 from .playtvak import PlaytvakIE
 from .playvid import PlayvidIE
 from .playwire import PlaywireIE
+from .pluralsight import (
+    PluralsightIE,
+    PluralsightCourseIE,
+)
 from .podomatic import PodomaticIE
 from .porn91 import Porn91IE
 from .pornhd import PornHdIE
