@@ -16,7 +16,7 @@ from ..aes import aes_decrypt_text
 
 
 class SpankwireIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>spankwire\.com/[^/]*/video(?P<videoid>[0-9]+)/?)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>spankwire\.com/[^/]*/video(?P<id>[0-9]+)/?)'
     _TESTS = [{
         # download URL pattern: */<height>P_<tbr>K_<video_id>.mp4
         'url': 'http://www.spankwire.com/Buckcherry-s-X-Rated-Music-Video-Crazy-Bitch/video103545/',
@@ -49,10 +49,9 @@ class SpankwireIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
-        url = 'http://www.' + mobj.group('url')
+        video_id = mobj.group('id')
 
-        req = compat_urllib_request.Request(url)
+        req = compat_urllib_request.Request('http://www.' + mobj.group('url'))
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
