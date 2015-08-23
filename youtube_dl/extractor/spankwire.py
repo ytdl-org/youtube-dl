@@ -68,7 +68,7 @@ class SpankwireIE(InfoExtractor):
             r'by:\s*<a [^>]*>(.+?)</a>',
             webpage, 'uploader', fatal=False)
         uploader_id = self._html_search_regex(
-            r'by:\s*<a href="/user/viewProfile\?.*?UserId=(\d+).*?"',
+            r'by:\s*<a href="/(?:user/viewProfile|Profile\.aspx)\?.*?UserId=(\d+).*?"',
             webpage, 'uploader id', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
             r'</a> on (.+?) at \d+:\d+',
