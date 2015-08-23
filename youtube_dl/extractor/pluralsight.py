@@ -183,6 +183,8 @@ class PluralsightCourseIE(InfoExtractor):
     def _real_extract(self, url):
         course_id = self._match_id(url)
 
+        # TODO: PSM cookie
+
         course = self._download_json(
             'http://www.pluralsight.com/data/course/%s' % course_id,
             course_id, 'Downloading course JSON')
@@ -194,24 +196,14 @@ class PluralsightCourseIE(InfoExtractor):
             'http://www.pluralsight.com/data/course/content/%s' % course_id,
             course_id, 'Downloading course data JSON')
 
-        may_not_view = 0
-
         entries = []
         for module in course_data:
             for clip in module.get('clips', []):
-                if clip.get('userMayViewClip') is False:
-                    may_not_view += 1
-                    continue
                 player_parameters = clip.get('playerParameters')
                 if not player_parameters:
                     continue
                 entries.append(self.url_result(
                     'http://www.pluralsight.com/training/player?%s' % player_parameters,
                     'Pluralsight'))
-
-        if may_not_view > 0:
-            self._downloader.report_warning(
-                'There are %d videos in this course that are not available for you. '
-                'Upgrade your account to get access to these videos.' % may_not_view)
 
         return self.playlist_result(entries, course_id, title, description)
