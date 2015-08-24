@@ -25,7 +25,6 @@ class VLiveIE(InfoExtractor):
             'ext': 'mp4',
             'title': '[V] Girl\'s Day\'s Broadcast',
             'creator': 'Girl\'s Day',
-            'upload_date': '20150817',
         },
     }
     _SECRET = 'rFkwZet6pqk1vQt6SxxUkAHX7YL3lmqzUMrU4IDusTo4jEBdtOhNfT4BYYAdArwH'
@@ -41,21 +40,14 @@ class VLiveIE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(webpage)
         creator = self._html_search_regex(
             r'<span class="name">([^<>]+)</span>', webpage, 'creator')
-        upload_date = self._html_search_regex(
-            r'<span class="time">(\d{4}\.\d{2}\.\d{2})</span>', webpage,
-            'upload date', default=None, fatal=False)
-        if upload_date:
-            upload_date = upload_date.replace('.', '')
-
+        
         url = 'http://global.apis.naver.com/globalV/globalV/vod/%s/playinfo?' % video_id
-        msgpad = {'msgpad': '%.0f' % (time() * 1000)}
-        md = {
-            'md': b64encode(
-                hmac.new(self._SECRET.encode('ascii'),
-                         (url[:255] + msgpad['msgpad']).encode('ascii'), sha1).digest())
-        }
-        url += '&' + compat_urllib_parse.urlencode(msgpad) + '&' + compat_urllib_parse.urlencode(md)
-
+        msgpad = '%.0f' % (time() * 1000)
+        md = b64encode(
+            hmac.new(self._SECRET.encode('ascii'),
+                     (url[:255] + msgpad).encode('ascii'), sha1).digest()
+        )
+        url += '&' + compat_urllib_parse.urlencode({'msgpad': msgpad, 'md': md})
         playinfo = self._download_json(url, video_id, 'Downloading video json')
 
         if playinfo.get('message', '') != 'success':
@@ -89,6 +81,5 @@ class VLiveIE(InfoExtractor):
             'creator': creator,
             'thumbnail': thumbnail,
             'formats': formats,
-            'upload_date': upload_date,
             'subtitles': subtitles,
         }
