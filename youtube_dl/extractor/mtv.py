@@ -288,3 +288,40 @@ class MTVIggyIE(MTVServicesInfoExtractor):
         }
     }
     _FEED_URL = 'http://all.mtvworldverticals.com/feed-xml/'
+
+class MTVDEIE(MTVServicesInfoExtractor):
+    IE_NAME = 'mtv.de'
+    _VALID_URL = r'''(?x)^https?://(?:www\.)?mtv\.de(?P<video_path>/artists/.*)'''
+    _TESTS = [
+        {
+            'url': 'http://www.mtv.de/artists/10571-cro/videos/61131-traum',
+            'info_dict': {
+                'id': 'a50bc5f0b3aa4b3190aa',
+                'ext': 'mp4',
+                'title': 'cro-traum',
+                'description': 'Cro - Traum',
+            },
+        },
+    ]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        return self._get_videos_info(url, mobj.group('video_path'))
+
+    def _get_videos_info(self, url, video_path):
+        webpage = self._download_webpage(url, video_path)
+        playlist_js = self._search_regex(r'<script>\s*window.pagePlaylist =(.*?\]);\s*window.trackingParams =', webpage, 'playlist', flags=re.DOTALL)
+        playlist = self._parse_json(playlist_js, video_path)
+        info = None
+        for item in playlist:
+            if item['video_path'] == video_path:
+                info = item
+                break
+        if info == None:
+            raise ExtractorError('video not in playlist')
+        mrss_url = info['mrss']
+        idoc = self._download_xml(
+            mrss_url, video_path,
+            'Downloading info', transform_source=fix_xml_ampersands)
+        return self.playlist_result(
+            [self._get_video_info(item) for item in idoc.findall('.//item')])
