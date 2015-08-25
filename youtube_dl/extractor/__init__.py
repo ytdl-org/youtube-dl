@@ -47,6 +47,7 @@ from .bbc import (
     BBCCoUkIE,
     BBCIE,
 )
+from .bdsmstreak import BdsmstreakIE
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
 from .beatportpro import BeatportProIE
