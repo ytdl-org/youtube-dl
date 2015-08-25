@@ -109,6 +109,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
     def _get_video_info(self, itemdoc):
         uri = itemdoc.find('guid').text
         video_id = self._id_from_uri(uri)
+        video_id = re.sub(r'^music_video-', '', video_id)
         self.report_extraction(video_id)
         mediagen_url = itemdoc.find('%s/%s' % (_media_xml_tag('group'), _media_xml_tag('content'))).attrib['url']
         # Remove the templates, like &device={device}
@@ -149,6 +150,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         if title is None:
             raise ExtractorError('Could not find video title')
         title = title.strip()
+        title = re.sub(r'^MusicVideo_', '', title)
 
         # This a short id that's used in the webpage urls
         mtvn_id = None
@@ -176,6 +178,25 @@ class MTVServicesInfoExtractor(InfoExtractor):
         info_url += data
         idoc = self._download_xml(
             info_url, video_id,
+            'Downloading info', transform_source=fix_xml_ampersands)
+        return self.playlist_result(
+            [self._get_video_info(item) for item in idoc.findall('.//item')])
+
+    def _get_videos_info_de(self, url, video_path):
+        """Extract from German site mtv.de"""
+        webpage = self._download_webpage(url, video_path)
+        playlist_js = self._search_regex(r'<script>\s*window.pagePlaylist =(.*?\]);\s*window.trackingParams =', webpage, 'playlist', flags=re.DOTALL)
+        playlist = self._parse_json(playlist_js, video_path)
+        info = None
+        for item in playlist:
+            if item['video_path'] == video_path:
+                info = item
+                break
+        if info == None:
+            raise ExtractorError('video not in playlist')
+        mrss_url = info['mrss']
+        idoc = self._download_xml(
+            mrss_url, video_path,
             'Downloading info', transform_source=fix_xml_ampersands)
         return self.playlist_result(
             [self._get_video_info(item) for item in idoc.findall('.//item')])
@@ -237,7 +258,8 @@ class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
 class MTVIE(MTVServicesInfoExtractor):
     _VALID_URL = r'''(?x)^https?://
         (?:(?:www\.)?mtv\.com/videos/.+?/(?P<videoid>[0-9]+)/[^/]+$|
-           m\.mtv\.com/videos/video\.rbml\?.*?id=(?P<mgid>[^&]+))'''
+           m\.mtv\.com/videos/video\.rbml\?.*?id=(?P<mgid>[^&]+)|
+           (?:www\.)?mtv\.de(?P<video_path>/artists/.*))'''
 
     _FEED_URL = 'http://www.mtv.com/player/embed/AS3/rss/'
 
@@ -252,6 +274,15 @@ class MTVIE(MTVServicesInfoExtractor):
                 'description': 'Album: Taylor Swift performs "Ours" for VH1 Storytellers at Harvey Mudd College.',
             },
         },
+        {
+            'url': 'http://www.mtv.de/artists/10571-cro/videos/61131-traum',
+            'info_dict': {
+                'id': 'a50bc5f0b3aa4b3190aa',
+                'ext': 'mp4',
+                'title': 'cro-traum',
+                'description': 'Cro - Traum',
+            },
+        },
     ]
 
     def _get_thumbnail_url(self, uri, itemdoc):
@@ -259,6 +290,8 @@ class MTVIE(MTVServicesInfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        if mobj.group('video_path'):
+            return self._get_videos_info_de(url, mobj.group('video_path'))
         video_id = mobj.group('videoid')
         uri = mobj.groupdict().get('mgid')
         if uri is None:
