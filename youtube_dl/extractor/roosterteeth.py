@@ -200,9 +200,11 @@ class RoosterteethIE(InfoExtractor):
             if 'youtubeKey' not in meta:
                 raise ExtractorError('Invalid metadata for youtube video!')
 
-            res = self.url_result('https://youtube.com/watch?v=' + meta['youtubeKey'])
-            res['_type'] = 'url_transparent'
-            res['id'] = video_id
+            res = {
+                '_type': 'url_transparent',
+                'url': 'https://youtube.com/watch?v=' + meta['youtubeKey'],
+                'id': video_id
+            }
         else:
             raise ExtractorError('Unknown player type %s!' % player)
 
@@ -285,7 +287,7 @@ class RoosterteethIE(InfoExtractor):
             profile_page = 'http://%s/user/%s' % (domain, compat_urllib_parse.quote(username))
             html = self._download_webpage(
                 profile_page, None,
-                note='Checking user profile...',
+                note='Checking user profile',
                 errnote='unable to access user profile', fatal=False)
 
             if not html:
