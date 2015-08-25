@@ -67,7 +67,7 @@ class YandexMusicPlaylistBaseIE(InfoExtractor):
         return [
             self.url_result(
                 'http://music.yandex.ru/album/%s/track/%s' % (track['albums'][0]['id'], track['id']))
-            for track in tracks]
+            for track in tracks if track.get('albums') and isinstance(track.get('albums'), list)]
 
 
 class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
