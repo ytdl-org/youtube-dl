@@ -14,6 +14,7 @@ from .common import InfoExtractor, SearchInfoExtractor
 from ..jsinterp import JSInterpreter
 from ..swfinterp import SWFInterpreter
 from ..compat import (
+    compat_HTTPError,
     compat_chr,
     compat_parse_qs,
     compat_urllib_parse,
@@ -658,7 +659,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         """ Return a string representation of a signature """
         return '.'.join(compat_str(len(part)) for part in example_sig.split('.'))
 
-    def _extract_signature_function(self, video_id, player_url, example_sig):
+    def _extract_signature_function(self, video_id, player_url, example_sig, load_sigfuncs=True):
         id_m = re.match(
             r'.*?-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player)?\.(?P<ext>[a-z]+)$',
             player_url)
@@ -672,9 +673,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             player_type, player_id, self._signature_cache_id(example_sig))
         assert os.path.basename(func_id) == func_id
 
-        cache_spec = self._downloader.cache.load('youtube-sigfuncs', func_id)
-        if cache_spec is not None:
-            return lambda s: ''.join(s[i] for i in cache_spec)
+        if load_sigfuncs:
+            cache_spec = self._downloader.cache.load('youtube-sigfuncs', func_id)
+            if cache_spec is not None:
+                return lambda s: ''.join(s[i] for i in cache_spec)
 
         download_note = (
             'Downloading player %s' % player_url
@@ -759,7 +761,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         initial_function = swfi.extract_function(searched_class, 'decipher')
         return lambda s: initial_function([s])
 
-    def _decrypt_signature(self, s, video_id, player_url, age_gate=False):
+    def _decrypt_signature(self, s, video_id, player_url, age_gate=False, load_sigfuncs=True):
         """Turn the encrypted s field into a working signature"""
 
         if player_url is None:
@@ -769,9 +771,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             player_url = 'https:' + player_url
         try:
             player_id = (player_url, self._signature_cache_id(s))
-            if player_id not in self._player_cache:
+            if not load_sigfuncs or player_id not in self._player_cache:
                 func = self._extract_signature_function(
-                    video_id, player_url, s
+                    video_id, player_url, s, load_sigfuncs
                 )
                 self._player_cache[player_id] = func
             func = self._player_cache[player_id]
@@ -897,16 +899,31 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _parse_dash_manifest(
             self, video_id, dash_manifest_url, player_url, age_gate, fatal=True):
-        def decrypt_sig(mobj):
-            s = mobj.group(1)
-            dec_s = self._decrypt_signature(s, video_id, player_url, age_gate)
-            return '/signature/%s' % dec_s
-        dash_manifest_url = re.sub(r'/s/([a-fA-F0-9\.]+)', decrypt_sig, dash_manifest_url)
-        dash_doc = self._download_xml(
-            dash_manifest_url, video_id,
-            note='Downloading DASH manifest',
-            errnote='Could not download DASH manifest',
-            fatal=fatal)
+        def download_manifest(load_sigfuncs=True):
+            def decrypt_sig(mobj):
+                s = mobj.group(1)
+                dec_s = self._decrypt_signature(s, video_id, player_url, age_gate, load_sigfuncs)
+                return '/signature/%s' % dec_s
+            decrypted_dash_manifest_url = re.sub(r'/s/([a-fA-F0-9\.]+)', decrypt_sig, dash_manifest_url)
+            return self._download_xml(
+                decrypted_dash_manifest_url, video_id,
+                note='Downloading DASH manifest',
+                errnote='Could not download DASH manifest',
+                fatal=fatal)
+
+        try:
+            dash_doc = download_manifest()
+        except ExtractorError as e:
+            # When using local cache, HTTP Error 403: Forbidden can be caused by expired sigfuncs
+            # loaded from cache while changed on YouTube side (see
+            # https://github.com/rg3/youtube-dl/issues/6451). This has yet happened only once
+            # in the beginning of August 2015 but may happen again in future.
+            # To workaround we will make another try without loading sigfuncs from cache
+            # but just fetch directly from YouTube and update the local cache.
+            if self._downloader.cache.enabled and isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                dash_doc = download_manifest(load_sigfuncs=False)
+            else:
+                raise
 
         if dash_doc is False:
             return []
