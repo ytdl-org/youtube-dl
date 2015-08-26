@@ -731,6 +731,7 @@ from .viki import (
     VikiIE,
     VikiChannelIE,
 )
+from .vivo import VivoIE
 from .vk import (
     VKIE,
     VKUserVideosIE,
