@@ -250,10 +250,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 raise ExtractorError('crunchyroll returned error: %s' % msg['message_body'], expected=True)
 
         if 'To view this, please log in to verify you are 18 or older.' in webpage:
-            raise ExtractorError(
-                'This video is only available for registered users, '
-                'use --username and --password options to provide account credentials.',
-                expected=True)
+            self.raise_login_required(video_id)
 
         video_title = self._html_search_regex(r'<h1[^>]*>(.+?)</h1>', webpage, 'video_title', flags=re.DOTALL)
         video_title = re.sub(r' {2,}', ' ', video_title)
