@@ -14,6 +14,7 @@ from ..utils import (
 
 
 class SharedIE(InfoExtractor):
+    IE_DESC = 'shared.sx and vivo.sx'
     _VALID_URL = r'http://(?:shared|vivo)\.sx/(?P<id>[\da-z]{10})'
 
     _TEST = {
