@@ -17,7 +17,7 @@ class SharedIE(InfoExtractor):
     IE_DESC = 'shared.sx and vivo.sx'
     _VALID_URL = r'http://(?:shared|vivo)\.sx/(?P<id>[\da-z]{10})'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://shared.sx/0060718775',
         'md5': '106fefed92a8a2adb8c98e6a0652f49b',
         'info_dict': {
@@ -25,7 +25,16 @@ class SharedIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Bmp4',
         },
-    }
+    }, {
+        'url': 'http://vivo.sx/d7ddda0e78',
+        'md5': '15b3af41be0b4fe01f4df075c2678b2c',
+        'info_dict': {
+            'id': 'd7ddda0e78',
+            'ext': 'mp4',
+            'title': 'Chicken',
+            'filesize': 528031,
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
