@@ -510,6 +510,12 @@ class InfoExtractor(object):
         """Report attempt to log in."""
         self.to_screen('Logging in')
 
+    @staticmethod
+    def raise_login_required(msg='This video is only available for registered users'):
+        raise ExtractorError(
+            '%s. Use --username and --password or --netrc to provide account credentials.' % msg,
+            expected=True)
+
     # Methods for following #608
     @staticmethod
     def url_result(url, ie=None, video_id=None, video_title=None):
