@@ -237,7 +237,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             webpage_url = 'http://www.' + mobj.group('url')
 
         webpage = self._download_webpage(webpage_url, video_id, 'Downloading webpage')
-        note_m = self._html_search_regex(r'<div class="showmedia-trailer-notice">(.+?)</div>', webpage, 'trailer-notice', default='')
+        note_m = self._html_search_regex(
+            r'<div class="showmedia-trailer-notice">(.+?)</div>',
+            webpage, 'trailer-notice', default='')
         if note_m:
             raise ExtractorError(note_m)
 
@@ -246,6 +248,12 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             msg = json.loads(mobj.group('msg'))
             if msg.get('type') == 'error':
                 raise ExtractorError('crunchyroll returned error: %s' % msg['message_body'], expected=True)
+
+        if 'To view this, please log in to verify you are 18 or older.' in webpage:
+            raise ExtractorError(
+                'This video is only available for registered users, '
+                'use --username and --password options to provide account credentials.',
+                expected=True)
 
         video_title = self._html_search_regex(r'<h1[^>]*>(.+?)</h1>', webpage, 'video_title', flags=re.DOTALL)
         video_title = re.sub(r' {2,}', ' ', video_title)
