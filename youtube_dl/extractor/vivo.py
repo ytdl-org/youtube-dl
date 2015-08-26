@@ -14,7 +14,7 @@ class VivoIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?vivo\.sx/(?P<id>[a-f0-9]{10})'
     _TEST = {
         'url': 'http://vivo.sx/d7ddda0e78',
-        'md5': '2f36fed6235b16da96ce9b4dc890940d',
+        'md5': '15b3af41be0b4fe01f4df075c2678b2c',
         'info_dict': {
             'id': 'd7ddda0e78',
             'ext': 'mp4',
