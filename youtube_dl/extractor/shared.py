@@ -24,6 +24,7 @@ class SharedIE(InfoExtractor):
             'id': '0060718775',
             'ext': 'mp4',
             'title': 'Bmp4',
+            'filesize': 1720110,
         },
     }, {
         'url': 'http://vivo.sx/d7ddda0e78',
