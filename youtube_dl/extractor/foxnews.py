@@ -10,6 +10,7 @@ from ..utils import (
 
 
 class FoxNewsIE(InfoExtractor):
+    IE_DESC = 'Fox News and Fox Business Video'
     _VALID_URL = r'https?://(?P<host>video\.fox(?:news|business)\.com)/v/(?:video-embed\.html\?video_id=)?(?P<id>\d+)'
     _TESTS = [
         {
