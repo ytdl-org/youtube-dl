@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     parse_iso8601,
@@ -8,7 +10,7 @@ from ..utils import (
 
 
 class FoxNewsIE(InfoExtractor):
-    _VALID_URL = r'https?://video\.foxnews\.com/v/(?:video-embed\.html\?video_id=)?(?P<id>\d+)'
+    _VALID_URL = r'https?://video\.fox(?:news|business)\.com/v/(?:video-embed\.html\?video_id=)?(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'http://video.foxnews.com/v/3937480/frozen-in-time/#sp=show-clips',
@@ -47,8 +49,10 @@ class FoxNewsIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        m = re.match(r'^https?://video\.fox(news|business)', url)
+
         video = self._download_json(
-            'http://video.foxnews.com/v/feed/video/%s.js?template=fox' % video_id, video_id)
+            'http://video.fox' + m.group(1) + '.com/v/feed/video/%s.js?template=fox' % video_id, video_id)
 
         item = video['channel']['item']
         title = item['title']
