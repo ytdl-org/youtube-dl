@@ -44,6 +44,10 @@ class FoxNewsIE(InfoExtractor):
             'url': 'http://video.foxnews.com/v/video-embed.html?video_id=3937480&d=video.foxnews.com',
             'only_matching': True,
         },
+        {
+            'url': 'http://video.foxbusiness.com/v/4442309889001',
+            'only_matching': True,
+        },
     ]
 
     def _real_extract(self, url):
