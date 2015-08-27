@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class FoxNewsIE(InfoExtractor):
-    _VALID_URL = r'https?://video\.fox(?:news|business)\.com/v/(?:video-embed\.html\?video_id=)?(?P<id>\d+)'
+    _VALID_URL = r'https?://(?P<host>video\.fox(?:news|business)\.com)/v/(?:video-embed\.html\?video_id=)?(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'http://video.foxnews.com/v/3937480/frozen-in-time/#sp=show-clips',
@@ -51,12 +51,12 @@ class FoxNewsIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-
-        m = re.match(r'^https?://video\.fox(news|business)', url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        host = mobj.group('host')
 
         video = self._download_json(
-            'http://video.fox' + m.group(1) + '.com/v/feed/video/%s.js?template=fox' % video_id, video_id)
+            'http://%s/v/feed/video/%s.js?template=fox' % (host, video_id), video_id)
 
         item = video['channel']['item']
         title = item['title']
