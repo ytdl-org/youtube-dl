@@ -341,7 +341,7 @@ class FileDownloader(object):
 
         return self.real_download(filename, info_dict, md5)
 
-    def real_download(self, filename, info_dict, *args):
+    def real_download(self, filename, info_dict):
         """Real download process. Redefine in subclasses."""
         raise NotImplementedError('This method must be implemented by subclasses')
 
