@@ -308,7 +308,7 @@ class FileDownloader(object):
         """Report it was impossible to resume download."""
         self.to_screen('[download] Unable to resume')
 
-    def download(self, filename, info_dict):
+    def download(self, filename, info_dict, md5=False):
         """Download to a filename using the info from info_dict
         Return True on success and False otherwise
         """
@@ -339,9 +339,9 @@ class FileDownloader(object):
             self.to_screen('[download] Sleeping %s seconds...' % sleep_interval)
             time.sleep(sleep_interval)
 
-        return self.real_download(filename, info_dict)
+        return self.real_download(filename, info_dict, md5)
 
-    def real_download(self, filename, info_dict):
+    def real_download(self, filename, info_dict, *args):
         """Real download process. Redefine in subclasses."""
         raise NotImplementedError('This method must be implemented by subclasses')
 
