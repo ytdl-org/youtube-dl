@@ -114,7 +114,8 @@ class MTVServicesInfoExtractor(InfoExtractor):
         # Remove the templates, like &device={device}
         mediagen_url = re.sub(r'&[^=]*?={.*?}(?=(&|$))', '', mediagen_url)
         if 'acceptMethods' not in mediagen_url:
-            mediagen_url += '&acceptMethods=fms'
+            mediagen_url += '&' if '?' in mediagen_url else '?'
+            mediagen_url += 'acceptMethods=fms'
 
         mediagen_doc = self._download_xml(mediagen_url, video_id,
                                           'Downloading video urls')
