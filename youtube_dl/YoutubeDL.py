@@ -1524,7 +1524,7 @@ class YoutubeDL(object):
                         fd.add_progress_hook(ph)
                     if self.params.get('verbose'):
                         self.to_stdout('[debug] Invoking downloader on %r' % info.get('url'))
-                    return fd.download(name, info)
+                    return fd.download(name, info, self.params.get("md5"))
 
                 if info_dict.get('requested_formats') is not None:
                     downloaded = []
