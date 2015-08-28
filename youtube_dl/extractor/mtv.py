@@ -296,7 +296,7 @@ class MTVIggyIE(MTVServicesInfoExtractor):
 
 class MTVDEIE(MTVServicesInfoExtractor):
     IE_NAME = 'mtv.de'
-    _VALID_URL = r'https?://(?:www\.)?mtv\.de/(?:artists|shows)/(?:[^/]+/)+(?P<id>\d+)-[^/#?]+/*(?:[#?].*)?$'
+    _VALID_URL = r'https?://(?:www\.)?mtv\.de/(?:artists|shows|news)/(?:[^/]+/)*(?P<id>\d+)-[^/#?]+/*(?:[#?].*)?$'
     _TESTS = [{
         'url': 'http://www.mtv.de/artists/10571-cro/videos/61131-traum',
         'info_dict': {
@@ -321,6 +321,19 @@ class MTVDEIE(MTVServicesInfoExtractor):
             # rtmp download
             'skip_download': True,
         },
+    }, {
+        # single video in pagePlaylist with different id
+        'url': 'http://www.mtv.de/news/77491-mtv-movies-spotlight-pixels-teil-3',
+        'info_dict': {
+            'id': 'local_playlist-4e760566473c4c8c5344',
+            'ext': 'mp4',
+            'title': 'Article_mtv-movies-spotlight-pixels-teil-3_short-clips_part1',
+            'description': 'MTV Movies Supercut',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
@@ -332,6 +345,10 @@ class MTVDEIE(MTVServicesInfoExtractor):
             self._search_regex(
                 r'window\.pagePlaylist\s*=\s*(\[.+?\]);\n', webpage, 'page playlist'),
             video_id)
+
+        # news pages contain single video in playlist with different id
+        if len(playlist) == 1:
+            return self._get_videos_info_from_url(playlist[0]['mrss'], video_id)
 
         for item in playlist:
             item_id = item.get('id')
