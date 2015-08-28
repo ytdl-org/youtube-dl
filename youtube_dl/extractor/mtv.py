@@ -309,6 +309,18 @@ class MTVDEIE(MTVServicesInfoExtractor):
             # rtmp download
             'skip_download': True,
         },
+    }, {
+        # mediagen URL without query (e.g. http://videos.mtvnn.com/mediagen/e865da714c166d18d6f80893195fcb97)
+        'url': 'http://www.mtv.de/shows/933-teen-mom-2/staffeln/5353/folgen/63565-enthullungen',
+        'info_dict': {
+            'id': 'local_playlist-f5ae778b9832cc837189',
+            'ext': 'mp4',
+            'title': 'Episode_teen-mom-2_shows_season-5_episode-1_full-episode_part1',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
