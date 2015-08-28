@@ -340,6 +340,7 @@ from .mtv import (
     MTVIE,
     MTVServicesEmbeddedIE,
     MTVIggyIE,
+    MTVDEIE,
 )
 from .muenchentv import MuenchenTVIE
 from .musicplayon import MusicPlayOnIE
