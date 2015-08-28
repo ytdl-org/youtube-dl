@@ -166,7 +166,7 @@
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
  - **FootyRoom**
  - **Foxgay**
- - **FoxNews**
+ - **FoxNews**: Fox News and Fox Business Video
  - **FoxSports**
  - **france2.fr:generation-quoi**
  - **FranceCulture**
@@ -465,7 +465,7 @@
  - **Sexu**
  - **SexyKarma**: Sexy Karma and Watch Indian Porn
  - **Shahid**
- - **Shared**
+ - **Shared**: shared.sx and vivo.sx
  - **ShareSix**
  - **Sina**
  - **Slideshare**
