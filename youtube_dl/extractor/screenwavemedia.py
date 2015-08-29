@@ -33,7 +33,7 @@ class ScreenwaveMediaIE(InfoExtractor):
             'http://player.screenwavemedia.com/player.js',
             video_id, 'Downloading playerconfig webpage')
 
-        videoserver = self._search_regex(r"\[ipaddress\]\s*=>\s*([\d\.]+)", playerdata, 'videoserver')
+        videoserver = self._search_regex(r'SWMServer\s*=\s*"([\d\.]+)"', playerdata, 'videoserver')
 
         sources = self._parse_json(
             js_to_json(
