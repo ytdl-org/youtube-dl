@@ -1718,6 +1718,15 @@ class GenericIE(InfoExtractor):
         if snagfilms_url:
             return self.url_result(snagfilms_url)
 
+        # Look for ScreenwaveMedia embeds
+        mobj = re.search(
+            r'<script[^>]+src=[\'"](http://player\d?\.screenwavemedia\.com/player\.php\?id=[A-Za-z0-9-]+)[\'"]',
+            webpage)
+        if mobj is not None:
+            return self.url_result(
+                unescapeHTML(mobj.group(1)),
+                'ScreenwaveMedia')
+
         # Look for AdobeTVVideo embeds
         mobj = re.search(
             r'<iframe[^>]+src=[\'"]((?:https?:)?//video\.tv\.adobe\.com/v/\d+[^"]+)[\'"]',
