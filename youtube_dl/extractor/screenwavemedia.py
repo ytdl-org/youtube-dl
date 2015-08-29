@@ -33,7 +33,7 @@ class ScreenwaveMediaIE(InfoExtractor):
             'http://player.screenwavemedia.com/player.js',
             video_id, 'Downloading playerconfig webpage')
 
-        videoserver = self._search_regex(r"\[ipaddress\]\s*=>\s*([\d\.]+)", playerdata, 'videoserver')
+        videoserver = self._search_regex(r'SWMServer\s*=\s*"([\d\.]+)"', playerdata, 'videoserver')
 
         sources = self._parse_json(
             js_to_json(
@@ -56,6 +56,7 @@ class ScreenwaveMediaIE(InfoExtractor):
 
         # Fallback to hardcoded sources if JS changes again
         if not sources:
+            self.report_warning('Falling back to a hardcoded list of streams')
             sources = [{
                 'file': 'http://%s/vod/%s_%s.mp4' % (videoserver, video_id, format_id),
                 'type': 'mp4',
