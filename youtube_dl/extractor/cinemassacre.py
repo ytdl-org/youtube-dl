@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import ExtractorError
 from .bliptv import BlipTVIE
+from .screenwavemedia import ScreenwaveMediaIE
 
 
 class CinemassacreIE(InfoExtractor):
@@ -83,10 +84,10 @@ class CinemassacreIE(InfoExtractor):
 
         playerdata_url = self._search_regex(
             [
-                r'src="(http://(?:player2\.screenwavemedia\.com|player\.screenwavemedia\.com/play)/[a-zA-Z]+\.php\?[^"]*\bid=.+?)"',
-                r'<iframe[^>]+src="((?:https?:)?//(?:[^.]+\.)?youtube\.com/.+?)"',
+                ScreenwaveMediaIE.EMBED_PATTERN,
+                r'<iframe[^>]+src="(?P<url>(?:https?:)?//(?:[^.]+\.)?youtube\.com/.+?)"',
             ],
-            webpage, 'player data URL', default=None)
+            webpage, 'player data URL', default=None, group='url')
         if not playerdata_url:
             playerdata_url = BlipTVIE._extract_url(webpage)
         if not playerdata_url:
