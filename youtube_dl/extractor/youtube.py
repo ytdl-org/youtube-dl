@@ -1243,7 +1243,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts', [''])[0]
             if 'rtmpe%3Dyes' in encoded_url_map:
                 raise ExtractorError('rtmpe downloads are not supported, see https://github.com/rg3/youtube-dl/issues/343 for more information.', expected=True)
-            url_map = {}
+            formats = []
             for url_data_str in encoded_url_map.split(','):
                 url_data = compat_parse_qs(url_data_str)
                 if 'itag' not in url_data or 'url' not in url_data:
@@ -1303,8 +1303,33 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     url += '&signature=' + signature
                 if 'ratebypass' not in url:
                     url += '&ratebypass=yes'
-                url_map[format_id] = url
-            formats = _map_to_format_list(url_map)
+
+                width = None
+                height = None
+                size_str = url_data.get('size', [''])[0]
+                if size_str.count('x') == 1:
+                    width, height = [int_or_none(x) for x in size_str.split('x')]
+
+                format_url = {
+                    'format_id': format_id,
+                    'url': url,
+                    'player_url': player_url,
+                    # As of this writing these are only defined for DASH formats:
+                    'filesize': int_or_none(url_data.get('clen', [None])[0]),
+                    'tbr': float_or_none(url_data.get('bitrate', [None])[0], scale=1024),
+                    'width': width,
+                    'height': height,
+                    'fps': int_or_none(url_data.get('fps', [None])[0]),
+                }
+
+                # drop Nones so they do not overwrite the defaults from self._formats
+                format_url = dict((k, v) for k, v in format_url.items() if v is not None)
+
+                format_full = self._formats.get(format_id, {}).copy()
+                format_full.update(format_url)
+
+                formats.append(format_full)
+
         elif video_info.get('hlsvp'):
             manifest_url = video_info['hlsvp'][0]
             url_map = self._extract_from_m3u8(manifest_url, video_id)
