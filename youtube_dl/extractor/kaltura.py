@@ -16,8 +16,7 @@ class KalturaIE(InfoExtractor):
                 (?:
                     kaltura:(?P<partner_id_s>\d+):(?P<id_s>[0-9a-z_]+)|
                     https?://
-                    (:?
-                        (?:www|cdnapisec)\.)?kaltura\.com/
+                        (:?(?:www|cdnapisec)\.)?kaltura\.com/
                         (?:
                             (?:
                                 # flash player
@@ -28,8 +27,8 @@ class KalturaIE(InfoExtractor):
                                 html5/html5lib/
                                 (?:[^/]+/)*?entry_id/(?P<id_html5>[0-9a-z_]+)
                                 .*\?.*\bwid=_(?P<partner_id_html5>\d+)
+                            )
                         )
-                    )
                 )
                 '''
     _API_BASE = 'http://cdnapi.kaltura.com/api_v3/index.php?'
