@@ -793,15 +793,21 @@ class YoutubeDL(object):
                     entry_list = list(ie_entries)
                     entries = [entry_list[i - 1] for i in playlistitems]
                 else:
+                    # ADDED
+                    entries = list(ie_entries)
+                    """
                     entries = list(itertools.islice(
                         ie_entries, playliststart, playlistend))
+                    """
                 n_entries = len(entries)
                 self.to_screen(
                     "[%s] playlist %s: Downloading %d videos" %
                     (ie_result['extractor'], playlist, n_entries))
 
+            # ADDED
             if self.params.get('playlistreverse', False):
                 entries = entries[::-1]
+            entries = entries[playliststart:playlistend]
 
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
