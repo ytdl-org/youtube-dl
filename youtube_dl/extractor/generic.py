@@ -48,6 +48,7 @@ from .vimeo import VimeoIE
 from .dailymotion import DailymotionCloudIE
 from .onionstudios import OnionStudiosIE
 from .snagfilms import SnagFilmsEmbedIE
+from .screenwavemedia import ScreenwaveMediaIE
 
 
 class GenericIE(InfoExtractor):
@@ -1719,13 +1720,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(snagfilms_url)
 
         # Look for ScreenwaveMedia embeds
-        mobj = re.search(
-            r'<script[^>]+src=[\'"](http://player\d?\.screenwavemedia\.com/player\.php\?id=[A-Za-z0-9-]+)[\'"]',
-            webpage)
+        mobj = re.search(ScreenwaveMediaIE.EMBED_PATTERN, webpage)
         if mobj is not None:
-            return self.url_result(
-                unescapeHTML(mobj.group(1)),
-                'ScreenwaveMedia')
+            return self.url_result(unescapeHTML(mobj.group('url')), 'ScreenwaveMedia')
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(
