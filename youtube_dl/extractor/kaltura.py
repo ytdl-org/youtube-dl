@@ -24,7 +24,7 @@ class KalturaIE(InfoExtractor):
                                 index\.php/kwidget/
                                 (?:[^/]+/)*?wid/_(?P<partner_id>\d+)/
                                 (?:[^/]+/)*?entry_id/(?P<id>[0-9a-z_]+)|
-                                # html player
+                                # html5 player
                                 html5/html5lib/
                                 (?:[^/]+/)*?entry_id/(?P<id_html5>[0-9a-z_]+)
                                 .*\?.*\bwid=_(?P<partner_id_html5>\d+)
