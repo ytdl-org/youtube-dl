@@ -56,6 +56,7 @@ class ScreenwaveMediaIE(InfoExtractor):
 
         # Fallback to hardcoded sources if JS changes again
         if not sources:
+            self.report_warning('Falling back to a hardcoded list of streams')
             sources = [{
                 'file': 'http://%s/vod/%s_%s.mp4' % (videoserver, video_id, format_id),
                 'type': 'mp4',
