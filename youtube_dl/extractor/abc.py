@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     js_to_json,
+    int_or_none,
 )
 
 
@@ -59,10 +60,10 @@ class ABCIE(InfoExtractor):
 
         formats = [{
             'url': url_info['url'],
-            'width': int(url_info['width']),
-            'height': int(url_info['height']),
-            'tbr': int(url_info['bitrate']),
-            'filesize': int(url_info['filesize']),
+            'width': int_or_none(url_info.get('width')),
+            'height': int_or_none(url_info.get('height')),
+            'tbr': int_or_none(url_info.get('bitrate')),
+            'filesize': int_or_none(url_info.get('filesize')),
         } for url_info in urls_info]
         self._sort_formats(formats)
 
