@@ -1002,6 +1002,16 @@ class GenericIE(InfoExtractor):
                 'description': 'New experience with Acrobat DC',
                 'duration': 248.667,
             },
+        },
+        # ScreenwaveMedia embed
+        {
+            'url': 'http://www.thecinemasnob.com/the-cinema-snob/a-nightmare-on-elm-street-2-freddys-revenge1',
+            'md5': '24ace5baba0d35d55c6810b51f34e9e0',
+            'info_dict': {
+                'id': 'cinemasnob-55d26273809dd',
+                'ext': 'mp4',
+                'title': 'cinemasnob',
+            },
         }
     ]
 
