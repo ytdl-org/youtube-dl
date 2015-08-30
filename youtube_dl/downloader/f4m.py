@@ -13,6 +13,8 @@ from ..compat import (
     compat_urllib_error,
 )
 from ..utils import (
+    encodeFilename,
+    sanitize_open,
     struct_pack,
     struct_unpack,
     xpath_text,
