@@ -241,7 +241,10 @@ from .imdb import (
     ImdbIE,
     ImdbListIE
 )
-from .imgur import ImgurIE
+from .imgur import (
+    ImgurIE,
+    ImgurAlbumIE,
+)
 from .ina import InaIE
 from .indavideo import (
     IndavideoIE,
