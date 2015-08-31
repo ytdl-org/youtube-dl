@@ -39,7 +39,7 @@ class VLiveIE(InfoExtractor):
         title = self._og_search_title(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
         creator = self._html_search_regex(
-            r'<span class="name">([^<>]+)</span>', webpage, 'creator')
+            r'<span[^>]+class="name">([^<>]+)</span>', webpage, 'creator')
         
         url = 'http://global.apis.naver.com/globalV/globalV/vod/%s/playinfo?' % video_id
         msgpad = '%.0f' % (time() * 1000)
@@ -51,7 +51,7 @@ class VLiveIE(InfoExtractor):
         playinfo = self._download_json(url, video_id, 'Downloading video json')
 
         if playinfo.get('message', '') != 'success':
-            raise ExtractorError(playinfo['message'])
+            raise ExtractorError(playinfo.get('message', 'JSON request unsuccessful'))
 
         if not playinfo.get('result'):
             raise ExtractorError('No videos found.')
