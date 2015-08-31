@@ -37,6 +37,9 @@ class FC2IE(InfoExtractor):
             'password': '(snip)',
             'skip': 'requires actual password'
         }
+    }, {
+        'url': 'http://video.fc2.com/en/a/content/20130926eZpARwsF',
+        'only_matching': True,
     }]
 
     def _login(self):
