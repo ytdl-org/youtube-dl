@@ -83,7 +83,7 @@ class FC2IE(InfoExtractor):
 
         title = self._og_search_title(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
-        refer = url.replace('/content/', '/a/content/')
+        refer = url.replace('/content/', '/a/content/') if '/a/content/' not in url else url
 
         mimi = hashlib.md5((video_id + '_gGddgPfeaf_gzyr').encode('utf-8')).hexdigest()
 
