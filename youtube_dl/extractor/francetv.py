@@ -80,7 +80,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': info['titre'],
+            'title': "%s - %s" % (info['titre'],info['sous_titre']),
             'description': clean_html(info['synopsis']),
             'thumbnail': compat_urlparse.urljoin('http://pluzz.francetv.fr', info['image']),
             'duration': int_or_none(info.get('real_duration')) or parse_duration(info['duree']),
