@@ -49,6 +49,17 @@ class YoukuIE(InfoExtractor):
         },
         'playlist_count': 13,
         'skip': 'Available in China only',
+    }, {
+        'url': 'http://v.youku.com/v_show/id_XNjA1NzA2Njgw.html',
+        'note': 'Video protected with password',
+        'info_dict': {
+            'id': 'XNjA1NzA2Njgw',
+            'ext': 'flv',
+            'title': u'邢義田复旦讲座之想象中的胡人—从“左衽孔子”说起',
+        },
+        'params': {
+            'videopassword': '100600',
+        },
     }]
 
     def construct_video_urls(self, data1, data2):
@@ -185,10 +196,17 @@ class YoukuIE(InfoExtractor):
             raw_data = self._download_json(req, video_id, note=note)
             return raw_data['data'][0]
 
+        video_password = self._downloader.params.get('videopassword', None)
+
         # request basic data
-        data1 = retrieve_data(
-            'http://v.youku.com/player/getPlayList/VideoIDS/%s' % video_id,
-            'Downloading JSON metadata 1')
+        if video_password:
+            data1 = retrieve_data(
+                'http://v.youku.com/player/getPlayList/VideoIDS/%s?password=%s' % (video_id, video_password),
+                'Downloading JSON metadata 1')
+        else:
+            data1 = retrieve_data(
+                'http://v.youku.com/player/getPlayList/VideoIDS/%s' % video_id,
+                'Downloading JSON metadata 1')
         data2 = retrieve_data(
             'http://v.youku.com/player/getPlayList/VideoIDS/%s/Pf/4/ctype/12/ev/1' % video_id,
             'Downloading JSON metadata 2')
