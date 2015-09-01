@@ -602,7 +602,7 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '-A', '--auto-number',
         action='store_true', dest='autonumber', default=False,
-        help='[deprecated; use  -o "%(autonumber)s-%(title)s.%(ext)s" ] Number downloaded files starting from 00000')
+        help='[deprecated] use  -o "%(autonumber)s-%(title)s.%(ext)s" ] Number downloaded files starting from 00000')
     filesystem.add_option(
         '-t', '--title',
         action='store_true', dest='usetitle', default=False,
