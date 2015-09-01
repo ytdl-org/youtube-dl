@@ -199,14 +199,13 @@ class YoukuIE(InfoExtractor):
         video_password = self._downloader.params.get('videopassword', None)
 
         # request basic data
+        basic_data_url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s' % video_id
         if video_password:
-            data1 = retrieve_data(
-                'http://v.youku.com/player/getPlayList/VideoIDS/%s?password=%s' % (video_id, video_password),
-                'Downloading JSON metadata 1')
-        else:
-            data1 = retrieve_data(
-                'http://v.youku.com/player/getPlayList/VideoIDS/%s' % video_id,
-                'Downloading JSON metadata 1')
+            basic_data_url = '%s?password=%s' % (basic_data_url, video_password)
+
+        data1 = retrieve_data(
+            basic_data_url,
+            'Downloading JSON metadata 1')
         data2 = retrieve_data(
             'http://v.youku.com/player/getPlayList/VideoIDS/%s/Pf/4/ctype/12/ev/1' % video_id,
             'Downloading JSON metadata 2')
