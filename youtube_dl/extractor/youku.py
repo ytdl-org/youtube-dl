@@ -55,7 +55,7 @@ class YoukuIE(InfoExtractor):
         'info_dict': {
             'id': 'XNjA1NzA2Njgw',
             'ext': 'flv',
-            'title': u'邢義田复旦讲座之想象中的胡人—从“左衽孔子”说起',
+            'title': '邢義田复旦讲座之想象中的胡人—从“左衽孔子”说起',
         },
         'params': {
             'videopassword': '100600',
@@ -201,7 +201,7 @@ class YoukuIE(InfoExtractor):
         # request basic data
         basic_data_url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s' % video_id
         if video_password:
-            basic_data_url = '%s?password=%s' % (basic_data_url, video_password)
+            basic_data_url += '?password=%s' % video_password
 
         data1 = retrieve_data(
             basic_data_url,
