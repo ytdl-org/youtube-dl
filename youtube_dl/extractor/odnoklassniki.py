@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class OdnoklassnikiIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:odnoklassniki|ok)\.ru/(?:video|web-api/video/moviePlayer)/(?P<id>[\d-]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:odnoklassniki|ok)\.ru/(?:video|web-api/video/moviePlayer)/(?P<id>[\d-]+)'
     _TESTS = [{
         # metadata in JSON
         'url': 'http://ok.ru/video/20079905452',
@@ -46,6 +46,9 @@ class OdnoklassnikiIE(InfoExtractor):
     }, {
         'url': 'http://ok.ru/web-api/video/moviePlayer/20079905452',
         'only_matching': True,
+    }, {
+        'url': 'http://www.ok.ru/video/20648036891',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -56,7 +59,7 @@ class OdnoklassnikiIE(InfoExtractor):
 
         player = self._parse_json(
             unescapeHTML(self._search_regex(
-                r'data-attributes="([^"]+)"', webpage, 'player')),
+                r'data-options="([^"]+)"', webpage, 'player')),
             video_id)
 
         flashvars = player['flashvars']
