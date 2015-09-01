@@ -16,6 +16,7 @@ from ..compat import compat_urllib_parse
 
 class VLiveIE(InfoExtractor):
     IE_NAME = 'vlive'
+    # www.vlive.tv/video/ links redirect to m.vlive.tv/video/ for mobile devices
     _VALID_URL = r'https?://(?:(www|m)\.)?vlive\.tv/video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://m.vlive.tv/video/1326',
