@@ -207,7 +207,7 @@ which means you can modify it, redistribute it or use it however you like.
     -p, --password PASSWORD          Account password. If this option is left out, youtube-dl will ask interactively.
     -2, --twofactor TWOFACTOR        Two-factor auth code
     -n, --netrc                      Use .netrc authentication data
-    --video-password PASSWORD        Video password (vimeo, smotri)
+    --video-password PASSWORD        Video password (vimeo, smotri, Youku)
 
 ## Post-processing Options:
     -x, --extract-audio              Convert video files to audio-only files (requires ffmpeg or avconv and ffprobe or avprobe)
