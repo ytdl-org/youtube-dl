@@ -224,7 +224,7 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
             'info_dict': {
                 'id': '108961659',
                 'ext': 'flv',
-                'title': 'C à dire ?!',
+                'title': 'C à dire ?! - Quels sont les enjeux de cette rentrée politique ?',
                 'description': 'md5:1a4aeab476eb657bf57c4ff122129f81',
                 'upload_date': '20140915',
                 'timestamp': 1410795000,
