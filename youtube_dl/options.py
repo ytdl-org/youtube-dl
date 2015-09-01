@@ -320,7 +320,7 @@ def parseOpts(overrideArguments=None):
     authentication.add_option(
         '--video-password',
         dest='videopassword', metavar='PASSWORD',
-        help='Video password (vimeo, smotri)')
+        help='Video password (vimeo, smotri, youku)')
 
     video_format = optparse.OptionGroup(parser, 'Video Format Options')
     video_format.add_option(
