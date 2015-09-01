@@ -54,9 +54,9 @@ class YoukuIE(InfoExtractor):
         'note': 'Video protected with password',
         'info_dict': {
             'id': 'XNjA1NzA2Njgw',
-            'ext': 'flv',
             'title': '邢義田复旦讲座之想象中的胡人—从“左衽孔子”说起',
         },
+        'playlist_count': 19,
         'params': {
             'videopassword': '100600',
         },
