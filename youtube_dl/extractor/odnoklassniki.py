@@ -135,6 +135,7 @@ class OdnoklassnikiIE(InfoExtractor):
             'format_id': f['name'],
             'quality': quality(f['name']),
         } for f in metadata['videos']]
+        self._sort_formats(formats)
 
         info['formats'] = formats
         return info
