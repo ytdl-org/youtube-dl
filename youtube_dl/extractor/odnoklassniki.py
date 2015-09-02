@@ -59,7 +59,8 @@ class OdnoklassnikiIE(InfoExtractor):
 
         player = self._parse_json(
             unescapeHTML(self._search_regex(
-                r'data-options="([^"]+%s[^"]+)"' % video_id, webpage, 'player')),
+                r'data-options=(?P<quote>["\'])(?P<player>{.+?%s.+?})(?P=quote)' % video_id,
+                webpage, 'player', group='player')),
             video_id)
 
         flashvars = player['flashvars']
