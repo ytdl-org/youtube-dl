@@ -34,7 +34,7 @@ You can also use pip:
 
     sudo pip install youtube-dl
 
-Alternatively, refer to the [developer instructions](#developer-instructions) below for how to check out and work with the git repository. For further options, including PGP signatures, see https://rg3.github.io/youtube-dl/download.html .
+Alternatively, refer to the [developer instructions](#developer-instructions) for how to check out and work with the git repository. For further options, including PGP signatures, see https://rg3.github.io/youtube-dl/download.html .
 
 # DESCRIPTION
 **youtube-dl** is a small command-line program to download videos from
