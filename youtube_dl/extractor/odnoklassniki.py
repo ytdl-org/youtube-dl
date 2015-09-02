@@ -44,6 +44,21 @@ class OdnoklassnikiIE(InfoExtractor):
             'age_limit': 0,
         },
     }, {
+        # YouTube embed (metadataUrl, provider == USER_YOUTUBE)
+        'url': 'http://ok.ru/video/64211978996595-1',
+        'md5': '5d7475d428845cd2e13bae6f1a992278',
+        'info_dict': {
+            'id': '64211978996595-1',
+            'ext': 'mp4',
+            'title': 'Космическая среда от 26 августа 2015',
+            'description': 'md5:848eb8b85e5e3471a3a803dae1343ed0',
+            'duration': 440,
+            'upload_date': '20150826',
+            'uploader_id': '750099571',
+            'uploader': 'Алина П',
+            'age_limit': 0,
+        },
+    }, {
         'url': 'http://ok.ru/web-api/video/moviePlayer/20079905452',
         'only_matching': True,
     }, {
@@ -93,16 +108,7 @@ class OdnoklassnikiIE(InfoExtractor):
 
         like_count = int_or_none(metadata.get('likeCount'))
 
-        quality = qualities(('mobile', 'lowest', 'low', 'sd', 'hd'))
-
-        formats = [{
-            'url': f['url'],
-            'ext': 'mp4',
-            'format_id': f['name'],
-            'quality': quality(f['name']),
-        } for f in metadata['videos']]
-
-        return {
+        info = {
             'id': video_id,
             'title': title,
             'thumbnail': thumbnail,
@@ -112,5 +118,23 @@ class OdnoklassnikiIE(InfoExtractor):
             'uploader_id': uploader_id,
             'like_count': like_count,
             'age_limit': age_limit,
-            'formats': formats,
         }
+
+        if metadata.get('provider') == 'USER_YOUTUBE':
+            info.update({
+                '_type': 'url_transparent',
+                'url': movie['contentId'],
+            })
+            return info
+
+        quality = qualities(('mobile', 'lowest', 'low', 'sd', 'hd'))
+
+        formats = [{
+            'url': f['url'],
+            'ext': 'mp4',
+            'format_id': f['name'],
+            'quality': quality(f['name']),
+        } for f in metadata['videos']]
+
+        info['formats'] = formats
+        return info
