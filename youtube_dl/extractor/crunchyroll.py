@@ -20,9 +20,11 @@ from ..utils import (
     ExtractorError,
     bytes_to_intlist,
     intlist_to_bytes,
+    int_or_none,
     remove_end,
     unified_strdate,
     urlencode_postdata,
+    xpath_text,
 )
 from ..aes import (
     aes_cbc_decrypt,
@@ -286,6 +288,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             stream_info = streamdata.find('./{default}preload/stream_info')
             video_url = stream_info.find('./host').text
             video_play_path = stream_info.find('./file').text
+            metadata = stream_info.find('./metadata')
+            format_info = {
+                'format': video_format,
+                'format_id': video_format,
+                'height': int_or_none(xpath_text(metadata, './height')),
+                'width': int_or_none(xpath_text(metadata, './width')),
+            }
 
             if '.fplive.net/' in video_url:
                 video_url = re.sub(r'^rtmpe?://', 'http://', video_url.strip())
@@ -294,19 +303,18 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     netloc='v.lvlt.crcdn.net',
                     path='%s/%s' % (remove_end(parsed_video_url.path, '/'), video_play_path.split(':')[-1])))
                 if self._is_valid_url(direct_video_url, video_id, video_format):
-                    formats.append({
+                    format_info.update({
                         'url': direct_video_url,
-                        'format_id': video_format,
                     })
+                    formats.append(format_info)
                     continue
 
-            formats.append({
+            format_info.update({
                 'url': video_url,
                 'play_path': video_play_path,
                 'ext': 'flv',
-                'format': video_format,
-                'format_id': video_format,
             })
+            formats.append(format_info)
 
         subtitles = self.extract_subtitles(video_id, webpage)
 
