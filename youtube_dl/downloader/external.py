@@ -47,7 +47,7 @@ class ExternalFD(FileDownloader):
 
     def _option(self, command_option, param):
         param = self.params.get(param)
-        if param is None:
+        if param is None or param is False:
             return []
         if isinstance(param, bool):
             return [command_option]
@@ -80,6 +80,8 @@ class CurlFD(ExternalFD):
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._option('--interface', 'source_address')
+        cmd += self._option('--proxy', 'proxy')
+        cmd += self._option('--insecure', 'nocheckcertificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
@@ -121,6 +123,7 @@ class Aria2cFD(ExternalFD):
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._option('--interface', 'source_address')
         cmd += self._option('--all-proxy', 'proxy')
+        cmd += self._option('--check-certificate=false', 'nocheckcertificate')
         cmd += ['--', info_dict['url']]
         return cmd
 
