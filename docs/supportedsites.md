@@ -220,6 +220,7 @@
  - **imdb**: Internet Movie Database trailers
  - **imdb:list**: Internet Movie Database lists
  - **Imgur**
+ - **ImgurAlbum**
  - **Ina**
  - **Indavideo**
  - **IndavideoEmbed**
@@ -303,6 +304,7 @@
  - **MPORA**
  - **MSNBC**
  - **MTV**
+ - **mtv.de**
  - **mtviggy.com**
  - **mtvservices:embedded**
  - **MuenchenTV**: münchen.tv
