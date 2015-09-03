@@ -121,7 +121,7 @@ from .dbtv import DBTVIE
 from .dcn import (
     DCNGeneralIE,
     DCNVideoIE,
-    DCNShowIE,
+    DCNSeasonIE,
 )
 from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE

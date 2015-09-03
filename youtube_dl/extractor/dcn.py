@@ -11,6 +11,8 @@ from ..compat import (
 from ..utils import (
     int_or_none,
     parse_iso8601,
+    smuggle_url,
+    unsmuggle_url,
 )
 
 
@@ -25,9 +27,9 @@ class DCNGeneralIE(InfoExtractor):
             url = 'http://www.dcndigital.ae/#/media/%s' % video_id
             ie_key = 'DCNVideo'
         else:
-            ie_key = 'DCNShow'
+            ie_key = 'DCNSeason'
             if season_id and int(season_id) > 0:
-                url = 'http://www.dcndigital.ae/#/program/season/%s' % season_id
+                url = smuggle_url('http://www.dcndigital.ae/#/program/season/%s' % season_id, {'show_id': show_id})
             else:
                 url = 'http://www.dcndigital.ae/#/program/%s' % show_id
         return {
@@ -38,6 +40,7 @@ class DCNGeneralIE(InfoExtractor):
 
 
 class DCNVideoIE(InfoExtractor):
+    IE_NAME = 'dcn:video'
     _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?(?:video/[^/]+|media)/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.dcndigital.ae/#/video/%D8%B1%D8%AD%D9%84%D8%A9-%D8%A7%D9%84%D8%B9%D9%85%D8%B1-%D8%A7%D9%84%D8%AD%D9%84%D9%82%D8%A9-1/17375',
@@ -109,13 +112,14 @@ class DCNVideoIE(InfoExtractor):
         }
 
 
-class DCNShowIE(InfoExtractor):
+class DCNSeasonIE(InfoExtractor):
+    IE_NAME = 'dcn:season'
     _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?program/(?:(?P<show_id>\d+)|season/(?P<season_id>\d+))'
     _TEST = {
         'url': 'http://dcndigital.ae/#/program/205024/%D9%85%D8%AD%D8%A7%D8%B6%D8%B1%D8%A7%D8%AA-%D8%A7%D9%84%D8%B4%D9%8A%D8%AE-%D8%A7%D9%84%D8%B4%D8%B9%D8%B1%D8%A7%D9%88%D9%8A',
         'info_dict':
         {
-            'id': '205024',
+            'id': '7910',
             'title': 'محاضرات الشيخ الشعراوي',
             'description': '',
         },
@@ -123,15 +127,18 @@ class DCNShowIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
         show_id, season_id = re.match(self._VALID_URL, url).groups()
         data = {}
         if season_id:
-            request = compat_urllib_request.Request(
-                'http://admin.mangomolo.com/analytics/index.php/plus/season_info?id=%s' % season_id,
-                headers={'Origin': 'http://www.dcndigital.ae'})
-            season = self._download_json(request, season_id)
-            show_id = season['id']
             data['season'] = season_id
+            show_id = smuggled_data.get('show_id')
+            if show_id is None:
+                request = compat_urllib_request.Request(
+                    'http://admin.mangomolo.com/analytics/index.php/plus/season_info?id=%s' % season_id,
+                    headers={'Origin': 'http://www.dcndigital.ae'})
+                season = self._download_json(request, season_id)
+                show_id = season['id']
         data['show_id'] = show_id
         request = compat_urllib_request.Request(
             'http://admin.mangomolo.com/analytics/index.php/plus/show',
@@ -141,6 +148,7 @@ class DCNShowIE(InfoExtractor):
                 'Content-Type': 'application/x-www-form-urlencoded'
             })
         show = self._download_json(request, show_id)
+        season_id = season_id or show['default_season']
         title = show['cat'].get('title_en') or show['cat']['title_ar']
         description = show['cat'].get('description_en') or show['cat'].get('description_ar')
         entries = []
@@ -151,7 +159,7 @@ class DCNShowIE(InfoExtractor):
                 'ie_key': 'DCNVideo',
             })
         return {
-            'id': show_id,
+            'id': season_id,
             'title': title,
             'description': description,
             'entries': entries,
