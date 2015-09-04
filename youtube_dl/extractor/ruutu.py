@@ -28,7 +28,7 @@ class RuutuIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://www.ruutu.fi/ohjelmat/superpesis/superpesis-katso-koko-kausi-ruudussa',
+            'url': 'http://www.ruutu.fi/video/2057306',
             'md5': '065a10ae4d5b8cfd9d0c3d332465e3d9',
             'info_dict': {
                 'id': '2057306',
