@@ -5,6 +5,10 @@ import subprocess
 
 from .common import FileDownloader
 from ..utils import (
+    cli_option,
+    cli_valueless_option,
+    cli_bool_option,
+    cli_configuration_args,
     encodeFilename,
     encodeArgument,
 )
@@ -46,29 +50,16 @@ class ExternalFD(FileDownloader):
         return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps')
 
     def _option(self, command_option, param):
-        param = self.params.get(param)
-        if param is None:
-            return []
-        return [command_option, param]
+        return cli_option(self.params, command_option, param)
 
     def _bool_option(self, command_option, param, true_value='true', false_value='false', separator=None):
-        param = self.params.get(param)
-        if not isinstance(param, bool):
-            return []
-        if separator:
-            return [command_option + separator + (true_value if param else false_value)]
-        return [command_option, true_value if param else false_value]
+        return cli_bool_option(self.params, command_option, param, true_value, false_value, separator)
 
     def _valueless_option(self, command_option, param, expected_value=True):
-        param = self.params.get(param)
-        return [command_option] if param == expected_value else []
+        return cli_valueless_option(self.params, command_option, param, expected_value)
 
     def _configuration_args(self, default=[]):
-        ex_args = self.params.get('external_downloader_args')
-        if ex_args is None:
-            return default
-        assert isinstance(ex_args, list)
-        return ex_args
+        return cli_configuration_args(self.params, 'external_downloader_args', default)
 
     def _call_downloader(self, tmpfilename, info_dict):
         """ Either overwrite this or implement _make_cmd """
