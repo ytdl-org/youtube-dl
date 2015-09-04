@@ -176,7 +176,7 @@ def xpath_with_ns(path, ns_map):
     return '/'.join(replaced)
 
 
-def xpath_text(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
+def xpath_element(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
     if sys.version_info < (2, 7):  # Crazy 2.6
         xpath = xpath.encode('ascii')
 
@@ -189,7 +189,24 @@ def xpath_text(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
             raise ExtractorError('Could not find XML element %s' % name)
         else:
             return None
-    return n.text
+    return n
+
+
+def xpath_text(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
+    return xpath_element(node, xpath, name, fatal=fatal, default=default).text
+
+
+def xpath_attr(node, xpath, key, name=None, fatal=False, default=NO_DEFAULT):
+    n = find_xpath_attr(node, xpath, key)
+    if n is None:
+        if default is not NO_DEFAULT:
+            return default
+        elif fatal:
+            name = '%s[@%s]' % (xpath, key) if name is None else name
+            raise ExtractorError('Could not find XML attribute %s' % name)
+        else:
+            return None
+    return n.attrib[key]
 
 
 def get_element_by_id(id, html):
