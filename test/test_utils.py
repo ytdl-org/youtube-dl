@@ -57,7 +57,9 @@ from youtube_dl.utils import (
     urlencode_postdata,
     version_tuple,
     xpath_with_ns,
+    xpath_element,
     xpath_text,
+    xpath_attr,
     render_table,
     match_str,
     parse_dfxp_time_expr,
@@ -264,6 +266,16 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(find('media:song/media:author').text, 'The Author')
         self.assertEqual(find('media:song/url').text, 'http://server.com/download.mp3')
 
+    def test_xpath_element(self):
+        doc = xml.etree.ElementTree.Element('root')
+        div = xml.etree.ElementTree.SubElement(doc, 'div')
+        p = xml.etree.ElementTree.SubElement(div, 'p')
+        p.text = 'Foo'
+        self.assertEqual(xpath_element(doc, 'div/p'), p)
+        self.assertEqual(xpath_element(doc, 'div/bar', default='default'), 'default')
+        self.assertTrue(xpath_element(doc, 'div/bar') is None)
+        self.assertRaises(ExtractorError, xpath_element, doc, 'div/bar', fatal=True)
+
     def test_xpath_text(self):
         testxml = '''<root>
             <div>
@@ -272,8 +284,24 @@ class TestUtil(unittest.TestCase):
         </root>'''
         doc = xml.etree.ElementTree.fromstring(testxml)
         self.assertEqual(xpath_text(doc, 'div/p'), 'Foo')
+        self.assertEqual(xpath_text(doc, 'div/bar', default='default'), 'default')
         self.assertTrue(xpath_text(doc, 'div/bar') is None)
         self.assertRaises(ExtractorError, xpath_text, doc, 'div/bar', fatal=True)
+
+    def test_xpath_attr(self):
+        testxml = '''<root>
+            <div>
+                <p x="a">Foo</p>
+            </div>
+        </root>'''
+        doc = xml.etree.ElementTree.fromstring(testxml)
+        self.assertEqual(xpath_attr(doc, 'div/p', 'x'), 'a')
+        self.assertEqual(xpath_attr(doc, 'div/bar', 'x'), None)
+        self.assertEqual(xpath_attr(doc, 'div/p', 'y'), None)
+        self.assertEqual(xpath_attr(doc, 'div/bar', 'x', default='default'), 'default')
+        self.assertEqual(xpath_attr(doc, 'div/p', 'y', default='default'), 'default')
+        self.assertRaises(ExtractorError, xpath_attr, doc, 'div/bar', 'x', fatal=True)
+        self.assertRaises(ExtractorError, xpath_attr, doc, 'div/p', 'y', fatal=True)
 
     def test_smuggle_url(self):
         data = {"ö": "ö", "abc": [3]}
