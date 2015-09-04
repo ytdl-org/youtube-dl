@@ -4,6 +4,7 @@ import os
 
 from ..utils import (
     PostProcessingError,
+    cli_configuration_args,
     encodeFilename,
 )
 
@@ -61,11 +62,7 @@ class PostProcessor(object):
             self._downloader.report_warning(errnote)
 
     def _configuration_args(self, default=[]):
-        pp_args = self._downloader.params.get('postprocessor_args')
-        if pp_args is None:
-            return default
-        assert isinstance(pp_args, list)
-        return pp_args
+        return cli_configuration_args(self.params, 'postprocessor_args', default)
 
 
 class AudioConversionError(PostProcessingError):
