@@ -49,9 +49,19 @@ class ExternalFD(FileDownloader):
         param = self.params.get(param)
         if param is None:
             return []
-        if isinstance(param, bool):
-            return [command_option]
         return [command_option, param]
+
+    def _bool_option(self, command_option, param, true_value='true', false_value='false', separator=None):
+        param = self.params.get(param)
+        if not isinstance(param, bool):
+            return []
+        if separator:
+            return [command_option + separator + (true_value if param else false_value)]
+        return [command_option, true_value if param else false_value]
+
+    def _valueless_option(self, command_option, param, expected_value=True):
+        param = self.params.get(param)
+        return [command_option] if param == expected_value else []
 
     def _configuration_args(self, default=[]):
         ex_args = self.params.get('external_downloader_args')
@@ -80,6 +90,8 @@ class CurlFD(ExternalFD):
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._option('--interface', 'source_address')
+        cmd += self._option('--proxy', 'proxy')
+        cmd += self._valueless_option('--insecure', 'nocheckcertificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
@@ -102,7 +114,7 @@ class WgetFD(ExternalFD):
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._option('--bind-address', 'source_address')
         cmd += self._option('--proxy', 'proxy')
-        cmd += self._option('--no-check-certificate', 'nocheckcertificate')
+        cmd += self._valueless_option('--no-check-certificate', 'nocheckcertificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
@@ -121,6 +133,7 @@ class Aria2cFD(ExternalFD):
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._option('--interface', 'source_address')
         cmd += self._option('--all-proxy', 'proxy')
+        cmd += self._bool_option('--check-certificate', 'nocheckcertificate', 'false', 'true', '=')
         cmd += ['--', info_dict['url']]
         return cmd
 
