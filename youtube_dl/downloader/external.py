@@ -47,7 +47,7 @@ class ExternalFD(FileDownloader):
 
     def _option(self, command_option, param):
         param = self.params.get(param)
-        if param is None or param is False:
+        if param is None:
             return []
         return [command_option, param]
 
@@ -59,7 +59,7 @@ class ExternalFD(FileDownloader):
             return [command_option + separator + (true_value if param else false_value)]
         return [command_option, true_value if param else false_value]
 
-    def _argless_option(self, command_option, param, expected_value=True):
+    def _valueless_option(self, command_option, param, expected_value=True):
         param = self.params.get(param)
         return [command_option] if param == expected_value else []
 
@@ -91,7 +91,7 @@ class CurlFD(ExternalFD):
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._option('--interface', 'source_address')
         cmd += self._option('--proxy', 'proxy')
-        cmd += self._argless_option('--insecure', 'nocheckcertificate')
+        cmd += self._valueless_option('--insecure', 'nocheckcertificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
@@ -114,7 +114,7 @@ class WgetFD(ExternalFD):
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._option('--bind-address', 'source_address')
         cmd += self._option('--proxy', 'proxy')
-        cmd += self._argless_option('--no-check-certificate', 'nocheckcertificate')
+        cmd += self._valueless_option('--no-check-certificate', 'nocheckcertificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
