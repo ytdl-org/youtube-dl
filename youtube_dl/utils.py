@@ -1951,6 +1951,32 @@ def dfxp2srt(dfxp_data):
     return ''.join(out)
 
 
+def cli_option(params, command_option, param):
+    param = params.get(param)
+    return [command_option, param] if param is not None else []
+
+
+def cli_bool_option(params, command_option, param, true_value='true', false_value='false', separator=None):
+    param = params.get(param)
+    assert isinstance(param, bool)
+    if separator:
+        return [command_option + separator + (true_value if param else false_value)]
+    return [command_option, true_value if param else false_value]
+
+
+def cli_valueless_option(params, command_option, param, expected_value=True):
+    param = params.get(param)
+    return [command_option] if param == expected_value else []
+
+
+def cli_configuration_args(params, param, default=[]):
+    ex_args = params.get(param)
+    if ex_args is None:
+        return default
+    assert isinstance(ex_args, list)
+    return ex_args
+
+
 class ISO639Utils(object):
     # See http://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt
     _lang_map = {
