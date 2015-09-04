@@ -181,7 +181,7 @@ def xpath_element(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
         xpath = xpath.encode('ascii')
 
     n = node.find(xpath)
-    if n is None or n.text is None:
+    if n is None:
         if default is not NO_DEFAULT:
             return default
         elif fatal:
@@ -193,7 +193,18 @@ def xpath_element(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
 
 
 def xpath_text(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
-    return xpath_element(node, xpath, name, fatal=fatal, default=default).text
+    n = xpath_element(node, xpath, name, fatal=fatal, default=default)
+    if n is None or n == default:
+        return n
+    if n.text is None:
+        if default is not NO_DEFAULT:
+            return default
+        elif fatal:
+            name = xpath if name is None else name
+            raise ExtractorError('Could not find XML element\'s text %s' % name)
+        else:
+            return None
+    return n.text
 
 
 def xpath_attr(node, xpath, key, name=None, fatal=False, default=NO_DEFAULT):
