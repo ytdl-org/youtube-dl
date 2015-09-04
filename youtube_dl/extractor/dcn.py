@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import re
+import base64
 
 from .common import InfoExtractor
 from ..compat import (
@@ -41,7 +42,7 @@ class DCNGeneralIE(InfoExtractor):
 
 class DCNVideoIE(InfoExtractor):
     IE_NAME = 'dcn:video'
-    _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?(?:video/[^/]+|media)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?(?:video/[^/]+|media|catchup/[^/]+/[^/]+)/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.dcndigital.ae/#/video/%D8%B1%D8%AD%D9%84%D8%A9-%D8%A7%D9%84%D8%B9%D9%85%D8%B1-%D8%A7%D9%84%D8%AD%D9%84%D9%82%D8%A9-1/17375',
         'info_dict':
@@ -109,6 +110,65 @@ class DCNVideoIE(InfoExtractor):
             'duration': duration,
             'timestamp': timestamp,
             'formats': formats,
+        }
+
+
+class DCNLiveIE(InfoExtractor):
+    IE_NAME = 'dcn:live'
+    _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?live/(?P<id>\d+)'
+    _TEST = {
+        'url': 'http://www.dcndigital.ae/#/live/6/dubai-tv',
+        'info_dict':
+        {
+            'id': '6',
+            'ext': 'mp4',
+            'title': 'Dubai Al Oula',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        channel_id = self._match_id(url)
+
+        request = compat_urllib_request.Request(
+            'http://admin.mangomolo.com/analytics/index.php/plus/getchanneldetails?channel_id=%s' % channel_id,
+            headers={'Origin': 'http://www.dcndigital.ae'})
+
+        channel = self._download_json(request, channel_id)
+        title = channel.get('title_en') or channel['title_ar']
+
+        webpage = self._download_webpage(
+            'http://admin.mangomolo.com/analytics/index.php/customers/embed/index?'
+            + compat_urllib_parse.urlencode({
+                'id': base64.b64encode(channel['user_id'].encode()).decode(),
+                'channelid': base64.b64encode(channel['id'].encode()).decode(),
+                'signature': channel['signature'],
+                'countries': 'Q0M=',
+                'filter': 'DENY',
+            }), channel_id)
+
+        m3u8_url = self._html_search_regex(r'file:\s*"([^"]+)', webpage, 'm3u8 url')
+        formats = self._extract_m3u8_formats(
+            m3u8_url, channel_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls')
+
+        rtsp_url = self._search_regex(
+            r'<a[^>]+href="(rtsp://[^"]+)"', webpage, 'rtsp url', fatal=False)
+        if rtsp_url:
+            formats.append({
+                'url': rtsp_url,
+                'format_id': 'rtsp',
+            })
+
+        self._sort_formats(formats)
+
+        return {
+            'id': channel_id,
+            'title': title,
+            'formats': formats,
+            'is_live': True,
         }
 
 

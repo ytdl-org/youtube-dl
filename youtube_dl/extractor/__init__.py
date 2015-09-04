@@ -121,6 +121,7 @@ from .dbtv import DBTVIE
 from .dcn import (
     DCNGeneralIE,
     DCNVideoIE,
+    DCNLiveIE,
     DCNSeasonIE,
 )
 from .dctp import DctpTvIE
