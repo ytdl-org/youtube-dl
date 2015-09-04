@@ -53,6 +53,14 @@ class ExternalFD(FileDownloader):
             return [command_option]
         return [command_option, param]
 
+    def _bool_option(self, command_option, param, true_value='true', false_value='false', separator=None):
+        param = self.params.get(param)
+        if not isinstance(param, bool):
+            return []
+        if separator:
+            return [command_option + separator + (true_value if param else false_value)]
+        return [command_option, true_value if param else false_value]
+
     def _configuration_args(self, default=[]):
         ex_args = self.params.get('external_downloader_args')
         if ex_args is None:
@@ -123,7 +131,7 @@ class Aria2cFD(ExternalFD):
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._option('--interface', 'source_address')
         cmd += self._option('--all-proxy', 'proxy')
-        cmd += self._option('--check-certificate=false', 'nocheckcertificate')
+        cmd += self._bool_option('--check-certificate', 'nocheckcertificate', 'false', 'true', '=')
         cmd += ['--', info_dict['url']]
         return cmd
 
