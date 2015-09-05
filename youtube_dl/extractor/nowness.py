@@ -28,7 +28,9 @@ class NownessBaseIE(InfoExtractor):
                     elif source == 'youtube':
                         return self.url_result(video_id, 'Youtube')
                     elif source == 'cinematique':
-                        return self.url_result('http://cinematique.com/embed/%s' % video_id, 'Cinematique')
+                        # youtube-dl currently doesn't support cinematique
+                        # return self.url_result('http://cinematique.com/embed/%s' % video_id, 'Cinematique')
+                        pass
 
     def api_request(self, url, request_path):
         display_id = self._match_id(url)
