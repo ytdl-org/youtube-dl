@@ -31,14 +31,14 @@ class NownessBaseIE(InfoExtractor):
                         return self.url_result('http://cinematique.com/embed/%s' % video_id, 'Cinematique')
 
     def api_request(self, url, request_url):
-        id = self._match_id(url)
+        display_id = self._match_id(url)
 
         lang = 'zh-cn' if 'cn.nowness.com' in url else 'en-us'
-        request = compat_urllib_request.Request(request_url % id, headers={
+        request = compat_urllib_request.Request(request_url % display_id, headers={
             'X-Nowness-Language': lang,
         })
-        json_data = self._download_json(request, id)
-        return id, json_data
+        json_data = self._download_json(request, display_id)
+        return display_id, json_data
 
 
 class NownessIE(NownessBaseIE):
