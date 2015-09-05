@@ -33,7 +33,7 @@ class NownessBaseIE(InfoExtractor):
 
 class NownessIE(NownessBaseIE):
     IE_NAME = 'nowness'
-    _VALID_URL = r'https?://(?:(?:www|cn)\.)?nowness\.com/(story|series/[^/])/(?P<id>[0-9a-z-]+)'
+    _VALID_URL = r'https?://(?:(?:www|cn)\.)?nowness\.com/(story|series/[^/]+)/(?P<id>[0-9a-z-]+)'
     _TESTS = [
         {
             'url': 'https://www.nowness.com/story/candor-the-art-of-gesticulation',
@@ -112,7 +112,7 @@ class NownessSerieIE(NownessBaseIE):
         display_id = self._match_id(url)
 
         lang = 'zh-cn' if 'cn.nowness.com' in url else 'en-us'
-        request = compat_urllib_request.Request('https://api.nowness.com/api/series/getBySlug/%s' % display_id, headers={
+        request = compat_urllib_request.Request('http://api.nowness.com/api/series/getBySlug/%s' % display_id, headers={
             'X-Nowness-Language': lang,
         })
         serie = self._download_json(request, display_id)
