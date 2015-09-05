@@ -41,7 +41,7 @@ class VLiveIE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(webpage)
         creator = self._html_search_regex(
             r'<span[^>]+class="name">([^<>]+)</span>', webpage, 'creator')
-        
+
         url = 'http://global.apis.naver.com/globalV/globalV/vod/%s/playinfo?' % video_id
         msgpad = '%.0f' % (time() * 1000)
         md = b64encode(
