@@ -62,7 +62,7 @@ class PostProcessor(object):
             self._downloader.report_warning(errnote)
 
     def _configuration_args(self, default=[]):
-        return cli_configuration_args(self.params, 'postprocessor_args', default)
+        return cli_configuration_args(self._downloader.params, 'postprocessor_args', default)
 
 
 class AudioConversionError(PostProcessingError):
