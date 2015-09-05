@@ -228,10 +228,7 @@ except ImportError:  # Python < 3.3
 
 
 def compat_ord(c):
-    if type(c) is int:
-        return c
-    else:
-        return ord(c)
+    return c if type(c) is int else ord(c)
 
 
 if sys.version_info >= (3, 0):
