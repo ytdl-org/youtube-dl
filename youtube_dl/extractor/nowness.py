@@ -30,11 +30,11 @@ class NownessBaseIE(InfoExtractor):
                     elif source == 'cinematique':
                         return self.url_result('http://cinematique.com/embed/%s' % video_id, 'Cinematique')
 
-    def api_request(self, url, request_url):
+    def api_request(self, url, request_path):
         display_id = self._match_id(url)
 
         lang = 'zh-cn' if 'cn.nowness.com' in url else 'en-us'
-        request = compat_urllib_request.Request(request_url % display_id, headers={
+        request = compat_urllib_request.Request('http://api.nowness.com/api/' + request_path % display_id, headers={
             'X-Nowness-Language': lang,
         })
         json_data = self._download_json(request, display_id)
@@ -72,7 +72,7 @@ class NownessIE(NownessBaseIE):
     ]
 
     def _real_extract(self, url):
-        display_id, post = self.api_request(url, 'http://api.nowness.com/api/post/getBySlug/%s')
+        display_id, post = self.api_request(url, 'post/getBySlug/%s')
         return self.extract_url_result(post)
 
 
@@ -89,7 +89,7 @@ class NownessPlaylistIE(NownessBaseIE):
     }
 
     def _real_extract(self, url):
-        playlist_id, playlist = self.api_request(url, 'http://api.nowness.com/api/post?PlaylistId=%s')
+        playlist_id, playlist = self.api_request(url, 'post?PlaylistId=%s')
         entries = [self.extract_url_result(item) for item in playlist['items']]
         return self.playlist_result(entries, playlist_id)
 
@@ -107,7 +107,7 @@ class NownessSerieIE(NownessBaseIE):
     }
 
     def _real_extract(self, url):
-        display_id, serie = self.api_request(url, 'http://api.nowness.com/api/series/getBySlug/%s')
+        display_id, serie = self.api_request(url, 'series/getBySlug/%s')
         serie_id = str(serie['id'])
         entries = [self.extract_url_result(post) for post in serie['posts']]
         return self.playlist_result(entries, serie_id)
