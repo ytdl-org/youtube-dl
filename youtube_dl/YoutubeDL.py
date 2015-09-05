@@ -284,7 +284,11 @@ class YoutubeDL(object):
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
-        self.params = params
+        self.params = {
+            # Default parameters
+            'nocheckcertificate': False,
+        }
+        self.params.update(params)
         self.cache = Cache(self)
 
         if params.get('bidi_workaround', False):
