@@ -207,15 +207,10 @@ except ImportError:  # Python 2
 
     def compat_parse_qs(qs, keep_blank_values=False, strict_parsing=False,
                         encoding='utf-8', errors='replace'):
-        parsed_result = {}
         pairs = _parse_qsl(qs, keep_blank_values, strict_parsing,
                            encoding=encoding, errors=errors)
-        for name, value in pairs:
-            if name in parsed_result:
-                parsed_result[name].append(value)
-            else:
-                parsed_result[name] = [value]
-        return parsed_result
+        return {name:(parsed_result[name] + [value] if name in parsed_result 
+                      else [value]) for name, value in pairs}
 
 try:
     from shlex import quote as shlex_quote
