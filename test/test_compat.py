@@ -14,6 +14,7 @@ from youtube_dl.utils import get_filesystem_encoding
 from youtube_dl.compat import (
     compat_getenv,
     compat_expanduser,
+    compat_shlex_split,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
 )
@@ -66,6 +67,9 @@ class TestCompat(unittest.TestCase):
     def test_compat_urllib_parse_unquote_plus(self):
         self.assertEqual(compat_urllib_parse_unquote_plus('abc%20def'), 'abc def')
         self.assertEqual(compat_urllib_parse_unquote_plus('%7e/abc+def'), '~/abc def')
+
+    def test_compat_shlex(self):
+        self.assertEqual(compat_shlex_split('-option "one two"'), ['-option', 'one two'])
 
 if __name__ == '__main__':
     unittest.main()
