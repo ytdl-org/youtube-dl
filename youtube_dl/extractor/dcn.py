@@ -25,19 +25,13 @@ class DCNGeneralIE(InfoExtractor):
         url = ''
         ie_key = ''
         if video_id and int(video_id) > 0:
-            url = 'http://www.dcndigital.ae/#/media/%s' % video_id
-            ie_key = 'DCNVideo'
+            return self.url_result('http://www.dcndigital.ae/#/media/%s' % video_id, 'DCNVideo')
         else:
-            ie_key = 'DCNSeason'
             if season_id and int(season_id) > 0:
                 url = smuggle_url('http://www.dcndigital.ae/#/program/season/%s' % season_id, {'show_id': show_id})
             else:
                 url = 'http://www.dcndigital.ae/#/program/%s' % show_id
-        return {
-            'url': url,
-            '_type': 'url',
-            'ie_key': ie_key
-        }
+            return self.url_result(url, 'DCNSeason')
 
 
 class DCNVideoIE(InfoExtractor):
@@ -71,6 +65,11 @@ class DCNVideoIE(InfoExtractor):
 
         video = self._download_json(request, video_id)
         title = video.get('title_en') or video['title_ar']
+        img = video.get('img')
+        thumbnail = 'http://admin.mangomolo.com/analytics/%s' % img if img else None
+        duration = int_or_none(video.get('duration'))
+        description = video.get('description_en') or video.get('description_ar')
+        timestamp = parse_iso8601(video.get('create_time') or video.get('update_time'), ' ')
 
         webpage = self._download_webpage(
             'http://admin.mangomolo.com/analytics/index.php/customers/embed/video?'
@@ -96,12 +95,6 @@ class DCNVideoIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        img = video.get('img')
-        thumbnail = 'http://admin.mangomolo.com/analytics/%s' % img if img else None
-        duration = int_or_none(video.get('duration'))
-        description = video.get('description_en') or video.get('description_ar')
-        timestamp = parse_iso8601(video.get('create_time') or video.get('update_time'), ' ')
-
         return {
             'id': video_id,
             'title': title,
@@ -122,7 +115,9 @@ class DCNLiveIE(InfoExtractor):
         {
             'id': '6',
             'ext': 'mp4',
-            'title': 'Dubai Al Oula',
+            'title': 're:^Dubai Al Oula [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'thumbnail': 're:^https?://.*\.png$',
+            'is_live': True,
         },
         'params': {
             # m3u8 download
@@ -139,10 +134,14 @@ class DCNLiveIE(InfoExtractor):
 
         channel = self._download_json(request, channel_id)
         title = channel.get('title_en') or channel['title_ar']
+        img = channel.get('thumbnail')
+        thumbnail = 'http://admin.mangomolo.com/analytics/%s' % img if img else None
+        description = channel.get('description_en') or channel.get('description_ar')
+        timestamp = parse_iso8601(channel.get('create_time') or channel.get('update_time'), ' ')
 
         webpage = self._download_webpage(
-            'http://admin.mangomolo.com/analytics/index.php/customers/embed/index?'
-            + compat_urllib_parse.urlencode({
+            'http://admin.mangomolo.com/analytics/index.php/customers/embed/index?' +
+            compat_urllib_parse.urlencode({
                 'id': base64.b64encode(channel['user_id'].encode()).decode(),
                 'channelid': base64.b64encode(channel['id'].encode()).decode(),
                 'signature': channel['signature'],
@@ -166,7 +165,9 @@ class DCNLiveIE(InfoExtractor):
 
         return {
             'id': channel_id,
-            'title': title,
+            'title': self._live_title(title),
+            'description': description,
+            'thumbnail': thumbnail,
             'formats': formats,
             'is_live': True,
         }
@@ -181,7 +182,6 @@ class DCNSeasonIE(InfoExtractor):
         {
             'id': '7910',
             'title': 'محاضرات الشيخ الشعراوي',
-            'description': '',
         },
         'playlist_mincount': 27,
     }
@@ -189,6 +189,7 @@ class DCNSeasonIE(InfoExtractor):
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
         show_id, season_id = re.match(self._VALID_URL, url).groups()
+
         data = {}
         if season_id:
             data['season'] = season_id
@@ -207,21 +208,18 @@ class DCNSeasonIE(InfoExtractor):
                 'Origin': 'http://www.dcndigital.ae',
                 'Content-Type': 'application/x-www-form-urlencoded'
             })
+
         show = self._download_json(request, show_id)
         season_id = season_id or show['default_season']
-        title = show['cat'].get('title_en') or show['cat']['title_ar']
-        description = show['cat'].get('description_en') or show['cat'].get('description_ar')
+        season = {}
+        for _ in show['seasons']:
+            if _['id'] == season_id:
+                season = _
+                break
+        title = season.get('title_en') or season['title_ar']
+
         entries = []
         for video in show['videos']:
-            entries.append({
-                'url': 'http://www.dcndigital.ae/#/media/%s' % video['id'],
-                '_type': 'url',
-                'ie_key': 'DCNVideo',
-            })
-        return {
-            'id': season_id,
-            'title': title,
-            'description': description,
-            'entries': entries,
-            '_type': 'playlist',
-        }
+            entries.append(self.url_result('http://www.dcndigital.ae/#/media/%s' % video['id'], 'DCNVideo'))
+
+        return self.playlist_result(entries, season_id, title)
