@@ -228,7 +228,7 @@ except ImportError:  # Python < 3.3
             return "'" + s.replace("'", "'\"'\"'") + "'"
 
 
-if sys.version_info > (2, 7, 2):
+if sys.version_info >= (2, 7, 3):
     compat_shlex_split = shlex.split
 else:
     # Working around shlex issue with unicode strings on some python 2
