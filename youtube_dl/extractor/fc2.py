@@ -10,6 +10,7 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    encode_dict,
     ExtractorError,
 )
 
@@ -55,10 +56,7 @@ class FC2IE(InfoExtractor):
             'Submit': ' Login ',
         }
 
-        # Convert to UTF-8 *before* urlencode because Python 2.x's urlencode
-        # chokes on unicode
-        login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k, v in login_form_strs.items())
-        login_data = compat_urllib_parse.urlencode(login_form).encode('utf-8')
+        login_data = compat_urllib_parse.urlencode(encode_dict(login_form_strs)).encode('utf-8')
         request = compat_urllib_request.Request(
             'https://secure.id.fc2.com/index.php?mode=login&switch_language=en', login_data)
 
