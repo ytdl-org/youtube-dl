@@ -797,9 +797,7 @@ class YoutubeDLCookieProcessor(compat_urllib_request.HTTPCookieProcessor):
             for set_cookie_header in ('Set-Cookie', 'Set-Cookie2'):
                 set_cookie = response.headers.get(set_cookie_header)
                 if set_cookie:
-                    set_cookie_escaped = '; '.join([
-                        escape_rfc3986(cookie_attr.strip())
-                        for cookie_attr in set_cookie.decode('iso-8859-1').split(';')]).encode('iso-8859-1')
+                    set_cookie_escaped = compat_urllib_parse.quote(set_cookie, b"%/;:@&=+$,!~*'()?#[] ")
                     if set_cookie != set_cookie_escaped:
                         del response.headers[set_cookie_header]
                         response.headers[set_cookie_header] = set_cookie_escaped
