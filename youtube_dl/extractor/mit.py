@@ -33,8 +33,8 @@ class TechTVMITIE(InfoExtractor):
             'http://techtv.mit.edu/videos/%s' % video_id, video_id)
         clean_page = re.compile(r'<!--.*?-->', re.S).sub('', raw_page)
 
-        base_url = self._search_regex(
-            r'ipadUrl: \'(.+?cloudfront.net/)', raw_page, 'base url')
+        base_url = self._proto_relative_url(self._search_regex(
+            r'ipadUrl: \'(.+?cloudfront.net/)', raw_page, 'base url'), 'http:')
         formats_json = self._search_regex(
             r'bitrates: (\[.+?\])', raw_page, 'video formats')
         formats_mit = json.loads(formats_json)
