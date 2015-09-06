@@ -10,6 +10,7 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    encode_dict,
     int_or_none,
 )
 
@@ -88,7 +89,7 @@ class GorillaVidIE(InfoExtractor):
             if countdown:
                 self._sleep(countdown, video_id)
 
-            post = compat_urllib_parse.urlencode(fields)
+            post = compat_urllib_parse.urlencode(encode_dict(fields))
 
             req = compat_urllib_request.Request(url, post)
             req.add_header('Content-type', 'application/x-www-form-urlencoded')
