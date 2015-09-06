@@ -793,14 +793,14 @@ class YoutubeDLCookieProcessor(compat_urllib_request.HTTPCookieProcessor):
         # https://github.com/rg3/youtube-dl/issues/6769).
         # In order to at least prevent crashing we will percent encode Set-Cookie
         # header before HTTPCookieProcessor starts processing it.
-        if sys.version_info < (3, 0) and response.headers:
-            for set_cookie_header in ('Set-Cookie', 'Set-Cookie2'):
-                set_cookie = response.headers.get(set_cookie_header)
-                if set_cookie:
-                    set_cookie_escaped = compat_urllib_parse.quote(set_cookie, b"%/;:@&=+$,!~*'()?#[] ")
-                    if set_cookie != set_cookie_escaped:
-                        del response.headers[set_cookie_header]
-                        response.headers[set_cookie_header] = set_cookie_escaped
+        # if sys.version_info < (3, 0) and response.headers:
+        #     for set_cookie_header in ('Set-Cookie', 'Set-Cookie2'):
+        #         set_cookie = response.headers.get(set_cookie_header)
+        #         if set_cookie:
+        #             set_cookie_escaped = compat_urllib_parse.quote(set_cookie, b"%/;:@&=+$,!~*'()?#[] ")
+        #             if set_cookie != set_cookie_escaped:
+        #                 del response.headers[set_cookie_header]
+        #                 response.headers[set_cookie_header] = set_cookie_escaped
         return compat_urllib_request.HTTPCookieProcessor.http_response(self, request, response)
 
     https_request = compat_urllib_request.HTTPCookieProcessor.http_request
