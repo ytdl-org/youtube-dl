@@ -18,12 +18,12 @@ class TechTVMITIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://techtv.mit.edu/videos/25418-mit-dna-learning-center-set',
-        'md5': '1f8cb3e170d41fd74add04d3c9330e5f',
+        'md5': '00a3a27ee20d44bcaa0933ccec4a2cf7',
         'info_dict': {
             'id': '25418',
             'ext': 'mp4',
-            'title': 'MIT DNA Learning Center Set',
-            'description': 'md5:82313335e8a8a3f243351ba55bc1b474',
+            'title': 'MIT DNA and Protein Sets',
+            'description': 'md5:46f5c69ce434f0a97e7c628cc142802d',
         },
     }
 
