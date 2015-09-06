@@ -782,6 +782,32 @@ class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
             req, **kwargs)
 
 
+class YoutubeDLCookieProcessor(compat_urllib_request.HTTPCookieProcessor):
+    def __init__(self, cookiejar=None):
+        compat_urllib_request.HTTPCookieProcessor.__init__(self, cookiejar)
+
+    def http_response(self, request, response):
+        # Python 2 will choke on next HTTP request in row if there are non-ASCII
+        # characters in Set-Cookie HTTP header of last response (see
+        # https://github.com/rg3/youtube-dl/issues/6769).
+        # In order to at least prevent crashing we will percent encode Set-Cookie
+        # header before HTTPCookieProcessor starts processing it.
+        if sys.version_info < (3, 0) and response.headers:
+            for set_cookie_header in ('Set-Cookie', 'Set-Cookie2'):
+                set_cookie = response.headers.get(set_cookie_header)
+                if set_cookie:
+                    set_cookie_escaped = '; '.join([
+                        escape_rfc3986(cookie_attr.strip())
+                        for cookie_attr in set_cookie.decode('iso-8859-1').split(';')]).encode('iso-8859-1')
+                    if set_cookie != set_cookie_escaped:
+                        del response.headers[set_cookie_header]
+                        response.headers[set_cookie_header] = set_cookie_escaped
+        return compat_urllib_request.HTTPCookieProcessor.http_response(self, request, response)
+
+    https_request = compat_urllib_request.HTTPCookieProcessor.http_request
+    https_response = http_response
+
+
 def parse_iso8601(date_str, delimiter='T', timezone=None):
     """ Return a UNIX timestamp from the given date """
 
