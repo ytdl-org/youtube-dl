@@ -1638,6 +1638,10 @@ def urlencode_postdata(*args, **kargs):
     return compat_urllib_parse.urlencode(*args, **kargs).encode('ascii')
 
 
+def encode_dict(d, encoding='utf-8'):
+    return dict((k.encode(encoding), v.encode(encoding)) for k, v in d.items())
+
+
 try:
     etree_iter = xml.etree.ElementTree.Element.iter
 except AttributeError:  # Python <=2.6
