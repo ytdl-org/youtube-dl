@@ -73,7 +73,8 @@ class GorillaVidIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        webpage = self._download_webpage('http://%s/%s' % (mobj.group('host'), video_id), video_id)
+        url = 'http://%s/%s' % (mobj.group('host'), video_id)
+        webpage = self._download_webpage(url, video_id)
 
         if re.search(self._FILE_NOT_FOUND_REGEX, webpage) is not None:
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
