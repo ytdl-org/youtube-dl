@@ -97,7 +97,7 @@ class GorillaVidIE(InfoExtractor):
             webpage = self._download_webpage(req, video_id, 'Downloading video page')
 
         title = self._search_regex(
-            [r'style="z-index: [0-9]+;">([^<]+)</span>', r'>Watch (.+) '],
+            [r'style="z-index: [0-9]+;">([^<]+)</span>', r'<td nowrap>([^<]+)</td>', r'>Watch (.+) '],
             webpage, 'title', default=None) or self._og_search_title(webpage)
         video_url = self._search_regex(
             r'file\s*:\s*["\'](http[^"\']+)["\'],', webpage, 'file url')
