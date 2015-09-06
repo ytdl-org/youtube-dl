@@ -26,6 +26,7 @@ from ..compat import (
 )
 from ..utils import (
     clean_html,
+    encode_dict,
     ExtractorError,
     float_or_none,
     get_element_by_attribute,
@@ -111,10 +112,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'hl': 'en_US',
         }
 
-        # Convert to UTF-8 *before* urlencode because Python 2.x's urlencode
-        # chokes on unicode
-        login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k, v in login_form_strs.items())
-        login_data = compat_urllib_parse.urlencode(login_form).encode('ascii')
+        login_data = compat_urllib_parse.urlencode(encode_dict(login_form_strs)).encode('ascii')
 
         req = compat_urllib_request.Request(self._LOGIN_URL, login_data)
         login_results = self._download_webpage(
@@ -147,8 +145,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 'TrustDevice': 'on',
             })
 
-            tfa_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k, v in tfa_form_strs.items())
-            tfa_data = compat_urllib_parse.urlencode(tfa_form).encode('ascii')
+            tfa_data = compat_urllib_parse.urlencode(encode_dict(tfa_form_strs)).encode('ascii')
 
             tfa_req = compat_urllib_request.Request(self._TWOFACTOR_URL, tfa_data)
             tfa_results = self._download_webpage(
