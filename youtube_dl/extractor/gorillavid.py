@@ -68,6 +68,14 @@ class GorillaVidIE(InfoExtractor):
     }, {
         'url': 'http://movpod.in/0wguyyxi1yca',
         'only_matching': True,
+    }, {
+        'url': 'http://filehoot.com/3ivfabn7573c.html',
+        'info_dict': {
+            'id': '3ivfabn7573c',
+            'ext': 'mp4',
+            'title': 'youtube-dl test video \'äBaW_jenozKc.mp4.mp4',
+            'thumbnail': 're:http://.*\.jpg',
+        }
     }]
 
     def _real_extract(self, url):
