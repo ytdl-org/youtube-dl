@@ -16,6 +16,7 @@ class AlJazeeraIE(InfoExtractor):
             'uploader': 'Al Jazeera English',
         },
         'add_ie': ['Brightcove'],
+        'skip': 'Not accessible from Travis CI server',
     }
 
     def _real_extract(self, url):
