@@ -16,8 +16,12 @@ class Tele13IE(InfoExtractor):
             'info_dict': {
                 'id': 'el-circulo-de-hierro-de-michelle-bachelet-en-su-regreso-a-la-moneda',
                 'ext': 'mp4',
-                'title': 'El c\u00edrculo de hierro de Michelle Bachelet en su regreso a La Moneda',
-            }
+                'title': 'El círculo de hierro de Michelle Bachelet en su regreso a La Moneda',
+            },
+            'params': {
+                # HTTP Error 404: Not Found
+                'skip_download': True,
+            },
         },
         {
             'url': 'http://www.t13.cl/videos/mundo/tendencias/video-captan-misteriosa-bola-fuego-cielos-bangkok',
