@@ -347,7 +347,6 @@ from .mtv import (
 )
 from .muenchentv import MuenchenTVIE
 from .musicplayon import MusicPlayOnIE
-from .musicvault import MusicVaultIE
 from .muzu import MuzuTVIE
 from .mwave import MwaveIE
 from .myspace import MySpaceIE, MySpaceAlbumIE
