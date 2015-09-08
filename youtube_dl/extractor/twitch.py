@@ -239,7 +239,7 @@ class TwitchVodIE(TwitchItemBaseIE):
     def _real_extract(self, url):
         item_id = self._match_id(url)
         info = self._download_info(self._ITEM_SHORTCUT, item_id)
-        info.replace("320x240", "640x360")
+        info["thumbnail"] = info["thumbnail"].replace("320x240", "640x360")
         access_token = self._download_json(
             '%s/api/vods/%s/access_token' % (self._API_BASE, item_id), item_id,
             'Downloading %s access token' % self._ITEM_TYPE)
