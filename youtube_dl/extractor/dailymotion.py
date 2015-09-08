@@ -380,6 +380,11 @@ class DailymotionCloudIE(DailymotionBaseInfoExtractor):
         if mobj:
             return mobj.group(1)
 
+    def redirect(self, url, video_id):
+        if re.match(r'https?://.*cdn.*\.dmcloud\.net/route/', url):
+            return self._download_webpage(url + '&redirect=0', video_id).strip()
+        return url
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -390,12 +395,19 @@ class DailymotionCloudIE(DailymotionBaseInfoExtractor):
         video_info = self._parse_json(self._search_regex(
             r'var\s+info\s*=\s*([^;]+);', webpage, 'video info'), video_id)
 
-        # TODO: parse ios_url, which is in fact a manifest
-        video_url = video_info['mp4_url']
+        is_live = video_info['mode'] == 'live'
+
+        formats = self._extract_m3u8_formats(self.redirect(video_info['ios_url'], video_id), video_id)
+
+        if is_live:
+            title = self._live_title(title)
+        else:
+            formats.append({'url': self.redirect(video_info['mp4_url'], video_id), 'format_id': 'mp4'})
 
         return {
             'id': video_id,
-            'url': video_url,
             'title': title,
             'thumbnail': video_info.get('thumbnail_url'),
+            'formats': formats,
+            'is_live': is_live,
         }
