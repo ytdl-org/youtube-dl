@@ -152,7 +152,7 @@ class NDREmbedBaseIE(NDRBaseIE):
 
 class NDREmbedIE(NDREmbedBaseIE):
     IE_NAME = 'ndr:embed'
-    _VALID_URL = r'https?://www\.ndr\.de/(?:[^/]+/)+(?P<id>\w+)'
+    _VALID_URL = r'https?://www\.ndr\.de/(?:[^/]+/)+(?P<id>[a-z0-9]+)-(?:player|externalPlayer)\.html'
 
     _TEST = {
         'url': 'http://www.ndr.de/fernsehen/sendungen/ndr_aktuell/ndraktuell28488-player.html',
@@ -168,7 +168,7 @@ class NDREmbedIE(NDREmbedBaseIE):
 
 class NJoyEmbedIE(NDREmbedBaseIE):
     IE_NAME = 'N-JOY:embed'
-    _VALID_URL = r'https?://www\.n-joy\.de/(?:[^/]+/)(?P<id>\w+)'
+    _VALID_URL = r'https?://www\.n-joy\.de/(?:[^/]+/)+(?P<id>[a-z0-9]+)-(?:player|externalPlayer)\.html'
 
     _TEST = {
         'url': 'http://www.n-joy.de/entertainment/film/portraet374-player_image-832d9b79-fa8a-4026-92e2-e0fd99deb2f9_theme-n-joy.html',
