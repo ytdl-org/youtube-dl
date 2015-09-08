@@ -5,10 +5,11 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
+    qualities,
 )
 
 
-preferences = {'xl': 4, 'l': 3, 'm': 2, 's': 1, 'xs': 0,}
+preference = qualities(['xs', 's', 'm','l', 'xl'])
 
 
 class NDRBaseIE(InfoExtractor):
@@ -29,7 +30,7 @@ class NDRBaseIE(InfoExtractor):
                         formats.append({
                             'url': src,
                             'format_id': quality,
-                            'preference': preferences.get(quality),
+                            'preference': preference(quality),
                         })
         elif streamType == 'httpAudio':
             for key, f in playlist.items():
@@ -51,7 +52,7 @@ class NDRBaseIE(InfoExtractor):
         thumbnails = [{
             'id': thumbnail.get('quality'),
             'url': thumbnail.get('src'),
-            'preference': preferences.get(thumbnail.get('quality'))
+            'preference': preference(thumbnail.get('quality'))
         } for thumbnail in config.get('poster').values()]
 
         return {
