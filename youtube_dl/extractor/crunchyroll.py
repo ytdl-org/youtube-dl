@@ -275,10 +275,14 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         video_description = self._html_search_regex(r'"description":"([^"]+)', webpage, 'video_description', default='')
         if not video_description:
             video_description = None
-        video_upload_date = self._html_search_regex(r'<div>Availability for free users:(.+?)</div>', webpage, 'video_upload_date', fatal=False, flags=re.DOTALL)
+        video_upload_date = self._html_search_regex(
+            [r'<div>Availability for free users:(.+?)</div>', r'<div>[^<>]+<span>\s*(.+?\d{4})\s*</span></div>'],
+            webpage, 'video_upload_date', fatal=False, flags=re.DOTALL)
         if video_upload_date:
             video_upload_date = unified_strdate(video_upload_date)
-        video_uploader = self._html_search_regex(r'<div>\s*Publisher:(.+?)</div>', webpage, 'video_uploader', fatal=False, flags=re.DOTALL)
+        video_uploader = self._html_search_regex(
+            r'<a[^>]+href="/publisher/[^"]+"[^>]*>([^<]+)</a>', webpage,
+            'video_uploader', fatal=False)
 
         playerdata_url = compat_urllib_parse_unquote(self._html_search_regex(r'"config_url":"([^"]+)', webpage, 'playerdata_url'))
         playerdata_req = compat_urllib_request.Request(playerdata_url)
