@@ -391,7 +391,8 @@ class DailymotionCloudIE(DailymotionBaseInfoExtractor):
             r'var\s+info\s*=\s*([^;]+);', webpage, 'video info'), video_id)
 
         is_live = video_info['mode'] == 'live'
-
+        
+        formats = []
         ios_url = video_info['ios_url']
         if '.m3u8' in ios_url:
             formats = self._extract_m3u8_formats(ios_url, video_id)
