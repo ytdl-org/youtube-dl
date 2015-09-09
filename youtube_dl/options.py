@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import os.path
 import optparse
-import shlex
 import sys
 
 from .downloader.external import list_external_downloaders
@@ -11,6 +10,7 @@ from .compat import (
     compat_get_terminal_size,
     compat_getenv,
     compat_kwargs,
+    compat_shlex_split,
 )
 from .utils import (
     preferredencoding,
@@ -28,7 +28,7 @@ def parseOpts(overrideArguments=None):
         try:
             res = []
             for l in optionf:
-                res += shlex.split(l, comments=True)
+                res += compat_shlex_split(l, comments=True)
         finally:
             optionf.close()
         return res
@@ -320,7 +320,7 @@ def parseOpts(overrideArguments=None):
     authentication.add_option(
         '--video-password',
         dest='videopassword', metavar='PASSWORD',
-        help='Video password (vimeo, smotri)')
+        help='Video password (vimeo, smotri, youku)')
 
     video_format = optparse.OptionGroup(parser, 'Video Format Options')
     video_format.add_option(

@@ -13,6 +13,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     float_or_none,
+    int_or_none,
 )
 
 
@@ -359,13 +360,8 @@ class GloboIE(InfoExtractor):
             self._API_URL_TEMPLATE % video_id, video_id)['videos'][0]
 
         title = video['title']
-        duration = float_or_none(video['duration'], 1000)
-        like_count = video['likes']
-        uploader = video['channel']
-        uploader_id = video['channel_id']
 
         formats = []
-
         for resource in video['resources']:
             resource_id = resource.get('_id')
             if not resource_id:
@@ -406,6 +402,11 @@ class GloboIE(InfoExtractor):
                 })
 
         self._sort_formats(formats)
+
+        duration = float_or_none(video.get('duration'), 1000)
+        like_count = int_or_none(video.get('likes'))
+        uploader = video.get('channel')
+        uploader_id = video.get('channel_id')
 
         return {
             'id': video_id,

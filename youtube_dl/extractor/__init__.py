@@ -241,7 +241,10 @@ from .imdb import (
     ImdbIE,
     ImdbListIE
 )
-from .imgur import ImgurIE
+from .imgur import (
+    ImgurIE,
+    ImgurAlbumIE,
+)
 from .ina import InaIE
 from .indavideo import (
     IndavideoIE,
@@ -344,7 +347,6 @@ from .mtv import (
 )
 from .muenchentv import MuenchenTVIE
 from .musicplayon import MusicPlayOnIE
-from .musicvault import MusicVaultIE
 from .muzu import MuzuTVIE
 from .mwave import MwaveIE
 from .myspace import MySpaceIE, MySpaceAlbumIE
@@ -740,6 +742,7 @@ from .vk import (
     VKIE,
     VKUserVideosIE,
 )
+from .vlive import VLiveIE
 from .vodlocker import VodlockerIE
 from .voicerepublic import VoiceRepublicIE
 from .vporn import VpornIE

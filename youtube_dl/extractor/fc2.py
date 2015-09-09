@@ -10,12 +10,13 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    encode_dict,
     ExtractorError,
 )
 
 
 class FC2IE(InfoExtractor):
-    _VALID_URL = r'^http://video\.fc2\.com/(?:[^/]+/)?content/(?P<id>[^/]+)'
+    _VALID_URL = r'^http://video\.fc2\.com/(?:[^/]+/)*content/(?P<id>[^/]+)'
     IE_NAME = 'fc2'
     _NETRC_MACHINE = 'fc2'
     _TESTS = [{
@@ -37,6 +38,9 @@ class FC2IE(InfoExtractor):
             'password': '(snip)',
             'skip': 'requires actual password'
         }
+    }, {
+        'url': 'http://video.fc2.com/en/a/content/20130926eZpARwsF',
+        'only_matching': True,
     }]
 
     def _login(self):
@@ -52,10 +56,7 @@ class FC2IE(InfoExtractor):
             'Submit': ' Login ',
         }
 
-        # Convert to UTF-8 *before* urlencode because Python 2.x's urlencode
-        # chokes on unicode
-        login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k, v in login_form_strs.items())
-        login_data = compat_urllib_parse.urlencode(login_form).encode('utf-8')
+        login_data = compat_urllib_parse.urlencode(encode_dict(login_form_strs)).encode('utf-8')
         request = compat_urllib_request.Request(
             'https://secure.id.fc2.com/index.php?mode=login&switch_language=en', login_data)
 
@@ -80,7 +81,7 @@ class FC2IE(InfoExtractor):
 
         title = self._og_search_title(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
-        refer = url.replace('/content/', '/a/content/')
+        refer = url.replace('/content/', '/a/content/') if '/a/content/' not in url else url
 
         mimi = hashlib.md5((video_id + '_gGddgPfeaf_gzyr').encode('utf-8')).hexdigest()
 

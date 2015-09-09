@@ -12,6 +12,7 @@ from ..postprocessor.ffmpeg import FFmpegPostProcessor
 from ..utils import (
     encodeArgument,
     encodeFilename,
+    sanitize_open,
 )
 
 
@@ -89,13 +90,13 @@ class NativeHlsFD(FragmentFD):
             success = ctx['dl'].download(frag_filename, {'url': frag_url})
             if not success:
                 return False
-            with open(frag_filename, 'rb') as down:
-                ctx['dest_stream'].write(down.read())
-            frags_filenames.append(frag_filename)
+            down, frag_sanitized = sanitize_open(frag_filename, 'rb')
+            ctx['dest_stream'].write(down.read())
+            frags_filenames.append(frag_sanitized)
 
         self._finish_frag_download(ctx)
 
         for frag_file in frags_filenames:
-            os.remove(frag_file)
+            os.remove(encodeFilename(frag_file))
 
         return True

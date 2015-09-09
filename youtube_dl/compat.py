@@ -5,6 +5,7 @@ import getpass
 import optparse
 import os
 import re
+import shlex
 import shutil
 import socket
 import subprocess
@@ -225,6 +226,17 @@ except ImportError:  # Python < 3.3
             return s
         else:
             return "'" + s.replace("'", "'\"'\"'") + "'"
+
+
+if sys.version_info >= (2, 7, 3):
+    compat_shlex_split = shlex.split
+else:
+    # Working around shlex issue with unicode strings on some python 2
+    # versions (see http://bugs.python.org/issue1548891)
+    def compat_shlex_split(s, comments=False, posix=True):
+        if isinstance(s, unicode):
+            s = s.encode('utf-8')
+        return shlex.split(s, comments, posix)
 
 
 def compat_ord(c):
@@ -459,6 +471,7 @@ __all__ = [
     'compat_ord',
     'compat_parse_qs',
     'compat_print',
+    'compat_shlex_split',
     'compat_socket_create_connection',
     'compat_str',
     'compat_subprocess_get_DEVNULL',

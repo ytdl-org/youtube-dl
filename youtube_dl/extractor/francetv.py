@@ -78,9 +78,14 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                 })
         self._sort_formats(formats)
 
+        title = info['titre']
+        subtitle = info.get('sous_titre')
+        if subtitle:
+            title += ' - %s' % subtitle
+
         return {
             'id': video_id,
-            'title': info['titre'],
+            'title': title,
             'description': clean_html(info['synopsis']),
             'thumbnail': compat_urlparse.urljoin('http://pluzz.francetv.fr', info['image']),
             'duration': int_or_none(info.get('real_duration')) or parse_duration(info['duree']),
@@ -214,15 +219,15 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
         },
         # france5
         {
-            'url': 'http://www.france5.fr/emissions/c-a-dire/videos/92837968',
-            'md5': '78f0f4064f9074438e660785bbf2c5d9',
+            'url': 'http://www.france5.fr/emissions/c-a-dire/videos/quels_sont_les_enjeux_de_cette_rentree_politique__31-08-2015_908948?onglet=tous&page=1',
+            'md5': 'f6c577df3806e26471b3d21631241fd0',
             'info_dict': {
-                'id': '108961659',
+                'id': '123327454',
                 'ext': 'flv',
-                'title': 'C à dire ?!',
-                'description': 'md5:1a4aeab476eb657bf57c4ff122129f81',
-                'upload_date': '20140915',
-                'timestamp': 1410795000,
+                'title': 'C à dire ?! - Quels sont les enjeux de cette rentrée politique ?',
+                'description': 'md5:4a0d5cb5dce89d353522a84462bae5a4',
+                'upload_date': '20150831',
+                'timestamp': 1441035120,
             },
         },
         # franceo

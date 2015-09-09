@@ -101,7 +101,7 @@ class YahooIE(InfoExtractor):
             }
         }, {
             'url': 'http://news.yahoo.com/video/china-moses-crazy-blues-104538833.html',
-            'md5': '67010fdf3a08d290e060a4dd96baa07b',
+            'md5': '88e209b417f173d86186bef6e4d1f160',
             'info_dict': {
                 'id': 'f885cf7f-43d4-3450-9fac-46ac30ece521',
                 'ext': 'mp4',
