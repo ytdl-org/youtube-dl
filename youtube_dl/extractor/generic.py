@@ -1797,7 +1797,9 @@ class GenericIE(InfoExtractor):
                 found = filter_video(re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage))
         if not found:
             # HTML5 video
-            found = re.findall(r'(?s)<(?:video|audio)[^<]*(?:>.*?<source[^>]*)?\s+src=["\'](.*?)["\']', webpage)
+            found = re.findall(r'(?s)<(?:video|audio)[^>]*>(.*?)</(?:video|audio)>', webpage)
+            if found:
+                found = [re.findall(r'(?s)<source[^>]*src=["\']([^"\']+)["\'][^>]*>', video) for video in found]
         if not found:
             REDIRECT_REGEX = r'[0-9]{,2};\s*(?:URL|url)=\'?([^\'"]+)'
             found = re.search(
@@ -1820,33 +1822,41 @@ class GenericIE(InfoExtractor):
             raise UnsupportedError(url)
 
         entries = []
-        for video_url in found:
-            video_url = compat_urlparse.urljoin(url, video_url)
-            video_id = compat_urllib_parse_unquote(os.path.basename(video_url))
+        for video_urls in found:
+            if isinstance(video_urls, str):
+                video_urls = [video_urls]
 
-            # Sometimes, jwplayer extraction will result in a YouTube URL
-            if YoutubeIE.suitable(video_url):
-                entries.append(self.url_result(video_url, 'Youtube'))
-                continue
-
+            video_id = compat_urllib_parse_unquote(os.path.basename(url))
             # here's a fun little line of code for you:
             video_id = os.path.splitext(video_id)[0]
 
-            ext = determine_ext(video_url)
-            if ext == 'smil':
+            formats = []
+            for video_url in video_urls:
+                video_url = compat_urlparse.urljoin(url, video_url)
+
+                # Sometimes, jwplayer extraction will result in a YouTube URL
+                if YoutubeIE.suitable(video_url):
+                    entries.append(self.url_result(video_url, 'Youtube'))
+                    continue
+
+                ext = determine_ext(video_url)
+                if ext == 'smil':
+                    entries.append({
+                        'id': video_id,
+                        'formats': self._extract_smil_formats(video_url, video_id),
+                        'uploader': video_uploader,
+                        'title': video_title,
+                        'age_limit': age_limit,
+                    })
+                elif ext == 'xspf':
+                    return self.playlist_result(self._extract_xspf_playlist(video_url, video_id), video_id)
+                else:
+                    formats.append({'url': video_url})
+
+            if formats:
                 entries.append({
                     'id': video_id,
-                    'formats': self._extract_smil_formats(video_url, video_id),
-                    'uploader': video_uploader,
-                    'title': video_title,
-                    'age_limit': age_limit,
-                })
-            elif ext == 'xspf':
-                return self.playlist_result(self._extract_xspf_playlist(video_url, video_id), video_id)
-            else:
-                entries.append({
-                    'id': video_id,
-                    'url': video_url,
+                    'formats': formats,
                     'uploader': video_uploader,
                     'title': video_title,
                     'age_limit': age_limit,
