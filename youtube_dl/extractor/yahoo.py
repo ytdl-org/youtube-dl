@@ -147,16 +147,13 @@ class YahooIE(InfoExtractor):
         }, {
             # Query result is embedded in webpage, but explicit request to video API fails with geo restriction
             'url': 'https://screen.yahoo.com/community/communitary-community-episode-1-ladders-154501237.html',
+            'md5': '4fbafb9c9b6f07aa8f870629f6671b35',
             'info_dict': {
                 'id': '1f32853c-a271-3eef-8cb6-f6d6872cb504',
                 'ext': 'mp4',
                 'title': 'Communitary - Community Episode 1: Ladders',
                 'description': 'md5:8fc39608213295748e1e289807838c97',
                 'duration': 1646,
-            },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
             },
         }
     ]
