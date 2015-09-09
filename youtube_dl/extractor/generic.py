@@ -12,6 +12,7 @@ from ..compat import (
     compat_urllib_request,
     compat_urlparse,
     compat_xml_parse_error,
+    compat_str,
 )
 from ..utils import (
     determine_ext,
@@ -1823,7 +1824,7 @@ class GenericIE(InfoExtractor):
 
         entries = []
         for video_urls in found:
-            if isinstance(video_urls, str):
+            if isinstance(video_urls, compat_str):
                 video_urls = [video_urls]
 
             video_id = compat_urllib_parse_unquote(os.path.basename(url))
