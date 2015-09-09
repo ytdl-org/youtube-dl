@@ -4,6 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_request,
+    compat_urllib_parse,
+)
 
 
 class VierIE(InfoExtractor):
@@ -87,35 +91,52 @@ class VierVideosIE(InfoExtractor):
         'playlist_mincount': 13,
     }]
 
+    def extract_videos(self, webpage, page_id):
+        entries = [
+            self.url_result('http://www.vier.be%s' % video_url, 'Vier')
+            for video_url in re.findall(
+                r'<h3><a href="(/[^/]+/videos/[^/]+(?:/\d+)?)">', webpage)]
+        return entries
+
+    def extract_next_page_id(self, webpage):
+        return self._html_search_regex(r'<a\s+href="(?:/[^/]+)+\?page=(\d+)">Meer</a>', webpage, 'page_id', None, False)
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         program = mobj.group('program')
+        page_id = mobj.group('page')
 
         webpage = self._download_webpage(url, program)
 
-        page_id = mobj.group('page')
-        if page_id:
-            page_id = int(page_id)
-            start_page = page_id
-            last_page = start_page + 1
-            playlist_id = '%s-page%d' % (program, page_id)
-        else:
-            start_page = 0
-            last_page = int(self._search_regex(
-                r'videos\?page=(\d+)">laatste</a>',
-                webpage, 'last page', default=0)) + 1
-            playlist_id = program
+        views = self._parse_json(
+            self._search_regex(
+                'jQuery.extend\(\s*Drupal.settings\s*,\s*({.*})\);',
+                webpage, 'Drupal.settings'),
+                page_id
+            ).get('views')
+        ajax_path = views.get('ajax_path')
+        ajaxViews = views.get('ajaxViews')
+        ajaxView = ajaxViews.get(list(ajaxViews)[0])
 
-        entries = []
-        for current_page_id in range(start_page, last_page):
-            current_page = self._download_webpage(
-                'http://www.vier.be/%s/videos?page=%d' % (program, current_page_id),
-                program,
-                'Downloading page %d' % (current_page_id + 1)) if current_page_id != page_id else webpage
-            page_entries = [
-                self.url_result('http://www.vier.be' + video_url, 'Vier')
-                for video_url in re.findall(
-                    r'<h3><a href="(/[^/]+/videos/[^/]+(?:/\d+)?)">', current_page)]
-            entries.extend(page_entries)
+        entries = self.extract_videos(webpage, program)
+        if page_id:
+            playlist_id = '%s-page%s' % (program, page_id)
+        else:
+            playlist_id = program
+            page_id = self.extract_next_page_id(webpage)
+            while page_id:
+                ajaxView['page'] = page_id
+                request = compat_urllib_request.Request(
+                    'http://www.vier.be%s' % ajax_path,
+                    compat_urllib_parse.urlencode(ajaxView),
+                    {'Content-Type': 'application/x-www-form-urlencoded'}
+                )
+                json_data = self._download_json(
+                    request,
+                    program,
+                    'Downloading page %s' % (page_id))
+                data = json_data[1].get('data')
+                entries.extend(self.extract_videos(data, page_id))
+                page_id = self.extract_next_page_id(data)
 
         return self.playlist_result(entries, playlist_id)
