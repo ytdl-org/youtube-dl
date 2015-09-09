@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
+from .common import InfoExtractor, ExtractorError
 from ..utils import (
     int_or_none,
     float_or_none,
-    str_to_int,
+    parse_iso8601,
 )
 
 
@@ -12,7 +12,7 @@ class VidmeIE(InfoExtractor):
     _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]+)'
     _TESTS = [{
         'url': 'https://vid.me/QNB',
-        'md5': 'f42d05e7149aeaec5c037b17e5d3dc82',
+        'md5': 'c62f1156138dc3323902188c5b5a8bd6',
         'info_dict': {
             'id': 'QNB',
             'ext': 'mp4',
@@ -24,6 +24,26 @@ class VidmeIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.jpg',
             'view_count': int,
             'like_count': int,
+            'comment_count': int,
+        },
+    }, {
+        'url': 'https://vid.me/Gc6M',
+        'md5': 'f42d05e7149aeaec5c037b17e5d3dc82',
+        'info_dict': {
+            'id': 'Gc6M',
+            'ext': 'mp4',
+            'title': 'O Mere Dil ke chain - Arnav and Khushi VM',
+            'duration': 223.72,
+            'timestamp': 1441211642,
+            'upload_date': '20150902',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'view_count': int,
+            'like_count': int,
+            'comment_count': int,
+            'comment_count': int,
+        },
+        'params': {
+            'skip_download': True,
         },
     }, {
         # tests uploader field
@@ -40,6 +60,7 @@ class VidmeIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.jpg',
             'view_count': int,
             'like_count': int,
+            'comment_count': int,
         },
         'params': {
             'skip_download': True,
@@ -51,45 +72,46 @@ class VidmeIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        url = url.replace('vid.me/e/', 'vid.me/')
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        api_url = 'https://api.vid.me/videoByUrl/' + video_id
+        data = self._download_json(api_url, video_id)
 
-        video_url = self._html_search_regex(
-            r'<source src="([^"]+)"', webpage, 'video URL')
+        video_data = data.get('video')
+        if video_data is None:
+            raise ExtractorError('Could not extract the vid.me video data')
 
-        title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage, default='')
-        thumbnail = self._og_search_thumbnail(webpage)
-        timestamp = int_or_none(self._og_search_property(
-            'updated_time', webpage, fatal=False))
-        width = int_or_none(self._og_search_property(
-            'video:width', webpage, fatal=False))
-        height = int_or_none(self._og_search_property(
-            'video:height', webpage, fatal=False))
-        duration = float_or_none(self._html_search_regex(
-            r'data-duration="([^"]+)"', webpage, 'duration', fatal=False))
-        view_count = str_to_int(self._html_search_regex(
-            r'<(?:li|span) class="video_views">\s*([\d,\.]+)\s*plays?',
-            webpage, 'view count', fatal=False))
-        like_count = str_to_int(self._html_search_regex(
-            r'class="score js-video-vote-score"[^>]+data-score="([\d,\.\s]+)">',
-            webpage, 'like count', fatal=False))
-        uploader = self._html_search_regex(
-            'class="video_author_username"[^>]*>([^<]+)',
-            webpage, 'uploader', default=None)
+        title = video_data.get('title')
+        description = video_data.get('description')
+        thumbnail = video_data.get('thumbnail_url')
+        timestamp = parse_iso8601(video_data.get('date_created'), ' ')
+        duration = float_or_none(video_data.get('duration'))
+        view_count = int_or_none(video_data.get('view_count'))
+        like_count = int_or_none(video_data.get('likes_count'))
+        comment_count = int_or_none(video_data.get('comment_count'))
+
+        uploader = None
+        user_data = video_data.get('user')
+        if user_data is not None:
+            uploader = user_data.get('username')
+
+        formats = [{
+            'format_id': format['type'],
+            'url': format['uri'],
+            'width': int_or_none(format['width']),
+            'height': int_or_none(format['height']),
+        } for format in video_data.get('formats', [])]
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'url': video_url,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
             'timestamp': timestamp,
-            'width': width,
-            'height': height,
             'duration': duration,
             'view_count': view_count,
             'like_count': like_count,
+            'comment_count': comment_count,
             'uploader': uploader,
+            'formats': formats,
         }
