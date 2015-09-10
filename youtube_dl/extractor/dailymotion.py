@@ -19,6 +19,7 @@ from ..utils import (
     str_to_int,
     unescapeHTML,
 )
+from ..swfinterp import SWFInterpreter
 
 
 class DailymotionBaseInfoExtractor(InfoExtractor):
@@ -380,6 +381,52 @@ class DailymotionCloudIE(DailymotionBaseInfoExtractor):
         if mobj:
             return mobj.group(1)
 
+    def process_layer(self, layer):
+        param = layer.get('param')
+        if param:
+            customURL = param.get('customURL')
+            if customURL:
+                return customURL
+            autoURL = param.get('autoURL')
+            if autoURL:
+                return autoURL
+        sequenceList = layer.get('sequenceList')
+        if sequenceList:
+            for sequence in sequenceList:
+                result = self.process_sequence(sequence)
+                if result:
+                    return result
+        return False
+
+    def process_sequence(self, sequence):
+        layerList = sequence.get('layerList')
+        if layerList:
+            for layer in layerList:
+                result = self.process_layer(layer)
+                if result:
+                    return result
+        return False
+
+    def _extract_f4m_url(self, swf_url, video_id):
+        swf = self._request_webpage(swf_url, video_id, fatal=False)
+        if swf:
+            constant_strings = SWFInterpreter(swf.read()).constant_strings
+            for i in range(len(constant_strings)):
+                if constant_strings[i] == 'payload':
+                    payload = constant_strings[i+1]
+                    payload = self._search_regex(r'({.*})', payload, 'payload')
+                    if payload:
+                        payload = self._parse_json(payload, video_id)
+                        sequences = self._parse_json(payload['parameters']['sequence'], video_id)
+                        for sequence in sequences['sequence']:
+                            for layer in sequence['layerList']:
+                                result = self.process_sequence(sequence)
+                                if result:
+                                    return result
+                    else:
+                        break
+        return False
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -390,17 +437,26 @@ class DailymotionCloudIE(DailymotionBaseInfoExtractor):
         video_info = self._parse_json(self._search_regex(
             r'var\s+info\s*=\s*([^;]+);', webpage, 'video info'), video_id)
 
-        is_live = video_info['mode'] == 'live'
-        
         formats = []
+
         ios_url = video_info['ios_url']
         if '.m3u8' in ios_url:
             formats = self._extract_m3u8_formats(ios_url, video_id)
 
+        f4m_url = self._extract_f4m_url(video_info['swf_url'], video_id)
+        if f4m_url:
+            if '.f4m' in f4m_url:
+                formats.extend(self._extract_f4m_formats(f4m_url, video_id))
+            else:
+                formats.append({'url': f4m_url})
+
+        is_live = video_info['mode'] == 'live'
         if is_live:
             title = self._live_title(title)
         else:
             formats.append({'url': video_info['mp4_url'], 'format_id': 'mp4'})
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
