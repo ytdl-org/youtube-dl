@@ -1013,7 +1013,40 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'cinemasnob',
             },
-        }
+        },
+        # HTML5 Videos with multiple formats
+        {
+            'url': 'https://commons.wikimedia.org/wiki/Big_Buck_Bunny',
+            'info_dict': {
+                'id': 'Big Buck Bunny - Wikimedia Commons',
+                'title': 'Big Buck Bunny - Wikimedia Commons',
+            },
+            'playlist': [{
+                'md5': '78467f74f821d12f22843647a9017e1a',
+                'info_dict': {
+                    'id': 'Big_Buck_Bunny_small',
+                    'ext': 'webm',
+                    'title': 'Big_Buck_Bunny_small (1)',
+                    'uploader': 'commons.wikimedia.org',
+                },
+            }, {
+                'md5': 'efab0fd5dfe10767df1ff5d923adc1d5',
+                'info_dict': {
+                    'id': 'Big_Buck_Bunny_medium.ogv.480p',
+                    'ext': 'webm',
+                    'title': 'Big_Buck_Bunny_medium.ogv.480p (2)',
+                    'uploader': 'commons.wikimedia.org',
+                },
+            }, {
+                'md5': '57495cddd8213e107e9227ed738bd26b',
+                'info_dict': {
+                    'id': 'Big_Buck_Bunny_8_seconds_bird_clip.ogv.720p',
+                    'ext': 'webm',
+                    'title': 'Big_Buck_Bunny_8_seconds_bird_clip.ogv.720p (3)',
+                    'uploader': 'commons.wikimedia.org',
+                },
+            }],
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -1797,10 +1830,50 @@ class GenericIE(InfoExtractor):
             if m_video_type is not None:
                 found = filter_video(re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage))
         if not found:
-            # HTML5 video
-            found = re.findall(r'(?s)<(?:video|audio)[^>]*>(.*?)</(?:video|audio)>', webpage)
+            # HTML5 media(video or audio)
+            found = re.findall(r'(?s)<(video|audio)([^>]*)>(.*?)</(?:video|audio)>', webpage)
             if found:
-                found = [re.findall(r'(?s)<source[^>]*src=["\']([^"\']+)["\'][^>]*>', video) for video in found]
+                def extract_attributes(attributes_str, attributes_regex=r'(?s)\s*([^\s=]+)\s*=\s*["\']([^"\']+)["\']'):
+                    attributes = re.findall(attributes_regex, attributes_str)
+                    attributes_dict = {}
+                    if attributes:
+                        attributes_dict = {attribute_name: attribute_value for (attribute_name, attribute_value) in attributes}
+                    return attributes_dict
+
+                def absolute_url(video_url):
+                    return compat_urlparse.urljoin(url, video_url)
+
+                entries = []
+                for (media_type, media_attributes, media_content) in found:
+                    video_info = {'formats': [],'subtitles': {}}
+                    if media_attributes:
+                        media_attributes = extract_attributes(media_attributes)
+                        src = media_attributes.get('src')
+                        if src:
+                            video_info['formats'].append({'url': absolute_url(src)})
+                        video_info['thumbnail'] = media_attributes.get('poster')
+                    if media_content:
+                        tags = re.findall(r'(?s)<(source|track)([^>]*)>', media_content)
+                        for (tag_type, tag_attributes) in tags:
+                            if tag_type == 'source':
+                                format_info = {}
+                                source_attributes = extract_attributes(tag_attributes, r'(?s)\s*([^\s=]+)\s*=\s*["\']([^"\']+|[^"\']+codecs\s*=\s*["\'][^"\']+["\'])["\']')
+                                src = source_attributes.get('src')
+                                if src:
+                                    video_info['formats'].append({'url': absolute_url(src)})
+                                # TODO: extract mime and codecs info
+                            if tag_type == 'track':
+                                track_attributes = extract_attributes(tag_attributes)
+                                kind = track_attributes.get('kind')
+                                if not kind or kind == 'subtitles':
+                                    src = track_attributes.get('src')
+                                    if src:
+                                        key = track_attributes.get('srclang') or track_attributes.get('lang') or track_attributes.get('label')
+                                        video_info['subtitles'][key] = [{'url': absolute_url(src), 'ext': determine_ext(src)}]
+                    if video_info['formats']:
+                        entries.append(video_info)
+                if entries:
+                    found = entries
         if not found:
             REDIRECT_REGEX = r'[0-9]{,2};\s*(?:URL|url)=\'?([^\'"]+)'
             found = re.search(
@@ -1822,46 +1895,55 @@ class GenericIE(InfoExtractor):
         if not found:
             raise UnsupportedError(url)
 
+        def extract_filename_from_url(url):
+            filename = compat_urllib_parse_unquote(os.path.basename(url))
+            # here's a fun little line of code for you:
+            filename = os.path.splitext(filename)[0]
+            return filename
+
         entries = []
         for video_urls in found:
-            if isinstance(video_urls, compat_str):
-                video_urls = [video_urls]
+            video_info = {'formats': []}
+            if isinstance(video_urls, dict):
+                video_info = video_urls
+                video_id = extract_filename_from_url(video_info['formats'][0]['url'])
+            else:
+                if isinstance(video_urls, compat_str):
+                    video_urls = [video_urls]
+                video_id = extract_filename_from_url(video_urls[0])
 
-            video_id = compat_urllib_parse_unquote(os.path.basename(url))
-            # here's a fun little line of code for you:
-            video_id = os.path.splitext(video_id)[0]
+                for video_url in video_urls:
+                    video_url = compat_urlparse.urljoin(url, video_url)
 
-            formats = []
-            for video_url in video_urls:
-                video_url = compat_urlparse.urljoin(url, video_url)
+                    # Sometimes, jwplayer extraction will result in a YouTube URL
+                    if YoutubeIE.suitable(video_url):
+                        entries.append(self.url_result(video_url, 'Youtube'))
+                        continue
 
-                # Sometimes, jwplayer extraction will result in a YouTube URL
-                if YoutubeIE.suitable(video_url):
-                    entries.append(self.url_result(video_url, 'Youtube'))
-                    continue
+                    ext = determine_ext(video_url)
+                    if ext == 'smil':
+                        entries.append({
+                            'id': video_id,
+                            'formats': self._extract_smil_formats(video_url, video_id),
+                            'uploader': video_uploader,
+                            'title': video_title,
+                            'age_limit': age_limit,
+                        })
+                    elif ext == 'xspf':
+                        return self.playlist_result(self._extract_xspf_playlist(video_url, video_id), video_id)
+                    else:
+                        video_info['formats'].append({'url': video_url})
 
-                ext = determine_ext(video_url)
-                if ext == 'smil':
-                    entries.append({
-                        'id': video_id,
-                        'formats': self._extract_smil_formats(video_url, video_id),
-                        'uploader': video_uploader,
-                        'title': video_title,
-                        'age_limit': age_limit,
-                    })
-                elif ext == 'xspf':
-                    return self.playlist_result(self._extract_xspf_playlist(video_url, video_id), video_id)
-                else:
-                    formats.append({'url': video_url})
-
-            if formats:
-                entries.append({
+            if video_info['formats']:
+                if len(video_info['formats']) > 1:
+                    self._sort_formats(video_info['formats'])
+                video_info.update({
                     'id': video_id,
-                    'formats': formats,
                     'uploader': video_uploader,
-                    'title': video_title,
+                    'title': video_id,
                     'age_limit': age_limit,
                 })
+                entries.append(video_info)
 
         if len(entries) == 1:
             return entries[0]
@@ -1873,4 +1955,6 @@ class GenericIE(InfoExtractor):
             return {
                 '_type': 'playlist',
                 'entries': entries,
+                'id': video_title,
+                'title': video_title,
             }
