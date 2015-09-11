@@ -29,7 +29,10 @@ from ..utils import (
     url_basename,
     xpath_text,
 )
-from .brightcove import BrightcoveIE
+from .brightcove import (
+    BrightcoveIE,
+    BrightcoveInPageEmbedIE,
+)
 from .nbc import NBCSportsVPlayerIE
 from .ooyala import OoyalaIE
 from .rutv import RUTVIE
@@ -1012,6 +1015,17 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'cinemasnob',
             },
+        },
+        # BrightcoveInPageEmbed embed
+        {
+            'url': 'http://www.geekandsundry.com/tabletop-bonus-wils-final-thoughts-on-dread/',
+            'info_dict': {
+                'id': '4238694884001',
+                'ext': 'flv',
+                'title': 'Tabletop: Dread, Last Thoughts',
+                'description': 'Tabletop: Dread, Last Thoughts',
+                'duration': 51690,
+            },
         }
     ]
 
@@ -1287,6 +1301,11 @@ class GenericIE(InfoExtractor):
                 'id': video_id,
                 'entries': entries,
             }
+
+        # Look for Brightcove In Page Embed:
+        brightcove_in_page_embed_url = BrightcoveInPageEmbedIE._extract_url(webpage)
+        if brightcove_in_page_embed_url:
+            return self.url_result(brightcove_in_page_embed_url, 'BrightcoveInPageEmbed')
 
         # Look for embedded rtl.nl player
         matches = re.findall(
