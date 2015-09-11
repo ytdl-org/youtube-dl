@@ -731,6 +731,7 @@ class InfoExtractor(object):
 
     @staticmethod
     def _hidden_inputs(html):
+        html = re.sub(r'<!--(?:(?!<!--).)*-->', '', html)
         hidden_inputs = {}
         for input in re.findall(r'(?i)<input([^>]+)>', html):
             if not re.search(r'type=(["\'])(?:hidden|submit)\1', input):
