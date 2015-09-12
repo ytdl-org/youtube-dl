@@ -2,9 +2,6 @@
 
 from __future__ import unicode_literals
 
-import re
-import json
-
 from .common import InfoExtractor
 
 
@@ -46,13 +43,10 @@ class TudouIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        m = re.search(r'vcode:\s*[\'"](.+?)[\'"]', webpage)
-        if m and m.group(1):
-            return {
-                '_type': 'url',
-                'url': 'youku:' + m.group(1),
-                'ie_key': 'Youku'
-            }
+        youku_vcode = self._search_regex(
+            r'vcode:\s*[\'"](.+?)[\'"]', webpage, 'youku vcode', default=None)
+        if youku_vcode:
+            return self.url_result('youku:' + youku_vcode, ie='Youku')
 
         title = self._search_regex(
             r",kw:\s*['\"](.+?)[\"']", webpage, 'title')
@@ -63,8 +57,8 @@ class TudouIE(InfoExtractor):
             r"playerUrl\s*:\s*['\"](.+?\.swf)[\"']",
             webpage, 'player URL', default=self._PLAYER_URL)
 
-        segs_json = self._search_regex(r'segs: \'(.*)\'', webpage, 'segments')
-        segments = json.loads(segs_json)
+        segments = self._parse_json(self._search_regex(
+            r'segs: \'(.*)\'', webpage, 'segments'), video_id)
         # It looks like the keys are the arguments that have to be passed as
         # the hd field in the request url, we pick the higher
         # Also, filter non-number qualities (see issue #3643).
