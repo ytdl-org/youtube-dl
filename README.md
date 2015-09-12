@@ -1,18 +1,18 @@
 youtube-dl - download videos from youtube.com or other video platforms
 
-- [INSTALLATION](#installation)
-- [DESCRIPTION](#description)
-- [OPTIONS](#options)
-- [CONFIGURATION](#configuration)
-- [OUTPUT TEMPLATE](#output-template)
-- [FORMAT SELECTION](#format-selection)
-- [VIDEO SELECTION](#video-selection)
+- [安装](#installation)
+- [描述](#description)
+- [参数](#options)
+- [配置](#configuration)
+- [模板输出](#output-template)
+- [格式选择](#format-selection)
+- [视频选择](#video-selection)
 - [FAQ](#faq)
-- [DEVELOPER INSTRUCTIONS](#developer-instructions)
+- [开发指南](#developer-instructions)
 - [BUGS](#bugs)
 - [COPYRIGHT](#copyright)
 
-# INSTALLATION
+# 安装
 
 To install it right away for all UNIX users (Linux, OS X, etc.), type:
 
