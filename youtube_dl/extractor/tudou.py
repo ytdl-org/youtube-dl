@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
 
 
 class TudouIE(InfoExtractor):
@@ -32,7 +33,7 @@ class TudouIE(InfoExtractor):
     _PLAYER_URL = 'http://js.tudouui.com/bin/lingtong/PortalPlayer_177.swf'
 
     def _url_for_id(self, video_id, quality=None):
-        info_url = "http://v2.tudou.com/f?id=" + str(video_id)
+        info_url = 'http://v2.tudou.com/f?id=' + compat_str(video_id)
         if quality:
             info_url += '&hd' + quality
         xml_data = self._download_xml(info_url, video_id, "Opening the info XML page")
