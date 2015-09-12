@@ -367,6 +367,9 @@ from .nbc import (
 from .ndr import (
     NDRIE,
     NJoyIE,
+    NDREmbedBaseIE,
+    NDREmbedIE,
+    NJoyEmbedIE,
 )
 from .ndtv import NDTVIE
 from .netzkino import NetzkinoIE
