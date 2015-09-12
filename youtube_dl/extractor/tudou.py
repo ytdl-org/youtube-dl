@@ -27,6 +27,9 @@ class TudouIE(InfoExtractor):
             'title': 'La Sylphide-Bolshoi-Ekaterina Krysanova & Vyacheslav Lopatin 2012',
             'thumbnail': 're:^https?://.*\.jpg$',
         }
+    }, {
+        'url': 'http://www.tudou.com/albumplay/cJAHGih4yYg.html',
+        'only_matching': True,
     }]
 
     _PLAYER_URL = 'http://js.tudouui.com/bin/lingtong/PortalPlayer_177.swf'
