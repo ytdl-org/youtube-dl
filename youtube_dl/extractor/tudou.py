@@ -44,21 +44,21 @@ class TudouIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         youku_vcode = self._search_regex(
-            r'vcode:\s*[\'"](.+?)[\'"]', webpage, 'youku vcode', default=None)
+            r'vcode\s*:\s*[\'"]([^\'"]*)[\'"]', webpage, 'youku vcode', default=None)
         if youku_vcode:
             return self.url_result('youku:' + youku_vcode, ie='Youku')
 
         title = self._search_regex(
-            r",kw:\s*['\"](.+?)[\"']", webpage, 'title')
+            r',kw\s*:\s*[\'"]([^\'"]+)[\'"]', webpage, 'title')
         thumbnail_url = self._search_regex(
-            r",pic:\s*[\"'](.+?)[\"']", webpage, 'thumbnail URL', fatal=False)
+            r',pic\s*:\s*[\'"]([^\'"]+)[\'"]', webpage, 'thumbnail URL', fatal=False)
 
         player_url = self._search_regex(
-            r"playerUrl\s*:\s*['\"](.+?\.swf)[\"']",
+            r'playerUrl\s*:\s*[\'"]([^\'"]+\.swf)[\'"]',
             webpage, 'player URL', default=self._PLAYER_URL)
 
         segments = self._parse_json(self._search_regex(
-            r'segs: \'(.*)\'', webpage, 'segments'), video_id)
+            r'segs: \'([^\']+)\'', webpage, 'segments'), video_id)
         # It looks like the keys are the arguments that have to be passed as
         # the hd field in the request url, we pick the higher
         # Also, filter non-number qualities (see issue #3643).
