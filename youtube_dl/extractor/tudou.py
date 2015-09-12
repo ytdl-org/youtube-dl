@@ -9,7 +9,7 @@ from .common import InfoExtractor
 
 
 class TudouIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tudou\.com/(?:listplay|programs(?:/view)?|albumplay)/.*?/(?P<id>[^/?#]+?)(?:\.html)?/?(?:$|[?#])'
+    _VALID_URL = r'https?://(?:www\.)?tudou\.com/(?:listplay|programs(?:/view)?|albumplay)/([^/]+/)*(?P<id>[^/?#]+?)(?:\.html)?/?(?:$|[?#])'
     _TESTS = [{
         'url': 'http://www.tudou.com/listplay/zzdE77v6Mmo/2xN2duXMxmw.html',
         'md5': '140a49ed444bd22f93330985d8475fcb',
@@ -27,6 +27,9 @@ class TudouIE(InfoExtractor):
             'title': 'La Sylphide-Bolshoi-Ekaterina Krysanova & Vyacheslav Lopatin 2012',
             'thumbnail': 're:^https?://.*\.jpg$',
         }
+    }, {
+        'url': 'http://www.tudou.com/albumplay/cJAHGih4yYg.html',
+        'only_matching': True,
     }]
 
     _PLAYER_URL = 'http://js.tudouui.com/bin/lingtong/PortalPlayer_177.swf'
