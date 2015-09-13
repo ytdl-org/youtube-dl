@@ -1,7 +1,7 @@
 all: youtube-dl README.md CONTRIBUTING.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish supportedsites
 
 clean:
-	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish *.dump *.part *.info.json *.mp4 *.flv *.mp3 *.avi CONTRIBUTING.md.tmp youtube-dl youtube-dl.exe
+	rm -rf README-wide.md youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish *.dump *.part *.info.json *.mp4 *.flv *.mp3 *.avi CONTRIBUTING.md.tmp youtube-dl youtube-dl.exe
 	find . -name "*.pyc" -delete
 
 PREFIX ?= /usr/local
@@ -61,7 +61,8 @@ youtube-dl: youtube_dl/*.py youtube_dl/*/*.py
 	chmod a+x youtube-dl
 
 README.md: youtube_dl/*.py youtube_dl/*/*.py
-	COLUMNS=80 python youtube_dl/__main__.py --help | python devscripts/make_readme.py
+	COLUMNS=80 python youtube_dl/__main__.py --help | python devscripts/make_readme.py README.md > README.new.md
+	mv -f README.new.md README.md
 
 CONTRIBUTING.md: README.md
 	python devscripts/make_contributing.py README.md CONTRIBUTING.md
@@ -72,10 +73,11 @@ supportedsites:
 README.txt: README.md
 	pandoc -f markdown -t plain README.md -o README.txt
 
-youtube-dl.1: README.md
-	python devscripts/prepare_manpage.py >youtube-dl.1.temp.md
+youtube-dl.1: youtube_dl/*.py youtube_dl/*/*.py
+	COLUMNS=65536 python youtube_dl/__main__.py --help | python devscripts/make_readme.py README.md > README-wide.md
+	python devscripts/prepare_manpage.py README-wide.md > youtube-dl.1.temp.md
 	pandoc -s -f markdown -t man youtube-dl.1.temp.md -o youtube-dl.1
-	rm -f youtube-dl.1.temp.md
+	rm -f youtube-dl.1.temp.md README-wide.md
 
 youtube-dl.bash-completion: youtube_dl/*.py youtube_dl/*/*.py devscripts/bash-completion.in
 	python devscripts/bash-completion.py

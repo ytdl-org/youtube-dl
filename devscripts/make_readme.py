@@ -4,7 +4,7 @@ import io
 import sys
 import re
 
-README_FILE = 'README.md'
+README_FILE = sys.argv[1]
 helptext = sys.stdin.read()
 
 if isinstance(helptext, bytes):
@@ -20,7 +20,7 @@ options = helptext[helptext.index('  General Options:') + 19:]
 options = re.sub(r'(?m)^  (\w.+)$', r'## \1', options)
 options = '# OPTIONS\n' + options + '\n'
 
-with io.open(README_FILE, 'w', encoding='utf-8') as f:
+with io.open(sys.stdout.fileno(), 'w', encoding='utf-8') as f:
     f.write(header)
     f.write(options)
     f.write(footer)
