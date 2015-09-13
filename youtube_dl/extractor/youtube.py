@@ -1970,6 +1970,7 @@ class YoutubeTruncatedURLIE(InfoExtractor):
             annotation_id=annotation_[^&]+|
             x-yt-cl=[0-9]+|
             hl=[^&]*|
+            t=[0-9]+
         )?
         |
             attribution_link\?a=[^&]+
@@ -1991,6 +1992,9 @@ class YoutubeTruncatedURLIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.youtube.com/watch?hl=en-GB',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/watch?t=2372',
         'only_matching': True,
     }]
 
