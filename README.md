@@ -501,6 +501,7 @@ If you want to create a build of youtube-dl yourself, you'll need
 * python
 * make
 * pandoc
+* pod2man
 * zip
 * nosetests
 
