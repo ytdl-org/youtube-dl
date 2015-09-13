@@ -408,7 +408,7 @@ from .novamov import NovaMovIE
 from .nowness import (
     NownessIE,
     NownessPlaylistIE,
-    NownessSerieIE,
+    NownessSeriesIE,
 )
 from .nowtv import NowTVIE
 from .nowvideo import NowVideoIE
