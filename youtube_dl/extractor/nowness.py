@@ -58,7 +58,7 @@ class NownessIE(NownessBaseIE):
             'description': 'Candor: The Art of Gesticulation',
             'thumbnail': 're:^https?://.*\.jpg',
             'uploader': 'Nowness',
-        }
+        },
     }, {
         'url': 'https://cn.nowness.com/story/kasper-bjorke-ft-jaakko-eino-kalevi-tnr',
         'md5': 'e79cf125e387216f86b2e0a5b5c63aa3',
@@ -69,7 +69,21 @@ class NownessIE(NownessBaseIE):
             'description': 'Kasper Bjørke ft. Jaakko Eino Kalevi: TNR',
             'thumbnail': 're:^https?://.*\.jpg',
             'uploader': 'Nowness',
-        }
+        },
+    }, {
+        # vimeo
+        'url': 'https://www.nowness.com/series/nowness-picks/jean-luc-godard-supercut',
+        'md5': '9a5a6a8edf806407e411296ab6bc2a49',
+        'info_dict': {
+            'id': '130020913',
+            'ext': 'mp4',
+            'title': 'Bleu, Blanc, Rouge - A Godard Supercut',
+            'description': 'md5:f0ea5f1857dffca02dbd37875d742cec',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'upload_date': '20150607',
+            'uploader': 'Cinema Sem Lei',
+            'uploader_id': 'cinemasemlei',
+        },
     }]
 
     def _real_extract(self, url):
