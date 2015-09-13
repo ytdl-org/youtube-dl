@@ -405,7 +405,11 @@ from .normalboots import NormalbootsIE
 from .nosvideo import NosVideoIE
 from .nova import NovaIE
 from .novamov import NovaMovIE
-from .nowness import NownessIE
+from .nowness import (
+    NownessIE,
+    NownessPlaylistIE,
+    NownessSeriesIE,
+)
 from .nowtv import NowTVIE
 from .nowvideo import NowVideoIE
 from .npo import (
