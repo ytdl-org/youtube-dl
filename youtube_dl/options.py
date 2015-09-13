@@ -276,7 +276,7 @@ def parseOpts(overrideArguments=None):
             'For example, to only match videos that have been liked more than '
             '100 times and disliked less than 50 times (or the dislike '
             'functionality is not available at the given service), but who '
-            'also have a description, use  --match-filter '
+            'also have a description, use --match-filter '
             '"like_count > 100 & dislike_count <? 50 & description" .'
         ))
     selection.add_option(
@@ -602,7 +602,7 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '-A', '--auto-number',
         action='store_true', dest='autonumber', default=False,
-        help='[deprecated; use  -o "%(autonumber)s-%(title)s.%(ext)s" ] Number downloaded files starting from 00000')
+        help='[deprecated; use -o "%(autonumber)s-%(title)s.%(ext)s" ] Number downloaded files starting from 00000')
     filesystem.add_option(
         '-t', '--title',
         action='store_true', dest='usetitle', default=False,
