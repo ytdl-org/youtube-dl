@@ -436,7 +436,7 @@ else:
                 out, err = sp.communicate()
                 _columns, _lines = map(int, out.split())
             except Exception:
-                _columns, _lines = _terminal_size(fallback)
+                _columns, _lines = _terminal_size(*fallback)
 
             if columns <= 0:
                 columns = _columns
