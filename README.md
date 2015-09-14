@@ -261,7 +261,7 @@ For example:
 machine youtube login myaccount@gmail.com password my_youtube_password
 machine twitch login my_twitch_account_name password my_twitch_password
 ```
-To activate authentication with `.netrc` file you should pass `--netrc` to youtube-dl or to place it in [configuration file](#configuration).
+To activate authentication with `.netrc` file you should pass `--netrc` to youtube-dl or place it in [configuration file](#configuration).
 
 On Windows you may also need to setup `%HOME%` environment variable manually.
 
