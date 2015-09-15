@@ -54,12 +54,13 @@ class LiveLeakIE(InfoExtractor):
     }]
 
     video_count = 0
+
     def _video_count(self):
         self.video_count += 1
         if self.video_count == 1:
             return ''
         else:
-            return '-' + str(self.video_count-1)
+            return '-' + str(self.video_count - 1)
 
     # Removing '.h264_*.mp4' gives the raw video, which is essentially
     # the same video without the LiveLeak logo at the top (see
@@ -143,7 +144,6 @@ class LiveLeakIE(InfoExtractor):
                 'age_limit': age_limit,
             })
 
-
         # collect embedded videos:
         embed_urls = list()
 
@@ -170,7 +170,6 @@ class LiveLeakIE(InfoExtractor):
                 'uploader': video_uploader,
                 'age_limit': age_limit,
             })
-
 
         if len(entries) == 1:
             return entries[0]
