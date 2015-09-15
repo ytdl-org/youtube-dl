@@ -53,14 +53,12 @@ class LiveLeakIE(InfoExtractor):
         }
     }]
 
-    video_count = 0
-
-    def _video_count(self):
-        self.video_count += 1
-        if self.video_count == 1:
+    def _video_count(self, entries):
+        count = len(entries)
+        if count == 0:
             return ''
         else:
-            return '-' + str(self.video_count - 1)
+            return '-' + str(count)
 
     # Removing '.h264_*.mp4' gives the raw video, which is essentially
     # the same video without the LiveLeak logo at the top (see
@@ -110,7 +108,7 @@ class LiveLeakIE(InfoExtractor):
             self._sort_formats(formats)
 
             entries.append({
-                'id': page_id,
+                'id': page_id + self._video_count(entries),
                 'title': video_title,
                 'description': video_description,
                 'uploader': video_uploader,
@@ -136,7 +134,7 @@ class LiveLeakIE(InfoExtractor):
                     'preference': 1,
                 })
             entries.append({
-                'id': page_id + self._video_count(),
+                'id': page_id + self._video_count(entries),
                 'title': video_title,
                 'description': video_description,
                 'uploader': video_uploader,
@@ -163,7 +161,7 @@ class LiveLeakIE(InfoExtractor):
         for embed_url in embed_urls:
             entries.append({
                 '_type': 'url_transparent',
-                'id': page_id + self._video_count(),
+                'id': page_id + self._video_count(entries),
                 'url': embed_url,
                 'title': video_title,
                 'description': video_description,
