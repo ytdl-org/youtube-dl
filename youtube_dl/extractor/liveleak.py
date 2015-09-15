@@ -51,6 +51,28 @@ class LiveLeakIE(InfoExtractor):
             'uploader': 'bony333',
             'title': 'Crazy Hungarian tourist films close call waterspout in Croatia'
         }
+    }, {
+        # Multiple videos per page (https://github.com/rg3/youtube-dl/issues/6542)    
+        'url': 'http://www.liveleak.com/view?i=677_1439397581',
+        'info_dict': {
+            'id': '677_1439397581',
+            'title': 'Fuel Depot in China Explosion caught on video',
+        },
+        'playlist_mincount': 3
+    }, {
+        # Embedded youtube video
+        'url': 'http://www.liveleak.com/view?i=db4_1442324398',
+        'md5': 'c72ce559d02cf26b6540c87d6a015c0c',
+        'info_dict': {
+            'id': 'db4_1442324398',
+            'ext': 'mp4',
+            'description': 'Is it worth 6 minutes of your time to listen to this?',
+            'uploader': 'Vfor',
+            'uploader_id': 'iSSerDc',
+            'upload_date': '20070703',
+            'title': "Pachelbel's Canon in D - Breathtaking"
+        }
+
     }]
 
     def _video_count(self, entries):
@@ -175,5 +197,6 @@ class LiveLeakIE(InfoExtractor):
             return {
                 '_type': 'multi_video',
                 'id': page_id,
+                'title': 'Fuel Depot in China Explosion caught on video',
                 'entries': entries,
             }
