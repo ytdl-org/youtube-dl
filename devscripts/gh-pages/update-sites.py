@@ -6,7 +6,7 @@ import os
 import textwrap
 
 # We must be able to import youtube_dl
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import youtube_dl
 
