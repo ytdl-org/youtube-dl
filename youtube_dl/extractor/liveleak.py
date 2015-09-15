@@ -67,6 +67,9 @@ class LiveLeakIE(InfoExtractor):
     def _get_orig_video_url(self, url):
         return re.sub(r'\.h264_.+?\.mp4', '', url)
 
+    def _remove_rate_limit(self, url):
+        return re.sub(r'&ec_rate=[0-9]+', '', url)
+
     def _real_extract(self, url):
 
         entries = list()  # collect all found videos
@@ -92,10 +95,10 @@ class LiveLeakIE(InfoExtractor):
             formats = [{
                 'format_id': '%s' % i,
                 'format_note': s.get('label'),
-                'url': s['file'],
+                'url': self._remove_rate_limit(s['file']),
             } for i, s in enumerate(sources)]
             for i, s in enumerate(sources):
-                orig_url = self._get_orig_video_url(s['file'])
+                orig_url = self._remove_rate_limit(self._get_orig_video_url(s['file']))
                 if s['file'] != orig_url:
                     formats.append({
                         'format_id': 'original-%s' % i,
@@ -115,8 +118,9 @@ class LiveLeakIE(InfoExtractor):
             })
 
         # extracts native videos #2 (maybe multiple videos, single format)
-        sources = re.findall(r'(?s)jwplayer\("file_[0-9a-f]+"\).+?file: "(.*?)"', webpage)
+        sources = re.findall(r'(?s)jwplayer.+?file: "(.+?)".+?config:', webpage)
         for url in sources:
+            url = self._remove_rate_limit(url)
             formats = [{
                 'format_id': '0',
                 'format_note': 'standard quality (with logo)',
@@ -151,7 +155,7 @@ class LiveLeakIE(InfoExtractor):
             for embed in embed_prochan:
                 embed_urls.append(embed)
 
-        # add all collected embed urls
+        # add all collected embed urls to list
         for embed_url in embed_urls:
             entries.append({
                 '_type': 'url_transparent',
@@ -163,8 +167,6 @@ class LiveLeakIE(InfoExtractor):
                 'age_limit': age_limit,
             })
 
-        if len(entries) == 0:
-            raise ExtractorError('No videos found')
         if len(entries) == 1:
             return entries[0]
         else:
