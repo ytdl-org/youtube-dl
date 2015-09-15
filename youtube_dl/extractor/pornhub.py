@@ -20,7 +20,7 @@ from ..aes import (
 
 
 class PornHubIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/(?:view_video\.php\?viewkey=|embed/)(?P<id>[0-9a-z]+)'
+    _VALID_URL = r'https?://(?:[a-z]+\.)?pornhub\.com/(?:view_video\.php\?viewkey=|embed/)(?P<id>[0-9a-z]+)'
     _TESTS = [{
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
         'md5': '882f488fa1f0026f023f33576004a2ed',
@@ -33,6 +33,9 @@ class PornHubIE(InfoExtractor):
         }
     }, {
         'url': 'http://www.pornhub.com/view_video.php?viewkey=ph557bbb6676d2d',
+        'only_matching': True,
+    }, {
+        'url': 'http://fr.pornhub.com/view_video.php?viewkey=ph55ca2f9760862',
         'only_matching': True,
     }]
 
