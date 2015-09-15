@@ -164,22 +164,18 @@ class LiveLeakIE(InfoExtractor):
                 'age_limit': age_limit,
             })
 
-        # collect embedded videos:
         embed_urls = list()
 
-        # prochan.com:
         for embed_prochan in re.findall(
                 r'<iframe[^>]+src="(http://www.prochan.com/embed\?[^"]+)"',
                 webpage):
             embed_urls.append(embed_prochan)
 
-        # youtube.com:
         for embed_youtube in re.findall(
                 r'<iframe[^>]+src="(http[s]?://www.youtube.com/embed/[^"]+)"',
                 webpage):
             embed_urls.append(embed_youtube)
 
-        # add all collected embed urls to list
         for embed_url in embed_urls:
             entries.append({
                 '_type': 'url_transparent',
