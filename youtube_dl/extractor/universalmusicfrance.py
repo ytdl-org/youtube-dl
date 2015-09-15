@@ -13,8 +13,18 @@ from ..utils import (
 
 
 class UniversalMusicFranceIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.universalmusic\.fr/artiste/.*/videos/(?P<id>.*)#'
+    _VALID_URL = r'https?://www\.universalmusic\.fr/artiste/.*/videos/(?P<id>.*)#?'
     _TESTS = [
+        {
+            'url': 'http://www.universalmusic.fr/artiste/7415-anna-bergendahl/videos/4555-for-you-remix-lyric-video.iframe',
+            'md5': '159cda7568b9fc1e5e3de6aeca5d4bfc)',
+            'info_dict': {
+                'id': '1881-waiting-for-love-lyric-video',
+                'ext': 'mp4',
+                'title': '1881-waiting-for-love-lyric-video'
+            }
+        }
+        ,
         {
             'url': 'https://www.universalmusic.fr/artiste/4428-avicii/videos/1881-waiting-for-love-lyric-video#contentPart',
             'md5': '159cda7568b9fc1e5e3de6aeca5d4bfc)',
@@ -43,7 +53,7 @@ class UniversalMusicFranceIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         urlVideo = self._html_search_regex(r'var urlVideo = \'(.*)\';', webpage, 'urlVideo')
-        title = self._html_search_regex(r'<meta property=og:title content="(.*)"/>', webpage, 'title')
+        title = self._html_search_regex(r'<meta property="?og:title"? content="(.*)"/>', webpage, 'title')
 
         request = compat_urllib_request.Request(self.GET_TOKEN_URL, urlencode_postdata({'videoUrl': urlVideo}))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
