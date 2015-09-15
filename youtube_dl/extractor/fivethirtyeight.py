@@ -7,7 +7,7 @@ from youtube_dl import utils
 
 
 class FivethirtyeightIE(InfoExtractor):
-    _VALID_URL = r'http://fivethirtyeight\.com/.+'
+    _VALID_URL = r'https?://fivethirtyeight\.com/.+/(?P<id>.+?)/'
     _TEST = {
         'url': 'http://fivethirtyeight.com/features/rage-against-the-machines/',
         'md5': 'c825a057981316c4d4444fefea35a108',
@@ -21,19 +21,20 @@ class FivethirtyeightIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        webpage = self._download_webpage(url, 'video_id')
-        video_id = self._html_search_regex(r'.*data-video-id=\'(.*)\' data-cms.*', webpage, 'video_id')
-        title = self._html_search_regex(r'<title>(.*)\s*\|', webpage, 'title')
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._html_search_regex(r'data-video-id=\'(.+?)\' data-cms', webpage, display_id)
+        title = self._html_search_regex(r'<title>(.+?)\s*\|', webpage, 'title')
 
         data = self._download_json(
-            'http://espn.go.com/videohub/video/util/getMinifiedClipJsonById?id=%s&cms=espn&device=mobile&omniReportSuite=wdgespvideo,wdgespfivethirtyeight,wdgespge&xhr=1' % video_id, video_id)
+            'http://espn.go.com/videohub/video/util/getMinifiedClipJsonById?id=%s&cms=espn&device=mobile&omniReportSuite=wdgespvideo,wdgespfivethirtyeight,wdgespge&xhr=1' % video_id, display_id)
 
         url = data["videos"][0]["links"]["mobile"]["href"]
 
         request = compat_urllib_request.Request(url)
         request.add_header('User-Agent', 'ipad')
 
-        formats = self._extract_m3u8_formats(request, 'display_id', 'mp4')
+        formats = self._extract_m3u8_formats(request, display_id, 'mp4')
 
         formats[0]["url"] = request.get_full_url()
 
