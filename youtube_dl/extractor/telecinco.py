@@ -18,7 +18,7 @@ from ..utils import (
 
 class TelecincoIE(InfoExtractor):
     IE_NAME = 'telecinco.es'
-    _VALID_URL = r'https?://www\.telecinco\.es/(?:[^/]+/)+(?P<id>.+?)\.html'
+    _VALID_URL = r'https?://www\.(?:telecinco\.es|cuatro\.com)/(?:[^/]+/)+(?P<id>.+?)\.html'
 
     _TESTS = [{
         'url': 'http://www.telecinco.es/robinfood/temporada-01/t01xp14/Bacalao-cocochas-pil-pil_0_1876350223.html',
@@ -31,6 +31,15 @@ class TelecincoIE(InfoExtractor):
         'params': {
             # m3u8 download
             'skip_download': True,
+        },
+    }, {
+        'url': 'http://www.cuatro.com/deportes/futbol/barcelona/Leo_Messi-Champions-Roma_2_2052780128.html',
+        'md5': '0a5b9f3cc8b074f50a0578f823a12694',
+        'info_dict': {
+            'id': 'MDSVID20150916_0128',
+            'ext': 'mp4',
+            'title': '¿Quién es este ex futbolista con el que hablan ...',
+            'duration': 79,
         },
     }, {
         'url': 'http://www.telecinco.es/informativos/nacional/Pablo_Iglesias-Informativos_Telecinco-entrevista-Pedro_Piqueras_2_1945155182.html',
@@ -66,7 +75,7 @@ class TelecincoIE(InfoExtractor):
             transform_source=strip_jsonp
         )
         formats = self._extract_m3u8_formats(
-            token_info['tokenizedUrl'], episode, ext='mp4')
+            token_info['tokenizedUrl'], episode, ext='mp4', entry_protocol='m3u8_native')
 
         return {
             'id': embed_data['videoId'],
