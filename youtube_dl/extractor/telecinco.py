@@ -17,8 +17,8 @@ from ..utils import (
 
 
 class TelecincoIE(InfoExtractor):
-    IE_DESC = 'telecinco.es and cuatro.es'
-    _VALID_URL = r'https?://www\.(?:telecinco\.es|cuatro\.com)/(?:[^/]+/)+(?P<id>.+?)\.html'
+    IE_DESC = 'telecinco.es, cuatro.es and mediaset.es'
+    _VALID_URL = r'https?://www\.(?:telecinco\.es|cuatro\.com|mediaset\.es)/(?:[^/]+/)+(?P<id>.+?)\.html'
 
     _TESTS = [{
         'url': 'http://www.telecinco.es/robinfood/temporada-01/t01xp14/Bacalao-cocochas-pil-pil_0_1876350223.html',
@@ -37,6 +37,15 @@ class TelecincoIE(InfoExtractor):
             'ext': 'mp4',
             'title': '¿Quién es este ex futbolista con el que hablan ...',
             'duration': 79,
+        },
+    }, {
+        'url': 'http://www.mediaset.es/12meses/campanas/doylacara/conlatratanohaytrato/Ayudame-dar-cara-trata-trato_2_1986630220.html',
+        'md5': 'ad1bfaaba922dd4a295724b05b68f86a',
+        'info_dict': {
+            'id': 'MDSVID20150513_0220',
+            'ext': 'mp4',
+            'title': '#DOYLACARA. Con la trata no hay trato',
+            'duration': 50,
         },
     }, {
         'url': 'http://www.telecinco.es/informativos/nacional/Pablo_Iglesias-Informativos_Telecinco-entrevista-Pedro_Piqueras_2_1945155182.html',
