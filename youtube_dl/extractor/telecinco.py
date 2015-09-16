@@ -17,7 +17,7 @@ from ..utils import (
 
 
 class TelecincoIE(InfoExtractor):
-    IE_DESC = 'telecinco.es, cuatro.es and mediaset.es'
+    IE_DESC = 'telecinco.es, cuatro.com and mediaset.es'
     _VALID_URL = r'https?://www\.(?:telecinco\.es|cuatro\.com|mediaset\.es)/(?:[^/]+/)+(?P<id>.+?)\.html'
 
     _TESTS = [{
