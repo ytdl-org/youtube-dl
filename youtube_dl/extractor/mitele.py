@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class MiTeleIE(InfoExtractor):
-    IE_NAME = 'mitele.es'
+    IE_DESC = 'mitele.es'
     _VALID_URL = r'http://www\.mitele\.es/[^/]+/[^/]+/[^/]+/(?P<id>[^/]+)/'
 
     _TESTS = [{
