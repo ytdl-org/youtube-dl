@@ -22,15 +22,12 @@ class TelecincoIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.telecinco.es/robinfood/temporada-01/t01xp14/Bacalao-cocochas-pil-pil_0_1876350223.html',
+        'md5': '5cbef3ad5ef17bf0d21570332d140729',
         'info_dict': {
             'id': 'MDSVID20141015_0058',
             'ext': 'mp4',
             'title': 'Con Martín Berasategui, hacer un bacalao al ...',
             'duration': 662,
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
         },
     }, {
         'url': 'http://www.cuatro.com/deportes/futbol/barcelona/Leo_Messi-Champions-Roma_2_2052780128.html',
