@@ -29,6 +29,7 @@ class OdnoklassnikiIE(InfoExtractor):
             'like_count': int,
             'age_limit': 0,
         },
+        'skip': 'Video has been blocked',
     }, {
         # metadataUrl
         'url': 'http://ok.ru/video/63567059965189-0',
