@@ -31,7 +31,7 @@ class HlsFD(FileDownloader):
         args = [
             encodeArgument(opt)
             for opt in (ffpp.executable, '-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
-        args.append(encodeFilename(tmpfilename, True))
+        args.append(encodeFilename(ffpp._ffmpeg_filename_argument(tmpfilename), True))
 
         self._debug_cmd(args)
 
