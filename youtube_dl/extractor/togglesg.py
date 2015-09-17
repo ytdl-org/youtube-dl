@@ -18,7 +18,7 @@ from ..compat import compat_urllib_request
 
 class ToggleSgIE(InfoExtractor):
     IE_NAME = 'togglesg'
-    _VALID_URL = r'https?://video\.toggle\.sg/(?:(en|zh))/(?:(series|clips|movies))/.+?/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://video\.toggle\.sg/(?:en|zh)/(?:series|clips|movies)/.+?/(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://video.toggle.sg/en/series/lion-moms-tif/trailers/lion-moms-premier/343115',
         'info_dict': {
@@ -90,9 +90,9 @@ class ToggleSgIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id, note='Downloading video page')
 
         api_user = self._search_regex(
-            r'apiUser:\s*"([^"]+)"', webpage, 'apiUser', default=self._API_USER, fatal=False)
+            r'apiUser:\s*"([^"]+)"', webpage, 'apiUser', default=self._API_USER)
         api_pass = self._search_regex(
-            r'apiPass:\s*"([^"]+)"', webpage, 'apiPass', default=self._API_PASS, fatal=False)
+            r'apiPass:\s*"([^"]+)"', webpage, 'apiPass', default=self._API_PASS)
 
         params = {
             'initObj': {
