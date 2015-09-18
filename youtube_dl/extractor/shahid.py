@@ -16,7 +16,7 @@ class ShahidIE(InfoExtractor):
         'url': 'https://shahid.mbc.net/ar/episode/90574/%D8%A7%D9%84%D9%85%D9%84%D9%83-%D8%B9%D8%A8%D8%AF%D8%A7%D9%84%D9%84%D9%87-%D8%A7%D9%84%D8%A5%D9%86%D8%B3%D8%A7%D9%86-%D8%A7%D9%84%D9%85%D9%88%D8%B3%D9%85-1-%D9%83%D9%84%D9%8A%D8%A8-3.html',
         'info_dict': {
             'id': '90574',
-            'ext': 'm3u8',
+            'ext': 'mp4',
             'title': 'الملك عبدالله الإنسان الموسم 1 كليب 3',
             'description': 'الفيلم الوثائقي - الملك عبد الله الإنسان',
             'duration': 2972,
@@ -81,7 +81,7 @@ class ShahidIE(InfoExtractor):
                 compat_urllib_parse.urlencode({
                     'apiKey': 'sh@hid0nlin3',
                     'hash': 'b2wMCTHpSmyxGqQjJFOycRmLSex+BpTK/ooxy6vHaqs=',
-                }).encode('utf-8')),
+                })),
             video_id, 'Downloading video JSON')
 
         video = video[api_vars['playerType']]
