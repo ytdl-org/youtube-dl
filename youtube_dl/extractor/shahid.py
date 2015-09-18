@@ -81,7 +81,7 @@ class ShahidIE(InfoExtractor):
                 compat_urllib_parse.urlencode({
                     'apiKey': 'sh@hid0nlin3',
                     'hash': 'b2wMCTHpSmyxGqQjJFOycRmLSex+BpTK/ooxy6vHaqs=',
-                }).encode('utf-8')),
+                })),
             video_id, 'Downloading video JSON')
 
         video = video[api_vars['playerType']]
