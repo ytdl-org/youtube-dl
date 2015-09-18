@@ -21,6 +21,7 @@ class BBCCoUkIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:(?:(?:programmes|iplayer(?:/[^/]+)?/(?:episode|playlist))/)|music/clips[/#])(?P<id>[\da-z]{8})'
 
     _MEDIASELECTOR_URLS = [
+        'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s',
         'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s',
     ]
 
@@ -189,6 +190,12 @@ class BBCCoUkIE(InfoExtractor):
             # Skip DASH until supported
             elif transfer_format == 'dash':
                 pass
+            elif transfer_format == 'hls':
+                m3u8_formats = self._extract_m3u8_formats(
+                    href, programme_id, ext='mp4', entry_protocol='m3u8_native',
+                    m3u8_id=supplier, fatal=False)
+                if m3u8_formats:
+                    formats.extend(m3u8_formats)
             # Direct link
             else:
                 formats.append({
