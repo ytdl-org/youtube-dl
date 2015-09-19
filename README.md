@@ -9,6 +9,7 @@ youtube-dl - download videos from youtube.com or other video platforms
 - [VIDEO SELECTION](#video-selection)
 - [FAQ](#faq)
 - [DEVELOPER INSTRUCTIONS](#developer-instructions)
+- [EMBEDDING YOUTUBE-DL](#embedding-youtube-dl)
 - [BUGS](#bugs)
 - [COPYRIGHT](#copyright)
 
@@ -261,7 +262,7 @@ For example:
 machine youtube login myaccount@gmail.com password my_youtube_password
 machine twitch login my_twitch_account_name password my_twitch_password
 ```
-To activate authentication with `.netrc` file you should pass `--netrc` to youtube-dl or to place it in [configuration file](#configuration).
+To activate authentication with `.netrc` file you should pass `--netrc` to youtube-dl or place it in [configuration file](#configuration).
 
 On Windows you may also need to setup `%HOME%` environment variable manually.
 
@@ -277,8 +278,8 @@ The `-o` option allows users to indicate a template for the output file names. T
  - `ext`: The sequence will be replaced by the appropriate extension (like flv or mp4).
  - `epoch`: The sequence will be replaced by the Unix epoch when creating the file.
  - `autonumber`: The sequence will be replaced by a five-digit number that will be increased with each download, starting at zero.
- - `playlist`: The name or the id of the playlist that contains the video.
- - `playlist_index`: The index of the video in the playlist, a five-digit number.
+ - `playlist`: The sequence will be replaced by the name or the id of the playlist that contains the video.
+ - `playlist_index`: The sequence will be replaced by the index of the video in the playlist padded with leading zeros according to the total length of the playlist.
  - `format_id`: The sequence will be replaced by the format code specified by `--format`.
 
 The current default template is `%(title)s-%(id)s.%(ext)s`.

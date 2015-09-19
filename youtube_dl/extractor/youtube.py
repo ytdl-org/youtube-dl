@@ -1654,12 +1654,15 @@ class YoutubeChannelIE(InfoExtractor):
         channel_page = self._download_webpage(
             url + '?view=57', channel_id,
             'Downloading channel page', fatal=False)
-        channel_playlist_id = self._html_search_meta(
-            'channelId', channel_page, 'channel id', default=None)
-        if not channel_playlist_id:
-            channel_playlist_id = self._search_regex(
-                r'data-channel-external-id="([^"]+)"',
-                channel_page, 'channel id', default=None)
+        if channel_page is False:
+            channel_playlist_id = False
+        else:
+            channel_playlist_id = self._html_search_meta(
+                'channelId', channel_page, 'channel id', default=None)
+            if not channel_playlist_id:
+                channel_playlist_id = self._search_regex(
+                    r'data-channel-external-id="([^"]+)"',
+                    channel_page, 'channel id', default=None)
         if channel_playlist_id and channel_playlist_id.startswith('UC'):
             playlist_id = 'UU' + channel_playlist_id[2:]
             return self.url_result(
@@ -1970,6 +1973,7 @@ class YoutubeTruncatedURLIE(InfoExtractor):
             annotation_id=annotation_[^&]+|
             x-yt-cl=[0-9]+|
             hl=[^&]*|
+            t=[0-9]+
         )?
         |
             attribution_link\?a=[^&]+
@@ -1991,6 +1995,9 @@ class YoutubeTruncatedURLIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.youtube.com/watch?hl=en-GB',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/watch?t=2372',
         'only_matching': True,
     }]
 

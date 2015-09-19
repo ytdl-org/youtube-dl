@@ -31,7 +31,7 @@ class HlsFD(FileDownloader):
         args = [
             encodeArgument(opt)
             for opt in (ffpp.executable, '-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
-        args.append(encodeFilename(tmpfilename, True))
+        args.append(encodeFilename(ffpp._ffmpeg_filename_argument(tmpfilename), True))
 
         self._debug_cmd(args)
 
@@ -92,6 +92,7 @@ class NativeHlsFD(FragmentFD):
                 return False
             down, frag_sanitized = sanitize_open(frag_filename, 'rb')
             ctx['dest_stream'].write(down.read())
+            down.close()
             frags_filenames.append(frag_sanitized)
 
         self._finish_frag_download(ctx)

@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
+    ExtractorError,
     unified_strdate,
     int_or_none,
     qualities,
@@ -28,6 +29,7 @@ class OdnoklassnikiIE(InfoExtractor):
             'like_count': int,
             'age_limit': 0,
         },
+        'skip': 'Video has been blocked',
     }, {
         # metadataUrl
         'url': 'http://ok.ru/video/63567059965189-0',
@@ -71,6 +73,12 @@ class OdnoklassnikiIE(InfoExtractor):
 
         webpage = self._download_webpage(
             'http://ok.ru/video/%s' % video_id, video_id)
+
+        error = self._search_regex(
+            r'[^>]+class="vp_video_stub_txt"[^>]*>([^<]+)<',
+            webpage, 'error', default=None)
+        if error:
+            raise ExtractorError(error, expected=True)
 
         player = self._parse_json(
             unescapeHTML(self._search_regex(
