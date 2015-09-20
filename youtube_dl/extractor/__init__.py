@@ -808,7 +808,7 @@ from .youtube import (
     YoutubeIE,
     YoutubeChannelIE,
     YoutubeFavouritesIE,
-    YoutubeHistoryIE,
+    #YoutubeHistoryIE,
     YoutubePlaylistIE,
     YoutubeRecommendedIE,
     YoutubeSearchDateIE,
