@@ -84,14 +84,13 @@ class WatIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id or short_id)
         srcIFrame = self._html_search_regex(r'<iframe .* src="(.*?)(.iframe)?"', webpage, 'srcIFrame')
         if (srcIFrame.__contains__("universalmusic")):
-            #return universalmusicfrance.UniversalMusicFranceIE()._real_extract(srcIFrame);
-            print srcIFrame
+            #should redirect to universalmusicfrance extractor
             return self.url_result(srcIFrame)
         elif (srcIFrame.__contains__("ultimedia")):
             mobj = re.match(r'http://www\.ultimedia\.com/deliver/musique/iframe/mdtk/[0-9]*/zone/[0-9]/article/(?P<article_id>.*?)/.*', srcIFrame)
             article_id = mobj.group('article_id')
             ultimedia_url = "http://www.ultimedia.com/default/index/videomusic/id/" + article_id
-            #return ultimedia.UltimediaIE()._real_extract(ultimedia_url)
+            #should redirect to ultimedia extractor
             return self.url_result(ultimedia_url)
         else:
             real_id = self._search_regex(r'xtpage = ".*-(.*?)";', webpage, 'real id')
