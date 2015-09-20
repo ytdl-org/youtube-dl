@@ -69,6 +69,7 @@ from .utils import (
     version_tuple,
     write_json_file,
     write_string,
+    YoutubeDLCookieProcessor,
     YoutubeDLHandler,
     prepend_extension,
     replace_extension,
@@ -284,7 +285,11 @@ class YoutubeDL(object):
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
-        self.params = params
+        self.params = {
+            # Default parameters
+            'nocheckcertificate': False,
+        }
+        self.params.update(params)
         self.cache = Cache(self)
 
         if params.get('bidi_workaround', False):
@@ -1939,8 +1944,7 @@ class YoutubeDL(object):
             if os.access(opts_cookiefile, os.R_OK):
                 self.cookiejar.load()
 
-        cookie_processor = compat_urllib_request.HTTPCookieProcessor(
-            self.cookiejar)
+        cookie_processor = YoutubeDLCookieProcessor(self.cookiejar)
         if opts_proxy is not None:
             if opts_proxy == '':
                 proxies = {}
@@ -2009,7 +2013,7 @@ class YoutubeDL(object):
                                (info_dict['extractor'], info_dict['id'], thumb_display_id))
                 try:
                     uf = self.urlopen(t['url'])
-                    with open(thumb_filename, 'wb') as thumbf:
+                    with open(encodeFilename(thumb_filename), 'wb') as thumbf:
                         shutil.copyfileobj(uf, thumbf)
                     self.to_screen('[%s] %s: Writing thumbnail %sto: %s' %
                                    (info_dict['extractor'], info_dict['id'], thumb_display_id, thumb_filename))

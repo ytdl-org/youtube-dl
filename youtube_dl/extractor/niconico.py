@@ -12,6 +12,7 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    encode_dict,
     ExtractorError,
     int_or_none,
     parse_duration,
@@ -100,10 +101,7 @@ class NiconicoIE(InfoExtractor):
             'mail': username,
             'password': password,
         }
-        # Convert to UTF-8 *before* urlencode because Python 2.x's urlencode
-        # chokes on unicode
-        login_form = dict((k.encode('utf-8'), v.encode('utf-8')) for k, v in login_form_strs.items())
-        login_data = compat_urllib_parse.urlencode(login_form).encode('utf-8')
+        login_data = compat_urllib_parse.urlencode(encode_dict(login_form_strs)).encode('utf-8')
         request = compat_urllib_request.Request(
             'https://secure.nicovideo.jp/secure/login', login_data)
         login_results = self._download_webpage(

@@ -330,10 +330,7 @@ class SmotriBroadcastIE(InfoExtractor):
 
             (username, password) = self._get_login_info()
             if username is None:
-                raise ExtractorError(
-                    'Erotic broadcasts allowed only for registered users, '
-                    'use --username and --password options to provide account credentials.',
-                    expected=True)
+                self.raise_login_required('Erotic broadcasts allowed only for registered users')
 
             login_form = {
                 'login-hint53': '1',

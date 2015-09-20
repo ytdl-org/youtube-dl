@@ -141,7 +141,7 @@ def write_json_file(obj, fn):
 if sys.version_info >= (2, 7):
     def find_xpath_attr(node, xpath, key, val=None):
         """ Find the xpath xpath[@key=val] """
-        assert re.match(r'^[a-zA-Z-]+$', key)
+        assert re.match(r'^[a-zA-Z_-]+$', key)
         if val:
             assert re.match(r'^[a-zA-Z0-9@\s:._-]*$', val)
         expr = xpath + ('[@%s]' % key if val is None else "[@%s='%s']" % (key, val))
@@ -176,12 +176,12 @@ def xpath_with_ns(path, ns_map):
     return '/'.join(replaced)
 
 
-def xpath_text(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
+def xpath_element(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
     if sys.version_info < (2, 7):  # Crazy 2.6
         xpath = xpath.encode('ascii')
 
     n = node.find(xpath)
-    if n is None or n.text is None:
+    if n is None:
         if default is not NO_DEFAULT:
             return default
         elif fatal:
@@ -189,7 +189,35 @@ def xpath_text(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
             raise ExtractorError('Could not find XML element %s' % name)
         else:
             return None
+    return n
+
+
+def xpath_text(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
+    n = xpath_element(node, xpath, name, fatal=fatal, default=default)
+    if n is None or n == default:
+        return n
+    if n.text is None:
+        if default is not NO_DEFAULT:
+            return default
+        elif fatal:
+            name = xpath if name is None else name
+            raise ExtractorError('Could not find XML element\'s text %s' % name)
+        else:
+            return None
     return n.text
+
+
+def xpath_attr(node, xpath, key, name=None, fatal=False, default=NO_DEFAULT):
+    n = find_xpath_attr(node, xpath, key)
+    if n is None:
+        if default is not NO_DEFAULT:
+            return default
+        elif fatal:
+            name = '%s[@%s]' % (xpath, key) if name is None else name
+            raise ExtractorError('Could not find XML attribute %s' % name)
+        else:
+            return None
+    return n.attrib[key]
 
 
 def get_element_by_id(id, html):
@@ -587,6 +615,11 @@ class ContentTooShortError(Exception):
 
 
 def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
+    # Working around python 2 bug (see http://bugs.python.org/issue17849) by limiting
+    # expected HTTP responses to meet HTTP/1.0 or later (see also
+    # https://github.com/rg3/youtube-dl/issues/6727)
+    if sys.version_info < (3, 0):
+        kwargs['strict'] = True
     hc = http_class(*args, **kwargs)
     source_address = ydl_handler._params.get('source_address')
     if source_address is not None:
@@ -715,7 +748,8 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             gz = io.BytesIO(self.deflate(resp.read()))
             resp = self.addinfourl_wrapper(gz, old_resp.headers, old_resp.url, old_resp.code)
             resp.msg = old_resp.msg
-        # Percent-encode redirect URL of Location HTTP header to satisfy RFC 3986
+        # Percent-encode redirect URL of Location HTTP header to satisfy RFC 3986 (see
+        # https://github.com/rg3/youtube-dl/issues/6457).
         if 300 <= resp.code < 400:
             location = resp.headers.get('Location')
             if location:
@@ -747,6 +781,30 @@ class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
         return self.do_open(functools.partial(
             _create_http_connection, self, self._https_conn_class, True),
             req, **kwargs)
+
+
+class YoutubeDLCookieProcessor(compat_urllib_request.HTTPCookieProcessor):
+    def __init__(self, cookiejar=None):
+        compat_urllib_request.HTTPCookieProcessor.__init__(self, cookiejar)
+
+    def http_response(self, request, response):
+        # Python 2 will choke on next HTTP request in row if there are non-ASCII
+        # characters in Set-Cookie HTTP header of last response (see
+        # https://github.com/rg3/youtube-dl/issues/6769).
+        # In order to at least prevent crashing we will percent encode Set-Cookie
+        # header before HTTPCookieProcessor starts processing it.
+        # if sys.version_info < (3, 0) and response.headers:
+        #     for set_cookie_header in ('Set-Cookie', 'Set-Cookie2'):
+        #         set_cookie = response.headers.get(set_cookie_header)
+        #         if set_cookie:
+        #             set_cookie_escaped = compat_urllib_parse.quote(set_cookie, b"%/;:@&=+$,!~*'()?#[] ")
+        #             if set_cookie != set_cookie_escaped:
+        #                 del response.headers[set_cookie_header]
+        #                 response.headers[set_cookie_header] = set_cookie_escaped
+        return compat_urllib_request.HTTPCookieProcessor.http_response(self, request, response)
+
+    https_request = compat_urllib_request.HTTPCookieProcessor.http_request
+    https_response = http_response
 
 
 def parse_iso8601(date_str, delimiter='T', timezone=None):
@@ -1578,6 +1636,10 @@ def urlencode_postdata(*args, **kargs):
     return compat_urllib_parse.urlencode(*args, **kargs).encode('ascii')
 
 
+def encode_dict(d, encoding='utf-8'):
+    return dict((k.encode(encoding), v.encode(encoding)) for k, v in d.items())
+
+
 try:
     etree_iter = xml.etree.ElementTree.Element.iter
 except AttributeError:  # Python <=2.6
@@ -1916,6 +1978,32 @@ def dfxp2srt(dfxp_data):
             parse_node(para)))
 
     return ''.join(out)
+
+
+def cli_option(params, command_option, param):
+    param = params.get(param)
+    return [command_option, param] if param is not None else []
+
+
+def cli_bool_option(params, command_option, param, true_value='true', false_value='false', separator=None):
+    param = params.get(param)
+    assert isinstance(param, bool)
+    if separator:
+        return [command_option + separator + (true_value if param else false_value)]
+    return [command_option, true_value if param else false_value]
+
+
+def cli_valueless_option(params, command_option, param, expected_value=True):
+    param = params.get(param)
+    return [command_option] if param == expected_value else []
+
+
+def cli_configuration_args(params, param, default=[]):
+    ex_args = params.get(param)
+    if ex_args is None:
+        return default
+    assert isinstance(ex_args, list)
+    return ex_args
 
 
 class ISO639Utils(object):

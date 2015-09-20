@@ -44,8 +44,8 @@ class DCNIE(InfoExtractor):
         title = video.get('title_en') or video['title_ar']
 
         webpage = self._download_webpage(
-            'http://admin.mangomolo.com/analytics/index.php/customers/embed/video?'
-            + compat_urllib_parse.urlencode({
+            'http://admin.mangomolo.com/analytics/index.php/customers/embed/video?' +
+            compat_urllib_parse.urlencode({
                 'id': video['id'],
                 'user_id': video['user_id'],
                 'signature': video['signature'],

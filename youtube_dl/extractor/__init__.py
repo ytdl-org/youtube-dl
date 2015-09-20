@@ -138,7 +138,6 @@ from .dump import DumpIE
 from .dumpert import DumpertIE
 from .defense import DefenseGouvFrIE
 from .discovery import DiscoveryIE
-from .divxstage import DivxStageIE
 from .dropbox import DropboxIE
 from .eagleplatform import EaglePlatformIE
 from .ebaumsworld import EbaumsWorldIE
@@ -241,7 +240,10 @@ from .imdb import (
     ImdbIE,
     ImdbListIE
 )
-from .imgur import ImgurIE
+from .imgur import (
+    ImgurIE,
+    ImgurAlbumIE,
+)
 from .ina import InaIE
 from .indavideo import (
     IndavideoIE,
@@ -340,10 +342,10 @@ from .mtv import (
     MTVIE,
     MTVServicesEmbeddedIE,
     MTVIggyIE,
+    MTVDEIE,
 )
 from .muenchentv import MuenchenTVIE
 from .musicplayon import MusicPlayOnIE
-from .musicvault import MusicVaultIE
 from .muzu import MuzuTVIE
 from .mwave import MwaveIE
 from .myspace import MySpaceIE, MySpaceAlbumIE
@@ -364,6 +366,9 @@ from .nbc import (
 from .ndr import (
     NDRIE,
     NJoyIE,
+    NDREmbedBaseIE,
+    NDREmbedIE,
+    NJoyEmbedIE,
 )
 from .ndtv import NDTVIE
 from .netzkino import NetzkinoIE
@@ -399,7 +404,11 @@ from .normalboots import NormalbootsIE
 from .nosvideo import NosVideoIE
 from .nova import NovaIE
 from .novamov import NovaMovIE
-from .nowness import NownessIE
+from .nowness import (
+    NownessIE,
+    NownessPlaylistIE,
+    NownessSeriesIE,
+)
 from .nowtv import NowTVIE
 from .nowvideo import NowVideoIE
 from .npo import (
@@ -429,7 +438,6 @@ from .ooyala import (
     OoyalaIE,
     OoyalaExternalIE,
 )
-from .openfilm import OpenFilmIE
 from .orf import (
     ORFTVthekIE,
     ORFOE1IE,
@@ -740,6 +748,7 @@ from .vk import (
     VKIE,
     VKUserVideosIE,
 )
+from .vlive import VLiveIE
 from .vodlocker import VodlockerIE
 from .voicerepublic import VoiceRepublicIE
 from .vporn import VpornIE
@@ -800,7 +809,7 @@ from .youtube import (
     YoutubeIE,
     YoutubeChannelIE,
     YoutubeFavouritesIE,
-    YoutubeHistoryIE,
+    #YoutubeHistoryIE,
     YoutubePlaylistIE,
     YoutubeRecommendedIE,
     YoutubeSearchDateIE,

@@ -9,7 +9,6 @@ import codecs
 import io
 import os
 import random
-import shlex
 import sys
 
 
@@ -20,6 +19,7 @@ from .compat import (
     compat_expanduser,
     compat_getpass,
     compat_print,
+    compat_shlex_split,
     workaround_optparse_bug9161,
 )
 from .utils import (
@@ -262,10 +262,10 @@ def _real_main(argv=None):
             parser.error('setting filesize xattr requested but python-xattr is not available')
     external_downloader_args = None
     if opts.external_downloader_args:
-        external_downloader_args = shlex.split(opts.external_downloader_args)
+        external_downloader_args = compat_shlex_split(opts.external_downloader_args)
     postprocessor_args = None
     if opts.postprocessor_args:
-        postprocessor_args = shlex.split(opts.postprocessor_args)
+        postprocessor_args = compat_shlex_split(opts.postprocessor_args)
     match_filter = (
         None if opts.match_filter is None
         else match_filter_func(opts.match_filter))

@@ -20,7 +20,6 @@ from ..utils import (
 class SafariBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://www.safaribooksonline.com/accounts/login/'
     _SUCCESSFUL_LOGIN_REGEX = r'<a href="/accounts/logout/"[^>]*>Sign Out</a>'
-    _ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to supply credentials for safaribooksonline.com'
     _NETRC_MACHINE = 'safari'
 
     _API_BASE = 'https://www.safaribooksonline.com/api/v1/book'
@@ -37,9 +36,7 @@ class SafariBaseIE(InfoExtractor):
     def _login(self):
         (username, password) = self._get_login_info()
         if username is None:
-            raise ExtractorError(
-                self._ACCOUNT_CREDENTIALS_HINT,
-                expected=True)
+            self.raise_login_required('safaribooksonline.com account is required')
 
         headers = std_headers
         if 'Referer' not in headers:

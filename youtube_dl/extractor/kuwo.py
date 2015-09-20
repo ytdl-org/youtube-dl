@@ -202,6 +202,7 @@ class KuwoSingerIE(InfoExtractor):
             'title': 'Ali',
         },
         'playlist_mincount': 95,
+        'skip': 'Regularly stalls travis build',  # See https://travis-ci.org/rg3/youtube-dl/jobs/78878540
     }]
 
     def _real_extract(self, url):

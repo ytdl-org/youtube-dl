@@ -41,9 +41,7 @@ class PluralsightIE(InfoExtractor):
     def _login(self):
         (username, password) = self._get_login_info()
         if username is None:
-            raise ExtractorError(
-                'Pluralsight account is required, use --username and --password options to provide account credentials.',
-                expected=True)
+            self.raise_login_required('Pluralsight account is required')
 
         login_page = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login page')

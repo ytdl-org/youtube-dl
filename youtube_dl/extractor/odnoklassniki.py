@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
+    ExtractorError,
     unified_strdate,
     int_or_none,
     qualities,
@@ -12,7 +13,7 @@ from ..utils import (
 
 
 class OdnoklassnikiIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:odnoklassniki|ok)\.ru/(?:video|web-api/video/moviePlayer)/(?P<id>[\d-]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:odnoklassniki|ok)\.ru/(?:video|web-api/video/moviePlayer)/(?P<id>[\d-]+)'
     _TESTS = [{
         # metadata in JSON
         'url': 'http://ok.ru/video/20079905452',
@@ -28,6 +29,7 @@ class OdnoklassnikiIE(InfoExtractor):
             'like_count': int,
             'age_limit': 0,
         },
+        'skip': 'Video has been blocked',
     }, {
         # metadataUrl
         'url': 'http://ok.ru/video/63567059965189-0',
@@ -44,7 +46,25 @@ class OdnoklassnikiIE(InfoExtractor):
             'age_limit': 0,
         },
     }, {
+        # YouTube embed (metadataUrl, provider == USER_YOUTUBE)
+        'url': 'http://ok.ru/video/64211978996595-1',
+        'md5': '5d7475d428845cd2e13bae6f1a992278',
+        'info_dict': {
+            'id': '64211978996595-1',
+            'ext': 'mp4',
+            'title': 'Космическая среда от 26 августа 2015',
+            'description': 'md5:848eb8b85e5e3471a3a803dae1343ed0',
+            'duration': 440,
+            'upload_date': '20150826',
+            'uploader_id': '750099571',
+            'uploader': 'Алина П',
+            'age_limit': 0,
+        },
+    }, {
         'url': 'http://ok.ru/web-api/video/moviePlayer/20079905452',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.ok.ru/video/20648036891',
         'only_matching': True,
     }]
 
@@ -54,9 +74,16 @@ class OdnoklassnikiIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://ok.ru/video/%s' % video_id, video_id)
 
+        error = self._search_regex(
+            r'[^>]+class="vp_video_stub_txt"[^>]*>([^<]+)<',
+            webpage, 'error', default=None)
+        if error:
+            raise ExtractorError(error, expected=True)
+
         player = self._parse_json(
             unescapeHTML(self._search_regex(
-                r'data-attributes="([^"]+)"', webpage, 'player')),
+                r'data-options=(?P<quote>["\'])(?P<player>{.+?%s.+?})(?P=quote)' % video_id,
+                webpage, 'player', group='player')),
             video_id)
 
         flashvars = player['flashvars']
@@ -89,16 +116,7 @@ class OdnoklassnikiIE(InfoExtractor):
 
         like_count = int_or_none(metadata.get('likeCount'))
 
-        quality = qualities(('mobile', 'lowest', 'low', 'sd', 'hd'))
-
-        formats = [{
-            'url': f['url'],
-            'ext': 'mp4',
-            'format_id': f['name'],
-            'quality': quality(f['name']),
-        } for f in metadata['videos']]
-
-        return {
+        info = {
             'id': video_id,
             'title': title,
             'thumbnail': thumbnail,
@@ -108,5 +126,24 @@ class OdnoklassnikiIE(InfoExtractor):
             'uploader_id': uploader_id,
             'like_count': like_count,
             'age_limit': age_limit,
-            'formats': formats,
         }
+
+        if metadata.get('provider') == 'USER_YOUTUBE':
+            info.update({
+                '_type': 'url_transparent',
+                'url': movie['contentId'],
+            })
+            return info
+
+        quality = qualities(('mobile', 'lowest', 'low', 'sd', 'hd'))
+
+        formats = [{
+            'url': f['url'],
+            'ext': 'mp4',
+            'format_id': f['name'],
+            'quality': quality(f['name']),
+        } for f in metadata['videos']]
+        self._sort_formats(formats)
+
+        info['formats'] = formats
+        return info

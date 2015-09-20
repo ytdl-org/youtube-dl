@@ -60,9 +60,7 @@ class TubiTvIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
         if re.search(r"<(?:DIV|div) class='login-required-screen'>", webpage):
-            raise ExtractorError(
-                'This video requires login, use --username and --password '
-                'options to provide account credentials.', expected=True)
+            self.raise_login_required('This video requires login')
 
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)

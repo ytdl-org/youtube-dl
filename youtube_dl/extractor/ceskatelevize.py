@@ -17,55 +17,81 @@ from ..utils import (
 
 
 class CeskaTelevizeIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.ceskatelevize\.cz/(porady|ivysilani)/(.+/)?(?P<id>[^?#]+)'
-
-    _TESTS = [
-        {
-            'url': 'http://www.ceskatelevize.cz/ivysilani/ivysilani/10441294653-hyde-park-civilizace/214411058091220',
-            'info_dict': {
-                'id': '214411058091220',
-                'ext': 'mp4',
-                'title': 'Hyde Park Civilizace',
-                'description': 'Věda a současná civilizace. Interaktivní pořad - prostor pro vaše otázky a komentáře',
-                'thumbnail': 're:^https?://.*\.jpg',
-                'duration': 3350,
-            },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
-            },
+    _VALID_URL = r'https?://www\.ceskatelevize\.cz/(porady|ivysilani)/(?:[^/]+/)*(?P<id>[^/#?]+)/*(?:[#?].*)?$'
+    _TESTS = [{
+        'url': 'http://www.ceskatelevize.cz/ivysilani/ivysilani/10441294653-hyde-park-civilizace/214411058091220',
+        'info_dict': {
+            'id': '61924494876951776',
+            'ext': 'mp4',
+            'title': 'Hyde Park Civilizace',
+            'description': 'md5:fe93f6eda372d150759d11644ebbfb4a',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'duration': 3350,
         },
-        {
-            'url': 'http://www.ceskatelevize.cz/ivysilani/10532695142-prvni-republika/bonus/14716-zpevacka-z-duparny-bobina',
-            'info_dict': {
-                'id': '14716',
-                'ext': 'mp4',
-                'title': 'První republika: Zpěvačka z Dupárny Bobina',
-                'description': 'Sága mapující atmosféru první republiky od r. 1918 do r. 1945.',
-                'thumbnail': 're:^https?://.*\.jpg',
-                'duration': 88.4,
-            },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
-            },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
-    ]
+    }, {
+        'url': 'http://www.ceskatelevize.cz/ivysilani/10532695142-prvni-republika/bonus/14716-zpevacka-z-duparny-bobina',
+        'info_dict': {
+            'id': '61924494876844374',
+            'ext': 'mp4',
+            'title': 'První republika: Zpěvačka z Dupárny Bobina',
+            'description': 'Sága mapující atmosféru první republiky od r. 1918 do r. 1945.',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'duration': 88.4,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        # video with 18+ caution trailer
+        'url': 'http://www.ceskatelevize.cz/porady/10520528904-queer/215562210900007-bogotart/',
+        'info_dict': {
+            'id': '215562210900007-bogotart',
+            'title': 'Queer: Bogotart',
+            'description': 'Alternativní průvodce současným queer světem',
+        },
+        'playlist': [{
+            'info_dict': {
+                'id': '61924494876844842',
+                'ext': 'mp4',
+                'title': 'Queer: Bogotart (Varování 18+)',
+                'duration': 10.2,
+            },
+        }, {
+            'info_dict': {
+                'id': '61924494877068022',
+                'ext': 'mp4',
+                'title': 'Queer: Bogotart (Queer)',
+                'thumbnail': 're:^https?://.*\.jpg',
+                'duration': 1558.3,
+            },
+        }],
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }]
 
     def _real_extract(self, url):
         url = url.replace('/porady/', '/ivysilani/').replace('/video/', '')
 
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        playlist_id = mobj.group('id')
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url, playlist_id)
 
         NOT_AVAILABLE_STRING = 'This content is not available at your territory due to limited copyright.'
         if '%s</p>' % NOT_AVAILABLE_STRING in webpage:
             raise ExtractorError(NOT_AVAILABLE_STRING, expected=True)
 
-        typ = self._html_search_regex(r'getPlaylistUrl\(\[\{"type":"(.+?)","id":".+?"\}\],', webpage, 'type')
-        episode_id = self._html_search_regex(r'getPlaylistUrl\(\[\{"type":".+?","id":"(.+?)"\}\],', webpage, 'episode_id')
+        typ = self._html_search_regex(
+            r'getPlaylistUrl\(\[\{"type":"(.+?)","id":".+?"\}\],', webpage, 'type')
+        episode_id = self._html_search_regex(
+            r'getPlaylistUrl\(\[\{"type":".+?","id":"(.+?)"\}\],', webpage, 'episode_id')
 
         data = {
             'playlist[0][type]': typ,
@@ -83,7 +109,7 @@ class CeskaTelevizeIE(InfoExtractor):
         req.add_header('X-Requested-With', 'XMLHttpRequest')
         req.add_header('Referer', url)
 
-        playlistpage = self._download_json(req, video_id)
+        playlistpage = self._download_json(req, playlist_id)
 
         playlist_url = playlistpage['url']
         if playlist_url == 'error_region':
@@ -92,33 +118,43 @@ class CeskaTelevizeIE(InfoExtractor):
         req = compat_urllib_request.Request(compat_urllib_parse_unquote(playlist_url))
         req.add_header('Referer', url)
 
-        playlist = self._download_json(req, video_id)
+        playlist_title = self._og_search_title(webpage)
+        playlist_description = self._og_search_description(webpage)
 
-        item = playlist['playlist'][0]
-        formats = []
-        for format_id, stream_url in item['streamUrls'].items():
-            formats.extend(self._extract_m3u8_formats(stream_url, video_id, 'mp4'))
-        self._sort_formats(formats)
+        playlist = self._download_json(req, playlist_id)['playlist']
+        playlist_len = len(playlist)
 
-        title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
-        duration = float_or_none(item.get('duration'))
-        thumbnail = item.get('previewImageUrl')
+        entries = []
+        for item in playlist:
+            formats = []
+            for format_id, stream_url in item['streamUrls'].items():
+                formats.extend(self._extract_m3u8_formats(
+                    stream_url, playlist_id, 'mp4', entry_protocol='m3u8_native'))
+            self._sort_formats(formats)
 
-        subtitles = {}
-        subs = item.get('subtitles')
-        if subs:
-            subtitles = self.extract_subtitles(episode_id, subs)
+            item_id = item.get('id') or item['assetId']
+            title = item['title']
 
-        return {
-            'id': episode_id,
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'duration': duration,
-            'formats': formats,
-            'subtitles': subtitles,
-        }
+            duration = float_or_none(item.get('duration'))
+            thumbnail = item.get('previewImageUrl')
+
+            subtitles = {}
+            if item.get('type') == 'VOD':
+                subs = item.get('subtitles')
+                if subs:
+                    subtitles = self.extract_subtitles(episode_id, subs)
+
+            entries.append({
+                'id': item_id,
+                'title': playlist_title if playlist_len == 1 else '%s (%s)' % (playlist_title, title),
+                'description': playlist_description if playlist_len == 1 else None,
+                'thumbnail': thumbnail,
+                'duration': duration,
+                'formats': formats,
+                'subtitles': subtitles,
+            })
+
+        return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
 
     def _get_subtitles(self, episode_id, subs):
         original_subtitles = self._download_webpage(

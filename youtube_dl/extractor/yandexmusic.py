@@ -5,7 +5,11 @@ import re
 import hashlib
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_str,
+    compat_urllib_parse,
+    compat_urllib_request,
+)
 from ..utils import (
     int_or_none,
     float_or_none,
@@ -67,7 +71,7 @@ class YandexMusicPlaylistBaseIE(InfoExtractor):
         return [
             self.url_result(
                 'http://music.yandex.ru/album/%s/track/%s' % (track['albums'][0]['id'], track['id']))
-            for track in tracks]
+            for track in tracks if track.get('albums') and isinstance(track.get('albums'), list)]
 
 
 class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
@@ -106,7 +110,7 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
     IE_DESC = 'Яндекс.Музыка - Плейлист'
     _VALID_URL = r'https?://music\.yandex\.(?:ru|kz|ua|by)/users/[^/]+/playlists/(?P<id>\d+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://music.yandex.ru/users/music.partners/playlists/1245',
         'info_dict': {
             'id': '1245',
@@ -114,19 +118,54 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
             'description': 'md5:3b9f27b0efbe53f2ee1e844d07155cc9',
         },
         'playlist_count': 6,
-    }
+    }, {
+        # playlist exceeding the limit of 150 tracks shipped with webpage (see
+        # https://github.com/rg3/youtube-dl/issues/6666)
+        'url': 'https://music.yandex.ru/users/ya.playlist/playlists/1036',
+        'info_dict': {
+            'id': '1036',
+            'title': 'Музыка 90-х',
+        },
+        'playlist_count': 310,
+    }]
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
 
         webpage = self._download_webpage(url, playlist_id)
 
-        playlist = self._parse_json(
+        mu = self._parse_json(
             self._search_regex(
                 r'var\s+Mu\s*=\s*({.+?});\s*</script>', webpage, 'player'),
-            playlist_id)['pageData']['playlist']
+            playlist_id)
+
+        playlist = mu['pageData']['playlist']
+        tracks, track_ids = playlist['tracks'], playlist['trackIds']
+
+        # tracks dictionary shipped with webpage is limited to 150 tracks,
+        # missing tracks should be retrieved manually.
+        if len(tracks) < len(track_ids):
+            present_track_ids = set([compat_str(track['id']) for track in tracks if track.get('id')])
+            missing_track_ids = set(map(compat_str, track_ids)) - set(present_track_ids)
+            request = compat_urllib_request.Request(
+                'https://music.yandex.ru/handlers/track-entries.jsx',
+                compat_urllib_parse.urlencode({
+                    'entries': ','.join(missing_track_ids),
+                    'lang': mu.get('settings', {}).get('lang', 'en'),
+                    'external-domain': 'music.yandex.ru',
+                    'overembed': 'false',
+                    'sign': mu.get('authData', {}).get('user', {}).get('sign'),
+                    'strict': 'true',
+                }).encode('utf-8'))
+            request.add_header('Referer', url)
+            request.add_header('X-Requested-With', 'XMLHttpRequest')
+
+            missing_tracks = self._download_json(
+                request, playlist_id, 'Downloading missing tracks JSON', fatal=False)
+            if missing_tracks:
+                tracks.extend(missing_tracks)
 
         return self.playlist_result(
-            self._build_playlist(playlist['tracks']),
+            self._build_playlist(tracks),
             compat_str(playlist_id),
             playlist['title'], playlist.get('description'))

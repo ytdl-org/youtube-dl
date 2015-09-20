@@ -1,40 +1,33 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from .youtube import YoutubeIE
 
 
 class WimpIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?wimp\.com/([^/]+)/'
+    _VALID_URL = r'http://(?:www\.)?wimp\.com/(?P<id>[^/]+)/'
     _TESTS = [{
         'url': 'http://www.wimp.com/maruexhausted/',
-        'md5': 'f1acced123ecb28d9bb79f2479f2b6a1',
+        'md5': 'ee21217ffd66d058e8b16be340b74883',
         'info_dict': {
             'id': 'maruexhausted',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Maru is exhausted.',
             'description': 'md5:57e099e857c0a4ea312542b684a869b8',
         }
     }, {
-        # youtube video
         'url': 'http://www.wimp.com/clowncar/',
+        'md5': '4e2986c793694b55b37cf92521d12bb4',
         'info_dict': {
-            'id': 'cG4CEr2aiSg',
+            'id': 'clowncar',
             'ext': 'mp4',
-            'title': 'Basset hound clown car...incredible!',
-            'description': 'md5:8d228485e0719898c017203f900b3a35',
-            'uploader': 'Gretchen Hoey',
-            'uploader_id': 'gretchenandjeff1',
-            'upload_date': '20140303',
+            'title': 'It\'s like a clown car.',
+            'description': 'md5:0e56db1370a6e49c5c1d19124c0d2fb2',
         },
-        'add_ie': ['Youtube'],
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group(1)
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         video_url = self._search_regex(
             [r"[\"']file[\"']\s*[:,]\s*[\"'](.+?)[\"']", r"videoId\s*:\s*[\"']([^\"']+)[\"']"],

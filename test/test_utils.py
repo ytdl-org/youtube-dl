@@ -57,11 +57,16 @@ from youtube_dl.utils import (
     urlencode_postdata,
     version_tuple,
     xpath_with_ns,
+    xpath_element,
     xpath_text,
+    xpath_attr,
     render_table,
     match_str,
     parse_dfxp_time_expr,
     dfxp2srt,
+    cli_option,
+    cli_valueless_option,
+    cli_bool_option,
 )
 
 
@@ -264,6 +269,16 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(find('media:song/media:author').text, 'The Author')
         self.assertEqual(find('media:song/url').text, 'http://server.com/download.mp3')
 
+    def test_xpath_element(self):
+        doc = xml.etree.ElementTree.Element('root')
+        div = xml.etree.ElementTree.SubElement(doc, 'div')
+        p = xml.etree.ElementTree.SubElement(div, 'p')
+        p.text = 'Foo'
+        self.assertEqual(xpath_element(doc, 'div/p'), p)
+        self.assertEqual(xpath_element(doc, 'div/bar', default='default'), 'default')
+        self.assertTrue(xpath_element(doc, 'div/bar') is None)
+        self.assertRaises(ExtractorError, xpath_element, doc, 'div/bar', fatal=True)
+
     def test_xpath_text(self):
         testxml = '''<root>
             <div>
@@ -272,8 +287,24 @@ class TestUtil(unittest.TestCase):
         </root>'''
         doc = xml.etree.ElementTree.fromstring(testxml)
         self.assertEqual(xpath_text(doc, 'div/p'), 'Foo')
+        self.assertEqual(xpath_text(doc, 'div/bar', default='default'), 'default')
         self.assertTrue(xpath_text(doc, 'div/bar') is None)
         self.assertRaises(ExtractorError, xpath_text, doc, 'div/bar', fatal=True)
+
+    def test_xpath_attr(self):
+        testxml = '''<root>
+            <div>
+                <p x="a">Foo</p>
+            </div>
+        </root>'''
+        doc = xml.etree.ElementTree.fromstring(testxml)
+        self.assertEqual(xpath_attr(doc, 'div/p', 'x'), 'a')
+        self.assertEqual(xpath_attr(doc, 'div/bar', 'x'), None)
+        self.assertEqual(xpath_attr(doc, 'div/p', 'y'), None)
+        self.assertEqual(xpath_attr(doc, 'div/bar', 'x', default='default'), 'default')
+        self.assertEqual(xpath_attr(doc, 'div/p', 'y', default='default'), 'default')
+        self.assertRaises(ExtractorError, xpath_attr, doc, 'div/bar', 'x', fatal=True)
+        self.assertRaises(ExtractorError, xpath_attr, doc, 'div/p', 'y', fatal=True)
 
     def test_smuggle_url(self):
         data = {"ö": "ö", "abc": [3]}
@@ -645,6 +676,51 @@ The first line
 
 '''
         self.assertEqual(dfxp2srt(dfxp_data_no_default_namespace), srt_data)
+
+    def test_cli_option(self):
+        self.assertEqual(cli_option({'proxy': '127.0.0.1:3128'}, '--proxy', 'proxy'), ['--proxy', '127.0.0.1:3128'])
+        self.assertEqual(cli_option({'proxy': None}, '--proxy', 'proxy'), [])
+        self.assertEqual(cli_option({}, '--proxy', 'proxy'), [])
+
+    def test_cli_valueless_option(self):
+        self.assertEqual(cli_valueless_option(
+            {'downloader': 'external'}, '--external-downloader', 'downloader', 'external'), ['--external-downloader'])
+        self.assertEqual(cli_valueless_option(
+            {'downloader': 'internal'}, '--external-downloader', 'downloader', 'external'), [])
+        self.assertEqual(cli_valueless_option(
+            {'nocheckcertificate': True}, '--no-check-certificate', 'nocheckcertificate'), ['--no-check-certificate'])
+        self.assertEqual(cli_valueless_option(
+            {'nocheckcertificate': False}, '--no-check-certificate', 'nocheckcertificate'), [])
+        self.assertEqual(cli_valueless_option(
+            {'checkcertificate': True}, '--no-check-certificate', 'checkcertificate', False), [])
+        self.assertEqual(cli_valueless_option(
+            {'checkcertificate': False}, '--no-check-certificate', 'checkcertificate', False), ['--no-check-certificate'])
+
+    def test_cli_bool_option(self):
+        self.assertEqual(
+            cli_bool_option(
+                {'nocheckcertificate': True}, '--no-check-certificate', 'nocheckcertificate'),
+            ['--no-check-certificate', 'true'])
+        self.assertEqual(
+            cli_bool_option(
+                {'nocheckcertificate': True}, '--no-check-certificate', 'nocheckcertificate', separator='='),
+            ['--no-check-certificate=true'])
+        self.assertEqual(
+            cli_bool_option(
+                {'nocheckcertificate': True}, '--check-certificate', 'nocheckcertificate', 'false', 'true'),
+            ['--check-certificate', 'false'])
+        self.assertEqual(
+            cli_bool_option(
+                {'nocheckcertificate': True}, '--check-certificate', 'nocheckcertificate', 'false', 'true', '='),
+            ['--check-certificate=false'])
+        self.assertEqual(
+            cli_bool_option(
+                {'nocheckcertificate': False}, '--check-certificate', 'nocheckcertificate', 'false', 'true'),
+            ['--check-certificate', 'true'])
+        self.assertEqual(
+            cli_bool_option(
+                {'nocheckcertificate': False}, '--check-certificate', 'nocheckcertificate', 'false', 'true', '='),
+            ['--check-certificate=true'])
 
 
 if __name__ == '__main__':
