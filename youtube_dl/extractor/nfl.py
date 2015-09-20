@@ -60,7 +60,7 @@ class NFLIE(InfoExtractor):
                             )
                         )/
                         (?:.+?/)*
-                        (?P<id>(?:[a-z0-9]{16}|\w{8}\-(?:\w{4}\-){3}\w{12}))
+                        (?P<id>[^/#?&]+)
                     '''
     _TESTS = [{
         'url': 'http://www.nfl.com/videos/nfl-game-highlights/0ap3000000398478/Week-3-Redskins-vs-Eagles-highlights',
@@ -95,6 +95,17 @@ class NFLIE(InfoExtractor):
             'description': 'Emotions ran high at the end of the Super Bowl on both sides of the ball after a dramatic finish.',
             'timestamp': 1422850320,
             'upload_date': '20150202',
+        },
+    }, {
+        'url': 'http://www.patriots.com/video/2015/09/18/10-days-gillette',
+        'md5': '4c319e2f625ffd0b481b4382c6fc124c',
+        'info_dict': {
+            'id': 'n-238346',
+            'ext': 'mp4',
+            'title': '10 Days at Gillette',
+            'description': 'md5:8cd9cd48fac16de596eadc0b24add951',
+            'timestamp': 1442618809,
+            'upload_date': '20150918',
         },
     }, {
         'url': 'http://www.nfl.com/videos/nfl-network-top-ten/09000d5d810a6bd4/Top-10-Gutsiest-Performances-Jack-Youngblood',
@@ -135,13 +146,14 @@ class NFLIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         config_url = NFLIE.prepend_host(host, self._search_regex(
-            r'(?:config|configURL)\s*:\s*"([^"]+)"', webpage, 'config URL',
-            default='static/content/static/config/video/config.json'))
+            r'(?:(?:config|configURL)\s*:\s*|<nflcs:avplayer[^>]+data-config\s*=\s*)(["\'])(?P<config>.+?)\1',
+            webpage, 'config URL', default='static/content/static/config/video/config.json',
+            group='config'))
         # For articles, the id in the url is not the video id
         video_id = self._search_regex(
-            r'contentId\s*:\s*"([^"]+)"', webpage, 'video id', default=video_id)
-        config = self._download_json(config_url, video_id,
-                                     note='Downloading player config')
+            r'(?:<nflcs:avplayer[^>]+data-contentId\s*=\s*|contentId\s*:\s*)(["\'])(?P<id>.+?)\1',
+            webpage, 'video id', default=video_id, group='id')
+        config = self._download_json(config_url, video_id, 'Downloading player config')
         url_template = NFLIE.prepend_host(
             host, '{contentURLTemplate:}'.format(**config))
         video_data = self._download_json(
