@@ -16,53 +16,93 @@ from ..utils import (
 
 class NFLIE(InfoExtractor):
     IE_NAME = 'nfl.com'
-    _VALID_URL = r'''(?x)https?://
-        (?P<host>(?:www\.)?(?:nfl\.com|.*?\.clubs\.nfl\.com))/
-        (?:.+?/)*
-        (?P<id>(?:[a-z0-9]{16}|\w{8}\-(?:\w{4}\-){3}\w{12}))'''
-    _TESTS = [
-        {
-            'url': 'http://www.nfl.com/videos/nfl-game-highlights/0ap3000000398478/Week-3-Redskins-vs-Eagles-highlights',
-            'md5': '394ef771ddcd1354f665b471d78ec4c6',
-            'info_dict': {
-                'id': '0ap3000000398478',
-                'ext': 'mp4',
-                'title': 'Week 3: Redskins vs. Eagles highlights',
-                'description': 'md5:56323bfb0ac4ee5ab24bd05fdf3bf478',
-                'upload_date': '20140921',
-                'timestamp': 1411337580,
-                'thumbnail': 're:^https?://.*\.jpg$',
-            }
-        },
-        {
-            'url': 'http://prod.www.steelers.clubs.nfl.com/video-and-audio/videos/LIVE_Post_Game_vs_Browns/9d72f26a-9e2b-4718-84d3-09fb4046c266',
-            'md5': 'cf85bdb4bc49f6e9d3816d130c78279c',
-            'info_dict': {
-                'id': '9d72f26a-9e2b-4718-84d3-09fb4046c266',
-                'ext': 'mp4',
-                'title': 'LIVE: Post Game vs. Browns',
-                'description': 'md5:6a97f7e5ebeb4c0e69a418a89e0636e8',
-                'upload_date': '20131229',
-                'timestamp': 1388354455,
-                'thumbnail': 're:^https?://.*\.jpg$',
-            }
-        },
-        {
-            'url': 'http://www.nfl.com/news/story/0ap3000000467586/article/patriots-seahawks-involved-in-lategame-skirmish',
-            'info_dict': {
-                'id': '0ap3000000467607',
-                'ext': 'mp4',
-                'title': 'Frustrations flare on the field',
-                'description': 'Emotions ran high at the end of the Super Bowl on both sides of the ball after a dramatic finish.',
-                'timestamp': 1422850320,
-                'upload_date': '20150202',
-            },
-        },
-        {
-            'url': 'http://www.nfl.com/videos/nfl-network-top-ten/09000d5d810a6bd4/Top-10-Gutsiest-Performances-Jack-Youngblood',
-            'only_matching': True,
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?P<host>
+                            (?:www\.)?
+                            (?:
+                                (?:
+                                    nfl|
+                                    buffalobills|
+                                    miamidolphins|
+                                    patriots|
+                                    newyorkjets|
+                                    baltimoreravens|
+                                    bengals|
+                                    clevelandbrowns|
+                                    steelers|
+                                    houstontexans|
+                                    colts|
+                                    jaguars|
+                                    titansonline|
+                                    denverbroncos|
+                                    kcchiefs|
+                                    raiders|
+                                    chargers|
+                                    dallascowboys|
+                                    giants|
+                                    philadelphiaeagles|
+                                    redskins|
+                                    chicagobears|
+                                    detroitlions|
+                                    packers|
+                                    vikings|
+                                    atlantafalcons|
+                                    panthers|
+                                    neworleanssaints|
+                                    buccaneers|
+                                    azcardinals|
+                                    stlouisrams|
+                                    49ers|
+                                    seahawks
+                                )\.com|
+                                .+?\.clubs\.nfl\.com
+                            )
+                        )/
+                        (?:.+?/)*
+                        (?P<id>(?:[a-z0-9]{16}|\w{8}\-(?:\w{4}\-){3}\w{12}))
+                    '''
+    _TESTS = [{
+        'url': 'http://www.nfl.com/videos/nfl-game-highlights/0ap3000000398478/Week-3-Redskins-vs-Eagles-highlights',
+        'md5': '394ef771ddcd1354f665b471d78ec4c6',
+        'info_dict': {
+            'id': '0ap3000000398478',
+            'ext': 'mp4',
+            'title': 'Week 3: Redskins vs. Eagles highlights',
+            'description': 'md5:56323bfb0ac4ee5ab24bd05fdf3bf478',
+            'upload_date': '20140921',
+            'timestamp': 1411337580,
+            'thumbnail': 're:^https?://.*\.jpg$',
         }
-    ]
+    }, {
+        'url': 'http://prod.www.steelers.clubs.nfl.com/video-and-audio/videos/LIVE_Post_Game_vs_Browns/9d72f26a-9e2b-4718-84d3-09fb4046c266',
+        'md5': 'cf85bdb4bc49f6e9d3816d130c78279c',
+        'info_dict': {
+            'id': '9d72f26a-9e2b-4718-84d3-09fb4046c266',
+            'ext': 'mp4',
+            'title': 'LIVE: Post Game vs. Browns',
+            'description': 'md5:6a97f7e5ebeb4c0e69a418a89e0636e8',
+            'upload_date': '20131229',
+            'timestamp': 1388354455,
+            'thumbnail': 're:^https?://.*\.jpg$',
+        }
+    }, {
+        'url': 'http://www.nfl.com/news/story/0ap3000000467586/article/patriots-seahawks-involved-in-lategame-skirmish',
+        'info_dict': {
+            'id': '0ap3000000467607',
+            'ext': 'mp4',
+            'title': 'Frustrations flare on the field',
+            'description': 'Emotions ran high at the end of the Super Bowl on both sides of the ball after a dramatic finish.',
+            'timestamp': 1422850320,
+            'upload_date': '20150202',
+        },
+    }, {
+        'url': 'http://www.nfl.com/videos/nfl-network-top-ten/09000d5d810a6bd4/Top-10-Gutsiest-Performances-Jack-Youngblood',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.buffalobills.com/video/videos/Rex_Ryan_Show_World_Wide_Rex/b1dcfab2-3190-4bb1-bfc0-d6e603d6601a',
+        'only_matching': True,
+    }]
 
     @staticmethod
     def prepend_host(host, url):
