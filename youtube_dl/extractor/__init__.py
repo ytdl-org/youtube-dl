@@ -810,7 +810,7 @@ from .youtube import (
     YoutubeFavouritesIE,
     # disabled because it can wipe the watch history (see #6893)
     # remember to uncomment test in test/test_all_urls when it's fixed
-    YoutubeHistoryIE,
+    #YoutubeHistoryIE,
     YoutubePlaylistIE,
     YoutubeRecommendedIE,
     YoutubeSearchDateIE,
