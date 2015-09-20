@@ -687,6 +687,7 @@ from .udemy import (
 )
 from .udn import UDNEmbedIE
 from .ultimedia import UltimediaIE
+from .universalmusicfrance import UniversalMusicFranceIE
 from .unistra import UnistraIE
 from .urort import UrortIE
 from .ustream import UstreamIE, UstreamChannelIE
