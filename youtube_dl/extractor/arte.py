@@ -85,7 +85,7 @@ class ArteTVPlus7IE(InfoExtractor):
         if not json_url:
             iframe_url = self._html_search_regex(
                 r'<iframe[^>]+src=(["\'])(?P<url>.+\bjson_url=.+?)\1',
-                webpage, 'iframe url', group='iframe url')
+                webpage, 'iframe url', group='url')
             json_url = compat_parse_qs(
                 compat_urllib_parse_urlparse(iframe_url).query)['json_url'][0]
         return self._extract_from_json_url(json_url, video_id, lang)
