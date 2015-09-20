@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class ViewsterIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?viewster\.com/(?:serie|movie)/(?P<id>\d+-\d+-\d+)'
+    _VALID_URL = r'https?://(?:www\.)?viewster\.com/(?:serie|movie)/(?P<id>\d+-\d+-\d+)'
     _TESTS = [{
         # movie, Type=Movie
         'url': 'http://www.viewster.com/movie/1140-11855-000/the-listening-project/',
@@ -74,8 +74,8 @@ class ViewsterIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         # Get 'api_token' cookie
-        self._request_webpage(HEADRequest(url), video_id)
-        cookies = self._get_cookies(url)
+        self._request_webpage(HEADRequest('http://www.viewster.com/'), video_id)
+        cookies = self._get_cookies('http://www.viewster.com/')
         self._AUTH_TOKEN = compat_urllib_parse_unquote(cookies['api_token'].value)
 
         info = self._download_json(
@@ -98,7 +98,7 @@ class ViewsterIE(InfoExtractor):
             return self.playlist_result(entries, video_id, title, description)
 
         formats = []
-        for media_type in ('application/f4m+xml', 'application/x-mpegURL'):
+        for media_type in ('application/f4m+xml', 'application/x-mpegURL', 'video/mp4'):
             media = self._download_json(
                 'https://public-api.viewster.com/movies/%s/video?mediaType=%s'
                 % (entry_id, compat_urllib_parse.quote(media_type)),
@@ -122,6 +122,8 @@ class ViewsterIE(InfoExtractor):
             else:
                 formats.append({
                     'url': video_url,
+                    'height': int_or_none(media.get('Height')),
+                    'width': int_or_none(media.get('Width')),
                 })
         self._sort_formats(formats)
 
