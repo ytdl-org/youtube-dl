@@ -99,7 +99,7 @@ class TestAllURLsMatching(unittest.TestCase):
     def test_keywords(self):
         self.assertMatch(':ytsubs', ['youtube:subscriptions'])
         self.assertMatch(':ytsubscriptions', ['youtube:subscriptions'])
-        # self.assertMatch(':ythistory', ['youtube:history'])
+        self.assertMatch(':ythistory', ['youtube:history'])
         self.assertMatch(':thedailyshow', ['ComedyCentralShows'])
         self.assertMatch(':tds', ['ComedyCentralShows'])
 
