@@ -167,12 +167,12 @@ class LiveLeakIE(InfoExtractor):
         embed_urls = list()
 
         for embed_prochan in re.findall(
-                r'<iframe[^>]+src="(http://www.prochan.com/embed\?[^"]+)"',
+                r'<iframe[^>]+src="(https?://www.prochan.com/embed\?[^"]+)"',
                 webpage):
             embed_urls.append(embed_prochan)
 
         for embed_youtube in re.findall(
-                r'<iframe[^>]+src="(http[s]?://www.youtube.com/embed/[^"]+)"',
+                r'<iframe[^>]+src="(https?://www.youtube.com/embed/[^"]+)"',
                 webpage):
             embed_urls.append(embed_youtube)
 
@@ -187,12 +187,9 @@ class LiveLeakIE(InfoExtractor):
                 'age_limit': age_limit,
             })
 
-        if len(entries) == 1:
-            return entries[0]
-        else:
-            return {
-                '_type': 'multi_video',
-                'id': page_id,
-                'title': 'Fuel Depot in China Explosion caught on video',
-                'entries': entries,
-            }
+        return {
+            '_type': 'multi_video',
+            'id': page_id,
+            'title': video_title,
+            'entries': entries,
+        }
