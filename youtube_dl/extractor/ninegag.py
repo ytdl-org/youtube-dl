@@ -9,7 +9,7 @@ from ..utils import str_to_int
 
 class NineGagIE(InfoExtractor):
     IE_NAME = '9gag'
-    _VALID_URL = r'https?://(?:www\.)?9gag\.com/tv/p/(?P<id>[a-zA-Z0-9]+)/(?P<display_id>[^?#/]+)'
+    _VALID_URL = r'https?://(?:www\.)?9gag\.com/tv/p/(?P<id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^?#/]+))?'
 
     _TESTS = [{
         "url": "http://9gag.com/tv/p/Kk2X5/people-are-awesome-2013-is-absolutely-awesome",
@@ -61,7 +61,7 @@ class NineGagIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        display_id = mobj.group('display_id')
+        display_id = mobj.group('display_id') or video_id
 
         webpage = self._download_webpage(url, display_id)
 
