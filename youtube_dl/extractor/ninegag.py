@@ -59,7 +59,8 @@ class NineGagIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         post_view = json.loads(self._html_search_regex(
-            r'var postView = new app\.PostView\({\s*post:\s*({.+?}),\s*posts:\s*prefetchedCurrentPost', webpage, 'post view'))
+            r'var\s+postView\s*=\s*new\s+app\.PostView\({\s*post:\s*({.+?})\s*,\s*posts:\s*prefetchedCurrentPost',
+            webpage, 'post view'))
 
         ie_key = None
         source_url = post_view.get('sourceUrl')
