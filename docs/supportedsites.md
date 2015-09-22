@@ -122,7 +122,6 @@
  - **defense.gouv.fr**
  - **DHM**: Filmarchiv - Deutsches Historisches Museum
  - **Discovery**
- - **divxstage**: DivxStage
  - **Dotsub**
  - **DouyuTV**: 斗鱼
  - **dramafever**
@@ -286,7 +285,7 @@
  - **Minhateca**
  - **MinistryGrid**
  - **miomio.tv**
- - **mitele.es**
+ - **MiTele**: mitele.es
  - **mixcloud**
  - **MLB**
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
@@ -317,7 +316,6 @@
  - **Myvi**
  - **myvideo**
  - **MyVidster**
- - **N-JOY**
  - **n-tv.de**
  - **NationalGeographic**
  - **Naver**
@@ -326,7 +324,9 @@
  - **NBCNews**
  - **NBCSports**
  - **NBCSportsVPlayer**
- - **ndr**: NDR.de - Mediathek
+ - **ndr**: NDR.de - Norddeutscher Rundfunk
+ - **ndr:embed**
+ - **ndr:embed:base**
  - **NDTV**
  - **NerdCubedFeed**
  - **Nerdist**
@@ -349,12 +349,16 @@
  - **nhl.com:videocenter**: NHL videocenter category
  - **niconico**: ニコニコ動画
  - **NiconicoPlaylist**
+ - **njoy**: N-JOY
+ - **njoy:embed**
  - **Noco**
  - **Normalboots**
  - **NosVideo**
  - **Nova**: TN.cz, Prásk.tv, Nova.cz, Novaplus.cz, FANDA.tv, Krásná.cz and Doma.cz
  - **novamov**: NovaMov
- - **Nowness**
+ - **nowness**
+ - **nowness:playlist**
+ - **nowness:series**
  - **NowTV**
  - **nowvideo**: NowVideo
  - **npo**: npo.nl and ntr.nl
@@ -375,7 +379,6 @@
  - **OnionStudios**
  - **Ooyala**
  - **OoyalaExternal**
- - **OpenFilm**
  - **orf:fm4**: radio FM4
  - **orf:iptv**: iptv.ORF.at
  - **orf:oe1**: Radio Österreich 1
@@ -530,7 +533,7 @@
  - **techtv.mit.edu**
  - **ted**
  - **TeleBruxelles**
- - **telecinco.es**
+ - **Telecinco**: telecinco.es, cuatro.com and mediaset.es
  - **Telegraaf**
  - **TeleMB**
  - **TeleTask**
