@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..utils import str_to_int
@@ -22,9 +21,21 @@ class NineGagIE(InfoExtractor):
             'uploader': 'CompilationChannel',
             'upload_date': '20131110',
             "view_count": int,
-            "thumbnail": "re:^https?://",
         },
-        'add_ie': ['Youtube']
+        'add_ie': ['Youtube'],
+    }, {
+        'url': 'http://9gag.com/tv/p/aKolP3',
+        'info_dict': {
+            'id': 'aKolP3',
+            'ext': 'mp4',
+            'title': 'This Guy Travelled 11 countries In 44 days Just To Make This Amazing Video',
+            'description': "I just saw more in 1 minute than I've seen in 1 year. This guy's video is epic!!",
+            'uploader_id': 'rickmereki',
+            'uploader': 'Rick Mereki',
+            'upload_date': '20110803',
+            'view_count': int,
+        },
+        'add_ie': ['Vimeo'],
     }, {
         'url': 'http://9gag.com/tv/p/KklwM',
         'only_matching': True,
