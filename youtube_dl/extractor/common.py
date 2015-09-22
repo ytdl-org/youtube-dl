@@ -516,6 +516,12 @@ class InfoExtractor(object):
             '%s. Use --username and --password or --netrc to provide account credentials.' % msg,
             expected=True)
 
+    @staticmethod
+    def raise_geo_restricted(msg='This video is not available from your location due to geo restriction'):
+        raise ExtractorError(
+            '%s. You might want to use --proxy to workaround.' % msg,
+            expected=True)
+
     # Methods for following #608
     @staticmethod
     def url_result(url, ie=None, video_id=None, video_title=None):
