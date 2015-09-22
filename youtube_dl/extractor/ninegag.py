@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+﻿from __future__ import unicode_literals
 
 import re
 import json
@@ -9,7 +9,7 @@ from ..utils import str_to_int
 
 class NineGagIE(InfoExtractor):
     IE_NAME = '9gag'
-    _VALID_URL = r'''(?x)^https?://(?:www\.)?9gag\.tv/
+    _VALID_URL = r'''(?x)^https?://(?:www\.)?9gag\.com/tv/
         (?:
             v/(?P<numid>[0-9]+)|
             p/(?P<id>[a-zA-Z0-9]+)/(?P<display_id>[^?#/]+)
