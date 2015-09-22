@@ -11,16 +11,16 @@ class NineGagIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?9gag(?:\.com/tv|\.tv)/p/(?P<id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^?#/]+))?'
 
     _TESTS = [{
-        "url": "http://9gag.com/tv/p/Kk2X5/people-are-awesome-2013-is-absolutely-awesome",
-        "info_dict": {
-            "id": "Kk2X5",
-            "ext": "mp4",
-            "description": "This 3-minute video will make you smile and then make you feel untalented and insignificant. Anyway, you should share this awesomeness. (Thanks, Dino!)",
-            "title": "\"People Are Awesome 2013\" Is Absolutely Awesome",
+        'url': 'http://9gag.com/tv/p/Kk2X5/people-are-awesome-2013-is-absolutely-awesome',
+        'info_dict': {
+            'id': 'Kk2X5',
+            'ext': 'mp4',
+            'description': 'This 3-minute video will make you smile and then make you feel untalented and insignificant. Anyway, you should share this awesomeness. (Thanks, Dino!)',
+            'title': '\"People Are Awesome 2013\" Is Absolutely Awesome',
             'uploader_id': 'UCdEH6EjDKwtTe-sO2f0_1XA',
             'uploader': 'CompilationChannel',
             'upload_date': '20131110',
-            "view_count": int,
+            'view_count': int,
         },
         'add_ie': ['Youtube'],
     }, {
