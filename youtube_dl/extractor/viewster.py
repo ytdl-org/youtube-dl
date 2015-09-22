@@ -20,10 +20,10 @@ class ViewsterIE(InfoExtractor):
     _TESTS = [{
         # movie, Type=Movie
         'url': 'http://www.viewster.com/movie/1140-11855-000/the-listening-project/',
-        'md5': '14d3cfffe66d57b41ae2d9c873416f01',
+        'md5': 'e642d1b27fcf3a4ffa79f194f5adde36',
         'info_dict': {
             'id': '1140-11855-000',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'The listening Project',
             'description': 'md5:bac720244afd1a8ea279864e67baa071',
             'timestamp': 1214870400,
@@ -33,10 +33,10 @@ class ViewsterIE(InfoExtractor):
     }, {
         # series episode, Type=Episode
         'url': 'http://www.viewster.com/serie/1284-19427-001/the-world-and-a-wall/',
-        'md5': 'd5434c80fcfdb61651cc2199a88d6ba3',
+        'md5': '9243079a8531809efe1b089db102c069',
         'info_dict': {
             'id': '1284-19427-001',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'The World and a Wall',
             'description': 'md5:24814cf74d3453fdf5bfef9716d073e3',
             'timestamp': 1428192000,
