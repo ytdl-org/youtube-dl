@@ -26,18 +26,8 @@ class NineGagIE(InfoExtractor):
         },
         'add_ie': ['Youtube']
     }, {
-        'url': 'http://9gag.com/tv/p/KklwM/alternate-banned-opening-scene-of-gravity?ref=fsidebar',
-        'info_dict': {
-            'id': 'KklwM',
-            'ext': 'mp4',
-            'display_id': 'alternate-banned-opening-scene-of-gravity',
-            "description": "While Gravity was a pretty awesome movie already, YouTuber Krishna Shenoi came up with a way to improve upon it, introducing a much better solution to Sandra Bullock's seemingly endless tumble in space. The ending is priceless.",
-            'title': "Banned Opening Scene Of \"Gravity\" That Changes The Whole Movie",
-            'uploader': 'Krishna Shenoi',
-            'upload_date': '20140401',
-            'uploader_id': 'krishnashenoi93',
-        },
-        'add_ie': ['Youtube']
+        'url': 'http://9gag.com/tv/p/KklwM',
+        'only_matching': True,
     }]
     _EXTERNAL_VIDEO_PROVIDER = {
         '1': {
