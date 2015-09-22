@@ -8,7 +8,7 @@ from ..utils import str_to_int
 
 class NineGagIE(InfoExtractor):
     IE_NAME = '9gag'
-    _VALID_URL = r'https?://(?:www\.)?9gag(?:\.com/tv|\.tv)/p/(?P<id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^?#/]+))?'
+    _VALID_URL = r'https?://(?:www\.)?9gag(?:\.com/tv|\.tv)/(?:p|embed)/(?P<id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^?#/]+))?'
 
     _TESTS = [{
         'url': 'http://9gag.com/tv/p/Kk2X5/people-are-awesome-2013-is-absolutely-awesome',
@@ -42,7 +42,11 @@ class NineGagIE(InfoExtractor):
     }, {
         'url': 'http://9gag.tv/p/Kk2X5',
         'only_matching': True,
+    }, {
+        'url': 'http://9gag.com/tv/embed/a5Dmvl',
+        'only_matching': True,
     }]
+
     _EXTERNAL_VIDEO_PROVIDER = {
         '1': {
             'url': '%s',
