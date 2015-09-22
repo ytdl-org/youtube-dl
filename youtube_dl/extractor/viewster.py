@@ -3,12 +3,14 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_HTTPError,
     compat_urllib_request,
     compat_urllib_parse,
     compat_urllib_parse_unquote,
 )
 from ..utils import (
     determine_ext,
+    ExtractorError,
     int_or_none,
     parse_iso8601,
     HEADRequest,
@@ -86,9 +88,15 @@ class ViewsterIE(InfoExtractor):
 
         # unfinished serie has no Type
         if info.get('Type') in ['Serie', None]:
-            episodes = self._download_json(
-                'https://public-api.viewster.com/series/%s/episodes' % entry_id,
-                video_id, 'Downloading series JSON')
+            try:
+                episodes = self._download_json(
+                    'https://public-api.viewster.com/series/%s/episodes' % entry_id,
+                    video_id, 'Downloading series JSON')
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
+                    self.raise_geo_restricted()
+                else:
+                    raise
             entries = [
                 self.url_result(
                     'http://www.viewster.com/movie/%s' % episode['OriginId'], 'Viewster')
