@@ -70,8 +70,8 @@ class NineGagIE(InfoExtractor):
             source_url = self._EXTERNAL_VIDEO_PROVIDER[external_video_provider]['url'] % external_video_id
             ie_key = self._EXTERNAL_VIDEO_PROVIDER[external_video_provider]['ie_key']
         title = post_view['title']
-        description = post_view['description']
-        view_count = str_to_int(post_view['externalView'])
+        description = post_view.get('description')
+        view_count = str_to_int(post_view.get('externalView'))
         thumbnail = post_view.get('thumbnail_700w') or post_view.get('ogImageUrl') or post_view.get('thumbnail_300w')
 
         return {
