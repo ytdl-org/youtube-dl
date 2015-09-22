@@ -70,7 +70,7 @@ class NineGagIE(InfoExtractor):
 
         ie_key = None
         source_url = post_view.get('sourceUrl')
-        if not source_url or source_url == '':
+        if not source_url:
             external_video_id = post_view['videoExternalId']
             external_video_provider = post_view['videoExternalProvider']
             source_url = self._EXTERNAL_VIDEO_PROVIDER[external_video_provider]['url'] % external_video_id
