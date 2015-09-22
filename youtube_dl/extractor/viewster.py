@@ -140,6 +140,10 @@ class ViewsterIE(InfoExtractor):
                     f['height'] = int_or_none(self._search_regex(
                         r'^(\d+)[pP]$', format_id, 'height', default=None))
                 formats.append(f)
+
+        if not formats and not info.get('LanguageSets') and not info.get('VODSettings'):
+            self.raise_geo_restricted()
+
         self._sort_formats(formats)
 
         synopsis = info.get('Synopsis', {})
