@@ -120,11 +120,18 @@ class ViewsterIE(InfoExtractor):
                     fatal=False  # m3u8 sometimes fail
                 ))
             else:
-                formats.append({
+                format_id = media.get('Bitrate')
+                f = {
                     'url': video_url,
+                    'format_id': 'mp4-%s' % format_id,
                     'height': int_or_none(media.get('Height')),
                     'width': int_or_none(media.get('Width')),
-                })
+                    'preference': 1,
+                }
+                if format_id and not f['height']:
+                    f['height'] = int_or_none(self._search_regex(
+                        r'^(\d+)[pP]$', format_id, 'height', default=None))
+                formats.append(f)
         self._sort_formats(formats)
 
         synopsis = info.get('Synopsis', {})
