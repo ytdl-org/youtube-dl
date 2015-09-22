@@ -3,8 +3,6 @@ from __future__ import unicode_literals
 
 import re
 import hashlib
-import universalmusicfrance
-import ultimedia
 
 from .common import InfoExtractor
 from ..utils import (
