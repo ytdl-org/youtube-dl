@@ -28,9 +28,18 @@ class HlsFD(FileDownloader):
             return False
         ffpp.check_version()
 
-        args = [
-            encodeArgument(opt)
-            for opt in (ffpp.executable, '-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
+        args = [ffpp.executable, '-y']
+
+        if info_dict['http_headers']:
+            # Trailing \r\n after each HTTP header is important to prevent warning from ffmpeg/avconv:
+            # [http @ 00000000003d2fa0] No trailing CRLF found in HTTP header.
+            args += [
+                '-headers',
+                ''.join('%s: %s\r\n' % (key, val) for key, val in info_dict['http_headers'].items())]
+
+        args += ['-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc']
+
+        args = [encodeArgument(opt) for opt in args]
         args.append(encodeFilename(ffpp._ffmpeg_filename_argument(tmpfilename), True))
 
         self._debug_cmd(args)
