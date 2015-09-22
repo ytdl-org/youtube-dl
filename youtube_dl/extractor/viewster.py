@@ -95,7 +95,7 @@ class ViewsterIE(InfoExtractor):
         entry_id = info.get('Id') or info['id']
 
         # unfinished serie has no Type
-        if info.get('Type') in ['Serie', None]:
+        if info.get('Type') in ('Serie', None):
             try:
                 episodes = self._download_json(
                     'https://public-api.viewster.com/series/%s/episodes' % entry_id,
