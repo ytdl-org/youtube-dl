@@ -68,8 +68,13 @@ class NineGagIE(InfoExtractor):
         post_view = json.loads(self._html_search_regex(
             r'var postView = new app\.PostView\({\s*post:\s*({.+?}),\s*posts:\s*prefetchedCurrentPost', webpage, 'post view'))
 
-        external_video_id = post_view['videoExternalId']
-        external_video_provider = post_view['videoExternalProvider']
+        ie_key = None
+        source_url = post_view.get('sourceUrl')
+        if not source_url or source_url == '':
+            external_video_id = post_view['videoExternalId']
+            external_video_provider = post_view['videoExternalProvider']
+            source_url = self._EXTERNAL_VIDEO_PROVIDER[external_video_provider]['url'] % external_video_id
+            ie_key = self._EXTERNAL_VIDEO_PROVIDER[external_video_provider]['ie_key']
         title = post_view['title']
         description = post_view['description']
         view_count = str_to_int(post_view['externalView'])
@@ -77,8 +82,8 @@ class NineGagIE(InfoExtractor):
 
         return {
             '_type': 'url_transparent',
-            'url': self._EXTERNAL_VIDEO_PROVIDER[external_video_provider]['url'] % external_video_id,
-            'ie_key': self._EXTERNAL_VIDEO_PROVIDER[external_video_provider]['ie_key'],
+            'url': source_url,
+            'ie_key': ie_key,
             'id': video_id,
             'display_id': display_id,
             'title': title,
