@@ -63,6 +63,14 @@ class ViewsterIE(InfoExtractor):
             'description': 'md5:e7097a8fc97151e25f085c9eb7a1cdb1',
         },
         'playlist_mincount': 16,
+    }, {
+        # geo restricted series
+        'url': 'https://www.viewster.com/serie/1280-18794-002/',
+        'only_matching': True,
+    }, {
+        # geo restricted video
+        'url': 'https://www.viewster.com/serie/1280-18794-002/what-is-extraterritoriality-lawo/',
+        'only_matching': True,
     }]
 
     _ACCEPT_HEADER = 'application/json, text/javascript, */*; q=0.01'
