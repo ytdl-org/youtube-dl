@@ -16,6 +16,17 @@ class WatIE(InfoExtractor):
     IE_NAME = 'wat.tv'
     _TESTS = [
         {
+            'url': 'http://www.wat.tv/video/lady-gaga-but-beautiful-2014-72611_2ey39_.html',
+            'md5': '159cda7568b9fc1e5e3de6aeca5d4bfc',
+            'info_dict': {
+                'id': 'lady-gaga-but-beautiful',
+                'display_id': 'lady-gaga-but-beautiful',
+                'ext': 'mp4',
+                'title': 'lady-gaga-but-beautiful',
+                'description': 'md5:1bbdde8d44751f43367ba68e8b9966a6'
+            },
+        },
+        {
             'url': 'http://www.wat.tv/video/anna-bergendahl-for-you-2015-7dvjn_76lkz_.html',
             'md5': '159cda7568b9fc1e5e3de6aeca5d4bfc',
             'info_dict': {
