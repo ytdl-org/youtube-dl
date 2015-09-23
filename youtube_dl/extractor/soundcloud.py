@@ -113,7 +113,7 @@ class SoundcloudIE(InfoExtractor):
         },
     ]
 
-    _CLIENT_ID = 'b45b1aa10f1ac2941910a7f0d10f8e28'
+    _CLIENT_ID = '02gUJC0hH2ct1EGOcYXQIzRFU91c72Ea'
     _IPHONE_CLIENT_ID = '376f225bf427445fc4bfb6b99b72e0bf'
 
     def report_resolve(self, video_id):
