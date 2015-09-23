@@ -95,6 +95,10 @@ class IqiyiIE(InfoExtractor):
         ('10', 'h1'),
     ]
 
+    @staticmethod
+    def md5_text(text):
+        return hashlib.md5(text.encode('utf-8')).hexdigest()
+
     def construct_video_urls(self, data, video_id, _uuid):
         def do_xor(x, y):
             a = y % 3
@@ -179,6 +183,7 @@ class IqiyiIE(InfoExtractor):
 
     def get_raw_data(self, tvid, video_id, enc_key, _uuid):
         tm = str(int(time.time()))
+        tail = tm + tvid
         param = {
             'key': 'fvip',
             'src': hashlib.md5(b'youtube-dl').hexdigest(),
@@ -186,13 +191,11 @@ class IqiyiIE(InfoExtractor):
             'vid': video_id,
             'vinfo': 1,
             'tm': tm,
-            'enc': hashlib.md5(
-                (enc_key + tm + tvid).encode('utf8')).hexdigest(),
+            'enc': self.md5_text((enc_key + tail)[1:64:2] + tail),
             'qyid': _uuid,
             'tn': random.random(),
             'um': 0,
-            'authkey': hashlib.md5(
-                (tm + tvid).encode('utf8')).hexdigest()
+            'authkey': self.md5_text(self.md5_text('') + tail),
         }
 
         api_url = 'http://cache.video.qiyi.com/vms' + '?' + \
@@ -201,7 +204,8 @@ class IqiyiIE(InfoExtractor):
         return raw_data
 
     def get_enc_key(self, swf_url, video_id):
-        enc_key = '3601ba290e4f4662848c710e2122007e'  # last update at 2015-08-10 for Zombie
+        # TODO: automatic key extraction
+        enc_key = 'eac64f22daf001da6ba9aa8da4d501508bbe90a4d4091fea3b0582a85b38c2cc'  # last update at 2015-09-23-23 for Zombie::bite
         return enc_key
 
     def _real_extract(self, url):
