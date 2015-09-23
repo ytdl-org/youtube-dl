@@ -413,7 +413,7 @@ class BrightcoveInPageEmbedIE(InfoExtractor):
             if source_type == 'application/x-mpegURL':
                 formats.extend(self._extract_m3u8_formats(source.get('src'), video_id))
             else:
-                src = source.get('src')
+                src = source.get('src') or source.get('streaming_src')
                 if src:
                     formats.append({
                         'url': src,
@@ -424,8 +424,6 @@ class BrightcoveInPageEmbedIE(InfoExtractor):
                         'container': source.get('container'),
                         'vcodec': source.get('container'),
                     })
-                else:
-                    formats.extend(self._extract_f4m_formats(source.get('streaming_src'), video_id))
 
         self._sort_formats(formats)
 
