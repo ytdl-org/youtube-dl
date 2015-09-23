@@ -125,7 +125,7 @@ class IqiyiIE(InfoExtractor):
                 note='Download path key of segment %d for format %s' % (segment_index + 1, format_id)
             )['t']
             t = str(int(math.floor(int(tm) / (600.0))))
-            return hashlib.md5((t + mg + x).encode('utf8')).hexdigest()
+            return self.md5_text(t + mg + x)
 
         video_urls_dict = {}
         for format_item in data['vp']['tkl'][0]['vs']:
@@ -186,7 +186,7 @@ class IqiyiIE(InfoExtractor):
         tail = tm + tvid
         param = {
             'key': 'fvip',
-            'src': hashlib.md5(b'youtube-dl').hexdigest(),
+            'src': self.md5_text('youtube-dl'),
             'tvId': tvid,
             'vid': video_id,
             'vinfo': 1,
