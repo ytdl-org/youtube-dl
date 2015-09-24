@@ -62,6 +62,14 @@ class IconosquareIE(InfoExtractor):
             'height': int_or_none(t.get('height'))
         } for thumbnail_id, t in media.get('images', {}).items()]
 
+        comments = [{
+            'id': comment.get('id'),
+            'text': comment['text'],
+            'timestamp': int_or_none(comment.get('created_time')),
+            'author': comment.get('from', {}).get('full_name'),
+            'author_id': comment.get('from', {}).get('username'),
+        } for comment in media.get('comments', {}).get('data', []) if 'text' in comment]
+
         return {
             'id': video_id,
             'title': title,
@@ -73,4 +81,5 @@ class IconosquareIE(InfoExtractor):
             'comment_count': comment_count,
             'like_count': like_count,
             'formats': formats,
+            'comments': comments,
         }
