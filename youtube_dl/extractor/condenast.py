@@ -97,7 +97,7 @@ class CondeNastIE(InfoExtractor):
         info_url = base_info_url + data
         info_page = self._download_webpage(info_url, video_id,
                                            'Downloading video info')
-        video_info = self._search_regex(r'var\s*video\s*=\s*({.+?});', info_page, 'video info')
+        video_info = self._search_regex(r'var\s+video\s*=\s*({.+?});', info_page, 'video info')
         video_info = self._parse_json(video_info, video_id)
 
         formats = [{
