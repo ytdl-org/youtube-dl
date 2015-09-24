@@ -72,7 +72,7 @@ class NHLBaseInfoExtractor(InfoExtractor):
 
 class NHLIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com'
-    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/(?:console)?(?:\?(?:.*?[?&])?)(?:id|hlg)=(?P<id>[-0-9a-zA-Z,]+)'
+    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/(?:console|embed)?(?:\?(?:.*?[?&])?)(?:id|hlg|playlist)=(?P<id>[-0-9a-zA-Z,]+)'
 
     _TESTS = [{
         'url': 'http://video.canucks.nhl.com/videocenter/console?catid=6?id=453614',
@@ -136,6 +136,9 @@ class NHLIE(NHLBaseInfoExtractor):
         'params': {
             'skip_download': True,  # Requires rtmpdump
         }
+    }, {
+        'url': 'http://video.nhl.com/videocenter/embed?playlist=836127',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
