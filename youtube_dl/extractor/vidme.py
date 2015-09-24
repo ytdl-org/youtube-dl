@@ -119,6 +119,7 @@ class VidmeIE(InfoExtractor):
             'url': f['uri'],
             'width': int_or_none(f.get('width')),
             'height': int_or_none(f.get('height')),
+            'preference': 0 if f.get('type', '').endswith('clip') else 1,
         } for f in video.get('formats', []) if f.get('uri')]
         self._sort_formats(formats)
 
