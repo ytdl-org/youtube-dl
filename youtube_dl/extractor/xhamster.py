@@ -64,7 +64,7 @@ class XHamsterIE(InfoExtractor):
         webpage = self._download_webpage(mrss_url, video_id)
 
         title = self._html_search_regex(
-            [r'<title>(?P<title>.+?)(?:, Free Porn: xHamster| - xHamster\.com)</title>',
+            [r'<title>(?P<title>.+?)(?:, (?:[^,]+? )?Porn: xHamster| - xHamster\.com)</title>',
              r'<h1>([^<]+)</h1>'], webpage, 'title')
 
         # Only a few videos have an description
