@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    get_element_by_id,
+)
 
 
 class IconosquareIE(InfoExtractor):
@@ -12,7 +15,7 @@ class IconosquareIE(InfoExtractor):
         'info_dict': {
             'id': '522207370455279102_24101272',
             'ext': 'mp4',
-            'title': 'Instagram media by @aguynamedpatrick (Patrick Janelle)',
+            'title': 'A little over a year ago, I posted my first #dailycortado, a drink introduced to...',
             'description': 'md5:644406a9ec27457ed7aa7a9ebcd4ce3d',
             'timestamp': 1376471991,
             'upload_date': '20130814',
@@ -29,8 +32,7 @@ class IconosquareIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         media = self._parse_json(
-            self._search_regex(
-                r'window\.media\s*=\s*({.+?});\n', webpage, 'media'),
+            get_element_by_id('mediaJson', webpage),
             video_id)
 
         formats = [{
@@ -42,7 +44,7 @@ class IconosquareIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = self._html_search_regex(
-            r'<title>(.+?)(?: *\(Videos?\))? \| (?:Iconosquare|Statigram)</title>',
+            r'<title>(.+?)</title>',
             webpage, 'title')
 
         timestamp = int_or_none(media.get('created_time') or media.get('caption', {}).get('created_time'))
