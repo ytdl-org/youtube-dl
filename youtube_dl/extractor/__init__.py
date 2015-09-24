@@ -225,7 +225,6 @@ from .historicfilms import HistoricFilmsIE
 from .history import HistoryIE
 from .hitbox import HitboxIE, HitboxLiveIE
 from .hornbunny import HornBunnyIE
-from .hostingbulk import HostingBulkIE
 from .hotnewhiphop import HotNewHipHopIE
 from .howcast import HowcastIE
 from .howstuffworks import HowStuffWorksIE
