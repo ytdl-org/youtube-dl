@@ -26,7 +26,7 @@ class CondeNastIE(InfoExtractor):
         'allure': 'Allure',
         'architecturaldigest': 'Architectural Digest',
         'arstechnica': 'Ars Technica',
-        'bonappetit': 'Bon Appetit',
+        'bonappetit': 'Bon Appétit',
         'brides': 'Brides',
         'cnevids': 'Condé Nast',
         'cntraveler': 'Condé Nast Traveler',
