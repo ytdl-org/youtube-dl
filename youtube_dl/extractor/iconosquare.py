@@ -4,6 +4,7 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     get_element_by_id,
+    remove_end,
 )
 
 
@@ -15,7 +16,7 @@ class IconosquareIE(InfoExtractor):
         'info_dict': {
             'id': '522207370455279102_24101272',
             'ext': 'mp4',
-            'title': 'A little over a year ago, I posted my first #dailycortado, a drink introduced to...',
+            'title': 'Instagram photo by @aguynamedpatrick (Patrick Janelle)',
             'description': 'md5:644406a9ec27457ed7aa7a9ebcd4ce3d',
             'timestamp': 1376471991,
             'upload_date': '20130814',
@@ -43,9 +44,7 @@ class IconosquareIE(InfoExtractor):
         } for format_id, f in media['videos'].items()]
         self._sort_formats(formats)
 
-        title = self._html_search_regex(
-            r'<title>(.+?)</title>',
-            webpage, 'title')
+        title = remove_end(self._og_search_title(webpage), ' - via Iconosquare')
 
         timestamp = int_or_none(media.get('created_time') or media.get('caption', {}).get('created_time'))
         description = media.get('caption', {}).get('text')
