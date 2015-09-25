@@ -33,7 +33,8 @@ class FKTVIE(InfoExtractor):
         title = clean_html(self._html_search_regex(
             '<h3>([^<]+)</h3>', webpage, 'title'))
         matches = re.search(
-            r'(?s)<video[^>]+(?:poster="([^"]+)")?[^>]*>(.*)</video>', webpage)
+            r'(?s)<video(?:(?!poster)[^>])+(?:poster="([^"]+)")?[^>]*>(.*)</video>',
+            webpage)
         if matches is None:
             raise ExtractorError('Unable to extract the video')
 
