@@ -57,6 +57,7 @@ class KuwoIE(KuwoBaseIE):
             'upload_date': '20080122',
             'description': 'md5:ed13f58e3c3bf3f7fd9fbc4e5a7aa75c'
         },
+        'skip': 'this song has been offline because of copyright issues',
     }, {
         'url': 'http://www.kuwo.cn/yinyue/6446136/',
         'info_dict': {
@@ -78,7 +79,7 @@ class KuwoIE(KuwoBaseIE):
             errnote='Unable to get song detail info')
 
         song_name = self._html_search_regex(
-            r'<h1[^>]+title="([^"]+)">', webpage, 'song name')
+            r'(?s)class="[^"]*title[^"]*".*?<h1[^>]+title="([^"]+)"', webpage, 'song name')
         singer_name = self._html_search_regex(
             r'<div[^>]+class="s_img">\s*<a[^>]+title="([^>]+)"',
             webpage, 'singer name', fatal=False)
