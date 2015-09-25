@@ -281,6 +281,7 @@ The `-o` option allows users to indicate a template for the output file names. T
  - `playlist`: The sequence will be replaced by the name or the id of the playlist that contains the video.
  - `playlist_index`: The sequence will be replaced by the index of the video in the playlist padded with leading zeros according to the total length of the playlist.
  - `format_id`: The sequence will be replaced by the format code specified by `--format`.
+ - `duration`: The sequence will be replaced by the length of the video in seconds.
 
 The current default template is `%(title)s-%(id)s.%(ext)s`.
 
