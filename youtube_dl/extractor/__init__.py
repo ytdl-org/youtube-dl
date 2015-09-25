@@ -169,10 +169,7 @@ from .firstpost import FirstpostIE
 from .firsttv import FirstTVIE
 from .fivemin import FiveMinIE
 from .fivetv import FiveTVIE
-from .fktv import (
-    FKTVIE,
-    FKTVPosteckeIE,
-)
+from .fktv import FKTVIE
 from .flickr import FlickrIE
 from .folketinget import FolketingetIE
 from .footyroom import FootyRoomIE
