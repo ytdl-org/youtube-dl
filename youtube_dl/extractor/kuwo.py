@@ -79,7 +79,7 @@ class KuwoIE(KuwoBaseIE):
             errnote='Unable to get song detail info')
 
         song_name = self._html_search_regex(
-            r'(?s)class="[^"]*title[^"]*".*?<h1[^>]+title="([^"]+)"', webpage, 'song name')
+            r'(?s)class="(?:[^" ]+ +)*title(?: +[^" ]+)*".*?<h1[^>]+title="([^"]+)"', webpage, 'song name')
         singer_name = self._html_search_regex(
             r'<div[^>]+class="s_img">\s*<a[^>]+title="([^>]+)"',
             webpage, 'singer name', fatal=False)
