@@ -28,13 +28,13 @@ class FKTVIE(InfoExtractor):
         episode = self._match_id(url)
 
         webpage = self._download_webpage('http://fernsehkritik.tv/folge-%s/play' % episode, episode)
-        title = clean_html(self._html_search_regex('<h3>([^<]+?)</h3>', webpage, 'title'))
-        matches = re.search(r'(?s)<video[^>]*poster="([^"]+)"[^>]*>(.*?)</video>', webpage)
+        title = clean_html(self._html_search_regex('<h3>([^<]+)</h3>', webpage, 'title'))
+        matches = re.search(r'(?s)<video[^>]+poster="([^"]+)"[^>]*>(.*)</video>', webpage)
         if matches is None:
             raise ExtractorError('Unable to extract the video')
 
         poster, sources = matches.groups()
-        urls = re.findall(r'(?s)<source[^>]*src="([^"]+)"[^>]*>', sources)
+        urls = re.findall(r'<source[^>]+src="([^"]+)"', sources)
         formats = [{'url': url, 'format_id': determine_ext(url)} for url in urls]
         return {
             'id': episode,
