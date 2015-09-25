@@ -28,9 +28,9 @@ class FKTVIE(InfoExtractor):
 
         webpage = self._download_webpage('http://fernsehkritik.tv/folge-%s/play' % episode, episode)
         title = clean_html(self._html_search_regex('<h3>([^<]+?)</h3>', webpage, 'title'))
-        matchs = re.search(r'(?s)<video[^>]*poster="([^"]+)"[^>]*>(.*?)</video>', webpage)
-        if matchs:
-            poster, sources = matchs.groups()
+        matches = re.search(r'(?s)<video[^>]*poster="([^"]+)"[^>]*>(.*?)</video>', webpage)
+        if matches:
+            poster, sources = matches.groups()
             urls = re.findall(r'(?s)<source[^>]*src="([^"]+)"[^>]*>', sources)
             if sources:
                 formats = [{'url': url, 'format_id': determine_ext(url)} for url in urls]
