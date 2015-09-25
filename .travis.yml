@@ -5,6 +5,7 @@ python:
   - "3.2"
   - "3.3"
   - "3.4"
+  - "3.5"
 sudo: false
 script: nosetests test --verbose
 notifications:
