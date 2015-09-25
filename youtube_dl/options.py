@@ -162,9 +162,9 @@ def parseOpts(overrideArguments=None):
         '--ignore-config',
         action='store_true',
         help='Do not read configuration files. '
-        'When given in the global configuration file /etc/youtube-dl.conf: '
-        'Do not read the user configuration in ~/.config/youtube-dl/config '
-        '(%APPDATA%/youtube-dl/config.txt on Windows)')
+             'When given in the global configuration file /etc/youtube-dl.conf: '
+             'Do not read the user configuration in ~/.config/youtube-dl/config '
+             '(%APPDATA%/youtube-dl/config.txt on Windows)')
     general.add_option(
         '--flat-playlist',
         action='store_const', dest='extract_flat', const='in_playlist',
@@ -175,6 +175,11 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='no_color',
         default=False,
         help='Do not emit color codes in output')
+    general.add_option(
+        '--md5',
+        action='store_true', dest='md5',
+        default=False,
+        help='Calculate md5 of video and save in file')
 
     network = optparse.OptionGroup(parser, 'Network Options')
     network.add_option(
@@ -204,7 +209,7 @@ def parseOpts(overrideArguments=None):
         '--cn-verification-proxy',
         dest='cn_verification_proxy', default=None, metavar='URL',
         help='Use this proxy to verify the IP address for some Chinese sites. '
-        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading. (experimental)'
+             'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading. (experimental)'
     )
 
     selection = optparse.OptionGroup(parser, 'Video Selection')

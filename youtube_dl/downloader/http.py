@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import errno
+import hashlib
 import os
 import socket
 import time
@@ -19,7 +20,7 @@ from ..utils import (
 
 
 class HttpFD(FileDownloader):
-    def real_download(self, filename, info_dict):
+    def real_download(self, filename, info_dict, md5=False):
         url = info_dict['url']
         tmpfilename = self.temp_name(filename)
         stream = None
@@ -158,12 +159,17 @@ class HttpFD(FileDownloader):
         # measure time over whole while-loop, so slow_down() and best_block_size() work together properly
         now = None  # needed for slow_down() in the first loop run
         before = start  # start measuring
+        if md5:
+            m = hashlib.md5()
+        else:
+            m = None
         while True:
 
             # Download and write
             data_block = data.read(block_size if not is_test else min(block_size, data_len - byte_counter))
             byte_counter += len(data_block)
-
+            if m is not None:
+                m.update(data_block)
             # exit loop when download is finished
             if len(data_block) == 0:
                 break
@@ -237,7 +243,8 @@ class HttpFD(FileDownloader):
         if data_len is not None and byte_counter != data_len:
             raise ContentTooShortError(byte_counter, int(data_len))
         self.try_rename(tmpfilename, filename)
-
+        if m is not None:
+            open(filename+'.md5', 'w').write(m.hexdigest())
         # Update file modification time
         if self.params.get('updatetime', True):
             info_dict['filetime'] = self.try_utime(filename, data.info().get('last-modified', None))

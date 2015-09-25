@@ -189,6 +189,8 @@ def _real_main(argv=None):
     if opts.allsubtitles and not opts.writeautomaticsub:
         opts.writesubtitles = True
 
+
+
     outtmpl = ((opts.outtmpl is not None and opts.outtmpl) or
                (opts.format == '-1' and opts.usetitle and '%(title)s-%(id)s-%(format)s.%(ext)s') or
                (opts.format == '-1' and '%(id)s-%(format)s.%(ext)s') or
@@ -372,6 +374,7 @@ def _real_main(argv=None):
         'external_downloader_args': external_downloader_args,
         'postprocessor_args': postprocessor_args,
         'cn_verification_proxy': opts.cn_verification_proxy,
+        'md5': opts.md5
     }
 
     with YoutubeDL(ydl_opts) as ydl:
