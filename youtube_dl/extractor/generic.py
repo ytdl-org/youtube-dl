@@ -50,6 +50,7 @@ from .dailymotion import DailymotionCloudIE
 from .onionstudios import OnionStudiosIE
 from .snagfilms import SnagFilmsEmbedIE
 from .screenwavemedia import ScreenwaveMediaIE
+from .ultimedia import UltimediaIE
 
 
 class GenericIE(InfoExtractor):
@@ -1029,6 +1030,21 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'cinemasnob',
             },
+        },
+        # Ultimedia embed
+        {
+            'url': 'http://www.jukebox.es/kosheen/videoclip,pride,r303r.html',
+            'md5': '25551df6e7c7ab8096ceeeae048c5f64',
+            'info_dict': {
+                'id': 'r303r',
+                'ext': 'mp4',
+                'title': 'Kosheen - Pride (live)',
+                'thumbnail': 're:^https?://.*\.jpg',
+                'duration': 293,
+                'upload_date': '20081103',
+                'timestamp': 1225733392,
+                'uploader_id': '33m03',
+            },
         }
     ]
 
@@ -1750,6 +1766,11 @@ class GenericIE(InfoExtractor):
         mobj = re.search(ScreenwaveMediaIE.EMBED_PATTERN, webpage)
         if mobj is not None:
             return self.url_result(unescapeHTML(mobj.group('url')), 'ScreenwaveMedia')
+
+        # Look for Ulltimedia embeds
+        ultimedia_url = UltimediaIE._extract_url(webpage)
+        if ultimedia_url:
+            return self.url_result(self._proto_relative_url(ultimedia_url), 'Ultimedia')
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(
