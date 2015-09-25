@@ -28,9 +28,12 @@ class FKTVIE(InfoExtractor):
     def _real_extract(self, url):
         episode = self._match_id(url)
 
-        webpage = self._download_webpage('http://fernsehkritik.tv/folge-%s/play' % episode, episode)
-        title = clean_html(self._html_search_regex('<h3>([^<]+)</h3>', webpage, 'title'))
-        matches = re.search(r'(?s)<video[^>]+(?:poster="([^"]+)")?[^>]*>(.*)</video>', webpage)
+        webpage = self._download_webpage(
+            'http://fernsehkritik.tv/folge-%s/play' % episode, episode)
+        title = clean_html(self._html_search_regex(
+            '<h3>([^<]+)</h3>', webpage, 'title'))
+        matches = re.search(
+            r'(?s)<video[^>]+(?:poster="([^"]+)")?[^>]*>(.*)</video>', webpage)
         if matches is None:
             raise ExtractorError('Unable to extract the video')
 
@@ -39,7 +42,10 @@ class FKTVIE(InfoExtractor):
             self.report_warning('unable to extract thumbnail')
 
         urls = re.findall(r'<source[^>]+src="([^"]+)"', sources)
-        formats = [{'url': url, 'format_id': determine_ext(url)} for url in urls]
+        formats = [{
+            'url': url,
+            'format_id': determine_ext(url),
+        } for url in urls]
         return {
             'id': episode,
             'title': title,
