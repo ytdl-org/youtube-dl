@@ -194,23 +194,19 @@ class LivestreamIE(InfoExtractor):
 # The original version of Livestream uses a different system
 class LivestreamOriginalIE(InfoExtractor):
     IE_NAME = 'livestream:original'
-    _VALID_URL = r'''(?x)https?://www\.livestream\.com/
+    _VALID_URL = r'''(?x)https?://original\.livestream\.com/
         (?P<user>[^/]+)/(?P<type>video|folder)
         (?:\?.*?Id=|/)(?P<id>.*?)(&|$)
         '''
     _TESTS = [{
-        'url': 'http://www.livestream.com/dealbook/video?clipId=pla_8aa4a3f1-ba15-46a4-893b-902210e138fb',
+        'url': 'http://original.livestream.com/dealbook/video?clipId=pla_8aa4a3f1-ba15-46a4-893b-902210e138fb',
         'info_dict': {
             'id': 'pla_8aa4a3f1-ba15-46a4-893b-902210e138fb',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Spark 1 (BitCoin) with Cameron Winklevoss & Tyler Winklevoss of Winklevoss Capital',
         },
-        'params': {
-            # rtmp
-            'skip_download': True,
-        },
     }, {
-        'url': 'https://www.livestream.com/newplay/folder?dirId=a07bf706-d0e4-4e75-a747-b021d84f2fd3',
+        'url': 'https://original.livestream.com/newplay/folder?dirId=a07bf706-d0e4-4e75-a747-b021d84f2fd3',
         'info_dict': {
             'id': 'a07bf706-d0e4-4e75-a747-b021d84f2fd3',
         },
@@ -221,19 +217,17 @@ class LivestreamOriginalIE(InfoExtractor):
         api_url = 'http://x{0}x.api.channel.livestream.com/2.0/clipdetails?extendedInfo=true&id={1}'.format(user, video_id)
 
         info = self._download_xml(api_url, video_id)
+        # this url is used on mobile devices
+        stream_url = 'http://x{0}x.api.channel.livestream.com/3.0/getstream.json?id={1}'.format(user, video_id)
+        stream_info = self._download_json(stream_url, video_id)
         item = info.find('channel').find('item')
         ns = {'media': 'http://search.yahoo.com/mrss'}
         thumbnail_url = item.find(xpath_with_ns('media:thumbnail', ns)).attrib['url']
-        # Remove the extension and number from the path (like 1.jpg)
-        path = self._search_regex(r'(user-files/.+)_.*?\.jpg$', thumbnail_url, 'path')
 
         return {
             'id': video_id,
             'title': item.find('title').text,
-            'url': 'rtmp://extondemand.livestream.com/ondemand',
-            'play_path': 'trans/dv15/mogulus-{0}'.format(path),
-            'player_url': 'http://static.livestream.com/chromelessPlayer/v21/playerapi.swf?hash=5uetk&v=0803&classid=D27CDB6E-AE6D-11cf-96B8-444553540000&jsEnabled=false&wmode=opaque',
-            'ext': 'flv',
+            'url': stream_info['progressiveUrl'],
             'thumbnail': thumbnail_url,
         }
 

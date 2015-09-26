@@ -12,22 +12,43 @@ from math import pow, sqrt, floor
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
+    compat_urllib_parse_unquote,
     compat_urllib_request,
+    compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
     bytes_to_intlist,
     intlist_to_bytes,
+    int_or_none,
+    remove_end,
     unified_strdate,
     urlencode_postdata,
+    xpath_text,
 )
 from ..aes import (
     aes_cbc_decrypt,
 )
 
 
-class CrunchyrollIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:[^/]*/[^/?&]*?|media/\?id=)(?P<video_id>[0-9]+))(?:[/?&]|$)'
+class CrunchyrollBaseIE(InfoExtractor):
+    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None):
+        request = (url_or_request if isinstance(url_or_request, compat_urllib_request.Request)
+                   else compat_urllib_request.Request(url_or_request))
+        # Accept-Language must be set explicitly to accept any language to avoid issues
+        # similar to https://github.com/rg3/youtube-dl/issues/6797.
+        # Along with IP address Crunchyroll uses Accept-Language to guess whether georestriction
+        # should be imposed or not (from what I can see it just takes the first language
+        # ignoring the priority and requires it to correspond the IP). By the way this causes
+        # Crunchyroll to not work in georestriction cases in some browsers that don't place
+        # the locale lang first in header. However allowing any language seems to workaround the issue.
+        request.add_header('Accept-Language', '*')
+        return super(CrunchyrollBaseIE, self)._download_webpage(
+            request, video_id, note, errnote, fatal, tries, timeout, encoding)
+
+
+class CrunchyrollIE(CrunchyrollBaseIE):
+    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:media(?:-|/\?id=)|[^/]*/[^/?&]*?)(?P<video_id>[0-9]+))(?:[/?&]|$)'
     _NETRC_MACHINE = 'crunchyroll'
     _TESTS = [{
         'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
@@ -45,6 +66,22 @@ class CrunchyrollIE(InfoExtractor):
             # rtmp
             'skip_download': True,
         },
+    }, {
+        'url': 'http://www.crunchyroll.com/media-589804/culture-japan-1',
+        'info_dict': {
+            'id': '589804',
+            'ext': 'flv',
+            'title': 'Culture Japan Episode 1 – Rebuilding Japan after the 3.11',
+            'description': 'md5:fe2743efedb49d279552926d0bd0cd9e',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'uploader': 'Danny Choo Network',
+            'upload_date': '20120213',
+        },
+        'params': {
+            # rtmp
+            'skip_download': True,
+        },
+
     }, {
         'url': 'http://www.crunchyroll.fr/girl-friend-beta/episode-11-goodbye-la-mode-661697',
         'only_matching': True,
@@ -76,8 +113,8 @@ class CrunchyrollIE(InfoExtractor):
         self._login()
 
     def _decrypt_subtitles(self, data, iv, id):
-        data = bytes_to_intlist(data)
-        iv = bytes_to_intlist(iv)
+        data = bytes_to_intlist(base64.b64decode(data.encode('utf-8')))
+        iv = bytes_to_intlist(base64.b64decode(iv.encode('utf-8')))
         id = int(id)
 
         def obfuscate_key_aux(count, modulo, start):
@@ -179,6 +216,16 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         return output
 
+    def _extract_subtitles(self, subtitle):
+        sub_root = xml.etree.ElementTree.fromstring(subtitle)
+        return [{
+            'ext': 'srt',
+            'data': self._convert_subtitles_to_srt(sub_root),
+        }, {
+            'ext': 'ass',
+            'data': self._convert_subtitles_to_ass(sub_root),
+        }]
+
     def _get_subtitles(self, video_id, webpage):
         subtitles = {}
         for sub_id, sub_name in re.findall(r'\?ssid=([0-9]+)" title="([^"]+)', webpage):
@@ -190,25 +237,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             data = self._search_regex(r'<data>([^<]+)', sub_page, 'subtitle_data', fatal=False)
             if not id or not iv or not data:
                 continue
-            id = int(id)
-            iv = base64.b64decode(iv)
-            data = base64.b64decode(data)
-
             subtitle = self._decrypt_subtitles(data, iv, id).decode('utf-8')
             lang_code = self._search_regex(r'lang_code=["\']([^"\']+)', subtitle, 'subtitle_lang_code', fatal=False)
             if not lang_code:
                 continue
-            sub_root = xml.etree.ElementTree.fromstring(subtitle)
-            subtitles[lang_code] = [
-                {
-                    'ext': 'srt',
-                    'data': self._convert_subtitles_to_srt(sub_root),
-                },
-                {
-                    'ext': 'ass',
-                    'data': self._convert_subtitles_to_ass(sub_root),
-                },
-            ]
+            subtitles[lang_code] = self._extract_subtitles(subtitle)
         return subtitles
 
     def _real_extract(self, url):
@@ -222,7 +255,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             webpage_url = 'http://www.' + mobj.group('url')
 
         webpage = self._download_webpage(webpage_url, video_id, 'Downloading webpage')
-        note_m = self._html_search_regex(r'<div class="showmedia-trailer-notice">(.+?)</div>', webpage, 'trailer-notice', default='')
+        note_m = self._html_search_regex(
+            r'<div class="showmedia-trailer-notice">(.+?)</div>',
+            webpage, 'trailer-notice', default='')
         if note_m:
             raise ExtractorError(note_m)
 
@@ -232,17 +267,24 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             if msg.get('type') == 'error':
                 raise ExtractorError('crunchyroll returned error: %s' % msg['message_body'], expected=True)
 
+        if 'To view this, please log in to verify you are 18 or older.' in webpage:
+            self.raise_login_required()
+
         video_title = self._html_search_regex(r'<h1[^>]*>(.+?)</h1>', webpage, 'video_title', flags=re.DOTALL)
         video_title = re.sub(r' {2,}', ' ', video_title)
         video_description = self._html_search_regex(r'"description":"([^"]+)', webpage, 'video_description', default='')
         if not video_description:
             video_description = None
-        video_upload_date = self._html_search_regex(r'<div>Availability for free users:(.+?)</div>', webpage, 'video_upload_date', fatal=False, flags=re.DOTALL)
+        video_upload_date = self._html_search_regex(
+            [r'<div>Availability for free users:(.+?)</div>', r'<div>[^<>]+<span>\s*(.+?\d{4})\s*</span></div>'],
+            webpage, 'video_upload_date', fatal=False, flags=re.DOTALL)
         if video_upload_date:
             video_upload_date = unified_strdate(video_upload_date)
-        video_uploader = self._html_search_regex(r'<div>\s*Publisher:(.+?)</div>', webpage, 'video_uploader', fatal=False, flags=re.DOTALL)
+        video_uploader = self._html_search_regex(
+            r'<a[^>]+href="/publisher/[^"]+"[^>]*>([^<]+)</a>', webpage,
+            'video_uploader', fatal=False)
 
-        playerdata_url = compat_urllib_parse.unquote(self._html_search_regex(r'"config_url":"([^"]+)', webpage, 'playerdata_url'))
+        playerdata_url = compat_urllib_parse_unquote(self._html_search_regex(r'"config_url":"([^"]+)', webpage, 'playerdata_url'))
         playerdata_req = compat_urllib_request.Request(playerdata_url)
         playerdata_req.data = compat_urllib_parse.urlencode({'current_page': webpage_url})
         playerdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
@@ -255,23 +297,44 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         for fmt in re.findall(r'showmedia\.([0-9]{3,4})p', webpage):
             stream_quality, stream_format = self._FORMAT_IDS[fmt]
             video_format = fmt + 'p'
-            streamdata_req = compat_urllib_request.Request('http://www.crunchyroll.com/xml/')
-            # urlencode doesn't work!
-            streamdata_req.data = 'req=RpcApiVideoEncode%5FGetStreamInfo&video%5Fencode%5Fquality=' + stream_quality + '&media%5Fid=' + stream_id + '&video%5Fformat=' + stream_format
+            streamdata_req = compat_urllib_request.Request(
+                'http://www.crunchyroll.com/xml/?req=RpcApiVideoPlayer_GetStandardConfig&media_id=%s&video_format=%s&video_quality=%s'
+                % (stream_id, stream_format, stream_quality),
+                compat_urllib_parse.urlencode({'current_page': url}).encode('utf-8'))
             streamdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
-            streamdata_req.add_header('Content-Length', str(len(streamdata_req.data)))
             streamdata = self._download_xml(
                 streamdata_req, video_id,
                 note='Downloading media info for %s' % video_format)
-            video_url = streamdata.find('./host').text
-            video_play_path = streamdata.find('./file').text
-            formats.append({
+            stream_info = streamdata.find('./{default}preload/stream_info')
+            video_url = stream_info.find('./host').text
+            video_play_path = stream_info.find('./file').text
+            metadata = stream_info.find('./metadata')
+            format_info = {
+                'format': video_format,
+                'format_id': video_format,
+                'height': int_or_none(xpath_text(metadata, './height')),
+                'width': int_or_none(xpath_text(metadata, './width')),
+            }
+
+            if '.fplive.net/' in video_url:
+                video_url = re.sub(r'^rtmpe?://', 'http://', video_url.strip())
+                parsed_video_url = compat_urlparse.urlparse(video_url)
+                direct_video_url = compat_urlparse.urlunparse(parsed_video_url._replace(
+                    netloc='v.lvlt.crcdn.net',
+                    path='%s/%s' % (remove_end(parsed_video_url.path, '/'), video_play_path.split(':')[-1])))
+                if self._is_valid_url(direct_video_url, video_id, video_format):
+                    format_info.update({
+                        'url': direct_video_url,
+                    })
+                    formats.append(format_info)
+                    continue
+
+            format_info.update({
                 'url': video_url,
                 'play_path': video_play_path,
                 'ext': 'flv',
-                'format': video_format,
-                'format_id': video_format,
             })
+            formats.append(format_info)
 
         subtitles = self.extract_subtitles(video_id, webpage)
 
@@ -287,7 +350,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         }
 
 
-class CrunchyrollShowPlaylistIE(InfoExtractor):
+class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
     IE_NAME = "crunchyroll:playlist"
     _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?!(?:news|anime-news|library|forum|launchcalendar|lineup|store|comics|freetrial|login))(?P<id>[\w\-]+))/?$'
 

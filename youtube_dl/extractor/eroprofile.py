@@ -4,7 +4,10 @@ import re
 
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    unescapeHTML
+)
 
 
 class EroProfileIE(InfoExtractor):
@@ -68,15 +71,14 @@ class EroProfileIE(InfoExtractor):
 
         m = re.search(r'You must be logged in to view this video\.', webpage)
         if m:
-            raise ExtractorError(
-                'This video requires login. Please specify a username and password and try again.', expected=True)
+            self.raise_login_required('This video requires login')
 
         video_id = self._search_regex(
             [r"glbUpdViews\s*\('\d*','(\d+)'", r'p/report/video/(\d+)'],
             webpage, 'video id', default=None)
 
-        video_url = self._search_regex(
-            r'<source src="([^"]+)', webpage, 'video url')
+        video_url = unescapeHTML(self._search_regex(
+            r'<source src="([^"]+)', webpage, 'video url'))
         title = self._html_search_regex(
             r'Title:</th><td>([^<]+)</td>', webpage, 'title')
         thumbnail = self._search_regex(

@@ -32,6 +32,7 @@ class FourTubeIE(InfoExtractor):
             'view_count': int,
             'like_count': int,
             'categories': list,
+            'age_limit': 18,
         }
     }
 

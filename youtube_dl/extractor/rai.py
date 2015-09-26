@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
+    compat_urlparse,
 )
 from ..utils import (
     parse_duration,
@@ -72,6 +73,18 @@ class RaiIE(InfoExtractor):
                 'description': 'Primo appuntamento con "Il candidato" con Filippo Timi, alias Piero Zucca presidente!',
                 'uploader': 'RaiTre',
             }
+        },
+        {
+            'url': 'http://www.report.rai.it/dl/Report/puntata/ContentItem-0c7a664b-d0f4-4b2c-8835-3f82e46f433e.html',
+            'md5': '037104d2c14132887e5e4cf114569214',
+            'info_dict': {
+                'id': '0c7a664b-d0f4-4b2c-8835-3f82e46f433e',
+                'ext': 'flv',
+                'title': 'Il pacco',
+                'description': 'md5:4b1afae1364115ce5d78ed83cd2e5b3a',
+                'uploader': 'RaiTre',
+                'upload_date': '20141221',
+            },
         }
     ]
 
@@ -90,11 +103,14 @@ class RaiIE(InfoExtractor):
         relinker_url = self._extract_relinker_url(webpage)
 
         if not relinker_url:
-            iframe_path = self._search_regex(
-                r'<iframe[^>]+src="/?(dl/[^"]+\?iframe\b[^"]*)"',
+            iframe_url = self._search_regex(
+                [r'<iframe[^>]+src="([^"]*/dl/[^"]+\?iframe\b[^"]*)"',
+                 r'drawMediaRaiTV\(["\'](.+?)["\']'],
                 webpage, 'iframe')
+            if not iframe_url.startswith('http'):
+                iframe_url = compat_urlparse.urljoin(url, iframe_url)
             webpage = self._download_webpage(
-                '%s/%s' % (host, iframe_path), video_id)
+                iframe_url, video_id)
             relinker_url = self._extract_relinker_url(webpage)
 
         relinker = self._download_json(

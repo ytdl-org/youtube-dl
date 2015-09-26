@@ -131,7 +131,7 @@ class RtmpFD(FileDownloader):
         if play_path is not None:
             basic_args += ['--playpath', play_path]
         if tc_url is not None:
-            basic_args += ['--tcUrl', url]
+            basic_args += ['--tcUrl', tc_url]
         if test:
             basic_args += ['--stop', '1']
         if flash_version is not None:

@@ -48,7 +48,7 @@ class SenateISVPIE(InfoExtractor):
         ["arch", "", "http://ussenate-f.akamaihd.net/"]
     ]
     _IE_NAME = 'senate.gov'
-    _VALID_URL = r'http://www\.senate\.gov/isvp/\?(?P<qs>.+)'
+    _VALID_URL = r'http://www\.senate\.gov/isvp/?\?(?P<qs>.+)'
     _TESTS = [{
         'url': 'http://www.senate.gov/isvp/?comm=judiciary&type=live&stt=&filename=judiciary031715&auto_play=false&wmode=transparent&poster=http%3A%2F%2Fwww.judiciary.senate.gov%2Fthemes%2Fjudiciary%2Fimages%2Fvideo-poster-flash-fit.png',
         'info_dict': {
@@ -72,12 +72,16 @@ class SenateISVPIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Integrated Senate Video Player'
         }
+    }, {
+        # From http://www.c-span.org/video/?96791-1
+        'url': 'http://www.senate.gov/isvp?type=live&comm=banking&filename=banking012715',
+        'only_matching': True,
     }]
 
     @staticmethod
     def _search_iframe_url(webpage):
         mobj = re.search(
-            r"<iframe[^>]+src=['\"](?P<url>http://www\.senate\.gov/isvp/\?[^'\"]+)['\"]",
+            r"<iframe[^>]+src=['\"](?P<url>http://www\.senate\.gov/isvp/?\?[^'\"]+)['\"]",
             webpage)
         if mobj:
             return mobj.group('url')

@@ -13,12 +13,24 @@ from ..utils import (
 
 class KalturaIE(InfoExtractor):
     _VALID_URL = r'''(?x)
-    (?:kaltura:|
-       https?://(:?(?:www|cdnapisec)\.)?kaltura\.com/index\.php/kwidget/(?:[^/]+/)*?wid/_
-    )(?P<partner_id>\d+)
-    (?::|
-       /(?:[^/]+/)*?entry_id/
-    )(?P<id>[0-9a-z_]+)'''
+                (?:
+                    kaltura:(?P<partner_id_s>\d+):(?P<id_s>[0-9a-z_]+)|
+                    https?://
+                        (:?(?:www|cdnapisec)\.)?kaltura\.com/
+                        (?:
+                            (?:
+                                # flash player
+                                index\.php/kwidget/
+                                (?:[^/]+/)*?wid/_(?P<partner_id>\d+)/
+                                (?:[^/]+/)*?entry_id/(?P<id>[0-9a-z_]+)|
+                                # html5 player
+                                html5/html5lib/
+                                (?:[^/]+/)*?entry_id/(?P<id_html5>[0-9a-z_]+)
+                                .*\?.*\bwid=_(?P<partner_id_html5>\d+)
+                            )
+                        )
+                )
+                '''
     _API_BASE = 'http://cdnapi.kaltura.com/api_v3/index.php?'
     _TESTS = [
         {
@@ -43,6 +55,10 @@ class KalturaIE(InfoExtractor):
             'url': 'https://cdnapisec.kaltura.com/index.php/kwidget/wid/_557781/uiconf_id/22845202/entry_id/1_plr1syf3',
             'only_matching': True,
         },
+        {
+            'url': 'https://cdnapisec.kaltura.com/html5/html5lib/v2.30.2/mwEmbedFrame.php/p/1337/uiconf_id/20540612/entry_id/1_sf5ovm7u?wid=_243342',
+            'only_matching': True,
+        }
     ]
 
     def _kaltura_api_call(self, video_id, actions, *args, **kwargs):
@@ -105,9 +121,9 @@ class KalturaIE(InfoExtractor):
             video_id, actions, note='Downloading video info JSON')
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
         mobj = re.match(self._VALID_URL, url)
-        partner_id, entry_id = mobj.group('partner_id'), mobj.group('id')
+        partner_id = mobj.group('partner_id_s') or mobj.group('partner_id') or mobj.group('partner_id_html5')
+        entry_id = mobj.group('id_s') or mobj.group('id') or mobj.group('id_html5')
 
         info, source_data = self._get_video_info(entry_id, partner_id)
 
@@ -126,7 +142,7 @@ class KalturaIE(InfoExtractor):
         self._sort_formats(formats)
 
         return {
-            'id': video_id,
+            'id': entry_id,
             'title': info['name'],
             'formats': formats,
             'description': info.get('description'),

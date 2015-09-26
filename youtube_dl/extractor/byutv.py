@@ -16,7 +16,7 @@ class BYUtvIE(InfoExtractor):
             'ext': 'mp4',
             'description': 'md5:5438d33774b6bdc662f9485a340401cc',
             'title': 'Season 5 Episode 5',
-            'thumbnail': 're:^https?://.*promo.*'
+            'thumbnail': 're:^https?://.*\.jpg$'
         },
         'params': {
             'skip_download': True,

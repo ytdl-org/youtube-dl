@@ -4,12 +4,18 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import ExtractorError
 
 
 class ZingMp3BaseInfoExtractor(InfoExtractor):
 
-    @staticmethod
-    def _extract_item(item):
+    def _extract_item(self, item):
+        error_message = item.find('./errormessage').text
+        if error_message:
+            raise ExtractorError(
+                '%s returned error: %s' % (self.IE_NAME, error_message),
+                expected=True)
+
         title = item.find('./title').text.strip()
         source = item.find('./source').text
         extension = item.attrib['type']

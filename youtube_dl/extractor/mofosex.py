@@ -5,9 +5,9 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
-    compat_urllib_parse,
 )
 
 
@@ -34,7 +34,7 @@ class MofosexIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         video_title = self._html_search_regex(r'<h1>(.+?)<', webpage, 'title')
-        video_url = compat_urllib_parse.unquote(self._html_search_regex(r'flashvars.video_url = \'([^\']+)', webpage, 'video_url'))
+        video_url = compat_urllib_parse_unquote(self._html_search_regex(r'flashvars.video_url = \'([^\']+)', webpage, 'video_url'))
         path = compat_urllib_parse_urlparse(video_url).path
         extension = os.path.splitext(path)[1][1:]
         format = path.split('/')[5].split('_')[:2]

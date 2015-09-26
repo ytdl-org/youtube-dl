@@ -20,7 +20,6 @@ from ..utils import (
 class SafariBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://www.safaribooksonline.com/accounts/login/'
     _SUCCESSFUL_LOGIN_REGEX = r'<a href="/accounts/logout/"[^>]*>Sign Out</a>'
-    _ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to supply credentials for safaribooksonline.com'
     _NETRC_MACHINE = 'safari'
 
     _API_BASE = 'https://www.safaribooksonline.com/api/v1/book'
@@ -37,9 +36,7 @@ class SafariBaseIE(InfoExtractor):
     def _login(self):
         (username, password) = self._get_login_info()
         if username is None:
-            raise ExtractorError(
-                self._ACCOUNT_CREDENTIALS_HINT,
-                expected=True)
+            self.raise_login_required('safaribooksonline.com account is required')
 
         headers = std_headers
         if 'Referer' not in headers:
@@ -83,7 +80,7 @@ class SafariIE(SafariBaseIE):
                                     library/view/[^/]+|
                                     api/v1/book
                                 )/
-                                (?P<course_id>\d+)/
+                                (?P<course_id>[^/]+)/
                                     (?:chapter(?:-content)?/)?
                                 (?P<part>part\d+)\.html
     '''
@@ -99,6 +96,10 @@ class SafariIE(SafariBaseIE):
         'skip': 'Requires safaribooksonline account credentials',
     }, {
         'url': 'https://www.safaribooksonline.com/api/v1/book/9780133392838/chapter/part00.html',
+        'only_matching': True,
+    }, {
+        # non-digits in course id
+        'url': 'https://www.safaribooksonline.com/library/view/create-a-nodejs/100000006A0210/part00.html',
         'only_matching': True,
     }]
 
@@ -122,7 +123,7 @@ class SafariCourseIE(SafariBaseIE):
     IE_NAME = 'safari:course'
     IE_DESC = 'safaribooksonline.com online courses'
 
-    _VALID_URL = r'https?://(?:www\.)?safaribooksonline\.com/(?:library/view/[^/]+|api/v1/book)/(?P<id>\d+)/?(?:[#?]|$)'
+    _VALID_URL = r'https?://(?:www\.)?safaribooksonline\.com/(?:library/view/[^/]+|api/v1/book)/(?P<id>[^/]+)/?(?:[#?]|$)'
 
     _TESTS = [{
         'url': 'https://www.safaribooksonline.com/library/view/hadoop-fundamentals-livelessons/9780133392838/',

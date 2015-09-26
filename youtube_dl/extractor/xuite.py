@@ -13,12 +13,13 @@ from ..utils import (
 
 
 class XuiteIE(InfoExtractor):
+    IE_DESC = '隨意窩Xuite影音'
     _REGEX_BASE64 = r'(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?'
     _VALID_URL = r'https?://vlog\.xuite\.net/(?:play|embed)/(?P<id>%s)' % _REGEX_BASE64
     _TESTS = [{
         # Audio
         'url': 'http://vlog.xuite.net/play/RGkzc1ZULTM4NjA5MTQuZmx2',
-        'md5': '63a42c705772aa53fd4c1a0027f86adf',
+        'md5': 'e79284c87b371424885448d11f6398c8',
         'info_dict': {
             'id': '3860914',
             'ext': 'mp3',

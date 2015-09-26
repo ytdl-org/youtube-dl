@@ -67,7 +67,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         return [{'url': url, 'ext': 'mp4'}]
 
     def _extract_video_formats(self, mdoc, mtvn_id):
-        if re.match(r'.*/(error_country_block\.swf|geoblock\.mp4)$', mdoc.find('.//src').text) is not None:
+        if re.match(r'.*/(error_country_block\.swf|geoblock\.mp4|copyright_error\.flv(?:\?geo\b.+?)?)$', mdoc.find('.//src').text) is not None:
             if mtvn_id is not None and self._MOBILE_TEMPLATE is not None:
                 self.to_screen('The normal version is not available from your '
                                'country, trying with the mobile version')
@@ -114,7 +114,8 @@ class MTVServicesInfoExtractor(InfoExtractor):
         # Remove the templates, like &device={device}
         mediagen_url = re.sub(r'&[^=]*?={.*?}(?=(&|$))', '', mediagen_url)
         if 'acceptMethods' not in mediagen_url:
-            mediagen_url += '&acceptMethods=fms'
+            mediagen_url += '&' if '?' in mediagen_url else '?'
+            mediagen_url += 'acceptMethods=fms'
 
         mediagen_doc = self._download_xml(mediagen_url, video_id,
                                           'Downloading video urls')
@@ -141,7 +142,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         if title_el is None:
             title_el = itemdoc.find('.//{http://search.yahoo.com/mrss/}title')
         if title_el is None:
-            title_el = itemdoc.find('.//title')
+            title_el = itemdoc.find('.//title') or itemdoc.find('./title')
             if title_el.text is None:
                 title_el = None
 
@@ -174,8 +175,11 @@ class MTVServicesInfoExtractor(InfoExtractor):
         if self._LANG:
             info_url += 'lang=%s&' % self._LANG
         info_url += data
+        return self._get_videos_info_from_url(info_url, video_id)
+
+    def _get_videos_info_from_url(self, url, video_id):
         idoc = self._download_xml(
-            info_url, video_id,
+            url, video_id,
             'Downloading info', transform_source=fix_xml_ampersands)
         return self.playlist_result(
             [self._get_video_info(item) for item in idoc.findall('.//item')])
@@ -288,3 +292,65 @@ class MTVIggyIE(MTVServicesInfoExtractor):
         }
     }
     _FEED_URL = 'http://all.mtvworldverticals.com/feed-xml/'
+
+
+class MTVDEIE(MTVServicesInfoExtractor):
+    IE_NAME = 'mtv.de'
+    _VALID_URL = r'https?://(?:www\.)?mtv\.de/(?:artists|shows|news)/(?:[^/]+/)*(?P<id>\d+)-[^/#?]+/*(?:[#?].*)?$'
+    _TESTS = [{
+        'url': 'http://www.mtv.de/artists/10571-cro/videos/61131-traum',
+        'info_dict': {
+            'id': 'music_video-a50bc5f0b3aa4b3190aa',
+            'ext': 'mp4',
+            'title': 'MusicVideo_cro-traum',
+            'description': 'Cro - Traum',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
+    }, {
+        # mediagen URL without query (e.g. http://videos.mtvnn.com/mediagen/e865da714c166d18d6f80893195fcb97)
+        'url': 'http://www.mtv.de/shows/933-teen-mom-2/staffeln/5353/folgen/63565-enthullungen',
+        'info_dict': {
+            'id': 'local_playlist-f5ae778b9832cc837189',
+            'ext': 'mp4',
+            'title': 'Episode_teen-mom-2_shows_season-5_episode-1_full-episode_part1',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
+    }, {
+        # single video in pagePlaylist with different id
+        'url': 'http://www.mtv.de/news/77491-mtv-movies-spotlight-pixels-teil-3',
+        'info_dict': {
+            'id': 'local_playlist-4e760566473c4c8c5344',
+            'ext': 'mp4',
+            'title': 'Article_mtv-movies-spotlight-pixels-teil-3_short-clips_part1',
+            'description': 'MTV Movies Supercut',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        playlist = self._parse_json(
+            self._search_regex(
+                r'window\.pagePlaylist\s*=\s*(\[.+?\]);\n', webpage, 'page playlist'),
+            video_id)
+
+        # news pages contain single video in playlist with different id
+        if len(playlist) == 1:
+            return self._get_videos_info_from_url(playlist[0]['mrss'], video_id)
+
+        for item in playlist:
+            item_id = item.get('id')
+            if item_id and compat_str(item_id) == video_id:
+                return self._get_videos_info_from_url(item['mrss'], video_id)

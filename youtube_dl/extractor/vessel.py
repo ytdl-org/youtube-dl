@@ -38,9 +38,13 @@ class VesselIE(InfoExtractor):
         return req
 
     @staticmethod
-    def find_assets(data, asset_type):
+    def find_assets(data, asset_type, asset_id=None):
         for asset in data.get('assets', []):
-            if asset.get('type') == asset_type:
+            if not asset.get('type') == asset_type:
+                continue
+            elif asset_id is not None and not asset.get('id') == asset_id:
+                continue
+            else:
                 yield asset
 
     def _check_access_rights(self, data):
@@ -82,11 +86,13 @@ class VesselIE(InfoExtractor):
         req = VesselIE.make_json_request(
             self._API_URL_TEMPLATE % asset_id, {'client': 'web'})
         data = self._download_json(req, video_id)
+        video_asset_id = data.get('main_video_asset')
 
         self._check_access_rights(data)
 
         try:
-            video_asset = next(VesselIE.find_assets(data, 'video'))
+            video_asset = next(
+                VesselIE.find_assets(data, 'video', asset_id=video_asset_id))
         except StopIteration:
             raise ExtractorError('No video assets found')
 

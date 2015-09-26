@@ -7,12 +7,9 @@ import subprocess
 
 from .ffmpeg import FFmpegPostProcessor
 
-from ..compat import (
-    compat_urlretrieve,
-)
 from ..utils import (
-    determine_ext,
     check_executable,
+    encodeArgument,
     encodeFilename,
     PostProcessingError,
     prepend_extension,
@@ -25,34 +22,48 @@ class EmbedThumbnailPPError(PostProcessingError):
 
 
 class EmbedThumbnailPP(FFmpegPostProcessor):
+    def __init__(self, downloader=None, already_have_thumbnail=False):
+        super(EmbedThumbnailPP, self).__init__(downloader)
+        self._already_have_thumbnail = already_have_thumbnail
+
     def run(self, info):
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
-        temp_thumbnail = filename + '.' + determine_ext(info['thumbnail'])
 
-        if not info.get('thumbnail'):
+        if not info.get('thumbnails'):
             raise EmbedThumbnailPPError('Thumbnail was not found. Nothing to do.')
 
-        compat_urlretrieve(info['thumbnail'], temp_thumbnail)
+        thumbnail_filename = info['thumbnails'][-1]['filename']
+
+        if not os.path.exists(encodeFilename(thumbnail_filename)):
+            self._downloader.report_warning(
+                'Skipping embedding the thumbnail because the file is missing.')
+            return [], info
 
         if info['ext'] == 'mp3':
             options = [
-                '-i', temp_thumbnail, '-c', 'copy', '-map', '0', '-map', '1',
+                '-c', 'copy', '-map', '0', '-map', '1',
                 '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"']
 
             self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
 
-            self.run_ffmpeg(filename, temp_filename, options)
+            self.run_ffmpeg_multiple_files([filename, thumbnail_filename], temp_filename, options)
 
-            os.remove(encodeFilename(temp_thumbnail))
+            if not self._already_have_thumbnail:
+                os.remove(encodeFilename(thumbnail_filename))
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
-        elif info['ext'] == 'm4a':
+        elif info['ext'] in ['m4a', 'mp4']:
             if not check_executable('AtomicParsley', ['-v']):
                 raise EmbedThumbnailPPError('AtomicParsley was not found. Please install.')
 
-            cmd = ['AtomicParsley', filename, '--artwork', temp_thumbnail, '-o', temp_filename]
+            cmd = [encodeFilename('AtomicParsley', True),
+                   encodeFilename(filename, True),
+                   encodeArgument('--artwork'),
+                   encodeFilename(thumbnail_filename, True),
+                   encodeArgument('-o'),
+                   encodeFilename(temp_filename, True)]
 
             self._downloader.to_screen('[atomicparsley] Adding thumbnail to "%s"' % filename)
 
@@ -66,7 +77,8 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 msg = stderr.decode('utf-8', 'replace').strip()
                 raise EmbedThumbnailPPError(msg)
 
-            os.remove(encodeFilename(temp_thumbnail))
+            if not self._already_have_thumbnail:
+                os.remove(encodeFilename(thumbnail_filename))
             # for formats that don't support thumbnails (like 3gp) AtomicParsley
             # won't create to the temporary file
             if b'No changes' in stdout:
@@ -75,6 +87,6 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 os.remove(encodeFilename(filename))
                 os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         else:
-            raise EmbedThumbnailPPError('Only mp3 and m4a are supported for thumbnail embedding for now.')
+            raise EmbedThumbnailPPError('Only mp3 and m4a/mp4 are supported for thumbnail embedding for now.')
 
         return [], info

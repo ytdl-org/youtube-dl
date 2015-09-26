@@ -84,18 +84,27 @@ class RUTVIE(InfoExtractor):
                 'title': 'Сочи-2014. Биатлон. Индивидуальная гонка. Мужчины ',
                 'description': 'md5:9e0ed5c9d2fa1efbfdfed90c9a6d179c',
             },
+            'skip': 'Translation has finished',
+        },
+        {
+            'url': 'http://player.rutv.ru/iframe/live/id/21/showZoomBtn/false/isPlay/true/',
+            'info_dict': {
+                'id': '21',
+                'ext': 'mp4',
+                'title': 're:^Россия 24. Прямой эфир [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+                'is_live': True,
+            },
             'params': {
-                # rtmp download
+                # m3u8 download
                 'skip_download': True,
             },
-            'skip': 'Translation has finished',
         },
     ]
 
     @classmethod
     def _extract_url(cls, webpage):
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://player\.rutv\.ru/(?:iframe/(?:swf|video|live)/id|index/iframe/cast_id)/.+?)\1', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://player\.(?:rutv\.ru|vgtrk\.com)/(?:iframe/(?:swf|video|live)/id|index/iframe/cast_id)/.+?)\1', webpage)
         if mobj:
             return mobj.group('url')
 
@@ -119,8 +128,10 @@ class RUTVIE(InfoExtractor):
         elif video_path.startswith('index/iframe/cast_id'):
             video_type = 'live'
 
+        is_live = video_type == 'live'
+
         json_data = self._download_json(
-            'http://player.rutv.ru/iframe/%splay/id/%s' % ('live-' if video_type == 'live' else '', video_id),
+            'http://player.rutv.ru/iframe/%splay/id/%s' % ('live-' if is_live else '', video_id),
             video_id, 'Downloading JSON')
 
         if json_data['errors']:
@@ -147,6 +158,7 @@ class RUTVIE(InfoExtractor):
 
         for transport, links in media['sources'].items():
             for quality, url in links.items():
+                preference = -1 if priority_transport == transport else -2
                 if transport == 'rtmp':
                     mobj = re.search(r'^(?P<url>rtmp://[^/]+/(?P<app>.+))/(?P<playpath>.+)$', url)
                     if not mobj:
@@ -160,9 +172,11 @@ class RUTVIE(InfoExtractor):
                         'rtmp_live': True,
                         'ext': 'flv',
                         'vbr': int(quality),
+                        'preference': preference,
                     }
                 elif transport == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(url, video_id, 'mp4'))
+                    formats.extend(self._extract_m3u8_formats(
+                        url, video_id, 'mp4', preference=preference, m3u8_id='hls'))
                     continue
                 else:
                     fmt = {
@@ -172,21 +186,18 @@ class RUTVIE(InfoExtractor):
                     'width': width,
                     'height': height,
                     'format_id': '%s-%s' % (transport, quality),
-                    'preference': -1 if priority_transport == transport else -2,
                 })
                 formats.append(fmt)
-
-        if not formats:
-            raise ExtractorError('No media links available for %s' % video_id)
 
         self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'title': title,
+            'title': self._live_title(title) if is_live else title,
             'description': description,
             'thumbnail': thumbnail,
             'view_count': view_count,
             'duration': duration,
             'formats': formats,
+            'is_live': is_live,
         }

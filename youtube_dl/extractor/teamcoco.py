@@ -2,13 +2,17 @@
 from __future__ import unicode_literals
 
 import base64
+import binascii
 import re
+import json
 
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     qualities,
+    determine_ext,
 )
+from ..compat import compat_ord
 
 
 class TeamcocoIE(InfoExtractor):
@@ -47,6 +51,17 @@ class TeamcocoIE(InfoExtractor):
             'params': {
                 'skip_download': True,  # m3u8 downloads
             }
+        }, {
+            'url': 'http://teamcoco.com/video/full-episode-mon-6-1-joel-mchale-jake-tapper-and-musical-guest-courtney-barnett?playlist=x;eyJ0eXBlIjoidGFnIiwiaWQiOjl9',
+            'info_dict': {
+                'id': '89341',
+                'ext': 'mp4',
+                'title': 'Full Episode - Mon. 6/1 - Joel McHale, Jake Tapper, And Musical Guest Courtney Barnett',
+                'description': 'Guests: Joel McHale, Jake Tapper, And Musical Guest Courtney Barnett',
+            },
+            'params': {
+                'skip_download': True,  # m3u8 downloads
+            }
         }
     ]
     _VIDEO_ID_REGEXES = (
@@ -59,40 +74,70 @@ class TeamcocoIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
 
         display_id = mobj.group('display_id')
-        webpage = self._download_webpage(url, display_id)
+        webpage, urlh = self._download_webpage_handle(url, display_id)
+        if 'src=expired' in urlh.geturl():
+            raise ExtractorError('This video is expired.', expected=True)
 
         video_id = mobj.group('video_id')
         if not video_id:
             video_id = self._html_search_regex(
                 self._VIDEO_ID_REGEXES, webpage, 'video id')
 
-        preload = None
-        preloads = re.findall(r'"preload":\s*"([^"]+)"', webpage)
-        if preloads:
-            preload = max([(len(p), p) for p in preloads])[1]
+        data = None
 
-        if not preload:
-            preload = ''.join(re.findall(r'this\.push\("([^"]+)"\);', webpage))
+        preload_codes = self._html_search_regex(
+            r'(function.+)setTimeout\(function\(\)\{playlist',
+            webpage, 'preload codes')
+        base64_fragments = re.findall(r'"([a-zA-z0-9+/=]+)"', preload_codes)
+        base64_fragments.remove('init')
 
-        if not preload:
-            preload = self._html_search_regex([
-                r'player,\[?"([^"]+)"\]?', r'player.init\(\[?"([^"]+)"\]?\)'
-            ], webpage.replace('","', ''), 'preload data', default=None)
+        def _check_sequence(cur_fragments):
+            if not cur_fragments:
+                return
+            for i in range(len(cur_fragments)):
+                cur_sequence = (''.join(cur_fragments[i:] + cur_fragments[:i])).encode('ascii')
+                try:
+                    raw_data = base64.b64decode(cur_sequence)
+                    if compat_ord(raw_data[0]) == compat_ord('{'):
+                        return json.loads(raw_data.decode('utf-8'))
+                except (TypeError, binascii.Error, UnicodeDecodeError, ValueError):
+                    continue
 
-        if not preload:
+        def _check_data():
+            for i in range(len(base64_fragments) + 1):
+                for j in range(i, len(base64_fragments) + 1):
+                    data = _check_sequence(base64_fragments[:i] + base64_fragments[j:])
+                    if data:
+                        return data
+
+        self.to_screen('Try to compute possible data sequence. This may take some time.')
+        data = _check_data()
+
+        if not data:
             raise ExtractorError(
                 'Preload information could not be extracted', expected=True)
-
-        data = self._parse_json(
-            base64.b64decode(preload.encode('ascii')).decode('utf-8'), video_id)
 
         formats = []
         get_quality = qualities(['500k', '480p', '1000k', '720p', '1080p'])
         for filed in data['files']:
-            if filed['type'] == 'hls':
-                formats.extend(self._extract_m3u8_formats(
-                    filed['url'], video_id, ext='mp4'))
+            if determine_ext(filed['url']) == 'm3u8':
+                # compat_urllib_parse.urljoin does not work here
+                if filed['url'].startswith('/'):
+                    m3u8_url = 'http://ht.cdn.turner.com/tbs/big/teamcoco' + filed['url']
+                else:
+                    m3u8_url = filed['url']
+                m3u8_formats = self._extract_m3u8_formats(
+                    m3u8_url, video_id, ext='mp4')
+                for m3u8_format in m3u8_formats:
+                    if m3u8_format not in formats:
+                        formats.append(m3u8_format)
+            elif determine_ext(filed['url']) == 'f4m':
+                # TODO Correct f4m extraction
+                continue
             else:
+                if filed['url'].startswith('/mp4:protected/'):
+                    # TODO Correct extraction for these files
+                    continue
                 m_format = re.search(r'(\d+(k|p))\.mp4', filed['url'])
                 if m_format is not None:
                     format_id = m_format.group(1)

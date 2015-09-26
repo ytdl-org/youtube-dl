@@ -9,7 +9,6 @@ import codecs
 import io
 import os
 import random
-import shlex
 import sys
 
 
@@ -20,6 +19,7 @@ from .compat import (
     compat_expanduser,
     compat_getpass,
     compat_print,
+    compat_shlex_split,
     workaround_optparse_bug9161,
 )
 from .utils import (
@@ -169,7 +169,7 @@ def _real_main(argv=None):
         if not opts.audioquality.isdigit():
             parser.error('invalid audio quality specified')
     if opts.recodevideo is not None:
-        if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv']:
+        if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv', 'avi']:
             parser.error('invalid video recode format specified')
     if opts.convertsubtitles is not None:
         if opts.convertsubtitles not in ['srt', 'vtt', 'ass']:
@@ -240,13 +240,18 @@ def _real_main(argv=None):
     if opts.xattrs:
         postprocessors.append({'key': 'XAttrMetadata'})
     if opts.embedthumbnail:
-        postprocessors.append({'key': 'EmbedThumbnail'})
+        already_have_thumbnail = opts.writethumbnail or opts.write_all_thumbnails
+        postprocessors.append({
+            'key': 'EmbedThumbnail',
+            'already_have_thumbnail': already_have_thumbnail
+        })
+        if not already_have_thumbnail:
+            opts.writethumbnail = True
     # Please keep ExecAfterDownload towards the bottom as it allows the user to modify the final file in any way.
     # So if the user is able to remove the file before your postprocessor runs it might cause a few problems.
     if opts.exec_cmd:
         postprocessors.append({
             'key': 'ExecAfterDownload',
-            'verboseOutput': opts.verbose,
             'exec_cmd': opts.exec_cmd,
         })
     if opts.xattr_set_filesize:
@@ -257,7 +262,10 @@ def _real_main(argv=None):
             parser.error('setting filesize xattr requested but python-xattr is not available')
     external_downloader_args = None
     if opts.external_downloader_args:
-        external_downloader_args = shlex.split(opts.external_downloader_args)
+        external_downloader_args = compat_shlex_split(opts.external_downloader_args)
+    postprocessor_args = None
+    if opts.postprocessor_args:
+        postprocessor_args = compat_shlex_split(opts.postprocessor_args)
     match_filter = (
         None if opts.match_filter is None
         else match_filter_func(opts.match_filter))
@@ -288,6 +296,7 @@ def _real_main(argv=None):
         'autonumber_size': opts.autonumber_size,
         'restrictfilenames': opts.restrictfilenames,
         'ignoreerrors': opts.ignoreerrors,
+        'force_generic_extractor': opts.force_generic_extractor,
         'ratelimit': opts.ratelimit,
         'nooverwrites': opts.nooverwrites,
         'retries': opts_retries,
@@ -345,7 +354,6 @@ def _real_main(argv=None):
         'default_search': opts.default_search,
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
         'encoding': opts.encoding,
-        'exec_cmd': opts.exec_cmd,
         'extract_flat': opts.extract_flat,
         'merge_output_format': opts.merge_output_format,
         'postprocessors': postprocessors,
@@ -362,6 +370,7 @@ def _real_main(argv=None):
         'ffmpeg_location': opts.ffmpeg_location,
         'hls_prefer_native': opts.hls_prefer_native,
         'external_downloader_args': external_downloader_args,
+        'postprocessor_args': postprocessor_args,
         'cn_verification_proxy': opts.cn_verification_proxy,
     }
 

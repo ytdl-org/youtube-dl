@@ -43,7 +43,7 @@ class VideoTtIE(InfoExtractor):
 
         formats = [
             {
-                'url': base64.b64decode(res['u']).decode('utf-8'),
+                'url': base64.b64decode(res['u'].encode('utf-8')).decode('utf-8'),
                 'ext': 'flv',
                 'format_id': res['l'],
             } for res in settings['res'] if res['u']

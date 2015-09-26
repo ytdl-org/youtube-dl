@@ -15,7 +15,6 @@ class DRBonanzaIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.dr.dk/bonanza/serie/portraetter/Talkshowet.htm?assetId=65517',
-        'md5': 'fe330252ddea607635cf2eb2c99a0af3',
         'info_dict': {
             'id': '65517',
             'ext': 'mp4',
@@ -25,6 +24,9 @@ class DRBonanzaIE(InfoExtractor):
             'timestamp': 1295537932,
             'upload_date': '20110120',
             'duration': 3664,
+        },
+        'params': {
+            'skip_download': True,  # requires rtmp
         },
     }, {
         'url': 'http://www.dr.dk/bonanza/radio/serie/sport/fodbold.htm?assetId=59410',
@@ -93,6 +95,11 @@ class DRBonanzaIE(InfoExtractor):
                         'format_id': file['Type'].replace('Video', ''),
                         'preference': preferencemap.get(file['Type'], -10),
                     })
+                    if format['url'].startswith('rtmp'):
+                        rtmp_url = format['url']
+                        format['rtmp_live'] = True  # --resume does not work
+                        if '/bonanza/' in rtmp_url:
+                            format['play_path'] = rtmp_url.split('/bonanza/')[1]
                     formats.append(format)
                 elif file['Type'] == "Thumb":
                     thumbnail = file['Location']
@@ -111,9 +118,6 @@ class DRBonanzaIE(InfoExtractor):
         description = '%s\n%s\n%s\n' % (
             info['Description'], info['Actors'], info['Colophon'])
 
-        for f in formats:
-            f['url'] = f['url'].replace('rtmp://vod-bonanza.gss.dr.dk/bonanza/', 'http://vodfiles.dr.dk/')
-            f['url'] = f['url'].replace('mp4:bonanza', 'bonanza')
         self._sort_formats(formats)
 
         display_id = re.sub(r'[^\w\d-]', '', re.sub(r' ', '-', title.lower())) + '-' + asset_id

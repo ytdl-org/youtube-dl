@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 import re
 import itertools
+import json
+import xml.etree.ElementTree as ET
 
 from .common import InfoExtractor
 from ..utils import (
@@ -39,8 +41,15 @@ class BiliBiliIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        if self._search_regex(r'(此视频不存在或被删除)', webpage, 'error message', default=None):
-            raise ExtractorError('The video does not exist or was deleted', expected=True)
+        if '(此视频不存在或被删除)' in webpage:
+            raise ExtractorError(
+                'The video does not exist or was deleted', expected=True)
+
+        if '>你没有权限浏览！ 由于版权相关问题 我们不对您所在的地区提供服务<' in webpage:
+            raise ExtractorError(
+                'The video is not available in your region due to copyright reasons',
+                expected=True)
+
         video_code = self._search_regex(
             r'(?s)<div itemprop="video".*?>(.*?)</div>', webpage, 'video code')
 
@@ -67,11 +76,19 @@ class BiliBiliIE(InfoExtractor):
 
         entries = []
 
-        lq_doc = self._download_xml(
+        lq_page = self._download_webpage(
             'http://interface.bilibili.com/v_cdn_play?appkey=1&cid=%s' % cid,
             video_id,
             note='Downloading LQ video info'
         )
+        try:
+            err_info = json.loads(lq_page)
+            raise ExtractorError(
+                'BiliBili said: ' + err_info['error_text'], expected=True)
+        except ValueError:
+            pass
+
+        lq_doc = ET.fromstring(lq_page)
         lq_durls = lq_doc.findall('./durl')
 
         hq_doc = self._download_xml(
@@ -80,9 +97,11 @@ class BiliBiliIE(InfoExtractor):
             note='Downloading HQ video info',
             fatal=False,
         )
-        hq_durls = hq_doc.findall('./durl') if hq_doc is not False else itertools.repeat(None)
-
-        assert len(lq_durls) == len(hq_durls)
+        if hq_doc is not False:
+            hq_durls = hq_doc.findall('./durl')
+            assert len(lq_durls) == len(hq_durls)
+        else:
+            hq_durls = itertools.repeat(None)
 
         i = 1
         for lq_durl, hq_durl in zip(lq_durls, hq_durls):
@@ -93,7 +112,7 @@ class BiliBiliIE(InfoExtractor):
                 'filesize': int_or_none(
                     lq_durl.find('./size'), get_attr='text'),
             }]
-            if hq_durl:
+            if hq_durl is not None:
                 formats.append({
                     'format_id': 'hq',
                     'quality': 2,

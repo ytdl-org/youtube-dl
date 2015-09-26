@@ -10,7 +10,21 @@ from ..utils import (
 
 
 class MLBIE(InfoExtractor):
-    _VALID_URL = r'https?://m(?:lb)?\.(?:[\da-z_-]+\.)?mlb\.com/(?:(?:.*?/)?video/(?:topic/[\da-z_-]+/)?v|(?:shared/video/embed/embed\.html|[^/]+/video/play\.jsp)\?.*?\bcontent_id=)(?P<id>n?\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:[\da-z_-]+\.)*mlb\.com/
+                        (?:
+                            (?:
+                                (?:.*?/)?video/(?:topic/[\da-z_-]+/)?v|
+                                (?:
+                                    shared/video/embed/(?:embed|m-internal-embed)\.html|
+                                    (?:[^/]+/)+(?:play|index)\.jsp|
+                                )\?.*?\bcontent_id=
+                            )
+                            (?P<id>n?\d+)|
+                            (?:[^/]+/)*(?P<path>[^/]+)
+                        )
+                    '''
     _TESTS = [
         {
             'url': 'http://m.mlb.com/sea/video/topic/51231442/v34698933/nymsea-ackley-robs-a-home-run-with-an-amazing-catch/?c_id=sea',
@@ -69,6 +83,18 @@ class MLBIE(InfoExtractor):
             },
         },
         {
+            'url': 'http://m.mlb.com/news/article/118550098/blue-jays-kevin-pillar-goes-spidey-up-the-wall-to-rob-tim-beckham-of-a-homer',
+            'md5': 'b190e70141fb9a1552a85426b4da1b5d',
+            'info_dict': {
+                'id': '75609783',
+                'ext': 'mp4',
+                'title': 'Must C: Pillar climbs for catch',
+                'description': '4/15/15: Blue Jays outfielder Kevin Pillar continues his defensive dominance by climbing the wall in left to rob Tim Beckham of a home run',
+                'timestamp': 1429124820,
+                'upload_date': '20150415',
+            }
+        },
+        {
             'url': 'http://m.mlb.com/shared/video/embed/embed.html?content_id=35692085&topic_id=6479266&width=400&height=224&property=mlb',
             'only_matching': True,
         },
@@ -83,12 +109,27 @@ class MLBIE(InfoExtractor):
         {
             'url': 'http://m.cardinals.mlb.com/stl/video/v51175783/atlstl-piscotty-makes-great-sliding-catch-on-line/?partnerId=as_mlb_20150321_42500876&adbid=579409712979910656&adbpl=tw&adbpr=52847728',
             'only_matching': True,
+        },
+        {
+            # From http://m.mlb.com/news/article/118550098/blue-jays-kevin-pillar-goes-spidey-up-the-wall-to-rob-tim-beckham-of-a-homer
+            'url': 'http://mlb.mlb.com/shared/video/embed/m-internal-embed.html?content_id=75609783&property=mlb&autoplay=true&hashmode=false&siteSection=mlb/multimedia/article_118550098/article_embed&club=mlb',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://washington.nationals.mlb.com/mlb/gameday/index.jsp?c_id=was&gid=2015_05_09_atlmlb_wasmlb_1&lang=en&content_id=108309983&mode=video#',
+            'only_matching': True,
         }
     ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+
+        if not video_id:
+            video_path = mobj.group('path')
+            webpage = self._download_webpage(url, video_path)
+            video_id = self._search_regex(
+                [r'data-video-?id="(\d+)"', r'content_id=(\d+)'], webpage, 'video id')
 
         detail = self._download_xml(
             'http://m.mlb.com/gen/multimedia/detail/%s/%s/%s/%s.xml'

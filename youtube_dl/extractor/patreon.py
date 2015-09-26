@@ -87,7 +87,7 @@ class PatreonIE(InfoExtractor):
             r'<div class="attach"><a target="_blank" href="([^"]+)">',
             webpage, 'attachment URL', default=None)
         embed = self._html_search_regex(
-            r'<div id="watchCreation">\s*<iframe class="embedly-embed" src="([^"]+)"',
+            r'<div[^>]+id="watchCreation"[^>]*>\s*<iframe[^>]+src="([^"]+)"',
             webpage, 'embedded URL', default=None)
 
         if attach_fn is not None:

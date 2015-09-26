@@ -1,8 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor, ExtractorError
-from ..utils import parse_iso8601
+from .common import InfoExtractor
+from ..utils import (
+    ExtractorError,
+    parse_iso8601,
+)
 
 
 class DRTVIE(InfoExtractor):
@@ -60,19 +63,31 @@ class DRTVIE(InfoExtractor):
                 restricted_to_denmark = asset['RestrictedToDenmark']
                 spoken_subtitles = asset['Target'] == 'SpokenSubtitles'
                 for link in asset['Links']:
-                    target = link['Target']
                     uri = link['Uri']
+                    target = link['Target']
                     format_id = target
-                    preference = -1 if target == 'HDS' else -2
+                    preference = None
                     if spoken_subtitles:
-                        preference -= 2
+                        preference = -1
                         format_id += '-spoken-subtitles'
-                    formats.append({
-                        'url': uri + '?hdcore=3.3.0&plugin=aasp-3.3.0.99.43' if target == 'HDS' else uri,
-                        'format_id': format_id,
-                        'ext': link['FileFormat'],
-                        'preference': preference,
-                    })
+                    if target == 'HDS':
+                        formats.extend(self._extract_f4m_formats(
+                            uri + '?hdcore=3.3.0&plugin=aasp-3.3.0.99.43',
+                            video_id, preference, f4m_id=format_id))
+                    elif target == 'HLS':
+                        formats.extend(self._extract_m3u8_formats(
+                            uri, video_id, 'mp4', preference=preference,
+                            m3u8_id=format_id))
+                    else:
+                        bitrate = link.get('Bitrate')
+                        if bitrate:
+                            format_id += '-%s' % bitrate
+                        formats.append({
+                            'url': uri,
+                            'format_id': format_id,
+                            'tbr': bitrate,
+                            'ext': link.get('FileFormat'),
+                        })
                 subtitles_list = asset.get('SubtitlesList')
                 if isinstance(subtitles_list, list):
                     LANGS = {

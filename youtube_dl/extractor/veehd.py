@@ -5,6 +5,7 @@ import json
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_urllib_parse_unquote,
     compat_urlparse,
 )
 from ..utils import (
@@ -76,7 +77,7 @@ class VeeHDIE(InfoExtractor):
 
         if config_json:
             config = json.loads(config_json)
-            video_url = compat_urlparse.unquote(config['clip']['url'])
+            video_url = compat_urllib_parse_unquote(config['clip']['url'])
 
         if not video_url:
             video_url = self._html_search_regex(

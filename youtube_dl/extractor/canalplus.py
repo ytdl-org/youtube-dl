@@ -25,14 +25,14 @@ class CanalplusIE(InfoExtractor):
     }
 
     _TESTS = [{
-        'url': 'http://www.canalplus.fr/c-infos-documentaires/pid1830-c-zapping.html?vid=922470',
-        'md5': '3db39fb48b9685438ecf33a1078023e4',
+        'url': 'http://www.canalplus.fr/c-emissions/pid1830-c-zapping.html?vid=1263092',
+        'md5': 'b3481d7ca972f61e37420798d0a9d934',
         'info_dict': {
-            'id': '922470',
+            'id': '1263092',
             'ext': 'flv',
-            'title': 'Zapping - 26/08/13',
-            'description': 'Le meilleur de toutes les chaînes, tous les jours.\nEmission du 26 août 2013',
-            'upload_date': '20130826',
+            'title': 'Le Zapping - 13/05/15',
+            'description': 'md5:09738c0d06be4b5d06a0940edb0da73f',
+            'upload_date': '20150513',
         },
     }, {
         'url': 'http://www.piwiplus.fr/videos-piwi/pid1405-le-labyrinthe-boing-super-ranger.html?vid=1108190',
@@ -56,7 +56,7 @@ class CanalplusIE(InfoExtractor):
         'skip': 'videos get deleted after a while',
     }, {
         'url': 'http://www.itele.fr/france/video/aubervilliers-un-lycee-en-colere-111559',
-        'md5': '65aa83ad62fe107ce29e564bb8712580',
+        'md5': 'f3a46edcdf28006598ffaf5b30e6a2d4',
         'info_dict': {
             'id': '1213714',
             'ext': 'flv',
@@ -106,15 +106,11 @@ class CanalplusIE(InfoExtractor):
                 continue
             format_id = fmt.tag
             if format_id == 'HLS':
-                hls_formats = self._extract_m3u8_formats(format_url, video_id, 'flv')
-                for fmt in hls_formats:
-                    fmt['preference'] = preference(format_id)
-                formats.extend(hls_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', preference=preference(format_id)))
             elif format_id == 'HDS':
-                hds_formats = self._extract_f4m_formats(format_url + '?hdcore=2.11.3', video_id)
-                for fmt in hds_formats:
-                    fmt['preference'] = preference(format_id)
-                formats.extend(hds_formats)
+                formats.extend(self._extract_f4m_formats(
+                    format_url + '?hdcore=2.11.3', video_id, preference=preference(format_id)))
             else:
                 formats.append({
                     'url': format_url,

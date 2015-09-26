@@ -9,8 +9,8 @@ from ..utils import qualities
 
 
 class DumpertIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?dumpert\.nl/mediabase/(?P<id>[0-9]+/[0-9a-zA-Z]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?dumpert\.nl/(?:mediabase|embed)/(?P<id>[0-9]+/[0-9a-zA-Z]+)'
+    _TESTS = [{
         'url': 'http://www.dumpert.nl/mediabase/6646981/951bc60f/',
         'md5': '1b9318d7d5054e7dcb9dc7654f21d643',
         'info_dict': {
@@ -20,13 +20,17 @@ class DumpertIE(InfoExtractor):
             'description': 'Niet schrikken hoor',
             'thumbnail': 're:^https?://.*\.jpg$',
         }
-    }
+    }, {
+        'url': 'http://www.dumpert.nl/embed/6675421/dc440fe7/',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        url = 'https://www.dumpert.nl/mediabase/' + video_id
         req = compat_urllib_request.Request(url)
-        req.add_header('Cookie', 'nsfw=1')
+        req.add_header('Cookie', 'nsfw=1; cpc=10')
         webpage = self._download_webpage(req, video_id)
 
         files_base64 = self._search_regex(

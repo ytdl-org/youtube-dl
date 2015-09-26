@@ -1,10 +1,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    xpath_text,
-    parse_duration,
-)
+from ..utils import parse_duration
 
 
 class DHMIE(InfoExtractor):
@@ -34,24 +31,14 @@ class DHMIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        playlist_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url, playlist_id)
 
         playlist_url = self._search_regex(
             r"file\s*:\s*'([^']+)'", webpage, 'playlist url')
 
-        playlist = self._download_xml(playlist_url, video_id)
-
-        track = playlist.find(
-            './{http://xspf.org/ns/0/}trackList/{http://xspf.org/ns/0/}track')
-
-        video_url = xpath_text(
-            track, './{http://xspf.org/ns/0/}location',
-            'video url', fatal=True)
-        thumbnail = xpath_text(
-            track, './{http://xspf.org/ns/0/}image',
-            'thumbnail')
+        entries = self._extract_xspf_playlist(playlist_url, playlist_id)
 
         title = self._search_regex(
             [r'dc:title="([^"]+)"', r'<title> &raquo;([^<]+)</title>'],
@@ -63,11 +50,10 @@ class DHMIE(InfoExtractor):
             r'<em>Length\s*</em>\s*:\s*</strong>([^<]+)',
             webpage, 'duration', default=None))
 
-        return {
-            'id': video_id,
-            'url': video_url,
+        entries[0].update({
             'title': title,
             'description': description,
             'duration': duration,
-            'thumbnail': thumbnail,
-        }
+        })
+
+        return self.playlist_result(entries, playlist_id)

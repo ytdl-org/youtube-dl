@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..compat import (
@@ -24,16 +23,28 @@ class CondeNastIE(InfoExtractor):
     # The keys are the supported sites and the values are the name to be shown
     # to the user and in the extractor description.
     _SITES = {
-        'wired': 'WIRED',
-        'gq': 'GQ',
-        'vogue': 'Vogue',
-        'glamour': 'Glamour',
-        'wmagazine': 'W Magazine',
-        'vanityfair': 'Vanity Fair',
+        'allure': 'Allure',
+        'architecturaldigest': 'Architectural Digest',
+        'arstechnica': 'Ars Technica',
+        'bonappetit': 'Bon Appétit',
+        'brides': 'Brides',
         'cnevids': 'Condé Nast',
+        'cntraveler': 'Condé Nast Traveler',
+        'details': 'Details',
+        'epicurious': 'Epicurious',
+        'glamour': 'Glamour',
+        'golfdigest': 'Golf Digest',
+        'gq': 'GQ',
+        'newyorker': 'The New Yorker',
+        'self': 'SELF',
+        'teenvogue': 'Teen Vogue',
+        'vanityfair': 'Vanity Fair',
+        'vogue': 'Vogue',
+        'wired': 'WIRED',
+        'wmagazine': 'W Magazine',
     }
 
-    _VALID_URL = r'http://(video|www|player)\.(?P<site>%s)\.com/(?P<type>watch|series|video|embed)/(?P<id>[^/?#]+)' % '|'.join(_SITES.keys())
+    _VALID_URL = r'http://(?:video|www|player)\.(?P<site>%s)\.com/(?P<type>watch|series|video|embed)/(?P<id>[^/?#]+)' % '|'.join(_SITES.keys())
     IE_DESC = 'Condé Nast media group: %s' % ', '.join(sorted(_SITES.values()))
 
     EMBED_URL = r'(?:https?:)?//player\.(?P<site>%s)\.com/(?P<type>embed)/.+?' % '|'.join(_SITES.keys())
@@ -86,8 +97,8 @@ class CondeNastIE(InfoExtractor):
         info_url = base_info_url + data
         info_page = self._download_webpage(info_url, video_id,
                                            'Downloading video info')
-        video_info = self._search_regex(r'var video = ({.+?});', info_page, 'video info')
-        video_info = json.loads(video_info)
+        video_info = self._search_regex(r'var\s+video\s*=\s*({.+?});', info_page, 'video info')
+        video_info = self._parse_json(video_info, video_id)
 
         formats = [{
             'format_id': '%s-%s' % (fdata['type'].split('/')[-1], fdata['quality']),

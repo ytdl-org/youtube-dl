@@ -34,7 +34,7 @@ class PornoVoisinesIE(InfoExtractor):
             'duration': 120,
             'view_count': int,
             'average_rating': float,
-            'categories': ['Débutante', 'Scénario', 'Sodomie'],
+            'categories': ['Débutantes', 'Scénario', 'Sodomie'],
             'age_limit': 18,
         }
     }
@@ -71,7 +71,7 @@ class PornoVoisinesIE(InfoExtractor):
         view_count = int_or_none(self._search_regex(
             r'(\d+) vues', webpage, 'view count', fatal=False))
         average_rating = self._search_regex(
-            r'Note : (\d+,\d+)', webpage, 'average rating', fatal=False)
+            r'Note\s*:\s*(\d+(?:,\d+)?)', webpage, 'average rating', fatal=False)
         if average_rating:
             average_rating = float_or_none(average_rating.replace(',', '.'))
 

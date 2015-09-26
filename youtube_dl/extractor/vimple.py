@@ -4,7 +4,29 @@ from .common import InfoExtractor
 from ..utils import int_or_none
 
 
-class VimpleIE(InfoExtractor):
+class SprutoBaseIE(InfoExtractor):
+    def _extract_spruto(self, spruto, video_id):
+        playlist = spruto['playlist'][0]
+        title = playlist['title']
+        video_id = playlist.get('videoId') or video_id
+        thumbnail = playlist.get('posterUrl') or playlist.get('thumbnailUrl')
+        duration = int_or_none(playlist.get('duration'))
+
+        formats = [{
+            'url': f['url'],
+        } for f in playlist['video']]
+        self._sort_formats(formats)
+
+        return {
+            'id': video_id,
+            'title': title,
+            'thumbnail': thumbnail,
+            'duration': duration,
+            'formats': formats,
+        }
+
+
+class VimpleIE(SprutoBaseIE):
     IE_DESC = 'Vimple - one-click video hosting'
     _VALID_URL = r'https?://(?:player\.vimple\.ru/iframe|vimple\.ru)/(?P<id>[\da-f-]{32,36})'
     _TESTS = [
@@ -30,25 +52,9 @@ class VimpleIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://player.vimple.ru/iframe/%s' % video_id, video_id)
 
-        playlist = self._parse_json(
+        spruto = self._parse_json(
             self._search_regex(
                 r'sprutoData\s*:\s*({.+?}),\r\n', webpage, 'spruto data'),
-            video_id)['playlist'][0]
+            video_id)
 
-        title = playlist['title']
-        video_id = playlist.get('videoId') or video_id
-        thumbnail = playlist.get('posterUrl') or playlist.get('thumbnailUrl')
-        duration = int_or_none(playlist.get('duration'))
-
-        formats = [{
-            'url': f['url'],
-        } for f in playlist['video']]
-        self._sort_formats(formats)
-
-        return {
-            'id': video_id,
-            'title': title,
-            'thumbnail': thumbnail,
-            'duration': duration,
-            'formats': formats,
-        }
+        return self._extract_spruto(spruto, video_id)

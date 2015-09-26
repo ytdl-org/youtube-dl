@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     float_or_none,
@@ -14,7 +13,7 @@ from ..utils import (
 
 
 class NRKIE(InfoExtractor):
-    _VALID_URL = r'(?:nrk:|http://(?:www\.)?nrk\.no/video/PS\*)(?P<id>\d+)'
+    _VALID_URL = r'(?:nrk:|https?://(?:www\.)?nrk\.no/video/PS\*)(?P<id>\d+)'
 
     _TESTS = [
         {
@@ -77,7 +76,7 @@ class NRKIE(InfoExtractor):
 
 
 class NRKPlaylistIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?nrk\.no/(?!video)(?:[^/]+/)+(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?nrk\.no/(?!video)(?:[^/]+/)+(?P<id>[^/]+)'
 
     _TESTS = [{
         'url': 'http://www.nrk.no/troms/gjenopplev-den-historiske-solformorkelsen-1.12270763',
@@ -117,11 +116,12 @@ class NRKPlaylistIE(InfoExtractor):
 
 
 class NRKTVIE(InfoExtractor):
-    _VALID_URL = r'(?P<baseurl>http://tv\.nrk(?:super)?\.no/)(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})(?:/\d{2}-\d{2}-\d{4})?(?:#del=(?P<part_id>\d+))?'
+    IE_DESC = 'NRK TV and NRK Radio'
+    _VALID_URL = r'(?P<baseurl>https?://(?:tv|radio)\.nrk(?:super)?\.no/)(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})(?:/\d{2}-\d{2}-\d{4})?(?:#del=(?P<part_id>\d+))?'
 
     _TESTS = [
         {
-            'url': 'http://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
+            'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
             'md5': 'adf2c5454fa2bf032f47a9f8fb351342',
             'info_dict': {
                 'id': 'MUHH48000314',
@@ -133,7 +133,7 @@ class NRKTVIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://tv.nrk.no/program/mdfp15000514',
+            'url': 'https://tv.nrk.no/program/mdfp15000514',
             'md5': '383650ece2b25ecec996ad7b5bb2a384',
             'info_dict': {
                 'id': 'mdfp15000514',
@@ -146,7 +146,7 @@ class NRKTVIE(InfoExtractor):
         },
         {
             # single playlist video
-            'url': 'http://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015#del=2',
+            'url': 'https://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015#del=2',
             'md5': 'adbd1dbd813edaf532b0a253780719c2',
             'info_dict': {
                 'id': 'MSPO40010515-part2',
@@ -158,7 +158,7 @@ class NRKTVIE(InfoExtractor):
             'skip': 'Only works from Norway',
         },
         {
-            'url': 'http://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015',
+            'url': 'https://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015',
             'playlist': [
                 {
                     'md5': '9480285eff92d64f06e02a5367970a7a',
@@ -189,6 +189,10 @@ class NRKTVIE(InfoExtractor):
                 'duration': 6947.5199999999995,
             },
             'skip': 'Only works from Norway',
+        },
+        {
+            'url': 'https://radio.nrk.no/serie/dagsnytt/NPUB21019315/12-07-2015#',
+            'only_matching': True,
         }
     ]
 
@@ -200,24 +204,15 @@ class NRKTVIE(InfoExtractor):
         url = "%s%s" % (baseurl, subtitlesurl)
         self._debug_print('%s: Subtitle url: %s' % (video_id, url))
         captions = self._download_xml(
-            url, video_id, 'Downloading subtitles',
-            transform_source=lambda s: s.replace(r'<br />', '\r\n'))
+            url, video_id, 'Downloading subtitles')
         lang = captions.get('lang', 'no')
-        ps = captions.findall('./{0}body/{0}div/{0}p'.format('{http://www.w3.org/ns/ttml}'))
-        srt = ''
-        for pos, p in enumerate(ps):
-            begin = parse_duration(p.get('begin'))
-            duration = parse_duration(p.get('dur'))
-            starttime = self._subtitles_timecode(begin)
-            endtime = self._subtitles_timecode(begin + duration)
-            srt += '%s\r\n%s --> %s\r\n%s\r\n\r\n' % (compat_str(pos), starttime, endtime, p.text)
         return {lang: [
             {'ext': 'ttml', 'url': url},
-            {'ext': 'srt', 'data': srt},
         ]}
 
     def _extract_f4m(self, manifest_url, video_id):
-        return self._extract_f4m_formats(manifest_url + '?hdcore=3.1.1&plugin=aasp-3.1.1.69.124', video_id)
+        return self._extract_f4m_formats(
+            manifest_url + '?hdcore=3.1.1&plugin=aasp-3.1.1.69.124', video_id, f4m_id='hds')
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -279,7 +274,7 @@ class NRKTVIE(InfoExtractor):
 
         m3u8_url = re.search(r'data-hls-media="([^"]+)"', webpage)
         if m3u8_url:
-            formats.extend(self._extract_m3u8_formats(m3u8_url.group(1), video_id, 'mp4'))
+            formats.extend(self._extract_m3u8_formats(m3u8_url.group(1), video_id, 'mp4', m3u8_id='hls'))
         self._sort_formats(formats)
 
         subtitles_url = self._html_search_regex(

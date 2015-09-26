@@ -156,7 +156,7 @@ class AdultSwimIE(InfoExtractor):
                 xpath_text(idoc, './/trt', 'segment duration').strip())
 
             formats = []
-            file_els = idoc.findall('.//files/file')
+            file_els = idoc.findall('.//files/file') or idoc.findall('./files/file')
 
             for file_el in file_els:
                 bitrate = file_el.attrib.get('bitrate')

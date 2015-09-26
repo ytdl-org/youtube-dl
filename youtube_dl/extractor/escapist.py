@@ -8,7 +8,8 @@ from ..compat import compat_urllib_request
 from ..utils import (
     determine_ext,
     clean_html,
-    qualities,
+    int_or_none,
+    float_or_none,
 )
 
 
@@ -36,10 +37,10 @@ def _decrypt_config(key, string):
 
 
 class EscapistIE(InfoExtractor):
-    _VALID_URL = r'https?://?(www\.)?escapistmagazine\.com/videos/view/[^/?#]+/(?P<id>[0-9]+)-[^/?#]*(?:$|[?#])'
+    _VALID_URL = r'https?://?(?:www\.)?escapistmagazine\.com/videos/view/[^/?#]+/(?P<id>[0-9]+)-[^/?#]*(?:$|[?#])'
     _TESTS = [{
         'url': 'http://www.escapistmagazine.com/videos/view/the-escapist-presents/6618-Breaking-Down-Baldurs-Gate',
-        'md5': 'c6793dbda81388f4264c1ba18684a74d',
+        'md5': 'ab3a706c681efca53f0a35f1415cf0d1',
         'info_dict': {
             'id': '6618',
             'ext': 'mp4',
@@ -47,10 +48,11 @@ class EscapistIE(InfoExtractor):
             'title': "Breaking Down Baldur's Gate",
             'thumbnail': 're:^https?://.*\.jpg$',
             'duration': 264,
+            'uploader': 'The Escapist',
         }
     }, {
         'url': 'http://www.escapistmagazine.com/videos/view/zero-punctuation/10044-Evolve-One-vs-Multiplayer',
-        'md5': 'cf8842a8a46444d241f9a9980d7874f2',
+        'md5': '9e8c437b0dbb0387d3bd3255ca77f6bf',
         'info_dict': {
             'id': '10044',
             'ext': 'mp4',
@@ -58,6 +60,7 @@ class EscapistIE(InfoExtractor):
             'title': 'Evolve - One vs Multiplayer',
             'thumbnail': 're:^https?://.*\.jpg$',
             'duration': 304,
+            'uploader': 'The Escapist',
         }
     }]
 
@@ -65,35 +68,33 @@ class EscapistIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        imsVideo = self._parse_json(
+        ims_video = self._parse_json(
             self._search_regex(
                 r'imsVideo\.play\(({.+?})\);', webpage, 'imsVideo'),
             video_id)
-        video_id = imsVideo['videoID']
-        key = imsVideo['hash']
+        video_id = ims_video['videoID']
+        key = ims_video['hash']
 
-        quality = qualities(['lq', 'hq', 'hd'])
+        config_req = compat_urllib_request.Request(
+            'http://www.escapistmagazine.com/videos/'
+            'vidconfig.php?videoID=%s&hash=%s' % (video_id, key))
+        config_req.add_header('Referer', url)
+        config = self._download_webpage(config_req, video_id, 'Downloading video config')
 
-        formats = []
-        for q in ['lq', 'hq', 'hd']:
-            config_req = compat_urllib_request.Request(
-                'http://www.escapistmagazine.com/videos/'
-                'vidconfig.php?videoID=%s&hash=%s&quality=%s' % (video_id, key, 'mp4_' + q))
-            config_req.add_header('Referer', url)
-            config = self._download_webpage(config_req, video_id, 'Downloading video config ' + q.upper())
+        data = json.loads(_decrypt_config(key, config))
 
-            data = json.loads(_decrypt_config(key, config))
+        video_data = data['videoData']
 
-            title = clean_html(data['videoData']['title'])
-            duration = data['videoData']['duration'] / 1000
+        title = clean_html(video_data['title'])
+        duration = float_or_none(video_data.get('duration'), 1000)
+        uploader = video_data.get('publisher')
 
-            for i, v in enumerate(data['files']['videos']):
-
-                formats.append({
-                    'url': v,
-                    'format_id': determine_ext(v) + '_' + q + str(i),
-                    'quality': quality(q),
-                })
+        formats = [{
+            'url': video['src'],
+            'format_id': '%s-%sp' % (determine_ext(video['src']), video['res']),
+            'height': int_or_none(video.get('res')),
+        } for video in data['files']['videos']]
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
@@ -102,4 +103,5 @@ class EscapistIE(InfoExtractor):
             'thumbnail': self._og_search_thumbnail(webpage),
             'description': self._og_search_description(webpage),
             'duration': duration,
+            'uploader': uploader,
         }

@@ -11,13 +11,13 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    clean_html,
     int_or_none,
 )
 
 
 class LyndaBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://www.lynda.com/login/login.aspx'
-    _SUCCESSFUL_LOGIN_REGEX = r'isLoggedIn: true'
     _ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to provide lynda.com account credentials.'
     _NETRC_MACHINE = 'lynda'
 
@@ -30,18 +30,18 @@ class LyndaBaseIE(InfoExtractor):
             return
 
         login_form = {
-            'username': username,
-            'password': password,
+            'username': username.encode('utf-8'),
+            'password': password.encode('utf-8'),
             'remember': 'false',
             'stayPut': 'false'
         }
         request = compat_urllib_request.Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
+            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         login_page = self._download_webpage(
             request, None, 'Logging in as %s' % username)
 
         # Not (yet) logged in
-        m = re.search(r'loginResultJson = \'(?P<json>[^\']+)\';', login_page)
+        m = re.search(r'loginResultJson\s*=\s*\'(?P<json>[^\']+)\';', login_page)
         if m is not None:
             response = m.group('json')
             response_json = json.loads(response)
@@ -65,12 +65,21 @@ class LyndaBaseIE(InfoExtractor):
                     'stayPut': 'false',
                 }
                 request = compat_urllib_request.Request(
-                    self._LOGIN_URL, compat_urllib_parse.urlencode(confirm_form))
+                    self._LOGIN_URL, compat_urllib_parse.urlencode(confirm_form).encode('utf-8'))
                 login_page = self._download_webpage(
                     request, None,
                     'Confirming log in and log out from another device')
 
-        if re.search(self._SUCCESSFUL_LOGIN_REGEX, login_page) is None:
+        if all(not re.search(p, login_page) for p in ('isLoggedIn\s*:\s*true', r'logout\.aspx', r'>Log out<')):
+            if 'login error' in login_page:
+                mobj = re.search(
+                    r'(?s)<h1[^>]+class="topmost">(?P<title>[^<]+)</h1>\s*<div>(?P<description>.+?)</div>',
+                    login_page)
+                if mobj:
+                    raise ExtractorError(
+                        'lynda returned error: %s - %s'
+                        % (mobj.group('title'), clean_html(mobj.group('description'))),
+                        expected=True)
             raise ExtractorError('Unable to log in')
 
 
@@ -109,9 +118,7 @@ class LyndaIE(LyndaBaseIE):
                 'lynda returned error: %s' % video_json['Message'], expected=True)
 
         if video_json['HasAccess'] is False:
-            raise ExtractorError(
-                'Video %s is only available for members. '
-                % video_id + self._ACCOUNT_CREDENTIALS_HINT, expected=True)
+            self.raise_login_required('Video %s is only available for members' % video_id)
 
         video_id = compat_str(video_json['ID'])
         duration = video_json['DurationInSeconds']

@@ -4,6 +4,7 @@ import os
 
 from ..utils import (
     PostProcessingError,
+    cli_configuration_args,
     encodeFilename,
 )
 
@@ -23,6 +24,9 @@ class PostProcessor(object):
 
     PostProcessor objects follow a "mutual registration" process similar
     to InfoExtractor objects.
+
+    Optionally PostProcessor can use a list of additional command-line arguments
+    with self._configuration_args.
     """
 
     _downloader = None
@@ -56,6 +60,9 @@ class PostProcessor(object):
             os.utime(encodeFilename(path), (atime, mtime))
         except Exception:
             self._downloader.report_warning(errnote)
+
+    def _configuration_args(self, default=[]):
+        return cli_configuration_args(self._downloader.params, 'postprocessor_args', default)
 
 
 class AudioConversionError(PostProcessingError):

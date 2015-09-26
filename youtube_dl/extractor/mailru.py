@@ -25,6 +25,7 @@ class MailRuIE(InfoExtractor):
                 'uploader_id': 'sonypicturesrus@mail.ru',
                 'duration': 184,
             },
+            'skip': 'Not accessible from Travis CI server',
         },
         {
             'url': 'http://my.mail.ru/corp/hitech/video/news_hi-tech_mail_ru/1263.html',
@@ -39,6 +40,7 @@ class MailRuIE(InfoExtractor):
                 'uploader_id': 'hitech@corp.mail.ru',
                 'duration': 245,
             },
+            'skip': 'Not accessible from Travis CI server',
         },
     ]
 

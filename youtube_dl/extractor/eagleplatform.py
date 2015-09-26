@@ -79,7 +79,7 @@ class EaglePlatformIE(InfoExtractor):
             age_limit = 0 if age_restriction == 'allow_all' else 18
 
         m3u8_data = self._download_json(
-            media['sources']['secure_m3u8']['auto'],
+            self._proto_relative_url(media['sources']['secure_m3u8']['auto'], 'http:'),
             video_id, 'Downloading m3u8 JSON')
 
         formats = self._extract_m3u8_formats(

@@ -18,7 +18,8 @@ class PlanetaPlayIE(InfoExtractor):
             'id': '3586',
             'ext': 'flv',
             'title': 'md5:e829428ee28b1deed00de90de49d1da1',
-        }
+        },
+        'skip': 'Not accessible from Travis CI server',
     }
 
     _SONG_FORMATS = {
