@@ -11,6 +11,7 @@ from ..compat import (
 )
 from ..utils import (
     orderedSet,
+    remove_end,
 )
 
 
@@ -44,12 +45,12 @@ class CondeNastIE(InfoExtractor):
         'wmagazine': 'W Magazine',
     }
 
-    _VALID_URL = r'http://(?:video|www|player)\.(?P<site>%s)\.com/(?P<type>watch|series|video|embed)/(?P<id>[^/?#]+)' % '|'.join(_SITES.keys())
+    _VALID_URL = r'http://(?:video|www|player)\.(?P<site>%s)\.com/(?P<type>watch|series|video|embed(?:js)?)/(?P<id>[^/?#]+)' % '|'.join(_SITES.keys())
     IE_DESC = 'Condé Nast media group: %s' % ', '.join(sorted(_SITES.values()))
 
-    EMBED_URL = r'(?:https?:)?//player\.(?P<site>%s)\.com/(?P<type>embed)/.+?' % '|'.join(_SITES.keys())
+    EMBED_URL = r'(?:https?:)?//player\.(?P<site>%s)\.com/(?P<type>embed(?:js)?)/.+?' % '|'.join(_SITES.keys())
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://video.wired.com/watch/3d-printed-speakers-lit-with-led',
         'md5': '1921f713ed48aabd715691f774c451f7',
         'info_dict': {
@@ -58,7 +59,16 @@ class CondeNastIE(InfoExtractor):
             'title': '3D Printed Speakers Lit With LED',
             'description': 'Check out these beautiful 3D printed LED speakers.  You can\'t actually buy them, but LumiGeek is working on a board that will let you make you\'re own.',
         }
-    }
+    }, {
+        # JS embed
+        'url': 'http://player.cnevids.com/embedjs/55f9cf8b61646d1acf00000c/5511d76261646d5566020000.js',
+        'md5': 'f1a6f9cafb7083bab74a710f65d08999',
+        'info_dict': {
+            'id': '55f9cf8b61646d1acf00000c',
+            'ext': 'mp4',
+            'title': '3D printed TSA Travel Sentry keys really do open TSA locks',
+        }
+    }]
 
     def _extract_series(self, url, webpage):
         title = self._html_search_regex(r'<div class="cne-series-info">.*?<h1>(.+?)</h1>',
@@ -121,6 +131,13 @@ class CondeNastIE(InfoExtractor):
         site = mobj.group('site')
         url_type = mobj.group('type')
         item_id = mobj.group('id')
+
+        # Convert JS embed to regular embed
+        if url_type == 'embedjs':
+            parsed_url = compat_urlparse.urlparse(url)
+            url = compat_urlparse.urlunparse(parsed_url._replace(
+                path=remove_end(parsed_url.path, '.js').replace('/embedjs/', '/embed/')))
+            url_type = 'embed'
 
         self.to_screen('Extracting from %s with the Condé Nast extractor' % self._SITES[site])
         webpage = self._download_webpage(url, item_id)
