@@ -89,81 +89,78 @@ def gettestcases(include_onlymatching=False):
 md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 
 
+def expect_value(self, got, expected, field):
+    if isinstance(expected, compat_str) and expected.startswith('re:'):
+        match_str = expected[len('re:'):]
+        match_rex = re.compile(match_str)
+
+        self.assertTrue(
+            isinstance(got, compat_str),
+            'Expected a %s object, but got %s for field %s' % (
+                compat_str.__name__, type(got).__name__, field))
+        self.assertTrue(
+            match_rex.match(got),
+            'field %s (value: %r) should match %r' % (field, got, match_str))
+    elif isinstance(expected, compat_str) and expected.startswith('startswith:'):
+        start_str = expected[len('startswith:'):]
+        self.assertTrue(
+            isinstance(got, compat_str),
+            'Expected a %s object, but got %s for field %s' % (
+                compat_str.__name__, type(got).__name__, field))
+        self.assertTrue(
+            got.startswith(start_str),
+            'field %s (value: %r) should start with %r' % (field, got, start_str))
+    elif isinstance(expected, compat_str) and expected.startswith('contains:'):
+        contains_str = expected[len('contains:'):]
+        self.assertTrue(
+            isinstance(got, compat_str),
+            'Expected a %s object, but got %s for field %s' % (
+                compat_str.__name__, type(got).__name__, field))
+        self.assertTrue(
+            contains_str in got,
+            'field %s (value: %r) should contain %r' % (field, got, contains_str))
+    elif isinstance(expected, type):
+        self.assertTrue(isinstance(got, expected),
+                        'Expected type %r for field %s, but got value %r of type %r' % (expected, field, got, type(got)))
+    elif isinstance(expected, dict) and isinstance(got, dict):
+        expect_dict(self, got, expected)
+    elif isinstance(expected, list) and isinstance(got, list):
+        self.assertEqual(len(expected), len(got),
+                         'Expect a list of length %d, but got a list of length %d' % (
+                         len(expected), len(got)))
+        _id = 0
+        for i, j in zip(got, expected):
+            _type_i = type(i)
+            _type_j = type(j)
+            self.assertEqual(_type_j, _type_i,
+                             'Type doesn\'t match at element %d of the list in field %s, expect %s, got %s' % (
+                             _id, field, _type_j, _type_i))
+            expect_value(self, i, j, field)
+            _id += 1
+    else:
+        if isinstance(expected, compat_str) and expected.startswith('md5:'):
+            got = 'md5:' + md5(got)
+        elif isinstance(expected, compat_str) and expected.startswith('mincount:'):
+            self.assertTrue(
+                isinstance(got, (list, dict)),
+                'Expected field %s to be a list or a dict, but it is of type %s' % (
+                    field, type(got).__name__))
+            expected_num = int(expected.partition(':')[2])
+            assertGreaterEqual(
+                self, len(got), expected_num,
+                'Expected %d items in field %s, but only got %d' % (
+                    expected_num, field, len(got)
+                )
+            )
+            return
+        self.assertEqual(expected, got,
+                         'invalid value for field %s, expected %r, got %r' % (field, expected, got))
+
+
 def expect_dict(self, got_dict, expected_dict):
     for info_field, expected in expected_dict.items():
-        if isinstance(expected, compat_str) and expected.startswith('re:'):
-            got = got_dict.get(info_field)
-            match_str = expected[len('re:'):]
-            match_rex = re.compile(match_str)
-
-            self.assertTrue(
-                isinstance(got, compat_str),
-                'Expected a %s object, but got %s for field %s' % (
-                    compat_str.__name__, type(got).__name__, info_field))
-            self.assertTrue(
-                match_rex.match(got),
-                'field %s (value: %r) should match %r' % (info_field, got, match_str))
-        elif isinstance(expected, compat_str) and expected.startswith('startswith:'):
-            got = got_dict.get(info_field)
-            start_str = expected[len('startswith:'):]
-            self.assertTrue(
-                isinstance(got, compat_str),
-                'Expected a %s object, but got %s for field %s' % (
-                    compat_str.__name__, type(got).__name__, info_field))
-            self.assertTrue(
-                got.startswith(start_str),
-                'field %s (value: %r) should start with %r' % (info_field, got, start_str))
-        elif isinstance(expected, compat_str) and expected.startswith('contains:'):
-            got = got_dict.get(info_field)
-            contains_str = expected[len('contains:'):]
-            self.assertTrue(
-                isinstance(got, compat_str),
-                'Expected a %s object, but got %s for field %s' % (
-                    compat_str.__name__, type(got).__name__, info_field))
-            self.assertTrue(
-                contains_str in got,
-                'field %s (value: %r) should contain %r' % (info_field, got, contains_str))
-        elif isinstance(expected, type):
-            got = got_dict.get(info_field)
-            self.assertTrue(isinstance(got, expected),
-                            'Expected type %r for field %s, but got value %r of type %r' % (expected, info_field, got, type(got)))
-        elif isinstance(expected, dict) and isinstance(got_dict.get(info_field, None), dict):
-            expect_dict(self, got_dict.get(info_field), expected)
-        elif isinstance(expected, list) and isinstance(got_dict.get(info_field, None), list):
-            got = got_dict.get(info_field, None)
-            self.assertEqual(len(expected), len(got),
-                             'Expect a list of length %d, but got a list of length %d' % (
-                             len(expected), len(got)))
-            _id = 0
-            for i, j in zip(got, expected):
-                _type_i = type(i)
-                _type_j = type(j)
-                self.assertEqual(_type_j, _type_i,
-                                 'Type doesn\'t match at element %d of the list in field %s, expect %s, got %s' % (
-                                 _id, info_field, _type_j, _type_i))
-                expect_dict(self, {'_': i}, {'_': j})
-                _id += 1
-        else:
-            if isinstance(expected, compat_str) and expected.startswith('md5:'):
-                got = 'md5:' + md5(got_dict.get(info_field))
-            elif isinstance(expected, compat_str) and expected.startswith('mincount:'):
-                got = got_dict.get(info_field)
-                self.assertTrue(
-                    isinstance(got, (list, dict)),
-                    'Expected field %s to be a list or a dict, but it is of type %s' % (
-                        info_field, type(got).__name__))
-                expected_num = int(expected.partition(':')[2])
-                assertGreaterEqual(
-                    self, len(got), expected_num,
-                    'Expected %d items in field %s, but only got %d' % (
-                        expected_num, info_field, len(got)
-                    )
-                )
-                continue
-            else:
-                got = got_dict.get(info_field)
-            self.assertEqual(expected, got,
-                             'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
+        got = got_dict.get(info_field)
+        expect_value(self, got, expected, info_field)
 
 
 def expect_info_dict(self, got_dict, expected_dict):
