@@ -156,6 +156,9 @@ class PluralsightIE(PluralsightBaseIE):
                 format_id = '%s-%s' % (ext, quality)
                 clip_url = self._download_webpage(
                     request, display_id, 'Downloading %s URL' % format_id, fatal=False)
+                # #6989: sleep 3 seconds to avoid 429 errors.
+                # should help with #6842.
+                self._sleep(3, display_id)
                 if not clip_url:
                     continue
                 f.update({
