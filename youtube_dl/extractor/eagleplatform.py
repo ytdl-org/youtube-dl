@@ -73,7 +73,7 @@ class EaglePlatformIE(InfoExtractor):
 
         title = media['title']
         description = media.get('description')
-        thumbnail = self._proto_relative_url(media.get('snapshot'))
+        thumbnail = self._proto_relative_url(media.get('snapshot'), 'http:')
         duration = int_or_none(media.get('duration'))
         view_count = int_or_none(media.get('views'))
 
