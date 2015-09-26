@@ -43,6 +43,21 @@ class QQMusicIE(InfoExtractor):
             'description': 'md5:46857d5ed62bc4ba84607a805dccf437',
             'thumbnail': 're:^https?://.*\.jpg$',
         }
+    }, {
+        'note': 'lyrics not in .lrc format',
+        'url': 'http://y.qq.com/#type=song&mid=001JyApY11tIp6',
+        'info_dict': {
+            'id': '001JyApY11tIp6',
+            'ext': 'mp3',
+            'title': 'Shadows Over Transylvania',
+            'upload_date': '19970225',
+            'creator': 'Dark Funeral',
+            'description': 'md5:ed14d5bd7ecec19609108052c25b2c11',
+            'thumbnail': 're:^https?://.*\.jpg$',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     _FORMATS = {
