@@ -14,8 +14,8 @@ class KeekIE(InfoExtractor):
         'info_dict': {
             'id': 'NODfbab',
             'ext': 'mp4',
-            'title': 'test chars: "\'/\\ä<>This is a test video for youtube-dl.For more information, contact phihag@phihag.de . - Video - Videos on Keek',
-            'description': 'test chars: "\'/\\ä<>This is a test video for youtube-dl.For more information, contact phihag@phihag.de .',
+            'title': 'test chars: "\'/\\\xe4<>This is a test video for youtube-dl.For more information, contact phihag@phihag.de . - Video - Videos on Keek',
+            'description': 'md5:35d42050a3ece241d5ddd7fdcc6fd896',
             'uploader': 'ytdl',
             'uploader_id': 'eGT5bab',
         },
