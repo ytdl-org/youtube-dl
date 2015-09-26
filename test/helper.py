@@ -89,7 +89,7 @@ def gettestcases(include_onlymatching=False):
 md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
 
 
-def expect_info_dict(self, got_dict, expected_dict):
+def expect_dict(self, got_dict, expected_dict):
     for info_field, expected in expected_dict.items():
         if isinstance(expected, compat_str) and expected.startswith('re:'):
             got = got_dict.get(info_field)
@@ -127,6 +127,22 @@ def expect_info_dict(self, got_dict, expected_dict):
             got = got_dict.get(info_field)
             self.assertTrue(isinstance(got, expected),
                             'Expected type %r for field %s, but got value %r of type %r' % (expected, info_field, got, type(got)))
+        elif isinstance(expected, dict) and isinstance(got_dict.get(info_field, None), dict):
+            expect_dict(self, got_dict.get(info_field), expected)
+        elif isinstance(expected, list) and isinstance(got_dict.get(info_field, None), list):
+            got = got_dict.get(info_field, None)
+            self.assertEqual(len(expected), len(got),
+                             'Expect a list of length %d, but got a list of length %d' % (
+                             len(expected), len(got)))
+            _id = 0
+            for i, j in zip(got, expected):
+                _type_i = type(i)
+                _type_j = type(j)
+                self.assertEqual(_type_j, _type_i,
+                                 'Type doesn\'t match at element %d of the list in field %s, expect %s, got %s' % (
+                                 _id, info_field, _type_j, _type_i))
+                expect_dict(self, {'_': i}, {'_': j})
+                _id += 1
         else:
             if isinstance(expected, compat_str) and expected.startswith('md5:'):
                 got = 'md5:' + md5(got_dict.get(info_field))
@@ -149,6 +165,9 @@ def expect_info_dict(self, got_dict, expected_dict):
             self.assertEqual(expected, got,
                              'invalid value for field %s, expected %r, got %r' % (info_field, expected, got))
 
+
+def expect_info_dict(self, got_dict, expected_dict):
+    expect_dict(self, got_dict, expected_dict)
     # Check for the presence of mandatory fields
     if got_dict.get('_type') not in ('playlist', 'multi_video'):
         for key in ('id', 'url', 'title', 'ext'):

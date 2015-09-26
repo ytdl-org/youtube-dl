@@ -58,6 +58,11 @@ class QQMusicIE(InfoExtractor):
         curMs = int(time.time() * 1000) % 1000
         return int(round(random.random() * 2147483647) * curMs % 1E10)
 
+    def _filter_lrc(self, data):
+        lyrics_expr = r'(\[[0-9]{2}:[0-9]{2}\.[0-9]{2,}\][^\n]*|\[[^\]]*\])'
+        texts = re.findall(lyrics_expr, data)
+        return ''.join(i + "\n" for i in texts)
+
     def _real_extract(self, url):
         mid = self._match_id(url)
 
@@ -112,15 +117,25 @@ class QQMusicIE(InfoExtractor):
         self._check_formats(formats, mid)
         self._sort_formats(formats)
 
-        return {
+        actual_lrc_lyrics = self._filter_lrc(lrc_content)
+
+        info_dict = {
             'id': mid,
             'formats': formats,
             'title': song_name,
             'upload_date': publish_time,
             'creator': singer,
             'description': lrc_content,
-            'thumbnail': thumbnail_url,
+            'thumbnail': thumbnail_url
         }
+        if actual_lrc_lyrics:
+            info_dict['subtitles'] = {
+                'origin': [{
+                    'ext': 'lrc',
+                    'data': actual_lrc_lyrics,
+                }]
+            }
+        return info_dict
 
 
 class QQPlaylistBaseIE(InfoExtractor):
