@@ -66,6 +66,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
     IE_DESC = '网易云音乐'
     _VALID_URL = r'https?://music\.163\.com/(#/)?song\?id=(?P<id>[0-9]+)'
     _TESTS = [{
+        'note': 'origin + translated lyrics, with time tag need to be fixed',
         'url': 'http://music.163.com/#/song?id=32102397',
         'md5': 'f2e97280e6345c74ba9d5677dd5dcb45',
         'info_dict': {
@@ -75,7 +76,10 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'creator': 'Taylor Swift / Kendrick Lamar',
             'upload_date': '20150517',
             'timestamp': 1431878400,
-            'description': 'md5:a10a54589c2860300d02e1de821eb2ef',
+            'subtitles': {
+                'origin': [{'ext': 'lrc', 'data': 'md5:eb9ae90502b435de7d9e99fc7602adb4'}],
+                'translated': [{'ext': 'lrc', 'data': 'md5:cadca69fdfb7b679d273cc01a518f7dd'}],
+            }
         },
     }, {
         'note': 'No lyrics translation.',
@@ -87,7 +91,9 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'creator': '周杰伦',
             'upload_date': '20141225',
             'timestamp': 1419523200,
-            'description': 'md5:a4d8d89f44656af206b7b2555c0bce6c',
+            'subtitles': {
+                'origin': [{'ext': 'lrc', 'data': 'md5:a1766edaa6dbc85357f0ae9feabc867b'}],
+            }
         },
     }, {
         'note': 'No lyrics.',
@@ -99,6 +105,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'creator': 'Dustin O\'Halloran',
             'upload_date': '20080211',
             'timestamp': 1202745600,
+            'subtitles': {}
         },
     }, {
         'note': 'Has translated name.',
@@ -108,30 +115,88 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'ext': 'mp3',
             'title': '소원을 말해봐 (Genie)',
             'creator': '少女时代',
-            'description': 'md5:79d99cc560e4ca97e0c4d86800ee4184',
             'upload_date': '20100127',
             'timestamp': 1264608000,
             'alt_title': '说出愿望吧(Genie)',
+            'subtitles': {
+                'origin': [{'ext': 'lrc', 'data': 'md5:8d5782f92bb275b9a6acd01e9ffd12b9'}],
+                'translated': [{'ext': 'lrc', 'data': 'md5:d8270e3375fd305f92b18ad78585cabb'}],
+            }
+        }
+    }, {
+        'note': 'some lines with multiple time tag',
+        'url': 'http://music.163.com/#/song?id=4926366',
+        'info_dict': {
+            'id': '4926366',
+            'ext': 'mp3',
+            'title': 'sweet&sweet holiday',
+            'timestamp': 1306252800,
+            'upload_date': '20110524',
+            'subtitles': {
+                'origin': [{'ext': 'lrc', 'data': 'md5:9971db3f0361b0b66d47ba5c95bbff35'}],
+                'translated': [{'ext': 'lrc', 'data': 'md5:ce5f9eef13ae4948b01bbb015fc507e1'}],
+            }
+        }
+    }, {
+        'note': 'some lines with multiple time tag and time need to be fixed',
+        'url': 'http://music.163.com/#/song?id=22826396',
+        'info_dict': {
+            'id': '22826396',
+            'ext': 'mp3',
+            'title': 'God knows...',
+            'timestamp': 1306252800,
+            'upload_date': '20110524',
+            'subtitles': {
+                'origin': [{'ext': 'lrc', 'data': 'md5:5ca2952ed8974f2c28beb1c0f89e2ab5'}],
+                'translated': [{'ext': 'lrc', 'data': 'md5:5ed0d4adb337594f927674d351ba6626'}],
+            }
         }
     }]
+
+    def _fix_timestamp(self, timestamp):
+        # Netease returns timestamp use 2 or 3 digits for less than
+        # 1 second metrics
+        # While standard LRC requires exact 2 digits
+        # remvoe the 3rd digit if the there're three
+        match_expr = r'\[([0-9]{2}:[0-9]{2}\.[0-9]{2})(.*)\]'
+        match_result = re.match(match_expr, timestamp)
+        if match_result:
+            # This must match as match_expr is exact the first group of lyrics_expr
+            return '[' + match_result.group(1) + ']'
+        else:
+            # return a valid timestamp to avoid other applications' error
+            return '[00:00.00]'
+
+    def _fix_lyric_timestamp(self, line):
+        text = line
+        corrected_times = ''
+        lyrics_expr = r'(\[[0-9]{2}:[0-9]{2}\.[0-9]{2,}\])([^\n]*)'
+        # Handle time tag with one or more time in one line.
+        while True:
+            m = re.match(lyrics_expr, text)
+            if m:
+                corrected_times += self._fix_timestamp(m.group(1))
+                text = m.group(2)
+            else:
+                break
+        return corrected_times + text
 
     def _process_lyrics(self, lyrics_info):
         original = lyrics_info.get('lrc', {}).get('lyric')
         translated = lyrics_info.get('tlyric', {}).get('lyric')
 
         if not translated:
-            return original
+            translated = ''
+        if not original:
+            original = ''
 
-        lyrics_expr = r'(\[[0-9]{2}:[0-9]{2}\.[0-9]{2,}\])([^\n]+)'
+        lyrics_expr = r'\[[0-9]{2}:[0-9]{2}\.[0-9]{2,}\][^\n]*'
         original_ts_texts = re.findall(lyrics_expr, original)
-        translation_ts_dict = dict(
-            (time_stamp, text) for time_stamp, text in re.findall(lyrics_expr, translated)
-        )
-        lyrics = '\n'.join([
-            '%s%s / %s' % (time_stamp, text, translation_ts_dict.get(time_stamp, ''))
-            for time_stamp, text in original_ts_texts
-        ])
-        return lyrics
+        translated_ts_texts = re.findall(lyrics_expr, translated)
+        gen_lyrics = lambda texts: '\n'.join(map(self._fix_lyric_timestamp, texts)) + '\n' if texts else ''
+        lyrics_original = gen_lyrics(original_ts_texts)
+        lyrics_translated = gen_lyrics(translated_ts_texts)
+        return lyrics_original, lyrics_translated
 
     def _real_extract(self, url):
         song_id = self._match_id(url)
@@ -150,13 +215,13 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
         lyrics_info = self.query_api(
             'song/lyric?id=%s&lv=-1&tv=-1' % song_id,
             song_id, 'Downloading lyrics data')
-        lyrics = self._process_lyrics(lyrics_info)
+        lyrics_original, lyrics_translated = self._process_lyrics(lyrics_info)
 
         alt_title = None
         if info.get('transNames'):
             alt_title = '/'.join(info.get('transNames'))
 
-        return {
+        ret = {
             'id': song_id,
             'title': info['name'],
             'alt_title': alt_title,
@@ -164,9 +229,20 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'timestamp': self.convert_milliseconds(info.get('album', {}).get('publishTime')),
             'thumbnail': info.get('album', {}).get('picUrl'),
             'duration': self.convert_milliseconds(info.get('duration', 0)),
-            'description': lyrics,
+            'description': '',
+            'subtitles': {},
             'formats': formats,
         }
+
+        def update_lyrics(info_dict, key, content):
+            if content:
+                info_dict['subtitles'][key] = [{
+                    'ext': 'lrc',
+                    'data': content
+                }]
+        update_lyrics(ret, 'origin', lyrics_original)
+        update_lyrics(ret, 'translated', lyrics_translated)
+        return ret
 
 
 class NetEaseMusicAlbumIE(NetEaseMusicBaseIE):
