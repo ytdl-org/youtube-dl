@@ -48,7 +48,8 @@ class EaglePlatformIE(InfoExtractor):
         'skip': 'Georestricted',
     }]
 
-    def _handle_error(self, response):
+    @staticmethod
+    def _handle_error(response):
         status = int_or_none(response.get('status', 200))
         if status != 200:
             raise ExtractorError(' '.join(response['errors']), expected=True)
