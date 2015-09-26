@@ -53,10 +53,13 @@ class EaglePlatformIE(InfoExtractor):
         if status != 200:
             raise ExtractorError(' '.join(response['errors']), expected=True)
 
-    def _get_video_url(self, url_or_request, video_id, note='Downloading JSON metadata'):
-        response = self._download_json(url_or_request, video_id, note)
+    def _download_json(self, url_or_request, video_id, note='Downloading JSON metadata'):
+        response = super(EaglePlatformIE, self)._download_json(url_or_request, video_id, note)
         self._handle_error(response)
-        return response['data'][0]
+        return response
+
+    def _get_video_url(self, url_or_request, video_id, note='Downloading JSON metadata'):
+        return self._download_json(url_or_request, video_id, note)['data'][0]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
