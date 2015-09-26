@@ -129,7 +129,7 @@ class QQMusicIE(InfoExtractor):
 
         actual_lrc_lyrics = ''.join(
             line + '\n' for line in re.findall(
-                r'(?m)^(\[[0-9]{2}:[0-9]{2}\.[0-9]{2,}\][^\n]*|\[[^\]]*\])', lrc_content))
+                r'(?m)^(\[[0-9]{2}:[0-9]{2}(?:\.[0-9]{2,})?\][^\n]*|\[[^\]]*\])', lrc_content))
 
         info_dict = {
             'id': mid,
