@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 
 
@@ -13,6 +15,9 @@ class KeekIE(InfoExtractor):
             'id': 'NODfbab',
             'ext': 'mp4',
             'title': 'test chars: "\'/\\ä<>This is a test video for youtube-dl.For more information, contact phihag@phihag.de . - Video - Videos on Keek',
+            'description': 'test chars: "\'/\\ä<>This is a test video for youtube-dl.For more information, contact phihag@phihag.de .',
+            'uploader': 'ytdl',
+            'uploader_id': 'eGT5bab',
         },
     }
 
@@ -20,11 +25,18 @@ class KeekIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
+        uploader = uploader_id = None
+        matches = re.search(r'data-username="(?P<uploader>[^"]+)"[^>]*data-user-id="(?P<uploader_id>[^"]+)"', webpage)
+        if matches:
+            uploader, uploader_id = matches.groups()
 
         return {
             'id': video_id,
             'url': self._og_search_video_url(webpage),
             'ext': 'mp4',
             'title': self._og_search_title(webpage),
+            'description': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
+            'uploader': uploader,
+            'uploader_id': uploader_id,
         }
