@@ -21,6 +21,9 @@ class BBCCoUkIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:(?:(?:programmes|iplayer(?:/[^/]+)?/(?:episode|playlist))/)|music/clips[/#])(?P<id>[\da-z]{8})'
 
     _MEDIASELECTOR_URLS = [
+        # Provides HQ HLS streams with even better quality that pc mediaset but fails
+        # with geolocation in some cases when it's even not geo restricted at all (e.g.
+        # http://www.bbc.co.uk/programmes/b06bp7lf)
         'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s',
         'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s',
     ]
