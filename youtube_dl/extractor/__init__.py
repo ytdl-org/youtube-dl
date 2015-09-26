@@ -27,6 +27,7 @@ from .ard import (
     ARDMediathekIE,
     SportschauIE,
 )
+from .arstechnica import ArstechnicaIE
 from .arte import (
     ArteTvIE,
     ArteTVPlus7IE,
