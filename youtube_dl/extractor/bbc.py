@@ -157,6 +157,21 @@ class BBCCoUkIE(InfoExtractor):
             },
             'skip': 'geolocation',
         }, {
+            # iptv-all mediaset fails with geolocation however there is no geo restriction
+            # for this programme at all
+            'url': 'http://www.bbc.co.uk/programmes/b06bp7lf',
+            'info_dict': {
+                'id': 'b06bp7kf',
+                'ext': 'flv',
+                'title': "Annie Mac's Friday Night, B.Traits sits in for Annie",
+                'description': 'B.Traits sits in for Annie Mac with a Mini-Mix from Disclosure.',
+                'duration': 10800,
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            },
+        }, {
             'url': 'http://www.bbc.co.uk/iplayer/playlist/p01dvks4',
             'only_matching': True,
         }, {
