@@ -50,6 +50,7 @@ from .dailymotion import DailymotionCloudIE
 from .onionstudios import OnionStudiosIE
 from .snagfilms import SnagFilmsEmbedIE
 from .screenwavemedia import ScreenwaveMediaIE
+from .mtv import MTVServicesEmbeddedIE
 
 
 class GenericIE(InfoExtractor):
@@ -1611,12 +1612,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(url, ie='Vulture')
 
         # Look for embedded mtvservices player
-        mobj = re.search(
-            r'<iframe src="(?P<url>https?://media\.mtvnservices\.com/embed/[^"]+)"',
-            webpage)
-        if mobj is not None:
-            url = unescapeHTML(mobj.group('url'))
-            return self.url_result(url, ie='MTVServicesEmbedded')
+        mtvservices_url = MTVServicesEmbeddedIE._extract_url(webpage)
+        if mtvservices_url:
+            return self.url_result(mtvservices_url, ie='MTVServicesEmbedded')
 
         # Look for embedded yahoo player
         mobj = re.search(
