@@ -294,7 +294,7 @@ class BBCCoUkIE(InfoExtractor):
                 return self._download_media_selector_url(
                     mediaselector_url % programme_id, programme_id)
             except BBCCoUkIE.MediaSelectionError as e:
-                if e.id == 'notukerror':
+                if e.id in ('notukerror', 'geolocation'):
                     last_exception = e
                     continue
                 self._raise_extractor_error(e)
