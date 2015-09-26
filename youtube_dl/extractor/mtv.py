@@ -200,7 +200,13 @@ class MTVServicesInfoExtractor(InfoExtractor):
         if mgid is None or ':' not in mgid:
             mgid = self._search_regex(
                 [r'data-mgid="(.*?)"', r'swfobject.embedSWF\(".*?(mgid:.*?)"'],
-                webpage, 'mgid')
+                webpage, 'mgid', default=None)
+
+        if not mgid:
+            sm4_embed = self._html_search_meta(
+                'sm4:video:embed', webpage, 'sm4 embed', default='')
+            mgid = self._search_regex(
+                r'embed/(mgid:.+?)["\'&?/]', sm4_embed, 'mgid')
 
         videos_info = self._get_videos_info(mgid)
         return videos_info
