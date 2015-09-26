@@ -228,6 +228,13 @@ class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
         },
     }
 
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//media.mtvnservices.com/embed/.+?)\1', webpage)
+        if mobj:
+            return mobj.group('url')
+
     def _get_feed_url(self, uri):
         video_id = self._id_from_uri(uri)
         site_id = uri.replace(video_id, '')
