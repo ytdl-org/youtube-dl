@@ -89,7 +89,9 @@ class EaglePlatformIE(InfoExtractor):
             'mp4', entry_protocol='m3u8_native')
 
         mp4_url = self._get_video_url(
-            secure_m3u8.replace("m3u8", "mp4").replace("hlsvod", "mp4").replace("hls", "mp4"),
+            # Secure mp4 URL is constructed according to Player.prototype.mp4 from
+            # http://lentaru.media.eagleplatform.com/player/player.js
+            re.sub(r'm3u8|hlsvod|hls|f4m', 'mp4', secure_m3u8),
             video_id, 'Downloading mp4 JSON')
         formats.append({'url': mp4_url, 'format_id': 'mp4'})
 
