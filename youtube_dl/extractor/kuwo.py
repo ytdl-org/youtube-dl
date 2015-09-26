@@ -77,9 +77,11 @@ class KuwoIE(KuwoBaseIE):
         webpage = self._download_webpage(
             url, song_id, note='Download song detail info',
             errnote='Unable to get song detail info')
+        if '对不起，该歌曲由于版权问题已被下线，将返回网站首页' in webpage:
+            raise ExtractorError('this song has been offline because of copyright issues')
 
         song_name = self._html_search_regex(
-            r'(?s)class="(?:[^" ]+ +)*title(?: +[^" ]+)*".*?<h1[^>]+title="([^"]+)"', webpage, 'song name')
+            r'(?s)class="(?:[^"\s]+\s+)*title(?:\s+[^"\s]+)*".*?<h1[^>]+title="([^"]+)"', webpage, 'song name')
         singer_name = self._html_search_regex(
             r'<div[^>]+class="s_img">\s*<a[^>]+title="([^>]+)"',
             webpage, 'singer name', fatal=False)
