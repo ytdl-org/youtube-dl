@@ -30,6 +30,10 @@ class KeekIE(InfoExtractor):
             'ext': 'mp4',
             'title': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
-            'uploader': self._search_regex(r'data-username="([^"]+)"', webpage, 'uploader', fatal=False),
-            'uploader_id': self._search_regex(r'data-user-id="([^"]+)"', webpage, 'uploader id', fatal=False),
+            'uploader': self._search_regex(
+                r'data-username=(["\'])(?P<uploader>.+?)\1', webpage,
+                'uploader', fatal=False, group='uploader'),
+            'uploader_id': self._search_regex(
+                r'data-user-id=(["\'])(?P<uploader_id>.+?)\1', webpage,
+                'uploader id', fatal=False, group='uploader_id'),
         }
