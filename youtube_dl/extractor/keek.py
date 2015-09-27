@@ -28,7 +28,7 @@ class KeekIE(InfoExtractor):
             'id': video_id,
             'url': self._og_search_video_url(webpage),
             'ext': 'mp4',
-            'title': self._og_search_description(webpage),
+            'title': self._og_search_description(webpage).strip(),
             'thumbnail': self._og_search_thumbnail(webpage),
             'uploader': self._search_regex(
                 r'data-username=(["\'])(?P<uploader>.+?)\1', webpage,
