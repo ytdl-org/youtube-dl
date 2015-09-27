@@ -1579,7 +1579,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                               if m.group('title').strip()]  # Ignore links without titles, which also prevents duplicates
 
                 for video in new_videos:
-                    yield self.url_result(video['id'], 'Youtube', video_id=video['id'], video_title=video['title'])
+                    yield self.url_result('https://youtu.be/%s' % video['id'], 'Youtube', video_id=video['id'], video_title=video['title'])
 
                 # Find link to load more videos
                 mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
