@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 
 
@@ -26,10 +24,6 @@ class KeekIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        uploader = uploader_id = None
-        matches = re.search(r'data-username="(?P<uploader>[^"]+)"[^>]*data-user-id="(?P<uploader_id>[^"]+)"', webpage)
-        if matches:
-            uploader, uploader_id = matches.groups()
 
         return {
             'id': video_id,
@@ -38,6 +32,6 @@ class KeekIE(InfoExtractor):
             'title': self._og_search_title(webpage),
             'description': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
-            'uploader': uploader,
-            'uploader_id': uploader_id,
+            'uploader': self._search_regex(r'data-username="([^"]+)"', webpage, 'uploader', None),
+            'uploader_id': self._search_regex(r'data-user-id="([^"]+)"', webpage, 'uploader id', None),
         }
