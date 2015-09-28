@@ -58,11 +58,20 @@ class TestYoutubeLists(unittest.TestCase):
         # Save generator output
         playlist = [v for v in result['entries']]
 
+        # Find videos in playlist
         for video in videos:
             matching_videos = [v for v in playlist if v['id'] == video['id']]
 
             self.assertEqual(len(matching_videos), 1)
             self.assertEqual(matching_videos[0]['title'], video['title'])
+
+        # TODO: It would be good to check that the videos are returned
+        # in the correct order (not necessarily back-to-back), which,
+        # of course, requires creating the test data in the correct
+        # order. The reason is that simple mistakes (like forgetting
+        # that dicts don't keep insertion order) can result in the
+        # order being wrong. This could be in a separate test, or it
+        # could go here.
 
     def test_youtube_playlist_noplaylist(self):
         dl = FakeYDL()

@@ -1586,11 +1586,19 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                 matches = self._VIDEO_RE.finditer(content_html)
 
                 # Get videos from current page. Using OrderedDict to
-                # avoid duplicates would make this much simpler.
+                # avoid duplicates would make this much
+                # simpler. Lacking that, we store the order of the
+                # videos as video_num so we can sort the dict, keeping
+                # the order of the playlist. We have to avoid
+                # duplicates because it seems that every video in the
+                # playlist shows up in the HTML/JSON twice: once
+                # without a title, and once with a title. Maybe using
+                # something like bs4 instead of regexps would also be a
+                # good idea.
                 new_videos = {}
+                num = 0
                 for m in matches:
-                    video_index = m.group('index')
-                    if video_index == '0':
+                    if m.group('index') == '0':
                         # Ignore link with index 0
                         continue
 
@@ -1602,21 +1610,18 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                         video_title = None
 
                     if video_id in new_videos:
-                        # Duplicate video
-
+                        # Video is already in dict
                         if video_title and not new_videos[video_id]['title']:
                             # Set missing title
                             new_videos[video_id]['title'] = video_title
-
-                        new_videos[video_id]['index'] = video_index
-
                     else:
-                        # New video
-                        new_videos[video_id] = {'index': int(video_index),
-                                                'title': video_title}
+                        # Video not in dict
+                        new_videos[video_id] = {'num': num, 'title': video_title}
 
-                # Sort videos by index
-                new_videos = sorted(new_videos.iteritems(), key=lambda v: v[1]['index'])
+                    num += 1
+
+                # Sort videos by playlist order
+                new_videos = sorted(new_videos.iteritems(), key=lambda v: v[1]['num'])
 
                 # Yield current list of videos
                 for video in new_videos:
