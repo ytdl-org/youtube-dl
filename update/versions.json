@@ -1,6 +1,6 @@
 {
-    "latest": "2015.09.22",
-    "signature": "3bc2929bee08df4733851fb8f90b9a2a2777d8e7655fe5095713ffb1f2e9fcba5d7cbf452a2f3b8741411268b79b9bd6bdd1130de905e81c3ad299b7f57b35039a2afb46e29ef6b7eead427ff14898083003145a71c9e04a2ee9f69e747e99a6a2931e6f39b9b647ab7a51e283accb0bab51afbb4aea28dfca4ab7f3c8628066",
+    "latest": "2015.09.28",
+    "signature": "545cd366c6e9632efa4d6142d01b7ac92fed4140a8fb14cc5667a4a10174a6fa4a4bc012cd77f738e07efbf4dae4b6b98af283d629c81ac886fb9c450cb957aaf980288230b932df070b154a531dc30c47440ae8d3c450389819eec7065294554d611adc2e5bc76f88a8105eb1b2a03f57bbac6b98d0a1b5b21b6b19a6e5b423",
     "versions": {
         "2012.02.22": {
             "bin": [
@@ -7944,6 +7944,20 @@
             "tar": [
                 "https://yt-dl.org/downloads/2015.09.22/youtube-dl-2015.09.22.tar.gz",
                 "447cb37694a5dc3b4897ac382642305526a60b6da196c2bcfcabc0ccc83764b2"
+            ]
+        },
+        "2015.09.28": {
+            "bin": [
+                "https://yt-dl.org/downloads/2015.09.28/youtube-dl",
+                "554e518e6ff1ca52d4e8b0c541386c328eeb678929e89ada85f53a857d4ce38f"
+            ],
+            "exe": [
+                "https://yt-dl.org/downloads/2015.09.28/youtube-dl.exe",
+                "ac2d6e990e46871113b490da6e206d7e44d6588ef66119353320687037c42f76"
+            ],
+            "tar": [
+                "https://yt-dl.org/downloads/2015.09.28/youtube-dl-2015.09.28.tar.gz",
+                "6396ee3150f51bd6ca2717b7d09f9524fbab22c04c3d2b560b99061d92127a60"
             ]
         }
     }
