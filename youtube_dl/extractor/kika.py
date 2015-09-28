@@ -87,29 +87,25 @@ class KikaIE(InfoExtractor):
             format_dict['url'] = elem.find('progressiveDownloadUrl').text
             format_dict['ext'] = elem.find('mediaType').text.lower()
             format_dict['format'] = elem.find('profileName').text
-            width = int(elem.find('frameWidth').text)
-            height = int(elem.find('frameHeight').text)
-            format_dict['width'] = width
-            format_dict['height'] = height
-            format_dict['resolution'] = '%dx%d' % (width, height)
+            format_dict['width'] = int(elem.find('frameWidth').text)
+            format_dict['height'] = int(elem.find('frameHeight').text)
+            format_dict['resolution'] = '%dx%d' % (format_dict['width'],
+                                                   format_dict['height'])
             format_dict['abr'] = int(elem.find('bitrateAudio').text)
             format_dict['vbr'] = int(elem.find('bitrateVideo').text)
             format_dict['tbr'] = format_dict['abr'] + format_dict['vbr']
             format_dict['filesize'] = int(elem.find('fileSize').text)
 
-            # append resolution and dict for sorting by resolution
-            formats_list.append((width * height, format_dict))
+            formats_list.append(format_dict)
 
         # Sort by resolution (=quality)
-        formats_list.sort()
-
-        out_list = [x[1] for x in formats_list]
+        formats_list.sort(key=lambda x: x['width'] * x['height'])
 
         return {
             'id': video_id,
             'title': title,
             'description': description,
-            'formats': out_list,
+            'formats': formats_list,
             'duration': duration,
             'webpage_url': webpage_url
         }
