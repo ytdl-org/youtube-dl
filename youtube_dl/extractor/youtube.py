@@ -1440,7 +1440,23 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                         ((?:PL|LL|EC|UU|FL|RD|UL)[0-9A-Za-z-_]{10,})
                      )"""
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s'
-    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)[^>]+>(?P<title>[^<]+)'
+    _VIDEO_RE = re.compile(
+        r"""href="\s*/watch\?
+
+        # Video ID
+        v=(?P<id>[0-9A-Za-z_-]{11})&amp;
+
+        [^"]*?
+
+        # Index
+        index=(?P<index>\d+)[^>]+
+
+        # End of <a> tag
+        >
+
+        # Video title (optional)
+        (?P<title>[^<]+)?
+        """, re.VERBOSE)
     IE_NAME = 'youtube:playlist'
     _TESTS = [{
         'url': 'https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re',
@@ -1557,7 +1573,6 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                     'Invalid parameters. Maybe URL is incorrect.',
                     expected=True)
             elif re.match(r'[^<]*Choose your language[^<]*', match):
-                # Looks good; continue
                 continue
             else:
                 self.report_warning('Youtube gives an alert message: ' + match)
@@ -1568,18 +1583,44 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
 
             for page_num in itertools.count(1):
                 # Loop to find videos until break
+                matches = self._VIDEO_RE.finditer(content_html)
 
-                matches = re.finditer(self._VIDEO_RE, content_html)
+                # Get videos from current page. Using OrderedDict to
+                # avoid duplicates would make this much simpler.
+                new_videos = {}
+                for m in matches:
+                    video_index = m.group('index')
+                    if video_index == '0':
+                        # Ignore link with index 0
+                        continue
 
-                # Make list of videos
-                new_videos = [{'id': m.group('id'),
-                               'title': m.group('title').strip()}
-                              for m in matches
-                              if m.group('index') != '0'  # Ignore link with index 0
-                              if m.group('title').strip()]  # Ignore links without titles, which also prevents duplicates
+                    video_id = m.group('id')
 
+                    if m.group('title'):
+                        video_title = m.group('title').strip()
+                    else:
+                        video_title = None
+
+                    if video_id in new_videos:
+                        # Duplicate video
+
+                        if video_title and not new_videos[video_id]['title']:
+                            # Set missing title
+                            new_videos[video_id]['title'] = video_title
+
+                        new_videos[video_id]['index'] = video_index
+
+                    else:
+                        # New video
+                        new_videos[video_id] = {'index': int(video_index),
+                                                'title': video_title}
+
+                # Sort videos by index
+                new_videos = sorted(new_videos.iteritems(), key=lambda v: v[1]['index'])
+
+                # Yield current list of videos
                 for video in new_videos:
-                    yield self.url_result(video['id'], 'Youtube', video_id=video['id'], video_title=video['title'])
+                    yield self.url_result(video[0], 'Youtube', video_id=video[0], video_title=video[1]['title'])
 
                 # Find link to load more videos
                 mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
