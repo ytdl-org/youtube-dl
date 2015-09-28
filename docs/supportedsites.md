@@ -101,7 +101,7 @@
  - **ComCarCoff**
  - **ComedyCentral**
  - **ComedyCentralShows**: The Daily Show / The Colbert Report
- - **CondeNast**: Condé Nast media group: Condé Nast, GQ, Glamour, Vanity Fair, Vogue, W Magazine, WIRED
+ - **CondeNast**: Condé Nast media group: Allure, Architectural Digest, Ars Technica, Bon Appétit, Brides, Condé Nast, Condé Nast Traveler, Details, Epicurious, GQ, Glamour, Golf Digest, SELF, Teen Vogue, The New Yorker, Vanity Fair, Vogue, W Magazine, WIRED
  - **Cracked**
  - **Criterion**
  - **CrooksAndLiars**
@@ -158,7 +158,6 @@
  - **faz.net**
  - **fc2**
  - **fernsehkritik.tv**
- - **fernsehkritik.tv:postecke**
  - **Firstpost**
  - **FiveTV**
  - **Flickr**
@@ -208,7 +207,6 @@
  - **hitbox**
  - **hitbox:live**
  - **HornBunny**
- - **HostingBulk**
  - **HotNewHipHop**
  - **Howcast**
  - **HowStuffWorks**
