@@ -11,15 +11,58 @@ from test.helper import FakeYDL
 
 
 from youtube_dl.extractor import (
+    gen_extractors,
     YoutubePlaylistIE,
     YoutubeIE,
 )
 
 
 class TestYoutubeLists(unittest.TestCase):
+    ies = gen_extractors()
+
     def assertIsPlaylist(self, info):
         """Make sure the info has '_type' set to 'playlist'"""
         self.assertEqual(info['_type'], 'playlist')
+
+    def assertPlaylistHasVideos(self, playlist_url, videos):
+        """Assert that playlist contains the given videos with matching IDs
+        and titles.
+
+        playlist_url:   Playlist URL
+        videos:         List of dicts with the following entries:
+                            "id":    Video ID
+                            "title": Video title
+        """
+
+        # Get suitable InfoExtractor
+        ie = [ie for ie in self.ies if ie.suitable(playlist_url)][0]
+
+        # This results in "TypeError: 'YoutubeUserIE' object is
+        # not callable", so it's necessary to use the
+        # "ie.set_downloader(FakeYDL())" workaround.
+        # YoutubeUserIE inherits from YoutubeChannelIE, which
+        # inherits from InfoExtractor, which is callable, but it
+        # doesn't work.  Even making YoutubeChannelIE inherit from
+        # YoutubeBaseInfoExtractor doesn't make YoutubeUserIE
+        # callable here.
+
+        # ie = ie(FakeYDL())
+        ie.set_downloader(FakeYDL())
+
+        # Get playlist
+        result = ie._real_extract(playlist_url)
+        if result['_type'] == 'url':
+            # Get actual playlist from canonical URL
+            result = YoutubePlaylistIE(FakeYDL()).extract(result['url'])
+
+        # Save generator output
+        playlist = [v for v in result['entries']]
+
+        for video in videos:
+            matching_videos = [v for v in playlist if v['id'] == video['id']]
+
+            self.assertEqual(len(matching_videos), 1)
+            self.assertEqual(matching_videos[0]['title'], video['title'])
 
     def test_youtube_playlist_noplaylist(self):
         dl = FakeYDL()
@@ -56,6 +99,17 @@ class TestYoutubeLists(unittest.TestCase):
         result = ie.extract('https://www.youtube.com/playlist?list=MCUS')
         entries = result['entries']
         self.assertEqual(len(entries), 100)
+
+    def test_youtube_extract_video_titles_from_playlists(self):
+        self.assertPlaylistHasVideos("https://www.youtube.com/user/RhettandLink/videos",
+                                     [
+                                         {'id': 'uhKejRHODOM', 'title': 'The Overly Complicated Coffee Order'},
+                                         {'id': 'f7eIWlA6Sh8', 'title': 'Burgaz Megatator Commercial'}
+                                     ])
+        self.assertPlaylistHasVideos("https://www.youtube.com/playlist?list=PLJ49NV73ttrvgyM4n5o-txRnMXH3pNnjK",
+                                     [
+                                         {'id': 'x9CH3RtbW_M', 'title': 'The Secret Life of a Hamster Song - Animated Song Biscuits'}
+                                     ])
 
 if __name__ == '__main__':
     unittest.main()
