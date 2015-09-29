@@ -72,7 +72,7 @@ class NHLBaseInfoExtractor(InfoExtractor):
 
 class NHLIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com'
-    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/(?:console)?(?:\?(?:.*?[?&])?)(?:id|hlg)=(?P<id>[-0-9a-zA-Z,]+)'
+    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/(?:console|embed)?(?:\?(?:.*?[?&])?)(?:id|hlg|playlist)=(?P<id>[-0-9a-zA-Z,]+)'
 
     _TESTS = [{
         'url': 'http://video.canucks.nhl.com/videocenter/console?catid=6?id=453614',
@@ -136,6 +136,9 @@ class NHLIE(NHLBaseInfoExtractor):
         'params': {
             'skip_download': True,  # Requires rtmpdump
         }
+    }, {
+        'url': 'http://video.nhl.com/videocenter/embed?playlist=836127',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -146,9 +149,9 @@ class NHLIE(NHLBaseInfoExtractor):
 class NHLNewsIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com:news'
     IE_DESC = 'NHL news'
-    _VALID_URL = r'https?://(?:www\.)?nhl\.com/ice/news\.html?(?:\?(?:.*?[?&])?)id=(?P<id>[-0-9a-zA-Z]+)'
+    _VALID_URL = r'https?://(?:.+?\.)?nhl\.com/(?:ice|club)/news\.html?(?:\?(?:.*?[?&])?)id=(?P<id>[-0-9a-zA-Z]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.nhl.com/ice/news.htm?id=750727',
         'md5': '4b3d1262e177687a3009937bd9ec0be8',
         'info_dict': {
@@ -159,13 +162,26 @@ class NHLNewsIE(NHLBaseInfoExtractor):
             'duration': 37,
             'upload_date': '20150128',
         },
-    }
+    }, {
+        # iframe embed
+        'url': 'http://sabres.nhl.com/club/news.htm?id=780189',
+        'md5': '9f663d1c006c90ac9fb82777d4294e12',
+        'info_dict': {
+            'id': '836127',
+            'ext': 'mp4',
+            'title': 'Morning Skate: OTT vs. BUF (9/23/15)',
+            'description': "Brian Duff chats with Tyler Ennis prior to Buffalo's first preseason home game.",
+            'duration': 93,
+            'upload_date': '20150923',
+        },
+    }]
 
     def _real_extract(self, url):
         news_id = self._match_id(url)
         webpage = self._download_webpage(url, news_id)
         video_id = self._search_regex(
-            [r'pVid(\d+)', r"nlid\s*:\s*'(\d+)'"],
+            [r'pVid(\d+)', r"nlid\s*:\s*'(\d+)'",
+             r'<iframe[^>]+src=["\']https?://video.*?\.nhl\.com/videocenter/embed\?.*\bplaylist=(\d+)'],
             webpage, 'video id')
         return self._real_extract_video(video_id)
 

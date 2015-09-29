@@ -3,12 +3,14 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_HTTPError,
     compat_urllib_request,
     compat_urllib_parse,
     compat_urllib_parse_unquote,
 )
 from ..utils import (
     determine_ext,
+    ExtractorError,
     int_or_none,
     parse_iso8601,
     HEADRequest,
@@ -16,14 +18,14 @@ from ..utils import (
 
 
 class ViewsterIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?viewster\.com/(?:serie|movie)/(?P<id>\d+-\d+-\d+)'
+    _VALID_URL = r'https?://(?:www\.)?viewster\.com/(?:serie|movie)/(?P<id>\d+-\d+-\d+)'
     _TESTS = [{
         # movie, Type=Movie
         'url': 'http://www.viewster.com/movie/1140-11855-000/the-listening-project/',
-        'md5': '14d3cfffe66d57b41ae2d9c873416f01',
+        'md5': 'e642d1b27fcf3a4ffa79f194f5adde36',
         'info_dict': {
             'id': '1140-11855-000',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'The listening Project',
             'description': 'md5:bac720244afd1a8ea279864e67baa071',
             'timestamp': 1214870400,
@@ -33,10 +35,10 @@ class ViewsterIE(InfoExtractor):
     }, {
         # series episode, Type=Episode
         'url': 'http://www.viewster.com/serie/1284-19427-001/the-world-and-a-wall/',
-        'md5': 'd5434c80fcfdb61651cc2199a88d6ba3',
+        'md5': '9243079a8531809efe1b089db102c069',
         'info_dict': {
             'id': '1284-19427-001',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'The World and a Wall',
             'description': 'md5:24814cf74d3453fdf5bfef9716d073e3',
             'timestamp': 1428192000,
@@ -61,6 +63,14 @@ class ViewsterIE(InfoExtractor):
             'description': 'md5:e7097a8fc97151e25f085c9eb7a1cdb1',
         },
         'playlist_mincount': 16,
+    }, {
+        # geo restricted series
+        'url': 'https://www.viewster.com/serie/1280-18794-002/',
+        'only_matching': True,
+    }, {
+        # geo restricted video
+        'url': 'https://www.viewster.com/serie/1280-18794-002/what-is-extraterritoriality-lawo/',
+        'only_matching': True,
     }]
 
     _ACCEPT_HEADER = 'application/json, text/javascript, */*; q=0.01'
@@ -74,8 +84,8 @@ class ViewsterIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         # Get 'api_token' cookie
-        self._request_webpage(HEADRequest(url), video_id)
-        cookies = self._get_cookies(url)
+        self._request_webpage(HEADRequest('http://www.viewster.com/'), video_id)
+        cookies = self._get_cookies('http://www.viewster.com/')
         self._AUTH_TOKEN = compat_urllib_parse_unquote(cookies['api_token'].value)
 
         info = self._download_json(
@@ -85,10 +95,16 @@ class ViewsterIE(InfoExtractor):
         entry_id = info.get('Id') or info['id']
 
         # unfinished serie has no Type
-        if info.get('Type') in ['Serie', None]:
-            episodes = self._download_json(
-                'https://public-api.viewster.com/series/%s/episodes' % entry_id,
-                video_id, 'Downloading series JSON')
+        if info.get('Type') in ('Serie', None):
+            try:
+                episodes = self._download_json(
+                    'https://public-api.viewster.com/series/%s/episodes' % entry_id,
+                    video_id, 'Downloading series JSON')
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
+                    self.raise_geo_restricted()
+                else:
+                    raise
             entries = [
                 self.url_result(
                     'http://www.viewster.com/movie/%s' % episode['OriginId'], 'Viewster')
@@ -98,7 +114,7 @@ class ViewsterIE(InfoExtractor):
             return self.playlist_result(entries, video_id, title, description)
 
         formats = []
-        for media_type in ('application/f4m+xml', 'application/x-mpegURL'):
+        for media_type in ('application/f4m+xml', 'application/x-mpegURL', 'video/mp4'):
             media = self._download_json(
                 'https://public-api.viewster.com/movies/%s/video?mediaType=%s'
                 % (entry_id, compat_urllib_parse.quote(media_type)),
@@ -120,9 +136,22 @@ class ViewsterIE(InfoExtractor):
                     fatal=False  # m3u8 sometimes fail
                 ))
             else:
-                formats.append({
+                format_id = media.get('Bitrate')
+                f = {
                     'url': video_url,
-                })
+                    'format_id': 'mp4-%s' % format_id,
+                    'height': int_or_none(media.get('Height')),
+                    'width': int_or_none(media.get('Width')),
+                    'preference': 1,
+                }
+                if format_id and not f['height']:
+                    f['height'] = int_or_none(self._search_regex(
+                        r'^(\d+)[pP]$', format_id, 'height', default=None))
+                formats.append(f)
+
+        if not formats and not info.get('LanguageSets') and not info.get('VODSettings'):
+            self.raise_geo_restricted()
+
         self._sort_formats(formats)
 
         synopsis = info.get('Synopsis', {})

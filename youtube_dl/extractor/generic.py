@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import os
 import re
+import sys
 
 from .common import InfoExtractor
 from .youtube import YoutubeIE
@@ -49,6 +50,7 @@ from .dailymotion import DailymotionCloudIE
 from .onionstudios import OnionStudiosIE
 from .snagfilms import SnagFilmsEmbedIE
 from .screenwavemedia import ScreenwaveMediaIE
+from .mtv import MTVServicesEmbeddedIE
 
 
 class GenericIE(InfoExtractor):
@@ -229,6 +231,22 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': False,
             }
+        },
+        {
+            # redirect in Refresh HTTP header
+            'url': 'https://www.facebook.com/l.php?u=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DpO8h3EaFRdo&h=TAQHsoToz&enc=AZN16h-b6o4Zq9pZkCCdOLNKMN96BbGMNtcFwHSaazus4JHT_MFYkAA-WARTX2kvsCIdlAIyHZjl6d33ILIJU7Jzwk_K3mcenAXoAzBNoZDI_Q7EXGDJnIhrGkLXo_LJ_pAa2Jzbx17UHMd3jAs--6j2zaeto5w9RTn8T_1kKg3fdC5WPX9Dbb18vzH7YFX0eSJmoa6SP114rvlkw6pkS1-T&s=1',
+            'info_dict': {
+                'id': 'pO8h3EaFRdo',
+                'ext': 'mp4',
+                'title': 'Tripeo Boiler Room x Dekmantel Festival DJ Set',
+                'description': 'md5:6294cc1af09c4049e0652b51a2df10d5',
+                'upload_date': '20150917',
+                'uploader_id': 'brtvofficial',
+                'uploader': 'Boiler Room',
+            },
+            'params': {
+                'skip_download': False,
+            },
         },
         {
             'url': 'http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html',
@@ -1594,12 +1612,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(url, ie='Vulture')
 
         # Look for embedded mtvservices player
-        mobj = re.search(
-            r'<iframe src="(?P<url>https?://media\.mtvnservices\.com/embed/[^"]+)"',
-            webpage)
-        if mobj is not None:
-            url = unescapeHTML(mobj.group('url'))
-            return self.url_result(url, ie='MTVServicesEmbedded')
+        mtvservices_url = MTVServicesEmbeddedIE._extract_url(webpage)
+        if mtvservices_url:
+            return self.url_result(mtvservices_url, ie='MTVServicesEmbedded')
 
         # Look for embedded yahoo player
         mobj = re.search(
@@ -1638,7 +1653,7 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'MLB')
 
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>%s)\1' % CondeNastIE.EMBED_URL,
+            r'<(?:iframe|script)[^>]+?src=(["\'])(?P<url>%s)\1' % CondeNastIE.EMBED_URL,
             webpage)
         if mobj is not None:
             return self.url_result(self._proto_relative_url(mobj.group('url'), scheme='http:'), 'CondeNast')
@@ -1808,6 +1823,9 @@ class GenericIE(InfoExtractor):
                 # Look also in Refresh HTTP header
                 refresh_header = head_response.headers.get('Refresh')
                 if refresh_header:
+                    # In python 2 response HTTP headers are bytestrings
+                    if sys.version_info < (3, 0) and isinstance(refresh_header, str):
+                        refresh_header = refresh_header.decode('iso-8859-1')
                     found = re.search(REDIRECT_REGEX, refresh_header)
             if found:
                 new_url = compat_urlparse.urljoin(url, unescapeHTML(found.group(1)))

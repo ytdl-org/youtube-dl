@@ -152,6 +152,7 @@ class InfoExtractor(object):
     description:    Full video description.
     uploader:       Full name of the video uploader.
     creator:        The main artist who created the video.
+    release_date:   The date (YYYYMMDD) when the video was released.
     timestamp:      UNIX timestamp of the moment the video became available.
     upload_date:    Video upload date (YYYYMMDD).
                     If not explicitly set, calculated from timestamp.
@@ -514,6 +515,12 @@ class InfoExtractor(object):
     def raise_login_required(msg='This video is only available for registered users'):
         raise ExtractorError(
             '%s. Use --username and --password or --netrc to provide account credentials.' % msg,
+            expected=True)
+
+    @staticmethod
+    def raise_geo_restricted(msg='This video is not available from your location due to geo restriction'):
+        raise ExtractorError(
+            '%s. You might want to use --proxy to workaround.' % msg,
             expected=True)
 
     # Methods for following #608

@@ -4,6 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_parse_qs,
+    compat_urllib_parse_urlparse,
+)
 from ..utils import (
     find_xpath_attr,
     unified_strdate,
@@ -77,7 +81,13 @@ class ArteTVPlus7IE(InfoExtractor):
     def _extract_from_webpage(self, webpage, video_id, lang):
         json_url = self._html_search_regex(
             [r'arte_vp_url=["\'](.*?)["\']', r'data-url=["\']([^"]+)["\']'],
-            webpage, 'json vp url')
+            webpage, 'json vp url', default=None)
+        if not json_url:
+            iframe_url = self._html_search_regex(
+                r'<iframe[^>]+src=(["\'])(?P<url>.+\bjson_url=.+?)\1',
+                webpage, 'iframe url', group='url')
+            json_url = compat_parse_qs(
+                compat_urllib_parse_urlparse(iframe_url).query)['json_url'][0]
         return self._extract_from_json_url(json_url, video_id, lang)
 
     def _extract_from_json_url(self, json_url, video_id, lang):

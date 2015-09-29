@@ -25,7 +25,7 @@ class QQMusicIE(InfoExtractor):
             'id': '004295Et37taLD',
             'ext': 'mp3',
             'title': '可惜没如果',
-            'upload_date': '20141227',
+            'release_date': '20141227',
             'creator': '林俊杰',
             'description': 'md5:d327722d0361576fde558f1ac68a7065',
             'thumbnail': 're:^https?://.*\.jpg$',
@@ -38,11 +38,26 @@ class QQMusicIE(InfoExtractor):
             'id': '004MsGEo3DdNxV',
             'ext': 'mp3',
             'title': '如果',
-            'upload_date': '20050626',
+            'release_date': '20050626',
             'creator': '李季美',
             'description': 'md5:46857d5ed62bc4ba84607a805dccf437',
             'thumbnail': 're:^https?://.*\.jpg$',
         }
+    }, {
+        'note': 'lyrics not in .lrc format',
+        'url': 'http://y.qq.com/#type=song&mid=001JyApY11tIp6',
+        'info_dict': {
+            'id': '001JyApY11tIp6',
+            'ext': 'mp3',
+            'title': 'Shadows Over Transylvania',
+            'release_date': '19970225',
+            'creator': 'Dark Funeral',
+            'description': 'md5:ed14d5bd7ecec19609108052c25b2c11',
+            'thumbnail': 're:^https?://.*\.jpg$',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     _FORMATS = {
@@ -112,15 +127,27 @@ class QQMusicIE(InfoExtractor):
         self._check_formats(formats, mid)
         self._sort_formats(formats)
 
-        return {
+        actual_lrc_lyrics = ''.join(
+            line + '\n' for line in re.findall(
+                r'(?m)^(\[[0-9]{2}:[0-9]{2}(?:\.[0-9]{2,})?\][^\n]*|\[[^\]]*\])', lrc_content))
+
+        info_dict = {
             'id': mid,
             'formats': formats,
             'title': song_name,
-            'upload_date': publish_time,
+            'release_date': publish_time,
             'creator': singer,
             'description': lrc_content,
-            'thumbnail': thumbnail_url,
+            'thumbnail': thumbnail_url
         }
+        if actual_lrc_lyrics:
+            info_dict['subtitles'] = {
+                'origin': [{
+                    'ext': 'lrc',
+                    'data': actual_lrc_lyrics,
+                }]
+            }
+        return info_dict
 
 
 class QQPlaylistBaseIE(InfoExtractor):
