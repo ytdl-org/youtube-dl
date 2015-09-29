@@ -1440,23 +1440,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                         ((?:PL|LL|EC|UU|FL|RD|UL)[0-9A-Za-z-_]{10,})
                      )"""
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s'
-    _VIDEO_RE = re.compile(
-        r"""href="\s*/watch\?
-
-        # Video ID
-        v=(?P<id>[0-9A-Za-z_-]{11})&amp;
-
-        [^"]*?
-
-        # Index
-        index=(?P<index>\d+)[^>]+
-
-        # End of <a> tag
-        >
-
-        # Video title (optional)
-        (?P<title>[^<]+)?
-        """, re.VERBOSE)
+    _VIDEO_RE = re.compile(r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)[^>]+>(?P<title>[^<]+)?')
     IE_NAME = 'youtube:playlist'
     _TESTS = [{
         'url': 'https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re',
