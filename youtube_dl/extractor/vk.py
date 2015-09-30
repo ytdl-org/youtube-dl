@@ -17,6 +17,7 @@ from ..utils import (
     unescapeHTML,
     unified_strdate,
 )
+from .vimeo import VimeoIE
 
 
 class VKIE(InfoExtractor):
@@ -248,6 +249,10 @@ class VKIE(InfoExtractor):
             info_page, 'youtube iframe', default=None)
         if youtube_url:
             return self.url_result(youtube_url, 'Youtube')
+
+        vimeo_url = VimeoIE._extract_vimeo_url(url, info_page)
+        if vimeo_url is not None:
+            return self.url_result(vimeo_url)
 
         m_rutube = re.search(
             r'\ssrc="((?:https?:)?//rutube\.ru\\?/video\\?/embed(?:.*?))\\?"', info_page)
