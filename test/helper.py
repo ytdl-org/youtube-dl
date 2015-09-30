@@ -128,15 +128,13 @@ def expect_value(self, got, expected, field):
         self.assertEqual(len(expected), len(got),
                          'Expect a list of length %d, but got a list of length %d' % (
                          len(expected), len(got)))
-        _id = 0
-        for i, j in zip(got, expected):
-            _type_i = type(i)
-            _type_j = type(j)
-            self.assertEqual(_type_j, _type_i,
+        for index, (item_got, item_expected) in enumerate(zip(got, expected)):
+            type_got = type(item_got)
+            type_expected = type(item_expected)
+            self.assertEqual(type_expected, type_got,
                              'Type doesn\'t match at element %d of the list in field %s, expect %s, got %s' % (
-                             _id, field, _type_j, _type_i))
-            expect_value(self, i, j, field)
-            _id += 1
+                             index, field, type_expected, type_got))
+            expect_value(self, item_got, item_expected, field)
     else:
         if isinstance(expected, compat_str) and expected.startswith('md5:'):
             got = 'md5:' + md5(got)
