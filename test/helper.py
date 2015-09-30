@@ -120,20 +120,22 @@ def expect_value(self, got, expected, field):
             contains_str in got,
             'field %s (value: %r) should contain %r' % (field, got, contains_str))
     elif isinstance(expected, type):
-        self.assertTrue(isinstance(got, expected),
-                        'Expected type %r for field %s, but got value %r of type %r' % (expected, field, got, type(got)))
+        self.assertTrue(
+            isinstance(got, expected),
+            'Expected type %r for field %s, but got value %r of type %r' % (expected, field, got, type(got)))
     elif isinstance(expected, dict) and isinstance(got, dict):
         expect_dict(self, got, expected)
     elif isinstance(expected, list) and isinstance(got, list):
-        self.assertEqual(len(expected), len(got),
-                         'Expect a list of length %d, but got a list of length %d' % (
-                         len(expected), len(got)))
+        self.assertEqual(
+            len(expected), len(got),
+            'Expect a list of length %d, but got a list of length %d' % (len(expected), len(got)))
         for index, (item_got, item_expected) in enumerate(zip(got, expected)):
             type_got = type(item_got)
             type_expected = type(item_expected)
-            self.assertEqual(type_expected, type_got,
-                             'Type doesn\'t match at element %d of the list in field %s, expect %s, got %s' % (
-                             index, field, type_expected, type_got))
+            self.assertEqual(
+                type_expected, type_got,
+                'Type doesn\'t match at element %d of the list in field %s, expect %s, got %s' % (
+                index, field, type_expected, type_got))
             expect_value(self, item_got, item_expected, field)
     else:
         if isinstance(expected, compat_str) and expected.startswith('md5:'):
@@ -146,13 +148,11 @@ def expect_value(self, got, expected, field):
             expected_num = int(expected.partition(':')[2])
             assertGreaterEqual(
                 self, len(got), expected_num,
-                'Expected %d items in field %s, but only got %d' % (
-                    expected_num, field, len(got)
-                )
-            )
+                'Expected %d items in field %s, but only got %d' % (expected_num, field, len(got)))
             return
-        self.assertEqual(expected, got,
-                         'invalid value for field %s, expected %r, got %r' % (field, expected, got))
+        self.assertEqual(
+            expected, got,
+            'invalid value for field %s, expected %r, got %r' % (field, expected, got))
 
 
 def expect_dict(self, got_dict, expected_dict):
