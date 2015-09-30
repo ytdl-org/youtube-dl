@@ -134,7 +134,7 @@ def expect_value(self, got, expected, field):
             type_expected = type(item_expected)
             self.assertEqual(
                 type_expected, type_got,
-                'Type doesn\'t match at element %d of the list in field %s, expect %s, got %s' % (
+                'Type mismatch for list item at index %d for field %s, expected %r, got %r' % (
                 index, field, type_expected, type_got))
             expect_value(self, item_got, item_expected, field)
     else:
@@ -152,7 +152,7 @@ def expect_value(self, got, expected, field):
             return
         self.assertEqual(
             expected, got,
-            'invalid value for field %s, expected %r, got %r' % (field, expected, got))
+            'Invalid value for field %s, expected %r, got %r' % (field, expected, got))
 
 
 def expect_dict(self, got_dict, expected_dict):
