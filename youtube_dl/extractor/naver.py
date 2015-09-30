@@ -46,11 +46,11 @@ class NaverIE(InfoExtractor):
         m_id = re.search(r'var rmcPlayer = new nhn.rmcnmv.RMCVideoPlayer\("(.+?)", "(.+?)"',
                          webpage)
         if m_id is None:
-            m_error = re.search(
-                r'(?s)<div class="(?:nation_error|nation_box)">\s*(?:<!--.*?-->)?\s*<p class="[^"]+">(?P<msg>.+?)</p>\s*</div>',
-                webpage)
-            if m_error:
-                raise ExtractorError(clean_html(m_error.group('msg')), expected=True)
+            error = self._html_search_regex(
+                r'(?s)<div class="(?:nation_error|nation_box|error_box)">\s*(?:<!--.*?-->)?\s*<p class="[^"]+">(?P<msg>.+?)</p>\s*</div>',
+                webpage, 'error', default=None)
+            if error:
+                raise ExtractorError(error, expected=True)
             raise ExtractorError('couldn\'t extract vid and key')
         vid = m_id.group(1)
         key = m_id.group(2)
