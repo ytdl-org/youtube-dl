@@ -354,14 +354,18 @@ class BrightcoveIE(InfoExtractor):
 
 class BrightcoveInPageEmbedIE(InfoExtractor):
     _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/([a-z0-9-]+)_([a-z]+)/index.html?.*videoId=(?P<video_id>\d+)'
-    TEST = {
+    _TEST = {
         'url': 'http://players.brightcove.net/929656772001/e41d32dc-ec74-459e-a845-6c69f7b724ea_default/index.html?videoId=4463358922001',
+        'md5': 'c8100925723840d4b0d243f7025703be',
         'info_dict': {
             'id': '4463358922001',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Meet the man behind Popcorn Time',
-            'description': 'md5:a950cc4285c43e44d763d036710cd9cd',
+            'description': 'md5:eac376a4fe366edc70279bfb681aea16',
+            'timestamp': 1441391203,
+            'upload_date': '20150904',
             'duration': 165768,
+            'uploader_id': '929656772001',
         }
     }
 
@@ -403,7 +407,7 @@ class BrightcoveInPageEmbedIE(InfoExtractor):
 
         title = json_data['name']
         description = json_data.get('description')
-        thumbnail = json_data.get('name')
+        thumbnail = json_data.get('thumbnail')
         timestamp = parse_iso8601(json_data.get('published_at'))
         duration = int_or_none(json_data.get('duration'))
 
@@ -417,12 +421,13 @@ class BrightcoveInPageEmbedIE(InfoExtractor):
                 if src:
                     formats.append({
                         'url': src,
-                        'abr': source.get('avg_bitrate'),
+                        'tbr': source.get('avg_bitrate'),
                         'width': int_or_none(source.get('width')),
                         'height': int_or_none(source.get('height')),
                         'filesize': source.get('size'),
                         'container': source.get('container'),
-                        'vcodec': source.get('container'),
+                        'vcodec': source.get('codec'),
+                        'ext': source.get('container').lower(),
                     })
 
         self._sort_formats(formats)
@@ -435,4 +440,5 @@ class BrightcoveInPageEmbedIE(InfoExtractor):
             'timestamp': timestamp,
             'duration': duration,
             'formats': formats,
+            'uploader_id': account_id,
         }
