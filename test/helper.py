@@ -128,7 +128,8 @@ def expect_value(self, got, expected, field):
     elif isinstance(expected, list) and isinstance(got, list):
         self.assertEqual(
             len(expected), len(got),
-            'Expect a list of length %d, but got a list of length %d' % (len(expected), len(got)))
+            'Expect a list of length %d, but got a list of length %d for field %s' % (
+                len(expected), len(got), field))
         for index, (item_got, item_expected) in enumerate(zip(got, expected)):
             type_got = type(item_got)
             type_expected = type(item_expected)
