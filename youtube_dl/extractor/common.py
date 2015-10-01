@@ -1152,7 +1152,9 @@ class InfoExtractor(object):
                     }
                 f4m_url += '&' if '?' in f4m_url else '?'
                 f4m_url += compat_urllib_parse.urlencode(f4m_params)
-                formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds'))
+                f4m_formats = self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False)
+                if f4m_formats:
+                    formats.extend(f4m_formats)
                 continue
 
             if src_url.startswith('http') and self._is_valid_url(src, video_id):
