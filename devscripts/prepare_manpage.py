@@ -19,16 +19,19 @@ def filter_options(readme):
             else:
                 in_options = False
 
-        if in_options and line.lstrip().startswith('-'):
-            option, description = re.split(r'\s{2,}', line.lstrip())
-            split_option = option.split(' ')
+        if in_options:
+            if line.lstrip().startswith('-'):
+                option, description = re.split(r'\s{2,}', line.lstrip())
+                split_option = option.split(' ')
 
-            if not split_option[-1].startswith('-'):  # metavar
-                option = ' '.join(split_option[:-1] + ['*%s*' % split_option[-1]])
+                if not split_option[-1].startswith('-'):  # metavar
+                    option = ' '.join(split_option[:-1] + ['*%s*' % split_option[-1]])
 
-            # Pandoc's definition_lists. See http://pandoc.org/README.html
-            # for more information.
-            ret += '%s\n:   %s\n\n' % (option, description)
+                # Pandoc's definition_lists. See http://pandoc.org/README.html
+                # for more information.
+                ret += '\n%s\n:   %s\n' % (option, description)
+            else:
+                ret += line.lstrip() + '\n'
         else:
             ret += line + '\n'
 
