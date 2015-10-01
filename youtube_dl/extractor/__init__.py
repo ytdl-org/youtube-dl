@@ -534,6 +534,7 @@ from .senateisvp import SenateISVPIE
 from .servingsys import ServingSysIE
 from .sexu import SexuIE
 from .sexykarma import SexyKarmaIE
+from .sfdebris import SfDebrisIE
 from .shahid import ShahidIE
 from .shared import SharedIE
 from .sharesix import ShareSixIE
