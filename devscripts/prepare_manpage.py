@@ -6,7 +6,7 @@ import sys
 import re
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-README_FILE = os.path.join(ROOT_DIR, sys.argv[1])
+README_FILE = os.path.join(ROOT_DIR, 'README.md')
 
 
 def filter_options(readme):

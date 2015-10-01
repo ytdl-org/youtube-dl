@@ -61,8 +61,7 @@ youtube-dl: youtube_dl/*.py youtube_dl/*/*.py
 	chmod a+x youtube-dl
 
 README.md: youtube_dl/*.py youtube_dl/*/*.py
-	COLUMNS=80 python youtube_dl/__main__.py --help | python devscripts/make_readme.py README.md > README.new.md
-	mv -f README.new.md README.md
+	COLUMNS=80 python youtube_dl/__main__.py --help | python devscripts/make_readme.py
 
 CONTRIBUTING.md: README.md
 	python devscripts/make_contributing.py README.md CONTRIBUTING.md
@@ -74,7 +73,7 @@ README.txt: README.md
 	pandoc -f markdown -t plain README.md -o README.txt
 
 youtube-dl.1: README.md
-	python devscripts/prepare_manpage.py README.md > youtube-dl.1.temp.md
+	python devscripts/prepare_manpage.py >youtube-dl.1.temp.md
 	pandoc -s -f markdown -t man youtube-dl.1.temp.md -o youtube-dl.1
 	rm -f youtube-dl.1.temp.md
 
