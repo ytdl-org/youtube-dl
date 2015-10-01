@@ -1054,10 +1054,18 @@ class InfoExtractor(object):
             elif not description and name in ('description', 'abstract'):
                 description = content
 
+        thumbnails = [{
+            'id': image.get('type'),
+            'url': image.get('src'),
+            'width': int_or_none(image.get('width')),
+            'height': int_or_none(image.get('height')),
+        } for image in smil.findall(self._xpath_ns('.//image', namespace)) if image.get('src')]
+
         return {
             'id': video_id,
             'title': title or video_id,
             'description': description,
+            'thumbnails': thumbnails,
             'formats': formats,
             'subtitles': subtitles,
         }
