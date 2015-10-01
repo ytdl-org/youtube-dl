@@ -49,7 +49,7 @@ class NRKIE(InfoExtractor):
 
         if data['usageRights']['isGeoBlocked']:
             raise ExtractorError(
-                'NRK har ikke rettig-heter til å vise dette programmet utenfor Norge',
+                'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
                 expected=True)
 
         video_url = data['mediaUrl'] + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81'
