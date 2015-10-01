@@ -1129,8 +1129,10 @@ class InfoExtractor(object):
             src_url = src if src.startswith('http') else compat_urlparse.urljoin(base, src)
 
             if proto == 'm3u8' or src_ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    src_url, video_id, ext or 'mp4', m3u8_id='hls'))
+                m3u8_formats = self._extract_m3u8_formats(
+                    src_url, video_id, ext or 'mp4', m3u8_id='hls', fatal=False)
+                if m3u8_formats:
+                    formats.extend(m3u8_formats)
                 continue
 
             if src_ext == 'f4m':
