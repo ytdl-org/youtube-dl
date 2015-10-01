@@ -32,4 +32,5 @@ class SfDebrisIE(InfoExtractor):
             'display_id': display_id,
             'title': video_title,
             'url': playerdata_url,
+            'thumbnail': 'http://sfdebris.com/images/links/%s.png' % display_id
         }
