@@ -29,6 +29,32 @@ class TumblrIE(InfoExtractor):
             'thumbnail': 're:http://.*\.jpg',
         }
     }, {
+        'url': 'http://hdvideotest.tumblr.com/post/130323439814/test-description-for-my-hd-video',
+        'md5': '99a84522f60972bf064a0b80f87bcbb5',
+        'info_dict': {
+            'id': '130323439814',
+            'ext': 'mp4',
+            'title': 'HD Video Testing \u2014 Test description for my HD video',
+            'description': 'md5:97cc3ab5fcd27ee4af6356701541319c',
+            'thumbnail': 're:http://.*\.jpg',
+        },
+        'params': {
+            'format': 'sd',
+        },
+    }, {
+        'url': 'http://hdvideotest.tumblr.com/post/130323439814/test-description-for-my-hd-video',
+        'md5': '7ae503065ad150122dc3089f8cf1546c',
+        'info_dict': {
+            'id': '130323439814',
+            'ext': 'mp4',
+            'title': 'HD Video Testing \u2014 Test description for my HD video',
+            'description': 'md5:97cc3ab5fcd27ee4af6356701541319c',
+            'thumbnail': 're:http://.*\.jpg',
+        },
+        'params': {
+            'format': 'hd',
+        },
+    }, {
         'url': 'http://naked-yogi.tumblr.com/post/118312946248/naked-smoking-stretching',
         'md5': 'de07e5211d60d4f3a2c3df757ea9f6ab',
         'info_dict': {
@@ -57,6 +83,8 @@ class TumblrIE(InfoExtractor):
         video_id = m_url.group('id')
         blog = m_url.group('blog_name')
 
+        video_urls = []
+
         url = 'http://%s.tumblr.com/post/%s/' % (blog, video_id)
         webpage, urlh = self._download_webpage_handle(url, video_id)
 
@@ -68,8 +96,32 @@ class TumblrIE(InfoExtractor):
 
         iframe = self._download_webpage(iframe_url, video_id,
                                         'Downloading iframe page')
-        video_url = self._search_regex(r'<source src="([^"]+)"',
-                                       iframe, 'video url')
+
+        sd_video_url = self._search_regex(r'<source src="([^"]+)"',
+                                          iframe, 'sd video url')
+        resolution_id = sd_video_url.split("/")[-1] + 'p'
+        if len(resolution_id) != 4:
+            resolution_id = None
+        video_urls.append({
+            'ext': 'mp4',
+            'format_id': 'sd',
+            'url': sd_video_url,
+            'resolution': resolution_id,
+        })
+
+        hd_video_url = self._search_regex(r'hdUrl":"([^"]+)"', iframe,
+                                          'hd video url', default=None)
+        if hd_video_url:
+            hd_video_url = hd_video_url.replace("\\", "")
+            resolution_id = hd_video_url.split("/")[-1] + 'p'
+            if len(resolution_id) != 4:
+                resolution_id = None
+            video_urls.append({
+                'ext': 'mp4',
+                'format_id': 'hd',
+                'url': hd_video_url,
+                'resolution': resolution_id,
+            })
 
         # The only place where you can get a title, it's not complete,
         # but searching in other places doesn't work for all videos
@@ -79,7 +131,7 @@ class TumblrIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'url': video_url,
+            'formats': video_urls,
             'ext': 'mp4',
             'title': video_title,
             'description': self._og_search_description(webpage, default=None),
