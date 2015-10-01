@@ -51,9 +51,8 @@ class UniversalMusicFranceIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-
         urlVideo = self._html_search_regex(r'var urlVideo = \'(.*)\';', webpage, 'urlVideo')
-        title = self._html_search_regex(r'<meta property="?og:title"? content="(.*)"/>', webpage, 'title')
+        title = self._html_search_regex(r'<meta\s*property="?og:title"?\s*content="(.*)"\s*/>', webpage, 'title')
 
         request = compat_urllib_request.Request(self.GET_TOKEN_URL, urlencode_postdata({'videoUrl': urlVideo}))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
@@ -61,7 +60,6 @@ class UniversalMusicFranceIE(InfoExtractor):
         manifest_json = self._download_webpage(request, None, note='Getting token', errnote='unable to get token')
 
         manifestUrl = self._parse_json(manifest_json, video_id).get("video")
-        print(manifestUrl);
         return {
             'id': video_id,
             'title': title,

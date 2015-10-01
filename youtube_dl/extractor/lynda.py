@@ -118,9 +118,7 @@ class LyndaIE(LyndaBaseIE):
                 'lynda returned error: %s' % video_json['Message'], expected=True)
 
         if video_json['HasAccess'] is False:
-            raise ExtractorError(
-                'Video %s is only available for members. '
-                % video_id + self._ACCOUNT_CREDENTIALS_HINT, expected=True)
+            self.raise_login_required('Video %s is only available for members' % video_id)
 
         video_id = compat_str(video_json['ID'])
         duration = video_json['DurationInSeconds']

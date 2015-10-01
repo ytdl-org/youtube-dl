@@ -5,6 +5,7 @@ import getpass
 import optparse
 import os
 import re
+import shlex
 import shutil
 import socket
 import subprocess
@@ -80,6 +81,11 @@ except ImportError:
     import BaseHTTPServer as compat_http_server
 
 try:
+    compat_str = unicode  # Python 2
+except NameError:
+    compat_str = str
+
+try:
     from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
     from urllib.parse import unquote as compat_urllib_parse_unquote
     from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
@@ -99,7 +105,7 @@ except ImportError:  # Python 2
             # Is it a string-like object?
             string.split
             return b''
-        if isinstance(string, unicode):
+        if isinstance(string, compat_str):
             string = string.encode('utf-8')
         bits = string.split(b'%')
         if len(bits) == 1:
@@ -148,11 +154,6 @@ except ImportError:  # Python 2
         """
         string = string.replace('+', ' ')
         return compat_urllib_parse_unquote(string, encoding, errors)
-
-try:
-    compat_str = unicode  # Python 2
-except NameError:
-    compat_str = str
 
 try:
     compat_basestring = basestring  # Python 2
@@ -225,6 +226,17 @@ except ImportError:  # Python < 3.3
             return s
         else:
             return "'" + s.replace("'", "'\"'\"'") + "'"
+
+
+if sys.version_info >= (2, 7, 3):
+    compat_shlex_split = shlex.split
+else:
+    # Working around shlex issue with unicode strings on some python 2
+    # versions (see http://bugs.python.org/issue1548891)
+    def compat_shlex_split(s, comments=False, posix=True):
+        if isinstance(s, compat_str):
+            s = s.encode('utf-8')
+        return shlex.split(s, comments, posix)
 
 
 def compat_ord(c):
@@ -459,6 +471,7 @@ __all__ = [
     'compat_ord',
     'compat_parse_qs',
     'compat_print',
+    'compat_shlex_split',
     'compat_socket_create_connection',
     'compat_str',
     'compat_subprocess_get_DEVNULL',

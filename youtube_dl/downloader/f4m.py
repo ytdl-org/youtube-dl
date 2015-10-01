@@ -13,6 +13,8 @@ from ..compat import (
     compat_urllib_error,
 )
 from ..utils import (
+    encodeFilename,
+    sanitize_open,
     struct_pack,
     struct_unpack,
     xpath_text,
@@ -343,18 +345,19 @@ class F4mFD(FragmentFD):
                 success = ctx['dl'].download(frag_filename, {'url': url})
                 if not success:
                     return False
-                with open(frag_filename, 'rb') as down:
-                    down_data = down.read()
-                    reader = FlvReader(down_data)
-                    while True:
-                        _, box_type, box_data = reader.read_box_info()
-                        if box_type == b'mdat':
-                            dest_stream.write(box_data)
-                            break
+                (down, frag_sanitized) = sanitize_open(frag_filename, 'rb')
+                down_data = down.read()
+                down.close()
+                reader = FlvReader(down_data)
+                while True:
+                    _, box_type, box_data = reader.read_box_info()
+                    if box_type == b'mdat':
+                        dest_stream.write(box_data)
+                        break
                 if live:
-                    os.remove(frag_filename)
+                    os.remove(encodeFilename(frag_sanitized))
                 else:
-                    frags_filenames.append(frag_filename)
+                    frags_filenames.append(frag_sanitized)
             except (compat_urllib_error.HTTPError, ) as err:
                 if live and (err.code == 404 or err.code == 410):
                     # We didn't keep up with the live window. Continue
@@ -375,6 +378,6 @@ class F4mFD(FragmentFD):
         self._finish_frag_download(ctx)
 
         for frag_file in frags_filenames:
-            os.remove(frag_file)
+            os.remove(encodeFilename(frag_file))
 
         return True

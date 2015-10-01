@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import os
 import re
+import sys
 
 from .common import InfoExtractor
 from .youtube import YoutubeIE
@@ -48,6 +49,7 @@ from .vimeo import VimeoIE
 from .dailymotion import DailymotionCloudIE
 from .onionstudios import OnionStudiosIE
 from .snagfilms import SnagFilmsEmbedIE
+from .screenwavemedia import ScreenwaveMediaIE
 
 
 class GenericIE(InfoExtractor):
@@ -228,6 +230,22 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': False,
             }
+        },
+        {
+            # redirect in Refresh HTTP header
+            'url': 'https://www.facebook.com/l.php?u=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DpO8h3EaFRdo&h=TAQHsoToz&enc=AZN16h-b6o4Zq9pZkCCdOLNKMN96BbGMNtcFwHSaazus4JHT_MFYkAA-WARTX2kvsCIdlAIyHZjl6d33ILIJU7Jzwk_K3mcenAXoAzBNoZDI_Q7EXGDJnIhrGkLXo_LJ_pAa2Jzbx17UHMd3jAs--6j2zaeto5w9RTn8T_1kKg3fdC5WPX9Dbb18vzH7YFX0eSJmoa6SP114rvlkw6pkS1-T&s=1',
+            'info_dict': {
+                'id': 'pO8h3EaFRdo',
+                'ext': 'mp4',
+                'title': 'Tripeo Boiler Room x Dekmantel Festival DJ Set',
+                'description': 'md5:6294cc1af09c4049e0652b51a2df10d5',
+                'upload_date': '20150917',
+                'uploader_id': 'brtvofficial',
+                'uploader': 'Boiler Room',
+            },
+            'params': {
+                'skip_download': False,
+            },
         },
         {
             'url': 'http://www.hodiho.fr/2013/02/regis-plante-sa-jeep.html',
@@ -1001,6 +1019,16 @@ class GenericIE(InfoExtractor):
                 'description': 'New experience with Acrobat DC',
                 'duration': 248.667,
             },
+        },
+        # ScreenwaveMedia embed
+        {
+            'url': 'http://www.thecinemasnob.com/the-cinema-snob/a-nightmare-on-elm-street-2-freddys-revenge1',
+            'md5': '24ace5baba0d35d55c6810b51f34e9e0',
+            'info_dict': {
+                'id': 'cinemasnob-55d26273809dd',
+                'ext': 'mp4',
+                'title': 'cinemasnob',
+            },
         }
     ]
 
@@ -1718,6 +1746,11 @@ class GenericIE(InfoExtractor):
         if snagfilms_url:
             return self.url_result(snagfilms_url)
 
+        # Look for ScreenwaveMedia embeds
+        mobj = re.search(ScreenwaveMediaIE.EMBED_PATTERN, webpage)
+        if mobj is not None:
+            return self.url_result(unescapeHTML(mobj.group('url')), 'ScreenwaveMedia')
+
         # Look for AdobeTVVideo embeds
         mobj = re.search(
             r'<iframe[^>]+src=[\'"]((?:https?:)?//video\.tv\.adobe\.com/v/\d+[^"]+)[\'"]',
@@ -1781,7 +1814,7 @@ class GenericIE(InfoExtractor):
                 found = filter_video(re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage))
         if not found:
             # HTML5 video
-            found = re.findall(r'(?s)<video[^<]*(?:>.*?<source[^>]*)?\s+src=["\'](.*?)["\']', webpage)
+            found = re.findall(r'(?s)<(?:video|audio)[^<]*(?:>.*?<source[^>]*)?\s+src=["\'](.*?)["\']', webpage)
         if not found:
             REDIRECT_REGEX = r'[0-9]{,2};\s*(?:URL|url)=\'?([^\'"]+)'
             found = re.search(
@@ -1792,6 +1825,9 @@ class GenericIE(InfoExtractor):
                 # Look also in Refresh HTTP header
                 refresh_header = head_response.headers.get('Refresh')
                 if refresh_header:
+                    # In python 2 response HTTP headers are bytestrings
+                    if sys.version_info < (3, 0) and isinstance(refresh_header, str):
+                        refresh_header = refresh_header.decode('iso-8859-1')
                     found = re.search(REDIRECT_REGEX, refresh_header)
             if found:
                 new_url = compat_urlparse.urljoin(url, unescapeHTML(found.group(1)))

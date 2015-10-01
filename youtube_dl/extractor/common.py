@@ -510,6 +510,12 @@ class InfoExtractor(object):
         """Report attempt to log in."""
         self.to_screen('Logging in')
 
+    @staticmethod
+    def raise_login_required(msg='This video is only available for registered users'):
+        raise ExtractorError(
+            '%s. Use --username and --password or --netrc to provide account credentials.' % msg,
+            expected=True)
+
     # Methods for following #608
     @staticmethod
     def url_result(url, ie=None, video_id=None, video_title=None):
@@ -725,9 +731,10 @@ class InfoExtractor(object):
 
     @staticmethod
     def _hidden_inputs(html):
+        html = re.sub(r'<!--(?:(?!<!--).)*-->', '', html)
         hidden_inputs = {}
-        for input in re.findall(r'<input([^>]+)>', html):
-            if not re.search(r'type=(["\'])hidden\1', input):
+        for input in re.findall(r'(?i)<input([^>]+)>', html):
+            if not re.search(r'type=(["\'])(?:hidden|submit)\1', input):
                 continue
             name = re.search(r'name=(["\'])(?P<value>.+?)\1', input)
             if not name:
@@ -740,7 +747,7 @@ class InfoExtractor(object):
 
     def _form_hidden_inputs(self, form_id, html):
         form = self._search_regex(
-            r'(?s)<form[^>]+?id=(["\'])%s\1[^>]*>(?P<form>.+?)</form>' % form_id,
+            r'(?is)<form[^>]+?id=(["\'])%s\1[^>]*>(?P<form>.+?)</form>' % form_id,
             html, '%s form' % form_id, group='form')
         return self._hidden_inputs(form)
 

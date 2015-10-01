@@ -6,19 +6,19 @@ from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     determine_ext,
     int_or_none,
+    xpath_attr,
     xpath_text,
 )
 
 
 class RuutuIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?ruutu\.fi/ohjelmat/(?:[^/?#]+/)*(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?ruutu\.fi/video/(?P<id>\d+)'
     _TESTS = [
         {
-            'url': 'http://www.ruutu.fi/ohjelmat/oletko-aina-halunnut-tietaa-mita-tapahtuu-vain-hetki-ennen-lahetysta-nyt-se-selvisi',
+            'url': 'http://www.ruutu.fi/video/2058907',
             'md5': 'ab2093f39be1ca8581963451b3c0234f',
             'info_dict': {
                 'id': '2058907',
-                'display_id': 'oletko-aina-halunnut-tietaa-mita-tapahtuu-vain-hetki-ennen-lahetysta-nyt-se-selvisi',
                 'ext': 'mp4',
                 'title': 'Oletko aina halunnut tietää mitä tapahtuu vain hetki ennen lähetystä? - Nyt se selvisi!',
                 'description': 'md5:cfc6ccf0e57a814360df464a91ff67d6',
@@ -28,14 +28,13 @@ class RuutuIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://www.ruutu.fi/ohjelmat/superpesis/superpesis-katso-koko-kausi-ruudussa',
+            'url': 'http://www.ruutu.fi/video/2057306',
             'md5': '065a10ae4d5b8cfd9d0c3d332465e3d9',
             'info_dict': {
                 'id': '2057306',
-                'display_id': 'superpesis-katso-koko-kausi-ruudussa',
                 'ext': 'mp4',
                 'title': 'Superpesis: katso koko kausi Ruudussa',
-                'description': 'md5:44c44a99fdbe5b380ab74ebd75f0af77',
+                'description': 'md5:da2736052fef3b2bd5e0005e63c25eac',
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'duration': 40,
                 'age_limit': 0,
@@ -44,29 +43,10 @@ class RuutuIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, display_id)
-
-        video_id = self._search_regex(
-            r'data-media-id="(\d+)"', webpage, 'media id')
-
-        video_xml_url = None
-
-        media_data = self._search_regex(
-            r'jQuery\.extend\([^,]+,\s*(.+?)\);', webpage,
-            'media data', default=None)
-        if media_data:
-            media_json = self._parse_json(media_data, display_id, fatal=False)
-            if media_json:
-                xml_url = media_json.get('ruutuplayer', {}).get('xmlUrl')
-                if xml_url:
-                    video_xml_url = xml_url.replace('{ID}', video_id)
-
-        if not video_xml_url:
-            video_xml_url = 'http://gatling.ruutu.fi/media-xml-cache?id=%s' % video_id
-
-        video_xml = self._download_xml(video_xml_url, video_id)
+        video_xml = self._download_xml(
+            'http://gatling.ruutu.fi/media-xml-cache?id=%s' % video_id, video_id)
 
         formats = []
         processed_urls = []
@@ -109,10 +89,9 @@ class RuutuIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'display_id': display_id,
-            'title': self._og_search_title(webpage),
-            'description': self._og_search_description(webpage),
-            'thumbnail': self._og_search_thumbnail(webpage),
+            'title': xpath_attr(video_xml, './/Behavior/Program', 'program_name', 'title', fatal=True),
+            'description': xpath_attr(video_xml, './/Behavior/Program', 'description', 'description'),
+            'thumbnail': xpath_attr(video_xml, './/Behavior/Startpicture', 'href', 'thumbnail'),
             'duration': int_or_none(xpath_text(video_xml, './/Runtime', 'duration')),
             'age_limit': int_or_none(xpath_text(video_xml, './/AgeLimit', 'age limit')),
             'formats': formats,

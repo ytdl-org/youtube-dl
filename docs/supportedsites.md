@@ -166,7 +166,7 @@
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
  - **FootyRoom**
  - **Foxgay**
- - **FoxNews**
+ - **FoxNews**: Fox News and Fox Business Video
  - **FoxSports**
  - **france2.fr:generation-quoi**
  - **FranceCulture**
@@ -195,7 +195,7 @@
  - **GodTube**
  - **GoldenMoustache**
  - **Golem**
- - **GorillaVid**: GorillaVid.in, daclips.in, movpod.in, fastvideo.in and realvid.net
+ - **GorillaVid**: GorillaVid.in, daclips.in, movpod.in, fastvideo.in, realvid.net and filehoot.com
  - **Goshgay**
  - **Groupon**
  - **Hark**
@@ -220,6 +220,7 @@
  - **imdb**: Internet Movie Database trailers
  - **imdb:list**: Internet Movie Database lists
  - **Imgur**
+ - **ImgurAlbum**
  - **Ina**
  - **Indavideo**
  - **IndavideoEmbed**
@@ -303,11 +304,11 @@
  - **MPORA**
  - **MSNBC**
  - **MTV**
+ - **mtv.de**
  - **mtviggy.com**
  - **mtvservices:embedded**
  - **MuenchenTV**: münchen.tv
  - **MusicPlayOn**
- - **MusicVault**
  - **muzu.tv**
  - **Mwave**
  - **MySpace**
@@ -465,7 +466,7 @@
  - **Sexu**
  - **SexyKarma**: Sexy Karma and Watch Indian Porn
  - **Shahid**
- - **Shared**
+ - **Shared**: shared.sx and vivo.sx
  - **ShareSix**
  - **Sina**
  - **Slideshare**
@@ -631,6 +632,7 @@
  - **vine:user**
  - **vk**: VK
  - **vk:uservideos**: VK - User's Videos
+ - **vlive**
  - **Vodlocker**
  - **VoiceRepublic**
  - **Vporn**

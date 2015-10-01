@@ -33,7 +33,7 @@ params = get_params({
 
 
 TEST_ID = 'gr51aVj-mLg'
-ANNOTATIONS_FILE = TEST_ID + '.flv.annotations.xml'
+ANNOTATIONS_FILE = TEST_ID + '.annotations.xml'
 EXPECTED_ANNOTATIONS = ['Speech bubble', 'Note', 'Title', 'Spotlight', 'Label']
 
 

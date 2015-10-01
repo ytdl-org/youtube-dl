@@ -12,8 +12,8 @@ from ..utils import (
 
 
 class ScreenwaveMediaIE(InfoExtractor):
-    _VALID_URL = r'http://player\d?\.screenwavemedia\.com/(?:play/)?[a-zA-Z]+\.php\?[^"]*\bid=(?P<id>.+)'
-
+    _VALID_URL = r'https?://player\d?\.screenwavemedia\.com/(?:play/)?[a-zA-Z]+\.php\?.*\bid=(?P<id>[A-Za-z0-9-]+)'
+    EMBED_PATTERN = r'src=(["\'])(?P<url>(?:https?:)?//player\d?\.screenwavemedia\.com/(?:play/)?[a-zA-Z]+\.php\?.*\bid=.+?)\1'
     _TESTS = [{
         'url': 'http://player.screenwavemedia.com/play/play.php?playerdiv=videoarea&companiondiv=squareAd&id=Cinemassacre-19911',
         'only_matching': True,
@@ -33,7 +33,7 @@ class ScreenwaveMediaIE(InfoExtractor):
             'http://player.screenwavemedia.com/player.js',
             video_id, 'Downloading playerconfig webpage')
 
-        videoserver = self._search_regex(r"\[ipaddress\]\s*=>\s*([\d\.]+)", playerdata, 'videoserver')
+        videoserver = self._search_regex(r'SWMServer\s*=\s*"([\d\.]+)"', playerdata, 'videoserver')
 
         sources = self._parse_json(
             js_to_json(
@@ -56,6 +56,7 @@ class ScreenwaveMediaIE(InfoExtractor):
 
         # Fallback to hardcoded sources if JS changes again
         if not sources:
+            self.report_warning('Falling back to a hardcoded list of streams')
             sources = [{
                 'file': 'http://%s/vod/%s_%s.mp4' % (videoserver, video_id, format_id),
                 'type': 'mp4',

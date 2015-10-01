@@ -3,8 +3,6 @@ from __future__ import unicode_literals
 
 import re
 import hashlib
-import universalmusicfrance
-import ultimedia
 
 from .common import InfoExtractor
 from ..utils import (
@@ -17,6 +15,17 @@ class WatIE(InfoExtractor):
     _VALID_URL = r'http://www\.wat\.tv/video/(?P<display_id>.*)-(?P<short_id>.*?)_.*?\.html'
     IE_NAME = 'wat.tv'
     _TESTS = [
+        {
+            'url': 'http://www.wat.tv/video/lady-gaga-but-beautiful-2014-72611_2ey39_.html',
+            'md5': '159cda7568b9fc1e5e3de6aeca5d4bfc',
+            'info_dict': {
+                'id': 'lady-gaga-but-beautiful',
+                'display_id': 'lady-gaga-but-beautiful',
+                'ext': 'mp4',
+                'title': 'lady-gaga-but-beautiful',
+                'description': 'md5:1bbdde8d44751f43367ba68e8b9966a6'
+            },
+        },
         {
             'url': 'http://www.wat.tv/video/anna-bergendahl-for-you-2015-7dvjn_76lkz_.html',
             'md5': '159cda7568b9fc1e5e3de6aeca5d4bfc',
@@ -84,14 +93,13 @@ class WatIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id or short_id)
         srcIFrame = self._html_search_regex(r'<iframe .* src="(.*?)(.iframe)?"', webpage, 'srcIFrame')
         if (srcIFrame.__contains__("universalmusic")):
-            #return universalmusicfrance.UniversalMusicFranceIE()._real_extract(srcIFrame);
-            print srcIFrame
+            #should redirect to universalmusicfrance extractor
             return self.url_result(srcIFrame)
         elif (srcIFrame.__contains__("ultimedia")):
             mobj = re.match(r'http://www\.ultimedia\.com/deliver/musique/iframe/mdtk/[0-9]*/zone/[0-9]/article/(?P<article_id>.*?)/.*', srcIFrame)
             article_id = mobj.group('article_id')
             ultimedia_url = "http://www.ultimedia.com/default/index/videomusic/id/" + article_id
-            #return ultimedia.UltimediaIE()._real_extract(ultimedia_url)
+            #should redirect to ultimedia extractor
             return self.url_result(ultimedia_url)
         else:
             real_id = self._search_regex(r'xtpage = ".*-(.*?)";', webpage, 'real id')
