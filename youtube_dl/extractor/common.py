@@ -1084,7 +1084,7 @@ class InfoExtractor(object):
             if not src:
                 continue
 
-            bitrate = int_or_none(video.get('system-bitrate') or video.get('systemBitrate'), 1000)
+            bitrate = float_or_none(video.get('system-bitrate') or video.get('systemBitrate'), 1000)
             filesize = int_or_none(video.get('size') or video.get('fileSize'))
             width = int_or_none(video.get('width'))
             height = int_or_none(video.get('height'))
