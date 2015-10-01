@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 
+from ..utils import RegexNotFoundError
 
 class TumblrIE(InfoExtractor):
     _VALID_URL = r'http://(?P<blog_name>.*?)\.tumblr\.com/(?:post|video)/(?P<id>[0-9]+)(?:$|[/?#])'
@@ -28,6 +29,34 @@ class TumblrIE(InfoExtractor):
             'description': 'md5:dba62ac8639482759c8eb10ce474586a',
             'thumbnail': 're:http://.*\.jpg',
         }
+    }, {
+        'url': 'http://larastonesbitch.tumblr.com/post/130035771559/honestlyiconic',
+        'md5': 'f0c88985bd7e85d13603771a8647f270',
+        'resolution': 'hd',
+        'info_dict': {
+            'id': '130035771559',
+            'ext': 'mp4',
+            'title': 'larastonesbitch',
+            'description': 'md5:d9184c8b9396bb5b027b3d8658a43de0',
+            'thumbnail': 're:http://.*\.jpg',
+        },
+        'params': {
+            'format': 'sd',
+        },
+    }, {
+        'url': 'http://larastonesbitch.tumblr.com/post/130035771559/honestlyiconic',
+        'md5': 'a88dea4c03a9cc208cf44eb2dd12248b',
+        'resolution': 'hd',
+        'info_dict': {
+            'id': '130035771559',
+            'ext': 'mp4',
+            'title': 'larastonesbitch',
+            'description': 'md5:d9184c8b9396bb5b027b3d8658a43de0',
+            'thumbnail': 're:http://.*\.jpg',
+        },
+        'params': {
+            'format': 'hd',
+        },
     }, {
         'url': 'http://naked-yogi.tumblr.com/post/118312946248/naked-smoking-stretching',
         'md5': 'de07e5211d60d4f3a2c3df757ea9f6ab',
@@ -57,6 +86,8 @@ class TumblrIE(InfoExtractor):
         video_id = m_url.group('id')
         blog = m_url.group('blog_name')
 
+        video_urls = []
+
         url = 'http://%s.tumblr.com/post/%s/' % (blog, video_id)
         webpage, urlh = self._download_webpage_handle(url, video_id)
 
@@ -68,8 +99,35 @@ class TumblrIE(InfoExtractor):
 
         iframe = self._download_webpage(iframe_url, video_id,
                                         'Downloading iframe page')
-        video_url = self._search_regex(r'<source src="([^"]+)"',
-                                       iframe, 'video url')
+
+        sd_video_url = self._search_regex(r'<source src="([^"]+)"',
+                                          iframe, 'sd video url')
+        format_id = sd_video_url.split("/")[-1] + 'p'
+        if len(format_id) != 4:
+            format_id = "480p"
+        video_urls.append({
+            'ext': 'mp4',
+            'format_id': 'sd',
+            'url': sd_video_url,
+            'resolution': format_id,
+        })
+
+        try:
+            hd_video_url = self._search_regex(r'hdUrl":"([^"]+)"',
+                                              iframe, 'hd video url')
+            hd_video_url = hd_video_url.replace("\\", "")
+            format_id = hd_video_url.split("/")[-1] + 'p'
+            if len(format_id) != 4:
+                format_id = "720p"
+            video_urls.append({
+                'ext': 'mp4',
+                'format_id': 'hd',
+                'url': hd_video_url,
+                'resolution': format_id,
+            })
+        except RegexNotFoundError:
+            # Not all videos will have HD versions
+            pass
 
         # The only place where you can get a title, it's not complete,
         # but searching in other places doesn't work for all videos
@@ -79,7 +137,7 @@ class TumblrIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'url': video_url,
+            'formats': video_urls,
             'ext': 'mp4',
             'title': video_title,
             'description': self._og_search_description(webpage, default=None),
