@@ -52,17 +52,12 @@ class UstreamIE(InfoExtractor):
             desktop_url = 'http://www.ustream.tv/recorded/' + desktop_video_id
             return self.url_result(desktop_url, 'Ustream')
 
-        params = self._download_json(
-            'http://cdngw.ustream.tv/rgwjson/Viewer.getVideo/' + json.dumps({
-                'brandId': 1,
-                'videoId': int(video_id),
-                'autoplay': False,
-            }), video_id)
+        params = self._download_json('https://api.ustream.tv/videos/' + video_id + '.json', video_id)
 
         if 'error' in params:
             raise ExtractorError(params['error']['message'], expected=True)
 
-        video_url = params['flv']
+        video_url = params['video']['media_urls']['flv']
 
         webpage = self._download_webpage(url, video_id)
 
