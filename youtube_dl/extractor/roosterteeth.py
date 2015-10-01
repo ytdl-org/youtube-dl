@@ -110,7 +110,7 @@ class RoosterteethShowIE(InfoExtractor):
 
 
 class RoosterteethIE(InfoExtractor):
-    _VALID_URL = r'http://(?P<domain>(?:www\.)?(?:roosterteeth\.com|achievementhunter\.com|fun\.haus))/episode/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?P<domain>(?:www\.)?(?:roosterteeth\.com|achievementhunter\.com|fun\.haus))/episode/(?P<id>[^/]+)'
     _TESTS = [
         {
             'url': 'http://achievementhunter.com/episode/rage-quit-season-1-episode-199',
@@ -174,29 +174,27 @@ class RoosterteethIE(InfoExtractor):
                 else:
                     raise ExtractorError('This is a sponsor-only video and although I tried to login, it did not work.')
 
-        js = self._html_search_regex(r'<script src="https?://(?:www\.)?(?:roosterteeth\.com|achievementhunter\.com|fun\.haus)/scripts/lib/(?:jwplayer|youtube)\.min\.js"></script>\s*<script>\s*([^<]+)\s*</script>', html, 'video info')
-        info = re.search(r'RT\.(?P<player>youtube|jwplayer)\.player\((?P<json>\{(?:[^}]|\}(?!\);))+\})\);', js)
-        if not info:
-            raise ExtractorError("Can't parse the video metadata! (%s)" % js)
+        p = re.search(r'<script src="https?://(?:www\.)?(?:roosterteeth\.com|achievementhunter\.com|fun\.haus)/scripts/lib/(?P<player>jwplayer|youtube)\.(?:min\.)?js"></script>\s*<script>\s*(?P<script>[^<]+)\s*</script>', html)
+        if not p:
+            raise ExtractorError("Can't parse the video metadata! (%s)" % video_id)
 
-        player = info.group('player')
-        meta = self._parse_json(js_to_json(info.group('json')), video_id)
+        player = p.group('player')
         if player == 'jwplayer':
-            # Make sure that all values are there.
-            for attr in ('containerId', 'videoImage', 'videoTitle', 'manifest'):
-                if attr not in meta:
-                    raise ExtractorError('Unexpected video info! Attribute %s is missing.' % attr)
-
-            video_image = meta['videoImage']
+            video_image = self._search_regex(r"var videoImage = '([^']+)';", p.group('script'), 'video image')
             if video_image.startswith('//'):
                 video_image = 'http:' + video_image
 
+            manifest = self._search_regex(r"RT\.jwplayer\.player\([^\{]+\{\s*file: '([^']+)',", p.group('script'), 'manifest')
+
             res = {
                 'id': video_id,
-                'formats': self._extract_m3u8_formats(meta['manifest'], video_id, ext='mp4', entry_protocol='m3u8_native'),
+                'formats': self._extract_m3u8_formats(manifest, video_id, ext='mp4'),
                 'thumbnail': video_image
             }
         elif player == 'youtube':
+            info = self._html_search_regex(r'RT\.(?:youtube|jwplayer)\.player\((\{(?:[^}]|\}(?!\);))+\})\);', p.group('script'), 'video metadata')
+            meta = self._parse_json(js_to_json(info), video_id)
+
             if 'youtubeKey' not in meta:
                 raise ExtractorError('Invalid metadata for youtube video!')
 
