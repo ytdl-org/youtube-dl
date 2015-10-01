@@ -1145,7 +1145,7 @@ class InfoExtractor(object):
                 formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds'))
                 continue
 
-            if src_url.startswith('http'):
+            if src_url.startswith('http') and self._is_valid_url(src, video_id):
                 http_count += 1
                 formats.append({
                     'url': src_url,
