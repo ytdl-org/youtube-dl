@@ -29,6 +29,21 @@ class VideoLecturesNetIE(InfoExtractor):
             'thumbnail': 're:http://.*\.jpg',
         },
     }, {
+        # video with invalid direct format links (HTTP 403)
+        'url': 'http://videolectures.net/russir2010_filippova_nlp/',
+        'info_dict': {
+            'id': 'russir2010_filippova_nlp',
+            'ext': 'flv',
+            'title': 'NLP at Google',
+            'description': 'md5:fc7a6d9bf0302d7cc0e53f7ca23747b3',
+            'duration': 5352,
+            'thumbnail': 're:http://.*\.jpg',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
+    }, {
         'url': 'http://videolectures.net/deeplearning2015_montreal/',
         'info_dict': {
             'id': 'deeplearning2015_montreal',
