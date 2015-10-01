@@ -17,7 +17,7 @@ class VideoLecturesNetIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?videolectures\.net/(?P<id>[^/#?]+)/*(?:[#?].*)?$'
     IE_NAME = 'videolectures.net'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://videolectures.net/promogram_igor_mekjavic_eng/',
         'info_dict': {
             'id': 'promogram_igor_mekjavic_eng',
@@ -28,7 +28,15 @@ class VideoLecturesNetIE(InfoExtractor):
             'duration': 565,
             'thumbnail': 're:http://.*\.jpg',
         },
-    }
+    }, {
+        'url': 'http://videolectures.net/deeplearning2015_montreal/',
+        'info_dict': {
+            'id': 'deeplearning2015_montreal',
+            'title': 'Deep Learning Summer School, Montreal 2015',
+            'description': 'md5:90121a40cc6926df1bf04dcd8563ed3b',
+        },
+        'playlist_count': 30,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
