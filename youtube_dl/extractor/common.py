@@ -39,6 +39,7 @@ from ..utils import (
     RegexNotFoundError,
     sanitize_filename,
     unescapeHTML,
+    unified_strdate,
     url_basename,
     xpath_text,
     xpath_with_ns,
@@ -1044,6 +1045,7 @@ class InfoExtractor(object):
         video_id = os.path.splitext(url_basename(smil_url))[0]
         title = None
         description = None
+        upload_date = None
         for meta in smil.findall(self._xpath_ns('./head/meta', namespace)):
             name = meta.attrib.get('name')
             content = meta.attrib.get('content')
@@ -1053,6 +1055,8 @@ class InfoExtractor(object):
                 title = content
             elif not description and name in ('description', 'abstract'):
                 description = content
+            elif not upload_date and name == 'date':
+                upload_date = unified_strdate(content)
 
         thumbnails = [{
             'id': image.get('type'),
@@ -1065,6 +1069,7 @@ class InfoExtractor(object):
             'id': video_id,
             'title': title or video_id,
             'description': description,
+            'upload_date': upload_date,
             'thumbnails': thumbnails,
             'formats': formats,
             'subtitles': subtitles,
