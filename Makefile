@@ -9,6 +9,8 @@ BINDIR ?= $(PREFIX)/bin
 MANDIR ?= $(PREFIX)/man
 SHAREDIR ?= $(PREFIX)/share
 PYTHON ?= /usr/bin/env python
+VERSION ?= $(shell echo 'print(__version__)' | cat youtube_dl/version.py - | python)
+DATE ?= $(shell echo '$(VERSION)' | sed -e 's/\./-/g')
 
 # set SYSCONFDIR to /etc if PREFIX=/usr or PREFIX=/usr/local
 ifeq ($(PREFIX),/usr)
@@ -73,9 +75,7 @@ README.txt: README.md
 	pandoc -f markdown -t plain README.md -o README.txt
 
 youtube-dl.1: README.md
-	python devscripts/prepare_manpage.py >youtube-dl.1.temp.md
-	pandoc -s -f markdown -t man youtube-dl.1.temp.md -o youtube-dl.1
-	rm -f youtube-dl.1.temp.md
+	python devscripts/prepare_manpage.py | uniq | pod2man --center='User Commands' --date=$(DATE) --errors='die' --name='YOUTUBE-DL' --release=$(VERSION) --section=1 > youtube-dl.1
 
 youtube-dl.bash-completion: youtube_dl/*.py youtube_dl/*/*.py devscripts/bash-completion.in
 	python devscripts/bash-completion.py
