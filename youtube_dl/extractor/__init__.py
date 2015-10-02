@@ -231,7 +231,11 @@ from .howstuffworks import HowStuffWorksIE
 from .huffpost import HuffPostIE
 from .hypem import HypemIE
 from .iconosquare import IconosquareIE
-from .ign import IGNIE, OneUPIE
+from .ign import (
+    IGNIE,
+    OneUPIE,
+    PCMagIE,
+)
 from .imdb import (
     ImdbIE,
     ImdbListIE
