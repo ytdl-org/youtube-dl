@@ -63,7 +63,7 @@ class EuropaIE(InfoExtractor):
         thumbnmail = xpath_text(playlist, './info/thumburl', 'thumbnail')
         upload_date = unified_strdate(xpath_text(playlist, './info/date', 'upload date'))
         duration = parse_duration(xpath_text(playlist, './info/duration', 'duration'))
-        view_count = int_or_none(xpath_text(playlist,'./info/views', 'views'))
+        view_count = int_or_none(xpath_text(playlist, './info/views', 'views'))
 
         language_preference = qualities(preferred_langs[::-1])
 
