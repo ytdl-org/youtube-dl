@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class EuropaIE(InfoExtractor):
-    _VALID_URL = r'https?://ec\.europa\.eu/avservices/video/player\.cfm\?.*?\bref=(?P<id>[A-Za-z0-9]+)'
+    _VALID_URL = r'https?://ec\.europa\.eu/avservices/(?:video/player|audio/audioDetails)\.cfm\?.*?\bref=(?P<id>[A-Za-z0-9-]+)'
     _TESTS = [{
         'url': 'http://ec.europa.eu/avservices/video/player.cfm?ref=I107758',
         'md5': '574f080699ddd1e19a675b0ddf010371',
@@ -31,6 +31,9 @@ class EuropaIE(InfoExtractor):
         }
     }, {
         'url': 'http://ec.europa.eu/avservices/video/player.cfm?sitelang=en&ref=I107786',
+        'only_matching': True,
+    }, {
+        'url': 'http://ec.europa.eu/avservices/audio/audioDetails.cfm?ref=I-109295&sitelang=en',
         'only_matching': True,
     }]
 
