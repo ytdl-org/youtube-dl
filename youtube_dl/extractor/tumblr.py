@@ -7,6 +7,7 @@ from .common import InfoExtractor
 
 from ..utils import RegexNotFoundError
 
+
 class TumblrIE(InfoExtractor):
     _VALID_URL = r'http://(?P<blog_name>.*?)\.tumblr\.com/(?:post|video)/(?P<id>[0-9]+)(?:$|[/?#])'
     _TESTS = [{
@@ -30,28 +31,28 @@ class TumblrIE(InfoExtractor):
             'thumbnail': 're:http://.*\.jpg',
         }
     }, {
-        'url': 'http://larastonesbitch.tumblr.com/post/130035771559/honestlyiconic',
-        'md5': 'f0c88985bd7e85d13603771a8647f270',
+        'url': 'http://hdvideotest.tumblr.com/post/130323439814/test-description-for-my-hd-video',
+        'md5': '99a84522f60972bf064a0b80f87bcbb5',
         'resolution': 'hd',
         'info_dict': {
-            'id': '130035771559',
+            'id': '130323439814',
             'ext': 'mp4',
-            'title': 'larastonesbitch',
-            'description': 'md5:d9184c8b9396bb5b027b3d8658a43de0',
+            'title': 'HD Video Testing \u2014 Test description for my HD video',
+            'description': 'md5:97cc3ab5fcd27ee4af6356701541319c',
             'thumbnail': 're:http://.*\.jpg',
         },
         'params': {
             'format': 'sd',
         },
     }, {
-        'url': 'http://larastonesbitch.tumblr.com/post/130035771559/honestlyiconic',
-        'md5': 'a88dea4c03a9cc208cf44eb2dd12248b',
+        'url': 'http://hdvideotest.tumblr.com/post/130323439814/test-description-for-my-hd-video',
+        'md5': '7ae503065ad150122dc3089f8cf1546c',
         'resolution': 'hd',
         'info_dict': {
-            'id': '130035771559',
+            'id': '130323439814',
             'ext': 'mp4',
-            'title': 'larastonesbitch',
-            'description': 'md5:d9184c8b9396bb5b027b3d8658a43de0',
+            'title': 'HD Video Testing \u2014 Test description for my HD video',
+            'description': 'md5:97cc3ab5fcd27ee4af6356701541319c',
             'thumbnail': 're:http://.*\.jpg',
         },
         'params': {
