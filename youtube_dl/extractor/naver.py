@@ -10,7 +10,6 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
-    clean_html,
 )
 
 
