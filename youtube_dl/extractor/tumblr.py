@@ -5,8 +5,6 @@ import re
 
 from .common import InfoExtractor
 
-from ..utils import RegexNotFoundError
-
 
 class TumblrIE(InfoExtractor):
     _VALID_URL = r'http://(?P<blog_name>.*?)\.tumblr\.com/(?:post|video)/(?P<id>[0-9]+)(?:$|[/?#])'
@@ -103,32 +101,29 @@ class TumblrIE(InfoExtractor):
 
         sd_video_url = self._search_regex(r'<source src="([^"]+)"',
                                           iframe, 'sd video url')
-        format_id = sd_video_url.split("/")[-1] + 'p'
-        if len(format_id) != 4:
-            format_id = "480p"
+        resolution_id = sd_video_url.split("/")[-1] + 'p'
+        if len(resolution_id) != 4:
+            resolution_id = None
         video_urls.append({
             'ext': 'mp4',
             'format_id': 'sd',
             'url': sd_video_url,
-            'resolution': format_id,
+            'resolution': resolution_id,
         })
 
-        try:
-            hd_video_url = self._search_regex(r'hdUrl":"([^"]+)"',
-                                              iframe, 'hd video url')
+        hd_video_url = self._search_regex(r'hdUrl":"([^"]+)"', iframe,
+                                          'hd video url', default=None)
+        if hd_video_url:
             hd_video_url = hd_video_url.replace("\\", "")
-            format_id = hd_video_url.split("/")[-1] + 'p'
-            if len(format_id) != 4:
-                format_id = "720p"
+            resolution_id = hd_video_url.split("/")[-1] + 'p'
+            if len(resolution_id) != 4:
+                resolution_id = None
             video_urls.append({
                 'ext': 'mp4',
                 'format_id': 'hd',
                 'url': hd_video_url,
-                'resolution': format_id,
+                'resolution': resolution_id,
             })
-        except RegexNotFoundError:
-            # Not all videos will have HD versions
-            pass
 
         # The only place where you can get a title, it's not complete,
         # but searching in other places doesn't work for all videos
