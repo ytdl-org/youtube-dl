@@ -136,7 +136,7 @@ def expect_value(self, got, expected, field):
             self.assertEqual(
                 type_expected, type_got,
                 'Type mismatch for list item at index %d for field %s, expected %r, got %r' % (
-                index, field, type_expected, type_got))
+                    index, field, type_expected, type_got))
             expect_value(self, item_got, item_expected, field)
     else:
         if isinstance(expected, compat_str) and expected.startswith('md5:'):
