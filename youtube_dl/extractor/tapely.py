@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class TapelyIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tape\.ly/(?P<id>[A-Za-z0-9\-_]+)(?:/(?P<songnr>\d+))?'
+    _VALID_URL = r'https?://(?:www\.)?(?:tape\.ly|tapely\.com)/(?P<id>[A-Za-z0-9\-_]+)(?:/(?P<songnr>\d+))?'
     _API_URL = 'http://tape.ly/showtape?id={0:}'
     _S3_SONG_URL = 'http://mytape.s3.amazonaws.com/{0:}'
     _SOUNDCLOUD_SONG_URL = 'http://api.soundcloud.com{0:}'
@@ -41,6 +41,10 @@ class TapelyIE(InfoExtractor):
                 'title': 'Dreaming Awake  (My Brightest Diamond)',
                 'ext': 'm4a',
             },
+        },
+        {
+            'url': 'https://tapely.com/my-grief-as-told-by-water',
+            'only_matching': True,
         },
     ]
 
