@@ -18,22 +18,21 @@ class CSpanIE(InfoExtractor):
     IE_DESC = 'C-SPAN'
     _TESTS = [{
         'url': 'http://www.c-span.org/video/?313572-1/HolderonV',
-        'md5': '8e44ce11f0f725527daccc453f553eb0',
+        'md5': '067803f994e049b455a58b16e5aab442',
         'info_dict': {
             'id': '315139',
             'ext': 'mp4',
             'title': 'Attorney General Eric Holder on Voting Rights Act Decision',
-            'description': 'Attorney General Eric Holder spoke to reporters following the Supreme Court decision in Shelby County v. Holder in which the court ruled that the preclearance provisions of the Voting Rights Act could not be enforced until Congress established new guidelines for review.',
+            'description': 'Attorney General Eric Holder speaks to reporters following the Supreme Court decision in [Shelby County v. Holder], in which the court ruled that the preclearance provisions of the Voting Rights Act could not be enforced.',
         },
         'skip': 'Regularly fails on travis, for unknown reasons',
     }, {
         'url': 'http://www.c-span.org/video/?c4486943/cspan-international-health-care-models',
-        # For whatever reason, the served video alternates between
-        # two different ones
+        'md5': '4eafd1e91a75d2b1e6a3cbd0995816a2',
         'info_dict': {
-            'id': '340723',
+            'id': 'c4486943',
             'ext': 'mp4',
-            'title': 'International Health Care Models',
+            'title': 'CSPAN - International Health Care Models',
             'description': 'md5:7a985a2d595dba00af3d9c9f0783c967',
         }
     }, {
@@ -44,7 +43,7 @@ class CSpanIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'General Motors Ignition Switch Recall',
             'duration': 14848,
-            'description': 'md5:70c7c3b8fa63fa60d42772440596034c'
+            'description': 'md5:118081aedd24bf1d3b68b3803344e7f3'
         },
     }, {
         # Video from senate.gov
@@ -57,35 +56,32 @@ class CSpanIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        page_id = mobj.group('id')
-        webpage = self._download_webpage(url, page_id)
-        video_id = self._search_regex(r'progid=\'?([0-9]+)\'?>', webpage, 'video id')
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        matches = re.search(r'data-(prog|clip)id=\'([0-9]+)\'', webpage)
+        if matches:
+            video_type, video_id = matches.groups()
+            if video_type == 'prog':
+                video_type = 'program'
+        else:
+            senate_isvp_url = SenateISVPIE._search_iframe_url(webpage)
+            if senate_isvp_url:
+                title = self._og_search_title(webpage)
+                surl = smuggle_url(senate_isvp_url, {'force_title': title})
+                return self.url_result(surl, 'SenateISVP', video_id, title)
 
-        description = self._html_search_regex(
-            [
-                # The full description
-                r'<div class=\'expandable\'>(.*?)<a href=\'#\'',
-                # If the description is small enough the other div is not
-                # present, otherwise this is a stripped version
-                r'<p class=\'initial\'>(.*?)</p>'
-            ],
-            webpage, 'description', flags=re.DOTALL, default=None)
-
-        info_url = 'http://c-spanvideo.org/videoLibrary/assets/player/ajax-player.php?os=android&html5=program&id=' + video_id
-        data = self._download_json(info_url, video_id)
+        data = self._download_json(
+            'http://c-spanvideo.org/videoLibrary/assets/player/ajax-player.php?os=android&html5=%s&id=%s' % (video_type, video_id),
+            video_id)
 
         doc = self._download_xml(
-            'http://www.c-span.org/common/services/flashXml.php?programid=' + video_id,
+            'http://www.c-span.org/common/services/flashXml.php?%sid=%s' % (video_type, video_id),
             video_id)
+
+        description = self._html_search_meta('description', webpage)
 
         title = find_xpath_attr(doc, './/string', 'name', 'title').text
         thumbnail = find_xpath_attr(doc, './/string', 'name', 'poster').text
-
-        senate_isvp_url = SenateISVPIE._search_iframe_url(webpage)
-        if senate_isvp_url:
-            surl = smuggle_url(senate_isvp_url, {'force_title': title})
-            return self.url_result(surl, 'SenateISVP', video_id, title)
 
         files = data['video']['files']
         try:
@@ -112,12 +108,12 @@ class CSpanIE(InfoExtractor):
 
         if len(entries) == 1:
             entry = dict(entries[0])
-            entry['id'] = video_id
+            entry['id'] = 'c' + video_id if video_type == 'clip' else video_id
             return entry
         else:
             return {
                 '_type': 'playlist',
                 'entries': entries,
                 'title': title,
-                'id': video_id,
+                'id': 'c' + video_id if video_type == 'clip' else video_id,
             }
