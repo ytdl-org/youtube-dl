@@ -3,131 +3,157 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     parse_duration,
-    parse_iso8601,
     int_or_none,
 )
 
 
-class NBABaseIE(InfoExtractor):
-    def _get_formats(self, video_id):
-        formats = self._extract_m3u8_formats(
-            'http://nbavod-f.akamaihd.net/i/nba/big%s_,640x360_664m,768x432_996,768x432_1404,960x540_2104,1280x720,.mp4.csmil/master.m3u8' % video_id,
-            video_id,
-            m3u8_id='hls')
-        formats.extend(self._extract_f4m_formats(
-            'http://nbavod-f.akamaihd.net/z/nba/big%s_,640x360_664m,768x432_996,768x432_1404,960x540_2104,1280x720,.mp4.csmil/manifest.f4m?hdcore=3.4.1.1' % video_id,
-            video_id,
-            f4m_id='hds'))
-        base_url = 'http://nba.cdn.turner.com/nba/big%s' % video_id
-        formats.extend([{
-            'url': base_url + '_nba_ipad.mp4',
-            'width': 400,
-            'height': 224,
-            'format_id': '224p',
-            'preference': 1,
-        },{
-            'url': base_url + '_nba_android_high.mp4',
-            'width': 480,
-            'height': 320,
-            'format_id': '320p',
-            'preference': 2,
-        },{
-            'url': base_url + '_nba_576x324.mp4',
-            'width': 576,
-            'height': 324,
-            'format_id': '324p',
-            'preference': 3,
-        },{
-            'url': base_url + '_640x360_664b.mp4',
-            'width': 640,
-            'height': 360,
-            'format_id': '360p',
-            'preference': 4,
-        },{
-            'url': base_url + '_768x432_1404.mp4',
-            'width': 768,
-            'height': 432,
-            'format_id': '432p',
-            'preference': 5,
-        },{
-            'url': base_url + '_960x540_2104.mp4',
-            'width': 960,
-            'height': 540,
-            'format_id': '540p',
-            'preference': 6,
-        },{
-            'url': base_url + '_1280x720.mp4',
-            'width': 1280,
-            'height': 720,
-            'format_id': '720p',
-            'preference': 7,
-        }])
-        self._sort_formats(formats)
-        return formats
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-        ret = self._extract_metadata(webpage, video_id)
-        ret['id'] = video_id.rpartition('/')[2]
-        ret['formats'] = self._get_formats(video_id)
-        return ret
-
-
-class NBAIE(NBABaseIE):
-    IE_NAME = 'nba'
-    _VALID_URL = r'https?://(?:www\.)?nba\.com/(?:nba/)?video(?P<id>/[^?]*?)/?(?:/index\.html)?(?:\?.*)?$'
+class NBAIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:watch\.|www\.)?nba\.com/(?:nba/)?video/(?P<id>[^?]*?)/?(?:/index\.html)?(?:\?.*)?$'
     _TESTS = [{
         'url': 'http://www.nba.com/video/games/nets/2012/12/04/0021200253-okc-bkn-recap.nba/index.html',
         'md5': '9d902940d2a127af3f7f9d2f3dc79c96',
         'info_dict': {
-            'id': '0021200253-okc-bkn-recap.nba',
+            'id': '0021200253-okc-bkn-recap',
             'ext': 'mp4',
             'title': 'Thunder vs. Nets',
             'description': 'Kevin Durant scores 32 points and dishes out six assists as the Thunder beat the Nets in Brooklyn.',
             'duration': 181,
-            'timestamp': 1354680189,
-            'upload_date': '20121205',
+            'timestamp': 1354638466,
+            'upload_date': '20121204',
         },
     }, {
         'url': 'http://www.nba.com/video/games/hornets/2014/12/05/0021400276-nyk-cha-play5.nba/',
         'only_matching': True,
-    }]
-
-    def _extract_metadata(self, webpage, video_id):
-        return {
-            'title': self._html_search_meta('name', webpage),
-            'description': self._html_search_meta('description', webpage),
-            'duration': parse_duration(self._html_search_meta('duration', webpage)),
-            'thumbnail': self._html_search_meta('thumbnailUrl', webpage),
-            'timestamp': parse_iso8601(self._html_search_meta('uploadDate', webpage))
-        }
-
-class NBAWatchIE(NBABaseIE):
-    IE_NAME = 'nba:watch'
-    _VALID_URL = r'https?://watch.nba\.com/(?:nba/)?video(?P<id>/[^?]*?)/?(?:/index\.html)?(?:\?.*)?$'
-    _TESTS = [{
+    },{
         'url': 'http://watch.nba.com/nba/video/channels/playoffs/2015/05/20/0041400301-cle-atl-recap.nba',
         'md5': 'b2b39b81cf28615ae0c3360a3f9668c4',
         'info_dict': {
-            'id': '0041400301-cle-atl-recap.nba',
+            'id': '0041400301-cle-atl-recap',
             'ext': 'mp4',
             'title': 'Hawks vs. Cavaliers Game 1',
             'description': 'md5:8094c3498d35a9bd6b1a8c396a071b4d',
             'duration': 228,
-            'timestamp': 1432094400,
+            'timestamp': 1432134543,
             'upload_date': '20150520',
         }
     }]
 
-    def _extract_metadata(self, webpage, video_id):
-        program_id = self._search_regex(r'var\s+programId\s*=\s*(\d+);', webpage, 'program id')
-        metadata = self._download_json(
-            'http://smbsolr.cdnak.neulion.com/solr_nbav6/nba/nba/mlt/?wt=json&fl=name,description,image,runtime,releaseDate&q=sequence%3A' + program_id, video_id)['match']['docs'][0]
+    _BASE_PATHS = {
+        'turner': 'http://nba.cdn.turner.com/nba/big',
+        'akamai': 'http://nbavod-f.akamaihd.net',
+    }
+
+    _QUALITIES = {
+        '420mp4': {
+            'width': 400,
+            'height': 224,
+            'preference': 1,
+        },
+        '416x234': {
+            'width': 416,
+            'height': 234,
+            'preference': 2,
+        },
+        '556': {
+            'width': 416,
+            'height': 234,
+            'preference': 3,
+        },
+        '480x320_910': {
+            'width': 480,
+            'height': 320,
+            'preference': 4,
+        },
+        'nba_576x324': {
+            'width': 576,
+            'height': 324,
+            'preference': 5,
+        },
+        'nba_640x360': {
+            'width': 640,
+            'height': 360,
+            'preference': 6,
+        },
+        '640x360_664b': {
+            'width': 640,
+            'height': 360,
+            'preference': 7,
+        },
+        '640x360_664m': {
+            'width': 640,
+            'height': 360,
+            'preference': 8,
+        },
+        '768x432_996': {
+            'width': 768,
+            'height': 432,
+            'preference': 9,
+        },
+        '768x432_1404': {
+            'width': 768,
+            'height': 432,
+            'preference': 10,
+        },
+        '960x540_2104': {
+            'width': 960,
+            'height': 540,
+            'preference': 11,
+        },
+        '1280x720_3072': {
+            'width': 1280,
+            'height': 720,
+            'preference': 12,
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        video_info = self._download_xml('http://www.nba.com/video/%s.xml' % video_id, video_id)
+        video_id = video_info.find('slug').text
+        title = video_info.find('headline').text
+        description = video_info.find('description').text
+        duration = parse_duration(video_info.find('length').text)
+        timestamp = int_or_none(video_info.find('dateCreated').attrib.get('uts'))
+
+        thumbnails = []
+        for image in video_info.find('images'):
+            thumbnails.append({
+                'id': image.attrib.get('cut'),
+                'url': image.text,
+                'width': int_or_none(image.attrib.get('width')),
+                'height': int_or_none(image.attrib.get('height')),
+            })
+
+        formats = []
+        for video_file in video_info.find('files').iter('file'):
+            video_url = video_file.text
+            if not video_url.startswith('http://'):
+                if video_url.endswith('.m3u8') or video_url.endswith('.f4m'):
+                    video_url = self._BASE_PATHS['akamai'] + video_url
+                else:
+                    video_url = self._BASE_PATHS['turner'] + video_url
+            if video_url.endswith('.m3u8'):
+                formats.extend(self._extract_m3u8_formats(video_url, video_id))
+            elif video_url.endswith('.f4m'):
+                formats.extend(self._extract_f4m_formats(video_url + '?hdcore=3.4.1.1', video_id))
+            else:
+                key = video_file.attrib.get('bitrate')
+                quality = self._QUALITIES[key]
+                formats.append({
+                    'format_id': key,
+                    'url': video_url,
+                    'width': quality['width'],
+                    'height': quality['height'],
+                    'preference': quality['preference'],
+                })
+        self._sort_formats(formats)
+
         return {
-            'title': metadata['name'],
-            'description': metadata.get('description'),
-            'duration': int_or_none(metadata.get('runtime')),
-            'thumbnail': metadata.get('image'),
-            'timestamp': parse_iso8601(metadata.get('releaseDate'))
+            'id': video_id,
+            'title': title,
+            'description': description,
+            'duration': duration,
+            'timestamp': timestamp,
+            'thumbnails': thumbnails,
+            'formats': formats,
         }

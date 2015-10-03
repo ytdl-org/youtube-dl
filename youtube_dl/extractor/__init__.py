@@ -351,10 +351,7 @@ from .myvideo import MyVideoIE
 from .myvidster import MyVidsterIE
 from .nationalgeographic import NationalGeographicIE
 from .naver import NaverIE
-from .nba import (
-    NBAIE,
-    NBAWatchIE,
-)
+from .nba import NBAIE
 from .nbc import (
     NBCIE,
     NBCNewsIE,
