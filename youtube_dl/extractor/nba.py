@@ -10,28 +10,60 @@ from ..utils import (
 
 class NBABaseIE(InfoExtractor):
     def _get_formats(self, video_id):
+        formats = self._extract_m3u8_formats(
+            'http://nbavod-f.akamaihd.net/i/nba/big%s_,640x360_664m,768x432_996,768x432_1404,960x540_2104,1280x720,.mp4.csmil/master.m3u8' % video_id,
+            video_id,
+            m3u8_id='hls')
+        formats.extend(self._extract_f4m_formats(
+            'http://nbavod-f.akamaihd.net/z/nba/big%s_,640x360_664m,768x432_996,768x432_1404,960x540_2104,1280x720,.mp4.csmil/manifest.f4m?hdcore=3.4.1.1' % video_id,
+            video_id,
+            f4m_id='hds'))
         base_url = 'http://nba.cdn.turner.com/nba/big%s' % video_id
-        return [{
+        formats.extend([{
+            'url': base_url + '_nba_ipad.mp4',
+            'width': 400,
+            'height': 224,
+            'format_id': '224p',
+            'preference': 1,
+        },{
             'url': base_url + '_nba_android_high.mp4',
             'width': 480,
             'height': 320,
             'format_id': '320p',
+            'preference': 2,
+        },{
+            'url': base_url + '_nba_576x324.mp4',
+            'width': 576,
+            'height': 324,
+            'format_id': '324p',
+            'preference': 3,
         },{
             'url': base_url + '_640x360_664b.mp4',
             'width': 640,
             'height': 360,
             'format_id': '360p',
+            'preference': 4,
         },{
             'url': base_url + '_768x432_1404.mp4',
             'width': 768,
             'height': 432,
             'format_id': '432p',
+            'preference': 5,
+        },{
+            'url': base_url + '_960x540_2104.mp4',
+            'width': 960,
+            'height': 540,
+            'format_id': '540p',
+            'preference': 6,
         },{
             'url': base_url + '_1280x720.mp4',
             'width': 1280,
             'height': 720,
             'format_id': '720p',
-        }]
+            'preference': 7,
+        }])
+        self._sort_formats(formats)
+        return formats
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
