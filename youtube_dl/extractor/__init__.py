@@ -158,6 +158,7 @@ from .eroprofile import EroProfileIE
 from .escapist import EscapistIE
 from .espn import ESPNIE
 from .esri import EsriVideoIE
+from .europa import EuropaIE
 from .everyonesmixtape import EveryonesMixtapeIE
 from .exfm import ExfmIE
 from .expotv import ExpoTVIE
@@ -293,6 +294,11 @@ from .libsyn import LibsynIE
 from .lifenews import (
     LifeNewsIE,
     LifeEmbedIE,
+)
+from .limelight import (
+    LimelightMediaIE,
+    LimelightChannelIE,
+    LimelightChannelListIE,
 )
 from .liveleak import LiveLeakIE
 from .livestream import (
