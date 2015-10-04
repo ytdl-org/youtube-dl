@@ -296,9 +296,9 @@ from .lifenews import (
     LifeEmbedIE,
 )
 from .limelight import (
-    LimeLightMediaIE,
-    LimeLightChannelIE,
-    LimeLightChannelListIE,
+    LimelightMediaIE,
+    LimelightChannelIE,
+    LimelightChannelListIE,
 )
 from .liveleak import LiveLeakIE
 from .livestream import (
