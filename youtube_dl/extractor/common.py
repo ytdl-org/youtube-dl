@@ -165,6 +165,7 @@ class InfoExtractor(object):
                     with the "ext" entry and one of:
                         * "data": The subtitles file contents
                         * "url": A URL pointing to the subtitles file
+                    "ext" will be calculated from URL if missing
     automatic_captions: Like 'subtitles', used by the YoutubeIE for
                     automatically generated captions
     duration:       Length of the video in seconds, as an integer.
