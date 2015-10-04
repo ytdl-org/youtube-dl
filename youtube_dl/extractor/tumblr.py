@@ -31,7 +31,6 @@ class TumblrIE(InfoExtractor):
     }, {
         'url': 'http://hdvideotest.tumblr.com/post/130323439814/test-description-for-my-hd-video',
         'md5': '99a84522f60972bf064a0b80f87bcbb5',
-        'resolution': 'hd',
         'info_dict': {
             'id': '130323439814',
             'ext': 'mp4',
@@ -45,7 +44,6 @@ class TumblrIE(InfoExtractor):
     }, {
         'url': 'http://hdvideotest.tumblr.com/post/130323439814/test-description-for-my-hd-video',
         'md5': '7ae503065ad150122dc3089f8cf1546c',
-        'resolution': 'hd',
         'info_dict': {
             'id': '130323439814',
             'ext': 'mp4',
