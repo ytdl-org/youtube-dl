@@ -134,6 +134,24 @@ class PBSIE(InfoExtractor):
             'params': {
                 'skip_download': True,  # requires ffmpeg
             },
+        },
+        {
+            # Video embedded in iframe containing angle brackets as attribute's value (e.g.
+            # "<iframe style='position: absolute;<br />\ntop: 0; left: 0;' ...", see
+            # https://github.com/rg3/youtube-dl/issues/7059)
+            'url': 'http://www.pbs.org/food/features/a-chefs-life-season-3-episode-5-prickly-business/',
+            'info_dict': {
+                'id': '2365546844',
+                'display_id': 'a-chefs-life-season-3-episode-5-prickly-business',
+                'ext': 'mp4',
+                'title': "A Chef's Life - Season 3, Ep. 5: Prickly Business",
+                'description': 'md5:61db2ddf27c9912f09c241014b118ed1',
+                'duration': 1480,
+                'thumbnail': 're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            },
         }
     ]
 
