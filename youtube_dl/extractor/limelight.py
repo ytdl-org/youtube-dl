@@ -123,13 +123,13 @@ class LimelightBaseIE(InfoExtractor):
 class LimelightMediaIE(LimelightBaseIE):
     IE_NAME = 'limelight'
     _VALID_URL = r'(?:limelight:media:|http://link\.videoplatform\.limelight\.com/media/\??\bmediaId=)(?P<id>[a-z0-9]{32})'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://link.videoplatform.limelight.com/media/?mediaId=3ffd040b522b4485b6d84effc750cd86',
         'info_dict': {
             'id': '3ffd040b522b4485b6d84effc750cd86',
             'ext': 'flv',
             'title': 'HaP and the HB Prince Trailer',
-            'description': 'As Harry Potter begins his 6th year at Hogwarts School of Witchcraft and Wizardry, he discovers an old book marked mysteriously "This book is the property of the Half-Blood Prince" and begins to learn more about Lord Voldemort\'s dark past.',
+            'description': 'md5:8005b944181778e313d95c1237ddb640',
             'thumbnail': 're:^https?://.*\.jpeg$',
             'duration': 144.23,
             'timestamp': 1244136834,
@@ -139,7 +139,25 @@ class LimelightMediaIE(LimelightBaseIE):
             # rtmp download
             'skip_download': True,
         },
-    }
+    }, {
+        # video with subtitles
+        'url': 'limelight:media:a3e00274d4564ec4a9b29b9466432335',
+        'info_dict': {
+            'id': 'a3e00274d4564ec4a9b29b9466432335',
+            'ext': 'flv',
+            'title': '3Play Media Overview Video',
+            'description': '',
+            'thumbnail': 're:^https?://.*\.jpeg$',
+            'duration': 78.101,
+            'timestamp': 1338929955,
+            'upload_date': '20120605',
+            'subtitles': 'mincount:9',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
+    }]
     _PLAYLIST_SERVICE_PATH = 'media'
     _API_PATH = 'media'
 
