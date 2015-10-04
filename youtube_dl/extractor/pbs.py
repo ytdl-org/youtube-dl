@@ -167,7 +167,7 @@ class PBSIE(InfoExtractor):
                 return media_id, presumptive_id, upload_date
 
             url = self._search_regex(
-                r'(?s)<iframe[^>]+?(?:[a-z-]+?=["\'].+?["\'][^>]+?)*?\bsrc=["\']([^\'"]+partnerplayer[^\'"]+)["\']',
+                r'(?s)<iframe[^>]+?(?:[a-z-]+?=["\'].*?["\'][^>]+?)*?\bsrc=["\']([^\'"]+partnerplayer[^\'"]+)["\']',
                 webpage, 'player URL')
             mobj = re.match(self._VALID_URL, url)
 
