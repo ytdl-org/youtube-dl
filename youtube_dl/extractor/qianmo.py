@@ -29,15 +29,10 @@ class QianmoIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        print type(webpage)
-        # TODO more code goes here, for example ...
         title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title')
-        print title
-        # postInfo = self._html_search_regex(r'postInfo =(.*?);', webpage, u'postInfo')
-        # regex = 
+        
         video_url = self._html_search_regex(r'"urls":\["(.*?)"\],', webpage, 'url')
-        print video_url
-        print "Hanh"
+        
 
         return {
             'id': video_id,
