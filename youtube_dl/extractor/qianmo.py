@@ -3,10 +3,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from lxml import html
-import requests
-
-import re
 
 
 class QianmoIE(InfoExtractor):
