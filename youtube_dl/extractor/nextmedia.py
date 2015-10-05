@@ -126,7 +126,8 @@ class AppleDailyIE(NextMediaIE):
             'thumbnail': 're:^https?://.*\.jpg$',
             'description': 'md5:23c0aac567dc08c9c16a3161a2c2e3cd',
             'upload_date': '20150128',
-        }
+        },
+        'skip': 'redirect to http://www.appledaily.com.tw/animation/',
     }, {
         # No thumbnail
         'url': 'http://www.appledaily.com.tw/animation/realtimenews/new/20150128/5003673/',
@@ -140,10 +141,19 @@ class AppleDailyIE(NextMediaIE):
         },
         'expected_warnings': [
             'video thumbnail',
-        ]
+        ],
+        'skip': 'redirect to http://www.appledaily.com.tw/animation/',
     }, {
         'url': 'http://www.appledaily.com.tw/appledaily/article/supplement/20140417/35770334/',
-        'only_matching': True,
+        'md5': 'eaa20e6b9df418c912d7f5dec2ba734d',
+        'info_dict': {
+            'id': '35770334',
+            'ext': 'mp4',
+            'title': '咖啡占卜測 XU裝熟指數',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'description': 'md5:7b859991a6a4fedbdf3dd3b66545c748',
+            'upload_date': '20140417',
+        },
     }]
 
     _URL_PATTERN = r'\{url: \'(.+)\'\}'
