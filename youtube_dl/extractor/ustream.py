@@ -7,7 +7,11 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urlparse,
 )
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+    float_or_none,
+)
 
 
 class UstreamIE(InfoExtractor):
@@ -54,46 +58,47 @@ class UstreamIE(InfoExtractor):
 
         params = self._download_json('https://api.ustream.tv/videos/' + video_id + '.json', video_id)
 
-        if 'error' in params:
-            raise ExtractorError(params['error']['message'], expected=True)
+        error = params.get('error')
+        if error:
+            raise ExtractorError(
+                '%s returned error: %s' % (self.IE_NAME, error), expected=True)
 
-        video_url = params['video']['media_urls']['flv']
+        video = params['video']
 
-        webpage = self._download_webpage(url, video_id)
+        formats = [{
+            'id': format_id,
+            'url': video_url,
+            'ext': format_id,
+        } for format_id, video_url in video['media_urls'].items()]
+        self._sort_formats(formats)
 
-        self.report_extraction(video_id)
+        title = video['title']
+        description = video.get('description')
+        timestamp = int_or_none(video.get('created_at'))
+        duration = float_or_none(video.get('length'))
+        filesize = float_or_none(video.get('file_size'))
+        view_count = int_or_none(video.get('views'))
 
-        video_title = self._html_search_regex(r'data-title="(?P<title>.+)"',
-                                              webpage, 'title', default=None)
+        uploader = video.get('owner', {}).get('username')
+        uploader_id = video.get('owner', {}).get('id')
 
-        if not video_title:
-            try:
-                video_title = params['moduleConfig']['meta']['title']
-            except KeyError:
-                pass
-
-        if not video_title:
-            video_title = 'Ustream video ' + video_id
-
-        uploader = self._html_search_regex(r'data-content-type="channel".*?>(?P<uploader>.*?)</a>',
-                                           webpage, 'uploader', fatal=False, flags=re.DOTALL, default=None)
-
-        if not uploader:
-            try:
-                uploader = params['moduleConfig']['meta']['userName']
-            except KeyError:
-                uploader = None
-
-        thumbnail = self._html_search_regex(r'<link rel="image_src" href="(?P<thumb>.*?)"',
-                                            webpage, 'thumbnail', fatal=False)
+        thumbnails = [{
+            'id': thumbnail_id,
+            'url': thumbnail_url,
+        } for thumbnail_id, thumbnail_url in video.get('thumbnail', {}).items()]
 
         return {
             'id': video_id,
-            'url': video_url,
-            'ext': 'flv',
-            'title': video_title,
+            'title': title,
+            'description': description,
+            'thumbnails': thumbnails,
+            'timestamp': timestamp,
+            'duration': duration,
+            'filesize': filesize,
+            'view_count': view_count,
             'uploader': uploader,
-            'thumbnail': thumbnail,
+            'uploader_id': uploader_id,
+            'formats': formats,
         }
 
 
