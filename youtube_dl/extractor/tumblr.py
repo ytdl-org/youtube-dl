@@ -51,6 +51,9 @@ class TumblrIE(InfoExtractor):
             'title': 'naked smoking & stretching',
             'upload_date': '20150506',
             'timestamp': 1430931613,
+            'age_limit': 18,
+            'uploader_id': '1638622',
+            'uploader': 'naked-yogi',
         },
         'add_ie': ['Vidme'],
     }, {
