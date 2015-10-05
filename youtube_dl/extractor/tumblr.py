@@ -31,19 +31,6 @@ class TumblrIE(InfoExtractor):
         }
     }, {
         'url': 'http://hdvideotest.tumblr.com/post/130323439814/test-description-for-my-hd-video',
-        'md5': '99a84522f60972bf064a0b80f87bcbb5',
-        'info_dict': {
-            'id': '130323439814',
-            'ext': 'mp4',
-            'title': 'HD Video Testing \u2014 Test description for my HD video',
-            'description': 'md5:97cc3ab5fcd27ee4af6356701541319c',
-            'thumbnail': 're:http://.*\.jpg',
-        },
-        'params': {
-            'format': 'sd',
-        },
-    }, {
-        'url': 'http://hdvideotest.tumblr.com/post/130323439814/test-description-for-my-hd-video',
         'md5': '7ae503065ad150122dc3089f8cf1546c',
         'info_dict': {
             'id': '130323439814',
