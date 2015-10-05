@@ -177,6 +177,10 @@ from .dcn import (
 from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE
 from .democracynow import DemocracynowIE
+from .deutschlandradio import (
+    DeutschlandradioIE,
+    DRadioWissenIE
+)
 from .dfb import DFBIE
 from .dhm import DHMIE
 from .dotsub import DotsubIE
