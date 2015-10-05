@@ -69,7 +69,7 @@ class UstreamIE(InfoExtractor):
         filesize = float_or_none(video.get('file_size'))
 
         formats = [{
-            'id': format_id,
+            'id': video_id,
             'url': video_url,
             'ext': format_id,
             'filesize': filesize,
