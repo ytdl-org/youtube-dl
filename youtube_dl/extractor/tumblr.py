@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import int_or_none
 
 
 class TumblrIE(InfoExtractor):
@@ -83,8 +84,6 @@ class TumblrIE(InfoExtractor):
         video_id = m_url.group('id')
         blog = m_url.group('blog_name')
 
-        video_urls = []
-
         url = 'http://%s.tumblr.com/post/%s/' % (blog, video_id)
         webpage, urlh = self._download_webpage_handle(url, video_id)
 
@@ -94,34 +93,38 @@ class TumblrIE(InfoExtractor):
         if iframe_url is None:
             return self.url_result(urlh.geturl(), 'Generic')
 
-        iframe = self._download_webpage(iframe_url, video_id,
-                                        'Downloading iframe page')
+        iframe = self._download_webpage(iframe_url, video_id, 'Downloading iframe page')
 
-        sd_video_url = self._search_regex(r'<source src="([^"]+)"',
-                                          iframe, 'sd video url')
-        resolution_id = sd_video_url.split("/")[-1] + 'p'
-        if len(resolution_id) != 4:
-            resolution_id = None
-        video_urls.append({
+        duration = None
+        sources = []
+
+        sd_url = self._search_regex(
+            r'<source[^>]+src=(["\'])(?P<url>.+?)\1', iframe,
+            'sd video url', default=None, group='url')
+        if sd_url:
+            sources.append((sd_url, 'sd'))
+
+        options = self._parse_json(
+            self._search_regex(
+                r'data-crt-options=(["\'])(?P<options>.+?)\1', iframe,
+                'hd video url', default='', group='options'),
+            video_id, fatal=False)
+        if options:
+            duration = int_or_none(options.get('duration'))
+            hd_url = options.get('hdUrl')
+            if hd_url:
+                sources.append((hd_url, 'hd'))
+
+        formats = [{
+            'url': video_url,
             'ext': 'mp4',
-            'format_id': 'sd',
-            'url': sd_video_url,
-            'resolution': resolution_id,
-        })
+            'format_id': format_id,
+            'height': int_or_none(self._search_regex(
+                r'/(\d{3,4})$', video_url, 'height', default=None)),
+            'quality': quality,
+        } for quality, (video_url, format_id) in enumerate(sources)]
 
-        hd_video_url = self._search_regex(r'hdUrl":"([^"]+)"', iframe,
-                                          'hd video url', default=None)
-        if hd_video_url:
-            hd_video_url = hd_video_url.replace("\\", "")
-            resolution_id = hd_video_url.split("/")[-1] + 'p'
-            if len(resolution_id) != 4:
-                resolution_id = None
-            video_urls.append({
-                'ext': 'mp4',
-                'format_id': 'hd',
-                'url': hd_video_url,
-                'resolution': resolution_id,
-            })
+        self._sort_formats(formats)
 
         # The only place where you can get a title, it's not complete,
         # but searching in other places doesn't work for all videos
@@ -131,9 +134,10 @@ class TumblrIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'formats': video_urls,
             'ext': 'mp4',
             'title': video_title,
             'description': self._og_search_description(webpage, default=None),
             'thumbnail': self._og_search_thumbnail(webpage, default=None),
+            'duration': duration,
+            'formats': formats,
         }
