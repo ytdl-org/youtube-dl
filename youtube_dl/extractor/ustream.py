@@ -22,8 +22,12 @@ class UstreamIE(InfoExtractor):
         'info_dict': {
             'id': '20274954',
             'ext': 'flv',
-            'uploader': 'Young Americans for Liberty',
             'title': 'Young Americans for Liberty February 7, 2012 2:28 AM',
+            'description': 'Young Americans for Liberty February 7, 2012 2:28 AM',
+            'timestamp': 1328577035,
+            'upload_date': '20120207',
+            'uploader': 'yaliberty',
+            'uploader_id': '6780869',
         },
     }, {
         # From http://sportscanada.tv/canadagames/index.php/week2/figure-skating/444
@@ -35,7 +39,8 @@ class UstreamIE(InfoExtractor):
             'ext': 'flv',
             'title': '-CG11- Canada Games Figure Skating',
             'uploader': 'sportscanadatv',
-        }
+        },
+        'skip': 'This Pro Broadcaster has chosen to remove this video from the ustream.tv site.',
     }]
 
     def _real_extract(self, url):
