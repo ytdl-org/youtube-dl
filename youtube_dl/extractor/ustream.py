@@ -65,18 +65,20 @@ class UstreamIE(InfoExtractor):
 
         video = params['video']
 
+        title = video['title']
+        filesize = float_or_none(video.get('file_size'))
+
         formats = [{
             'id': format_id,
             'url': video_url,
             'ext': format_id,
+            'filesize': filesize,
         } for format_id, video_url in video['media_urls'].items()]
         self._sort_formats(formats)
 
-        title = video['title']
         description = video.get('description')
         timestamp = int_or_none(video.get('created_at'))
         duration = float_or_none(video.get('length'))
-        filesize = float_or_none(video.get('file_size'))
         view_count = int_or_none(video.get('views'))
 
         uploader = video.get('owner', {}).get('username')
@@ -94,7 +96,6 @@ class UstreamIE(InfoExtractor):
             'thumbnails': thumbnails,
             'timestamp': timestamp,
             'duration': duration,
-            'filesize': filesize,
             'view_count': view_count,
             'uploader': uploader,
             'uploader_id': uploader_id,
