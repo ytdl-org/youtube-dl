@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class UstreamIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.ustream\.tv/(?P<type>recorded|embed|embed/recorded)/(?P<videoID>\d+)'
+    _VALID_URL = r'https?://www\.ustream\.tv/(?P<type>recorded|embed|embed/recorded)/(?P<id>\d+)'
     IE_NAME = 'ustream'
     _TESTS = [{
         'url': 'http://www.ustream.tv/recorded/20274954',
@@ -41,22 +41,23 @@ class UstreamIE(InfoExtractor):
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
-        video_id = m.group('videoID')
+        video_id = m.group('id')
 
         # some sites use this embed format (see: http://github.com/rg3/youtube-dl/issues/2990)
         if m.group('type') == 'embed/recorded':
-            video_id = m.group('videoID')
+            video_id = m.group('id')
             desktop_url = 'http://www.ustream.tv/recorded/' + video_id
             return self.url_result(desktop_url, 'Ustream')
         if m.group('type') == 'embed':
-            video_id = m.group('videoID')
+            video_id = m.group('id')
             webpage = self._download_webpage(url, video_id)
             desktop_video_id = self._html_search_regex(
                 r'ContentVideoIds=\["([^"]*?)"\]', webpage, 'desktop_video_id')
             desktop_url = 'http://www.ustream.tv/recorded/' + desktop_video_id
             return self.url_result(desktop_url, 'Ustream')
 
-        params = self._download_json('https://api.ustream.tv/videos/' + video_id + '.json', video_id)
+        params = self._download_json(
+            'https://api.ustream.tv/videos/%s.json' % video_id, video_id)
 
         error = params.get('error')
         if error:
