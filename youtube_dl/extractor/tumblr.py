@@ -124,7 +124,6 @@ class TumblrIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'ext': 'mp4',
             'title': video_title,
             'description': self._og_search_description(webpage, default=None),
             'thumbnail': self._og_search_thumbnail(webpage, default=None),
