@@ -417,18 +417,18 @@ else:
     _terminal_size = collections.namedtuple('terminal_size', ['columns', 'lines'])
 
     def compat_get_terminal_size(fallback=(80, 24)):
-        columns = compat_getenv('COLUMNS', None)
+        columns = compat_getenv('COLUMNS')
         if columns:
             columns = int(columns)
         else:
             columns = None
-        lines = compat_getenv('LINES', None)
+        lines = compat_getenv('LINES')
         if lines:
             lines = int(lines)
         else:
             lines = None
 
-        if columns <= 0 or lines <= 0:
+        if columns is None or lines is None or columns <= 0 or lines <= 0:
             try:
                 sp = subprocess.Popen(
                     ['stty', 'size'],
@@ -438,9 +438,9 @@ else:
             except Exception:
                 _columns, _lines = _terminal_size(*fallback)
 
-            if columns <= 0:
+            if columns is None or columns <= 0:
                 columns = _columns
-            if lines <= 0:
+            if lines is None or lines <= 0:
                 lines = _lines
         return _terminal_size(columns, lines)
 
