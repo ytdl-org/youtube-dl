@@ -93,8 +93,8 @@ class BandcampIE(InfoExtractor):
         final_url_webpage = self._download_webpage(request_url, video_id, 'Requesting download url')
         # If we could correctly generate the .rand field the url would be
         # in the "download_url" key
-        final_url = self._search_regex(
-            r'"retry_url":"(.*?)"', final_url_webpage, 'final video URL')
+        final_url = self._proto_relative_url(self._search_regex(
+            r'"retry_url":"(.+?)"', final_url_webpage, 'final video URL'), 'http:')
 
         return {
             'id': video_id,
