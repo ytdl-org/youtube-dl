@@ -150,6 +150,7 @@
  - **Escapist**
  - **ESPN** (Currently broken)
  - **EsriVideo**
+ - **Europa**
  - **EveryonesMixtape**
  - **exfm**: ex.fm
  - **ExpoTV**
@@ -263,6 +264,9 @@
  - **Libsyn**
  - **life:embed**
  - **lifenews**: LIFE | NEWS
+ - **limelight**
+ - **limelight:channel**
+ - **limelight:channel_list**
  - **LiveLeak**
  - **livestream**
  - **livestream:original**
