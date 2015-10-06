@@ -434,7 +434,7 @@ else:
                     ['stty', 'size'],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 out, err = sp.communicate()
-                _columns, _lines = map(int, out.split())
+                _lines, _columns = map(int, out.split())
             except Exception:
                 _columns, _lines = _terminal_size(*fallback)
 
