@@ -249,6 +249,10 @@ from .indavideo import (
 from .infoq import InfoQIE
 from .instagram import InstagramIE, InstagramUserIE
 from .internetvideoarchive import InternetVideoArchiveIE
+from .iol import (
+    IOLIE,
+    IOLStreamIE
+)
 from .iprima import IPrimaIE
 from .iqiyi import IqiyiIE
 from .ir90tv import Ir90TvIE
