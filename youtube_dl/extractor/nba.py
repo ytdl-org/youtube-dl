@@ -38,11 +38,6 @@ class NBAIE(InfoExtractor):
         }
     }]
 
-    _BASE_PATHS = {
-        'turner': 'http://nba.cdn.turner.com/nba/big',
-        'akamai': 'http://nbavod-f.akamaihd.net',
-    }
-
     _QUALITIES = {
         '420mp4': {
             'width': 400,
@@ -54,55 +49,50 @@ class NBAIE(InfoExtractor):
             'height': 234,
             'preference': 2,
         },
-        '556': {
-            'width': 416,
-            'height': 234,
-            'preference': 3,
-        },
         '480x320_910': {
             'width': 480,
             'height': 320,
-            'preference': 4,
+            'preference': 3,
         },
         'nba_576x324': {
             'width': 576,
             'height': 324,
-            'preference': 5,
+            'preference': 4,
         },
         'nba_640x360': {
             'width': 640,
             'height': 360,
-            'preference': 6,
+            'preference': 5,
         },
         '640x360_664b': {
             'width': 640,
             'height': 360,
-            'preference': 7,
+            'preference': 6,
         },
         '640x360_664m': {
             'width': 640,
             'height': 360,
-            'preference': 8,
+            'preference': 7,
         },
         '768x432_996': {
             'width': 768,
             'height': 432,
-            'preference': 9,
+            'preference': 8,
         },
         '768x432_1404': {
             'width': 768,
             'height': 432,
-            'preference': 10,
+            'preference': 9,
         },
         '960x540_2104': {
             'width': 960,
             'height': 540,
-            'preference': 11,
+            'preference': 10,
         },
         '1280x720_3072': {
             'width': 1280,
             'height': 720,
-            'preference': 12,
+            'preference': 11,
         },
     }
 
@@ -127,11 +117,8 @@ class NBAIE(InfoExtractor):
         formats = []
         for video_file in video_info.find('files').iter('file'):
             video_url = video_file.text
-            if not video_url.startswith('http://'):
-                if video_url.endswith('.m3u8') or video_url.endswith('.f4m'):
-                    video_url = self._BASE_PATHS['akamai'] + video_url
-                else:
-                    video_url = self._BASE_PATHS['turner'] + video_url
+            if video_url.startswith('/'):
+                continue
             if video_url.endswith('.m3u8'):
                 formats.extend(self._extract_m3u8_formats(video_url, video_id))
             elif video_url.endswith('.f4m'):
