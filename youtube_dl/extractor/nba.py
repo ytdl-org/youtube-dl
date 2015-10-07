@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     parse_duration,
@@ -38,64 +40,6 @@ class NBAIE(InfoExtractor):
         }
     }]
 
-    _QUALITIES = {
-        '420mp4': {
-            'width': 400,
-            'height': 224,
-            'preference': 1,
-        },
-        '416x234': {
-            'width': 416,
-            'height': 234,
-            'preference': 2,
-        },
-        '480x320_910': {
-            'width': 480,
-            'height': 320,
-            'preference': 3,
-        },
-        'nba_576x324': {
-            'width': 576,
-            'height': 324,
-            'preference': 4,
-        },
-        'nba_640x360': {
-            'width': 640,
-            'height': 360,
-            'preference': 5,
-        },
-        '640x360_664b': {
-            'width': 640,
-            'height': 360,
-            'preference': 6,
-        },
-        '640x360_664m': {
-            'width': 640,
-            'height': 360,
-            'preference': 7,
-        },
-        '768x432_996': {
-            'width': 768,
-            'height': 432,
-            'preference': 8,
-        },
-        '768x432_1404': {
-            'width': 768,
-            'height': 432,
-            'preference': 9,
-        },
-        '960x540_2104': {
-            'width': 960,
-            'height': 540,
-            'preference': 10,
-        },
-        '1280x720_3072': {
-            'width': 1280,
-            'height': 720,
-            'preference': 11,
-        },
-    }
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
         video_info = self._download_xml('http://www.nba.com/video/%s.xml' % video_id, video_id)
@@ -125,13 +69,13 @@ class NBAIE(InfoExtractor):
                 formats.extend(self._extract_f4m_formats(video_url + '?hdcore=3.4.1.1', video_id))
             else:
                 key = video_file.attrib.get('bitrate')
-                quality = self._QUALITIES[key]
+                width, height, bitrate = re.search(r'(\d+)x(\d+)(?:_(\d+))?', key).groups()
                 formats.append({
                     'format_id': key,
                     'url': video_url,
-                    'width': quality['width'],
-                    'height': quality['height'],
-                    'preference': quality['preference'],
+                    'width': int_or_none(width),
+                    'height': int_or_none(height),
+                    'tbr': int_or_none(bitrate),
                 })
         self._sort_formats(formats)
 
