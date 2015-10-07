@@ -72,8 +72,16 @@ class NativeHlsFD(FragmentFD):
         self.to_screen('[%s] Downloading m3u8 manifest' % self.FD_NAME)
         manifest = self.ydl.urlopen(man_url).read()
 
+        last_downloaded_segment_filename = filename + ".last_downloaded_segment"
+        last_downloaded_segment = None
+        if os.path.isfile(last_downloaded_segment_filename):
+            segment_file = open(last_downloaded_segment_filename, 'r')
+            last_downloaded_segment = segment_file.readline().strip()
+            segment_file.close()
+
         s = manifest.decode('utf-8', 'ignore')
         fragment_urls = []
+        arrived_at_last_downloaded_segment = (last_downloaded_segment is None)
         for line in s.splitlines():
             line = line.strip()
             if line and not line.startswith('#'):
@@ -81,7 +89,10 @@ class NativeHlsFD(FragmentFD):
                     line
                     if re.match(r'^https?://', line)
                     else compat_urlparse.urljoin(man_url, line))
-                fragment_urls.append(segment_url)
+                if arrived_at_last_downloaded_segment:
+                    fragment_urls.append(segment_url)
+                elif segment_url == last_downloaded_segment:
+                    arrived_at_last_downloaded_segment = True
                 # We only download the first fragment during the test
                 if self.params.get('test', False):
                     break
@@ -93,7 +104,6 @@ class NativeHlsFD(FragmentFD):
 
         self._prepare_and_start_frag_download(ctx)
 
-        frags_filenames = []
         for i, frag_url in enumerate(fragment_urls):
             frag_filename = '%s-Frag%d' % (ctx['tmpfilename'], i)
             success = ctx['dl'].download(frag_filename, {'url': frag_url})
@@ -102,11 +112,15 @@ class NativeHlsFD(FragmentFD):
             down, frag_sanitized = sanitize_open(frag_filename, 'rb')
             ctx['dest_stream'].write(down.read())
             down.close()
-            frags_filenames.append(frag_sanitized)
+            os.remove(encodeFilename(frag_sanitized))
+            segments_file = open(last_downloaded_segment_filename, 'w')
+            segments_file.write(frag_url + "\n")
+            segments_file.close()
+            
 
         self._finish_frag_download(ctx)
 
-        for frag_file in frags_filenames:
-            os.remove(encodeFilename(frag_file))
+        if last_downloaded_segment is not None:
+            os.remove(last_downloaded_segment_filename)
 
         return True
