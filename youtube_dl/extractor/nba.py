@@ -10,13 +10,13 @@ from ..utils import (
 
 
 class NBAIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:watch\.|www\.)?nba\.com/(?:nba/)?video/(?P<id>[^?]*?)/?(?:/index\.html)?(?:\?.*)?$'
+    _VALID_URL = r'https?://(?:watch\.|www\.)?nba\.com/(?P<path>(?:[^/]+/)?video/(?P<id>[^?]*?))/?(?:/index\.html)?(?:\?.*)?$'
     _TESTS = [{
         'url': 'http://www.nba.com/video/games/nets/2012/12/04/0021200253-okc-bkn-recap.nba/index.html',
-        'md5': '9d902940d2a127af3f7f9d2f3dc79c96',
+        'md5': '9e7729d3010a9c71506fd1248f74e4f4',
         'info_dict': {
             'id': '0021200253-okc-bkn-recap',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Thunder vs. Nets',
             'description': 'Kevin Durant scores 32 points and dishes out six assists as the Thunder beat the Nets in Brooklyn.',
             'duration': 181,
@@ -27,7 +27,7 @@ class NBAIE(InfoExtractor):
         'url': 'http://www.nba.com/video/games/hornets/2014/12/05/0021400276-nyk-cha-play5.nba/',
         'only_matching': True,
     },{
-        'url': 'http://watch.nba.com/nba/video/channels/playoffs/2015/05/20/0041400301-cle-atl-recap.nba',
+        'url': 'http://watch.nba.com/video/channels/playoffs/2015/05/20/0041400301-cle-atl-recap.nba',
         'md5': 'b2b39b81cf28615ae0c3360a3f9668c4',
         'info_dict': {
             'id': '0041400301-cle-atl-recap',
@@ -41,8 +41,8 @@ class NBAIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        video_info = self._download_xml('http://www.nba.com/video/%s.xml' % video_id, video_id)
+        path, video_id = re.match(self._VALID_URL, url).groups()
+        video_info = self._download_xml('http://www.nba.com/%s.xml' % path, video_id)
         video_id = video_info.find('slug').text
         title = video_info.find('headline').text
         description = video_info.find('description').text
@@ -64,9 +64,9 @@ class NBAIE(InfoExtractor):
             if video_url.startswith('/'):
                 continue
             if video_url.endswith('.m3u8'):
-                formats.extend(self._extract_m3u8_formats(video_url, video_id))
+                formats.extend(self._extract_m3u8_formats(video_url, video_id, m3u8_id='hls'))
             elif video_url.endswith('.f4m'):
-                formats.extend(self._extract_f4m_formats(video_url + '?hdcore=3.4.1.1', video_id))
+                formats.extend(self._extract_f4m_formats(video_url + '?hdcore=3.4.1.1', video_id, f4m_id='hds'))
             else:
                 key = video_file.attrib.get('bitrate')
                 width, height, bitrate = re.search(r'(\d+)x(\d+)(?:_(\d+))?', key).groups()
