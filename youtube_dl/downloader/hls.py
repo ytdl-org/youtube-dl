@@ -99,14 +99,14 @@ class NativeHlsFD(FragmentFD):
             success = ctx['dl'].download(frag_filename, {'url': frag_url})
             if not success:
                 return False
-            down, frag_sanitized = sanitize_open(frag_filename, 'rb')
-            ctx['dest_stream'].write(down.read())
-            down.close()
             frags_filenames.append(frag_sanitized)
 
-        self._finish_frag_download(ctx)
-
         for frag_file in frags_filenames:
+            down, frag_sanitized = sanitize_open(frag_file, 'rb')
+            ctx['dest_stream'].write(down.read())
+            down.close()
             os.remove(encodeFilename(frag_file))
+
+        self._finish_frag_download(ctx)
 
         return True
