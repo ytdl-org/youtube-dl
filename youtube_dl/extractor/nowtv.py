@@ -167,8 +167,8 @@ class NowTVIE(InfoExtractor):
                 'app': app,
                 'play_path': 'mp4:%s' % play_path,
                 'ext': 'flv',
-                'page_url': url,
-                'player_url': 'http://rtl-now.rtl.de/includes/nc_player.swf',
+                'page_url': 'http://rtlnow.rtl.de',
+                'player_url': 'http://cdn.static-fra.de/now/vodplayer.swf',
                 'tbr': int_or_none(item.get('bitrate')),
             })
         self._sort_formats(formats)
