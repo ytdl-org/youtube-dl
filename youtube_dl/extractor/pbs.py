@@ -238,7 +238,11 @@ class PBSIE(InfoExtractor):
                 'Downloading %s video url info' % encoding_name)
 
             if redirect_info['status'] == 'error':
-                raise ExtractorError('PBS said: %s' % self._ERRORS.get(redirect_info['http_code'], redirect_info['message']), expected=True)
+                raise ExtractorError(
+                    '%s said: %s' % (
+                        self.IE_NAME,
+                        self._ERRORS.get(redirect_info['http_code'], redirect_info['message'])),
+                    expected=True)
 
             format_url = redirect_info.get('url')
             if not format_url:
