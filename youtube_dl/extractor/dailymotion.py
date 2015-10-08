@@ -43,11 +43,11 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
     IE_NAME = 'dailymotion'
 
     _FORMATS = [
-        ('stream_h264_ld_url', 'ld'),
-        ('stream_h264_url', 'standard'),
-        ('stream_h264_hq_url', 'hq'),
-        ('stream_h264_hd_url', 'hd'),
-        ('stream_h264_hd1080_url', 'hd180'),
+        ('240', 'ld'),
+        ('380', 'standard'),
+        ('480', 'hq'),
+        ('720',  'hd'),
+        ('1080', 'hd180'),
     ]
 
     _TESTS = [
@@ -197,7 +197,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
 
         info = self._parse_json(
             self._search_regex(
-                r'var info = ({.*?}),$', embed_page,
+                r'getElementById\(\'player\'\), ({.*?})\);$', embed_page,
                 'video info', flags=re.MULTILINE),
             video_id)
 
@@ -207,15 +207,15 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
 
         formats = []
         for (key, format_id) in self._FORMATS:
-            video_url = info.get(key)
+            video_url = info.get('metadata').get('qualities').get(key)
             if video_url is not None:
-                m_size = re.search(r'H264-(\d+)x(\d+)', video_url)
+                m_size = re.search(r'H264-(\d+)x(\d+)', video_url[0].get("url"))
                 if m_size is not None:
                     width, height = map(int_or_none, (m_size.group(1), m_size.group(2)))
                 else:
                     width, height = None, None
                 formats.append({
-                    'url': video_url,
+                    'url': video_url[0].get("url"),
                     'ext': 'mp4',
                     'format_id': format_id,
                     'width': width,
@@ -225,25 +225,23 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
 
         # subtitles
         video_subtitles = self.extract_subtitles(video_id, webpage)
-
+        
         title = self._og_search_title(webpage, default=None)
         if title is None:
             title = self._html_search_regex(
                 r'(?s)<span\s+id="video_title"[^>]*>(.*?)</span>', webpage,
                 'title')
-
         return {
             'id': video_id,
             'formats': formats,
-            'uploader': info['owner.screenname'],
+            'uploader': info.get('metadata').get('owner').get('screenname'),
             'timestamp': timestamp,
             'title': title,
             'description': description,
             'subtitles': video_subtitles,
-            'thumbnail': info['thumbnail_url'],
             'age_limit': age_limit,
             'view_count': view_count,
-            'duration': info['duration']
+            'duration': info.get('metadata').get('duration')
         }
 
     def _get_subtitles(self, video_id, webpage):
