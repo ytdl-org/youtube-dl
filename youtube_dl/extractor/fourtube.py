@@ -45,9 +45,11 @@ class FourTubeIE(InfoExtractor):
             'uploadDate', webpage))
         thumbnail = self._html_search_meta('thumbnailUrl', webpage)
         uploader_id = self._html_search_regex(
-            r'<a class="img-avatar" href="[^"]+/users/([^/"]+)" title="Go to [^"]+ page">', webpage, 'uploader id')
+            r'<a class="img-avatar" href="[^"]+/channels/([^/"]+)" title="Go to [^"]+ page">',
+            webpage, 'uploader id', fatal=False)
         uploader = self._html_search_regex(
-            r'<a class="img-avatar" href="[^"]+/users/[^/"]+" title="Go to ([^"]+) page">', webpage, 'uploader')
+            r'<a class="img-avatar" href="[^"]+/channels/[^/"]+" title="Go to ([^"]+) page">',
+            webpage, 'uploader', fatal=False)
 
         categories_html = self._search_regex(
             r'(?s)><i class="icon icon-tag"></i>\s*Categories / Tags\s*.*?<ul class="list">(.*?)</ul>',
