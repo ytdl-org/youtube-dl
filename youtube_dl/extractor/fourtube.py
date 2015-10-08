@@ -66,8 +66,11 @@ class FourTubeIE(InfoExtractor):
             webpage, 'like count', fatal=False))
         duration = parse_duration(self._html_search_meta('duration', webpage))
 
-        player_url = self._search_regex(r'<script id="playerembed" src="([^"]+)">',webpage,'player javascript')
-        player_js = self._download_webpage(player_url,video_id,'Downloading player Javascript')
+        player_js = self._download_webpage(
+            self._search_regex(
+                r'<script[^>]id=(["\'])playerembed\1[^>]+src=(["\'])(?P<url>.+?)\2',
+                webpage, 'player JS', group='url'),
+            video_id, 'Downloading player JS')
 
         params_js = self._search_regex(
             r'\$\.ajax\(url,\ opts\);\s*\}\s*\}\)\(([0-9,\[\] ]+)\)',
