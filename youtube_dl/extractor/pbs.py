@@ -39,7 +39,6 @@ class PBSIE(InfoExtractor):
             'params': {
                 'skip_download': True,  # requires ffmpeg
             },
-            'skip': 'Expired',
         },
         {
             'url': 'http://www.pbs.org/wgbh/pages/frontline/losing-iraq/',
@@ -156,6 +155,12 @@ class PBSIE(InfoExtractor):
             },
         }
     ]
+    _ERRORS = {
+        101: 'We\'re sorry, but this video is not yet available.',
+        403: 'We\'re sorry, but this video is not available in your region due to right restrictions.',
+        404: 'We are experiencing technical difficulties that are preventing us from playing the video at this time. Please check back again soon.',
+        410: 'This video has expired and is no longer available for online streaming.',
+    }
 
     def _extract_webpage(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -233,18 +238,7 @@ class PBSIE(InfoExtractor):
                 'Downloading %s video url info' % encoding_name)
 
             if redirect_info['status'] == 'error':
-                http_code = redirect_info['http_code']
-                if http_code == 403:
-                    message = 'We\'re sorry, but this video is not available in your region due to right restrictions.'
-                elif http_code == 101:
-                    message = 'We\'re sorry, but this video is not yet available.'
-                elif http_code == 404:
-                    message = 'We are experiencing technical difficulties that are preventing us from playing the video at this time. Please check back again soon.'
-                elif http_code == 410:
-                    message = 'This video has expired and is no longer available for online streaming.'
-                else:
-                    message = redirect_info['message']
-                raise ExtractorError('PBS said: %s' % message, expected=True)
+                raise ExtractorError('PBS said: %s' % self._ERRORS.get(redirect_info['http_code'], redirect_info['message']), expected=True)
 
             format_url = redirect_info.get('url')
             if not format_url:
