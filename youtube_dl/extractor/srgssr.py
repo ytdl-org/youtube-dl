@@ -96,7 +96,7 @@ class SRGSSRIE(InfoExtractor):
 
 
 class SRGSSRPlayIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www|play)\.)?(?P<bu>srf|rts|rsi|rtr|swi)\.ch/play/(?:tv|radio)/[^/]+/(?P<type>video|audio)/[^?]+\?id=(?P<id>[0-9a-f\-]{36}|\d+)'
+    _VALID_URL = r'https?://(?:(?:www|play)\.)?(?P<bu>srf|rts|rsi|rtr|swissinfo)\.ch/play/(?:tv|radio)/[^/]+/(?P<type>video|audio)/[^?]+\?id=(?P<id>[0-9a-f\-]{36}|\d+)'
 
     _TESTS = [{
         'url': 'http://www.srf.ch/play/tv/10vor10/video/snowden-beantragt-asyl-in-russland?id=28e1a57d-5b76-4399-8ab3-9097f071e6c5',
@@ -120,11 +120,8 @@ class SRGSSRPlayIE(InfoExtractor):
             'description': 'md5:88604432b60d5a38787f152dec89cd56',
             'timestamp': 1373493600,
         },
-    }, {
-        'url': 'http://www.srf.ch/player/tv/10vor10/video/snowden-beantragt-asyl-in-russland?id=28e1a57d-5b76-4399-8ab3-9097f071e6c5',
-        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         bu, media_type, media_id = re.match(self._VALID_URL, url).groups()
-        return self.url_result('urn:%s:%s:%s' % (bu, media_type, media_id), 'SRGSSR')
+        return self.url_result('urn:%s:%s:%s' % (bu[:3], media_type, media_id), 'SRGSSR')
