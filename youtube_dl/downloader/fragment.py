@@ -21,11 +21,11 @@ class FragmentFD(FileDownloader):
     A base file downloader class for fragmented media (e.g. f4m/m3u8 manifests).
     """
 
-    def _prepare_and_start_frag_download(self, ctx):
-        self._prepare_frag_download(ctx)
-        self._start_frag_download(ctx)
+    def _prepare_and_start_frag_download(self, ctx, continue_dl=False, continue_fragment=None):
+        self._prepare_frag_download(ctx, continue_dl)
+        self._start_frag_download(ctx, continue_fragment)
 
-    def _prepare_frag_download(self, ctx):
+    def _prepare_frag_download(self, ctx, continue_dl=False):
         self.to_screen('[%s] Total fragments: %d' % (self.FD_NAME, ctx['total_frags']))
         self.report_destination(ctx['filename'])
         dl = HttpQuietDownloader(
@@ -40,21 +40,26 @@ class FragmentFD(FileDownloader):
             }
         )
         tmpfilename = self.temp_name(ctx['filename'])
-        dest_stream, tmpfilename = sanitize_open(tmpfilename, 'wb')
+        dest_stream, tmpfilename = sanitize_open(tmpfilename, 'ab' if continue_dl else 'wb')
         ctx.update({
             'dl': dl,
             'dest_stream': dest_stream,
             'tmpfilename': tmpfilename,
         })
 
-    def _start_frag_download(self, ctx):
+    def _start_frag_download(self, ctx, continue_fragment=None):
+        # continue_fragment is the last fragment that was already downloaded
+        # when continuing an old download or None when not continuing
+
         total_frags = ctx['total_frags']
+        downloaded_bytes = 0 if continue_fragment is None else os.path.getsize(ctx['tmpfilename'])
+        frag_index = 0 if continue_fragment is None else continue_fragment + 1
         # This dict stores the download progress, it's updated by the progress
         # hook
         state = {
             'status': 'downloading',
-            'downloaded_bytes': 0,
-            'frag_index': 0,
+            'downloaded_bytes': downloaded_bytes,
+            'frag_index': frag_index,
             'frag_count': total_frags,
             'filename': ctx['filename'],
             'tmpfilename': ctx['tmpfilename'],

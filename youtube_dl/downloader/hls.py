@@ -72,16 +72,20 @@ class NativeHlsFD(FragmentFD):
         self.to_screen('[%s] Downloading m3u8 manifest' % self.FD_NAME)
         manifest = self.ydl.urlopen(man_url).read()
 
-        last_downloaded_segment_filename = filename + ".last_downloaded_segment"
+        last_downloaded_segment_filename = encodeFilename(filename + ".last_downloaded_segment")
         last_downloaded_segment = None
         if os.path.isfile(last_downloaded_segment_filename):
             segment_file = open(last_downloaded_segment_filename, 'r')
-            last_downloaded_segment = segment_file.readline().strip()
+            try:
+                last_downloaded_segment = int(segment_file.readline().strip())
+            except ValueError:
+                pass
             segment_file.close()
 
         s = manifest.decode('utf-8', 'ignore')
         fragment_urls = []
         arrived_at_last_downloaded_segment = (last_downloaded_segment is None)
+        current_fragment = 0
         for line in s.splitlines():
             line = line.strip()
             if line and not line.startswith('#'):
@@ -91,21 +95,28 @@ class NativeHlsFD(FragmentFD):
                     else compat_urlparse.urljoin(man_url, line))
                 if arrived_at_last_downloaded_segment:
                     fragment_urls.append(segment_url)
-                elif segment_url == last_downloaded_segment:
-                    arrived_at_last_downloaded_segment = True
+                else:
+                    if current_fragment == last_downloaded_segment:
+                        arrived_at_last_downloaded_segment = True
                 # We only download the first fragment during the test
                 if self.params.get('test', False):
                     break
+                current_fragment += 1
+
+        skipped_fragments = (
+            last_downloaded_segment + 1
+            if last_downloaded_segment is not None
+            else 0)
 
         ctx = {
             'filename': filename,
-            'total_frags': len(fragment_urls),
+            'total_frags': skipped_fragments + len(fragment_urls),
         }
 
-        self._prepare_and_start_frag_download(ctx)
+        self._prepare_and_start_frag_download(ctx, continue_dl=True, continue_fragment=last_downloaded_segment)
 
         for i, frag_url in enumerate(fragment_urls):
-            frag_filename = '%s-Frag%d' % (ctx['tmpfilename'], i)
+            frag_filename = '%s-Frag%d' % (ctx['tmpfilename'], skipped_fragments + i)
             success = ctx['dl'].download(frag_filename, {'url': frag_url})
             if not success:
                 return False
@@ -114,13 +125,12 @@ class NativeHlsFD(FragmentFD):
             down.close()
             os.remove(encodeFilename(frag_sanitized))
             segments_file = open(last_downloaded_segment_filename, 'w')
-            segments_file.write(frag_url + "\n")
+            segments_file.write(str(skipped_fragments + i) + '\n')
             segments_file.close()
             
 
         self._finish_frag_download(ctx)
 
-        if last_downloaded_segment is not None:
-            os.remove(last_downloaded_segment_filename)
+        os.remove(last_downloaded_segment_filename)
 
         return True
