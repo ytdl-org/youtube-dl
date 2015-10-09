@@ -591,7 +591,10 @@ from .sportbox import (
     SportBoxEmbedIE,
 )
 from .sportdeutschland import SportDeutschlandIE
-from .srf import SrfIE
+from .srgssr import (
+    SRGSSRIE,
+    SRGSSRPlayIE,
+)
 from .srmediathek import SRMediathekIE
 from .ssa import SSAIE
 from .stanfordoc import StanfordOpenClassroomIE
