@@ -501,8 +501,7 @@ class BBCIE(BBCCoUkIE):
     ]
 
     _TESTS = [{
-        # article with multiple videos embedded with data-media-meta containing
-        # playlist.sxml, externalId and no direct video links
+        # article with multiple videos embedded with data-playable containing vpids
         'url': 'http://www.bbc.com/news/world-europe-32668511',
         'info_dict': {
             'id': 'world-europe-32668511',
@@ -511,7 +510,7 @@ class BBCIE(BBCCoUkIE):
         },
         'playlist_count': 2,
     }, {
-        # article with multiple videos embedded with data-media-meta (more videos)
+        # article with multiple videos embedded with data-playable (more videos)
         'url': 'http://www.bbc.com/news/business-28299555',
         'info_dict': {
             'id': 'business-28299555',
@@ -522,6 +521,7 @@ class BBCIE(BBCCoUkIE):
         'skip': 'Save time',
     }, {
         # article with multiple videos embedded with `new SMP()`
+        # broken
         'url': 'http://www.bbc.co.uk/blogs/adamcurtis/entries/3662a707-0af9-3149-963f-47bea720b460',
         'info_dict': {
             'id': '3662a707-0af9-3149-963f-47bea720b460',
@@ -529,7 +529,7 @@ class BBCIE(BBCCoUkIE):
         },
         'playlist_count': 18,
     }, {
-        # single video embedded with mediaAssetPage.init()
+        # single video embedded with data-playable containing vpid
         'url': 'http://www.bbc.com/news/world-europe-32041533',
         'info_dict': {
             'id': 'p02mprgb',
@@ -544,9 +544,9 @@ class BBCIE(BBCCoUkIE):
             'skip_download': True,
         }
     }, {
-        # article with single video embedded with data-media-meta containing
-        # direct video links (for now these are extracted) and playlist.xml (with
-        # media items as f4m and m3u8 - currently unsupported)
+        # article with single video embedded with data-playable containing XML playlist
+        # with direct video links as progressiveDownloadUrl (for now these are extracted)
+        # and playlist with f4m and m3u8 as streamingUrl
         'url': 'http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu',
         'info_dict': {
             'id': '150615_telabyad_kentin_cogu',
@@ -560,20 +560,7 @@ class BBCIE(BBCCoUkIE):
             'skip_download': True,
         }
     }, {
-        # single video embedded with playlist.sxml in data-playable
-        'url': 'http://www.bbc.com/turkce/multimedya/2015/10/151010_vid_ankara_patlama_ani',
-        'info_dict': {
-            'id': '151010_vid_ankara_patlama_ani',
-            'ext': 'mp4',
-            'title': "Ankara'da patlama anı",
-            'timestamp': 1444480325,
-            'upload_date': '20151010',
-        },
-        'params': {
-            'skip_download': True,
-        }
-    }, {
-        # single video embedded with mediaAssetPage.init() (regional section)
+        # single video embedded with data-playable containing XML playlists (regional section)
         'url': 'http://www.bbc.com/mundo/video_fotos/2015/06/150619_video_honduras_militares_hospitales_corrupcion_aw',
         'info_dict': {
             'id': '150619_video_honduras_militares_hospitales_corrupcion_aw',
@@ -629,7 +616,7 @@ class BBCIE(BBCCoUkIE):
             'skip_download': True,
         }
     }, {
-        # single video with playlist.sxml URL
+        # single video with playlist.sxml URL in playlist param
         'url': 'http://www.bbc.com/sport/0/football/33653409',
         'info_dict': {
             'id': 'p02xycnp',
@@ -643,7 +630,7 @@ class BBCIE(BBCCoUkIE):
             'skip_download': True,
         }
     }, {
-        # article with multiple videos embedded with playlist.sxml
+        # article with multiple videos embedded with playlist.sxml in playlist param
         'url': 'http://www.bbc.com/sport/0/football/34475836',
         'info_dict': {
             'id': '34475836',
