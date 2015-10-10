@@ -681,7 +681,8 @@ class BBCIE(BBCCoUkIE):
         # single video story (e.g. http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
         programme_id = self._search_regex(
             [r'data-video-player-vpid="([\da-z]{8})"',
-             r'<param[^>]+name="externalIdentifier"[^>]+value="([\da-z]{8})"'],
+             r'<param[^>]+name="externalIdentifier"[^>]+value="([\da-z]{8})"',
+             r'vpid&quot;:&quot;([^&]+)&'],
             webpage, 'vpid', default=None)
         if programme_id:
             formats, subtitles = self._download_media_selector(programme_id)
