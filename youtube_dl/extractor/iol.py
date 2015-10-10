@@ -63,7 +63,6 @@ class IOLIE(InfoExtractor):
                 'format_id': 'http_500',
                 'tbr': 500,
                 'protocol': 'http',
-                'protocol': 'http',
                 'preference': -1,
                 'no_resume': False
             })
