@@ -11,6 +11,7 @@ from ..utils import (
     int_or_none,
     parse_duration,
     parse_iso8601,
+    remove_end,
     unescapeHTML,
 )
 from ..compat import compat_HTTPError
@@ -533,7 +534,7 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/news/world-europe-32041533',
         'info_dict': {
             'id': 'p02mprgb',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Aerial footage showed the site of the crash in the Alps - courtesy BFM TV',
             'duration': 47,
             'timestamp': 1427219242,
@@ -552,7 +553,6 @@ class BBCIE(BBCCoUkIE):
             'id': '150615_telabyad_kentin_cogu',
             'ext': 'mp4',
             'title': "YPG: Tel Abyad'ın tamamı kontrolümüzde",
-            'duration': 47,
             'timestamp': 1434397334,
             'upload_date': '20150615',
         },
@@ -566,7 +566,6 @@ class BBCIE(BBCCoUkIE):
             'id': '150619_video_honduras_militares_hospitales_corrupcion_aw',
             'ext': 'mp4',
             'title': 'Honduras militariza sus hospitales por nuevo escándalo de corrupción',
-            'duration': 87,
             'timestamp': 1434713142,
             'upload_date': '20150619',
         },
@@ -578,7 +577,7 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/news/video_and_audio/must_see/33376376',
         'info_dict': {
             'id': 'p02w6qjc',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': '''Judge Mindy Glazer: "I'm sorry to see you here... I always wondered what happened to you"''',
             'duration': 56,
         },
@@ -605,11 +604,11 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/autos/story/20130513-hyundais-rock-star',
         'info_dict': {
             'id': 'p018zqqg',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Hyundai Santa Fe Sport: Rock star',
             'description': 'md5:b042a26142c4154a6e472933cf20793d',
-            'timestamp': 1368473503,
-            'upload_date': '20130513',
+            'timestamp': 1415867444,
+            'upload_date': '20141113',
         },
         'params': {
             # rtmp download
@@ -620,9 +619,8 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/sport/0/football/33653409',
         'info_dict': {
             'id': 'p02xycnp',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Transfers: Cristiano Ronaldo to Man Utd, Arsenal to spend?',
-            'description': 'md5:398fca0e2e701c609d726e034fa1fc89',
             'duration': 140,
         },
         'params': {
@@ -697,11 +695,26 @@ class BBCIE(BBCCoUkIE):
 
         webpage = self._download_webpage(url, playlist_id)
 
-        timestamp = parse_iso8601(self._search_regex(
-            [r'"datePublished":\s*"([^"]+)',
-             r'<meta[^>]+property="article:published_time"[^>]+content="([^"]+)"',
-             r'itemprop="datePublished"[^>]+datetime="([^"]+)"'],
-            webpage, 'date', default=None))
+        timestamp = None
+        playlist_title = None
+        playlist_description = None
+
+        ld = self._parse_json(
+            self._search_regex(
+                r'(?s)<script type="application/ld\+json">(.+?)</script>',
+                webpage, 'ld json', default='{}'),
+            playlist_id, fatal=False)
+        if ld:
+            timestamp = parse_iso8601(ld.get('datePublished'))
+            playlist_title = ld.get('headline')
+            playlist_description = ld.get('articleBody')
+
+        if not timestamp:
+            timestamp = parse_iso8601(self._search_regex(
+                [r'<meta[^>]+property="article:published_time"[^>]+content="([^"]+)"',
+                 r'itemprop="datePublished"[^>]+datetime="([^"]+)"',
+                 r'"datePublished":\s*"([^"]+)',],
+                webpage, 'date', default=None))
 
         entries = []
 
@@ -754,8 +767,8 @@ class BBCIE(BBCCoUkIE):
                                 playlist.get('progressiveDownloadUrl'), playlist_id, timestamp))
 
         if entries:
-            playlist_title = self._og_search_title(webpage)
-            playlist_description = self._og_search_description(webpage, default=None)
+            playlist_title = playlist_title or remove_end(self._og_search_title(webpage), ' - BBC News')
+            playlist_description = playlist_description or self._og_search_description(webpage, default=None)
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
 
         # single video story (e.g. http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
