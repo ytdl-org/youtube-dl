@@ -111,9 +111,11 @@ class NativeHlsFD(FragmentFD):
         ctx = {
             'filename': filename,
             'total_frags': skipped_fragments + len(fragment_urls),
+            'continue_dl': True,
+            'continue_fragment': last_downloaded_segment
         }
 
-        self._prepare_and_start_frag_download(ctx, continue_dl=True, continue_fragment=last_downloaded_segment)
+        self._prepare_and_start_frag_download(ctx)
 
         for i, frag_url in enumerate(fragment_urls):
             frag_filename = '%s-Frag%d' % (ctx['tmpfilename'], skipped_fragments + i)
