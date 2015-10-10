@@ -401,7 +401,8 @@ class BBCCoUkIE(InfoExtractor):
             if kind != 'programme' and kind != 'radioProgramme':
                 continue
             title = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}title').text
-            description = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}summary').text
+            description_el = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}summary')
+            description = description_el.text if description_el else None
 
             def get_programme_id(item):
                 def get_from_attributes(item):
