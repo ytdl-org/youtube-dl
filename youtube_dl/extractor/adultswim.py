@@ -85,10 +85,7 @@ class AdultSwimIE(InfoExtractor):
     def find_video_info(collection, slug):
         for video in collection.get('videos'):
             if video.get('slug') == slug:
-                if video.get('auth'):
-                    raise ExtractorError('This video is only available for registered users', expected=True)
-                else:
-                    return video
+                return video
 
     @staticmethod
     def find_collection_by_linkURL(collections, linkURL):
@@ -101,10 +98,7 @@ class AdultSwimIE(InfoExtractor):
         for collection in collections:
             for video in collection.get('videos'):
                 if video.get('slug') == slug:
-                    if video.get('auth'):
-                        raise ExtractorError('This video is only available for registered users', expected=True)
-                    else:
-                        return collection, video
+                    return collection, video
         return None, None
 
     def _real_extract(self, url):
@@ -135,15 +129,18 @@ class AdultSwimIE(InfoExtractor):
             if video_info is None:
                 if bootstrapped_data.get('slugged_video', {}).get('slug') == episode_path:
                     video_info = bootstrapped_data['slugged_video']
-                    if video_info.get('auth'):
-                        raise ExtractorError('This video is only available for registered users', expected=True)
                 else:
                     raise ExtractorError('Unable to find video info')
 
             show = bootstrapped_data['show']
             show_title = show['title']
             stream = video_info.get('stream')
-            clips = [stream] if stream else video_info['clips']
+            clips = [stream] if stream else video_info.get('clips')
+            if not clips:
+                if video_info.get('auth'):
+                    raise ExtractorError('This video is only available for registered users', expected=True)
+                else:
+                    raise ExtractorError('Unable to find clips')
             segment_ids = [clip['videoPlaybackID'] for clip in clips]
 
         episode_id = video_info['id']
