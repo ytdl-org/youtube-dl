@@ -29,6 +29,14 @@ class BBCCoUkIE(InfoExtractor):
         'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s',
     ]
 
+    _MEDIASELECTION_NS = 'http://bbc.co.uk/2008/mp/mediaselection'
+    _EMP_PLAYLIST_NS = 'http://bbc.co.uk/2008/emp/playlist'
+
+    _NAMESPACES = (
+        _MEDIASELECTION_NS,
+        _EMP_PLAYLIST_NS,
+    )
+
     _TESTS = [
         {
             'url': 'http://www.bbc.co.uk/programmes/b039g8p7',
@@ -194,6 +202,7 @@ class BBCCoUkIE(InfoExtractor):
 
     def _extract_connection(self, connection, programme_id):
         formats = []
+        kind = connection.get('kind')
         protocol = connection.get('protocol')
         supplier = connection.get('supplier')
         if protocol == 'http':
@@ -219,7 +228,7 @@ class BBCCoUkIE(InfoExtractor):
             else:
                 formats.append({
                     'url': href,
-                    'format_id': supplier,
+                    'format_id': supplier or kind or protocol,
                 })
         elif protocol == 'rtmp':
             application = connection.get('application', 'ondemand')
@@ -239,16 +248,24 @@ class BBCCoUkIE(InfoExtractor):
         return formats
 
     def _extract_items(self, playlist):
-        return playlist.findall('./{http://bbc.co.uk/2008/emp/playlist}item')
+        return playlist.findall('./{%s}item' % self._EMP_PLAYLIST_NS)
+
+    def _findall_ns(self, element, xpath):
+        elements = []
+        for ns in self._NAMESPACES:
+            elements.extend(element.findall(xpath % ns))
+        return elements
 
     def _extract_medias(self, media_selection):
-        error = media_selection.find('./{http://bbc.co.uk/2008/mp/mediaselection}error')
+        error = media_selection.find('./{%s}error' % self._MEDIASELECTION_NS)
+        if error is None:
+            media_selection.find('./{%s}error' % self._EMP_PLAYLIST_NS)
         if error is not None:
             raise BBCCoUkIE.MediaSelectionError(error.get('id'))
-        return media_selection.findall('./{http://bbc.co.uk/2008/mp/mediaselection}media')
+        return self._findall_ns(media_selection, './{%s}media')
 
     def _extract_connections(self, media):
-        return media.findall('./{http://bbc.co.uk/2008/mp/mediaselection}connection')
+        return self._findall_ns(media, './{%s}connection')
 
     def _extract_video(self, media, programme_id):
         formats = []
@@ -262,13 +279,14 @@ class BBCCoUkIE(InfoExtractor):
             conn_formats = self._extract_connection(connection, programme_id)
             for format in conn_formats:
                 format.update({
-                    'format_id': '%s_%s' % (service, format['format_id']),
                     'width': width,
                     'height': height,
                     'vbr': vbr,
                     'vcodec': vcodec,
                     'filesize': file_size,
                 })
+                if service:
+                    format['format_id'] = '%s_%s' % (service, format['format_id'])
             formats.extend(conn_formats)
         return formats
 
@@ -383,7 +401,7 @@ class BBCCoUkIE(InfoExtractor):
             url, playlist_id, 'Downloading legacy playlist XML')
 
     def _extract_from_legacy_playlist(self, playlist, playlist_id):
-        no_items = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}noItems')
+        no_items = playlist.find('./{%s}noItems' % self._EMP_PLAYLIST_NS)
         if no_items is not None:
             reason = no_items.get('reason')
             if reason == 'preAvailability':
@@ -400,8 +418,8 @@ class BBCCoUkIE(InfoExtractor):
             kind = item.get('kind')
             if kind != 'programme' and kind != 'radioProgramme':
                 continue
-            title = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}title').text
-            description_el = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}summary')
+            title = playlist.find('./{%s}title' % self._EMP_PLAYLIST_NS).text
+            description_el = playlist.find('./{%s}summary' % self._EMP_PLAYLIST_NS)
             description = description_el.text if description_el else None
 
             def get_programme_id(item):
@@ -411,16 +429,18 @@ class BBCCoUkIE(InfoExtractor):
                         if value and re.match(r'^[pb][\da-z]{7}$', value):
                             return value
                 get_from_attributes(item)
-                mediator = item.find('./{http://bbc.co.uk/2008/emp/playlist}mediator')
+                mediator = item.find('./{%s}mediator' % self._EMP_PLAYLIST_NS)
                 if mediator is not None:
                     return get_from_attributes(mediator)
 
             programme_id = get_programme_id(item)
             duration = int_or_none(item.get('duration'))
-            # TODO: programme_id can be None and media items can be incorporated right inside
-            # playlist's item (e.g. http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu)
-            # as f4m and m3u8
-            formats, subtitles = self._download_media_selector(programme_id)
+
+            if programme_id:
+                formats, subtitles = self._download_media_selector(programme_id)
+            else:
+                formats, subtitles = self._process_media_selector(item, playlist_id)
+                programme_id = playlist_id
 
         return programme_id, title, description, duration, formats, subtitles
 
