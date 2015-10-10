@@ -9,9 +9,11 @@ from ..utils import ExtractorError
 
 class ZingMp3BaseInfoExtractor(InfoExtractor):
 
-    def _extract_item(self, item):
+    def _extract_item(self, item, fatal=True):
         error_message = item.find('./errormessage').text
         if error_message:
+            if not fatal:
+                return
             raise ExtractorError(
                 '%s returned error: %s' % (self.IE_NAME, error_message),
                 expected=True)
