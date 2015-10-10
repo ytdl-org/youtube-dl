@@ -95,7 +95,7 @@ class IOLIE(InfoExtractor):
             formats.extend(formats_m3u8_default)
 
             # try rtmp format
-            if self._html_search_regex(r'<script\s+src\s*=\s*"([^"]*/cdn\.iol\.pt/js/iol\.js)"', webpage, "iol.js", fatal=False):
+            if self._html_search_regex(r'<script\s+src\s*=\s*"([^"]*/cdn\.iol\.pt/js/iol\.js)"', webpage, "iol.js", fatal=False, default=None):
                 server = 'video1.iol.pt'
 
                 try:
