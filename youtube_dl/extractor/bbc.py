@@ -560,6 +560,19 @@ class BBCIE(BBCCoUkIE):
             'skip_download': True,
         }
     }, {
+        # single video embedded with playlist.sxml in data-playable
+        'url': 'http://www.bbc.com/turkce/multimedya/2015/10/151010_vid_ankara_patlama_ani',
+        'info_dict': {
+            'id': '151010_vid_ankara_patlama_ani',
+            'ext': 'mp4',
+            'title': "Ankara'da patlama anı",
+            'timestamp': 1444480325,
+            'upload_date': '20151010',
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }, {
         # single video embedded with mediaAssetPage.init() (regional section)
         'url': 'http://www.bbc.com/mundo/video_fotos/2015/06/150619_video_honduras_militares_hospitales_corrupcion_aw',
         'info_dict': {
