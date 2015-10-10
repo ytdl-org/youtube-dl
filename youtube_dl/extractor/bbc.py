@@ -11,6 +11,7 @@ from ..utils import (
     int_or_none,
     parse_duration,
     parse_iso8601,
+    unescapeHTML,
 )
 from ..compat import compat_HTTPError
 
@@ -682,6 +683,21 @@ class BBCIE(BBCCoUkIE):
             [r'data-video-player-vpid="([\da-z]{8})"',
              r'<param[^>]+name="externalIdentifier"[^>]+value="([\da-z]{8})"'],
             webpage, 'vpid', default=None)
+
+        duration = None
+        if not programme_id:
+            # single video in news article embedded with data-playable (e.g.
+            # http://www.bbc.com/news/world-us-canada-34473351)
+            data_playable = self._parse_json(
+                unescapeHTML(self._search_regex(
+                    r'data-playable="({.+?})"', webpage, 'data playable', default='{}')),
+                programme_id, fatal=False)
+            if data_playable:
+                items = data_playable.get('settings', {}).get('playlistObject', {}).get('items')
+                if items and isinstance(items, list):
+                    duration = int_or_none(items[0].get('duration'))
+                    programme_id = items[0].get('vpid')
+
         if programme_id:
             formats, subtitles = self._download_media_selector(programme_id)
             self._sort_formats(formats)
@@ -699,6 +715,7 @@ class BBCIE(BBCCoUkIE):
                 'title': title,
                 'description': description,
                 'timestamp': timestamp,
+                'duration': duration,
                 'formats': formats,
                 'subtitles': subtitles,
             }
