@@ -40,13 +40,13 @@ class IOLIE(InfoExtractor):
             'description': u'PM sublinha que é o nível mais elevado de há vários anos'
         }
     }, {
-		'url': 'http://www.maisfutebol.iol.pt/videos/560b04f80cf25f02cc1d843f/fc-porto/lopetegui-nao-quer-faltar-ao-respeito-ao-maccabi',
+        'url': 'http://www.maisfutebol.iol.pt/videos/560b04f80cf25f02cc1d843f/fc-porto/lopetegui-nao-quer-faltar-ao-respeito-ao-maccabi',
         'md5': '738a970259469fbb54b2d391c4c69dab',
         'info_dict': {
             'id': '560b04f80cf25f02cc1d843f',
             'ext': 'mp4',
             'title': u'Lopetegui não quer «faltar ao respeito ao Maccabi»',
-			'thumbnail': 'http://www.maisfutebol.iol.pt/multimedia/oratvi/multimedia/imagem/id/560b06c50cf2c14000fb838d/600',
+            'thumbnail': 'http://www.maisfutebol.iol.pt/multimedia/oratvi/multimedia/imagem/id/560b06c50cf2c14000fb838d/600',
             'description': u'Treinador do FC Porto e a possibilidade de disparar na tabela nos dois jogos com os israelitas.'
         }
     }, {
@@ -75,7 +75,7 @@ class IOLIE(InfoExtractor):
         try:
             iol_json = self._parse_json(iol_js, video_id, transform_source=js_to_json)
             m3u8_url = iol_json['videoUrl']
-            title = iol_json.get('title', title) # this title information has less cruft (defaults to _og_search_title)
+            title = iol_json.get('title', title)  # this title information has less cruft (defaults to _og_search_title)
         except ExtractorError:
             # need to parse using regexps
             m3u8_url = self._html_search_regex(r'''videoUrl:\s*'([^']+\.m3u8[^']*)'\s*,''', iol_js, 'm3u8 playlist (json fallback)')
@@ -126,7 +126,9 @@ class IOLStreamIE(IOLIE):
 
     def _real_extract(self, url):
         ret = IOLIE._real_extract(self, url)
+        # can't find uncluttered title information for live
+        title = re.sub(r'\s*\|\s*TVI Player\s*$', '', ret['title'], re.IGNORECASE)
         ret['is_live'] = True
-        ret['title'] = self._live_title(ret['title'])
+        ret['title'] = self._live_title(title)
 
         return ret
