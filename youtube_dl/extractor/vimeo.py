@@ -39,10 +39,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
             return
         self.report_login()
         webpage = self._download_webpage(self._LOGIN_URL, None, False)
-        token = self._extract_xsrft(webpage)
-        vuid = self._search_regex(
-            r'["\']vuid["\']\s*:\s*(["\'])(?P<vuid>.+?)\1',
-            webpage, 'vuid', group='vuid')
+        token, vuid = self._extract_xsrft_and_vuid(webpage)
         data = urlencode_postdata({
             'action': 'login',
             'email': username,
@@ -56,10 +53,14 @@ class VimeoBaseInfoExtractor(InfoExtractor):
         login_request.add_header('Referer', self._LOGIN_URL)
         self._download_webpage(login_request, None, False, 'Wrong login info')
 
-    def _extract_xsrft(self, webpage):
-        return self._search_regex(
+    def _extract_xsrft_and_vuid(self, webpage):
+        xsrft = self._search_regex(
             r'xsrft\s*[=:]\s*(?P<q>["\'])(?P<xsrft>.+?)(?P=q)',
             webpage, 'login token', group='xsrft')
+        vuid = self._search_regex(
+            r'["\']vuid["\']\s*:\s*(["\'])(?P<vuid>.+?)\1',
+            webpage, 'vuid', group='vuid')
+        return xsrft, vuid
 
 
 class VimeoIE(VimeoBaseInfoExtractor):
@@ -201,7 +202,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         password = self._downloader.params.get('videopassword', None)
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option', expected=True)
-        token = self._extract_xsrft(webpage)
+        token, vuid = self._extract_xsrft_and_vuid(webpage)
         data = urlencode_postdata({
             'password': password,
             'token': token,
@@ -211,6 +212,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             url = url.replace('http://', 'https://')
         password_request = compat_urllib_request.Request(url + '/password', data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        password_request.add_header('Cookie', 'clip_v=1; vuid=%s' % vuid)
         password_request.add_header('Referer', url)
         return self._download_webpage(
             password_request, video_id,
@@ -465,7 +467,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         if password is None:
             raise ExtractorError('This album is protected by a password, use the --video-password option', expected=True)
         fields = self._hidden_inputs(login_form)
-        token = self._extract_xsrft(webpage)
+        token, vuid = self._extract_xsrft_and_vuid(webpage)
         fields['token'] = token
         fields['password'] = password
         post = urlencode_postdata(fields)
@@ -474,6 +476,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         password_url = compat_urlparse.urljoin(page_url, password_path)
         password_request = compat_urllib_request.Request(password_url, post)
         password_request.add_header('Content-type', 'application/x-www-form-urlencoded')
+        password_request.add_header('Cookie', 'vuid=%s' % vuid)
         self._set_cookie('vimeo.com', 'xsrft', token)
 
         return self._download_webpage(
