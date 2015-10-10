@@ -64,19 +64,31 @@ class IOLIE(InfoExtractor):
             formats_m3u8_default = self._extract_m3u8_formats(m3u8_url_default, video_id, ext='mp4')
             formats.extend(formats_m3u8_default)
 
-            server = 'video2.iol.pt'
-            formats.append({
-                'url': 'rtmp://'+server+'/vod',
-                'play_path': 'mp4:' + multimedia_id + '-L-500k',
-                'format_id': 'rtmp-500',
-                'tbr': 500,
-                'protocol': 'rtmp',
-                'ext': 'mp4'
-            })
+            # try rtmp format
+            if self._html_search_regex(r'<script\s+src\s*=\s*"([^"]*/cdn\.iol\.pt/js/iol\.js)"', webpage, "iol.js", fatal=False):
+                server = 'video1.iol.pt'
+
+                try:
+                    # get actual server
+                    xml = self._download_xml('http://www.iol.pt/videolb', video_id, note='Downloading server info XML', fatal=False)
+                    if 'redirect' == xml.tag:
+                        server = xml.text
+
+                except Exception as ex:
+                    # just ignore every error, rtmp is not essential
+                    self.report_warning('RTMP server not found. %r' % (ex,))
+
+                formats.append({
+                    'url': 'rtmp://' + server + '/vod',
+                    'play_path': 'mp4:' + multimedia_id + '-L-500k',
+                    'format_id': 'rtmp-500',
+                    'tbr': 500,
+                    'protocol': 'rtmp'
+                })
 
             formats.append({
                 'url': 'http://www.iol.pt/videos-file/' + multimedia_id + '-L-500k.mp4',
-                'format_id': 'http_500',
+                'format_id': 'http-500',
                 'tbr': 500,
                 'protocol': 'http',
                 'preference': -1,
