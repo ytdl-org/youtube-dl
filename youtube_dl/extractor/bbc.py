@@ -657,6 +657,20 @@ class BBCIE(BBCCoUkIE):
 
         return [], []
 
+    def _extract_from_playlist_sxml(self, url, playlist_id, timestamp):
+        programme_id, title, description, duration, formats, subtitles = \
+            self._process_legacy_playlist_url(url, playlist_id)
+        self._sort_formats(formats)
+        return {
+            'id': programme_id,
+            'title': title,
+            'description': description,
+            'duration': duration,
+            'timestamp': timestamp,
+            'formats': formats,
+            'subtitles': subtitles,
+        }
+
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
 
@@ -672,20 +686,9 @@ class BBCIE(BBCCoUkIE):
         # http://www.bbc.com/sport/0/football/34475836)
         playlists = re.findall(r'<param[^>]+name="playlist"[^>]+value="([^"]+)"', webpage)
         if playlists:
-            entries = []
-            for playlist in playlists:
-                programme_id, title, description, duration, formats, subtitles = \
-                    self._process_legacy_playlist_url(playlist, playlist_id)
-                self._sort_formats(formats)
-                entries.append({
-                    'id': programme_id,
-                    'title': title,
-                    'description': description,
-                    'duration': duration,
-                    'timestamp': timestamp,
-                    'formats': formats,
-                    'subtitles': subtitles,
-                })
+            entries = [
+                self._extract_from_playlist_sxml(playlist_url, playlist_id, timestamp)
+                for playlist_url in playlists]
             playlist_title = self._og_search_title(webpage)
             playlist_description = self._og_search_description(webpage, default=None)
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
@@ -705,10 +708,24 @@ class BBCIE(BBCCoUkIE):
                     r'data-playable="({.+?})"', webpage, 'data playable', default='{}')),
                 programme_id, fatal=False)
             if data_playable:
-                items = data_playable.get('settings', {}).get('playlistObject', {}).get('items')
-                if items and isinstance(items, list):
-                    duration = int_or_none(items[0].get('duration'))
-                    programme_id = items[0].get('vpid')
+                # data-playable has video vpid in settings.playlistObject.items (e.g.
+                # http://www.bbc.com/news/world-us-canada-34473351)
+                settings = data_playable.get('settings', {})
+                if settings:
+                    playlist_object = settings.get('playlistObject', {})
+                    if playlist_object:
+                        items = playlist_object.get('items')
+                        if items and isinstance(items, list):
+                            duration = int_or_none(items[0].get('duration'))
+                            programme_id = items[0].get('vpid')
+                if not programme_id:
+                    # data-playable has no vpid but has a playlist.sxml URLs
+                    # in otherSettings.playlist (e.g.
+                    # http://www.bbc.com/turkce/multimedya/2015/10/151010_vid_ankara_patlama_ani)
+                    playlist = data_playable.get('otherSettings', {}).get('playlist', {})
+                    if playlist:
+                        return self._extract_from_playlist_sxml(
+                            playlist.get('progressiveDownloadUrl'), playlist_id, timestamp)
 
         if programme_id:
             formats, subtitles = self._download_media_selector(programme_id)
