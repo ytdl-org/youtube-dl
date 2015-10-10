@@ -7,7 +7,7 @@ import re
 
 
 class IOLIE(InfoExtractor):
-    _VALID_URL = r'http://(tviplayer|www\.tvi24)\.iol\.pt/.*/(?P<id>[0-9a-f]{24})[/0-9]*$'
+    _VALID_URL = r'http://(tviplayer|(www\.tvi24))\.iol\.pt/.*/(?P<id>[0-9a-f]{24})($|\/)'
     _TESTS = [{
         'url': 'http://tviplayer.iol.pt/programa/euromilhoes/53c6b3153004dc006243b07b/video/55f878f90cf203f8b03cea6d',
         'md5': 'a9b3e3630201401fc3b8099d9d689191',
@@ -51,6 +51,22 @@ class IOLIE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(webpage)
         m3u8_url = self._html_search_regex(r'''videoUrl:\s*'([^']+\.m3u8[^']*)'\s*,''', webpage, 'm3u8 playlist')
         formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
+
+        match = re.search(r'smil:([0-9a-f]{24})-L', m3u8_url, re.IGNORECASE)
+        if match:
+            multimedia_id = match.group(1)
+            m3u8_url_default = 'http://video-on-demand.iol.pt/vod_http/mp4:' + multimedia_id + '-L-500k.mp4/playlist.m3u8'
+            formats_m3u8_default = self._extract_m3u8_formats(m3u8_url_default, video_id, ext='mp4')
+            formats.extend(formats_m3u8_default)
+            formats.append({
+                'url': 'http://www.iol.pt/videos-file/' + multimedia_id + '-L-500k.mp4',
+                'format_id': 'http_500',
+                'tbr': 500,
+                'protocol': 'http',
+                'protocol': 'http',
+                'preference': -1,
+                'no_resume': False
+            })
 
         return {
             'id': video_id,
