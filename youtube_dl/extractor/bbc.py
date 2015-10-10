@@ -499,6 +499,7 @@ class BBCIE(BBCCoUkIE):
         # Provides more formats, namely direct mp4 links, but fails on some videos with
         # notukerror for non UK (?) users (e.g.
         # http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
+        'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s',
         'http://open.live.bbc.co.uk/mediaselector/4/mtis/stream/%s',
         # Provides fewer formats, but works everywhere for everybody (hopefully)
         'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/journalism-pc/vpid/%s',
@@ -778,7 +779,8 @@ class BBCIE(BBCCoUkIE):
         # single video story (e.g. http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
         programme_id = self._search_regex(
             [r'data-video-player-vpid="([\da-z]{8})"',
-             r'<param[^>]+name="externalIdentifier"[^>]+value="([\da-z]{8})"'],
+             r'<param[^>]+name="externalIdentifier"[^>]+value="([\da-z]{8})"',
+             r'vpid&quot;:&quot;([^&]+)&'],
             webpage, 'vpid', default=None)
 
         if programme_id:
