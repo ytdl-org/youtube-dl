@@ -609,6 +609,14 @@ class BBCIE(BBCCoUkIE):
             'skip_download': True,
         }
     }, {
+        # article with multiple videos embedded with playlist.sxml
+        'url': 'http://www.bbc.com/sport/0/football/34475836',
+        'info_dict': {
+            'id': '34475836',
+            'title': 'What Liverpool can expect from Klopp',
+        },
+        'playlist_count': 3,
+    }, {
         # single video with playlist URL from weather section
         'url': 'http://www.bbc.com/weather/features/33601775',
         'only_matching': True,
