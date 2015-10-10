@@ -86,21 +86,18 @@ class ZingMp3SongIE(ZingMp3BaseInfoExtractor):
 
 class ZingMp3AlbumIE(ZingMp3BaseInfoExtractor):
     _VALID_URL = r'https?://mp3\.zing\.vn/(?:album|playlist)/(?P<slug>[^/]+)/(?P<album_id>\w+)\.html'
-    _TESTS = [
-        {
-            'url': 'http://mp3.zing.vn/album/Lau-Dai-Tinh-Ai-Bang-Kieu-Minh-Tuyet/ZWZBWDAF.html',
-            'info_dict': {
-                '_type': 'playlist',
-                'id': 'ZWZBWDAF',
-                'title': 'Lâu Đài Tình Ái - Bằng Kiều ft. Minh Tuyết | Album 320 lossless',
-            },
-            'playlist_count': 10,
+    _TESTS = [{
+        'url': 'http://mp3.zing.vn/album/Lau-Dai-Tinh-Ai-Bang-Kieu-Minh-Tuyet/ZWZBWDAF.html',
+        'info_dict': {
+            '_type': 'playlist',
+            'id': 'ZWZBWDAF',
+            'title': 'Lâu Đài Tình Ái - Bằng Kiều ft. Minh Tuyết | Album 320 lossless',
         },
-        {
-            'url': 'http://mp3.zing.vn/playlist/Duong-Hong-Loan-apollobee/IWCAACCB.html',
-            'only_matching': True,
-        }
-    ]
+        'playlist_count': 10,
+    }, {
+        'url': 'http://mp3.zing.vn/playlist/Duong-Hong-Loan-apollobee/IWCAACCB.html',
+        'only_matching': True,
+    }]
     IE_NAME = 'zingmp3:album'
     IE_DESC = 'mp3.zing.vn albums'
 
