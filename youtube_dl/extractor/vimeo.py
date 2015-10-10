@@ -395,14 +395,14 @@ class VimeoIE(VimeoBaseInfoExtractor):
                     'ext': codec_extension,
                     'url': video_url,
                     'format_id': format_id,
-                    'width': file_info.get('width'),
-                    'height': file_info.get('height'),
-                    'tbr': file_info.get('bitrate'),
+                    'width': int_or_none(file_info.get('width')),
+                    'height': int_or_none(file_info.get('height')),
+                    'tbr': int_or_none(file_info.get('bitrate')),
                 })
         formats = []
-        hls = config_files.get("hls")
-        if hls:
-            formats = self._extract_m3u8_formats(hls['all'], video_id, 'mp4', 'm3u8_native', 0, 'hls', fatal=False)
+        m3u8_url = config_files.get('hls', {}).get('all')
+        if m3u8_url:
+            formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4', 'm3u8_native', 0, 'hls', fatal=False)
         for key in ('other', 'sd', 'hd'):
             formats += files[key]
         self._sort_formats(formats)
