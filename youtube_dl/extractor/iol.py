@@ -52,9 +52,14 @@ class IOLIE(InfoExtractor):
         m3u8_url = self._html_search_regex(r'''videoUrl:\s*'([^']+\.m3u8[^']*)'\s*,''', webpage, 'm3u8 playlist')
         formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
 
-        match = re.search(r'smil:([0-9a-f]{24})-L', m3u8_url, re.IGNORECASE)
-        if match:
-            multimedia_id = match.group(1)
+        multimedia_id = self._html_search_meta('iol:id', webpage, 'multimedia_id', fatal=False, default=None)
+        if multimedia_id is None:
+            match = re.search(r'smil:([0-9a-f]{24})-L', m3u8_url, re.IGNORECASE)
+            self.report_extraction('multimedia_id (fallback)')
+            if match:
+                multimedia_id = match.group(1)
+
+        if multimedia_id is not None:
             m3u8_url_default = 'http://video-on-demand.iol.pt/vod_http/mp4:' + multimedia_id + '-L-500k.mp4/playlist.m3u8'
             formats_m3u8_default = self._extract_m3u8_formats(m3u8_url_default, video_id, ext='mp4')
             formats.extend(formats_m3u8_default)
