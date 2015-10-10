@@ -10,7 +10,7 @@ class IOLIE(InfoExtractor):
     _VALID_URL = r'http://(tviplayer|(www\.tvi24))\.iol\.pt/.*/(?P<id>[0-9a-f]{24})($|\/)'
     _TESTS = [{
         'url': 'http://tviplayer.iol.pt/programa/euromilhoes/53c6b3153004dc006243b07b/video/55f878f90cf203f8b03cea6d',
-        'md5': 'a9b3e3630201401fc3b8099d9d689191',
+        'md5': '983ca0edae370af67c458c6e5a71aae5',
         'info_dict': {
             'id': '55f878f90cf203f8b03cea6d',
             'ext': 'mp4',
@@ -20,7 +20,7 @@ class IOLIE(InfoExtractor):
         }
     }, {
         'url': 'http://tviplayer.iol.pt/programa/isso-e-tudo-muito-bonito-mas/55f30f2e0cf2a6b037fc1f2f/video/55f730c40cf23fa665481b18',
-        'md5': 'fb7231bf3a12eee731c56eaa6ecb5474',
+        'md5': 'ef5171a5abf69197726e5d7c7633c27a',
         'info_dict': {
             'id': '55f730c40cf23fa665481b18',
             'ext': 'mp4',
@@ -30,7 +30,7 @@ class IOLIE(InfoExtractor):
         }
     }, {
         'url': 'http://www.tvi24.iol.pt/videos/passos-criacao-de-emprego-e-facto-muito-importante/55f816640cf2e6961770ef7a/2',
-        'md5': '49d4da9901f00e72a127ff4b635f69ee',
+        'md5': 'd836f1225c289c7987beddebe11619b9',
         'info_dict': {
             'id': '55f816640cf2e6961770ef7a',
             'ext': 'mp4',
