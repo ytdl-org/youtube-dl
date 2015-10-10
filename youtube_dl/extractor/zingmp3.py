@@ -45,7 +45,9 @@ class ZingMp3BaseInfoExtractor(InfoExtractor):
             entries = []
 
             for i, item in enumerate(items, 1):
-                entry = self._extract_item(item)
+                entry = self._extract_item(item, fatal=False)
+                if not entry:
+                    continue
                 entry['id'] = '%s-%d' % (id, i)
                 entries.append(entry)
 
