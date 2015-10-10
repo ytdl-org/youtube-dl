@@ -739,7 +739,8 @@ class BBCIE(BBCCoUkIE):
             # http://www.bbc.com/news/world-us-canada-34473351)
             data_playable = self._parse_json(
                 unescapeHTML(self._search_regex(
-                    r'data-playable="({.+?})"', webpage, 'data playable', default='{}')),
+                    r'data-playable=(["\'])(?P<json>{.+?})\1', webpage,
+                    'data playable', default='{}', group='json')),
                 programme_id, fatal=False)
             if data_playable:
                 # data-playable has video vpid in settings.playlistObject.items (e.g.
