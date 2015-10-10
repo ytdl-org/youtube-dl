@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import js_to_json, ExtractorError
 
 import re
 
@@ -38,6 +39,26 @@ class IOLIE(InfoExtractor):
             'thumbnail': 'http://www.iol.pt/multimedia/oratvi/multimedia/imagem/id/55f8180e0cf21413dfb1d96d/',
             'description': u'PM sublinha que é o nível mais elevado de há vários anos'
         }
+    }, {
+		'url': 'http://www.maisfutebol.iol.pt/videos/560b04f80cf25f02cc1d843f/fc-porto/lopetegui-nao-quer-faltar-ao-respeito-ao-maccabi',
+        'md5': '738a970259469fbb54b2d391c4c69dab',
+        'info_dict': {
+            'id': '560b04f80cf25f02cc1d843f',
+            'ext': 'mp4',
+            'title': u'Lopetegui não quer «faltar ao respeito ao Maccabi»',
+			'thumbnail': 'http://www.maisfutebol.iol.pt/multimedia/oratvi/multimedia/imagem/id/560b06c50cf2c14000fb838d/600',
+            'description': u'Treinador do FC Porto e a possibilidade de disparar na tabela nos dois jogos com os israelitas.'
+        }
+    }, {
+        'url': 'http://www.maisfutebol.iol.pt/videos/5611a7e30cf2d8d8759054eb/liga/perdi-uma-semana-com-ewerton',
+        'md5': '9535c58831ecd4bbb95e600d34eaeef8',
+        'info_dict': {
+            'id': '5611a7e30cf2d8d8759054eb',
+            'ext': 'mp4',
+            'title': u'«Perdi uma semana com Ewerton»',
+            'thumbnail': 'http://www.maisfutebol.iol.pt/multimedia/oratvi/multimedia/imagem/id/5611aa840cf20a9cbc0da934/600',
+            'description': u'Treinador explica situação do central.'
+        }
     }]
 
     def _real_extract(self, url):
@@ -45,19 +66,28 @@ class IOLIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         title = self._og_search_title(webpage)
-        title = re.sub(r' \| TVI Player$', '', title, re.IGNORECASE)
-
         description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
-        m3u8_url = self._html_search_regex(r'''videoUrl:\s*'([^']+\.m3u8[^']*)'\s*,''', webpage, 'm3u8 playlist')
+
+        iol_js = self._html_search_regex(r'\.iolplayer\(\s*(\{.+?\})\s*\)', webpage, 'iolplayer', flags=re.DOTALL)
+
+        # in a perfect world this would work but in practice it breaks too many times. RegExps are more "robust"
+        try:
+            iol_json = self._parse_json(iol_js, video_id, transform_source=js_to_json)
+            m3u8_url = iol_json['videoUrl']
+            title = iol_json.get('title', title) # this title information has less cruft (defaults to _og_search_title)
+        except ExtractorError:
+            # need to parse using regexps
+            m3u8_url = self._html_search_regex(r'''videoUrl:\s*'([^']+\.m3u8[^']*)'\s*,''', iol_js, 'm3u8 playlist (json fallback)')
+            title_js = self._html_search_regex(r'''title:\s*'(.+?)'\s*,''', iol_js, 'title (json fallback)', fatal=False, default=None)
+            if title_js is not None:
+                title = title_js
+
         formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
 
         multimedia_id = self._html_search_meta('iol:id', webpage, 'multimedia_id', fatal=False, default=None)
         if multimedia_id is None:
-            match = re.search(r'smil:([0-9a-f]{24})-L', m3u8_url, re.IGNORECASE)
-            self.report_extraction('multimedia_id (fallback)')
-            if match:
-                multimedia_id = match.group(1)
+            multimedia_id = self._search_regex(r'smil:([0-9a-f]{24})-L', m3u8_url, 'multimedia_id (fallback)', flags=re.IGNORECASE, default=None)
 
         if multimedia_id is not None:
             m3u8_url_default = 'http://video-on-demand.iol.pt/vod_http/mp4:' + multimedia_id + '-L-500k.mp4/playlist.m3u8'
