@@ -63,6 +63,17 @@ class IOLIE(InfoExtractor):
             m3u8_url_default = 'http://video-on-demand.iol.pt/vod_http/mp4:' + multimedia_id + '-L-500k.mp4/playlist.m3u8'
             formats_m3u8_default = self._extract_m3u8_formats(m3u8_url_default, video_id, ext='mp4')
             formats.extend(formats_m3u8_default)
+
+            server = 'video2.iol.pt'
+            formats.append({
+                'url': 'rtmp://'+server+'/vod',
+                'play_path': 'mp4:' + multimedia_id + '-L-500k',
+                'format_id': 'rtmp-500',
+                'tbr': 500,
+                'protocol': 'rtmp',
+                'ext': 'mp4'
+            })
+
             formats.append({
                 'url': 'http://www.iol.pt/videos-file/' + multimedia_id + '-L-500k.mp4',
                 'format_id': 'http_500',
