@@ -7,7 +7,7 @@ import re
 
 
 class IOLIE(InfoExtractor):
-    _VALID_URL = r'http://(tviplayer|(www\.tvi24))\.iol\.pt/.*/(?P<id>[0-9a-f]{24})($|\/)'
+    _VALID_URL = r'http://[^/]*\.iol\.pt/.*/(?P<id>[0-9a-f]{24})($|\/)'
     _TESTS = [{
         'url': 'http://tviplayer.iol.pt/programa/euromilhoes/53c6b3153004dc006243b07b/video/55f878f90cf203f8b03cea6d',
         'md5': '983ca0edae370af67c458c6e5a71aae5',
