@@ -84,12 +84,12 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'info_dict': {
                 'id': '56015672',
                 'ext': 'mp4',
-                "upload_date": "20121220",
-                "description": "This is a test case for youtube-dl.\nFor more information, see github.com/rg3/youtube-dl\nTest chars: \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
-                "uploader_id": "user7108434",
-                "uploader": "Filippo Valsorda",
-                "title": "youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
-                "duration": 10,
+                'title': "youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
+                'description': 'md5:2d3305bad981a06ff79f027f19865021',
+                'upload_date': '20121220',
+                'uploader_id': 'user7108434',
+                'uploader': 'Filippo Valsorda',
+                'duration': 10,
             },
         },
         {
@@ -102,7 +102,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'uploader_id': 'openstreetmapus',
                 'uploader': 'OpenStreetMap US',
                 'title': 'Andy Allan - Putting the Carto into OpenStreetMap Cartography',
-                'description': 'md5:380943ec71b89736ff4bf27183233d09',
+                'description': 'md5:fd69a7b8d8c34a4e1d2ec2e4afd6ec30',
                 'duration': 1595,
             },
         },
@@ -156,7 +156,6 @@ class VimeoIE(VimeoBaseInfoExtractor):
         },
         {
             'url': 'http://vimeo.com/76979871',
-            'md5': '3363dd6ffebe3784d56f4132317fd446',
             'note': 'Video with subtitles',
             'info_dict': {
                 'id': '76979871',
