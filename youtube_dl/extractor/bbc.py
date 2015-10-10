@@ -716,6 +716,8 @@ class BBCIE(BBCCoUkIE):
              r'itemprop="datePublished"[^>]+datetime="([^"]+)"'],
             webpage, 'date', default=None))
 
+        entries = []
+
         # article with multiple videos embedded with playlist.sxml (e.g.
         # http://www.bbc.com/sport/0/football/34475836)
         playlists = re.findall(r'<param[^>]+name="playlist"[^>]+value="([^"]+)"', webpage)
@@ -723,6 +725,48 @@ class BBCIE(BBCCoUkIE):
             entries = [
                 self._extract_from_playlist_sxml(playlist_url, playlist_id, timestamp)
                 for playlist_url in playlists]
+
+        # news article with multiple videos embedded with data-playable
+        data_playables = re.findall(r'data-playable=(["\'])({.+?})\1', webpage)
+        if data_playables:
+            for _, data_playable_json in data_playables:
+                data_playable = self._parse_json(
+                    unescapeHTML(data_playable_json), playlist_id, fatal=False)
+                if not data_playable:
+                    continue
+                settings = data_playable.get('settings', {})
+                if settings:
+                    # data-playable with video vpid in settings.playlistObject.items (e.g.
+                    # http://www.bbc.com/news/world-us-canada-34473351)
+                    playlist_object = settings.get('playlistObject', {})
+                    if playlist_object:
+                        items = playlist_object.get('items')
+                        if items and isinstance(items, list):
+                            title = playlist_object['title']
+                            description = playlist_object.get('summary')
+                            duration = int_or_none(items[0].get('duration'))
+                            programme_id = items[0].get('vpid')
+                            formats, subtitles = self._download_media_selector(programme_id)
+                            self._sort_formats(formats)
+                            entries.append({
+                                'id': programme_id,
+                                'title': title,
+                                'description': description,
+                                'timestamp': timestamp,
+                                'duration': duration,
+                                'formats': formats,
+                                'subtitles': subtitles,
+                            })
+                    else:
+                        # data-playable without vpid but with a playlist.sxml URLs
+                        # in otherSettings.playlist (e.g.
+                        # http://www.bbc.com/turkce/multimedya/2015/10/151010_vid_ankara_patlama_ani)
+                        playlist = data_playable.get('otherSettings', {}).get('playlist', {})
+                        if playlist:
+                            entries.append(self._extract_from_playlist_sxml(
+                                playlist.get('progressiveDownloadUrl'), playlist_id, timestamp))
+
+        if entries:
             playlist_title = self._og_search_title(webpage)
             playlist_description = self._og_search_description(webpage, default=None)
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
@@ -732,35 +776,6 @@ class BBCIE(BBCCoUkIE):
             [r'data-video-player-vpid="([\da-z]{8})"',
              r'<param[^>]+name="externalIdentifier"[^>]+value="([\da-z]{8})"'],
             webpage, 'vpid', default=None)
-
-        duration = None
-        if not programme_id:
-            # single video in news article embedded with data-playable (e.g.
-            # http://www.bbc.com/news/world-us-canada-34473351)
-            data_playable = self._parse_json(
-                unescapeHTML(self._search_regex(
-                    r'data-playable=(["\'])(?P<json>{.+?})\1', webpage,
-                    'data playable', default='{}', group='json')),
-                programme_id, fatal=False)
-            if data_playable:
-                # data-playable has video vpid in settings.playlistObject.items (e.g.
-                # http://www.bbc.com/news/world-us-canada-34473351)
-                settings = data_playable.get('settings', {})
-                if settings:
-                    playlist_object = settings.get('playlistObject', {})
-                    if playlist_object:
-                        items = playlist_object.get('items')
-                        if items and isinstance(items, list):
-                            duration = int_or_none(items[0].get('duration'))
-                            programme_id = items[0].get('vpid')
-                if not programme_id:
-                    # data-playable has no vpid but has a playlist.sxml URLs
-                    # in otherSettings.playlist (e.g.
-                    # http://www.bbc.com/turkce/multimedya/2015/10/151010_vid_ankara_patlama_ani)
-                    playlist = data_playable.get('otherSettings', {}).get('playlist', {})
-                    if playlist:
-                        return self._extract_from_playlist_sxml(
-                            playlist.get('progressiveDownloadUrl'), playlist_id, timestamp)
 
         if programme_id:
             formats, subtitles = self._download_media_selector(programme_id)
