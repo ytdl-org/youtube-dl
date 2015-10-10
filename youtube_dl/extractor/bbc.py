@@ -794,7 +794,6 @@ class BBCIE(BBCCoUkIE):
                 'title': title,
                 'description': description,
                 'timestamp': timestamp,
-                'duration': duration,
                 'formats': formats,
                 'subtitles': subtitles,
             }
