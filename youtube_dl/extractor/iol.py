@@ -144,7 +144,10 @@ class IOLStreamIE(IOLIE):
             'title': 're:^Direto TVI',
             'description': u'A TVI ao pé de si. Sempre.',
             'is_live': True,
-        }
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
