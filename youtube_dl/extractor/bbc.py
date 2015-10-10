@@ -493,6 +493,9 @@ class BBCIE(BBCCoUkIE):
     _VALID_URL = r'https?://(?:www\.)?bbc\.(?:com|co\.uk)/(?:[^/]+/)+(?P<id>[^/#?]+)'
 
     _MEDIASELECTOR_URLS = [
+        # Provides HQ HLS streams but fails with geolocation in some cases when it's
+        # even not geo restricted at all
+        'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s',
         # Provides more formats, namely direct mp4 links, but fails on some videos with
         # notukerror for non UK (?) users (e.g.
         # http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
@@ -534,8 +537,9 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/news/world-europe-32041533',
         'info_dict': {
             'id': 'p02mprgb',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Aerial footage showed the site of the crash in the Alps - courtesy BFM TV',
+            'description': 'md5:2868290467291b37feda7863f7a83f54',
             'duration': 47,
             'timestamp': 1427219242,
             'upload_date': '20150324',
@@ -577,7 +581,7 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/news/video_and_audio/must_see/33376376',
         'info_dict': {
             'id': 'p02w6qjc',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': '''Judge Mindy Glazer: "I'm sorry to see you here... I always wondered what happened to you"''',
             'duration': 56,
         },
@@ -604,7 +608,7 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/autos/story/20130513-hyundais-rock-star',
         'info_dict': {
             'id': 'p018zqqg',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Hyundai Santa Fe Sport: Rock star',
             'description': 'md5:b042a26142c4154a6e472933cf20793d',
             'timestamp': 1415867444,
@@ -619,7 +623,7 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/sport/0/football/33653409',
         'info_dict': {
             'id': 'p02xycnp',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Transfers: Cristiano Ronaldo to Man Utd, Arsenal to spend?',
             'duration': 140,
         },
