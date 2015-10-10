@@ -473,6 +473,7 @@ class BBCIE(BBCCoUkIE):
         # Provides more formats, namely direct mp4 links, but fails on some videos with
         # notukerror for non UK (?) users (e.g.
         # http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
+        'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s',
         'http://open.live.bbc.co.uk/mediaselector/4/mtis/stream/%s',
         # Provides fewer formats, but works everywhere for everybody (hopefully)
         'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/journalism-pc/vpid/%s',
