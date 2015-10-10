@@ -15,7 +15,7 @@ class IOLIE(InfoExtractor):
             'id': '55f878f90cf203f8b03cea6d',
             'ext': 'mp4',
             'title': u'Euromilhões - 15 de setembro de 2015',
-            # 'tumbnail': 'http://www.iol.pt/multimedia/oratvi/multimedia/imagem/id/55f87a280cf2e6961770f01f',
+            'thumbnail': 'http://www.iol.pt/multimedia/oratvi/multimedia/imagem/id/55f87a280cf2e6961770f01f',
             'description': u'Com Mónica Jardim'
         }
     }, {
@@ -25,7 +25,7 @@ class IOLIE(InfoExtractor):
             'id': '55f730c40cf23fa665481b18',
             'ext': 'mp4',
             'title': u'Isso é tudo muito bonito, mas: Concatena, filho, concatena',
-            # 'tumbnail': 'http://www.iol.pt/multimedia/oratvi/multimedia/imagem/id/55f737330cf23fa665481b2d',
+            'thumbnail': 'http://www.iol.pt/multimedia/oratvi/multimedia/imagem/id/55f737330cf23fa665481b2d',
             'description': u'Quando os adversários unem perspectivas.'
         }
     }, {
@@ -35,7 +35,7 @@ class IOLIE(InfoExtractor):
             'id': '55f816640cf2e6961770ef7a',
             'ext': 'mp4',
             'title': u'Passos: criação de emprego é facto muito importante',
-            # 'tumbnail': 'http://www.iol.pt/multimedia/oratvi/multimedia/imagem/id/55f8180e0cf21413dfb1d96d/',
+            'thumbnail': 'http://www.iol.pt/multimedia/oratvi/multimedia/imagem/id/55f8180e0cf21413dfb1d96d/',
             'description': u'PM sublinha que é o nível mais elevado de há vários anos'
         }
     }]
