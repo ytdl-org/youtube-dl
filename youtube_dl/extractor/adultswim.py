@@ -41,7 +41,8 @@ class AdultSwimIE(InfoExtractor):
             'id': 'rQxZvXQ4ROaSOqq-or2Mow',
             'title': 'Rick and Morty - Pilot',
             'description': "Rick moves in with his daughter's family and establishes himself as a bad influence on his grandson, Morty. "
-        }
+        },
+        'skip': 'This video is only available for registered users',
     }, {
         'url': 'http://www.adultswim.com/videos/playlists/american-parenting/putting-francine-out-of-business/',
         'playlist': [
@@ -84,7 +85,10 @@ class AdultSwimIE(InfoExtractor):
     def find_video_info(collection, slug):
         for video in collection.get('videos'):
             if video.get('slug') == slug:
-                return video
+                if video.get('auth'):
+                    raise ExtractorError('This video is only available for registered users', expected=True)
+                else:
+                    return video
 
     @staticmethod
     def find_collection_by_linkURL(collections, linkURL):
@@ -97,7 +101,10 @@ class AdultSwimIE(InfoExtractor):
         for collection in collections:
             for video in collection.get('videos'):
                 if video.get('slug') == slug:
-                    return collection, video
+                    if video.get('auth'):
+                        raise ExtractorError('This video is only available for registered users', expected=True)
+                    else:
+                        return collection, video
         return None, None
 
     def _real_extract(self, url):
@@ -128,6 +135,8 @@ class AdultSwimIE(InfoExtractor):
             if video_info is None:
                 if bootstrapped_data.get('slugged_video', {}).get('slug') == episode_path:
                     video_info = bootstrapped_data['slugged_video']
+                    if video_info.get('auth'):
+                        raise ExtractorError('This video is only available for registered users', expected=True)
                 else:
                     raise ExtractorError('Unable to find video info')
 
