@@ -717,7 +717,7 @@ class BBCIE(BBCCoUkIE):
             timestamp = parse_iso8601(self._search_regex(
                 [r'<meta[^>]+property="article:published_time"[^>]+content="([^"]+)"',
                  r'itemprop="datePublished"[^>]+datetime="([^"]+)"',
-                 r'"datePublished":\s*"([^"]+)',],
+                 r'"datePublished":\s*"([^"]+)'],
                 webpage, 'date', default=None))
 
         entries = []
