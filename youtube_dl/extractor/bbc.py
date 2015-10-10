@@ -687,7 +687,7 @@ class BBCIE(BBCCoUkIE):
                     'subtitles': subtitles,
                 })
             playlist_title = self._og_search_title(webpage)
-            playlist_description = self._og_search_description(webpage)
+            playlist_description = self._og_search_description(webpage, default=None)
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
 
         # single video story (e.g. http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
