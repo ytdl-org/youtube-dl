@@ -402,11 +402,12 @@ class VimeoIE(VimeoBaseInfoExtractor):
         formats = []
         hls = config_files.get("hls")
         if hls:
-            formats = self._extract_m3u8_formats(hls['all'], video_id, m3u8_id='hls')
+            formats = self._extract_m3u8_formats(hls['all'], video_id, 'mp4', 'm3u8_native', 0, 'hls', fatal=False)
         for key in ('other', 'sd', 'hd'):
             formats += files[key]
         if len(formats) == 0:
             raise ExtractorError('No known codec found')
+        self._sort_formats(formats)
 
         subtitles = {}
         text_tracks = config['request'].get('text_tracks')
