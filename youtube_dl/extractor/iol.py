@@ -65,7 +65,7 @@ class IOLIE(InfoExtractor):
             formats.extend(formats_m3u8_default)
             formats.append({
                 'url': 'http://www.iol.pt/videos-file/' + multimedia_id + '-L-500k.mp4',
-                'format_id': 'http_500',
+                'format_id': 'http-500',
                 'tbr': 500,
                 'protocol': 'http',
                 'preference': -1,
