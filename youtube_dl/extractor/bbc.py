@@ -660,23 +660,27 @@ class BBCIE(BBCCoUkIE):
              r'itemprop="datePublished"[^>]+datetime="([^"]+)"'],
             webpage, 'date', default=None))
 
-        # single video with playlist.sxml URL (e.g. http://www.bbc.com/sport/0/football/3365340ng)
-        playlist = self._search_regex(
-            r'<param[^>]+name="playlist"[^>]+value="([^"]+)"',
-            webpage, 'playlist', default=None)
-        if playlist:
-            programme_id, title, description, duration, formats, subtitles = \
-                self._process_legacy_playlist_url(playlist, playlist_id)
-            self._sort_formats(formats)
-            return {
-                'id': programme_id,
-                'title': title,
-                'description': description,
-                'duration': duration,
-                'timestamp': timestamp,
-                'formats': formats,
-                'subtitles': subtitles,
-            }
+        # article with multiple videos embedded with playlist.sxml (e.g.
+        # http://www.bbc.com/sport/0/football/34475836)
+        playlists = re.findall(r'<param[^>]+name="playlist"[^>]+value="([^"]+)"', webpage)
+        if playlists:
+            entries = []
+            for playlist in playlists:
+                programme_id, title, description, duration, formats, subtitles = \
+                    self._process_legacy_playlist_url(playlist, playlist_id)
+                self._sort_formats(formats)
+                entries.append({
+                    'id': programme_id,
+                    'title': title,
+                    'description': description,
+                    'duration': duration,
+                    'timestamp': timestamp,
+                    'formats': formats,
+                    'subtitles': subtitles,
+                })
+            playlist_title = self._og_search_title(webpage)
+            playlist_description = self._og_search_description(webpage)
+            return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
 
         # single video story (e.g. http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
         programme_id = self._search_regex(
