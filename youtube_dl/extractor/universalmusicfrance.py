@@ -17,14 +17,13 @@ class UniversalMusicFranceIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.universalmusic.fr/artiste/7415-anna-bergendahl/videos/4555-for-you-remix-lyric-video.iframe',
-            'md5': '159cda7568b9fc1e5e3de6aeca5d4bfc)',
+            'md5': '159cda7568b9fc1e5e3de6aeca5d4bfc',
             'info_dict': {
-                'id': '1881-waiting-for-love-lyric-video',
+                'id': '4555-for-you-remix-lyric-video.iframe',
                 'ext': 'mp4',
-                'title': '1881-waiting-for-love-lyric-video'
+                'title': 'For You - Anna Bergendahl'
             }
-        }
-        ,
+        },
         {
             'url': 'https://www.universalmusic.fr/artiste/4428-avicii/videos/1881-waiting-for-love-lyric-video#contentPart',
             'md5': '159cda7568b9fc1e5e3de6aeca5d4bfc)',
@@ -33,8 +32,7 @@ class UniversalMusicFranceIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': '1881-waiting-for-love-lyric-video'
             }
-        }
-        ,
+        },
         {
             # from http://www.wat.tv/video/anna-bergendahl-for-you-2015-7dvjn_76lkz_.html
             'url': 'http://www.universalmusic.fr/artiste/7415-anna-bergendahl/videos/4555-for-you-remix-lyric-video',
@@ -51,8 +49,12 @@ class UniversalMusicFranceIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        urlVideo = self._html_search_regex(r'var urlVideo = \'(.*)\';', webpage, 'urlVideo')
-        title = self._html_search_regex(r'<meta\s*property="?og:title"?\s*content="(.*)"\s*/>', webpage, 'title')
+        if (webpage.__contains__('var urlVideo')):
+            urlVideo = self._html_search_regex(r'var urlVideo = \'(.*)\';', webpage, 'urlVideo')
+            title = self._html_search_regex(r'<meta\s*property="?og:title"?\s*content="(.*)"\s*/>', webpage, 'title')
+        else:
+            urlVideo = self._html_search_regex(r'\'videoUrl\': \'(.*)\'', webpage, 'urlVideo')
+            title = self._html_search_regex(r'<title>(.*)</title>', webpage, 'title')
 
         request = compat_urllib_request.Request(self.GET_TOKEN_URL, urlencode_postdata({'videoUrl': urlVideo}))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
