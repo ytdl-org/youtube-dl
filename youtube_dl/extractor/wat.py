@@ -17,13 +17,13 @@ class WatIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.wat.tv/video/lady-gaga-but-beautiful-2014-72611_2ey39_.html',
-            'md5': '159cda7568b9fc1e5e3de6aeca5d4bfc',
+            'md5': 'b7a3a5d2af2c7f16551265ef8929d8e5',
             'info_dict': {
-                'id': 'lady-gaga-but-beautiful',
-                'display_id': 'lady-gaga-but-beautiful',
+                'id': '18879-but-beautiful',
+                'display_id': '18879-but-beautiful',
                 'ext': 'mp4',
-                'title': 'lady-gaga-but-beautiful',
-                'description': 'md5:1bbdde8d44751f43367ba68e8b9966a6'
+                'title': 'But Beautiful - Lady Gaga - Universal Music France',
+                'description': 'md5:7e0bff92535f1e5912d61dffe9845aa7'
             },
         },
         {
