@@ -645,8 +645,8 @@ class InfoExtractor(object):
     # Helper functions for extracting OpenGraph info
     @staticmethod
     def _og_regexes(prop):
-        content_re = r'content=(?:"([^>]+?)"|\'([^>]+?)\')'
-        property_re = r'(?:name|property)=[\'"]og:%s[\'"]' % re.escape(prop)
+        content_re = r'content=(?:"([^>]+?)"|\'([^>]+?)\'|\s*([^\s"\'=<>`]+?))'
+        property_re = r'(?:name|property)=[\'"]?og:%s[\'"]?' % re.escape(prop)
         template = r'<meta[^>]+?%s[^>]+?%s'
         return [
             template % (property_re, content_re),

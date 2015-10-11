@@ -41,7 +41,8 @@ class AdultSwimIE(InfoExtractor):
             'id': 'rQxZvXQ4ROaSOqq-or2Mow',
             'title': 'Rick and Morty - Pilot',
             'description': "Rick moves in with his daughter's family and establishes himself as a bad influence on his grandson, Morty. "
-        }
+        },
+        'skip': 'This video is only available for registered users',
     }, {
         'url': 'http://www.adultswim.com/videos/playlists/american-parenting/putting-francine-out-of-business/',
         'playlist': [
@@ -134,7 +135,13 @@ class AdultSwimIE(InfoExtractor):
             show = bootstrapped_data['show']
             show_title = show['title']
             stream = video_info.get('stream')
-            clips = [stream] if stream else video_info['clips']
+            clips = [stream] if stream else video_info.get('clips')
+            if not clips:
+                raise ExtractorError(
+                    'This video is only available via cable service provider subscription that'
+                    ' is not currently supported. You may want to use --cookies.'
+                    if video_info.get('auth') is True else 'Unable to find stream or clips',
+                    expected=True)
             segment_ids = [clip['videoPlaybackID'] for clip in clips]
 
         episode_id = video_info['id']

@@ -1,0 +1,50 @@
+from __future__ import unicode_literals
+
+from .common import InfoExtractor
+from ..utils import ExtractorError
+
+
+class ChaturbateIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:[^/]+\.)?chaturbate\.com/(?P<id>[^/?#]+)'
+    _TESTS = [{
+        'url': 'https://www.chaturbate.com/siswet19/',
+        'info_dict': {
+            'id': 'siswet19',
+            'ext': 'mp4',
+            'title': 're:^siswet19 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'age_limit': 18,
+            'is_live': True,
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }, {
+        'url': 'https://en.chaturbate.com/siswet19/',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        m3u8_url = self._search_regex(
+            r'src=(["\'])(?P<url>http.+?\.m3u8.*?)\1', webpage,
+            'playlist', default=None, group='url')
+
+        if not m3u8_url:
+            error = self._search_regex(
+                r'<span[^>]+class=(["\'])desc_span\1[^>]*>(?P<error>[^<]+)</span>',
+                webpage, 'error', group='error')
+            raise ExtractorError(error, expected=True)
+
+        formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
+
+        return {
+            'id': video_id,
+            'title': self._live_title(video_id),
+            'thumbnail': 'https://cdn-s.highwebmedia.com/uHK3McUtGCG3SMFcd4ZJsRv8/roomimage/%s.jpg' % video_id,
+            'age_limit': self._rta_search(webpage),
+            'is_live': True,
+            'formats': formats,
+        }

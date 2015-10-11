@@ -39,7 +39,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
             return
         self.report_login()
         webpage = self._download_webpage(self._LOGIN_URL, None, False)
-        token = self._extract_xsrft(webpage)
+        token, vuid = self._extract_xsrft_and_vuid(webpage)
         data = urlencode_postdata({
             'action': 'login',
             'email': username,
@@ -49,13 +49,18 @@ class VimeoBaseInfoExtractor(InfoExtractor):
         })
         login_request = compat_urllib_request.Request(self._LOGIN_URL, data)
         login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        login_request.add_header('Cookie', 'vuid=%s' % vuid)
         login_request.add_header('Referer', self._LOGIN_URL)
         self._download_webpage(login_request, None, False, 'Wrong login info')
 
-    def _extract_xsrft(self, webpage):
-        return self._search_regex(
+    def _extract_xsrft_and_vuid(self, webpage):
+        xsrft = self._search_regex(
             r'xsrft\s*[=:]\s*(?P<q>["\'])(?P<xsrft>.+?)(?P=q)',
             webpage, 'login token', group='xsrft')
+        vuid = self._search_regex(
+            r'["\']vuid["\']\s*:\s*(["\'])(?P<vuid>.+?)\1',
+            webpage, 'vuid', group='vuid')
+        return xsrft, vuid
 
 
 class VimeoIE(VimeoBaseInfoExtractor):
@@ -80,12 +85,12 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'info_dict': {
                 'id': '56015672',
                 'ext': 'mp4',
-                "upload_date": "20121220",
-                "description": "This is a test case for youtube-dl.\nFor more information, see github.com/rg3/youtube-dl\nTest chars: \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
-                "uploader_id": "user7108434",
-                "uploader": "Filippo Valsorda",
-                "title": "youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
-                "duration": 10,
+                'title': "youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
+                'description': 'md5:2d3305bad981a06ff79f027f19865021',
+                'upload_date': '20121220',
+                'uploader_id': 'user7108434',
+                'uploader': 'Filippo Valsorda',
+                'duration': 10,
             },
         },
         {
@@ -98,7 +103,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'uploader_id': 'openstreetmapus',
                 'uploader': 'OpenStreetMap US',
                 'title': 'Andy Allan - Putting the Carto into OpenStreetMap Cartography',
-                'description': 'md5:380943ec71b89736ff4bf27183233d09',
+                'description': 'md5:fd69a7b8d8c34a4e1d2ec2e4afd6ec30',
                 'duration': 1595,
             },
         },
@@ -152,7 +157,6 @@ class VimeoIE(VimeoBaseInfoExtractor):
         },
         {
             'url': 'http://vimeo.com/76979871',
-            'md5': '3363dd6ffebe3784d56f4132317fd446',
             'note': 'Video with subtitles',
             'info_dict': {
                 'id': '76979871',
@@ -198,7 +202,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         password = self._downloader.params.get('videopassword', None)
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option', expected=True)
-        token = self._extract_xsrft(webpage)
+        token, vuid = self._extract_xsrft_and_vuid(webpage)
         data = urlencode_postdata({
             'password': password,
             'token': token,
@@ -208,6 +212,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             url = url.replace('http://', 'https://')
         password_request = compat_urllib_request.Request(url + '/password', data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        password_request.add_header('Cookie', 'clip_v=1; vuid=%s' % vuid)
         password_request.add_header('Referer', url)
         return self._download_webpage(
             password_request, video_id,
@@ -391,14 +396,20 @@ class VimeoIE(VimeoBaseInfoExtractor):
                     'ext': codec_extension,
                     'url': video_url,
                     'format_id': format_id,
-                    'width': file_info.get('width'),
-                    'height': file_info.get('height'),
+                    'width': int_or_none(file_info.get('width')),
+                    'height': int_or_none(file_info.get('height')),
+                    'tbr': int_or_none(file_info.get('bitrate')),
                 })
         formats = []
+        m3u8_url = config_files.get('hls', {}).get('all')
+        if m3u8_url:
+            m3u8_formats = self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', 'm3u8_native', 0, 'hls', fatal=False)
+            if m3u8_formats:
+                formats.append(m3u8_formats)
         for key in ('other', 'sd', 'hd'):
             formats += files[key]
-        if len(formats) == 0:
-            raise ExtractorError('No known codec found')
+        self._sort_formats(formats)
 
         subtitles = {}
         text_tracks = config['request'].get('text_tracks')
@@ -459,7 +470,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         if password is None:
             raise ExtractorError('This album is protected by a password, use the --video-password option', expected=True)
         fields = self._hidden_inputs(login_form)
-        token = self._extract_xsrft(webpage)
+        token, vuid = self._extract_xsrft_and_vuid(webpage)
         fields['token'] = token
         fields['password'] = password
         post = urlencode_postdata(fields)
@@ -468,6 +479,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         password_url = compat_urlparse.urljoin(page_url, password_path)
         password_request = compat_urllib_request.Request(password_url, post)
         password_request.add_header('Content-type', 'application/x-www-form-urlencoded')
+        password_request.add_header('Cookie', 'vuid=%s' % vuid)
         self._set_cookie('vimeo.com', 'xsrft', token)
 
         return self._download_webpage(
