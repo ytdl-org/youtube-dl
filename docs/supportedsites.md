@@ -226,6 +226,7 @@
  - **Instagram**
  - **instagram:user**: Instagram user profile
  - **InternetVideoArchive**
+ - **IOL**: iol.pt sites (tvi archive/stream and maisfutebol)
  - **IPrima**
  - **iqiyi**: 爱奇艺
  - **Ir90Tv**
