@@ -105,7 +105,7 @@ class RtmpFD(FileDownloader):
         protocol = info_dict.get('rtmp_protocol', None)
         real_time = info_dict.get('rtmp_real_time', False)
         no_resume = info_dict.get('no_resume', False)
-        continue_dl = info_dict.get('continuedl', True)
+        continue_dl = self.params.get('continuedl', True)
 
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
