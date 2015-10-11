@@ -325,7 +325,7 @@ class FileDownloader(object):
         )
 
         # Check file already present
-        if filename != '-' and nooverwrites_and_exists or continuedl_and_exists:
+        if filename != '-' and (nooverwrites_and_exists or continuedl_and_exists):
             self.report_file_already_downloaded(filename)
             self._hook_progress({
                 'filename': filename,
