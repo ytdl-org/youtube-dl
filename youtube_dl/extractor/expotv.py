@@ -34,22 +34,25 @@ class ExpoTVIE(InfoExtractor):
         player_key = self._search_regex(
             r'<param name="playerKey" value="([^"]+)"', webpage, 'player key')
         config = self._download_json(
-                'http://client.expotv.com/video/config/%s/%s' % (video_id, player_key),
-                video_id,
-                note='Downloading video configuration')
+            'http://client.expotv.com/video/config/%s/%s' % (video_id, player_key),
+            video_id, 'Downloading video configuration')
 
         formats = []
         for fcfg in config['sources']:
-            if fcfg['type'] == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(fcfg['file'], video_id))
+            media_url = fcfg.get('file')
+            if not media_url:
+                continue
+            if fcfg.get('type') == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    media_url, video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls'))
             else:
                 formats.append({
-                    'url': fcfg['file'],
+                    'url': media_url,
                     'height': int_or_none(fcfg.get('height')),
                     'format_id': fcfg.get('label'),
                     'ext': self._search_regex(
-                        r'filename=.*\.([a-z0-9_A-Z]+)&', fcfg['file'],
-                        'file extension', default=None),
+                        r'filename=.*\.([a-z0-9_A-Z]+)&', media_url,
+                        'file extension', default=None) or fcfg.get('type'),
                 })
         self._sort_formats(formats)
 
