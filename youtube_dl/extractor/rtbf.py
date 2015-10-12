@@ -36,7 +36,7 @@ class RTBFIE(InfoExtractor):
 
         data = self._parse_json(
             unescapeHTML(self._search_regex(
-                r'data-video="([^"]+)"', webpage, 'data video')),
+                r'data-media="([^"]+)"', webpage, 'data video')),
             video_id)
 
         if data.get('provider').lower() == 'youtube':

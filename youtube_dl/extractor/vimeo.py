@@ -406,7 +406,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             m3u8_formats = self._extract_m3u8_formats(
                 m3u8_url, video_id, 'mp4', 'm3u8_native', 0, 'hls', fatal=False)
             if m3u8_formats:
-                formats.append(m3u8_formats)
+                formats.extend(m3u8_formats)
         for key in ('other', 'sd', 'hd'):
             formats += files[key]
         self._sort_formats(formats)
