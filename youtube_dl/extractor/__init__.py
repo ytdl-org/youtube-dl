@@ -70,6 +70,7 @@ from .camdemy import (
 from .canal13cl import Canal13clIE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
+from .canvas import CanvasIE
 from .cbs import CBSIE
 from .cbsnews import CBSNewsIE
 from .cbssports import CBSSportsIE
