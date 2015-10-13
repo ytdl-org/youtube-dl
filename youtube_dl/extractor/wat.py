@@ -16,6 +16,40 @@ class WatIE(InfoExtractor):
     IE_NAME = 'wat.tv'
     _TESTS = [
         {
+            'url': 'http://www.wat.tv/video/lady-gaga-but-beautiful-2014-72611_2ey39_.html',
+            'md5': 'b7a3a5d2af2c7f16551265ef8929d8e5',
+            'info_dict': {
+                'id': '18879-but-beautiful',
+                'display_id': '18879-but-beautiful',
+                'ext': 'mp4',
+                'title': 'But Beautiful - Lady Gaga - Universal Music France',
+                'description': 'md5:7e0bff92535f1e5912d61dffe9845aa7'
+            },
+        },
+        {
+            'url': 'http://www.wat.tv/video/anna-bergendahl-for-you-2015-7dvjn_76lkz_.html',
+            'md5': '159cda7568b9fc1e5e3de6aeca5d4bfc',
+            'info_dict': {
+                'id': '4555-for-you-remix-lyric-video',
+                'display_id': '4555-for-you-remix-lyric-video',
+                'ext': 'mp4',
+                'title': 'For You - Anna Bergendahl - Universal Music France',
+                'description': 'md5:1bbdde8d44751f43367ba68e8b9966a6'
+            },
+        },
+        {
+            'url': 'http://www.wat.tv/video/david-guetta-titanium-feat-sia-4v6p5_4v69t_.html',
+            'md5': '5c31a70358cd5019595297a26390cd46',
+            'info_dict': {
+                'id': 'qzkfx3',
+                'display_id': 'qzkfx3',
+                'ext': 'mp4',
+                'title': 'David Guetta - Titanium feat. Sia (Clip)',
+                'description': 'md5:bb28f8c4a84586e2eb1c3d092ab94f4b',
+                'upload_date': '20111220'
+            },
+        },
+        {
             'url': 'http://www.wat.tv/video/soupe-figues-l-orange-aux-epices-6z1uz_2hvf7_.html',
             'md5': 'ce70e9223945ed26a8056d413ca55dc9',
             'info_dict': {
@@ -57,81 +91,92 @@ class WatIE(InfoExtractor):
         short_id = mobj.group('short_id')
         display_id = mobj.group('display_id')
         webpage = self._download_webpage(url, display_id or short_id)
-        real_id = self._search_regex(r'xtpage = ".*-(.*?)";', webpage, 'real id')
+        srcIFrame = self._html_search_regex(r'<iframe .* src="(.*?)(.iframe)?"', webpage, 'srcIFrame')
+        if (srcIFrame.__contains__("universalmusic")):
+            #should redirect to universalmusicfrance extractor
+            return self.url_result(srcIFrame)
+        elif (srcIFrame.__contains__("ultimedia")):
+            mobj = re.match(r'http://www\.ultimedia\.com/deliver/musique/iframe/mdtk/[0-9]*/zone/[0-9]/article/(?P<article_id>.*?)/.*', srcIFrame)
+            article_id = mobj.group('article_id')
+            ultimedia_url = "http://www.ultimedia.com/default/index/videomusic/id/" + article_id
+            #should redirect to ultimedia extractor
+            return self.url_result(ultimedia_url)
+        else:
+            real_id = self._search_regex(r'xtpage = ".*-(.*?)";', webpage, 'real id')
 
-        video_info = self.download_video_info(real_id)
+            video_info = self.download_video_info(real_id)
 
-        error_desc = video_info.get('error_desc')
-        if error_desc:
-            raise ExtractorError(
-                '%s returned error: %s' % (self.IE_NAME, error_desc), expected=True)
+            error_desc = video_info.get('error_desc')
+            if error_desc:
+                raise ExtractorError(
+                    '%s returned error: %s' % (self.IE_NAME, error_desc), expected=True)
 
-        geo_list = video_info.get('geoList')
-        country = geo_list[0] if geo_list else ''
+            geo_list = video_info.get('geoList')
+            country = geo_list[0] if geo_list else ''
 
-        chapters = video_info['chapters']
-        first_chapter = chapters[0]
-        files = video_info['files']
-        first_file = files[0]
+            chapters = video_info['chapters']
+            first_chapter = chapters[0]
+            files = video_info['files']
+            first_file = files[0]
 
-        if real_id_for_chapter(first_chapter) != real_id:
-            self.to_screen('Multipart video detected')
-            chapter_urls = []
-            for chapter in chapters:
-                chapter_id = real_id_for_chapter(chapter)
-                # Yes, when we this chapter is processed by WatIE,
-                # it will download the info again
-                chapter_info = self.download_video_info(chapter_id)
-                chapter_urls.append(chapter_info['url'])
-            entries = [self.url_result(chapter_url) for chapter_url in chapter_urls]
-            return self.playlist_result(entries, real_id, video_info['title'])
+            if real_id_for_chapter(first_chapter) != real_id:
+                self.to_screen('Multipart video detected')
+                chapter_urls = []
+                for chapter in chapters:
+                    chapter_id = real_id_for_chapter(chapter)
+                    # Yes, when we this chapter is processed by WatIE,
+                    # it will download the info again
+                    chapter_info = self.download_video_info(chapter_id)
+                    chapter_urls.append(chapter_info['url'])
+                entries = [self.url_result(chapter_url) for chapter_url in chapter_urls]
+                return self.playlist_result(entries, real_id, video_info['title'])
 
-        upload_date = None
-        if 'date_diffusion' in first_chapter:
-            upload_date = unified_strdate(first_chapter['date_diffusion'])
-        # Otherwise we can continue and extract just one part, we have to use
-        # the short id for getting the video url
+            upload_date = None
+            if 'date_diffusion' in first_chapter:
+                upload_date = unified_strdate(first_chapter['date_diffusion'])
+            # Otherwise we can continue and extract just one part, we have to use
+            # the short id for getting the video url
 
-        formats = [{
-            'url': 'http://wat.tv/get/android5/%s.mp4' % real_id,
-            'format_id': 'Mobile',
-        }]
+            formats = [{
+                'url': 'http://wat.tv/get/android5/%s.mp4' % real_id,
+                'format_id': 'Mobile',
+            }]
 
-        fmts = [('SD', 'web')]
-        if first_file.get('hasHD'):
-            fmts.append(('HD', 'webhd'))
+            fmts = [('SD', 'web')]
+            if first_file.get('hasHD'):
+                fmts.append(('HD', 'webhd'))
 
-        def compute_token(param):
-            timestamp = '%08x' % int(self._download_webpage(
-                'http://www.wat.tv/servertime', real_id,
-                'Downloading server time').split('|')[0])
-            magic = '9b673b13fa4682ed14c3cfa5af5310274b514c4133e9b3a81e6e3aba009l2564'
-            return '%s/%s' % (hashlib.md5((magic + param + timestamp).encode('ascii')).hexdigest(), timestamp)
+            def compute_token(param):
+                timestamp = '%08x' % int(self._download_webpage(
+                    'http://www.wat.tv/servertime', real_id,
+                    'Downloading server time').split('|')[0])
+                magic = '9b673b13fa4682ed14c3cfa5af5310274b514c4133e9b3a81e6e3aba009l2564'
+                return '%s/%s' % (hashlib.md5((magic + param + timestamp).encode('ascii')).hexdigest(), timestamp)
 
-        for fmt in fmts:
-            webid = '/%s/%s' % (fmt[1], real_id)
-            video_url = self._download_webpage(
-                'http://www.wat.tv/get%s?token=%s&getURL=1&country=%s' % (webid, compute_token(webid), country),
-                real_id,
-                'Downloading %s video URL' % fmt[0],
-                'Failed to download %s video URL' % fmt[0],
-                False)
-            if not video_url:
-                continue
-            formats.append({
-                'url': video_url,
-                'ext': 'mp4',
-                'format_id': fmt[0],
-            })
+            for fmt in fmts:
+                webid = '/%s/%s' % (fmt[1], real_id)
+                video_url = self._download_webpage(
+                    'http://www.wat.tv/get%s?token=%s&getURL=1&country=%s' % (webid, compute_token(webid), country),
+                    real_id,
+                    'Downloading %s video URL' % fmt[0],
+                    'Failed to download %s video URL' % fmt[0],
+                    False)
+                if not video_url:
+                    continue
+                formats.append({
+                    'url': video_url,
+                    'ext': 'mp4',
+                    'format_id': fmt[0],
+                })
 
-        return {
-            'id': real_id,
-            'display_id': display_id,
-            'title': first_chapter['title'],
-            'thumbnail': first_chapter['preview'],
-            'description': first_chapter['description'],
-            'view_count': video_info['views'],
-            'upload_date': upload_date,
-            'duration': first_file['duration'],
-            'formats': formats,
-        }
+            return {
+                'id': real_id,
+                'display_id': display_id,
+                'title': first_chapter['title'],
+                'thumbnail': first_chapter['preview'],
+                'description': first_chapter['description'],
+                'view_count': video_info['views'],
+                'upload_date': upload_date,
+                'duration': first_file['duration'],
+                'formats': formats,
+            }
