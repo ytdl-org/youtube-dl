@@ -224,12 +224,12 @@ class Channel9IE(InfoExtractor):
         if contents is None:
             return contents
 
-        authors = self._extract_authors(html)
+        if len(contents) > 1:
+            raise ExtractorError('Got more than one entry')
+        result = contents[0]
+        result['authors'] = self._extract_authors(html)
 
-        for content in contents:
-            content['authors'] = authors
-
-        return contents
+        return result
 
     def _extract_session(self, html, content_path):
         contents = self._extract_content(html, content_path)
