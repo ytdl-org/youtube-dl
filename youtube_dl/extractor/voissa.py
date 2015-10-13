@@ -52,7 +52,7 @@ class VoissaIE(InfoExtractor):
             url = v.get('url')
             formats.append({
                 'url': url,
-                'format_id': self._search_regex(r'http://download\.voissa\.fr/html5/([^/]+)/', url, 'Quality'),
+                'format_id': self._search_regex(r'http://download.*\.voissa\.fr/html5/([^/]+)/', url, 'Quality'),
                 'preference': n - i
             })
 
