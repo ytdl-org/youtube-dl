@@ -158,7 +158,7 @@ class Channel9IE(InfoExtractor):
 
     def _extract_session_day(self, html):
         m = re.search(r'<li class="day">\s*<a href="/Events/[^"]+">(?P<day>[^<]+)</a>\s*</li>', html)
-        return m.group('day') if m is not None else None
+        return m.group('day').strip() if m is not None else None
 
     def _extract_session_room(self, html):
         m = re.search(r'<li class="room">\s*(?P<room>.+?)\s*</li>', html)
