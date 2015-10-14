@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class SRGSSRIE(InfoExtractor):
-    _VALID_URL = r'(?:https?://tp\.srgssr\.ch/p(?:/[^/]+)+\?urn=)?urn:(?P<bu>srf|rts|rsi|rtr|swi):(?:[^:]+:)?(?P<type>video|audio):(?P<id>[0-9a-f\-]{36}|\d+)'
+    _VALID_URL = r'(?:https?://tp\.srgssr\.ch/p(?:/[^/]+)+\?urn=urn|srgssr):(?P<bu>srf|rts|rsi|rtr|swi):(?:[^:]+:)?(?P<type>video|audio):(?P<id>[0-9a-f\-]{36}|\d+)'
 
     _ERRORS = {
         'AGERATING12': 'To protect children under the age of 12, this video is only available between 8 p.m. and 6 a.m.',
@@ -44,11 +44,12 @@ class SRGSSRIE(InfoExtractor):
         timestamp = parse_iso8601(created_date)
 
         thumbnails = []
-        for image in media_data['Image']['ImageRepresentations']['ImageRepresentation']:
-            thumbnails.append({
-                'id': image.get('id'),
-                'url': image['url'],
-            })
+        if 'Image' in media_data:
+            for image in media_data['Image']['ImageRepresentations']['ImageRepresentation']:
+                thumbnails.append({
+                    'id': image.get('id'),
+                    'url': image['url'],
+                })
 
         preference = qualities(['LQ', 'MQ', 'SD', 'HQ', 'HD'])
         formats = []
@@ -70,16 +71,17 @@ class SRGSSRIE(InfoExtractor):
                     if asset_url.startswith('rtmp'):
                         ext = self._search_regex(r'([a-z0-9]+):[^/]+', asset_url, 'ext')
                     formats.append({
+                        'format_id': asset['@quality'],
                         'url': asset_url,
                         'preference': preference(asset['@quality']),
                         'ext': ext,
                     })
 
-        downloads = media_data.get('Downloads')
-        if downloads:
-            for source in downloads['Download']:
+        if 'Downloads' in media_data:
+            for source in media_data['Downloads']['Download']:
                 for asset in source['url']:
                     formats.append({
+                        'format_id': asset['@quality'],
                         'url': asset['text'],
                         'preference': preference(asset['@quality'])
                     })
@@ -120,8 +122,21 @@ class SRGSSRPlayIE(InfoExtractor):
             'description': 'md5:88604432b60d5a38787f152dec89cd56',
             'timestamp': 1373493600,
         },
+    },{
+        'url': 'http://www.rtr.ch/play/radio/actualitad/audio/saira-tujetsch-tuttina-cuntinuar-cun-sedrun-muster-turissem?id=63cb0778-27f8-49af-9284-8c7a8c6d15fc',
+        'info_dict': {
+            'id': '63cb0778-27f8-49af-9284-8c7a8c6d15fc',
+            'ext': 'mp3',
+            'upload_date': '20151013',
+            'title': 'Saira: Tujetsch - tuttina cuntinuar cun Sedrun Mustér Turissem',
+            'timestamp': 1444750398,
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
         bu, media_type, media_id = re.match(self._VALID_URL, url).groups()
-        return self.url_result('urn:%s:%s:%s' % (bu[:3], media_type, media_id), 'SRGSSR')
+        return self.url_result('srgssr:%s:%s:%s' % (bu[:3], media_type, media_id), 'SRGSSR')
