@@ -624,6 +624,7 @@
  - **VideoTt**: video.tt - Your True Tube
  - **videoweed**: VideoWeed
  - **Vidme**
+ - **vidto**: VidTo.me
  - **Vidzi**
  - **vier**
  - **vier:videos**
