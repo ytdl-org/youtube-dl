@@ -212,7 +212,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             url = url.replace('http://', 'https://')
         password_request = compat_urllib_request.Request(url + '/password', data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        password_request.add_header('Cookie', 'clip_v=1; vuid=%s' % vuid)
+        password_request.add_header('Cookie', 'clip_test2=1; vuid=%s' % vuid)
         password_request.add_header('Referer', url)
         return self._download_webpage(
             password_request, video_id,
