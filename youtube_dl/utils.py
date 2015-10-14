@@ -1376,7 +1376,7 @@ def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1):
     try:
         return int(v) * invscale // scale
     except ValueError:
-        pass
+        return default
 
 
 def str_or_none(v, default=None):
