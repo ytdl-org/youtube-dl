@@ -35,10 +35,12 @@ class TestInfoExtractor(unittest.TestCase):
             <meta name="og:title" content='Foo'/>
             <meta content="Some video's description " name="og:description"/>
             <meta property='og:image' content='http://domain.com/pic.jpg?key1=val1&amp;key2=val2'/>
+            <meta content='application/x-shockwave-flash' property='og:video:type'>
             '''
         self.assertEqual(ie._og_search_title(html), 'Foo')
         self.assertEqual(ie._og_search_description(html), 'Some video\'s description ')
         self.assertEqual(ie._og_search_thumbnail(html), 'http://domain.com/pic.jpg?key1=val1&key2=val2')
+        self.assertEqual(ie._og_search_video_url(html, default=None), None)
 
     def test_html_search_meta(self):
         ie = self.ie
