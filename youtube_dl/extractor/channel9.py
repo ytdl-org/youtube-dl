@@ -3,7 +3,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    parse_filesize,
+    qualities,
+)
 
 
 class Channel9IE(InfoExtractor):
@@ -52,23 +56,6 @@ class Channel9IE(InfoExtractor):
 
     _RSS_URL = 'http://channel9.msdn.com/%s/RSS'
 
-    # Sorted by quality
-    _known_formats = ['MP3', 'MP4', 'Mid Quality WMV', 'Mid Quality MP4', 'High Quality WMV', 'High Quality MP4']
-
-    def _restore_bytes(self, formatted_size):
-        if not formatted_size:
-            return 0
-        m = re.match(r'^(?P<size>\d+(?:\.\d+)?)\s+(?P<units>[a-zA-Z]+)', formatted_size)
-        if not m:
-            return 0
-        units = m.group('units')
-        try:
-            exponent = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'].index(units.upper())
-        except ValueError:
-            return 0
-        size = float(m.group('size'))
-        return int(size * (1024 ** exponent))
-
     def _formats_from_html(self, html):
         FORMAT_REGEX = r'''
             (?x)
@@ -78,16 +65,20 @@ class Channel9IE(InfoExtractor):
             <h3>File\s+size</h3>\s*(?P<filesize>.*?)\s*
             </div>)?                                                # File size part may be missing
         '''
-        # Extract known formats
+        quality = qualities((
+            'MP3', 'MP4',
+            'Low Quality WMV', 'Low Quality MP4',
+            'Mid Quality WMV', 'Mid Quality MP4',
+            'High Quality WMV', 'High Quality MP4'))
         formats = [{
             'url': x.group('url'),
             'format_id': x.group('quality'),
             'format_note': x.group('note'),
             'format': '%s (%s)' % (x.group('quality'), x.group('note')),
-            'filesize': self._restore_bytes(x.group('filesize')),  # File size is approximate
-            'preference': self._known_formats.index(x.group('quality')),
+            'filesize_approx': parse_filesize(x.group('filesize')),
+            'quality': quality(x.group('quality')),
             'vcodec': 'none' if x.group('note') == 'Audio only' else None,
-        } for x in list(re.finditer(FORMAT_REGEX, html)) if x.group('quality') in self._known_formats]
+        } for x in list(re.finditer(FORMAT_REGEX, html))]
 
         self._sort_formats(formats)
 
