@@ -77,6 +77,14 @@ class IGNIE(InfoExtractor):
                 'upload_date': '20140814',
             },
         },
+        {
+            'url': 'http://me.ign.com/en/videos/112203/video/how-hitman-aims-to-be-different-than-every-other-s',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://me.ign.com/ar/angry-birds-2/106533/video/lrd-ldyy-lwl-lfylm-angry-birds',
+            'only_matching': True,
+        },
     ]
 
     def _find_video_id(self, webpage):
