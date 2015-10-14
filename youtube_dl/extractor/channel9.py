@@ -51,6 +51,21 @@ class Channel9IE(InfoExtractor):
                 'thumbnail': 'http://video.ch9.ms/ch9/87e1/0300391f-a455-4c72-bec3-4422f19287e1/selfservicenuk_512.jpg',
                 'authors': ['Mike Wilmot'],
             },
+        },
+        {
+            # low quality mp4 is best
+            'url': 'https://channel9.msdn.com/Events/CPP/CppCon-2015/Ranges-for-the-Standard-Library',
+            'info_dict': {
+                'id': 'Events/CPP/CppCon-2015/Ranges-for-the-Standard-Library',
+                'ext': 'mp4',
+                'title': 'Ranges for the Standard Library',
+                'description': 'md5:2e6b4917677af3728c5f6d63784c4c5d',
+                'duration': 5646,
+                'thumbnail': 're:http://.*\.jpg',
+            },
+            'params': {
+                'skip_download': True,
+            },
         }
     ]
 
