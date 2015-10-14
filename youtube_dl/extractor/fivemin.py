@@ -6,10 +6,12 @@ from ..compat import (
     compat_urllib_parse,
     compat_parse_qs,
     compat_urllib_parse_urlparse,
+    compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
     parse_duration,
+    replace_extension,
 )
 
 
@@ -115,17 +117,14 @@ class FiveMinIE(InfoExtractor):
 
         formats = []
         video_url = compat_parse_qs(compat_urllib_parse_urlparse(info['EmbededURL']).query)['videoUrl'][0]
-        qs = compat_urllib_parse_urlparse(video_url).query
-        if qs:
-            qs = '?' + qs
         for rendition in info['Renditions']:
             if rendition['RenditionType'] == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(rendition['Url'], video_id, m3u8_id='hls'))
             elif rendition['RenditionType'] == 'aac':
                 continue
             else:
-                rendition_url = video_url[:10] + video_url[10:].replace('//', '/%s/' % rendition['ID'])
-                rendition_url = rendition_url[:rendition_url.rindex('.')] + '.' + rendition['RenditionType'] + qs
+                parsed_video_url = compat_urllib_parse_urlparse(video_url)
+                rendition_url = compat_urlparse.urlunparse(parsed_video_url._replace(path=replace_extension(parsed_video_url.path.replace('//', '/%s/' % rendition['ID']), rendition['RenditionType'])))
                 quality = self._QUALITIES.get(rendition['ID'], {})
                 formats.append({
                     'format_id': '%s-%d' % (rendition['RenditionType'], rendition['ID']),
