@@ -1371,7 +1371,12 @@ def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1):
             v = getattr(v, get_attr, None)
     if v == '':
         v = None
-    return default if v is None else (int(v) * invscale // scale)
+    if v is None:
+        return default
+    try:
+        return int(v) * invscale // scale
+    except ValueError:
+        pass
 
 
 def str_or_none(v, default=None):
