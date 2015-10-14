@@ -159,6 +159,7 @@
  - **facebook**
  - **faz.net**
  - **fc2**
+ - **Fczenit**
  - **fernsehkritik.tv**
  - **Firstpost**
  - **FiveTV**
@@ -619,6 +620,7 @@
  - **VideoTt**: video.tt - Your True Tube
  - **videoweed**: VideoWeed
  - **Vidme**
+ - **vidto**: VidTo.me
  - **Vidzi**
  - **vier**
  - **vier:videos**
