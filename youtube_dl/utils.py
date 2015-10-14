@@ -1392,7 +1392,12 @@ def str_to_int(int_str):
 
 
 def float_or_none(v, scale=1, invscale=1, default=None):
-    return default if v is None else (float(v) * invscale / scale)
+    if v is None:
+        return default
+    try:
+        return float(v) * invscale / scale
+    except ValueError:
+        return default
 
 
 def parse_duration(s):
