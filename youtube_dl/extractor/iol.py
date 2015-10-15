@@ -8,6 +8,8 @@ import re
 
 
 class IOLIE(InfoExtractor):
+    IE_NAME = 'IOL'
+    IE_DESC = 'iol.pt sites (tvi archive and maisfutebol)'
     _VALID_URL = r'https?://[^/]*\.iol\.pt/.*/(?P<id>[0-9a-f]{24})($|\/)'
     _TESTS = [{
         'url': 'http://tviplayer.iol.pt/programa/euromilhoes/53c6b3153004dc006243b07b/video/55f878f90cf203f8b03cea6d',
@@ -135,6 +137,8 @@ class IOLIE(InfoExtractor):
 
 
 class IOLStreamIE(IOLIE):
+    IE_NAME = 'IOL:stream'
+    IE_DESC = 'iol.pt stream sites'
     _VALID_URL = r'http://tviplayer\.iol\.pt/direto/(?P<id>\S+)'
     _TESTS = [{
         'url': 'http://tviplayer.iol.pt/direto/TVI',
