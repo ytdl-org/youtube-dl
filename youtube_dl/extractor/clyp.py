@@ -7,8 +7,8 @@ import re
 from .common import InfoExtractor
 
 
-class JeuxVideoIE(InfoExtractor):
-    _VALID_URL = r'http://.*?\.jeuxvideo\.com/.*/(.*?)\.htm'
+class ClypIE(InfoExtractor):
+    _VALID_URL = r'https://clyp\.it/........'
 
     _TESTS = [{
         'url': 'http://www.jeuxvideo.com/reportages-videos-jeux/0004/00046170/tearaway-playstation-vita-gc-2013-tearaway-nous-presente-ses-papiers-d-identite-00115182.htm',
@@ -25,9 +25,10 @@ class JeuxVideoIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        title = mobj.group(1)
-        webpage = self._download_webpage(url, title)
+        video_id = url.replace("https://clyp.it/", "")
+        api_url = 'https://api.clyp.it/' + video_id
+        metadata = self._download_json(api_url, video_id)
+        print metadata
         title = self._html_search_meta('name', webpage)
         if title == None:
             title = 'untitled'
