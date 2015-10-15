@@ -12,7 +12,6 @@ from ..utils import (
 class OoyalaBaseIE(InfoExtractor):
 
     def _extract(self, player_url, video_id):
-        print(player_url)
         content_tree = self._download_json(player_url, video_id)['content_tree']
         metadata = content_tree[list(content_tree)[0]]
         embed_code = metadata['embed_code']
