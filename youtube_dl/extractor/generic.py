@@ -41,7 +41,6 @@ from .myvi import MyviIE
 from .condenast import CondeNastIE
 from .udn import UDNEmbedIE
 from .senateisvp import SenateISVPIE
-from .bliptv import BlipTVIE
 from .svt import SVTIE
 from .pornhub import PornHubIE
 from .xhamster import XHamsterEmbedIE
@@ -1388,11 +1387,6 @@ class GenericIE(InfoExtractor):
                 'title': video_title,
                 'id': match.group('id')
             }
-
-        # Look for embedded blip.tv player
-        bliptv_url = BlipTVIE._extract_url(webpage)
-        if bliptv_url:
-            return self.url_result(bliptv_url, 'BlipTV')
 
         # Look for SVT player
         svt_url = SVTIE._extract_url(webpage)
