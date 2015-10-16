@@ -243,6 +243,7 @@ from .imgur import (
     ImgurIE,
     ImgurAlbumIE,
 )
+from .imooc import ImoocVideoIE
 from .ina import InaIE
 from .indavideo import (
     IndavideoIE,
