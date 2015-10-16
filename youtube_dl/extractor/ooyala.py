@@ -39,15 +39,15 @@ class OoyalaBaseIE(InfoExtractor):
                     video_info['url'] = url
                     return video_info
                 if delivery_type == 'hls':
-                    formats.extend(self._extract_m3u8_formats(url, embed_code, 'mp4', 'm3u8_native', 0, m3u8_id='hls', fatal=False))
+                    formats.extend(self._extract_m3u8_formats(url, embed_code, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
                 elif delivery_type == 'hds':
-                    formats.extend(self._extract_f4m_formats(url, embed_code, f4m_id='hds', fatal=False))
+                    formats.extend(self._extract_f4m_formats(url, embed_code, -1, 'hds', fatal=False))
                 else:
                     formats.append({
                         'url': url,
                         'ext': stream.get('delivery_type'),
                         'vcodec': stream.get('video_codec'),
-                        'format_id': stream.get('profile'),
+                        'format_id': '%s-%s-%sp' % (stream.get('profile'), delivery_type, stream.get('height')),
                         'width': int_or_none(stream.get('width')),
                         'height': int_or_none(stream.get('height')),
                         'abr': int_or_none(stream.get('audio_bitrate')),
