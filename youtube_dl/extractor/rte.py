@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class RteIE(InfoExtractor):
-    _VALID_URL = r'http?://(?:www\.)?rte\.ie/player/[^/]{2,3}/show/(?P<id>[0-9]+)/'
+    _VALID_URL = r'http?://(?:www\.)?rte\.ie/player/[^/]{2,3}/show/[^/]+/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.rte.ie/player/de/show/10363114/',
         'info_dict': {
