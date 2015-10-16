@@ -14,9 +14,10 @@ class BYUtvIE(InfoExtractor):
         'info_dict': {
             'id': 'studio-c-season-5-episode-5',
             'ext': 'mp4',
-            'description': 'md5:5438d33774b6bdc662f9485a340401cc',
+            'description': 'md5:e07269172baff037f8e8bf9956bc9747',
             'title': 'Season 5 Episode 5',
-            'thumbnail': 're:^https?://.*\.jpg$'
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'duration': 1486486,
         },
         'params': {
             'skip_download': True,

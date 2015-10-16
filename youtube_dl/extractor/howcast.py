@@ -16,6 +16,7 @@ class HowcastIE(InfoExtractor):
             'description': 'md5:dbe792e5f6f1489027027bf2eba188a3',
             'timestamp': 1276081287,
             'upload_date': '20100609',
+            'duration': 56823,
         },
         'params': {
             # m3u8 download

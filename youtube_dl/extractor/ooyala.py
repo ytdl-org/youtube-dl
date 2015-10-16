@@ -6,13 +6,16 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     float_or_none,
+    ExtractorError,
+    unsmuggle_url,
 )
+from ..compat import compat_urllib_parse
 
 
 class OoyalaBaseIE(InfoExtractor):
 
-    def _extract(self, player_url, video_id):
-        content_tree = self._download_json(player_url, video_id)['content_tree']
+    def _extract(self, content_tree_url, video_id, domain='example.org'):
+        content_tree = self._download_json(content_tree_url, video_id)['content_tree']
         metadata = content_tree[list(content_tree)[0]]
         embed_code = metadata['embed_code']
         pcode = metadata.get('asset_pcode') or embed_code
@@ -27,33 +30,36 @@ class OoyalaBaseIE(InfoExtractor):
         formats = []
         for supported_format in ('mp4', 'm3u8', 'hds', 'rtmp'):
             auth_data = self._download_json(
-                'http://player.ooyala.com/sas/player_api/v1/authorization/embed_code/%s/%s?domain=www.example.org&supportedFormats=%s' % (pcode, embed_code, supported_format),
+                'http://player.ooyala.com/sas/player_api/v1/authorization/embed_code/%s/%s?' % (pcode, embed_code) + compat_urllib_parse.urlencode({'domain': domain, 'supportedFormats': supported_format}),
                 video_id, 'Downloading %s JSON' % supported_format)
 
             cur_auth_data = auth_data['authorization_data'][embed_code]
 
-            for stream in cur_auth_data['streams']:
-                url = base64.b64decode(stream['url']['data'].encode('ascii')).decode('utf-8')
-                delivery_type = stream['delivery_type']
-                if delivery_type == 'remote_asset':
-                    video_info['url'] = url
-                    return video_info
-                if delivery_type == 'hls':
-                    formats.extend(self._extract_m3u8_formats(url, embed_code, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
-                elif delivery_type == 'hds':
-                    formats.extend(self._extract_f4m_formats(url, embed_code, -1, 'hds', fatal=False))
-                else:
-                    formats.append({
-                        'url': url,
-                        'ext': stream.get('delivery_type'),
-                        'vcodec': stream.get('video_codec'),
-                        'format_id': '%s-%s-%sp' % (stream.get('profile'), delivery_type, stream.get('height')),
-                        'width': int_or_none(stream.get('width')),
-                        'height': int_or_none(stream.get('height')),
-                        'abr': int_or_none(stream.get('audio_bitrate')),
-                        'vbr': int_or_none(stream.get('video_bitrate')),
-                        'fps': float_or_none(stream.get('framerate')),
-                    })
+            if cur_auth_data['authorized']:
+                for stream in cur_auth_data['streams']:
+                    url = base64.b64decode(stream['url']['data'].encode('ascii')).decode('utf-8')
+                    delivery_type = stream['delivery_type']
+                    if delivery_type == 'remote_asset':
+                        video_info['url'] = url
+                        return video_info
+                    if delivery_type == 'hls':
+                        formats.extend(self._extract_m3u8_formats(url, embed_code, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+                    elif delivery_type == 'hds':
+                        formats.extend(self._extract_f4m_formats(url, embed_code, -1, 'hds', fatal=False))
+                    else:
+                        formats.append({
+                            'url': url,
+                            'ext': stream.get('delivery_type'),
+                            'vcodec': stream.get('video_codec'),
+                            'format_id': '%s-%s-%sp' % (stream.get('profile'), delivery_type, stream.get('height')),
+                            'width': int_or_none(stream.get('width')),
+                            'height': int_or_none(stream.get('height')),
+                            'abr': int_or_none(stream.get('audio_bitrate')),
+                            'vbr': int_or_none(stream.get('video_bitrate')),
+                            'fps': float_or_none(stream.get('framerate')),
+                        })
+            else:
+                raise ExtractorError('%s said: %s' % (self.IE_NAME, cur_auth_data['message']), expected=True)
         self._sort_formats(formats)
 
         video_info['formats'] = formats
@@ -108,9 +114,11 @@ class OoyalaIE(OoyalaBaseIE):
                               ie=cls.ie_key())
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
         embed_code = self._match_id(url)
+        domain = smuggled_data.get('domain')
         content_tree_url = 'http://player.ooyala.com/player_api/v1/content_tree/embed_code/%s/%s' % (embed_code, embed_code)
-        return self._extract(content_tree_url, embed_code)
+        return self._extract(content_tree_url, embed_code, domain)
 
 
 class OoyalaExternalIE(OoyalaBaseIE):
