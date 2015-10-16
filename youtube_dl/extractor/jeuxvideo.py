@@ -28,7 +28,7 @@ class JeuxVideoIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         title = mobj.group(1)
         webpage = self._download_webpage(url, title)
-        title = self._html_search_meta('name', webpage)
+        title = self._html_search_meta('name', webpage) or self._og_search_title(webpage)
         config_url = self._html_search_regex(
             r'data-src="(/contenu/medias/video.php.*?)"',
             webpage, 'config URL')

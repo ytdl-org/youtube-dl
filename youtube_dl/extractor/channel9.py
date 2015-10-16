@@ -3,7 +3,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    parse_filesize,
+    qualities,
+)
 
 
 class Channel9IE(InfoExtractor):
@@ -28,7 +32,7 @@ class Channel9IE(InfoExtractor):
                 'title': 'Developer Kick-Off Session: Stuff We Love',
                 'description': 'md5:c08d72240b7c87fcecafe2692f80e35f',
                 'duration': 4576,
-                'thumbnail': 'http://video.ch9.ms/ch9/9d51/03902f2d-fc97-4d3c-b195-0bfe15a19d51/KOS002_220.jpg',
+                'thumbnail': 're:http://.*\.jpg',
                 'session_code': 'KOS002',
                 'session_day': 'Day 1',
                 'session_room': 'Arena 1A',
@@ -44,30 +48,28 @@ class Channel9IE(InfoExtractor):
                 'title': 'Self-service BI with Power BI - nuclear testing',
                 'description': 'md5:d1e6ecaafa7fb52a2cacdf9599829f5b',
                 'duration': 1540,
-                'thumbnail': 'http://video.ch9.ms/ch9/87e1/0300391f-a455-4c72-bec3-4422f19287e1/selfservicenuk_512.jpg',
+                'thumbnail': 're:http://.*\.jpg',
                 'authors': ['Mike Wilmot'],
+            },
+        },
+        {
+            # low quality mp4 is best
+            'url': 'https://channel9.msdn.com/Events/CPP/CppCon-2015/Ranges-for-the-Standard-Library',
+            'info_dict': {
+                'id': 'Events/CPP/CppCon-2015/Ranges-for-the-Standard-Library',
+                'ext': 'mp4',
+                'title': 'Ranges for the Standard Library',
+                'description': 'md5:2e6b4917677af3728c5f6d63784c4c5d',
+                'duration': 5646,
+                'thumbnail': 're:http://.*\.jpg',
+            },
+            'params': {
+                'skip_download': True,
             },
         }
     ]
 
     _RSS_URL = 'http://channel9.msdn.com/%s/RSS'
-
-    # Sorted by quality
-    _known_formats = ['MP3', 'MP4', 'Mid Quality WMV', 'Mid Quality MP4', 'High Quality WMV', 'High Quality MP4']
-
-    def _restore_bytes(self, formatted_size):
-        if not formatted_size:
-            return 0
-        m = re.match(r'^(?P<size>\d+(?:\.\d+)?)\s+(?P<units>[a-zA-Z]+)', formatted_size)
-        if not m:
-            return 0
-        units = m.group('units')
-        try:
-            exponent = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'].index(units.upper())
-        except ValueError:
-            return 0
-        size = float(m.group('size'))
-        return int(size * (1024 ** exponent))
 
     def _formats_from_html(self, html):
         FORMAT_REGEX = r'''
@@ -78,16 +80,20 @@ class Channel9IE(InfoExtractor):
             <h3>File\s+size</h3>\s*(?P<filesize>.*?)\s*
             </div>)?                                                # File size part may be missing
         '''
-        # Extract known formats
+        quality = qualities((
+            'MP3', 'MP4',
+            'Low Quality WMV', 'Low Quality MP4',
+            'Mid Quality WMV', 'Mid Quality MP4',
+            'High Quality WMV', 'High Quality MP4'))
         formats = [{
             'url': x.group('url'),
             'format_id': x.group('quality'),
             'format_note': x.group('note'),
             'format': '%s (%s)' % (x.group('quality'), x.group('note')),
-            'filesize': self._restore_bytes(x.group('filesize')),  # File size is approximate
-            'preference': self._known_formats.index(x.group('quality')),
+            'filesize_approx': parse_filesize(x.group('filesize')),
+            'quality': quality(x.group('quality')),
             'vcodec': 'none' if x.group('note') == 'Audio only' else None,
-        } for x in list(re.finditer(FORMAT_REGEX, html)) if x.group('quality') in self._known_formats]
+        } for x in list(re.finditer(FORMAT_REGEX, html))]
 
         self._sort_formats(formats)
 
