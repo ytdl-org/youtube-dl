@@ -52,7 +52,7 @@ class BandcampIE(InfoExtractor):
                     ext, abr_str = format_id.split('-', 1)
                     formats.append({
                         'format_id': format_id,
-                        'url': format_url,
+                        'url': self._proto_relative_url(format_url, 'http:'),
                         'ext': ext,
                         'vcodec': 'none',
                         'acodec': ext,
