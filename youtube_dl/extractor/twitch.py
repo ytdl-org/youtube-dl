@@ -243,20 +243,20 @@ class TwitchVodIE(TwitchItemBaseIE):
 
         info = self._download_info(self._ITEM_SHORTCUT, item_id)
         access_token = self._download_json(
-           '%s/api/vods/%s/access_token' % (self._API_BASE, item_id), item_id,
-           'Downloading %s access token' % self._ITEM_TYPE)
+            '%s/api/vods/%s/access_token' % (self._API_BASE, item_id), item_id,
+            'Downloading %s access token' % self._ITEM_TYPE)
 
         formats = self._extract_m3u8_formats(
-           '%s/vod/%s?%s' % (
-               self._USHER_BASE, item_id,
-               compat_urllib_parse.urlencode({
+            '%s/vod/%s?%s' % (
+                self._USHER_BASE, item_id,
+                compat_urllib_parse.urlencode({
                     'allow_source': 'true',
                     'allow_spectre': 'true',
                     'player': 'twitchweb',
                     'nauth': access_token['token'],
                     'nauthsig': access_token['sig'],
                 })),
-           item_id, 'mp4')
+            item_id, 'mp4')
 
         self._prefer_source(formats)
         info['formats'] = formats
