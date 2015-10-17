@@ -30,7 +30,7 @@ class HlsFD(FileDownloader):
 
         args = [ffpp.executable, '-y']
 
-        if info_dict['http_headers']:
+        if info_dict['http_headers'] and re.match(r'^https?://', url):
             # Trailing \r\n after each HTTP header is important to prevent warning from ffmpeg/avconv:
             # [http @ 00000000003d2fa0] No trailing CRLF found in HTTP header.
             args += [
