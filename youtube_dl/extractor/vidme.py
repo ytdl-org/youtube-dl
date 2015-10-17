@@ -114,6 +114,12 @@ class VidmeIE(InfoExtractor):
 
         video = response['video']
 
+        if video.get('state') == 'user-disabled':
+            raise ExtractorError(
+                'Vidme said: This video has been suspended either due to a copyright claim, '
+                'or for violating the terms of use.',
+                expected=True)
+
         formats = [{
             'format_id': f.get('type'),
             'url': f['uri'],
