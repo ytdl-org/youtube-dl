@@ -1440,7 +1440,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                         ((?:PL|LL|EC|UU|FL|RD|UL)[0-9A-Za-z-_]{10,})
                      )"""
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s'
-    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)'
+    _VIDEO_RE = re.compile(r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)[^>]+>(?P<title>[^<]+)?')
     IE_NAME = 'youtube:playlist'
     _TESTS = [{
         'url': 'https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re',
@@ -1537,12 +1537,16 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         return self.playlist_result(url_results, playlist_id, title)
 
     def _extract_playlist(self, playlist_id):
+        """Return YoutubeBaseInfoExtractor.playlist_result() for YouTube playlist ID."""
+
         url = self._TEMPLATE_URL % playlist_id
         page = self._download_webpage(url, playlist_id)
 
         for match in re.findall(r'<div class="yt-alert-message">([^<]+)</div>', page):
+            # Check YouTube alert messages
             match = match.strip()
-            # Check if the playlist exists or is private
+
+            # Check for problems
             if re.match(r'[^<]*(The|This) playlist (does not exist|is private)[^<]*', match):
                 raise ExtractorError(
                     'The playlist doesn\'t exist or is private, use --username or '
@@ -1557,21 +1561,63 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
             else:
                 self.report_warning('Youtube gives an alert message: ' + match)
 
-        # Extract the video ids from the playlist pages
         def _entries():
+            # Extract the video ids from the playlist pages
             more_widget_html = content_html = page
-            for page_num in itertools.count(1):
-                matches = re.finditer(self._VIDEO_RE, content_html)
-                # We remove the duplicates and the link with index 0
-                # (it's not the first video of the playlist)
-                new_ids = orderedSet(m.group('id') for m in matches if m.group('index') != '0')
-                for vid_id in new_ids:
-                    yield self.url_result(vid_id, 'Youtube', video_id=vid_id)
 
+            for page_num in itertools.count(1):
+                # Loop to find videos until break
+                matches = self._VIDEO_RE.finditer(content_html)
+
+                # Get videos from current page. Using OrderedDict to
+                # avoid duplicates would make this much
+                # simpler. Lacking that, we store the order of the
+                # videos as video_num so we can sort the dict, keeping
+                # the order of the playlist. We have to avoid
+                # duplicates because it seems that every video in the
+                # playlist shows up in the HTML/JSON twice: once
+                # without a title, and once with a title. Maybe using
+                # something like bs4 instead of regexps would also be a
+                # good idea.
+                new_videos = {}
+                num = 0
+                for m in matches:
+                    if m.group('index') == '0':
+                        # Ignore link with index 0
+                        continue
+
+                    video_id = m.group('id')
+
+                    if m.group('title'):
+                        video_title = m.group('title').strip()
+                    else:
+                        video_title = None
+
+                    if video_id in new_videos:
+                        # Video is already in dict
+                        if video_title and not new_videos[video_id]['title']:
+                            # Set missing title
+                            new_videos[video_id]['title'] = video_title
+                    else:
+                        # Video not in dict
+                        new_videos[video_id] = {'num': num, 'title': video_title}
+
+                    num += 1
+
+                # Sort videos by playlist order
+                new_videos = sorted(new_videos.iteritems(), key=lambda v: v[1]['num'])
+
+                # Yield current list of videos
+                for video in new_videos:
+                    yield self.url_result(video[0], 'Youtube', video_id=video[0], video_title=video[1]['title'])
+
+                # Find link to load more videos
                 mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
                 if not mobj:
+                    # No more videos
                     break
 
+                # Download JSON to get more videos
                 more = self._download_json(
                     'https://youtube.com/%s' % mobj.group('more'), playlist_id,
                     'Downloading page #%s' % page_num,
