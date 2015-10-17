@@ -9,8 +9,13 @@ from ..utils import (
     find_xpath_attr,
     smuggle_url,
     determine_ext,
+    ExtractorError,
 )
 from .senateisvp import SenateISVPIE
+
+
+def get_text_attr(d, attr):
+    return d.get(attr, {}).get('#text')
 
 
 class CSpanIE(InfoExtractor):
@@ -18,7 +23,7 @@ class CSpanIE(InfoExtractor):
     IE_DESC = 'C-SPAN'
     _TESTS = [{
         'url': 'http://www.c-span.org/video/?313572-1/HolderonV',
-        'md5': '067803f994e049b455a58b16e5aab442',
+        'md5': '94b29a4f131ff03d23471dd6f60b6a1d',
         'info_dict': {
             'id': '315139',
             'ext': 'mp4',
@@ -28,7 +33,7 @@ class CSpanIE(InfoExtractor):
         'skip': 'Regularly fails on travis, for unknown reasons',
     }, {
         'url': 'http://www.c-span.org/video/?c4486943/cspan-international-health-care-models',
-        'md5': '4eafd1e91a75d2b1e6a3cbd0995816a2',
+        'md5': '8e5fbfabe6ad0f89f3012a7943c1287b',
         'info_dict': {
             'id': 'c4486943',
             'ext': 'mp4',
@@ -37,7 +42,7 @@ class CSpanIE(InfoExtractor):
         }
     }, {
         'url': 'http://www.c-span.org/video/?318608-1/gm-ignition-switch-recall',
-        'md5': '446562a736c6bf97118e389433ed88d4',
+        'md5': '2ae5051559169baadba13fc35345ae74',
         'info_dict': {
             'id': '342759',
             'ext': 'mp4',
@@ -71,8 +76,10 @@ class CSpanIE(InfoExtractor):
                 return self.url_result(surl, 'SenateISVP', video_id, title)
 
         data = self._download_json(
-            'http://c-spanvideo.org/videoLibrary/assets/player/ajax-player.php?os=android&html5=%s&id=%s' % (video_type, video_id),
-            video_id)
+            'http://www.c-span.org/assets/player/ajax-player.php?os=android&html5=%s&id=%s' % (video_type, video_id),
+            video_id)['video']
+        if data['@status'] != 'Success':
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, get_text_attr(data, 'error')), expected=True)
 
         doc = self._download_xml(
             'http://www.c-span.org/common/services/flashXml.php?%sid=%s' % (video_type, video_id),
@@ -83,28 +90,36 @@ class CSpanIE(InfoExtractor):
         title = find_xpath_attr(doc, './/string', 'name', 'title').text
         thumbnail = find_xpath_attr(doc, './/string', 'name', 'poster').text
 
-        files = data['video']['files']
-        try:
-            capfile = data['video']['capfile']['#text']
-        except KeyError:
-            capfile = None
+        files = data['files']
+        capfile = get_text_attr(data, 'capfile')
 
-        entries = [{
-            'id': '%s_%d' % (video_id, partnum + 1),
-            'title': (
-                title if len(files) == 1 else
-                '%s part %d' % (title, partnum + 1)),
-            'url': unescapeHTML(f['path']['#text']),
-            'description': description,
-            'thumbnail': thumbnail,
-            'duration': int_or_none(f.get('length', {}).get('#text')),
-            'subtitles': {
-                'en': [{
-                    'url': capfile,
-                    'ext': determine_ext(capfile, 'dfxp')
-                }],
-            } if capfile else None,
-        } for partnum, f in enumerate(files)]
+        entries = []
+        for partnum, f in enumerate(files):
+            formats = []
+            for quality in f['qualities']:
+                formats.append({
+                    'format_id': '%s-%sp' % (get_text_attr(quality, 'bitrate'), get_text_attr(quality, 'height')),
+                    'url': unescapeHTML(get_text_attr(quality, 'file')),
+                    'height': int_or_none(get_text_attr(quality, 'height')),
+                    'tbr': int_or_none(get_text_attr(quality, 'bitrate')),
+                })
+            self._sort_formats(formats)
+            entries.append({
+                'id': '%s_%d' % (video_id, partnum + 1),
+                'title': (
+                    title if len(files) == 1 else
+                    '%s part %d' % (title, partnum + 1)),
+                'formats': formats,
+                'description': description,
+                'thumbnail': thumbnail,
+                'duration': int_or_none(get_text_attr(f, 'length')),
+                'subtitles': {
+                    'en': [{
+                        'url': capfile,
+                        'ext': determine_ext(capfile, 'dfxp')
+                    }],
+                } if capfile else None,
+            })
 
         if len(entries) == 1:
             entry = dict(entries[0])
