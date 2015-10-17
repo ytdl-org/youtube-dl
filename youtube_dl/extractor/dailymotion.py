@@ -254,8 +254,8 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
 
     def _check_error(self, info):
         if info.get('error') is not None:
-            msg = 'Couldn\'t get video, Dailymotion says: %s' % info['error']['title']
-            raise ExtractorError(msg, expected=True)
+            raise ExtractorError(
+                '%s said: %s' % (self.IE_NAME, info['error']['title']), expected=True)
 
     def _get_subtitles(self, video_id, webpage):
         try:
