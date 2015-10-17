@@ -532,11 +532,7 @@ class SoundcloudSearchIE(SearchInfoExtractor, SoundcloudIE):
             collection_id='Query "{0}"'.format(query),
             q=query.encode('utf-8'))
 
-        for _ in range(n):
-            try:
-                track = next(tracks)
-            except StopIteration:
-                break
+        for track in itertools.islice(tracks, n):
             uri = track['uri']
             title = track['title']
             results.append(self.url_result(url=uri))
