@@ -239,6 +239,7 @@ class TwitchVodIE(TwitchItemBaseIE):
     def _real_extract(self, url):
         item_id = self._match_id(url)
         info = self._download_info(self._ITEM_SHORTCUT, item_id)
+        info["thumbnail"] = info["thumbnail"].replace("320x240", "640x360")
         access_token = self._download_json(
             '%s/api/vods/%s/access_token' % (self._API_BASE, item_id), item_id,
             'Downloading %s access token' % self._ITEM_TYPE)
@@ -319,6 +320,13 @@ class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
         },
         'playlist_mincount': 54,
     }
+
+class TwitchHighlightsIE(TwitchPlaylistBaseIE):
+    IE_NAME = 'twitch:highlights'
+    _VALID_URL = r'%s/(?P<id>[^/]+)/profile/highlights/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
+    _PLAYLIST_URL = TwitchPlaylistBaseIE._PLAYLIST_URL + '&highlights=true'
+    _PLAYLIST_TYPE = 'highlights'
+
 
 
 class TwitchBookmarksIE(TwitchPlaylistBaseIE):
