@@ -321,6 +321,13 @@ class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
         'playlist_mincount': 54,
     }
 
+class TwitchHighlightsIE(TwitchPlaylistBaseIE):
+    IE_NAME = 'twitch:highlights'
+    _VALID_URL = r'%s/(?P<id>[^/]+)/profile/highlights/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
+    _PLAYLIST_URL = TwitchPlaylistBaseIE._PLAYLIST_URL + '&highlights=true'
+    _PLAYLIST_TYPE = 'highlights'
+
+
 
 class TwitchBookmarksIE(TwitchPlaylistBaseIE):
     IE_NAME = 'twitch:bookmarks'

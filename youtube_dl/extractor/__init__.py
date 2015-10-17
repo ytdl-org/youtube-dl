@@ -687,6 +687,7 @@ from .twitch import (
     TwitchVodIE,
     TwitchProfileIE,
     TwitchPastBroadcastsIE,
+    TwitchHighlightsIE,
     TwitchBookmarksIE,
     TwitchStreamIE,
 )
