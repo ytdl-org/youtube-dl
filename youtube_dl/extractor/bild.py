@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    fix_xml_ampersands,
+    unescapeHTML,
 )
 
 
@@ -17,26 +17,24 @@ class BildIE(InfoExtractor):
         'info_dict': {
             'id': '38184146',
             'ext': 'mp4',
-            'title': 'BILD hat sie getestet',
+            'title': 'Das können die  neuen iPads',
+            'description': 'md5:a4058c4fa2a804ab59c00d7244bbf62f',
             'thumbnail': 're:^https?://.*\.jpg$',
             'duration': 196,
-            'description': 'Mit dem iPad Air 2 und dem iPad Mini 3 hat Apple zwei neue Tablet-Modelle präsentiert. BILD-Reporter Sven Stein durfte die Geräte bereits testen. ',
         }
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        xml_url = url.split(".bild.html")[0] + ",view=xml.bild.xml"
-        doc = self._download_xml(xml_url, video_id, transform_source=fix_xml_ampersands)
-
-        duration = int_or_none(doc.attrib.get('duration'), scale=1000)
+        video_data = self._download_json(
+            url.split('.bild.html')[0] + ',view=json.bild.html', video_id)
 
         return {
             'id': video_id,
-            'title': doc.attrib['ueberschrift'],
-            'description': doc.attrib.get('text'),
-            'url': doc.attrib['src'],
-            'thumbnail': doc.attrib.get('img'),
-            'duration': duration,
+            'title': unescapeHTML(video_data['title']).strip(),
+            'description': unescapeHTML(video_data.get('description')),
+            'url': video_data['clipList'][0]['srces'][0]['src'],
+            'thumbnail': video_data.get('poster'),
+            'duration': int_or_none(video_data.get('durationSec')),
         }

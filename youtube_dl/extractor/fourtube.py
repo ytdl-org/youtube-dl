@@ -46,10 +46,10 @@ class FourTubeIE(InfoExtractor):
         thumbnail = self._html_search_meta('thumbnailUrl', webpage)
         uploader_id = self._html_search_regex(
             r'<a class="img-avatar" href="[^"]+/channels/([^/"]+)" title="Go to [^"]+ page">',
-            webpage, 'uploader id')
+            webpage, 'uploader id', fatal=False)
         uploader = self._html_search_regex(
             r'<a class="img-avatar" href="[^"]+/channels/[^/"]+" title="Go to ([^"]+) page">',
-            webpage, 'uploader')
+            webpage, 'uploader', fatal=False)
 
         categories_html = self._search_regex(
             r'(?s)><i class="icon icon-tag"></i>\s*Categories / Tags\s*.*?<ul class="list">(.*?)</ul>',
@@ -68,13 +68,24 @@ class FourTubeIE(InfoExtractor):
             webpage, 'like count', fatal=False))
         duration = parse_duration(self._html_search_meta('duration', webpage))
 
-        params_js = self._search_regex(
-            r'\$\.ajax\(url,\ opts\);\s*\}\s*\}\)\(([0-9,\[\] ]+)\)',
-            webpage, 'initialization parameters'
-        )
-        params = self._parse_json('[%s]' % params_js, video_id)
-        media_id = params[0]
-        sources = ['%s' % p for p in params[2]]
+        media_id = self._search_regex(
+            r'<button[^>]+data-id=(["\'])(?P<id>\d+)\1[^>]+data-quality=', webpage,
+            'media id', default=None, group='id')
+        sources = [
+            quality
+            for _, quality in re.findall(r'<button[^>]+data-quality=(["\'])(.+?)\1', webpage)]
+        if not (media_id and sources):
+            player_js = self._download_webpage(
+                self._search_regex(
+                    r'<script[^>]id=(["\'])playerembed\1[^>]+src=(["\'])(?P<url>.+?)\2',
+                    webpage, 'player JS', group='url'),
+                video_id, 'Downloading player JS')
+            params_js = self._search_regex(
+                r'\$\.ajax\(url,\ opts\);\s*\}\s*\}\)\(([0-9,\[\] ]+)\)',
+                player_js, 'initialization parameters')
+            params = self._parse_json('[%s]' % params_js, video_id)
+            media_id = params[0]
+            sources = ['%s' % p for p in params[2]]
 
         token_url = 'http://tkn.4tube.com/{0}/desktop/{1}'.format(
             media_id, '+'.join(sources))

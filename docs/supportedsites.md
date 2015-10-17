@@ -81,6 +81,7 @@
  - **CBSSports**
  - **CeskaTelevize**
  - **channel9**: Channel 9
+ - **Chaturbate**
  - **Chilloutzone**
  - **chirbit**
  - **chirbit:profile**
@@ -150,6 +151,7 @@
  - **Escapist**
  - **ESPN** (Currently broken)
  - **EsriVideo**
+ - **Europa**
  - **EveryonesMixtape**
  - **exfm**: ex.fm
  - **ExpoTV**
@@ -157,6 +159,7 @@
  - **facebook**
  - **faz.net**
  - **fc2**
+ - **Fczenit**
  - **fernsehkritik.tv**
  - **Firstpost**
  - **FiveTV**
@@ -263,6 +266,9 @@
  - **Libsyn**
  - **life:embed**
  - **lifenews**: LIFE | NEWS
+ - **limelight**
+ - **limelight:channel**
+ - **limelight:channel_list**
  - **LiveLeak**
  - **livestream**
  - **livestream:original**
@@ -276,7 +282,6 @@
  - **Malemotion**
  - **MDR**
  - **media.ccc.de**
- - **MegaVideoz**
  - **metacafe**
  - **Metacritic**
  - **Mgoon**

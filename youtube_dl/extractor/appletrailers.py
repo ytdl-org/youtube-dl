@@ -13,53 +13,53 @@ from ..utils import (
 class AppleTrailersIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?trailers\.apple\.com/(?:trailers|ca)/(?P<company>[^/]+)/(?P<movie>[^/]+)'
     _TESTS = [{
-        "url": "http://trailers.apple.com/trailers/wb/manofsteel/",
+        'url': 'http://trailers.apple.com/trailers/wb/manofsteel/',
         'info_dict': {
             'id': 'manofsteel',
         },
-        "playlist": [
+        'playlist': [
             {
-                "md5": "d97a8e575432dbcb81b7c3acb741f8a8",
-                "info_dict": {
-                    "id": "manofsteel-trailer4",
-                    "ext": "mov",
-                    "duration": 111,
-                    "title": "Trailer 4",
-                    "upload_date": "20130523",
-                    "uploader_id": "wb",
+                'md5': 'd97a8e575432dbcb81b7c3acb741f8a8',
+                'info_dict': {
+                    'id': 'manofsteel-trailer4',
+                    'ext': 'mov',
+                    'duration': 111,
+                    'title': 'Trailer 4',
+                    'upload_date': '20130523',
+                    'uploader_id': 'wb',
                 },
             },
             {
-                "md5": "b8017b7131b721fb4e8d6f49e1df908c",
-                "info_dict": {
-                    "id": "manofsteel-trailer3",
-                    "ext": "mov",
-                    "duration": 182,
-                    "title": "Trailer 3",
-                    "upload_date": "20130417",
-                    "uploader_id": "wb",
+                'md5': 'b8017b7131b721fb4e8d6f49e1df908c',
+                'info_dict': {
+                    'id': 'manofsteel-trailer3',
+                    'ext': 'mov',
+                    'duration': 182,
+                    'title': 'Trailer 3',
+                    'upload_date': '20130417',
+                    'uploader_id': 'wb',
                 },
             },
             {
-                "md5": "d0f1e1150989b9924679b441f3404d48",
-                "info_dict": {
-                    "id": "manofsteel-trailer",
-                    "ext": "mov",
-                    "duration": 148,
-                    "title": "Trailer",
-                    "upload_date": "20121212",
-                    "uploader_id": "wb",
+                'md5': 'd0f1e1150989b9924679b441f3404d48',
+                'info_dict': {
+                    'id': 'manofsteel-trailer',
+                    'ext': 'mov',
+                    'duration': 148,
+                    'title': 'Trailer',
+                    'upload_date': '20121212',
+                    'uploader_id': 'wb',
                 },
             },
             {
-                "md5": "5fe08795b943eb2e757fa95cb6def1cb",
-                "info_dict": {
-                    "id": "manofsteel-teaser",
-                    "ext": "mov",
-                    "duration": 93,
-                    "title": "Teaser",
-                    "upload_date": "20120721",
-                    "uploader_id": "wb",
+                'md5': '5fe08795b943eb2e757fa95cb6def1cb',
+                'info_dict': {
+                    'id': 'manofsteel-teaser',
+                    'ext': 'mov',
+                    'duration': 93,
+                    'title': 'Teaser',
+                    'upload_date': '20120721',
+                    'uploader_id': 'wb',
                 },
             },
         ]

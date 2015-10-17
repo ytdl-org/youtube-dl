@@ -11,6 +11,8 @@ from ..utils import (
     int_or_none,
     parse_duration,
     parse_iso8601,
+    remove_end,
+    unescapeHTML,
 )
 from ..compat import compat_HTTPError
 
@@ -27,6 +29,14 @@ class BBCCoUkIE(InfoExtractor):
         'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s',
         'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s',
     ]
+
+    _MEDIASELECTION_NS = 'http://bbc.co.uk/2008/mp/mediaselection'
+    _EMP_PLAYLIST_NS = 'http://bbc.co.uk/2008/emp/playlist'
+
+    _NAMESPACES = (
+        _MEDIASELECTION_NS,
+        _EMP_PLAYLIST_NS,
+    )
 
     _TESTS = [
         {
@@ -193,6 +203,7 @@ class BBCCoUkIE(InfoExtractor):
 
     def _extract_connection(self, connection, programme_id):
         formats = []
+        kind = connection.get('kind')
         protocol = connection.get('protocol')
         supplier = connection.get('supplier')
         if protocol == 'http':
@@ -218,7 +229,7 @@ class BBCCoUkIE(InfoExtractor):
             else:
                 formats.append({
                     'url': href,
-                    'format_id': supplier,
+                    'format_id': supplier or kind or protocol,
                 })
         elif protocol == 'rtmp':
             application = connection.get('application', 'ondemand')
@@ -238,16 +249,24 @@ class BBCCoUkIE(InfoExtractor):
         return formats
 
     def _extract_items(self, playlist):
-        return playlist.findall('./{http://bbc.co.uk/2008/emp/playlist}item')
+        return playlist.findall('./{%s}item' % self._EMP_PLAYLIST_NS)
+
+    def _findall_ns(self, element, xpath):
+        elements = []
+        for ns in self._NAMESPACES:
+            elements.extend(element.findall(xpath % ns))
+        return elements
 
     def _extract_medias(self, media_selection):
-        error = media_selection.find('./{http://bbc.co.uk/2008/mp/mediaselection}error')
+        error = media_selection.find('./{%s}error' % self._MEDIASELECTION_NS)
+        if error is None:
+            media_selection.find('./{%s}error' % self._EMP_PLAYLIST_NS)
         if error is not None:
             raise BBCCoUkIE.MediaSelectionError(error.get('id'))
-        return media_selection.findall('./{http://bbc.co.uk/2008/mp/mediaselection}media')
+        return self._findall_ns(media_selection, './{%s}media')
 
     def _extract_connections(self, media):
-        return media.findall('./{http://bbc.co.uk/2008/mp/mediaselection}connection')
+        return self._findall_ns(media, './{%s}connection')
 
     def _extract_video(self, media, programme_id):
         formats = []
@@ -261,13 +280,14 @@ class BBCCoUkIE(InfoExtractor):
             conn_formats = self._extract_connection(connection, programme_id)
             for format in conn_formats:
                 format.update({
-                    'format_id': '%s_%s' % (service, format['format_id']),
                     'width': width,
                     'height': height,
                     'vbr': vbr,
                     'vcodec': vcodec,
                     'filesize': file_size,
                 })
+                if service:
+                    format['format_id'] = '%s_%s' % (service, format['format_id'])
             formats.extend(conn_formats)
         return formats
 
@@ -382,7 +402,7 @@ class BBCCoUkIE(InfoExtractor):
             url, playlist_id, 'Downloading legacy playlist XML')
 
     def _extract_from_legacy_playlist(self, playlist, playlist_id):
-        no_items = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}noItems')
+        no_items = playlist.find('./{%s}noItems' % self._EMP_PLAYLIST_NS)
         if no_items is not None:
             reason = no_items.get('reason')
             if reason == 'preAvailability':
@@ -399,8 +419,9 @@ class BBCCoUkIE(InfoExtractor):
             kind = item.get('kind')
             if kind != 'programme' and kind != 'radioProgramme':
                 continue
-            title = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}title').text
-            description = playlist.find('./{http://bbc.co.uk/2008/emp/playlist}summary').text
+            title = playlist.find('./{%s}title' % self._EMP_PLAYLIST_NS).text
+            description_el = playlist.find('./{%s}summary' % self._EMP_PLAYLIST_NS)
+            description = description_el.text if description_el is not None else None
 
             def get_programme_id(item):
                 def get_from_attributes(item):
@@ -409,16 +430,18 @@ class BBCCoUkIE(InfoExtractor):
                         if value and re.match(r'^[pb][\da-z]{7}$', value):
                             return value
                 get_from_attributes(item)
-                mediator = item.find('./{http://bbc.co.uk/2008/emp/playlist}mediator')
+                mediator = item.find('./{%s}mediator' % self._EMP_PLAYLIST_NS)
                 if mediator is not None:
                     return get_from_attributes(mediator)
 
             programme_id = get_programme_id(item)
             duration = int_or_none(item.get('duration'))
-            # TODO: programme_id can be None and media items can be incorporated right inside
-            # playlist's item (e.g. http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu)
-            # as f4m and m3u8
-            formats, subtitles = self._download_media_selector(programme_id)
+
+            if programme_id:
+                formats, subtitles = self._download_media_selector(programme_id)
+            else:
+                formats, subtitles = self._process_media_selector(item, playlist_id)
+                programme_id = playlist_id
 
         return programme_id, title, description, duration, formats, subtitles
 
@@ -470,6 +493,9 @@ class BBCIE(BBCCoUkIE):
     _VALID_URL = r'https?://(?:www\.)?bbc\.(?:com|co\.uk)/(?:[^/]+/)+(?P<id>[^/#?]+)'
 
     _MEDIASELECTOR_URLS = [
+        # Provides HQ HLS streams but fails with geolocation in some cases when it's
+        # even not geo restricted at all
+        'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s',
         # Provides more formats, namely direct mp4 links, but fails on some videos with
         # notukerror for non UK (?) users (e.g.
         # http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
@@ -479,8 +505,7 @@ class BBCIE(BBCCoUkIE):
     ]
 
     _TESTS = [{
-        # article with multiple videos embedded with data-media-meta containing
-        # playlist.sxml, externalId and no direct video links
+        # article with multiple videos embedded with data-playable containing vpids
         'url': 'http://www.bbc.com/news/world-europe-32668511',
         'info_dict': {
             'id': 'world-europe-32668511',
@@ -489,7 +514,7 @@ class BBCIE(BBCCoUkIE):
         },
         'playlist_count': 2,
     }, {
-        # article with multiple videos embedded with data-media-meta (more videos)
+        # article with multiple videos embedded with data-playable (more videos)
         'url': 'http://www.bbc.com/news/business-28299555',
         'info_dict': {
             'id': 'business-28299555',
@@ -500,6 +525,7 @@ class BBCIE(BBCCoUkIE):
         'skip': 'Save time',
     }, {
         # article with multiple videos embedded with `new SMP()`
+        # broken
         'url': 'http://www.bbc.co.uk/blogs/adamcurtis/entries/3662a707-0af9-3149-963f-47bea720b460',
         'info_dict': {
             'id': '3662a707-0af9-3149-963f-47bea720b460',
@@ -507,12 +533,13 @@ class BBCIE(BBCCoUkIE):
         },
         'playlist_count': 18,
     }, {
-        # single video embedded with mediaAssetPage.init()
+        # single video embedded with data-playable containing vpid
         'url': 'http://www.bbc.com/news/world-europe-32041533',
         'info_dict': {
             'id': 'p02mprgb',
             'ext': 'mp4',
             'title': 'Aerial footage showed the site of the crash in the Alps - courtesy BFM TV',
+            'description': 'md5:2868290467291b37feda7863f7a83f54',
             'duration': 47,
             'timestamp': 1427219242,
             'upload_date': '20150324',
@@ -522,15 +549,14 @@ class BBCIE(BBCCoUkIE):
             'skip_download': True,
         }
     }, {
-        # article with single video embedded with data-media-meta containing
-        # direct video links (for now these are extracted) and playlist.xml (with
-        # media items as f4m and m3u8 - currently unsupported)
+        # article with single video embedded with data-playable containing XML playlist
+        # with direct video links as progressiveDownloadUrl (for now these are extracted)
+        # and playlist with f4m and m3u8 as streamingUrl
         'url': 'http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu',
         'info_dict': {
             'id': '150615_telabyad_kentin_cogu',
             'ext': 'mp4',
             'title': "YPG: Tel Abyad'ın tamamı kontrolümüzde",
-            'duration': 47,
             'timestamp': 1434397334,
             'upload_date': '20150615',
         },
@@ -538,13 +564,12 @@ class BBCIE(BBCCoUkIE):
             'skip_download': True,
         }
     }, {
-        # single video embedded with mediaAssetPage.init() (regional section)
+        # single video embedded with data-playable containing XML playlists (regional section)
         'url': 'http://www.bbc.com/mundo/video_fotos/2015/06/150619_video_honduras_militares_hospitales_corrupcion_aw',
         'info_dict': {
             'id': '150619_video_honduras_militares_hospitales_corrupcion_aw',
             'ext': 'mp4',
             'title': 'Honduras militariza sus hospitales por nuevo escándalo de corrupción',
-            'duration': 87,
             'timestamp': 1434713142,
             'upload_date': '20150619',
         },
@@ -586,27 +611,34 @@ class BBCIE(BBCCoUkIE):
             'ext': 'mp4',
             'title': 'Hyundai Santa Fe Sport: Rock star',
             'description': 'md5:b042a26142c4154a6e472933cf20793d',
-            'timestamp': 1368473503,
-            'upload_date': '20130513',
+            'timestamp': 1415867444,
+            'upload_date': '20141113',
         },
         'params': {
             # rtmp download
             'skip_download': True,
         }
     }, {
-        # single video with playlist.sxml URL
+        # single video with playlist.sxml URL in playlist param
         'url': 'http://www.bbc.com/sport/0/football/33653409',
         'info_dict': {
             'id': 'p02xycnp',
             'ext': 'mp4',
             'title': 'Transfers: Cristiano Ronaldo to Man Utd, Arsenal to spend?',
-            'description': 'md5:398fca0e2e701c609d726e034fa1fc89',
             'duration': 140,
         },
         'params': {
             # rtmp download
             'skip_download': True,
         }
+    }, {
+        # article with multiple videos embedded with playlist.sxml in playlist param
+        'url': 'http://www.bbc.com/sport/0/football/34475836',
+        'info_dict': {
+            'id': '34475836',
+            'title': 'What Liverpool can expect from Klopp',
+        },
+        'playlist_count': 3,
     }, {
         # single video with playlist URL from weather section
         'url': 'http://www.bbc.com/weather/features/33601775',
@@ -648,40 +680,107 @@ class BBCIE(BBCCoUkIE):
 
         return [], []
 
+    def _extract_from_playlist_sxml(self, url, playlist_id, timestamp):
+        programme_id, title, description, duration, formats, subtitles = \
+            self._process_legacy_playlist_url(url, playlist_id)
+        self._sort_formats(formats)
+        return {
+            'id': programme_id,
+            'title': title,
+            'description': description,
+            'duration': duration,
+            'timestamp': timestamp,
+            'formats': formats,
+            'subtitles': subtitles,
+        }
+
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
 
         webpage = self._download_webpage(url, playlist_id)
 
-        timestamp = parse_iso8601(self._search_regex(
-            [r'"datePublished":\s*"([^"]+)',
-             r'<meta[^>]+property="article:published_time"[^>]+content="([^"]+)"',
-             r'itemprop="datePublished"[^>]+datetime="([^"]+)"'],
-            webpage, 'date', default=None))
+        timestamp = None
+        playlist_title = None
+        playlist_description = None
 
-        # single video with playlist.sxml URL (e.g. http://www.bbc.com/sport/0/football/3365340ng)
-        playlist = self._search_regex(
-            r'<param[^>]+name="playlist"[^>]+value="([^"]+)"',
-            webpage, 'playlist', default=None)
-        if playlist:
-            programme_id, title, description, duration, formats, subtitles = \
-                self._process_legacy_playlist_url(playlist, playlist_id)
-            self._sort_formats(formats)
-            return {
-                'id': programme_id,
-                'title': title,
-                'description': description,
-                'duration': duration,
-                'timestamp': timestamp,
-                'formats': formats,
-                'subtitles': subtitles,
-            }
+        ld = self._parse_json(
+            self._search_regex(
+                r'(?s)<script type="application/ld\+json">(.+?)</script>',
+                webpage, 'ld json', default='{}'),
+            playlist_id, fatal=False)
+        if ld:
+            timestamp = parse_iso8601(ld.get('datePublished'))
+            playlist_title = ld.get('headline')
+            playlist_description = ld.get('articleBody')
+
+        if not timestamp:
+            timestamp = parse_iso8601(self._search_regex(
+                [r'<meta[^>]+property="article:published_time"[^>]+content="([^"]+)"',
+                 r'itemprop="datePublished"[^>]+datetime="([^"]+)"',
+                 r'"datePublished":\s*"([^"]+)'],
+                webpage, 'date', default=None))
+
+        entries = []
+
+        # article with multiple videos embedded with playlist.sxml (e.g.
+        # http://www.bbc.com/sport/0/football/34475836)
+        playlists = re.findall(r'<param[^>]+name="playlist"[^>]+value="([^"]+)"', webpage)
+        if playlists:
+            entries = [
+                self._extract_from_playlist_sxml(playlist_url, playlist_id, timestamp)
+                for playlist_url in playlists]
+
+        # news article with multiple videos embedded with data-playable
+        data_playables = re.findall(r'data-playable=(["\'])({.+?})\1', webpage)
+        if data_playables:
+            for _, data_playable_json in data_playables:
+                data_playable = self._parse_json(
+                    unescapeHTML(data_playable_json), playlist_id, fatal=False)
+                if not data_playable:
+                    continue
+                settings = data_playable.get('settings', {})
+                if settings:
+                    # data-playable with video vpid in settings.playlistObject.items (e.g.
+                    # http://www.bbc.com/news/world-us-canada-34473351)
+                    playlist_object = settings.get('playlistObject', {})
+                    if playlist_object:
+                        items = playlist_object.get('items')
+                        if items and isinstance(items, list):
+                            title = playlist_object['title']
+                            description = playlist_object.get('summary')
+                            duration = int_or_none(items[0].get('duration'))
+                            programme_id = items[0].get('vpid')
+                            formats, subtitles = self._download_media_selector(programme_id)
+                            self._sort_formats(formats)
+                            entries.append({
+                                'id': programme_id,
+                                'title': title,
+                                'description': description,
+                                'timestamp': timestamp,
+                                'duration': duration,
+                                'formats': formats,
+                                'subtitles': subtitles,
+                            })
+                    else:
+                        # data-playable without vpid but with a playlist.sxml URLs
+                        # in otherSettings.playlist (e.g.
+                        # http://www.bbc.com/turkce/multimedya/2015/10/151010_vid_ankara_patlama_ani)
+                        playlist = data_playable.get('otherSettings', {}).get('playlist', {})
+                        if playlist:
+                            entries.append(self._extract_from_playlist_sxml(
+                                playlist.get('progressiveDownloadUrl'), playlist_id, timestamp))
+
+        if entries:
+            playlist_title = playlist_title or remove_end(self._og_search_title(webpage), ' - BBC News')
+            playlist_description = playlist_description or self._og_search_description(webpage, default=None)
+            return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
 
         # single video story (e.g. http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
         programme_id = self._search_regex(
             [r'data-video-player-vpid="([\da-z]{8})"',
              r'<param[^>]+name="externalIdentifier"[^>]+value="([\da-z]{8})"'],
             webpage, 'vpid', default=None)
+
         if programme_id:
             formats, subtitles = self._download_media_selector(programme_id)
             self._sort_formats(formats)

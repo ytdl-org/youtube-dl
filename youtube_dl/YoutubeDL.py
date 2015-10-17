@@ -1238,13 +1238,20 @@ class YoutubeDL(object):
             except (ValueError, OverflowError, OSError):
                 pass
 
+        subtitles = info_dict.get('subtitles')
+        if subtitles:
+            for _, subtitle in subtitles.items():
+                for subtitle_format in subtitle:
+                    if 'ext' not in subtitle_format:
+                        subtitle_format['ext'] = determine_ext(subtitle_format['url']).lower()
+
         if self.params.get('listsubtitles', False):
             if 'automatic_captions' in info_dict:
                 self.list_subtitles(info_dict['id'], info_dict.get('automatic_captions'), 'automatic captions')
-            self.list_subtitles(info_dict['id'], info_dict.get('subtitles'), 'subtitles')
+            self.list_subtitles(info_dict['id'], subtitles, 'subtitles')
             return
         info_dict['requested_subtitles'] = self.process_subtitles(
-            info_dict['id'], info_dict.get('subtitles'),
+            info_dict['id'], subtitles,
             info_dict.get('automatic_captions'))
 
         # We now pick which formats have to be downloaded

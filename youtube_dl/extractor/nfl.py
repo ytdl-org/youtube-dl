@@ -108,6 +108,20 @@ class NFLIE(InfoExtractor):
             'upload_date': '20150918',
         },
     }, {
+        # lowercase data-contentid
+        'url': 'http://www.steelers.com/news/article-1/Tomlin-on-Ben-getting-Vick-ready/56399c96-4160-48cf-a7ad-1d17d4a3aef7',
+        'info_dict': {
+            'id': '12693586-6ea9-4743-9c1c-02c59e4a5ef2',
+            'ext': 'mp4',
+            'title': 'Tomlin looks ahead to Ravens on a short week',
+            'description': 'md5:32f3f7b139f43913181d5cbb24ecad75',
+            'timestamp': 1443459651,
+            'upload_date': '20150928',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         'url': 'http://www.nfl.com/videos/nfl-network-top-ten/09000d5d810a6bd4/Top-10-Gutsiest-Performances-Jack-Youngblood',
         'only_matching': True,
     }, {
@@ -151,7 +165,7 @@ class NFLIE(InfoExtractor):
             group='config'))
         # For articles, the id in the url is not the video id
         video_id = self._search_regex(
-            r'(?:<nflcs:avplayer[^>]+data-contentId\s*=\s*|contentId\s*:\s*)(["\'])(?P<id>.+?)\1',
+            r'(?:<nflcs:avplayer[^>]+data-content[Ii]d\s*=\s*|content[Ii]d\s*:\s*)(["\'])(?P<id>.+?)\1',
             webpage, 'video id', default=video_id, group='id')
         config = self._download_json(config_url, video_id, 'Downloading player config')
         url_template = NFLIE.prepend_host(

@@ -108,12 +108,12 @@ class PBSIE(InfoExtractor):
         {
             'url': 'http://www.pbs.org/wgbh/americanexperience/films/death/player/',
             'info_dict': {
-                'id': '2280706814',
+                'id': '2276541483',
                 'display_id': 'player',
                 'ext': 'mp4',
-                'title': 'American Experience - Death and the Civil War',
+                'title': 'American Experience - Death and the Civil War, Chapter 1',
                 'description': 'American Experience, TV’s most-watched history series, brings to life the compelling stories from our past that inform our understanding of the world today.',
-                'duration': 6705,
+                'duration': 682,
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
             'params': {
@@ -134,8 +134,33 @@ class PBSIE(InfoExtractor):
             'params': {
                 'skip_download': True,  # requires ffmpeg
             },
+            'skip': 'Expired',
+        },
+        {
+            # Video embedded in iframe containing angle brackets as attribute's value (e.g.
+            # "<iframe style='position: absolute;<br />\ntop: 0; left: 0;' ...", see
+            # https://github.com/rg3/youtube-dl/issues/7059)
+            'url': 'http://www.pbs.org/food/features/a-chefs-life-season-3-episode-5-prickly-business/',
+            'info_dict': {
+                'id': '2365546844',
+                'display_id': 'a-chefs-life-season-3-episode-5-prickly-business',
+                'ext': 'mp4',
+                'title': "A Chef's Life - Season 3, Ep. 5: Prickly Business",
+                'description': 'md5:61db2ddf27c9912f09c241014b118ed1',
+                'duration': 1480,
+                'thumbnail': 're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            },
         }
     ]
+    _ERRORS = {
+        101: 'We\'re sorry, but this video is not yet available.',
+        403: 'We\'re sorry, but this video is not available in your region due to right restrictions.',
+        404: 'We are experiencing technical difficulties that are preventing us from playing the video at this time. Please check back again soon.',
+        410: 'This video has expired and is no longer available for online streaming.',
+    }
 
     def _extract_webpage(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -167,7 +192,7 @@ class PBSIE(InfoExtractor):
                 return media_id, presumptive_id, upload_date
 
             url = self._search_regex(
-                r'<iframe\s+[^>]*\s+src=["\']([^\'"]+partnerplayer[^\'"]+)["\']',
+                r'(?s)<iframe[^>]+?(?:[a-z-]+?=["\'].*?["\'][^>]+?)*?\bsrc=["\']([^\'"]+partnerplayer[^\'"]+)["\']',
                 webpage, 'player URL')
             mobj = re.match(self._VALID_URL, url)
 
@@ -213,13 +238,11 @@ class PBSIE(InfoExtractor):
                 'Downloading %s video url info' % encoding_name)
 
             if redirect_info['status'] == 'error':
-                if redirect_info['http_code'] == 403:
-                    message = (
-                        'The video is not available in your region due to '
-                        'right restrictions')
-                else:
-                    message = redirect_info['message']
-                raise ExtractorError(message, expected=True)
+                raise ExtractorError(
+                    '%s said: %s' % (
+                        self.IE_NAME,
+                        self._ERRORS.get(redirect_info['http_code'], redirect_info['message'])),
+                    expected=True)
 
             format_url = redirect_info.get('url')
             if not format_url:

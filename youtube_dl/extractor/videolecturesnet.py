@@ -3,11 +3,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_HTTPError,
+    compat_urlparse,
+)
 from ..utils import (
-    find_xpath_attr,
-    int_or_none,
+    ExtractorError,
     parse_duration,
-    unified_strdate,
 )
 
 
@@ -15,7 +17,7 @@ class VideoLecturesNetIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?videolectures\.net/(?P<id>[^/#?]+)/*(?:[#?].*)?$'
     IE_NAME = 'videolectures.net'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://videolectures.net/promogram_igor_mekjavic_eng/',
         'info_dict': {
             'id': 'promogram_igor_mekjavic_eng',
@@ -26,61 +28,55 @@ class VideoLecturesNetIE(InfoExtractor):
             'duration': 565,
             'thumbnail': 're:http://.*\.jpg',
         },
-    }
+    }, {
+        # video with invalid direct format links (HTTP 403)
+        'url': 'http://videolectures.net/russir2010_filippova_nlp/',
+        'info_dict': {
+            'id': 'russir2010_filippova_nlp',
+            'ext': 'flv',
+            'title': 'NLP at Google',
+            'description': 'md5:fc7a6d9bf0302d7cc0e53f7ca23747b3',
+            'duration': 5352,
+            'thumbnail': 're:http://.*\.jpg',
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://videolectures.net/deeplearning2015_montreal/',
+        'info_dict': {
+            'id': 'deeplearning2015_montreal',
+            'title': 'Deep Learning Summer School, Montreal 2015',
+            'description': 'md5:90121a40cc6926df1bf04dcd8563ed3b',
+        },
+        'playlist_count': 30,
+    }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         smil_url = 'http://videolectures.net/%s/video/1/smil.xml' % video_id
-        smil = self._download_xml(smil_url, video_id)
 
-        title = find_xpath_attr(smil, './/meta', 'name', 'title').attrib['content']
-        description_el = find_xpath_attr(smil, './/meta', 'name', 'abstract')
-        description = (
-            None if description_el is None
-            else description_el.attrib['content'])
-        upload_date = unified_strdate(
-            find_xpath_attr(smil, './/meta', 'name', 'date').attrib['content'])
+        try:
+            smil = self._download_smil(smil_url, video_id)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
+                # Probably a playlist
+                webpage = self._download_webpage(url, video_id)
+                entries = [
+                    self.url_result(compat_urlparse.urljoin(url, video_url), 'VideoLecturesNet')
+                    for _, video_url in re.findall(r'<a[^>]+href=(["\'])(.+?)\1[^>]+id=["\']lec=\d+', webpage)]
+                playlist_title = self._html_search_meta('title', webpage, 'title', fatal=True)
+                playlist_description = self._html_search_meta('description', webpage, 'description')
+                return self.playlist_result(entries, video_id, playlist_title, playlist_description)
+
+        info = self._parse_smil(smil, smil_url, video_id)
+
+        info['id'] = video_id
 
         switch = smil.find('.//switch')
-        duration = parse_duration(switch.attrib.get('dur'))
-        thumbnail_el = find_xpath_attr(switch, './image', 'type', 'thumbnail')
-        thumbnail = (
-            None if thumbnail_el is None else thumbnail_el.attrib.get('src'))
+        if switch is not None:
+            info['duration'] = parse_duration(switch.attrib.get('dur'))
 
-        formats = []
-        for v in switch.findall('./video'):
-            proto = v.attrib.get('proto')
-            if proto not in ['http', 'rtmp']:
-                continue
-            f = {
-                'width': int_or_none(v.attrib.get('width')),
-                'height': int_or_none(v.attrib.get('height')),
-                'filesize': int_or_none(v.attrib.get('size')),
-                'tbr': int_or_none(v.attrib.get('systemBitrate')) / 1000.0,
-                'ext': v.attrib.get('ext'),
-            }
-            src = v.attrib['src']
-            if proto == 'http':
-                if self._is_valid_url(src, video_id):
-                    f['url'] = src
-                    formats.append(f)
-            elif proto == 'rtmp':
-                f.update({
-                    'url': v.attrib['streamer'],
-                    'play_path': src,
-                    'rtmp_real_time': True,
-                })
-                formats.append(f)
-        self._sort_formats(formats)
-
-        return {
-            'id': video_id,
-            'title': title,
-            'description': description,
-            'upload_date': upload_date,
-            'duration': duration,
-            'thumbnail': thumbnail,
-            'formats': formats,
-        }
+        return info

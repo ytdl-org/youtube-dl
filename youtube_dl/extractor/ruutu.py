@@ -74,7 +74,7 @@ class RuutuIE(InfoExtractor):
                         preference = -1 if proto == 'rtmp' else 1
                         label = child.get('label')
                         tbr = int_or_none(child.get('bitrate'))
-                        width, height = [int_or_none(x) for x in child.get('resolution', '').split('x')]
+                        width, height = [int_or_none(x) for x in child.get('resolution', 'x').split('x')[:2]]
                         formats.append({
                             'format_id': '%s-%s' % (proto, label if label else tbr),
                             'url': video_url,
