@@ -51,6 +51,21 @@ class VineIE(InfoExtractor):
     }, {
         'url': 'https://vine.co/oembed/MYxVapFvz2z.json',
         'only_matching': True,
+    }, {
+        'url': 'https://vine.co/v/e192BnZnZ9V',
+        'info_dict': {
+            'id': 'e192BnZnZ9V',
+            'ext': 'mp4',
+            'title': u'\u0e22\u0e34\u0e49\u0e21~ \u0e40\u0e02\u0e34\u0e19~ \u0e2d\u0e32\u0e22~ \u0e19\u0e48\u0e32\u0e23\u0e49\u0e32\u0e01\u0e2d\u0e49\u0e30 >//< @n_whitewo @orlameena #lovesicktheseries  #lovesickseason2',
+            'alt_title': 'Vine by Pimry_zaa',
+            'description': u'\u0e22\u0e34\u0e49\u0e21~ \u0e40\u0e02\u0e34\u0e19~ \u0e2d\u0e32\u0e22~ \u0e19\u0e48\u0e32\u0e23\u0e49\u0e32\u0e01\u0e2d\u0e49\u0e30 >//< @n_whitewo @orlameena #lovesicktheseries  #lovesickseason2',
+            'upload_date': '20150705',
+            'uploader': 'Pimry_zaa',
+            'uploader_id': '1135760698325307392',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
@@ -74,8 +89,8 @@ class VineIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': self._og_search_title(webpage),
-            'alt_title': self._og_search_description(webpage, default=None),
+            'title': data['description'],
+            'alt_title': 'Vine by %s' % data['username'],
             'description': data['description'],
             'thumbnail': data['thumbnailUrl'],
             'upload_date': unified_strdate(data['created']),
