@@ -28,6 +28,7 @@ class YouPornIE(InfoExtractor):
             'id': '505835',
             'ext': 'mp4',
             'title': 'Sex Ed: Is It Safe To Masturbate Daily?',
+            'description': 'Watch Sex Ed: Is It Safe To Masturbate Daily? at YouPorn.com - YouPorn is the biggest free porn tube site on the net!',
             'age_limit': 18,
         }
     }
@@ -45,6 +46,8 @@ class YouPornIE(InfoExtractor):
         self.report_extraction(video_id)
         try:
             video_title = self._html_search_regex(r'page_params.video_title = \'(.+?)\';', webpage, 'video URL')
+            video_description = self._html_search_regex(r'<meta name="description" content="(.+?)" />', webpage, 'video DESC')
+            video_thumbnail = self._html_search_regex(r'<img src=\'(.+?)\' class="flipbook"', webpage, 'video THUMB')
         except KeyError:
             raise ExtractorError('Missing JSON parameter: ' + sys.exc_info()[1])
 
@@ -94,6 +97,8 @@ class YouPornIE(InfoExtractor):
         return {
             'id': video_id,
             'title': video_title,
+            'description': video_description,
+            'thumbnail': video_thumbnail,
             'age_limit': age_limit,
             'formats': formats,
         }
