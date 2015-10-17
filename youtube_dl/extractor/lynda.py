@@ -140,13 +140,14 @@ class LyndaIE(LyndaBaseIE):
 
         prioritized_streams = video_json.get('PrioritizedStreams')
         if prioritized_streams:
-            formats.extend([
-                {
-                    'url': video_url,
-                    'width': int_or_none(format_id),
-                    'format_id': format_id,
-                } for format_id, video_url in prioritized_streams['0'].items()
-            ])
+            for prioritized_stream_id, prioritized_stream in prioritized_streams.items():
+                formats.extend([
+                    {
+                        'url': video_url,
+                        'width': int_or_none(format_id),
+                        'format_id': '%s-%s' % (prioritized_stream_id, format_id),
+                    } for format_id, video_url in prioritized_stream.items()
+                ])
 
         self._check_formats(formats, video_id)
         self._sort_formats(formats)
