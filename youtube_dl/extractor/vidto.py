@@ -1,24 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-import sys
 from .common import InfoExtractor
+import re
 import time
 
-from ..utils import (
-    encode_dict,
-)
+from ..utils import encode_dict
 from ..compat import (
-    compat_chr,
-    compat_parse_qs,
-    compat_urllib_parse,
-    compat_urllib_parse_unquote,
-    compat_urllib_parse_unquote_plus,
-    compat_urllib_parse_urlparse,
     compat_urllib_request,
-    compat_urlparse,
-    compat_str,
+    compat_urllib_parse
 )
 
 
@@ -37,8 +27,7 @@ class VidtoIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         page = self._download_webpage(
             'http://%s/%s.html' % (self._HOST, video_id), video_id, 'Downloading video page')
@@ -63,16 +52,19 @@ class VidtoIE(InfoExtractor):
         post_data = compat_urllib_parse.urlencode(encode_dict(form_str)).encode('ascii')
         req = compat_urllib_request.Request(url, post_data)
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
-        for key, morsel in cookies.iteritems():
-            req.add_header('Cookie', '%s=%s' % (morsel.key, morsel.value))
+        cookie_string = ""
+        for key in cookies.keys():
+            cookie_string += "%s=%s;" % (key, cookies[key].value)
 
-        print("Waiting for countdown...")
+        req.add_header('Cookie', '%s' % cookie_string)
+
+        self.to_screen("Waiting for countdown...")
         time.sleep(7)
         post_result = self._download_webpage(
-            req, None,
+            req, video_id,
             note='Proceed to video...', errnote='unable to proceed', fatal=True)
 
-        file_link_regex = r'file_link ?= ?\'(https?:\/\/[0-9a-zA-z.\/\-_]+)'
+        file_link_regex = r'file_link\s*=\s*\'(https?:\/\/[0-9a-zA-z.\/\-_]+)'
         file_link = self._search_regex(file_link_regex, post_result, 'file_link', fatal=True)
 
         return {
