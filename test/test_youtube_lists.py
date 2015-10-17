@@ -57,5 +57,14 @@ class TestYoutubeLists(unittest.TestCase):
         entries = result['entries']
         self.assertEqual(len(entries), 100)
 
+    def test_youtube_flat_playlist_titles(self):
+        dl = FakeYDL()
+        dl.params['extract_flat'] = True
+        ie = YoutubePlaylistIE(dl)
+        result = ie.extract('https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re')
+        self.assertIsPlaylist(result)
+        for entry in result['entries']:
+            self.assertTrue(entry.get('title'))
+
 if __name__ == '__main__':
     unittest.main()
