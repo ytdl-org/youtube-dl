@@ -8,7 +8,7 @@ from .common import InfoExtractor
 
 
 class ClypIE(InfoExtractor):
-    _VALID_URL = r'https://clyp\.it/........'
+    _VALID_URL = r'https?://(?:www\.)?clyp\.it/(?P<id>[a-z0-9]+)'
 
     _TESTS = [{
         'url': 'https://clyp.it/ojz2wfah',
@@ -25,13 +25,17 @@ class ClypIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        video_id = url.replace("https://clyp.it/", "")
-        api_url = 'https://api.clyp.it/' + video_id
-        metadata = self._download_json(api_url, video_id)
+        audio_id = self._match_id(url)
+        api_url = 'https://api.clyp.it/' + audio_id
+        metadata = self._download_json(api_url, audio_id)
 
         title = metadata['Title']
-        description = metadata['Description']
-        duration = int(metadata['Duration'])
+
+        description = None
+        if metadata['Description']: description = metadata['Description']
+
+        duration = None
+        if metadata['Duration']: duration = int(metadata['Duration'])
         
         formats = [
             {
@@ -45,7 +49,7 @@ class ClypIE(InfoExtractor):
             }]
 
         return {
-            'id': video_id,
+            'id': audio_id,
             'title': title,
             'formats': formats,
             'description': description,
