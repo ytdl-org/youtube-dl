@@ -286,7 +286,14 @@ class VimeoIE(VimeoBaseInfoExtractor):
         try:
             try:
                 config_url = self._html_search_regex(
-                    r' data-config-url="(.+?)"', webpage, 'config URL')
+                    r' data-config-url="(.+?)"', webpage,
+                    'config URL', default=None)
+                if not config_url:
+                    # New react-based page
+                    vimeo_clip_page_config = self._search_regex(
+                        r'vimeo\.clip_page_config\s*=\s*({.+?});', webpage,
+                        'vimeo clip page config')
+                    config_url = self._parse_json(vimeo_clip_page_config, video_id)['player']['config_url']
                 config_json = self._download_webpage(config_url, video_id)
                 config = json.loads(config_json)
             except RegexNotFoundError:
