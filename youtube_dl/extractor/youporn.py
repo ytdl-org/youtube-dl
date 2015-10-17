@@ -27,9 +27,6 @@ class YouPornIE(InfoExtractor):
         'info_dict': {
             'id': '505835',
             'ext': 'mp4',
-            'upload_date': '20101221',
-            'description': 'Love & Sex Answers: http://bit.ly/DanAndJenn -- Is It Unhealthy To Masturbate Daily?',
-            'uploader': 'Ask Dan And Jennifer',
             'title': 'Sex Ed: Is It Safe To Masturbate Daily?',
             'age_limit': 18,
         }
@@ -45,35 +42,20 @@ class YouPornIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
         age_limit = self._rta_search(webpage)
 
-        # Get JSON parameters
-        json_params = self._search_regex(
-            [r'videoJa?son\s*=\s*({.+})',
-             r'var\s+currentVideo\s*=\s*new\s+Video\((.+?)\)[,;]'],
-            webpage, 'JSON parameters')
-        try:
-            params = json.loads(json_params)
-        except ValueError:
-            raise ExtractorError('Invalid JSON')
-
         self.report_extraction(video_id)
         try:
-            video_title = params['title']
-            upload_date = unified_strdate(params['release_date_f'])
-            video_description = params['description']
-            video_uploader = params['submitted_by']
-            thumbnail = params['thumbnails'][0]['image']
+            video_title = self._html_search_regex(r'page_params.video_title = \'(.+?)\';', webpage, 'video URL')
         except KeyError:
             raise ExtractorError('Missing JSON parameter: ' + sys.exc_info()[1])
 
         # Get all of the links from the page
-        DOWNLOAD_LIST_RE = r'(?s)<ul class="downloadList">(?P<download_list>.*?)</ul>'
-        download_list_html = self._search_regex(DOWNLOAD_LIST_RE,
-                                                webpage, 'download list').strip()
-        LINK_RE = r'<a href="([^"]+)">'
+        DOWNLOAD_LIST_RE = r'(?s)<div id="downloadModal" class="modalBox">(?P<testje>.*?)<div id="embedModal" class="modalBox">'
+        download_list_html = self._search_regex(DOWNLOAD_LIST_RE, webpage, 'testje').strip()
+        LINK_RE = r'<a href=\'([^"]+)\' title=\'Download Video\'>'
         links = re.findall(LINK_RE, download_list_html)
 
         # Get all encrypted links
-        encrypted_links = re.findall(r'var encryptedQuality[0-9]{3}URL = \'([a-zA-Z0-9+/]+={0,2})\';', webpage)
+        encrypted_links = re.findall(r'encryptedQuality[0-9]{3}URL\t=\t\'([a-zA-Z0-9+/]+={0,2})\';', webpage)
         for encrypted_link in encrypted_links:
             link = aes_decrypt_text(encrypted_link, video_title, 32).decode('utf-8')
             links.append(link)
@@ -111,11 +93,7 @@ class YouPornIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'uploader': video_uploader,
-            'upload_date': upload_date,
             'title': video_title,
-            'thumbnail': thumbnail,
-            'description': video_description,
             'age_limit': age_limit,
             'formats': formats,
         }
