@@ -526,16 +526,12 @@ class SoundcloudSearchIE(SearchInfoExtractor, SoundcloudIE):
             next_url = response.get('next_href', None)
 
     def _get_n_results(self, query, n):
-        results = []
-
         tracks = self._get_collection('/search/tracks',
             collection_id='Query "{0}"'.format(query),
             q=query.encode('utf-8'))
 
-        for track in itertools.islice(tracks, n):
-            uri = track['uri']
-            title = track['title']
-            results.append(self.url_result(url=uri))
+        results = [self.url_result(url=track['uri'])
+            for track in itertools.islice(tracks, n)]
 
         if not results:
             raise ExtractorError(
