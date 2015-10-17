@@ -14,6 +14,7 @@ from ..utils import (
     int_or_none,
     float_or_none,
     determine_ext,
+    unescapeHTML,
 )
 
 
@@ -70,6 +71,16 @@ class NaverIE(InfoExtractor):
             'title': '<인사이드 아웃> 메인 예고편',
             'uploader_id': 'navermovie',
             'uploader': '네이버 영화',
+        },
+    }, {
+        'url': 'http://music.naver.com/artist/videoPlayer.nhn?videoId=99476',
+        'md5': '4378409358f457bdce12e90f40ba33e2',
+        'info_dict': {
+            'id': 'E2651FBE1723D209C17AB611C296C57EA0A1',
+            'ext': 'mp4',
+            'title': '디아크 인사말',
+            'uploader_id': 'muploader_c',
+            'uploader': '',
         },
     }]
 
@@ -140,6 +151,7 @@ class NaverIE(InfoExtractor):
             if iframe_urls:
                 entries = []
                 for iframe_url in iframe_urls:
+                    iframe_url = unescapeHTML(iframe_url)
                     if iframe_url.startswith('/'):
                         iframe_url = compat_urlparse.urljoin(url, iframe_url)
                     request = compat_urllib_request.Request(iframe_url, headers={'Referer': url})
