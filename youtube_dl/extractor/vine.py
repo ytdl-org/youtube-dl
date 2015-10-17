@@ -29,10 +29,10 @@ class VineIE(InfoExtractor):
             'id': 'MYxVapFvz2z',
             'ext': 'mp4',
             'title': 'Fuck Da Police #Mikebrown #justice #ferguson #prayforferguson #protesting #NMOS14',
-            'alt_title': 'Vine by Luna',
+            'alt_title': 'Vine by Mars Ruiz',
             'description': 'Fuck Da Police #Mikebrown #justice #ferguson #prayforferguson #protesting #NMOS14',
             'upload_date': '20140815',
-            'uploader': 'Luna',
+            'uploader': 'Mars Ruiz',
             'uploader_id': '1102363502380728320',
         },
     }, {
