@@ -96,6 +96,11 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                 'uploader': 'HotWaves1012',
                 'age_limit': 18,
             }
+        },
+        # geo-restricted, player v5
+        {
+            'url': 'http://www.dailymotion.com/video/xhza0o',
+            'only_matching': True,
         }
     ]
 
@@ -124,6 +129,9 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         if player_v5:
             player = self._parse_json(player_v5, video_id)
             metadata = player['metadata']
+
+            self._check_error(metadata)
+
             formats = []
             for quality, media_list in metadata['qualities'].items():
                 for media in media_list:
@@ -201,9 +209,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                 'video info', flags=re.MULTILINE),
             video_id)
 
-        if info.get('error') is not None:
-            msg = 'Couldn\'t get video, Dailymotion says: %s' % info['error']['title']
-            raise ExtractorError(msg, expected=True)
+        self._check_error(info)
 
         formats = []
         for (key, format_id) in self._FORMATS:
@@ -245,6 +251,11 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             'view_count': view_count,
             'duration': info['duration']
         }
+
+    def _check_error(self, info):
+        if info.get('error') is not None:
+            msg = 'Couldn\'t get video, Dailymotion says: %s' % info['error']['title']
+            raise ExtractorError(msg, expected=True)
 
     def _get_subtitles(self, video_id, webpage):
         try:
