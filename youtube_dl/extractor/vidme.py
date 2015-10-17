@@ -93,6 +93,10 @@ class VidmeIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # nsfw, user-disabled
+        'url': 'https://vid.me/dzGJ',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
