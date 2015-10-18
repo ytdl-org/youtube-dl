@@ -29,6 +29,7 @@ if os.name == 'nt':
     import ctypes
 
 from .compat import (
+    compat_basestring,
     compat_cookiejar,
     compat_expanduser,
     compat_get_terminal_size,
@@ -88,6 +89,19 @@ from .postprocessor import (
     get_postprocessor,
 )
 from .version import __version__
+
+
+class _Int_digits(int):
+    """int-like type that gets formatted with a default fixed width 
+    (to be used within YoutubeDL.prepare_filename() so that {autonumber:03} 
+    prints 001 but {autonumber} defaults to 00001 rather than 1)
+    """
+    def __new__(cls, value, digits=0):
+        obj = int.__new__(cls, value)
+        obj.digits = digits
+        return obj
+    def __str__(self):
+        return "{0:0{1}}".format(self, self.digits)
 
 
 class YoutubeDL(object):
@@ -546,9 +560,9 @@ class YoutubeDL(object):
             autonumber_size = self.params.get('autonumber_size')
             if autonumber_size is None:
                 autonumber_size = 5
-            template_dict['autonumber'] = '%0*d' % (autonumber_size, self._num_downloads)
+            template_dict['autonumber'] = _Int_digits(self._num_downloads, autonumber_size)
             if template_dict.get('playlist_index') is not None:
-                template_dict['playlist_index'] = '%0*d' % (len(str(template_dict['n_entries'])), template_dict['playlist_index'])
+                template_dict['playlist_index'] = _Int_digits(template_dict['playlist_index'], len(str(template_dict['n_entries'])))
             if template_dict.get('resolution') is None:
                 if template_dict.get('width') and template_dict.get('height'):
                     template_dict['resolution'] = '%dx%d' % (template_dict['width'], template_dict['height'])
@@ -556,11 +570,16 @@ class YoutubeDL(object):
                     template_dict['resolution'] = '%sp' % template_dict['height']
                 elif template_dict.get('width'):
                     template_dict['resolution'] = '?x%d' % template_dict['width']
+            if template_dict.get('upload_date') is not None:
+                template_dict['upload_date'] = datetime.datetime.strptime(template_dict['upload_date'],"%Y%m%d").date()
 
-            sanitize = lambda k, v: sanitize_filename(
-                compat_str(v),
-                restricted=self.params.get('restrictfilenames'),
-                is_id=(k == 'id'))
+            def sanitize(k, v):
+                if isinstance(v, compat_basestring):
+                    return sanitize_filename(compat_str(v), 
+                            restricted = self.params.get('restrictfilenames'), 
+                            is_id = (k == 'id') )
+                else:
+                    return v  # leave non-strings untouched
             template_dict = dict((k, sanitize(k, v))
                                  for k, v in template_dict.items()
                                  if v is not None)
