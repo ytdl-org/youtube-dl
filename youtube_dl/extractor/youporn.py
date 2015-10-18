@@ -47,14 +47,11 @@ class YouPornIE(InfoExtractor):
         age_limit = self._rta_search(webpage)
 
         self.report_extraction(video_id)
-        try:
-            video_title = self._html_search_regex(r'page_params.video_title = \'(.+?)\';', webpage, 'video URL')
-            video_description = self._html_search_meta('description', webpage, 'video DESC')
-            video_thumbnail = self._html_search_regex(r'page_params.imageurl\t=\t"(.+?)";', webpage, 'video THUMB')
-            video_uploader = self._html_search_regex(r"<div class=\'videoInfoBy\'>By:</div>\n<a href=\"[^>]+\">(.+?)</a>", webpage, 'video UPLOADER')
-            video_date = self._html_search_regex(r"<div class='videoInfoTime'>\n<i class='icon-clock'></i> (.+?)\n</div>", webpage, 'video DATE')
-        except KeyError:
-            raise ExtractorError('Missing JSON parameter: ' + sys.exc_info()[1])
+        video_title = self._html_search_regex(r'page_params.video_title = \'(.+?)\';', webpage, 'video URL')
+        video_description = self._html_search_meta('description', webpage, 'video DESC')
+        video_thumbnail = self._html_search_regex(r'page_params.imageurl\t=\t"(.+?)";', webpage, 'video THUMB')
+        video_uploader = self._html_search_regex(r"<div class=\'videoInfoBy\'>By:</div>\n<a href=\"[^>]+\">(.+?)</a>", webpage, 'video UPLOADER')
+        video_date = self._html_search_regex(r"<div class='videoInfoTime'>\n<i class='icon-clock'></i> (.+?)\n</div>", webpage, 'video DATE')
 
         # Get all of the links from the page
         DOWNLOAD_LIST_RE = r'(?s)<div id="downloadModal" class="modalBox">(?P<testje>.*?)<div id="embedModal" class="modalBox">'
