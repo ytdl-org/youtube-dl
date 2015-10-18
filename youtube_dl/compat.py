@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
+import binascii
 import collections
+import email
 import getpass
+import io
 import optparse
 import os
 import re
@@ -37,6 +40,11 @@ try:
     import urllib.parse as compat_urlparse
 except ImportError:  # Python 2
     import urlparse as compat_urlparse
+
+try:
+    import urllib.response as compat_urllib_response
+except ImportError:  # Python 2
+    import urllib as compat_urllib_response
 
 try:
     import http.cookiejar as compat_cookiejar
@@ -154,6 +162,40 @@ except ImportError:  # Python 2
         """
         string = string.replace('+', ' ')
         return compat_urllib_parse_unquote(string, encoding, errors)
+
+try:
+    from urllib.request import DataHandler as compat_urllib_request_DataHandler
+except ImportError:  # Python < 3.4
+    # Ported from CPython 98774:1733b3bd46db, Lib/urllib/request.py
+    class compat_urllib_request_DataHandler(compat_urllib_request.BaseHandler):
+        def data_open(self, req):
+            # data URLs as specified in RFC 2397.
+            #
+            # ignores POSTed data
+            #
+            # syntax:
+            # dataurl   := "data:" [ mediatype ] [ ";base64" ] "," data
+            # mediatype := [ type "/" subtype ] *( ";" parameter )
+            # data      := *urlchar
+            # parameter := attribute "=" value
+            url = req.get_full_url()
+
+            scheme, data = url.split(":", 1)
+            mediatype, data = data.split(",", 1)
+
+            # even base64 encoded data URLs might be quoted so unquote in any case:
+            data = compat_urllib_parse_unquote_to_bytes(data)
+            if mediatype.endswith(";base64"):
+                data = binascii.a2b_base64(data)
+                mediatype = mediatype[:-7]
+
+            if not mediatype:
+                mediatype = "text/plain;charset=US-ASCII"
+
+            headers = email.message_from_string(
+                "Content-type: %s\nContent-length: %d\n" % (mediatype, len(data)))
+
+            return compat_urllib_response.addinfourl(io.BytesIO(data), headers, url)
 
 try:
     compat_basestring = basestring  # Python 2
@@ -489,6 +531,8 @@ __all__ = [
     'compat_urllib_parse_unquote_to_bytes',
     'compat_urllib_parse_urlparse',
     'compat_urllib_request',
+    'compat_urllib_request_DataHandler',
+    'compat_urllib_response',
     'compat_urlparse',
     'compat_urlretrieve',
     'compat_xml_parse_error',

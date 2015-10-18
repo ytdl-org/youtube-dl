@@ -131,10 +131,11 @@ class ViewsterIE(InfoExtractor):
                 formats.extend(self._extract_f4m_formats(
                     video_url, video_id, f4m_id='hds'))
             elif ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
+                m3u8_formats = self._extract_m3u8_formats(
                     video_url, video_id, 'mp4', m3u8_id='hls',
-                    fatal=False  # m3u8 sometimes fail
-                ))
+                    fatal=False)  # m3u8 sometimes fail
+                if m3u8_formats:
+                    formats.extend(m3u8_formats)
             else:
                 format_id = media.get('Bitrate')
                 f = {

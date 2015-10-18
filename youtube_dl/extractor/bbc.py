@@ -421,7 +421,7 @@ class BBCCoUkIE(InfoExtractor):
                 continue
             title = playlist.find('./{%s}title' % self._EMP_PLAYLIST_NS).text
             description_el = playlist.find('./{%s}summary' % self._EMP_PLAYLIST_NS)
-            description = description_el.text if description_el else None
+            description = description_el.text if description_el is not None else None
 
             def get_programme_id(item):
                 def get_from_attributes(item):

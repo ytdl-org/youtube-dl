@@ -46,6 +46,12 @@ class YandexMusicTrackIE(InfoExtractor):
                 % (data['host'], key, data['ts'] + data['path'], storage[1]))
 
     def _get_track_info(self, track):
+        thumbnail = None
+        cover_uri = track.get('albums', [{}])[0].get('coverUri')
+        if cover_uri:
+            thumbnail = cover_uri.replace('%%', 'orig')
+            if not thumbnail.startswith('http'):
+                thumbnail = 'http://' + thumbnail
         return {
             'id': track['id'],
             'ext': 'mp3',
@@ -53,6 +59,7 @@ class YandexMusicTrackIE(InfoExtractor):
             'title': '%s - %s' % (track['artists'][0]['name'], track['title']),
             'filesize': int_or_none(track.get('fileSize')),
             'duration': float_or_none(track.get('durationMs'), 1000),
+            'thumbnail': thumbnail,
         }
 
     def _real_extract(self, url):

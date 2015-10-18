@@ -1,65 +1,67 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
+from ..utils import (
+    int_or_none,
+    parse_iso8601,
+)
 
 
 class BeegIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?beeg\.com/(?P<id>\d+)'
     _TEST = {
         'url': 'http://beeg.com/5416503',
-        'md5': '1bff67111adb785c51d1b42959ec10e5',
+        'md5': '46c384def73b33dbc581262e5ee67cef',
         'info_dict': {
             'id': '5416503',
             'ext': 'mp4',
             'title': 'Sultry Striptease',
-            'description': 'md5:6db3c6177972822aaba18652ff59c773',
-            'categories': list,  # NSFW
-            'thumbnail': 're:https?://.*\.jpg$',
+            'description': 'md5:d22219c09da287c14bed3d6c37ce4bc2',
+            'timestamp': 1391813355,
+            'upload_date': '20140207',
+            'duration': 383,
+            'tags': list,
             'age_limit': 18,
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        video = self._download_json(
+            'http://beeg.com/api/v1/video/%s' % video_id, video_id)
 
-        quality_arr = self._search_regex(
-            r'(?s)var\s+qualityArr\s*=\s*{\s*(.+?)\s*}', webpage, 'quality formats')
-
-        formats = [{
-            'url': fmt[1],
-            'format_id': fmt[0],
-            'height': int(fmt[0][:-1]),
-        } for fmt in re.findall(r"'([^']+)'\s*:\s*'([^']+)'", quality_arr)]
-
+        formats = []
+        for format_id, video_url in video.items():
+            height = self._search_regex(
+                r'^(\d+)[pP]$', format_id, 'height', default=None)
+            if not height:
+                continue
+            formats.append({
+                'url': self._proto_relative_url(video_url.replace('{DATA_MARKERS}', ''), 'http:'),
+                'format_id': format_id,
+                'height': int(height),
+            })
         self._sort_formats(formats)
 
-        title = self._html_search_regex(
-            r'<title>([^<]+)\s*-\s*beeg\.?</title>', webpage, 'title')
+        title = video['title']
+        video_id = video.get('id') or video_id
+        display_id = video.get('code')
+        description = video.get('desc')
 
-        description = self._html_search_regex(
-            r'<meta name="description" content="([^"]*)"',
-            webpage, 'description', fatal=False)
-        thumbnail = self._html_search_regex(
-            r'\'previewer.url\'\s*:\s*"([^"]*)"',
-            webpage, 'thumbnail', fatal=False)
+        timestamp = parse_iso8601(video.get('date'), ' ')
+        duration = int_or_none(video.get('duration'))
 
-        categories_str = self._html_search_regex(
-            r'<meta name="keywords" content="([^"]+)"', webpage, 'categories', fatal=False)
-        categories = (
-            None if categories_str is None
-            else categories_str.split(','))
+        tags = [tag.strip() for tag in video['tags'].split(',')] if video.get('tags') else None
 
         return {
             'id': video_id,
+            'display_id': display_id,
             'title': title,
             'description': description,
-            'thumbnail': thumbnail,
-            'categories': categories,
+            'timestamp': timestamp,
+            'duration': duration,
+            'tags': tags,
             'formats': formats,
             'age_limit': 18,
         }
