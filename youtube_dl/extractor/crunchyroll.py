@@ -116,6 +116,10 @@ class CrunchyrollIE(CrunchyrollBaseIE):
     }, {
         'url': 'http://www.crunchyroll.fr/girl-friend-beta/episode-11-goodbye-la-mode-661697',
         'only_matching': True,
+    }, {
+        # geo-restricted (US), 18+ maturity wall, non-premium available
+        'url': 'http://www.crunchyroll.com/cosplay-complex-ova/episode-1-the-birth-of-the-cosplay-club-565617',
+        'only_matching': True,
     }]
 
     _FORMAT_IDS = {
@@ -374,6 +378,19 @@ class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
             'title': 'A Bridge to the Starry Skies - Hoshizora e Kakaru Hashi'
         },
         'playlist_count': 13,
+    }, {
+        # geo-restricted (US), 18+ maturity wall, non-premium available
+        'url': 'http://www.crunchyroll.com/cosplay-complex-ova',
+        'info_dict': {
+            'id': 'cosplay-complex-ova',
+            'title': 'Cosplay Complex OVA'
+        },
+        'playlist_count': 3,
+        'skip': 'Georestricted',
+    }, {
+        # geo-restricted (US), 18+ maturity wall, non-premium will be available since 2015.11.14
+        'url': 'http://www.crunchyroll.com/ladies-versus-butlers?skip_wall=1',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
