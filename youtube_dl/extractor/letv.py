@@ -162,7 +162,7 @@ class LetvIE(InfoExtractor):
                 m3u8_data = self.decrypt_m3u8(req.read())
 
                 url_info_dict = {
-                    'url': encode_data_uri(m3u8_data, 'application/x-mpegURL'),
+                    'url': encode_data_uri(m3u8_data, 'application/vnd.apple.mpegurl'),
                     'ext': determine_ext(dispatch[format_id][1]),
                     'format_id': format_id,
                     'protocol': 'm3u8',
