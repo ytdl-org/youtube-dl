@@ -13,6 +13,7 @@ from ..utils import (
 
 
 class TwitterCardIE(InfoExtractor):
+    IE_NAME = 'twitter:card'
     _VALID_URL = r'https?://(?:www\.)?twitter\.com/i/cards/tfw/v1/(?P<id>\d+)'
     _TESTS = [
         {
@@ -101,6 +102,7 @@ class TwitterCardIE(InfoExtractor):
 
 
 class TwitterIE(TwitterCardIE):
+    IE_NAME = 'twitter'
     _VALID_URL = r'https?://(?:www|m|mobile)?\.?twitter\.com/(?P<id>[^/]+/status/\d+)'
 
     _TESTS = [{
