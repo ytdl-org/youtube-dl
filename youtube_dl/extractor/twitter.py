@@ -97,11 +97,11 @@ class TwitterCardIE(InfoExtractor):
         }
 
 
-class TwitterIE(TwitterCardIE):
+class TwitterIE(InfoExtractor):
     IE_NAME = 'twitter'
     _VALID_URL = r'https?://(?:www|m|mobile)?\.?twitter\.com/(?P<id>[^/]+/status/\d+)'
 
-    _TESTS = [{
+    _TEST = {
         'url': 'https://twitter.com/freethenipple/status/643211948184596480',
         'md5': '31cd83a116fc41f99ae3d909d4caf6a0',
         'info_dict': {
@@ -114,7 +114,7 @@ class TwitterIE(TwitterCardIE):
             'uploader': 'FREE THE NIPPLE',
             'uploader_id': 'freethenipple',
         },
-    }]
+    }
 
     def _real_extract(self, url):
         id = self._match_id(url)
