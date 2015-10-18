@@ -29,6 +29,9 @@ class YouPornIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Sex Ed: Is It Safe To Masturbate Daily?',
             'description': 'Watch Sex Ed: Is It Safe To Masturbate Daily? at YouPorn.com - YouPorn is the biggest free porn tube site on the net!',
+            'uploader': 'Ask Dan And Jennifer',
+            'thumbnail': 'http://cdn5.image.youporn.phncdn.com/201012/17/505835/640x480/8/sex-ed-is-it-safe-to-masturbate-daily-8.jpg',
+            'date': 'December 21, 2010',
             'age_limit': 18,
         }
     }
@@ -46,8 +49,10 @@ class YouPornIE(InfoExtractor):
         self.report_extraction(video_id)
         try:
             video_title = self._html_search_regex(r'page_params.video_title = \'(.+?)\';', webpage, 'video URL')
-            video_description = self._html_search_regex(r'<meta name="description" content="(.+?)" />', webpage, 'video DESC')
-            video_thumbnail = self._html_search_regex(r'<img src=\'(.+?)\' class="flipbook"', webpage, 'video THUMB')
+            video_description = self._html_search_meta('description', webpage, 'video DESC')
+            video_thumbnail = self._html_search_regex(r'page_params.imageurl\t=\t"(.+?)";', webpage, 'video THUMB')
+            video_uploader = self._html_search_regex(r"<div class=\'videoInfoBy\'>By:</div>\n<a href=\"[^>]+\">(.+?)</a>", webpage, 'video UPLOADER')
+            video_date = self._html_search_regex(r"<div class='videoInfoTime'>\n<i class='icon-clock'></i> (.+?)\n</div>", webpage, 'video DATE')
         except KeyError:
             raise ExtractorError('Missing JSON parameter: ' + sys.exc_info()[1])
 
@@ -99,6 +104,8 @@ class YouPornIE(InfoExtractor):
             'title': video_title,
             'description': video_description,
             'thumbnail': video_thumbnail,
+            'uploader': video_uploader,
+            'date': video_date,
             'age_limit': age_limit,
             'formats': formats,
         }
