@@ -122,7 +122,7 @@ class TwitterIE(InfoExtractor):
         name = username
         url = re.sub(r'https?://(m|mobile)\.', 'https://', url)
         webpage = self._download_webpage(url, 'tweet: ' + url)
-        description = unescapeHTML(self._search_regex('<title>\s*(.+?)\s*</title>', webpage, 'title'))
+        description = self._html_search_regex('<title>\s*(.+?)\s*</title>', webpage, 'title')
         title = description.replace('\n', ' ')
         splitdesc = re.match(r'^(.+?)\s*on Twitter:\s* "(.+?)"$', title)
         if splitdesc:
