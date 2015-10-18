@@ -93,6 +93,10 @@ class VidmeIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # nsfw, user-disabled
+        'url': 'https://vid.me/dzGJ',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -113,6 +117,12 @@ class VidmeIE(InfoExtractor):
                 '%s returned error: %s' % (self.IE_NAME, error), expected=True)
 
         video = response['video']
+
+        if video.get('state') == 'user-disabled':
+            raise ExtractorError(
+                'Vidme said: This video has been suspended either due to a copyright claim, '
+                'or for violating the terms of use.',
+                expected=True)
 
         formats = [{
             'format_id': f.get('type'),

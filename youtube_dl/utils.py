@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 
+import base64
 import calendar
 import codecs
 import contextlib
@@ -1371,7 +1372,12 @@ def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1):
             v = getattr(v, get_attr, None)
     if v == '':
         v = None
-    return default if v is None else (int(v) * invscale // scale)
+    if v is None:
+        return default
+    try:
+        return int(v) * invscale // scale
+    except ValueError:
+        return default
 
 
 def str_or_none(v, default=None):
@@ -1387,7 +1393,12 @@ def str_to_int(int_str):
 
 
 def float_or_none(v, scale=1, invscale=1, default=None):
-    return default if v is None else (float(v) * invscale / scale)
+    if v is None:
+        return default
+    try:
+        return float(v) * invscale / scale
+    except ValueError:
+        return default
 
 
 def parse_duration(s):
@@ -1783,6 +1794,10 @@ def urlhandle_detect_ext(url_handle):
                 return e
 
     return mimetype2ext(getheader('Content-Type'))
+
+
+def encode_data_uri(data, mime_type):
+    return 'data:%s;base64,%s' % (mime_type, base64.b64encode(data).decode('ascii'))
 
 
 def age_restricted(content_limit, age_limit):

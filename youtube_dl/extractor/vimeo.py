@@ -212,7 +212,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             url = url.replace('http://', 'https://')
         password_request = compat_urllib_request.Request(url + '/password', data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        password_request.add_header('Cookie', 'clip_v=1; vuid=%s' % vuid)
+        password_request.add_header('Cookie', 'clip_test2=1; vuid=%s' % vuid)
         password_request.add_header('Referer', url)
         return self._download_webpage(
             password_request, video_id,
@@ -286,7 +286,17 @@ class VimeoIE(VimeoBaseInfoExtractor):
         try:
             try:
                 config_url = self._html_search_regex(
-                    r' data-config-url="(.+?)"', webpage, 'config URL')
+                    r' data-config-url="(.+?)"', webpage,
+                    'config URL', default=None)
+                if not config_url:
+                    # Sometimes new react-based page is served instead of old one that require
+                    # different config URL extraction approach (see
+                    # https://github.com/rg3/youtube-dl/pull/7209)
+                    vimeo_clip_page_config = self._search_regex(
+                        r'vimeo\.clip_page_config\s*=\s*({.+?});', webpage,
+                        'vimeo clip page config')
+                    config_url = self._parse_json(
+                        vimeo_clip_page_config, video_id)['player']['config_url']
                 config_json = self._download_webpage(config_url, video_id)
                 config = json.loads(config_json)
             except RegexNotFoundError:

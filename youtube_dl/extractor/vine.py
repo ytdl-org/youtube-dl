@@ -1,10 +1,14 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
 import itertools
 
 from .common import InfoExtractor
-from ..utils import unified_strdate
+from ..utils import (
+    int_or_none,
+    unified_strdate,
+)
 
 
 class VineIE(InfoExtractor):
@@ -17,10 +21,12 @@ class VineIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Chicken.',
             'alt_title': 'Vine by Jack Dorsey',
-            'description': 'Chicken.',
             'upload_date': '20130519',
             'uploader': 'Jack Dorsey',
             'uploader_id': '76',
+            'like_count': int,
+            'comment_count': int,
+            'repost_count': int,
         },
     }, {
         'url': 'https://vine.co/v/MYxVapFvz2z',
@@ -29,11 +35,13 @@ class VineIE(InfoExtractor):
             'id': 'MYxVapFvz2z',
             'ext': 'mp4',
             'title': 'Fuck Da Police #Mikebrown #justice #ferguson #prayforferguson #protesting #NMOS14',
-            'alt_title': 'Vine by Luna',
-            'description': 'Fuck Da Police #Mikebrown #justice #ferguson #prayforferguson #protesting #NMOS14',
+            'alt_title': 'Vine by Mars Ruiz',
             'upload_date': '20140815',
-            'uploader': 'Luna',
+            'uploader': 'Mars Ruiz',
             'uploader_id': '1102363502380728320',
+            'like_count': int,
+            'comment_count': int,
+            'repost_count': int,
         },
     }, {
         'url': 'https://vine.co/v/bxVjBbZlPUH',
@@ -43,14 +51,33 @@ class VineIE(InfoExtractor):
             'ext': 'mp4',
             'title': '#mw3 #ac130 #killcam #angelofdeath',
             'alt_title': 'Vine by Z3k3',
-            'description': '#mw3 #ac130 #killcam #angelofdeath',
             'upload_date': '20130430',
             'uploader': 'Z3k3',
             'uploader_id': '936470460173008896',
+            'like_count': int,
+            'comment_count': int,
+            'repost_count': int,
         },
     }, {
         'url': 'https://vine.co/oembed/MYxVapFvz2z.json',
         'only_matching': True,
+    }, {
+        'url': 'https://vine.co/v/e192BnZnZ9V',
+        'info_dict': {
+            'id': 'e192BnZnZ9V',
+            'ext': 'mp4',
+            'title': 'ยิ้ม~ เขิน~ อาย~ น่าร้ากอ้ะ >//< @n_whitewo @orlameena #lovesicktheseries  #lovesickseason2',
+            'alt_title': 'Vine by Pimry_zaa',
+            'upload_date': '20150705',
+            'uploader': 'Pimry_zaa',
+            'uploader_id': '1135760698325307392',
+            'like_count': int,
+            'comment_count': int,
+            'repost_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
@@ -65,25 +92,26 @@ class VineIE(InfoExtractor):
 
         formats = [{
             'format_id': '%(format)s-%(rate)s' % f,
-            'vcodec': f['format'],
-            'quality': f['rate'],
+            'vcodec': f.get('format'),
+            'quality': f.get('rate'),
             'url': f['videoUrl'],
-        } for f in data['videoUrls']]
+        } for f in data['videoUrls'] if f.get('videoUrl')]
 
         self._sort_formats(formats)
 
+        username = data.get('username')
+
         return {
             'id': video_id,
-            'title': self._og_search_title(webpage),
-            'alt_title': self._og_search_description(webpage, default=None),
-            'description': data['description'],
-            'thumbnail': data['thumbnailUrl'],
-            'upload_date': unified_strdate(data['created']),
-            'uploader': data['username'],
-            'uploader_id': data['userIdStr'],
-            'like_count': data['likes']['count'],
-            'comment_count': data['comments']['count'],
-            'repost_count': data['reposts']['count'],
+            'title': data.get('description') or self._og_search_title(webpage),
+            'alt_title': 'Vine by %s' % username if username else self._og_search_description(webpage, default=None),
+            'thumbnail': data.get('thumbnailUrl'),
+            'upload_date': unified_strdate(data.get('created')),
+            'uploader': username,
+            'uploader_id': data.get('userIdStr'),
+            'like_count': int_or_none(data.get('likes', {}).get('count')),
+            'comment_count': int_or_none(data.get('comments', {}).get('count')),
+            'repost_count': int_or_none(data.get('reposts', {}).get('count')),
             'formats': formats,
         }
 

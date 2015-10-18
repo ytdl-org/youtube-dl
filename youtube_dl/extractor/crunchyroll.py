@@ -32,6 +32,26 @@ from ..aes import (
 
 
 class CrunchyrollBaseIE(InfoExtractor):
+    _NETRC_MACHINE = 'crunchyroll'
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            return
+        self.report_login()
+        login_url = 'https://www.crunchyroll.com/?a=formhandler'
+        data = urlencode_postdata({
+            'formname': 'RpcApiUser_Login',
+            'name': username,
+            'password': password,
+        })
+        login_request = compat_urllib_request.Request(login_url, data)
+        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        self._download_webpage(login_request, None, False, 'Wrong login info')
+
+    def _real_initialize(self):
+        self._login()
+
     def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None):
         request = (url_or_request if isinstance(url_or_request, compat_urllib_request.Request)
                    else compat_urllib_request.Request(url_or_request))
@@ -46,10 +66,22 @@ class CrunchyrollBaseIE(InfoExtractor):
         return super(CrunchyrollBaseIE, self)._download_webpage(
             request, video_id, note, errnote, fatal, tries, timeout, encoding)
 
+    @staticmethod
+    def _add_skip_wall(url):
+        parsed_url = compat_urlparse.urlparse(url)
+        qs = compat_urlparse.parse_qs(parsed_url.query)
+        # Always force skip_wall to bypass maturity wall, namely 18+ confirmation message:
+        # > This content may be inappropriate for some people.
+        # > Are you sure you want to continue?
+        # since it's not disabled by default in crunchyroll account's settings.
+        # See https://github.com/rg3/youtube-dl/issues/7202.
+        qs['skip_wall'] = ['1']
+        return compat_urlparse.urlunparse(
+            parsed_url._replace(query=compat_urllib_parse.urlencode(qs, True)))
+
 
 class CrunchyrollIE(CrunchyrollBaseIE):
     _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:media(?:-|/\?id=)|[^/]*/[^/?&]*?)(?P<video_id>[0-9]+))(?:[/?&]|$)'
-    _NETRC_MACHINE = 'crunchyroll'
     _TESTS = [{
         'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
         'info_dict': {
@@ -81,9 +113,12 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             # rtmp
             'skip_download': True,
         },
-
     }, {
         'url': 'http://www.crunchyroll.fr/girl-friend-beta/episode-11-goodbye-la-mode-661697',
+        'only_matching': True,
+    }, {
+        # geo-restricted (US), 18+ maturity wall, non-premium available
+        'url': 'http://www.crunchyroll.com/cosplay-complex-ova/episode-1-the-birth-of-the-cosplay-club-565617',
         'only_matching': True,
     }]
 
@@ -93,24 +128,6 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         '720': ('62', '106'),
         '1080': ('80', '108'),
     }
-
-    def _login(self):
-        (username, password) = self._get_login_info()
-        if username is None:
-            return
-        self.report_login()
-        login_url = 'https://www.crunchyroll.com/?a=formhandler'
-        data = urlencode_postdata({
-            'formname': 'RpcApiUser_Login',
-            'name': username,
-            'password': password,
-        })
-        login_request = compat_urllib_request.Request(login_url, data)
-        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        self._download_webpage(login_request, None, False, 'Wrong login info')
-
-    def _real_initialize(self):
-        self._login()
 
     def _decrypt_subtitles(self, data, iv, id):
         data = bytes_to_intlist(base64.b64decode(data.encode('utf-8')))
@@ -254,7 +271,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         else:
             webpage_url = 'http://www.' + mobj.group('url')
 
-        webpage = self._download_webpage(webpage_url, video_id, 'Downloading webpage')
+        webpage = self._download_webpage(self._add_skip_wall(webpage_url), video_id, 'Downloading webpage')
         note_m = self._html_search_regex(
             r'<div class="showmedia-trailer-notice">(.+?)</div>',
             webpage, 'trailer-notice', default='')
@@ -352,7 +369,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
     IE_NAME = "crunchyroll:playlist"
-    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?!(?:news|anime-news|library|forum|launchcalendar|lineup|store|comics|freetrial|login))(?P<id>[\w\-]+))/?$'
+    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?!(?:news|anime-news|library|forum|launchcalendar|lineup|store|comics|freetrial|login))(?P<id>[\w\-]+))/?(?:\?|$)'
 
     _TESTS = [{
         'url': 'http://www.crunchyroll.com/a-bridge-to-the-starry-skies-hoshizora-e-kakaru-hashi',
@@ -361,12 +378,25 @@ class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
             'title': 'A Bridge to the Starry Skies - Hoshizora e Kakaru Hashi'
         },
         'playlist_count': 13,
+    }, {
+        # geo-restricted (US), 18+ maturity wall, non-premium available
+        'url': 'http://www.crunchyroll.com/cosplay-complex-ova',
+        'info_dict': {
+            'id': 'cosplay-complex-ova',
+            'title': 'Cosplay Complex OVA'
+        },
+        'playlist_count': 3,
+        'skip': 'Georestricted',
+    }, {
+        # geo-restricted (US), 18+ maturity wall, non-premium will be available since 2015.11.14
+        'url': 'http://www.crunchyroll.com/ladies-versus-butlers?skip_wall=1',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         show_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, show_id)
+        webpage = self._download_webpage(self._add_skip_wall(url), show_id)
         title = self._html_search_regex(
             r'(?s)<h1[^>]*>\s*<span itemprop="name">(.*?)</span>',
             webpage, 'title')

@@ -10,6 +10,8 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    float_or_none,
+    int_or_none,
 )
 
 
@@ -52,11 +54,11 @@ class BandcampIE(InfoExtractor):
                     ext, abr_str = format_id.split('-', 1)
                     formats.append({
                         'format_id': format_id,
-                        'url': format_url,
+                        'url': self._proto_relative_url(format_url, 'http:'),
                         'ext': ext,
                         'vcodec': 'none',
                         'acodec': ext,
-                        'abr': int(abr_str),
+                        'abr': int_or_none(abr_str),
                     })
 
                 self._sort_formats(formats)
@@ -65,7 +67,7 @@ class BandcampIE(InfoExtractor):
                     'id': compat_str(data['id']),
                     'title': data['title'],
                     'formats': formats,
-                    'duration': float(data['duration']),
+                    'duration': float_or_none(data.get('duration')),
                 }
             else:
                 raise ExtractorError('No free songs found')
