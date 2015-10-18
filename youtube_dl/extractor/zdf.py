@@ -70,6 +70,22 @@ def extract_from_xml_url(ie, video_id, xml_url):
             '_available': is_available,
         }
 
+    def xml_to_thumbnails(fnode):
+        thumbnails = list()
+        for node in fnode:
+            thumbnail = {'url': node.text}
+            if 'key' in node.attrib:
+                m = re.match('^([0-9]+)x([0-9]+)$', node.attrib['key'])
+                if m:
+                    thumbnail['width'] = int(m.group(1))
+                    thumbnail['height'] = int(m.group(2))
+            thumbnails.append(thumbnail)
+        return thumbnails
+
+
+    thumbnail_nodes = doc.findall('.//teaserimages/teaserimage')
+    thumbnails = xml_to_thumbnails(thumbnail_nodes)
+
     format_nodes = doc.findall('.//formitaeten/formitaet')
     formats = list(filter(
         lambda f: f['_available'],
@@ -81,6 +97,7 @@ def extract_from_xml_url(ie, video_id, xml_url):
         'title': title,
         'description': description,
         'duration': duration,
+        'thumbnails': thumbnails,
         'uploader': uploader,
         'uploader_id': uploader_id,
         'upload_date': upload_date,
