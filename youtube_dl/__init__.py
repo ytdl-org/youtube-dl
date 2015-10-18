@@ -9,6 +9,7 @@ import codecs
 import io
 import os
 import random
+import re
 import shlex
 import sys
 
@@ -189,18 +190,25 @@ def _real_main(argv=None):
     if opts.allsubtitles and not opts.writeautomaticsub:
         opts.writesubtitles = True
 
-    outtmpl = ((opts.outtmpl is not None and opts.outtmpl) or
-               (opts.format == '-1' and opts.usetitle and '%(title)s-%(id)s-%(format)s.%(ext)s') or
-               (opts.format == '-1' and '%(id)s-%(format)s.%(ext)s') or
-               (opts.usetitle and opts.autonumber and '%(autonumber)s-%(title)s-%(id)s.%(ext)s') or
-               (opts.usetitle and '%(title)s-%(id)s.%(ext)s') or
-               (opts.useid and '%(id)s.%(ext)s') or
-               (opts.autonumber and '%(autonumber)s-%(id)s.%(ext)s') or
-               DEFAULT_OUTTMPL)
-    if not os.path.splitext(outtmpl)[1] and opts.extractaudio:
+    outtmpl = (opts.outtmpl if opts.outtmpl is not None 
+            else '{title}-{id}-{format}.{ext}' if opts.format == '-1' and opts.usetitle 
+            else '{id}-{format}.{ext}' if opts.format == '-1' 
+            else '{autonumber}-{title}-{id}.{ext}' if opts.usetitle and opts.autonumber 
+            else '{autonumber}-{title}-{id}.{ext}' if opts.usetitle 
+            else '{id}.{ext}' if opts.useid 
+            else '{autonumber}-{id}.{ext}' if opts.autonumber 
+            else DEFAULT_OUTTMPL)
+    # Backwards compatibility fix (deprecated): %(foo)s -> {foo}, %% -> %
+    outtmpl2 = re.sub(r'(?<!%)((?:%)*)\1%\(([^)]*)\)s', r'\1{\2}', outtmpl)
+    if outtmpl2 != outtmpl:
+        sys.stderr.write('WARNING: Format "{0}" is deprecated; use "{1}" instead\n'
+                .format(outtmpl, outtmpl2))
+    outtmpl = outtmpl2.replace('%%','%')  # do the %% replacement AFTER the warning
+    if opts.extractaudio and not os.path.splitext(outtmpl)[1]:
         parser.error('Cannot download a video and extract audio into the same'
-                     ' file! Use "{0}.%(ext)s" instead of "{0}" as the output'
+                     ' file! Use "{0}.{{ext}}" instead of "{0}" as the output'
                      ' template'.format(outtmpl))
+    outtmpl = compat_expanduser(outtmpl)
 
     any_getting = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson or opts.dump_single_json
     any_printing = opts.print_json
