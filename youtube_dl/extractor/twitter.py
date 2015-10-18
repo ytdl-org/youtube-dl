@@ -7,7 +7,6 @@ from .common import InfoExtractor
 from ..compat import compat_urllib_request
 from ..utils import (
     float_or_none,
-    unescapeHTML,
     xpath_text,
     remove_end,
 )
@@ -57,9 +56,8 @@ class TwitterCardIE(InfoExtractor):
             request.add_header('User-Agent', user_agent)
             webpage = self._download_webpage(request, video_id)
 
-            config = self._parse_json(
-                unescapeHTML(self._search_regex(
-                    r'data-player-config="([^"]+)"', webpage, 'data player config')),
+            config = self._parse_json(self._html_search_regex(
+                r'data-player-config="([^"]+)"', webpage, 'data player config'),
                 video_id)
             if 'playlist' not in config:
                 if 'vmapUrl' in config:
