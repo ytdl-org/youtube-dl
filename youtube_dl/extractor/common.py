@@ -172,6 +172,7 @@ class InfoExtractor(object):
     view_count:     How many users have watched the video on the platform.
     like_count:     Number of positive ratings of the video
     dislike_count:  Number of negative ratings of the video
+    repost_count:   Number of reposts of the video
     average_rating: Average rating give by users, the scale used depends on the webpage
     comment_count:  Number of comments on the video
     comments:       A list of comments, each with one or more of the following
