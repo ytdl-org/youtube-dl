@@ -114,17 +114,26 @@ which means you can modify it, redistribute it or use it however you like.
 ## Filesystem Options:
     -a, --batch-file FILE            File containing URLs to download ('-' for stdin)
     --id                             Use only video ID in file name
-    -o, --output TEMPLATE            Output filename template. Use %(title)s to get the title, %(uploader)s for the uploader name, %(uploader_id)s for the uploader
-                                     nickname if different, %(autonumber)s to get an automatically incremented number, %(ext)s for the filename extension, %(format)s for
-                                     the format description (like "22 - 1280x720" or "HD"), %(format_id)s for the unique id of the format (like YouTube's itags: "137"),
-                                     %(upload_date)s for the upload date (YYYYMMDD), %(extractor)s for the provider (youtube, metacafe, etc), %(id)s for the video id,
-                                     %(playlist_title)s, %(playlist_id)s, or %(playlist)s (=title if present, ID otherwise) for the playlist the video is in,
-                                     %(playlist_index)s for the position in the playlist. %(height)s and %(width)s for the width and height of the video format.
-                                     %(resolution)s for a textual description of the resolution of the video format. %% for a literal percent. Use - to output to stdout.
-                                     Can also be used to download to a different directory, for example with -o '/my/downloads/%(uploader)s/%(title)s-%(id)s.%(ext)s' .
-    --autonumber-size NUMBER         Specify the number of digits in %(autonumber)s when it is present in output filename template or --auto-number option is given
+    -o, --output TEMPLATE            Output filename template. Use 
+                                     {title} to get the title, 
+                                     {uploader} for the uploader name, {uploader_id} for the uploader nickname if different, 
+                                     {autonumber} to get an automatically incremented number, 
+                                     {ext} for the filename extension, 
+                                     {format} for the format description (like "22 - 1280x720" or "HD"), 
+                                     {format_id} for the unique id of the format (like YouTube's itags: "137"), 
+                                     {upload_date} for the upload date (YYYYMMDD), 
+                                     {extractor} for the provider (youtube, metacafe, etc), 
+                                     {id} for the video id, 
+                                     {playlist_title}, {playlist_id}, or {playlist} (=title if present, ID otherwise) for the playlist the video is in, 
+                                     {playlist_index} for the position in the playlist, 
+                                     {height} and {width} for the width and height of the video format, 
+                                     {resolution} for a textual description of the resolution of the video format, 
+                                     {{ }} %% for literal braces and percent. 
+                                     Use - to output to stdout. 
+                                     Can also be used to download to a different directory, for example with -o '/my/downloads/{uploader}/{title}-{id}.{ext}' .
+    --autonumber-size NUMBER         Specify the number of digits in {autonumber} when it is present in output filename template or --auto-number option is given
     --restrict-filenames             Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames
-    -A, --auto-number                [deprecated; use  -o "%(autonumber)s-%(title)s.%(ext)s" ] Number downloaded files starting from 00000
+    -A, --auto-number                [deprecated; use  -o '{autonumber}-{title}.{ext}' ] Number downloaded files starting from 00000
     -t, --title                      [deprecated] Use title in file name (default)
     -l, --literal                    [deprecated] Alias of --title
     -w, --no-overwrites              Do not overwrite files
@@ -221,7 +230,7 @@ which means you can modify it, redistribute it or use it however you like.
     --embed-subs                     Embed subtitles in the video (only for mkv and mp4 videos)
     --embed-thumbnail                Embed thumbnail in the audio as cover art
     --add-metadata                   Write metadata to the video file
-    --metadata-from-title FORMAT     Parse additional metadata like song title / artist from the video title. The format syntax is the same as --output, the parsed
+    --metadata-from-title FORMAT     Parse additional metadata like song title / artist from the video title. The format syntax is the same as --output but using `%(NAME)s` instead of `{NAME}`, the parsed
                                      parameters replace existing values. Additional templates: %(album)s, %(artist)s. Example: --metadata-from-title "%(artist)s -
                                      %(title)s" matches a title like "Coldplay - Paradise"
     --xattrs                         Write metadata to the video file's xattrs (using dublin core and xdg standards)
@@ -260,27 +269,31 @@ On Windows you may also need to setup `%HOME%` environment variable manually.
 
 # OUTPUT TEMPLATE
 
-The `-o` option allows users to indicate a template for the output file names. The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format `%(NAME)s`. To clarify, that is a percent symbol followed by a name in parenthesis, followed by a lowercase S. Allowed names are:
+The `-o` option allows users to indicate a template for the output file names. The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format `{NAME}`. To clarify, that is a name enclosed in braces. Allowed names are:
 
- - `id`: The sequence will be replaced by the video identifier.
- - `url`: The sequence will be replaced by the video URL.
- - `uploader`: The sequence will be replaced by the nickname of the person who uploaded the video.
- - `upload_date`: The sequence will be replaced by the upload date in YYYYMMDD format.
- - `title`: The sequence will be replaced by the video title.
- - `ext`: The sequence will be replaced by the appropriate extension (like flv or mp4).
- - `epoch`: The sequence will be replaced by the Unix epoch when creating the file.
- - `autonumber`: The sequence will be replaced by a five-digit number that will be increased with each download, starting at zero.
- - `playlist`: The name or the id of the playlist that contains the video.
- - `playlist_index`: The index of the video in the playlist, a five-digit number.
+ - `{title}`: the video title.
+ - `{uploader}`, `{uploader_id}`: the uploader name / nickname.
+ - `{autonumber}`: an automatically incremented number.
+ - `{ext}`: the filename extension.
+ - `{format}`: the format description (like "22 - 1280x720" or "HD").
+ - `{format_id}`: the unique id of the format (like YouTube's itags: "137").
+ - `{upload_date}`: the upload date, in YYYYMMDD format.
+ - `{extractor}`: the provider (youtube, metacafe, etc).
+ - `{id}`: the video identifier.
+ - `{playlist_title}`, `{playlist_id}`, `{playlist}` (=title if present, ID otherwise): the playlist the video is in.
+ - `{playlist_index}`: the position in the playlist, padded with zeros.
+ - `{height}`, `{width}`: the width and height of the video format.
+ - `{resolution}`: a textual description of the resolution of the video format.
+ - `{{`, `}}`, `%%`: literal braces and percent. 
 
-The current default template is `%(title)s-%(id)s.%(ext)s`.
+The current default template is `{title}-{id}.{ext}`.
 
 In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
 
 ```bash
-$ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc
+$ youtube-dl --get-filename -o "{title}.{ext}" 'http://youtube.com/watch?v=BaW_jenozKc'
 youtube-dl test video ''_ä↭𝕐.mp4    # All kinds of weird characters
-$ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc --restrict-filenames
+$ youtube-dl --get-filename -o "{title}.{ext}" 'http://youtube.com/watch?v=BaW_jenozKc' --restrict-filenames
 youtube-dl_test_video_.mp4          # A simple file name
 ```
 
@@ -430,7 +443,7 @@ From then on, after restarting your shell, you will be able to access both youtu
 
 ### How do I put downloads into a specific folder?
 
-Use the `-o` to specify an [output template](#output-template), for example `-o "/home/user/videos/%(title)s-%(id)s.%(ext)s"`. If you want this for all of your downloads, put the option into your [configuration file](#configuration).
+Use the `-o` to specify an [output template](#output-template), for example `-o "/home/user/videos/{title}-{id}.{ext}"`. If you want this for all of your downloads, put the option into your [configuration file](#configuration).
 
 ### How do I download a video starting with a `-` ?
 
