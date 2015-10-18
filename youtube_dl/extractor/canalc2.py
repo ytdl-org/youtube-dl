@@ -8,7 +8,7 @@ from .common import InfoExtractor
 
 class Canalc2IE(InfoExtractor):
     IE_NAME = 'canalc2.tv'
-    _VALID_URL = r'https?://(www\.)?canalc2\.tv/video/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?canalc2\.tv/video/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://www.canalc2.tv/video/12163',
@@ -27,8 +27,8 @@ class Canalc2IE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         video_url = self._search_regex(
-            r'jwplayer\("Player"\).setup\({[^}]*file: "([^"]+)"',
-            webpage, 'video_url')
+            r'jwplayer\((["\'])Player\1\)\.setup\({[^}]*file\s*:\s*(["\'])(?P<file>.+?)\2',
+            webpage, 'video_url', group='file')
         formats = [{'url': video_url}]
         if video_url.startswith('rtmp://'):
             rtmp = re.search(r'^(?P<url>rtmp://[^/]+/(?P<app>.+/))(?P<play_path>mp4:.+)$', video_url)
