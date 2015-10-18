@@ -75,9 +75,10 @@ def extract_from_xml_url(ie, video_id, xml_url):
         for node in fnode:
             thumbnail = {'url': node.text}
             if 'key' in node.attrib:
-                if re.match("^[0-9]+x[0-9]+$", node.attrib['key']):
-                    thumbnail['width'] = int_or_none(node.attrib['key'].split('x')[0])
-                    thumbnail['height'] = int_or_none(node.attrib['key'].split('x')[1])
+                m = re.match('^([0-9]+)x([0-9]+)$', node.attrib['key'])
+                if m:
+                    thumbnail['width'] = int(m.group(1))
+                    thumbnail['height'] = int(m.group(2))
             thumbnails.append(thumbnail)
         return thumbnails
 
