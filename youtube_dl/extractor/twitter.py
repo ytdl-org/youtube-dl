@@ -64,13 +64,9 @@ class TwitterCardIE(InfoExtractor):
                 if 'vmapUrl' in config:
                     vmap_data = self._download_xml(config['vmapUrl'], video_id)
                     video_url = xpath_text(vmap_data, './/MediaFile').strip()
-                    f = {
+                    formats.append({
                         'url': video_url,
-                    }
-                    ext = re.search(r'\.([a-z0-9]{2,4})(\?.+)?$', video_url)
-                    if ext:
-                        f['ext'] = ext.group(1)
-                    formats.append(f)
+                    })
                     break   # same video regardless of UA
                 continue
 
