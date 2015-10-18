@@ -276,7 +276,7 @@ def parseOpts(overrideArguments=None):
             'For example, to only match videos that have been liked more than '
             '100 times and disliked less than 50 times (or the dislike '
             'functionality is not available at the given service), but who '
-            'also have a description, use  --match-filter '
+            'also have a description, use --match-filter '
             '"like_count > 100 & dislike_count <? 50 & description" .'
         ))
     selection.add_option(
@@ -581,7 +581,7 @@ def parseOpts(overrideArguments=None):
               '{ext} for the filename extension, '
               '{format} for the format description (like "22 - 1280x720" or "HD"), '
               '{format_id} for the unique id of the format (like YouTube\'s itags: "137"), '
-              '{upload_date} for the upload date (YYYYMMDD), '
+              '{upload_date} for the upload date (YYYY-mm-dd), '
               '{extractor} for the provider (youtube, metacafe, etc), '
               '{id} for the video id, '
               '{playlist_title}, {playlist_id}, or {playlist} (=title if present, ID otherwise) for the playlist the video is in, '
@@ -589,6 +589,7 @@ def parseOpts(overrideArguments=None):
               '{height} and {width} for the width and height of the video format, '
               '{resolution} for a textual description of the resolution of the video format, '
               '{{ }} %% for literal braces and percent. '
+              'Format specifiers such as {autonumber:03} or {upload_date:%d-%m-%Y} are allowed. '
               'The legacy form %(title)s is also supported with the same meaning as {title}, '
               'but this may change in a future. '
               'Use - to output to stdout. Can also be used to download to a different directory, '
@@ -596,7 +597,8 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '--autonumber-size',
         dest='autonumber_size', metavar='NUMBER',
-        help='Specify the number of digits in {autonumber} when it is present in output filename template or --auto-number option is given')
+        help=('[deprecated; use {autonumber:0N} where N is the number of digits] '
+              'Specify the number of digits in {autonumber} when it is present in output filename template or --auto-number option is given'))
     filesystem.add_option(
         '--restrict-filenames',
         action='store_true', dest='restrictfilenames', default=False,
@@ -604,7 +606,7 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '-A', '--auto-number',
         action='store_true', dest='autonumber', default=False,
-        help='[deprecated; use  -o "{autonumber}-{title}.{ext}" ] Number downloaded files starting from 00000')
+        help='[deprecated; use -o \'{autonumber}-{title}.{ext}\' ] Number downloaded files starting from 00000')
     filesystem.add_option(
         '-t', '--title',
         action='store_true', dest='usetitle', default=False,
