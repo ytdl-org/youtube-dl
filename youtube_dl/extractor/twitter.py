@@ -37,6 +37,19 @@ class TwitterCardIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*\.jpg',
                 'duration': 80.155,
             },
+        },
+        {
+            'url': 'https://twitter.com/i/cards/tfw/v1/654001591733886977',
+            'md5': 'b6f35e8b08a0bec6c8af77a2f4b3a814',
+            'info_dict': {
+                'id': 'dq4Oj5quskI',
+                'ext': 'mp4',
+                'title': 'Ubuntu 11.10 Overview',
+                'description': 'Take a quick peek at what\'s new and improved in Ubuntu 11.10.\n\nOnce installed take a look at 10 Things to Do After Installing: http://www.omgubuntu.co.uk/2011/10/10-things-to-do-after-installing-ubuntu-11-10/',
+                'upload_date': '20111013',
+                'uploader': 'OMG! Ubuntu!',
+                'uploader_id': 'omgubuntu',
+            },
         }
     ]
 
@@ -55,6 +68,12 @@ class TwitterCardIE(InfoExtractor):
             request = compat_urllib_request.Request(url)
             request.add_header('User-Agent', user_agent)
             webpage = self._download_webpage(request, video_id)
+
+            youtube_url = self._html_search_regex(
+                r'<iframe[^>]+src="((?:https?:)?//www.youtube.com/embed/[^"]+)"',
+                webpage, 'youtube iframe', default=None)
+            if youtube_url:
+                return self.url_result(youtube_url, 'Youtube')
 
             config = self._parse_json(self._html_search_regex(
                 r'data-player-config="([^"]+)"', webpage, 'data player config'),
