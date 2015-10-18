@@ -12,7 +12,6 @@ class NprIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?npr\.org/player/v2/mediaPlayer.html?.*id=(?P<id>[0-9]+)'
     _TEST = {
     'url': 'http://www.npr.org/player/v2/mediaPlayer.html?id=445367719',
-    'md5' : '458bacc24549173fe5a5aa29174a5606',
     'info_dict': {
         'id': '445367719',
         'ext': 'mp4',
