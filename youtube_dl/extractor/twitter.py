@@ -8,6 +8,7 @@ from ..compat import compat_urllib_request
 from ..utils import (
     float_or_none,
     unescapeHTML,
+    xpath_text,
 )
 
 
@@ -60,9 +61,8 @@ class TwitterCardIE(InfoExtractor):
                 video_id)
             if 'playlist' not in config:
                 if 'vmapUrl' in config:
-                    webpage = self._download_webpage(config['vmapUrl'], video_id + ' (xml)')
-                    video_url = self._search_regex(
-                        r'<MediaFile>\s*<!\[CDATA\[(https?://.+?)\]\]>', webpage, 'data player config (xml)')
+                    vmap_data = self._download_xml(config['vmapUrl'], video_id)
+                    video_url = xpath_text(vmap_data, './/MediaFile').strip()
                     f = {
                         'url': video_url,
                     }
