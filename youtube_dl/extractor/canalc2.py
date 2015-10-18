@@ -31,10 +31,12 @@ class Canalc2IE(InfoExtractor):
             webpage, 'video_url')
         formats = [{'url': video_url}]
         if video_url.startswith('rtmp://'):
-            rtmp = re.search(r'^(?P<url>rtmp://[^/]+/(?P<app>.+))/(?P<play_path>mp4:.+)$', video_url)
+            rtmp = re.search(r'^(?P<url>rtmp://[^/]+/(?P<app>.+/))(?P<play_path>mp4:.+)$', video_url)
             formats[0].update({
+                'url': rtmp.group('url'),
                 'app': rtmp.group('app'),
                 'play_path': rtmp.group('play_path'),
+                'page_url': url,
             })
 
         title = self._html_search_regex(
