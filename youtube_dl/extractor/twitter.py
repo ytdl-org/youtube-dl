@@ -128,7 +128,7 @@ class TwitterIE(InfoExtractor):
         title = self._og_search_description(webpage).strip('').replace('\n', ' ')
 
         # strip  'https -_t.co_BJYgOjSeGA' junk from filenames
-        mobj = re.match(r'“(.*)\s+(http://[^ ]+)”', title)
+        mobj = re.match(r'“(.*)\s+(https?://[^ ]+)”', title)
         title, short_url = mobj.groups()
 
         card_id = self._search_regex(
