@@ -596,7 +596,7 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '--autonumber-size',
         dest='autonumber_size', metavar='NUMBER',
-        help='Specify the number of digits in %(autonumber)s when it is present in output filename template or --auto-number option is given')
+        help='Specify the number of digits in {autonumber} when it is present in output filename template or --auto-number option is given')
     filesystem.add_option(
         '--restrict-filenames',
         action='store_true', dest='restrictfilenames', default=False,
@@ -604,7 +604,7 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '-A', '--auto-number',
         action='store_true', dest='autonumber', default=False,
-        help='[deprecated; use  -o "%(autonumber)s-%(title)s.%(ext)s" ] Number downloaded files starting from 00000')
+        help='[deprecated; use  -o "{autonumber}-{title}.{ext}" ] Number downloaded files starting from 00000')
     filesystem.add_option(
         '-t', '--title',
         action='store_true', dest='usetitle', default=False,
@@ -722,7 +722,8 @@ def parseOpts(overrideArguments=None):
         '--metadata-from-title',
         metavar='FORMAT', dest='metafromtitle',
         help='Parse additional metadata like song title / artist from the video title. '
-             'The format syntax is the same as --output, '
+             'The format syntax is the same as --output '
+             'but using "%(NAME)s" instead of "{NAME}"; '
              'the parsed parameters replace existing values. '
              'Additional templates: %(album)s, %(artist)s. '
              'Example: --metadata-from-title "%(artist)s - %(title)s" matches a title like '
