@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -15,7 +16,7 @@ class TwitterCardIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/560070183650213889',
-            'md5': 'a74f50b310c83170319ba16de6955192',
+            'md5': '7d2f6b4d2eb841a7ccc893d479bfceb4',
             'info_dict': {
                 'id': '560070183650213889',
                 'ext': 'mp4',
@@ -103,17 +104,17 @@ class TwitterIE(TwitterCardIE):
     _VALID_URL = r'https?://(?:www|m|mobile)?\.?twitter\.com/(?P<id>[^/]+/status/\d+)'
 
     _TESTS = [{
-        'url': 'https://m.twitter.com/thereaIbanksy/status/614301758345490432',
-        'md5': '8bbccb487bd7a31349b775915fcd412f',
+        'url': 'https://twitter.com/freethenipple/status/643211948184596480',
+        'md5': '31cd83a116fc41f99ae3d909d4caf6a0',
         'info_dict': {
-            'id': '614301758345490432',
+            'id': '643211948184596480',
             'ext': 'mp4',
-            'title': 'thereaIbanksy - This time lapse is so pretty \U0001f60d\U0001f60d',
+            'title': 'freethenipple - FTN supporters on Hollywood Blvd today!',
             'thumbnail': 're:^https?://.*\.jpg',
-            'duration': 29.5,
-            'description': 'banksy on Twitter: "This time lapse is so pretty \U0001f60d\U0001f60d http://t.co/QB8DDbqiR1"',
-            'uploader': 'banksy',
-            'uploader_id': 'thereaIbanksy',
+            'duration': 12.922,
+            'description': 'FREE THE NIPPLE on Twitter: "FTN supporters on Hollywood Blvd today! http://t.co/c7jHH749xJ"',
+            'uploader': 'FREE THE NIPPLE',
+            'uploader_id': 'freethenipple',
         },
     }]
 
