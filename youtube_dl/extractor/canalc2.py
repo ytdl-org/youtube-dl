@@ -34,6 +34,7 @@ class Canalc2IE(InfoExtractor):
             rtmp = re.search(r'^(?P<url>rtmp://[^/]+/(?P<app>.+/))(?P<play_path>mp4:.+)$', video_url)
             formats[0].update({
                 'url': rtmp.group('url'),
+                'ext': 'flv',
                 'app': rtmp.group('app'),
                 'play_path': rtmp.group('play_path'),
                 'page_url': url,
