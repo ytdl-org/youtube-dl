@@ -546,8 +546,7 @@ class YoutubeDL(object):
             autonumber_size = self.params.get('autonumber_size')
             if autonumber_size is None:
                 autonumber_size = 5
-            autonumber_templ = '%0' + str(autonumber_size) + 'd'
-            template_dict['autonumber'] = autonumber_templ % self._num_downloads
+            template_dict['autonumber'] = '%0*d' % (autonumber_size, self._num_downloads)
             if template_dict.get('playlist_index') is not None:
                 template_dict['playlist_index'] = '%0*d' % (len(str(template_dict['n_entries'])), template_dict['playlist_index'])
             if template_dict.get('resolution') is None:
@@ -568,10 +567,7 @@ class YoutubeDL(object):
             template_dict = collections.defaultdict(lambda: 'NA', template_dict)
 
             outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
-            tmpl = compat_expanduser(outtmpl)
-            # Backwards compatibility fix (deprecated): %(foo)s -> {foo}, %% -> %
-            tmpl = re.sub(r'(?<!%)((?:%)*)\1%\(([^)]*)\)s', r'\1{\2}', tmpl).replace('%%','%')
-            filename = sanitize_path(string.Formatter().vformat(tmpl, None, template_dict))
+            filename = sanitize_path(string.Formatter().vformat(outtmpl, None, template_dict))
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
             # to workaround encoding issues with subprocess on python2 @ Windows
