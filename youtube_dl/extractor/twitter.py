@@ -9,6 +9,7 @@ from ..utils import (
     float_or_none,
     unescapeHTML,
     xpath_text,
+    remove_end,
 )
 
 
@@ -99,7 +100,8 @@ class TwitterCardIE(InfoExtractor):
 
 class TwitterIE(InfoExtractor):
     IE_NAME = 'twitter'
-    _VALID_URL = r'https?://(?:www|m|mobile)?\.?twitter\.com/(?P<id>[^/]+/status/\d+)'
+    _VALID_URL = r'https?://(?:www\.|m\.|mobile\.)?twitter\.com/(?P<user_id>[^/]+)/status/(?P<id>\d+)'
+    _TEMPLATE_URL = 'https://twitter.com/%s/status/%s'
 
     _TEST = {
         'url': 'https://twitter.com/freethenipple/status/643211948184596480',
@@ -107,7 +109,7 @@ class TwitterIE(InfoExtractor):
         'info_dict': {
             'id': '643211948184596480',
             'ext': 'mp4',
-            'title': 'freethenipple - FTN supporters on Hollywood Blvd today!',
+            'title': 'FREE THE NIPPLE - FTN supporters on Hollywood Blvd today!',
             'thumbnail': 're:^https?://.*\.jpg',
             'duration': 12.922,
             'description': 'FREE THE NIPPLE on Twitter: "FTN supporters on Hollywood Blvd today! http://t.co/c7jHH749xJ"',
@@ -117,26 +119,31 @@ class TwitterIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        id = self._match_id(url)
-        username, twid = re.match(r'([^/]+)/status/(\d+)', id).groups()
-        name = username
-        url = re.sub(r'https?://(m|mobile)\.', 'https://', url)
-        webpage = self._download_webpage(url, 'tweet: ' + url)
-        description = self._html_search_regex('<title>\s*(.+?)\s*</title>', webpage, 'title')
-        title = description.replace('\n', ' ')
-        splitdesc = re.match(r'^(.+?)\s*on Twitter:\s* "(.+?)"$', title)
-        if splitdesc:
-            name, title = splitdesc.groups()
-        title = re.sub(r'\s*https?://[^ ]+', '', title)  # strip  'https -_t.co_BJYgOjSeGA' junk from filenames
-        card_id = self._search_regex(r'["\']/i/cards/tfw/v1/(\d+)', webpage, '/i/card/...')
+        mobj = re.match(self._VALID_URL, url)
+        user_id = mobj.group('user_id')
+        twid = mobj.group('id')
+
+        webpage = self._download_webpage(self._TEMPLATE_URL % (user_id, twid), twid)
+
+        username = remove_end(self._og_search_title(webpage), ' on Twitter')
+
+        title = self._og_search_description(webpage).strip('').replace('\n', ' ')
+
+        # strip  'https -_t.co_BJYgOjSeGA' junk from filenames
+        mobj = re.match(r'“(.*)\s+(http://[^ ]+)”', title)
+        title, short_url = mobj.groups()
+
+        card_id = self._search_regex(
+            r'["\']/i/cards/tfw/v1/(\d+)', webpage, 'twitter card url')
         card_url = 'https://twitter.com/i/cards/tfw/v1/' + card_id
+
         return {
             '_type': 'url_transparent',
             'ie_key': 'TwitterCard',
-            'uploader_id': username,
-            'uploader': name,
+            'uploader_id': user_id,
+            'uploader': username,
             'url': card_url,
             'webpage_url': url,
-            'description': description,
+            'description': '%s on Twitter: "%s %s"' % (username, title, short_url),
             'title': username + ' - ' + title,
         }
