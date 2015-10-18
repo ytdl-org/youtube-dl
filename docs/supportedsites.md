@@ -588,7 +588,8 @@
  - **twitch:stream**
  - **twitch:video**
  - **twitch:vod**
- - **TwitterCard**
+ - **twitter**
+ - **twitter:card**
  - **Ubu**
  - **udemy**
  - **udemy:course**
