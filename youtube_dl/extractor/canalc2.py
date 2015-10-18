@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import parse_duration
 
 
 class Canalc2IE(InfoExtractor):
@@ -42,9 +43,13 @@ class Canalc2IE(InfoExtractor):
 
         title = self._html_search_regex(
             r'(?s)class="[^"]*col_description[^"]*">.*?<h3>(.*?)</h3>', webpage, 'title')
+        duration = parse_duration(self._search_regex(
+            r'id=["\']video_duree["\'][^>]*>([^<]+)',
+            webpage, 'duration', fatal=False))
 
         return {
             'id': video_id,
-            'formats': formats,
             'title': title,
+            'duration': duration,
+            'formats': formats,
         }
