@@ -690,7 +690,7 @@ from .twitch import (
     TwitchBookmarksIE,
     TwitchStreamIE,
 )
-from .twitter import TwitterCardIE
+from .twitter import TwitterCardIE, TwitterIE
 from .ubu import UbuIE
 from .udemy import (
     UdemyIE,
