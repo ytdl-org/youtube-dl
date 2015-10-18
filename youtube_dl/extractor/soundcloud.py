@@ -535,7 +535,7 @@ class SoundcloudSearchIE(SearchInfoExtractor, SoundcloudIE):
 
         if not results:
             raise ExtractorError(
-                '[soundcloud] No track results', expected=True)
+                'Soundcloud said: No track results', expected=True)
         
-        return self.playlist_result(results[:n], playlist_title=query)
+        return self.playlist_result(results, playlist_title=query)
 
