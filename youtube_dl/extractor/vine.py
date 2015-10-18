@@ -24,6 +24,9 @@ class VineIE(InfoExtractor):
             'upload_date': '20130519',
             'uploader': 'Jack Dorsey',
             'uploader_id': '76',
+            'like_count': int,
+            'comment_count': int,
+            'repost_count': int,
         },
     }, {
         'url': 'https://vine.co/v/MYxVapFvz2z',
@@ -36,6 +39,9 @@ class VineIE(InfoExtractor):
             'upload_date': '20140815',
             'uploader': 'Mars Ruiz',
             'uploader_id': '1102363502380728320',
+            'like_count': int,
+            'comment_count': int,
+            'repost_count': int,
         },
     }, {
         'url': 'https://vine.co/v/bxVjBbZlPUH',
@@ -48,6 +54,9 @@ class VineIE(InfoExtractor):
             'upload_date': '20130430',
             'uploader': 'Z3k3',
             'uploader_id': '936470460173008896',
+            'like_count': int,
+            'comment_count': int,
+            'repost_count': int,
         },
     }, {
         'url': 'https://vine.co/oembed/MYxVapFvz2z.json',
@@ -62,6 +71,9 @@ class VineIE(InfoExtractor):
             'upload_date': '20150705',
             'uploader': 'Pimry_zaa',
             'uploader_id': '1135760698325307392',
+            'like_count': int,
+            'comment_count': int,
+            'repost_count': int,
         },
         'params': {
             'skip_download': True,
