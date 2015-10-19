@@ -1,10 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 from .common import InfoExtractor
+from ..utils import int_or_none
 
 
 class StitcherIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?stitcher\.com/podcast/[\/a-z\-]+(?P<id>\d+)|\?[a-z=]+'
+    _VALID_URL = r'https?://(?:www\.)?stitcher\.com/podcast/[\/a-z\-]+(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.stitcher.com/podcast/the-talking-machines/e/40789481?autoplay=true',
         'md5': '391dd4e021e6edeb7b8e68fbf2e9e940',
@@ -23,7 +24,7 @@ class StitcherIE(InfoExtractor):
         title = self._og_search_title(webpage)
         url = self._search_regex(r'episodeURL: "(.+?)"', webpage, 'url')
         episode_image = self._search_regex(r'episodeImage: "(.+?)"', webpage, 'episode_image', fatal=False)
-        duration = self._search_regex(r'simpleDuration: "(\d+?) minutes"', webpage, 'duration', fatal=False)
+        duration = int_or_none(self._search_regex(r'duration: (\d+?),', webpage, 'duration', fatal=False))
 
         return {
             'id': audio_id,
