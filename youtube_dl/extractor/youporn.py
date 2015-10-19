@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import json
 import re
 import sys
+import datetime
 
 from .common import InfoExtractor
 from ..compat import (
@@ -31,7 +32,7 @@ class YouPornIE(InfoExtractor):
             'description': 'Watch Sex Ed: Is It Safe To Masturbate Daily? at YouPorn.com - YouPorn is the biggest free porn tube site on the net!',
             'uploader': 'Ask Dan And Jennifer',
             'thumbnail': 'http://cdn5.image.youporn.phncdn.com/201012/17/505835/640x480/8/sex-ed-is-it-safe-to-masturbate-daily-8.jpg',
-            'date': 'December 21, 2010',
+            'date': '20101221',
             'age_limit': 18,
         }
     }
@@ -47,30 +48,22 @@ class YouPornIE(InfoExtractor):
         age_limit = self._rta_search(webpage)
 
         self.report_extraction(video_id)
-        video_title = self._html_search_regex(r'page_params.video_title = \'(.+?)\';', webpage, 'video URL')
-        video_description = self._html_search_meta('description', webpage, 'video DESC')
-        video_thumbnail = self._html_search_regex(r'page_params.imageurl\t=\t"(.+?)";', webpage, 'video THUMB')
-        video_uploader = self._html_search_regex(r"<div class=\'videoInfoBy\'>By:</div>\n<a href=\"[^>]+\">(.+?)</a>", webpage, 'video UPLOADER')
-        video_date = self._html_search_regex(r"<div class='videoInfoTime'>\n<i class='icon-clock'></i> (.+?)\n</div>", webpage, 'video DATE')
+        video_title = self._html_search_regex(r'page_params.video_title = \'(.+?)\';', webpage, 'video URL', fatal=False)
+        video_description = self._html_search_meta('description', webpage, 'video DESC', fatal=False)
+        video_thumbnail = self._html_search_regex(r'page_params.imageurl\t=\t"(.+?)";', webpage, 'video THUMB', fatal=False)
+        video_uploader = self._html_search_regex(r"<div class=\'videoInfoBy\'>By:</div>\n<a href=\"[^>]+\">(.+?)</a>", webpage, 'video UPLOADER', fatal=False)
+        video_date = self._html_search_regex(r"<div class='videoInfoTime'>\n<i class='icon-clock'></i> (.+?)\n</div>", webpage, 'video DATE', fatal=False)
+        video_date = datetime.datetime.strptime(video_date, '%B %d, %Y').strftime('%Y%m%d')
 
         # Get all of the links from the page
-        DOWNLOAD_LIST_RE = r'(?s)<div id="downloadModal" class="modalBox">(?P<testje>.*?)<div id="embedModal" class="modalBox">'
+        DOWNLOAD_LIST_RE = r'(?s)sources: {\n(?P<testje>.*?)}'
         download_list_html = self._search_regex(DOWNLOAD_LIST_RE, webpage, 'testje').strip()
-        LINK_RE = r'<a href=\'([^"]+)\' title=\'Download Video\'>'
+        LINK_RE = r': \'(.+?)\','
         links = re.findall(LINK_RE, download_list_html)
-
-        # Get all encrypted links
-        encrypted_links = re.findall(r'encryptedQuality[0-9]{3}URL\t=\t\'([a-zA-Z0-9+/]+={0,2})\';', webpage)
-        for encrypted_link in encrypted_links:
-            link = aes_decrypt_text(encrypted_link, video_title, 32).decode('utf-8')
-            links.append(link)
 
         formats = []
         for link in links:
-            # A link looks like this:
-            # http://cdn1.download.youporn.phncdn.com/201210/31/8004515/480p_370k_8004515/YouPorn%20-%20Nubile%20Films%20The%20Pillow%20Fight.mp4?nvb=20121113051249&nva=20121114051249&ir=1200&sr=1200&hash=014b882080310e95fb6a0
-            # A path looks like this:
-            # /201210/31/8004515/480p_370k_8004515/YouPorn%20-%20Nubile%20Films%20The%20Pillow%20Fight.mp4
+
             video_url = unescapeHTML(link)
             path = compat_urllib_parse_urlparse(video_url).path
             format_parts = path.split('/')[4].split('_')[:2]
