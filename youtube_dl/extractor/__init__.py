@@ -586,6 +586,7 @@ from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE, SpiegelArticleIE
 from .spiegeltv import SpiegeltvIE
 from .spike import SpikeIE
+from .stitcher import StitcherIE
 from .sport5 import Sport5IE
 from .sportbox import (
     SportBoxIE,
