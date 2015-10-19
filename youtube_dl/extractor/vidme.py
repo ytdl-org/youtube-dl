@@ -97,6 +97,31 @@ class VidmeIE(InfoExtractor):
         # nsfw, user-disabled
         'url': 'https://vid.me/dzGJ',
         'only_matching': True,
+    }, {
+        # suspended
+        'url': 'https://vid.me/Ox3G',
+        'only_matching': True,
+    }, {
+        # no formats in the API response
+        'url': 'https://vid.me/e5g',
+        'info_dict': {
+            'id': 'e5g',
+            'ext': 'mp4',
+            'title': 'e5g',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'timestamp': 1401480195,
+            'upload_date': '20140530',
+            'uploader': None,
+            'uploader_id': None,
+            'age_limit': 0,
+            'duration': 483,
+            'view_count': int,
+            'like_count': int,
+            'comment_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
@@ -118,7 +143,7 @@ class VidmeIE(InfoExtractor):
 
         video = response['video']
 
-        if video.get('state') == 'user-disabled':
+        if video.get('state') in ('user-disabled', 'suspended'):
             raise ExtractorError(
                 'Vidme said: This video has been suspended either due to a copyright claim, '
                 'or for violating the terms of use.',
@@ -131,6 +156,14 @@ class VidmeIE(InfoExtractor):
             'height': int_or_none(f.get('height')),
             'preference': 0 if f.get('type', '').endswith('clip') else 1,
         } for f in video.get('formats', []) if f.get('uri')]
+
+        if not formats and video.get('complete_url'):
+            formats.append({
+                'url': video.get('complete_url'),
+                'width': int_or_none(video.get('width')),
+                'height': int_or_none(video.get('height')),
+            })
+
         self._sort_formats(formats)
 
         title = video['title']
@@ -147,7 +180,7 @@ class VidmeIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': title,
+            'title': title or video_id,
             'description': description,
             'thumbnail': thumbnail,
             'uploader': uploader,
