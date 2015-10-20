@@ -133,7 +133,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'uploader_id': 'user18948128',
                 'uploader': 'Jaime Marquínez Ferrándiz',
                 'duration': 10,
-                'description': 'This is "youtube-dl password protected test video" by Jaime Marquínez Ferrándiz on Vimeo, the home for high quality videos and the people who love them.',
+                'description': 'This is "youtube-dl password protected test video" by Jaime Marquínez Ferrándiz on Vimeo, the home for high quality videos and the people\u2026',
             },
             'params': {
                 'videopassword': 'youtube-dl',
@@ -180,6 +180,11 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'uploader': 'Tulio Gonçalves',
                 'uploader_id': 'user28849593',
             },
+        },
+        {
+            'url': 'https://vimeo.com/109815029',
+            'note': 'Video not completely processed, "failed" seed status',
+            'only_matching': True,
         },
     ]
 
@@ -273,13 +278,13 @@ class VimeoIE(VimeoBaseInfoExtractor):
         self.report_extraction(video_id)
 
         vimeo_config = self._search_regex(
-            r'vimeo\.config\s*=\s*({.+?});', webpage,
+            r'vimeo\.config\s*=\s*(?:({.+?})|_extend\([^,]+,\s+({.+?})\));', webpage,
             'vimeo config', default=None)
         if vimeo_config:
             seed_status = self._parse_json(vimeo_config, video_id).get('seed_status', {})
             if seed_status.get('state') == 'failed':
                 raise ExtractorError(
-                    '%s returned error: %s' % (self.IE_NAME, seed_status['title']),
+                    '%s said: %s' % (self.IE_NAME, seed_status['title']),
                     expected=True)
 
         # Extract the config JSON
