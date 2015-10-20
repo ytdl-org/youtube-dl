@@ -14,7 +14,7 @@ class VidmeIE(InfoExtractor):
     _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]+)'
     _TESTS = [{
         'url': 'https://vid.me/QNB',
-        'md5': 'c62f1156138dc3323902188c5b5a8bd6',
+        'md5': 'f42d05e7149aeaec5c037b17e5d3dc82',
         'info_dict': {
             'id': 'QNB',
             'ext': 'mp4',
