@@ -65,6 +65,8 @@ defs = gettestcases()
 
 
 class TestDownload(unittest.TestCase):
+    _multiprocess_shared_ = True
+
     maxDiff = None
 
     def setUp(self):

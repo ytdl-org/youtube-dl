@@ -16,4 +16,4 @@ case "$YTDL_TEST_SET" in
     ;;
 esac
 
-nosetests test --verbose $test_set
+nosetests test --verbose $test_set --processes=4 --process-timeout=540
