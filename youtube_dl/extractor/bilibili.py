@@ -77,7 +77,7 @@ class BiliBiliIE(InfoExtractor):
         entries = []
 
         lq_page = self._download_webpage(
-            'http://interface.bilibili.com/v_cdn_play?appkey=1&cid=%s' % cid,
+            'http://interface.bilibili.com/v_cdn_play?appkey=95acd7f6cc3392f3&cid=%s' % cid,
             video_id,
             note='Downloading LQ video info'
         )
@@ -92,7 +92,7 @@ class BiliBiliIE(InfoExtractor):
         lq_durls = lq_doc.findall('./durl')
 
         hq_doc = self._download_xml(
-            'http://interface.bilibili.com/playurl?appkey=1&cid=%s' % cid,
+            'http://interface.bilibili.com/playurl?appkey=95acd7f6cc3392f3&cid=%s' % cid,
             video_id,
             note='Downloading HQ video info',
             fatal=False,
