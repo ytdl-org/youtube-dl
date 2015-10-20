@@ -8,6 +8,10 @@ from ..compat import (
     compat_urllib_parse_unquote,
     compat_urllib_request,
 )
+from ..utils import (
+    ExtractorError,
+    HEADRequest,
+)
 
 class ImoocVideoIE(InfoExtractor):
     _VALID_URL = r'http://www.imooc.com/video/(?P<id>[0-9]+)'
@@ -37,9 +41,24 @@ class ImoocVideoIE(InfoExtractor):
         json_url = 'http://www.imooc.com/course/ajaxmediainfo/?mid=%s&mode=flash' % video_id
         data = self._download_json(json_url, video_id, 'Downloading video formats')
 
-        url = data['data']['result']['mpath'][0]
+        if data['result'] == 0:
+            urls = data['data']['result']['mpath']
+            title = data['data']['result']['name']
 
-        title = data['data']['result']['name']
+            for i, url in enumerate(urls):
+                req = HEADRequest(url)
+                res = self._request_webpage(
+                    req, video_id, note='Testing video URL %d' % i, errnote=False)
+                if res:
+                    break
+            else:
+                raise ExtractorError('No working video URLs found')
+
+        else:
+            print data['msg']
+            raise ValueError(data['msg'])
+
+
 
         return {
             'id': video_id,
