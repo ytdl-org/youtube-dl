@@ -65,6 +65,10 @@ defs = gettestcases()
 
 
 class TestDownload(unittest.TestCase):
+    # Parallel testing in nosetests. See
+    # http://nose.readthedocs.org/en/latest/doc_tests/test_multiprocess/multiprocess.html
+    _multiprocess_shared_ = True
+
     maxDiff = None
 
     def setUp(self):
@@ -73,7 +77,7 @@ class TestDownload(unittest.TestCase):
 # Dynamically generate tests
 
 
-def generator(test_case):
+def generator(test_case, tname):
 
     def test_template(self):
         ie = youtube_dl.extractor.get_info_extractor(test_case['name'])
@@ -102,6 +106,7 @@ def generator(test_case):
                 return
 
         params = get_params(test_case.get('params', {}))
+        params['outtmpl'] = tname + '_' + params['outtmpl']
         if is_playlist and 'playlist' not in test_case:
             params.setdefault('extract_flat', 'in_playlist')
             params.setdefault('skip_download', True)
@@ -146,7 +151,7 @@ def generator(test_case):
                         raise
 
                     if try_num == RETRIES:
-                        report_warning('Failed due to network errors, skipping...')
+                        report_warning('%s failed due to network errors, skipping...' % tname)
                         return
 
                     print('Retrying: {0} failed tries\n\n##########\n\n'.format(try_num))
@@ -221,12 +226,12 @@ def generator(test_case):
 
 # And add them to TestDownload
 for n, test_case in enumerate(defs):
-    test_method = generator(test_case)
     tname = 'test_' + str(test_case['name'])
     i = 1
     while hasattr(TestDownload, tname):
         tname = 'test_%s_%d' % (test_case['name'], i)
         i += 1
+    test_method = generator(test_case, tname)
     test_method.__name__ = str(tname)
     setattr(TestDownload, test_method.__name__, test_method)
     del test_method
