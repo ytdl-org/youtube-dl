@@ -220,6 +220,7 @@
  - **imdb:list**: Internet Movie Database lists
  - **Imgur**
  - **ImgurAlbum**
+ - **Imooc**: 慕课网
  - **Ina**
  - **Indavideo**
  - **IndavideoEmbed**
