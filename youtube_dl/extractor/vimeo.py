@@ -273,13 +273,13 @@ class VimeoIE(VimeoBaseInfoExtractor):
         self.report_extraction(video_id)
 
         vimeo_config = self._search_regex(
-            r'vimeo\.config\s*=\s*({.+?});', webpage,
+            r'vimeo\.config\s*=\s*(?:({.+?})|_extend\([^,]+,\s+({.+?})\));', webpage,
             'vimeo config', default=None)
         if vimeo_config:
             seed_status = self._parse_json(vimeo_config, video_id).get('seed_status', {})
             if seed_status.get('state') == 'failed':
                 raise ExtractorError(
-                    '%s returned error: %s' % (self.IE_NAME, seed_status['title']),
+                    '%s said: %s' % (self.IE_NAME, seed_status['title']),
                     expected=True)
 
         # Extract the config JSON
