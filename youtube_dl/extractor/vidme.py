@@ -107,7 +107,7 @@ class VidmeIE(InfoExtractor):
         'info_dict': {
             'id': 'e5g',
             'ext': 'mp4',
-            'title': 'e5g',
+            'title': 'Video upload (e5g)',
             'thumbnail': 're:^https?://.*\.jpg',
             'timestamp': 1401480195,
             'upload_date': '20140530',
@@ -180,7 +180,7 @@ class VidmeIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': title or video_id,
+            'title': title or 'Video upload (%s)' % video_id,
             'description': description,
             'thumbnail': thumbnail,
             'uploader': uploader,
