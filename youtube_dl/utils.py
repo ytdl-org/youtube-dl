@@ -1701,8 +1701,8 @@ def js_to_json(code):
         if v in ('true', 'false', 'null'):
             return v
         if v.startswith('"'):
-            return v
-        if v.startswith("'"):
+            v = re.sub(r"\\'", "'", v[1:-1])
+        elif v.startswith("'"):
             v = v[1:-1]
             v = re.sub(r"\\\\|\\'|\"", lambda m: {
                 '\\\\': '\\\\',

@@ -495,6 +495,9 @@ class TestUtil(unittest.TestCase):
             "playlist":[{"controls":{"all":null}}]
         }''')
 
+        inp = '''"The CW\\'s \\'Crazy Ex-Girlfriend\\'"'''
+        self.assertEqual(js_to_json(inp), '''"The CW's 'Crazy Ex-Girlfriend'"''')
+
         inp = '"SAND Number: SAND 2013-7800P\\nPresenter: Tom Russo\\nHabanero Software Training - Xyce Software\\nXyce, Sandia\\u0027s"'
         json_code = js_to_json(inp)
         self.assertEqual(json.loads(json_code), json.loads(inp))
