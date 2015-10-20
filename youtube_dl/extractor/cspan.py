@@ -14,10 +14,6 @@ from ..utils import (
 from .senateisvp import SenateISVPIE
 
 
-def get_text_attr(d, attr):
-    return d.get(attr, {}).get('#text')
-
-
 class CSpanIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?c-span\.org/video/\?(?P<id>[0-9a-f]+)'
     IE_DESC = 'C-SPAN'
@@ -60,6 +56,9 @@ class CSpanIE(InfoExtractor):
         }
     }]
 
+    def get_text_attr(self, d, attr):
+        return d.get(attr, {}).get('#text')
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
@@ -79,7 +78,7 @@ class CSpanIE(InfoExtractor):
             'http://www.c-span.org/assets/player/ajax-player.php?os=android&html5=%s&id=%s' % (video_type, video_id),
             video_id)['video']
         if data['@status'] != 'Success':
-            raise ExtractorError('%s said: %s' % (self.IE_NAME, get_text_attr(data, 'error')), expected=True)
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, self.get_text_attr(data, 'error')), expected=True)
 
         doc = self._download_xml(
             'http://www.c-span.org/common/services/flashXml.php?%sid=%s' % (video_type, video_id),
@@ -91,17 +90,17 @@ class CSpanIE(InfoExtractor):
         thumbnail = find_xpath_attr(doc, './/string', 'name', 'poster').text
 
         files = data['files']
-        capfile = get_text_attr(data, 'capfile')
+        capfile = self.get_text_attr(data, 'capfile')
 
         entries = []
         for partnum, f in enumerate(files):
             formats = []
             for quality in f['qualities']:
                 formats.append({
-                    'format_id': '%s-%sp' % (get_text_attr(quality, 'bitrate'), get_text_attr(quality, 'height')),
-                    'url': unescapeHTML(get_text_attr(quality, 'file')),
-                    'height': int_or_none(get_text_attr(quality, 'height')),
-                    'tbr': int_or_none(get_text_attr(quality, 'bitrate')),
+                    'format_id': '%s-%sp' % (self.get_text_attr(quality, 'bitrate'), self.get_text_attr(quality, 'height')),
+                    'url': unescapeHTML(self.get_text_attr(quality, 'file')),
+                    'height': int_or_none(self.get_text_attr(quality, 'height')),
+                    'tbr': int_or_none(self.get_text_attr(quality, 'bitrate')),
                 })
             self._sort_formats(formats)
             entries.append({
@@ -112,7 +111,7 @@ class CSpanIE(InfoExtractor):
                 'formats': formats,
                 'description': description,
                 'thumbnail': thumbnail,
-                'duration': int_or_none(get_text_attr(f, 'length')),
+                'duration': int_or_none(self.get_text_attr(f, 'length')),
                 'subtitles': {
                     'en': [{
                         'url': capfile,
