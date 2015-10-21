@@ -260,7 +260,7 @@ def clean_html(html):
     html = re.sub(r'\s*<\s*br\s*/?\s*>\s*', '\n', html)
     html = re.sub(r'<\s*/\s*p\s*>\s*<\s*p[^>]*>', '\n', html)
     # Strip html tags
-    html = re.sub('<.*?>', '', html)
+    html = re.sub('<[^"]*>', '', html)
     # Replace html entities
     html = unescapeHTML(html)
     return html.strip()
