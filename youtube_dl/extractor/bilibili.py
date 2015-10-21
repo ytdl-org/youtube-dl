@@ -69,21 +69,22 @@ class BiliBiliIE(InfoExtractor):
             pass
 
         doc = ET.fromstring(page)
-        durls = doc.findall('./durl')
 
         entries = []
 
-        for durl in durls:
-            formats = []
-            backup_url = durl.find('./backup_url')
-            if backup_url is not None:
-                formats.append({'url': backup_url.find('./url').text})
+        for durl in doc.findall('./durl'):
             size = durl.find('./filesize|./size')
-            formats.append({
+            formats = [{
                 'url': durl.find('./url').text,
                 'filesize': int_or_none(size.text) if size else None,
                 'ext': 'flv',
-            })
+            }]
+            backup_urls = durl.find('./backup_url')
+            if backup_urls is not None:
+                for backup_url in backup_urls.findall('./url'):
+                    formats.append({'url': backup_url.text})
+            formats.reverse()
+
             entries.append({
                 'id': '%s_part%s' % (cid, durl.find('./order').text),
                 'title': title,
