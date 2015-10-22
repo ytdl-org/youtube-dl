@@ -75,7 +75,7 @@ class TestDownload(unittest.TestCase):
 # Dynamically generate tests
 
 
-def generator(test_case):
+def generator(test_case, tname):
 
     def test_template(self):
         ie = youtube_dl.extractor.get_info_extractor(test_case['name'])
@@ -148,7 +148,7 @@ def generator(test_case):
                         raise
 
                     if try_num == RETRIES:
-                        report_warning('Failed due to network errors, skipping...')
+                        report_warning('%s failed due to network errors, skipping...' % tname)
                         return
 
                     print('Retrying: {0} failed tries\n\n##########\n\n'.format(try_num))
@@ -223,12 +223,12 @@ def generator(test_case):
 
 # And add them to TestDownload
 for n, test_case in enumerate(defs):
-    test_method = generator(test_case)
     tname = 'test_' + str(test_case['name'])
     i = 1
     while hasattr(TestDownload, tname):
         tname = 'test_%s_%d' % (test_case['name'], i)
         i += 1
+    test_method = generator(test_case, tname)
     test_method.__name__ = str(tname)
     setattr(TestDownload, test_method.__name__, test_method)
     del test_method
