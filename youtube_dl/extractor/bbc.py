@@ -625,6 +625,7 @@ class BBCIE(BBCCoUkIE):
             'id': 'p02xycnp',
             'ext': 'mp4',
             'title': 'Transfers: Cristiano Ronaldo to Man Utd, Arsenal to spend?',
+            'description': 'BBC Sport\'s David Ornstein has the latest transfer gossip, including rumours of a Manchester United return for Cristiano Ronaldo.',
             'duration': 140,
         },
         'params': {
