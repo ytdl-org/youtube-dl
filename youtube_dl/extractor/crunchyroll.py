@@ -70,11 +70,6 @@ class CrunchyrollBaseIE(InfoExtractor):
     def _add_skip_wall(url):
         parsed_url = compat_urlparse.urlparse(url)
         qs = compat_urlparse.parse_qs(parsed_url.query)
-        # Always force skip_wall to bypass maturity wall, namely 18+ confirmation message:
-        # > This content may be inappropriate for some people.
-        # > Are you sure you want to continue?
-        # since it's not disabled by default in crunchyroll account's settings.
-        # See https://github.com/rg3/youtube-dl/issues/7202.
         qs['skip_wall'] = ['1']
         return compat_urlparse.urlunparse(
             parsed_url._replace(query=compat_urllib_parse.urlencode(qs, True)))
@@ -271,7 +266,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         else:
             webpage_url = 'http://www.' + mobj.group('url')
 
-        webpage = self._download_webpage(self._add_skip_wall(webpage_url), video_id, 'Downloading webpage')
+        webpage = self._download_webpage(webpage_url, video_id, 'Downloading webpage')
         note_m = self._html_search_regex(
             r'<div class="showmedia-trailer-notice">(.+?)</div>',
             webpage, 'trailer-notice', default='')
