@@ -45,6 +45,7 @@ from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE
 from .bbc import (
     BBCCoUkIE,
+    BBCCoUkArticleIE,
     BBCIE,
 )
 from .beeg import BeegIE
