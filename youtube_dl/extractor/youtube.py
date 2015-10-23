@@ -1647,6 +1647,15 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
             'id': 'UUKfVa3S1e4PHvxWcwyMMg8w',
             'title': 'Uploads from lex will',
         }
+    }, {
+        'note': 'Age restricted channel',
+        # from https://www.youtube.com/user/DeusExOfficial
+        'url': 'https://www.youtube.com/channel/UCs0ifCMCm1icqRbqhUINa0w',
+        'playlist_mincount': 64,
+        'info_dict': {
+            'id': 'UUs0ifCMCm1icqRbqhUINa0w',
+            'title': 'Uploads from Deus Ex',
+        },
     }]
 
     def _real_extract(self, url):
@@ -1667,7 +1676,7 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
                 'channelId', channel_page, 'channel id', default=None)
             if not channel_playlist_id:
                 channel_playlist_id = self._search_regex(
-                    r'data-channel-external-id="([^"]+)"',
+                    r'data-(?:channel-external-|yt)id="([^"]+)"',
                     channel_page, 'channel id', default=None)
         if channel_playlist_id and channel_playlist_id.startswith('UC'):
             playlist_id = 'UU' + channel_playlist_id[2:]
