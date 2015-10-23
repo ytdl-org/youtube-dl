@@ -114,12 +114,13 @@ If you want to add support for a new site, you can follow this quick list (assum
             webpage = self._download_webpage(url, video_id)
 
             # TODO more code goes here, for example ...
-            title = self._html_search_regex(r'<h1>(.*?)</h1>', webpage, 'title')
+            title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title')
 
             return {
                 'id': video_id,
                 'title': title,
                 'description': self._og_search_description(webpage),
+                'uploader': self._search_regex(r'<div[^>]+id="uploader"[^>]*>([^<]+)<', webpage, 'uploader', fatal=False),
                 # TODO more properties (see youtube_dl/extractor/common.py)
             }
     ```

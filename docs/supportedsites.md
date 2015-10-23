@@ -53,6 +53,7 @@
  - **Bandcamp:album**
  - **bbc**: BBC
  - **bbc.co.uk**: BBC iPlayer
+ - **bbc.co.uk:article**: BBC articles
  - **BeatportPro**
  - **Beeg**
  - **BehindKink**
@@ -515,6 +516,7 @@
  - **SSA**
  - **stanfordoc**: Stanford Open ClassRoom
  - **Steam**
+ - **Stitcher**
  - **streamcloud.eu**
  - **StreamCZ**
  - **StreetVoice**
