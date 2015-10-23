@@ -795,7 +795,7 @@ Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/i
 
 **Please include the full output of youtube-dl when run with `-v`**.
 
-The output (including the first lines) contain important debugging information. Issues without the full output are often not reproducible and therefore do not get solved in short order, if ever.
+The output (including the first lines) contains important debugging information. Issues without the full output are often not reproducible and therefore do not get solved in short order, if ever.
 
 Please re-read your issue once again to avoid a couple of common mistakes (you can and should use this as a checklist):
 
