@@ -1644,7 +1644,8 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
         'url': 'https://www.youtube.com/channel/UCKfVa3S1e4PHvxWcwyMMg8w',
         'playlist_mincount': 91,
         'info_dict': {
-            'id': 'UCKfVa3S1e4PHvxWcwyMMg8w',
+            'id': 'UUKfVa3S1e4PHvxWcwyMMg8w',
+            'title': 'Uploads from lex will',
         }
     }]
 
