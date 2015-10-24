@@ -91,7 +91,9 @@ from .postprocessor import (
 from .version import __version__
 
 
-class _Int_digits(int):
+# Special formatting classes to be used in output file name formatting
+
+class _Int_formatter(int):
     """int-like type that gets formatted with a default fixed width 
     (to be used within YoutubeDL.prepare_filename() so that {autonumber:03} 
     prints 001 but {autonumber} defaults to 00001 rather than 1)
@@ -102,6 +104,15 @@ class _Int_digits(int):
         return obj
     def __str__(self):
         return "{0:0{1}}".format(self, self.digits)
+
+class _NA_formatter(object):
+    """Class that always yields 'NA' when formatted as %s or {} 
+    to prevent stuff such as {upload_date:%Y} from yielding errors"""
+    def __format__(self, fmt):
+        return 'NA'
+    def __str__(self, fmt):
+        return 'NA'  # just in case; can probably be removed
+
 
 
 class YoutubeDL(object):
@@ -560,9 +571,9 @@ class YoutubeDL(object):
             autonumber_size = self.params.get('autonumber_size')
             if autonumber_size is None:
                 autonumber_size = 5
-            template_dict['autonumber'] = _Int_digits(self._num_downloads, autonumber_size)
+            template_dict['autonumber'] = _Int_formatter(self._num_downloads, autonumber_size)
             if template_dict.get('playlist_index') is not None:
-                template_dict['playlist_index'] = _Int_digits(template_dict['playlist_index'], len(str(template_dict['n_entries'])))
+                template_dict['playlist_index'] = _Int_formatter(template_dict['playlist_index'], len(str(template_dict['n_entries'])))
             if template_dict.get('resolution') is None:
                 if template_dict.get('width') and template_dict.get('height'):
                     template_dict['resolution'] = '%dx%d' % (template_dict['width'], template_dict['height'])
@@ -583,7 +594,7 @@ class YoutubeDL(object):
             template_dict = dict((k, sanitize(k, v))
                                  for k, v in template_dict.items()
                                  if v is not None)
-            template_dict = collections.defaultdict(lambda: 'NA', template_dict)
+            template_dict = collections.defaultdict(_NA_formatter, template_dict)
 
             outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
             filename = sanitize_path(string.Formatter().vformat(outtmpl, None, template_dict))
