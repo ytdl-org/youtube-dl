@@ -77,17 +77,16 @@ class SpiegeltvIE(InfoExtractor):
                     'rtmp_live': True,
                 })
             elif determine_ext(endpoint) == 'm3u8':
-                m3u8_formats = self._extract_m3u8_formats(
-                    endpoint.replace('[video]', play_path),
-                    video_id, 'm4v',
-                    preference=1,  # Prefer hls since it allows to workaround georestriction
-                    m3u8_id='hls', fatal=False)
-                if m3u8_formats is not False:
-                    for m3u8_format in m3u8_formats:
-                        m3u8_format['http_headers'] = {
-                            'Accept-Encoding': 'deflate', # gzip causes trouble on the server side
-                        }
-                    formats.extend(m3u8_formats)
+                formats.append({
+                    'url': endpoint.replace('[video]', play_path),
+                    'ext': 'm4v',
+                    'format_id': 'hls',  # Prefer hls since it allows to workaround georestriction
+                    'protocol': 'm3u8',
+                    'preference': 1,
+                    'http_headers': {
+                        'Accept-Encoding': 'deflate', # gzip causes trouble on the server side
+                    },
+                })
             else:
                 formats.append({
                     'url': endpoint,
