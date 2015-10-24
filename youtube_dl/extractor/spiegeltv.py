@@ -83,6 +83,10 @@ class SpiegeltvIE(InfoExtractor):
                     preference=1,  # Prefer hls since it allows to workaround georestriction
                     m3u8_id='hls', fatal=False)
                 if m3u8_formats is not False:
+                    for m3u8_format in m3u8_formats:
+                        m3u8_format['http_headers'] = {
+                            'Accept-Encoding': 'deflate', # gzip causes trouble on the server side
+                        }
                     formats.extend(m3u8_formats)
             else:
                 formats.append({
