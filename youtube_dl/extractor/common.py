@@ -842,7 +842,7 @@ class InfoExtractor(object):
             self._request_webpage(url, video_id, 'Checking %s URL' % item)
             return True
         except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError):
+            if isinstance(e.cause, compat_urllib_error.URLError):
                 self.to_screen(
                     '%s: %s URL is invalid, skipping' % (video_id, item))
                 return False
