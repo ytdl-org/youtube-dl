@@ -12,7 +12,7 @@ from ..utils import (
 
 class ABCIE(InfoExtractor):
     IE_NAME = 'abc.net.au'
-    _VALID_URL = r'http://www\.abc\.net\.au/news/[^/]+/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'http://www\.abc\.net\.au/news/(?:[^/]+/){1,2}(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.abc.net.au/news/2014-11-05/australia-to-staff-ebola-treatment-centre-in-sierra-leone/5868334',
@@ -45,6 +45,9 @@ class ABCIE(InfoExtractor):
             'title': 'NAB lifts interest rates, following Westpac and CBA',
             'description': 'md5:f13d8edc81e462fce4a0437c7dc04728',
         },
+    }, {
+        'url': 'http://www.abc.net.au/news/2015-10-19/6866214',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
