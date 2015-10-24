@@ -11,11 +11,11 @@ from .common import InfoExtractor
 class NprIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?npr\.org/player/v2/mediaPlayer.html?.*id=(?P<id>[0-9]+)'
     _TEST = {
-    'url': 'http://www.npr.org/player/v2/mediaPlayer.html?id=445367719',
+    'url': 'http://www.npr.org/player/v2/mediaPlayer.html?id=449974205',
     'info_dict': {
-        'id': '445367719',
+        'id': '449974205',
         'ext': 'mp4',
-        'title': 'VEGA INTL. Night School'
+        'title': 'New Music From Beach House, Chairlift, CMJ Discoveries And More'
     }
 }
 
