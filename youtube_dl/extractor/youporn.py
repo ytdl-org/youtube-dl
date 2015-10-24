@@ -65,7 +65,8 @@ class YouPornIE(InfoExtractor):
         encrypted_links = re.findall(r'page_params.encryptedQuality[0-9]{3,4}URL\s=\s\'([a-zA-Z0-9+/]+={0,2})\';', webpage)
         for encrypted_link in encrypted_links:
             link = aes_decrypt_text(encrypted_link, video_title, 32).decode('utf-8')
-            links.append(link)
+            if link not in links:
+                links.append(link)
 
         formats = []
         for link in links:
