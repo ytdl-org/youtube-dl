@@ -91,6 +91,7 @@ class SpiegeltvIE(InfoExtractor):
                 formats.append({
                     'url': endpoint,
                 })
+        self._check_formats(formats, video_id)
 
         thumbnails = []
         for image in media_json['images']:
