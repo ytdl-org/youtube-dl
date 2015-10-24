@@ -15,7 +15,7 @@ class MiTeleIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/la-redaccion/programa-144/',
-        'md5': 'ace7635b2a0b286aaa37d3ff192d2a8a',
+        'md5': '757b0b66cbd7e0a97226d7d3156cb3e9',
         'info_dict': {
             'id': '0NF1jJnxS1Wu3pHrmvFyw2',
             'display_id': 'programa-144',
