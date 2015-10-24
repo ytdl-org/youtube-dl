@@ -45,6 +45,9 @@ class ABCIE(InfoExtractor):
             'title': 'NAB lifts interest rates, following Westpac and CBA',
             'description': 'md5:f13d8edc81e462fce4a0437c7dc04728',
         },
+    }, {
+        'url': 'http://www.abc.net.au/news/2015-10-19/6866214',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -67,22 +70,15 @@ class ABCIE(InfoExtractor):
             return self.playlist_result([
                 self.url_result(url_info['url']) for url_info in urls_info])
 
-        if mobj.group('type') == 'Video':
-            formats = [{
-                'url': url_info['url'],
-                'vcodec': url_info.get('codec'),
-                'width': int_or_none(url_info.get('width')),
-                'height': int_or_none(url_info.get('height')),
-                'tbr': int_or_none(url_info.get('bitrate')),
-                'filesize': int_or_none(url_info.get('filesize')),
-            } for url_info in urls_info]
-        else:
-            formats = [{
-                'url': url_info['url'],
-                'vcodec': 'none',
-                'tbr': int_or_none(url_info.get('bitrate')),
-                'filesize': int_or_none(url_info.get('filesize')),
-            } for url_info in urls_info]
+        formats = [{
+            'url': url_info['url'],
+            'vcodec': url_info.get('codec') if mobj.group('type') == 'Video' else 'none',
+            'width': int_or_none(url_info.get('width')),
+            'height': int_or_none(url_info.get('height')),
+            'tbr': int_or_none(url_info.get('bitrate')),
+            'filesize': int_or_none(url_info.get('filesize')),
+        } for url_info in urls_info]
+
         self._sort_formats(formats)
 
         return {
