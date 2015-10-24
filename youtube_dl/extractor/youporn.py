@@ -61,9 +61,18 @@ class YouPornIE(InfoExtractor):
         LINK_RE = r': \'(.+?)\','
         links = re.findall(LINK_RE, download_list_html)
 
+        # Get all encrypted links
+        encrypted_links = re.findall(r'page_params.encryptedQuality[0-9]{3,4}URL\s=\s\'([a-zA-Z0-9+/]+={0,2})\';', webpage)
+        for encrypted_link in encrypted_links:
+            link = aes_decrypt_text(encrypted_link, video_title, 32).decode('utf-8')
+            links.append(link)
+
         formats = []
         for link in links:
-
+            # A link looks like this:
+            # http://cdn2b.public.youporn.phncdn.com/201012/17/505835/720p_1500k_505835/YouPorn%20-%20Sex%20Ed%20Is%20It%20Safe%20To%20Masturbate%20Daily.mp4?rs=200&ri=2500&s=1445599900&e=1445773500&h=5345d19ce9944ec52eb167abf24af248
+            # A path looks like this:
+            # 201012/17/505835/720p_1500k_505835/YouPorn%20-%20Sex%20Ed%20Is%20It%20Safe%20To%20Masturbate%20Daily.mp4
             video_url = unescapeHTML(link)
             path = compat_urllib_parse_urlparse(video_url).path
             format_parts = path.split('/')[4].split('_')[:2]
