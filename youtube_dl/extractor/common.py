@@ -16,7 +16,6 @@ from ..compat import (
     compat_cookiejar,
     compat_cookies,
     compat_getpass,
-    compat_HTTPError,
     compat_http_client,
     compat_urllib_error,
     compat_urllib_parse,
