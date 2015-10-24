@@ -84,7 +84,7 @@ class SpiegeltvIE(InfoExtractor):
                     'protocol': 'm3u8',
                     'preference': 1,
                     'http_headers': {
-                        'Accept-Encoding': 'deflate', # gzip causes trouble on the server side
+                        'Accept-Encoding': 'deflate',  # gzip causes trouble on the server side
                     },
                 })
             else:
