@@ -65,6 +65,8 @@ defs = gettestcases()
 
 
 class TestDownload(unittest.TestCase):
+    # Parallel testing in nosetests. See
+    # http://nose.readthedocs.org/en/latest/doc_tests/test_multiprocess/multiprocess.html
     _multiprocess_shared_ = True
 
     maxDiff = None
