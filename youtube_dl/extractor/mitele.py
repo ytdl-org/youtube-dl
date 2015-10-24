@@ -56,7 +56,7 @@ class MiTeleIE(InfoExtractor):
                 'sta': '0',
             }
             media = self._download_json(
-                '%s/?%s' % (gat, compat_urllib_parse.urlencode(encode_dict(token_data)).encode('utf-8')),
+                '%s/?%s' % (gat, compat_urllib_parse.urlencode(encode_dict(token_data))),
                 display_id, 'Downloading %s JSON' % location['loc'])
             file_ = media.get('file')
             if not file_:
