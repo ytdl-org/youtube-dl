@@ -340,11 +340,14 @@ class F4mFD(FragmentFD):
         while fragments_list:
             seg_i, frag_i = fragments_list.pop(0)
             name = 'Seg%d-Frag%d' % (seg_i, frag_i)
-            url_parsed = base_url_parsed._replace(path=base_url_parsed.path + name)
+            query = []
+            if base_url_parsed.query:
+                query.append(base_url_parsed.query)
             if akamai_pv:
-                url_parsed = url_parsed._replace(query=url_parsed.query + akamai_pv.strip(';'))
+                query.append(akamai_pv.strip(';'))
             if info_dict.get('extra_param_to_segment_url'):
-                url_parsed = url_parsed._replace(query=url_parsed.query + info_dict.get('extra_param_to_segment_url'))
+                query.append(info_dict['extra_param_to_segment_url'])
+            url_parsed = base_url_parsed._replace(path=base_url_parsed.path + name, query='&'.join(query))
             frag_filename = '%s-%s' % (ctx['tmpfilename'], name)
             try:
                 success = ctx['dl'].download(frag_filename, {'url': url_parsed.geturl()})
