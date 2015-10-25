@@ -64,7 +64,7 @@ class StitcherIE(InfoExtractor):
             'url': episode[episode_key],
             'ext': determine_ext(episode[episode_key]) or 'mp3',
             'vcodec': 'none',
-        } for episode_key in ('origEpisodeURL', 'episodeURL') if episode.get(episode_key)]
+        } for episode_key in ('episodeURL',) if episode.get(episode_key)]
         description = self._search_regex(
             r'Episode Info:\s*</span>([^<]+)<', webpage, 'description', fatal=False)
         duration = int_or_none(episode.get('duration'))
