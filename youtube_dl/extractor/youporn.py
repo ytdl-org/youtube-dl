@@ -92,7 +92,7 @@ class YouPornIE(InfoExtractor):
 
         description = self._html_search_regex(
             r'(?s)<div[^>]+class=["\']video-description["\'][^>]*>(.+?)</div>',
-            webpage, 'description', fatal=False)
+            webpage, 'description', default=None)
         thumbnail = self._search_regex(
             r'(?:imageurl\s*=|poster\s*:)\s*(["\'])(?P<thumbnail>.+?)\1',
             webpage, 'thumbnail', fatal=False, group='thumbnail')
