@@ -14,7 +14,8 @@ from ..utils import (
 
 class NDRBaseIE(InfoExtractor):
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        display_id = next(group for group in mobj.groups() if group)
         webpage = self._download_webpage(url, display_id)
         return self._extract_embed(webpage, display_id)
 
@@ -101,7 +102,7 @@ class NDRIE(NDRBaseIE):
 class NJoyIE(NDRBaseIE):
     IE_NAME = 'njoy'
     IE_DESC = 'N-JOY'
-    _VALID_URL = r'https?://www\.n-joy\.de/(?:[^/]+/)+(?P<id>[^/?#]+),[\da-z]+\.html'
+    _VALID_URL = r'https?://www\.n-joy\.de/(?:[^/]+/)+(?:(?P<display_id>[^/?#]+),)?(?P<id>[\da-z]+)\.html'
     _TESTS = [{
         # httpVideo, same content id
         'url': 'http://www.n-joy.de/entertainment/comedy/comedy_contest/Benaissa-beim-NDR-Comedy-Contest,comedycontest2480.html',
@@ -136,6 +137,9 @@ class NJoyIE(NDRBaseIE):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'http://www.n-joy.de/radio/webradio/morningshow209.html',
+        'only_matching': True,
     }]
 
     def _extract_embed(self, webpage, display_id):
