@@ -29,6 +29,7 @@ class YouPornIE(InfoExtractor):
             'upload_date': '20101221',
             'average_rating': int,
             'view_count': int,
+            'comment_count': int,
             'categories': list,
             'tags': list,
             'age_limit': 18,
@@ -47,6 +48,7 @@ class YouPornIE(InfoExtractor):
             'upload_date': '20111125',
             'average_rating': int,
             'view_count': int,
+            'comment_count': int,
             'categories': list,
             'tags': list,
             'age_limit': 18,
@@ -135,6 +137,9 @@ class YouPornIE(InfoExtractor):
         view_count = str_to_int(self._search_regex(
             r'(?s)<div[^>]+class=["\']videoInfoViews["\'][^>]*>.*?([\d,.]+)\s*</div>',
             webpage, 'view count', fatal=False))
+        comment_count = str_to_int(self._search_regex(
+            r'>All [Cc]omments? \(([\d,.]+)\)',
+            webpage, 'comment count', fatal=False))
 
         def extract_tag_box(title):
             tag_box = self._search_regex(
@@ -158,6 +163,7 @@ class YouPornIE(InfoExtractor):
             'upload_date': upload_date,
             'average_rating': average_rating,
             'view_count': view_count,
+            'comment_count': comment_count,
             'categories': categories,
             'tags': tags,
             'age_limit': age_limit,
