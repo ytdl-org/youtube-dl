@@ -56,8 +56,8 @@ class YouPornIE(InfoExtractor):
         video_date = datetime.datetime.strptime(video_date, '%B %d, %Y').strftime('%Y%m%d')
 
         # Get all of the links from the page
-        DOWNLOAD_LIST_RE = r'(?s)sources: {\n(?P<testje>.*?)}'
-        download_list_html = self._search_regex(DOWNLOAD_LIST_RE, webpage, 'testje').strip()
+        DOWNLOAD_LIST_RE = r'(?s)sources: {\n(?P<download_list>.*?)}'
+        download_list_html = self._search_regex(DOWNLOAD_LIST_RE, webpage, 'download list').strip()
         LINK_RE = r': \'(.+?)\','
         links = re.findall(LINK_RE, download_list_html)
 
