@@ -216,8 +216,7 @@ except ImportError:  # Python 2.6
 if sys.version_info[0] >= 3:
     compat_etree_fromstring = xml.etree.ElementTree.fromstring
 else:
-    # on python 2.x the the attributes of a node are str objects instead of
-    # unicode
+    # on python 2.x the the attributes of a node aren't always unicode objects
     etree = xml.etree.ElementTree
 
     # on 2.6 XML doesn't have a parser argument, function copied from CPython
@@ -231,7 +230,8 @@ else:
     def _element_factory(*args, **kwargs):
         el = etree.Element(*args, **kwargs)
         for k, v in el.items():
-            el.set(k, v.decode('utf-8'))
+            if isinstance(v, bytes):
+                el.set(k, v.decode('utf-8'))
         return el
 
     def compat_etree_fromstring(text):
