@@ -1,112 +1,143 @@
 from __future__ import unicode_literals
 
-
-import json
 import re
-import sys
-import datetime
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlparse,
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_request
 from ..utils import (
-    ExtractorError,
+    int_or_none,
+    str_to_int,
     unescapeHTML,
     unified_strdate,
 )
-from ..aes import (
-    aes_decrypt_text
-)
+from ..aes import aes_decrypt_text
 
 
 class YouPornIE(InfoExtractor):
-    _VALID_URL = r'^(?P<proto>https?://)(?:www\.)?(?P<url>youporn\.com/watch/(?P<videoid>[0-9]+)/(?P<title>[^/]+))'
+    _VALID_URL = r'https?://(?:www\.)?youporn\.com/watch/(?P<id>\d+)/(?P<display_id>[^/?#&]+)'
     _TEST = {
         'url': 'http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/',
         'info_dict': {
             'id': '505835',
+            'display_id': 'sex-ed-is-it-safe-to-masturbate-daily',
             'ext': 'mp4',
             'title': 'Sex Ed: Is It Safe To Masturbate Daily?',
-            'description': 'Watch Sex Ed: Is It Safe To Masturbate Daily? at YouPorn.com - YouPorn is the biggest free porn tube site on the net!',
+            'description': 'Love & Sex Answers: http://bit.ly/DanAndJenn -- Is It Unhealthy To Masturbate Daily?',
+            'thumbnail': 're:^https?://.*\.jpg$',
             'uploader': 'Ask Dan And Jennifer',
-            'thumbnail': 'http://cdn5.image.youporn.phncdn.com/201012/17/505835/640x480/8/sex-ed-is-it-safe-to-masturbate-daily-8.jpg',
-            'date': '20101221',
+            'upload_date': '20101221',
+            'average_rating': int,
+            'view_count': int,
+            'categories': list,
+            'tags': list,
             'age_limit': 18,
         }
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
-        url = mobj.group('proto') + 'www.' + mobj.group('url')
+        video_id = mobj.group('id')
+        display_id = mobj.group('display_id')
 
-        req = compat_urllib_request.Request(url)
-        req.add_header('Cookie', 'age_verified=1')
-        webpage = self._download_webpage(req, video_id)
-        age_limit = self._rta_search(webpage)
+        request = compat_urllib_request.Request(url)
+        request.add_header('Cookie', 'age_verified=1')
+        webpage = self._download_webpage(request, display_id)
 
-        self.report_extraction(video_id)
-        video_title = self._html_search_regex(r'page_params.video_title = \'(.+?)\';', webpage, 'video URL', fatal=False)
-        video_description = self._html_search_meta('description', webpage, 'video DESC', fatal=False)
-        video_thumbnail = self._html_search_regex(r'page_params.imageurl\t=\t"(.+?)";', webpage, 'video THUMB', fatal=False)
-        video_uploader = self._html_search_regex(r"<div class=\'videoInfoBy\'>By:</div>\n<a href=\"[^>]+\">(.+?)</a>", webpage, 'video UPLOADER', fatal=False)
-        video_date = self._html_search_regex(r"<div class='videoInfoTime'>\n<i class='icon-clock'></i> (.+?)\n</div>", webpage, 'video DATE', fatal=False)
-        video_date = datetime.datetime.strptime(video_date, '%B %d, %Y').strftime('%Y%m%d')
+        title = self._search_regex(
+            [r'(?:video_titles|videoTitle)\s*[:=]\s*(["\'])(?P<title>.+?)\1',
+             r'<h1[^>]+class=["\']heading\d?["\'][^>]*>([^<])<'],
+            webpage, 'title', group='title')
 
-        # Get all of the links from the page
-        DOWNLOAD_LIST_RE = r'(?s)sources: {\n(?P<download_list>.*?)}'
-        download_list_html = self._search_regex(DOWNLOAD_LIST_RE, webpage, 'download list').strip()
-        LINK_RE = r': \'(.+?)\','
-        links = re.findall(LINK_RE, download_list_html)
+        links = []
 
-        # Get all encrypted links
-        encrypted_links = re.findall(r'page_params.encryptedQuality[0-9]{3,4}URL\s=\s\'([a-zA-Z0-9+/]+={0,2})\';', webpage)
-        for encrypted_link in encrypted_links:
-            link = aes_decrypt_text(encrypted_link, video_title, 32).decode('utf-8')
-            # it's unclear if encryted links still differ from normal ones, so only include in links array if it's unique
-            if link not in links:
+        sources = self._search_regex(
+            r'sources\s*:\s*({.+?})', webpage, 'sources', default=None)
+        if sources:
+            for _, link in re.findall(r'[^:]+\s*:\s*(["\'])(http.+?)\1', sources):
                 links.append(link)
 
+        # Fallback #1
+        for _, link in re.findall(
+                r'(?:videoUrl|videoSrc|videoIpadUrl|html5PlayerSrc)\s*[:=]\s*(["\'])(http.+?)\1', webpage):
+            links.append(link)
+
+        # Fallback #2, this also contains extra low quality 180p format
+        for _, link in re.findall(r'<a[^>]+href=(["\'])(http.+?)\1[^>]+title=["\']Download [Vv]ideo', webpage):
+            links.append(link)
+
+        # Fallback #3, encrypted links
+        for _, encrypted_link in re.findall(
+                r'encryptedQuality\d{3,4}URL\s*=\s*(["\'])([\da-zA-Z+/=]+)\1', webpage):
+            links.append(aes_decrypt_text(encrypted_link, title, 32).decode('utf-8'))
+
         formats = []
-        for link in links:
-            # A link looks like this:
-            # http://cdn2b.public.youporn.phncdn.com/201012/17/505835/720p_1500k_505835/YouPorn%20-%20Sex%20Ed%20Is%20It%20Safe%20To%20Masturbate%20Daily.mp4?rs=200&ri=2500&s=1445599900&e=1445773500&h=5345d19ce9944ec52eb167abf24af248
-            # A path looks like this:
-            # 201012/17/505835/720p_1500k_505835/YouPorn%20-%20Sex%20Ed%20Is%20It%20Safe%20To%20Masturbate%20Daily.mp4
-            video_url = unescapeHTML(link)
-            path = compat_urllib_parse_urlparse(video_url).path
-            format_parts = path.split('/')[4].split('_')[:2]
-
-            dn = compat_urllib_parse_urlparse(video_url).netloc.partition('.')[0]
-
-            resolution = format_parts[0]
-            height = int(resolution[:-len('p')])
-            bitrate = int(format_parts[1][:-len('k')])
-            format = '-'.join(format_parts) + '-' + dn
-
-            formats.append({
+        for video_url in set(unescapeHTML(link) for link in links):
+            f = {
                 'url': video_url,
-                'format': format,
-                'format_id': format,
-                'height': height,
-                'tbr': bitrate,
-                'resolution': resolution,
-            })
-
+            }
+            # Video URL's path looks like this:
+            #  /201012/17/505835/720p_1500k_505835/YouPorn%20-%20Sex%20Ed%20Is%20It%20Safe%20To%20Masturbate%20Daily.mp4
+            # We will benefit from it by extracting some metadata
+            mobj = re.search(r'/(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+/', video_url)
+            if mobj:
+                height = int(mobj.group('height'))
+                bitrate = int(mobj.group('bitrate'))
+                f.update({
+                    'format_id': '%dp-%dk' % (height, bitrate),
+                    'height': height,
+                    'tbr': bitrate,
+                })
+            formats.append(f)
         self._sort_formats(formats)
 
-        if not formats:
-            raise ExtractorError('ERROR: no known formats available for video')
+        description = self._html_search_regex(
+            r'(?s)<div[^>]+class=["\']video-description["\'][^>]*>(.+?)</div>',
+            webpage, 'description', fatal=False)
+        thumbnail = self._search_regex(
+            r'(?:imageurl\s*=|poster\s*:)\s*(["\'])(?P<thumbnail>.+?)\1',
+            webpage, 'thumbnail', fatal=False, group='thumbnail')
+
+        uploader = self._search_regex(
+            r'<div[^>]+class=["\']videoInfoBy["\'][^>]*>\s*By:\s*</div>\s*<a[^>]+href="[^"]*">([^<]+)</a>',
+            webpage, 'uploader', fatal=False)
+        upload_date = unified_strdate(self._html_search_regex(
+            r'(?s)<div[^>]+class=["\']videoInfoTime["\'][^>]*>(.+?)</div>',
+            webpage, 'upload date', fatal=False))
+
+        age_limit = self._rta_search(webpage)
+
+        average_rating = int_or_none(self._search_regex(
+            r'<div[^>]+class=["\']videoInfoRating["\'][^>]*>\s*<div[^>]+class=["\']videoRatingPercentage["\'][^>]*>(\d+)%</div>',
+            webpage, 'average rating', fatal=False))
+
+        view_count = str_to_int(self._search_regex(
+            r'(?s)<div[^>]+class=["\']videoInfoViews["\'][^>]*>.*?([\d,.]+)\s*</div>',
+            webpage, 'view count', fatal=False))
+
+        def extract_tag_box(title):
+            tag_box = self._search_regex(
+                (r'<div[^>]+class=["\']tagBoxTitle["\'][^>]*>\s*%s\b.*?</div>\s*'
+                 '<div[^>]+class=["\']tagBoxContent["\']>(.+?)</div>') % re.escape(title),
+                webpage, '%s tag box' % title, default=None)
+            if not tag_box:
+                return []
+            return re.findall(r'<a[^>]+href=[^>]+>([^<]+)', tag_box)
+
+        categories = extract_tag_box('Category')
+        tags = extract_tag_box('Tags')
 
         return {
             'id': video_id,
-            'title': video_title,
-            'description': video_description,
-            'thumbnail': video_thumbnail,
-            'uploader': video_uploader,
-            'date': video_date,
+            'display_id': display_id,
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'uploader': uploader,
+            'upload_date': upload_date,
+            'average_rating': average_rating,
+            'view_count': view_count,
+            'categories': categories,
+            'tags': tags,
             'age_limit': age_limit,
             'formats': formats,
         }
