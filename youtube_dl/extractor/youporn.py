@@ -15,8 +15,9 @@ from ..aes import aes_decrypt_text
 
 class YouPornIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?youporn\.com/watch/(?P<id>\d+)/(?P<display_id>[^/?#&]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/',
+        'md5': '71ec5fcfddacf80f495efa8b6a8d9a89',
         'info_dict': {
             'id': '505835',
             'display_id': 'sex-ed-is-it-safe-to-masturbate-daily',
@@ -31,8 +32,29 @@ class YouPornIE(InfoExtractor):
             'categories': list,
             'tags': list,
             'age_limit': 18,
-        }
-    }
+        },
+    }, {
+        # Anonymous User uploader
+        'url': 'http://www.youporn.com/watch/561726/big-tits-awesome-brunette-on-amazing-webcam-show/?from=related3&al=2&from_id=561726&pos=4',
+        'info_dict': {
+            'id': '561726',
+            'display_id': 'big-tits-awesome-brunette-on-amazing-webcam-show',
+            'ext': 'mp4',
+            'title': 'Big Tits Awesome Brunette On amazing webcam show',
+            'description': 'http://sweetlivegirls.com Big Tits Awesome Brunette On amazing webcam show.mp4',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'uploader': 'Anonymous User',
+            'upload_date': '20111125',
+            'average_rating': int,
+            'view_count': int,
+            'categories': list,
+            'tags': list,
+            'age_limit': 18,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -97,8 +119,8 @@ class YouPornIE(InfoExtractor):
             r'(?:imageurl\s*=|poster\s*:)\s*(["\'])(?P<thumbnail>.+?)\1',
             webpage, 'thumbnail', fatal=False, group='thumbnail')
 
-        uploader = self._search_regex(
-            r'<div[^>]+class=["\']videoInfoBy["\'][^>]*>\s*By:\s*</div>\s*<a[^>]+href="[^"]*">([^<]+)</a>',
+        uploader = self._html_search_regex(
+            r'(?s)<div[^>]+class=["\']videoInfoBy["\'][^>]*>\s*By:\s*</div>(.+?)</(?:a|div)>',
             webpage, 'uploader', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
             r'(?s)<div[^>]+class=["\']videoInfoTime["\'][^>]*>(.+?)</div>',
