@@ -13,8 +13,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from youtube_dl.utils import get_filesystem_encoding
 from youtube_dl.compat import (
     compat_getenv,
+    compat_etree_fromstring,
     compat_expanduser,
     compat_shlex_split,
+    compat_str,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
 )
@@ -70,6 +72,11 @@ class TestCompat(unittest.TestCase):
 
     def test_compat_shlex_split(self):
         self.assertEqual(compat_shlex_split('-option "one two"'), ['-option', 'one two'])
+
+    def test_compat_etree_fromstring(self):
+        xml = '<el foo="bar"></el>'
+        doc = compat_etree_fromstring(xml.encode('utf-8'))
+        self.assertTrue(isinstance(doc.attrib['foo'], compat_str))
 
 if __name__ == '__main__':
     unittest.main()

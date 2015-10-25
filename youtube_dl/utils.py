@@ -36,6 +36,7 @@ import zlib
 from .compat import (
     compat_basestring,
     compat_chr,
+    compat_etree_fromstring,
     compat_html_entities,
     compat_http_client,
     compat_kwargs,
@@ -1974,7 +1975,7 @@ def dfxp2srt(dfxp_data):
 
         return out
 
-    dfxp = xml.etree.ElementTree.fromstring(dfxp_data.encode('utf-8'))
+    dfxp = compat_etree_fromstring(dfxp_data.encode('utf-8'))
     out = []
     paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall(_x('.//ttaf1:p')) or dfxp.findall('.//p')
 

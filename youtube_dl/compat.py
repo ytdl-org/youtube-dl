@@ -14,6 +14,7 @@ import socket
 import subprocess
 import sys
 import itertools
+import xml.etree.ElementTree
 
 
 try:
@@ -212,6 +213,29 @@ try:
 except ImportError:  # Python 2.6
     from xml.parsers.expat import ExpatError as compat_xml_parse_error
 
+if sys.version_info[0] >= 3:
+    compat_etree_fromstring = xml.etree.ElementTree.fromstring
+else:
+    # on python 2.x the the attributes of a node are str objects instead of
+    # unicode
+    etree = xml.etree.ElementTree
+
+    # on 2.6 XML doesn't have a parser argument, function copied from CPython
+    # 2.7 source
+    def _XML(text, parser=None):
+        if not parser:
+            parser = etree.XMLParser(target=etree.TreeBuilder())
+        parser.feed(text)
+        return parser.close()
+
+    def _element_factory(*args, **kwargs):
+        el = etree.Element(*args, **kwargs)
+        for k, v in el.items():
+            el.set(k, v.decode('utf-8'))
+        return el
+
+    def compat_etree_fromstring(text):
+        return _XML(text, parser=etree.XMLParser(target=etree.TreeBuilder(element_factory=_element_factory)))
 
 try:
     from urllib.parse import parse_qs as compat_parse_qs
@@ -507,6 +531,7 @@ __all__ = [
     'compat_chr',
     'compat_cookiejar',
     'compat_cookies',
+    'compat_etree_fromstring',
     'compat_expanduser',
     'compat_get_terminal_size',
     'compat_getenv',

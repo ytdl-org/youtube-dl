@@ -5,10 +5,10 @@ import io
 import itertools
 import os
 import time
-import xml.etree.ElementTree as etree
 
 from .fragment import FragmentFD
 from ..compat import (
+    compat_etree_fromstring,
     compat_urlparse,
     compat_urllib_error,
     compat_urllib_parse_urlparse,
@@ -290,7 +290,7 @@ class F4mFD(FragmentFD):
         man_url = urlh.geturl()
         manifest = urlh.read()
 
-        doc = etree.fromstring(manifest)
+        doc = compat_etree_fromstring(manifest)
         formats = [(int(f.attrib.get('bitrate', -1)), f)
                    for f in self._get_unencrypted_media(doc)]
         if requested_bitrate is None:
