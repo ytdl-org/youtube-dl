@@ -129,6 +129,9 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
             'title': 'Soir 3',
             'upload_date': '20130826',
             'timestamp': 1377548400,
+            'subtitles': {
+                'fr': 'mincount:2',
+            },
         },
     }, {
         'url': 'http://www.francetvinfo.fr/elections/europeennes/direct-europeennes-regardez-le-debat-entre-les-candidats-a-la-presidence-de-la-commission_600639.html',
