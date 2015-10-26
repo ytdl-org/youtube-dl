@@ -102,6 +102,10 @@ class VidmeIE(InfoExtractor):
         'url': 'https://vid.me/Ox3G',
         'only_matching': True,
     }, {
+        # deleted
+        'url': 'https://vid.me/KTPm',
+        'only_matching': True,
+    }, {
         # no formats in the API response
         'url': 'https://vid.me/e5g',
         'info_dict': {
@@ -142,6 +146,11 @@ class VidmeIE(InfoExtractor):
                 '%s returned error: %s' % (self.IE_NAME, error), expected=True)
 
         video = response['video']
+
+        if video.get('state') == 'deleted':
+            raise ExtractorError(
+                'Vidme said: Sorry, this video has been deleted.',
+                expected=True)
 
         if video.get('state') in ('user-disabled', 'suspended'):
             raise ExtractorError(
