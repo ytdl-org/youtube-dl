@@ -83,6 +83,16 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
         if subtitle:
             title += ' - %s' % subtitle
 
+        subtitles = {}
+        for subtitle_accessibilite in info['subtitles']:
+            if subtitle_accessibilite['url'] is not '':
+                if not subtitles:
+                    subtitles['fr'] = []
+                subtitles['fr'].append({
+                    'ext': subtitle_accessibilite['format'],
+                    'url': subtitle_accessibilite['url'],
+                })
+
         return {
             'id': video_id,
             'title': title,
@@ -91,6 +101,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
             'duration': int_or_none(info.get('real_duration')) or parse_duration(info['duree']),
             'timestamp': int_or_none(info['diffusion']['timestamp']),
             'formats': formats,
+            'subtitles': subtitles,
         }
 
 
