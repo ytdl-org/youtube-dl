@@ -74,10 +74,19 @@ class TestCompat(unittest.TestCase):
         self.assertEqual(compat_shlex_split('-option "one two"'), ['-option', 'one two'])
 
     def test_compat_etree_fromstring(self):
-        xml = '<el foo="bar" spam="中文"></el>'
+        xml = '''
+            <root foo="bar" spam="中文">
+                <normal>foo</normal>
+                <chinese>中文</chinese>
+                <foo><bar>spam</bar></foo>
+            </root>
+        '''
         doc = compat_etree_fromstring(xml.encode('utf-8'))
         self.assertTrue(isinstance(doc.attrib['foo'], compat_str))
         self.assertTrue(isinstance(doc.attrib['spam'], compat_str))
+        self.assertTrue(isinstance(doc.find('normal').text, compat_str))
+        self.assertTrue(isinstance(doc.find('chinese').text, compat_str))
+        self.assertTrue(isinstance(doc.find('foo/bar').text, compat_str))
 
 if __name__ == '__main__':
     unittest.main()

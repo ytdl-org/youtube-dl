@@ -216,8 +216,18 @@ except ImportError:  # Python 2.6
 if sys.version_info[0] >= 3:
     compat_etree_fromstring = xml.etree.ElementTree.fromstring
 else:
-    # on python 2.x the the attributes of a node aren't always unicode objects
+    # on python 2.x the attributes and text of a node aren't always unicode
+    # objects
     etree = xml.etree.ElementTree
+
+    try:
+        _etree_iter = etree.Element.iter
+    except AttributeError:  # Python <=2.6
+        def _etree_iter(root):
+            for el in root.findall('*'):
+                yield el
+                for sub in _etree_iter(el):
+                    yield sub
 
     # on 2.6 XML doesn't have a parser argument, function copied from CPython
     # 2.7 source
@@ -235,7 +245,11 @@ else:
         return el
 
     def compat_etree_fromstring(text):
-        return _XML(text, parser=etree.XMLParser(target=etree.TreeBuilder(element_factory=_element_factory)))
+        doc = _XML(text, parser=etree.XMLParser(target=etree.TreeBuilder(element_factory=_element_factory)))
+        for el in _etree_iter(doc):
+            if el.text is not None and isinstance(el.text, bytes):
+                el.text = el.text.decode('utf-8')
+        return doc
 
 try:
     from urllib.parse import parse_qs as compat_parse_qs
