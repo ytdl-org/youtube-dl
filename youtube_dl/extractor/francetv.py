@@ -84,14 +84,12 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
             title += ' - %s' % subtitle
 
         subtitles = {}
-        for subtitle_accessibilite in info['subtitles']:
-            if subtitle_accessibilite['url'] is not '':
-                if not subtitles:
-                    subtitles['fr'] = []
-                subtitles['fr'].append({
-                    'ext': subtitle_accessibilite['format'],
-                    'url': subtitle_accessibilite['url'],
-                })
+        subtitles_list = [{
+            'url': subtitle['url'],
+            'ext': subtitle.get('format'),
+        } for subtitle in info.get('subtitles', []) if subtitle.get('url')]
+        if subtitles_list:
+            subtitles['fr'] = subtitles_list
 
         return {
             'id': video_id,
