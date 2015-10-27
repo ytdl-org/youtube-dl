@@ -105,7 +105,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
 
 class PluzzIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'pluzz.francetv.fr'
-    _VALID_URL = r'https?://pluzz\.francetv\.fr/videos/(.*?)\.html'
+    _VALID_URL = r'https?://(?:m\.)?pluzz\.francetv\.fr/videos/(.*?)\.html'
 
     # Can't use tests, videos expire in 7 days
 
