@@ -85,9 +85,9 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
 
         subtitles = {}
         subtitles_list = [{
-            'url': subtitle['url'],
-            'ext': subtitle.get('format'),
-        } for subtitle in info.get('subtitles', []) if subtitle.get('url')]
+            'url': subformat['url'],
+            'ext': subformat.get('format'),
+        } for subformat in info.get('subtitles', []) if subformat.get('url')]
         if subtitles_list:
             subtitles['fr'] = subtitles_list
 
@@ -118,7 +118,7 @@ class PluzzIE(FranceTVBaseInfoExtractor):
             'id_video', webpage, 'video id', default=None)
         if not video_id:
             video_id = self._search_regex(
-            r'data-diffusion=["\'](\d+)', webpage, 'video id')
+                r'data-diffusion=["\'](\d+)', webpage, 'video id')
 
         return self._extract_video(video_id, 'Pluzz')
 
