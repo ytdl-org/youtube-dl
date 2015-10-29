@@ -46,6 +46,18 @@ class MonikerIE(InfoExtractor):
     }, {
         'url': 'https://www.vidspot.net/l2ngsmhs8ci5',
         'only_matching': True,
+    }, {
+        'url': 'http://vidspot.net/2/v-ywDf99',
+        'md5': '5f8254ce12df30479428b0152fb8e7ba',
+        'info_dict': {
+            'id': 'ywDf99',
+            'ext': 'mp4',
+            'title': 'IL FAIT LE MALIN EN PORSHE CAYENNE ( mais pas pour longtemps)',
+            'description': 'IL FAIT LE MALIN EN PORSHE CAYENNE.',
+        },
+    }, {
+        'url': 'http://allmyvideos.net/v/v-HXZm5t',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
