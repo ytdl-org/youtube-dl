@@ -216,8 +216,8 @@ except ImportError:  # Python 2.6
 if sys.version_info[0] >= 3:
     compat_etree_fromstring = xml.etree.ElementTree.fromstring
 else:
-    # on python 2.x the attributes and text of a node aren't always unicode
-    # objects
+    # python 2.x tries to encode unicode strings with ascii (see the
+    # XMLParser._fixtext method)
     etree = xml.etree.ElementTree
 
     try:
