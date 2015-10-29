@@ -6,6 +6,8 @@ from .academicearth import AcademicEarthCourseIE
 from .addanime import AddAnimeIE
 from .adobetv import (
     AdobeTVIE,
+    AdobeTVShowIE,
+    AdobeTVChannelIE,
     AdobeTVVideoIE,
 )
 from .adultswim import AdultSwimIE

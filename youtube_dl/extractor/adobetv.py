@@ -62,6 +62,78 @@ class AdobeTVIE(InfoExtractor):
         }
 
 
+class AdobeTVPlaylistBaseIE(InfoExtractor):
+    def _parse_page_data(self, page_data):
+        return [self.url_result(self._get_element_url(element_data)) for element_data in page_data]
+
+    def _extract_playlist_entries(self, url, display_id):
+        page = self._download_json(url, display_id)
+        entries = self._parse_page_data(page['data'])
+        for page_num in range(2, page['paging']['pages'] + 1):
+            entries.extend(self._parse_page_data(
+                self._download_json(url + '&page=%d' % page_num, display_id)['data']))
+        return entries
+
+
+class AdobeTVShowIE(AdobeTVPlaylistBaseIE):
+    _VALID_URL = r'https?://tv\.adobe\.com/(?:(?P<language>fr|de|es|jp)/)?show/(?P<id>[^/]+)'
+
+    _TEST = {
+        'url': 'http://tv.adobe.com/show/the-complete-picture-with-julieanne-kost',
+        'info_dict': {
+            'id': '36',
+            'title': 'The Complete Picture with Julieanne Kost',
+            'description': 'md5:fa50867102dcd1aa0ddf2ab039311b27',
+        },
+        'playlist_mincount': 136,
+    }
+
+    def _get_element_url(self, element_data):
+        return element_data['urls'][0]
+
+    def _real_extract(self, url):
+        language, show_urlname = re.match(self._VALID_URL, url).groups()
+        if not language:
+            language = 'en'
+        query = 'language=%s&show_urlname=%s' % (language, show_urlname)
+
+        show_data = self._download_json(
+            'http://tv.adobe.com/api/v4/show/get/?%s' % query, show_urlname)['data'][0]
+
+        return self.playlist_result(
+            self._extract_playlist_entries('http://tv.adobe.com/api/v4/episode/?%s' % query, show_urlname),
+            str(show_data['id']),
+            show_data['show_name'],
+            show_data['show_description'])
+
+
+class AdobeTVChannelIE(AdobeTVPlaylistBaseIE):
+    _VALID_URL = r'https?://tv\.adobe\.com/(?:(?P<language>fr|de|es|jp)/)?channel/(?P<id>[^/]+)(?:/(?P<category_urlname>[^/]+))?'
+
+    _TEST = {
+        'url': 'http://tv.adobe.com/channel/development',
+        'info_dict': {
+            'id': 'development',
+        },
+        'playlist_mincount': 96,
+    }
+
+    def _get_element_url(self, element_data):
+        return element_data['url']
+
+    def _real_extract(self, url):
+        language, channel_urlname, category_urlname = re.match(self._VALID_URL, url).groups()
+        if not language:
+            language = 'en'
+        query = 'language=%s&channel_urlname=%s' % (language, channel_urlname)
+        if category_urlname:
+            query += '&category_urlname=%s' % category_urlname
+
+        return self.playlist_result(
+            self._extract_playlist_entries('http://tv.adobe.com/api/v4/show/?%s' % query, channel_urlname),
+            channel_urlname)
+
+
 class AdobeTVVideoIE(InfoExtractor):
     _VALID_URL = r'https?://video\.tv\.adobe\.com/v/(?P<id>\d+)'
 
