@@ -10,6 +10,7 @@ from ..utils import (
     int_or_none,
     float_or_none,
     ISO639Utils,
+    determine_ext,
 )
 
 
@@ -79,28 +80,25 @@ class AdobeTVVideoIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, video_id)
-
-        player_params = self._parse_json(self._search_regex(
-            r'var\s+bridge\s*=\s*([^;]+);', webpage, 'player parameters'),
-            video_id)
+        video_data = self._download_json(url + '?format=json', video_id)
 
         formats = [{
+            'format_id': '%s-%s' % (determine_ext(source['src']), source.get('height')),
             'url': source['src'],
-            'width': source.get('width'),
-            'height': source.get('height'),
-            'tbr': source.get('bitrate'),
-        } for source in player_params['sources']]
+            'width': int_or_none(source.get('width')),
+            'height': int_or_none(source.get('height')),
+            'tbr': int_or_none(source.get('bitrate')),
+        } for source in video_data['sources']]
+        self._sort_formats(formats)
 
         # For both metadata and downloaded files the duration varies among
         # formats. I just pick the max one
         duration = max(filter(None, [
             float_or_none(source.get('duration'), scale=1000)
-            for source in player_params['sources']]))
+            for source in video_data['sources']]))
 
         subtitles = {}
-        for translation in player_params.get('translations', []):
+        for translation in video_data.get('translations', []):
             lang_id = translation.get('language_w3c') or ISO639Utils.long2short(translation['language_medium'])
             if lang_id not in subtitles:
                 subtitles[lang_id] = []
@@ -112,8 +110,9 @@ class AdobeTVVideoIE(InfoExtractor):
         return {
             'id': video_id,
             'formats': formats,
-            'title': player_params['title'],
-            'description': self._og_search_description(webpage),
+            'title': video_data['title'],
+            'description': video_data.get('description'),
+            'thumbnail': video_data['video'].get('poster'),
             'duration': duration,
             'subtitles': subtitles,
         }
