@@ -200,7 +200,6 @@ class NowTVIE(InfoExtractor):
             if season:
                 if season != season_item['seoheadline']:
                     continue
-
             for items in season_item['formatTabPages']['items']:
                 try:
                     for episode in items['container']['movies']['items']:
@@ -220,7 +219,7 @@ class NowTVIE(InfoExtractor):
                 except:
                     continue
 
-        return self.playlist_result(videos.reverse(), playlist_id, playlist_title)
+        return self.playlist_result(reversed(videos), playlist_id, playlist_title)
 
     def episode_details(self, info):
 
