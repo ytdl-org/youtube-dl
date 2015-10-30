@@ -11,16 +11,17 @@ from ..utils import (
 
 
 class VGTVIE(InfoExtractor):
-    IE_DESC = 'VGTV and BTTV'
+    IE_DESC = 'VGTV, BTTV, FTV, Aftenposten, Aftonbladet'
     _VALID_URL = r'''(?x)
                     (?:
                         vgtv:|
                         http://(?:www\.)?
                     )
-                    (?P<host>vgtv|bt)
+                    (?P<host>vgtv.no|(?:bt.no|aftenbladet.no)/tv|fvn.no/fvntv|aftenposten.no/webtv)
                     (?:
                         :|
-                        \.no/(?:tv/)?\#!/(?:video|live)/
+                        /\#!/(?:video|live)/|
+                        /embed?id=
                     )
                     (?P<id>[0-9]+)
                     '''
@@ -59,17 +60,18 @@ class VGTVIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
+            'skip': 'Video is no longer available',
         },
         {
-            # streamType: live
+            # streamType: wasLive
             'url': 'http://www.vgtv.no/#!/live/113063/direkte-v75-fra-solvalla',
             'info_dict': {
                 'id': '113063',
-                'ext': 'flv',
-                'title': 're:^DIREKTE: V75 fra Solvalla [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+                'ext': 'mp4',
+                'title': 'V75 fra Solvalla 30.05.15',
                 'description': 'md5:b3743425765355855f88e096acc93231',
                 'thumbnail': 're:^https?://.*\.jpg',
-                'duration': 0,
+                'duration': 25966,
                 'timestamp': 1432975582,
                 'upload_date': '20150530',
                 'view_count': int,
@@ -78,26 +80,56 @@ class VGTVIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
+        },{
+            'url': 'http://www.aftenposten.no/webtv/#!/video/21039/trailer-sweatshop-i-can-t-take-any-more',
+            'md5': '7fbc265a3ca4933a423c7a66aa879a67',
+            'info_dict': {
+                'id': '21039',
+                'ext': 'mp4',
+                'title': 'TRAILER: «SWEATSHOP» - I can´t take any more',
+                'description': 'md5:21891f2b0dd7ec2f78d84a50e54f8238',
+                'duration': 66,
+                'timestamp': 1417002452,
+                'upload_date': '20141126',
+                'view_count': int,
+            }
         },
         {
             'url': 'http://www.bt.no/tv/#!/video/100250/norling-dette-er-forskjellen-paa-1-divisjon-og-eliteserien',
             'only_matching': True,
         },
     ]
+    _HOST_WEBSITES = {
+        'vgtv.no': {
+            'vendor': 'vgtv',
+            'appname': 'vgtv',
+        },
+        'bt.no/tv': {
+            'vendor': 'bt',
+            'appname': 'bttv',
+        },
+        'aftenbladet.no/tv': {
+            'vendor': 'sa',
+            'appname': 'satv',
+        },
+        'fvn.no/fvntv': {
+            'vendor': 'fvn',
+            'appname': 'fvntv',
+        },
+        'aftenposten.no/webtv': {
+            'vendor': 'ap',
+            'appname': 'aptv',
+        },
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         host = mobj.group('host')
 
-        HOST_WEBSITES = {
-            'vgtv': 'vgtv',
-            'bt': 'bttv',
-        }
-
         data = self._download_json(
             'http://svp.vg.no/svp/api/v1/%s/assets/%s?appName=%s-website'
-            % (host, video_id, HOST_WEBSITES[host]),
+            % (self._HOST_WEBSITES[host]['vendor'], video_id, self._HOST_WEBSITES[host]['appname']),
             video_id, 'Downloading media JSON')
 
         if data.get('status') == 'inactive':
@@ -144,7 +176,7 @@ class VGTVIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': self._live_title(data['title']),
+            'title': self._live_title(data['title']) if stream_type == 'live' else data['title'],
             'description': data['description'],
             'thumbnail': data['images']['main'] + '?t[]=900x506q80',
             'timestamp': data['published'],
