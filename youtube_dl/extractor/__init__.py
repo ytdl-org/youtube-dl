@@ -235,6 +235,7 @@ from .howcast import HowcastIE
 from .howstuffworks import HowStuffWorksIE
 from .huffpost import HuffPostIE
 from .hypem import HypemIE
+from .iba import IBAIE
 from .iconosquare import IconosquareIE
 from .ign import IGNIE, OneUPIE
 from .imdb import (
