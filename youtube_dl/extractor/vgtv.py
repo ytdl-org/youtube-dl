@@ -11,17 +11,19 @@ from ..utils import (
 
 
 class VGTVIE(InfoExtractor):
-    IE_DESC = 'VGTV, BTTV, FTV, Aftenposten, Aftonbladet'
+    IE_DESC = 'VGTV, BTTV, FTV, Aftenposten and Aftonbladet'
     _VALID_URL = r'''(?x)
-                    (?:
-                        vgtv:|
-                        http://(?:www\.)?
+                    http://(?:www\.)?
+                    (?P<host>
+                        vgtv.no|
+                        (?:bt|aftenbladet).no/tv|
+                        fvn.no/fvntv|
+                        aftenposten.no/webtv
                     )
-                    (?P<host>vgtv.no|(?:bt.no|aftenbladet.no)/tv|fvn.no/fvntv|aftenposten.no/webtv)
+                    /
                     (?:
-                        :|
-                        /\#!/(?:video|live)/|
-                        /embed?id=
+                        \#!/(?:video|live)/|
+                        embed?.*id=
                     )
                     (?P<id>[0-9]+)
                     '''
@@ -211,7 +213,7 @@ class BTArticleIE(InfoExtractor):
         webpage = self._download_webpage(url, self._match_id(url))
         video_id = self._search_regex(
             r'SVP\.Player\.load\(\s*(\d+)', webpage, 'video id')
-        return self.url_result('vgtv:bt:%s' % video_id, 'VGTV')
+        return self.url_result('http://bt.no/tv/embed?id=%s' % video_id, 'VGTV')
 
 
 class BTVestlendingenIE(InfoExtractor):
