@@ -4,11 +4,8 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
     int_or_none,
-    js_to_json,
-    parse_iso8601,
-    remove_end,
+    unified_strdate,
 )
 
 
@@ -21,48 +18,37 @@ class ClipfishIE(InfoExtractor):
             'id': '3966754',
             'ext': 'mp4',
             'title': 'FIFA 14 - E3 2013 Trailer',
-            'timestamp': 1370938118,
+            'description': 'Video zu FIFA 14: E3 2013 Trailer',
             'upload_date': '20130611',
             'duration': 82,
+            'view_count': int,
         }
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        video_info = self._download_json('http://www.clipfish.de/devapi/id/%s?format=json&apikey=hbbtv' % video_id, video_id)['items'][0]
 
-        video_info = self._parse_json(
-            js_to_json(self._html_search_regex(
-                '(?s)videoObject\s*=\s*({.+?});', webpage, 'video object')),
-            video_id)
-
-        formats = []
-        for video_url in re.findall(r'var\s+videourl\s*=\s*"([^"]+)"', webpage):
-            ext = determine_ext(video_url)
-            if ext == 'm3u8':
-                formats.append({
-                    'url': video_url.replace('de.hls.fra.clipfish.de', 'hls.fra.clipfish.de'),
-                    'ext': 'mp4',
-                    'format_id': 'hls',
-                })
-            else:
-                formats.append({
-                    'url': video_url,
-                    'format_id': ext,
-                })
-        self._sort_formats(formats)
-
-        title = remove_end(self._og_search_title(webpage), ' - Video')
-        thumbnail = self._og_search_thumbnail(webpage)
-        duration = int_or_none(video_info.get('length'))
-        timestamp = parse_iso8601(self._html_search_meta('uploadDate', webpage, 'upload date'))
+        formats = [{
+            'url': video_info['media_videourl_hls'].replace('de.hls.fra.clipfish.de', 'hls.fra.clipfish.de'),
+            'ext': 'mp4',
+            'format_id': 'hls',
+        },{
+            'url': video_info['media_videourl'],
+            'format_id': 'mp4',
+            'width': int_or_none(video_info.get('width')),
+            'height': int_or_none(video_info.get('height')),
+            'tbr': int_or_none(video_info.get('bitrate')),
+        }]
 
         return {
             'id': video_id,
-            'title': title,
+            'title': video_info['title'],
+            'description': video_info.get('descr'),
             'formats': formats,
-            'thumbnail': thumbnail,
-            'duration': duration,
-            'timestamp': timestamp,
+            'thumbnail': video_info.get('media_content_thumbnail_large') or video_info.get('media_thumbnail'),
+            'duration': int_or_none(video_info.get('media_length')),
+            'upload_date': unified_strdate(video_info.get('pubDate')),
+            'view_count': int_or_none(video_info.get('media_views'))
         }
