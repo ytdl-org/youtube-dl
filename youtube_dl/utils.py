@@ -178,10 +178,19 @@ def xpath_with_ns(path, ns_map):
 
 
 def xpath_element(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
-    if sys.version_info < (2, 7):  # Crazy 2.6
-        xpath = xpath.encode('ascii')
+    def _find_xpath(xpath):
+        if sys.version_info < (2, 7):  # Crazy 2.6
+            xpath = xpath.encode('ascii')
+        return node.find(xpath)
 
-    n = node.find(xpath)
+    if isinstance(xpath, (str, compat_str)):
+        n = _find_xpath(xpath)
+    else:
+        for xp in xpath:
+            n = _find_xpath(xp)
+            if n is not None:
+                break
+
     if n is None:
         if default is not NO_DEFAULT:
             return default

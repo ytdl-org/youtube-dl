@@ -275,9 +275,16 @@ class TestUtil(unittest.TestCase):
         p = xml.etree.ElementTree.SubElement(div, 'p')
         p.text = 'Foo'
         self.assertEqual(xpath_element(doc, 'div/p'), p)
+        self.assertEqual(xpath_element(doc, ['div/p']), p)
+        self.assertEqual(xpath_element(doc, ['div/bar', 'div/p']), p)
         self.assertEqual(xpath_element(doc, 'div/bar', default='default'), 'default')
+        self.assertEqual(xpath_element(doc, ['div/bar'], default='default'), 'default')
         self.assertTrue(xpath_element(doc, 'div/bar') is None)
+        self.assertTrue(xpath_element(doc, ['div/bar']) is None)
+        self.assertTrue(xpath_element(doc, ['div/bar'], 'div/baz') is None)
         self.assertRaises(ExtractorError, xpath_element, doc, 'div/bar', fatal=True)
+        self.assertRaises(ExtractorError, xpath_element, doc, ['div/bar'], fatal=True)
+        self.assertRaises(ExtractorError, xpath_element, doc, ['div/bar', 'div/baz'], fatal=True)
 
     def test_xpath_text(self):
         testxml = '''<root>
