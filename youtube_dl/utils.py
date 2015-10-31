@@ -910,7 +910,7 @@ def unified_strdate(date_str, day_first=True):
         timetuple = email.utils.parsedate_tz(date_str)
         if timetuple:
             upload_date = datetime.datetime(*timetuple[:6]).strftime('%Y%m%d')
-    return upload_date
+    return compat_str(upload_date)
 
 
 def determine_ext(url, default_ext='unknown_video'):
