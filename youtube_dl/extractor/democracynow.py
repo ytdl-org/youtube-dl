@@ -36,10 +36,9 @@ class DemocracynowIE(InfoExtractor):
         if display_id == '':
             display_id = 'home'
         webpage = self._download_webpage(url, display_id)
-        re_desc = re.search(r'<meta property=.og:description. content=(["\'])(.+?)\1', webpage, re.DOTALL)
-        description = re_desc.group(2) if re_desc else ''
+        description = self._og_search_description(webpage)
 
-        jstr = self._search_regex(r'({.+?"related_video_xml".+?})', webpage, 'json', default=None)
+        jstr = self._search_regex(r'<script[^>]+type="text/json"[^>]*>\s*({[^>]+})', webpage, 'json')
         js = self._parse_json(jstr, display_id)
         video_id = None
         formats = []
@@ -56,7 +55,7 @@ class DemocracynowIE(InfoExtractor):
                 'ext': ext,
                 'url': url,
             }]
-        for key in ('file', 'audio'):
+        for key in ('file', 'audio', 'video'):
             url = js.get(key, '')
             if url == '' or url is None:
                 continue
