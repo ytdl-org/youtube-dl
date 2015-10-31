@@ -96,8 +96,6 @@ class MDRIE(InfoExtractor):
                 vbr = int_or_none(xpath_text(asset, './bitrateVideo', 'vbr'), 1000)
                 abr = int_or_none(xpath_text(asset, './bitrateAudio', 'abr'), 1000)
 
-                url_formats = []
-
                 ext = determine_ext(url_el.text)
                 if ext == 'm3u8':
                     url_formats = self._extract_m3u8_formats(
@@ -130,7 +128,10 @@ class MDRIE(InfoExtractor):
                             'height': height,
                         })
 
-                    url_formats.append(f)
+                    url_formats = [f]
+
+                if not url_formats:
+                    continue
 
                 if not vbr:
                     for f in url_formats:
@@ -142,8 +143,8 @@ class MDRIE(InfoExtractor):
                             'vcodec': 'none',
                         })
 
-                if url_formats:
-                    formats.extend(url_formats)
+                formats.extend(url_formats)
+
         self._sort_formats(formats)
 
         description = xpath_text(doc, './broadcast/broadcastDescription', 'description')
