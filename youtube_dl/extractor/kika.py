@@ -6,16 +6,16 @@ from ..utils import ExtractorError
 
 
 class KikaIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?kika\.de/(?:[a-z-]+/)*(?:video|sendung)(?P<id>\d+).*'
+    _VALID_URL = r'https?://(?:www\.)?kika\.de/(?:[a-z-]+/)*(?:video|(?:einzel)?sendung)(?P<id>\d+).*'
 
     _TESTS = [
         {
-            'url': 'http://www.kika.de/baumhaus/videos/video9572.html',
-            'md5': '94fc748cf5d64916571d275a07ffe2d5',
+            'url': 'http://www.kika.de/baumhaus/videos/video19636.html',
+            'md5': '4930515e36b06c111213e80d1e4aad0e',
             'info_dict': {
-                'id': '9572',
+                'id': '19636',
                 'ext': 'mp4',
-                'title': 'Baumhaus vom 29. Oktober 2014',
+                'title': 'Baumhaus vom 30. Oktober 2015',
                 'description': None
             }
         },
@@ -30,17 +30,17 @@ class KikaIE(InfoExtractor):
             }
         },
         {
-            'url': 'http://www.kika.de/videos/allevideos/video9572_zc-32ca94ad_zs-3f535991.html',
-            'md5': '94fc748cf5d64916571d275a07ffe2d5',
+            'url': 'http://www.kika.de/baumhaus/sendungen/video19636_zc-fea7f8a0_zs-4bf89c60.html',
+            'md5': '4930515e36b06c111213e80d1e4aad0e',
             'info_dict': {
-                'id': '9572',
+                'id': '19636',
                 'ext': 'mp4',
-                'title': 'Baumhaus vom 29. Oktober 2014',
+                'title': 'Baumhaus vom 30. Oktober 2015',
                 'description': None
             }
         },
         {
-            'url': 'http://www.kika.de/sendungen/einzelsendungen/weihnachtsprogramm/videos/sendung81244_zc-81d703f8_zs-f82d5e31.html',
+            'url': 'http://www.kika.de/sendungen/einzelsendungen/weihnachtsprogramm/einzelsendung2534.html',
             'md5': '5fe9c4dd7d71e3b238f04b8fdd588357',
             'info_dict': {
                 'id': '8182',
