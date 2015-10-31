@@ -383,8 +383,7 @@ class BrightcoveInPageEmbedIE(InfoExtractor):
         return None
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        account_id, player_id, embed, video_id = mobj.groups()
+        account_id, player_id, embed, video_id = re.match(self._VALID_URL, url).groups()
 
         webpage = self._download_webpage('http://players.brightcove.net/%s/%s_%s/index.min.js' % (account_id, player_id, embed), video_id)
 
