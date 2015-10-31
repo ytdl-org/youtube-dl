@@ -10,7 +10,6 @@ import re
 import socket
 import sys
 import time
-import xml.etree.ElementTree
 
 from ..compat import (
     compat_cookiejar,
@@ -23,6 +22,7 @@ from ..compat import (
     compat_urllib_request,
     compat_urlparse,
     compat_str,
+    compat_etree_fromstring,
 )
 from ..utils import (
     NO_DEFAULT,
@@ -461,7 +461,7 @@ class InfoExtractor(object):
             return xml_string
         if transform_source:
             xml_string = transform_source(xml_string)
-        return xml.etree.ElementTree.fromstring(xml_string.encode('utf-8'))
+        return compat_etree_fromstring(xml_string.encode('utf-8'))
 
     def _download_json(self, url_or_request, video_id,
                        note='Downloading JSON metadata',

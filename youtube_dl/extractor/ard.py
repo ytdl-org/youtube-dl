@@ -14,8 +14,8 @@ from ..utils import (
     parse_duration,
     unified_strdate,
     xpath_text,
-    parse_xml,
 )
+from ..compat import compat_etree_fromstring
 
 
 class ARDMediathekIE(InfoExtractor):
@@ -161,7 +161,7 @@ class ARDMediathekIE(InfoExtractor):
             raise ExtractorError('This program is only suitable for those aged 12 and older. Video %s is therefore only available between 20 pm and 6 am.' % video_id, expected=True)
 
         if re.search(r'[\?&]rss($|[=&])', url):
-            doc = parse_xml(webpage)
+            doc = compat_etree_fromstring(webpage.encode('utf-8'))
             if doc.tag == 'rss':
                 return GenericIE()._extract_rss(url, video_id, doc)
 

@@ -36,6 +36,7 @@ import zlib
 from .compat import (
     compat_basestring,
     compat_chr,
+    compat_etree_fromstring,
     compat_html_entities,
     compat_http_client,
     compat_kwargs,
@@ -1665,29 +1666,6 @@ def encode_dict(d, encoding='utf-8'):
     return dict((k.encode(encoding), v.encode(encoding)) for k, v in d.items())
 
 
-try:
-    etree_iter = xml.etree.ElementTree.Element.iter
-except AttributeError:  # Python <=2.6
-    etree_iter = lambda n: n.findall('.//*')
-
-
-def parse_xml(s):
-    class TreeBuilder(xml.etree.ElementTree.TreeBuilder):
-        def doctype(self, name, pubid, system):
-            pass  # Ignore doctypes
-
-    parser = xml.etree.ElementTree.XMLParser(target=TreeBuilder())
-    kwargs = {'parser': parser} if sys.version_info >= (2, 7) else {}
-    tree = xml.etree.ElementTree.XML(s.encode('utf-8'), **kwargs)
-    # Fix up XML parser in Python 2.x
-    if sys.version_info < (3, 0):
-        for n in etree_iter(tree):
-            if n.text is not None:
-                if not isinstance(n.text, compat_str):
-                    n.text = n.text.decode('utf-8')
-    return tree
-
-
 US_RATINGS = {
     'G': 0,
     'PG': 10,
@@ -1988,7 +1966,7 @@ def dfxp2srt(dfxp_data):
 
         return out
 
-    dfxp = xml.etree.ElementTree.fromstring(dfxp_data.encode('utf-8'))
+    dfxp = compat_etree_fromstring(dfxp_data.encode('utf-8'))
     out = []
     paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall(_x('.//ttaf1:p')) or dfxp.findall('.//p')
 

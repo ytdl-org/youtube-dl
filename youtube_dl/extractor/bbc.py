@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -14,7 +13,10 @@ from ..utils import (
     remove_end,
     unescapeHTML,
 )
-from ..compat import compat_HTTPError
+from ..compat import (
+    compat_etree_fromstring,
+    compat_HTTPError,
+)
 
 
 class BBCCoUkIE(InfoExtractor):
@@ -344,7 +346,7 @@ class BBCCoUkIE(InfoExtractor):
                 url, programme_id, 'Downloading media selection XML')
         except ExtractorError as ee:
             if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
-                media_selection = xml.etree.ElementTree.fromstring(ee.cause.read().decode('utf-8'))
+                media_selection = compat_etree_fromstring(ee.cause.read().decode('utf-8'))
             else:
                 raise
         return self._process_media_selector(media_selection, programme_id)

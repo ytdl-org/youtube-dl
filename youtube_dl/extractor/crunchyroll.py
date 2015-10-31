@@ -5,12 +5,12 @@ import re
 import json
 import base64
 import zlib
-import xml.etree.ElementTree
 
 from hashlib import sha1
 from math import pow, sqrt, floor
 from .common import InfoExtractor
 from ..compat import (
+    compat_etree_fromstring,
     compat_urllib_parse,
     compat_urllib_parse_unquote,
     compat_urllib_request,
@@ -234,7 +234,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         return output
 
     def _extract_subtitles(self, subtitle):
-        sub_root = xml.etree.ElementTree.fromstring(subtitle)
+        sub_root = compat_etree_fromstring(subtitle)
         return [{
             'ext': 'srt',
             'data': self._convert_subtitles_to_srt(sub_root),

@@ -9,6 +9,7 @@ import sys
 from .common import InfoExtractor
 from .youtube import YoutubeIE
 from ..compat import (
+    compat_etree_fromstring,
     compat_urllib_parse_unquote,
     compat_urllib_request,
     compat_urlparse,
@@ -21,7 +22,6 @@ from ..utils import (
     HEADRequest,
     is_html,
     orderedSet,
-    parse_xml,
     smuggle_url,
     unescapeHTML,
     unified_strdate,
@@ -1238,7 +1238,7 @@ class GenericIE(InfoExtractor):
 
         # Is it an RSS feed, a SMIL file or a XSPF playlist?
         try:
-            doc = parse_xml(webpage)
+            doc = compat_etree_fromstring(webpage.encode('utf-8'))
             if doc.tag == 'rss':
                 return self._extract_rss(url, video_id, doc)
             elif re.match(r'^(?:{[^}]+})?smil$', doc.tag):
