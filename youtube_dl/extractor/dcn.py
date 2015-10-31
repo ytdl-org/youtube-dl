@@ -210,16 +210,14 @@ class DCNSeasonIE(InfoExtractor):
             })
 
         show = self._download_json(request, show_id)
-        season_id = season_id or show['default_season']
-        season = {}
-        for _ in show['seasons']:
-            if _['id'] == season_id:
-                season = _
-                break
-        title = season.get('title_en') or season['title_ar']
+        if not season_id:
+            season_id = show['default_season']
+        for season in show['seasons']:
+            if season['id'] == season_id:
+                title = season.get('title_en') or season['title_ar']
 
-        entries = []
-        for video in show['videos']:
-            entries.append(self.url_result('http://www.dcndigital.ae/#/media/%s' % video['id'], 'DCNVideo'))
+                entries = []
+                for video in show['videos']:
+                    entries.append(self.url_result('http://www.dcndigital.ae/#/media/%s' % video['id'], 'DCNVideo'))
 
-        return self.playlist_result(entries, season_id, title)
+                return self.playlist_result(entries, season_id, title)
