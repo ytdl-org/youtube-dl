@@ -74,8 +74,7 @@ class MDRIE(InfoExtractor):
         doc = self._download_xml(
             compat_urlparse.urljoin(url, data_url), video_id)
 
-        title = (xpath_text(doc, './title', 'title', default=None) or
-                 xpath_text(doc, './broadcast/broadcastName', 'title'))
+        title = xpath_text(doc, ['./title', './broadcast/broadcastName'], 'title', fatal=True)
 
         formats = []
         processed_urls = []
@@ -149,8 +148,12 @@ class MDRIE(InfoExtractor):
 
         description = xpath_text(doc, './broadcast/broadcastDescription', 'description')
         timestamp = parse_iso8601(
-            xpath_text(doc, './broadcast/broadcastDate', 'timestamp', default=None) or
-            xpath_text(doc, './broadcast/broadcastStartDate', 'timestamp', default=None))
+            xpath_text(
+                doc, [
+                    './broadcast/broadcastDate',
+                    './broadcast/broadcastStartDate',
+                    './broadcast/broadcastEndDate'],
+                'timestamp', default=None))
         duration = parse_duration(xpath_text(doc, './duration', 'duration'))
         uploader = xpath_text(doc, './rights', 'uploader')
 
