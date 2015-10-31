@@ -124,6 +124,7 @@ from .dbtv import DBTVIE
 from .dcn import DCNIE
 from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE
+from .democracynow import DemocracynowIE
 from .dfb import DFBIE
 from .dhm import DHMIE
 from .dotsub import DotsubIE
