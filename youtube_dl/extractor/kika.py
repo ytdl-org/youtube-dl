@@ -16,8 +16,8 @@ class KikaIE(InfoExtractor):
                 'id': '19636',
                 'ext': 'mp4',
                 'title': 'Baumhaus vom 30. Oktober 2015',
-                'description': None
-            }
+                'description': None,
+            },
         },
         {
             'url': 'http://www.kika.de/sendungen/einzelsendungen/weihnachtsprogramm/videos/video8182.html',
@@ -26,8 +26,8 @@ class KikaIE(InfoExtractor):
                 'id': '8182',
                 'ext': 'mp4',
                 'title': 'Beutolomäus und der geheime Weihnachtswunsch',
-                'description': 'md5:b69d32d7b2c55cbe86945ab309d39bbd'
-            }
+                'description': 'md5:b69d32d7b2c55cbe86945ab309d39bbd',
+            },
         },
         {
             'url': 'http://www.kika.de/baumhaus/sendungen/video19636_zc-fea7f8a0_zs-4bf89c60.html',
@@ -36,8 +36,8 @@ class KikaIE(InfoExtractor):
                 'id': '19636',
                 'ext': 'mp4',
                 'title': 'Baumhaus vom 30. Oktober 2015',
-                'description': None
-            }
+                'description': None,
+            },
         },
         {
             'url': 'http://www.kika.de/sendungen/einzelsendungen/weihnachtsprogramm/einzelsendung2534.html',
@@ -46,9 +46,9 @@ class KikaIE(InfoExtractor):
                 'id': '8182',
                 'ext': 'mp4',
                 'title': 'Beutolomäus und der geheime Weihnachtswunsch',
-                'description': 'md5:b69d32d7b2c55cbe86945ab309d39bbd'
-            }
-        }
+                'description': 'md5:b69d32d7b2c55cbe86945ab309d39bbd',
+            },
+        },
     ]
 
     def _real_extract(self, url):
@@ -59,7 +59,6 @@ class KikaIE(InfoExtractor):
         xml_re = r'sectionArticle[ "](?:(?!sectionA[ "])(?:.|\n))*?dataURL:\'(?:/[a-z-]+?)*?/video(\d+)-avCustom\.xml'
         video_id = self._search_regex(xml_re, webpage, "xml_url", default=None)
         if not video_id:
-            # Video is not available online
             err_msg = 'Video %s is not available online' % broadcast_id
             raise ExtractorError(err_msg, expected=True)
 
@@ -74,38 +73,29 @@ class KikaIE(InfoExtractor):
             broadcast_elem = xml_tree.find('broadcast')
             description = broadcast_elem.find('broadcastDescription').text
         except AttributeError:
-            # No description available
             description = None
 
         # duration string format is mm:ss (even if it is >= 1 hour, e.g. 78:42)
         tmp = xml_tree.find('duration').text.split(':')
         duration = int(tmp[0]) * 60 + int(tmp[1])
 
-        formats_list = []
-        for elem in xml_tree.find('assets'):
-            format_dict = {}
-            format_dict['url'] = elem.find('progressiveDownloadUrl').text
-            format_dict['ext'] = elem.find('mediaType').text.lower()
-            format_dict['format'] = elem.find('profileName').text
-            format_dict['width'] = int(elem.find('frameWidth').text)
-            format_dict['height'] = int(elem.find('frameHeight').text)
-            format_dict['resolution'] = '%dx%d' % (format_dict['width'],
-                                                   format_dict['height'])
-            format_dict['abr'] = int(elem.find('bitrateAudio').text)
-            format_dict['vbr'] = int(elem.find('bitrateVideo').text)
-            format_dict['tbr'] = format_dict['abr'] + format_dict['vbr']
-            format_dict['filesize'] = int(elem.find('fileSize').text)
-
-            formats_list.append(format_dict)
-
-        # Sort by resolution (=quality)
-        formats_list.sort(key=lambda x: x['width'] * x['height'])
+        formats = [{
+            'url': elem.find('progressiveDownloadUrl').text,
+            'ext': elem.find('mediaType').text.lower(),
+            'format': elem.find('profileName').text,
+            'width': int(elem.find('frameWidth').text),
+            'height': int(elem.find('frameHeight').text),
+            'abr': int(elem.find('bitrateAudio').text),
+            'vbr': int(elem.find('bitrateVideo').text),
+            'filesize': int(elem.find('fileSize').text),
+        } for elem in xml_tree.find('assets')]
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': title,
             'description': description,
-            'formats': formats_list,
+            'formats': formats,
             'duration': duration,
-            'webpage_url': webpage_url
+            'webpage_url': webpage_url,
         }
