@@ -274,6 +274,7 @@ from .karrierevideos import KarriereVideosIE
 from .keezmovies import KeezMoviesIE
 from .khanacademy import KhanAcademyIE
 from .kickstarter import KickStarterIE
+from .kika import KikaIE
 from .keek import KeekIE
 from .kontrtube import KontrTubeIE
 from .krasview import KrasViewIE
