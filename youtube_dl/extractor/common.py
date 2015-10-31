@@ -943,13 +943,14 @@ class InfoExtractor(object):
             if re.match(r'^https?://', u)
             else compat_urlparse.urljoin(m3u8_url, u))
 
-        m3u8_doc, urlh = self._download_webpage_handle(
+        res = self._download_webpage_handle(
             m3u8_url, video_id,
             note=note or 'Downloading m3u8 information',
             errnote=errnote or 'Failed to download m3u8 information',
             fatal=fatal)
-        if m3u8_doc is False:
-            return m3u8_doc
+        if res is False:
+            return res
+        m3u8_doc, urlh = res
         m3u8_url = urlh.geturl()
         last_info = None
         last_media = None
