@@ -330,6 +330,10 @@ def sanitize_filename(s, restricted=False, is_id=False):
     # Handle timestamps
     s = re.sub(r'[0-9]+(?::[0-9]+)+', lambda m: m.group(0).replace(':', '_'), s)
     result = ''.join(map(replace_insane, s))
+
+    # Remove trailing spaces. os.mkdir fails to create directory ending with spaces on Windows.
+    result = result.rstrip()
+
     if not is_id:
         while '__' in result:
             result = result.replace('__', '_')
