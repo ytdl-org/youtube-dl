@@ -141,6 +141,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Automatics, robotics and biocybernetics',
                 'description': 'md5:815fc1deb6b3a2bff99de2d5325be482',
+                'upload_date': '20130627',
                 'formats': 'mincount:16',
                 'subtitles': 'mincount:1',
             },
