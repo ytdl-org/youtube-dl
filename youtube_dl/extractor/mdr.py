@@ -20,7 +20,7 @@ class MDRIE(InfoExtractor):
         # MDR regularily deletes its videos
         'url': 'http://www.mdr.de/fakt/video189002.html',
         'only_matching': True,
-    },  {
+    }, {
         # audio
         'url': 'http://www.mdr.de/kultur/audio1312272_zc-15948bad_zs-86171fdd.html',
         'md5': '64c4ee50f0a791deb9479cd7bbe9d2fa',
