@@ -17,7 +17,6 @@ class FlickrIE(InfoExtractor):
             'id': '5645318632',
             'ext': 'mpg',
             'description': 'Waterfalls in the Springtime at Dark Hollow Waterfalls. These are located just off of Skyline Drive in Virginia. They are only about 6/10 of a mile hike but it is a pretty steep hill and a good climb back up.',
-            'uploader_id': 'forestwander-nature-pictures',
             'title': 'Dark Hollow Waterfalls',
             'duration': 19,
             'timestamp': 1303528740,
@@ -29,26 +28,27 @@ class FlickrIE(InfoExtractor):
     }
 
     _API_BASE_URL = 'https://api.flickr.com/services/rest?'
-    _API_KEY = '61b16865f916058e63580a912d9143be'
 
-    def _call_api(self, method, video_id, secret=None):
+    def _call_api(self, method, video_id, api_key, note, secret=None):
         query = {
             'photo_id': video_id,
             'method': 'flickr.%s' % method,
-            'api_key': self._API_KEY,
+            'api_key': api_key,
             'format': 'json',
             'nojsoncallback': 1,
         }
         if secret:
             query['secret'] = secret
-        return self._download_json(self._API_BASE_URL + compat_urllib_parse.urlencode(query), video_id)
+        return self._download_json(self._API_BASE_URL + compat_urllib_parse.urlencode(query), video_id, note)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        video_info = self._call_api('photos.getInfo', video_id)['photo']
+        api_key = self._download_json('https://www.flickr.com/hermes_error_beacon.gne', video_id, 'Downloading api key',)['site_key']
+
+        video_info = self._call_api('photos.getInfo', video_id, api_key, 'Downloading video info')['photo']
         if video_info['media'] == 'video':
-            streams = self._call_api('video.getStreamInfo', video_id, video_info['secret'])['streams']
+            streams = self._call_api('video.getStreamInfo', video_id, api_key, 'Downloading streams info', video_info['secret'])['streams']
 
             preference = qualities(['iphone_wifi', '700', 'appletv', 'orig'])
 
