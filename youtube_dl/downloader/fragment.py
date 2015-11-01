@@ -49,7 +49,10 @@ class FragmentFD(FileDownloader):
 
     def _start_frag_download(self, ctx):
         total_frags = ctx['total_frags']
-        downloaded_bytes = os.path.getsize(ctx['tmpfilename']) if ctx.get('continue_dl') else 0
+        try:
+            downloaded_bytes = os.path.getsize(ctx['tmpfilename']) if ctx.get('continue_dl') else 0
+        except os.error as e:
+            downloaded_bytes = 0
         frag_index = ctx['continue_fragment'] + 1 if ctx.get('continue_fragment') else 0
         # This dict stores the download progress, it's updated by the progress
         # hook
