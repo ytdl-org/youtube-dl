@@ -1,67 +1,77 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
+from ..compat import compat_urllib_parse
 from ..utils import (
-    ExtractorError,
-    find_xpath_attr,
+    int_or_none,
+    qualities,
 )
 
 
 class FlickrIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.|secure\.)?flickr\.com/photos/(?P<uploader_id>[\w\-_@]+)/(?P<id>\d+).*'
+    _VALID_URL = r'https?://(?:www\.|secure\.)?flickr\.com/photos/[\w\-_@]+/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.flickr.com/photos/forestwander-nature-pictures/5645318632/in/photostream/',
-        'md5': '6fdc01adbc89d72fc9c4f15b4a4ba87b',
+        'md5': '164fe3fa6c22e18d448d4d5af2330f31',
         'info_dict': {
             'id': '5645318632',
-            'ext': 'mp4',
-            "description": "Waterfalls in the Springtime at Dark Hollow Waterfalls. These are located just off of Skyline Drive in Virginia. They are only about 6/10 of a mile hike but it is a pretty steep hill and a good climb back up.",
-            "uploader_id": "forestwander-nature-pictures",
-            "title": "Dark Hollow Waterfalls"
+            'ext': 'mpg',
+            'description': 'Waterfalls in the Springtime at Dark Hollow Waterfalls. These are located just off of Skyline Drive in Virginia. They are only about 6/10 of a mile hike but it is a pretty steep hill and a good climb back up.',
+            'uploader_id': 'forestwander-nature-pictures',
+            'title': 'Dark Hollow Waterfalls',
+            'duration': 19,
+            'timestamp': 1303528740,
+            'upload_date': '20110423',
+            'uploader_id': '10922353@N03',
+            'uploader': 'Forest Wander',
+            'comment_count': int,
         }
     }
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
+    _API_BASE_URL = 'https://api.flickr.com/services/rest?'
+    _API_KEY = '61b16865f916058e63580a912d9143be'
 
-        video_id = mobj.group('id')
-        video_uploader_id = mobj.group('uploader_id')
-        webpage_url = 'http://www.flickr.com/photos/' + video_uploader_id + '/' + video_id
-        req = compat_urllib_request.Request(webpage_url)
-        req.add_header(
-            'User-Agent',
-            # it needs a more recent version
-            'Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20150101 Firefox/38.0 (Chrome)')
-        webpage = self._download_webpage(req, video_id)
-
-        secret = self._search_regex(r'secret"\s*:\s*"(\w+)"', webpage, 'secret')
-
-        first_url = 'https://secure.flickr.com/apps/video/video_mtl_xml.gne?v=x&photo_id=' + video_id + '&secret=' + secret + '&bitrate=700&target=_self'
-        first_xml = self._download_xml(first_url, video_id, 'Downloading first data webpage')
-
-        node_id = find_xpath_attr(
-            first_xml, './/{http://video.yahoo.com/YEP/1.0/}Item', 'id',
-            'id').text
-
-        second_url = 'https://secure.flickr.com/video_playlist.gne?node_id=' + node_id + '&tech=flash&mode=playlist&bitrate=700&secret=' + secret + '&rd=video.yahoo.com&noad=1'
-        second_xml = self._download_xml(second_url, video_id, 'Downloading second data webpage')
-
-        self.report_extraction(video_id)
-
-        stream = second_xml.find('.//STREAM')
-        if stream is None:
-            raise ExtractorError('Unable to extract video url')
-        video_url = stream.attrib['APP'] + stream.attrib['FULLPATH']
-
-        return {
-            'id': video_id,
-            'url': video_url,
-            'ext': 'mp4',
-            'title': self._og_search_title(webpage),
-            'description': self._og_search_description(webpage),
-            'thumbnail': self._og_search_thumbnail(webpage),
-            'uploader_id': video_uploader_id,
+    def _call_api(self, method, video_id, secret=None):
+        query = {
+            'photo_id': video_id,
+            'method': 'flickr.%s' % method,
+            'api_key': self._API_KEY,
+            'format': 'json',
+            'nojsoncallback': 1,
         }
+        if secret:
+            query['secret'] = secret
+        return self._download_json(self._API_BASE_URL + compat_urllib_parse.urlencode(query), video_id)
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        video_info = self._call_api('photos.getInfo', video_id)['photo']
+        if video_info['media'] == 'video':
+            streams = self._call_api('video.getStreamInfo', video_id, video_info['secret'])['streams']
+
+            preference = qualities(['iphone_wifi', '700', 'appletv', 'orig'])
+
+            formats = []
+            for stream in streams['stream']:
+                stream_type = str(stream.get('type'))
+                formats.append({
+                    'format_id': stream_type,
+                    'url': stream['_content'],
+                    'preference': preference(stream_type),
+                })
+            self._sort_formats(formats)
+
+            owner = video_info.get('owner', {})
+
+            return {
+                'id': video_id,
+                'title': video_info['title']['_content'],
+                'description': video_info.get('description', {}).get('_content'),
+                'formats': formats,
+                'timestamp': int_or_none(video_info.get('dateuploaded')),
+                'duration': int_or_none(video_info.get('video', {}).get('duration')),
+                'uploader_id': owner.get('nsid'),
+                'uploader': owner.get('realname'),
+                'comment_count': int_or_none(video_info.get('comments', {}).get('_content')),
+            }
