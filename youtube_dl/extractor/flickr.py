@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse
 from ..utils import (
+    ExtractorError,
     int_or_none,
     qualities,
 )
@@ -39,7 +40,10 @@ class FlickrIE(InfoExtractor):
         }
         if secret:
             query['secret'] = secret
-        return self._download_json(self._API_BASE_URL + compat_urllib_parse.urlencode(query), video_id, note)
+        data = self._download_json(self._API_BASE_URL + compat_urllib_parse.urlencode(query), video_id, note)
+        if data['stat'] != 'ok':
+            raise ExtractorError(data['message'])
+        return data
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
