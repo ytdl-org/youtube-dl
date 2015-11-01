@@ -84,49 +84,53 @@ class NaverIE(InfoExtractor):
         },
     }]
 
-    def _extract_video_formats(self, formats_list):
+    def _extract_video_formats(self, formats_list, vid):
         formats = []
         for format_el in formats_list:
             url = format_el.get('source')
             if url:
-                encoding_option = format_el.get('encodingOption')
-                bitrate = format_el.get('bitrate')
-                formats.append({
-                    'format_id': encoding_option.get('id') or encoding_option.get('name'),
-                    'url': format_el['source'],
-                    'width': int_or_none(encoding_option.get('width')),
-                    'height': int_or_none(encoding_option.get('height')),
-                    'vbr': float_or_none(bitrate.get('video')),
-                    'abr': float_or_none(bitrate.get('audio')),
-                    'filesize': int_or_none(format_el.get('size')),
-                    'vcodec': format_el.get('type'),
-                    'ext': determine_ext(url, 'mp4'),
-                })
+                if format_el.get('type') == 'HLS':
+                    key = format_el.get('key')
+                    if key:
+                        url += '?%s=%s' % (key['name'], key['value'])
+                    formats.extend(self._extract_m3u8_formats(url, vid, 'mp4', m3u8_id='hls'))
+                else:
+                    encoding_option = format_el.get('encodingOption')
+                    bitrate = format_el.get('bitrate')
+                    formats.append({
+                        'format_id': encoding_option.get('id') or encoding_option.get('name'),
+                        'url': format_el['source'],
+                        'width': int_or_none(encoding_option.get('width')),
+                        'height': int_or_none(encoding_option.get('height')),
+                        'vbr': float_or_none(bitrate.get('video')),
+                        'abr': float_or_none(bitrate.get('audio')),
+                        'filesize': int_or_none(format_el.get('size')),
+                        'vcodec': format_el.get('type'),
+                        'ext': determine_ext(url, 'mp4'),
+                    })
         if formats:
             self._sort_formats(formats)
         return formats
 
-    def _extract_video_info(self, vid, key):
-        play_data = self._download_json(
-            'http://global.apis.naver.com/linetv/rmcnmv/vod_play_videoInfo.json?' + compat_urllib_parse.urlencode({'videoId': vid, 'key': key}),
-            vid, 'Downloading video info')
+    def _parse_video_info(self, play_data, vid):
         meta = play_data.get('meta')
-        user = meta.get('user')
+        user = meta.get('user', {})
 
         thumbnails = []
-        for thumbnail in play_data['thumbnails']['list']:
+        for thumbnail in play_data.get('thumbnails', {}).get('list', []):
             thumbnails.append({'url': thumbnail['source']})
 
-        formats = self._extract_video_formats(play_data['videos']['list'])
-        if not formats:
-            video_info = self._download_json(
-                'http://serviceapi.rmcnmv.naver.com/mobile/getVideoInfo.nhn?' + compat_urllib_parse.urlencode({'videoId': vid, 'inKey': key, 'protocol': 'http'}),
-                vid, 'Downloading video info')
-            formats = self._extract_video_formats(video_info['videos']['list'])
+        subtitles = {}
+        for caption in play_data.get('captions', {}).get('list', []):
+            subtitles[caption['language']] = [
+                {'ext': determine_ext(caption['source'], default_ext='vtt'),
+                 'url': caption['source']}]
+
+        formats = self._extract_video_formats(play_data['videos']['list'] + play_data.get('streams', []), vid)
 
         return {
             'id': vid,
-            'title': meta['subject'],
+            'title': meta.get('subject'),
             'formats': formats,
             'thumbnail': meta.get('cover', {}).get('source'),
             'thumbnails': thumbnails,
@@ -134,6 +138,18 @@ class NaverIE(InfoExtractor):
             'uploader_id': user.get('id'),
             'uploader': user.get('name'),
         }
+
+    def _extract_video_info(self, vid, key):
+        play_data = self._download_json(
+            'http://global.apis.naver.com/rmcnmv/rmcnmv/vod_play_videoInfo.json?' + compat_urllib_parse.urlencode({'videoId': vid, 'key': key}),
+            vid, 'Downloading video info')
+        info = self._parse_video_info(play_data, vid)
+        if not info['formats']:
+            play_data = self._download_json(
+                'http://serviceapi.rmcnmv.naver.com/mobile/getVideoInfo.nhn?' + compat_urllib_parse.urlencode({'videoId': vid, 'inKey': key, 'protocol': 'http'}),
+                vid, 'Downloading video info')
+            info['formats'] = self._extract_video_formats(play_data['videos']['list'] + play_data.get('streams', []), vid)
+        return info
 
     def _extract_id_and_key(self, webpage):
         m_id = re.search(r'(?s)new\s+nhn.rmcnmv.RMCVideoPlayer\(\s*["\']([^"\']+)["\']\s*,\s*(?:{[^}]*?value[^:]*?:\s*?)?["\']([^"\']+)["\']', webpage)
