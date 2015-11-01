@@ -93,6 +93,7 @@
  - **Clipsyndicate**
  - **Cloudy**
  - **Clubic**
+ - **Clyp**
  - **cmt.com**
  - **CNET**
  - **CNN**
@@ -281,7 +282,7 @@
  - **macgamestore**: MacGameStore trailers
  - **mailru**: Видео@Mail.Ru
  - **Malemotion**
- - **MDR**
+ - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
  - **metacafe**
  - **Metacritic**
