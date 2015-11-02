@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import (
+    compat_urllib_parse,
+    compat_urlparse,
+)
 from ..utils import (
     encode_dict,
     get_element_by_attribute,
@@ -15,7 +18,7 @@ class MiTeleIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/la-redaccion/programa-144/',
-        'md5': '757b0b66cbd7e0a97226d7d3156cb3e9',
+        'md5': '0ff1a13aebb35d9bc14081ff633dd324',
         'info_dict': {
             'id': '0NF1jJnxS1Wu3pHrmvFyw2',
             'display_id': 'programa-144',
@@ -34,6 +37,7 @@ class MiTeleIE(InfoExtractor):
 
         config_url = self._search_regex(
             r'data-config\s*=\s*"([^"]+)"', webpage, 'data config url')
+        config_url = compat_urlparse.urljoin(url, config_url)
 
         config = self._download_json(
             config_url, display_id, 'Downloading config JSON')
