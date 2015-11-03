@@ -41,13 +41,13 @@ class VimeoBaseInfoExtractor(InfoExtractor):
         self.report_login()
         webpage = self._download_webpage(self._LOGIN_URL, None, False)
         token, vuid = self._extract_xsrft_and_vuid(webpage)
-        data = urlencode_postdata({
+        data = urlencode_postdata(encode_dict({
             'action': 'login',
             'email': username,
             'password': password,
             'service': 'vimeo',
             'token': token,
-        })
+        }))
         login_request = compat_urllib_request.Request(self._LOGIN_URL, data)
         login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         login_request.add_header('Cookie', 'vuid=%s' % vuid)
