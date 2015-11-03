@@ -489,7 +489,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         token, vuid = self._extract_xsrft_and_vuid(webpage)
         fields['token'] = token
         fields['password'] = password
-        post = urlencode_postdata(fields)
+        post = urlencode_postdata(encode_dict(fields))
         password_path = self._search_regex(
             r'action="([^"]+)"', login_form, 'password URL')
         password_url = compat_urlparse.urljoin(page_url, password_path)
