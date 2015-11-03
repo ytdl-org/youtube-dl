@@ -228,7 +228,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         password = self._downloader.params.get('videopassword', None)
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option')
-        data = compat_urllib_parse.urlencode({'password': password})
+        data = urlencode_postdata(encode_dict({'password': password}))
         pass_url = url + '/check-password'
         password_request = compat_urllib_request.Request(pass_url, data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
