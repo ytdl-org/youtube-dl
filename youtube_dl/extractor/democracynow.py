@@ -80,8 +80,8 @@ class DemocracynowIE(InfoExtractor):
         self._sort_formats(formats)
 
         return {
-            'id': video_id,
-            'title': json_data.get('title'),
+            'id': video_id or display_id,
+            'title': json_data['title'],
             'description': description,
             'subtitles': subtitles,
             'formats': formats,
