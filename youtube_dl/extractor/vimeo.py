@@ -13,6 +13,7 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    encode_dict,
     ExtractorError,
     InAdvancePagedList,
     int_or_none,
@@ -208,10 +209,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option', expected=True)
         token, vuid = self._extract_xsrft_and_vuid(webpage)
-        data = urlencode_postdata({
+        data = urlencode_postdata(encode_dict({
             'password': password,
             'token': token,
-        })
+        }))
         if url.startswith('http://'):
             # vimeo only supports https now, but the user can give an http url
             url = url.replace('http://', 'https://')
