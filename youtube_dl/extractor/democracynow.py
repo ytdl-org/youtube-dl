@@ -40,7 +40,7 @@ class DemocracynowIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
         description = self._og_search_description(webpage)
 
-        js = self._parse_json(self._search_regex(
+        json_data = self._parse_json(self._search_regex(
             r'<script[^>]+type="text/json"[^>]*>\s*({[^>]+})', webpage, 'json'),
             display_id)
         video_id = None
@@ -56,19 +56,19 @@ class DemocracynowIE(InfoExtractor):
             subtitles[lang].append(info_dict)
 
         # chapter_file are not subtitles
-        if 'caption_file' in js:
+        if 'caption_file' in json_data:
             add_subtitle_item(default_lang, {
-                'url': compat_urlparse.urljoin(url, js['caption_file']),
+                'url': compat_urlparse.urljoin(url, json_data['caption_file']),
             })
 
-        for subtitle_item in js.get('captions', []):
+        for subtitle_item in json_data.get('captions', []):
             lang = subtitle_item.get('language', '').lower() or default_lang
             add_subtitle_item(lang, {
                 'url': compat_urlparse.urljoin(url, subtitle_item['url']),
             })
 
         for key in ('file', 'audio', 'video'):
-            media_url = js.get(key, '')
+            media_url = json_data.get(key, '')
             if not media_url:
                 continue
             media_url = re.sub(r'\?.*', '', compat_urlparse.urljoin(url, media_url))
@@ -81,7 +81,7 @@ class DemocracynowIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': js.get('title'),
+            'title': json_data.get('title'),
             'description': description,
             'subtitles': subtitles,
             'formats': formats,
