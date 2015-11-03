@@ -106,6 +106,7 @@ def generator(test_case, tname):
                 return
 
         params = get_params(test_case.get('params', {}))
+        params['outtmpl'] = tname + '_' + params['outtmpl']
         if is_playlist and 'playlist' not in test_case:
             params.setdefault('extract_flat', 'in_playlist')
             params.setdefault('skip_download', True)
