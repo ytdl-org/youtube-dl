@@ -103,13 +103,7 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
             album_id, 'Downloading album JSON')
 
         entries = self._build_playlist(album['volumes'][0])
-
-        title = '%s - %s' % (album['artists'][0]['name'], album['title'])
-        year = album.get('year')
-        if year:
-            title += ' (%s)' % year
-
-        return self.playlist_result(entries, compat_str(album['id']), title)
+        return self.playlist_result(entries, compat_str(album['id']), album['title'])
 
 
 class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
