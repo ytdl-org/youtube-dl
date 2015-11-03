@@ -2,11 +2,18 @@
 from __future__ import unicode_literals
 
 import re
+import os.path
+
 from .common import InfoExtractor
+from ..compat import compat_urlparse
+from ..utils import (
+    url_basename,
+    remove_start,
+)
 
 
 class DemocracynowIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?democracynow.org/?(?P<id>[^\?]*)'
+    _VALID_URL = r'https?://(?:www\.)?democracynow.org/(?P<id>[^\?]*)'
     IE_NAME = 'democracynow'
     _TESTS = [{
         'url': 'http://www.democracynow.org/shows/2015/7/3',
@@ -14,9 +21,7 @@ class DemocracynowIE(InfoExtractor):
             'id': '2015-0703-001',
             'ext': 'mp4',
             'title': 'July 03, 2015 - Democracy Now!',
-            'description': 'A daily independent global news hour with Amy Goodman & Juan Gonz\xe1lez "What to the Slave is 4th of July?": James Earl Jones Reads Frederick Douglass\u2019 Historic Speech : "This Flag Comes Down Today": Bree Newsome Scales SC Capitol Flagpole, Takes Down Confederate Flag : "We Shall Overcome": Remembering Folk Icon, Activist Pete Seeger in His Own Words & Songs',
-            'uploader': 'Democracy Now',
-            'upload_date': None,
+            'description': 'A daily independent global news hour with Amy Goodman & Juan González "What to the Slave is 4th of July?": James Earl Jones Reads Frederick Douglass\u2019 Historic Speech : "This Flag Comes Down Today": Bree Newsome Scales SC Capitol Flagpole, Takes Down Confederate Flag : "We Shall Overcome": Remembering Folk Icon, Activist Pete Seeger in His Own Words & Songs',
         },
     }, {
         'url': 'http://www.democracynow.org/2015/7/3/this_flag_comes_down_today_bree',
@@ -25,60 +30,57 @@ class DemocracynowIE(InfoExtractor):
             'ext': 'mp4',
             'title': '"This Flag Comes Down Today": Bree Newsome Scales SC Capitol Flagpole, Takes Down Confederate Flag',
             'description': 'md5:4d2bc4f0d29f5553c2210a4bc7761a21',
-            'uploader': 'Democracy Now',
-            'upload_date': None,
         },
     }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
-        base_host = re.search(r'^(.+?://[^/]+)', url).group(1)
-        if display_id == '':
-            display_id = 'home'
         webpage = self._download_webpage(url, display_id)
         description = self._og_search_description(webpage)
 
-        jstr = self._search_regex(r'<script[^>]+type="text/json"[^>]*>\s*({[^>]+})', webpage, 'json')
-        js = self._parse_json(jstr, display_id)
+        js = self._parse_json(self._search_regex(
+            r'<script[^>]+type="text/json"[^>]*>\s*({[^>]+})', webpage, 'json'),
+            display_id)
         video_id = None
         formats = []
+
+        default_lang = 'en'
+
         subtitles = {}
-        for key in ('caption_file', '.......'):
-            # ....... = pending vtt support that doesn't clobber srt 'chapter_file':
-            url = js.get(key, '')
-            if url == '' or url is None:
-                continue
-            if not re.match(r'^https?://', url):
-                url = base_host + url
-            ext = re.search(r'\.([^\.]+)$', url).group(1)
-            subtitles['eng'] = [{
-                'ext': ext,
-                'url': url,
-            }]
-        for key in ('file', 'audio', 'video'):
-            url = js.get(key, '')
-            if url == '' or url is None:
-                continue
-            if not re.match(r'^https?://', url):
-                url = base_host + url
-            purl = re.search(r'/(?P<dir>[^/]+)/(?:dn)?(?P<fn>[^/]+?)\.(?P<ext>[^\.\?]+)(?P<hasparams>\?|$)', url)
-            if video_id is None:
-                video_id = purl.group('fn')
-            if js.get('start') is not None:
-                url += '&' if purl.group('hasparams') == '?' else '?'
-                url = url + 'start=' + str(js.get('start'))
-            formats.append({
-                'format_id': purl.group('dir'),
-                'ext': purl.group('ext'),
-                'url': url,
+
+        def add_subtitle_item(lang, info_dict):
+            if lang not in subtitles:
+                subtitles[lang] = []
+            subtitles[lang].append(info_dict)
+
+        # chapter_file are not subtitles
+        if 'caption_file' in js:
+            add_subtitle_item(default_lang, {
+                'url': compat_urlparse.urljoin(url, js['caption_file']),
             })
+
+        for subtitle_item in js.get('captions', []):
+            lang = subtitle_item.get('language', '').lower() or default_lang
+            add_subtitle_item(lang, {
+                'url': compat_urlparse.urljoin(url, subtitle_item['url']),
+            })
+
+        for key in ('file', 'audio', 'video'):
+            media_url = js.get(key, '')
+            if not media_url:
+                continue
+            media_url = re.sub(r'\?.*', '', compat_urlparse.urljoin(url, media_url))
+            video_id = video_id or remove_start(os.path.splitext(url_basename(media_url))[0], 'dn')
+            formats.append({
+                'url': media_url,
+            })
+
         self._sort_formats(formats)
-        ret = {
+
+        return {
             'id': video_id,
             'title': js.get('title'),
             'description': description,
-            'uploader': 'Democracy Now',
             'subtitles': subtitles,
             'formats': formats,
         }
-        return ret
