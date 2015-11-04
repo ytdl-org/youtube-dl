@@ -60,6 +60,9 @@ class GloboIE(InfoExtractor):
     }, {
         'url': 'http://globotv.globo.com/canal-brasil/sangue-latino/t/todos-os-videos/v/ator-e-diretor-argentino-ricado-darin-fala-sobre-utopias-e-suas-perdas/3928201/',
         'only_matching': True,
+    }, {
+        'url': 'http://canaloff.globo.com/programas/desejar-profundo/videos/4518560.html',
+        'only_matching': True,
     }]
 
     class MD5:
@@ -405,7 +408,7 @@ class GloboArticleIE(InfoExtractor):
         r'<div[^>]+\bid=["\'](\d{7,})',
     ]
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://g1.globo.com/jornal-nacional/noticia/2014/09/novidade-na-fiscalizacao-de-bagagem-pela-receita-provoca-discussoes.html',
         'md5': '307fdeae4390ccfe6ba1aa198cf6e72b',
         'info_dict': {
@@ -416,7 +419,13 @@ class GloboArticleIE(InfoExtractor):
             'uploader': 'Rede Globo',
             'uploader_id': '196',
         }
-    }
+    }, {
+        'url': 'http://gq.globo.com/Prazeres/Poder/noticia/2015/10/all-o-desafio-assista-ao-segundo-capitulo-da-serie.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://gshow.globo.com/programas/tv-xuxa/O-Programa/noticia/2014/01/xuxa-e-junno-namoram-muuuito-em-luau-de-zeze-di-camargo-e-luciano.html',
+        'only_matching': True,
+    }]
 
     @classmethod
     def suitable(cls, url):
