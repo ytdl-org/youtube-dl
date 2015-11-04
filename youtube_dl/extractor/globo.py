@@ -14,6 +14,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
+    str_or_none,
 )
 
 
@@ -34,7 +35,7 @@ class GloboIE(InfoExtractor):
             'title': 'Mercedes-Benz GLA passa por teste de colisão na Europa',
             'duration': 103.204,
             'uploader': 'Globo.com',
-            'uploader_id': 265,
+            'uploader_id': '265',
         },
     }, {
         'url': 'http://globoplay.globo.com/v/4581987/',
@@ -45,7 +46,7 @@ class GloboIE(InfoExtractor):
             'title': 'Acidentes de trânsito estão entre as maiores causas de queda de energia em SP',
             'duration': 137.973,
             'uploader': 'Rede Globo',
-            'uploader_id': 196,
+            'uploader_id': '196',
         },
     }, {
         'url': 'http://canalbrasil.globo.com/programas/sangue-latino/videos/3928201.html',
@@ -381,7 +382,7 @@ class GloboIE(InfoExtractor):
 
         duration = float_or_none(video.get('duration'), 1000)
         uploader = video.get('channel')
-        uploader_id = video.get('channel_id')
+        uploader_id = str_or_none(video.get('channel_id'))
 
         return {
             'id': video_id,
