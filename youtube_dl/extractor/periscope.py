@@ -27,9 +27,10 @@ class PeriscopeIE(InfoExtractor):
         'skip': 'Expires in 24 hours',
     }
 
-    def _call_api(self, method, token):
+    def _call_api(self, method, value):
+        attribute = 'token' if len(value) > 13 else 'broadcast_id'
         return self._download_json(
-            'https://api.periscope.tv/api/v2/%s?token=%s' % (method, token), token)
+            'https://api.periscope.tv/api/v2/%s?%s=%s' % (method, attribute, value), value)
 
     def _real_extract(self, url):
         token = self._match_id(url)
