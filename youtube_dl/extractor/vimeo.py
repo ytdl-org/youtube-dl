@@ -8,7 +8,6 @@ import itertools
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
-    compat_urllib_parse,
     compat_urllib_request,
     compat_urlparse,
 )
