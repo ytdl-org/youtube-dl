@@ -338,7 +338,7 @@ class GloboIE(InfoExtractor):
         formats = []
         for resource in video['resources']:
             resource_id = resource.get('_id')
-            if not resource_id:
+            if not resource_id or resource_id.endswith('manifest'):
                 continue
 
             security = self._download_json(
