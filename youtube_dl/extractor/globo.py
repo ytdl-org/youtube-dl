@@ -414,7 +414,7 @@ class GloboArticleIE(InfoExtractor):
             'title': 'Receita Federal explica como vai fiscalizar bagagens de quem retorna ao Brasil de avião',
             'duration': 110.711,
             'uploader': 'Rede Globo',
-            'uploader_id': 196,
+            'uploader_id': '196',
         }
     }
 
