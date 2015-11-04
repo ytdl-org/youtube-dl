@@ -12,6 +12,7 @@ from ..utils import parse_iso8601
 class PeriscopeIE(InfoExtractor):
     IE_DESC = 'Periscope'
     _VALID_URL = r'https?://(?:www\.)?periscope\.tv/w/(?P<id>[^/?#]+)'
+    # Alive example URLs can be found here http://onperiscope.com/
     _TESTS = [{
         'url': 'https://www.periscope.tv/w/aJUQnjY3MjA3ODF8NTYxMDIyMDl2zCg2pECBgwTqRpQuQD352EMPTKQjT4uqlM3cgWFA-g==',
         'md5': '65b57957972e503fcbbaeed8f4fa04ca',
