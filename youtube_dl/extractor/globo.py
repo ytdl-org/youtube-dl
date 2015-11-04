@@ -35,7 +35,6 @@ class GloboIE(InfoExtractor):
             'duration': 103.204,
             'uploader': 'Globo.com',
             'uploader_id': 265,
-            'like_count': int,
         }
     }, {
         'url': 'http://globotv.globo.com/canal-brasil/sangue-latino/t/todos-os-videos/v/ator-e-diretor-argentino-ricado-darin-fala-sobre-utopias-e-suas-perdas/3928201/',
@@ -47,7 +46,6 @@ class GloboIE(InfoExtractor):
             'duration': 1472.906,
             'uploader': 'Canal Brasil',
             'uploader_id': 705,
-            'like_count': int,
         }
     }]
 
@@ -370,7 +368,6 @@ class GloboIE(InfoExtractor):
         self._sort_formats(formats)
 
         duration = float_or_none(video.get('duration'), 1000)
-        like_count = int_or_none(video.get('likes'))
         uploader = video.get('channel')
         uploader_id = video.get('channel_id')
 
@@ -380,7 +377,6 @@ class GloboIE(InfoExtractor):
             'duration': duration,
             'uploader': uploader,
             'uploader_id': uploader_id,
-            'like_count': like_count,
             'formats': formats
         }
 
@@ -406,7 +402,6 @@ class GloboArticleIE(InfoExtractor):
             'duration': 110.711,
             'uploader': 'Rede Globo',
             'uploader_id': 196,
-            'like_count': int,
         }
     }
 
