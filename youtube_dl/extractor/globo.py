@@ -18,75 +18,52 @@ from ..utils import (
 
 
 class GloboIE(InfoExtractor):
-    _VALID_URL = 'https?://.+?\.globo\.com/(?P<id>.+)'
+    _VALID_URL = '(?:globo:|https?://.+?\.globo\.com/(?:[^/]+/)*(?:v/(?:[^/]+/)?|videos/))(?P<id>\d{7,})'
 
     _API_URL_TEMPLATE = 'http://api.globovideos.com/videos/%s/playlist'
     _SECURITY_URL_TEMPLATE = 'http://security.video.globo.com/videos/%s/hash?player=flash&version=17.0.0.132&resource_id=%s'
 
-    _VIDEOID_REGEXES = [
-        r'\bdata-video-id="(\d+)"',
-        r'\bdata-player-videosids="(\d+)"',
-        r'<div[^>]+\bid="(\d+)"',
-    ]
-
     _RESIGN_EXPIRATION = 86400
 
-    _TESTS = [
-        {
-            'url': 'http://globotv.globo.com/sportv/futebol-nacional/v/os-gols-de-atletico-mg-3-x-2-santos-pela-24a-rodada-do-brasileirao/3654973/',
-            'md5': '03ebf41cb7ade43581608b7d9b71fab0',
-            'info_dict': {
-                'id': '3654973',
-                'ext': 'mp4',
-                'title': 'Os gols de Atlético-MG 3 x 2 Santos pela 24ª rodada do Brasileirão',
-                'duration': 251.585,
-                'uploader': 'SporTV',
-                'uploader_id': 698,
-                'like_count': int,
-            }
-        },
-        {
-            'url': 'http://g1.globo.com/carros/autoesporte/videos/t/exclusivos-do-g1/v/mercedes-benz-gla-passa-por-teste-de-colisao-na-europa/3607726/',
-            'md5': 'b3ccc801f75cd04a914d51dadb83a78d',
-            'info_dict': {
-                'id': '3607726',
-                'ext': 'mp4',
-                'title': 'Mercedes-Benz GLA passa por teste de colisão na Europa',
-                'duration': 103.204,
-                'uploader': 'Globo.com',
-                'uploader_id': 265,
-                'like_count': int,
-            }
-        },
-        {
-            'url': 'http://g1.globo.com/jornal-nacional/noticia/2014/09/novidade-na-fiscalizacao-de-bagagem-pela-receita-provoca-discussoes.html',
-            'md5': '307fdeae4390ccfe6ba1aa198cf6e72b',
-            'info_dict': {
-                'id': '3652183',
-                'ext': 'mp4',
-                'title': 'Receita Federal explica como vai fiscalizar bagagens de quem retorna ao Brasil de avião',
-                'duration': 110.711,
-                'uploader': 'Rede Globo',
-                'uploader_id': 196,
-                'like_count': int,
-            }
-        },
-        {
-            'url': 'http://globotv.globo.com/canal-brasil/sangue-latino/t/todos-os-videos/v/ator-e-diretor-argentino-ricado-darin-fala-sobre-utopias-e-suas-perdas/3928201/',
-            'md5': 'c1defca721ce25b2354e927d3e4b3dec',
-            'info_dict': {
-                'id': '3928201',
-                'ext': 'mp4',
-                'title': 'Ator e diretor argentino, Ricado Darín fala sobre utopias e suas perdas',
-                'duration': 1472.906,
-                'uploader': 'Canal Brasil',
-                'uploader_id': 705,
-                'like_count': int,
-            }
-        },
-    ]
+    _TESTS = [{
+        'url': 'http://globotv.globo.com/sportv/futebol-nacional/v/os-gols-de-atletico-mg-3-x-2-santos-pela-24a-rodada-do-brasileirao/3654973/',
+        'md5': '03ebf41cb7ade43581608b7d9b71fab0',
+        'info_dict': {
+            'id': '3654973',
+            'ext': 'mp4',
+            'title': 'Os gols de Atlético-MG 3 x 2 Santos pela 24ª rodada do Brasileirão',
+            'duration': 251.585,
+            'uploader': 'SporTV',
+            'uploader_id': 698,
+            'like_count': int,
+        }
+    }, {
+        'url': 'http://g1.globo.com/carros/autoesporte/videos/t/exclusivos-do-g1/v/mercedes-benz-gla-passa-por-teste-de-colisao-na-europa/3607726/',
+        'md5': 'b3ccc801f75cd04a914d51dadb83a78d',
+        'info_dict': {
+            'id': '3607726',
+            'ext': 'mp4',
+            'title': 'Mercedes-Benz GLA passa por teste de colisão na Europa',
+            'duration': 103.204,
+            'uploader': 'Globo.com',
+            'uploader_id': 265,
+            'like_count': int,
+        }
+    }, {
+        'url': 'http://globotv.globo.com/canal-brasil/sangue-latino/t/todos-os-videos/v/ator-e-diretor-argentino-ricado-darin-fala-sobre-utopias-e-suas-perdas/3928201/',
+        'md5': 'c1defca721ce25b2354e927d3e4b3dec',
+        'info_dict': {
+            'id': '3928201',
+            'ext': 'mp4',
+            'title': 'Ator e diretor argentino, Ricado Darín fala sobre utopias e suas perdas',
+            'duration': 1472.906,
+            'uploader': 'Canal Brasil',
+            'uploader_id': 705,
+            'like_count': int,
+        }
+    }]
 
-    class MD5():
+    class MD5:
         HEX_FORMAT_LOWERCASE = 0
         HEX_FORMAT_UPPERCASE = 1
         BASE64_PAD_CHARACTER_DEFAULT_COMPLIANCE = ''
@@ -353,9 +330,6 @@ class GloboIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
-        video_id = self._search_regex(self._VIDEOID_REGEXES, webpage, 'video id')
-
         video = self._download_json(
             self._API_URL_TEMPLATE % video_id, video_id)['videos'][0]
 
@@ -417,3 +391,39 @@ class GloboIE(InfoExtractor):
             'like_count': like_count,
             'formats': formats
         }
+
+
+class GloboArticleIE(InfoExtractor):
+    _VALID_URL = 'https?://.+?\.globo\.com/(?:[^/]+/)*(?P<id>[^/]+)\.html'
+
+    _VIDEOID_REGEXES = [
+        r'\bdata-video-id=["\'](\d{7,})',
+        r'\bdata-player-videosids=["\'](\d{7,})',
+        r'\bvideosIDs\s*:\s*["\'](\d{7,})',
+        r'\bdata-id=["\'](\d{7,})',
+        r'<div[^>]+\bid=["\'](\d{7,})',
+    ]
+
+    _TEST = {
+        'url': 'http://g1.globo.com/jornal-nacional/noticia/2014/09/novidade-na-fiscalizacao-de-bagagem-pela-receita-provoca-discussoes.html',
+        'md5': '307fdeae4390ccfe6ba1aa198cf6e72b',
+        'info_dict': {
+            'id': '3652183',
+            'ext': 'mp4',
+            'title': 'Receita Federal explica como vai fiscalizar bagagens de quem retorna ao Brasil de avião',
+            'duration': 110.711,
+            'uploader': 'Rede Globo',
+            'uploader_id': 196,
+            'like_count': int,
+        }
+    }
+
+    @classmethod
+    def suitable(cls, url):
+        return False if GloboIE.suitable(url) else super(GloboArticleIE, cls).suitable(url)
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._search_regex(self._VIDEOID_REGEXES, webpage, 'video id')
+        return self.url_result('globo:%s' % video_id, 'Globo')
