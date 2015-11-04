@@ -361,8 +361,8 @@ class GloboIE(InfoExtractor):
             else:
                 formats.append({
                     'url': signed_url,
-                    'format_id': resource_id,
-                    'height': resource.get('height'),
+                    'format_id': 'http-%s' % resource_id,
+                    'height': int_or_none(resource.get('height')),
                 })
 
         self._sort_formats(formats)
