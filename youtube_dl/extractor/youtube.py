@@ -1107,6 +1107,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     if not video_info:
                         video_info = get_video_info
                     if 'token' in get_video_info:
+                        # Different get_video_info requests may report different results, e.g.
+                        # some may report video unavailability, but some may serve it without
+                        # any complaint (see https://github.com/rg3/youtube-dl/issues/7362,
+                        # the original webpage as well as el=info and el=embedded get_video_info
+                        # requests report video unavailability due to geo restriction while
+                        # el=detailpage succeeds and returns valid data). This is probably
+                        # due to YouTube measures against IP ranges of hosting providers.
+                        # Working around by preferring the first succeeded video_info containing
+                        # the token if no such video_info yet was found.
                         if 'token' not in video_info:
                             video_info = get_video_info
                         break
