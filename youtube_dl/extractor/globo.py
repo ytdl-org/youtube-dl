@@ -35,18 +35,30 @@ class GloboIE(InfoExtractor):
             'duration': 103.204,
             'uploader': 'Globo.com',
             'uploader_id': 265,
-        }
+        },
+    }, {
+        'url': 'http://globoplay.globo.com/v/4581987/',
+        'md5': 'f36a1ecd6a50da1577eee6dd17f67eff',
+        'info_dict': {
+            'id': '4581987',
+            'ext': 'mp4',
+            'title': 'Acidentes de trânsito estão entre as maiores causas de queda de energia em SP',
+            'duration': 137.973,
+            'uploader': 'Rede Globo',
+            'uploader_id': 196,
+        },
+    }, {
+        'url': 'http://canalbrasil.globo.com/programas/sangue-latino/videos/3928201.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://globosatplay.globo.com/globonews/v/4472924/',
+        'only_matching': True,
+    }, {
+        'url': 'http://globotv.globo.com/t/programa/v/clipe-sexo-e-as-negas-adeus/3836166/',
+        'only_matching': True,
     }, {
         'url': 'http://globotv.globo.com/canal-brasil/sangue-latino/t/todos-os-videos/v/ator-e-diretor-argentino-ricado-darin-fala-sobre-utopias-e-suas-perdas/3928201/',
-        'md5': 'c1defca721ce25b2354e927d3e4b3dec',
-        'info_dict': {
-            'id': '3928201',
-            'ext': 'mp4',
-            'title': 'Ator e diretor argentino, Ricado Darín fala sobre utopias e suas perdas',
-            'duration': 1472.906,
-            'uploader': 'Canal Brasil',
-            'uploader_id': 705,
-        }
+        'only_matching': True,
     }]
 
     class MD5:
