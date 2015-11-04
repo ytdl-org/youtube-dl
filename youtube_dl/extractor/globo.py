@@ -26,18 +26,6 @@ class GloboIE(InfoExtractor):
     _RESIGN_EXPIRATION = 86400
 
     _TESTS = [{
-        'url': 'http://globotv.globo.com/sportv/futebol-nacional/v/os-gols-de-atletico-mg-3-x-2-santos-pela-24a-rodada-do-brasileirao/3654973/',
-        'md5': '03ebf41cb7ade43581608b7d9b71fab0',
-        'info_dict': {
-            'id': '3654973',
-            'ext': 'mp4',
-            'title': 'Os gols de Atlético-MG 3 x 2 Santos pela 24ª rodada do Brasileirão',
-            'duration': 251.585,
-            'uploader': 'SporTV',
-            'uploader_id': 698,
-            'like_count': int,
-        }
-    }, {
         'url': 'http://g1.globo.com/carros/autoesporte/videos/t/exclusivos-do-g1/v/mercedes-benz-gla-passa-por-teste-de-colisao-na-europa/3607726/',
         'md5': 'b3ccc801f75cd04a914d51dadb83a78d',
         'info_dict': {
