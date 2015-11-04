@@ -1107,6 +1107,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     if not video_info:
                         video_info = get_video_info
                     if 'token' in get_video_info:
+                        if 'token' not in video_info:
+                            video_info = get_video_info
                         break
         if 'token' not in video_info:
             if 'reason' in video_info:
