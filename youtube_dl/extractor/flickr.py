@@ -79,3 +79,5 @@ class FlickrIE(InfoExtractor):
                 'uploader': owner.get('realname'),
                 'comment_count': int_or_none(video_info.get('comments', {}).get('_content')),
             }
+        else:
+            raise ExtractorError('not a video', expected=True)
