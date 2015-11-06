@@ -191,9 +191,13 @@ class PBSIE(InfoExtractor):
             if media_id:
                 return media_id, presumptive_id, upload_date
 
-            url = self._search_regex(
-                r'(?s)<iframe[^>]+?(?:[a-z-]+?=["\'].*?["\'][^>]+?)*?\bsrc=["\']([^\'"]+partnerplayer[^\'"]+)["\']',
-                webpage, 'player URL')
+            for iframe in re.findall(r'(?s)<iframe(.+?)></iframe>', webpage):
+                url = self._search_regex(
+                    r'src=(["\'])(?P<url>.+?partnerplayer.+?)\1', iframe,
+                    'player URL', default=None, group='url')
+                if url:
+                    break
+
             mobj = re.match(self._VALID_URL, url)
 
         player_id = mobj.group('player_id')
