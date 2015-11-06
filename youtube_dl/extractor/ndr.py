@@ -238,7 +238,7 @@ class NDREmbedBaseIE(InfoExtractor):
 
 class NDREmbedIE(NDREmbedBaseIE):
     IE_NAME = 'ndr:embed'
-    _VALID_URL = r'https?://www\.ndr\.de/(?:[^/]+/)+(?P<id>[\da-z]+)-(?:player|externalPlayer)\.html'
+    _VALID_URL = r'https?://www\.ndr\.de/(?:[^/]+/)*(?P<id>[\da-z]+)-(?:player|externalPlayer)\.html'
     _TESTS = [{
         'url': 'http://www.ndr.de/fernsehen/sendungen/ndr_aktuell/ndraktuell28488-player.html',
         'md5': '8b9306142fe65bbdefb5ce24edb6b0a9',
