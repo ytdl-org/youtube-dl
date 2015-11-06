@@ -105,7 +105,7 @@ class NDRIE(NDRBaseIE):
 class NJoyIE(NDRBaseIE):
     IE_NAME = 'njoy'
     IE_DESC = 'N-JOY'
-    _VALID_URL = r'https?://www\.n-joy\.de/(?:[^/]+/)+(?:(?P<display_id>[^/?#]+),)?(?P<id>[\da-z]+)\.html'
+    _VALID_URL = r'https?://www\.n-joy\.de/(?:[^/]+/)*(?:(?P<display_id>[^/?#]+),)?(?P<id>[\da-z]+)\.html'
     _TESTS = [{
         # httpVideo, same content id
         'url': 'http://www.n-joy.de/entertainment/comedy/comedy_contest/Benaissa-beim-NDR-Comedy-Contest,comedycontest2480.html',
