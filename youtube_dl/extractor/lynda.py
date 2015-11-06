@@ -227,9 +227,8 @@ class LyndaCourseIE(LyndaBaseIE):
                 if video.get('HasAccess') is False:
                     unaccessible_videos += 1
                     continue
-                video_id = video.get('ID')
-                if video_id:
-                    videos.append(video_id)
+                if video.get('ID'):
+                    videos.append(video['ID'])
 
         if unaccessible_videos > 0:
             self._downloader.report_warning(
