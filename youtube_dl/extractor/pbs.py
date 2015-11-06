@@ -8,6 +8,7 @@ from ..utils import (
     ExtractorError,
     determine_ext,
     int_or_none,
+    strip_jsonp,
     unified_strdate,
     US_RATINGS,
 )
@@ -190,6 +191,23 @@ class PBSIE(InfoExtractor):
                 MEDIA_ID_REGEXES, webpage, 'media ID', fatal=False, default=None)
             if media_id:
                 return media_id, presumptive_id, upload_date
+
+            # Fronline video embedded via flp
+            video_id = self._search_regex(
+                r'videoid\s*:\s*"([\d+a-z]{7,})"', webpage, 'videoid')
+            if video_id:
+                # pkg_id calculation is reverse engineered from
+                # http://www.pbs.org/wgbh/pages/frontline/js/flp2012.js
+                prg_id = self._search_regex(
+                    r'videoid\s*:\s*"([\d+a-z]{7,})"', webpage, 'videoid')[7:]
+                if 'q' in prg_id:
+                    prg_id = prg_id.split('q')[1]
+                prg_id = int(prg_id, 16)
+                getdir = self._download_json(
+                    'http://www.pbs.org/wgbh/pages/frontline/.json/getdir/getdir%d.json' % prg_id,
+                    presumptive_id, 'Downloading getdir JSON',
+                    transform_source=strip_jsonp)
+                return getdir['mid'], presumptive_id, upload_date
 
             for iframe in re.findall(r'(?s)<iframe(.+?)></iframe>', webpage):
                 url = self._search_regex(
