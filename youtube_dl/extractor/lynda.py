@@ -210,14 +210,13 @@ class LyndaCourseIE(LyndaBaseIE):
         course_path = mobj.group('coursepath')
         course_id = mobj.group('courseid')
 
-        page = self._download_webpage(
+        course = self._download_json(
             'http://www.lynda.com/ajax/player?courseId=%s&type=course' % course_id,
             course_id, 'Downloading course JSON')
-        course_json = json.loads(page)
 
         self._logout()
 
-        if 'Status' in course_json and course_json['Status'] == 'NotFound':
+        if course.get('Status') == 'NotFound':
             raise ExtractorError(
                 'Course %s does not exist' % course_id, expected=True)
 
@@ -227,12 +226,14 @@ class LyndaCourseIE(LyndaBaseIE):
         # Might want to extract videos right here from video['Formats'] as it seems 'Formats' is not provided
         # by single video API anymore
 
-        for chapter in course_json['Chapters']:
-            for video in chapter['Videos']:
-                if video['HasAccess'] is False:
+        for chapter in course['Chapters']:
+            for video in chapter.get('Videos', []):
+                if video.get('HasAccess') is False:
                     unaccessible_videos += 1
                     continue
-                videos.append(video['ID'])
+                video_id = video.get('ID')
+                if video_id:
+                    videos.append(video_id)
 
         if unaccessible_videos > 0:
             self._downloader.report_warning(
@@ -245,6 +246,6 @@ class LyndaCourseIE(LyndaBaseIE):
                 'Lynda')
             for video_id in videos]
 
-        course_title = course_json['Title']
+        course_title = course.get('Title')
 
         return self.playlist_result(entries, course_id, course_title)
