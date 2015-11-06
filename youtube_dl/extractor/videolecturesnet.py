@@ -10,17 +10,19 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     parse_duration,
+    js_to_json,
+    parse_iso8601,
 )
 
 
 class VideoLecturesNetIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?videolectures\.net/(?P<id>[^/#?]+)/*(?:[#?].*)?$'
+    _VALID_URL = r'http://(?:www\.)?videolectures\.net/(?P<id>[^/]+)(?:/video/(?P<part>\d+))?'
     IE_NAME = 'videolectures.net'
 
     _TESTS = [{
         'url': 'http://videolectures.net/promogram_igor_mekjavic_eng/',
         'info_dict': {
-            'id': 'promogram_igor_mekjavic_eng',
+            'id': '20171_part1',
             'ext': 'mp4',
             'title': 'Automatics, robotics and biocybernetics',
             'description': 'md5:815fc1deb6b3a2bff99de2d5325be482',
@@ -32,7 +34,7 @@ class VideoLecturesNetIE(InfoExtractor):
         # video with invalid direct format links (HTTP 403)
         'url': 'http://videolectures.net/russir2010_filippova_nlp/',
         'info_dict': {
-            'id': 'russir2010_filippova_nlp',
+            'id': '14891_part1',
             'ext': 'flv',
             'title': 'NLP at Google',
             'description': 'md5:fc7a6d9bf0302d7cc0e53f7ca23747b3',
@@ -46,37 +48,80 @@ class VideoLecturesNetIE(InfoExtractor):
     }, {
         'url': 'http://videolectures.net/deeplearning2015_montreal/',
         'info_dict': {
-            'id': 'deeplearning2015_montreal',
+            'id': '23181',
             'title': 'Deep Learning Summer School, Montreal 2015',
-            'description': 'md5:90121a40cc6926df1bf04dcd8563ed3b',
+            'description': 'md5:0533a85e4bd918df52a01f0e1ebe87b7',
+            'timestamp': 1438560000,
         },
         'playlist_count': 30,
+    }, {
+        # multi part lecture
+        'url': 'http://videolectures.net/mlss09uk_bishop_ibi/',
+        'info_dict': {
+            'id': '9737',
+            'title': 'Introduction To Bayesian Inference',
+            'timestamp': 1251622800,
+        },
+        'playlist': [{
+            'info_dict': {
+                'id': '9737_part1',
+                'ext': 'wmv',
+                'title': 'Introduction To Bayesian Inference',
+            },
+        }, {
+            'info_dict': {
+                'id': '9737_part2',
+                'ext': 'wmv',
+                'title': 'Introduction To Bayesian Inference',
+            },
+        }],
+        'playlist_count': 2,
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        lecture_slug, part = re.match(self._VALID_URL, url).groups()
 
-        smil_url = 'http://videolectures.net/%s/video/1/smil.xml' % video_id
+        webpage = self._download_webpage(url, lecture_slug)
 
-        try:
-            smil = self._download_smil(smil_url, video_id)
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
-                # Probably a playlist
-                webpage = self._download_webpage(url, video_id)
-                entries = [
-                    self.url_result(compat_urlparse.urljoin(url, video_url), 'VideoLecturesNet')
-                    for _, video_url in re.findall(r'<a[^>]+href=(["\'])(.+?)\1[^>]+id=["\']lec=\d+', webpage)]
-                playlist_title = self._html_search_meta('title', webpage, 'title', fatal=True)
-                playlist_description = self._html_search_meta('description', webpage, 'description')
-                return self.playlist_result(entries, video_id, playlist_title, playlist_description)
+        cfg = self._parse_json(self._search_regex(r'cfg\s*:\s*({[^}]+})', webpage, 'cfg'), lecture_slug, js_to_json)
 
-        info = self._parse_smil(smil, smil_url, video_id)
+        lecture_id = str(cfg['obj_id'])
 
-        info['id'] = video_id
+        lecture_data = self._download_json('%s/site/api/lecture/%s?format=json' % (self._proto_relative_url(cfg['livepipe'], 'http:'), lecture_id), lecture_id)['lecture'][0]
 
-        switch = smil.find('.//switch')
-        if switch is not None:
-            info['duration'] = parse_duration(switch.attrib.get('dur'))
+        lecture_info = {
+            'id': lecture_id,
+            'display_id': lecture_slug,
+            'title': lecture_data['title'],
+            'timestamp': parse_iso8601(lecture_data.get('time')),
+            'description': lecture_data.get('description_wiki'),
+            'thumbnail': lecture_data.get('thumb'),
+        }
 
-        return info
+        entries = []
+        parts = cfg.get('videos')
+        if parts:
+            if len(parts) == 1:
+                part = str(parts[0])
+            if part:
+                smil_url = 'http://videolectures.net/%s/video/%s/smil.xml' % (lecture_slug, part)
+                smil = self._download_smil(smil_url, lecture_id)
+                info = self._parse_smil(smil, smil_url, lecture_id)
+                info['id'] = '%s_part%s' % (lecture_id, part)
+                switch = smil.find('.//switch')
+                if switch is not None:
+                    info['duration'] = parse_duration(switch.attrib.get('dur'))
+                return info
+            else:
+                for part in parts:
+                    entries.append(self.url_result('http://videolectures.net/%s/video/%s' % (lecture_slug, part), 'VideoLecturesNet'))
+                lecture_info['_type'] = 'multi_video'
+        else:
+            # Probably a playlist
+            entries = [
+                self.url_result(compat_urlparse.urljoin(url, video_url), 'VideoLecturesNet')
+                for _, video_url in re.findall(r'<a[^>]+href=(["\'])(.+?)\1[^>]+id=["\']lec=\d+', webpage)]
+            lecture_info['_type'] = 'playlist'
+
+        lecture_info['entries'] = entries
+        return lecture_info
