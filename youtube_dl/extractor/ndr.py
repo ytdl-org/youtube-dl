@@ -332,7 +332,7 @@ class NDREmbedIE(NDREmbedBaseIE):
 
 class NJoyEmbedIE(NDREmbedBaseIE):
     IE_NAME = 'njoy:embed'
-    _VALID_URL = r'https?://www\.n-joy\.de/(?:[^/]+/)+(?P<id>[\da-z]+)-(?:player|externalPlayer)_[^/]+\.html'
+    _VALID_URL = r'https?://www\.n-joy\.de/(?:[^/]+/)*(?P<id>[\da-z]+)-(?:player|externalPlayer)_[^/]+\.html'
     _TESTS = [{
         # httpVideo
         'url': 'http://www.n-joy.de/events/reeperbahnfestival/doku948-player_image-bc168e87-5263-4d6d-bd27-bb643005a6de_theme-n-joy.html',
