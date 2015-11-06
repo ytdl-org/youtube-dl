@@ -78,6 +78,9 @@ class NDRIE(NDRBaseIE):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'https://www.ndr.de/Fettes-Brot-Ferris-MC-und-Thees-Uhlmann-live-on-stage,festivalsommer116.html',
+        'only_matching': True,
     }]
 
     def _extract_embed(self, webpage, display_id):
