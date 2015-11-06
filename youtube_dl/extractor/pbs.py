@@ -154,6 +154,22 @@ class PBSIE(InfoExtractor):
             'params': {
                 'skip_download': True,  # requires ffmpeg
             },
+        },
+        {
+            # Frontline video embedded via flp2012.js
+            'url': 'http://www.pbs.org/wgbh/pages/frontline/the-atomic-artists',
+            'info_dict': {
+                'id': '2070868960',
+                'display_id': 'the-atomic-artists',
+                'ext': 'mp4',
+                'title': 'FRONTLINE - The Atomic Artists',
+                'description': 'md5:f5bfbefadf421e8bb8647602011caf8e',
+                'duration': 723,
+                'thumbnail': 're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            },
         }
     ]
     _ERRORS = {
