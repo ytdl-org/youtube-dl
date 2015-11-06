@@ -52,6 +52,8 @@ class MioMioIE(InfoExtractor):
         mioplayer_path = self._search_regex(
             r'src="(/mioplayer/[^"]+)"', webpage, 'ref_path')
 
+        http_headers = {'Referer': 'http://www.miomio.tv%s' % mioplayer_path,}
+
         xml_config = self._search_regex(
             r'flashvars="type=(?:sina|video)&amp;(.+?)&amp;',
             webpage, 'xml config')
@@ -63,14 +65,10 @@ class MioMioIE(InfoExtractor):
 
         vid_config_request = compat_urllib_request.Request(
             'http://www.miomio.tv/mioplayer/mioplayerconfigfiles/sina.php?{0}'.format(xml_config),
-            headers={'Referer': 'http://www.miomio.tv/mioplayer/mioplayer-v3.0.swf'})
+            headers=http_headers)
 
         # the following xml contains the actual configuration information on the video file(s)
         vid_config = self._download_xml(vid_config_request, video_id)
-
-        http_headers = {
-            'Referer': 'http://www.miomio.tv%s' % mioplayer_path,
-        }
 
         if not int_or_none(xpath_text(vid_config, 'timelength')):
             raise ExtractorError('Unable to load videos!', expected=True)
