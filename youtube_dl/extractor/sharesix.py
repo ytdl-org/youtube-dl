@@ -43,18 +43,15 @@ class ShareSixIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
-        fields = {
-            'method_free': 'Free'
-        }
-        post = compat_urllib_parse.urlencode(fields)
-        req = compat_urllib_request.Request(url, post)
-        req.add_header('Content-type', 'application/x-www-form-urlencoded')
+        webpage = self._download_webpage(url, video_id)
 
-        webpage = self._download_webpage(req, video_id,
-                                         'Downloading video page')
+        code = self._search_regex(
+            r'\?code=([a-z0-9]+)">Free', webpage, 'free code')
+
+        webpage = self._download_webpage(url + '?code=' + code, video_id,
+            'Downloading video page')
 
         video_url = self._search_regex(
             r"var\slnk1\s=\s'([^']+)'", webpage, 'video URL')
