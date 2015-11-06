@@ -210,7 +210,7 @@ class PBSIE(InfoExtractor):
 
             # Fronline video embedded via flp
             video_id = self._search_regex(
-                r'videoid\s*:\s*"([\d+a-z]{7,})"', webpage, 'videoid')
+                r'videoid\s*:\s*"([\d+a-z]{7,})"', webpage, 'videoid', default=None)
             if video_id:
                 # pkg_id calculation is reverse engineered from
                 # http://www.pbs.org/wgbh/pages/frontline/js/flp2012.js
