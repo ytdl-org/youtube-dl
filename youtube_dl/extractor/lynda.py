@@ -82,6 +82,11 @@ class LyndaBaseIE(InfoExtractor):
                         expected=True)
             raise ExtractorError('Unable to log in')
 
+    def _logout(self):
+        self._download_webpage(
+            'http://www.lynda.com/ajax/logout.aspx', None,
+            'Logging out', 'Unable to log out', fatal=False)
+
 
 class LyndaIE(LyndaBaseIE):
     IE_NAME = 'lynda'
@@ -209,6 +214,8 @@ class LyndaCourseIE(LyndaBaseIE):
             'http://www.lynda.com/ajax/player?courseId=%s&type=course' % course_id,
             course_id, 'Downloading course JSON')
         course_json = json.loads(page)
+
+        self._logout()
 
         if 'Status' in course_json and course_json['Status'] == 'NotFound':
             raise ExtractorError(
