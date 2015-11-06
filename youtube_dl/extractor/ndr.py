@@ -23,7 +23,7 @@ class NDRBaseIE(InfoExtractor):
 class NDRIE(NDRBaseIE):
     IE_NAME = 'ndr'
     IE_DESC = 'NDR.de - Norddeutscher Rundfunk'
-    _VALID_URL = r'https?://www\.ndr\.de/(?:[^/]+/)+(?P<id>[^/?#]+),[\da-z]+\.html'
+    _VALID_URL = r'https?://www\.ndr\.de/(?:[^/]+/)*(?P<id>[^/?#]+),[\da-z]+\.html'
     _TESTS = [{
         # httpVideo, same content id
         'url': 'http://www.ndr.de/fernsehen/Party-Poette-und-Parade,hafengeburtstag988.html',
