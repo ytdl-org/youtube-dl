@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import random
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_request
 from ..utils import (
     xpath_text,
     int_or_none,
@@ -51,6 +52,8 @@ class MioMioIE(InfoExtractor):
         mioplayer_path = self._search_regex(
             r'src="(/mioplayer/[^"]+)"', webpage, 'ref_path')
 
+        http_headers = {'Referer': 'http://www.miomio.tv%s' % mioplayer_path}
+
         xml_config = self._search_regex(
             r'flashvars="type=(?:sina|video)&amp;(.+?)&amp;',
             webpage, 'xml config')
@@ -60,14 +63,12 @@ class MioMioIE(InfoExtractor):
             'http://www.miomio.tv/mioplayer/mioplayerconfigfiles/xml.php?id=%s&r=%s' % (id, random.randint(100, 999)),
             video_id)
 
-        # the following xml contains the actual configuration information on the video file(s)
-        vid_config = self._download_xml(
+        vid_config_request = compat_urllib_request.Request(
             'http://www.miomio.tv/mioplayer/mioplayerconfigfiles/sina.php?{0}'.format(xml_config),
-            video_id)
+            headers=http_headers)
 
-        http_headers = {
-            'Referer': 'http://www.miomio.tv%s' % mioplayer_path,
-        }
+        # the following xml contains the actual configuration information on the video file(s)
+        vid_config = self._download_xml(vid_config_request, video_id)
 
         if not int_or_none(xpath_text(vid_config, 'timelength')):
             raise ExtractorError('Unable to load videos!', expected=True)

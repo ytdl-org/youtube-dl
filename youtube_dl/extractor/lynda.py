@@ -82,6 +82,11 @@ class LyndaBaseIE(InfoExtractor):
                         expected=True)
             raise ExtractorError('Unable to log in')
 
+    def _logout(self):
+        self._download_webpage(
+            'http://www.lynda.com/ajax/logout.aspx', None,
+            'Logging out', 'Unable to log out', fatal=False)
+
 
 class LyndaIE(LyndaBaseIE):
     IE_NAME = 'lynda'
@@ -108,51 +113,47 @@ class LyndaIE(LyndaBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        page = self._download_webpage(
+        video = self._download_json(
             'http://www.lynda.com/ajax/player?videoId=%s&type=video' % video_id,
             video_id, 'Downloading video JSON')
-        video_json = json.loads(page)
 
-        if 'Status' in video_json:
+        if 'Status' in video:
             raise ExtractorError(
-                'lynda returned error: %s' % video_json['Message'], expected=True)
+                'lynda returned error: %s' % video['Message'], expected=True)
 
-        if video_json['HasAccess'] is False:
+        if video.get('HasAccess') is False:
             self.raise_login_required('Video %s is only available for members' % video_id)
 
-        video_id = compat_str(video_json['ID'])
-        duration = video_json['DurationInSeconds']
-        title = video_json['Title']
+        video_id = compat_str(video.get('ID') or video_id)
+        duration = int_or_none(video.get('DurationInSeconds'))
+        title = video['Title']
 
         formats = []
 
-        fmts = video_json.get('Formats')
+        fmts = video.get('Formats')
         if fmts:
-            formats.extend([
-                {
-                    'url': fmt['Url'],
-                    'ext': fmt['Extension'],
-                    'width': fmt['Width'],
-                    'height': fmt['Height'],
-                    'filesize': fmt['FileSize'],
-                    'format_id': str(fmt['Resolution'])
-                } for fmt in fmts])
+            formats.extend([{
+                'url': f['Url'],
+                'ext': f.get('Extension'),
+                'width': int_or_none(f.get('Width')),
+                'height': int_or_none(f.get('Height')),
+                'filesize': int_or_none(f.get('FileSize')),
+                'format_id': compat_str(f.get('Resolution')) if f.get('Resolution') else None,
+            } for f in fmts if f.get('Url')])
 
-        prioritized_streams = video_json.get('PrioritizedStreams')
+        prioritized_streams = video.get('PrioritizedStreams')
         if prioritized_streams:
             for prioritized_stream_id, prioritized_stream in prioritized_streams.items():
-                formats.extend([
-                    {
-                        'url': video_url,
-                        'width': int_or_none(format_id),
-                        'format_id': '%s-%s' % (prioritized_stream_id, format_id),
-                    } for format_id, video_url in prioritized_stream.items()
-                ])
+                formats.extend([{
+                    'url': video_url,
+                    'width': int_or_none(format_id),
+                    'format_id': '%s-%s' % (prioritized_stream_id, format_id),
+                } for format_id, video_url in prioritized_stream.items()])
 
         self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
-        subtitles = self.extract_subtitles(video_id, page)
+        subtitles = self.extract_subtitles(video_id)
 
         return {
             'id': video_id,
@@ -183,7 +184,7 @@ class LyndaIE(LyndaBaseIE):
         if srt:
             return srt
 
-    def _get_subtitles(self, video_id, webpage):
+    def _get_subtitles(self, video_id):
         url = 'http://www.lynda.com/ajax/player?videoId=%s&type=transcript' % video_id
         subs = self._download_json(url, None, False)
         if subs:
@@ -205,12 +206,13 @@ class LyndaCourseIE(LyndaBaseIE):
         course_path = mobj.group('coursepath')
         course_id = mobj.group('courseid')
 
-        page = self._download_webpage(
+        course = self._download_json(
             'http://www.lynda.com/ajax/player?courseId=%s&type=course' % course_id,
             course_id, 'Downloading course JSON')
-        course_json = json.loads(page)
 
-        if 'Status' in course_json and course_json['Status'] == 'NotFound':
+        self._logout()
+
+        if course.get('Status') == 'NotFound':
             raise ExtractorError(
                 'Course %s does not exist' % course_id, expected=True)
 
@@ -220,12 +222,13 @@ class LyndaCourseIE(LyndaBaseIE):
         # Might want to extract videos right here from video['Formats'] as it seems 'Formats' is not provided
         # by single video API anymore
 
-        for chapter in course_json['Chapters']:
-            for video in chapter['Videos']:
-                if video['HasAccess'] is False:
+        for chapter in course['Chapters']:
+            for video in chapter.get('Videos', []):
+                if video.get('HasAccess') is False:
                     unaccessible_videos += 1
                     continue
-                videos.append(video['ID'])
+                if video.get('ID'):
+                    videos.append(video['ID'])
 
         if unaccessible_videos > 0:
             self._downloader.report_warning(
@@ -238,6 +241,6 @@ class LyndaCourseIE(LyndaBaseIE):
                 'Lynda')
             for video_id in videos]
 
-        course_title = course_json['Title']
+        course_title = course.get('Title')
 
         return self.playlist_result(entries, course_id, course_title)

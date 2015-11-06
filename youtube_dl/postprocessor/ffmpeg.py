@@ -272,7 +272,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             return [], information
 
         try:
-            self._downloader.to_screen('[' + self.basename + '] Destination: ' + new_path)
+            self._downloader.to_screen('[ffmpeg] Destination: ' + new_path)
             self.run_ffmpeg(path, new_path, acodec, more_opts)
         except AudioConversionError as e:
             raise PostProcessingError(
