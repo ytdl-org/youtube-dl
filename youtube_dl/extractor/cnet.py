@@ -57,7 +57,9 @@ class CNETIE(InfoExtractor):
         subtitles = {}
         description = vdata.get('description')
 
-        for vid in vdata['files'].values():
+        for (fkey, vid) in vdata['files'].items():
+            if fkey == 'hls_phone' and 'hls_tablet' in vdata['files']:
+                continue
             result = tp.extract(('http://link.theplatform.com/s/%s/%s' % (mpx_account, vid)))
             formats.extend(result['formats'])
             subtitles = self._merge_subtitles(subtitles, result['subtitles'])
