@@ -113,51 +113,47 @@ class LyndaIE(LyndaBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        page = self._download_webpage(
+        video = self._download_json(
             'http://www.lynda.com/ajax/player?videoId=%s&type=video' % video_id,
             video_id, 'Downloading video JSON')
-        video_json = json.loads(page)
 
-        if 'Status' in video_json:
+        if 'Status' in video:
             raise ExtractorError(
-                'lynda returned error: %s' % video_json['Message'], expected=True)
+                'lynda returned error: %s' % video['Message'], expected=True)
 
-        if video_json['HasAccess'] is False:
+        if video.get('HasAccess') is False:
             self.raise_login_required('Video %s is only available for members' % video_id)
 
-        video_id = compat_str(video_json['ID'])
-        duration = video_json['DurationInSeconds']
-        title = video_json['Title']
+        video_id = compat_str(video.get('ID') or video_id)
+        duration = int_or_none(video.get('DurationInSeconds'))
+        title = video['Title']
 
         formats = []
 
-        fmts = video_json.get('Formats')
+        fmts = video.get('Formats')
         if fmts:
-            formats.extend([
-                {
-                    'url': fmt['Url'],
-                    'ext': fmt['Extension'],
-                    'width': fmt['Width'],
-                    'height': fmt['Height'],
-                    'filesize': fmt['FileSize'],
-                    'format_id': str(fmt['Resolution'])
-                } for fmt in fmts])
+            formats.extend([{
+                'url': f['Url'],
+                'ext': f.get('Extension'),
+                'width': int_or_none(f.get('Width')),
+                'height': int_or_none(f.get('Height')),
+                'filesize': int_or_none(f.get('FileSize')),
+                'format_id': compat_str(f.get('Resolution')) if f.get('Resolution') else None,
+            } for f in fmts if f.get('Url')])
 
-        prioritized_streams = video_json.get('PrioritizedStreams')
+        prioritized_streams = video.get('PrioritizedStreams')
         if prioritized_streams:
             for prioritized_stream_id, prioritized_stream in prioritized_streams.items():
-                formats.extend([
-                    {
-                        'url': video_url,
-                        'width': int_or_none(format_id),
-                        'format_id': '%s-%s' % (prioritized_stream_id, format_id),
-                    } for format_id, video_url in prioritized_stream.items()
-                ])
+                formats.extend([{
+                    'url': video_url,
+                    'width': int_or_none(format_id),
+                    'format_id': '%s-%s' % (prioritized_stream_id, format_id),
+                } for format_id, video_url in prioritized_stream.items()])
 
         self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
-        subtitles = self.extract_subtitles(video_id, page)
+        subtitles = self.extract_subtitles(video_id)
 
         return {
             'id': video_id,
@@ -188,7 +184,7 @@ class LyndaIE(LyndaBaseIE):
         if srt:
             return srt
 
-    def _get_subtitles(self, video_id, webpage):
+    def _get_subtitles(self, video_id):
         url = 'http://www.lynda.com/ajax/player?videoId=%s&type=transcript' % video_id
         subs = self._download_json(url, None, False)
         if subs:
