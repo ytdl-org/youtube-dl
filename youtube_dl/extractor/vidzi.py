@@ -33,6 +33,7 @@ class VidziIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': title,
             'url': video_url,
+            'ext': ext,
+            'title': title
         }
