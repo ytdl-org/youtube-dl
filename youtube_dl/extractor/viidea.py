@@ -15,9 +15,23 @@ from ..utils import (
 )
 
 
-class VideoLecturesNetIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?videolectures\.net/(?P<id>[^/]+)(?:/video/(?P<part>\d+))?'
-    IE_NAME = 'videolectures.net'
+class ViideaIE(InfoExtractor):
+    _VALID_URL = r'''(?x)http://(?:www\.)?(?:
+            videolectures\.net|
+            flexilearn\.viidea\.net|
+            presentations\.ocwconsortium\.org|
+            video\.travel-zoom\.si|
+            video\.pomp-forum\.si|
+            tv\.nil\.si|
+            video\.hekovnik.com|
+            video\.szko\.si|
+            kpk\.viidea\.com|
+            inside\.viidea\.net|
+            video\.kiberpipa\.org|
+            bvvideo\.si|
+            kongres\.viidea\.net|
+            edemokracija\.viidea\.com
+        )(?:/lecture)?/(?P<id>[^/]+)(?:/video/(?P<part>\d+))?'''
 
     _TESTS = [{
         'url': 'http://videolectures.net/promogram_igor_mekjavic_eng/',
@@ -87,7 +101,9 @@ class VideoLecturesNetIE(InfoExtractor):
 
         lecture_id = str(cfg['obj_id'])
 
-        lecture_data = self._download_json('%s/site/api/lecture/%s?format=json' % (self._proto_relative_url(cfg['livepipe'], 'http:'), lecture_id), lecture_id)['lecture'][0]
+        base_url = self._proto_relative_url(cfg['livepipe'], 'http:')
+
+        lecture_data = self._download_json('%s/site/api/lecture/%s?format=json' % (base_url, lecture_id), lecture_id)['lecture'][0]
 
         lecture_info = {
             'id': lecture_id,
@@ -104,7 +120,7 @@ class VideoLecturesNetIE(InfoExtractor):
             if len(parts) == 1:
                 part = str(parts[0])
             if part:
-                smil_url = 'http://videolectures.net/%s/video/%s/smil.xml' % (lecture_slug, part)
+                smil_url = '%s/%s/video/%s/smil.xml' % (base_url, lecture_slug, part)
                 smil = self._download_smil(smil_url, lecture_id)
                 info = self._parse_smil(smil, smil_url, lecture_id)
                 info['id'] = '%s_part%s' % (lecture_id, part)
@@ -114,13 +130,14 @@ class VideoLecturesNetIE(InfoExtractor):
                 return info
             else:
                 for part in parts:
-                    entries.append(self.url_result('http://videolectures.net/%s/video/%s' % (lecture_slug, part), 'VideoLecturesNet'))
+                    entries.append(self.url_result('%s/video/%s' % (base_url, lecture_id, part), 'Viidea'))
                 lecture_info['_type'] = 'multi_video'
         else:
             # Probably a playlist
+            playlist_webpage = self._download_webpage('%s/site/ajax/drilldown/?id=%s' % (base_url, lecture_id), lecture_id)
             entries = [
-                self.url_result(compat_urlparse.urljoin(url, video_url), 'VideoLecturesNet')
-                for _, video_url in re.findall(r'<a[^>]+href=(["\'])(.+?)\1[^>]+id=["\']lec=\d+', webpage)]
+                self.url_result(compat_urlparse.urljoin(url, video_url), 'Viidea')
+                for _, video_url in re.findall(r'<a[^>]+href=(["\'])(.+?)\1[^>]+id=["\']lec=\d+', playlist_webpage)]
             lecture_info['_type'] = 'playlist'
 
         lecture_info['entries'] = entries
