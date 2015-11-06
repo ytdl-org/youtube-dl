@@ -52,7 +52,7 @@ class MioMioIE(InfoExtractor):
         mioplayer_path = self._search_regex(
             r'src="(/mioplayer/[^"]+)"', webpage, 'ref_path')
 
-        http_headers = {'Referer': 'http://www.miomio.tv%s' % mioplayer_path,}
+        http_headers = {'Referer': 'http://www.miomio.tv%s' % mioplayer_path}
 
         xml_config = self._search_regex(
             r'flashvars="type=(?:sina|video)&amp;(.+?)&amp;',
