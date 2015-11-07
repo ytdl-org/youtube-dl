@@ -31,7 +31,7 @@ class ViideaIE(InfoExtractor):
             bvvideo\.si|
             kongres\.viidea\.net|
             edemokracija\.viidea\.com
-        )(?:/lecture)?/(?P<id>[^/]+)(?:/video/(?P<part>\d+))?'''
+        )(?:/lecture)?/(?P<id>[^/]+)(?:/video/(?P<part>\d+))?/*(?:[#?].*)?$'''
 
     _TESTS = [{
         'url': 'http://videolectures.net/promogram_igor_mekjavic_eng/',
@@ -130,7 +130,7 @@ class ViideaIE(InfoExtractor):
                 return info
             else:
                 for part in parts:
-                    entries.append(self.url_result('%s/video/%s' % (base_url, lecture_id, part), 'Viidea'))
+                    entries.append(self.url_result('%s/%s/video/%s' % (base_url, lecture_slug, part), 'Viidea'))
                 lecture_info['_type'] = 'multi_video'
         else:
             # Probably a playlist
