@@ -115,7 +115,7 @@ class ViideaIE(InfoExtractor):
 
         entries = []
         parts = cfg.get('videos')
-        if lecture_data.get('type') != 'evt' and parts:
+        if parts:
             if len(parts) == 1:
                 part = compat_str(parts[0])
             if part:
@@ -131,7 +131,7 @@ class ViideaIE(InfoExtractor):
                 for part in parts:
                     entries.append(self.url_result('%s/%s/video/%s' % (base_url, lecture_slug, part), 'Viidea'))
                 lecture_info['_type'] = 'multi_video'
-        else:
+        if not parts or lecture_data.get('type') == 'evt':
             # Probably a playlist
             playlist_webpage = self._download_webpage('%s/site/ajax/drilldown/?id=%s' % (base_url, lecture_id), lecture_id)
             entries = [
