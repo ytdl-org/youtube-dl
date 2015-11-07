@@ -4,11 +4,10 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_HTTPError,
     compat_urlparse,
+    compat_str,
 )
 from ..utils import (
-    ExtractorError,
     parse_duration,
     js_to_json,
     parse_iso8601,
@@ -97,9 +96,9 @@ class ViideaIE(InfoExtractor):
 
         webpage = self._download_webpage(url, lecture_slug)
 
-        cfg = self._parse_json(self._search_regex(r'cfg\s*:\s*({[^}]+})', webpage, 'cfg'), lecture_slug, js_to_json)
+        cfg = self._parse_json(self._search_regex([r'cfg\s*:\s*({.+?}),[\da-zA-Z_]:\(?function', r'cfg\s*:\s*({[^}]+})'], webpage, 'cfg'), lecture_slug, js_to_json)
 
-        lecture_id = str(cfg['obj_id'])
+        lecture_id = compat_str(cfg['obj_id'])
 
         base_url = self._proto_relative_url(cfg['livepipe'], 'http:')
 
@@ -118,7 +117,7 @@ class ViideaIE(InfoExtractor):
         parts = cfg.get('videos')
         if parts:
             if len(parts) == 1:
-                part = str(parts[0])
+                part = compat_str(parts[0])
             if part:
                 smil_url = '%s/%s/video/%s/smil.xml' % (base_url, lecture_slug, part)
                 smil = self._download_smil(smil_url, lecture_id)
@@ -132,7 +131,7 @@ class ViideaIE(InfoExtractor):
                 for part in parts:
                     entries.append(self.url_result('%s/%s/video/%s' % (base_url, lecture_slug, part), 'Viidea'))
                 lecture_info['_type'] = 'multi_video'
-        else:
+        if not parts or lecture_data.get('type') == 'evt':
             # Probably a playlist
             playlist_webpage = self._download_webpage('%s/site/ajax/drilldown/?id=%s' % (base_url, lecture_id), lecture_id)
             entries = [
