@@ -291,9 +291,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             r'(?s)<h1[^>]*>((?:(?!<h1).)*?<span[^>]+itemprop=["\']title["\'][^>]*>(?:(?!<h1).)+?)</h1>',
             webpage, 'video_title')
         video_title = re.sub(r' {2,}', ' ', video_title)
-        video_description = self._html_search_regex(r'"description":"([^"]+)', webpage, 'video_description', default='')
-        if not video_description:
-            video_description = None
+        video_description = self._html_search_regex(
+            r'"description":"([^"]+)', webpage, 'video_description', default=None)
         video_upload_date = self._html_search_regex(
             [r'<div>Availability for free users:(.+?)</div>', r'<div>[^<>]+<span>\s*(.+?\d{4})\s*</span></div>'],
             webpage, 'video_upload_date', fatal=False, flags=re.DOTALL)
