@@ -98,7 +98,7 @@ class ViideaIE(InfoExtractor):
 
         cfg = self._parse_json(self._search_regex([r'cfg\s*:\s*({.+?}),[\da-zA-Z_]:\(?function', r'cfg\s*:\s*({[^}]+})'], webpage, 'cfg'), lecture_slug, js_to_json)
 
-        lecture_id = str(cfg['obj_id'])
+        lecture_id = compat_str(cfg['obj_id'])
 
         base_url = self._proto_relative_url(cfg['livepipe'], 'http:')
 
