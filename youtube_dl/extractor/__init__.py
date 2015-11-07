@@ -724,7 +724,6 @@ from .vh1 import VH1IE
 from .vice import ViceIE
 from .viddler import ViddlerIE
 from .videodetective import VideoDetectiveIE
-from .videolecturesnet import VideoLecturesNetIE
 from .videofyme import VideofyMeIE
 from .videomega import VideoMegaIE
 from .videopremium import VideoPremiumIE
@@ -734,6 +733,7 @@ from .vidme import VidmeIE
 from .vidzi import VidziIE
 from .vier import VierIE, VierVideosIE
 from .viewster import ViewsterIE
+from .viidea import ViideaIE
 from .vimeo import (
     VimeoIE,
     VimeoAlbumIE,
