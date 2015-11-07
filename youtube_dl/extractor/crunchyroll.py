@@ -21,6 +21,7 @@ from ..utils import (
     bytes_to_intlist,
     intlist_to_bytes,
     int_or_none,
+    lowercase_escape,
     remove_end,
     unified_strdate,
     urlencode_postdata,
@@ -104,7 +105,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             'id': '589804',
             'ext': 'flv',
             'title': 'Culture Japan Episode 1 – Rebuilding Japan after the 3.11',
-            'description': 'md5:fe2743efedb49d279552926d0bd0cd9e',
+            'description': 'md5:2fbc01f90b87e8e9137296f37b461c12',
             'thumbnail': 're:^https?://.*\.jpg$',
             'uploader': 'Danny Choo Network',
             'upload_date': '20120213',
@@ -292,7 +293,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             webpage, 'video_title')
         video_title = re.sub(r' {2,}', ' ', video_title)
         video_description = self._html_search_regex(
-            r'"description":"([^"]+)', webpage, 'video_description', default=None)
+            r'<script[^>]*>\s*.+?\[media_id=%s\].+?"description"\s*:\s*"([^"]+)' % video_id,
+            webpage, 'description', default=None)
+        if video_description:
+            video_description = lowercase_escape(video_description.replace(r'\r\n', '\n'))
         video_upload_date = self._html_search_regex(
             [r'<div>Availability for free users:(.+?)</div>', r'<div>[^<>]+<span>\s*(.+?\d{4})\s*</span></div>'],
             webpage, 'video_upload_date', fatal=False, flags=re.DOTALL)
