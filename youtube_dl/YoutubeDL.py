@@ -37,6 +37,7 @@ from .compat import (
     compat_tokenize_tokenize,
     compat_urllib_error,
     compat_urllib_request,
+    compat_urllib_request_DataHandler,
 )
 from .utils import (
     ContentTooShortError,
@@ -571,7 +572,7 @@ class YoutubeDL(object):
                                  if v is not None)
             template_dict = collections.defaultdict(lambda: 'NA', template_dict)
 
-            outtmpl = sanitize_path(self.params.get('outtmpl', DEFAULT_OUTTMPL))
+            outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
             tmpl = compat_expanduser(outtmpl)
             filename = tmpl % template_dict
             # Temporary fix for #4787
@@ -579,7 +580,7 @@ class YoutubeDL(object):
             # to workaround encoding issues with subprocess on python2 @ Windows
             if sys.version_info < (3, 0) and sys.platform == 'win32':
                 filename = encodeFilename(filename, True).decode(preferredencoding())
-            return filename
+            return sanitize_path(filename)
         except ValueError as err:
             self.report_error('Error in output template: ' + str(err) + ' (encoding: ' + repr(preferredencoding()) + ')')
             return None
@@ -1967,8 +1968,9 @@ class YoutubeDL(object):
         debuglevel = 1 if self.params.get('debug_printtraffic') else 0
         https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)
         ydlh = YoutubeDLHandler(self.params, debuglevel=debuglevel)
+        data_handler = compat_urllib_request_DataHandler()
         opener = compat_urllib_request.build_opener(
-            proxy_handler, https_handler, cookie_processor, ydlh)
+            proxy_handler, https_handler, cookie_processor, ydlh, data_handler)
 
         # Delete the default user-agent header, which would otherwise apply in
         # cases where our custom HTTP handler doesn't come into play

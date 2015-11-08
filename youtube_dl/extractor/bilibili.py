@@ -4,9 +4,11 @@ from __future__ import unicode_literals
 import re
 import itertools
 import json
-import xml.etree.ElementTree as ET
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_etree_fromstring,
+)
 from ..utils import (
     int_or_none,
     unified_strdate,
@@ -88,7 +90,7 @@ class BiliBiliIE(InfoExtractor):
         except ValueError:
             pass
 
-        lq_doc = ET.fromstring(lq_page)
+        lq_doc = compat_etree_fromstring(lq_page)
         lq_durls = lq_doc.findall('./durl')
 
         hq_doc = self._download_xml(

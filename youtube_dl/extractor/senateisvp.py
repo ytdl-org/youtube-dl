@@ -121,9 +121,9 @@ class SenateISVPIE(InfoExtractor):
                 'url': compat_urlparse.urljoin(domain, filename) + '?v=3.1.0&fp=&r=&g=',
             }]
         else:
-            hdcore_sign = '?hdcore=3.1.0'
+            hdcore_sign = 'hdcore=3.1.0'
             url_params = (domain, video_id, stream_num)
-            f4m_url = '%s/z/%s_1@%s/manifest.f4m' % url_params + hdcore_sign
+            f4m_url = '%s/z/%s_1@%s/manifest.f4m?' % url_params + hdcore_sign
             m3u8_url = '%s/i/%s_1@%s/master.m3u8' % url_params
             for entry in self._extract_f4m_formats(f4m_url, video_id, f4m_id='f4m'):
                 # URLs without the extra param induce an 404 error

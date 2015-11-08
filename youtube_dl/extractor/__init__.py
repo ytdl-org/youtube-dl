@@ -45,6 +45,7 @@ from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE
 from .bbc import (
     BBCCoUkIE,
+    BBCCoUkArticleIE,
     BBCIE,
 )
 from .beeg import BeegIE
@@ -89,6 +90,7 @@ from .cliphunter import CliphunterIE
 from .clipsyndicate import ClipsyndicateIE
 from .cloudy import CloudyIE
 from .clubic import ClubicIE
+from .clyp import ClypIE
 from .cmt import CMTIE
 from .cnet import CNETIE
 from .cnn import (
@@ -122,6 +124,7 @@ from .dbtv import DBTVIE
 from .dcn import DCNIE
 from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE
+from .democracynow import DemocracynowIE
 from .dfb import DFBIE
 from .dhm import DHMIE
 from .dotsub import DotsubIE
@@ -209,7 +212,10 @@ from .gfycat import GfycatIE
 from .giantbomb import GiantBombIE
 from .giga import GigaIE
 from .glide import GlideIE
-from .globo import GloboIE
+from .globo import (
+    GloboIE,
+    GloboArticleIE,
+)
 from .godtube import GodTubeIE
 from .goldenmoustache import GoldenMoustacheIE
 from .golem import GolemIE
@@ -586,6 +592,7 @@ from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE, SpiegelArticleIE
 from .spiegeltv import SpiegeltvIE
 from .spike import SpikeIE
+from .stitcher import StitcherIE
 from .sport5 import Sport5IE
 from .sportbox import (
     SportBoxIE,
@@ -690,7 +697,7 @@ from .twitch import (
     TwitchBookmarksIE,
     TwitchStreamIE,
 )
-from .twitter import TwitterCardIE
+from .twitter import TwitterCardIE, TwitterIE
 from .ubu import UbuIE
 from .udemy import (
     UdemyIE,
@@ -717,7 +724,6 @@ from .vh1 import VH1IE
 from .vice import ViceIE
 from .viddler import ViddlerIE
 from .videodetective import VideoDetectiveIE
-from .videolecturesnet import VideoLecturesNetIE
 from .videofyme import VideofyMeIE
 from .videomega import VideoMegaIE
 from .videopremium import VideoPremiumIE
@@ -728,6 +734,7 @@ from .vidto import VidtoIE
 from .vidzi import VidziIE
 from .vier import VierIE, VierVideosIE
 from .viewster import ViewsterIE
+from .viidea import ViideaIE
 from .vimeo import (
     VimeoIE,
     VimeoAlbumIE,

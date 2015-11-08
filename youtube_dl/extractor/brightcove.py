@@ -3,10 +3,10 @@ from __future__ import unicode_literals
 
 import re
 import json
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_etree_fromstring,
     compat_parse_qs,
     compat_str,
     compat_urllib_parse,
@@ -119,7 +119,7 @@ class BrightcoveIE(InfoExtractor):
         object_str = fix_xml_ampersands(object_str)
 
         try:
-            object_doc = xml.etree.ElementTree.fromstring(object_str.encode('utf-8'))
+            object_doc = compat_etree_fromstring(object_str.encode('utf-8'))
         except compat_xml_parse_error:
             return
 

@@ -61,7 +61,7 @@ class GooglePlusIE(InfoExtractor):
             'width': int(width),
             'height': int(height),
         } for width, height, video_url in re.findall(
-            r'\d+,(\d+),(\d+),"(https?://redirector\.googlevideo\.com.*?)"', webpage)]
+            r'\d+,(\d+),(\d+),"(https?://[^.]+\.googleusercontent.com.*?)"', webpage)]
         self._sort_formats(formats)
 
         return {

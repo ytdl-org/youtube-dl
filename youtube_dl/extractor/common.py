@@ -10,13 +10,11 @@ import re
 import socket
 import sys
 import time
-import xml.etree.ElementTree
 
 from ..compat import (
     compat_cookiejar,
     compat_cookies,
     compat_getpass,
-    compat_HTTPError,
     compat_http_client,
     compat_urllib_error,
     compat_urllib_parse,
@@ -24,6 +22,7 @@ from ..compat import (
     compat_urllib_request,
     compat_urlparse,
     compat_str,
+    compat_etree_fromstring,
 )
 from ..utils import (
     NO_DEFAULT,
@@ -172,6 +171,7 @@ class InfoExtractor(object):
     view_count:     How many users have watched the video on the platform.
     like_count:     Number of positive ratings of the video
     dislike_count:  Number of negative ratings of the video
+    repost_count:   Number of reposts of the video
     average_rating: Average rating give by users, the scale used depends on the webpage
     comment_count:  Number of comments on the video
     comments:       A list of comments, each with one or more of the following
@@ -310,11 +310,11 @@ class InfoExtractor(object):
     @classmethod
     def ie_key(cls):
         """A string for getting the InfoExtractor with get_info_extractor"""
-        return cls.__name__[:-2]
+        return compat_str(cls.__name__[:-2])
 
     @property
     def IE_NAME(self):
-        return type(self).__name__[:-2]
+        return compat_str(type(self).__name__[:-2])
 
     def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True):
         """ Returns the response handle """
@@ -461,7 +461,7 @@ class InfoExtractor(object):
             return xml_string
         if transform_source:
             xml_string = transform_source(xml_string)
-        return xml.etree.ElementTree.fromstring(xml_string.encode('utf-8'))
+        return compat_etree_fromstring(xml_string.encode('utf-8'))
 
     def _download_json(self, url_or_request, video_id,
                        note='Downloading JSON metadata',
@@ -645,7 +645,7 @@ class InfoExtractor(object):
     # Helper functions for extracting OpenGraph info
     @staticmethod
     def _og_regexes(prop):
-        content_re = r'content=(?:"([^>]+?)"|\'([^>]+?)\'|\s*([^\s"\'=<>`]+?))'
+        content_re = r'content=(?:"([^"]+?)"|\'([^\']+?)\'|\s*([^\s"\'=<>`]+?))'
         property_re = (r'(?:name|property)=(?:\'og:%(prop)s\'|"og:%(prop)s"|\s*og:%(prop)s\b)'
                        % {'prop': re.escape(prop)})
         template = r'<meta[^>]+?%s[^>]+?%s'
@@ -841,7 +841,7 @@ class InfoExtractor(object):
             self._request_webpage(url, video_id, 'Checking %s URL' % item)
             return True
         except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError):
+            if isinstance(e.cause, compat_urllib_error.URLError):
                 self.to_screen(
                     '%s: %s URL is invalid, skipping' % (video_id, item))
                 return False
@@ -943,13 +943,15 @@ class InfoExtractor(object):
             if re.match(r'^https?://', u)
             else compat_urlparse.urljoin(m3u8_url, u))
 
-        m3u8_doc = self._download_webpage(
+        res = self._download_webpage_handle(
             m3u8_url, video_id,
             note=note or 'Downloading m3u8 information',
             errnote=errnote or 'Failed to download m3u8 information',
             fatal=fatal)
-        if m3u8_doc is False:
-            return m3u8_doc
+        if res is False:
+            return res
+        m3u8_doc, urlh = res
+        m3u8_url = urlh.geturl()
         last_info = None
         last_media = None
         kv_rex = re.compile(

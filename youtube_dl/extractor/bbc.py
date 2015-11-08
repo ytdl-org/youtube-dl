@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
 from ..utils import (
@@ -14,13 +13,16 @@ from ..utils import (
     remove_end,
     unescapeHTML,
 )
-from ..compat import compat_HTTPError
+from ..compat import (
+    compat_etree_fromstring,
+    compat_HTTPError,
+)
 
 
 class BBCCoUkIE(InfoExtractor):
     IE_NAME = 'bbc.co.uk'
     IE_DESC = 'BBC iPlayer'
-    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:(?:(?:programmes|iplayer(?:/[^/]+)?/(?:episode|playlist))/)|music/clips[/#])(?P<id>[\da-z]{8})'
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:(?:programmes/(?!articles/)|iplayer(?:/[^/]+)?/(?:episode/|playlist/))|music/clips[/#])(?P<id>[\da-z]{8})'
 
     _MEDIASELECTOR_URLS = [
         # Provides HQ HLS streams with even better quality that pc mediaset but fails
@@ -344,7 +346,7 @@ class BBCCoUkIE(InfoExtractor):
                 url, programme_id, 'Downloading media selection XML')
         except ExtractorError as ee:
             if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
-                media_selection = xml.etree.ElementTree.fromstring(ee.cause.read().decode('utf-8'))
+                media_selection = compat_etree_fromstring(ee.cause.read().decode('utf-8'))
             else:
                 raise
         return self._process_media_selector(media_selection, programme_id)
@@ -421,7 +423,7 @@ class BBCCoUkIE(InfoExtractor):
                 continue
             title = playlist.find('./{%s}title' % self._EMP_PLAYLIST_NS).text
             description_el = playlist.find('./{%s}summary' % self._EMP_PLAYLIST_NS)
-            description = description_el.text if description_el else None
+            description = description_el.text if description_el is not None else None
 
             def get_programme_id(item):
                 def get_from_attributes(item):
@@ -625,6 +627,7 @@ class BBCIE(BBCCoUkIE):
             'id': 'p02xycnp',
             'ext': 'mp4',
             'title': 'Transfers: Cristiano Ronaldo to Man Utd, Arsenal to spend?',
+            'description': 'BBC Sport\'s David Ornstein has the latest transfer gossip, including rumours of a Manchester United return for Cristiano Ronaldo.',
             'duration': 140,
         },
         'params': {
@@ -651,7 +654,7 @@ class BBCIE(BBCCoUkIE):
 
     @classmethod
     def suitable(cls, url):
-        return False if BBCCoUkIE.suitable(url) else super(BBCIE, cls).suitable(url)
+        return False if BBCCoUkIE.suitable(url) or BBCCoUkArticleIE.suitable(url) else super(BBCIE, cls).suitable(url)
 
     def _extract_from_media_meta(self, media_meta, video_id):
         # Direct links to media in media metadata (e.g.
@@ -902,3 +905,33 @@ class BBCIE(BBCCoUkIE):
             })
 
         return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
+
+
+class BBCCoUkArticleIE(InfoExtractor):
+    _VALID_URL = 'http://www.bbc.co.uk/programmes/articles/(?P<id>[a-zA-Z0-9]+)'
+    IE_NAME = 'bbc.co.uk:article'
+    IE_DESC = 'BBC articles'
+
+    _TEST = {
+        'url': 'http://www.bbc.co.uk/programmes/articles/3jNQLTMrPlYGTBn0WV6M2MS/not-your-typical-role-model-ada-lovelace-the-19th-century-programmer',
+        'info_dict': {
+            'id': '3jNQLTMrPlYGTBn0WV6M2MS',
+            'title': 'Calculating Ada: The Countess of Computing - Not your typical role model: Ada Lovelace the 19th century programmer - BBC Four',
+            'description': 'Hannah Fry reveals some of her surprising discoveries about Ada Lovelace during filming.',
+        },
+        'playlist_count': 4,
+        'add_ie': ['BBCCoUk'],
+    }
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        title = self._og_search_title(webpage)
+        description = self._og_search_description(webpage).strip()
+
+        entries = [self.url_result(programme_url) for programme_url in re.findall(
+            r'<div[^>]+typeof="Clip"[^>]+resource="([^"]+)"', webpage)]
+
+        return self.playlist_result(entries, playlist_id, title, description)

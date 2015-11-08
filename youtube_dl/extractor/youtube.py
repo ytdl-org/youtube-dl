@@ -178,6 +178,52 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             return
 
 
+class YoutubePlaylistBaseInfoExtractor(InfoExtractor):
+    # Extract the video ids from the playlist pages
+    def _entries(self, page, playlist_id):
+        more_widget_html = content_html = page
+        for page_num in itertools.count(1):
+            for video_id, video_title in self.extract_videos_from_page(content_html):
+                yield self.url_result(
+                    video_id, 'Youtube', video_id=video_id,
+                    video_title=video_title)
+
+            mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
+            if not mobj:
+                break
+
+            more = self._download_json(
+                'https://youtube.com/%s' % mobj.group('more'), playlist_id,
+                'Downloading page #%s' % page_num,
+                transform_source=uppercase_escape)
+            content_html = more['content_html']
+            if not content_html.strip():
+                # Some webpages show a "Load more" button but they don't
+                # have more videos
+                break
+            more_widget_html = more['load_more_widget_html']
+
+    def extract_videos_from_page(self, page):
+        ids_in_page = []
+        titles_in_page = []
+        for mobj in re.finditer(self._VIDEO_RE, page):
+            # The link with index 0 is not the first video of the playlist (not sure if still actual)
+            if 'index' in mobj.groupdict() and mobj.group('id') == '0':
+                continue
+            video_id = mobj.group('id')
+            video_title = unescapeHTML(mobj.group('title'))
+            if video_title:
+                video_title = video_title.strip()
+            try:
+                idx = ids_in_page.index(video_id)
+                if video_title and not titles_in_page[idx]:
+                    titles_in_page[idx] = video_title
+            except ValueError:
+                ids_in_page.append(video_id)
+                titles_in_page.append(video_title)
+        return zip(ids_in_page, titles_in_page)
+
+
 class YoutubeIE(YoutubeBaseInfoExtractor):
     IE_DESC = 'YouTube.com'
     _VALID_URL = r"""(?x)^
@@ -1061,6 +1107,17 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     if not video_info:
                         video_info = get_video_info
                     if 'token' in get_video_info:
+                        # Different get_video_info requests may report different results, e.g.
+                        # some may report video unavailability, but some may serve it without
+                        # any complaint (see https://github.com/rg3/youtube-dl/issues/7362,
+                        # the original webpage as well as el=info and el=embedded get_video_info
+                        # requests report video unavailability due to geo restriction while
+                        # el=detailpage succeeds and returns valid data). This is probably
+                        # due to YouTube measures against IP ranges of hosting providers.
+                        # Working around by preferring the first succeeded video_info containing
+                        # the token if no such video_info yet was found.
+                        if 'token' not in video_info:
+                            video_info = get_video_info
                         break
         if 'token' not in video_info:
             if 'reason' in video_info:
@@ -1419,7 +1476,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         }
 
 
-class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
+class YoutubePlaylistIE(YoutubeBaseInfoExtractor, YoutubePlaylistBaseInfoExtractor):
     IE_DESC = 'YouTube.com playlists'
     _VALID_URL = r"""(?x)(?:
                         (?:https?://)?
@@ -1440,7 +1497,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
                         ((?:PL|LL|EC|UU|FL|RD|UL)[0-9A-Za-z-_]{10,})
                      )"""
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s'
-    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)'
+    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)(?:[^>]+>(?P<title>[^<]+))?'
     IE_NAME = 'youtube:playlist'
     _TESTS = [{
         'url': 'https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re',
@@ -1557,37 +1614,11 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
             else:
                 self.report_warning('Youtube gives an alert message: ' + match)
 
-        # Extract the video ids from the playlist pages
-        def _entries():
-            more_widget_html = content_html = page
-            for page_num in itertools.count(1):
-                matches = re.finditer(self._VIDEO_RE, content_html)
-                # We remove the duplicates and the link with index 0
-                # (it's not the first video of the playlist)
-                new_ids = orderedSet(m.group('id') for m in matches if m.group('index') != '0')
-                for vid_id in new_ids:
-                    yield self.url_result(vid_id, 'Youtube', video_id=vid_id)
-
-                mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
-                if not mobj:
-                    break
-
-                more = self._download_json(
-                    'https://youtube.com/%s' % mobj.group('more'), playlist_id,
-                    'Downloading page #%s' % page_num,
-                    transform_source=uppercase_escape)
-                content_html = more['content_html']
-                if not content_html.strip():
-                    # Some webpages show a "Load more" button but they don't
-                    # have more videos
-                    break
-                more_widget_html = more['load_more_widget_html']
-
         playlist_title = self._html_search_regex(
             r'(?s)<h1 class="pl-header-title[^"]*">\s*(.*?)\s*</h1>',
             page, 'title')
 
-        return self.playlist_result(_entries(), playlist_id, playlist_title)
+        return self.playlist_result(self._entries(page, playlist_id), playlist_id, playlist_title)
 
     def _real_extract(self, url):
         # Extract playlist id
@@ -1613,35 +1644,30 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor):
         return self._extract_playlist(playlist_id)
 
 
-class YoutubeChannelIE(InfoExtractor):
+class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
     IE_DESC = 'YouTube.com channels'
     _VALID_URL = r'https?://(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/(?P<id>[0-9A-Za-z_-]+)'
     _TEMPLATE_URL = 'https://www.youtube.com/channel/%s/videos'
+    _VIDEO_RE = r'(?:title="(?P<title>[^"]+)"[^>]+)?href="/watch\?v=(?P<id>[0-9A-Za-z_-]+)&?'
     IE_NAME = 'youtube:channel'
     _TESTS = [{
         'note': 'paginated channel',
         'url': 'https://www.youtube.com/channel/UCKfVa3S1e4PHvxWcwyMMg8w',
         'playlist_mincount': 91,
         'info_dict': {
-            'id': 'UCKfVa3S1e4PHvxWcwyMMg8w',
+            'id': 'UUKfVa3S1e4PHvxWcwyMMg8w',
+            'title': 'Uploads from lex will',
         }
+    }, {
+        'note': 'Age restricted channel',
+        # from https://www.youtube.com/user/DeusExOfficial
+        'url': 'https://www.youtube.com/channel/UCs0ifCMCm1icqRbqhUINa0w',
+        'playlist_mincount': 64,
+        'info_dict': {
+            'id': 'UUs0ifCMCm1icqRbqhUINa0w',
+            'title': 'Uploads from Deus Ex',
+        },
     }]
-
-    @staticmethod
-    def extract_videos_from_page(page):
-        ids_in_page = []
-        titles_in_page = []
-        for mobj in re.finditer(r'(?:title="(?P<title>[^"]+)"[^>]+)?href="/watch\?v=(?P<id>[0-9A-Za-z_-]+)&?', page):
-            video_id = mobj.group('id')
-            video_title = unescapeHTML(mobj.group('title'))
-            try:
-                idx = ids_in_page.index(video_id)
-                if video_title and not titles_in_page[idx]:
-                    titles_in_page[idx] = video_title
-            except ValueError:
-                ids_in_page.append(video_id)
-                titles_in_page.append(video_title)
-        return zip(ids_in_page, titles_in_page)
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
@@ -1661,7 +1687,7 @@ class YoutubeChannelIE(InfoExtractor):
                 'channelId', channel_page, 'channel id', default=None)
             if not channel_playlist_id:
                 channel_playlist_id = self._search_regex(
-                    r'data-channel-external-id="([^"]+)"',
+                    r'data-(?:channel-external-|yt)id="([^"]+)"',
                     channel_page, 'channel id', default=None)
         if channel_playlist_id and channel_playlist_id.startswith('UC'):
             playlist_id = 'UU' + channel_playlist_id[2:]
@@ -1685,29 +1711,7 @@ class YoutubeChannelIE(InfoExtractor):
                 for video_id, video_title in self.extract_videos_from_page(channel_page)]
             return self.playlist_result(entries, channel_id)
 
-        def _entries():
-            more_widget_html = content_html = channel_page
-            for pagenum in itertools.count(1):
-
-                for video_id, video_title in self.extract_videos_from_page(content_html):
-                    yield self.url_result(
-                        video_id, 'Youtube', video_id=video_id,
-                        video_title=video_title)
-
-                mobj = re.search(
-                    r'data-uix-load-more-href="/?(?P<more>[^"]+)"',
-                    more_widget_html)
-                if not mobj:
-                    break
-
-                more = self._download_json(
-                    'https://youtube.com/%s' % mobj.group('more'), channel_id,
-                    'Downloading page #%s' % (pagenum + 1),
-                    transform_source=uppercase_escape)
-                content_html = more['content_html']
-                more_widget_html = more['load_more_widget_html']
-
-        return self.playlist_result(_entries(), channel_id)
+        return self.playlist_result(self._entries(channel_page, channel_id), channel_id)
 
 
 class YoutubeUserIE(YoutubeChannelIE):

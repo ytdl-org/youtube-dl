@@ -33,6 +33,8 @@ class BeegIE(InfoExtractor):
 
         formats = []
         for format_id, video_url in video.items():
+            if not video_url:
+                continue
             height = self._search_regex(
                 r'^(\d+)[pP]$', format_id, 'height', default=None)
             if not height:

@@ -4,38 +4,53 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import parse_duration
 
 
 class Canalc2IE(InfoExtractor):
     IE_NAME = 'canalc2.tv'
-    _VALID_URL = r'http://.*?\.canalc2\.tv/video\.asp\?.*?idVideo=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?canalc2\.tv/video/(?P<id>\d+)'
 
     _TEST = {
-        'url': 'http://www.canalc2.tv/video.asp?idVideo=12163&voir=oui',
+        'url': 'http://www.canalc2.tv/video/12163',
         'md5': '060158428b650f896c542dfbb3d6487f',
         'info_dict': {
             'id': '12163',
-            'ext': 'mp4',
-            'title': 'Terrasses du Numérique'
+            'ext': 'flv',
+            'title': 'Terrasses du Numérique',
+            'duration': 122,
+        },
+        'params': {
+            'skip_download': True,  # Requires rtmpdump
         }
     }
 
     def _real_extract(self, url):
-        video_id = re.match(self._VALID_URL, url).group('id')
-        # We need to set the voir field for getting the file name
-        url = 'http://www.canalc2.tv/video.asp?idVideo=%s&voir=oui' % video_id
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        file_name = self._search_regex(
-            r"so\.addVariable\('file','(.*?)'\);",
-            webpage, 'file name')
-        video_url = 'http://vod-flash.u-strasbg.fr:8080/' + file_name
+        video_url = self._search_regex(
+            r'jwplayer\((["\'])Player\1\)\.setup\({[^}]*file\s*:\s*(["\'])(?P<file>.+?)\2',
+            webpage, 'video_url', group='file')
+        formats = [{'url': video_url}]
+        if video_url.startswith('rtmp://'):
+            rtmp = re.search(r'^(?P<url>rtmp://[^/]+/(?P<app>.+/))(?P<play_path>mp4:.+)$', video_url)
+            formats[0].update({
+                'url': rtmp.group('url'),
+                'ext': 'flv',
+                'app': rtmp.group('app'),
+                'play_path': rtmp.group('play_path'),
+                'page_url': url,
+            })
 
         title = self._html_search_regex(
-            r'class="evenement8">(.*?)</a>', webpage, 'title')
+            r'(?s)class="[^"]*col_description[^"]*">.*?<h3>(.*?)</h3>', webpage, 'title')
+        duration = parse_duration(self._search_regex(
+            r'id=["\']video_duree["\'][^>]*>([^<]+)',
+            webpage, 'duration', fatal=False))
 
         return {
             'id': video_id,
-            'ext': 'mp4',
-            'url': video_url,
             'title': title,
+            'duration': duration,
+            'formats': formats,
         }

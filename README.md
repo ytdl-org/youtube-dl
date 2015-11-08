@@ -710,12 +710,13 @@ If you want to add support for a new site, you can follow this quick list (assum
             webpage = self._download_webpage(url, video_id)
 
             # TODO more code goes here, for example ...
-            title = self._html_search_regex(r'<h1>(.*?)</h1>', webpage, 'title')
+            title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title')
 
             return {
                 'id': video_id,
                 'title': title,
                 'description': self._og_search_description(webpage),
+                'uploader': self._search_regex(r'<div[^>]+id="uploader"[^>]*>([^<]+)<', webpage, 'uploader', fatal=False),
                 # TODO more properties (see youtube_dl/extractor/common.py)
             }
     ```
@@ -794,7 +795,7 @@ Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/i
 
 **Please include the full output of youtube-dl when run with `-v`**.
 
-The output (including the first lines) contain important debugging information. Issues without the full output are often not reproducible and therefore do not get solved in short order, if ever.
+The output (including the first lines) contains important debugging information. Issues without the full output are often not reproducible and therefore do not get solved in short order, if ever.
 
 Please re-read your issue once again to avoid a couple of common mistakes (you can and should use this as a checklist):
 

@@ -17,7 +17,7 @@ from ..utils import (
 
 class MonikerIE(InfoExtractor):
     IE_DESC = 'allmyvideos.net and vidspot.net'
-    _VALID_URL = r'https?://(?:www\.)?(?:allmyvideos|vidspot)\.net/(?P<id>[a-zA-Z0-9_-]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:allmyvideos|vidspot)\.net/(?:(?:2|v)/v-)?(?P<id>[a-zA-Z0-9_-]+)'
 
     _TESTS = [{
         'url': 'http://allmyvideos.net/jih3nce3x6wn',
@@ -46,6 +46,18 @@ class MonikerIE(InfoExtractor):
     }, {
         'url': 'https://www.vidspot.net/l2ngsmhs8ci5',
         'only_matching': True,
+    }, {
+        'url': 'http://vidspot.net/2/v-ywDf99',
+        'md5': '5f8254ce12df30479428b0152fb8e7ba',
+        'info_dict': {
+            'id': 'ywDf99',
+            'ext': 'mp4',
+            'title': 'IL FAIT LE MALIN EN PORSHE CAYENNE ( mais pas pour longtemps)',
+            'description': 'IL FAIT LE MALIN EN PORSHE CAYENNE.',
+        },
+    }, {
+        'url': 'http://allmyvideos.net/v/v-HXZm5t',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -64,18 +76,30 @@ class MonikerIE(InfoExtractor):
             raise ExtractorError(
                 '%s returned error: %s' % (self.IE_NAME, error), expected=True)
 
-        fields = re.findall(r'type="hidden" name="(.+?)"\s* value="?(.+?)">', orig_webpage)
-        data = dict(fields)
+        builtin_url = self._search_regex(
+            r'<iframe[^>]+src=(["\'])(?P<url>.+?/builtin-.+?)\1',
+            orig_webpage, 'builtin URL', default=None, group='url')
 
-        post = compat_urllib_parse.urlencode(data)
-        headers = {
-            b'Content-Type': b'application/x-www-form-urlencoded',
-        }
-        req = compat_urllib_request.Request(url, post, headers)
-        webpage = self._download_webpage(
-            req, video_id, note='Downloading video page ...')
+        if builtin_url:
+            req = compat_urllib_request.Request(builtin_url)
+            req.add_header('Referer', url)
+            webpage = self._download_webpage(req, video_id, 'Downloading builtin page')
+            title = self._og_search_title(orig_webpage).strip()
+            description = self._og_search_description(orig_webpage).strip()
+        else:
+            fields = re.findall(r'type="hidden" name="(.+?)"\s* value="?(.+?)">', orig_webpage)
+            data = dict(fields)
 
-        title = os.path.splitext(data['fname'])[0]
+            post = compat_urllib_parse.urlencode(data)
+            headers = {
+                b'Content-Type': b'application/x-www-form-urlencoded',
+            }
+            req = compat_urllib_request.Request(url, post, headers)
+            webpage = self._download_webpage(
+                req, video_id, note='Downloading video page ...')
+
+            title = os.path.splitext(data['fname'])[0]
+            description = None
 
         # Could be several links with different quality
         links = re.findall(r'"file" : "?(.+?)",', webpage)
@@ -89,5 +113,6 @@ class MonikerIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
+            'description': description,
             'formats': formats,
         }
