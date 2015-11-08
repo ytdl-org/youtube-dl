@@ -9,36 +9,24 @@ from ..utils import (
 
 
 class RTBFIE(InfoExtractor):
-    _VALID_URL = r'''(?x)
-        https?://www\.rtbf\.be/
-            (?:
-                video/[^\?]+\?id=|
-                ouftivi/heros/[^&]+&videoId=
-            )
-        (?P<id>\d+)
-    '''
-    _TESTS = [
-        {
-            'url': 'https://www.rtbf.be/video/detail_les-diables-au-coeur-episode-2?id=1921274',
-            'md5': '799f334ddf2c0a582ba80c44655be570',
-            'info_dict': {
-                'id': '1921274',
-                'ext': 'mp4',
-                'title': 'Les Diables au coeur (épisode 2)',
-                'duration': 3099,
-            }
-        },
-        {
-            'url': 'http://www.rtbf.be/ouftivi/heros/detail_scooby-doo-mysteres-associes?id=1097&videoId=2057442',
-            'md5': '25aea17e949e1e0c7c41270d60d25f22',
-            'info_dict': {
-                'id': '2057442',
-                'ext': 'mp4',
-                'title': 'Scooby-Doo, myst\xe8res associ\xe9s',
-                'duration': 1279,
-            }
-        },
-    ]
+    _VALID_URL = r'https?://www\.rtbf\.be/(?:video/[^?]+\?.*\bid=|ouftivi/(?:[^/]+/)*[^?]+\?.*\bvideoId=)(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'https://www.rtbf.be/video/detail_les-diables-au-coeur-episode-2?id=1921274',
+        'md5': '799f334ddf2c0a582ba80c44655be570',
+        'info_dict': {
+            'id': '1921274',
+            'ext': 'mp4',
+            'title': 'Les Diables au coeur (épisode 2)',
+            'duration': 3099,
+        }
+    }, {
+        # geo restricted
+        'url': 'http://www.rtbf.be/ouftivi/heros/detail_scooby-doo-mysteres-associes?id=1097&videoId=2057442',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.rtbf.be/ouftivi/niouzz?videoId=2055858',
+        'only_matching': True,
+    }]
 
     _QUALITIES = [
         ('mobile', 'mobile'),
