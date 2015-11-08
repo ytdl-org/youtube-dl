@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class RTBFIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.rtbf\.be/(?:video/[^?]+\?.*\bid=|ouftivi/(?:[^/]+/)*[^?]+\?.*\bvideoId=)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?rtbf\.be/(?:video/[^?]+\?.*\bid=|ouftivi/(?:[^/]+/)*[^?]+\?.*\bvideoId=)(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://www.rtbf.be/video/detail_les-diables-au-coeur-episode-2?id=1921274',
         'md5': '799f334ddf2c0a582ba80c44655be570',
