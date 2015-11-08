@@ -11,12 +11,12 @@ from ..utils import (
 
 
 class ExtremeTubeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>extremetube\.com/.*?video/.+?(?P<id>[0-9]+))(?:[/?&]|$)'
+    _VALID_URL = r'https?://(?:www\.)?extremetube\.com/(?:[^/]+/)?video/(?P<id>[^/#?&]+)'
     _TESTS = [{
         'url': 'http://www.extremetube.com/video/music-video-14-british-euro-brit-european-cumshots-swallow-652431',
         'md5': '344d0c6d50e2f16b06e49ca011d8ac69',
         'info_dict': {
-            'id': '652431',
+            'id': 'music-video-14-british-euro-brit-european-cumshots-swallow-652431',
             'ext': 'mp4',
             'title': 'Music Video 14 british euro brit european cumshots swallow',
             'uploader': 'unknown',
@@ -26,12 +26,16 @@ class ExtremeTubeIE(InfoExtractor):
     }, {
         'url': 'http://www.extremetube.com/gay/video/abcde-1234',
         'only_matching': True,
+    }, {
+        'url': 'http://www.extremetube.com/video/latina-slut-fucked-by-fat-black-dick',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.extremetube.com/video/652431',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        url = 'http://www.' + mobj.group('url')
+        video_id = self._match_id(url)
 
         req = compat_urllib_request.Request(url)
         req.add_header('Cookie', 'age_verified=1')
