@@ -3,12 +3,9 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_request
 from ..utils import (
-    qualities,
+    int_or_none,
     str_to_int,
 )
 
@@ -49,20 +46,36 @@ class ExtremeTubeIE(InfoExtractor):
             r'Views:\s*</strong>\s*<span>([\d,\.]+)</span>',
             webpage, 'view count', fatal=False))
 
-        flash_vars = compat_parse_qs(self._search_regex(
-            r'<param[^>]+?name="flashvars"[^>]+?value="([^"]+)"', webpage, 'flash vars'))
+        flash_vars = self._parse_json(
+            self._search_regex(
+                r'var\s+flashvars\s*=\s*({.+?});', webpage, 'flash vars'),
+            video_id)
 
         formats = []
-        quality = qualities(['180p', '240p', '360p', '480p', '720p', '1080p'])
-        for k, vals in flash_vars.items():
-            m = re.match(r'quality_(?P<quality>[0-9]+p)$', k)
-            if m is not None:
-                formats.append({
-                    'format_id': m.group('quality'),
-                    'quality': quality(m.group('quality')),
-                    'url': vals[0],
+        for quality_key, video_url in flash_vars.items():
+            height = int_or_none(self._search_regex(
+                r'quality_(\d+)[pP]$', quality_key, 'height', default=None))
+            if not height:
+                continue
+            f = {
+                'url': video_url,
+            }
+            mobj = re.search(
+                r'/(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+', video_url)
+            if mobj:
+                height = int(mobj.group('height'))
+                bitrate = int(mobj.group('bitrate'))
+                f.update({
+                    'format_id': '%dp-%dk' % (height, bitrate),
+                    'height': height,
+                    'tbr': bitrate,
                 })
-
+            else:
+                f.update({
+                    'format_id': '%dp' % height,
+                    'height': height,
+                })
+            formats.append(f)
         self._sort_formats(formats)
 
         return {
