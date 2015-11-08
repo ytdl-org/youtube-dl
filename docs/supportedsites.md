@@ -93,6 +93,7 @@
  - **Clipsyndicate**
  - **Cloudy**
  - **Clubic**
+ - **Clyp**
  - **cmt.com**
  - **CNET**
  - **CNN**
@@ -582,6 +583,7 @@
  - **tvp.pl**
  - **tvp.pl:Series**
  - **TVPlay**: TV3Play and related services
+ - **tvple**
  - **Tweakers**
  - **twitch:bookmarks**
  - **twitch:chapter**
