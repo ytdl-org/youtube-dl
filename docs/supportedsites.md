@@ -582,6 +582,7 @@
  - **tvp.pl**
  - **tvp.pl:Series**
  - **TVPlay**: TV3Play and related services
+ - **tvple**
  - **Tweakers**
  - **twitch:bookmarks**
  - **twitch:chapter**
