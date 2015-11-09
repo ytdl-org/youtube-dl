@@ -1673,7 +1673,7 @@ class GenericIE(InfoExtractor):
 
         # Look for Kaltura embeds
         mobj = (re.search(r"(?s)kWidget\.(?:thumb)?[Ee]mbed\(\{.*?'wid'\s*:\s*'_?(?P<partner_id>[^']+)',.*?'entry_id'\s*:\s*'(?P<id>[^']+)',", webpage) or
-                re.search(r'(?s)(["\'])(?:https?:)?//cdnapisec\.kaltura\.com/.*?(?:p|partner_id)/(?P<partner_id>\d+).*?\1.*?entry_id\s*:\s*(["\'])(?P<id>[^\2]+?)\2', webpage))
+                re.search(r'(?s)(?P<q1>["\'])(?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/.*?(?:p|partner_id)/(?P<partner_id>\d+).*?(?P=q1).*?entry_?[Ii]d\s*:\s*(?P<q2>["\'])(?P<id>.+?)(?P=q2)', webpage))
         if mobj is not None:
             return self.url_result('kaltura:%(partner_id)s:%(id)s' % mobj.groupdict(), 'Kaltura')
 
