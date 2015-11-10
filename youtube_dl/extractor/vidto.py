@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-import re
 import time
 
 from ..utils import encode_dict
@@ -38,7 +37,6 @@ class VidtoIE(InfoExtractor):
         id_regex = r'<input type="hidden" name="id" value="(.*)">'
         id_value = self._search_regex(id_regex, page, 'id', fatal=True)
         cookies = self._get_cookies('http://%s/%s.html' % (self._HOST, video_id))
-
 
         form_str = {
             'op': 'download1',
