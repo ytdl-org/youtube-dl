@@ -1994,9 +1994,6 @@ class YoutubeDL(object):
             encoding = preferredencoding()
         return encoding
 
-    def get_opener(self):
-        return self._opener
-
     def _write_thumbnails(self, info_dict, filename):
         if self.params.get('writethumbnail', False):
             thumbnails = info_dict.get('thumbnails')
