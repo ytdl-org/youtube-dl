@@ -123,6 +123,7 @@
  - **DctpTv**
  - **DeezerPlaylist**
  - **defense.gouv.fr**
+ - **democracynow**
  - **DHM**: Filmarchiv - Deutsches Historisches Museum
  - **Discovery**
  - **Dotsub**
@@ -195,6 +196,7 @@
  - **Giga**
  - **Glide**: Glide mobile video messages (glide.me)
  - **Globo**
+ - **GloboArticle**
  - **GodTube**
  - **GoldenMoustache**
  - **Golem**
@@ -617,7 +619,6 @@
  - **video.mit.edu**
  - **VideoDetective**
  - **videofy.me**
- - **videolectures.net**
  - **VideoMega**
  - **VideoPremium**
  - **VideoTt**: video.tt - Your True Tube
@@ -627,6 +628,7 @@
  - **vier**
  - **vier:videos**
  - **Viewster**
+ - **Viidea**
  - **viki**
  - **viki:channel**
  - **vimeo**
