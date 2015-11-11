@@ -9,6 +9,8 @@ from ..utils import (
     float_or_none,
     xpath_text,
     remove_end,
+    int_or_none,
+    ExtractorError,
 )
 
 
@@ -120,7 +122,7 @@ class TwitterIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.|m\.|mobile\.)?twitter\.com/(?P<user_id>[^/]+)/status/(?P<id>\d+)'
     _TEMPLATE_URL = 'https://twitter.com/%s/status/%s'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://twitter.com/freethenipple/status/643211948184596480',
         'md5': '31cd83a116fc41f99ae3d909d4caf6a0',
         'info_dict': {
@@ -133,7 +135,19 @@ class TwitterIE(InfoExtractor):
             'uploader': 'FREE THE NIPPLE',
             'uploader_id': 'freethenipple',
         },
-    }
+    }, {
+        'url': 'https://twitter.com/giphz/status/657991469417025536/photo/1',
+        'md5': 'f36dcd5fb92bf7057f155e7d927eeb42',
+        'info_dict': {
+            'id': '657991469417025536',
+            'ext': 'mp4',
+            'title': 'Gifs - tu vai cai tu vai cai tu nao eh capaz disso tu vai cai',
+            'description': 'Gifs on Twitter: "tu vai cai tu vai cai tu nao eh capaz disso tu vai cai https://t.co/tM46VHFlO5"',
+            'thumbnail': 're:^https?://.*\.png',
+            'uploader': 'Gifs',
+            'uploader_id': 'giphz',
+        },
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -150,17 +164,41 @@ class TwitterIE(InfoExtractor):
         mobj = re.match(r'“(.*)\s+(https?://[^ ]+)”', title)
         title, short_url = mobj.groups()
 
-        card_id = self._search_regex(
-            r'["\']/i/cards/tfw/v1/(\d+)', webpage, 'twitter card url')
-        card_url = 'https://twitter.com/i/cards/tfw/v1/' + card_id
-
-        return {
-            '_type': 'url_transparent',
-            'ie_key': 'TwitterCard',
+        info = {
             'uploader_id': user_id,
             'uploader': username,
-            'url': card_url,
             'webpage_url': url,
             'description': '%s on Twitter: "%s %s"' % (username, title, short_url),
             'title': username + ' - ' + title,
         }
+
+        card_id = self._search_regex(
+            r'["\']/i/cards/tfw/v1/(\d+)', webpage, 'twitter card url', default=None)
+        if card_id:
+            card_url = 'https://twitter.com/i/cards/tfw/v1/' + card_id
+            info.update({
+                '_type': 'url_transparent',
+                'ie_key': 'TwitterCard',
+                'url': card_url,
+            })
+            return info
+
+        mobj = re.search(r'''(?x)
+            <video[^>]+class="animated-gif"[^>]+
+                (?:data-height="(?P<height>\d+)")?[^>]+
+                (?:data-width="(?P<width>\d+)")?[^>]+
+                (?:poster="(?P<poster>[^"]+)")?[^>]*>\s*
+                <source[^>]+video-src="(?P<url>[^"]+)"
+        ''', webpage)
+
+        if mobj:
+            info.update({
+                'id': twid,
+                'url': mobj.group('url'),
+                'height': int_or_none(mobj.group('height')),
+                'width': int_or_none(mobj.group('width')),
+                'thumbnail': mobj.group('poster'),
+            })
+            return info
+
+        raise ExtractorError('There\'s not video in this tweet.')
