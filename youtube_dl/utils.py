@@ -361,7 +361,7 @@ def sanitize_path(s):
         return s
     drive_or_unc, _ = os.path.splitdrive(s)
     if sys.version_info < (2, 7) and not drive_or_unc:
-        drive_or_unc, _ = os.path.splitunc(s)
+        drive_or_unc, _ = os.path.splitdrive(s)
     norm_path = os.path.normpath(remove_start(s, drive_or_unc)).split(os.path.sep)
     if drive_or_unc:
         norm_path.pop(0)
