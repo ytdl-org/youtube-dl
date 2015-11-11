@@ -76,6 +76,13 @@ class GorillaVidIE(InfoExtractor):
             'title': 'youtube-dl test video \'äBaW_jenozKc.mp4.mp4',
             'thumbnail': 're:http://.*\.jpg',
         }
+    }, {
+        'url': 'http://vidto.me/ku5glz52nqe1.html',
+        'info_dict': {
+            'id': 'ku5glz52nqe1',
+            'ext': 'mp4',
+            'title': 'test'
+        }
     }]
 
     def _real_extract(self, url):
@@ -104,12 +111,12 @@ class GorillaVidIE(InfoExtractor):
 
             webpage = self._download_webpage(req, video_id, 'Downloading video page')
 
-        title = self._search_regex(
+        title = (self._search_regex(
             [r'style="z-index: [0-9]+;">([^<]+)</span>',
              r'<td nowrap>([^<]+)</td>',
              r'>Watch (.+) ',
              r'<h2 class="video-page-head">([^<]+)</h2>'],
-            webpage, 'title', default=None) or self._og_search_title(webpage)
+            webpage, 'title', default=None) or self._og_search_title(webpage)).strip()
         video_url = self._search_regex(
             [r'file\s*:\s*["\'](http[^"\']+)["\'],',
              r'file_link\s*=\s*\'(https?:\/\/[0-9a-zA-z.\/\-_]+)'],
