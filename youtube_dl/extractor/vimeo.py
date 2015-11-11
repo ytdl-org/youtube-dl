@@ -387,47 +387,29 @@ class VimeoIE(VimeoBaseInfoExtractor):
             like_count = None
             comment_count = None
 
-        # Vimeo specific: extract request signature and timestamp
-        sig = config['request']['signature']
-        timestamp = config['request']['timestamp']
-
-        # Vimeo specific: extract video codec and quality information
-        # First consider quality, then codecs, then take everything
-        codecs = [('vp6', 'flv'), ('vp8', 'flv'), ('h264', 'mp4')]
-        files = {'hd': [], 'sd': [], 'other': []}
-        config_files = config["video"].get("files") or config["request"].get("files")
-        for codec_name, codec_extension in codecs:
-            for quality in config_files.get(codec_name, []):
-                format_id = '-'.join((codec_name, quality)).lower()
-                key = quality if quality in files else 'other'
-                video_url = None
-                if isinstance(config_files[codec_name], dict):
-                    file_info = config_files[codec_name][quality]
-                    video_url = file_info.get('url')
-                else:
-                    file_info = {}
-                if video_url is None:
-                    video_url = "http://player.vimeo.com/play_redirect?clip_id=%s&sig=%s&time=%s&quality=%s&codecs=%s&type=moogaloop_local&embed_location=" \
-                        % (video_id, sig, timestamp, quality, codec_name.upper())
-
-                files[key].append({
-                    'ext': codec_extension,
-                    'url': video_url,
-                    'format_id': format_id,
-                    'width': int_or_none(file_info.get('width')),
-                    'height': int_or_none(file_info.get('height')),
-                    'tbr': int_or_none(file_info.get('bitrate')),
-                })
         formats = []
-        m3u8_url = config_files.get('hls', {}).get('all')
+        config_files = config['video'].get('files') or config['request'].get('files', {})
+        for f in config_files.get('progressive', []):
+            video_url = f.get('url')
+            if not video_url:
+                continue
+            formats.append({
+                'url': video_url,
+                'format_id': 'http-%s' % f.get('quality'),
+                'width': int_or_none(f.get('width')),
+                'height': int_or_none(f.get('height')),
+                'fps': int_or_none(f.get('fps')),
+                'tbr': int_or_none(f.get('bitrate')),
+            })
+        m3u8_url = config_files.get('hls', {}).get('url')
         if m3u8_url:
             m3u8_formats = self._extract_m3u8_formats(
                 m3u8_url, video_id, 'mp4', 'm3u8_native', 0, 'hls', fatal=False)
             if m3u8_formats:
                 formats.extend(m3u8_formats)
-        for key in ('other', 'sd', 'hd'):
-            formats += files[key]
-        self._sort_formats(formats)
+        # Bitrates are completely broken. Single m3u8 may contain entries in kbps and bps
+        # at the same time without actual units specified. This lead to wrong sorting.
+        self._sort_formats(formats, field_preference=('height', 'width', 'fps', 'format_id'))
 
         subtitles = {}
         text_tracks = config['request'].get('text_tracks')
