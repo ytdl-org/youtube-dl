@@ -1,9 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 import time
 
+from .common import InfoExtractor
 from ..utils import encode_dict
 from ..compat import (
     compat_urllib_request,
@@ -60,10 +60,10 @@ class VidtoIE(InfoExtractor):
         time.sleep(7)
         post_result = self._download_webpage(
             req, video_id,
-            note='Proceed to video...', errnote='unable to proceed', fatal=True)
+            note='Proceed to video...', errnote='unable to proceed')
 
         file_link_regex = r'file_link\s*=\s*\'(https?:\/\/[0-9a-zA-z.\/\-_]+)'
-        file_link = self._search_regex(file_link_regex, post_result, 'file_link', fatal=True)
+        file_link = self._search_regex(file_link_regex, post_result, 'file_link')
 
         return {
             'id': video_id,
