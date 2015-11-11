@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -15,8 +15,8 @@ from ..utils import (
 )
 
 
-class GorillaVidIE(InfoExtractor):
-    IE_DESC = 'GorillaVid.in, daclips.in, movpod.in, fastvideo.in, realvid.net, filehoot.com and vidto.me'
+class XFileShareIE(InfoExtractor):
+    IE_DESC = 'XFileShare based sites: GorillaVid.in, daclips.in, movpod.in, fastvideo.in, realvid.net, filehoot.com and vidto.me'
     _VALID_URL = r'''(?x)
         https?://(?P<host>(?:www\.)?
             (?:daclips\.in|gorillavid\.in|movpod\.in|fastvideo\.in|realvid\.net|filehoot\.com|vidto.\me))/

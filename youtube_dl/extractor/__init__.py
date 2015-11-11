@@ -221,7 +221,6 @@ from .goldenmoustache import GoldenMoustacheIE
 from .golem import GolemIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
-from .gorillavid import GorillaVidIE
 from .goshgay import GoshgayIE
 from .groupon import GrouponIE
 from .hark import HarkIE
@@ -786,6 +785,7 @@ from .wrzuta import WrzutaIE
 from .wsj import WSJIE
 from .xbef import XBefIE
 from .xboxclips import XboxClipsIE
+from .xfileshare import XFileShareIE
 from .xhamster import (
     XHamsterIE,
     XHamsterEmbedIE,
