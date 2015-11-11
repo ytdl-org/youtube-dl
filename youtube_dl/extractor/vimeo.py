@@ -49,8 +49,8 @@ class VimeoBaseInfoExtractor(InfoExtractor):
         }))
         login_request = compat_urllib_request.Request(self._LOGIN_URL, data)
         login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        login_request.add_header('Cookie', 'vuid=%s' % vuid)
         login_request.add_header('Referer', self._LOGIN_URL)
+        self._set_cookie('vimeo.com', 'vuid', vuid)
         self._download_webpage(login_request, None, False, 'Wrong login info')
 
     def _extract_xsrft_and_vuid(self, webpage):
@@ -217,8 +217,8 @@ class VimeoIE(VimeoBaseInfoExtractor):
             url = url.replace('http://', 'https://')
         password_request = compat_urllib_request.Request(url + '/password', data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        password_request.add_header('Cookie', 'clip_test_v2=0; vuid=%s' % vuid)
         password_request.add_header('Referer', url)
+        self._set_cookie('vimeo.com', 'vuid', vuid)
         return self._download_webpage(
             password_request, video_id,
             'Verifying the password', 'Wrong password')
@@ -494,7 +494,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         password_url = compat_urlparse.urljoin(page_url, password_path)
         password_request = compat_urllib_request.Request(password_url, post)
         password_request.add_header('Content-type', 'application/x-www-form-urlencoded')
-        password_request.add_header('Cookie', 'vuid=%s' % vuid)
+        self._set_cookie('vimeo.com', 'vuid', vuid)
         self._set_cookie('vimeo.com', 'xsrft', token)
 
         return self._download_webpage(
