@@ -57,7 +57,8 @@ class RuutuIE(InfoExtractor):
                     extract_formats(child)
                 elif child.tag.endswith('File'):
                     video_url = child.text
-                    if not video_url or video_url in processed_urls or 'NOT_USED' in video_url:
+                    if (not video_url or video_url in processed_urls or
+                            any(p in video_url for p in ('NOT_USED', 'NOT-USED'))):
                         return
                     processed_urls.append(video_url)
                     ext = determine_ext(video_url)
