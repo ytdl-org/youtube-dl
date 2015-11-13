@@ -200,7 +200,6 @@
  - **GodTube**
  - **GoldenMoustache**
  - **Golem**
- - **GorillaVid**: GorillaVid.in, daclips.in, movpod.in, fastvideo.in, realvid.net and filehoot.com
  - **Goshgay**
  - **Groupon**
  - **Hark**
@@ -671,6 +670,7 @@
  - **WSJ**: Wall Street Journal
  - **XBef**
  - **XboxClips**
+ - **XFileShare**: XFileShare based sites: GorillaVid.in, daclips.in, movpod.in, fastvideo.in, realvid.net, filehoot.com and vidto.me
  - **XHamster**
  - **XHamsterEmbed**
  - **XMinus**
