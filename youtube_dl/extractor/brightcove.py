@@ -354,7 +354,7 @@ class BrightcoveIE(InfoExtractor):
 
 
 class BrightcoveInPageEmbedIE(InfoExtractor):
-    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[\da-f-]+)_(?P<embed>[a-z]+)/index\.html\?.*videoId=(?P<video_id>\d+)'
+    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*videoId=(?P<video_id>\d+)'
     _TEST = {
         'url': 'http://players.brightcove.net/929656772001/e41d32dc-ec74-459e-a845-6c69f7b724ea_default/index.html?videoId=4463358922001',
         'md5': 'c8100925723840d4b0d243f7025703be',
@@ -370,18 +370,34 @@ class BrightcoveInPageEmbedIE(InfoExtractor):
         }
     }
 
-    @staticmethod
-    def _extract_url(webpage):
-        video_attributes = re.search(r'(?s)<video([^>]*)>.*?</(?:video|audio)>', webpage)
-        if video_attributes:
-            video_attributes = extract_attributes(video_attributes.group(), r'(?s)\s*data-(account|video-id|playlist-id|policy-key|player|embed)\s*=\s*["\']([^"\']+)["\']')
-            account_id = video_attributes.get('account')
-            player_id = video_attributes.get('player')
-            embed = video_attributes.get('embed')
-            video_id = video_attributes.get('video-id')
-            if account_id and player_id and embed and video_id:
-                return 'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s' % (account_id, player_id, embed, video_id)
-        return None
+    def _extract_urls(self, webpage):
+        # Reference:
+        # 1. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideoiniframe
+        # 2. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideousingjavascript)
+        # 3. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/embed-in-page.html
+
+        entries = []
+
+        # Look for iframe embeds [1]
+        for _, url in re.findall(
+                r'<iframe[^>]+src=(["\'])((?:https?:)//players\.brightcove\.net/\d+/[^/]+/index\.html.+?)\1', webpage):
+            entries.append(self.url_result(self._proto_relative_url(url)))
+        # Look for embed_in_page embeds [2]
+        # According to examples from [3] it's unclear whether video id may be optional
+        # and what to do when it is
+        for video_id, account_id, player_id, embed in re.findall(
+                r'''(?sx)
+                    <video[^>]+
+                        data-video-id=["\'](\d+)["\'][^>]*>.*?
+                    </video>.*?
+                    <script[^>]+
+                        src=["\'](?:https?:)?//players\.brightcove\.net/
+                        (\d+)/([\da-f-]+)_([^/]+)/index\.min\.js
+                ''', webpage):
+            entries.append(self.url_result(
+                'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'
+                % (account_id, player_id, embed, video_id)))
+        return entries
 
     def _real_extract(self, url):
         account_id, player_id, embed, video_id = re.match(self._VALID_URL, url).groups()
