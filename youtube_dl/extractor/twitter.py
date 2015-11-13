@@ -20,7 +20,7 @@ class TwitterCardIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/560070183650213889',
-            'md5': '7d2f6b4d2eb841a7ccc893d479bfceb4',
+            'md5': '4fa26a35f9d1bf4b646590ba8e84be19',
             'info_dict': {
                 'id': '560070183650213889',
                 'ext': 'mp4',
@@ -124,7 +124,7 @@ class TwitterIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'https://twitter.com/freethenipple/status/643211948184596480',
-        'md5': '31cd83a116fc41f99ae3d909d4caf6a0',
+        'md5': 'db6612ec5d03355953c3ca9250c97e5e',
         'info_dict': {
             'id': '643211948184596480',
             'ext': 'mp4',
