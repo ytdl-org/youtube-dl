@@ -62,7 +62,7 @@ from .br import BRIE
 from .breakcom import BreakIE
 from .brightcove import (
     BrightcoveLegacyIE,
-    BrightcoveInPageEmbedIE,
+    BrightcoveNewIE,
 )
 from .buzzfeed import BuzzFeedIE
 from .byutv import BYUtvIE

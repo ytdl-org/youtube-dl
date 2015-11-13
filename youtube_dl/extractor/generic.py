@@ -32,7 +32,7 @@ from ..utils import (
 )
 from .brightcove import (
     BrightcoveLegacyIE,
-    BrightcoveInPageEmbedIE,
+    BrightcoveNewIE,
 )
 from .nbc import NBCSportsVPlayerIE
 from .ooyala import OoyalaIE
@@ -1322,7 +1322,7 @@ class GenericIE(InfoExtractor):
             }
 
         # Look for Brightcove In Page Embed:
-        brightcove_in_page_embed_url = BrightcoveInPageEmbedIE._extract_url(webpage)
+        brightcove_in_page_embed_url = BrightcoveNewIE._extract_url(webpage)
         if brightcove_in_page_embed_url:
             return self.url_result(brightcove_in_page_embed_url, 'BrightcoveInPageEmbed')
 

@@ -353,7 +353,7 @@ class BrightcoveLegacyIE(InfoExtractor):
         return info
 
 
-class BrightcoveInPageEmbedIE(InfoExtractor):
+class BrightcoveNewIE(InfoExtractor):
     _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*videoId=(?P<video_id>\d+)'
     _TEST = {
         'url': 'http://players.brightcove.net/929656772001/e41d32dc-ec74-459e-a845-6c69f7b724ea_default/index.html?videoId=4463358922001',
