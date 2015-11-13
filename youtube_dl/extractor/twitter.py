@@ -147,6 +147,17 @@ class TwitterIE(InfoExtractor):
             'uploader': 'Gifs',
             'uploader_id': 'giphz',
         },
+    }, {
+        'url': 'https://twitter.com/starwars/status/665052190608723968',
+        'md5': '39b7199856dee6cd4432e72c74bc69d4',
+        'info_dict': {
+            'id': '665052190608723968',
+            'ext': 'mp4',
+            'title': 'Star Wars - A new beginning is coming December 18. Watch the official 60 second #TV spot for #StarWars: #TheForceAwakens.',
+            'description': 'Star Wars on Twitter: "A new beginning is coming December 18. Watch the official 60 second #TV spot for #StarWars: #TheForceAwakens."',
+            'uploader_id': 'starwars',
+            'uploader': 'Star Wars',
+        },
     }]
 
     def _real_extract(self, url):
@@ -158,17 +169,16 @@ class TwitterIE(InfoExtractor):
 
         username = remove_end(self._og_search_title(webpage), ' on Twitter')
 
-        title = self._og_search_description(webpage).strip('').replace('\n', ' ')
+        title = description = self._og_search_description(webpage).strip('').replace('\n', ' ').strip('“”')
 
         # strip  'https -_t.co_BJYgOjSeGA' junk from filenames
-        mobj = re.match(r'“(.*)\s+(https?://[^ ]+)”', title)
-        title, short_url = mobj.groups()
+        title = re.sub(r'\s+(https?://[^ ]+)', '', title)
 
         info = {
             'uploader_id': user_id,
             'uploader': username,
             'webpage_url': url,
-            'description': '%s on Twitter: "%s %s"' % (username, title, short_url),
+            'description': '%s on Twitter: "%s"' % (username, description),
             'title': username + ' - ' + title,
         }
 
