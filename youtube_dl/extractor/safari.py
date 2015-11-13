@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .brightcove import BrightcoveIE
+from .brightcove import BrightcoveLegacyIE
 
 from ..compat import (
     compat_urllib_parse,
@@ -112,7 +112,7 @@ class SafariIE(SafariBaseIE):
             '%s/%s/chapter-content/%s.html' % (self._API_BASE, course_id, part),
             part)
 
-        bc_url = BrightcoveIE._extract_brightcove_url(webpage)
+        bc_url = BrightcoveLegacyIE._extract_brightcove_url(webpage)
         if not bc_url:
             raise ExtractorError('Could not extract Brightcove URL from %s' % url, expected=True)
 

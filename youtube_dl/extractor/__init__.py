@@ -61,7 +61,7 @@ from .bpb import BpbIE
 from .br import BRIE
 from .breakcom import BreakIE
 from .brightcove import (
-    BrightcoveIE,
+    BrightcoveLegacyIE,
     BrightcoveInPageEmbedIE,
 )
 from .buzzfeed import BuzzFeedIE
