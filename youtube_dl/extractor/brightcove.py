@@ -22,6 +22,10 @@ from ..utils import (
     fix_xml_ampersands,
     unescapeHTML,
     unsmuggle_url,
+    js_to_json,
+    int_or_none,
+    parse_iso8601,
+    extract_attributes,
 )
 
 
@@ -346,3 +350,94 @@ class BrightcoveIE(InfoExtractor):
         if 'url' not in info and not info.get('formats'):
             raise ExtractorError('Unable to extract video url for %s' % info['id'])
         return info
+
+
+class BrightcoveInPageEmbedIE(InfoExtractor):
+    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/([a-z0-9-]+)_([a-z]+)/index.html?.*videoId=(?P<video_id>\d+)'
+    _TEST = {
+        'url': 'http://players.brightcove.net/929656772001/e41d32dc-ec74-459e-a845-6c69f7b724ea_default/index.html?videoId=4463358922001',
+        'md5': 'c8100925723840d4b0d243f7025703be',
+        'info_dict': {
+            'id': '4463358922001',
+            'ext': 'mp4',
+            'title': 'Meet the man behind Popcorn Time',
+            'description': 'md5:eac376a4fe366edc70279bfb681aea16',
+            'timestamp': 1441391203,
+            'upload_date': '20150904',
+            'duration': 165768,
+            'uploader_id': '929656772001',
+        }
+    }
+
+    @staticmethod
+    def _extract_url(webpage):
+        video_attributes = re.search(r'(?s)<video([^>]*)>.*?</(?:video|audio)>', webpage)
+        if video_attributes:
+            video_attributes = extract_attributes(video_attributes.group(), r'(?s)\s*data-(account|video-id|playlist-id|policy-key|player|embed)\s*=\s*["\']([^"\']+)["\']')
+            account_id = video_attributes.get('account')
+            player_id = video_attributes.get('player')
+            embed = video_attributes.get('embed')
+            video_id = video_attributes.get('video-id')
+            if account_id and player_id and embed and video_id:
+                return 'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s' % (account_id, player_id, embed, video_id)
+        return None
+
+    def _real_extract(self, url):
+        account_id, player_id, embed, video_id = re.match(self._VALID_URL, url).groups()
+
+        webpage = self._download_webpage('http://players.brightcove.net/%s/%s_%s/index.min.js' % (account_id, player_id, embed), video_id)
+
+        catalog = self._parse_json(
+            js_to_json(
+                self._search_regex(
+                    r'catalog\(({[^}]+})\);',
+                    webpage,
+                    'catalog'
+                )
+            ),
+            video_id
+        )
+        policy_key = catalog['policyKey']
+
+        req = compat_urllib_request.Request(
+            'https://edge.api.brightcove.com/playback/v1/accounts/%s/videos/%s' % (account_id, video_id),
+            headers={'Accept': 'application/json;pk=%s' % policy_key})
+        json_data = self._download_json(req, video_id)
+
+        title = json_data['name']
+        description = json_data.get('description')
+        thumbnail = json_data.get('thumbnail')
+        timestamp = parse_iso8601(json_data.get('published_at'))
+        duration = int_or_none(json_data.get('duration'))
+
+        formats = []
+        for source in json_data.get('sources'):
+            source_type = source.get('type')
+            if source_type == 'application/x-mpegURL':
+                formats.extend(self._extract_m3u8_formats(source.get('src'), video_id))
+            else:
+                src = source.get('src') or source.get('streaming_src')
+                if src:
+                    formats.append({
+                        'url': src,
+                        'tbr': source.get('avg_bitrate'),
+                        'width': int_or_none(source.get('width')),
+                        'height': int_or_none(source.get('height')),
+                        'filesize': source.get('size'),
+                        'container': source.get('container'),
+                        'vcodec': source.get('codec'),
+                        'ext': source.get('container').lower(),
+                    })
+
+        self._sort_formats(formats)
+
+        return {
+            'id': video_id,
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'timestamp': timestamp,
+            'duration': duration,
+            'formats': formats,
+            'uploader_id': account_id,
+        }
