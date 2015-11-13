@@ -23,6 +23,7 @@ from ..utils import (
     unescapeHTML,
     unsmuggle_url,
     js_to_json,
+    float_or_none,
     int_or_none,
     parse_iso8601,
     extract_attributes,
@@ -353,7 +354,7 @@ class BrightcoveIE(InfoExtractor):
 
 
 class BrightcoveInPageEmbedIE(InfoExtractor):
-    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/([a-z0-9-]+)_([a-z]+)/index.html?.*videoId=(?P<video_id>\d+)'
+    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[\da-f-]+)_(?P<embed>[a-z]+)/index\.html\?.*videoId=(?P<video_id>\d+)'
     _TEST = {
         'url': 'http://players.brightcove.net/929656772001/e41d32dc-ec74-459e-a845-6c69f7b724ea_default/index.html?videoId=4463358922001',
         'md5': 'c8100925723840d4b0d243f7025703be',
@@ -385,59 +386,99 @@ class BrightcoveInPageEmbedIE(InfoExtractor):
     def _real_extract(self, url):
         account_id, player_id, embed, video_id = re.match(self._VALID_URL, url).groups()
 
-        webpage = self._download_webpage('http://players.brightcove.net/%s/%s_%s/index.min.js' % (account_id, player_id, embed), video_id)
+        webpage = self._download_webpage(
+            'http://players.brightcove.net/%s/%s_%s/index.min.js'
+            % (account_id, player_id, embed), video_id)
 
-        catalog = self._parse_json(
-            js_to_json(
-                self._search_regex(
-                    r'catalog\(({[^}]+})\);',
-                    webpage,
-                    'catalog'
-                )
-            ),
-            video_id
-        )
-        policy_key = catalog['policyKey']
+        policy_key = None
+
+        catalog = self._search_regex(
+            r'catalog\(({.+?})\);', webpage, 'catalog', default=None)
+        if catalog:
+            catalog = self._parse_json(
+                js_to_json(catalog), video_id, fatal=False)
+            if catalog:
+                policy_key = catalog.get('policyKey')
+
+        if not policy_key:
+            policy_key = self._search_regex(
+                r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
+                webpage, 'policy key', group='pk')
 
         req = compat_urllib_request.Request(
-            'https://edge.api.brightcove.com/playback/v1/accounts/%s/videos/%s' % (account_id, video_id),
+            'https://edge.api.brightcove.com/playback/v1/accounts/%s/videos/%s'
+            % (account_id, video_id),
             headers={'Accept': 'application/json;pk=%s' % policy_key})
         json_data = self._download_json(req, video_id)
 
         title = json_data['name']
+
+        formats = []
+        for source in json_data.get('sources', []):
+            source_type = source.get('type')
+            src = source.get('src')
+            if source_type == 'application/x-mpegURL':
+                if not src:
+                    continue
+                m3u8_formats = self._extract_m3u8_formats(
+                    src, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False)
+                if m3u8_formats:
+                    formats.extend(m3u8_formats)
+            else:
+                streaming_src = source.get('streaming_src')
+                stream_name, app_name = source.get('stream_name'), source.get('app_name')
+                if not src and not streaming_src and (not stream_name or not app_name):
+                    continue
+                tbr = float_or_none(source.get('avg_bitrate'), 1000)
+                height = int_or_none(source.get('height'))
+                f = {
+                    'tbr': tbr,
+                    'width': int_or_none(source.get('width')),
+                    'height': height,
+                    'filesize': int_or_none(source.get('size')),
+                    'container': source.get('container'),
+                    'vcodec': source.get('codec'),
+                    'ext': source.get('container').lower(),
+                }
+
+                def build_format_id(kind):
+                    format_id = kind
+                    if tbr:
+                        format_id += '-%dk' % int(tbr)
+                    if height:
+                        format_id += '-%dp' % height
+                    return format_id
+
+                if src or streaming_src:
+                    f.update({
+                        'url': src or streaming_src,
+                        'format_id': build_format_id('http' if src else 'http-streaming'),
+                        'preference': 2 if src else 1,
+                    })
+                else:
+                    f.update({
+                        'url': app_name,
+                        'play_path': stream_name,
+                        'format_id': build_format_id('rtmp'),
+                    })
+                formats.append(f)
+        self._sort_formats(formats)
+
         description = json_data.get('description')
         thumbnail = json_data.get('thumbnail')
         timestamp = parse_iso8601(json_data.get('published_at'))
-        duration = int_or_none(json_data.get('duration'))
-
-        formats = []
-        for source in json_data.get('sources'):
-            source_type = source.get('type')
-            if source_type == 'application/x-mpegURL':
-                formats.extend(self._extract_m3u8_formats(source.get('src'), video_id))
-            else:
-                src = source.get('src') or source.get('streaming_src')
-                if src:
-                    formats.append({
-                        'url': src,
-                        'tbr': source.get('avg_bitrate'),
-                        'width': int_or_none(source.get('width')),
-                        'height': int_or_none(source.get('height')),
-                        'filesize': source.get('size'),
-                        'container': source.get('container'),
-                        'vcodec': source.get('codec'),
-                        'ext': source.get('container').lower(),
-                    })
-
-        self._sort_formats(formats)
+        duration = float_or_none(json_data.get('duration'), 1000)
+        tags = json_data.get('tags', [])
 
         return {
             'id': video_id,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
-            'timestamp': timestamp,
             'duration': duration,
-            'formats': formats,
+            'timestamp': timestamp,
             'uploader_id': account_id,
+            'formats': formats,
+            'tags': tags,
         }
