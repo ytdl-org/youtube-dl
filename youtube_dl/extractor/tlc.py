@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .brightcove import BrightcoveIE
+from .brightcove import BrightcoveLegacyIE
 from .discovery import DiscoveryIE
 from ..compat import compat_urlparse
 
@@ -66,6 +66,6 @@ class TlcDeIE(InfoExtractor):
 
         return {
             '_type': 'url',
-            'url': BrightcoveIE._extract_brightcove_url(iframe),
-            'ie': BrightcoveIE.ie_key(),
+            'url': BrightcoveLegacyIE._extract_brightcove_url(iframe),
+            'ie': BrightcoveLegacyIE.ie_key(),
         }

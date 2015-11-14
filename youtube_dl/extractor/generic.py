@@ -30,7 +30,10 @@ from ..utils import (
     url_basename,
     xpath_text,
 )
-from .brightcove import BrightcoveIE
+from .brightcove import (
+    BrightcoveLegacyIE,
+    BrightcoveNewIE,
+)
 from .nbc import NBCSportsVPlayerIE
 from .ooyala import OoyalaIE
 from .rutv import RUTVIE
@@ -275,7 +278,7 @@ class GenericIE(InfoExtractor):
         # it also tests brightcove videos that need to set the 'Referer' in the
         # http requests
         {
-            'add_ie': ['Brightcove'],
+            'add_ie': ['BrightcoveLegacy'],
             'url': 'http://www.bfmtv.com/video/bfmbusiness/cours-bourse/cours-bourse-l-analyse-technique-154522/',
             'info_dict': {
                 'id': '2765128793001',
@@ -299,7 +302,7 @@ class GenericIE(InfoExtractor):
                 'uploader': 'thestar.com',
                 'description': 'Mississauga resident David Farmer is still out of power as a result of the ice storm a month ago. To keep the house warm, Farmer cuts wood from his property for a wood burning stove downstairs.',
             },
-            'add_ie': ['Brightcove'],
+            'add_ie': ['BrightcoveLegacy'],
         },
         {
             'url': 'http://www.championat.com/video/football/v/87/87499.html',
@@ -314,7 +317,7 @@ class GenericIE(InfoExtractor):
         },
         {
             # https://github.com/rg3/youtube-dl/issues/3541
-            'add_ie': ['Brightcove'],
+            'add_ie': ['BrightcoveLegacy'],
             'url': 'http://www.kijk.nl/sbs6/leermijvrouwenkennen/videos/jqMiXKAYan2S/aflevering-1',
             'info_dict': {
                 'id': '3866516442001',
@@ -1031,6 +1034,17 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'cinemasnob',
             },
+        },
+        # BrightcoveInPageEmbed embed
+        {
+            'url': 'http://www.geekandsundry.com/tabletop-bonus-wils-final-thoughts-on-dread/',
+            'info_dict': {
+                'id': '4238694884001',
+                'ext': 'flv',
+                'title': 'Tabletop: Dread, Last Thoughts',
+                'description': 'Tabletop: Dread, Last Thoughts',
+                'duration': 51690,
+            },
         }
     ]
 
@@ -1290,14 +1304,14 @@ class GenericIE(InfoExtractor):
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
 
-        # Look for BrightCove:
-        bc_urls = BrightcoveIE._extract_brightcove_urls(webpage)
+        # Look for Brightcove Legacy Studio embeds
+        bc_urls = BrightcoveLegacyIE._extract_brightcove_urls(webpage)
         if bc_urls:
             self.to_screen('Brightcove video detected.')
             entries = [{
                 '_type': 'url',
                 'url': smuggle_url(bc_url, {'Referer': url}),
-                'ie_key': 'Brightcove'
+                'ie_key': 'BrightcoveLegacy'
             } for bc_url in bc_urls]
 
             return {
@@ -1306,6 +1320,11 @@ class GenericIE(InfoExtractor):
                 'id': video_id,
                 'entries': entries,
             }
+
+        # Look for Brightcove New Studio embeds
+        bc_urls = BrightcoveNewIE._extract_urls(webpage)
+        if bc_urls:
+            return _playlist_from_matches(bc_urls, ie='BrightcoveNew')
 
         # Look for embedded rtl.nl player
         matches = re.findall(
