@@ -28,7 +28,7 @@ class DumpertIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        url = 'https://www.dumpert.nl/mediabase/' + video_id
+        url = 'http://www.dumpert.nl/mediabase/' + video_id
         req = compat_urllib_request.Request(url)
         req.add_header('Cookie', 'nsfw=1; cpc=10')
         webpage = self._download_webpage(req, video_id)
