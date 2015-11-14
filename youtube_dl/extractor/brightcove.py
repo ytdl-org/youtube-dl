@@ -402,10 +402,11 @@ class BrightcoveNewIE(InfoExtractor):
         for _, url in re.findall(
                 r'<iframe[^>]+src=(["\'])((?:https?:)//players\.brightcove\.net/\d+/[^/]+/index\.html.+?)\1', webpage):
             entries.append(url)
+
         # Look for embed_in_page embeds [2]
-        # According to examples from [3] it's unclear whether video id may be optional
-        # and what to do when it is
         for video_id, account_id, player_id, embed in re.findall(
+                # According to examples from [3] it's unclear whether video id
+                # may be optional and what to do when it is
                 r'''(?sx)
                     <video[^>]+
                         data-video-id=["\'](\d+)["\'][^>]*>.*?
@@ -417,6 +418,7 @@ class BrightcoveNewIE(InfoExtractor):
             entries.append(
                 'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'
                 % (account_id, player_id, embed, video_id))
+
         return entries
 
     def _real_extract(self, url):
