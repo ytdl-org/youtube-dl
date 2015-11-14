@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import base64
+import re
 
 from .common import InfoExtractor
 from ..compat import compat_urllib_request
@@ -9,7 +10,7 @@ from ..utils import qualities
 
 
 class DumpertIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?dumpert\.nl/(?:mediabase|embed)/(?P<id>[0-9]+/[0-9a-zA-Z]+)'
+    _VALID_URL = r'(?P<protocol>https?)://(?:www\.)?dumpert\.nl/(?:mediabase|embed)/(?P<id>[0-9]+/[0-9a-zA-Z]+)'
     _TESTS = [{
         'url': 'http://www.dumpert.nl/mediabase/6646981/951bc60f/',
         'md5': '1b9318d7d5054e7dcb9dc7654f21d643',
@@ -26,9 +27,11 @@ class DumpertIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        protocol = mobj.group('protocol')
 
-        url = 'http://www.dumpert.nl/mediabase/' + video_id
+        url = '%s://www.dumpert.nl/mediabase/%s' % (protocol, video_id)
         req = compat_urllib_request.Request(url)
         req.add_header('Cookie', 'nsfw=1; cpc=10')
         webpage = self._download_webpage(req, video_id)
