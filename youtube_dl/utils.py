@@ -259,15 +259,6 @@ def get_element_by_attribute(attribute, value, html):
     return unescapeHTML(res)
 
 
-def extract_attributes(attributes_str, attributes_regex=r'(?s)\s*([^\s=]+)\s*=\s*["\']([^"\']+)["\']'):
-    attributes = re.findall(attributes_regex, attributes_str)
-    attributes_dict = {}
-    if attributes:
-        for (attribute_name, attribute_value) in attributes:
-            attributes_dict[attribute_name] = attribute_value
-    return attributes_dict
-
-
 def clean_html(html):
     """Clean an HTML snippet into a readable string"""
 
