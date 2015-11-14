@@ -458,10 +458,7 @@ from .orf import (
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
-from .periscope import (
-    PeriscopeIE,
-    QuickscopeIE,
-)
+from .periscope import PeriscopeIE
 from .philharmoniedeparis import PhilharmonieDeParisIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
