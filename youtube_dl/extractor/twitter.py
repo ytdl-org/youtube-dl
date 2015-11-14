@@ -52,6 +52,7 @@ class TwitterCardIE(InfoExtractor):
                 'uploader': 'OMG! Ubuntu!',
                 'uploader_id': 'omgubuntu',
             },
+            'add_ie': ['Youtube'],
         },
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/665289828897005568',
