@@ -26,7 +26,6 @@ from ..utils import (
     float_or_none,
     int_or_none,
     parse_iso8601,
-    extract_attributes,
 )
 
 
