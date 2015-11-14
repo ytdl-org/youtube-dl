@@ -1304,7 +1304,7 @@ class GenericIE(InfoExtractor):
             return self.playlist_result(
                 urlrs, playlist_id=video_id, playlist_title=video_title)
 
-        # Look for BrightCove:
+        # Look for Brightcove Legacy Studio embeds
         bc_urls = BrightcoveLegacyIE._extract_brightcove_urls(webpage)
         if bc_urls:
             self.to_screen('Brightcove video detected.')
