@@ -372,7 +372,8 @@ class BrightcoveNewIE(InfoExtractor):
         }
     }
 
-    def _extract_urls(self, webpage):
+    @staticmethod
+    def _extract_urls(webpage):
         # Reference:
         # 1. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideoiniframe
         # 2. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideousingjavascript)
@@ -383,7 +384,7 @@ class BrightcoveNewIE(InfoExtractor):
         # Look for iframe embeds [1]
         for _, url in re.findall(
                 r'<iframe[^>]+src=(["\'])((?:https?:)//players\.brightcove\.net/\d+/[^/]+/index\.html.+?)\1', webpage):
-            entries.append(self.url_result(self._proto_relative_url(url)))
+            entries.append(url)
         # Look for embed_in_page embeds [2]
         # According to examples from [3] it's unclear whether video id may be optional
         # and what to do when it is
@@ -396,9 +397,9 @@ class BrightcoveNewIE(InfoExtractor):
                         src=["\'](?:https?:)?//players\.brightcove\.net/
                         (\d+)/([\da-f-]+)_([^/]+)/index\.min\.js
                 ''', webpage):
-            entries.append(self.url_result(
+            entries.append(
                 'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'
-                % (account_id, player_id, embed, video_id)))
+                % (account_id, player_id, embed, video_id))
         return entries
 
     def _real_extract(self, url):
