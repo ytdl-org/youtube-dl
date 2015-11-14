@@ -12,10 +12,8 @@ from ..utils import (
     remove_start,
 )
 
-
 class NowTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nowtv\.(?:de|at|ch)/(?:rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<id>.+?)/(?:player|preview)'
-
+    _VALID_URL = r'https?://(?:www\.)?nowtv\.(?:de|at|ch)/(?:rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<id>.+?)$'
     _TESTS = [{
         # rtl
         'url': 'http://www.nowtv.de/rtl/bauer-sucht-frau/die-neuen-bauern-und-eine-hochzeit/player',
@@ -33,6 +31,18 @@ class NowTVIE(InfoExtractor):
         'params': {
             # rtmp download
             'skip_download': True,
+        },
+        # rtl
+        'url': 'http://www.nowtv.at/rtl/stern-tv/list/aktuell',
+        'info_dict': {
+            'title': 'stern TV',
+            'id': '2385',
+        },
+        # rtl
+        'url': 'http://www.nowtv.at/rtl/das-supertalent/list/free-staffel-8',
+        'info_dict': {
+            'title': 'Das Supertalent',
+            'id': '46',
         },
     }, {
         # rtl2
@@ -136,14 +146,82 @@ class NowTVIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
+        url = url.split('?')[0]
         display_id = self._match_id(url)
         display_id_split = display_id.split('/')
-        if len(display_id) > 2:
-            display_id = '/'.join((display_id_split[0], display_id_split[-1]))
 
+        if 'player' in url or 'preview' in url: # then the link is a direct videoclip-link!
+            if len(display_id_split) > 2:
+                display_id = '/'.join((display_id_split[0], display_id_split[-2]))
+            return self._extract_videoclip(display_id)
+        else:
+            season = None
+            if len(display_id_split) > 1:
+                display_id = display_id_split[0]
+                season = display_id_split[2]
+            return self._extract_playlist(display_id, season)
+
+    def _extract_videoclip(self, display_id):
         info = self._download_json(
-            'https://api.nowtv.de/v3/movies/%s?fields=id,title,free,geoblocked,articleLong,articleShort,broadcastStartDate,seoUrl,duration,format,files' % display_id,
+            'https://api.nowtv.de/v3/movies/%s?fields=id,title,season,episode,free,geoblocked,articleLong,articleShort,broadcastStartDate,seoUrl,duration,format,files' % display_id,
             display_id)
+
+        video_id, title, title_long, description, timestamp, duration, formats = self.episode_details(info)
+
+        f = info.get('format', {})
+        thumbnail = f.get('defaultImage169Format') or f.get('defaultImage169Logo')
+
+        return {
+            'id': video_id,
+            'display_id': display_id,
+            'title': '%s - %s' % (info['format']['title'], title),
+            'description': description,
+            'thumbnail': thumbnail,
+            'timestamp': timestamp,
+            'duration': duration,
+            'formats': formats,
+        }
+
+    def _extract_playlist(self, display_id, season):
+        info = self._download_json(
+            'https://api.nowtv.de/v3/formats/seo?fields=id,title,defaultImage169Format,defaultImage169Logo,formatTabs.*,formatTabs.formatTabPages.container.movies.*,formatTabs.formatTabPages.container.movies.files&name=%s.php' % display_id,
+            display_id)
+
+        playlist_id = info['id']
+        playlist_title = info['title']
+        thumbnail = info.get('defaultImage169Format') or info.get('defaultImage169Logo')
+
+        files = info['formatTabs']
+
+        videos = []
+        playlists = []
+
+        for season_item in files['items']:
+            if season:
+                if season != season_item['seoheadline']:
+                    continue
+            for items in season_item['formatTabPages']['items']:
+                try:
+                    for episode in items['container']['movies']['items']:
+
+                        video_id, title, title_long, description, timestamp, duration, formats = self.episode_details(episode)
+
+                        videos.append({
+                            'id': video_id,
+                            'display_id': display_id,
+                            'title': title_long,
+                            'description': description,
+                            'thumbnail': thumbnail,
+                            'timestamp': timestamp,
+                            'duration': duration,
+                            'formats': formats,
+                        })
+                except:
+                    continue
+
+        return self.playlist_result(reversed(videos), playlist_id, playlist_title)
+
+    def episode_details(self, info):
 
         video_id = compat_str(info['id'])
 
@@ -173,21 +251,10 @@ class NowTVIE(InfoExtractor):
             })
         self._sort_formats(formats)
 
-        title = info['title']
         description = info.get('articleLong') or info.get('articleShort')
         timestamp = parse_iso8601(info.get('broadcastStartDate'), ' ')
         duration = parse_duration(info.get('duration'))
+        title = info['title']
+        title_long = "S%sE%s - %s" % (info['season'], info['episode'], title)
 
-        f = info.get('format', {})
-        thumbnail = f.get('defaultImage169Format') or f.get('defaultImage169Logo')
-
-        return {
-            'id': video_id,
-            'display_id': display_id,
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'timestamp': timestamp,
-            'duration': duration,
-            'formats': formats,
-        }
+        return video_id, title, title_long, description, timestamp, duration, formats
