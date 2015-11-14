@@ -356,7 +356,7 @@ class BrightcoveLegacyIE(InfoExtractor):
 class BrightcoveNewIE(InfoExtractor):
     IE_NAME = 'brightcove:new'
     _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*videoId=(?P<video_id>\d+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://players.brightcove.net/929656772001/e41d32dc-ec74-459e-a845-6c69f7b724ea_default/index.html?videoId=4463358922001',
         'md5': 'c8100925723840d4b0d243f7025703be',
         'info_dict': {
@@ -364,12 +364,30 @@ class BrightcoveNewIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Meet the man behind Popcorn Time',
             'description': 'md5:eac376a4fe366edc70279bfb681aea16',
+            'duration': 165.768,
             'timestamp': 1441391203,
             'upload_date': '20150904',
-            'duration': 165.768,
             'uploader_id': '929656772001',
+            'formats': 'mincount:22',
+        },
+    }, {
+        # with rtmp streams
+        'url': 'http://players.brightcove.net/4036320279001/5d112ed9-283f-485f-a7f9-33f42e8bc042_default/index.html?videoId=4279049078001',
+        'info_dict': {
+            'id': '4279049078001',
+            'ext': 'mp4',
+            'title': 'Titansgrave: Chapter 0',
+            'description': 'Titansgrave: Chapter 0',
+            'duration': 1242.058,
+            'timestamp': 1433556729,
+            'upload_date': '20150606',
+            'uploader_id': '4036320279001',
+            'formats': 'mincount:41',
+        },
+        'params': {
+            'skip_download': True,
         }
-    }
+    }]
 
     @staticmethod
     def _extract_urls(webpage):
