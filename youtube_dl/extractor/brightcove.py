@@ -366,7 +366,7 @@ class BrightcoveNewIE(InfoExtractor):
             'description': 'md5:eac376a4fe366edc70279bfb681aea16',
             'timestamp': 1441391203,
             'upload_date': '20150904',
-            'duration': 165768,
+            'duration': 165.768,
             'uploader_id': '929656772001',
         }
     }
