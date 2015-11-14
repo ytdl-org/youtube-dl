@@ -25,7 +25,7 @@ class NownessBaseIE(InfoExtractor):
                         bc_url = BrightcoveLegacyIE._extract_brightcove_url(player_code)
                         if bc_url is None:
                             raise ExtractorError('Could not find player definition')
-                        return self.url_result(bc_url, 'Brightcove')
+                        return self.url_result(bc_url, 'BrightcoveLegacy')
                     elif source == 'vimeo':
                         return self.url_result('http://vimeo.com/%s' % video_id, 'Vimeo')
                     elif source == 'youtube':

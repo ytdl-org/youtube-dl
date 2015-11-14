@@ -278,7 +278,7 @@ class GenericIE(InfoExtractor):
         # it also tests brightcove videos that need to set the 'Referer' in the
         # http requests
         {
-            'add_ie': ['Brightcove'],
+            'add_ie': ['BrightcoveLegacy'],
             'url': 'http://www.bfmtv.com/video/bfmbusiness/cours-bourse/cours-bourse-l-analyse-technique-154522/',
             'info_dict': {
                 'id': '2765128793001',
@@ -302,7 +302,7 @@ class GenericIE(InfoExtractor):
                 'uploader': 'thestar.com',
                 'description': 'Mississauga resident David Farmer is still out of power as a result of the ice storm a month ago. To keep the house warm, Farmer cuts wood from his property for a wood burning stove downstairs.',
             },
-            'add_ie': ['Brightcove'],
+            'add_ie': ['BrightcoveLegacy'],
         },
         {
             'url': 'http://www.championat.com/video/football/v/87/87499.html',
@@ -317,7 +317,7 @@ class GenericIE(InfoExtractor):
         },
         {
             # https://github.com/rg3/youtube-dl/issues/3541
-            'add_ie': ['Brightcove'],
+            'add_ie': ['BrightcoveLegacy'],
             'url': 'http://www.kijk.nl/sbs6/leermijvrouwenkennen/videos/jqMiXKAYan2S/aflevering-1',
             'info_dict': {
                 'id': '3866516442001',
@@ -1311,7 +1311,7 @@ class GenericIE(InfoExtractor):
             entries = [{
                 '_type': 'url',
                 'url': smuggle_url(bc_url, {'Referer': url}),
-                'ie_key': 'Brightcove'
+                'ie_key': 'BrightcoveLegacy'
             } for bc_url in bc_urls]
 
             return {

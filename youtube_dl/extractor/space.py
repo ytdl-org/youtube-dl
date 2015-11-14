@@ -10,7 +10,7 @@ from ..utils import RegexNotFoundError, ExtractorError
 class SpaceIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:www|m)\.)?space\.com/\d+-(?P<title>[^/\.\?]*?)-video\.html'
     _TEST = {
-        'add_ie': ['Brightcove'],
+        'add_ie': ['BrightcoveLegacy'],
         'url': 'http://www.space.com/23373-huge-martian-landforms-detail-revealed-by-european-probe-video.html',
         'info_dict': {
             'id': '2780937028001',

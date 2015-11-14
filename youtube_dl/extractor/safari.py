@@ -116,7 +116,7 @@ class SafariIE(SafariBaseIE):
         if not bc_url:
             raise ExtractorError('Could not extract Brightcove URL from %s' % url, expected=True)
 
-        return self.url_result(smuggle_url(bc_url, {'Referer': url}), 'Brightcove')
+        return self.url_result(smuggle_url(bc_url, {'Referer': url}), 'BrightcoveLegacy')
 
 
 class SafariCourseIE(SafariBaseIE):
