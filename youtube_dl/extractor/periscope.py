@@ -2,10 +2,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
 from ..utils import parse_iso8601
 
 
