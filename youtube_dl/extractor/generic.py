@@ -1321,10 +1321,10 @@ class GenericIE(InfoExtractor):
                 'entries': entries,
             }
 
-        # Look for Brightcove In Page Embed:
-        brightcove_in_page_embed_url = BrightcoveNewIE._extract_url(webpage)
-        if brightcove_in_page_embed_url:
-            return self.url_result(brightcove_in_page_embed_url, 'BrightcoveInPageEmbed')
+        # Look for Brightcove New Studio embeds
+        bc_urls = BrightcoveNewIE._extract_urls(webpage)
+        if bc_urls:
+            return _playlist_from_matches(bc_urls, ie='BrightcoveNew')
 
         # Look for embedded rtl.nl player
         matches = re.findall(
