@@ -7,7 +7,7 @@ from ..utils import parse_iso8601
 
 class PeriscopeIE(InfoExtractor):
     IE_DESC = 'Periscope'
-    _VALID_URL = r'https?://(?:www\.)?periscope\.tv/w/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?periscope\.tv/[^/]+/(?P<id>[^/?#]+)'
     # Alive example URLs can be found here http://onperiscope.com/
     _TESTS = [{
         'url': 'https://www.periscope.tv/w/aJUQnjY3MjA3ODF8NTYxMDIyMDl2zCg2pECBgwTqRpQuQD352EMPTKQjT4uqlM3cgWFA-g==',
@@ -24,6 +24,9 @@ class PeriscopeIE(InfoExtractor):
         'skip': 'Expires in 24 hours',
     }, {
         'url': 'https://www.periscope.tv/w/1ZkKzPbMVggJv',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.periscope.tv/bastaakanoggano/1OdKrlkZZjOJX',
         'only_matching': True,
     }]
 
