@@ -27,7 +27,7 @@ class BBCCoUkIE(InfoExtractor):
     _MEDIASELECTOR_URLS = [
         # Provides HQ HLS streams with even better quality that pc mediaset but fails
         # with geolocation in some cases when it's even not geo restricted at all (e.g.
-        # http://www.bbc.co.uk/programmes/b06bp7lf)
+        # http://www.bbc.co.uk/programmes/b06bp7lf). Also may fail with selectionunavailable.
         'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s',
         'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/pc/vpid/%s',
     ]
@@ -334,7 +334,7 @@ class BBCCoUkIE(InfoExtractor):
                 return self._download_media_selector_url(
                     mediaselector_url % programme_id, programme_id)
             except BBCCoUkIE.MediaSelectionError as e:
-                if e.id in ('notukerror', 'geolocation'):
+                if e.id in ('notukerror', 'geolocation', 'selectionunavailable'):
                     last_exception = e
                     continue
                 self._raise_extractor_error(e)
@@ -345,7 +345,7 @@ class BBCCoUkIE(InfoExtractor):
             media_selection = self._download_xml(
                 url, programme_id, 'Downloading media selection XML')
         except ExtractorError as ee:
-            if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
+            if isinstance(ee.cause, compat_HTTPError) and ee.cause.code in (403, 404):
                 media_selection = compat_etree_fromstring(ee.cause.read().decode('utf-8'))
             else:
                 raise
