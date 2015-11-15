@@ -9,10 +9,7 @@ import subprocess
 import sys
 from zipimport import zipimporter
 
-from .compat import (
-    compat_str,
-    compat_urllib_request,
-)
+from .compat import compat_str
 
 from .version import __version__
 
