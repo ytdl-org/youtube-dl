@@ -67,7 +67,8 @@
  - **Bpb**: Bundeszentrale für politische Bildung
  - **BR**: Bayerischer Rundfunk Mediathek
  - **Break**
- - **Brightcove**
+ - **brightcove:legacy**
+ - **brightcove:new**
  - **bt:article**: Bergens Tidende Articles
  - **bt:vestlendingen**: Bergens Tidende - Vestlendingen
  - **BuzzFeed**
@@ -366,6 +367,7 @@
  - **nowness:playlist**
  - **nowness:series**
  - **NowTV**
+ - **NowTVList**
  - **nowvideo**: NowVideo
  - **npo**: npo.nl and ntr.nl
  - **npo.nl:live**
@@ -425,7 +427,6 @@
  - **qqmusic:playlist**: QQ音乐 - 歌单
  - **qqmusic:singer**: QQ音乐 - 歌手
  - **qqmusic:toplist**: QQ音乐 - 排行榜
- - **Quickscope**: Quick Scope
  - **QuickVid**
  - **R7**
  - **radio.de**
