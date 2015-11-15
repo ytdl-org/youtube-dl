@@ -193,6 +193,15 @@ class ThePlatformIE(ThePlatformBaseIE):
 
         if smuggled_data.get('force_smil_url', False):
             smil_url = url
+        # Explicitly specified SMIL (see https://github.com/rg3/youtube-dl/issues/7385)
+        elif '/guid/' in url:
+            webpage = self._download_webpage(url, video_id)
+            smil_url = self._search_regex(
+                r'<link[^>]+href=(["\'])(?P<url>.+?)\1[^>]+type=["\']application/smil\+xml',
+                webpage, 'smil url', group='url')
+            path = self._search_regex(
+                r'link\.theplatform\.com/s/((?:[^/?#&]+/)+[^/?#&]+)', smil_url, 'path')
+            smil_url += '?' if '?' not in smil_url else '&' + 'formats=m3u,mpeg4&format=SMIL'
         elif mobj.group('config'):
             config_url = url + '&form=json'
             config_url = config_url.replace('swf/', 'config/')
