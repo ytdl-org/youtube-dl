@@ -139,6 +139,11 @@ class ThePlatformIE(ThePlatformBaseIE):
             'upload_date': '20150701',
             'categories': ['Today/Shows/Orange Room', 'Today/Sections/Money', 'Today/Topics/Tech', "Today/Topics/Editor's picks"],
         },
+    }, {
+        # From http://www.nbc.com/the-blacklist/video/sir-crispin-crandall/2928790?onid=137781#vc137781=1
+        # geo-restricted (US), HLS encrypted with AES-128
+        'url': 'http://player.theplatform.com/p/NnzsPC/onsite_universal/select/media/guid/2410887629/2928790?fwsitesection=nbc_the_blacklist_video_library&autoPlay=true&carouselID=137781',
+        'only_matching': True,
     }]
 
     @staticmethod
