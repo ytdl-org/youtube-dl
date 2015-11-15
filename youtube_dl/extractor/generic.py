@@ -55,7 +55,6 @@ from .snagfilms import SnagFilmsEmbedIE
 from .screenwavemedia import ScreenwaveMediaIE
 from .mtv import MTVServicesEmbeddedIE
 
-
 class GenericIE(InfoExtractor):
     IE_DESC = 'Generic downloader that works on some sites'
     _VALID_URL = r'.*'
@@ -1045,6 +1044,19 @@ class GenericIE(InfoExtractor):
                 'description': 'Tabletop: Dread, Last Thoughts',
                 'duration': 51690,
             },
+        },
+        # tnaflix embed
+        {
+            'url': 'http://fantasti.cc/watch/9358999/Glam-euro-lesbians-get-off/',
+            'info_dict': {
+                'id': '635797',
+                'ext': 'mp4',
+                'title': 'Glam euro lesbians get off',
+                'description': 'Glam euro lesbians get off with fetish hitachi magic wands action',
+                'duration': 324,
+                'age_limit': 18,
+                'uploader': 'mariac895',
+            }
         }
     ]
 
@@ -1777,6 +1789,13 @@ class GenericIE(InfoExtractor):
             return self.url_result(
                 self._proto_relative_url(unescapeHTML(mobj.group(1))),
                 'AdobeTVVideo')
+
+        # Look for embedded tnaflix player
+        tnaflix_urls = [url for url in re.findall(
+            r'(?P<url>https?://(?:www\.)?tnaflix\.com/[^/]+/[^/]+/video\d+)',
+            webpage)]
+        if tnaflix_urls:
+            return _playlist_from_matches(tnaflix_urls, ie='TNAFlix')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
