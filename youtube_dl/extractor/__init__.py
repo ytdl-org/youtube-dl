@@ -420,7 +420,10 @@ from .nowness import (
     NownessPlaylistIE,
     NownessSeriesIE,
 )
-from .nowtv import NowTVIE
+from .nowtv import (
+    NowTVIE,
+    NowTVListIE,
+)
 from .nowvideo import NowVideoIE
 from .npo import (
     NPOIE,
