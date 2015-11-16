@@ -156,7 +156,7 @@ class YoutubeDL(object):
     writethumbnail:    Write the thumbnail image to a file
     write_all_thumbnails:  Write all thumbnail formats to files
     writesubtitles:    Write the video subtitles to a file
-    writeautomaticsub: Write the automatic subtitles to a file
+    writeautomaticsub: Write the automatically generated subtitles to a file
     allsubtitles:      Downloads all the subtitles of the video
                        (requires writesubtitles or writeautomaticsub)
     listsubtitles:     Lists all available subtitles for the video

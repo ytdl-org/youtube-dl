@@ -363,7 +363,7 @@ def parseOpts(overrideArguments=None):
     subtitles.add_option(
         '--write-auto-sub', '--write-automatic-sub',
         action='store_true', dest='writeautomaticsub', default=False,
-        help='Write automatic subtitle file (YouTube only)')
+        help='Write automatically generated subtitle file (YouTube only)')
     subtitles.add_option(
         '--all-subs',
         action='store_true', dest='allsubtitles', default=False,
