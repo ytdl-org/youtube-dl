@@ -403,7 +403,7 @@ def _htmlentity_transform(entity):
             pass
 
     # Unknown entity in name, return its literal representation
-    return ('&%s;' % entity)
+    return '&%s;' % entity
 
 
 def unescapeHTML(s):
