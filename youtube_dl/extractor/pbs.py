@@ -22,7 +22,7 @@ class PBSIE(InfoExtractor):
            # Article with embedded player (or direct video)
            (?:www\.)?pbs\.org/(?:[^/]+/){2,5}(?P<presumptive_id>[^/]+?)(?:\.html)?/?(?:$|[?\#]) |
            # Player
-           video\.pbs\.org/(?:widget/)?partnerplayer/(?P<player_id>[^/]+)/
+           (?:video|player)\.pbs\.org/(?:widget/)?partnerplayer/(?P<player_id>[^/]+)/
         )
     '''
 
@@ -170,6 +170,10 @@ class PBSIE(InfoExtractor):
             'params': {
                 'skip_download': True,  # requires ffmpeg
             },
+        },
+        {
+            'url': 'http://player.pbs.org/widget/partnerplayer/2365297708/?start=0&end=0&chapterbar=false&endscreen=false&topbar=true',
+            'only_matching': True,
         }
     ]
     _ERRORS = {
