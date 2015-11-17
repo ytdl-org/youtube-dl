@@ -40,7 +40,7 @@ class NetEaseMusicBaseIE(InfoExtractor):
             if not details:
                 continue
             formats.append({
-                'url': 'http://m1.music.126.net/%s/%s.%s' %
+                'url': 'http://m5.music.126.net/%s/%s.%s' %
                        (cls._encrypt(details['dfsId']), details['dfsId'],
                         details['extension']),
                 'ext': details.get('extension'),

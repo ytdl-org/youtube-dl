@@ -210,8 +210,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unescapeHTML('%20;'), '%20;')
         self.assertEqual(unescapeHTML('&#x2F;'), '/')
         self.assertEqual(unescapeHTML('&#47;'), '/')
-        self.assertEqual(
-            unescapeHTML('&eacute;'), 'é')
+        self.assertEqual(unescapeHTML('&eacute;'), 'é')
+        self.assertEqual(unescapeHTML('&#2013266066;'), '&#2013266066;')
 
     def test_daterange(self):
         _20century = DateRange("19000101", "20000101")

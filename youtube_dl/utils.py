@@ -396,10 +396,14 @@ def _htmlentity_transform(entity):
             numstr = '0%s' % numstr
         else:
             base = 10
-        return compat_chr(int(numstr, base))
+        # See https://github.com/rg3/youtube-dl/issues/7518
+        try:
+            return compat_chr(int(numstr, base))
+        except ValueError:
+            pass
 
     # Unknown entity in name, return its literal representation
-    return ('&%s;' % entity)
+    return '&%s;' % entity
 
 
 def unescapeHTML(s):
