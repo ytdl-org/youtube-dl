@@ -107,15 +107,9 @@ class RTVEALaCartaIE(InfoExtractor):
         png = self._download_webpage(png_request, video_id, 'Downloading url information')
         video_url = _decrypt_url(png)
         if not video_url.endswith('.f4m'):
-            auth_url = video_url.replace(
+            video_url = video_url.replace(
                 'resources/', 'auth/resources/'
             ).replace('.net.rtve', '.multimedia.cdn.rtve')
-            video_path = self._download_webpage(
-                auth_url, video_id, 'Getting video url')
-            # Use mvod1.akcdn instead of flash.akamaihd.multimedia.cdn to get
-            # the right Content-Length header and the mp4 format
-            video_url = compat_urlparse.urljoin(
-                'http://mvod1.akcdn.rtve.es/', video_path)
 
         subtitles = None
         if info.get('sbtFile') is not None:
