@@ -132,7 +132,6 @@ from .dfb import DFBIE
 from .dhm import DHMIE
 from .dotsub import DotsubIE
 from .douyutv import DouyuTVIE
-from .dplay import DPlayIE
 from .dramafever import (
     DramaFeverIE,
     DramaFeverSeriesIE,
@@ -453,6 +452,7 @@ from .ooyala import (
     OoyalaIE,
     OoyalaExternalIE,
 )
+from .openingsmoe import OpeningsMoeIE
 from .orf import (
     ORFTVthekIE,
     ORFOE1IE,
