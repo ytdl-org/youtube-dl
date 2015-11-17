@@ -453,6 +453,7 @@ from .ooyala import (
     OoyalaIE,
     OoyalaExternalIE,
 )
+from .openingsmoe import OpeningsMoeIE
 from .orf import (
     ORFTVthekIE,
     ORFOE1IE,
