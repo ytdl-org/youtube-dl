@@ -833,7 +833,7 @@ class YoutubeDL(object):
                                                       extra_info=extra)
                 playlist_results.append(entry_result)
             ie_result['entries'] = playlist_results
-            self.to_screen('[download] Playlist %s : download process finished' % playlist)
+            self.to_screen('[download] Finished downloading playlist: %s' % playlist)
             return ie_result
         elif result_type == 'compat_list':
             self.report_warning(
