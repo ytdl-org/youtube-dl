@@ -6,7 +6,7 @@ import re
 import time
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request, compat_urlparse
+from ..compat import compat_urllib_request
 from ..utils import (
     ExtractorError,
     float_or_none,
