@@ -70,7 +70,6 @@ class TestAllURLsMatching(unittest.TestCase):
     def test_youtube_search_matching(self):
         self.assertMatch('http://www.youtube.com/results?search_query=making+mustard', ['youtube:search_url'])
         self.assertMatch('https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video', ['youtube:search_url'])
-        self.assertMatch('https://www.youtube.com/results?lclk=week&search_query=making+mustard&filters=week', ['youtube:search:date'])
 
     def test_youtube_extract(self):
         assertExtractId = lambda url, id: self.assertEqual(YoutubeIE.extract_id(url), id)
@@ -139,10 +138,10 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch('http://news.cts.com.tw/cts/life/201511/201511151683198.html#.VkssxbNZOHs', ['CtsNews'])
         self.assertMatch('http://news.cts.com.tw/cts/international/201511/201511171683689.html#.Vksv_bNZOHs', ['CtsNews'])
 
-    def test_UDN(self):
+    def test_udn(self):
         self.assertMatch('https://video.udn.com/news/398685', ['UDN'])
-        self.assertMatch('https://video.udn.com/embed/news/300040', ['UDNEmbed'])
-        self.assertMatch('https://video.udn.com/play/news/303776', ['UDNEmbed'])
+        self.assertMatch('https://video.udn.com/embed/news/300040', ['UDN'])
+        self.assertMatch('https://video.udn.com/play/news/303776', ['UDN'])
 
     def test_xuite(self):
         self.assertMatch('http://vlog.xuite.net/play/T2lMdGpZLTk0NDA1MS5mbHY=', ['Xuite'])
@@ -153,7 +152,9 @@ class TestAllURLsMatching(unittest.TestCase):
 
     def test_mlb(self):
         self.assertMatch('http://m.mlb.com/video/topic/9674738/v529001783/111015-mlbcom-fastcast-gold-gloves-announced', ['MLB'])
-
+        self.assertMatch('http://mlb.mlb.com/shared/video/embed/m-internal-embed.html?content_id=75609783&property=mlb&autoplay=true&hashmode=false&siteSection=mlb/multimedia/article_118550098/article_embed&club=mlb', ['MLB'])
+        self.assertMatch('http://washington.nationals.mlb.com/mlb/gameday/index.jsp?c_id=was&gid=2015_05_09_atlmlb_wasmlb_1&lang=en&content_id=108309983&mode=video#', ['MLB'])
+        self.assertMatch('http://m.mlb.com/video/v34577915/bautista-on-derby-captaining-duties-his-performance', ['MLB'])
 
 if __name__ == '__main__':
     unittest.main()

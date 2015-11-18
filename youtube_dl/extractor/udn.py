@@ -10,9 +10,9 @@ from ..utils import (
 from ..compat import compat_urlparse
 
 
-class UDNEmbedIE(InfoExtractor):
+class UDNIE(InfoExtractor):
     IE_DESC = '聯合影音'
-    _VALID_URL = r'https?://video\.udn\.com/(?:embed|play)/news/(?P<id>\d+)'
+    _VALID_URL = r'https?://video\.udn\.com/((?:embed|play)/)?news/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://video.udn.com/embed/news/300040',
         'md5': 'de06b4c90b042c128395a88f0384817e',
@@ -32,11 +32,11 @@ class UDNEmbedIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-
-        if isinstance(self, UDNIE):
+        if "embed" not in url and "play" not in url:
             p = url.index("com/") + 4
             url = url[:p] + "embed/" + url[p:]
+
+        video_id = self._match_id(url)
 
         page = self._download_webpage(url, video_id)
 
@@ -77,6 +77,3 @@ class UDNEmbedIE(InfoExtractor):
             'title': options['title'],
             'thumbnail': thumbnail
         }
-
-class UDNIE(UDNEmbedIE):
-    _VALID_URL = r'https?://video\.udn\.com/news/(?P<id>\d+)'

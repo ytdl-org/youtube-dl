@@ -706,10 +706,7 @@ from .udemy import (
     UdemyIE,
     UdemyCourseIE
 )
-from .udn import (
-    UDNEmbedIE,
-    UDNIE
-)
+from .udn import UDNIE
 from .ultimedia import UltimediaIE
 from .unistra import UnistraIE
 from .urort import UrortIE
