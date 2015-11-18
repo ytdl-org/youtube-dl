@@ -129,6 +129,7 @@
  - **Discovery**
  - **Dotsub**
  - **DouyuTV**: 斗鱼
+ - **DPlay**
  - **dramafever**
  - **dramafever:series**
  - **DRBonanza**
