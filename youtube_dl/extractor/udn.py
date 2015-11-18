@@ -34,6 +34,10 @@ class UDNEmbedIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        if isinstance(self, UDNIE):
+            p = url.index("com/") + 4
+            url = url[:p] + "embed/" + url[p:]
+
         page = self._download_webpage(url, video_id)
 
         options = json.loads(js_to_json(self._html_search_regex(
@@ -73,3 +77,6 @@ class UDNEmbedIE(InfoExtractor):
             'title': options['title'],
             'thumbnail': thumbnail
         }
+
+class UDNIE(UDNEmbedIE):
+    _VALID_URL = r'https?://video\.udn\.com/news/(?P<id>\d+)'
