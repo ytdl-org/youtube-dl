@@ -1615,7 +1615,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor, YoutubePlaylistBaseInfoExtract
                 self.report_warning('Youtube gives an alert message: ' + match)
 
         playlist_title = self._html_search_regex(
-            r'(?s)<h1 class="pl-header-title[^"]*">\s*(.*?)\s*</h1>',
+            r'(?s)<h1 class="pl-header-title[^"]*"[^>]*>\s*(.*?)\s*</h1>',
             page, 'title')
 
         return self.playlist_result(self._entries(page, playlist_id), playlist_id, playlist_title)
