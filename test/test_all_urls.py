@@ -130,6 +130,11 @@ class TestAllURLsMatching(unittest.TestCase):
             'https://screen.yahoo.com/smartwatches-latest-wearable-gadgets-163745379-cbs.html',
             ['Yahoo'])
 
+    def test_udn(self):
+        self.assertMatch('https://video.udn.com/news/398685', ['UDN'])
+        self.assertMatch('https://video.udn.com/embed/news/300040', ['UDN'])
+        self.assertMatch('https://video.udn.com/play/news/303776', ['UDN'])
+
 
 if __name__ == '__main__':
     unittest.main()
