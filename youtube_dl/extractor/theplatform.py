@@ -188,8 +188,11 @@ class ThePlatformIE(ThePlatformBaseIE):
             # I try one by one
             for script in reversed(scripts):
                 feed_script = self._download_webpage(
-                    self._proto_relative_url(script, 'http:'), video_id, 'Downloading feed script')
-                feed_id = self._search_regex(r'defaultFeedId\s*:\s*"([^"]+)"', feed_script, 'default feed id', default=None)
+                    self._proto_relative_url(script, 'http:'),
+                    video_id, 'Downloading feed script')
+                feed_id = self._search_regex(
+                    r'defaultFeedId\s*:\s*"([^"]+)"', feed_script,
+                    'default feed id', default=None)
                 if feed_id is not None:
                     break
             if feed_id is None:
