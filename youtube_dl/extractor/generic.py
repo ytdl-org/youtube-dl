@@ -1739,7 +1739,7 @@ class GenericIE(InfoExtractor):
 
         # Look for UDN embeds
         mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>%s)"' % UDNEmbedIE._VALID_URL, webpage)
+            r'<iframe[^>]+src="(?P<url>%s)"' % UDNEmbedIE._PROTOCOL_RELATIVE_VALID_URL, webpage)
         if mobj is not None:
             return self.url_result(
                 compat_urlparse.urljoin(url, mobj.group('url')), 'UDNEmbed')
