@@ -8,7 +8,7 @@ import itertools
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
-    compat_urllib_request,
+    compat_urllib_request_Request,
     compat_urlparse,
 )
 from ..utils import (
@@ -47,7 +47,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
             'service': 'vimeo',
             'token': token,
         }))
-        login_request = compat_urllib_request.Request(self._LOGIN_URL, data)
+        login_request = compat_urllib_request_Request(self._LOGIN_URL, data)
         login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         login_request.add_header('Referer', self._LOGIN_URL)
         self._set_vimeo_cookie('vuid', vuid)
@@ -222,7 +222,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         if url.startswith('http://'):
             # vimeo only supports https now, but the user can give an http url
             url = url.replace('http://', 'https://')
-        password_request = compat_urllib_request.Request(url + '/password', data)
+        password_request = compat_urllib_request_Request(url + '/password', data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         password_request.add_header('Referer', url)
         self._set_vimeo_cookie('vuid', vuid)
@@ -236,7 +236,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             raise ExtractorError('This video is protected by a password, use the --video-password option')
         data = urlencode_postdata(encode_dict({'password': password}))
         pass_url = url + '/check-password'
-        password_request = compat_urllib_request.Request(pass_url, data)
+        password_request = compat_urllib_request_Request(pass_url, data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         return self._download_json(
             password_request, video_id,
@@ -265,7 +265,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
-        request = compat_urllib_request.Request(url, None, headers)
+        request = compat_urllib_request_Request(url, None, headers)
         try:
             webpage = self._download_webpage(request, video_id)
         except ExtractorError as ee:
@@ -481,7 +481,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         password_path = self._search_regex(
             r'action="([^"]+)"', login_form, 'password URL')
         password_url = compat_urlparse.urljoin(page_url, password_path)
-        password_request = compat_urllib_request.Request(password_url, post)
+        password_request = compat_urllib_request_Request(password_url, post)
         password_request.add_header('Content-type', 'application/x-www-form-urlencoded')
         self._set_vimeo_cookie('vuid', vuid)
         self._set_vimeo_cookie('xsrft', token)
@@ -640,7 +640,7 @@ class VimeoWatchLaterIE(VimeoChannelIE):
 
     def _page_url(self, base_url, pagenum):
         url = '%s/page:%d/' % (base_url, pagenum)
-        request = compat_urllib_request.Request(url)
+        request = compat_urllib_request_Request(url)
         # Set the header to get a partial html page with the ids,
         # the normal page doesn't contain them.
         request.add_header('X-Requested-With', 'XMLHttpRequest')
