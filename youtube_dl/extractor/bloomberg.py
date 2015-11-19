@@ -6,9 +6,9 @@ from .common import InfoExtractor
 
 
 class BloombergIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.bloomberg\.com/news/videos/[^/]+/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://www\.bloomberg\.com/news/[^/]+/[^/]+/(?P<id>[^/?#]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.bloomberg.com/news/videos/b/aaeae121-5949-481e-a1ce-4562db6f5df2',
         # The md5 checksum changes
         'info_dict': {
@@ -17,7 +17,10 @@ class BloombergIE(InfoExtractor):
             'title': 'Shah\'s Presentation on Foreign-Exchange Strategies',
             'description': 'md5:a8ba0302912d03d246979735c17d2761',
         },
-    }
+    }, {
+        'url': 'http://www.bloomberg.com/news/articles/2015-11-12/five-strange-things-that-have-been-happening-in-financial-markets',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         name = self._match_id(url)
