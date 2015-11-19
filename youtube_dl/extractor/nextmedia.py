@@ -154,6 +154,14 @@ class AppleDailyIE(NextMediaIE):
             'description': 'md5:7b859991a6a4fedbdf3dd3b66545c748',
             'upload_date': '20140417',
         },
+    }, {
+        'url': 'http://www.appledaily.com.tw/animation/appledaily/hot/20151119/36907379/',
+        'md5': '62438480cd2f7cd9ab77dcb27ab8192e',
+        'info_dict': {
+            'id': '36907379',
+            'ext': 'mp4',
+            'title': '豪自爆 不甘當小三 拒絕勇士'
+        }
     }]
 
     _URL_PATTERN = r'\{url: \'(.+)\'\}'

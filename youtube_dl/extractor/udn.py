@@ -29,6 +29,9 @@ class UDNEmbedIE(InfoExtractor):
         # From https://video.udn.com/news/303776
         'url': 'https://video.udn.com/play/news/303776',
         'only_matching': True,
+    }, {
+        'url': 'https://video.udn.com/news/398685',
+        'only_matching': True
     }]
 
     def _real_extract(self, url):
