@@ -486,8 +486,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
             password_request, list_id,
             'Verifying the password', 'Wrong password')
 
-    def _extract_videos(self, list_id, base_url):
-        video_ids = []
+    def _title_and_entries(self, list_id, base_url):
         for pagenum in itertools.count(1):
             page_url = self._page_url(base_url, pagenum)
             webpage = self._download_webpage(
@@ -496,18 +495,18 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
 
             if pagenum == 1:
                 webpage = self._login_list_password(page_url, list_id, webpage)
+                yield self._extract_list_title(webpage)
 
-            video_ids.extend(re.findall(r'id="clip_(\d+?)"', webpage))
+            for video_id in re.findall(r'id="clip_(\d+?)"', webpage):
+                yield self.url_result('https://vimeo.com/%s' % video_id, 'Vimeo')
+
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
                 break
 
-        entries = [self.url_result('https://vimeo.com/%s' % video_id, 'Vimeo')
-                   for video_id in video_ids]
-        return {'_type': 'playlist',
-                'id': list_id,
-                'title': self._extract_list_title(webpage),
-                'entries': entries,
-                }
+    def _extract_videos(self, list_id, base_url):
+        title_and_entries = self._title_and_entries(list_id, base_url)
+        list_title = next(title_and_entries)
+        return self.playlist_result(title_and_entries, list_id, list_title)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
