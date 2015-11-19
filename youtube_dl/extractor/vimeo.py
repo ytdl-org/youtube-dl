@@ -567,7 +567,7 @@ class VimeoAlbumIE(VimeoChannelIE):
 
 class VimeoGroupsIE(VimeoAlbumIE):
     IE_NAME = 'vimeo:group'
-    _VALID_URL = r'https://vimeo\.com/groups/(?P<name>[^/]+)'
+    _VALID_URL = r'https://vimeo\.com/groups/(?P<name>[^/]+)(?:/(?!videos?/\d+)|$)'
     _TESTS = [{
         'url': 'https://vimeo.com/groups/rolexawards',
         'info_dict': {
