@@ -28,6 +28,7 @@ if os.name == 'nt':
     import ctypes
 
 from .compat import (
+    compat_basestring,
     compat_cookiejar,
     compat_expanduser,
     compat_get_terminal_size,
@@ -38,6 +39,7 @@ from .compat import (
     compat_urllib_error,
     compat_urllib_request,
     compat_urllib_request_DataHandler,
+    compat_urllib_request_Request,
 )
 from .utils import (
     ContentTooShortError,
@@ -1871,6 +1873,8 @@ class YoutubeDL(object):
 
     def urlopen(self, req):
         """ Start an HTTP download """
+        if isinstance(req, compat_basestring):
+            req = compat_urllib_request_Request(req)
         return self._opener.open(req, timeout=self._socket_timeout)
 
     def print_debug_header(self):
