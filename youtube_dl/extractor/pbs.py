@@ -263,7 +263,7 @@ class PBSIE(InfoExtractor):
             return self.playlist_result(entries, display_id)
 
         info = self._download_json(
-            'http://video.pbs.org/videoInfo/%s?format=json&type=partner' % video_id,
+            'http://player.pbs.org/videoInfo/%s?format=json&type=partner' % video_id,
             display_id)
 
         formats = []
