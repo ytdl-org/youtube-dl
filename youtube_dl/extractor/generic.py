@@ -42,7 +42,7 @@ from .sportbox import SportBoxEmbedIE
 from .smotri import SmotriIE
 from .myvi import MyviIE
 from .condenast import CondeNastIE
-from .udn import UDNIE
+from .udn import UDNEmbedIE
 from .senateisvp import SenateISVPIE
 from .bliptv import BlipTVIE
 from .svt import SVTIE
