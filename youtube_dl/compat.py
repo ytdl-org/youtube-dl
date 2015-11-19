@@ -198,6 +198,14 @@ except ImportError:  # Python < 3.4
 
             return compat_urllib_response.addinfourl(io.BytesIO(data), headers, url)
 
+
+# Prepend protocol-less URLs with `http:` scheme in order to mitigate the number of
+# unwanted failures due to missing protocol
+def compat_urllib_request_Request(url, *args, **kwargs):
+    return compat_urllib_request.Request(
+        'http:%s' % url if url.startswith('//') else url, *args, **kwargs)
+
+
 try:
     compat_basestring = basestring  # Python 2
 except NameError:
