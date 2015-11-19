@@ -189,6 +189,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'note': 'Video not completely processed, "failed" seed status',
             'only_matching': True,
         },
+        {
+            'url': 'https://vimeo.com/groups/travelhd/videos/22439234',
+            'only_matching': True,
+        },
     ]
 
     @staticmethod
