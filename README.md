@@ -329,8 +329,8 @@ which means you can modify it, redistribute it or use it however you like.
 
 ## Subtitle Options:
     --write-sub                      Write subtitle file
-    --write-auto-sub                 Write automatic subtitle file (YouTube
-                                     only)
+    --write-auto-sub                 Write automatically generated subtitle file
+                                     (YouTube only)
     --all-subs                       Download all the available subtitles of the
                                      video
     --list-subs                      List all available subtitles for the video
