@@ -938,7 +938,7 @@ class YoutubeDL(object):
                     filter_parts.append(string)
 
         def _remove_unused_ops(tokens):
-            # Remove operators that we don't use and join them with the sourrounding strings
+            # Remove operators that we don't use and join them with the surrounding strings
             # for example: 'mp4' '-' 'baseline' '-' '16x9' is converted to 'mp4-baseline-16x9'
             ALLOWED_OPS = ('/', '+', ',', '(', ')')
             last_string, last_start, last_end, last_line = None, None, None, None
