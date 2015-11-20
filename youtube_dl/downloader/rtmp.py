@@ -117,7 +117,7 @@ class RtmpFD(FileDownloader):
             return False
 
         # Download using rtmpdump. rtmpdump returns exit code 2 when
-        # the connection was interrumpted and resuming appears to be
+        # the connection was interrupted and resuming appears to be
         # possible. This is part of rtmpdump's normal usage, AFAIK.
         basic_args = [
             'rtmpdump', '--verbose', '-r', url,
