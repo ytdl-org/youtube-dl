@@ -149,14 +149,14 @@ class KalturaIE(InfoExtractor):
                 video_url += '?referrer=%s' % referrer
             formats.append({
                 'format_id': '%(fileExt)s-%(bitrate)s' % f,
-                'ext': f['fileExt'],
-                'tbr': f['bitrate'],
-                'fps': f.get('frameRate'),
+                'ext': f.get('fileExt'),
+                'tbr': int_or_none(f['bitrate']),
+                'fps': int_or_none(f.get('frameRate')),
                 'filesize_approx': int_or_none(f.get('size'), invscale=1024),
                 'container': f.get('containerFormat'),
                 'vcodec': f.get('videoCodecId'),
-                'height': f.get('height'),
-                'width': f.get('width'),
+                'height': int_or_none(f.get('height')),
+                'width': int_or_none(f.get('width')),
                 'url': video_url,
             })
         self._check_formats(formats, entry_id)
