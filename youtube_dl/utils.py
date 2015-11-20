@@ -373,6 +373,13 @@ def sanitize_path(s):
     return os.path.join(*sanitized_path)
 
 
+# Prepend protocol-less URLs with `http:` scheme in order to mitigate the number of
+# unwanted failures due to missing protocol
+def sanitized_Request(url, *args, **kwargs):
+    return compat_urllib_request.Request(
+        'http:%s' % url if url.startswith('//') else url, *args, **kwargs)
+
+
 def orderedSet(iterable):
     """ Remove all duplicates from the input iterable """
     res = []
