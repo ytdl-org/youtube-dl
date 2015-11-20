@@ -823,6 +823,19 @@ class GenericIE(InfoExtractor):
                 'title': 'Os Guinness // Is It Fools Talk? // Unbelievable? Conference 2014',
             },
         },
+        # Kaltura embed protected with referrer
+        {
+            'url': 'http://www.disney.nl/disney-channel/filmpjes/achter-de-schermen#/videoId/violetta-achter-de-schermen-ruggero',
+            'info_dict': {
+                'id': '1_g4fbemnq',
+                'ext': 'mp4',
+                'title': 'Violetta - Achter De Schermen - Ruggero',
+                'description': 'Achter de schermen met Ruggero',
+                'timestamp': 1435133761,
+                'upload_date': '20150624',
+                'uploader_id': 'echojecka',
+            },
+        },
         # Eagle.Platform embed (generic URL)
         {
             'url': 'http://lenta.ru/news/2015/03/06/navalny/',
