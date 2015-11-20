@@ -39,7 +39,6 @@ from .compat import (
     compat_urllib_error,
     compat_urllib_request,
     compat_urllib_request_DataHandler,
-    compat_urllib_request_Request,
 )
 from .utils import (
     ContentTooShortError,
@@ -65,6 +64,7 @@ from .utils import (
     SameFileError,
     sanitize_filename,
     sanitize_path,
+    sanitized_Request,
     std_headers,
     subtitles_filename,
     UnavailableVideoError,
@@ -1874,7 +1874,7 @@ class YoutubeDL(object):
     def urlopen(self, req):
         """ Start an HTTP download """
         if isinstance(req, compat_basestring):
-            req = compat_urllib_request_Request(req)
+            req = sanitized_Request(req)
         return self._opener.open(req, timeout=self._socket_timeout)
 
     def print_debug_header(self):
