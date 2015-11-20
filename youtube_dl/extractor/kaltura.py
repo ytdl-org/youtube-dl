@@ -10,6 +10,7 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    clean_html,
     ExtractorError,
     int_or_none,
     unsmuggle_url,
@@ -166,7 +167,7 @@ class KalturaIE(InfoExtractor):
             'id': entry_id,
             'title': info['name'],
             'formats': formats,
-            'description': info.get('description'),
+            'description': clean_html(info.get('description')),
             'thumbnail': info.get('thumbnailUrl'),
             'duration': info.get('duration'),
             'timestamp': info.get('createdAt'),
