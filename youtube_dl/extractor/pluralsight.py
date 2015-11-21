@@ -20,6 +20,7 @@ class PluralsightIE(InfoExtractor):
     IE_NAME = 'pluralsight'
     _VALID_URL = r'https?://(?:(?:www|app)\.)?pluralsight\.com/training/player\?'
     _LOGIN_URL = 'https://app.pluralsight.com/id/'
+    _API_BASE = 'http://app.pluralsight.com'
     _NETRC_MACHINE = 'pluralsight'
 
     _TESTS = [{
@@ -142,7 +143,7 @@ class PluralsightIE(InfoExtractor):
                     'q': '%dx%d' % (f['width'], f['height']),
                 }
                 request = compat_urllib_request.Request(
-                    'http://app.pluralsight.com/training/Player/ViewClip',
+                    '%s/training/Player/ViewClip' % self._API_BASE,
                     json.dumps(clip_post).encode('utf-8'))
                 request.add_header('Content-Type', 'application/json;charset=utf-8')
                 format_id = '%s-%s' % (ext, quality)
@@ -201,14 +202,14 @@ class PluralsightCourseIE(InfoExtractor):
         # TODO: PSM cookie
 
         course = self._download_json(
-            'http://www.pluralsight.com/data/course/%s' % course_id,
+            '%s/data/course/%s' % (self._API_BASE, course_id),
             course_id, 'Downloading course JSON')
 
         title = course['title']
         description = course.get('description') or course.get('shortDescription')
 
         course_data = self._download_json(
-            'http://www.pluralsight.com/data/course/content/%s' % course_id,
+            '%s/data/course/content/%s' % (self._API_BASE, course_id),
             course_id, 'Downloading course data JSON')
 
         entries = []
@@ -218,7 +219,7 @@ class PluralsightCourseIE(InfoExtractor):
                 if not player_parameters:
                     continue
                 entries.append(self.url_result(
-                    'http://www.pluralsight.com/training/player?%s' % player_parameters,
+                    '%s/training/player?%s' % (self._API_BASE, player_parameters),
                     'Pluralsight'))
 
         return self.playlist_result(entries, course_id, title, description)
