@@ -35,6 +35,10 @@ class PluralsightIE(InfoExtractor):
     }, {
         'url': 'https://app.pluralsight.com/training/player?course=angularjs-get-started&author=scott-allen&name=angularjs-get-started-m1-introduction&clip=0&mode=live',
         'only_matching': True,
+    }, {
+        # available without pluralsight account
+        'url': 'http://app.pluralsight.com/training/player?author=scott-allen&name=angularjs-get-started-m1-introduction&mode=live&clip=0&course=angularjs-get-started',
+        'only_matching': True,
     }]
 
     def _real_initialize(self):
@@ -43,7 +47,7 @@ class PluralsightIE(InfoExtractor):
     def _login(self):
         (username, password) = self._get_login_info()
         if username is None:
-            self.raise_login_required('Pluralsight account is required')
+            return
 
         login_page = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login page')
@@ -172,7 +176,7 @@ class PluralsightIE(InfoExtractor):
 class PluralsightCourseIE(InfoExtractor):
     IE_NAME = 'pluralsight:course'
     _VALID_URL = r'https?://(?:www\.)?pluralsight\.com/courses/(?P<id>[^/]+)'
-    _TEST = {
+    _TESTS = [{
         # Free course from Pluralsight Starter Subscription for Microsoft TechNet
         # https://offers.pluralsight.com/technet?loc=zTS3z&prod=zOTprodz&tech=zOttechz&prog=zOTprogz&type=zSOz&media=zOTmediaz&country=zUSz
         'url': 'http://www.pluralsight.com/courses/hosting-sql-server-windows-azure-iaas',
@@ -182,7 +186,11 @@ class PluralsightCourseIE(InfoExtractor):
             'description': 'md5:61b37e60f21c4b2f91dc621a977d0986',
         },
         'playlist_count': 31,
-    }
+    }, {
+        # available without pluralsight account
+        'url': 'https://www.pluralsight.com/courses/angularjs-get-started',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         course_id = self._match_id(url)
