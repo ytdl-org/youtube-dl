@@ -178,15 +178,13 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             return
 
 
-class YoutubePlaylistBaseInfoExtractor(InfoExtractor):
-    # Extract the video ids from the playlist pages
+class YoutubeEntryListBaseInfoExtractor(InfoExtractor):
+    # Extract entries from page with "Load more" button
     def _entries(self, page, playlist_id):
         more_widget_html = content_html = page
         for page_num in itertools.count(1):
-            for video_id, video_title in self.extract_videos_from_page(content_html):
-                yield self.url_result(
-                    video_id, 'Youtube', video_id=video_id,
-                    video_title=video_title)
+            for entry in self._process_page(content_html):
+                yield entry
 
             mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
             if not mobj:
@@ -202,6 +200,12 @@ class YoutubePlaylistBaseInfoExtractor(InfoExtractor):
                 # have more videos
                 break
             more_widget_html = more['load_more_widget_html']
+
+
+class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
+    def _process_page(self, content):
+        for video_id, video_title in self.extract_videos_from_page(content):
+            yield self.url_result(video_id, 'Youtube', video_id, video_title)
 
     def extract_videos_from_page(self, page):
         ids_in_page = []
@@ -224,15 +228,17 @@ class YoutubePlaylistBaseInfoExtractor(InfoExtractor):
         return zip(ids_in_page, titles_in_page)
 
 
-class YoutubePlaylistsBaseInfoExtractor(InfoExtractor):
+class YoutubePlaylistsBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
+    def _process_page(self, content):
+        for playlist_id in re.findall(r'href="/?playlist\?list=(.+?)"', content):
+            yield self.url_result(
+                'https://www.youtube.com/playlist?list=%s' % playlist_id, 'YoutubePlaylist')
+
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
         webpage = self._download_webpage(url, playlist_id)
-        entries = [
-            self.url_result(compat_urlparse.urljoin(url, playlist), 'YoutubePlaylist')
-            for playlist in re.findall(r'href="(/playlist\?list=.+?)"', webpage)]
         title = self._og_search_title(webpage, fatal=False)
-        return self.playlist_result(entries, playlist_id, title)
+        return self.playlist_result(self._entries(webpage, playlist_id), playlist_id, title)
 
 
 class YoutubeIE(YoutubeBaseInfoExtractor):
