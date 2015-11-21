@@ -493,46 +493,40 @@ class SoundcloudSearchIE(SearchInfoExtractor, SoundcloudIE):
     _API_V2_BASE = 'https://api-v2.soundcloud.com'
 
     def _get_collection(self, endpoint, collection_id, **query):
-        query['limit'] = results_per_page = min(
+        limit = results_per_page = min(
             query.get('limit', self._DEFAULT_RESULTS_PER_PAGE),
             self._MAX_RESULTS_PER_PAGE)
+        query['limit'] = limit
         query['client_id'] = self._CLIENT_ID
         query['linked_partitioning'] = '1'
+        query['offset'] = 0
+        data = compat_urllib_parse.urlencode(encode_dict(query))
+        next_url = '{0}{1}?{2}'.format(self._API_V2_BASE, endpoint, data)
 
-        total_results = None
         collected_results = 0
 
-        next_url = None
-
-        for i in itertools.count():
-            if not next_url:
-                query['offset'] = i * results_per_page
-                data = compat_urllib_parse.urlencode(encode_dict(query))
-                next_url = '{0}{1}?{2}'.format(
-                    self._API_V2_BASE, endpoint, data)
-
+        for i in itertools.count(1):
             response = self._download_json(
-                next_url, collection_id, 'Downloading page {0}'.format(i + 1),
+                next_url, collection_id, 'Downloading page {0}'.format(i),
                 'Unable to download API page')
 
-            total_results = int(response.get(
-                'total_results', total_results))
+            collection = response.get('collection', [])
+            if not collection:
+                break
 
-            collection = response['collection']
+            collection = list(filter(bool, collection))
             collected_results += len(collection)
 
-            for item in filter(bool, collection):
-                yield item
+            for item in collection:
+                yield self.url_result(item['uri'], SoundcloudIE.ie_key())
 
-            if (total_results is not None and collected_results >= total_results) or not collection:
+            if not collection or collected_results >= limit:
                 break
 
             next_url = response.get('next_href')
+            if not next_url:
+                break
 
     def _get_n_results(self, query, n):
-        tracks = self._get_collection(
-            '/search/tracks', collection_id='Query "{0}"'.format(query), limit=n, q=query)
-
-        results = [self.url_result(track['uri']) for track in itertools.islice(tracks, n)]
-
-        return self.playlist_result(results, playlist_title=query)
+        tracks = self._get_collection('/search/tracks', query, limit=n, q=query)
+        return self.playlist_result(tracks, playlist_title=query)
