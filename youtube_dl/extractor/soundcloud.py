@@ -510,10 +510,9 @@ class SoundcloudSearchIE(SearchInfoExtractor, SoundcloudIE):
                 next_url = '{0}{1}?{2}'.format(
                     self._API_V2_BASE, endpoint, data)
 
-            response = self._download_json(next_url,
-                    video_id=collection_id,
-                    note='Downloading page {0}'.format(i+1),
-                    errnote='Unable to download API page')
+            response = self._download_json(
+                next_url, collection_id, 'Downloading page {0}'.format(i + 1),
+                'Unable to download API page')
 
             total_results = int(response.get(
                 'total_results', total_results))
@@ -524,23 +523,19 @@ class SoundcloudSearchIE(SearchInfoExtractor, SoundcloudIE):
             for item in filter(bool, collection):
                 yield item
 
-            if (total_results is not None and
-                collected_results >= total_results) or not collection:
+            if (total_results is not None and collected_results >= total_results) or not collection:
                 break
 
-            next_url = response.get('next_href', None)
+            next_url = response.get('next_href')
 
     def _get_n_results(self, query, n):
-        tracks = self._get_collection('/search/tracks',
-            collection_id='Query "{0}"'.format(query),
-            limit=n, q=query)
+        tracks = self._get_collection(
+            '/search/tracks', collection_id='Query "{0}"'.format(query), limit=n, q=query)
 
-        results = [self.url_result(url=track['uri'])
-            for track in itertools.islice(tracks, n)]
+        results = [self.url_result(track['uri']) for track in itertools.islice(tracks, n)]
 
         if not results:
             raise ExtractorError(
                 'Soundcloud said: No track results', expected=True)
-        
-        return self.playlist_result(results, playlist_title=query)
 
+        return self.playlist_result(results, playlist_title=query)
