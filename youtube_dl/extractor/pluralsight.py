@@ -16,11 +16,15 @@ from ..utils import (
 )
 
 
-class PluralsightIE(InfoExtractor):
+class PluralsightBaseIE(InfoExtractor):
+    _API_BASE = 'http://app.pluralsight.com'
+
+
+class PluralsightIE(PluralsightBaseIE):
     IE_NAME = 'pluralsight'
     _VALID_URL = r'https?://(?:(?:www|app)\.)?pluralsight\.com/training/player\?'
     _LOGIN_URL = 'https://app.pluralsight.com/id/'
-    _API_BASE = 'http://app.pluralsight.com'
+
     _NETRC_MACHINE = 'pluralsight'
 
     _TESTS = [{
@@ -174,7 +178,7 @@ class PluralsightIE(InfoExtractor):
         }
 
 
-class PluralsightCourseIE(InfoExtractor):
+class PluralsightCourseIE(PluralsightBaseIE):
     IE_NAME = 'pluralsight:course'
     _VALID_URL = r'https?://(?:(?:www|app)\.)?pluralsight\.com/(?:library/)?courses/(?P<id>[^/]+)'
     _TESTS = [{
