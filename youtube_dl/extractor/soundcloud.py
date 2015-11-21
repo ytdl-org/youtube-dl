@@ -14,6 +14,7 @@ from ..compat import (
     compat_urllib_parse,
 )
 from ..utils import (
+    encode_dict,
     ExtractorError,
     int_or_none,
     unified_strdate,
@@ -506,7 +507,7 @@ class SoundcloudSearchIE(SearchInfoExtractor, SoundcloudIE):
         for i in itertools.count():
             if not next_url:
                 query['offset'] = i * results_per_page
-                data = compat_urllib_parse.urlencode(query)
+                data = compat_urllib_parse.urlencode(encode_dict(query))
                 next_url = '{0}{1}?{2}'.format(
                     self._API_V2_BASE, endpoint, data)
 
