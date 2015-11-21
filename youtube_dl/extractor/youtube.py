@@ -1863,7 +1863,7 @@ class YoutubeSearchURLIE(InfoExtractor):
         }
 
 
-class YoutubeShowIE(InfoExtractor):
+class YoutubeShowIE(YoutubePlaylistsBaseInfoExtractor):
     IE_DESC = 'YouTube.com (multi-season) shows'
     _VALID_URL = r'https?://www\.youtube\.com/show/(?P<id>[^?#]*)'
     IE_NAME = 'youtube:show'
@@ -1877,26 +1877,9 @@ class YoutubeShowIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        playlist_id = mobj.group('id')
-        webpage = self._download_webpage(
-            'https://www.youtube.com/show/%s/playlists' % playlist_id, playlist_id, 'Downloading show webpage')
-        # There's one playlist for each season of the show
-        m_seasons = list(re.finditer(r'href="(/playlist\?list=.*?)"', webpage))
-        self.to_screen('%s: Found %s seasons' % (playlist_id, len(m_seasons)))
-        entries = [
-            self.url_result(
-                'https://www.youtube.com' + season.group(1), 'YoutubePlaylist')
-            for season in m_seasons
-        ]
-        title = self._og_search_title(webpage, fatal=False)
-
-        return {
-            '_type': 'playlist',
-            'id': playlist_id,
-            'title': title,
-            'entries': entries,
-        }
+        playlist_id = self._match_id(url)
+        return super(YoutubeShowIE, self)._real_extract(
+            'https://www.youtube.com/show/%s/playlists' % playlist_id)
 
 
 class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
