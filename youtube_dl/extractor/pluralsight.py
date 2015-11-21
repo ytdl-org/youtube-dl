@@ -138,7 +138,7 @@ class PluralsightIE(InfoExtractor):
                     'q': '%dx%d' % (f['width'], f['height']),
                 }
                 request = compat_urllib_request.Request(
-                    'http://www.pluralsight.com/training/Player/ViewClip',
+                    'http://app.pluralsight.com/training/Player/ViewClip',
                     json.dumps(clip_post).encode('utf-8'))
                 request.add_header('Content-Type', 'application/json;charset=utf-8')
                 format_id = '%s-%s' % (ext, quality)
