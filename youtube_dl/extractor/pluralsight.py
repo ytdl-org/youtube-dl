@@ -84,6 +84,9 @@ class PluralsightIE(PluralsightBaseIE):
         if error:
             raise ExtractorError('Unable to login: %s' % error, expected=True)
 
+        if all(p not in response for p in ('__INITIAL_STATE__', '"currentUser"')):
+            raise ExtractorError('Unable to log in')
+
     def _real_extract(self, url):
         qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
 
