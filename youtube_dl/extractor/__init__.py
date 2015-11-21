@@ -834,6 +834,7 @@ from .youtube import (
     YoutubeTruncatedIDIE,
     YoutubeTruncatedURLIE,
     YoutubeUserIE,
+    YoutubeUserPlaylistsIE,
     YoutubeWatchLaterIE,
 )
 from .zapiks import ZapiksIE

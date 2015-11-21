@@ -224,6 +224,17 @@ class YoutubePlaylistBaseInfoExtractor(InfoExtractor):
         return zip(ids_in_page, titles_in_page)
 
 
+class YoutubePlaylistsBaseInfoExtractor(InfoExtractor):
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        webpage = self._download_webpage(url, playlist_id)
+        entries = [
+            self.url_result(compat_urlparse.urljoin(url, playlist), 'YoutubePlaylist')
+            for playlist in re.findall(r'href="(/playlist\?list=.+?)"', webpage)]
+        title = self._og_search_title(webpage, fatal=False)
+        return self.playlist_result(entries, playlist_id, title)
+
+
 class YoutubeIE(YoutubeBaseInfoExtractor):
     IE_DESC = 'YouTube.com'
     _VALID_URL = r"""(?x)^
@@ -1740,6 +1751,21 @@ class YoutubeUserIE(YoutubeChannelIE):
             return False
         else:
             return super(YoutubeUserIE, cls).suitable(url)
+
+
+class YoutubeUserPlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
+    IE_DESC = 'YouTube.com user playlists'
+    _VALID_URL = r'https?://(?:\w+\.)?youtube\.com/user/(?P<id>[^/]+)/playlists'
+    IE_NAME = 'youtube:user:playlists'
+
+    _TEST = {
+        'url': 'http://www.youtube.com/user/ThirstForScience/playlists',
+        'playlist_mincount': 4,
+        'info_dict': {
+            'id': 'ThirstForScience',
+            'title': 'Thirst for Science',
+        },
+    }
 
 
 class YoutubeSearchIE(SearchInfoExtractor, YoutubePlaylistIE):
