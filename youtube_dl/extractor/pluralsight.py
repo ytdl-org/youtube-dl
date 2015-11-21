@@ -19,7 +19,7 @@ from ..utils import (
 
 class PluralsightIE(InfoExtractor):
     IE_NAME = 'pluralsight'
-    _VALID_URL = r'https?://(?:www\.)?pluralsight\.com/training/player\?author=(?P<author>[^&]+)&name=(?P<name>[^&]+)(?:&mode=live)?&clip=(?P<clip>\d+)&course=(?P<course>[^&]+)'
+    _VALID_URL = r'https?://?(?:www\.)?(?:app\.)?pluralsight\.com/training/player\?(?:(author=(?P<author>[^&]+))(&name=(?P<name>[^&]+))(&clip=(?P<clip>\d+))(&mode=live)(&course=(?P<course>[^&]+)))'
     _LOGIN_URL = 'https://www.pluralsight.com/id/'
     _NETRC_MACHINE = 'pluralsight'
 
