@@ -110,6 +110,10 @@ class PluralsightIE(InfoExtractor):
                     if clip_index is None:
                         continue
                     if compat_str(clip_index) == clip_id:
+                        if module_.get('authorized') is False:
+                            raise ExtractorError(
+                                '%s said: Your current subscription level does not allow you to view this module.' % self.IE_NAME,
+                                expected=True)
                         clip = clip_
                         break
 
@@ -215,7 +219,7 @@ class PluralsightCourseIE(InfoExtractor):
         for module in course_data:
             for clip in module.get('clips', []):
                 player_parameters = clip.get('playerParameters')
-                if not player_parameters:
+                if not player_parameters or clip.get('userMayViewClip') is False:
                     continue
                 entries.append(self.url_result(
                     'http://www.pluralsight.com/training/player?%s' % player_parameters,
