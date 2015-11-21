@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
-    compat_urllib_request,
     compat_urllib_parse,
     compat_urllib_parse_unquote,
 )
@@ -13,6 +12,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     parse_iso8601,
+    sanitized_Request,
     HEADRequest,
 )
 
@@ -76,7 +76,7 @@ class ViewsterIE(InfoExtractor):
     _ACCEPT_HEADER = 'application/json, text/javascript, */*; q=0.01'
 
     def _download_json(self, url, video_id, note='Downloading JSON metadata', fatal=True):
-        request = compat_urllib_request.Request(url)
+        request = sanitized_Request(url)
         request.add_header('Accept', self._ACCEPT_HEADER)
         request.add_header('Auth-token', self._AUTH_TOKEN)
         return super(ViewsterIE, self)._download_json(request, video_id, note, fatal=fatal)

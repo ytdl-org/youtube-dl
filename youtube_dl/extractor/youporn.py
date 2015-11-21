@@ -3,9 +3,9 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
 from ..utils import (
     int_or_none,
+    sanitized_Request,
     str_to_int,
     unescapeHTML,
     unified_strdate,
@@ -63,7 +63,7 @@ class YouPornIE(InfoExtractor):
         video_id = mobj.group('id')
         display_id = mobj.group('display_id')
 
-        request = compat_urllib_request.Request(url)
+        request = sanitized_Request(url)
         request.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(request, display_id)
 

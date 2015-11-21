@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import FileDownloader
-from ..compat import compat_urllib_request
+from ..utils import sanitized_Request
 
 
 class DashSegmentsFD(FileDownloader):
@@ -22,7 +22,7 @@ class DashSegmentsFD(FileDownloader):
 
         def append_url_to_file(outf, target_url, target_name, remaining_bytes=None):
             self.to_screen('[DashSegments] %s: Downloading %s' % (info_dict['id'], target_name))
-            req = compat_urllib_request.Request(target_url)
+            req = sanitized_Request(target_url)
             if remaining_bytes is not None:
                 req.add_header('Range', 'bytes=0-%d' % (remaining_bytes - 1))
 

@@ -2,10 +2,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_parse
+from ..utils import sanitized_Request
 
 
 class VodlockerIE(InfoExtractor):
@@ -31,7 +29,7 @@ class VodlockerIE(InfoExtractor):
         if fields['op'] == 'download1':
             self._sleep(3, video_id)  # they do detect when requests happen too fast!
             post = compat_urllib_parse.urlencode(fields)
-            req = compat_urllib_request.Request(url, post)
+            req = sanitized_Request(url, post)
             req.add_header('Content-type', 'application/x-www-form-urlencoded')
             webpage = self._download_webpage(
                 req, video_id, 'Downloading video page')

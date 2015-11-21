@@ -11,7 +11,6 @@ from .youtube import YoutubeIE
 from ..compat import (
     compat_etree_fromstring,
     compat_urllib_parse_unquote,
-    compat_urllib_request,
     compat_urlparse,
     compat_xml_parse_error,
 )
@@ -22,6 +21,7 @@ from ..utils import (
     HEADRequest,
     is_html,
     orderedSet,
+    sanitized_Request,
     smuggle_url,
     unescapeHTML,
     unified_strdate,
@@ -1215,7 +1215,7 @@ class GenericIE(InfoExtractor):
 
         full_response = None
         if head_response is False:
-            request = compat_urllib_request.Request(url)
+            request = sanitized_Request(url)
             request.add_header('Accept-Encoding', '*')
             full_response = self._request_webpage(request, video_id)
             head_response = full_response
@@ -1244,7 +1244,7 @@ class GenericIE(InfoExtractor):
                 '%s on generic information extractor.' % ('Forcing' if force else 'Falling back'))
 
         if not full_response:
-            request = compat_urllib_request.Request(url)
+            request = sanitized_Request(url)
             # Some webservers may serve compressed content of rather big size (e.g. gzipped flac)
             # making it impossible to download only chunk of the file (yet we need only 512kB to
             # test whether it's HTML or not). According to youtube-dl default Accept-Encoding

@@ -8,13 +8,13 @@ from .common import InfoExtractor
 from ..compat import (
     compat_str,
     compat_urllib_parse,
-    compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
     int_or_none,
     parse_duration,
+    sanitized_Request,
 )
 
 
@@ -73,7 +73,7 @@ class PluralsightIE(PluralsightBaseIE):
         if not post_url.startswith('http'):
             post_url = compat_urlparse.urljoin(self._LOGIN_URL, post_url)
 
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             post_url, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
 
@@ -181,7 +181,7 @@ class PluralsightIE(PluralsightBaseIE):
                     'mt': ext,
                     'q': '%dx%d' % (f['width'], f['height']),
                 }
-                request = compat_urllib_request.Request(
+                request = sanitized_Request(
                     '%s/training/Player/ViewClip' % self._API_BASE,
                     json.dumps(clip_post).encode('utf-8'))
                 request.add_header('Content-Type', 'application/json;charset=utf-8')

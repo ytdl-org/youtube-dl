@@ -7,8 +7,8 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
-    compat_urllib_request,
 )
+from ..utils import sanitized_Request
 
 
 class MofosexIE(InfoExtractor):
@@ -29,7 +29,7 @@ class MofosexIE(InfoExtractor):
         video_id = mobj.group('id')
         url = 'http://www.' + mobj.group('url')
 
-        req = compat_urllib_request.Request(url)
+        req = sanitized_Request(url)
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 

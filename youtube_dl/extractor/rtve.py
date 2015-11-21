@@ -6,11 +6,11 @@ import re
 import time
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
 from ..utils import (
     ExtractorError,
     float_or_none,
     remove_end,
+    sanitized_Request,
     std_headers,
     struct_unpack,
 )
@@ -102,7 +102,7 @@ class RTVEALaCartaIE(InfoExtractor):
         if info['state'] == 'DESPU':
             raise ExtractorError('The video is no longer available', expected=True)
         png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/%s/videos/%s.png' % (self._manager, video_id)
-        png_request = compat_urllib_request.Request(png_url)
+        png_request = sanitized_Request(png_url)
         png_request.add_header('Referer', url)
         png = self._download_webpage(png_request, video_id, 'Downloading url information')
         video_url = _decrypt_url(png)

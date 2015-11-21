@@ -4,12 +4,10 @@ import json
 import time
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -32,7 +30,7 @@ class HypemIE(InfoExtractor):
         data = {'ax': 1, 'ts': time.time()}
         data_encoded = compat_urllib_parse.urlencode(data)
         complete_url = url + "?" + data_encoded
-        request = compat_urllib_request.Request(complete_url)
+        request = sanitized_Request(complete_url)
         response, urlh = self._download_webpage_handle(
             request, track_id, 'Downloading webpage with the url')
         cookie = urlh.headers.get('Set-Cookie', '')
@@ -52,7 +50,7 @@ class HypemIE(InfoExtractor):
         title = track['song']
 
         serve_url = "http://hypem.com/serve/source/%s/%s" % (track_id, key)
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             serve_url, '', {'Content-Type': 'application/json'})
         request.add_header('cookie', cookie)
         song_data = self._download_json(request, track_id, 'Downloading metadata')

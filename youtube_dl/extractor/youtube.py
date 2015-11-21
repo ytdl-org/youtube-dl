@@ -20,7 +20,6 @@ from ..compat import (
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
     compat_urllib_parse_urlparse,
-    compat_urllib_request,
     compat_urlparse,
     compat_str,
 )
@@ -35,6 +34,7 @@ from ..utils import (
     orderedSet,
     parse_duration,
     remove_start,
+    sanitized_Request,
     smuggle_url,
     str_to_int,
     unescapeHTML,
@@ -114,7 +114,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
         login_data = compat_urllib_parse.urlencode(encode_dict(login_form_strs)).encode('ascii')
 
-        req = compat_urllib_request.Request(self._LOGIN_URL, login_data)
+        req = sanitized_Request(self._LOGIN_URL, login_data)
         login_results = self._download_webpage(
             req, None,
             note='Logging in', errnote='unable to log in', fatal=False)
@@ -147,7 +147,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
             tfa_data = compat_urllib_parse.urlencode(encode_dict(tfa_form_strs)).encode('ascii')
 
-            tfa_req = compat_urllib_request.Request(self._TWOFACTOR_URL, tfa_data)
+            tfa_req = sanitized_Request(self._TWOFACTOR_URL, tfa_data)
             tfa_results = self._download_webpage(
                 tfa_req, None,
                 note='Submitting TFA code', errnote='unable to submit tfa', fatal=False)

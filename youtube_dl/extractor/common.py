@@ -19,7 +19,6 @@ from ..compat import (
     compat_urllib_error,
     compat_urllib_parse,
     compat_urllib_parse_urlparse,
-    compat_urllib_request,
     compat_urlparse,
     compat_str,
     compat_etree_fromstring,
@@ -37,6 +36,7 @@ from ..utils import (
     int_or_none,
     RegexNotFoundError,
     sanitize_filename,
+    sanitized_Request,
     unescapeHTML,
     unified_strdate,
     url_basename,
@@ -1285,7 +1285,7 @@ class InfoExtractor(object):
 
     def _get_cookies(self, url):
         """ Return a compat_cookies.SimpleCookie with the cookies for the url """
-        req = compat_urllib_request.Request(url)
+        req = sanitized_Request(url)
         self._downloader.cookiejar.add_cookie_header(req)
         return compat_cookies.SimpleCookie(req.get_header('Cookie'))
 

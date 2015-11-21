@@ -4,12 +4,10 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlparse,
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     int_or_none,
+    sanitized_Request,
     str_to_int,
 )
 from ..aes import aes_decrypt_text
@@ -42,7 +40,7 @@ class Tube8IE(InfoExtractor):
         video_id = mobj.group('id')
         display_id = mobj.group('display_id')
 
-        req = compat_urllib_request.Request(url)
+        req = sanitized_Request(url)
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, display_id)
 

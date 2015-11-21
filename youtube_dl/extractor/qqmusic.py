@@ -7,11 +7,11 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    sanitized_Request,
     strip_jsonp,
     unescapeHTML,
     clean_html,
 )
-from ..compat import compat_urllib_request
 
 
 class QQMusicIE(InfoExtractor):
@@ -201,7 +201,7 @@ class QQMusicSingerIE(QQPlaylistBaseIE):
         singer_desc = None
 
         if singer_id:
-            req = compat_urllib_request.Request(
+            req = sanitized_Request(
                 'http://s.plcloud.music.qq.com/fcgi-bin/fcg_get_singer_desc.fcg?utf8=1&outCharset=utf-8&format=xml&singerid=%s' % singer_id)
             req.add_header(
                 'Referer', 'http://s.plcloud.music.qq.com/xhr_proxy_utf8.html')

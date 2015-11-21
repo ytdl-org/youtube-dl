@@ -8,11 +8,11 @@ from .common import InfoExtractor
 from ..compat import (
     compat_str,
     compat_urllib_parse,
-    compat_urllib_request,
 )
 from ..utils import (
     ExtractorError,
     orderedSet,
+    sanitized_Request,
     str_to_int,
     unescapeHTML,
     unified_strdate,
@@ -182,7 +182,7 @@ class VKIE(InfoExtractor):
             'pass': password.encode('cp1251'),
         })
 
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             'https://login.vk.com/?act=login',
             compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         login_page = self._download_webpage(

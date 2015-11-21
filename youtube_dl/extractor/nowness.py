@@ -3,10 +3,10 @@ from __future__ import unicode_literals
 
 from .brightcove import BrightcoveLegacyIE
 from .common import InfoExtractor
-from ..utils import ExtractorError
-from ..compat import (
-    compat_str,
-    compat_urllib_request,
+from ..compat import compat_str
+from ..utils import (
+    ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -37,7 +37,7 @@ class NownessBaseIE(InfoExtractor):
 
     def _api_request(self, url, request_path):
         display_id = self._match_id(url)
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             'http://api.nowness.com/api/' + request_path % display_id,
             headers={
                 'X-Nowness-Language': 'zh-cn' if 'cn.nowness.com' in url else 'en-us',

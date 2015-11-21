@@ -8,11 +8,11 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_request,
     compat_urllib_parse,
     compat_str,
     compat_itertools_count,
 )
+from ..utils import sanitized_Request
 
 
 class NetEaseMusicBaseIE(InfoExtractor):
@@ -56,7 +56,7 @@ class NetEaseMusicBaseIE(InfoExtractor):
         return int(round(ms / 1000.0))
 
     def query_api(self, endpoint, video_id, note):
-        req = compat_urllib_request.Request('%s%s' % (self._API_BASE, endpoint))
+        req = sanitized_Request('%s%s' % (self._API_BASE, endpoint))
         req.add_header('Referer', self._API_BASE)
         return self._download_json(req, video_id, note)
 

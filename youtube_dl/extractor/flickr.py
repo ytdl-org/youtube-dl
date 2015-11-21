@@ -3,10 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
 from ..utils import (
     ExtractorError,
     find_xpath_attr,
+    sanitized_Request,
 )
 
 
@@ -30,7 +30,7 @@ class FlickrIE(InfoExtractor):
         video_id = mobj.group('id')
         video_uploader_id = mobj.group('uploader_id')
         webpage_url = 'http://www.flickr.com/photos/' + video_uploader_id + '/' + video_id
-        req = compat_urllib_request.Request(webpage_url)
+        req = sanitized_Request(webpage_url)
         req.add_header(
             'User-Agent',
             # it needs a more recent version

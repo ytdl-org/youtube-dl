@@ -23,6 +23,7 @@ from ..utils import (
     int_or_none,
     lowercase_escape,
     remove_end,
+    sanitized_Request,
     unified_strdate,
     urlencode_postdata,
     xpath_text,
@@ -46,7 +47,7 @@ class CrunchyrollBaseIE(InfoExtractor):
             'name': username,
             'password': password,
         })
-        login_request = compat_urllib_request.Request(login_url, data)
+        login_request = sanitized_Request(login_url, data)
         login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         self._download_webpage(login_request, None, False, 'Wrong login info')
 
@@ -55,7 +56,7 @@ class CrunchyrollBaseIE(InfoExtractor):
 
     def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None):
         request = (url_or_request if isinstance(url_or_request, compat_urllib_request.Request)
-                   else compat_urllib_request.Request(url_or_request))
+                   else sanitized_Request(url_or_request))
         # Accept-Language must be set explicitly to accept any language to avoid issues
         # similar to https://github.com/rg3/youtube-dl/issues/6797.
         # Along with IP address Crunchyroll uses Accept-Language to guess whether georestriction
@@ -307,7 +308,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             'video_uploader', fatal=False)
 
         playerdata_url = compat_urllib_parse_unquote(self._html_search_regex(r'"config_url":"([^"]+)', webpage, 'playerdata_url'))
-        playerdata_req = compat_urllib_request.Request(playerdata_url)
+        playerdata_req = sanitized_Request(playerdata_url)
         playerdata_req.data = compat_urllib_parse.urlencode({'current_page': webpage_url})
         playerdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         playerdata = self._download_webpage(playerdata_req, video_id, note='Downloading media info')
@@ -319,7 +320,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         for fmt in re.findall(r'showmedia\.([0-9]{3,4})p', webpage):
             stream_quality, stream_format = self._FORMAT_IDS[fmt]
             video_format = fmt + 'p'
-            streamdata_req = compat_urllib_request.Request(
+            streamdata_req = sanitized_Request(
                 'http://www.crunchyroll.com/xml/?req=RpcApiVideoPlayer_GetStandardConfig&media_id=%s&video_format=%s&video_quality=%s'
                 % (stream_id, stream_format, stream_quality),
                 compat_urllib_parse.urlencode({'current_page': url}).encode('utf-8'))

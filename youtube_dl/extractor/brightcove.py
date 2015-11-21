@@ -11,7 +11,6 @@ from ..compat import (
     compat_str,
     compat_urllib_parse,
     compat_urllib_parse_urlparse,
-    compat_urllib_request,
     compat_urlparse,
     compat_xml_parse_error,
 )
@@ -24,6 +23,7 @@ from ..utils import (
     js_to_json,
     int_or_none,
     parse_iso8601,
+    sanitized_Request,
     unescapeHTML,
     unsmuggle_url,
 )
@@ -250,7 +250,7 @@ class BrightcoveLegacyIE(InfoExtractor):
 
     def _get_video_info(self, video_id, query_str, query, referer=None):
         request_url = self._FEDERATED_URL_TEMPLATE % query_str
-        req = compat_urllib_request.Request(request_url)
+        req = sanitized_Request(request_url)
         linkBase = query.get('linkBaseURL')
         if linkBase is not None:
             referer = linkBase[0]
@@ -443,7 +443,7 @@ class BrightcoveNewIE(InfoExtractor):
                 r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
                 webpage, 'policy key', group='pk')
 
-        req = compat_urllib_request.Request(
+        req = sanitized_Request(
             'https://edge.api.brightcove.com/playback/v1/accounts/%s/videos/%s'
             % (account_id, video_id),
             headers={'Accept': 'application/json;pk=%s' % policy_key})
