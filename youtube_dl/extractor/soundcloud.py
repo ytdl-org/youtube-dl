@@ -493,7 +493,7 @@ class SoundcloudSearchIE(SearchInfoExtractor, SoundcloudIE):
     _API_V2_BASE = 'https://api-v2.soundcloud.com'
 
     def _get_collection(self, endpoint, collection_id, **query):
-        limit = results_per_page = min(
+        limit = min(
             query.get('limit', self._DEFAULT_RESULTS_PER_PAGE),
             self._MAX_RESULTS_PER_PAGE)
         query['limit'] = limit
