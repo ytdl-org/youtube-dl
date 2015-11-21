@@ -141,7 +141,7 @@ class PluralsightIE(PluralsightBaseIE):
 
         # In order to minimize the number of calls to ViewClip API and reduce
         # the probability of being throttled or banned by Pluralsight we will request
-        # only single format until explicit listformats was requested.
+        # only single format until formats listing was explicitly requested.
         if self._downloader.params.get('listformats', False):
             allowed_qualities = ALLOWED_QUALITIES
         else:
