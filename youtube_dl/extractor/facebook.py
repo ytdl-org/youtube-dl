@@ -10,11 +10,11 @@ from ..compat import (
     compat_str,
     compat_urllib_error,
     compat_urllib_parse_unquote,
-    compat_urllib_request,
 )
 from ..utils import (
     ExtractorError,
     limit_length,
+    sanitized_Request,
     urlencode_postdata,
     get_element_by_id,
     clean_html,
@@ -73,7 +73,7 @@ class FacebookIE(InfoExtractor):
         if useremail is None:
             return
 
-        login_page_req = compat_urllib_request.Request(self._LOGIN_URL)
+        login_page_req = sanitized_Request(self._LOGIN_URL)
         login_page_req.add_header('Cookie', 'locale=en_US')
         login_page = self._download_webpage(login_page_req, None,
                                             note='Downloading login page',
@@ -94,7 +94,7 @@ class FacebookIE(InfoExtractor):
             'timezone': '-60',
             'trynum': '1',
         }
-        request = compat_urllib_request.Request(self._LOGIN_URL, urlencode_postdata(login_form))
+        request = sanitized_Request(self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         try:
             login_results = self._download_webpage(request, None,
@@ -109,7 +109,7 @@ class FacebookIE(InfoExtractor):
                     r'name="h"\s+(?:\w+="[^"]+"\s+)*?value="([^"]+)"', login_results, 'h'),
                 'name_action_selected': 'dont_save',
             }
-            check_req = compat_urllib_request.Request(self._CHECKPOINT_URL, urlencode_postdata(check_form))
+            check_req = sanitized_Request(self._CHECKPOINT_URL, urlencode_postdata(check_form))
             check_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
             check_response = self._download_webpage(check_req, None,
                                                     note='Confirming login')

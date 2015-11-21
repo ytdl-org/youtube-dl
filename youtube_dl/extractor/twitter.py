@@ -4,13 +4,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
 from ..utils import (
     float_or_none,
     xpath_text,
     remove_end,
     int_or_none,
     ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -81,7 +81,7 @@ class TwitterCardIE(InfoExtractor):
         config = None
         formats = []
         for user_agent in USER_AGENTS:
-            request = compat_urllib_request.Request(url)
+            request = sanitized_Request(url)
             request.add_header('User-Agent', user_agent)
             webpage = self._download_webpage(request, video_id)
 

@@ -4,12 +4,13 @@ from __future__ import unicode_literals
 import base64
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
-
 from ..compat import (
     compat_urllib_parse,
     compat_ord,
-    compat_urllib_request,
+)
+from ..utils import (
+    ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -187,7 +188,7 @@ class YoukuIE(InfoExtractor):
         video_id = self._match_id(url)
 
         def retrieve_data(req_url, note):
-            req = compat_urllib_request.Request(req_url)
+            req = sanitized_Request(req_url)
 
             cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
             if cn_verification_proxy:

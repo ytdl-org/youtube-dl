@@ -6,12 +6,10 @@ from random import random
 from math import floor
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-)
 from ..utils import (
     ExtractorError,
     remove_end,
+    sanitized_Request,
 )
 
 
@@ -61,7 +59,7 @@ class IPrimaIE(InfoExtractor):
             (floor(random() * 1073741824), floor(random() * 1073741824))
         )
 
-        req = compat_urllib_request.Request(player_url)
+        req = sanitized_Request(player_url)
         req.add_header('Referer', url)
         playerpage = self._download_webpage(req, video_id)
 

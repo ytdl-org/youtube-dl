@@ -7,15 +7,13 @@ import itertools
 
 from .common import InfoExtractor
 
-from ..compat import (
-    compat_str,
-    compat_urllib_request,
-)
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     determine_ext,
     int_or_none,
     parse_iso8601,
+    sanitized_Request,
     str_to_int,
     unescapeHTML,
 )
@@ -25,7 +23,7 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
     @staticmethod
     def _build_request(url):
         """Build a request with the family filter disabled"""
-        request = compat_urllib_request.Request(url)
+        request = sanitized_Request(url)
         request.add_header('Cookie', 'family_filter=off; ff=off')
         return request
 

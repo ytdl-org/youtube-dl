@@ -2,9 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-)
+from ..utils import sanitized_Request
 
 
 class MovieClipsIE(InfoExtractor):
@@ -25,7 +23,7 @@ class MovieClipsIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
 
-        req = compat_urllib_request.Request(url)
+        req = sanitized_Request(url)
         # it doesn't work if it thinks the browser it's too old
         req.add_header('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20150101 Firefox/43.0 (Chrome)')
         webpage = self._download_webpage(req, display_id)

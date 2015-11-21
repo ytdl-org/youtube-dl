@@ -1189,7 +1189,7 @@ class YoutubeDL(object):
         return res
 
     def _calc_cookies(self, info_dict):
-        pr = compat_urllib_request.Request(info_dict['url'])
+        pr = sanitized_Request(info_dict['url'])
         self.cookiejar.add_cookie_header(pr)
         return pr.get_header('Cookie')
 

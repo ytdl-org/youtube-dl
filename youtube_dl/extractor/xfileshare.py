@@ -4,14 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
     encode_dict,
     int_or_none,
+    sanitized_Request,
 )
 
 
@@ -106,7 +104,7 @@ class XFileShareIE(InfoExtractor):
 
             post = compat_urllib_parse.urlencode(encode_dict(fields))
 
-            req = compat_urllib_request.Request(url, post)
+            req = sanitized_Request(url, post)
             req.add_header('Content-type', 'application/x-www-form-urlencoded')
 
             webpage = self._download_webpage(req, video_id, 'Downloading video page')

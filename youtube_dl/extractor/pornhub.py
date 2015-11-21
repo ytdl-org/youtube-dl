@@ -8,10 +8,10 @@ from ..compat import (
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
     compat_urllib_parse_urlparse,
-    compat_urllib_request,
 )
 from ..utils import (
     ExtractorError,
+    sanitized_Request,
     str_to_int,
 )
 from ..aes import (
@@ -53,7 +53,7 @@ class PornHubIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        req = compat_urllib_request.Request(
+        req = sanitized_Request(
             'http://www.pornhub.com/view_video.php?viewkey=%s' % video_id)
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)

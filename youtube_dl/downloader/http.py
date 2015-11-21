@@ -7,14 +7,12 @@ import time
 import re
 
 from .common import FileDownloader
-from ..compat import (
-    compat_urllib_request,
-    compat_urllib_error,
-)
+from ..compat import compat_urllib_error
 from ..utils import (
     ContentTooShortError,
     encodeFilename,
     sanitize_open,
+    sanitized_Request,
 )
 
 
@@ -29,8 +27,8 @@ class HttpFD(FileDownloader):
         add_headers = info_dict.get('http_headers')
         if add_headers:
             headers.update(add_headers)
-        basic_request = compat_urllib_request.Request(url, None, headers)
-        request = compat_urllib_request.Request(url, None, headers)
+        basic_request = sanitized_Request(url, None, headers)
+        request = sanitized_Request(url, None, headers)
 
         is_test = self.params.get('test', False)
 

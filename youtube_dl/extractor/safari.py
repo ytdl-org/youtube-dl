@@ -6,12 +6,10 @@ import re
 from .common import InfoExtractor
 from .brightcove import BrightcoveLegacyIE
 
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
+    sanitized_Request,
     smuggle_url,
     std_headers,
 )
@@ -58,7 +56,7 @@ class SafariBaseIE(InfoExtractor):
             'next': '',
         }
 
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             self._LOGIN_URL, compat_urllib_parse.urlencode(login_form), headers=headers)
         login_page = self._download_webpage(
             request, None, 'Logging in as %s' % username)

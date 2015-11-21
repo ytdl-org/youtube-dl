@@ -8,13 +8,13 @@ import time
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
-    compat_urllib_request,
     compat_ord,
 )
 from ..utils import (
     determine_ext,
     ExtractorError,
     parse_iso8601,
+    sanitized_Request,
     int_or_none,
     encode_data_uri,
 )
@@ -114,7 +114,7 @@ class LetvIE(InfoExtractor):
             'tkey': self.calc_time_key(int(time.time())),
             'domain': 'www.letv.com'
         }
-        play_json_req = compat_urllib_request.Request(
+        play_json_req = sanitized_Request(
             'http://api.letv.com/mms/out/video/playJson?' + compat_urllib_parse.urlencode(params)
         )
         cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')

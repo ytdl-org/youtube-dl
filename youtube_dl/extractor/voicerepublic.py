@@ -3,14 +3,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-    compat_urlparse,
-)
+from ..compat import compat_urlparse
 from ..utils import (
     ExtractorError,
     determine_ext,
     int_or_none,
+    sanitized_Request,
 )
 
 
@@ -37,7 +35,7 @@ class VoiceRepublicIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
 
-        req = compat_urllib_request.Request(
+        req = sanitized_Request(
             compat_urlparse.urljoin(url, '/talks/%s' % display_id))
         # Older versions of Firefox get redirected to an "upgrade browser" page
         req.add_header('User-Agent', 'youtube-dl')

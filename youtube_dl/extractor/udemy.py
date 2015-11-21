@@ -9,6 +9,7 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -58,7 +59,7 @@ class UdemyIE(InfoExtractor):
             for header, value in headers.items():
                 url_or_request.add_header(header, value)
         else:
-            url_or_request = compat_urllib_request.Request(url_or_request, headers=headers)
+            url_or_request = sanitized_Request(url_or_request, headers=headers)
 
         response = super(UdemyIE, self)._download_json(url_or_request, video_id, note)
         self._handle_error(response)
@@ -89,7 +90,7 @@ class UdemyIE(InfoExtractor):
             'password': password.encode('utf-8'),
         })
 
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         request.add_header('Referer', self._ORIGIN_URL)
         request.add_header('Origin', self._ORIGIN_URL)

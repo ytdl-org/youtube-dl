@@ -3,11 +3,9 @@ from __future__ import unicode_literals
 import json
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-)
 from ..utils import (
     int_or_none,
+    sanitized_Request,
 )
 
 
@@ -46,7 +44,7 @@ class PornotubeIE(InfoExtractor):
             'authenticationSpaceKey': originAuthenticationSpaceKey,
             'credentials': 'Clip Application',
         }
-        token_req = compat_urllib_request.Request(
+        token_req = sanitized_Request(
             'https://api.aebn.net/auth/v1/token/primal',
             data=json.dumps(token_req_data).encode('utf-8'))
         token_req.add_header('Content-Type', 'application/json')
@@ -56,7 +54,7 @@ class PornotubeIE(InfoExtractor):
         token = token_answer['tokenKey']
 
         # Get video URL
-        delivery_req = compat_urllib_request.Request(
+        delivery_req = sanitized_Request(
             'https://api.aebn.net/delivery/v1/clips/%s/MP4' % video_id)
         delivery_req.add_header('Authorization', token)
         delivery_info = self._download_json(
@@ -64,7 +62,7 @@ class PornotubeIE(InfoExtractor):
         video_url = delivery_info['mediaUrl']
 
         # Get additional info (title etc.)
-        info_req = compat_urllib_request.Request(
+        info_req = sanitized_Request(
             'https://api.aebn.net/content/v1/clips/%s?expand='
             'title,description,primaryImageNumber,startSecond,endSecond,'
             'movie.title,movie.MovieId,movie.boxCoverFront,movie.stars,'

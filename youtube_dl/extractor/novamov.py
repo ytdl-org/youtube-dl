@@ -3,14 +3,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-    compat_urlparse,
-)
+from ..compat import compat_urlparse
 from ..utils import (
     ExtractorError,
     NO_DEFAULT,
     encode_dict,
+    sanitized_Request,
     urlencode_postdata,
 )
 
@@ -65,7 +63,7 @@ class NovaMovIE(InfoExtractor):
                 'post url', default=url, group='url')
             if not post_url.startswith('http'):
                 post_url = compat_urlparse.urljoin(url, post_url)
-            request = compat_urllib_request.Request(
+            request = sanitized_Request(
                 post_url, urlencode_postdata(encode_dict(fields)))
             request.add_header('Content-Type', 'application/x-www-form-urlencoded')
             request.add_header('Referer', post_url)

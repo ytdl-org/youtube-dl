@@ -7,14 +7,14 @@ import hmac
 import hashlib
 import itertools
 
+from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
     parse_age_limit,
     parse_iso8601,
+    sanitized_Request,
 )
-from ..compat import compat_urllib_request
-from .common import InfoExtractor
 
 
 class VikiBaseIE(InfoExtractor):
@@ -43,7 +43,7 @@ class VikiBaseIE(InfoExtractor):
             hashlib.sha1
         ).hexdigest()
         url = self._API_URL_TEMPLATE % (query, sig)
-        return compat_urllib_request.Request(
+        return sanitized_Request(
             url, json.dumps(post_data).encode('utf-8')) if post_data else url
 
     def _call_api(self, path, video_id, note, timestamp=None, post_data=None):

@@ -5,11 +5,9 @@ import hashlib
 import time
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-)
 from ..utils import (
     int_or_none,
+    sanitized_Request,
 )
 
 
@@ -54,7 +52,7 @@ class StreamCZIE(InfoExtractor):
         video_id = self._match_id(url)
         api_path = '/episode/%s' % video_id
 
-        req = compat_urllib_request.Request(self._API_URL + api_path)
+        req = sanitized_Request(self._API_URL + api_path)
         req.add_header('Api-Password', _get_api_key(api_path))
         data = self._download_json(req, video_id)
 

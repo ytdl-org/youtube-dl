@@ -4,14 +4,12 @@ import re
 
 from .common import InfoExtractor
 
-from ..compat import (
-    compat_urllib_request,
-    compat_urlparse,
-)
+from ..compat import compat_urlparse
 from ..utils import (
     clean_html,
     int_or_none,
     parse_iso8601,
+    sanitized_Request,
     unescapeHTML,
     xpath_text,
     xpath_with_ns,
@@ -219,7 +217,7 @@ class BlipTVIE(InfoExtractor):
         for lang, url in subtitles_urls.items():
             # For some weird reason, blip.tv serves a video instead of subtitles
             # when we request with a common UA
-            req = compat_urllib_request.Request(url)
+            req = sanitized_Request(url)
             req.add_header('User-Agent', 'youtube-dl')
             subtitles[lang] = [{
                 # The extension is 'srt' but it's actually an 'ass' file
