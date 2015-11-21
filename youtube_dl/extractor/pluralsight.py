@@ -175,7 +175,7 @@ class PluralsightIE(InfoExtractor):
 
 class PluralsightCourseIE(InfoExtractor):
     IE_NAME = 'pluralsight:course'
-    _VALID_URL = r'https?://(?:www\.)?pluralsight\.com/courses/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:(?:www|app)\.)?pluralsight\.com/(?:library/)?courses/(?P<id>[^/]+)'
     _TESTS = [{
         # Free course from Pluralsight Starter Subscription for Microsoft TechNet
         # https://offers.pluralsight.com/technet?loc=zTS3z&prod=zOTprodz&tech=zOttechz&prog=zOTprogz&type=zSOz&media=zOTmediaz&country=zUSz
@@ -189,6 +189,9 @@ class PluralsightCourseIE(InfoExtractor):
     }, {
         # available without pluralsight account
         'url': 'https://www.pluralsight.com/courses/angularjs-get-started',
+        'only_matching': True,
+    }, {
+        'url': 'https://app.pluralsight.com/library/courses/understanding-microsoft-azure-amazon-aws/table-of-contents',
         'only_matching': True,
     }]
 
