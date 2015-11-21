@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import json
+import random
 
 from .common import InfoExtractor
 from ..compat import (
@@ -156,9 +157,17 @@ class PluralsightIE(PluralsightBaseIE):
                 format_id = '%s-%s' % (ext, quality)
                 clip_url = self._download_webpage(
                     request, display_id, 'Downloading %s URL' % format_id, fatal=False)
-                # #6989: sleep 3 seconds to avoid 429 errors.
-                # should help with #6842.
-                self._sleep(3, display_id)
+
+                # Pluralsight tracks multiple sequential calls to ViewClip API and start
+                # to return 429 HTTP errors after some time (see
+                # https://github.com/rg3/youtube-dl/pull/6989). Moreover it may even lead
+                # to account ban (see https://github.com/rg3/youtube-dl/issues/6842).
+                # To somewhat reduce the probability of these consequences
+                # we will sleep random amount of time before each call to ViewClip.
+                self._sleep(
+                    random.randint(2, 5), display_id,
+                    '%(video_id)s: Waiting for %(timeout)s seconds to avoid throttling')
+
                 if not clip_url:
                     continue
                 f.update({
