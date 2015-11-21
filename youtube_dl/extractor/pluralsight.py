@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import re
 import json
 
 from .common import InfoExtractor
@@ -19,11 +18,11 @@ from ..utils import (
 
 class PluralsightIE(InfoExtractor):
     IE_NAME = 'pluralsight'
-    _VALID_URL = r'https?://(?:www\.)?pluralsight\.com/training/player\?author=(?P<author>[^&]+)&name=(?P<name>[^&]+)(?:&mode=live)?&clip=(?P<clip>\d+)&course=(?P<course>[^&]+)'
+    _VALID_URL = r'https?://(?:(?:www|app)\.)?pluralsight\.com/training/player\?'
     _LOGIN_URL = 'https://www.pluralsight.com/id/'
     _NETRC_MACHINE = 'pluralsight'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.pluralsight.com/training/player?author=mike-mckeown&name=hosting-sql-server-windows-azure-iaas-m7-mgmt&mode=live&clip=3&course=hosting-sql-server-windows-azure-iaas',
         'md5': '4d458cf5cf4c593788672419a8dd4cf8',
         'info_dict': {
@@ -33,7 +32,10 @@ class PluralsightIE(InfoExtractor):
             'duration': 338,
         },
         'skip': 'Requires pluralsight account credentials',
-    }
+    }, {
+        'url': 'https://app.pluralsight.com/training/player?course=angularjs-get-started&author=scott-allen&name=angularjs-get-started-m1-introduction&clip=0&mode=live',
+        'only_matching': True,
+    }]
 
     def _real_initialize(self):
         self._login()
@@ -74,11 +76,15 @@ class PluralsightIE(InfoExtractor):
             raise ExtractorError('Unable to login: %s' % error, expected=True)
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        author = mobj.group('author')
-        name = mobj.group('name')
-        clip_id = mobj.group('clip')
-        course = mobj.group('course')
+        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+
+        author = qs.get('author', [None])[0]
+        name = qs.get('name', [None])[0]
+        clip_id = qs.get('clip', [None])[0]
+        course = qs.get('course', [None])[0]
+
+        if any(not f for f in (author, name, clip_id, course,)):
+            raise ExtractorError('Invalid URL', expected=True)
 
         display_id = '%s-%s' % (name, clip_id)
 
