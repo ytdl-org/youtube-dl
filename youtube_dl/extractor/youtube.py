@@ -1764,14 +1764,22 @@ class YoutubeUserPlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
     _VALID_URL = r'https?://(?:\w+\.)?youtube\.com/user/(?P<id>[^/]+)/playlists'
     IE_NAME = 'youtube:user:playlists'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.youtube.com/user/ThirstForScience/playlists',
         'playlist_mincount': 4,
         'info_dict': {
             'id': 'ThirstForScience',
             'title': 'Thirst for Science',
         },
-    }
+    }, {
+        # with "Load more" button
+        'url': 'http://www.youtube.com/user/igorkle1/playlists?view=1&sort=dd',
+        'playlist_mincount': 70,
+        'info_dict': {
+            'id': 'igorkle1',
+            'title': 'Игорь Клейнер',
+        },
+    }]
 
 
 class YoutubeSearchIE(SearchInfoExtractor, YoutubePlaylistIE):
