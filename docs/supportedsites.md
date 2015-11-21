@@ -494,6 +494,7 @@
  - **soompi:show**
  - **soundcloud**
  - **soundcloud:playlist**
+ - **soundcloud:search**: Soundcloud search
  - **soundcloud:set**
  - **soundcloud:user**
  - **soundgasm**
@@ -707,6 +708,7 @@
  - **youtube:show**: YouTube.com (multi-season) shows
  - **youtube:subscriptions**: YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)
  - **youtube:user**: YouTube.com user videos (URL or "ytuser" keyword)
+ - **youtube:user:playlists**: YouTube.com user playlists
  - **youtube:watchlater**: Youtube watch later list, ":ytwatchlater" for short (requires authentication)
  - **Zapiks**
  - **ZDF**
