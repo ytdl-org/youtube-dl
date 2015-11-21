@@ -1668,7 +1668,9 @@ def urlencode_postdata(*args, **kargs):
 
 
 def encode_dict(d, encoding='utf-8'):
-    return dict((k.encode(encoding), v.encode(encoding)) for k, v in d.items())
+    def encode(v):
+        return v.encode(encoding) if isinstance(v, compat_basestring) else v
+    return dict((encode(k), encode(v)) for k, v in d.items())
 
 
 US_RATINGS = {
