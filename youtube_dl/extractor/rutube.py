@@ -74,9 +74,9 @@ class RutubeIE(InfoExtractor):
 class RutubeEmbedIE(InfoExtractor):
     IE_NAME = 'rutube:embed'
     IE_DESC = 'Rutube embedded videos'
-    _VALID_URL = 'https?://rutube\.ru/video/embed/(?P<id>[0-9]+)'
+    _VALID_URL = 'https?://rutube\.ru/(?:video|play)/embed/(?P<id>[0-9]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://rutube.ru/video/embed/6722881?vk_puid37=&vk_puid38=',
         'info_dict': {
             'id': 'a10e53b86e8f349080f718582ce4c661',
@@ -90,7 +90,10 @@ class RutubeEmbedIE(InfoExtractor):
         'params': {
             'skip_download': 'Requires ffmpeg',
         },
-    }
+    }, {
+        'url': 'http://rutube.ru/play/embed/8083783',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         embed_id = self._match_id(url)
