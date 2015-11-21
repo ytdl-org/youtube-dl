@@ -1874,6 +1874,7 @@ class GenericIE(InfoExtractor):
 
         entries = []
         for video_url in found:
+            video_url = video_url.replace('\\/', '/')
             video_url = compat_urlparse.urljoin(url, video_url)
             video_id = compat_urllib_parse_unquote(os.path.basename(video_url))
 
