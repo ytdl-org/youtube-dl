@@ -535,8 +535,4 @@ class SoundcloudSearchIE(SearchInfoExtractor, SoundcloudIE):
 
         results = [self.url_result(track['uri']) for track in itertools.islice(tracks, n)]
 
-        if not results:
-            raise ExtractorError(
-                'Soundcloud said: No track results', expected=True)
-
         return self.playlist_result(results, playlist_title=query)
