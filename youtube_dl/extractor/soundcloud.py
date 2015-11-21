@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 import itertools
 
-from .common import InfoExtractor
+from .common import (
+    InfoExtractor,
+    SearchInfoExtractor
+)
 from ..compat import (
     compat_str,
     compat_urlparse,
@@ -469,3 +472,75 @@ class SoundcloudPlaylistIE(SoundcloudIE):
             'description': data.get('description'),
             'entries': entries,
         }
+
+
+class SoundcloudSearchIE(SearchInfoExtractor, SoundcloudIE):
+    IE_NAME = 'soundcloud:search'
+    IE_DESC = 'Soundcloud search'
+    _MAX_RESULTS = float('inf')
+    _TESTS = [{
+        'url': 'scsearch15:post-avant jazzcore',
+        'info_dict': {
+            'title': 'post-avant jazzcore',
+        },
+        'playlist_count': 15,
+    }]
+
+    _SEARCH_KEY = 'scsearch'
+    _MAX_RESULTS_PER_PAGE = 200
+    _DEFAULT_RESULTS_PER_PAGE = 50
+    _API_V2_BASE = 'https://api-v2.soundcloud.com'
+
+    def _get_collection(self, endpoint, collection_id, **query):
+        query['limit'] = results_per_page = min(
+            query.get('limit', self._DEFAULT_RESULTS_PER_PAGE),
+            self._MAX_RESULTS_PER_PAGE)
+        query['client_id'] = self._CLIENT_ID
+        query['linked_partitioning'] = '1'
+
+        total_results = None
+        collected_results = 0
+
+        next_url = None
+
+        for i in itertools.count():
+            if not next_url:
+                query['offset'] = i * results_per_page
+                data = compat_urllib_parse.urlencode(query)
+                next_url = '{0}{1}?{2}'.format(
+                    self._API_V2_BASE, endpoint, data)
+
+            response = self._download_json(next_url,
+                    video_id=collection_id,
+                    note='Downloading page {0}'.format(i+1),
+                    errnote='Unable to download API page')
+
+            total_results = int(response.get(
+                'total_results', total_results))
+
+            collection = response['collection']
+            collected_results += len(collection)
+
+            for item in filter(bool, collection):
+                yield item
+
+            if (total_results is not None and
+                collected_results >= total_results) or not collection:
+                break
+
+            next_url = response.get('next_href', None)
+
+    def _get_n_results(self, query, n):
+        tracks = self._get_collection('/search/tracks',
+            collection_id='Query "{0}"'.format(query),
+            limit=n, q=query)
+
+        results = [self.url_result(url=track['uri'])
+            for track in itertools.islice(tracks, n)]
+
+        if not results:
+            raise ExtractorError(
+                'Soundcloud said: No track results', expected=True)
+        
+        return self.playlist_result(results, playlist_title=query)
+
