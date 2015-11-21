@@ -1058,6 +1058,20 @@ class GenericIE(InfoExtractor):
                 'description': 'Tabletop: Dread, Last Thoughts',
                 'duration': 51690,
             },
+        },
+        # JWPlayer with M3U8
+        {
+            'url': 'http://ren.tv/novosti/2015-09-25/sluchaynyy-prohozhiy-poymal-avtougonshchika-v-murmanske-video',
+            'info_dict': {
+                'id': 'playlist',
+                'ext': 'mp4',
+                'title': 'Случайный прохожий поймал автоугонщика в Мурманске. ВИДЕО | РЕН ТВ',
+                'uploader': 'ren.tv',
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            }
         }
     ]
 
@@ -1898,6 +1912,8 @@ class GenericIE(InfoExtractor):
                 entry_info_dict['formats'] = self._extract_smil_formats(video_url, video_id)
             elif ext == 'xspf':
                 return self.playlist_result(self._extract_xspf_playlist(video_url, video_id), video_id)
+            elif ext == 'm3u8':
+                entry_info_dict['formats'] = self._extract_m3u8_formats(video_url, video_id, ext='mp4')
             else:
                 entry_info_dict['url'] = video_url
 
