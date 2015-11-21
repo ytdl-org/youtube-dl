@@ -9,7 +9,7 @@ from ..compat import (
     compat_str,
 )
 from ..utils import (
-    ExtractorError,
+    determine_ext,
     unified_strdate,
 )
 
@@ -51,10 +51,26 @@ class RutubeIE(InfoExtractor):
             'http://rutube.ru/api/play/options/%s/?format=json' % video_id,
             video_id, 'Downloading options JSON')
 
-        m3u8_url = options['video_balancer'].get('m3u8')
-        if m3u8_url is None:
-            raise ExtractorError('Couldn\'t find m3u8 manifest url')
-        formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
+        formats = []
+        for format_id, format_url in options['video_balancer'].items():
+            ext = determine_ext(format_url)
+            print(ext)
+            if ext == 'm3u8':
+                m3u8_formats = self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', m3u8_id=format_id, fatal=False)
+                if m3u8_formats:
+                    formats.extend(m3u8_formats)
+            elif ext == 'f4m':
+                f4m_formats = self._extract_f4m_formats(
+                    format_url, video_id, f4m_id=format_id, fatal=False)
+                if f4m_formats:
+                    formats.extend(f4m_formats)
+            else:
+                formats.append({
+                    'url': format_url,
+                    'format_id': format_id,
+                })
+        self._sort_formats(formats)
 
         return {
             'id': video['id'],
