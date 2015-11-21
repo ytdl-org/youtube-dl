@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import json
 import random
+import collections
 
 from .common import InfoExtractor
 from ..compat import (
@@ -131,13 +132,30 @@ class PluralsightIE(PluralsightBaseIE):
             'high': {'width': 1024, 'height': 768},
         }
 
+        AllowedQuality = collections.namedtuple('AllowedQuality', ['ext', 'qualities'])
+
         ALLOWED_QUALITIES = (
-            ('webm', ('high',)),
-            ('mp4', ('low', 'medium', 'high',)),
+            AllowedQuality('webm', ('high',)),
+            AllowedQuality('mp4', ('low', 'medium', 'high',)),
         )
 
+        if self._downloader.params.get('listformats', False):
+            allowed_qualities = ALLOWED_QUALITIES
+        else:
+            def guess_allowed_qualities():
+                req_format = self._downloader.params.get('format') or 'best'
+                req_format_split = req_format.split('-')
+                if len(req_format_split) > 1:
+                    req_ext, req_quality = req_format_split
+                    for allowed_quality in ALLOWED_QUALITIES:
+                        if req_ext == allowed_quality.ext and req_quality in allowed_quality.qualities:
+                            return (AllowedQuality(req_ext, (req_quality, )), )
+                req_ext = 'webm' if self._downloader.params.get('prefer_free_formats') else 'mp4'
+                return (AllowedQuality(req_ext, ('high', )), )
+            allowed_qualities = guess_allowed_qualities()
+
         formats = []
-        for ext, qualities in ALLOWED_QUALITIES:
+        for ext, qualities in allowed_qualities:
             for quality in qualities:
                 f = QUALITIES[quality].copy()
                 clip_post = {
