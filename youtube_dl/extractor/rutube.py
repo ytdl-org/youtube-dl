@@ -54,7 +54,6 @@ class RutubeIE(InfoExtractor):
         formats = []
         for format_id, format_url in options['video_balancer'].items():
             ext = determine_ext(format_url)
-            print(ext)
             if ext == 'm3u8':
                 m3u8_formats = self._extract_m3u8_formats(
                     format_url, video_id, 'mp4', m3u8_id=format_id, fatal=False)
