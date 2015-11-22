@@ -879,10 +879,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             r';ytplayer\.config\s*=\s*({.*?});ytplayer',
             r';ytplayer\.config\s*=\s*({.*?});',
         ]
-        for pattern in patterns:
-            config = self._search_regex(pattern, webpage, 'ytconfig.player', default=None)
-            if config is not None:
-                return json.loads(uppercase_escape(config))
+        config = self._search_regex(patterns, webpage, 'ytconfig.player', default=None)
+        if config is not None:
+            return json.loads(uppercase_escape(config))
 
     def _get_automatic_captions(self, video_id, webpage):
         """We need the webpage for getting the captions url, pass it as an
