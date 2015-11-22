@@ -104,19 +104,29 @@ class PluralsightIE(PluralsightBaseIE):
 
         webpage = self._download_webpage(url, display_id)
 
-        collection = self._parse_json(
-            self._search_regex(
-                r'moduleCollection\s*:\s*new\s+ModuleCollection\((\[.+?\])\s*,\s*\$rootScope\)',
-                webpage, 'modules'),
-            display_id)
+        modules = self._search_regex(
+            r'moduleCollection\s*:\s*new\s+ModuleCollection\((\[.+?\])\s*,\s*\$rootScope\)',
+            webpage, 'modules', default=None)
+
+        if modules:
+            collection = self._parse_json(modules, display_id)
+        else:
+            # Webpage may be served in different layout (see
+            # https://github.com/rg3/youtube-dl/issues/7607)
+            collection = self._parse_json(
+                self._search_regex(
+                    r'var\s+initialState\s*=\s*({.+?});\n', webpage, 'initial state'),
+                display_id)['course']['modules']
 
         module, clip = None, None
 
         for module_ in collection:
-            if module_.get('moduleName') == name:
+            if name in (module_.get('moduleName'), module_.get('name')):
                 module = module_
                 for clip_ in module_.get('clips', []):
                     clip_index = clip_.get('clipIndex')
+                    if clip_index is None:
+                        clip_index = clip_.get('index')
                     if clip_index is None:
                         continue
                     if compat_str(clip_index) == clip_id:
