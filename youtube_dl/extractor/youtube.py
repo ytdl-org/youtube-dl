@@ -1074,7 +1074,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             age_gate = False
             video_info = None
             # Try looking directly into the video webpage
-            mobj = re.search(r';ytplayer\.config\s*=\s*({.*?});', video_webpage)
+            mobj = re.search(r';ytplayer\.config\s*=\s*({.*?});ytplayer', video_webpage)
             if mobj:
                 json_code = uppercase_escape(mobj.group(1))
                 ytplayer_config = json.loads(json_code)
