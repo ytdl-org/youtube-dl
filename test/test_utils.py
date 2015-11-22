@@ -21,6 +21,7 @@ from youtube_dl.utils import (
     clean_html,
     DateRange,
     detect_exe_version,
+    determine_ext,
     encodeFilename,
     escape_rfc3986,
     escape_url,
@@ -237,6 +238,10 @@ class TestUtil(unittest.TestCase):
             '20150202')
         self.assertEqual(unified_strdate('25-09-2014'), '20140925')
         self.assertEqual(unified_strdate('UNKNOWN DATE FORMAT'), None)
+
+    def test_determine_ext(self):
+        self.assertEqual(determine_ext('http://example.com/foo/bar.mp4/?download'), 'mp4')
+        self.assertEqual(determine_ext('http://example.com/foo/bar/?download', None), None)
 
     def test_find_xpath_attr(self):
         testxml = '''<root>
