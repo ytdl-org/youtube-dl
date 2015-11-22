@@ -674,7 +674,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         {
             'url': 'http://vid.plus/FlRa-iH7PGw',
             'only_matching': True,
-        }
+        },
+        {
+            # Title with JS-like syntax "};"
+            'url': 'https://www.youtube.com/watch?v=lsguqyKfVQg',
+            'info_dict': {
+                'id': 'lsguqyKfVQg',
+                'ext': 'mp4',
+                'title': '{dark walk}; Loki/AC/Dishonored; collab w/Elflover21',
+                'description': 'md5:8085699c11dc3f597ce0410b0dcbb34a',
+                'upload_date': '20151119',
+                'uploader_id': 'IronSoulElf',
+                'uploader': 'IronSoulElf',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -858,16 +874,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return {}
         return sub_lang_list
 
+    def _get_ytplayer_config(self, webpage):
+        patterns = [
+            r';ytplayer\.config\s*=\s*({.*?});ytplayer',
+            r';ytplayer\.config\s*=\s*({.*?});',
+        ]
+        for pattern in patterns:
+            config = self._search_regex(pattern, webpage, 'ytconfig.player', default=None)
+            if config is not None:
+                return json.loads(uppercase_escape(config))
+
     def _get_automatic_captions(self, video_id, webpage):
         """We need the webpage for getting the captions url, pass it as an
            argument to speed up the process."""
         self.to_screen('%s: Looking for automatic captions' % video_id)
-        mobj = re.search(r';ytplayer.config = ({.*?});', webpage)
+        player_config = self._get_ytplayer_config(webpage)
         err_msg = 'Couldn\'t find automatic captions for %s' % video_id
-        if mobj is None:
+        if player_config is None:
             self._downloader.report_warning(err_msg)
             return {}
-        player_config = json.loads(mobj.group(1))
         try:
             args = player_config['args']
             caption_url = args['ttsurl']
@@ -1074,10 +1099,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             age_gate = False
             video_info = None
             # Try looking directly into the video webpage
-            mobj = re.search(r';ytplayer\.config\s*=\s*({.*?});ytplayer', video_webpage)
-            if mobj:
-                json_code = uppercase_escape(mobj.group(1))
-                ytplayer_config = json.loads(json_code)
+            ytplayer_config = self._get_ytplayer_config(video_webpage)
+            if ytplayer_config is not None:
                 args = ytplayer_config['args']
                 if args.get('url_encoded_fmt_stream_map'):
                     # Convert to the same format returned by compat_parse_qs
