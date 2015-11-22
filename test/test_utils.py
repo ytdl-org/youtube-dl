@@ -242,6 +242,9 @@ class TestUtil(unittest.TestCase):
     def test_determine_ext(self):
         self.assertEqual(determine_ext('http://example.com/foo/bar.mp4/?download'), 'mp4')
         self.assertEqual(determine_ext('http://example.com/foo/bar/?download', None), None)
+        self.assertEqual(determine_ext('http://example.com/foo/bar.nonext/?download', None), None)
+        self.assertEqual(determine_ext('http://example.com/foo/bar/mp4?download', None), None)
+        self.assertEqual(determine_ext('http://example.com/foo/bar.m3u8//?download'), 'm3u8')
 
     def test_find_xpath_attr(self):
         testxml = '''<root>

@@ -922,9 +922,24 @@ def unified_strdate(date_str, day_first=True):
 def determine_ext(url, default_ext='unknown_video'):
     if url is None:
         return default_ext
-    guess = url.partition('?')[0].rpartition('.')[2].rstrip('/')
+    guess = url.partition('?')[0].rpartition('.')[2]
     if re.match(r'^[A-Za-z0-9]+$', guess):
         return guess
+    elif guess.rstrip('/') in (
+            'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v', 'aac',
+            'flv', 'f4v', 'f4a', 'f4b',
+            'webm', 'ogg', 'ogv', 'oga', 'ogx', 'spx', 'opus',
+            'mkv', 'mka', 'mk3d',
+            'avi', 'divx',
+            'mov',
+            'asf', 'wmv', 'wma',
+            '3gp', '3g2',
+            'mp3',
+            'flac',
+            'ape',
+            'wav',
+            'f4f', 'f4m', 'm3u8', 'smil'):
+        return guess.rstrip('/')
     else:
         return default_ext
 
