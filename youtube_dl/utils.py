@@ -922,7 +922,7 @@ def unified_strdate(date_str, day_first=True):
 def determine_ext(url, default_ext='unknown_video'):
     if url is None:
         return default_ext
-    guess = url.partition('?')[0].rpartition('.')[2]
+    guess = url.partition('?')[0].rpartition('.')[2].rstrip('/')
     if re.match(r'^[A-Za-z0-9]+$', guess):
         return guess
     else:
