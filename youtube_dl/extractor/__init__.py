@@ -353,6 +353,7 @@ from .movshare import MovShareIE
 from .mtv import (
     MTVIE,
     MTVServicesEmbeddedIE,
+    MTV81IE,
     MTVIggyIE,
     MTVDEIE,
 )

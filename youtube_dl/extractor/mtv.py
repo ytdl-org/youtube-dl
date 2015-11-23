@@ -4,10 +4,13 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
     compat_str,
 )
 from ..utils import (
+    compat_urlparse,
+    compat_urllib_parse,
+    compat_urllib_parse_urlparse,
+    compat_parse_qs,
     ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
@@ -40,8 +43,16 @@ class MTVServicesInfoExtractor(InfoExtractor):
         base = 'http://viacommtvstrmfs.fplive.net/'
         return base + m.group('finalid')
 
+    def _get_feed_base_url(self, uri):
+        return self._FEED_BASE_URL
+
     def _get_feed_url(self, uri):
-        return self._FEED_URL
+        data = compat_urllib_parse.urlencode({'uri': uri})
+        feed_url = self._get_feed_base_url(uri) + '?'
+        if self._LANG:
+            feed_url += 'lang=%s&' % self._LANG
+        feed_url += data
+        return feed_url
 
     def _get_thumbnail_url(self, uri, itemdoc):
         search_path = '%s/%s' % (_media_xml_tag('group'), _media_xml_tag('thumbnail'))
@@ -170,12 +181,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
     def _get_videos_info(self, uri):
         video_id = self._id_from_uri(uri)
         feed_url = self._get_feed_url(uri)
-        data = compat_urllib_parse.urlencode({'uri': uri})
-        info_url = feed_url + '?'
-        if self._LANG:
-            info_url += 'lang=%s&' % self._LANG
-        info_url += data
-        return self._get_videos_info_from_url(info_url, video_id)
+        return self._get_videos_info_from_url(feed_url, video_id)
 
     def _get_videos_info_from_url(self, url, video_id):
         idoc = self._download_xml(
@@ -199,7 +205,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
         if mgid is None or ':' not in mgid:
             mgid = self._search_regex(
-                [r'data-mgid="(.*?)"', r'swfobject.embedSWF\(".*?(mgid:.*?)"'],
+                [r'data-mgid="(.*?)"', r'(?:swfobject.embedSWF)|(?:getTheVideo)\(".*?(mgid:.*?)"'],
                 webpage, 'mgid', default=None)
 
         if not mgid:
@@ -235,7 +241,7 @@ class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
         if mobj:
             return mobj.group('url')
 
-    def _get_feed_url(self, uri):
+    def _get_feed_base_url(self, uri):
         video_id = self._id_from_uri(uri)
         site_id = uri.replace(video_id, '')
         config_url = ('http://media.mtvnservices.com/pmt/e1/players/{0}/'
@@ -251,12 +257,48 @@ class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
         return self._get_videos_info(mgid)
 
 
+class MTV81IE(MTVServicesInfoExtractor):
+    IE_NAME = 'mtv81.com'
+    _VALID_URL = r'https?://www.mtv81.com/videos/'
+
+    _TEST = {
+        'url': 'http://www.mtv81.com/videos/artist-to-watch/the-godfather-of-japanese-hip-hop-segment-1/',
+        'md5': 'a253c454fa662955b95d47d998ab1119',
+        'info_dict': {
+            'id': '1105285',
+            'ext': 'mp4',
+            'title': 'Artist to Watch - KRUSH - Segment 1',
+            'description': '<i>Artist to Watch - KRUSH - Segment 1</i><br/><br/>'
+        },
+    }
+
+    def _get_feed_url(self, uri):
+        video_id = self._id_from_uri(uri)
+        site_id = uri.replace(video_id, '')
+        config_url = ('http://media.mtvnservices.com/pmt/e1/players/{0}/'
+                      'config.xml'.format(site_id))
+        config_doc = self._download_xml(config_url, video_id)
+        feed_node = config_doc.find('.//feed')
+        feed_original_url = feed_node.text.strip()
+        # we need to keep 'version' query parameter and add 'uri' one
+        feed_original_url_parts = compat_urllib_parse_urlparse(feed_original_url)
+        feed_original_query_parts = compat_parse_qs(feed_original_url_parts.query)
+        try:
+            feed_query_parts = {'version': feed_original_query_parts['version']}
+        except KeyError:
+            feed_query_parts = {}
+        feed_query_parts['uri'] = uri
+        feed_query = compat_urllib_parse.urlencode(feed_query_parts, doseq=True)
+        feed_url = compat_urlparse.urlunparse((feed_original_url_parts.scheme, feed_original_url_parts.netloc, feed_original_url_parts.path, feed_original_url_parts.params, feed_query, feed_original_url_parts.fragment))
+        return feed_url
+
+
 class MTVIE(MTVServicesInfoExtractor):
     _VALID_URL = r'''(?x)^https?://
         (?:(?:www\.)?mtv\.com/videos/.+?/(?P<videoid>[0-9]+)/[^/]+$|
            m\.mtv\.com/videos/video\.rbml\?.*?id=(?P<mgid>[^&]+))'''
 
-    _FEED_URL = 'http://www.mtv.com/player/embed/AS3/rss/'
+    _FEED_BASE_URL = 'http://www.mtv.com/player/embed/AS3/rss/'
 
     _TESTS = [
         {
@@ -304,7 +346,7 @@ class MTVIggyIE(MTVServicesInfoExtractor):
             'title': 'Arcade Fire: Behind the Scenes at the Biggest Music Experiment Yet',
         }
     }
-    _FEED_URL = 'http://all.mtvworldverticals.com/feed-xml/'
+    _FEED_BASE_URL = 'http://all.mtvworldverticals.com/feed-xml/'
 
 
 class MTVDEIE(MTVServicesInfoExtractor):
