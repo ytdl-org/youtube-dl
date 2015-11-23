@@ -891,22 +891,24 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return {}
         return sub_lang_list
 
-    def _get_ytplayer_config(self, webpage):
-        patterns = [
-            r';ytplayer\.config\s*=\s*({.*?});ytplayer',
-            r';ytplayer\.config\s*=\s*({.*?});',
-        ]
-        config = self._search_regex(patterns, webpage, 'ytconfig.player', default=None)
-        if config is not None:
-            return json.loads(uppercase_escape(config))
+    def _get_ytplayer_config(self, video_id, webpage):
+        patterns = (
+            r';ytplayer\.config\s*=\s*({.+?});ytplayer',
+            r';ytplayer\.config\s*=\s*({.+?});',
+        )
+        config = self._search_regex(
+            patterns, webpage, 'ytplayer.config', default=None)
+        if config:
+            return self._parse_json(
+                uppercase_escape(config), video_id, fatal=False)
 
     def _get_automatic_captions(self, video_id, webpage):
         """We need the webpage for getting the captions url, pass it as an
            argument to speed up the process."""
         self.to_screen('%s: Looking for automatic captions' % video_id)
-        player_config = self._get_ytplayer_config(webpage)
+        player_config = self._get_ytplayer_config(video_id, webpage)
         err_msg = 'Couldn\'t find automatic captions for %s' % video_id
-        if player_config is None:
+        if not player_config:
             self._downloader.report_warning(err_msg)
             return {}
         try:
@@ -1115,8 +1117,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             age_gate = False
             video_info = None
             # Try looking directly into the video webpage
-            ytplayer_config = self._get_ytplayer_config(video_webpage)
-            if ytplayer_config is not None:
+            ytplayer_config = self._get_ytplayer_config(video_id, video_webpage)
+            if ytplayer_config:
                 args = ytplayer_config['args']
                 if args.get('url_encoded_fmt_stream_map'):
                     # Convert to the same format returned by compat_parse_qs
