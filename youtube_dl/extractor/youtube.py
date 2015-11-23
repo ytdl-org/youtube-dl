@@ -426,7 +426,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': 'Principal Sexually Assaults A Teacher - Episode 117 - 8th June 2012',
                 'description': 'md5:09b78bd971f1e3e289601dfba15ca4f7',
                 'uploader': 'SET India',
-                'uploader_id': 'setindia'
+                'uploader_id': 'setindia',
+                'age_limit': 18,
             }
         },
         {
