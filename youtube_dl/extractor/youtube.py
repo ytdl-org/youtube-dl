@@ -693,7 +693,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'only_matching': True,
         },
         {
-            # Title with JS-like syntax "};"
+            # Title with JS-like syntax "};" (see https://github.com/rg3/youtube-dl/issues/7468)
             'url': 'https://www.youtube.com/watch?v=lsguqyKfVQg',
             'info_dict': {
                 'id': 'lsguqyKfVQg',
@@ -707,6 +707,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'params': {
                 'skip_download': True,
             },
+        },
+        {
+            # Tags with '};' (see https://github.com/rg3/youtube-dl/issues/7468)
+            'url': 'https://www.youtube.com/watch?v=Ms7iBXnlUO8',
+            'only_matching': True,
         },
     ]
 
