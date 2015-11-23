@@ -898,6 +898,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _get_ytplayer_config(self, video_id, webpage):
         patterns = (
+            # User data may contain arbitrary character sequences that may affect
+            # JSON extraction with regex, e.g. when '};' is contained the second
+            # regex won't capture the whole JSON. Yet working around by trying more
+            # concrete regex first keeping in mind proper quoted string handling
+            # to be implemented in future that will replace this workaround (see
+            # https://github.com/rg3/youtube-dl/issues/7468,
+            # https://github.com/rg3/youtube-dl/pull/7599)
             r';ytplayer\.config\s*=\s*({.+?});ytplayer',
             r';ytplayer\.config\s*=\s*({.+?});',
         )
