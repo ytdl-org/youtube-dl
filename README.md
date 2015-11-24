@@ -534,6 +534,12 @@ Most people asking this question are not aware that youtube-dl now defaults to d
 
 Apparently YouTube requires you to pass a CAPTCHA test if you download too much. We're [considering to provide a way to let you solve the CAPTCHA](https://github.com/rg3/youtube-dl/issues/154), but at the moment, your best course of action is pointing a webbrowser to the youtube URL, solving the CAPTCHA, and restart youtube-dl.
 
+### Do I need any other programs?
+
+youtube-dl works fine on its own on most sites. However, if you want to convert video/audio, you'll need [avconv](https://libav.org/) or [ffmpeg](https://www.ffmpeg.org/). On some sites - most notably YouTube - videos can be retrieved in a higher quality format without sound. youtube-dl will detect whether avconv/ffmpeg is present and automatically pick the best option.
+
+Some videos or video formats can also be only downloaded when [rtmpdump](https://rtmpdump.mplayerhq.hu/) is installed.
+
 ### I have downloaded a video but how can I play it?
 
 Once the video is fully downloaded, use any video player, such as [vlc](http://www.videolan.org) or [mplayer](http://www.mplayerhq.hu/).
