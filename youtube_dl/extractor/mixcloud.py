@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 
 import re
+import json
+import itertools
 
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
@@ -41,6 +43,18 @@ class MixcloudIE(InfoExtractor):
             'view_count': int,
             'like_count': int,
         },
+    }, {
+        'url': 'https://www.mixcloud.com/freshlifechurch/moment-maker/',
+        'md5': 'b8cbf9ec43e1ae5c9a1757087692d384',
+        'info_dict': {
+            'id': 'freshlifechurch-moment-maker',
+            'ext': 'mp3',
+            'title': 'Moment Maker',
+            'description': 'md5:ed6ac0493c017b5200a88bb4716663b6',
+            'uploader': 'fresh life church',
+            'uploader_id': 'freshlifechurch',
+            'thumbnail': 're:https?://.*/images/',
+        },
     }]
 
     def _check_url(self, url, track_id, ext):
@@ -63,12 +77,20 @@ class MixcloudIE(InfoExtractor):
         webpage = self._download_webpage(url, track_id)
 
         preview_url = self._search_regex(
-            r'\s(?:data-preview-url|m-preview)="([^"]+)"', webpage, 'preview url')
-        song_url = preview_url.replace('/previews/', '/c/originals/')
-        if not self._check_url(song_url, track_id, 'mp3'):
-            song_url = song_url.replace('.mp3', '.m4a').replace('originals/', 'm4a/64/')
-            if not self._check_url(song_url, track_id, 'm4a'):
-                raise ExtractorError('Unable to extract track url')
+            r'\s(?:data-preview-url|m-preview)="([^"]+)"', webpage, 'preview url', default=None)
+        if preview_url is not None:
+            song_url = preview_url.replace('/previews/', '/c/originals/')
+            if not self._check_url(song_url, track_id, 'mp3'):
+                song_url = song_url.replace('.mp3', '.m4a').replace('originals/', 'm4a/64/')
+                if not self._check_url(song_url, track_id, 'm4a'):
+                    raise ExtractorError('Unable to extract track url')
+        else:
+            play_info_encoded = self._search_regex(
+                r'\sm-play-info="([^"]+)"', webpage, 'preview url').decode('base64')
+            secret = 'cGxlYXNlZG9udGRvd25sb2Fkb3VybXVzaWN0aGVhcnRpc3Rzd29udGdldHBhaWQ='.decode('base64')
+            play_info_json = ''.join(chr(ord(a) ^ ord(b)) for a, b in itertools.izip(play_info_encoded, itertools.cycle(secret)))
+            play_info = json.loads(play_info_json)
+            song_url = play_info.get('stream_url')
 
         PREFIX = (
             r'm-play-on-spacebar[^>]+'
@@ -86,11 +108,11 @@ class MixcloudIE(InfoExtractor):
         description = self._og_search_description(webpage)
         like_count = str_to_int(self._search_regex(
             r'\bbutton-favorite\b[^>]+m-ajax-toggle-count="([^"]+)"',
-            webpage, 'like count', fatal=False))
+            webpage, 'like count', default=None))
         view_count = str_to_int(self._search_regex(
             [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
              r'/listeners/?">([0-9,.]+)</a>'],
-            webpage, 'play count', fatal=False))
+            webpage, 'play count', default=None))
 
         return {
             'id': track_id,
