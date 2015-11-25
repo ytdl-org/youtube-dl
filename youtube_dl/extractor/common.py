@@ -390,9 +390,9 @@ class InfoExtractor(object):
             except AttributeError:
                 url = url_or_request
             basen = '%s_%s' % (video_id, url)
-            if len(basen) > 240:
+            if len(basen) > 100:
                 h = '___' + hashlib.md5(basen.encode('utf-8')).hexdigest()
-                basen = basen[:240 - len(h)] + h
+                basen = basen[:100 - len(h)] + h
             raw_filename = basen + '.dump'
             filename = sanitize_filename(raw_filename, restricted=True)
             self.to_screen('Saving request to ' + filename)
