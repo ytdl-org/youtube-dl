@@ -13,6 +13,7 @@ from ..compat import (
     compat_urllib_parse_urlparse,
     compat_urlparse,
     compat_xml_parse_error,
+    compat_HTTPError,
 )
 from ..utils import (
     determine_ext,
@@ -413,7 +414,7 @@ class BrightcoveNewIE(InfoExtractor):
                     </video>.*?
                     <script[^>]+
                         src=["\'](?:https?:)?//players\.brightcove\.net/
-                        (\d+)/([\da-f-]+)_([^/]+)/index\.min\.js
+                        (\d+)/([\da-f-]+)_([^/]+)/index(?:\.min)?\.js
                 ''', webpage):
             entries.append(
                 'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'
@@ -447,7 +448,13 @@ class BrightcoveNewIE(InfoExtractor):
             'https://edge.api.brightcove.com/playback/v1/accounts/%s/videos/%s'
             % (account_id, video_id),
             headers={'Accept': 'application/json;pk=%s' % policy_key})
-        json_data = self._download_json(req, video_id)
+        try:
+            json_data = self._download_json(req, video_id)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                json_data = self._parse_json(e.cause.read().decode(), video_id)
+                raise ExtractorError(json_data[0]['message'], expected=True)
+            raise
 
         title = json_data['name']
 
