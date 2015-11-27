@@ -35,7 +35,7 @@ class HlsFD(FileDownloader):
             # [http @ 00000000003d2fa0] No trailing CRLF found in HTTP header.
             args += [
                 '-headers',
-                ''.join('%s: %s\r\n' % (key, val) for key, val in info_dict['http_headers'].items())]
+                ''.join('%s: %s\r\n' % (key, val) for key, val in info_dict['http_headers'].items() if key.lower() != 'accept-encoding')]
 
         args += ['-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc']
 
