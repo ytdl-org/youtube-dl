@@ -714,6 +714,22 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://www.youtube.com/watch?v=Ms7iBXnlUO8',
             'only_matching': True,
         },
+        {
+            # Video with yt:stretch=17:0
+            'url': 'https://www.youtube.com/watch?v=Q39EVAstoRM',
+            'info_dict': {
+                'id': 'Q39EVAstoRM',
+                'ext': 'mp4',
+                'title': 'Clash Of Clans#14 Dicas De Ataque Para CV 4',
+                'description': 'md5:ee18a25c350637c8faff806845bddee9',
+                'upload_date': '20151107',
+                'uploader_id': 'UCCr7TALkRbo3EtFzETQF1LA',
+                'uploader': 'CH GAMER DROID',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1496,10 +1512,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             r'<meta\s+property="og:video:tag".*?content="yt:stretch=(?P<w>[0-9]+):(?P<h>[0-9]+)">',
             video_webpage)
         if stretched_m:
-            ratio = float(stretched_m.group('w')) / float(stretched_m.group('h'))
-            for f in formats:
-                if f.get('vcodec') != 'none':
-                    f['stretched_ratio'] = ratio
+            w = float(stretched_m.group('w'))
+            h = float(stretched_m.group('h'))
+            if w > 0 and h > 0:
+                ratio = float(stretched_m.group('w')) / float(stretched_m.group('h'))
+                for f in formats:
+                    if f.get('vcodec') != 'none':
+                        f['stretched_ratio'] = ratio
 
         self._sort_formats(formats)
 
