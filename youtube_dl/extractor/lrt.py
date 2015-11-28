@@ -37,8 +37,7 @@ class LRTIE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(webpage)
         description = self._og_search_description(webpage)
         duration = parse_duration(self._search_regex(
-            r"'duration':\s*'([^']+)',", webpage,
-            'duration', fatal=False, default=None))
+            r"var record_len = '([0-9]+:[0-9]+:[0-9]+)';", webpage, 'record_len', fatal=False, default=None))
 
         formats = []
         for js in re.findall(r'(?s)config:\s*(\{.*?\})', webpage):
