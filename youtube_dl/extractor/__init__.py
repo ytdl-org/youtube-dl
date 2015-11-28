@@ -554,6 +554,10 @@ from .shahid import ShahidIE
 from .shared import SharedIE
 from .sharesix import ShareSixIE
 from .sina import SinaIE
+from .skynewsarabia import (
+    SkyNewsArabiaIE,
+    SkyNewsArabiaArticleIE,
+)
 from .slideshare import SlideshareIE
 from .slutload import SlutloadIE
 from .smotri import (
