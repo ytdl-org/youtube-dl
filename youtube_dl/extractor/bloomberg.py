@@ -35,7 +35,7 @@ class BloombergIE(InfoExtractor):
             'http://www.bloomberg.com/api/embed?id=%s' % video_id, video_id)
         formats = []
         for stream in embed_info['streams']:
-            if stream["muxing_format"] == "TS":
+            if stream['muxing_format'] == 'TS':
                 formats.extend(self._extract_m3u8_formats(stream['url'], video_id))
             else:
                 formats.extend(self._extract_f4m_formats(stream['url'], video_id))
