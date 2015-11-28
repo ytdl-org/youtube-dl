@@ -40,7 +40,7 @@ class SkyNewArabiaBaseIE(InfoExtractor):
 
 
 class SkyNewsArabiaIE(SkyNewArabiaBaseIE):
-    _IE_NAME = 'skynewsarabia:video'
+    IE_NAME = 'skynewsarabia:video'
     _VALID_URL = r'https?://(?:www\.)?skynewsarabia\.com/web/video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.skynewsarabia.com/web/video/794902/%D9%86%D8%B5%D9%81-%D9%85%D9%84%D9%8A%D9%88%D9%86-%D9%85%D8%B5%D8%A8%D8%A7%D8%AD-%D8%B4%D8%AC%D8%B1%D8%A9-%D9%83%D8%B1%D9%8A%D8%B3%D9%85%D8%A7%D8%B3',
@@ -66,7 +66,7 @@ class SkyNewsArabiaIE(SkyNewArabiaBaseIE):
 
 
 class SkyNewsArabiaArticleIE(SkyNewArabiaBaseIE):
-    _IE_NAME = 'skynewsarabia:video'
+    IE_NAME = 'skynewsarabia:video'
     _VALID_URL = r'https?://(?:www\.)?skynewsarabia\.com/web/article/(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://www.skynewsarabia.com/web/article/794549/%D8%A7%D9%94%D8%AD%D8%AF%D8%A7%D8%AB-%D8%A7%D9%84%D8%B4%D8%B1%D9%82-%D8%A7%D9%84%D8%A7%D9%94%D9%88%D8%B3%D8%B7-%D8%AE%D8%B1%D9%8A%D8%B7%D8%A9-%D8%A7%D9%84%D8%A7%D9%94%D9%84%D8%B9%D8%A7%D8%A8-%D8%A7%D9%84%D8%B0%D9%83%D9%8A%D8%A9',
