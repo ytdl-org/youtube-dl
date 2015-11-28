@@ -1515,7 +1515,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             w = float(stretched_m.group('w'))
             h = float(stretched_m.group('h'))
             if w > 0 and h > 0:
-                ratio = float(stretched_m.group('w')) / float(stretched_m.group('h'))
+                ratio = w / h
                 for f in formats:
                     if f.get('vcodec') != 'none':
                         f['stretched_ratio'] = ratio
