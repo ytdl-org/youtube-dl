@@ -23,6 +23,7 @@ class SkyNewArabiaBaseIE(InfoExtractor):
 
     def _extract_video_info(self, video_data):
         video_id = compat_str(video_data['id'])
+        topic = video_data.get('topicTitle')
         return {
             '_type': 'url_transparent',
             'url': 'limelight:media:%s' % self._get_limelight_media_id(video_data['videoUrl'][0]['url']),
@@ -32,8 +33,8 @@ class SkyNewArabiaBaseIE(InfoExtractor):
             'thumbnail': self._get_image_url(video_data['mediaAsset']['imageUrl']),
             'timestamp': parse_iso8601(video_data.get('date')),
             'duration': parse_duration(video_data.get('runTime')),
-            'tags': video_data.get('tags'),
-            'categories': [video_data.get('topicTitle')],
+            'tags': video_data.get('tags', []),
+            'categories': [topic] if topic else [],
             'webpage_url': 'http://www.skynewsarabia.com/web/video/%s' % video_id,
             'ie_key': 'LimelightMedia',
         }
@@ -98,6 +99,7 @@ class SkyNewsArabiaArticleIE(SkyNewArabiaBaseIE):
         article_data = self._call_api('article', article_id)
         media_asset = article_data['mediaAsset']
         if media_asset['type'] == 'VIDEO':
+            topic = article_data.get('topicTitle')
             return {
                 '_type': 'url_transparent',
                 'url': 'limelight:media:%s' % self._get_limelight_media_id(media_asset['videoUrl'][0]['url']),
@@ -106,8 +108,8 @@ class SkyNewsArabiaArticleIE(SkyNewArabiaBaseIE):
                 'description': article_data.get('summary'),
                 'thumbnail': self._get_image_url(media_asset['imageUrl']),
                 'timestamp': parse_iso8601(article_data.get('date')),
-                'tags': article_data.get('tags'),
-                'categories': [article_data.get('topicTitle')],
+                'tags': article_data.get('tags', []),
+                'categories': [topic] if topic else [],
                 'webpage_url': url,
                 'ie_key': 'LimelightMedia',
             }
