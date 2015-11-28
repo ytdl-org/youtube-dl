@@ -1514,6 +1514,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if stretched_m:
             w = float(stretched_m.group('w'))
             h = float(stretched_m.group('h'))
+            # yt:stretch may hold invalid ratio data (e.g. for Q39EVAstoRM ratio is 17:0).
+            # We will only process correct ratios.
             if w > 0 and h > 0:
                 ratio = w / h
                 for f in formats:
