@@ -1566,7 +1566,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor, YoutubePlaylistBaseInfoExtract
                         youtube\.com/
                         (?:
                            (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/videoseries)
-                           \? (?:.*?&)*? (?:p|a|list)=
+                           \? (?:.*?[&;])*? (?:p|a|list)=
                         |  p/
                         )
                         (
