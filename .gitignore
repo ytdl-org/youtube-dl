@@ -33,3 +33,5 @@ test/testdata
 youtube-dl.zsh
 .idea
 .idea/*
+*.mo
+*.po.old

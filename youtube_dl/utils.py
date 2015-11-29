@@ -12,6 +12,7 @@ import datetime
 import email.utils
 import errno
 import functools
+import gettext
 import gzip
 import itertools
 import io
@@ -2510,6 +2511,14 @@ class ISO3166Utils(object):
     def short2full(cls, code):
         """Convert an ISO 3166-2 country code to the corresponding full name"""
         return cls._country_map.get(code.upper())
+
+
+def g(s):
+    if gettext.textdomain() != 'youtube_dl':
+        gettext.textdomain('youtube_dl')
+        gettext.bindtextdomain('youtube_dl', localedir='share/locale/')
+
+    return gettext.gettext(s)
 
 
 class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):

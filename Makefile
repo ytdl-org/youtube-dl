@@ -48,7 +48,7 @@ offlinetest: codetest
 
 tar: youtube-dl.tar.gz
 
-.PHONY: all clean install test tar bash-completion pypi-files zsh-completion fish-completion ot offlinetest codetest supportedsites
+.PHONY: all clean install test tar bash-completion pypi-files zsh-completion fish-completion ot offlinetest codetest supportedsites update-po update-gmo
 
 pypi-files: youtube-dl.bash-completion README.txt youtube-dl.1 youtube-dl.fish
 
@@ -109,3 +109,21 @@ youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-
 		Makefile MANIFEST.in youtube-dl.1 youtube-dl.bash-completion \
 		youtube-dl.zsh youtube-dl.fish setup.py \
 		youtube-dl
+
+update-po: po/youtube_dl.pot
+	for file in po/*.po ; do \
+		lang=$$(echo $$file | sed -e 's#.*/\([^/]\+\).po#\1#') ; \
+		mv $$file $$file.old ; \
+		msgmerge -N $$file.old po/youtube_dl.pot > $$file ; \
+	done
+
+po/youtube_dl.pot: youtube_dl/*.py youtube_dl/*/*.py
+	touch po/youtube_dl.pot && \
+		xgettext -d youtube_dl -j -k -kg --from-code=utf-8 -o $@ youtube_dl/*.py youtube_dl/*/*.py
+
+update-gmo:
+	for file in po/*.po ; do \
+		lang=$$(echo $$file | sed -e 's#.*/\([^/]\+\).po#\1#') ; \
+		install -d share/locale/$$lang/LC_MESSAGES; \
+		msgfmt -o share/locale/$$lang/LC_MESSAGES/youtube_dl.mo $$file; \
+	done
