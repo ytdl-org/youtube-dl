@@ -664,12 +664,13 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
 
 
 def handle_youtubedl_headers(headers):
-    if 'Youtubedl-no-compression' in headers:
-        filtered_headers = dict((k, v) for k, v in headers.items() if k.lower() != 'accept-encoding')
-        del filtered_headers['Youtubedl-no-compression']
-        return filtered_headers
+    filtered_headers = headers
 
-    return headers
+    if 'Youtubedl-no-compression' in filtered_headers:
+        filtered_headers = dict((k, v) for k, v in filtered_headers.items() if k.lower() != 'accept-encoding')
+        del filtered_headers['Youtubedl-no-compression']
+
+    return filtered_headers
 
 
 class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
