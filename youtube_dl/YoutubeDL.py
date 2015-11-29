@@ -51,6 +51,7 @@ from .utils import (
     ExtractorError,
     format_bytes,
     formatSeconds,
+    g,
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
@@ -1545,7 +1546,7 @@ class YoutubeDL(object):
                     for ph in self._progress_hooks:
                         fd.add_progress_hook(ph)
                     if self.params.get('verbose'):
-                        self.to_stdout('[debug] Invoking downloader on %r' % info.get('url'))
+                        self.to_stdout(g('[debug] Invoking downloader on %r') % info.get('url'))
                     return fd.download(name, info)
 
                 if info_dict.get('requested_formats') is not None:
@@ -1589,8 +1590,8 @@ class YoutubeDL(object):
                     filename = '%s.%s' % (filename_wo_ext, info_dict['ext'])
                     if os.path.exists(encodeFilename(filename)):
                         self.to_screen(
-                            '[download] %s has already been downloaded and '
-                            'merged' % filename)
+                            g('[download] %s has already been downloaded and '
+                              'merged') % filename)
                     else:
                         for f in requested_formats:
                             new_info = dict(info_dict)
@@ -1723,7 +1724,7 @@ class YoutubeDL(object):
                 self.report_error(e.msg)
             if files_to_delete and not self.params.get('keepvideo', False):
                 for old_filename in files_to_delete:
-                    self.to_screen('Deleting original file %s (pass -k to keep)' % old_filename)
+                    self.to_screen(g('Deleting original file %s (pass -k to keep)') % old_filename)
                     try:
                         os.remove(encodeFilename(old_filename))
                     except (IOError, OSError):

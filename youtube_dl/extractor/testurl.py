@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    g,
+)
 
 
 class TestURLIE(InfoExtractor):
@@ -59,7 +62,7 @@ class TestURLIE(InfoExtractor):
                     (num, len(testcases))),
                 expected=True)
 
-        self.to_screen('Test URL: %s' % tc['url'])
+        self.to_screen(g('Test URL: %s') % tc['url'])
 
         return {
             '_type': 'url',

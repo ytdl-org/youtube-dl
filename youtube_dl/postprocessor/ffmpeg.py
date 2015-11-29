@@ -22,6 +22,7 @@ from ..utils import (
     subtitles_filename,
     dfxp2srt,
     ISO639Utils,
+    g,
 )
 
 
@@ -403,7 +404,7 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
         args = ['-c', 'copy', '-map', '0:v:0', '-map', '1:a:0']
-        self._downloader.to_screen('[ffmpeg] Merging formats into "%s"' % filename)
+        self._downloader.to_screen(g('[ffmpeg] Merging formats into "%s"') % filename)
         self.run_ffmpeg_multiple_files(info['__files_to_merge'], temp_filename, args)
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return info['__files_to_merge'], info

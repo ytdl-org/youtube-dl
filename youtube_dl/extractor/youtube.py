@@ -42,6 +42,7 @@ from ..utils import (
     unsmuggle_url,
     uppercase_escape,
     ISO3166Utils,
+    g,
 )
 
 
@@ -743,11 +744,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def report_video_info_webpage_download(self, video_id):
         """Report attempt to download video info webpage."""
-        self.to_screen('%s: Downloading video info webpage' % video_id)
+        self.to_screen(g('%s: Downloading video info webpage') % video_id)
 
     def report_information_extraction(self, video_id):
         """Report attempt to extract video information."""
-        self.to_screen('%s: Extracting video information' % video_id)
+        self.to_screen(g('%s: Extracting video information') % video_id)
 
     def report_unavailable_format(self, video_id, format):
         """Report extracted video URL."""
@@ -1024,8 +1025,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         dash_manifest_url = re.sub(r'/s/([a-fA-F0-9\.]+)', decrypt_sig, dash_manifest_url)
         dash_doc = self._download_xml(
             dash_manifest_url, video_id,
-            note='Downloading DASH manifest',
-            errnote='Could not download DASH manifest',
+            note=g('Downloading DASH manifest'),
+            errnote=g('Could not download DASH manifest'),
             fatal=fatal)
 
         if dash_doc is False:
