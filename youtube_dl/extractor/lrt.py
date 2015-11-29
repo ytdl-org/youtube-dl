@@ -1,12 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
-    js_to_json,
     parse_duration,
     remove_end,
 )
