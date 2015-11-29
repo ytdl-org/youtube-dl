@@ -679,7 +679,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     the standard headers to every HTTP request and handles gzipped and
     deflated responses from web servers. If compression is to be avoided in
     a particular request, the original request in the program code only has
-    to include the HTTP header "Youtubedl-No-Compression", which will be
+    to include the HTTP header "Youtubedl-no-compression", which will be
     removed before making the real request.
 
     Part of this code was copied from:
