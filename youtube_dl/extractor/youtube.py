@@ -258,7 +258,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                              |(?:                                             # or the v= param in all its forms
                                  (?:(?:watch|movie)(?:_popup)?(?:\.php)?/?)?  # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
                                  (?:\?|\#!?)                                  # the params delimiter ? or # or #!
-                                 (?:.*?&)??                                   # any other preceding param (like /?s=tuff&v=xxxx)
+                                 (?:.*?[&;])??                                # any other preceding param (like /?s=tuff&v=xxxx or ?s=tuff&amp;v=V36LpHqtcDY)
                                  v=
                              )
                          ))
@@ -730,6 +730,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            'url': 'https://www.youtube.com/watch?feature=player_embedded&amp;amp;v=V36LpHqtcDY',
+            'only_matching': True,
+        }
     ]
 
     def __init__(self, *args, **kwargs):
