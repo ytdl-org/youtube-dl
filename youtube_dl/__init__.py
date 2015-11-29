@@ -92,7 +92,7 @@ def _real_main(argv=None):
                 write_string('[debug] Batch file urls: ' + repr(batch_urls) + '\n')
         except IOError:
             sys.exit('ERROR: batch file could not be read')
-    all_urls = batch_urls + args
+    all_urls = batch_urls + args.URL
     all_urls = [url.strip() for url in all_urls]
     _enc = preferredencoding()
     all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url for url in all_urls]
@@ -324,8 +324,8 @@ def _real_main(argv=None):
         'listsubtitles': opts.listsubtitles,
         'subtitlesformat': opts.subtitlesformat,
         'subtitleslangs': opts.subtitleslangs,
-        'matchtitle': decodeOption(opts.matchtitle),
-        'rejecttitle': decodeOption(opts.rejecttitle),
+        'matchtitle': map(decodeOption, opts.matchtitle or []),
+        'rejecttitle': map(decodeOption, opts.rejecttitle or []),
         'max_downloads': opts.max_downloads,
         'prefer_free_formats': opts.prefer_free_formats,
         'verbose': opts.verbose,
