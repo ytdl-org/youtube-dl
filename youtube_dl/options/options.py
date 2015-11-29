@@ -4,102 +4,20 @@ import os.path
 import optparse
 import sys
 
-from .downloader.external import list_external_downloaders
-from .compat import (
-    compat_expanduser,
+from youtube_dl.downloader.external import list_external_downloaders
+from youtube_dl.compat import (
     compat_get_terminal_size,
-    compat_getenv,
     compat_kwargs,
-    compat_shlex_split,
 )
-from .utils import (
+from youtube_dl.utils import (
     preferredencoding,
     write_string,
 )
-from .version import __version__
+from youtube_dl.version import __version__
 
+from .common import *
 
 def parseOpts(overrideArguments=None):
-    def _readOptions(filename_bytes, default=[]):
-        try:
-            optionf = open(filename_bytes)
-        except IOError:
-            return default  # silently skip if file is not present
-        try:
-            res = []
-            for l in optionf:
-                res += compat_shlex_split(l, comments=True)
-        finally:
-            optionf.close()
-        return res
-
-    def _readUserConf():
-        xdg_config_home = compat_getenv('XDG_CONFIG_HOME')
-        if xdg_config_home:
-            userConfFile = os.path.join(xdg_config_home, 'youtube-dl', 'config')
-            if not os.path.isfile(userConfFile):
-                userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
-        else:
-            userConfFile = os.path.join(compat_expanduser('~'), '.config', 'youtube-dl', 'config')
-            if not os.path.isfile(userConfFile):
-                userConfFile = os.path.join(compat_expanduser('~'), '.config', 'youtube-dl.conf')
-        userConf = _readOptions(userConfFile, None)
-
-        if userConf is None:
-            appdata_dir = compat_getenv('appdata')
-            if appdata_dir:
-                userConf = _readOptions(
-                    os.path.join(appdata_dir, 'youtube-dl', 'config'),
-                    default=None)
-                if userConf is None:
-                    userConf = _readOptions(
-                        os.path.join(appdata_dir, 'youtube-dl', 'config.txt'),
-                        default=None)
-
-        if userConf is None:
-            userConf = _readOptions(
-                os.path.join(compat_expanduser('~'), 'youtube-dl.conf'),
-                default=None)
-        if userConf is None:
-            userConf = _readOptions(
-                os.path.join(compat_expanduser('~'), 'youtube-dl.conf.txt'),
-                default=None)
-
-        if userConf is None:
-            userConf = []
-
-        return userConf
-
-    def _format_option_string(option):
-        ''' ('-o', '--option') -> -o, --format METAVAR'''
-
-        opts = []
-
-        if option._short_opts:
-            opts.append(option._short_opts[0])
-        if option._long_opts:
-            opts.append(option._long_opts[0])
-        if len(opts) > 1:
-            opts.insert(1, ', ')
-
-        if option.takes_value():
-            opts.append(' %s' % option.metavar)
-
-        return "".join(opts)
-
-    def _comma_separated_values_options_callback(option, opt_str, value, parser):
-        setattr(parser.values, option.dest, value.split(','))
-
-    def _hide_login_info(opts):
-        opts = list(opts)
-        for private_opt in ['-p', '--password', '-u', '--username', '--video-password']:
-            try:
-                i = opts.index(private_opt)
-                opts[i + 1] = 'PRIVATE'
-            except ValueError:
-                pass
-        return opts
-
     # No need to wrap help messages if we're on a wide console
     columns = compat_get_terminal_size().columns
     max_width = columns if columns else 80
@@ -211,7 +129,7 @@ def parseOpts(overrideArguments=None):
     selection.add_option(
         '--playlist-start',
         dest='playliststart', metavar='NUMBER', default=1, type=int,
-        help='Playlist video to start at (default is %default)')
+        help='Playlist video to start at (default is %(default)s)')
     selection.add_option(
         '--playlist-end',
         dest='playlistend', metavar='NUMBER', default=None, type=int,
@@ -390,11 +308,11 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '-R', '--retries',
         dest='retries', metavar='RETRIES', default=10,
-        help='Number of retries (default is %default), or "infinite".')
+        help='Number of retries (default is %(default)s), or "infinite".')
     downloader.add_option(
         '--buffer-size',
         dest='buffersize', metavar='SIZE', default='1024',
-        help='Size of download buffer (e.g. 1024 or 16K) (default is %default)')
+        help='Size of download buffer (e.g. 1024 or 16K) (default is %(default)s)')
     downloader.add_option(
         '--no-resize-buffer',
         action='store_true', dest='noresizebuffer', default=False,
