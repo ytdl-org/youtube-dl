@@ -25,7 +25,7 @@ class LRTIE(InfoExtractor):
             'duration': 1783,
         },
         'params': {
-            'skip_download': True,  # HLS download
+            'skip_download': True,  # m3u8 download
         },
     }
 
@@ -39,23 +39,9 @@ class LRTIE(InfoExtractor):
         duration = parse_duration(self._search_regex(
             r"var record_len = '([0-9]+:[0-9]+:[0-9]+)';", webpage, 'record_len', fatal=False, default=None))
 
-        formats = []
-        for js in re.findall(r'(?s)config:\s*(\{.*?\})', webpage):
-            data = self._parse_json(js, video_id, transform_source=js_to_json)
-            if 'provider' not in data:
-                continue
-            if data['provider'] == 'rtmp':
-                formats.append({
-                    'format_id': 'rtmp',
-                    'ext': determine_ext(data['file']),
-                    'url': data['streamer'],
-                    'play_path': 'mp4:%s' % data['file'],
-                    'preference': -1,
-                    'rtmp_real_time': True,
-                })
-            else:
-                formats.extend(
-                    self._extract_m3u8_formats(data['file'], video_id, 'mp4'))
+        link = self._search_regex(r'file: "(.*)" \+ location\.hash\.substring\(1\)', webpage, 'link to m3u8')
+        link += video_id
+        formats = self._extract_m3u8_formats(link, video_id, "mp4")
 
         return {
             'id': video_id,
