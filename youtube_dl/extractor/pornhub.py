@@ -147,7 +147,8 @@ class PornHubPlaylistIE(InfoExtractor):
 
         entries = [
             self.url_result('http://www.pornhub.com/%s' % video_url, 'PornHub')
-            for video_url in set(re.findall('href="/?(view_video\.php\?viewkey=\d+[^"]*)"', webpage))
+            for video_url in set(re.findall(
+                r'href="/?(view_video\.php\?.*\bviewkey=[\da-z]+[^"]*)"', webpage))
         ]
 
         playlist = self._parse_json(
