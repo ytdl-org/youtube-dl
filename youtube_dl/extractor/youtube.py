@@ -1477,9 +1477,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             formats = _map_to_format_list(url_map)
             # Accept-Encoding header causes failures in live streams on Youtube and Youtube Gaming
             for a_format in formats:
-                if 'http_headers' not in a_format:
-                    a_format['http_headers'] = {}
-                a_format['http_headers']['Youtubedl-no-compression'] = True
+                a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
         else:
             raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
