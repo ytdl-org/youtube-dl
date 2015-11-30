@@ -663,6 +663,16 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
     return hc
 
 
+def handle_youtubedl_headers(headers):
+    filtered_headers = headers
+
+    if 'Youtubedl-no-compression' in filtered_headers:
+        filtered_headers = dict((k, v) for k, v in filtered_headers.items() if k.lower() != 'accept-encoding')
+        del filtered_headers['Youtubedl-no-compression']
+
+    return filtered_headers
+
+
 class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     """Handler for HTTP requests and responses.
 
@@ -670,7 +680,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     the standard headers to every HTTP request and handles gzipped and
     deflated responses from web servers. If compression is to be avoided in
     a particular request, the original request in the program code only has
-    to include the HTTP header "Youtubedl-No-Compression", which will be
+    to include the HTTP header "Youtubedl-no-compression", which will be
     removed before making the real request.
 
     Part of this code was copied from:
@@ -731,10 +741,8 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             # The dict keys are capitalized because of this bug by urllib
             if h.capitalize() not in req.headers:
                 req.add_header(h, v)
-        if 'Youtubedl-no-compression' in req.headers:
-            if 'Accept-encoding' in req.headers:
-                del req.headers['Accept-encoding']
-            del req.headers['Youtubedl-no-compression']
+
+        req.headers = handle_youtubedl_headers(req.headers)
 
         if sys.version_info < (2, 7) and '#' in req.get_full_url():
             # Python 2.6 is brain-dead when it comes to fragments
