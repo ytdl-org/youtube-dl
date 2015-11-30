@@ -51,7 +51,7 @@ class tvpleIE(InfoExtractor):
         clouds = unescapeHTML(self._decode_tvple(misc).decode('utf-8'))
         lines = re.findall(r'<item .*?</item>', clouds)
 
-        asstemp1 = "[Script Info]\nTitle: %s\nScriptType: v4.00+\nWrapStyle: 0\nPlayResX: %d\nPlayResY: %d\nScaledBorderAndShadow: yes\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle:Default,Arial,14,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,2,2,10,10,10,1\n\n" % (title, width, height)
+        asstemp1 = "[Script Info]\nTitle: %s\nScriptType: v4.00+\nWrapStyle: 0\nPlayResX: %d\nPlayResY: %d\nScaledBorderAndShadow: yes\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,14,&H23FFFFFF,&H000000FF,&HC8000000,&HC8000000,-1,0,0,0,100,100,0,0,1,2,2,5,10,10,10,1\n\n" % (title, width, height)
 
         asstemp2 = "[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
         for line in lines:
@@ -59,9 +59,12 @@ class tvpleIE(InfoExtractor):
             sec = int(reg.group(4))
             starttime = "%02d:%02d:%02d.00" % (divmod(divmod(sec, 60)[0], 60)[0], divmod(divmod(sec, 60)[0], 60)[1], divmod(sec, 60)[1])
             endtime = "%02d:%02d:%02d.00" % (divmod(divmod(sec + 2, 60)[0], 60)[0], divmod(divmod(sec + 2, 60)[0], 60)[1], divmod(sec + 2, 60)[1])
-            asstemp2 += "Dialogue: 0,%s,%s,Default,,0,0,0,,{\\an4\pos(%d,%d)}%s\n" % (starttime, endtime, int(reg.group(2)), int(reg.group(3)), reg.group(5))
+            asstemp2 += "Dialogue: 0,%s,%s,Default,,0,0,0,,{\\an4\pos(%d,%d)\\fad(0,50)}%s\n" % (starttime, endtime, int(reg.group(2)), int(reg.group(3)), reg.group(5))
 
         return(asstemp1 + asstemp2)
+
+    def _get_subtitles(self, title, video_id, url, width, height):
+        return {'clouds': [{'ext': 'ass', 'data': self._convert_sub(decompress(self._request_webpage(url, "clouds_xml").read()), "%s-%s" % (title, video_id), int(width), int(height))}]}
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -90,6 +93,7 @@ class tvpleIE(InfoExtractor):
             'height': int(resolution.group(2)),
             'no_resume': True
         }]
+	subtitles = self.extract_subtitles(title, video_id, urls[1], resolution.group(1), resolution.group(2))
 
         return {
             'id': video_id,
@@ -101,7 +105,7 @@ class tvpleIE(InfoExtractor):
             'view_count': view_count,
             # 'comment_count': comment_count,
             'formats': formats,
-            'subtitles': {'ass': [{'ext': 'ass', 'data': self._convert_sub(decompress(self._request_webpage(urls[1], "clouds_xml").read()), "%s-%s" % (title, video_id), int(resolution.group(1)), int(resolution.group(2)))}]},
+            'subtitles': subtitles,
             'categories': categories,
             'tags': tags
 
