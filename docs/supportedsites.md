@@ -93,6 +93,7 @@
  - **Clipsyndicate**
  - **Cloudy**
  - **Clubic**
+ - **Clyp**
  - **cmt.com**
  - **CNET**
  - **CNN**
