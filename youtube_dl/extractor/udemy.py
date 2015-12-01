@@ -57,7 +57,7 @@ class UdemyIE(InfoExtractor):
                     'fields[asset]': 'asset_type,stream_url,thumbnail_url,download_urls,data',
                     'instructorPreviewMode': 'False',
                 })),
-            lecture_id, 'Downloading lecture JSON', fatal=False)
+            lecture_id, 'Downloading lecture JSON')
 
     def _handle_error(self, response):
         if not isinstance(response, dict):
@@ -70,7 +70,7 @@ class UdemyIE(InfoExtractor):
                 error_str += ' - %s' % error_data.get('formErrors')
             raise ExtractorError(error_str, expected=True)
 
-    def _download_json(self, url_or_request, video_id, note='Downloading JSON metadata', *args, **kwargs):
+    def _download_json(self, url_or_request, video_id, note='Downloading JSON metadata'):
         headers = {
             'X-Udemy-Snail-Case': 'true',
             'X-Requested-With': 'XMLHttpRequest',
@@ -88,7 +88,7 @@ class UdemyIE(InfoExtractor):
         else:
             url_or_request = sanitized_Request(url_or_request, headers=headers)
 
-        response = super(UdemyIE, self)._download_json(url_or_request, video_id, note, *args, **kwargs)
+        response = super(UdemyIE, self)._download_json(url_or_request, video_id, note)
         self._handle_error(response)
         return response
 
