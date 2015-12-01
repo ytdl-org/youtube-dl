@@ -18,7 +18,7 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
     _VALID_URL = r'''(?x)https?://(?:www\.)?cc\.com/
         (video-clips|episodes|cc-studios|video-collections|full-episodes)
         /(?P<title>.*)'''
-    _FEED_URL = 'http://comedycentral.com/feeds/mrss/'
+    _FEED_BASE_URL = 'http://comedycentral.com/feeds/mrss/'
 
     _TEST = {
         'url': 'http://www.cc.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother',

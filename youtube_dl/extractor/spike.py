@@ -19,7 +19,7 @@ class SpikeIE(MTVServicesInfoExtractor):
         },
     }
 
-    _FEED_URL = 'http://www.spike.com/feeds/mrss/'
+    _FEED_BASE_URL = 'http://www.spike.com/feeds/mrss/'
     _MOBILE_TEMPLATE = 'http://m.spike.com/videos/video.rbml?id=%s'
 
     def _real_extract(self, url):

@@ -16,4 +16,4 @@ class GametrailersIE(MTVServicesInfoExtractor):
         },
     }
 
-    _FEED_URL = 'http://www.gametrailers.com/feeds/mrss'
+    _FEED_BASE_URL = 'http://www.gametrailers.com/feeds/mrss'
