@@ -487,6 +487,10 @@ def decodeOption(optval):
     assert isinstance(optval, compat_str)
     return optval
 
+def decodeOptions(optvals):
+    if optvals is None:
+        return optvals
+    return list(filter(lambda o: o, map(decodeOption, optvals)))
 
 def formatSeconds(secs):
     if secs > 3600:

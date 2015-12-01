@@ -596,12 +596,15 @@ class YoutubeDL(object):
             title = info_dict['title']
             matchtitle = self.params.get('matchtitle', False)
             if matchtitle:
-                if not re.search(matchtitle, title, re.IGNORECASE):
-                    return '"' + title + '" title did not match pattern "' + matchtitle + '"'
-            rejecttitle = self.params.get('rejecttitle', False)
-            if rejecttitle:
-                if re.search(rejecttitle, title, re.IGNORECASE):
-                    return '"' + title + '" title matched reject pattern "' + rejecttitle + '"'
+                for pattern in matchtitle:
+                    if re.search(patten, title, re.IGNORECASE):
+                        break
+                else:
+                    return '"' + title + '" title did not match patterns "' + ', '.join(matchtitle) + '"'
+            rejecttitle = self.params.get('rejecttitle', [])
+            for pattern in rejecttitle:
+                if re.search(pattern, title, re.IGNORECASE):
+                    return '"' + title + '" title matched reject pattern "' + pattern + '"'
         date = info_dict.get('upload_date', None)
         if date is not None:
             dateRange = self.params.get('daterange', DateRange())

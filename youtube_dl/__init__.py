@@ -25,6 +25,7 @@ from .compat import (
 from .utils import (
     DateRange,
     decodeOption,
+    decodeOptions,
     DEFAULT_OUTTMPL,
     DownloadError,
     match_filter_func,
@@ -324,8 +325,8 @@ def _real_main(argv=None):
         'listsubtitles': opts.listsubtitles,
         'subtitlesformat': opts.subtitlesformat,
         'subtitleslangs': opts.subtitleslangs,
-        'matchtitle': decodeOption(opts.matchtitle),
-        'rejecttitle': decodeOption(opts.rejecttitle),
+        'matchtitle': decodeOptions(opts.matchtitle),
+        'rejecttitle': decodeOptions(opts.rejecttitle),
         'max_downloads': opts.max_downloads,
         'prefer_free_formats': opts.prefer_free_formats,
         'verbose': opts.verbose,
