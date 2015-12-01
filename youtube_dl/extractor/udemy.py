@@ -9,6 +9,7 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    int_or_none,
     sanitized_Request,
 )
 
@@ -127,26 +128,47 @@ class UdemyIE(InfoExtractor):
 
         video_id = asset['id']
         thumbnail = asset.get('thumbnailUrl') or asset.get('thumbnail_url')
-        duration = asset['data']['duration']
+        duration = int_or_none(asset.get('data', {}).get('duration'))
 
         download_url = asset.get('downloadUrl') or asset.get('download_url')
 
         video = download_url.get('Video') or download_url.get('video')
         video_480p = download_url.get('Video480p') or download_url.get('video_480p')
 
-        formats = [
-            {
-                'url': video_480p[0],
-                'format_id': '360p',
-            },
-            {
-                'url': video[0],
-                'format_id': '720p',
-            },
-        ]
+        formats = [{
+            'url': video_480p[0],
+            'format_id': 'download-360p',
+        }, {
+            'url': video[0],
+            'format_id': 'download-720p',
+        }]
+
+        # Some videos also contain formats in asset['data']['outputs'] (e.g.
+        # https://www.udemy.com/ios9-swift/learn/#/lecture/3383208)
+        outputs = asset.get('data', {}).get('outputs')
+        if isinstance(outputs, dict):
+            for format_id, f in outputs.items():
+                video_url = f.get('url')
+                if video_url:
+                    formats.append({
+                        'url': video_url,
+                        'format_id': '%sp' % (f.get('labe1l') or format_id),
+                        'width': int_or_none(f.get('width')),
+                        'height': int_or_none(f.get('height')),
+                        'vbr': int_or_none(f.get('video_bitrate_in_kbps')),
+                        'vcodec': f.get('video_codec'),
+                        'fps': int_or_none(f.get('frame_rate')),
+                        'abr': int_or_none(f.get('audio_bitrate_in_kbps')),
+                        'acodec': f.get('audio_codec'),
+                        'asr': int_or_none(f.get('audio_sample_rate')),
+                        'tbr': int_or_none(f.get('total_bitrate_in_kbps')),
+                        'filesize': int_or_none(f.get('file_size_in_bytes')),
+                    })
+
+        self._sort_formats(formats)
 
         title = lecture['title']
-        description = lecture['description']
+        description = lecture.get('description')
 
         return {
             'id': video_id,
