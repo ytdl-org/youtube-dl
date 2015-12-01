@@ -72,7 +72,7 @@ class UdemyIE(InfoExtractor):
     def _login(self):
         (username, password) = self._get_login_info()
         if username is None:
-            self.raise_login_required('Udemy account is required')
+            return
 
         login_popup = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login popup')
