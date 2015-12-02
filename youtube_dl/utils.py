@@ -2518,7 +2518,12 @@ def g(s):
         gettext.textdomain('youtube_dl')
         gettext.bindtextdomain('youtube_dl', localedir='share/locale/')
 
-    return gettext.gettext(s)
+    ret = gettext.gettext(s)
+
+    if isinstance(ret, bytes):
+        ret = ret.decode('utf-8')
+
+    return ret
 
 
 class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
