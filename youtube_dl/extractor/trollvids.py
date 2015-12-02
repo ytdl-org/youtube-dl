@@ -42,7 +42,7 @@ class TrollvidsIE(InfoExtractor):
             elif tag == "filehd":
                 hdformats.append({"url": val})
             elif tag == "duration":
-                info["duration"] = float(val)
+                info["duration"] = int(float(val))
             elif tag == "image":
                 info["thumbnail"] = val
             elif tag == "title":
