@@ -13,6 +13,7 @@ from ..utils import (
     encodeArgument,
     encodeFilename,
     sanitize_open,
+    handle_youtubedl_headers,
 )
 
 
@@ -33,9 +34,10 @@ class HlsFD(FileDownloader):
         if info_dict['http_headers'] and re.match(r'^https?://', url):
             # Trailing \r\n after each HTTP header is important to prevent warning from ffmpeg/avconv:
             # [http @ 00000000003d2fa0] No trailing CRLF found in HTTP header.
+            headers = handle_youtubedl_headers(info_dict['http_headers'])
             args += [
                 '-headers',
-                ''.join('%s: %s\r\n' % (key, val) for key, val in info_dict['http_headers'].items())]
+                ''.join('%s: %s\r\n' % (key, val) for key, val in headers.items())]
 
         args += ['-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc']
 

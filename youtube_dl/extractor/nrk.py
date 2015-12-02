@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
+    determine_ext,
     ExtractorError,
     float_or_none,
     parse_duration,
@@ -48,12 +49,22 @@ class NRKIE(InfoExtractor):
             'http://v8.psapi.nrk.no/mediaelement/%s' % video_id,
             video_id, 'Downloading media JSON')
 
-        if data['usageRights']['isGeoBlocked']:
-            raise ExtractorError(
-                'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
-                expected=True)
+        media_url = data.get('mediaUrl')
 
-        video_url = data['mediaUrl'] + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81'
+        if not media_url:
+            if data['usageRights']['isGeoBlocked']:
+                raise ExtractorError(
+                    'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
+                    expected=True)
+
+        if determine_ext(media_url) == 'f4m':
+            formats = self._extract_f4m_formats(
+                media_url + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81', video_id, f4m_id='hds')
+        else:
+            formats = [{
+                'url': media_url,
+                'ext': 'flv',
+            }]
 
         duration = parse_duration(data.get('duration'))
 
@@ -67,12 +78,11 @@ class NRKIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'url': video_url,
-            'ext': 'flv',
             'title': data['title'],
             'description': data['description'],
             'duration': duration,
             'thumbnail': thumbnail,
+            'formats': formats,
         }
 
 

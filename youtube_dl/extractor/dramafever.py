@@ -7,7 +7,6 @@ from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
     compat_urllib_parse,
-    compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
@@ -16,6 +15,7 @@ from ..utils import (
     determine_ext,
     int_or_none,
     parse_iso8601,
+    sanitized_Request,
 )
 
 
@@ -51,7 +51,7 @@ class DramaFeverBaseIE(InfoExtractor):
             'password': password,
         }
 
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)

@@ -2,17 +2,14 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
 from ..utils import parse_iso8601
 
 
 class PeriscopeIE(InfoExtractor):
     IE_DESC = 'Periscope'
-    _VALID_URL = r'https?://(?:www\.)?periscope\.tv/w/(?P<id>[^/?#]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?periscope\.tv/[^/]+/(?P<id>[^/?#]+)'
+    # Alive example URLs can be found here http://onperiscope.com/
+    _TESTS = [{
         'url': 'https://www.periscope.tv/w/aJUQnjY3MjA3ODF8NTYxMDIyMDl2zCg2pECBgwTqRpQuQD352EMPTKQjT4uqlM3cgWFA-g==',
         'md5': '65b57957972e503fcbbaeed8f4fa04ca',
         'info_dict': {
@@ -25,11 +22,18 @@ class PeriscopeIE(InfoExtractor):
             'uploader_id': '1465763',
         },
         'skip': 'Expires in 24 hours',
-    }
+    }, {
+        'url': 'https://www.periscope.tv/w/1ZkKzPbMVggJv',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.periscope.tv/bastaakanoggano/1OdKrlkZZjOJX',
+        'only_matching': True,
+    }]
 
-    def _call_api(self, method, token):
+    def _call_api(self, method, value):
+        attribute = 'token' if len(value) > 13 else 'broadcast_id'
         return self._download_json(
-            'https://api.periscope.tv/api/v2/%s?token=%s' % (method, token), token)
+            'https://api.periscope.tv/api/v2/%s?%s=%s' % (method, attribute, value), value)
 
     def _real_extract(self, url):
         token = self._match_id(url)
@@ -76,24 +80,3 @@ class PeriscopeIE(InfoExtractor):
             'thumbnails': thumbnails,
             'formats': formats,
         }
-
-
-class QuickscopeIE(InfoExtractor):
-    IE_DESC = 'Quick Scope'
-    _VALID_URL = r'https?://watchonperiscope\.com/broadcast/(?P<id>\d+)'
-    _TEST = {
-        'url': 'https://watchonperiscope.com/broadcast/56180087',
-        'only_matching': True,
-    }
-
-    def _real_extract(self, url):
-        broadcast_id = self._match_id(url)
-        request = compat_urllib_request.Request(
-            'https://watchonperiscope.com/api/accessChannel', compat_urllib_parse.urlencode({
-                'broadcast_id': broadcast_id,
-                'entry_ticket': '',
-                'from_push': 'false',
-                'uses_sessions': 'true',
-            }).encode('utf-8'))
-        return self.url_result(
-            self._download_json(request, broadcast_id)['share_url'], 'Periscope')

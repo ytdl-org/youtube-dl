@@ -5,11 +5,9 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-)
 from ..utils import (
     ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -78,7 +76,7 @@ class IviIE(InfoExtractor):
             ]
         }
 
-        request = compat_urllib_request.Request(api_url, json.dumps(data))
+        request = sanitized_Request(api_url, json.dumps(data))
 
         video_json_page = self._download_webpage(
             request, video_id, 'Downloading video JSON')

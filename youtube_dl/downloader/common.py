@@ -42,7 +42,7 @@ class FileDownloader(object):
     min_filesize:       Skip files smaller than this size
     max_filesize:       Skip files larger than this size
     xattr_set_filesize: Set ytdl.filesize user xattribute with expected size.
-                        (experimenatal)
+                        (experimental)
     external_downloader_args:  A list of additional command-line arguments for the
                         external downloader.
 

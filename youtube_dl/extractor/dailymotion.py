@@ -7,15 +7,13 @@ import itertools
 
 from .common import InfoExtractor
 
-from ..compat import (
-    compat_str,
-    compat_urllib_request,
-)
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     determine_ext,
     int_or_none,
     parse_iso8601,
+    sanitized_Request,
     str_to_int,
     unescapeHTML,
 )
@@ -25,7 +23,7 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
     @staticmethod
     def _build_request(url):
         """Build a request with the family filter disabled"""
-        request = compat_urllib_request.Request(url)
+        request = sanitized_Request(url)
         request.add_header('Cookie', 'family_filter=off; ff=off')
         return request
 
@@ -141,9 +139,17 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                     type_ = media.get('type')
                     if type_ == 'application/vnd.lumberjack.manifest':
                         continue
-                    if type_ == 'application/x-mpegURL' or determine_ext(media_url) == 'm3u8':
-                        formats.extend(self._extract_m3u8_formats(
-                            media_url, video_id, 'mp4', m3u8_id='hls'))
+                    ext = determine_ext(media_url)
+                    if type_ == 'application/x-mpegURL' or ext == 'm3u8':
+                        m3u8_formats = self._extract_m3u8_formats(
+                            media_url, video_id, 'mp4', m3u8_id='hls', fatal=False)
+                        if m3u8_formats:
+                            formats.extend(m3u8_formats)
+                    elif type_ == 'application/f4m' or ext == 'f4m':
+                        f4m_formats = self._extract_f4m_formats(
+                            media_url, video_id, preference=-1, f4m_id='hds', fatal=False)
+                        if f4m_formats:
+                            formats.extend(f4m_formats)
                     else:
                         f = {
                             'url': media_url,

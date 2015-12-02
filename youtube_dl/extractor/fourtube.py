@@ -3,12 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-)
 from ..utils import (
     parse_duration,
     parse_iso8601,
+    sanitized_Request,
     str_to_int,
 )
 
@@ -93,7 +91,7 @@ class FourTubeIE(InfoExtractor):
             b'Content-Type': b'application/x-www-form-urlencoded',
             b'Origin': b'http://www.4tube.com',
         }
-        token_req = compat_urllib_request.Request(token_url, b'{}', headers)
+        token_req = sanitized_Request(token_url, b'{}', headers)
         tokens = self._download_json(token_req, video_id)
         formats = [{
             'url': tokens[format]['token'],

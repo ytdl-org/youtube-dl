@@ -8,11 +8,11 @@ from .common import InfoExtractor
 from ..compat import (
     compat_str,
     compat_urllib_parse,
-    compat_urllib_request,
 )
 from ..utils import (
     int_or_none,
     float_or_none,
+    sanitized_Request,
 )
 
 
@@ -154,7 +154,7 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
         if len(tracks) < len(track_ids):
             present_track_ids = set([compat_str(track['id']) for track in tracks if track.get('id')])
             missing_track_ids = set(map(compat_str, track_ids)) - set(present_track_ids)
-            request = compat_urllib_request.Request(
+            request = sanitized_Request(
                 'https://music.yandex.ru/handlers/track-entries.jsx',
                 compat_urllib_parse.urlencode({
                     'entries': ','.join(missing_track_ids),

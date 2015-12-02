@@ -139,6 +139,11 @@ class ThePlatformIE(ThePlatformBaseIE):
             'upload_date': '20150701',
             'categories': ['Today/Shows/Orange Room', 'Today/Sections/Money', 'Today/Topics/Tech', "Today/Topics/Editor's picks"],
         },
+    }, {
+        # From http://www.nbc.com/the-blacklist/video/sir-crispin-crandall/2928790?onid=137781#vc137781=1
+        # geo-restricted (US), HLS encrypted with AES-128
+        'url': 'http://player.theplatform.com/p/NnzsPC/onsite_universal/select/media/guid/2410887629/2928790?fwsitesection=nbc_the_blacklist_video_library&autoPlay=true&carouselID=137781',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -182,8 +187,12 @@ class ThePlatformIE(ThePlatformBaseIE):
             # Seems there's no pattern for the interested script filename, so
             # I try one by one
             for script in reversed(scripts):
-                feed_script = self._download_webpage(script, video_id, 'Downloading feed script')
-                feed_id = self._search_regex(r'defaultFeedId\s*:\s*"([^"]+)"', feed_script, 'default feed id', default=None)
+                feed_script = self._download_webpage(
+                    self._proto_relative_url(script, 'http:'),
+                    video_id, 'Downloading feed script')
+                feed_id = self._search_regex(
+                    r'defaultFeedId\s*:\s*"([^"]+)"', feed_script,
+                    'default feed id', default=None)
                 if feed_id is not None:
                     break
             if feed_id is None:
@@ -193,6 +202,15 @@ class ThePlatformIE(ThePlatformBaseIE):
 
         if smuggled_data.get('force_smil_url', False):
             smil_url = url
+        # Explicitly specified SMIL (see https://github.com/rg3/youtube-dl/issues/7385)
+        elif '/guid/' in url:
+            webpage = self._download_webpage(url, video_id)
+            smil_url = self._search_regex(
+                r'<link[^>]+href=(["\'])(?P<url>.+?)\1[^>]+type=["\']application/smil\+xml',
+                webpage, 'smil url', group='url')
+            path = self._search_regex(
+                r'link\.theplatform\.com/s/((?:[^/?#&]+/)+[^/?#&]+)', smil_url, 'path')
+            smil_url += '?' if '?' not in smil_url else '&' + 'formats=m3u,mpeg4&format=SMIL'
         elif mobj.group('config'):
             config_url = url + '&form=json'
             config_url = config_url.replace('swf/', 'config/')
