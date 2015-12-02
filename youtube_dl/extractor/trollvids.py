@@ -50,3 +50,18 @@ class TrollvidsIE(InfoExtractor):
 
         info["formats"] = sdformats + hdformats
         return info
+
+    _TESTS = [
+        {
+            'url': 'http://trollvids.com/video/2349002/%E3%80%90MMD-R-18%E3%80%91%E3%82%AC%E3%83%BC%E3%83%AB%E3%83%95%E3%83%AC%E3%83%B3%E3%83%89-carrymeoff',
+            'md5': '1d53866b2c514b23ed69e4352fdc9839',
+            'info_dict': {
+                'id': '2349002',
+                'ext': 'mp4',
+                'title': "【MMD R-18】ガールフレンド carry_me_off",
+                'age_limit': 18,
+                'duration': 216,
+            },
+        },
+    ]
+
