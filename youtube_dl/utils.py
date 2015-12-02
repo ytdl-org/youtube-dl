@@ -2518,11 +2518,15 @@ def g(s):
         gettext.textdomain('youtube_dl')
         gettext.bindtextdomain('youtube_dl', localedir='share/locale/')
 
-    ret = gettext.gettext(s)
+    lang, _ = locale.getdefaultlocale()
+    try:
+        t = gettext.translation('youtube_dl', 'share/locale/', [lang])
+    except (OSError, IOError):  # OSError for 3.3+ and IOError otherwise
+        return s
 
+    ret = t.gettext(s)
     if isinstance(ret, bytes):
         ret = ret.decode('utf-8')
-
     return ret
 
 
