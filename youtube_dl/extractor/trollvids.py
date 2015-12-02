@@ -8,7 +8,7 @@ from ..compat import (
 )
 
 import re
-import xml.etree.ElementTree
+
 
 class TrollvidsIE(InfoExtractor):
     _VALID_URL = r"http://(?:www\.)?trollvids\.com/+video/+(?P<id>[0-9]+)/+(?P<title>[^?&]+)"
@@ -64,4 +64,3 @@ class TrollvidsIE(InfoExtractor):
             },
         },
     ]
-
