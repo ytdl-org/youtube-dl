@@ -2514,10 +2514,6 @@ class ISO3166Utils(object):
 
 
 def g(s):
-    if gettext.textdomain() != 'youtube_dl':
-        gettext.textdomain('youtube_dl')
-        gettext.bindtextdomain('youtube_dl', localedir='share/locale/')
-
     lang, _ = locale.getdefaultlocale()
     try:
         t = gettext.translation('youtube_dl', 'share/locale/', [lang])
