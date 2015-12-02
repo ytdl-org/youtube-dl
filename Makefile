@@ -111,19 +111,10 @@ youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-
 		youtube-dl
 
 update-po: po/youtube_dl.pot
-	for file in po/*.po ; do \
-		lang=$$(echo $$file | sed -e 's#.*/\([^/]\+\).po#\1#') ; \
-		mv $$file $$file.old ; \
-		msgmerge -N $$file.old po/youtube_dl.pot > $$file ; \
-	done
+	$(PYTHON) devscripts/i18n.py update-po
 
 po/youtube_dl.pot: youtube_dl/*.py youtube_dl/*/*.py
-	touch po/youtube_dl.pot && \
-		xgettext -d youtube_dl -j -k -kg --from-code=utf-8 -o $@ youtube_dl/*.py youtube_dl/*/*.py
+	$(PYTHON) devscripts/i18n.py update-pot
 
 update-gmo:
-	for file in po/*.po ; do \
-		lang=$$(echo $$file | sed -e 's#.*/\([^/]\+\).po#\1#') ; \
-		install -d share/locale/$$lang/LC_MESSAGES; \
-		msgfmt -o share/locale/$$lang/LC_MESSAGES/youtube_dl.mo $$file; \
-	done
+	$(PYTHON) devscripts/i18n.py update-gmo
