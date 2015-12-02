@@ -15,6 +15,15 @@ def mkdir_p(path):
             raise
 
 
+def rename_file(old_path, new_path):
+    if sys.platform == 'win32':
+        try:
+            os.unlink(new_path)
+        except OSError:
+            pass
+    os.rename(old_path, new_path)
+
+
 class I18N_Utils(object):
     GETTEXT_DOMAIN = 'youtube_dl'
 
@@ -39,7 +48,7 @@ class I18N_Utils(object):
 
     def update_po_internal(self, lang, po_file):
         old_po_file = po_file + '.old'
-        os.rename(po_file, old_po_file)
+        rename_file(po_file, old_po_file)
         self._run_subprocess([
             'msgmerge', '-N', old_po_file, '-o', po_file, self.get_pot_filename()])
 
