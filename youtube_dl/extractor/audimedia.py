@@ -31,8 +31,8 @@ class AudiMediaIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        
-        raw_payload = self._search_regex(r'<script[^>]+class="amtv-embed"[^>]+id="([^"]+)"', webpage, 'raw payload');
+
+        raw_payload = self._search_regex(r'<script[^>]+class="amtv-embed"[^>]+id="([^"]+)"', webpage, 'raw payload')
         _, stage_mode, video_id, lang = raw_payload.split('-')
 
         # TODO: handle s and e stage_mode (live streams and ended live streams)
