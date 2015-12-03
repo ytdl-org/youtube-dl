@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
@@ -13,8 +15,63 @@ from ..utils import (
 )
 
 
-class NowTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nowtv\.(?:de|at|ch)/(?:rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<id>.+?)/(?:player|preview)'
+class NowTVBaseIE(InfoExtractor):
+    _VIDEO_FIELDS = (
+        'id', 'title', 'free', 'geoblocked', 'articleLong', 'articleShort',
+        'broadcastStartDate', 'seoUrl', 'duration', 'files',
+        'format.defaultImage169Format', 'format.defaultImage169Logo')
+
+    def _extract_video(self, info, display_id=None):
+        video_id = compat_str(info['id'])
+
+        files = info['files']
+        if not files:
+            if info.get('geoblocked', False):
+                raise ExtractorError(
+                    'Video %s is not available from your location due to geo restriction' % video_id,
+                    expected=True)
+            if not info.get('free', True):
+                raise ExtractorError(
+                    'Video %s is not available for free' % video_id, expected=True)
+
+        formats = []
+        for item in files['items']:
+            if determine_ext(item['path']) != 'f4v':
+                continue
+            app, play_path = remove_start(item['path'], '/').split('/', 1)
+            formats.append({
+                'url': 'rtmpe://fms.rtl.de',
+                'app': app,
+                'play_path': 'mp4:%s' % play_path,
+                'ext': 'flv',
+                'page_url': 'http://rtlnow.rtl.de',
+                'player_url': 'http://cdn.static-fra.de/now/vodplayer.swf',
+                'tbr': int_or_none(item.get('bitrate')),
+            })
+        self._sort_formats(formats)
+
+        title = info['title']
+        description = info.get('articleLong') or info.get('articleShort')
+        timestamp = parse_iso8601(info.get('broadcastStartDate'), ' ')
+        duration = parse_duration(info.get('duration'))
+
+        f = info.get('format', {})
+        thumbnail = f.get('defaultImage169Format') or f.get('defaultImage169Logo')
+
+        return {
+            'id': video_id,
+            'display_id': display_id or info.get('seoUrl'),
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'timestamp': timestamp,
+            'duration': duration,
+            'formats': formats,
+        }
+
+
+class NowTVIE(NowTVBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?nowtv\.(?:de|at|ch)/(?:rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<show_id>[^/]+)/(?:list/[^/]+/)?(?P<id>[^/]+)/(?:player|preview)'
 
     _TESTS = [{
         # rtl
@@ -23,7 +80,7 @@ class NowTVIE(InfoExtractor):
             'id': '203519',
             'display_id': 'bauer-sucht-frau/die-neuen-bauern-und-eine-hochzeit',
             'ext': 'flv',
-            'title': 'Die neuen Bauern und eine Hochzeit',
+            'title': 'Inka Bause stellt die neuen Bauern vor',
             'description': 'md5:e234e1ed6d63cf06be5c070442612e7e',
             'thumbnail': 're:^https?://.*\.jpg$',
             'timestamp': 1432580700,
@@ -136,58 +193,65 @@ class NowTVIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
-        display_id_split = display_id.split('/')
-        if len(display_id) > 2:
-            display_id = '/'.join((display_id_split[0], display_id_split[-1]))
+        mobj = re.match(self._VALID_URL, url)
+        display_id = '%s/%s' % (mobj.group('show_id'), mobj.group('id'))
 
         info = self._download_json(
-            'https://api.nowtv.de/v3/movies/%s?fields=id,title,free,geoblocked,articleLong,articleShort,broadcastStartDate,seoUrl,duration,format,files' % display_id,
-            display_id)
+            'https://api.nowtv.de/v3/movies/%s?fields=%s'
+            % (display_id, ','.join(self._VIDEO_FIELDS)), display_id)
 
-        video_id = compat_str(info['id'])
+        return self._extract_video(info, display_id)
 
-        files = info['files']
-        if not files:
-            if info.get('geoblocked', False):
-                raise ExtractorError(
-                    'Video %s is not available from your location due to geo restriction' % video_id,
-                    expected=True)
-            if not info.get('free', True):
-                raise ExtractorError(
-                    'Video %s is not available for free' % video_id, expected=True)
 
-        formats = []
-        for item in files['items']:
-            if determine_ext(item['path']) != 'f4v':
-                continue
-            app, play_path = remove_start(item['path'], '/').split('/', 1)
-            formats.append({
-                'url': 'rtmpe://fms.rtl.de',
-                'app': app,
-                'play_path': 'mp4:%s' % play_path,
-                'ext': 'flv',
-                'page_url': 'http://rtlnow.rtl.de',
-                'player_url': 'http://cdn.static-fra.de/now/vodplayer.swf',
-                'tbr': int_or_none(item.get('bitrate')),
-            })
-        self._sort_formats(formats)
+class NowTVListIE(NowTVBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?nowtv\.(?:de|at|ch)/(?:rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<show_id>[^/]+)/list/(?P<id>[^?/#&]+)$'
 
-        title = info['title']
-        description = info.get('articleLong') or info.get('articleShort')
-        timestamp = parse_iso8601(info.get('broadcastStartDate'), ' ')
-        duration = parse_duration(info.get('duration'))
+    _SHOW_FIELDS = ('title', )
+    _SEASON_FIELDS = ('id', 'headline', 'seoheadline', )
 
-        f = info.get('format', {})
-        thumbnail = f.get('defaultImage169Format') or f.get('defaultImage169Logo')
+    _TESTS = [{
+        'url': 'http://www.nowtv.at/rtl/stern-tv/list/aktuell',
+        'info_dict': {
+            'id': '17006',
+            'title': 'stern TV - Aktuell',
+        },
+        'playlist_count': 1,
+    }, {
+        'url': 'http://www.nowtv.at/rtl/das-supertalent/list/free-staffel-8',
+        'info_dict': {
+            'id': '20716',
+            'title': 'Das Supertalent - FREE Staffel 8',
+        },
+        'playlist_count': 14,
+    }]
 
-        return {
-            'id': video_id,
-            'display_id': display_id,
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'timestamp': timestamp,
-            'duration': duration,
-            'formats': formats,
-        }
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        show_id = mobj.group('show_id')
+        season_id = mobj.group('id')
+
+        fields = []
+        fields.extend(self._SHOW_FIELDS)
+        fields.extend('formatTabs.%s' % field for field in self._SEASON_FIELDS)
+        fields.extend(
+            'formatTabs.formatTabPages.container.movies.%s' % field
+            for field in self._VIDEO_FIELDS)
+
+        list_info = self._download_json(
+            'https://api.nowtv.de/v3/formats/seo?fields=%s&name=%s.php'
+            % (','.join(fields), show_id),
+            season_id)
+
+        season = next(
+            season for season in list_info['formatTabs']['items']
+            if season.get('seoheadline') == season_id)
+
+        title = '%s - %s' % (list_info['title'], season['headline'])
+
+        entries = []
+        for container in season['formatTabPages']['items']:
+            for info in ((container.get('container') or {}).get('movies') or {}).get('items') or []:
+                entries.append(self._extract_video(info))
+
+        return self.playlist_result(
+            entries, compat_str(season.get('id') or season_id), title)

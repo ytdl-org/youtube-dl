@@ -58,7 +58,8 @@ class SpiegelIE(InfoExtractor):
         description = self._html_search_meta('description', webpage, 'description')
 
         base_url = self._search_regex(
-            r'var\s+server\s*=\s*"([^"]+)\"', webpage, 'server URL')
+            [r'server\s*:\s*(["\'])(?P<url>.+?)\1', r'var\s+server\s*=\s*"(?P<url>[^"]+)\"'],
+            webpage, 'server URL', group='url')
 
         xml_url = base_url + video_id + '.xml'
         idoc = self._download_xml(xml_url, video_id)

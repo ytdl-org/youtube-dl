@@ -3,11 +3,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urlparse,
-)
+from ..compat import compat_urlparse
 from ..utils import (
     ExtractorError,
+    NO_DEFAULT,
+    encode_dict,
+    sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -38,19 +40,40 @@ class NovaMovIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
-        page = self._download_webpage(
-            'http://%s/video/%s' % (self._HOST, video_id), video_id, 'Downloading video page')
+        url = 'http://%s/video/%s' % (self._HOST, video_id)
 
-        if re.search(self._FILE_DELETED_REGEX, page) is not None:
+        webpage = self._download_webpage(
+            url, video_id, 'Downloading video page')
+
+        if re.search(self._FILE_DELETED_REGEX, webpage) is not None:
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
-        filekey = self._search_regex(self._FILEKEY_REGEX, page, 'filekey')
+        def extract_filekey(default=NO_DEFAULT):
+            return self._search_regex(
+                self._FILEKEY_REGEX, webpage, 'filekey', default=default)
 
-        title = self._html_search_regex(self._TITLE_REGEX, page, 'title', fatal=False)
-        description = self._html_search_regex(self._DESCRIPTION_REGEX, page, 'description', default='', fatal=False)
+        filekey = extract_filekey(default=None)
+
+        if not filekey:
+            fields = self._hidden_inputs(webpage)
+            post_url = self._search_regex(
+                r'<form[^>]+action=(["\'])(?P<url>.+?)\1', webpage,
+                'post url', default=url, group='url')
+            if not post_url.startswith('http'):
+                post_url = compat_urlparse.urljoin(url, post_url)
+            request = sanitized_Request(
+                post_url, urlencode_postdata(encode_dict(fields)))
+            request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+            request.add_header('Referer', post_url)
+            webpage = self._download_webpage(
+                request, video_id, 'Downloading continue to the video page')
+
+        filekey = extract_filekey()
+
+        title = self._html_search_regex(self._TITLE_REGEX, webpage, 'title', fatal=False)
+        description = self._html_search_regex(self._DESCRIPTION_REGEX, webpage, 'description', default='', fatal=False)
 
         api_response = self._download_webpage(
             'http://%s/api/player.api.php?key=%s&file=%s' % (self._HOST, filekey, video_id), video_id,

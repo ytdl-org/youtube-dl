@@ -8,7 +8,6 @@ import datetime
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
-    compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
@@ -17,6 +16,7 @@ from ..utils import (
     int_or_none,
     parse_duration,
     parse_iso8601,
+    sanitized_Request,
     xpath_text,
     determine_ext,
 )
@@ -102,7 +102,7 @@ class NiconicoIE(InfoExtractor):
             'password': password,
         }
         login_data = compat_urllib_parse.urlencode(encode_dict(login_form_strs)).encode('utf-8')
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             'https://secure.nicovideo.jp/secure/login', login_data)
         login_results = self._download_webpage(
             request, None, note='Logging in', errnote='Unable to log in')
@@ -145,7 +145,7 @@ class NiconicoIE(InfoExtractor):
                 'k': thumb_play_key,
                 'v': video_id
             })
-            flv_info_request = compat_urllib_request.Request(
+            flv_info_request = sanitized_Request(
                 'http://ext.nicovideo.jp/thumb_watch', flv_info_data,
                 {'Content-Type': 'application/x-www-form-urlencoded'})
             flv_info_webpage = self._download_webpage(

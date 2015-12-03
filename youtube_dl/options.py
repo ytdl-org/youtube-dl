@@ -338,7 +338,7 @@ def parseOpts(overrideArguments=None):
     video_format.add_option(
         '-F', '--list-formats',
         action='store_true', dest='listformats',
-        help='List all available formats')
+        help='List all available formats of requested videos')
     video_format.add_option(
         '--youtube-include-dash-manifest',
         action='store_true', dest='youtube_include_dash_manifest', default=True,
@@ -363,7 +363,7 @@ def parseOpts(overrideArguments=None):
     subtitles.add_option(
         '--write-auto-sub', '--write-automatic-sub',
         action='store_true', dest='writeautomaticsub', default=False,
-        help='Write automatic subtitle file (YouTube only)')
+        help='Write automatically generated subtitle file (YouTube only)')
     subtitles.add_option(
         '--all-subs',
         action='store_true', dest='allsubtitles', default=False,

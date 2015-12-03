@@ -57,16 +57,21 @@ class RuutuIE(InfoExtractor):
                     extract_formats(child)
                 elif child.tag.endswith('File'):
                     video_url = child.text
-                    if not video_url or video_url in processed_urls or 'NOT_USED' in video_url:
+                    if (not video_url or video_url in processed_urls or
+                            any(p in video_url for p in ('NOT_USED', 'NOT-USED'))):
                         return
                     processed_urls.append(video_url)
                     ext = determine_ext(video_url)
                     if ext == 'm3u8':
-                        formats.extend(self._extract_m3u8_formats(
-                            video_url, video_id, 'mp4', m3u8_id='hls'))
+                        m3u8_formats = self._extract_m3u8_formats(
+                            video_url, video_id, 'mp4', m3u8_id='hls', fatal=False)
+                        if m3u8_formats:
+                            formats.extend(m3u8_formats)
                     elif ext == 'f4m':
-                        formats.extend(self._extract_f4m_formats(
-                            video_url, video_id, f4m_id='hds'))
+                        f4m_formats = self._extract_f4m_formats(
+                            video_url, video_id, f4m_id='hds', fatal=False)
+                        if f4m_formats:
+                            formats.extend(f4m_formats)
                     else:
                         proto = compat_urllib_parse_urlparse(video_url).scheme
                         if not child.tag.startswith('HTTP') and proto != 'rtmp':

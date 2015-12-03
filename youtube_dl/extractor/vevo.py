@@ -1,15 +1,13 @@
 from __future__ import unicode_literals
 
 import re
-import xml.etree.ElementTree
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-)
+from ..compat import compat_etree_fromstring
 from ..utils import (
     ExtractorError,
     int_or_none,
+    sanitized_Request,
 )
 
 
@@ -73,7 +71,7 @@ class VevoIE(InfoExtractor):
     _SMIL_BASE_URL = 'http://smil.lvl3.vevo.com/'
 
     def _real_initialize(self):
-        req = compat_urllib_request.Request(
+        req = sanitized_Request(
             'http://www.vevo.com/auth', data=b'')
         webpage = self._download_webpage(
             req, None,
@@ -97,7 +95,7 @@ class VevoIE(InfoExtractor):
         if last_version['version'] == -1:
             raise ExtractorError('Unable to extract last version of the video')
 
-        renditions = xml.etree.ElementTree.fromstring(last_version['data'])
+        renditions = compat_etree_fromstring(last_version['data'])
         formats = []
         # Already sorted from worst to best quality
         for rend in renditions.findall('rendition'):
@@ -114,7 +112,7 @@ class VevoIE(InfoExtractor):
 
     def _formats_from_smil(self, smil_xml):
         formats = []
-        smil_doc = xml.etree.ElementTree.fromstring(smil_xml.encode('utf-8'))
+        smil_doc = compat_etree_fromstring(smil_xml.encode('utf-8'))
         els = smil_doc.findall('.//{http://www.w3.org/2001/SMIL20/Language}video')
         for el in els:
             src = el.attrib['src']

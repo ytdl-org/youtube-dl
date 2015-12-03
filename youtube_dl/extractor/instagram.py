@@ -10,8 +10,8 @@ from ..utils import (
 
 
 class InstagramIE(InfoExtractor):
-    _VALID_URL = r'https://instagram\.com/p/(?P<id>[\da-zA-Z]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?instagram\.com/p/(?P<id>[^/?#&]+)'
+    _TESTS = [{
         'url': 'https://instagram.com/p/aye83DjauH/?foo=bar#abc',
         'md5': '0d2da106a9d2631273e192b372806516',
         'info_dict': {
@@ -21,7 +21,10 @@ class InstagramIE(InfoExtractor):
             'title': 'Video by naomipq',
             'description': 'md5:1f17f0ab29bd6fe2bfad705f58de3cb8',
         }
-    }
+    }, {
+        'url': 'https://instagram.com/p/-Cmh1cukG2/',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

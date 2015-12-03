@@ -9,7 +9,6 @@ from .common import InfoExtractor
 from ..compat import (
     compat_str,
     compat_urllib_parse,
-    compat_urllib_request,
 )
 from ..utils import (
     clean_html,
@@ -17,6 +16,7 @@ from ..utils import (
     int_or_none,
     float_or_none,
     parse_iso8601,
+    sanitized_Request,
 )
 
 
@@ -74,7 +74,7 @@ class NocoIE(InfoExtractor):
             'username': username,
             'password': password,
         }
-        request = compat_urllib_request.Request(self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
+        request = sanitized_Request(self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
 
         login = self._download_json(request, None, 'Logging in as %s' % username)

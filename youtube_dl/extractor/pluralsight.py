@@ -1,29 +1,35 @@
 from __future__ import unicode_literals
 
-import re
 import json
+import random
+import collections
 
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
     compat_urllib_parse,
-    compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
     int_or_none,
     parse_duration,
+    sanitized_Request,
 )
 
 
-class PluralsightIE(InfoExtractor):
+class PluralsightBaseIE(InfoExtractor):
+    _API_BASE = 'http://app.pluralsight.com'
+
+
+class PluralsightIE(PluralsightBaseIE):
     IE_NAME = 'pluralsight'
-    _VALID_URL = r'https?://(?:www\.)?pluralsight\.com/training/player\?author=(?P<author>[^&]+)&name=(?P<name>[^&]+)(?:&mode=live)?&clip=(?P<clip>\d+)&course=(?P<course>[^&]+)'
-    _LOGIN_URL = 'https://www.pluralsight.com/id/'
+    _VALID_URL = r'https?://(?:(?:www|app)\.)?pluralsight\.com/training/player\?'
+    _LOGIN_URL = 'https://app.pluralsight.com/id/'
+
     _NETRC_MACHINE = 'pluralsight'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.pluralsight.com/training/player?author=mike-mckeown&name=hosting-sql-server-windows-azure-iaas-m7-mgmt&mode=live&clip=3&course=hosting-sql-server-windows-azure-iaas',
         'md5': '4d458cf5cf4c593788672419a8dd4cf8',
         'info_dict': {
@@ -33,7 +39,14 @@ class PluralsightIE(InfoExtractor):
             'duration': 338,
         },
         'skip': 'Requires pluralsight account credentials',
-    }
+    }, {
+        'url': 'https://app.pluralsight.com/training/player?course=angularjs-get-started&author=scott-allen&name=angularjs-get-started-m1-introduction&clip=0&mode=live',
+        'only_matching': True,
+    }, {
+        # available without pluralsight account
+        'url': 'http://app.pluralsight.com/training/player?author=scott-allen&name=angularjs-get-started-m1-introduction&mode=live&clip=0&course=angularjs-get-started',
+        'only_matching': True,
+    }]
 
     def _real_initialize(self):
         self._login()
@@ -41,7 +54,7 @@ class PluralsightIE(InfoExtractor):
     def _login(self):
         (username, password) = self._get_login_info()
         if username is None:
-            self.raise_login_required('Pluralsight account is required')
+            return
 
         login_page = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login page')
@@ -60,7 +73,7 @@ class PluralsightIE(InfoExtractor):
         if not post_url.startswith('http'):
             post_url = compat_urlparse.urljoin(self._LOGIN_URL, post_url)
 
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             post_url, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
 
@@ -73,30 +86,47 @@ class PluralsightIE(InfoExtractor):
         if error:
             raise ExtractorError('Unable to login: %s' % error, expected=True)
 
+        if all(p not in response for p in ('__INITIAL_STATE__', '"currentUser"')):
+            raise ExtractorError('Unable to log in')
+
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        author = mobj.group('author')
-        name = mobj.group('name')
-        clip_id = mobj.group('clip')
-        course = mobj.group('course')
+        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+
+        author = qs.get('author', [None])[0]
+        name = qs.get('name', [None])[0]
+        clip_id = qs.get('clip', [None])[0]
+        course = qs.get('course', [None])[0]
+
+        if any(not f for f in (author, name, clip_id, course,)):
+            raise ExtractorError('Invalid URL', expected=True)
 
         display_id = '%s-%s' % (name, clip_id)
 
         webpage = self._download_webpage(url, display_id)
 
-        collection = self._parse_json(
-            self._search_regex(
-                r'moduleCollection\s*:\s*new\s+ModuleCollection\((\[.+?\])\s*,\s*\$rootScope\)',
-                webpage, 'modules'),
-            display_id)
+        modules = self._search_regex(
+            r'moduleCollection\s*:\s*new\s+ModuleCollection\((\[.+?\])\s*,\s*\$rootScope\)',
+            webpage, 'modules', default=None)
+
+        if modules:
+            collection = self._parse_json(modules, display_id)
+        else:
+            # Webpage may be served in different layout (see
+            # https://github.com/rg3/youtube-dl/issues/7607)
+            collection = self._parse_json(
+                self._search_regex(
+                    r'var\s+initialState\s*=\s*({.+?});\n', webpage, 'initial state'),
+                display_id)['course']['modules']
 
         module, clip = None, None
 
         for module_ in collection:
-            if module_.get('moduleName') == name:
+            if name in (module_.get('moduleName'), module_.get('name')):
                 module = module_
                 for clip_ in module_.get('clips', []):
                     clip_index = clip_.get('clipIndex')
+                    if clip_index is None:
+                        clip_index = clip_.get('index')
                     if clip_index is None:
                         continue
                     if compat_str(clip_index) == clip_id:
@@ -112,13 +142,33 @@ class PluralsightIE(InfoExtractor):
             'high': {'width': 1024, 'height': 768},
         }
 
+        AllowedQuality = collections.namedtuple('AllowedQuality', ['ext', 'qualities'])
+
         ALLOWED_QUALITIES = (
-            ('webm', ('high',)),
-            ('mp4', ('low', 'medium', 'high',)),
+            AllowedQuality('webm', ('high',)),
+            AllowedQuality('mp4', ('low', 'medium', 'high',)),
         )
 
+        # In order to minimize the number of calls to ViewClip API and reduce
+        # the probability of being throttled or banned by Pluralsight we will request
+        # only single format until formats listing was explicitly requested.
+        if self._downloader.params.get('listformats', False):
+            allowed_qualities = ALLOWED_QUALITIES
+        else:
+            def guess_allowed_qualities():
+                req_format = self._downloader.params.get('format') or 'best'
+                req_format_split = req_format.split('-')
+                if len(req_format_split) > 1:
+                    req_ext, req_quality = req_format_split
+                    for allowed_quality in ALLOWED_QUALITIES:
+                        if req_ext == allowed_quality.ext and req_quality in allowed_quality.qualities:
+                            return (AllowedQuality(req_ext, (req_quality, )), )
+                req_ext = 'webm' if self._downloader.params.get('prefer_free_formats') else 'mp4'
+                return (AllowedQuality(req_ext, ('high', )), )
+            allowed_qualities = guess_allowed_qualities()
+
         formats = []
-        for ext, qualities in ALLOWED_QUALITIES:
+        for ext, qualities in allowed_qualities:
             for quality in qualities:
                 f = QUALITIES[quality].copy()
                 clip_post = {
@@ -131,13 +181,24 @@ class PluralsightIE(InfoExtractor):
                     'mt': ext,
                     'q': '%dx%d' % (f['width'], f['height']),
                 }
-                request = compat_urllib_request.Request(
-                    'http://www.pluralsight.com/training/Player/ViewClip',
+                request = sanitized_Request(
+                    '%s/training/Player/ViewClip' % self._API_BASE,
                     json.dumps(clip_post).encode('utf-8'))
                 request.add_header('Content-Type', 'application/json;charset=utf-8')
                 format_id = '%s-%s' % (ext, quality)
                 clip_url = self._download_webpage(
                     request, display_id, 'Downloading %s URL' % format_id, fatal=False)
+
+                # Pluralsight tracks multiple sequential calls to ViewClip API and start
+                # to return 429 HTTP errors after some time (see
+                # https://github.com/rg3/youtube-dl/pull/6989). Moreover it may even lead
+                # to account ban (see https://github.com/rg3/youtube-dl/issues/6842).
+                # To somewhat reduce the probability of these consequences
+                # we will sleep random amount of time before each call to ViewClip.
+                self._sleep(
+                    random.randint(2, 5), display_id,
+                    '%(video_id)s: Waiting for %(timeout)s seconds to avoid throttling')
+
                 if not clip_url:
                     continue
                 f.update({
@@ -163,10 +224,10 @@ class PluralsightIE(InfoExtractor):
         }
 
 
-class PluralsightCourseIE(InfoExtractor):
+class PluralsightCourseIE(PluralsightBaseIE):
     IE_NAME = 'pluralsight:course'
-    _VALID_URL = r'https?://(?:www\.)?pluralsight\.com/courses/(?P<id>[^/]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:(?:www|app)\.)?pluralsight\.com/(?:library/)?courses/(?P<id>[^/]+)'
+    _TESTS = [{
         # Free course from Pluralsight Starter Subscription for Microsoft TechNet
         # https://offers.pluralsight.com/technet?loc=zTS3z&prod=zOTprodz&tech=zOttechz&prog=zOTprogz&type=zSOz&media=zOTmediaz&country=zUSz
         'url': 'http://www.pluralsight.com/courses/hosting-sql-server-windows-azure-iaas',
@@ -176,7 +237,14 @@ class PluralsightCourseIE(InfoExtractor):
             'description': 'md5:61b37e60f21c4b2f91dc621a977d0986',
         },
         'playlist_count': 31,
-    }
+    }, {
+        # available without pluralsight account
+        'url': 'https://www.pluralsight.com/courses/angularjs-get-started',
+        'only_matching': True,
+    }, {
+        'url': 'https://app.pluralsight.com/library/courses/understanding-microsoft-azure-amazon-aws/table-of-contents',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         course_id = self._match_id(url)
@@ -184,14 +252,14 @@ class PluralsightCourseIE(InfoExtractor):
         # TODO: PSM cookie
 
         course = self._download_json(
-            'http://www.pluralsight.com/data/course/%s' % course_id,
+            '%s/data/course/%s' % (self._API_BASE, course_id),
             course_id, 'Downloading course JSON')
 
         title = course['title']
         description = course.get('description') or course.get('shortDescription')
 
         course_data = self._download_json(
-            'http://www.pluralsight.com/data/course/content/%s' % course_id,
+            '%s/data/course/content/%s' % (self._API_BASE, course_id),
             course_id, 'Downloading course data JSON')
 
         entries = []
@@ -201,7 +269,7 @@ class PluralsightCourseIE(InfoExtractor):
                 if not player_parameters:
                     continue
                 entries.append(self.url_result(
-                    'http://www.pluralsight.com/training/player?%s' % player_parameters,
+                    '%s/training/player?%s' % (self._API_BASE, player_parameters),
                     'Pluralsight'))
 
         return self.playlist_result(entries, course_id, title, description)

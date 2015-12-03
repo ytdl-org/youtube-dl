@@ -26,8 +26,8 @@ class AnitubeIE(InfoExtractor):
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
-        key = self._html_search_regex(
-            r'http://www\.anitube\.se/embed/([A-Za-z0-9_-]*)', webpage, 'key')
+        key = self._search_regex(
+            r'src=["\']https?://[^/]+/embed/([A-Za-z0-9_-]+)', webpage, 'key')
 
         config_xml = self._download_xml(
             'http://www.anitube.se/nuevo/econfig.php?key=%s' % key, key)

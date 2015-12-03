@@ -12,6 +12,7 @@ from ..compat import (
 from ..utils import (
     encode_dict,
     ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -57,7 +58,7 @@ class FC2IE(InfoExtractor):
         }
 
         login_data = compat_urllib_parse.urlencode(encode_dict(login_form_strs)).encode('utf-8')
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             'https://secure.id.fc2.com/index.php?mode=login&switch_language=en', login_data)
 
         login_results = self._download_webpage(request, None, note='Logging in', errnote='Unable to log in')
@@ -66,7 +67,7 @@ class FC2IE(InfoExtractor):
             return False
 
         # this is also needed
-        login_redir = compat_urllib_request.Request('http://id.fc2.com/?mode=redirect&login=done')
+        login_redir = sanitized_Request('http://id.fc2.com/?mode=redirect&login=done')
         self._download_webpage(
             login_redir, None, note='Login redirect', errnote='Login redirect failed')
 

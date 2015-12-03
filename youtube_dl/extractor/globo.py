@@ -14,79 +14,58 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
+    str_or_none,
 )
 
 
 class GloboIE(InfoExtractor):
-    _VALID_URL = 'https?://.+?\.globo\.com/(?P<id>.+)'
+    _VALID_URL = '(?:globo:|https?://.+?\.globo\.com/(?:[^/]+/)*(?:v/(?:[^/]+/)?|videos/))(?P<id>\d{7,})'
 
     _API_URL_TEMPLATE = 'http://api.globovideos.com/videos/%s/playlist'
     _SECURITY_URL_TEMPLATE = 'http://security.video.globo.com/videos/%s/hash?player=flash&version=17.0.0.132&resource_id=%s'
 
-    _VIDEOID_REGEXES = [
-        r'\bdata-video-id="(\d+)"',
-        r'\bdata-player-videosids="(\d+)"',
-        r'<div[^>]+\bid="(\d+)"',
-    ]
-
     _RESIGN_EXPIRATION = 86400
 
-    _TESTS = [
-        {
-            'url': 'http://globotv.globo.com/sportv/futebol-nacional/v/os-gols-de-atletico-mg-3-x-2-santos-pela-24a-rodada-do-brasileirao/3654973/',
-            'md5': '03ebf41cb7ade43581608b7d9b71fab0',
-            'info_dict': {
-                'id': '3654973',
-                'ext': 'mp4',
-                'title': 'Os gols de Atlético-MG 3 x 2 Santos pela 24ª rodada do Brasileirão',
-                'duration': 251.585,
-                'uploader': 'SporTV',
-                'uploader_id': 698,
-                'like_count': int,
-            }
+    _TESTS = [{
+        'url': 'http://g1.globo.com/carros/autoesporte/videos/t/exclusivos-do-g1/v/mercedes-benz-gla-passa-por-teste-de-colisao-na-europa/3607726/',
+        'md5': 'b3ccc801f75cd04a914d51dadb83a78d',
+        'info_dict': {
+            'id': '3607726',
+            'ext': 'mp4',
+            'title': 'Mercedes-Benz GLA passa por teste de colisão na Europa',
+            'duration': 103.204,
+            'uploader': 'Globo.com',
+            'uploader_id': '265',
         },
-        {
-            'url': 'http://g1.globo.com/carros/autoesporte/videos/t/exclusivos-do-g1/v/mercedes-benz-gla-passa-por-teste-de-colisao-na-europa/3607726/',
-            'md5': 'b3ccc801f75cd04a914d51dadb83a78d',
-            'info_dict': {
-                'id': '3607726',
-                'ext': 'mp4',
-                'title': 'Mercedes-Benz GLA passa por teste de colisão na Europa',
-                'duration': 103.204,
-                'uploader': 'Globo.com',
-                'uploader_id': 265,
-                'like_count': int,
-            }
+    }, {
+        'url': 'http://globoplay.globo.com/v/4581987/',
+        'md5': 'f36a1ecd6a50da1577eee6dd17f67eff',
+        'info_dict': {
+            'id': '4581987',
+            'ext': 'mp4',
+            'title': 'Acidentes de trânsito estão entre as maiores causas de queda de energia em SP',
+            'duration': 137.973,
+            'uploader': 'Rede Globo',
+            'uploader_id': '196',
         },
-        {
-            'url': 'http://g1.globo.com/jornal-nacional/noticia/2014/09/novidade-na-fiscalizacao-de-bagagem-pela-receita-provoca-discussoes.html',
-            'md5': '307fdeae4390ccfe6ba1aa198cf6e72b',
-            'info_dict': {
-                'id': '3652183',
-                'ext': 'mp4',
-                'title': 'Receita Federal explica como vai fiscalizar bagagens de quem retorna ao Brasil de avião',
-                'duration': 110.711,
-                'uploader': 'Rede Globo',
-                'uploader_id': 196,
-                'like_count': int,
-            }
-        },
-        {
-            'url': 'http://globotv.globo.com/canal-brasil/sangue-latino/t/todos-os-videos/v/ator-e-diretor-argentino-ricado-darin-fala-sobre-utopias-e-suas-perdas/3928201/',
-            'md5': 'c1defca721ce25b2354e927d3e4b3dec',
-            'info_dict': {
-                'id': '3928201',
-                'ext': 'mp4',
-                'title': 'Ator e diretor argentino, Ricado Darín fala sobre utopias e suas perdas',
-                'duration': 1472.906,
-                'uploader': 'Canal Brasil',
-                'uploader_id': 705,
-                'like_count': int,
-            }
-        },
-    ]
+    }, {
+        'url': 'http://canalbrasil.globo.com/programas/sangue-latino/videos/3928201.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://globosatplay.globo.com/globonews/v/4472924/',
+        'only_matching': True,
+    }, {
+        'url': 'http://globotv.globo.com/t/programa/v/clipe-sexo-e-as-negas-adeus/3836166/',
+        'only_matching': True,
+    }, {
+        'url': 'http://globotv.globo.com/canal-brasil/sangue-latino/t/todos-os-videos/v/ator-e-diretor-argentino-ricado-darin-fala-sobre-utopias-e-suas-perdas/3928201/',
+        'only_matching': True,
+    }, {
+        'url': 'http://canaloff.globo.com/programas/desejar-profundo/videos/4518560.html',
+        'only_matching': True,
+    }]
 
-    class MD5():
+    class MD5:
         HEX_FORMAT_LOWERCASE = 0
         HEX_FORMAT_UPPERCASE = 1
         BASE64_PAD_CHARACTER_DEFAULT_COMPLIANCE = ''
@@ -353,9 +332,6 @@ class GloboIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
-        video_id = self._search_regex(self._VIDEOID_REGEXES, webpage, 'video id')
-
         video = self._download_json(
             self._API_URL_TEMPLATE % video_id, video_id)['videos'][0]
 
@@ -364,7 +340,7 @@ class GloboIE(InfoExtractor):
         formats = []
         for resource in video['resources']:
             resource_id = resource.get('_id')
-            if not resource_id:
+            if not resource_id or resource_id.endswith('manifest'):
                 continue
 
             security = self._download_json(
@@ -393,20 +369,23 @@ class GloboIE(InfoExtractor):
             resource_url = resource['url']
             signed_url = '%s?h=%s&k=%s' % (resource_url, signed_hash, 'flash')
             if resource_id.endswith('m3u8') or resource_url.endswith('.m3u8'):
-                formats.extend(self._extract_m3u8_formats(signed_url, resource_id, 'mp4'))
+                m3u8_formats = self._extract_m3u8_formats(
+                    signed_url, resource_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False)
+                if m3u8_formats:
+                    formats.extend(m3u8_formats)
             else:
                 formats.append({
                     'url': signed_url,
-                    'format_id': resource_id,
-                    'height': resource.get('height'),
+                    'format_id': 'http-%s' % resource_id,
+                    'height': int_or_none(resource.get('height')),
                 })
 
         self._sort_formats(formats)
 
         duration = float_or_none(video.get('duration'), 1000)
-        like_count = int_or_none(video.get('likes'))
         uploader = video.get('channel')
-        uploader_id = video.get('channel_id')
+        uploader_id = str_or_none(video.get('channel_id'))
 
         return {
             'id': video_id,
@@ -414,6 +393,46 @@ class GloboIE(InfoExtractor):
             'duration': duration,
             'uploader': uploader,
             'uploader_id': uploader_id,
-            'like_count': like_count,
             'formats': formats
         }
+
+
+class GloboArticleIE(InfoExtractor):
+    _VALID_URL = 'https?://.+?\.globo\.com/(?:[^/]+/)*(?P<id>[^/]+)\.html'
+
+    _VIDEOID_REGEXES = [
+        r'\bdata-video-id=["\'](\d{7,})',
+        r'\bdata-player-videosids=["\'](\d{7,})',
+        r'\bvideosIDs\s*:\s*["\'](\d{7,})',
+        r'\bdata-id=["\'](\d{7,})',
+        r'<div[^>]+\bid=["\'](\d{7,})',
+    ]
+
+    _TESTS = [{
+        'url': 'http://g1.globo.com/jornal-nacional/noticia/2014/09/novidade-na-fiscalizacao-de-bagagem-pela-receita-provoca-discussoes.html',
+        'md5': '307fdeae4390ccfe6ba1aa198cf6e72b',
+        'info_dict': {
+            'id': '3652183',
+            'ext': 'mp4',
+            'title': 'Receita Federal explica como vai fiscalizar bagagens de quem retorna ao Brasil de avião',
+            'duration': 110.711,
+            'uploader': 'Rede Globo',
+            'uploader_id': '196',
+        }
+    }, {
+        'url': 'http://gq.globo.com/Prazeres/Poder/noticia/2015/10/all-o-desafio-assista-ao-segundo-capitulo-da-serie.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://gshow.globo.com/programas/tv-xuxa/O-Programa/noticia/2014/01/xuxa-e-junno-namoram-muuuito-em-luau-de-zeze-di-camargo-e-luciano.html',
+        'only_matching': True,
+    }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if GloboIE.suitable(url) else super(GloboArticleIE, cls).suitable(url)
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._search_regex(self._VIDEOID_REGEXES, webpage, 'video id')
+        return self.url_result('globo:%s' % video_id, 'Globo')

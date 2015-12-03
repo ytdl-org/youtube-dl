@@ -11,10 +11,10 @@ from ..compat import (
     compat_ord,
     compat_urllib_parse,
     compat_urllib_parse_unquote,
-    compat_urllib_request,
 )
 from ..utils import (
     ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -83,7 +83,7 @@ class MyVideoIE(InfoExtractor):
 
         mobj = re.search(r'data-video-service="/service/data/video/%s/config' % video_id, webpage)
         if mobj is not None:
-            request = compat_urllib_request.Request('http://www.myvideo.de/service/data/video/%s/config' % video_id, '')
+            request = sanitized_Request('http://www.myvideo.de/service/data/video/%s/config' % video_id, '')
             response = self._download_webpage(request, video_id,
                                               'Downloading video info')
             info = json.loads(base64.b64decode(response).decode('utf-8'))

@@ -87,7 +87,7 @@ class EaglePlatformIE(InfoExtractor):
         m3u8_url = self._get_video_url(secure_m3u8, video_id, 'Downloading m3u8 JSON')
         formats = self._extract_m3u8_formats(
             m3u8_url, video_id,
-            'mp4', entry_protocol='m3u8_native')
+            'mp4', entry_protocol='m3u8_native', m3u8_id='hls')
 
         mp4_url = self._get_video_url(
             # Secure mp4 URL is constructed according to Player.prototype.mp4 from
