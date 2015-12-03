@@ -7,11 +7,13 @@ import json
 from .common import InfoExtractor
 from ..compat import (
     compat_etree_fromstring,
+    compat_str,
 )
 from ..utils import (
     int_or_none,
     unescapeHTML,
     ExtractorError,
+    xpath_text,
 )
 
 
@@ -58,27 +60,22 @@ class BiliBiliIE(InfoExtractor):
         cid = view_data['cid']
         title = unescapeHTML(view_data['title'])
 
-        page = self._download_webpage(
+        doc = self._download_xml(
             'http://interface.bilibili.com/v_cdn_play?appkey=8e9fc618fbd41e28&cid=%s' % cid,
             cid,
             'Downloading page %s/%s' % (page_num, view_data['pages'])
         )
-        try:
-            err_info = json.loads(page)
-            raise ExtractorError(
-                'BiliBili said: ' + err_info['error_text'], expected=True)
-        except ValueError:
-            pass
 
-        doc = compat_etree_fromstring(page)
+        if xpath_text(doc, './result') == 'error':
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, xpath_text(doc, './message')), expected=True)
 
         entries = []
 
         for durl in doc.findall('./durl'):
-            size = durl.find('./filesize|./size')
+            size = xpath_text(durl, ['./filesize', './size'])
             formats = [{
                 'url': durl.find('./url').text,
-                'filesize': int_or_none(size.text) if size else None,
+                'filesize': int_or_none(size),
                 'ext': 'flv',
             }]
             backup_urls = durl.find('./backup_url')
@@ -88,21 +85,21 @@ class BiliBiliIE(InfoExtractor):
             formats.reverse()
 
             entries.append({
-                'id': '%s_part%s' % (cid, durl.find('./order').text),
+                'id': '%s_part%s' % (cid, xpath_text(durl, './order')),
                 'title': title,
-                'duration': int_or_none(durl.find('./length').text) // 1000,
+                'duration': int_or_none(xpath_text(durl, './length'), 1000),
                 'formats': formats,
             })
 
         info = {
-            'id': str(cid),
+            'id': compat_str(cid),
             'title': title,
             'description': view_data.get('description'),
             'thumbnail': view_data.get('pic'),
             'uploader': view_data.get('author'),
             'timestamp': int_or_none(view_data.get('created')),
             'view_count': view_data.get('play'),
-            'duration': int_or_none(doc.find('./timelength').text),
+            'duration': int_or_none(xpath_text(doc, './timelength')),
         }
 
         if len(entries) == 1:
