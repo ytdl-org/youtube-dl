@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
+import binascii
 import collections
+import email
 import getpass
+import io
 import optparse
 import os
 import re
@@ -11,6 +14,7 @@ import socket
 import subprocess
 import sys
 import itertools
+import xml.etree.ElementTree
 
 
 try:
@@ -37,6 +41,11 @@ try:
     import urllib.parse as compat_urlparse
 except ImportError:  # Python 2
     import urlparse as compat_urlparse
+
+try:
+    import urllib.response as compat_urllib_response
+except ImportError:  # Python 2
+    import urllib as compat_urllib_response
 
 try:
     import http.cookiejar as compat_cookiejar
@@ -156,6 +165,40 @@ except ImportError:  # Python 2
         return compat_urllib_parse_unquote(string, encoding, errors)
 
 try:
+    from urllib.request import DataHandler as compat_urllib_request_DataHandler
+except ImportError:  # Python < 3.4
+    # Ported from CPython 98774:1733b3bd46db, Lib/urllib/request.py
+    class compat_urllib_request_DataHandler(compat_urllib_request.BaseHandler):
+        def data_open(self, req):
+            # data URLs as specified in RFC 2397.
+            #
+            # ignores POSTed data
+            #
+            # syntax:
+            # dataurl   := "data:" [ mediatype ] [ ";base64" ] "," data
+            # mediatype := [ type "/" subtype ] *( ";" parameter )
+            # data      := *urlchar
+            # parameter := attribute "=" value
+            url = req.get_full_url()
+
+            scheme, data = url.split(":", 1)
+            mediatype, data = data.split(",", 1)
+
+            # even base64 encoded data URLs might be quoted so unquote in any case:
+            data = compat_urllib_parse_unquote_to_bytes(data)
+            if mediatype.endswith(";base64"):
+                data = binascii.a2b_base64(data)
+                mediatype = mediatype[:-7]
+
+            if not mediatype:
+                mediatype = "text/plain;charset=US-ASCII"
+
+            headers = email.message_from_string(
+                "Content-type: %s\nContent-length: %d\n" % (mediatype, len(data)))
+
+            return compat_urllib_response.addinfourl(io.BytesIO(data), headers, url)
+
+try:
     compat_basestring = basestring  # Python 2
 except NameError:
     compat_basestring = str
@@ -170,6 +213,43 @@ try:
 except ImportError:  # Python 2.6
     from xml.parsers.expat import ExpatError as compat_xml_parse_error
 
+if sys.version_info[0] >= 3:
+    compat_etree_fromstring = xml.etree.ElementTree.fromstring
+else:
+    # python 2.x tries to encode unicode strings with ascii (see the
+    # XMLParser._fixtext method)
+    etree = xml.etree.ElementTree
+
+    try:
+        _etree_iter = etree.Element.iter
+    except AttributeError:  # Python <=2.6
+        def _etree_iter(root):
+            for el in root.findall('*'):
+                yield el
+                for sub in _etree_iter(el):
+                    yield sub
+
+    # on 2.6 XML doesn't have a parser argument, function copied from CPython
+    # 2.7 source
+    def _XML(text, parser=None):
+        if not parser:
+            parser = etree.XMLParser(target=etree.TreeBuilder())
+        parser.feed(text)
+        return parser.close()
+
+    def _element_factory(*args, **kwargs):
+        el = etree.Element(*args, **kwargs)
+        for k, v in el.items():
+            if isinstance(v, bytes):
+                el.set(k, v.decode('utf-8'))
+        return el
+
+    def compat_etree_fromstring(text):
+        doc = _XML(text, parser=etree.XMLParser(target=etree.TreeBuilder(element_factory=_element_factory)))
+        for el in _etree_iter(doc):
+            if el.text is not None and isinstance(el.text, bytes):
+                el.text = el.text.decode('utf-8')
+        return doc
 
 try:
     from urllib.parse import parse_qs as compat_parse_qs
@@ -465,6 +545,7 @@ __all__ = [
     'compat_chr',
     'compat_cookiejar',
     'compat_cookies',
+    'compat_etree_fromstring',
     'compat_expanduser',
     'compat_get_terminal_size',
     'compat_getenv',
@@ -489,6 +570,8 @@ __all__ = [
     'compat_urllib_parse_unquote_to_bytes',
     'compat_urllib_parse_urlparse',
     'compat_urllib_request',
+    'compat_urllib_request_DataHandler',
+    'compat_urllib_response',
     'compat_urlparse',
     'compat_urlretrieve',
     'compat_xml_parse_error',

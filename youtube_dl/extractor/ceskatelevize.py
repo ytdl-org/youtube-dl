@@ -5,7 +5,6 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_request,
     compat_urllib_parse,
     compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
@@ -13,6 +12,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     float_or_none,
+    sanitized_Request,
 )
 
 
@@ -100,7 +100,7 @@ class CeskaTelevizeIE(InfoExtractor):
             'requestSource': 'iVysilani',
         }
 
-        req = compat_urllib_request.Request(
+        req = sanitized_Request(
             'http://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
             data=compat_urllib_parse.urlencode(data))
 
@@ -115,7 +115,7 @@ class CeskaTelevizeIE(InfoExtractor):
         if playlist_url == 'error_region':
             raise ExtractorError(NOT_AVAILABLE_STRING, expected=True)
 
-        req = compat_urllib_request.Request(compat_urllib_parse_unquote(playlist_url))
+        req = sanitized_Request(compat_urllib_parse_unquote(playlist_url))
         req.add_header('Referer', url)
 
         playlist_title = self._og_search_title(webpage)

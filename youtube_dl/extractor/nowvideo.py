@@ -7,9 +7,9 @@ class NowVideoIE(NovaMovIE):
     IE_NAME = 'nowvideo'
     IE_DESC = 'NowVideo'
 
-    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'nowvideo\.(?:ch|ec|sx|eu|at|ag|co|li)'}
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'nowvideo\.(?:to|ch|ec|sx|eu|at|ag|co|li)'}
 
-    _HOST = 'www.nowvideo.ch'
+    _HOST = 'www.nowvideo.to'
 
     _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
     _FILEKEY_REGEX = r'var fkzd="([^"]+)";'

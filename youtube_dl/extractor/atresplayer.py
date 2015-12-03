@@ -7,11 +7,11 @@ from .common import InfoExtractor
 from ..compat import (
     compat_str,
     compat_urllib_parse,
-    compat_urllib_request,
 )
 from ..utils import (
     int_or_none,
     float_or_none,
+    sanitized_Request,
     xpath_text,
     ExtractorError,
 )
@@ -63,7 +63,7 @@ class AtresPlayerIE(InfoExtractor):
             'j_password': password,
         }
 
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         response = self._download_webpage(
@@ -94,7 +94,7 @@ class AtresPlayerIE(InfoExtractor):
 
         formats = []
         for fmt in ['windows', 'android_tablet']:
-            request = compat_urllib_request.Request(
+            request = sanitized_Request(
                 self._URL_VIDEO_TEMPLATE.format(fmt, episode_id, timestamp_shifted, token))
             request.add_header('User-Agent', self._USER_AGENT)
 

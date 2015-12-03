@@ -8,6 +8,7 @@ from ..utils import (
     ExtractorError,
     determine_ext,
     int_or_none,
+    strip_jsonp,
     unified_strdate,
     US_RATINGS,
 )
@@ -21,7 +22,7 @@ class PBSIE(InfoExtractor):
            # Article with embedded player (or direct video)
            (?:www\.)?pbs\.org/(?:[^/]+/){2,5}(?P<presumptive_id>[^/]+?)(?:\.html)?/?(?:$|[?\#]) |
            # Player
-           video\.pbs\.org/(?:widget/)?partnerplayer/(?P<player_id>[^/]+)/
+           (?:video|player)\.pbs\.org/(?:widget/)?partnerplayer/(?P<player_id>[^/]+)/
         )
     '''
 
@@ -153,6 +154,26 @@ class PBSIE(InfoExtractor):
             'params': {
                 'skip_download': True,  # requires ffmpeg
             },
+        },
+        {
+            # Frontline video embedded via flp2012.js
+            'url': 'http://www.pbs.org/wgbh/pages/frontline/the-atomic-artists',
+            'info_dict': {
+                'id': '2070868960',
+                'display_id': 'the-atomic-artists',
+                'ext': 'mp4',
+                'title': 'FRONTLINE - The Atomic Artists',
+                'description': 'md5:f5bfbefadf421e8bb8647602011caf8e',
+                'duration': 723,
+                'thumbnail': 're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            },
+        },
+        {
+            'url': 'http://player.pbs.org/widget/partnerplayer/2365297708/?start=0&end=0&chapterbar=false&endscreen=false&topbar=true',
+            'only_matching': True,
         }
     ]
     _ERRORS = {
@@ -191,9 +212,30 @@ class PBSIE(InfoExtractor):
             if media_id:
                 return media_id, presumptive_id, upload_date
 
-            url = self._search_regex(
-                r'(?s)<iframe[^>]+?(?:[a-z-]+?=["\'].*?["\'][^>]+?)*?\bsrc=["\']([^\'"]+partnerplayer[^\'"]+)["\']',
-                webpage, 'player URL')
+            # Fronline video embedded via flp
+            video_id = self._search_regex(
+                r'videoid\s*:\s*"([\d+a-z]{7,})"', webpage, 'videoid', default=None)
+            if video_id:
+                # pkg_id calculation is reverse engineered from
+                # http://www.pbs.org/wgbh/pages/frontline/js/flp2012.js
+                prg_id = self._search_regex(
+                    r'videoid\s*:\s*"([\d+a-z]{7,})"', webpage, 'videoid')[7:]
+                if 'q' in prg_id:
+                    prg_id = prg_id.split('q')[1]
+                prg_id = int(prg_id, 16)
+                getdir = self._download_json(
+                    'http://www.pbs.org/wgbh/pages/frontline/.json/getdir/getdir%d.json' % prg_id,
+                    presumptive_id, 'Downloading getdir JSON',
+                    transform_source=strip_jsonp)
+                return getdir['mid'], presumptive_id, upload_date
+
+            for iframe in re.findall(r'(?s)<iframe(.+?)></iframe>', webpage):
+                url = self._search_regex(
+                    r'src=(["\'])(?P<url>.+?partnerplayer.+?)\1', iframe,
+                    'player URL', default=None, group='url')
+                if url:
+                    break
+
             mobj = re.match(self._VALID_URL, url)
 
         player_id = mobj.group('player_id')
@@ -221,7 +263,7 @@ class PBSIE(InfoExtractor):
             return self.playlist_result(entries, display_id)
 
         info = self._download_json(
-            'http://video.pbs.org/videoInfo/%s?format=json&type=partner' % video_id,
+            'http://player.pbs.org/videoInfo/%s?format=json&type=partner' % video_id,
             display_id)
 
         formats = []

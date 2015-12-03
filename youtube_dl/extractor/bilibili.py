@@ -3,9 +3,11 @@ from __future__ import unicode_literals
 
 import re
 import json
-import xml.etree.ElementTree as ET
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_etree_fromstring,
+)
 from ..utils import (
     int_or_none,
     unescapeHTML,
@@ -68,7 +70,7 @@ class BiliBiliIE(InfoExtractor):
         except ValueError:
             pass
 
-        doc = ET.fromstring(page)
+        doc = compat_etree_fromstring(page)
 
         entries = []
 

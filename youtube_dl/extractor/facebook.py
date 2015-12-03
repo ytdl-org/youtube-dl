@@ -10,12 +10,11 @@ from ..compat import (
     compat_str,
     compat_urllib_error,
     compat_urllib_parse_unquote,
-    compat_urllib_request,
 )
 from ..utils import (
     ExtractorError,
-    int_or_none,
     limit_length,
+    sanitized_Request,
     urlencode_postdata,
     get_element_by_id,
     clean_html,
@@ -74,7 +73,7 @@ class FacebookIE(InfoExtractor):
         if useremail is None:
             return
 
-        login_page_req = compat_urllib_request.Request(self._LOGIN_URL)
+        login_page_req = sanitized_Request(self._LOGIN_URL)
         login_page_req.add_header('Cookie', 'locale=en_US')
         login_page = self._download_webpage(login_page_req, None,
                                             note='Downloading login page',
@@ -95,7 +94,7 @@ class FacebookIE(InfoExtractor):
             'timezone': '-60',
             'trynum': '1',
         }
-        request = compat_urllib_request.Request(self._LOGIN_URL, urlencode_postdata(login_form))
+        request = sanitized_Request(self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         try:
             login_results = self._download_webpage(request, None,
@@ -110,7 +109,7 @@ class FacebookIE(InfoExtractor):
                     r'name="h"\s+(?:\w+="[^"]+"\s+)*?value="([^"]+)"', login_results, 'h'),
                 'name_action_selected': 'dont_save',
             }
-            check_req = compat_urllib_request.Request(self._CHECKPOINT_URL, urlencode_postdata(check_form))
+            check_req = sanitized_Request(self._CHECKPOINT_URL, urlencode_postdata(check_form))
             check_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
             check_response = self._download_webpage(check_req, None,
                                                     note='Confirming login')
@@ -142,16 +141,20 @@ class FacebookIE(InfoExtractor):
         data = dict(json.loads(m.group(1)))
         params_raw = compat_urllib_parse_unquote(data['params'])
         params = json.loads(params_raw)
-        video_data = params['video_data'][0]
 
         formats = []
-        for quality in ['sd', 'hd']:
-            src = video_data.get('%s_src' % quality)
-            if src is not None:
-                formats.append({
-                    'format_id': quality,
-                    'url': src,
-                })
+        for format_id, f in params['video_data'].items():
+            if not f or not isinstance(f, list):
+                continue
+            for quality in ('sd', 'hd'):
+                for src_type in ('src', 'src_no_ratelimit'):
+                    src = f[0].get('%s_%s' % (quality, src_type))
+                    if src:
+                        formats.append({
+                            'format_id': '%s_%s_%s' % (format_id, quality, src_type),
+                            'url': src,
+                            'preference': -10 if format_id == 'progressive' else 0,
+                        })
         if not formats:
             raise ExtractorError('Cannot find video formats')
 
@@ -161,7 +164,7 @@ class FacebookIE(InfoExtractor):
         if not video_title:
             video_title = self._html_search_regex(
                 r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
-                webpage, 'alternative title', fatal=False)
+                webpage, 'alternative title', default=None)
             video_title = limit_length(video_title, 80)
         if not video_title:
             video_title = 'Facebook video #%s' % video_id
@@ -171,7 +174,5 @@ class FacebookIE(InfoExtractor):
             'id': video_id,
             'title': video_title,
             'formats': formats,
-            'duration': int_or_none(video_data.get('video_duration')),
-            'thumbnail': video_data.get('thumbnail_src'),
             'uploader': uploader,
         }

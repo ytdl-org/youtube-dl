@@ -4,11 +4,11 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
-    compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -49,7 +49,7 @@ class Vbox7IE(InfoExtractor):
 
         info_url = "http://vbox7.com/play/magare.do"
         data = compat_urllib_parse.urlencode({'as3': '1', 'vid': video_id})
-        info_request = compat_urllib_request.Request(info_url, data)
+        info_request = sanitized_Request(info_url, data)
         info_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         info_response = self._download_webpage(info_request, video_id, 'Downloading info webpage')
         if info_response is None:

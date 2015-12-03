@@ -4,14 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .brightcove import BrightcoveIE
+from .brightcove import BrightcoveLegacyIE
 
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
+    sanitized_Request,
     smuggle_url,
     std_headers,
 )
@@ -58,7 +56,7 @@ class SafariBaseIE(InfoExtractor):
             'next': '',
         }
 
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             self._LOGIN_URL, compat_urllib_parse.urlencode(login_form), headers=headers)
         login_page = self._download_webpage(
             request, None, 'Logging in as %s' % username)
@@ -112,11 +110,11 @@ class SafariIE(SafariBaseIE):
             '%s/%s/chapter-content/%s.html' % (self._API_BASE, course_id, part),
             part)
 
-        bc_url = BrightcoveIE._extract_brightcove_url(webpage)
+        bc_url = BrightcoveLegacyIE._extract_brightcove_url(webpage)
         if not bc_url:
             raise ExtractorError('Could not extract Brightcove URL from %s' % url, expected=True)
 
-        return self.url_result(smuggle_url(bc_url, {'Referer': url}), 'Brightcove')
+        return self.url_result(smuggle_url(bc_url, {'Referer': url}), 'BrightcoveLegacy')
 
 
 class SafariCourseIE(SafariBaseIE):

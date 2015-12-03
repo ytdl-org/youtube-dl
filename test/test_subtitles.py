@@ -28,6 +28,7 @@ from youtube_dl.extractor import (
     ThePlatformFeedIE,
     RTVEALaCartaIE,
     FunnyOrDieIE,
+    DemocracynowIE,
 )
 
 
@@ -344,6 +345,26 @@ class TestFunnyOrDieSubtitles(BaseTestSubtitles):
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['en']))
         self.assertEqual(md5(subtitles['en']), 'c5593c193eacd353596c11c2d4f9ecc4')
+
+
+class TestDemocracynowSubtitles(BaseTestSubtitles):
+    url = 'http://www.democracynow.org/shows/2015/7/3'
+    IE = DemocracynowIE
+
+    def test_allsubtitles(self):
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['en']))
+        self.assertEqual(md5(subtitles['en']), 'acaca989e24a9e45a6719c9b3d60815c')
+
+    def test_subtitles_in_page(self):
+        self.url = 'http://www.democracynow.org/2015/7/3/this_flag_comes_down_today_bree'
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['en']))
+        self.assertEqual(md5(subtitles['en']), 'acaca989e24a9e45a6719c9b3d60815c')
 
 
 if __name__ == '__main__':

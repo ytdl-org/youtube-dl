@@ -4,13 +4,17 @@ from __future__ import unicode_literals
 import re
 import itertools
 
-from .common import InfoExtractor
+from .common import (
+    InfoExtractor,
+    SearchInfoExtractor
+)
 from ..compat import (
     compat_str,
     compat_urlparse,
     compat_urllib_parse,
 )
 from ..utils import (
+    encode_dict,
     ExtractorError,
     int_or_none,
     unified_strdate,
@@ -469,3 +473,60 @@ class SoundcloudPlaylistIE(SoundcloudIE):
             'description': data.get('description'),
             'entries': entries,
         }
+
+
+class SoundcloudSearchIE(SearchInfoExtractor, SoundcloudIE):
+    IE_NAME = 'soundcloud:search'
+    IE_DESC = 'Soundcloud search'
+    _MAX_RESULTS = float('inf')
+    _TESTS = [{
+        'url': 'scsearch15:post-avant jazzcore',
+        'info_dict': {
+            'title': 'post-avant jazzcore',
+        },
+        'playlist_count': 15,
+    }]
+
+    _SEARCH_KEY = 'scsearch'
+    _MAX_RESULTS_PER_PAGE = 200
+    _DEFAULT_RESULTS_PER_PAGE = 50
+    _API_V2_BASE = 'https://api-v2.soundcloud.com'
+
+    def _get_collection(self, endpoint, collection_id, **query):
+        limit = min(
+            query.get('limit', self._DEFAULT_RESULTS_PER_PAGE),
+            self._MAX_RESULTS_PER_PAGE)
+        query['limit'] = limit
+        query['client_id'] = self._CLIENT_ID
+        query['linked_partitioning'] = '1'
+        query['offset'] = 0
+        data = compat_urllib_parse.urlencode(encode_dict(query))
+        next_url = '{0}{1}?{2}'.format(self._API_V2_BASE, endpoint, data)
+
+        collected_results = 0
+
+        for i in itertools.count(1):
+            response = self._download_json(
+                next_url, collection_id, 'Downloading page {0}'.format(i),
+                'Unable to download API page')
+
+            collection = response.get('collection', [])
+            if not collection:
+                break
+
+            collection = list(filter(bool, collection))
+            collected_results += len(collection)
+
+            for item in collection:
+                yield self.url_result(item['uri'], SoundcloudIE.ie_key())
+
+            if not collection or collected_results >= limit:
+                break
+
+            next_url = response.get('next_href')
+            if not next_url:
+                break
+
+    def _get_n_results(self, query, n):
+        tracks = self._get_collection('/search/tracks', query, limit=n, q=query)
+        return self.playlist_result(tracks, playlist_title=query)

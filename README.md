@@ -319,7 +319,8 @@ which means you can modify it, redistribute it or use it however you like.
     --all-formats                    Download all available video formats
     --prefer-free-formats            Prefer free video formats unless a specific
                                      one is requested
-    -F, --list-formats               List all available formats
+    -F, --list-formats               List all available formats of specified
+                                     videos
     --youtube-skip-dash-manifest     Do not download the DASH manifests and
                                      related data on YouTube videos
     --merge-output-format FORMAT     If a merge is required (e.g.
@@ -329,8 +330,8 @@ which means you can modify it, redistribute it or use it however you like.
 
 ## Subtitle Options:
     --write-sub                      Write subtitle file
-    --write-auto-sub                 Write automatic subtitle file (YouTube
-                                     only)
+    --write-auto-sub                 Write automatically generated subtitle file
+                                     (YouTube only)
     --all-subs                       Download all the available subtitles of the
                                      video
     --list-subs                      List all available subtitles for the video
@@ -534,6 +535,12 @@ Most people asking this question are not aware that youtube-dl now defaults to d
 
 Apparently YouTube requires you to pass a CAPTCHA test if you download too much. We're [considering to provide a way to let you solve the CAPTCHA](https://github.com/rg3/youtube-dl/issues/154), but at the moment, your best course of action is pointing a webbrowser to the youtube URL, solving the CAPTCHA, and restart youtube-dl.
 
+### Do I need any other programs?
+
+youtube-dl works fine on its own on most sites. However, if you want to convert video/audio, you'll need [avconv](https://libav.org/) or [ffmpeg](https://www.ffmpeg.org/). On some sites - most notably YouTube - videos can be retrieved in a higher quality format without sound. youtube-dl will detect whether avconv/ffmpeg is present and automatically pick the best option.
+
+Videos or video formats streamed via RTMP protocol can only be downloaded when [rtmpdump](https://rtmpdump.mplayerhq.hu/) is installed. Downloading MMS and RTSP videos requires either [mplayer](http://mplayerhq.hu/) or [mpv](https://mpv.io/) to be installed.
+
 ### I have downloaded a video but how can I play it?
 
 Once the video is fully downloaded, use any video player, such as [vlc](http://www.videolan.org) or [mplayer](http://www.mplayerhq.hu/).
@@ -710,12 +717,13 @@ If you want to add support for a new site, you can follow this quick list (assum
             webpage = self._download_webpage(url, video_id)
 
             # TODO more code goes here, for example ...
-            title = self._html_search_regex(r'<h1>(.*?)</h1>', webpage, 'title')
+            title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title')
 
             return {
                 'id': video_id,
                 'title': title,
                 'description': self._og_search_description(webpage),
+                'uploader': self._search_regex(r'<div[^>]+id="uploader"[^>]*>([^<]+)<', webpage, 'uploader', fatal=False),
                 # TODO more properties (see youtube_dl/extractor/common.py)
             }
     ```
@@ -794,7 +802,7 @@ Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/i
 
 **Please include the full output of youtube-dl when run with `-v`**.
 
-The output (including the first lines) contain important debugging information. Issues without the full output are often not reproducible and therefore do not get solved in short order, if ever.
+The output (including the first lines) contains important debugging information. Issues without the full output are often not reproducible and therefore do not get solved in short order, if ever.
 
 Please re-read your issue once again to avoid a couple of common mistakes (you can and should use this as a checklist):
 

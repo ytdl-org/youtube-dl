@@ -4,10 +4,8 @@ import os
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlparse,
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_parse_urlparse
+from ..utils import sanitized_Request
 
 
 class KeezMoviesIE(InfoExtractor):
@@ -26,7 +24,7 @@ class KeezMoviesIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        req = compat_urllib_request.Request(url)
+        req = sanitized_Request(url)
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
