@@ -23,7 +23,7 @@ class BBCCoUkIE(InfoExtractor):
     IE_NAME = 'bbc.co.uk'
     IE_DESC = 'BBC iPlayer'
     _ID_REGEX = r'[pb][\da-z]{7}'
-    _VALID_URL = r'https?://(?:(?:www\.)?bbc\.co\.uk/(?:(?:programmes/(?!articles/)|iplayer(?:/[^/]+)?/(?:episode/|playlist/))|music/clips[/#])|)(?P<id>%s)' % _ID_REGEX
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:(?:programmes/(?!articles/)|iplayer(?:/[^/]+)?/(?:episode/|playlist/))|music/clips[/#])(?P<id>%s)' % _ID_REGEX
 
     _MEDIASELECTOR_URLS = [
         # Provides HQ HLS streams with even better quality that pc mediaset but fails
