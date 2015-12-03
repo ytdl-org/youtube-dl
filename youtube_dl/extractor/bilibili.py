@@ -2,13 +2,9 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_etree_fromstring,
-    compat_str,
-)
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     unescapeHTML,
@@ -98,7 +94,7 @@ class BiliBiliIE(InfoExtractor):
             'thumbnail': view_data.get('pic'),
             'uploader': view_data.get('author'),
             'timestamp': int_or_none(view_data.get('created')),
-            'view_count': view_data.get('play'),
+            'view_count': int_or_none(view_data.get('play')),
             'duration': int_or_none(xpath_text(doc, './timelength')),
         }
 
