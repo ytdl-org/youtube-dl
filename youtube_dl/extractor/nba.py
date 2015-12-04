@@ -44,6 +44,8 @@ class NBAIE(InfoExtractor):
 
     def _real_extract(self, url):
         path, video_id = re.match(self._VALID_URL, url).groups()
+        if path.startswith('nba/'):
+            path = path[3:]
         video_info = self._download_xml('http://www.nba.com/%s.xml' % path, video_id)
         video_id = xpath_text(video_info, 'slug')
         title = xpath_text(video_info, 'headline')
@@ -61,23 +63,27 @@ class NBAIE(InfoExtractor):
             })
 
         formats = []
-        for video_file in video_info.find('files').iter('file'):
+        for video_file in video_info.findall('.//file'):
             video_url = video_file.text
             if video_url.startswith('/'):
                 continue
             if video_url.endswith('.m3u8'):
-                formats.extend(self._extract_m3u8_formats(video_url, video_id, m3u8_id='hls'))
+                m3u8_formats = self._extract_m3u8_formats(video_url, video_id, m3u8_id='hls', fatal=False)
+                if m3u8_formats:
+                    formats.extend(m3u8_formats)
             elif video_url.endswith('.f4m'):
-                formats.extend(self._extract_f4m_formats(video_url + '?hdcore=3.4.1.1', video_id, f4m_id='hds'))
+                f4m_formats = self._extract_f4m_formats(video_url + '?hdcore=3.4.1.1', video_id, f4m_id='hds', fatal=False)
+                if f4m_formats:
+                    formats.extend(f4m_formats)
             else:
                 key = video_file.attrib.get('bitrate')
-                width, height, bitrate = re.search(r'(\d+)x(\d+)(?:_(\d+))?', key).groups()
+                mobj = re.search(r'(\d+)x(\d+)(?:_(\d+))?', key)
                 formats.append({
                     'format_id': key,
                     'url': video_url,
-                    'width': int_or_none(width),
-                    'height': int_or_none(height),
-                    'tbr': int_or_none(bitrate),
+                    'width': int_or_none(mobj.group(1)),
+                    'height': int_or_none(mobj.group(2)),
+                    'tbr': int_or_none(mobj.group(3)),
                 })
         self._sort_formats(formats)
 
