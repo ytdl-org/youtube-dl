@@ -1,7 +1,7 @@
 all: youtube-dl README.md CONTRIBUTING.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish supportedsites
 
 clean:
-	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish *.dump *.part *.info.json *.mp4 *.flv *.mp3 *.avi CONTRIBUTING.md.tmp youtube-dl youtube-dl.exe
+	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish *.dump *.part *.info.json *.mp4 *.flv *.mp3 *.avi CONTRIBUTING.md.tmp youtube-dl youtube-dl.exe share/locale/*/LC_MESSAGES/*
 	find . -name "*.pyc" -delete
 
 PREFIX ?= /usr/local
@@ -50,7 +50,7 @@ tar: youtube-dl.tar.gz
 
 .PHONY: all clean install test tar bash-completion pypi-files zsh-completion fish-completion ot offlinetest codetest supportedsites update-po update-gmo
 
-pypi-files: youtube-dl.bash-completion README.txt youtube-dl.1 youtube-dl.fish
+pypi-files: youtube-dl.bash-completion README.txt youtube-dl.1 youtube-dl.fish update-gmo
 
 youtube-dl: youtube_dl/*.py youtube_dl/*/*.py
 	zip --quiet youtube-dl youtube_dl/*.py youtube_dl/*/*.py
