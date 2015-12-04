@@ -10,7 +10,6 @@ class GameInformerIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?gameinformer\.com/(?:[^/]+/)*(?P<id>.+)\.aspx'
     _TEST = {
         'url': 'http://www.gameinformer.com/b/features/archive/2015/09/26/replay-animal-crossing.aspx',
-        'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
         'info_dict': {
             'id': '4515472681001',
             'ext': 'm3u8',
@@ -29,7 +28,9 @@ class GameInformerIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         bc_api_url = self._search_regex(r"getVideo\('([^']+)'", webpage, 'brightcove api url')
-        json_data = self._download_json(bc_api_url + '&video_fields=id,name,shortDescription,publishedDate,videoStillURL,length,IOSRenditions', display_id)
+        json_data = self._download_json(
+            bc_api_url + '&video_fields=id,name,shortDescription,publishedDate,videoStillURL,length,IOSRenditions',
+            display_id)
 
         return {
             'id': compat_str(json_data['id']),
