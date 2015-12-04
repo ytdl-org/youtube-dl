@@ -2531,7 +2531,7 @@ def g(s):
     DOMAIN = 'youtube_dl'
     lang, _ = locale.getdefaultlocale()
     try:
-        t = gettext.translation(DOMAIN, os.path.join(get_root_dir(), '../share/locale/'), [lang])
+        t = gettext.translation(DOMAIN, find_file_in_root('share/locale/'), [lang])
     except (OSError, IOError):  # OSError for 3.3+ and IOError otherwise
         t = None
 
@@ -2552,8 +2552,25 @@ def g(s):
     return ret
 
 
-def get_root_dir():
-    return os.path.dirname(os.path.abspath(__file__))
+def get_root_dirs():
+    ret = []
+
+    import __main__
+    if hasattr(__main__, '__file__'):  # __main__ has no __file__ if youtube_dl is imported from stdin
+        # ../../ of bin/youtube-dl
+        ret.append(os.path.dirname(os.path.dirname(os.path.abspath(__main__.__file__))))
+
+    # ../../ of youtube_dl/utils.py
+    ret.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+    return ret
+
+
+def find_file_in_root(file_path):
+    for root in get_root_dirs():
+        full_path = os.path.join(root, file_path)
+        if os.path.exists(full_path):
+            return full_path
 
 
 class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
