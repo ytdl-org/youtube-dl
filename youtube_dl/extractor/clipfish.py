@@ -26,19 +26,29 @@ class ClipfishIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        video_info = self._download_json('http://www.clipfish.de/devapi/id/%s?format=json&apikey=hbbtv' % video_id, video_id)['items'][0]
+        video_info = self._download_json(
+            'http://www.clipfish.de/devapi/id/%s?format=json&apikey=hbbtv' % video_id,
+            video_id)['items'][0]
 
-        formats = [{
-            'url': video_info['media_videourl_hls'].replace('de.hls.fra.clipfish.de', 'hls.fra.clipfish.de'),
-            'ext': 'mp4',
-            'format_id': 'hls',
-        }, {
-            'url': video_info['media_videourl'],
-            'format_id': 'mp4',
-            'width': int_or_none(video_info.get('width')),
-            'height': int_or_none(video_info.get('height')),
-            'tbr': int_or_none(video_info.get('bitrate')),
-        }]
+        formats = []
+
+        m3u8_url = video_info.get('media_videourl_hls')
+        if m3u8_url:
+            formats.append({
+                'url': m3u8_url.replace('de.hls.fra.clipfish.de', 'hls.fra.clipfish.de'),
+                'ext': 'mp4',
+                'format_id': 'hls',
+            })
+
+        mp4_url = video_info.get('media_videourl')
+        if mp4_url:
+            formats.append({
+                'url': mp4_url,
+                'format_id': 'mp4',
+                'width': int_or_none(video_info.get('width')),
+                'height': int_or_none(video_info.get('height')),
+                'tbr': int_or_none(video_info.get('bitrate')),
+            })
 
         return {
             'id': video_id,
