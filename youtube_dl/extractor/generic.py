@@ -339,7 +339,7 @@ class GenericIE(InfoExtractor):
                 'id': 'BwY2RxaTrTkslxOfcan0UCf0YqyvWysJ',
                 'ext': 'mp4',
                 'title': '2cc213299525360.mov',  # that's what we get
-                'duration': 238231,
+                'duration': 238.231,
             },
             'add_ie': ['Ooyala'],
         },
@@ -351,7 +351,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': '"Steve Jobs: Man in the Machine" trailer',
                 'description': 'The first trailer for the Alex Gibney documentary "Steve Jobs: Man in the Machine."',
-                'duration': 135427,
+                'duration': 135.427,
             },
             'params': {
                 'skip_download': True,
@@ -964,7 +964,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'description': 'VIDEO: INDEX/MATCH versus VLOOKUP.',
                 'title': 'This is what separates the Excel masters from the wannabes',
-                'duration': 191933,
+                'duration': 191.933,
             },
             'params': {
                 # m3u8 downloads

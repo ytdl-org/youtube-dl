@@ -24,7 +24,7 @@ class OoyalaBaseIE(InfoExtractor):
             'title': metadata['title'],
             'description': metadata.get('description'),
             'thumbnail': metadata.get('thumbnail_image') or metadata.get('promo_image'),
-            'duration': int_or_none(metadata.get('duration')),
+            'duration': float_or_none(metadata.get('duration'), 1000),
         }
 
         formats = []
@@ -78,7 +78,7 @@ class OoyalaIE(OoyalaBaseIE):
                 'ext': 'mp4',
                 'title': 'Explaining Data Recovery from Hard Drives and SSDs',
                 'description': 'How badly damaged does a drive have to be to defeat Russell and his crew? Apparently, smashed to bits.',
-                'duration': 853386,
+                'duration': 853.386,
             },
         }, {
             # Only available for ipad
@@ -87,7 +87,7 @@ class OoyalaIE(OoyalaBaseIE):
                 'id': 'x1b3lqZDq9y_7kMyC2Op5qo-p077tXD0',
                 'ext': 'mp4',
                 'title': 'Simulation Overview - Levels of Simulation',
-                'duration': 194948,
+                'duration': 194.948,
             },
         },
         {
@@ -99,7 +99,7 @@ class OoyalaIE(OoyalaBaseIE):
                 'id': 'FiOG81ZTrvckcchQxmalf4aQj590qTEx',
                 'ext': 'mp4',
                 'title': 'Divide Tool Path.mp4',
-                'duration': 204405,
+                'duration': 204.405,
             }
         }
     ]

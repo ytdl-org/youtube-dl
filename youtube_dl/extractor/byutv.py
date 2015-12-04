@@ -17,7 +17,7 @@ class BYUtvIE(InfoExtractor):
             'description': 'md5:e07269172baff037f8e8bf9956bc9747',
             'title': 'Season 5 Episode 5',
             'thumbnail': 're:^https?://.*\.jpg$',
-            'duration': 1486486,
+            'duration': 1486.486,
         },
         'params': {
             'skip_download': True,
