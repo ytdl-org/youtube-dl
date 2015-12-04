@@ -57,6 +57,7 @@ youtube-dl: youtube_dl/*.py youtube_dl/*/*.py
 	zip --quiet --junk-paths youtube-dl youtube_dl/__main__.py
 	echo '#!$(PYTHON)' > youtube-dl
 	cat youtube-dl.zip >> youtube-dl
+	zip --adjust-sfx youtube-dl
 	rm youtube-dl.zip
 	chmod a+x youtube-dl
 
