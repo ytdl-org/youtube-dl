@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -34,7 +32,7 @@ class ClipfishIE(InfoExtractor):
             'url': video_info['media_videourl_hls'].replace('de.hls.fra.clipfish.de', 'hls.fra.clipfish.de'),
             'ext': 'mp4',
             'format_id': 'hls',
-        },{
+        }, {
             'url': video_info['media_videourl'],
             'format_id': 'mp4',
             'width': int_or_none(video_info.get('width')),
