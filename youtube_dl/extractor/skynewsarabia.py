@@ -9,7 +9,7 @@ from ..utils import (
 )
 
 
-class SkyNewArabiaBaseIE(InfoExtractor):
+class SkyNewsArabiaBaseIE(InfoExtractor):
     _IMAGE_BASE_URL = 'http://www.skynewsarabia.com/web/images'
 
     def _call_api(self, path, value):
@@ -40,7 +40,7 @@ class SkyNewArabiaBaseIE(InfoExtractor):
         }
 
 
-class SkyNewsArabiaIE(SkyNewArabiaBaseIE):
+class SkyNewsArabiaIE(SkyNewsArabiaBaseIE):
     IE_NAME = 'skynewsarabia:video'
     _VALID_URL = r'https?://(?:www\.)?skynewsarabia\.com/web/video/(?P<id>[0-9]+)'
     _TEST = {
@@ -66,7 +66,7 @@ class SkyNewsArabiaIE(SkyNewArabiaBaseIE):
         return self._extract_video_info(video_data)
 
 
-class SkyNewsArabiaArticleIE(SkyNewArabiaBaseIE):
+class SkyNewsArabiaArticleIE(SkyNewsArabiaBaseIE):
     IE_NAME = 'skynewsarabia:video'
     _VALID_URL = r'https?://(?:www\.)?skynewsarabia\.com/web/article/(?P<id>[0-9]+)'
     _TESTS = [{
