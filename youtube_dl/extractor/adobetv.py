@@ -14,7 +14,11 @@ from ..utils import (
 )
 
 
-class AdobeTVIE(InfoExtractor):
+class AdobeTVBaseIE(InfoExtractor):
+    _API_BASE_URL = 'http://tv.adobe.com/api/v4/'
+
+
+class AdobeTVIE(AdobeTVBaseIE):
     _VALID_URL = r'https?://tv\.adobe\.com/(?:(?P<language>fr|de|es|jp)/)?watch/(?P<show_urlname>[^/]+)/(?P<id>[^/]+)'
 
     _TEST = {
@@ -38,7 +42,7 @@ class AdobeTVIE(InfoExtractor):
             language = 'en'
 
         video_data = self._download_json(
-            'http://tv.adobe.com/api/v4/episode/get/?language=%s&show_urlname=%s&urlname=%s&disclosure=standard' % (language, show_urlname, urlname),
+            self._API_BASE_URL + 'episode/get/?language=%s&show_urlname=%s&urlname=%s&disclosure=standard' % (language, show_urlname, urlname),
             urlname)['data'][0]
 
         formats = [{
@@ -62,7 +66,7 @@ class AdobeTVIE(InfoExtractor):
         }
 
 
-class AdobeTVPlaylistBaseIE(InfoExtractor):
+class AdobeTVPlaylistBaseIE(AdobeTVBaseIE):
     def _parse_page_data(self, page_data):
         return [self.url_result(self._get_element_url(element_data)) for element_data in page_data]
 
@@ -97,11 +101,10 @@ class AdobeTVShowIE(AdobeTVPlaylistBaseIE):
             language = 'en'
         query = 'language=%s&show_urlname=%s' % (language, show_urlname)
 
-        show_data = self._download_json(
-            'http://tv.adobe.com/api/v4/show/get/?%s' % query, show_urlname)['data'][0]
+        show_data = self._download_json(self._API_BASE_URL + 'show/get/?%s' % query, show_urlname)['data'][0]
 
         return self.playlist_result(
-            self._extract_playlist_entries('http://tv.adobe.com/api/v4/episode/?%s' % query, show_urlname),
+            self._extract_playlist_entries(self._API_BASE_URL + 'episode/?%s' % query, show_urlname),
             str(show_data['id']),
             show_data['show_name'],
             show_data['show_description'])
@@ -130,7 +133,7 @@ class AdobeTVChannelIE(AdobeTVPlaylistBaseIE):
             query += '&category_urlname=%s' % category_urlname
 
         return self.playlist_result(
-            self._extract_playlist_entries('http://tv.adobe.com/api/v4/show/?%s' % query, channel_urlname),
+            self._extract_playlist_entries(self._API_BASE_URL + 'show/?%s' % query, channel_urlname),
             channel_urlname)
 
 
