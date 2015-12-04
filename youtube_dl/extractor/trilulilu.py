@@ -48,30 +48,33 @@ class TriluliluIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         media_info = self._download_json('http://m.trilulilu.ro/%s?format=json' % display_id, display_id)
+
+        media_class = media_info.get('class')
+        if media_class not in ('video', 'audio'):
+            raise ExtractorError('not a video or an audio')
+
         user = media_info.get('user', {})
 
         thumbnail = media_info.get('cover_url')
         if thumbnail:
             thumbnail.format(width='1600', height='1200')
 
-        media_class = media_info.get('class')
-        if media_class in ('video', 'audio'):
-            # TODO: get correct ext for audio files
-            stream_type = media_info.get('stream_type')
-            formats = [{
-                'url': media_info['href'],
+        # TODO: get correct ext for audio files
+        stream_type = media_info.get('stream_type')
+        formats = [{
+            'url': media_info['href'],
+            'ext': stream_type,
+        }]
+        if media_info.get('is_hd'):
+            formats.append({
+                'format_id': 'hd',
+                'url': media_info['hrefhd'],
                 'ext': stream_type,
-            }]
-            if media_info.get('is_hd'):
-                formats.append({
-                    'url': media_info['hrefhd'],
-                    'ext': stream_type,
-                })
-        else:
-            raise ExtractorError('not a video or an audio')
-
+            })
         if media_class == 'audio':
             formats[0]['vcodec'] = 'none'
+        else:
+            formats[0]['format_id'] = 'sd'
 
         return {
             'id': media_info['identifier'].split('|')[1],
