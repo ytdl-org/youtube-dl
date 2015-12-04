@@ -6,6 +6,7 @@ from __future__ import print_function
 import os.path
 import warnings
 import sys
+import glob
 import io
 import zipfile
 
@@ -64,6 +65,9 @@ else:
         ('share/doc/youtube_dl', ['README.txt']),
         ('share/man/man1', ['youtube-dl.1'])
     ]
+    for mo_file in glob.glob('share/locale/*/LC_MESSAGES/youtube_dl.mo'):
+        files_spec.append((os.path.dirname(mo_file), [mo_file]))
+
     root = os.path.dirname(os.path.abspath(__file__))
     data_files = []
     for dirname, files in files_spec:

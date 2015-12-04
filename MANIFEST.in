@@ -5,3 +5,4 @@ include youtube-dl.bash-completion
 include youtube-dl.fish
 include youtube-dl.1
 recursive-include docs Makefile conf.py *.rst
+include share/locale/*/LC_MESSAGES/youtube_dl.mo
