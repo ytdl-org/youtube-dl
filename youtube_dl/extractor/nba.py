@@ -6,6 +6,8 @@ from .common import InfoExtractor
 from ..utils import (
     parse_duration,
     int_or_none,
+    xpath_text,
+    xpath_attr,
 )
 
 
@@ -26,7 +28,7 @@ class NBAIE(InfoExtractor):
     }, {
         'url': 'http://www.nba.com/video/games/hornets/2014/12/05/0021400276-nyk-cha-play5.nba/',
         'only_matching': True,
-    },{
+    }, {
         'url': 'http://watch.nba.com/video/channels/playoffs/2015/05/20/0041400301-cle-atl-recap.nba',
         'md5': 'b2b39b81cf28615ae0c3360a3f9668c4',
         'info_dict': {
@@ -43,11 +45,11 @@ class NBAIE(InfoExtractor):
     def _real_extract(self, url):
         path, video_id = re.match(self._VALID_URL, url).groups()
         video_info = self._download_xml('http://www.nba.com/%s.xml' % path, video_id)
-        video_id = video_info.find('slug').text
-        title = video_info.find('headline').text
-        description = video_info.find('description').text
-        duration = parse_duration(video_info.find('length').text)
-        timestamp = int_or_none(video_info.find('dateCreated').attrib.get('uts'))
+        video_id = xpath_text(video_info, 'slug')
+        title = xpath_text(video_info, 'headline')
+        description = xpath_text(video_info, 'description')
+        duration = parse_duration(xpath_text(video_info, 'length'))
+        timestamp = int_or_none(xpath_attr(video_info, 'dateCreated', 'uts'))
 
         thumbnails = []
         for image in video_info.find('images'):
