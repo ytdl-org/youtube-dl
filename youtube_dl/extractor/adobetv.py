@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     parse_duration,
     unified_strdate,
@@ -55,7 +56,7 @@ class AdobeTVIE(AdobeTVBaseIE):
         self._sort_formats(formats)
 
         return {
-            'id': str(video_data['id']),
+            'id': compat_str(video_data['id']),
             'title': video_data['title'],
             'description': video_data.get('description'),
             'thumbnail': video_data.get('thumbnail'),
@@ -105,7 +106,7 @@ class AdobeTVShowIE(AdobeTVPlaylistBaseIE):
 
         return self.playlist_result(
             self._extract_playlist_entries(self._API_BASE_URL + 'episode/?%s' % query, show_urlname),
-            str(show_data['id']),
+            compat_str(show_data['id']),
             show_data['show_name'],
             show_data['show_description'])
 
