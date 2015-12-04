@@ -339,6 +339,7 @@ class GenericIE(InfoExtractor):
                 'id': 'BwY2RxaTrTkslxOfcan0UCf0YqyvWysJ',
                 'ext': 'mp4',
                 'title': '2cc213299525360.mov',  # that's what we get
+                'duration': 238231,
             },
             'add_ie': ['Ooyala'],
         },
@@ -350,6 +351,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': '"Steve Jobs: Man in the Machine" trailer',
                 'description': 'The first trailer for the Alex Gibney documentary "Steve Jobs: Man in the Machine."',
+                'duration': 135427,
             },
             'params': {
                 'skip_download': True,
@@ -960,8 +962,9 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'id': '50YnY4czr4ms1vJ7yz3xzq0excz_pUMs',
                 'ext': 'mp4',
-                'description': 'VIDEO: Index/Match versus VLOOKUP.',
+                'description': 'VIDEO: INDEX/MATCH versus VLOOKUP.',
                 'title': 'This is what separates the Excel masters from the wannabes',
+                'duration': 191933,
             },
             'params': {
                 # m3u8 downloads
@@ -1501,7 +1504,7 @@ class GenericIE(InfoExtractor):
                 re.search(r'SBN\.VideoLinkset\.ooyala\([\'"](?P<ec>.{32})[\'"]\)', webpage) or
                 re.search(r'data-ooyala-video-id\s*=\s*[\'"](?P<ec>.{32})[\'"]', webpage))
         if mobj is not None:
-            return OoyalaIE._build_url_result(mobj.group('ec'))
+            return OoyalaIE._build_url_result(smuggle_url(mobj.group('ec'), {'domain': url}))
 
         # Look for multiple Ooyala embeds on SBN network websites
         mobj = re.search(r'SBN\.VideoLinkset\.entryGroup\((\[.*?\])', webpage)
@@ -1509,7 +1512,7 @@ class GenericIE(InfoExtractor):
             embeds = self._parse_json(mobj.group(1), video_id, fatal=False)
             if embeds:
                 return _playlist_from_matches(
-                    embeds, getter=lambda v: OoyalaIE._url_for_embed_code(v['provider_video_id']), ie='Ooyala')
+                    embeds, getter=lambda v: OoyalaIE._url_for_embed_code(smuggle_url(v['provider_video_id'], {'domain': url})), ie='Ooyala')
 
         # Look for Aparat videos
         mobj = re.search(r'<iframe .*?src="(http://www\.aparat\.com/video/[^"]+)"', webpage)

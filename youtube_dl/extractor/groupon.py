@@ -18,6 +18,8 @@ class GrouponIE(InfoExtractor):
                 'id': 'tubGNycTo_9Uxg82uESj4i61EYX8nyuf',
                 'ext': 'mp4',
                 'title': 'Bikram Yoga Huntington Beach | Orange County',
+                'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
+                'duration': 44961,
             },
         }],
         'params': {
