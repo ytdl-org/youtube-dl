@@ -111,7 +111,8 @@ class BBCCoUkIE(InfoExtractor):
             'params': {
                 # rtmp download
                 'skip_download': True,
-            }
+            },
+            'skip': 'Episode is no longer available on BBC iPlayer Radio',
         }, {
             'url': 'http://www.bbc.co.uk/music/clips/p02frcc3',
             'note': 'Audio',
