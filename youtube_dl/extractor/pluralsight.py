@@ -172,7 +172,7 @@ class PluralsightIE(PluralsightBaseIE):
         else:
             def guess_allowed_qualities():
                 req_format = self._downloader.params.get('format') or 'best'
-                req_format_split = req_format.split('-')
+                req_format_split = req_format.split('-', 1)
                 if len(req_format_split) > 1:
                     req_ext, req_quality = req_format_split
                     for allowed_quality in ALLOWED_QUALITIES:
