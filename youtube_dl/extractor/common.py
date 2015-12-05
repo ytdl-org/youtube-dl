@@ -18,7 +18,6 @@ from ..compat import (
     compat_http_client,
     compat_urllib_error,
     compat_urllib_parse,
-    compat_urllib_parse_urlparse,
     compat_urlparse,
     compat_str,
     compat_etree_fromstring,
@@ -42,6 +41,7 @@ from ..utils import (
     url_basename,
     xpath_text,
     xpath_with_ns,
+    determine_protocol,
 )
 
 
@@ -776,13 +776,11 @@ class InfoExtractor(object):
 
             preference = f.get('preference')
             if preference is None:
-                proto = f.get('protocol')
-                if proto is None:
-                    proto = compat_urllib_parse_urlparse(f.get('url', '')).scheme
-
-                preference = 0 if proto in ['http', 'https'] else -0.1
+                preference = 0
                 if f.get('ext') in ['f4f', 'f4m']:  # Not yet supported
                     preference -= 0.5
+
+            proto_preference = 0 if determine_protocol(f) in ['http', 'https'] else -0.1
 
             if f.get('vcodec') == 'none':  # audio only
                 if self._downloader.params.get('prefer_free_formats'):
@@ -814,6 +812,7 @@ class InfoExtractor(object):
                 f.get('vbr') if f.get('vbr') is not None else -1,
                 f.get('height') if f.get('height') is not None else -1,
                 f.get('width') if f.get('width') is not None else -1,
+                proto_preference,
                 ext_preference,
                 f.get('abr') if f.get('abr') is not None else -1,
                 audio_ext_preference,
