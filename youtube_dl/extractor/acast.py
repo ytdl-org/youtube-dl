@@ -16,15 +16,15 @@ class ACastIE(ACastBaseIE):
     IE_NAME = 'acast'
     _VALID_URL = r'https?://(?:www\.)?acast\.com/(?P<channel>[^/]+)/(?P<id>[^/#?]+)'
     _TEST = {
-        'url': 'https://www.acast.com/gardenersquestiontime/liverpool',
-        'md5': '9e9cd59c3a8a7d8d5407605f51093050',
+        'url': 'https://www.acast.com/condenasttraveler/-where-are-you-taipei-101-taiwan',
+        'md5': 'ada3de5a1e3a2a381327d749854788bb',
         'info_dict': {
-            'id': '43da2262-ade7-420c-8564-f6367da7c010',
+            'id': '57de3baa-4bb0-487e-9418-2692c1277a34',
             'ext': 'mp3',
-            'title': 'Liverpool',
-            'timestamp': 1446163200000,
-            'description': 'md5:170432c9956eec0670d7080a75000d5b',
-            'duration': 2520,
+            'title': '"Where Are You?": Taipei 101, Taiwan',
+            'timestamp': 1196172000000,
+            'description': 'md5:0c5d8201dfea2b93218ea986c91eee6e',
+            'duration': 211,
         }
     }
 
@@ -48,14 +48,18 @@ class ACastChannelIE(ACastBaseIE):
     IE_NAME = 'acast:channel'
     _VALID_URL = r'https?://(?:www\.)?acast\.com/(?P<id>[^/#?]+)'
     _TEST = {
-        'url': 'https://www.acast.com/gardenersquestiontime',
+        'url': 'https://www.acast.com/condenasttraveler',
         'info_dict': {
-            'id': '9d8f6f73-6b9d-4d16-9399-52bf88f8f611',
-            'title': 'Gardeners\' Question Time',
-            'description': 'md5:c7ef18049da6a52b63d371b3edccce90',
+            'id': '50544219-29bb-499e-a083-6087f4cb7797',
+            'title': 'Condé Nast Traveler Podcast',
+            'description': 'md5:98646dee22a5b386626ae31866638fbd',
         },
-        'playlist_mincount': 5,
+        'playlist_mincount': 20,
     }
+
+    @classmethod
+    def suitable(cls, url):
+        return False if ACastIE.suitable(url) else super(ACastChannelIE, cls).suitable(url)
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
