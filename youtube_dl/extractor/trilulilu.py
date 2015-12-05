@@ -49,6 +49,15 @@ class TriluliluIE(InfoExtractor):
         display_id = self._match_id(url)
         media_info = self._download_json('http://m.trilulilu.ro/%s?format=json' % display_id, display_id)
 
+        age_limit = 0
+        errors = media_info.get('errors', {})
+        if errors.get('friends'):
+            raise ExtractorError('This video is private.', expected=True)
+        elif errors.get('geoblock'):
+            raise ExtractorError('This video is not available in your country.', expected=True)
+        elif errors.get('xxx_unlogged'):
+            age_limit = 18
+
         media_class = media_info.get('class')
         if media_class not in ('video', 'audio'):
             raise ExtractorError('not a video or an audio')
@@ -90,4 +99,5 @@ class TriluliluIE(InfoExtractor):
             'view_count': int_or_none(media_info.get('count_views')),
             'like_count': int_or_none(media_info.get('count_likes')),
             'comment_count': int_or_none(media_info.get('count_comments')),
+            'age_limit': age_limit,
         }
