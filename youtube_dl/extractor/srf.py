@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class SrfIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.srf\.ch/play(?:er)?/tv/[^/]+/video/(?P<display_id>[^?]+)\?id=|tp\.srgssr\.ch/p/flash\?urn=urn:srf:ais:video:)(?P<id>[0-9a-f\-]{36})'
+    _VALID_URL = r'https?://(?:www\.srf\.ch/play(?:er)?/(?:tv|radio)/[^/]+/(?P<media_type>video|audio)/(?P<display_id>[^?]+)\?id=|tp\.srgssr\.ch/p/flash\?urn=urn:srf:ais:video:)(?P<id>[0-9a-f\-]{36})'
     _TESTS = [{
         'url': 'http://www.srf.ch/play/tv/10vor10/video/snowden-beantragt-asyl-in-russland?id=28e1a57d-5b76-4399-8ab3-9097f071e6c5',
         'md5': '4cd93523723beff51bb4bee974ee238d',
@@ -36,6 +36,20 @@ class SrfIE(InfoExtractor):
             'timestamp': 1373493600,
         },
     }, {
+        'url': 'http://www.srf.ch/play/radio/hoerspielarchiv-srf-musikwelle/audio/saegel-ohni-wind-von-jakob-stebler?id=415bf3d3-6429-4de7-968d-95866e37cfbc',
+        'md5': '',
+        'info_dict': {
+            'id': '415bf3d3-6429-4de7-968d-95866e37cfbc',
+            'display_id': 'saegel-ohni-wind-von-jakob-stebler',
+            'ext': 'mp3',
+            'upload_date': '20080518',
+            'title': '«Sägel ohni Wind» von Jakob Stebler',
+            'timestamp': 1211112000,
+        },
+        'params': {
+            'skip_download': True,  # requires rtmpdump
+        },
+    }, {
         'url': 'http://www.srf.ch/player/tv/10vor10/video/snowden-beantragt-asyl-in-russland?id=28e1a57d-5b76-4399-8ab3-9097f071e6c5',
         'only_matching': True,
     }, {
@@ -44,11 +58,13 @@ class SrfIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        display_id = re.match(self._VALID_URL, url).group('display_id') or video_id
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        media_type = mobj.group('media_type')
+        display_id = mobj.group('display_id') or video_id
 
         video_data = self._download_xml(
-            'http://il.srgssr.ch/integrationlayer/1.0/ue/srf/video/play/%s.xml' % video_id,
+            'http://il.srgssr.ch/integrationlayer/1.0/ue/srf/%s/play/%s.xml' % (media_type, video_id),
             display_id)
 
         title = xpath_text(
@@ -64,7 +80,7 @@ class SrfIE(InfoExtractor):
             for url_node in item.findall('url'):
                 quality = url_node.attrib['quality']
                 full_url = url_node.text
-                original_ext = determine_ext(full_url)
+                original_ext = determine_ext(full_url).lower()
                 format_id = '%s-%s' % (quality, item.attrib['protocol'])
                 if original_ext == 'f4m':
                     formats.extend(self._extract_f4m_formats(
