@@ -590,6 +590,7 @@ class BBCIE(BBCCoUkIE):
             'ext': 'mp4',
             'title': '''Judge Mindy Glazer: "I'm sorry to see you here... I always wondered what happened to you"''',
             'duration': 56,
+            'description': '''Judge Mindy Glazer: "I'm sorry to see you here... I always wondered what happened to you"''',
         },
         'params': {
             'skip_download': True,
