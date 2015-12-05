@@ -37,8 +37,8 @@ class FC2IE(InfoExtractor):
         'params': {
             'username': 'ytdl@yt-dl.org',
             'password': '(snip)',
-            'skip': 'requires actual password'
-        }
+        },
+        'skip': 'requires actual password',
     }, {
         'url': 'http://video.fc2.com/en/a/content/20130926eZpARwsF',
         'only_matching': True,
