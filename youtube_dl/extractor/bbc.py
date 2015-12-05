@@ -47,9 +47,8 @@ class BBCCoUkIE(InfoExtractor):
             'info_dict': {
                 'id': 'b039d07m',
                 'ext': 'flv',
-                'title': 'Kaleidoscope, Leonard Cohen',
+                'title': 'Leonard Cohen, Kaleidoscope - BBC Radio 4',
                 'description': 'The Canadian poet and songwriter reflects on his musical career.',
-                'duration': 1740,
             },
             'params': {
                 # rtmp download
@@ -454,6 +453,7 @@ class BBCCoUkIE(InfoExtractor):
         webpage = self._download_webpage(url, group_id, 'Downloading video page')
 
         programme_id = None
+        duration = None
 
         tviplayer = self._search_regex(
             r'mediator\.bind\(({.+?})\s*,\s*document\.getElementById',
@@ -473,7 +473,9 @@ class BBCCoUkIE(InfoExtractor):
             title = self._og_search_title(webpage)
             description = self._search_regex(
                 r'<p class="[^"]*medium-description[^"]*">([^<]+)</p>',
-                webpage, 'description', fatal=False)
+                webpage, 'description', default=None)
+            if not description:
+                description = self._html_search_meta('description', webpage)
         else:
             programme_id, title, description, duration, formats, subtitles = self._download_playlist(group_id)
 
