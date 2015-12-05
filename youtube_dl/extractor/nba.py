@@ -86,7 +86,7 @@ class NBAIE(InfoExtractor):
                     format_info.update({
                         'width': int(mobj.group(1)),
                         'height': int(mobj.group(2)),
-                        'tbr': int(mobj.group(3)),
+                        'tbr': int_or_none(mobj.group(3)),
                     })
                 formats.append(format_info)
         self._sort_formats(formats)
