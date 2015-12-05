@@ -229,7 +229,7 @@ class MetacafeIE(InfoExtractor):
 
         age_limit = (
             18
-            if re.search(r'"contentRating":"restricted"', webpage)
+            if re.search(r'(?:"contentRating":|"rating",)"restricted"', webpage)
             else 0)
 
         if isinstance(video_url, list):
