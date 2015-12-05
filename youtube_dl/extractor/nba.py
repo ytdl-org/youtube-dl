@@ -77,14 +77,18 @@ class NBAIE(InfoExtractor):
                     formats.extend(f4m_formats)
             else:
                 key = video_file.attrib.get('bitrate')
-                mobj = re.search(r'(\d+)x(\d+)(?:_(\d+))?', key)
-                formats.append({
+                format_info = {
                     'format_id': key,
                     'url': video_url,
-                    'width': int_or_none(mobj.group(1)),
-                    'height': int_or_none(mobj.group(2)),
-                    'tbr': int_or_none(mobj.group(3)),
-                })
+                }
+                mobj = re.search(r'(\d+)x(\d+)(?:_(\d+))?', key)
+                if mobj:
+                    format_info.update({
+                        'width': int_or_none(mobj.group(1)),
+                        'height': int_or_none(mobj.group(2)),
+                        'tbr': int_or_none(mobj.group(3)),
+                    })
+                formats.append(format_info)
         self._sort_formats(formats)
 
         return {
