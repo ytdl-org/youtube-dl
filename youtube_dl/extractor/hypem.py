@@ -33,7 +33,6 @@ class HypemIE(InfoExtractor):
         request = sanitized_Request(complete_url)
         response, urlh = self._download_webpage_handle(
             request, track_id, 'Downloading webpage with the url')
-        cookie = urlh.headers.get('Set-Cookie', '')
 
         html_tracks = self._html_search_regex(
             r'(?ms)<script type="application/json" id="displayList-data">\s*(.*?)\s*</script>',
@@ -52,7 +51,6 @@ class HypemIE(InfoExtractor):
         serve_url = "http://hypem.com/serve/source/%s/%s" % (track_id, key)
         request = sanitized_Request(
             serve_url, '', {'Content-Type': 'application/json'})
-        request.add_header('cookie', cookie)
         song_data = self._download_json(request, track_id, 'Downloading metadata')
         final_url = song_data["url"]
 
