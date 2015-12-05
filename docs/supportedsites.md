@@ -15,8 +15,12 @@
  - **abc.net.au**
  - **Abc7News**
  - **AcademicEarth:Course**
+ - **acast**
+ - **acast:channel**
  - **AddAnime**
  - **AdobeTV**
+ - **AdobeTVChannel**
+ - **AdobeTVShow**
  - **AdobeTVVideo**
  - **AdultSwim**
  - **Aftenposten**
@@ -43,6 +47,7 @@
  - **arte.tv:future**
  - **AtresPlayer**
  - **ATTTechChannel**
+ - **AudiMedia**
  - **audiomack**
  - **audiomack:album**
  - **Azubu**
@@ -183,6 +188,7 @@
  - **freespeech.org**
  - **FreeVideo**
  - **FunnyOrDie**
+ - **GameInformer**
  - **Gamekings**
  - **GameOne**
  - **gameone:playlist**
@@ -480,6 +486,8 @@
  - **Shared**: shared.sx and vivo.sx
  - **ShareSix**
  - **Sina**
+ - **skynewsarabia:video**
+ - **skynewsarabia:video**
  - **Slideshare**
  - **Slutload**
  - **smotri**: Smotri.com
