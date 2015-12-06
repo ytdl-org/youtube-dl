@@ -733,6 +733,7 @@ class BBCIE(BBCCoUkIE):
         # article with multiple videos embedded with playlist.sxml (e.g.
         # http://www.bbc.com/sport/0/football/34475836)
         playlists = re.findall(r'<param[^>]+name="playlist"[^>]+value="([^"]+)"', webpage)
+        playlists.extend(re.findall(r'data-media-id="([^"]+/playlist\.sxml)"', webpage))
         if playlists:
             entries = [
                 self._extract_from_playlist_sxml(playlist_url, playlist_id, timestamp)
