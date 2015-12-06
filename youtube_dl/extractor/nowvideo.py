@@ -11,11 +11,6 @@ class NowVideoIE(NovaMovIE):
 
     _HOST = 'www.nowvideo.to'
 
-    _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
-    _FILEKEY_REGEX = r'var fkzd="([^"]+)";'
-    _TITLE_REGEX = r'<h4>([^<]+)</h4>'
-    _DESCRIPTION_REGEX = r'</h4>\s*<p>([^<]+)</p>'
-
     _TEST = {
         'url': 'http://www.nowvideo.ch/video/0mw0yow7b6dxa',
         'md5': 'f8fbbc8add72bd95b7850c6a02fc8817',
