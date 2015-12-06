@@ -13,7 +13,7 @@ from ..utils import (
 class VGTVIE(InfoExtractor):
     IE_DESC = 'VGTV, BTTV, FTV, Aftenposten and Aftonbladet'
     _VALID_URL = r'''(?x)
-                    http://(?:www\.)?
+                    https?://(?:www\.)?
                     (?P<host>
                         vgtv.no|
                         (?:bt|aftenbladet).no/tv|
@@ -25,7 +25,7 @@ class VGTVIE(InfoExtractor):
                         \#!/(?:video|live)/|
                         embed?.*id=
                     )
-                    (?P<id>[0-9]+)
+                    (?P<id>\d+)
                     '''
     _TESTS = [
         {
@@ -82,7 +82,8 @@ class VGTVIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
-        },{
+        },
+        {
             'url': 'http://www.aftenposten.no/webtv/#!/video/21039/trailer-sweatshop-i-can-t-take-any-more',
             'md5': '7fbc265a3ca4933a423c7a66aa879a67',
             'info_dict': {
@@ -145,35 +146,37 @@ class VGTVIE(InfoExtractor):
 
         hls_url = streams.get('hls')
         if hls_url:
-            formats.extend(self._extract_m3u8_formats(
-                hls_url, video_id, 'mp4', m3u8_id='hls'))
+            m3u8_formats = self._extract_m3u8_formats(hls_url, video_id, 'mp4', m3u8_id='hls', fatal=False)
+            if m3u8_formats:
+                formats.extend(m3u8_formats)
 
         hds_url = streams.get('hds')
         # wasLive hds are always 404
         if hds_url and stream_type != 'wasLive':
-            formats.extend(self._extract_f4m_formats(
-                hds_url + '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18',
-                video_id, f4m_id='hds'))
+            f4m_formats = self._extract_f4m_formats(hds_url + '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18', video_id, f4m_id='hds', fatal=False)
+            if f4m_formats:
+                formats.extend(f4m_formats)
 
+        mp4_urls = streams.get('pseudostreaming') or []
         mp4_url = streams.get('mp4')
         if mp4_url:
-            _url = hls_url or hds_url
-            MP4_URL_TEMPLATE = '%s/%%s.%s' % (mp4_url.rpartition('/')[0], mp4_url.rpartition('.')[-1])
-            for mp4_format in _url.split(','):
-                m = re.search('(?P<width>\d+)_(?P<height>\d+)_(?P<vbr>\d+)', mp4_format)
-                if not m:
-                    continue
-                width = int(m.group('width'))
-                height = int(m.group('height'))
-                vbr = int(m.group('vbr'))
-                formats.append({
-                    'url': MP4_URL_TEMPLATE % mp4_format,
-                    'format_id': 'mp4-%s' % vbr,
-                    'width': width,
-                    'height': height,
+            mp4_urls.append(mp4_url)
+        for mp4_url in mp4_urls:
+            format_info = {
+                'url': mp4_url,
+                'preference': 1,
+            }
+            mobj = re.search('(\d+)_(\d+)_(\d+)', mp4_url)
+            if mobj:
+                vbr = int(mobj.group(3))
+                format_info.update({
+                    'width': int(mobj.group(1)),
+                    'height': int(mobj.group(2)),
                     'vbr': vbr,
-                    'preference': 1,
+                    'format_id': 'mp4-%s' % vbr,
                 })
+            formats.append(format_info)
+
         self._sort_formats(formats)
 
         return {
@@ -234,4 +237,4 @@ class BTVestlendingenIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        return self.url_result('xstream:btno:%s' % self._match_id(url), 'Xstream')
+        return self.url_result('http://bt.no/tv/embed?id=%s' % self._match_id(url), 'VGTV')
