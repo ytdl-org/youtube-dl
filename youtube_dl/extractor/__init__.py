@@ -357,7 +357,6 @@ from .motherless import MotherlessIE
 from .motorsport import MotorsportIE
 from .movieclips import MovieClipsIE
 from .moviezine import MoviezineIE
-from .movshare import MovShareIE
 from .mtv import (
     MTVIE,
     MTVServicesEmbeddedIE,
@@ -423,7 +422,12 @@ from .noco import NocoIE
 from .normalboots import NormalbootsIE
 from .nosvideo import NosVideoIE
 from .nova import NovaIE
-from .novamov import NovaMovIE
+from .novamov import (
+    NovaMovIE,
+    MovShareIE,
+    NowVideoIE,
+    VideoWeedIE,
+)
 from .nowness import (
     NownessIE,
     NownessPlaylistIE,
@@ -433,7 +437,6 @@ from .nowtv import (
     NowTVIE,
     NowTVListIE,
 )
-from .nowvideo import NowVideoIE
 from .npo import (
     NPOIE,
     NPOLiveIE,
@@ -744,7 +747,6 @@ from .videofyme import VideofyMeIE
 from .videomega import VideoMegaIE
 from .videopremium import VideoPremiumIE
 from .videott import VideoTtIE
-from .videoweed import VideoWeedIE
 from .vidme import VidmeIE
 from .vidzi import VidziIE
 from .vier import VierIE, VierVideosIE
