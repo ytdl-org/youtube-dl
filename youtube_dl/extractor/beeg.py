@@ -34,7 +34,7 @@ class BeegIE(InfoExtractor):
         video_id = self._match_id(url)
 
         video = self._download_json(
-            'http://beeg.com/api/v3/video/%s' % video_id, video_id)
+            'http://beeg.com/api/v4/video/%s' % video_id, video_id)
 
         def decrypt_key(key):
             # Reverse engineered from http://static.beeg.com/cpl/1067.js
