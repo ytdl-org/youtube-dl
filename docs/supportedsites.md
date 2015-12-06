@@ -97,6 +97,7 @@
  - **Clipfish**
  - **cliphunter**
  - **Clipsyndicate**
+ - **cloudtime**: CloudTime
  - **Cloudy**
  - **Clubic**
  - **Clyp**
@@ -313,7 +314,6 @@
  - **MovieClips**
  - **MovieFap**
  - **Moviezine**
- - **movshare**: MovShare
  - **MPORA**
  - **MSNBC**
  - **MTV**
@@ -673,6 +673,7 @@
  - **WebOfStories**
  - **WebOfStoriesPlaylist**
  - **Weibo**
+ - **wholecloud**: WholeCloud
  - **Wimp**
  - **Wistia**
  - **WNL**
