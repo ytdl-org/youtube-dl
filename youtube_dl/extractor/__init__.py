@@ -427,6 +427,7 @@ from .novamov import (
     MovShareIE,
     NowVideoIE,
     VideoWeedIE,
+    CloudTimeIE,
 )
 from .nowness import (
     NownessIE,

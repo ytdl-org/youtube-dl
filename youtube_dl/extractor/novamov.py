@@ -164,3 +164,17 @@ class VideoWeedIE(NovaMovIE):
             'description': ''
         },
     }
+
+
+class CloudTimeIE(NovaMovIE):
+    IE_NAME = 'cloudtime'
+    IE_DESC = 'CloudTime'
+
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'cloudtime\.to'}
+
+    _HOST = 'www.cloudtime.to'
+
+    _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
+    _TITLE_REGEX = r'<div[^>]+class=["\']video_det["\'][^>]*>\s*<strong>([^<]+)</strong>'
+
+    _TEST = None
