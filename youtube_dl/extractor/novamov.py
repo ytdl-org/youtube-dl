@@ -1,15 +1,9 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..compat import compat_urlparse
 from ..utils import (
     ExtractorError,
-    NO_DEFAULT,
-    encode_dict,
-    sanitized_Request,
-    urlencode_postdata,
+    HEADRequest,
 )
 
 
@@ -21,11 +15,6 @@ class NovaMovIE(InfoExtractor):
     _VALID_URL = _VALID_URL_TEMPLATE % {'host': 'novamov\.com'}
 
     _HOST = 'www.novamov.com'
-
-    _FILE_DELETED_REGEX = r'This file no longer exists on our servers!</h2>'
-    _FILEKEY_REGEX = r'flashvars\.filekey="(?P<filekey>[^"]+)";'
-    _TITLE_REGEX = r'(?s)<div class="v_tab blockborder rounded5" id="v_tab1">\s*<h3>([^<]+)</h3>'
-    _DESCRIPTION_REGEX = r'(?s)<div class="v_tab blockborder rounded5" id="v_tab1">\s*<h3>[^<]+</h3><p>([^<]+)</p>'
 
     _TEST = {
         'url': 'http://www.novamov.com/video/4rurhn9x446jj',
@@ -42,53 +31,25 @@ class NovaMovIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        url = 'http://%s/video/%s' % (self._HOST, video_id)
+        video_data = self._download_json(
+            'http://%s/mobile/ajax.php?videoId=%s' % (self._HOST, video_id),
+            video_id, 'Downloading video page')
 
-        webpage = self._download_webpage(
-            url, video_id, 'Downloading video page')
+        if video_data.get('error'):
+            raise ExtractorError(
+                '%s said: The video does not exist or has been deleted.' % self.IE_NAME,
+                expected=True)
 
-        if re.search(self._FILE_DELETED_REGEX, webpage) is not None:
-            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+        video_data = video_data['items'][0]
 
-        def extract_filekey(default=NO_DEFAULT):
-            return self._search_regex(
-                self._FILEKEY_REGEX, webpage, 'filekey', default=default)
-
-        filekey = extract_filekey(default=None)
-
-        if not filekey:
-            fields = self._hidden_inputs(webpage)
-            post_url = self._search_regex(
-                r'<form[^>]+action=(["\'])(?P<url>.+?)\1', webpage,
-                'post url', default=url, group='url')
-            if not post_url.startswith('http'):
-                post_url = compat_urlparse.urljoin(url, post_url)
-            request = sanitized_Request(
-                post_url, urlencode_postdata(encode_dict(fields)))
-            request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-            request.add_header('Referer', post_url)
-            webpage = self._download_webpage(
-                request, video_id, 'Downloading continue to the video page')
-
-        filekey = extract_filekey()
-
-        title = self._html_search_regex(self._TITLE_REGEX, webpage, 'title', fatal=False)
-        description = self._html_search_regex(self._DESCRIPTION_REGEX, webpage, 'description', default='', fatal=False)
-
-        api_response = self._download_webpage(
-            'http://%s/api/player.api.php?key=%s&file=%s' % (self._HOST, filekey, video_id), video_id,
-            'Downloading video api response')
-
-        response = compat_urlparse.parse_qs(api_response)
-
-        if 'error_msg' in response:
-            raise ExtractorError('%s returned error: %s' % (self.IE_NAME, response['error_msg'][0]), expected=True)
-
-        video_url = response['url'][0]
+        request = HEADRequest('http://%s/mobile/%s' % (self._HOST, video_data['download']))
+        # resolve the url so that we can detect the correct extension
+        head = self._request_webpage(request, video_id)
+        video_url = head.geturl()
 
         return {
             'id': video_id,
             'url': video_url,
-            'title': title,
-            'description': description
+            'title': video_data['title'],
+            'description': video_data.get('desc'),
         }
