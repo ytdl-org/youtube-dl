@@ -132,7 +132,7 @@ class NowVideoIE(NovaMovIE):
     _DESCRIPTION_REGEX = r'</h4>\s*<p>([^<]+)</p>'
 
     _TEST = {
-        'url': 'http://www.nowvideo.ch/video/0mw0yow7b6dxa',
+        'url': 'http://www.nowvideo.to/video/0mw0yow7b6dxa',
         'md5': 'f8fbbc8add72bd95b7850c6a02fc8817',
         'info_dict': {
             'id': '0mw0yow7b6dxa',
