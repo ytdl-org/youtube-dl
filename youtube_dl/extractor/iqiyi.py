@@ -205,9 +205,8 @@ class IqiyiIE(InfoExtractor):
 
     def get_enc_key(self, swf_url, video_id):
         # TODO: automatic key extraction
-        # last update at 2015-10-22 for Zombie::bite
-        # '7223c67061dbea1259d0ceb44f44b6d62288f4f80c972170de5201d2321060270e05'[2:66][0::2]
-        enc_key = '2c76de15dcb44bd28ff0927d50d31620'
+        # last update at 2015-12-06 for Zombie::bite
+        enc_key = '3719f6a1da83ee0aee3488d8802d7696'[::-1]
         return enc_key
 
     def _real_extract(self, url):

@@ -71,7 +71,7 @@ class NowTVBaseIE(InfoExtractor):
 
 
 class NowTVIE(NowTVBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?nowtv\.(?:de|at|ch)/(?:rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<show_id>[^/]+)/(?:list/[^/]+/)?(?P<id>[^/]+)/(?:player|preview)'
+    _VALID_URL = r'https?://(?:www\.)?nowtv\.(?:de|at|ch)/(?:rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<show_id>[^/]+)/(?:(?:list/[^/]+|jahr/\d{4}/\d{1,2})/)?(?P<id>[^/]+)/(?:player|preview)'
 
     _TESTS = [{
         # rtl
@@ -189,6 +189,9 @@ class NowTVIE(NowTVBaseIE):
         'only_matching': True,
     }, {
         'url': 'http://www.nowtv.de/rtl2/echtzeit/list/aktuell/schnelles-geld-am-ende-der-welt/player',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nowtv.de/rtl2/zuhause-im-glueck/jahr/2015/11/eine-erschuetternde-diagnose/player',
         'only_matching': True,
     }]
 

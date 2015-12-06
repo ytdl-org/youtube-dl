@@ -338,7 +338,7 @@ def parseOpts(overrideArguments=None):
     video_format.add_option(
         '-F', '--list-formats',
         action='store_true', dest='listformats',
-        help='List all available formats')
+        help='List all available formats of requested videos')
     video_format.add_option(
         '--youtube-include-dash-manifest',
         action='store_true', dest='youtube_include_dash_manifest', default=True,

@@ -167,7 +167,7 @@ class InfoExtractor(object):
                     "ext" will be calculated from URL if missing
     automatic_captions: Like 'subtitles', used by the YoutubeIE for
                     automatically generated captions
-    duration:       Length of the video in seconds, as an integer.
+    duration:       Length of the video in seconds, as an integer or float.
     view_count:     How many users have watched the video on the platform.
     like_count:     Number of positive ratings of the video
     dislike_count:  Number of negative ratings of the video

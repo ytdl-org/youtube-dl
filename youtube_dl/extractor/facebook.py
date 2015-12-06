@@ -164,7 +164,7 @@ class FacebookIE(InfoExtractor):
         if not video_title:
             video_title = self._html_search_regex(
                 r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
-                webpage, 'alternative title', fatal=False)
+                webpage, 'alternative title', default=None)
             video_title = limit_length(video_title, 80)
         if not video_title:
             video_title = 'Facebook video #%s' % video_id

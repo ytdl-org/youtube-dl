@@ -258,7 +258,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                              |(?:                                             # or the v= param in all its forms
                                  (?:(?:watch|movie)(?:_popup)?(?:\.php)?/?)?  # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
                                  (?:\?|\#!?)                                  # the params delimiter ? or # or #!
-                                 (?:.*?&)??                                   # any other preceding param (like /?s=tuff&v=xxxx)
+                                 (?:.*?[&;])??                                # any other preceding param (like /?s=tuff&v=xxxx or ?s=tuff&amp;v=V36LpHqtcDY)
                                  v=
                              )
                          ))
@@ -346,6 +346,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '247': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
         '248': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
         '271': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
+        # itag 272 videos are either 3840x2160 (e.g. RtoitU2A-3E) or 7680x4320 (sLprVF6d7Ug)
         '272': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
         '302': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'vp9'},
         '303': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'vp9'},
@@ -714,6 +715,26 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://www.youtube.com/watch?v=Ms7iBXnlUO8',
             'only_matching': True,
         },
+        {
+            # Video with yt:stretch=17:0
+            'url': 'https://www.youtube.com/watch?v=Q39EVAstoRM',
+            'info_dict': {
+                'id': 'Q39EVAstoRM',
+                'ext': 'mp4',
+                'title': 'Clash Of Clans#14 Dicas De Ataque Para CV 4',
+                'description': 'md5:ee18a25c350637c8faff806845bddee9',
+                'upload_date': '20151107',
+                'uploader_id': 'UCCr7TALkRbo3EtFzETQF1LA',
+                'uploader': 'CH GAMER DROID',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            'url': 'https://www.youtube.com/watch?feature=player_embedded&amp;amp;v=V36LpHqtcDY',
+            'only_matching': True,
+        }
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1459,6 +1480,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             manifest_url = video_info['hlsvp'][0]
             url_map = self._extract_from_m3u8(manifest_url, video_id)
             formats = _map_to_format_list(url_map)
+            # Accept-Encoding header causes failures in live streams on Youtube and Youtube Gaming
+            for a_format in formats:
+                a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
         else:
             raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
@@ -1496,10 +1520,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             r'<meta\s+property="og:video:tag".*?content="yt:stretch=(?P<w>[0-9]+):(?P<h>[0-9]+)">',
             video_webpage)
         if stretched_m:
-            ratio = float(stretched_m.group('w')) / float(stretched_m.group('h'))
-            for f in formats:
-                if f.get('vcodec') != 'none':
-                    f['stretched_ratio'] = ratio
+            w = float(stretched_m.group('w'))
+            h = float(stretched_m.group('h'))
+            # yt:stretch may hold invalid ratio data (e.g. for Q39EVAstoRM ratio is 17:0).
+            # We will only process correct ratios.
+            if w > 0 and h > 0:
+                ratio = w / h
+                for f in formats:
+                    if f.get('vcodec') != 'none':
+                        f['stretched_ratio'] = ratio
 
         self._sort_formats(formats)
 
@@ -1538,7 +1567,7 @@ class YoutubePlaylistIE(YoutubeBaseInfoExtractor, YoutubePlaylistBaseInfoExtract
                         youtube\.com/
                         (?:
                            (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/videoseries)
-                           \? (?:.*?&)*? (?:p|a|list)=
+                           \? (?:.*?[&;])*? (?:p|a|list)=
                         |  p/
                         )
                         (

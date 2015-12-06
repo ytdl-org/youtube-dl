@@ -79,7 +79,8 @@ class MixcloudIE(InfoExtractor):
         preview_url = self._search_regex(
             r'\s(?:data-preview-url|m-preview)="([^"]+)"', webpage, 'preview url', default=None)
         if preview_url is not None:
-            song_url = preview_url.replace('/previews/', '/c/originals/')
+            song_url = re.sub(r'audiocdn(\d+)', r'stream\1', preview_url)
+            song_url = song_url.replace('/previews/', '/c/originals/')
             if not self._check_url(song_url, track_id, 'mp3'):
                 song_url = song_url.replace('.mp3', '.m4a').replace('originals/', 'm4a/64/')
                 if not self._check_url(song_url, track_id, 'm4a'):

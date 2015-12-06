@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 
 class BloombergIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.bloomberg\.com/news/[^/]+/[^/]+/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?bloomberg\.com/(?:[^/]+/)*(?P<id>[^/?#]+)'
 
     _TESTS = [{
         'url': 'http://www.bloomberg.com/news/videos/b/aaeae121-5949-481e-a1ce-4562db6f5df2',
@@ -20,22 +20,36 @@ class BloombergIE(InfoExtractor):
     }, {
         'url': 'http://www.bloomberg.com/news/articles/2015-11-12/five-strange-things-that-have-been-happening-in-financial-markets',
         'only_matching': True,
+    }, {
+        'url': 'http://www.bloomberg.com/politics/videos/2015-11-25/karl-rove-on-jeb-bush-s-struggles-stopping-trump',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         name = self._match_id(url)
         webpage = self._download_webpage(url, name)
-        video_id = self._search_regex(r'"bmmrId":"(.+?)"', webpage, 'id')
+        video_id = self._search_regex(
+            r'["\']bmmrId["\']\s*:\s*(["\'])(?P<url>.+?)\1',
+            webpage, 'id', group='url')
         title = re.sub(': Video$', '', self._og_search_title(webpage))
 
         embed_info = self._download_json(
             'http://www.bloomberg.com/api/embed?id=%s' % video_id, video_id)
         formats = []
         for stream in embed_info['streams']:
-            if stream["muxing_format"] == "TS":
-                formats.extend(self._extract_m3u8_formats(stream['url'], video_id))
+            stream_url = stream.get('url')
+            if not stream_url:
+                continue
+            if stream['muxing_format'] == 'TS':
+                m3u8_formats = self._extract_m3u8_formats(
+                    stream_url, video_id, 'mp4', m3u8_id='hls', fatal=False)
+                if m3u8_formats:
+                    formats.extend(m3u8_formats)
             else:
-                formats.extend(self._extract_f4m_formats(stream['url'], video_id))
+                f4m_formats = self._extract_f4m_formats(
+                    stream_url, video_id, f4m_id='hds', fatal=False)
+                if f4m_formats:
+                    formats.extend(f4m_formats)
         self._sort_formats(formats)
 
         return {
