@@ -424,7 +424,7 @@ from .nosvideo import NosVideoIE
 from .nova import NovaIE
 from .novamov import (
     NovaMovIE,
-    MovShareIE,
+    WholeCloudIE,
     NowVideoIE,
     VideoWeedIE,
     CloudTimeIE,
