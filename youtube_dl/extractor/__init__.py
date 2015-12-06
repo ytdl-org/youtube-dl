@@ -206,6 +206,7 @@ from .francetv import (
 from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
 from .freevideo import FreeVideoIE
+from .funimation import FunimationIE
 from .funnyordie import FunnyOrDieIE
 from .gameinformer import GameInformerIE
 from .gamekings import GamekingsIE
