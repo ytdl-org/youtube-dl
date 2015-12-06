@@ -1,6 +1,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_chr,
+    compat_ord,
+    compat_urllib_parse_unquote,
+)
 from ..utils import (
     int_or_none,
     parse_iso8601,
@@ -29,7 +34,24 @@ class BeegIE(InfoExtractor):
         video_id = self._match_id(url)
 
         video = self._download_json(
-            'http://beeg.com/api/v1/video/%s' % video_id, video_id)
+            'http://beeg.com/api/v4/video/%s' % video_id, video_id)
+
+        def decrypt_key(key):
+            # Reverse engineered from http://static.beeg.com/cpl/1067.js
+            a = '8RPUUCS35ZWp3ADnKcSmpH71ZusrROo'
+            e = compat_urllib_parse_unquote(key)
+            return ''.join([
+                compat_chr(compat_ord(e[n]) - compat_ord(a[n % len(a)]) % 25)
+                for n in range(len(e))])
+
+        def decrypt_url(encrypted_url):
+            encrypted_url = self._proto_relative_url(
+                encrypted_url.replace('{DATA_MARKERS}', ''), 'http:')
+            key = self._search_regex(
+                r'/key=(.*?)%2Cend=', encrypted_url, 'key', default=None)
+            if not key:
+                return encrypted_url
+            return encrypted_url.replace(key, decrypt_key(key))
 
         formats = []
         for format_id, video_url in video.items():
@@ -40,7 +62,7 @@ class BeegIE(InfoExtractor):
             if not height:
                 continue
             formats.append({
-                'url': self._proto_relative_url(video_url.replace('{DATA_MARKERS}', ''), 'http:'),
+                'url': decrypt_url(video_url),
                 'format_id': format_id,
                 'height': int(height),
             })

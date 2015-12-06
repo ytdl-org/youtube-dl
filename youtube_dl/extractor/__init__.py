@@ -3,9 +3,15 @@ from __future__ import unicode_literals
 from .abc import ABCIE
 from .abc7news import Abc7NewsIE
 from .academicearth import AcademicEarthCourseIE
+from .acast import (
+    ACastIE,
+    ACastChannelIE,
+)
 from .addanime import AddAnimeIE
 from .adobetv import (
     AdobeTVIE,
+    AdobeTVShowIE,
+    AdobeTVChannelIE,
     AdobeTVVideoIE,
 )
 from .adultswim import AdultSwimIE
@@ -38,6 +44,7 @@ from .arte import (
 )
 from .atresplayer import AtresPlayerIE
 from .atttechchannel import ATTTechChannelIE
+from .audimedia import AudiMediaIE
 from .audiomack import AudiomackIE, AudiomackAlbumIE
 from .azubu import AzubuIE
 from .baidu import BaiduVideoIE
@@ -200,6 +207,7 @@ from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
 from .freevideo import FreeVideoIE
 from .funnyordie import FunnyOrDieIE
+from .gameinformer import GameInformerIE
 from .gamekings import GamekingsIE
 from .gameone import (
     GameOneIE,
@@ -349,7 +357,6 @@ from .motherless import MotherlessIE
 from .motorsport import MotorsportIE
 from .movieclips import MovieClipsIE
 from .moviezine import MoviezineIE
-from .movshare import MovShareIE
 from .mtv import (
     MTVIE,
     MTVServicesEmbeddedIE,
@@ -415,7 +422,13 @@ from .noco import NocoIE
 from .normalboots import NormalbootsIE
 from .nosvideo import NosVideoIE
 from .nova import NovaIE
-from .novamov import NovaMovIE
+from .novamov import (
+    NovaMovIE,
+    WholeCloudIE,
+    NowVideoIE,
+    VideoWeedIE,
+    CloudTimeIE,
+)
 from .nowness import (
     NownessIE,
     NownessPlaylistIE,
@@ -425,7 +438,6 @@ from .nowtv import (
     NowTVIE,
     NowTVListIE,
 )
-from .nowvideo import NowVideoIE
 from .npo import (
     NPOIE,
     NPOLiveIE,
@@ -554,6 +566,10 @@ from .shahid import ShahidIE
 from .shared import SharedIE
 from .sharesix import ShareSixIE
 from .sina import SinaIE
+from .skynewsarabia import (
+    SkyNewsArabiaIE,
+    SkyNewsArabiaArticleIE,
+)
 from .slideshare import SlideshareIE
 from .slutload import SlutloadIE
 from .smotri import (
@@ -732,7 +748,6 @@ from .videofyme import VideofyMeIE
 from .videomega import VideoMegaIE
 from .videopremium import VideoPremiumIE
 from .videott import VideoTtIE
-from .videoweed import VideoWeedIE
 from .vidme import VidmeIE
 from .vidzi import VidziIE
 from .vier import VierIE, VierVideosIE
