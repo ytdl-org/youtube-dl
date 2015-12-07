@@ -42,7 +42,7 @@ class WimpIE(InfoExtractor):
             }
 
         video_url = self._search_regex(
-            r'<video[^>]+>\s*<source src=(["\'])(?P<url>.+?)\1',
+            r'<video[^>]+>\s*<source[^>]+src=(["\'])(?P<url>.+?)\1',
             webpage, 'video URL', group='url')
 
         return {
