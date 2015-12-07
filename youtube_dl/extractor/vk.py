@@ -18,6 +18,7 @@ from ..utils import (
     unified_strdate,
 )
 from .vimeo import VimeoIE
+from .pladform import PladformIE
 
 
 class VKIE(InfoExtractor):
@@ -253,6 +254,10 @@ class VKIE(InfoExtractor):
         vimeo_url = VimeoIE._extract_vimeo_url(url, info_page)
         if vimeo_url is not None:
             return self.url_result(vimeo_url)
+
+        pladform_url = PladformIE._extract_url(info_page)
+        if pladform_url:
+            return self.url_result(pladform_url)
 
         m_rutube = re.search(
             r'\ssrc="((?:https?:)?//rutube\.ru\\?/video\\?/embed(?:.*?))\\?"', info_page)
