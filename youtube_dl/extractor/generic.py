@@ -54,6 +54,7 @@ from .onionstudios import OnionStudiosIE
 from .snagfilms import SnagFilmsEmbedIE
 from .screenwavemedia import ScreenwaveMediaIE
 from .mtv import MTVServicesEmbeddedIE
+from .pladform import PladformIE
 
 
 class GenericIE(InfoExtractor):
@@ -1741,10 +1742,9 @@ class GenericIE(InfoExtractor):
             return self.url_result('eagleplatform:%(host)s:%(id)s' % mobj.groupdict(), 'EaglePlatform')
 
         # Look for Pladform embeds
-        mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://out\.pladform\.ru/player\?.+?)"', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Pladform')
+        pladform_url = PladformIE._extract_url(webpage)
+        if pladform_url:
+            return self.url_result(pladform_url)
 
         # Look for Playwire embeds
         mobj = re.search(
