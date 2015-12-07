@@ -165,6 +165,11 @@ class VKIE(InfoExtractor):
             # vk wrapper
             'url': 'http://www.biqle.ru/watch/847655_160197695',
             'only_matching': True,
+        },
+        {
+            # pladform embed
+            'url': 'https://vk.com/video-76116461_171554880',
+            'only_matching': True,
         }
     ]
 
