@@ -319,7 +319,7 @@ which means you can modify it, redistribute it or use it however you like.
     --all-formats                    Download all available video formats
     --prefer-free-formats            Prefer free video formats unless a specific
                                      one is requested
-    -F, --list-formats               List all available formats of specified
+    -F, --list-formats               List all available formats of requested
                                      videos
     --youtube-skip-dash-manifest     Do not download the DASH manifests and
                                      related data on YouTube videos
@@ -800,7 +800,21 @@ with youtube_dl.YoutubeDL(ydl_opts) as ydl:
 
 Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/issues> . Unless you were prompted so or there is another pertinent reason (e.g. GitHub fails to accept the bug report), please do not send bug reports via personal email. For discussions, join us in the irc channel #youtube-dl on freenode.
 
-**Please include the full output of youtube-dl when run with `-v`**.
+**Please include the full output of youtube-dl when run with `-v`**, i.e. add `-v` flag to your command line, copy the **whole** output and post it in the issue body wrapped in \`\`\` for better formatting. It should look similar to this:
+```
+$ youtube-dl -v http://www.youtube.com/watch?v=BaW_jenozKcj
+[debug] System config: []
+[debug] User config: []
+[debug] Command-line args: [u'-v', u'http://www.youtube.com/watch?v=BaW_jenozKcj']
+[debug] Encodings: locale cp1251, fs mbcs, out cp866, pref cp1251
+[debug] youtube-dl version 2015.12.06
+[debug] Git HEAD: 135392e
+[debug] Python version 2.6.6 - Windows-2003Server-5.2.3790-SP2
+[debug] exe versions: ffmpeg N-75573-g1d0487f, ffprobe N-75573-g1d0487f, rtmpdump 2.4
+[debug] Proxy map: {}
+...
+```
+**Do not post screenshots of verbose log only plain text is acceptable.**
 
 The output (including the first lines) contains important debugging information. Issues without the full output are often not reproducible and therefore do not get solved in short order, if ever.
 

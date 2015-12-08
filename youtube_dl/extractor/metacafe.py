@@ -154,10 +154,10 @@ class MetacafeIE(InfoExtractor):
         # Extract URL, uploader and title from webpage
         self.report_extraction(video_id)
         video_url = None
-        mobj = re.search(r'(?m)&mediaURL=([^&]+)', webpage)
+        mobj = re.search(r'(?m)&(?:media|video)URL=([^&]+)', webpage)
         if mobj is not None:
             mediaURL = compat_urllib_parse_unquote(mobj.group(1))
-            video_ext = mediaURL[-3:]
+            video_ext = determine_ext(mediaURL)
 
             # Extract gdaKey if available
             mobj = re.search(r'(?m)&gdaKey=(.*?)&', webpage)
@@ -229,7 +229,7 @@ class MetacafeIE(InfoExtractor):
 
         age_limit = (
             18
-            if re.search(r'"contentRating":"restricted"', webpage)
+            if re.search(r'(?:"contentRating":|"rating",)"restricted"', webpage)
             else 0)
 
         if isinstance(video_url, list):

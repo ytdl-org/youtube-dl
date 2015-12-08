@@ -18,6 +18,7 @@ from ..utils import (
     unified_strdate,
 )
 from .vimeo import VimeoIE
+from .pladform import PladformIE
 
 
 class VKIE(InfoExtractor):
@@ -164,6 +165,11 @@ class VKIE(InfoExtractor):
             # vk wrapper
             'url': 'http://www.biqle.ru/watch/847655_160197695',
             'only_matching': True,
+        },
+        {
+            # pladform embed
+            'url': 'https://vk.com/video-76116461_171554880',
+            'only_matching': True,
         }
     ]
 
@@ -254,10 +260,13 @@ class VKIE(InfoExtractor):
         if vimeo_url is not None:
             return self.url_result(vimeo_url)
 
+        pladform_url = PladformIE._extract_url(info_page)
+        if pladform_url:
+            return self.url_result(pladform_url)
+
         m_rutube = re.search(
             r'\ssrc="((?:https?:)?//rutube\.ru\\?/video\\?/embed(?:.*?))\\?"', info_page)
         if m_rutube is not None:
-            self.to_screen('rutube video detected')
             rutube_url = self._proto_relative_url(
                 m_rutube.group(1).replace('\\', ''))
             return self.url_result(rutube_url)

@@ -92,3 +92,89 @@ class NovaMovIE(InfoExtractor):
             'title': title,
             'description': description
         }
+
+
+class WholeCloudIE(NovaMovIE):
+    IE_NAME = 'wholecloud'
+    IE_DESC = 'WholeCloud'
+
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': '(?:wholecloud\.net|movshare\.(?:net|sx|ag))'}
+
+    _HOST = 'www.wholecloud.net'
+
+    _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
+    _TITLE_REGEX = r'<strong>Title:</strong> ([^<]+)</p>'
+    _DESCRIPTION_REGEX = r'<strong>Description:</strong> ([^<]+)</p>'
+
+    _TEST = {
+        'url': 'http://www.wholecloud.net/video/559e28be54d96',
+        'md5': 'abd31a2132947262c50429e1d16c1bfd',
+        'info_dict': {
+            'id': '559e28be54d96',
+            'ext': 'flv',
+            'title': 'dissapeared image',
+            'description': 'optical illusion  dissapeared image  magic illusion',
+        }
+    }
+
+
+class NowVideoIE(NovaMovIE):
+    IE_NAME = 'nowvideo'
+    IE_DESC = 'NowVideo'
+
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'nowvideo\.(?:to|ch|ec|sx|eu|at|ag|co|li)'}
+
+    _HOST = 'www.nowvideo.to'
+
+    _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
+    _FILEKEY_REGEX = r'var fkzd="([^"]+)";'
+    _TITLE_REGEX = r'<h4>([^<]+)</h4>'
+    _DESCRIPTION_REGEX = r'</h4>\s*<p>([^<]+)</p>'
+
+    _TEST = {
+        'url': 'http://www.nowvideo.to/video/0mw0yow7b6dxa',
+        'md5': 'f8fbbc8add72bd95b7850c6a02fc8817',
+        'info_dict': {
+            'id': '0mw0yow7b6dxa',
+            'ext': 'flv',
+            'title': 'youtubedl test video _BaW_jenozKc.mp4',
+            'description': 'Description',
+        }
+    }
+
+
+class VideoWeedIE(NovaMovIE):
+    IE_NAME = 'videoweed'
+    IE_DESC = 'VideoWeed'
+
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'videoweed\.(?:es|com)'}
+
+    _HOST = 'www.videoweed.es'
+
+    _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
+    _TITLE_REGEX = r'<h1 class="text_shadow">([^<]+)</h1>'
+
+    _TEST = {
+        'url': 'http://www.videoweed.es/file/b42178afbea14',
+        'md5': 'abd31a2132947262c50429e1d16c1bfd',
+        'info_dict': {
+            'id': 'b42178afbea14',
+            'ext': 'flv',
+            'title': 'optical illusion  dissapeared image magic illusion',
+            'description': ''
+        },
+    }
+
+
+class CloudTimeIE(NovaMovIE):
+    IE_NAME = 'cloudtime'
+    IE_DESC = 'CloudTime'
+
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'cloudtime\.to'}
+
+    _HOST = 'www.cloudtime.to'
+
+    _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
+    _TITLE_REGEX = r'<div[^>]+class=["\']video_det["\'][^>]*>\s*<strong>([^<]+)</strong>'
+
+    _TEST = None

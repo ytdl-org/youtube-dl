@@ -28,15 +28,12 @@ class HypemIE(InfoExtractor):
         track_id = self._match_id(url)
 
         data = {'ax': 1, 'ts': time.time()}
-        data_encoded = compat_urllib_parse.urlencode(data)
-        complete_url = url + "?" + data_encoded
-        request = sanitized_Request(complete_url)
+        request = sanitized_Request(url + '?' + compat_urllib_parse.urlencode(data))
         response, urlh = self._download_webpage_handle(
             request, track_id, 'Downloading webpage with the url')
-        cookie = urlh.headers.get('Set-Cookie', '')
 
         html_tracks = self._html_search_regex(
-            r'(?ms)<script type="application/json" id="displayList-data">\s*(.*?)\s*</script>',
+            r'(?ms)<script type="application/json" id="displayList-data">(.+?)</script>',
             response, 'tracks')
         try:
             track_list = json.loads(html_tracks)
@@ -46,15 +43,14 @@ class HypemIE(InfoExtractor):
 
         key = track['key']
         track_id = track['id']
-        artist = track['artist']
         title = track['song']
 
-        serve_url = "http://hypem.com/serve/source/%s/%s" % (track_id, key)
         request = sanitized_Request(
-            serve_url, '', {'Content-Type': 'application/json'})
-        request.add_header('cookie', cookie)
+            'http://hypem.com/serve/source/%s/%s' % (track_id, key),
+            '', {'Content-Type': 'application/json'})
         song_data = self._download_json(request, track_id, 'Downloading metadata')
-        final_url = song_data["url"]
+        final_url = song_data['url']
+        artist = track.get('artist')
 
         return {
             'id': track_id,

@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import re
 import json
 import random
 import collections
@@ -14,6 +15,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     parse_duration,
+    qualities,
     sanitized_Request,
 )
 
@@ -140,14 +142,27 @@ class PluralsightIE(PluralsightBaseIE):
             'low': {'width': 640, 'height': 480},
             'medium': {'width': 848, 'height': 640},
             'high': {'width': 1024, 'height': 768},
+            'high-widescreen': {'width': 1280, 'height': 720},
         }
+
+        QUALITIES_PREFERENCE = ('low', 'medium', 'high', 'high-widescreen',)
+        quality_key = qualities(QUALITIES_PREFERENCE)
 
         AllowedQuality = collections.namedtuple('AllowedQuality', ['ext', 'qualities'])
 
         ALLOWED_QUALITIES = (
-            AllowedQuality('webm', ('high',)),
-            AllowedQuality('mp4', ('low', 'medium', 'high',)),
+            AllowedQuality('webm', ['high', ]),
+            AllowedQuality('mp4', ['low', 'medium', 'high', ]),
         )
+
+        # Some courses also offer widescreen resolution for high quality (see
+        # https://github.com/rg3/youtube-dl/issues/7766)
+        widescreen = True if re.search(
+            r'courseSupportsWidescreenVideoFormats\s*:\s*true', webpage) else False
+        best_quality = 'high-widescreen' if widescreen else 'high'
+        if widescreen:
+            for allowed_quality in ALLOWED_QUALITIES:
+                allowed_quality.qualities.append(best_quality)
 
         # In order to minimize the number of calls to ViewClip API and reduce
         # the probability of being throttled or banned by Pluralsight we will request
@@ -157,19 +172,19 @@ class PluralsightIE(PluralsightBaseIE):
         else:
             def guess_allowed_qualities():
                 req_format = self._downloader.params.get('format') or 'best'
-                req_format_split = req_format.split('-')
+                req_format_split = req_format.split('-', 1)
                 if len(req_format_split) > 1:
                     req_ext, req_quality = req_format_split
                     for allowed_quality in ALLOWED_QUALITIES:
                         if req_ext == allowed_quality.ext and req_quality in allowed_quality.qualities:
                             return (AllowedQuality(req_ext, (req_quality, )), )
                 req_ext = 'webm' if self._downloader.params.get('prefer_free_formats') else 'mp4'
-                return (AllowedQuality(req_ext, ('high', )), )
+                return (AllowedQuality(req_ext, (best_quality, )), )
             allowed_qualities = guess_allowed_qualities()
 
         formats = []
-        for ext, qualities in allowed_qualities:
-            for quality in qualities:
+        for ext, qualities_ in allowed_qualities:
+            for quality in qualities_:
                 f = QUALITIES[quality].copy()
                 clip_post = {
                     'a': author,
@@ -205,6 +220,7 @@ class PluralsightIE(PluralsightBaseIE):
                     'url': clip_url,
                     'ext': ext,
                     'format_id': format_id,
+                    'quality': quality_key(quality),
                 })
                 formats.append(f)
         self._sort_formats(formats)

@@ -15,6 +15,7 @@ class ViceIE(InfoExtractor):
                 'id': '43cW1mYzpia9IlestBjVpd23Yu3afAfp',
                 'ext': 'mp4',
                 'title': 'VICE_COWBOYCAPITALISTS_PART01_v1_VICE_WM_1080p.mov',
+                'duration': 725.983,
             },
             'params': {
                 # Requires ffmpeg (m3u8 manifest)

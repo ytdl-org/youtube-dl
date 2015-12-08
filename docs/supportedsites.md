@@ -15,8 +15,12 @@
  - **abc.net.au**
  - **Abc7News**
  - **AcademicEarth:Course**
+ - **acast**
+ - **acast:channel**
  - **AddAnime**
  - **AdobeTV**
+ - **AdobeTVChannel**
+ - **AdobeTVShow**
  - **AdobeTVVideo**
  - **AdultSwim**
  - **Aftenposten**
@@ -43,6 +47,7 @@
  - **arte.tv:future**
  - **AtresPlayer**
  - **ATTTechChannel**
+ - **AudiMedia**
  - **audiomack**
  - **audiomack:album**
  - **Azubu**
@@ -92,6 +97,7 @@
  - **Clipfish**
  - **cliphunter**
  - **Clipsyndicate**
+ - **cloudtime**: CloudTime
  - **Cloudy**
  - **Clubic**
  - **Clyp**
@@ -183,6 +189,7 @@
  - **freespeech.org**
  - **FreeVideo**
  - **FunnyOrDie**
+ - **GameInformer**
  - **Gamekings**
  - **GameOne**
  - **gameone:playlist**
@@ -307,7 +314,6 @@
  - **MovieClips**
  - **MovieFap**
  - **Moviezine**
- - **movshare**: MovShare
  - **MPORA**
  - **MSNBC**
  - **MTV**
@@ -480,6 +486,8 @@
  - **Shared**: shared.sx and vivo.sx
  - **ShareSix**
  - **Sina**
+ - **skynewsarabia:video**
+ - **skynewsarabia:video**
  - **Slideshare**
  - **Slutload**
  - **smotri**: Smotri.com
@@ -665,6 +673,7 @@
  - **WebOfStories**
  - **WebOfStoriesPlaylist**
  - **Weibo**
+ - **wholecloud**: WholeCloud
  - **Wimp**
  - **Wistia**
  - **WNL**

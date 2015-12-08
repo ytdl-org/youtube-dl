@@ -18,7 +18,7 @@ class PBSIE(InfoExtractor):
     _VALID_URL = r'''(?x)https?://
         (?:
            # Direct video URL
-           video\.pbs\.org/(?:viralplayer|video)/(?P<id>[0-9]+)/? |
+           (?:video\.pbs|watch\.knpb)\.org/(?:viralplayer|video)/(?P<id>[0-9]+)/? |
            # Article with embedded player (or direct video)
            (?:www\.)?pbs\.org/(?:[^/]+/){2,5}(?P<presumptive_id>[^/]+?)(?:\.html)?/?(?:$|[?\#]) |
            # Player
@@ -174,6 +174,10 @@ class PBSIE(InfoExtractor):
         {
             'url': 'http://player.pbs.org/widget/partnerplayer/2365297708/?start=0&end=0&chapterbar=false&endscreen=false&topbar=true',
             'only_matching': True,
+        },
+        {
+            'url': 'http://watch.knpb.org/video/2365616055/',
+            'only_matching': True,
         }
     ]
     _ERRORS = {
@@ -204,6 +208,7 @@ class PBSIE(InfoExtractor):
             MEDIA_ID_REGEXES = [
                 r"div\s*:\s*'videoembed'\s*,\s*mediaid\s*:\s*'(\d+)'",  # frontline video embed
                 r'class="coveplayerid">([^<]+)<',                       # coveplayer
+                r'<section[^>]+data-coveid="(\d+)"',                    # coveplayer from http://www.pbs.org/wgbh/frontline/film/real-csi/
                 r'<input type="hidden" id="pbs_video_id_[0-9]+" value="([0-9]+)"/>',  # jwplayer
             ]
 
