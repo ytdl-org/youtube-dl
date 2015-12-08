@@ -16,11 +16,12 @@ from ..compat import (
 from ..utils import (
     determine_ext,
     ExtractorError,
-    xpath_with_ns,
-    unsmuggle_url,
-    int_or_none,
-    url_basename,
     float_or_none,
+    int_or_none,
+    sanitized_Request,
+    unsmuggle_url,
+    url_basename,
+    xpath_with_ns,
 )
 
 default_ns = 'http://www.w3.org/2005/SMIL21/Language'
@@ -204,7 +205,12 @@ class ThePlatformIE(ThePlatformBaseIE):
             smil_url = url
         # Explicitly specified SMIL (see https://github.com/rg3/youtube-dl/issues/7385)
         elif '/guid/' in url:
-            webpage = self._download_webpage(url, video_id)
+            headers = {}
+            source_url = smuggled_data.get('source_url')
+            if source_url:
+                headers['Referer'] = source_url
+            request = sanitized_Request(url, headers=headers)
+            webpage = self._download_webpage(request, video_id)
             smil_url = self._search_regex(
                 r'<link[^>]+href=(["\'])(?P<url>.+?)\1[^>]+type=["\']application/smil\+xml',
                 webpage, 'smil url', group='url')
