@@ -158,6 +158,7 @@ class SohuIE(InfoExtractor):
                         'file': clips_url[i],
                         'new': su[i],
                         'prod': 'flash',
+                        'rb': 1,
                     }
 
                     if cdnId is not None:
