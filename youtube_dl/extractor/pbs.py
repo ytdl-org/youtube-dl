@@ -208,6 +208,7 @@ class PBSIE(InfoExtractor):
             MEDIA_ID_REGEXES = [
                 r"div\s*:\s*'videoembed'\s*,\s*mediaid\s*:\s*'(\d+)'",  # frontline video embed
                 r'class="coveplayerid">([^<]+)<',                       # coveplayer
+                r'<section[^>]+data-coveid="(\d+)"',                    # coveplayer from http://www.pbs.org/wgbh/frontline/film/real-csi/
                 r'<input type="hidden" id="pbs_video_id_[0-9]+" value="([0-9]+)"/>',  # jwplayer
             ]
 
