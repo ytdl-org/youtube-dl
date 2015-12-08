@@ -11,6 +11,7 @@ from ..utils import (
     ExtractorError,
     find_xpath_attr,
     lowercase_escape,
+    smuggle_url,
     unescapeHTML,
 )
 
@@ -67,7 +68,7 @@ class NBCIE(InfoExtractor):
             webpage, 'theplatform url').replace('_no_endcard', '').replace('\\/', '/')))
         if theplatform_url.startswith('//'):
             theplatform_url = 'http:' + theplatform_url
-        return self.url_result(theplatform_url)
+        return self.url_result(smuggle_url(theplatform_url, {'source_url': url}))
 
 
 class NBCSportsVPlayerIE(InfoExtractor):
