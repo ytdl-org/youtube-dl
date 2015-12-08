@@ -63,6 +63,7 @@ class NBCIE(InfoExtractor):
         theplatform_url = unescapeHTML(lowercase_escape(self._html_search_regex(
             [
                 r'(?:class="video-player video-player-full" data-mpx-url|class="player" src)="(.*?)"',
+                r'<iframe[^>]+src="((?:https?:)?//player\.theplatform\.com/[^"]+)"',
                 r'"embedURL"\s*:\s*"([^"]+)"'
             ],
             webpage, 'theplatform url').replace('_no_endcard', '').replace('\\/', '/')))
