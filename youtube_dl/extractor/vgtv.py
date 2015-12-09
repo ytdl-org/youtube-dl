@@ -12,21 +12,39 @@ from ..utils import (
 
 class VGTVIE(InfoExtractor):
     IE_DESC = 'VGTV, BTTV, FTV, Aftenposten and Aftonbladet'
+
+    _HOST_TO_APPNAME = {
+        'vgtv.no': 'vgtv',
+        'bt.no/tv': 'bttv',
+        'aftenbladet.no/tv': 'satv',
+        'fvn.no/fvntv': 'fvntv',
+        'aftenposten.no/webtv': 'aptv',
+    }
+
+    _APP_NAME_TO_VENDOR = {
+        'vgtv': 'vgtv',
+        'bttv': 'bt',
+        'satv': 'sa',
+        'fvntv': 'fvn',
+        'aptv': 'ap',
+    }
+
     _VALID_URL = r'''(?x)
-                    https?://(?:www\.)?
+                    (?:https?://(?:www\.)?
                     (?P<host>
-                        vgtv.no|
-                        (?:bt|aftenbladet).no/tv|
-                        fvn.no/fvntv|
-                        aftenposten.no/webtv
+                        %s
                     )
                     /
                     (?:
                         \#!/(?:video|live)/|
                         embed?.*id=
-                    )
+                    )|
+                    (?P<appname>
+                        %s
+                    ):)
                     (?P<id>\d+)
-                    '''
+                    ''' % ('|'.join(_HOST_TO_APPNAME.keys()), '|'.join(_APP_NAME_TO_VENDOR.keys()))
+
     _TESTS = [
         {
             # streamType: vod
@@ -102,37 +120,17 @@ class VGTVIE(InfoExtractor):
             'only_matching': True,
         },
     ]
-    _HOST_WEBSITES = {
-        'vgtv.no': {
-            'vendor': 'vgtv',
-            'appname': 'vgtv',
-        },
-        'bt.no/tv': {
-            'vendor': 'bt',
-            'appname': 'bttv',
-        },
-        'aftenbladet.no/tv': {
-            'vendor': 'sa',
-            'appname': 'satv',
-        },
-        'fvn.no/fvntv': {
-            'vendor': 'fvn',
-            'appname': 'fvntv',
-        },
-        'aftenposten.no/webtv': {
-            'vendor': 'ap',
-            'appname': 'aptv',
-        },
-    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         host = mobj.group('host')
+        appname = self._HOST_TO_APPNAME[host] if host else mobj.group('appname')
+        vendor = self._APP_NAME_TO_VENDOR[appname]
 
         data = self._download_json(
             'http://svp.vg.no/svp/api/v1/%s/assets/%s?appName=%s-website'
-            % (self._HOST_WEBSITES[host]['vendor'], video_id, self._HOST_WEBSITES[host]['appname']),
+            % (vendor, video_id, appname),
             video_id, 'Downloading media JSON')
 
         if data.get('status') == 'inactive':
@@ -146,14 +144,16 @@ class VGTVIE(InfoExtractor):
 
         hls_url = streams.get('hls')
         if hls_url:
-            m3u8_formats = self._extract_m3u8_formats(hls_url, video_id, 'mp4', m3u8_id='hls', fatal=False)
+            m3u8_formats = self._extract_m3u8_formats(
+                hls_url, video_id, 'mp4', m3u8_id='hls', fatal=False)
             if m3u8_formats:
                 formats.extend(m3u8_formats)
 
         hds_url = streams.get('hds')
         # wasLive hds are always 404
         if hds_url and stream_type != 'wasLive':
-            f4m_formats = self._extract_f4m_formats(hds_url + '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18', video_id, f4m_id='hds', fatal=False)
+            f4m_formats = self._extract_f4m_formats(
+                hds_url + '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18', video_id, f4m_id='hds', fatal=False)
             if f4m_formats:
                 formats.extend(f4m_formats)
 
@@ -216,7 +216,7 @@ class BTArticleIE(InfoExtractor):
         webpage = self._download_webpage(url, self._match_id(url))
         video_id = self._search_regex(
             r'SVP\.Player\.load\(\s*(\d+)', webpage, 'video id')
-        return self.url_result('http://bt.no/tv/embed?id=%s' % video_id, 'VGTV')
+        return self.url_result('bttv:%s' % video_id, 'VGTV')
 
 
 class BTVestlendingenIE(InfoExtractor):
@@ -237,4 +237,4 @@ class BTVestlendingenIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        return self.url_result('http://bt.no/tv/embed?id=%s' % self._match_id(url), 'VGTV')
+        return self.url_result('bttv:%s' % self._match_id(url), 'VGTV')
