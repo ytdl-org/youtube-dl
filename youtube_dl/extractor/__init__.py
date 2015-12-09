@@ -504,6 +504,7 @@ from .primesharetv import PrimeShareTVIE
 from .promptfile import PromptFileIE
 from .prosiebensat1 import ProSiebenSat1IE
 from .puls4 import Puls4IE
+from .putlocker import PutLockerIE
 from .pyvideo import PyvideoIE
 from .qqmusic import (
     QQMusicIE,
