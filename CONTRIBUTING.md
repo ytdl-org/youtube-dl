@@ -1,4 +1,18 @@
-**Please include the full output of youtube-dl when run with `-v`**.
+**Please include the full output of youtube-dl when run with `-v`**, i.e. add `-v` flag to your command line, copy the **whole** output and post it in the issue body wrapped in \`\`\` for better formatting. It should look similar to this:
+```
+$ youtube-dl -v http://www.youtube.com/watch?v=BaW_jenozKcj
+[debug] System config: []
+[debug] User config: []
+[debug] Command-line args: [u'-v', u'http://www.youtube.com/watch?v=BaW_jenozKcj']
+[debug] Encodings: locale cp1251, fs mbcs, out cp866, pref cp1251
+[debug] youtube-dl version 2015.12.06
+[debug] Git HEAD: 135392e
+[debug] Python version 2.6.6 - Windows-2003Server-5.2.3790-SP2
+[debug] exe versions: ffmpeg N-75573-g1d0487f, ffprobe N-75573-g1d0487f, rtmpdump 2.4
+[debug] Proxy map: {}
+...
+```
+**Do not post screenshots of verbose log only plain text is acceptable.**
 
 The output (including the first lines) contains important debugging information. Issues without the full output are often not reproducible and therefore do not get solved in short order, if ever.
 
