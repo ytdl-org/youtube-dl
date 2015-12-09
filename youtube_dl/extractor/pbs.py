@@ -159,7 +159,7 @@ class PBSIE(InfoExtractor):
         ('wvia.org', 'WVIA Public Media Studios (WVIA)'),  # http://www.wvia.org/
         ('wtvi.org', 'WTVI (WTVI)'),  # http://www.wtvi.org/
         ('whro.org', 'WHRO (WHRO)'),  # http://whro.org
-        ('WesternReservePublicMedia.org', 'Western Reserve PBS (WNEO)'),  # http://www.WesternReservePublicMedia.org/
+        ('westernreservepublicmedia.org', 'Western Reserve PBS (WNEO)'),  # http://www.WesternReservePublicMedia.org/
         ('wviz.org', 'WVIZ/PBS ideastream (WVIZ)'),  # http://www.wviz.org/
         ('kcts9.org', 'KCTS 9 (KCTS)'),  # http://kcts9.org/
         ('basinpbs.org', 'Basin PBS (KPBT)'),  # http://www.basinpbs.org
