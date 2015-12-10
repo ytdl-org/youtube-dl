@@ -8,10 +8,29 @@ from ..utils import int_or_none
 
 
 class UltimediaIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ultimedia\.com/deliver/(?P<type>generic|musique)(?:/[^/]+)*/(?:src|article)/(?P<id>[\d+a-z]+)'
+    _VALID_URL = r'''(?x)
+        https?://(?:www\.)?ultimedia\.com/
+        (?:
+            deliver/
+            (?P<embed_type>
+                generic|
+                musique
+            )
+            (?:/[^/]+)*/
+            (?:
+                src|
+                article
+            )|
+            default/index/video
+            (?P<site_type>
+                generic|
+                music
+            )
+            /id
+        )/(?P<id>[\d+a-z]+)'''
     _TESTS = [{
         # news
-        'url': 'https://www.ultimedia.com/deliver/generic/iframe/mdtk/01601930/zone/1/src/s8uk0r/autoplay/yes/ad/no/width/714/height/435',
+        'url': 'https://www.ultimedia.com/default/index/videogeneric/id/s8uk0r',
         'md5': '276a0e49de58c7e85d32b057837952a2',
         'info_dict': {
             'id': 's8uk0r',
@@ -25,7 +44,7 @@ class UltimediaIE(InfoExtractor):
         },
     }, {
         # music
-        'url': 'https://www.ultimedia.com/deliver/musique/iframe/mdtk/01601930/zone/1/article/xvpfp8/autoplay/yes/ad/no/width/714/height/435',
+        'url': 'https://www.ultimedia.com/default/index/videomusic/id/xvpfp8',
         'md5': '2ea3513813cf230605c7e2ffe7eca61c',
         'info_dict': {
             'id': 'xvpfp8',
@@ -48,7 +67,11 @@ class UltimediaIE(InfoExtractor):
             return mobj.group('url')
 
     def _real_extract(self, url):
-        video_type, video_id = re.match(self._VALID_URL, url).groups()
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        video_type = mobj.group('embed_type') or mobj.group('site_type')
+        if video_type == 'music':
+            video_type = 'musique'
 
         deliver_info = self._download_json(
             'http://www.ultimedia.com/deliver/video?video=%s&topic=%s' % (video_id, video_type),
