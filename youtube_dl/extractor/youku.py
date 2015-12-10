@@ -6,6 +6,9 @@ import base64
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
+    compat_cookiejar,
+    compat_cookies,
+    compat_urllib_request,
     compat_ord,
 )
 from ..utils import (
@@ -188,19 +191,28 @@ class YoukuIE(InfoExtractor):
         video_id = self._match_id(url)
 
         def retrieve_data(req_url, note):
-            req = sanitized_Request(req_url)
+            
+
+            headers = {
+                    'Referer': req_url,
+                }
+            self._set_cookie('youku.com','xreferrer','http://www.youku.com')
+            req = sanitized_Request(req_url,headers=headers)
 
             cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
             if cn_verification_proxy:
                 req.add_header('Ytdl-request-proxy', cn_verification_proxy)
 
             raw_data = self._download_json(req, video_id, note=note)
-            return raw_data['data'][0]
+
+            return raw_data['data']['security']
+
 
         video_password = self._downloader.params.get('videopassword', None)
 
         # request basic data
-        basic_data_url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s' % video_id
+        #basic_data_url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s' % video_id
+        basic_data_url = "http://play.youku.com/play/get.json?vid=%s&ct=12" % video_id
         if video_password:
             basic_data_url += '?password=%s' % video_password
 
@@ -208,7 +220,8 @@ class YoukuIE(InfoExtractor):
             basic_data_url,
             'Downloading JSON metadata 1')
         data2 = retrieve_data(
-            'http://v.youku.com/player/getPlayList/VideoIDS/%s/Pf/4/ctype/12/ev/1' % video_id,
+            #'http://v.youku.com/player/getPlayList/VideoIDS/%s/Pf/4/ctype/12/ev/1' % video_id,
+            "http://play.youku.com/play/get.json?vid=%s&ct=12" % video_id,
             'Downloading JSON metadata 2')
 
         error_code = data1.get('error_code')
