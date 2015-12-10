@@ -15,6 +15,7 @@ from ..compat import (
 )
 from ..utils import (
     encodeFilename,
+    fix_xml_ampersands,
     sanitize_open,
     struct_pack,
     struct_unpack,
@@ -288,7 +289,10 @@ class F4mFD(FragmentFD):
         self.to_screen('[%s] Downloading f4m manifest' % self.FD_NAME)
         urlh = self.ydl.urlopen(man_url)
         man_url = urlh.geturl()
-        manifest = urlh.read()
+        # Some manifests may be malformed, e.g. prosiebensat1 generated manifests
+        # (see https://github.com/rg3/youtube-dl/issues/6215#issuecomment-121704244
+        # and https://github.com/rg3/youtube-dl/issues/7823)
+        manifest = fix_xml_ampersands(urlh.read()).strip()
 
         doc = compat_etree_fromstring(manifest)
         formats = [(int(f.attrib.get('bitrate', -1)), f)
