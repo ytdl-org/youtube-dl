@@ -4,13 +4,14 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from .xstream import XstreamIE
 from ..utils import (
     ExtractorError,
     float_or_none,
 )
 
 
-class VGTVIE(InfoExtractor):
+class VGTVIE(XstreamIE):
     IE_DESC = 'VGTV, BTTV, FTV, Aftenposten and Aftonbladet'
 
     _HOST_TO_APPNAME = {
@@ -137,6 +138,15 @@ class VGTVIE(InfoExtractor):
             raise ExtractorError(
                 'Video %s is no longer available' % video_id, expected=True)
 
+        info = {
+            'formats': [],
+        }
+        if len(video_id) == 5:
+            if appname == 'bttv':
+                info = self._extract_video_info('btno', video_id)
+            elif appname == 'aptv':
+                info = self._extract_video_info('ap', video_id)
+
         streams = data['streamUrls']
         stream_type = data.get('streamType')
 
@@ -177,9 +187,11 @@ class VGTVIE(InfoExtractor):
                 })
             formats.append(format_info)
 
-        self._sort_formats(formats)
+        info['formats'].extend(formats)
 
-        return {
+        self._sort_formats(info['formats'])
+
+        info.update({
             'id': video_id,
             'title': self._live_title(data['title']) if stream_type == 'live' else data['title'],
             'description': data['description'],
@@ -187,9 +199,9 @@ class VGTVIE(InfoExtractor):
             'timestamp': data['published'],
             'duration': float_or_none(data['duration'], 1000),
             'view_count': data['displays'],
-            'formats': formats,
             'is_live': True if stream_type == 'live' else False,
-        }
+        })
+        return info
 
 
 class BTArticleIE(InfoExtractor):
