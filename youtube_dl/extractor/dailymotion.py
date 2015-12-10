@@ -172,11 +172,13 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             uploader_id = metadata.get('owner', {}).get('id')
 
             subtitles = {}
-            for subtitle_lang, subtitle in metadata.get('subtitles', {}).get('data', {}).items():
-                subtitles[subtitle_lang] = [{
-                    'ext': determine_ext(subtitle_url),
-                    'url': subtitle_url,
-                } for subtitle_url in subtitle.get('urls', [])]
+            subtitles_data = metadata.get('subtitles', {})
+            if subtitles_data.get('enable'):
+                for subtitle_lang, subtitle in subtitles_data['data'].items():
+                    subtitles[subtitle_lang] = [{
+                        'ext': determine_ext(subtitle_url),
+                        'url': subtitle_url,
+                    } for subtitle_url in subtitle.get('urls', [])]
 
             return {
                 'id': video_id,
