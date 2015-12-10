@@ -99,6 +99,11 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         {
             'url': 'http://www.dailymotion.com/video/xhza0o',
             'only_matching': True,
+        },
+        # with subtitles
+        {
+            'url': 'http://www.dailymotion.com/video/x20su5f_the-power-of-nightmares-1-the-rise-of-the-politics-of-fear-bbc-2004_news',
+            'only_matching': True,
         }
     ]
 
