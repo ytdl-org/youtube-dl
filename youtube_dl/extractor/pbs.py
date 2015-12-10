@@ -26,9 +26,9 @@ class PBSIE(InfoExtractor):
         ('video.wtcitv.org', 'WTCI (WTCI)'),  # http://www.wtcitv.org
         ('video.pba.org', 'WPBA/Channel 30 (WPBA)'),  # http://pba.org/
         ('video.alaskapublic.org', 'Alaska Public Media (KAKM)'),  # http://alaskapublic.org/kakm
-        #('kuac.org', 'KUAC (KUAC)'),  # http://kuac.org/kuac-tv/
-        #('ktoo.org', '360 North (KTOO)'),  # http://www.ktoo.org/
-        #('azpm.org', 'KUAT 6 (KUAT)'),  # http://www.azpm.org/
+        # ('kuac.org', 'KUAC (KUAC)'),  # http://kuac.org/kuac-tv/
+        # ('ktoo.org', '360 North (KTOO)'),  # http://www.ktoo.org/
+        # ('azpm.org', 'KUAT 6 (KUAT)'),  # http://www.azpm.org/
         ('video.azpbs.org', 'Arizona PBS (KAET)'),  # http://www.azpbs.org
         ('portal.knme.org', 'KNME-TV/Channel 5 (KNME)'),  # http://www.newmexicopbs.org/
         ('video.vegaspbs.org', 'Vegas PBS (KLVX)'),  # http://vegaspbs.org/
@@ -49,9 +49,9 @@ class PBSIE(InfoExtractor):
         ('video.cptv.org', 'CONNECTICUT PUBLIC TELEVISION (WEDH)'),  # http://cptv.org
         ('watch.knpb.org', 'KNPB Channel 5 (KNPB)'),  # http://www.knpb.org/
         ('video.soptv.org', 'SOPTV (KSYS)'),  # http://www.soptv.org
-        #('klcs.org', 'KLCS/Channel 58 (KLCS)'),  # http://www.klcs.org
-        #('krcb.org', 'KRCB Television & Radio (KRCB)'),  # http://www.krcb.org
-        #('kvcr.org', 'KVCR TV/DT/FM :: Vision for the Future (KVCR)'),  # http://kvcr.org
+        # ('klcs.org', 'KLCS/Channel 58 (KLCS)'),  # http://www.klcs.org
+        # ('krcb.org', 'KRCB Television & Radio (KRCB)'),  # http://www.krcb.org
+        # ('kvcr.org', 'KVCR TV/DT/FM :: Vision for the Future (KVCR)'),  # http://kvcr.org
         ('video.rmpbs.org', 'Rocky Mountain PBS (KRMA)'),  # http://www.rmpbs.org
         ('video.kenw.org', 'KENW-TV3 (KENW)'),  # http://www.kenw.org
         ('video.kued.org', 'KUED Channel 7 (KUED)'),  # http://www.kued.org
@@ -62,7 +62,7 @@ class PBSIE(InfoExtractor):
         ('video.wgbh.org', 'WGBH/Channel 2 (WGBH)'),  # http://wgbh.org
         ('video.wgby.org', 'WGBY (WGBY)'),  # http://www.wgby.org
         ('watch.njtvonline.org', 'NJTV Public Media NJ (WNJT)'),  # http://www.njtvonline.org/
-        #('ripbs.org', 'Rhode Island PBS (WSBE)'),  # http://www.ripbs.org/home/
+        # ('ripbs.org', 'Rhode Island PBS (WSBE)'),  # http://www.ripbs.org/home/
         ('watch.wliw.org', 'WLIW21 (WLIW)'),  # http://www.wliw.org/
         ('video.mpt.tv', 'mpt/Maryland Public Television (WMPB)'),  # http://www.mpt.org
         ('watch.weta.org', 'WETA Television and Radio (WETA)'),  # http://www.weta.org
@@ -72,7 +72,7 @@ class PBSIE(InfoExtractor):
         ('video.whut.org', 'Howard University Television (WHUT)'),  # http://www.whut.org
         ('video.wedu.org', 'WEDU PBS (WEDU)'),  # http://www.wedu.org
         ('video.wgcu.org', 'WGCU Public Media (WGCU)'),  # http://www.wgcu.org/
-        #('wjct.org', 'WJCT Public Broadcasting (WJCT)'),  # http://www.wjct.org
+        # ('wjct.org', 'WJCT Public Broadcasting (WJCT)'),  # http://www.wjct.org
         ('video.wpbt2.org', 'WPBT2 (WPBT)'),  # http://www.wpbt2.org
         ('video.wucftv.org', 'WUCF TV (WUCF)'),  # http://wucftv.org
         ('video.wuft.org', 'WUFT/Channel 5 (WUFT)'),  # http://www.wuft.org
@@ -81,7 +81,7 @@ class PBSIE(InfoExtractor):
         ('video.wusf.usf.edu', 'WUSF Public Broadcasting (WUSF)'),  # http://wusf.org/
         ('video.scetv.org', 'ETV (WRLK)'),  # http://www.scetv.org
         ('video.unctv.org', 'UNC-TV (WUNC)'),  # http://www.unctv.org/
-        #('pbsguam.org', 'PBS Guam (KGTF)'),  # http://www.pbsguam.org/
+        # ('pbsguam.org', 'PBS Guam (KGTF)'),  # http://www.pbsguam.org/
         ('video.pbshawaii.org', 'PBS Hawaii - Oceanic Cable Channel 10 (KHET)'),  # http://www.pbshawaii.org/
         ('video.idahoptv.org', 'Idaho Public Television (KAID)'),  # http://idahoptv.org
         ('video.ksps.org', 'KSPS (KSPS)'),  # http://www.ksps.org/home/
@@ -90,7 +90,7 @@ class PBSIE(InfoExtractor):
         ('video.will.illinois.edu', 'WILL-TV (WILL)'),  # http://will.illinois.edu/
         ('video.networkknowledge.tv', 'Network Knowledge - WSEC/Springfield (WSEC)'),  # http://www.wsec.tv
         ('video.wttw.com', 'WTTW11 (WTTW)'),  # http://www.wttw.com/
-        #('wtvp.org', 'WTVP & WTVP.org, Public Media for Central Illinois (WTVP)'),  # http://www.wtvp.org/
+        # ('wtvp.org', 'WTVP & WTVP.org, Public Media for Central Illinois (WTVP)'),  # http://www.wtvp.org/
         ('video.iptv.org', 'Iowa Public Television/IPTV (KDIN)'),  # http://www.iptv.org/
         ('video.ninenet.org', 'Nine Network (KETC)'),  # http://www.ninenet.org
         ('video.wfwa.org', 'PBS39 Fort Wayne (WFWA)'),  # http://wfwa.org/
@@ -103,7 +103,7 @@ class PBSIE(InfoExtractor):
         ('video.weiu.net', 'WEIU/Channel 51 (WEIU)'),  # http://www.weiu.net
         ('video.wqpt.org', 'WQPT-TV (WQPT)'),  # http://www.wqpt.org
         ('video.wycc.org', 'WYCC PBS Chicago (WYCC)'),  # http://www.wycc.org
-        #('lakeshorepublicmedia.org', 'Lakeshore Public Television (WYIN)'),  # http://lakeshorepublicmedia.org/
+        # ('lakeshorepublicmedia.org', 'Lakeshore Public Television (WYIN)'),  # http://lakeshorepublicmedia.org/
         ('video.wipb.org', 'WIPB-TV (WIPB)'),  # http://wipb.org
         ('video.indianapublicmedia.org', 'WTIU (WTIU)'),  # http://indianapublicmedia.org/tv/
         ('watch.cetconnect.org', 'CET  (WCET)'),  # http://www.cetconnect.org
@@ -117,9 +117,9 @@ class PBSIE(InfoExtractor):
         ('watch.ksmq.org', 'KSMQ (KSMQ)'),  # http://www.ksmq.org/
         ('watch.kpts.org', 'KPTS/Channel 8 (KPTS)'),  # http://www.kpts.org/
         ('watch.ktwu.org', 'KTWU/Channel 11 (KTWU)'),  # http://ktwu.org
-        #('shptv.org', 'Smoky Hills Public Television (KOOD)'),  # http://www.shptv.org
-        #('kcpt.org', 'KCPT Kansas City Public Television (KCPT)'),  # http://kcpt.org/
-        #('blueridgepbs.org', 'Blue Ridge PBS (WBRA)'),  # http://www.blueridgepbs.org/
+        # ('shptv.org', 'Smoky Hills Public Television (KOOD)'),  # http://www.shptv.org
+        # ('kcpt.org', 'KCPT Kansas City Public Television (KCPT)'),  # http://kcpt.org/
+        # ('blueridgepbs.org', 'Blue Ridge PBS (WBRA)'),  # http://www.blueridgepbs.org/
         ('watch.easttennesseepbs.org', 'East Tennessee PBS (WSJK)'),  # http://easttennesseepbs.org
         ('video.wcte.tv', 'WCTE-TV (WCTE)'),  # http://www.wcte.org
         ('video.wljt.org', 'WLJT, Channel 11 (WLJT)'),  # http://wljt.org/
@@ -127,7 +127,7 @@ class PBSIE(InfoExtractor):
         ('video.woub.org', 'WOUB/WOUC (WOUB)'),  # http://woub.org/tv/index.php?section=5
         ('video.wvpublic.org', 'WVPB (WVPB)'),  # http://wvpublic.org/
         ('video.wkyupbs.org', 'WKYU-PBS (WKYU)'),  # http://www.wkyupbs.org
-        #('wyes.org', 'WYES-TV/New Orleans (WYES)'),  # http://www.wyes.org
+        # ('wyes.org', 'WYES-TV/New Orleans (WYES)'),  # http://www.wyes.org
         ('video.kera.org', 'KERA 13 (KERA)'),  # http://www.kera.org/
         ('video.mpbn.net', 'MPBN (WCBB)'),  # http://www.mpbn.net/
         ('video.mountainlake.org', 'Mountain Lake PBS (WCFE)'),  # http://www.mountainlake.org/
@@ -144,7 +144,7 @@ class PBSIE(InfoExtractor):
         ('video.wdse.org', 'WDSE - WRPT (WDSE)'),  # http://www.wdse.org/
         ('video.wgte.org', 'WGTE TV (WGTE)'),  # http://www.wgte.org
         ('video.lptv.org', 'Lakeland Public Television (KAWE)'),  # http://www.lakelandptv.org
-        #('prairiepublic.org', 'PRAIRIE PUBLIC (KFME)'),  # http://www.prairiepublic.org/
+        # ('prairiepublic.org', 'PRAIRIE PUBLIC (KFME)'),  # http://www.prairiepublic.org/
         ('video.kmos.org', 'KMOS-TV - Channels 6.1, 6.2 and 6.3 (KMOS)'),  # http://www.kmos.org/
         ('watch.montanapbs.org', 'MontanaPBS (KUSM)'),  # http://montanapbs.org
         ('video.krwg.org', 'KRWG/Channel 22 (KRWG)'),  # http://www.krwg.org
@@ -156,22 +156,22 @@ class PBSIE(InfoExtractor):
         ('video.wskg.org', 'WSKG Public TV (WSKG)'),  # http://wskg.org
         ('video.wxxi.org', 'WXXI (WXXI)'),  # http://wxxi.org
         ('video.wpsu.org', 'WPSU (WPSU)'),  # http://www.wpsu.org
-        #('wqln.org', 'WQLN/Channel 54 (WQLN)'),  # http://www.wqln.org
+        # ('wqln.org', 'WQLN/Channel 54 (WQLN)'),  # http://www.wqln.org
         ('on-demand.wvia.org', 'WVIA Public Media Studios (WVIA)'),  # http://www.wvia.org/
         ('video.wtvi.org', 'WTVI (WTVI)'),  # http://www.wtvi.org/
-        #('whro.org', 'WHRO (WHRO)'),  # http://whro.org
+        # ('whro.org', 'WHRO (WHRO)'),  # http://whro.org
         ('video.westernreservepublicmedia.org', 'Western Reserve PBS (WNEO)'),  # http://www.WesternReservePublicMedia.org/
         ('video.ideastream.org', 'WVIZ/PBS ideastream (WVIZ)'),  # http://www.wviz.org/
         ('video.kcts9.org', 'KCTS 9 (KCTS)'),  # http://kcts9.org/
         ('video.basinpbs.org', 'Basin PBS (KPBT)'),  # http://www.basinpbs.org
         ('video.houstonpbs.org', 'KUHT / Channel 8 (KUHT)'),  # http://www.houstonpublicmedia.org/
-        #('tamu.edu', 'KAMU - TV (KAMU)'),  # http://KAMU.tamu.edu
-        #('kedt.org', 'KEDT/Channel 16 (KEDT)'),  # http://www.kedt.org
+        # ('tamu.edu', 'KAMU - TV (KAMU)'),  # http://KAMU.tamu.edu
+        # ('kedt.org', 'KEDT/Channel 16 (KEDT)'),  # http://www.kedt.org
         ('video.klrn.org', 'KLRN (KLRN)'),  # http://www.klrn.org
         ('video.klru.tv', 'KLRU (KLRU)'),  # http://www.klru.org
-        #('kmbh.org', 'KMBH-TV (KMBH)'),  # http://www.kmbh.org
-        #('knct.org', 'KNCT (KNCT)'),  # http://www.knct.org
-        #('ktxt.org', 'KTTZ-TV (KTXT)'),  # http://www.ktxt.org
+        # ('kmbh.org', 'KMBH-TV (KMBH)'),  # http://www.kmbh.org
+        # ('knct.org', 'KNCT (KNCT)'),  # http://www.knct.org
+        # ('ktxt.org', 'KTTZ-TV (KTXT)'),  # http://www.ktxt.org
         ('video.wtjx.org', 'WTJX Channel 12 (WTJX)'),  # http://www.wtjx.org/
         ('video.ideastations.org', 'WCVE PBS (WCVE)'),  # http://ideastations.org/
         ('video.kbtc.org', 'KBTC Public Television (KBTC)'),  # http://kbtc.org
