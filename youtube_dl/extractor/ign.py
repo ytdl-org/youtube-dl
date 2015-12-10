@@ -32,6 +32,7 @@ class IGNIE(InfoExtractor):
                 'description': 'md5:c8946d4260a4d43a00d5ae8ed998870c',
                 'timestamp': 1370440800,
                 'upload_date': '20130605',
+                'uploader_id': 'cberidon@ign.com',
             }
         },
         {
@@ -48,6 +49,7 @@ class IGNIE(InfoExtractor):
                         'description': 'Rockstar drops the mic on this generation of games. Watch our review of the masterly Grand Theft Auto V.',
                         'timestamp': 1379339880,
                         'upload_date': '20130916',
+                        'uploader_id': 'danieljkrupa@gmail.com',
                     },
                 },
                 {
@@ -58,6 +60,7 @@ class IGNIE(InfoExtractor):
                         'description': 'The twisted beauty of GTA 5 in stunning slow motion.',
                         'timestamp': 1386878820,
                         'upload_date': '20131212',
+                        'uploader_id': 'togilvie@ign.com',
                     },
                 },
             ],
@@ -75,6 +78,7 @@ class IGNIE(InfoExtractor):
                 'description': 'Brian and Jared explore Michel Ancel\'s captivating new preview.',
                 'timestamp': 1408047180,
                 'upload_date': '20140814',
+                'uploader_id': 'jamesduggan1990@gmail.com',
             },
         },
         {
@@ -104,8 +108,8 @@ class IGNIE(InfoExtractor):
         webpage = self._download_webpage(url, name_or_id)
         if page_type != 'video':
             multiple_urls = re.findall(
-                '<param name="flashvars"[^>]*value="[^"]*?url=(https?://www\.ign\.com/videos/.*?)["&]',
-                webpage)
+                r'<param name="flashvars"[^>]*value="[^"]*?url=(https?://www\.ign\.com/videos/.*?)["&]',
+                 webpage)
             if multiple_urls:
                 entries = [self.url_result(u, ie='IGN') for u in multiple_urls]
                 return {
@@ -125,10 +129,14 @@ class IGNIE(InfoExtractor):
         formats = []
         m3u8_url = api_data['refs'].get('m3uUrl')
         if m3u8_url:
-            formats.extend(self._extract_m3u8_formats(m3u8_url, video_id))
+            m3u8_formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
+            if m3u8_formats:
+                formats.extend(m3u8_formats)
         f4m_url = api_data['refs'].get('f4mUrl')
         if f4m_url:
-            formats.extend(self._extract_f4m_formats(f4m_url, video_id))
+            f4m_formats = self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False)
+            if f4m_formats:
+                formats.extend(f4m_formats)
         for asset in api_data['assets']:
             formats.append({
                 'url': asset['url'],
@@ -139,9 +147,9 @@ class IGNIE(InfoExtractor):
             })
         self._sort_formats(formats)
 
-        thumbnails = []
-        for thumbnail in api_data['thumbnails']:
-            thumbnails.append({'url': thumbnail['url']})
+        thumbnails = [{
+            'url': thumbnail['url']
+        } for thumbnail in api_data.get('thumbnails', [])]
 
         metadata = api_data['metadata']
 
@@ -152,6 +160,7 @@ class IGNIE(InfoExtractor):
             'timestamp': parse_iso8601(metadata.get('publishDate')),
             'duration': int_or_none(metadata.get('duration')),
             'display_id': metadata.get('slug') or video_id,
+            'uploader_id': metadata.get('creator'),
             'thumbnails': thumbnails,
             'formats': formats,
         }
@@ -171,6 +180,7 @@ class OneUPIE(IGNIE):
             'description': 'md5:bf0516c5ee32a3217aa703e9b1bc7826',
             'timestamp': 1313099220,
             'upload_date': '20110811',
+            'uploader_id': 'IGN',
         }
     }]
 
@@ -197,6 +207,7 @@ class PCMagIE(IGNIE):
             'description': 'md5:a7071ae64d2f68cc821c729d4ded6bb3',
             'timestamp': 1420571160,
             'upload_date': '20150106',
+            'uploader_id': 'cozzipix@gmail.com',
         }
     },{
         'url': 'http://www.pcmag.com/article2/0,2817,2470156,00.asp',
@@ -208,5 +219,6 @@ class PCMagIE(IGNIE):
             'description': 'md5:53433c45df96d2ea5d0fda18be2ca908',
             'timestamp': 1412953920,
             'upload_date': '20141010',
+            'uploader_id': 'chris_snyder@pcmag.com',
         }
     }]
