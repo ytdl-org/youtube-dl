@@ -10,6 +10,7 @@ from ..utils import (
 )
 import re
 
+
 class FunimationIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?funimation\.com/shows/.+[^ ]/videos/official/(?P<id>[^?]+)'
 
@@ -43,7 +44,7 @@ class FunimationIE(InfoExtractor):
                 raise ExtractorError('Funimation is not available in your region.', expected=True)
             raise
         if re.search(r'<meta property="og:url" content="http://www.funimation.com/login"/>', login) is not None:
-                raise ExtractorError('Unable to login, wrong username or password.', expected=True)
+            raise ExtractorError('Unable to login, wrong username or password.', expected=True)
 
     def _real_initialize(self):
         self._login()
