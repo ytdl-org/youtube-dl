@@ -292,7 +292,7 @@ class F4mFD(FragmentFD):
         # Some manifests may be malformed, e.g. prosiebensat1 generated manifests
         # (see https://github.com/rg3/youtube-dl/issues/6215#issuecomment-121704244
         # and https://github.com/rg3/youtube-dl/issues/7823)
-        manifest = fix_xml_ampersands(urlh.read()).strip()
+        manifest = fix_xml_ampersands(urlh.read().decode('utf-8', 'ignore')).strip()
 
         doc = compat_etree_fromstring(manifest)
         formats = [(int(f.attrib.get('bitrate', -1)), f)
