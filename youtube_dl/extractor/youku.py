@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
 import base64
 
 from .common import InfoExtractor
@@ -84,17 +85,18 @@ class YoukuIE(InfoExtractor):
             return bytes(s)
 
         sid, token = yk_t(
-            b'becaf9be', base64.b64decode(data2['ep'].encode('ascii'))
+            b'becaf9be', base64.b64decode(data2['security']['encrypt_string'].encode('ascii'))
         ).decode('ascii').split('_')
 
         # get oip
-        oip = data2['ip']
+        oip = data2['security']['ip']
 
         # get fileid
         string_ls = list(
             'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\:._-1234567890')
         shuffled_string_ls = []
-        seed = data1['seed']
+        seed = data1.get('seed')
+        seed = 0
         N = len(string_ls)
         for ii in range(N):
             seed = (seed * 0xd3 + 0x754f) % 0x10000
@@ -103,15 +105,19 @@ class YoukuIE(InfoExtractor):
             del string_ls[idx]
 
         fileid_dict = {}
-        for format in data1['streamtypes']:
-            streamfileid = [
-                int(i) for i in data1['streamfileids'][format].strip('*').split('*')]
-            fileid = ''.join(
-                [shuffled_string_ls[i] for i in streamfileid])
-            fileid_dict[format] = fileid[:8] + '%s' + fileid[10:]
+        for stream in data1['stream']:
+            format = stream.get('stream_type')
+            #streamfileid = [
+            #    int(i) for i in data1['stream']['streamfileids']#[format].strip('*').split('*')]
+            #fileid = ''.join(
+            #    [shuffled_string_ls[i] for i in streamfileid])
+            fileid = stream['stream_fileid']
+            fileid_dict[format] = fileid
+            #fileid_dict[format] = fileid[:8] + '%s' + fileid[10:]
 
         def get_fileid(format, n):
-            fileid = fileid_dict[format] % hex(int(n))[2:].upper().zfill(2)
+            #fileid = fileid_dict[format] % hex(int(n))[2:].upper().zfill(2)
+            fileid = fileid_dict[format]
             return fileid
 
         # get ep
@@ -126,15 +132,16 @@ class YoukuIE(InfoExtractor):
 
         # generate video_urls
         video_urls_dict = {}
-        for format in data1['streamtypes']:
+        for stream in data1['stream']:
+            format = stream.get('stream_type')
             video_urls = []
-            for dt in data1['segs'][format]:
-                n = str(int(dt['no']))
+            for dt in stream['segs']:
+                n = str(int(dt['size']))
                 param = {
-                    'K': dt['k'],
+                    'K': dt['key'],
                     'hd': self.get_hd(format),
                     'myp': 0,
-                    'ts': dt['seconds'],
+                    'ts': dt['total_milliseconds_video'],
                     'ypp': 0,
                     'ctype': 12,
                     'ev': 1,
@@ -161,7 +168,8 @@ class YoukuIE(InfoExtractor):
             'hd2': '2',
             'hd3': '3',
             '3gp': '0',
-            '3gphd': '1'
+            '3gphd': '1',
+            'flvhd': '0'
         }
         return hd_id_dict[fm]
 
@@ -172,7 +180,8 @@ class YoukuIE(InfoExtractor):
             'hd2': 'flv',
             'hd3': 'flv',
             '3gp': 'flv',
-            '3gphd': 'mp4'
+            '3gphd': 'mp4',
+            'flvhd': 'flv'
         }
         return ext_dict[fm]
 
@@ -180,6 +189,7 @@ class YoukuIE(InfoExtractor):
         _dict = {
             '3gp': 'h6',
             '3gphd': 'h5',
+            'flvhd': 'h4',
             'flv': 'h4',
             'mp4': 'h3',
             'hd2': 'h2',
@@ -204,8 +214,9 @@ class YoukuIE(InfoExtractor):
                 req.add_header('Ytdl-request-proxy', cn_verification_proxy)
 
             raw_data = self._download_json(req, video_id, note=note)
+            jsonDumpIn = json.dumps(raw_data,indent = 1)
 
-            return raw_data['data']['security']
+            return raw_data['data']
 
 
         video_password = self._downloader.params.get('videopassword', None)
@@ -236,7 +247,8 @@ class YoukuIE(InfoExtractor):
                     msg += ': ' + error
                 raise ExtractorError(msg)
 
-        title = data1['title']
+        #title = data1['title']
+        title = data1['video']['title']
 
         # generate video_urls_dict
         video_urls_dict = self.construct_video_urls(data1, data2)
@@ -248,10 +260,11 @@ class YoukuIE(InfoExtractor):
             'formats': [],
             # some formats are not available for all parts, we have to detect
             # which one has all
-        } for i in range(max(len(v) for v in data1['segs'].values()))]
-        for fm in data1['streamtypes']:
+        } for i in range(max(len(v) for v in data1['stream']))]
+        for stream in data1['stream']:
+            fm = stream.get('stream_type')
             video_urls = video_urls_dict[fm]
-            for video_url, seg, entry in zip(video_urls, data1['segs'][fm], entries):
+            for video_url, seg, entry in zip(video_urls, stream['segs'], entries):
                 entry['formats'].append({
                     'url': video_url,
                     'format_id': self.get_format_name(fm),
