@@ -34,8 +34,10 @@ class FunimationIE(InfoExtractor):
             'email_field': username,
             'password_field': password,
         }))
-        login_request = sanitized_Request(login_url, data)
-        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        login_request = sanitized_Request(login_url, data, headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 5.2; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        })
         try:
             login = self._download_webpage(
                 login_request, None, 'Logging in as %s' % username)
