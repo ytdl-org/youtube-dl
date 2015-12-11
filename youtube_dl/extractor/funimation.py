@@ -1,18 +1,22 @@
 # coding: utf-8
 from __future__ import unicode_literals
+
+import re
+
 from .common import InfoExtractor
-from ..compat import compat_HTTPError
+from ..compat import compat_urllib_request
 from ..utils import (
+    clean_html,
+    determine_ext,
     encode_dict,
     sanitized_Request,
     ExtractorError,
     urlencode_postdata
 )
-import re
 
 
 class FunimationIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?funimation\.com/shows/.+[^ ]/videos/official/(?P<id>[^?]+)'
+    _VALID_URL = r'https?://(?:www\.)?funimation\.com/shows/[^/]+/videos/official/(?P<id>[^?]+)'
 
     _TEST = {
         'url': 'http://www.funimation.com/shows/air/videos/official/breeze',
@@ -25,26 +29,31 @@ class FunimationIE(InfoExtractor):
         }
     }
 
+    def _download_webpage(self, url_or_request, video_id, note='Downloading webpage'):
+        HEADERS = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 5.2; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0',
+        }
+        if isinstance(url_or_request, compat_urllib_request.Request):
+            for header, value in HEADERS.items():
+                url_or_request.add_header(header, value)
+        else:
+            url_or_request = sanitized_Request(url_or_request, headers=HEADERS)
+        response = super(FunimationIE, self)._download_webpage(url_or_request, video_id, note)
+        return response
+
     def _login(self):
         (username, password) = self._get_login_info()
         if username is None:
             return
-        login_url = 'http://www.funimation.com/login'
         data = urlencode_postdata(encode_dict({
             'email_field': username,
             'password_field': password,
         }))
-        login_request = sanitized_Request(login_url, data, headers={
-            'User-Agent': 'Mozilla/5.0 (Windows NT 5.2; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0',
+        login_request = sanitized_Request('http://www.funimation.com/login', data, headers={
             'Content-Type': 'application/x-www-form-urlencoded'
         })
-        try:
-            login = self._download_webpage(
-                login_request, None, 'Logging in as %s' % username)
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
-                raise ExtractorError('Funimation is not available in your region.', expected=True)
-            raise
+        login = self._download_webpage(
+            login_request, None, 'Logging in as %s' % username)
         if re.search(r'<meta property="og:url" content="http://www.funimation.com/login"/>', login) is not None:
             raise ExtractorError('Unable to login, wrong username or password.', expected=True)
 
@@ -52,29 +61,93 @@ class FunimationIE(InfoExtractor):
         self._login()
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        try:
-            webpage = self._download_webpage(url, video_id)
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
-                raise ExtractorError('Funimation is not available in your region.', expected=True)
-            raise
-        if re.search(r'"sdUrl":"http', webpage) is None:
-                raise ExtractorError('You are not logged-in or the stream requires subscription.', expected=True)
+        display_id = self._match_id(url)
 
-        m3u8 = self._search_regex(r'".+Url":"(.+?m3u8)"', webpage, 'm3u8') + self._search_regex(r'"authToken":"(.+?)"', webpage, 'm3u8')
-        formats = self._extract_m3u8_formats(m3u8.replace('\\', ''), video_id, ext='mp4', entry_protocol='m3u8_native')
+        webpage = self._download_webpage(url, display_id)
 
-        video_show = self._search_regex(r'"artist":"(.+?)"', webpage, 'video_show')
-        video_track = self._search_regex(r'"videoNumber":"(\d+).0"', webpage, 'video_track')
-        video_title = self._search_regex(r'"title":"({0}.+?)"'.format(video_track), webpage, 'video_title')
-        video_id = self._search_regex(r'"FUNImationID":"(.+?)"', webpage, 'video_id')
+        items = self._parse_json(
+            self._search_regex(
+                r'var\s+playersData\s*=\s*(\[.+?\]);\n',
+                webpage, 'players data'),
+            display_id)[0]['playlist'][0]['items']
+
+        item = next(item for item in items if item.get('itemAK') == display_id)
+
+        ERRORS_MAP = {
+            'ERROR_MATURE_CONTENT_LOGGED_IN': 'matureContentLoggedIn',
+            'ERROR_MATURE_CONTENT_LOGGED_OUT': 'matureContentLoggedOut',
+            'ERROR_SUBSCRIPTION_LOGGED_OUT': 'subscriptionLoggedOut',
+            'ERROR_VIDEO_EXPIRED': 'videoExpired',
+            'ERROR_TERRITORY_UNAVAILABLE': 'territoryUnavailable',
+            'SVODBASIC_SUBSCRIPTION_IN_PLAYER': 'basicSubscription',
+            'SVODNON_SUBSCRIPTION_IN_PLAYER': 'nonSubscription',
+            'ERROR_PLAYER_NOT_RESPONDING': 'playerNotResponding',
+            'ERROR_UNABLE_TO_CONNECT_TO_CDN': 'unableToConnectToCDN',
+            'ERROR_STREAM_NOT_FOUND': 'streamNotFound',
+        }
+
+        error_messages = {}
+        video_error_messages = self._search_regex(
+            r'var\s+videoErrorMessages\s*=\s*({.+?});\n',
+            webpage, 'error messages', default=None)
+        if video_error_messages:
+            error_messages_json = self._parse_json(video_error_messages, display_id, fatal=False)
+            if error_messages_json:
+                for _, error in error_messages_json.items():
+                    type_ = error.get('type')
+                    description = error.get('description')
+                    content = error.get('content')
+                    if type_ == 'text' and description and content:
+                        error_message = ERRORS_MAP.get(description)
+                        if error_message:
+                            error_messages[error_message] = content
+
+        errors = []
+        formats = []
+        for video in item['videoSet']:
+            auth_token = video.get('authToken')
+            if not auth_token:
+                continue
+            funimation_id = video.get('FUNImationID') or video.get('videoId')
+            if not auth_token.startswith('?'):
+                auth_token = '?%s' % auth_token
+            for quality in ('sd', 'hd', 'hd1080'):
+                format_url = video.get('%sUrl' % quality)
+                if not format_url:
+                    continue
+                if not format_url.startswith(('http', '//')):
+                    errors.append(format_url)
+                    continue
+                if determine_ext(format_url) == 'm3u8':
+                    m3u8_formats = self._extract_m3u8_formats(
+                        format_url + auth_token, display_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id=funimation_id or 'hls', fatal=False)
+                    if m3u8_formats:
+                        formats.extend(m3u8_formats)
+                else:
+                    formats.append({
+                        'url': format_url + auth_token,
+                    })
+
+        if not formats and errors:
+            raise ExtractorError(
+                '%s returned error: %s'
+                % (self.IE_NAME, clean_html(error_messages.get(errors[0], errors[0]))),
+                expected=True)
+
+        title = item['title']
+        artist = item.get('artist')
+        if artist:
+            title = '%s - %s' % (artist, title)
+        description = self._og_search_description(webpage) or item.get('description')
+        thumbnail = self._og_search_thumbnail(webpage) or item.get('posterUrl')
+        video_id = item.get('itemId') or display_id
 
         return {
             'id': video_id,
-            'title': video_show + ' - ' + video_title + ' ',
+            'display_id': display_id,
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
             'formats': formats,
-            'thumbnail': self._og_search_thumbnail(webpage),
-            'description': self._og_search_description(webpage)
         }
