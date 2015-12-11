@@ -67,6 +67,17 @@ class VevoIE(InfoExtractor):
         'params': {
             'skip_download': 'true',
         }
+    }, {
+        'note': 'No video_info',
+        'url': 'http://www.vevo.com/watch/k-camp-1/Till-I-Die/USUV71503000',
+        'md5': '8b83cc492d72fc9cf74a02acee7dc1b0',
+        'info_dict': {
+            'id': 'USUV71503000',
+            'ext': 'mp4',
+            'title': 'Till I Die - K Camp ft. T.I.',
+            'duration': 193,
+        },
+        'expected_warnings': ['HTTP Error 404'],
     }]
     _SMIL_BASE_URL = 'http://smil.lvl3.vevo.com/'
 
@@ -89,6 +100,9 @@ class VevoIE(InfoExtractor):
                 webpage, 'access token', fatal=False)
 
     def _formats_from_json(self, video_info):
+        if not video_info:
+            return []
+
         last_version = {'version': -1}
         for version in video_info['videoVersions']:
             # These are the HTTP downloads, other types are for different manifests
@@ -171,14 +185,23 @@ class VevoIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        webpage = None
+
         json_url = 'http://videoplayer.vevo.com/VideoService/AuthenticateVideo?isrc=%s' % video_id
         response = self._download_json(json_url, video_id)
-        video_info = response['video']
+        video_info = response['video'] or {}
 
-        if not video_info:
+        if not video_info and response.get('statusCode') != 909:
             if 'statusMessage' in response:
                 raise ExtractorError('%s said: %s' % (self.IE_NAME, response['statusMessage']), expected=True)
             raise ExtractorError('Unable to extract videos')
+
+        if not video_info:
+            if url.startswith('vevo:'):
+                raise ExtractorError('Please specify full Vevo URL for downloading', expected=True)
+            webpage = self._download_webpage(url, video_id)
+
+        title = video_info.get('title') or self._og_search_title(webpage)
 
         formats = self._formats_from_json(video_info)
 
@@ -195,7 +218,7 @@ class VevoIE(InfoExtractor):
 
         # Download SMIL
         smil_blocks = sorted((
-            f for f in video_info['videoVersions']
+            f for f in video_info.get('videoVersions', [])
             if f['sourceType'] == 13),
             key=lambda f: f['version'])
         smil_url = '%s/Video/V2/VFILE/%s/%sr.smil' % (
@@ -213,17 +236,21 @@ class VevoIE(InfoExtractor):
                 formats.extend(self._formats_from_smil(smil_xml))
 
         self._sort_formats(formats)
-        timestamp_ms = int_or_none(self._search_regex(
+        timestamp = int_or_none(self._search_regex(
             r'/Date\((\d+)\)/',
-            video_info['launchDate'], 'launch date', fatal=False))
+            video_info['launchDate'], 'launch date', fatal=False),
+            scale=1000) if video_info else None
+
+        duration = video_info.get('duration') or int_or_none(
+            self._html_search_meta('video:duration', webpage))
 
         return {
             'id': video_id,
-            'title': video_info['title'],
+            'title': title,
             'formats': formats,
-            'thumbnail': video_info['imageUrl'],
-            'timestamp': timestamp_ms // 1000,
-            'uploader': video_info['mainArtists'][0]['artistName'],
-            'duration': video_info['duration'],
+            'thumbnail': video_info.get('imageUrl'),
+            'timestamp': timestamp,
+            'uploader': video_info['mainArtists'][0]['artistName'] if video_info else None,
+            'duration': duration,
             'age_limit': age_limit,
         }
