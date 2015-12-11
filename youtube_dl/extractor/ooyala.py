@@ -27,6 +27,7 @@ class OoyalaBaseIE(InfoExtractor):
             'duration': float_or_none(metadata.get('duration'), 1000),
         }
 
+        urls = []
         formats = []
         for supported_format in ('mp4', 'm3u8', 'hds', 'rtmp'):
             auth_data = self._download_json(
@@ -38,20 +39,28 @@ class OoyalaBaseIE(InfoExtractor):
             if cur_auth_data['authorized']:
                 for stream in cur_auth_data['streams']:
                     url = base64.b64decode(stream['url']['data'].encode('ascii')).decode('utf-8')
+                    if url in urls:
+                        continue
+                    urls.append(url)
                     delivery_type = stream['delivery_type']
-                    if delivery_type == 'remote_asset':
-                        video_info['url'] = url
-                        return video_info
-                    if delivery_type == 'hls':
-                        formats.extend(self._extract_m3u8_formats(url, embed_code, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
-                    elif delivery_type == 'hds':
-                        formats.extend(self._extract_f4m_formats(url, embed_code, -1, 'hds', fatal=False))
+                    if delivery_type == 'hls' or '.m3u8' in url:
+                        m3u8_formats = self._extract_m3u8_formats(url, embed_code, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
+                        if m3u8_formats:
+                            formats.extend(m3u8_formats)
+                    elif delivery_type == 'hds' or '.f4m' in url:
+                        f4m_formats = self._extract_f4m_formats(url, embed_code, f4m_id='hds', fatal=False)
+                        if f4m_formats:
+                            formats.extend(f4m_formats)
+                    elif '.smil' in url:
+                        smil_formats = self._extract_smil_formats(url, embed_code, fatal=False)
+                        if smil_formats:
+                            formats.extend(smil_formats)
                     else:
                         formats.append({
                             'url': url,
                             'ext': stream.get('delivery_type'),
                             'vcodec': stream.get('video_codec'),
-                            'format_id': '%s-%s-%sp' % (stream.get('profile'), delivery_type, stream.get('height')),
+                            'format_id': delivery_type,
                             'width': int_or_none(stream.get('width')),
                             'height': int_or_none(stream.get('height')),
                             'abr': int_or_none(stream.get('audio_bitrate')),
