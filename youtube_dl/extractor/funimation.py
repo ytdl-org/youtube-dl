@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class FunimationIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?funimation\.com/shows/[^/]+/videos/official/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?funimation\.com/shows/[^/]+/videos/(?:official|promotional)/(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'http://www.funimation.com/shows/air/videos/official/breeze',
@@ -37,6 +37,9 @@ class FunimationIE(InfoExtractor):
             'description': 'md5:b602bdc15eef4c9bbb201bb6e6a4a2dd',
             'thumbnail': 're:https?://.*\.jpg',
         },
+    }, {
+        'url': 'http://www.funimation.com/shows/attack-on-titan-junior-high/videos/promotional/broadcast-dub-preview',
+        'only_matching': True,
     }]
 
     def _login(self):
