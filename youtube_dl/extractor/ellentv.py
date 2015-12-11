@@ -13,12 +13,12 @@ class EllenTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?(?:ellentv|ellentube)\.com/videos/(?P<id>[a-z0-9_-]+)'
     _TEST = {
         'url': 'http://www.ellentv.com/videos/0-ipq1gsai/',
-        'md5': '8e3c576bf2e9bfff4d76565f56f94c9c',
+        'md5': '4294cf98bc165f218aaa0b89e0fd8042',
         'info_dict': {
             'id': '0_ipq1gsai',
-            'ext': 'mp4',
+            'ext': 'mov',
             'title': 'Fast Fingers of Fate',
-            'description': 'md5:587e79fbbd0d73b148bc596d99ce48e6',
+            'description': 'md5:3539013ddcbfa64b2a6d1b38d910868a',
             'timestamp': 1428035648,
             'upload_date': '20150403',
             'uploader_id': 'batchUser',
