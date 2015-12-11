@@ -21,12 +21,13 @@ class FunimationIE(InfoExtractor):
     _TEST = {
         'url': 'http://www.funimation.com/shows/air/videos/official/breeze',
         'info_dict': {
-            'id': 'AIRENG0001',
-            'title': 'Air - 1 - Breeze ',
+            'id': '658',
+            'display_id': 'breeze',
             'ext': 'mp4',
-            'thumbnail': 'http://www.funimation.com/admin/uploads/default/recap_thumbnails/7555590/home_spotlight/AIR0001.jpg',
-            'description': 'Travelling puppeteer Yukito arrives in a small town where he hopes to earn money through the magic of his puppets. When a young girl named Misuzu lures him to her home with the promise of food, his life changes forever. ',
-        }
+            'title': 'Air - 1 - Breeze',
+            'description': 'md5:1769f43cd5fc130ace8fd87232207892',
+            'thumbnail': 're:https?://.*\.jpg',
+        },
     }
 
     def _download_webpage(self, url_or_request, video_id, note='Downloading webpage'):
