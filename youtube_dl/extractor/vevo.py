@@ -169,8 +169,7 @@ class VevoIE(InfoExtractor):
             preference=0)
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         json_url = 'http://videoplayer.vevo.com/VideoService/AuthenticateVideo?isrc=%s' % video_id
         response = self._download_json(json_url, video_id)
