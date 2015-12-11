@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_etree_fromstring
+from ..compat import (
+    compat_etree_fromstring,
+    compat_urlparse,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -162,14 +165,14 @@ class VevoIE(InfoExtractor):
             })
         return formats
 
-    def _download_api_formats(self, video_id):
+    def _download_api_formats(self, video_id, video_url):
         if not self._oauth_token:
             self._downloader.report_warning(
                 'No oauth token available, skipping API HLS download')
             return []
 
-        api_url = 'https://apiv2.vevo.com/video/%s/streams/hls?token=%s' % (
-            video_id, self._oauth_token)
+        api_url = compat_urlparse.urljoin(video_url, '//apiv2.vevo.com/video/%s/streams/hls?token=%s' % (
+            video_id, self._oauth_token))
         api_data = self._download_json(
             api_url, video_id,
             note='Downloading HLS formats',
@@ -214,7 +217,7 @@ class VevoIE(InfoExtractor):
             age_limit = None
 
         # Download via HLS API
-        formats.extend(self._download_api_formats(video_id))
+        formats.extend(self._download_api_formats(video_id, url))
 
         # Download SMIL
         smil_blocks = sorted((
