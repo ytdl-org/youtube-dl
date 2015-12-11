@@ -112,8 +112,13 @@ class YoukuIE(InfoExtractor):
             #fileid_dict[format] = fileid[:8] + '%s' + fileid[10:]
 
         def get_fileid(format, n):
+            number = hex(int(str(n), 10))[2:].upper()
+            if len(number) == 1:
+                number = '0' + number
+            streamfileids = fileid_dict[format]
+            fileid = streamfileids[0:8] + number + streamfileids[10:]
             #fileid = fileid_dict[format] % hex(int(n))[2:].upper().zfill(2)
-            fileid = fileid_dict[format]
+            #fileid = fileid_dict[format]
             return fileid
 
         # get ep
@@ -138,7 +143,7 @@ class YoukuIE(InfoExtractor):
                     'K': dt['key'],
                     'hd': self.get_hd(format),
                     'myp': 0,
-                    'ts': dt['total_milliseconds_video'],
+                    #'ts': dt['total_milliseconds_video'],
                     'ypp': 0,
                     'ctype': 12,
                     'ev': 1,
@@ -149,7 +154,7 @@ class YoukuIE(InfoExtractor):
                 video_url = \
                     'http://k.youku.com/player/getFlvPath/' + \
                     'sid/' + sid + \
-                    '_' + str(int(n) + 1).zfill(2) + \
+                    '_00'+ \
                     '/st/' + self.parse_ext_l(format) + \
                     '/fileid/' + get_fileid(format, n) + '?' + \
                     compat_urllib_parse.urlencode(param)
