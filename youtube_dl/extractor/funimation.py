@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class FunimationIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?funimation\.com/shows/[^/]+/videos/official/(?P<id>[^?]+)'
+    _VALID_URL = r'https?://(?:www\.)?funimation\.com/shows/[^/]+/videos/official/(?P<id>[^/?#&]+)'
 
     _TEST = {
         'url': 'http://www.funimation.com/shows/air/videos/official/breeze',
