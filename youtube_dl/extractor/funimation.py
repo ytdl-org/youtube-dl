@@ -8,6 +8,7 @@ from ..utils import (
     clean_html,
     determine_ext,
     encode_dict,
+    int_or_none,
     sanitized_Request,
     ExtractorError,
     urlencode_postdata
@@ -136,7 +137,7 @@ class FunimationIE(InfoExtractor):
                 preference = 1 if video.get('languageMode') == 'dub' else 0
                 if not auth_token.startswith('?'):
                     auth_token = '?%s' % auth_token
-                for quality in ('sd', 'hd', 'hd1080'):
+                for quality, height in (('sd', 480), ('hd', 720), ('hd1080', 1080)):
                     format_url = video.get('%sUrl' % quality)
                     if not format_url:
                         continue
@@ -146,22 +147,19 @@ class FunimationIE(InfoExtractor):
                     if determine_ext(format_url) == 'm3u8':
                         m3u8_formats = self._extract_m3u8_formats(
                             format_url + auth_token, display_id, 'mp4', entry_protocol='m3u8_native',
-                            preference=preference, m3u8_id=funimation_id or 'hls', fatal=False)
+                            preference=preference, m3u8_id='%s-hls' % funimation_id, fatal=False)
                         if m3u8_formats:
                             formats.extend(m3u8_formats)
                     else:
-                        f = {
+                        tbr = int_or_none(self._search_regex(
+                            r'-(\d+)[Kk]', format_url, 'tbr', default=None))
+                        formats.append({
                             'url': format_url + auth_token,
-                            'format_id': funimation_id,
+                            'format_id': '%s-http-%dp' % (funimation_id, height),
+                            'height': height,
+                            'tbr': tbr,
                             'preference': preference,
-                        }
-                        mobj = re.search(r'(?P<height>\d+)-(?P<tbr>\d+)[Kk]', format_url)
-                        if mobj:
-                            f.update({
-                                'height': int(mobj.group('height')),
-                                'tbr': int(mobj.group('tbr')),
-                            })
-                        formats.append(f)
+                        })
 
         if not formats and errors:
             raise ExtractorError(
