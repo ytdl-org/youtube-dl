@@ -31,7 +31,6 @@ class FunimationIE(InfoExtractor):
             return
         login_url = 'http://www.funimation.com/login'
         data = urlencode_postdata(encode_dict({
-            'loginForm2': 'loginform',
             'email_field': username,
             'password_field': password,
         }))
