@@ -34,15 +34,29 @@ class BeegIE(InfoExtractor):
         video_id = self._match_id(url)
 
         video = self._download_json(
-            'http://beeg.com/api/v4/video/%s' % video_id, video_id)
+            'http://beeg.com/api/v5/video/%s' % video_id, video_id)
+
+        def split(o, e):
+            def cut(s, x):
+                n.append(s[:x])
+                return s[x:]
+            n = []
+            r = len(o) % e
+            if r > 0:
+                o = cut(o, r)
+            while len(o) > e:
+                o = cut(o, e)
+            n.append(o)
+            return n
 
         def decrypt_key(key):
-            # Reverse engineered from http://static.beeg.com/cpl/1067.js
-            a = '8RPUUCS35ZWp3ADnKcSmpH71ZusrROo'
+            # Reverse engineered from http://static.beeg.com/cpl/1105.js
+            a = '5ShMcIQlssOd7zChAIOlmeTZDaUxULbJRnywYaiB'
             e = compat_urllib_parse_unquote(key)
-            return ''.join([
-                compat_chr(compat_ord(e[n]) - compat_ord(a[n % len(a)]) % 25)
+            o = ''.join([
+                compat_chr(compat_ord(e[n]) - compat_ord(a[n % len(a)]) % 21)
                 for n in range(len(e))])
+            return ''.join(split(o, 3)[::-1])
 
         def decrypt_url(encrypted_url):
             encrypted_url = self._proto_relative_url(
