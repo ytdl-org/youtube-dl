@@ -39,7 +39,14 @@ class FunimationIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.funimation.com/shows/attack-on-titan-junior-high/videos/promotional/broadcast-dub-preview',
-        'only_matching': True,
+        'info_dict': {
+            'id': '9635',
+            'display_id': 'broadcast-dub-preview',
+            'ext': 'mp4',
+            'title': 'Attack on Titan: Junior High - Broadcast Dub Preview',
+            'description': 'md5:f8ec49c0aff702a7832cd81b8a44f803',
+            'thumbnail': 're:https?://.*\.(?:jpg|png)',
+        },
     }]
 
     def _login(self):
