@@ -38,7 +38,8 @@ class FunimationIE(InfoExtractor):
         login_request = sanitized_Request(login_url, data)
         login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         try:
-            login = self._download_webpage(login_request, login_url)
+            login = self._download_webpage(
+                login_request, None, 'Logging in as %s' % username)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                 raise ExtractorError('Funimation is not available in your region.', expected=True)
