@@ -80,7 +80,7 @@ class VevoIE(InfoExtractor):
             'title': 'Till I Die - K Camp ft. T.I.',
             'duration': 193,
         },
-        'expected_warnings': ['HTTP Error 404'],
+        'expected_warnings': ['Unable to download SMIL file'],
     }]
     _SMIL_BASE_URL = 'http://smil.lvl3.vevo.com/'
 
@@ -130,9 +130,8 @@ class VevoIE(InfoExtractor):
             })
         return formats
 
-    def _formats_from_smil(self, smil_xml):
+    def _formats_from_smil(self, smil_doc):
         formats = []
-        smil_doc = compat_etree_fromstring(smil_xml.encode('utf-8'))
         els = smil_doc.findall('.//{http://www.w3.org/2001/SMIL20/Language}video')
         for el in els:
             src = el.attrib['src']
@@ -233,10 +232,9 @@ class VevoIE(InfoExtractor):
             if smil_url_m is not None:
                 smil_url = smil_url_m
         if smil_url:
-            smil_xml = self._download_webpage(
-                smil_url, video_id, 'Downloading SMIL info', fatal=False)
-            if smil_xml:
-                formats.extend(self._formats_from_smil(smil_xml))
+            smil_doc = self._download_smil(smil_url, video_id, fatal=False)
+            if smil_doc:
+                formats.extend(self._formats_from_smil(smil_doc))
 
         self._sort_formats(formats)
         timestamp = int_or_none(self._search_regex(
