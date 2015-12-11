@@ -96,12 +96,13 @@ class FunimationIE(InfoExtractor):
             webpage = self._download_webpage(
                 request, display_id, 'Downloading %s webpage' % kind)
 
-            items = self._parse_json(
+            playlist = self._parse_json(
                 self._search_regex(
                     r'var\s+playersData\s*=\s*(\[.+?\]);\n',
                     webpage, 'players data'),
-                display_id)[0]['playlist'][0]['items']
+                display_id)[0]['playlist']
 
+            items = next(item['items'] for item in playlist if item.get('items'))
             item = next(item for item in items if item.get('itemAK') == display_id)
 
             error_messages = {}
