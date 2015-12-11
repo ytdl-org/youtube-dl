@@ -1,15 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
 import base64
 
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
-    compat_cookiejar,
-    compat_cookies,
-    compat_urllib_request,
     compat_ord,
 )
 from ..utils import (
@@ -89,7 +85,7 @@ class YoukuIE(InfoExtractor):
         ).decode('ascii').split('_')
 
         # get oip
-        oip = data2['security']['ip']
+        oip = data1['security']['ip']
 
         # get fileid
         string_ls = list(
@@ -136,7 +132,8 @@ class YoukuIE(InfoExtractor):
             format = stream.get('stream_type')
             video_urls = []
             for dt in stream['segs']:
-                n = str(int(dt['size']))
+                #n = str(int(dt['size']))
+                n = str(stream['segs'].index(dt))
                 param = {
                     'K': dt['key'],
                     'hd': self.get_hd(format),
@@ -177,6 +174,8 @@ class YoukuIE(InfoExtractor):
         ext_dict = {
             'flv': 'flv',
             'mp4': 'mp4',
+            'mp4hd': 'mp4',
+            'mp4hd2': 'mp4',
             'hd2': 'flv',
             'hd3': 'flv',
             '3gp': 'flv',
@@ -214,7 +213,6 @@ class YoukuIE(InfoExtractor):
                 req.add_header('Ytdl-request-proxy', cn_verification_proxy)
 
             raw_data = self._download_json(req, video_id, note=note)
-            jsonDumpIn = json.dumps(raw_data,indent = 1)
 
             return raw_data['data']
 
@@ -260,7 +258,7 @@ class YoukuIE(InfoExtractor):
             'formats': [],
             # some formats are not available for all parts, we have to detect
             # which one has all
-        } for i in range(max(len(v) for v in data1['stream']))]
+        } for i in range(max(len(v.get('segs')) for v in data1['stream']))]
         for stream in data1['stream']:
             fm = stream.get('stream_type')
             video_urls = video_urls_dict[fm]
