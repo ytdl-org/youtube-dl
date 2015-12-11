@@ -81,6 +81,9 @@ class VevoIE(InfoExtractor):
         if webpage is False:
             self._oauth_token = None
         else:
+            if 'THIS PAGE IS CURRENTLY UNAVAILABLE IN YOUR REGION' in webpage:
+                raise ExtractorError('%s said: This page is currently unavailable in your region.' % self.IE_NAME, expected=True)
+
             self._oauth_token = self._search_regex(
                 r'access_token":\s*"([^"]+)"',
                 webpage, 'access token', fatal=False)
