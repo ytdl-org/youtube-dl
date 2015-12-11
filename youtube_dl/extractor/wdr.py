@@ -10,8 +10,8 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
-    determine_ext,
     unified_strdate,
+    qualities,
 )
 
 
@@ -33,6 +33,7 @@ class WDRIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
+            'skip': 'Page Not Found',
         },
         {
             'url': 'http://www1.wdr.de/themen/av/videomargaspiegelisttot101-videoplayer.html',
@@ -47,6 +48,7 @@ class WDRIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
+            'skip': 'Page Not Found',
         },
         {
             'url': 'http://www1.wdr.de/themen/kultur/audioerlebtegeschichtenmargaspiegel100-audioplayer.html',
@@ -71,6 +73,7 @@ class WDRIE(InfoExtractor):
                 'upload_date': '20140717',
                 'is_live': False
             },
+            'skip': 'Page Not Found',
         },
         {
             'url': 'http://www1.wdr.de/mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100.html',
@@ -83,10 +86,10 @@ class WDRIE(InfoExtractor):
             'url': 'http://www1.wdr.de/mediathek/video/livestream/index.html',
             'info_dict': {
                 'id': 'mdb-103364',
-                'title': 're:^WDR Fernsehen [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+                'title': 're:^WDR Fernsehen Live [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
                 'description': 'md5:ae2ff888510623bf8d4b115f95a9b7c9',
                 'ext': 'flv',
-                'upload_date': '20150212',
+                'upload_date': '20150101',
                 'is_live': True
             },
             'params': {
@@ -150,25 +153,52 @@ class WDRIE(InfoExtractor):
         if upload_date:
             upload_date = unified_strdate(upload_date)
 
+        formats = []
+        preference = qualities(['S', 'M', 'L', 'XL'])
+
         if video_url.endswith('.f4m'):
-            video_url += '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18'
-            ext = 'flv'
+            f4m_formats = self._extract_f4m_formats(video_url + '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18', page_id, f4m_id='hds', fatal=False)
+            if f4m_formats:
+                formats.extend(f4m_formats)
         elif video_url.endswith('.smil'):
-            fmt = self._extract_smil_formats(video_url, page_id)[0]
-            video_url = fmt['url']
-            sep = '&' if '?' in video_url else '?'
-            video_url += sep
-            video_url += 'hdcore=3.3.0&plugin=aasp-3.3.0.99.43'
-            ext = fmt['ext']
+            smil_formats = self._extract_smil_formats(video_url, page_id, False, {
+                'hdcore': '3.3.0',
+                'plugin': 'aasp-3.3.0.99.43',
+            })
+            if smil_formats:
+                formats.extend(smil_formats)
         else:
-            ext = determine_ext(video_url)
+            formats.append({
+                'url': video_url,
+                'http_headers': {
+                    'User-Agent': 'mobile',
+                },
+            })
+
+        m3u8_url = self._search_regex(r'rel="adaptiv"[^>]+href="([^"]+)"', webpage, 'm3u8 url', default=None)
+        if m3u8_url:
+            m3u8_formats = self._extract_m3u8_formats(m3u8_url, page_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
+            if m3u8_formats:
+                formats.extend(m3u8_formats)
+
+        direct_urls = re.findall(r'rel="web(S|M|L|XL)"[^>]+href="([^"]+)"', webpage)
+        if direct_urls:
+            for quality, video_url in direct_urls:
+                formats.append({
+                    'url': video_url,
+                    'preference': preference(quality),
+                    'http_headers': {
+                        'User-Agent': 'mobile',
+                    },
+                })
+
+        self._sort_formats(formats)
 
         description = self._html_search_meta('Description', webpage, 'description')
 
         return {
             'id': page_id,
-            'url': video_url,
-            'ext': ext,
+            'formats': formats,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
