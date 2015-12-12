@@ -219,25 +219,25 @@ class YoukuIE(InfoExtractor):
         # request basic data
         basic_data_url = "http://play.youku.com/play/get.json?vid=%s&ct=12" % video_id
         if video_password:
-            basic_data_url += '?password=%s' % video_password
+            basic_data_url += '&pwd=%s' % video_password
 
         data1 = retrieve_data(
             basic_data_url,
             'Downloading JSON metadata 1')
         data2 = retrieve_data(
-            "http://play.youku.com/play/get.json?vid=%s&ct=12" % video_id,
+            basic_data_url,
             'Downloading JSON metadata 2')
 
-        error_code = data1.get('error_code')
-        if error_code:
-            error = data1.get('error')
-            if error is not None and '因版权原因无法观看此视频' in error:
+        error = data1.get('error')
+        if error:
+            error_note = error.get('note')
+            if error_note is not None and '因版权原因无法观看此视频' in error_note:
                 raise ExtractorError(
                     'Youku said: Sorry, this video is available in China only', expected=True)
             else:
-                msg = 'Youku server reported error %i' % error_code
+                msg = 'Youku server reported error %i' % error.get('code')
                 if error is not None:
-                    msg += ': ' + error
+                    msg += ': ' + error_note
                 raise ExtractorError(msg)
 
         #get video title
