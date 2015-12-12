@@ -2547,8 +2547,13 @@ class I18N(object):
             locale_data_zip = _load_exe_resource('LOCALE_DATA', 'LOCALE_DATA.ZIP')
             f = io.BytesIO(locale_data_zip)
             zipf = zipfile.ZipFile(f)
-            with zipf.open('share/locale/%s/LC_MESSAGES/%s.mo' % (lang, self.domain)) as mo_file:
-                t = gettext.GNUTranslations(mo_file)
+            try:
+                zinfo = zipf.getinfo('share/locale/%s/LC_MESSAGES/%s.mo' % (lang, self.domain))
+            except KeyError:
+                zinfo = None
+            if zinfo is not None:
+                with zipf.open(zinfo) as mo_file:
+                    t = gettext.GNUTranslations(mo_file)
             zipf.close()
 
         if t is None:
