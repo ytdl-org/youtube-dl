@@ -1,14 +1,14 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Translation template for youtube-dl
+# UNLICENSE 2008-2015
+# This file is distributed under the same license as the youtube-dl package.
+# Ricardo García <r@rg3.name>, 2008.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-11-30 00:03+0800\n"
+"POT-Creation-Date: 2015-12-13 00:33+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,60 +17,59 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: youtube_dl/YoutubeDL.py:1543 youtube_dl/YoutubeDL.py:1544
+#: youtube_dl/YoutubeDL.py:1549
 #, python-format
 msgid "[debug] Invoking downloader on %r"
 msgstr ""
 
-#: youtube_dl/YoutubeDL.py:1587 youtube_dl/YoutubeDL.py:1588
+#: youtube_dl/YoutubeDL.py:1593
 #, python-format
 msgid "[download] %s has already been downloaded and merged"
 msgstr ""
 
-#: youtube_dl/YoutubeDL.py:1721 youtube_dl/YoutubeDL.py:1722
+#: youtube_dl/YoutubeDL.py:1727
 #, python-format
 msgid "Deleting original file %s (pass -k to keep)"
 msgstr ""
 
-#: youtube_dl/downloader/common.py:215 youtube_dl/downloader/common.py:216
+#: youtube_dl/downloader/common.py:215
 #, python-format
 msgid "[download] Destination: %s"
 msgstr ""
 
-#: youtube_dl/downloader/common.py:218 youtube_dl/downloader/common.py:219
+#: youtube_dl/downloader/common.py:218
 msgid "[download] "
 msgstr ""
 
-#: youtube_dl/extractor/common.py:507 youtube_dl/extractor/common.py:508
+#: youtube_dl/extractor/common.py:507
 #, python-format
 msgid "%s: Downloading webpage"
 msgstr ""
 
-#: youtube_dl/extractor/testurl.py:64 youtube_dl/extractor/testurl.py:65
+#: youtube_dl/extractor/testurl.py:65
 #, python-format
 msgid "Test URL: %s"
 msgstr ""
 
-#: youtube_dl/extractor/youtube.py:742 youtube_dl/extractor/youtube.py:743
+#: youtube_dl/extractor/youtube.py:747
 #, python-format
 msgid "%s: Downloading video info webpage"
 msgstr ""
 
-#: youtube_dl/extractor/youtube.py:746 youtube_dl/extractor/youtube.py:747
+#: youtube_dl/extractor/youtube.py:751
 #, python-format
 msgid "%s: Extracting video information"
 msgstr ""
 
-#: youtube_dl/extractor/youtube.py:1023 youtube_dl/extractor/youtube.py:1024
+#: youtube_dl/extractor/youtube.py:1028
 msgid "Downloading DASH manifest"
 msgstr ""
 
-#: youtube_dl/extractor/youtube.py:1024 youtube_dl/extractor/youtube.py:1025
+#: youtube_dl/extractor/youtube.py:1029
 msgid "Could not download DASH manifest"
 msgstr ""
 
-#: youtube_dl/postprocessor/ffmpeg.py:405
-#: youtube_dl/postprocessor/ffmpeg.py:406
+#: youtube_dl/postprocessor/ffmpeg.py:407
 #, python-format
 msgid "[ffmpeg] Merging formats into \"%s\""
 msgstr ""
