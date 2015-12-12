@@ -210,9 +210,7 @@ class YoukuIE(InfoExtractor):
         if video_password:
             basic_data_url += '&pwd=%s' % video_password
 
-        data = retrieve_data(
-            basic_data_url,
-            'Downloading JSON metadata 1')
+        data = retrieve_data(basic_data_url, 'Downloading JSON metadata')
 
         error = data.get('error')
         if error:
