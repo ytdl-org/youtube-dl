@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import base64
-import json
 
 from .common import InfoExtractor
 from ..compat import (
@@ -88,10 +87,6 @@ class YoukuIE(InfoExtractor):
         # get oip
         oip = data['security']['ip']
 
-        # get fileid
-        string_ls = list(
-            'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\:._-1234567890')
-
         fileid_dict = {}
         for stream in data['stream']:
             format = stream.get('stream_type')
@@ -122,13 +117,11 @@ class YoukuIE(InfoExtractor):
             format = stream.get('stream_type')
             video_urls = []
             for dt in stream['segs']:
-                #n = str(int(dt['size']))
                 n = str(stream['segs'].index(dt))
                 param = {
                     'K': dt['key'],
                     'hd': self.get_hd(format),
                     'myp': 0,
-                    #'ts': dt['total_milliseconds_video'],
                     'ypp': 0,
                     'ctype': 12,
                     'ev': 1,
@@ -139,7 +132,7 @@ class YoukuIE(InfoExtractor):
                 video_url = \
                     'http://k.youku.com/player/getFlvPath/' + \
                     'sid/' + sid + \
-                    '_00'+ \
+                    '_00' + \
                     '/st/' + self.parse_ext_l(format) + \
                     '/fileid/' + get_fileid(format, n) + '?' + \
                     compat_urllib_parse.urlencode(param)
@@ -196,23 +189,19 @@ class YoukuIE(InfoExtractor):
         video_id = self._match_id(url)
 
         def retrieve_data(req_url, note):
-            
-
             headers = {
-                    'Referer': req_url,
-                }
-            self._set_cookie('youku.com','xreferrer','http://www.youku.com')
-            req = sanitized_Request(req_url,headers=headers)
+                'Referer': req_url,
+            }
+            self._set_cookie('youku.com', 'xreferrer', 'http://www.youku.com')
+            req = sanitized_Request(req_url, headers=headers)
 
             cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
             if cn_verification_proxy:
                 req.add_header('Ytdl-request-proxy', cn_verification_proxy)
 
             raw_data = self._download_json(req, video_id, note=note)
-            js = json.dumps(raw_data)
 
             return raw_data['data']
-
 
         video_password = self._downloader.params.get('videopassword', None)
 
@@ -237,9 +226,8 @@ class YoukuIE(InfoExtractor):
                     msg += ': ' + error_note
                 raise ExtractorError(msg)
 
-        #get video title
+        # get video title
         title = data['video']['title']
-
 
         # generate video_urls_dict
         video_urls_dict = self.construct_video_urls(data)
