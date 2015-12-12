@@ -150,6 +150,7 @@ class YoukuIE(InfoExtractor):
             'mp4': '1',
             'mp4hd': '1',
             'mp4hd2': '1',
+            'mp4hd3': '1',
             'hd2': '2',
             'hd3': '3',
         }
