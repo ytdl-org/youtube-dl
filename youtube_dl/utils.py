@@ -2513,7 +2513,7 @@ class ISO3166Utils(object):
         return cls._country_map.get(code.upper())
 
 
-def g(s):
+def tr(s):
     DOMAIN = 'youtube_dl'
     lang, _ = locale.getdefaultlocale()
     try:

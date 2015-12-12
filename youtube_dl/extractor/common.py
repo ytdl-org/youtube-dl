@@ -33,11 +33,11 @@ from ..utils import (
     ExtractorError,
     fix_xml_ampersands,
     float_or_none,
-    g,
     int_or_none,
     RegexNotFoundError,
     sanitize_filename,
     sanitized_Request,
+    tr,
     unescapeHTML,
     unified_strdate,
     url_basename,
@@ -504,7 +504,7 @@ class InfoExtractor(object):
 
     def report_download_webpage(self, video_id):
         """Report webpage download."""
-        self.to_screen(g('%s: Downloading webpage') % video_id)
+        self.to_screen(tr('%s: Downloading webpage') % video_id)
 
     def report_age_confirmation(self):
         """Report attempt to confirm age."""

@@ -5,7 +5,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    g,
+    tr,
 )
 
 
@@ -62,7 +62,7 @@ class TestURLIE(InfoExtractor):
                     (num, len(testcases))),
                 expected=True)
 
-        self.to_screen(g('Test URL: %s') % tc['url'])
+        self.to_screen(tr('Test URL: %s') % tc['url'])
 
         return {
             '_type': 'url',

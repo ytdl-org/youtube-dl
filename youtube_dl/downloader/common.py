@@ -10,8 +10,8 @@ from ..utils import (
     encodeFilename,
     decodeArgument,
     format_bytes,
-    g,
     timeconvert,
+    tr,
 )
 
 
@@ -212,10 +212,10 @@ class FileDownloader(object):
 
     def report_destination(self, filename):
         """Report destination filename."""
-        self.to_screen(g('[download] Destination: %s') % filename)
+        self.to_screen(tr('[download] Destination: %s') % filename)
 
     def _report_progress_status(self, msg, is_last_line=False):
-        fullmsg = g('[download] ') + msg
+        fullmsg = tr('[download] ') + msg
         if self.params.get('progress_with_newline', False):
             self.to_screen(fullmsg)
         else:

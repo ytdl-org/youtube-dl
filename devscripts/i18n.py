@@ -74,7 +74,7 @@ class I18N_Utils(object):
         old_pot_file = self.get_pot_filename() + '.old'
         shutil.copy2(pot_file, old_pot_file)
         cmds = [
-            'xgettext', '-d', self.GETTEXT_DOMAIN, '-j', '-k', '-kg', '--from-code=utf-8', '-F', '-o',
+            'xgettext', '-d', self.GETTEXT_DOMAIN, '-j', '-k', '-ktr', '--from-code=utf-8', '-F', '-o',
             pot_file]
         cmds.extend(glob.glob('youtube_dl/*.py') + glob.glob('youtube_dl/*/*.py'))
         self._run_subprocess(cmds)
