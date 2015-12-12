@@ -32,7 +32,6 @@ import sys
 import tempfile
 import traceback
 import xml.etree.ElementTree
-import zipfile
 import zlib
 
 from .compat import (
@@ -2514,36 +2513,12 @@ class ISO3166Utils(object):
         return cls._country_map.get(code.upper())
 
 
-def _load_exe_resource(res_type, res_name):
-    kernel32 = ctypes.windll.kernel32
-
-    exe_handle = 0  # NULL: Current process
-
-    res_info = kernel32.FindResourceW(exe_handle, res_name, res_type)
-    res_handle = kernel32.LoadResource(exe_handle, res_info)
-    res_data = kernel32.LockResource(res_handle)
-    res_len = kernel32.SizeofResource(exe_handle, res_info)
-    res_arr = ctypes.cast(res_data, ctypes.POINTER(ctypes.c_char))[:res_len]
-    return res_arr
-
-
 def g(s):
     DOMAIN = 'youtube_dl'
     lang, _ = locale.getdefaultlocale()
     try:
         t = gettext.translation(DOMAIN, find_file_in_root('share/locale/'), [lang])
     except (OSError, IOError):  # OSError for 3.3+ and IOError otherwise
-        t = None
-
-    if t is None and sys.platform == 'win32' and hasattr(sys, 'frozen'):
-        locale_data_zip = _load_exe_resource('LOCALE_DATA', 'LOCALE_DATA.ZIP')
-        f = io.BytesIO(locale_data_zip)
-        zipf = zipfile.ZipFile(f)
-        with zipf.open('share/locale/%s/LC_MESSAGES/%s.mo' % (lang, DOMAIN)) as mo_file:
-            t = gettext.GNUTranslations(mo_file)
-        zipf.close()
-
-    if t is None:
         return s
 
     ret = t.gettext(s)

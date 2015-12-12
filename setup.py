@@ -7,8 +7,6 @@ import os.path
 import warnings
 import sys
 import glob
-import io
-import zipfile
 
 try:
     from setuptools import setup
@@ -27,15 +25,6 @@ except ImportError:
         exit(1)
 
 
-def zipped_folder(topdir):
-    f = io.BytesIO()
-    zipf = zipfile.ZipFile(f, mode='w')
-    for dirpath, dirnames, filenames in os.walk(topdir):
-        for filename in filenames:
-            zipf.write(os.path.join(dirpath, filename))
-    zipf.close()
-    return f.getvalue()
-
 py2exe_options = {
     "bundle_files": 1,
     "compressed": 1,
@@ -47,7 +36,6 @@ py2exe_options = {
 py2exe_console = [{
     "script": "./youtube_dl/__main__.py",
     "dest_base": "youtube-dl",
-    "other_resources": [(u'LOCALE_DATA', u'locale_data.zip', zipped_folder('share'))],
 }]
 
 py2exe_params = {
