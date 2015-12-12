@@ -2527,29 +2527,43 @@ def _load_exe_resource(res_type, res_name):
     return res_arr
 
 
-def tr(s):
-    DOMAIN = 'youtube_dl'
-    lang, _ = locale.getdefaultlocale()
-    try:
-        t = gettext.translation(DOMAIN, find_file_in_root('share/locale/'), [lang])
-    except (OSError, IOError):  # OSError for 3.3+ and IOError otherwise
-        t = None
+class I18N(object):
+    def __init__(self):
+        self.default_lang = None
+        self.domain = 'youtube_dl'
 
-    if t is None and sys.platform == 'win32' and hasattr(sys, 'frozen'):
-        locale_data_zip = _load_exe_resource('LOCALE_DATA', 'LOCALE_DATA.ZIP')
-        f = io.BytesIO(locale_data_zip)
-        zipf = zipfile.ZipFile(f)
-        with zipf.open('share/locale/%s/LC_MESSAGES/%s.mo' % (lang, DOMAIN)) as mo_file:
-            t = gettext.GNUTranslations(mo_file)
-        zipf.close()
+    def translate(self, s):
+        if self.default_lang is not None:
+            lang = self.default_lang
+        else:
+            lang, _ = locale.getdefaultlocale()
 
-    if t is None:
-        return s
+        try:
+            t = gettext.translation(self.domain, find_file_in_root('share/locale/'), [lang])
+        except (OSError, IOError):  # OSError for 3.3+ and IOError otherwise
+            t = None
 
-    ret = t.gettext(s)
-    if isinstance(ret, bytes):
-        ret = ret.decode('utf-8')
-    return ret
+        if t is None and sys.platform == 'win32' and hasattr(sys, 'frozen'):
+            locale_data_zip = _load_exe_resource('LOCALE_DATA', 'LOCALE_DATA.ZIP')
+            f = io.BytesIO(locale_data_zip)
+            zipf = zipfile.ZipFile(f)
+            with zipf.open('share/locale/%s/LC_MESSAGES/%s.mo' % (lang, self.domain)) as mo_file:
+                t = gettext.GNUTranslations(mo_file)
+            zipf.close()
+
+        if t is None:
+            return s
+
+        ret = t.gettext(s)
+        if isinstance(ret, bytes):
+            ret = ret.decode('utf-8')
+        return ret
+
+    def set_default_language(self, default_lang):
+        self.default_lang = default_lang
+
+i18n_service = I18N()
+tr = i18n_service.translate
 
 
 def get_root_dirs():

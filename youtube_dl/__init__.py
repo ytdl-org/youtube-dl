@@ -27,6 +27,7 @@ from .utils import (
     decodeOption,
     DEFAULT_OUTTMPL,
     DownloadError,
+    i18n_service,
     match_filter_func,
     MaxDownloadsReached,
     preferredencoding,
@@ -55,6 +56,9 @@ def _real_main(argv=None):
     setproctitle('youtube-dl')
 
     parser, opts, args = parseOpts(argv)
+
+    if opts.default_language is not None:
+        i18n_service.set_default_language(opts.default_language)
 
     # Set user agent
     if opts.user_agent is not None:
