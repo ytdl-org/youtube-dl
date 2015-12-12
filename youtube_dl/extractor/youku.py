@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import base64
+import json
 
 from .common import InfoExtractor
 from ..compat import (
@@ -90,26 +91,12 @@ class YoukuIE(InfoExtractor):
         # get fileid
         string_ls = list(
             'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\:._-1234567890')
-        shuffled_string_ls = []
-        seed = data1.get('seed')
-        seed = 0
-        N = len(string_ls)
-        for ii in range(N):
-            seed = (seed * 0xd3 + 0x754f) % 0x10000
-            idx = seed * len(string_ls) // 0x10000
-            shuffled_string_ls.append(string_ls[idx])
-            del string_ls[idx]
 
         fileid_dict = {}
         for stream in data1['stream']:
             format = stream.get('stream_type')
-            #streamfileid = [
-            #    int(i) for i in data1['stream']['streamfileids']#[format].strip('*').split('*')]
-            #fileid = ''.join(
-            #    [shuffled_string_ls[i] for i in streamfileid])
             fileid = stream['stream_fileid']
             fileid_dict[format] = fileid
-            #fileid_dict[format] = fileid[:8] + '%s' + fileid[10:]
 
         def get_fileid(format, n):
             number = hex(int(str(n), 10))[2:].upper()
@@ -117,8 +104,6 @@ class YoukuIE(InfoExtractor):
                 number = '0' + number
             streamfileids = fileid_dict[format]
             fileid = streamfileids[0:8] + number + streamfileids[10:]
-            #fileid = fileid_dict[format] % hex(int(n))[2:].upper().zfill(2)
-            #fileid = fileid_dict[format]
             return fileid
 
         # get ep
@@ -171,7 +156,9 @@ class YoukuIE(InfoExtractor):
             'hd3': '3',
             '3gp': '0',
             '3gphd': '1',
-            'flvhd': '0'
+            'flvhd': '0',
+            'mp4hd': '1',
+            'mp4hd2': '1'
         }
         return hd_id_dict[fm]
 
@@ -180,7 +167,8 @@ class YoukuIE(InfoExtractor):
             'flv': 'flv',
             'mp4': 'mp4',
             'mp4hd': 'mp4',
-            'mp4hd2': 'mp4',
+            'mp4hd2': 'flv',
+            'mp4hd3': 'flv',
             'hd2': 'flv',
             'hd3': 'flv',
             '3gp': 'flv',
@@ -197,7 +185,10 @@ class YoukuIE(InfoExtractor):
             'flv': 'h4',
             'mp4': 'h3',
             'hd2': 'h2',
-            'hd3': 'h1'
+            'hd3': 'h1',
+            'mp4hd': 'h3',
+            'mp4hd3': 'h4',
+            'mp4hd2': 'h4'
         }
         return _dict[fm]
 
@@ -218,6 +209,7 @@ class YoukuIE(InfoExtractor):
                 req.add_header('Ytdl-request-proxy', cn_verification_proxy)
 
             raw_data = self._download_json(req, video_id, note=note)
+            js = json.dumps(raw_data)
 
             return raw_data['data']
 
@@ -225,7 +217,6 @@ class YoukuIE(InfoExtractor):
         video_password = self._downloader.params.get('videopassword', None)
 
         # request basic data
-        #basic_data_url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s' % video_id
         basic_data_url = "http://play.youku.com/play/get.json?vid=%s&ct=12" % video_id
         if video_password:
             basic_data_url += '?password=%s' % video_password
@@ -234,7 +225,6 @@ class YoukuIE(InfoExtractor):
             basic_data_url,
             'Downloading JSON metadata 1')
         data2 = retrieve_data(
-            #'http://v.youku.com/player/getPlayList/VideoIDS/%s/Pf/4/ctype/12/ev/1' % video_id,
             "http://play.youku.com/play/get.json?vid=%s&ct=12" % video_id,
             'Downloading JSON metadata 2')
 
@@ -250,8 +240,9 @@ class YoukuIE(InfoExtractor):
                     msg += ': ' + error
                 raise ExtractorError(msg)
 
-        #title = data1['title']
+        #get video title
         title = data1['video']['title']
+
 
         # generate video_urls_dict
         video_urls_dict = self.construct_video_urls(data1, data2)
