@@ -42,6 +42,7 @@ class YoukuIE(InfoExtractor):
             'title': '武媚娘传奇 85',
         },
         'playlist_count': 11,
+        'skip': 'Available in China only',
     }, {
         'url': 'http://v.youku.com/v_show/id_XMTI1OTczNDM5Mg==.html',
         'info_dict': {
@@ -49,7 +50,6 @@ class YoukuIE(InfoExtractor):
             'title': '花千骨 04',
         },
         'playlist_count': 13,
-        'skip': 'Available in China only',
     }, {
         'url': 'http://v.youku.com/v_show/id_XNjA1NzA2Njgw.html',
         'note': 'Video protected with password',
