@@ -143,30 +143,30 @@ class YoukuIE(InfoExtractor):
 
     def get_hd(self, fm):
         hd_id_dict = {
-            'flv': '0',
-            'mp4': '1',
-            'hd2': '2',
-            'hd3': '3',
             '3gp': '0',
             '3gphd': '1',
+            'flv': '0',
             'flvhd': '0',
+            'mp4': '1',
             'mp4hd': '1',
-            'mp4hd2': '1'
+            'mp4hd2': '1',
+            'hd2': '2',
+            'hd3': '3',
         }
         return hd_id_dict[fm]
 
     def parse_ext_l(self, fm):
         ext_dict = {
+            '3gp': 'flv',
+            '3gphd': 'mp4',
             'flv': 'flv',
+            'flvhd': 'flv',
             'mp4': 'mp4',
             'mp4hd': 'mp4',
             'mp4hd2': 'flv',
             'mp4hd3': 'flv',
             'hd2': 'flv',
             'hd3': 'flv',
-            '3gp': 'flv',
-            '3gphd': 'mp4',
-            'flvhd': 'flv'
         }
         return ext_dict[fm]
 
@@ -174,14 +174,14 @@ class YoukuIE(InfoExtractor):
         _dict = {
             '3gp': 'h6',
             '3gphd': 'h5',
-            'flvhd': 'h4',
             'flv': 'h4',
+            'flvhd': 'h4',
             'mp4': 'h3',
+            'mp4hd': 'h3',
+            'mp4hd2': 'h4',
+            'mp4hd3': 'h4',
             'hd2': 'h2',
             'hd3': 'h1',
-            'mp4hd': 'h3',
-            'mp4hd3': 'h4',
-            'mp4hd2': 'h4'
         }
         return _dict[fm]
 
