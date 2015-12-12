@@ -1,14 +1,14 @@
-# Chinese translations for PACKAGE package
-# PACKAGE 套件的傳統字漢語翻譯.
-# Copyright (C) 2015 THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-#  <yan12125@gmail.com>, 2015.
+# Chinese translations for youtube-dl package
+# youtube-dl 套件的傳統字漢語翻譯.
+# UNLICENSE 2008-2015
+# This file is distributed under the same license as the youtube-dl package.
+# Yen Chi Hsuan <yan12125@gmail.com>, 2015.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-11-30 00:03+0800\n"
+"POT-Creation-Date: 2015-12-13 00:33+0800\n"
 "PO-Revision-Date: 2015-12-13 01:04+0800\n"
 "Last-Translator: yan12125@gmail.com\n"
 "Language-Team: Chinese (traditional)\n"
@@ -18,60 +18,59 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.8.6\n"
 
-#: youtube_dl/YoutubeDL.py:1543 youtube_dl/YoutubeDL.py:1544
+#: youtube_dl/YoutubeDL.py:1549
 #, python-format
 msgid "[debug] Invoking downloader on %r"
 msgstr "[debug] 開始下載：%r"
 
-#: youtube_dl/YoutubeDL.py:1587 youtube_dl/YoutubeDL.py:1588
+#: youtube_dl/YoutubeDL.py:1593
 #, python-format
 msgid "[download] %s has already been downloaded and merged"
 msgstr "[下載] %s 已經下載並合併完成了"
 
-#: youtube_dl/YoutubeDL.py:1721 youtube_dl/YoutubeDL.py:1722
+#: youtube_dl/YoutubeDL.py:1727
 #, python-format
 msgid "Deleting original file %s (pass -k to keep)"
 msgstr "刪除原始檔案%s（傳入-k以保留）"
 
-#: youtube_dl/downloader/common.py:215 youtube_dl/downloader/common.py:216
+#: youtube_dl/downloader/common.py:215
 #, python-format
 msgid "[download] Destination: %s"
 msgstr "[下載] 目標檔案：%s"
 
-#: youtube_dl/downloader/common.py:218 youtube_dl/downloader/common.py:219
+#: youtube_dl/downloader/common.py:218
 msgid "[download] "
 msgstr "[下載] "
 
-#: youtube_dl/extractor/common.py:507 youtube_dl/extractor/common.py:508
+#: youtube_dl/extractor/common.py:507
 #, python-format
 msgid "%s: Downloading webpage"
 msgstr "%s: 下載網頁"
 
-#: youtube_dl/extractor/testurl.py:64 youtube_dl/extractor/testurl.py:65
+#: youtube_dl/extractor/testurl.py:65
 #, python-format
 msgid "Test URL: %s"
 msgstr "測試網址：%s"
 
-#: youtube_dl/extractor/youtube.py:742 youtube_dl/extractor/youtube.py:743
+#: youtube_dl/extractor/youtube.py:747
 #, python-format
 msgid "%s: Downloading video info webpage"
 msgstr "%s: 下載影片訊息頁"
 
-#: youtube_dl/extractor/youtube.py:746 youtube_dl/extractor/youtube.py:747
+#: youtube_dl/extractor/youtube.py:751
 #, python-format
 msgid "%s: Extracting video information"
 msgstr "%s: 取得影片資訊"
 
-#: youtube_dl/extractor/youtube.py:1023 youtube_dl/extractor/youtube.py:1024
+#: youtube_dl/extractor/youtube.py:1028
 msgid "Downloading DASH manifest"
 msgstr "下載DASH索引"
 
-#: youtube_dl/extractor/youtube.py:1024 youtube_dl/extractor/youtube.py:1025
+#: youtube_dl/extractor/youtube.py:1029
 msgid "Could not download DASH manifest"
 msgstr "無法下載DASH索引"
 
-#: youtube_dl/postprocessor/ffmpeg.py:405
-#: youtube_dl/postprocessor/ffmpeg.py:406
+#: youtube_dl/postprocessor/ffmpeg.py:407
 #, python-format
 msgid "[ffmpeg] Merging formats into \"%s\""
 msgstr "[ffmpeg] 合併所有格式為：\"%s\""
