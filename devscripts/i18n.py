@@ -1,6 +1,7 @@
 import errno
 import glob
 import os
+import shutil
 import subprocess
 import sys
 
@@ -38,6 +39,9 @@ class I18N_Utils(object):
         print(' '.join(cmds))
         subprocess.check_call(cmds)
 
+    def merge_messages(self, old_file, new_file):
+        self._run_subprocess(['msgmerge', '-N', old_file, '-o', new_file, self.get_pot_filename()])
+
     def update_gmo_internal(self, lang, po_file):
         locale_dir = 'share/locale/%s/LC_MESSAGES' % lang
         mkdir_p(locale_dir)
@@ -49,8 +53,7 @@ class I18N_Utils(object):
     def update_po_internal(self, lang, po_file):
         old_po_file = po_file + '.old'
         rename_file(po_file, old_po_file)
-        self._run_subprocess([
-            'msgmerge', '-N', old_po_file, '-o', po_file, self.get_pot_filename()])
+        self.merge_messages(old_po_file, po_file)
 
     def for_all_po(self, callback):
         for f in os.listdir(self.get_po_root()):
@@ -67,11 +70,15 @@ class I18N_Utils(object):
         self.for_all_po(self.update_po_internal)
 
     def update_pot(self):
+        pot_file = self.get_pot_filename()
+        old_pot_file = self.get_pot_filename() + '.old'
+        shutil.copy2(pot_file, old_pot_file)
         cmds = [
             'xgettext', '-d', self.GETTEXT_DOMAIN, '-j', '-k', '-kg', '--from-code=utf-8', '-F', '-o',
-            self.get_pot_filename()]
+            pot_file]
         cmds.extend(glob.glob('youtube_dl/*.py') + glob.glob('youtube_dl/*/*.py'))
         self._run_subprocess(cmds)
+        self.merge_messages(old_pot_file, pot_file)
 
 
 def main(argv):
