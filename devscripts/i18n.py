@@ -67,7 +67,6 @@ class I18N_Utils(object):
         self.for_all_po(self.update_po_internal)
 
     def update_pot(self):
-        self._run_subprocess
         cmds = [
             'xgettext', '-d', self.GETTEXT_DOMAIN, '-j', '-k', '-kg', '--from-code=utf-8', '-F', '-o',
             self.get_pot_filename()]
