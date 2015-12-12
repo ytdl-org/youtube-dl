@@ -69,7 +69,7 @@ class I18N_Utils(object):
     def update_pot(self):
         self._run_subprocess
         cmds = [
-            'xgettext', '-d', self.GETTEXT_DOMAIN, '-j', '-k', '-kg', '--from-code=utf-8', '-o',
+            'xgettext', '-d', self.GETTEXT_DOMAIN, '-j', '-k', '-kg', '--from-code=utf-8', '-F', '-o',
             self.get_pot_filename()]
         cmds.extend(glob.glob('youtube_dl/*.py') + glob.glob('youtube_dl/*/*.py'))
         self._run_subprocess(cmds)
