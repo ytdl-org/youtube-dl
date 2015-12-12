@@ -47,7 +47,7 @@ py2exe_options = {
 py2exe_console = [{
     "script": "./youtube_dl/__main__.py",
     "dest_base": "youtube-dl",
-    "other_resources": [(u'LOCALE_DATA', u'locale_data.zip', zipped_folder('share'))],
+    "other_resources": [(u'LOCALE_DATA', u'LOCALE_DATA.ZIP', zipped_folder('share'))],
 }]
 
 py2exe_params = {
