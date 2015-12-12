@@ -25,8 +25,8 @@ class YoukuIE(InfoExtractor):
     '''
 
     _TESTS = [{
+        # MD5 is unstable
         'url': 'http://v.youku.com/v_show/id_XMTc1ODE5Njcy.html',
-        'md5': '5f3af4192eabacc4501508d54a8cabd7',
         'info_dict': {
             'id': 'XMTc1ODE5Njcy_part1',
             'title': '★Smile﹗♡ Git Fresh -Booty Music舞蹈.',
