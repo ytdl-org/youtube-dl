@@ -24,7 +24,6 @@ except ImportError:
         print("Cannot import py2exe", file=sys.stderr)
         exit(1)
 
-
 py2exe_options = {
     "bundle_files": 1,
     "compressed": 1,
