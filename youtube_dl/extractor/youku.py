@@ -64,7 +64,7 @@ class YoukuIE(InfoExtractor):
         },
     }]
 
-    def construct_video_urls(self, data1, data2):
+    def construct_video_urls(self, data):
         # get sid, token
         def yk_t(s1, s2):
             ls = list(range(256))
@@ -82,18 +82,18 @@ class YoukuIE(InfoExtractor):
             return bytes(s)
 
         sid, token = yk_t(
-            b'becaf9be', base64.b64decode(data2['security']['encrypt_string'].encode('ascii'))
+            b'becaf9be', base64.b64decode(data['security']['encrypt_string'].encode('ascii'))
         ).decode('ascii').split('_')
 
         # get oip
-        oip = data1['security']['ip']
+        oip = data['security']['ip']
 
         # get fileid
         string_ls = list(
             'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\:._-1234567890')
 
         fileid_dict = {}
-        for stream in data1['stream']:
+        for stream in data['stream']:
             format = stream.get('stream_type')
             fileid = stream['stream_fileid']
             fileid_dict[format] = fileid
@@ -118,7 +118,7 @@ class YoukuIE(InfoExtractor):
 
         # generate video_urls
         video_urls_dict = {}
-        for stream in data1['stream']:
+        for stream in data['stream']:
             format = stream.get('stream_type')
             video_urls = []
             for dt in stream['segs']:
@@ -221,14 +221,11 @@ class YoukuIE(InfoExtractor):
         if video_password:
             basic_data_url += '&pwd=%s' % video_password
 
-        data1 = retrieve_data(
+        data = retrieve_data(
             basic_data_url,
             'Downloading JSON metadata 1')
-        data2 = retrieve_data(
-            basic_data_url,
-            'Downloading JSON metadata 2')
 
-        error = data1.get('error')
+        error = data.get('error')
         if error:
             error_note = error.get('note')
             if error_note is not None and '因版权原因无法观看此视频' in error_note:
@@ -241,11 +238,11 @@ class YoukuIE(InfoExtractor):
                 raise ExtractorError(msg)
 
         #get video title
-        title = data1['video']['title']
+        title = data['video']['title']
 
 
         # generate video_urls_dict
-        video_urls_dict = self.construct_video_urls(data1, data2)
+        video_urls_dict = self.construct_video_urls(data)
 
         # construct info
         entries = [{
@@ -254,8 +251,8 @@ class YoukuIE(InfoExtractor):
             'formats': [],
             # some formats are not available for all parts, we have to detect
             # which one has all
-        } for i in range(max(len(v.get('segs')) for v in data1['stream']))]
-        for stream in data1['stream']:
+        } for i in range(max(len(v.get('segs')) for v in data['stream']))]
+        for stream in data['stream']:
             fm = stream.get('stream_type')
             video_urls = video_urls_dict[fm]
             for video_url, seg, entry in zip(video_urls, stream['segs'], entries):
