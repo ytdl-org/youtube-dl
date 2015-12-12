@@ -6,16 +6,17 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-11-30 00:03+0800\n"
-"PO-Revision-Date: 2015-11-29 21:27+0800\n"
-"Last-Translator:  <yan12125@gmail.com>\n"
+"PO-Revision-Date: 2015-12-13 01:04+0800\n"
+"Last-Translator: yan12125@gmail.com\n"
 "Language-Team: Chinese (traditional)\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.6\n"
 
 #: youtube_dl/YoutubeDL.py:1543 youtube_dl/YoutubeDL.py:1544
 #, python-format
@@ -54,12 +55,12 @@ msgstr "測試網址：%s"
 #: youtube_dl/extractor/youtube.py:742 youtube_dl/extractor/youtube.py:743
 #, python-format
 msgid "%s: Downloading video info webpage"
-msgstr "%s：下載影片訊息頁"
+msgstr "%s: 下載影片訊息頁"
 
 #: youtube_dl/extractor/youtube.py:746 youtube_dl/extractor/youtube.py:747
 #, python-format
 msgid "%s: Extracting video information"
-msgstr "%s：取得影片資訊"
+msgstr "%s: 取得影片資訊"
 
 #: youtube_dl/extractor/youtube.py:1023 youtube_dl/extractor/youtube.py:1024
 msgid "Downloading DASH manifest"
