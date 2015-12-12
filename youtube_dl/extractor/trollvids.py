@@ -11,7 +11,7 @@ import re
 
 
 class TrollvidsIE(NuevoBaseIE):
-    _VALID_URL = r"http://(?:www\.)?trollvids\.com/+video/+(?P<id>[0-9]+)/+(?P<title>[^?&]+)"
+    _VALID_URL = r'http://(?:www\.)?trollvids\.com/+video/+(?P<id>[0-9]+)/+(?P<title>[^?&]+)'
     IE_NAME = 'trollvids'
 
     def _real_extract(self, url):
@@ -19,17 +19,20 @@ class TrollvidsIE(NuevoBaseIE):
 
         video_id = match.group('id')
         raw_video_title = match.group('title')
-        video_title = compat_urllib_parse_unquote(raw_video_title)
-        url = "http://trollvids.com/video/%s/%s" % (video_id, raw_video_title)
-        config_url = "http://trollvids.com/nuevo/player/config.php?v=%s" % video_id
+        url = 'http://trollvids.com/video/%s/%s' % (video_id, raw_video_title)
+        config_url = 'http://trollvids.com/nuevo/player/config.php?v=%s' % video_id
 
-        info = {
-            "title": video_title,
-            "webpage_url": url,
-            "age_limit": 18
-        }
+        info = self._extract_nuevo(config_url, video_id)
 
-        return self._extract_nuevo(config_url, video_id, info)
+        info.update({
+            'webpage_url': url,
+            'age_limit': 18
+        })
+
+        if 'title' not in info:
+            info['title'] = compat_urllib_parse_unquote(raw_video_title)
+
+        return info
 
     _TESTS = [
         {

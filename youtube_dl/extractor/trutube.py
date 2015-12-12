@@ -21,7 +21,11 @@ class TruTubeIE(NuevoBaseIE):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        config_url = "https://trutube.tv/nuevo/player/config.php?v=%s" % video_id
+        config_url = 'https://trutube.tv/nuevo/player/config.php?v=%s' % video_id
 
-        # filehd is always 404
-        return self._extract_nuevo(config_url, video_id, ignore_hd=True)
+        info = self._extract_nuevo(config_url, video_id)
+
+        # filehd always 404s
+        info['formats'] = info['formats'][:1]
+
+        return info
