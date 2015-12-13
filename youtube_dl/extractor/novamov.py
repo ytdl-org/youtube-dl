@@ -59,7 +59,7 @@ class NovaMovIE(InfoExtractor):
                 self._FILEKEY_REGEX, webpage, 'filekey', default=default)
             if filekey is not default and (filekey[0] != '"' or filekey[-1] != '"'):
                 return self._search_regex(
-                    r'var\s*%s\s*=\s*"([^"]+)"', webpage, 'filekey', default=default)
+                    r'var\s*%s\s*=\s*"([^"]+)"' % re.escape(filekey), webpage, 'filekey', default=default)
             else:
                 return filekey
 
@@ -141,15 +141,14 @@ class NowVideoIE(NovaMovIE):
     _DESCRIPTION_REGEX = r'</h4>\s*<p>([^<]+)</p>'
 
     _TEST = {
-        'url': 'http://www.nowvideo.to/video/0mw0yow7b6dxa',
-        'md5': 'f8fbbc8add72bd95b7850c6a02fc8817',
+        'url': 'http://www.nowvideo.sx/video/f1d6fce9a968b',
+        'md5': '12c82cad4f2084881d8bc60ee29df092',
         'info_dict': {
-            'id': '0mw0yow7b6dxa',
+            'id': 'f1d6fce9a968b',
             'ext': 'flv',
-            'title': 'youtubedl test video _BaW_jenozKc.mp4',
+            'title': 'youtubedl test video BaWjenozKc',
             'description': 'Description',
         },
-        'skip': 'Video 0mw0yow7b6dxa does not exist',
     }
 
 
