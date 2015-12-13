@@ -188,6 +188,7 @@
  - **Freesound**
  - **freespeech.org**
  - **FreeVideo**
+ - **Funimation**
  - **FunnyOrDie**
  - **GameInformer**
  - **Gamekings**
