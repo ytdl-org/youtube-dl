@@ -2,17 +2,14 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import unescapeHTML
-from hashlib import sha1
 import re
-from zlib import decompress
 
 
 class tvpleIE(InfoExtractor):
     _VALID_URL = r'https?://(?P<url>(?:www\.)?tvple\.com/(?P<id>[0-9]+))'
     _TEST = {
         'url': 'http://tvple.com/311090',
-        'md5': '02e384fd3c3c6884e1bb997f6afd51e2',
+        'md5': '46329fca94a29b5517a30d7e88f48dbf',
         'info_dict': {
             'id': '311090',
             'ext': 'mp4',
@@ -28,82 +25,107 @@ class tvpleIE(InfoExtractor):
         }
     }
 
-    def _decode_tvple(self, key):
-        """based on decompiled tvple player v2.50401"""
-        # 1st key checker
-        if((key[:4] != "feff") | (key[20:21] != "_")):
-            self.report_warning("error:wrong key")
+    def _convert_srt_subtitle(self, json, duration):
+        sec = []
+        sub = ""
+        timecode = []
+        text = []
+        for i in json:
+            sec.append(int(i))
 
-        # descramble key
-        deckey = list(key[69:85])
-        code = key[125:][::-1]
+        sec.sort()
+        for second in sec:
+            msec = []
+            for i in json[unicode(second)]:
+                msec.append(int(i))
+            msec.sort()
+            for millisecond in msec:
+                timecode.append("%02d:%02d:%02d,%03d" % (second // 60 // 60, second // 60 % 60, second % 60, millisecond))
+                text.append(json[unicode(second)][unicode(millisecond)].replace('<BR>', '\n').replace('&nbsp;', ''))
 
-        # descrambling
-        hexed = code.replace(deckey[5], "g").replace(deckey[4], "h").replace(deckey[3], "i").replace(deckey[2], "j").replace(deckey[1], "k").replace(deckey[6], deckey[5]).replace(deckey[7], deckey[4]).replace(deckey[8], deckey[3]).replace(deckey[9], deckey[2]).replace(deckey[10], deckey[1]).replace("g", deckey[6]).replace("h", deckey[7]).replace("i", deckey[8]).replace("j", deckey[9]).replace("k", deckey[10])
-        decoded = hexed.decode("hex")
+        timecode.append("%02d:%02d:%02d,%03d" % (duration // 60 // 60, duration // 60 % 60, duration % 60, int(("%0.3f" % duration)[-3:])))
 
-        # 2nd key checker
-        if(sha1(decoded).hexdigest() != key[85:125]):
-            self.report_warning("error:key checksum failed")
-        return decoded
+        for i in range(1, len(timecode)):
+            sub += str(i) + '\n' + timecode[i - 1] + ' --> ' + timecode[i] + '\n' + text[i - 1] + '\n\n'
+        return sub
 
-    def _convert_sub(self, misc, title, width, height):
-        clouds = unescapeHTML(self._decode_tvple(misc).decode('utf-8'))
-        lines = re.findall(r'<item .*?</item>', clouds)
+    def _convert_ass_cloud(self, json, videoid, title, width, height):
+        sec = []
 
-        asstemp1 = "[Script Info]\nTitle: %s\nScriptType: v4.00+\nWrapStyle: 0\nPlayResX: %d\nPlayResY: %d\nScaledBorderAndShadow: yes\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,14,&H23FFFFFF,&H000000FF,&HC8000000,&HC8000000,-1,0,0,0,100,100,0,0,1,2,2,5,10,10,10,1\n\n" % (title, width, height)
+        asstemp1 = "[Script Info]\nTitle: %s\nScriptType: v4.00+\nWrapStyle: 0\nPlayResX: %d\nPlayResY: %d\nScaledBorderAndShadow: yes\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,14,&H23FFFFFF,&H000000FF,&HC8000000,&HC8000000,-1,0,0,0,100,100,0,0,1,2,2,5,10,10,10,1\n\n" % (title + '-' + videoid, width, height)
+
+        for i in json:
+            if(i != '_warning'):
+                sec.append(int(i))
+
+        sec.sort()
 
         asstemp2 = "[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
-        for line in lines:
-            reg = re.search(r'id="(.*)" x="(.*)" y="(.*)" pos="(.*)">(.*)<', line)
-            sec = int(reg.group(4))
-            starttime = "%02d:%02d:%02d.00" % (divmod(divmod(sec, 60)[0], 60)[0], divmod(divmod(sec, 60)[0], 60)[1], divmod(sec, 60)[1])
-            endtime = "%02d:%02d:%02d.00" % (divmod(divmod(sec + 2, 60)[0], 60)[0], divmod(divmod(sec + 2, 60)[0], 60)[1], divmod(sec + 2, 60)[1])
-            asstemp2 += "Dialogue: 0,%s,%s,Default,,0,0,0,,{\\an4\pos(%d,%d)\\fad(0,50)}%s\n" % (starttime, endtime, int(reg.group(2)), int(reg.group(3)), reg.group(5))
 
-        return(asstemp1 + asstemp2)
+        for second in sec:
+            for subs in json[str(second)]:
+                timecodea = "%02d:%02d:%02d.00" % (second // 60 // 60, second // 60 % 60, second % 60)
+                timecodeb = "%02d:%02d:%02d.00" % ((second + 2) // 60 // 60, (second + 2) // 60 % 60, (second + 2) % 60)
+                asstemp2 += "Dialogue: 0,%s,%s,Default,,0,0,0,,{\\an4\pos(%d,%d)\\fad(0,50)}%s\n" % (timecodea, timecodeb, subs['x'] * width, subs['y'] * height, subs['text'])
 
-    def _get_subtitles(self, title, video_id, url, width, height):
-        return {'clouds': [{'ext': 'ass', 'data': self._convert_sub(decompress(self._request_webpage(url, "clouds_xml").read()), "%s-%s" % (title, video_id), int(width), int(height))}]}
+        return (asstemp1 + asstemp2)
+
+    def _get_subtitles(self, json, title, videoid, duration, width, height):
+        subs = {}
+        subs['tvple'] = []
+        if json['cloud']['read_url'][0] != '':
+            subs['tvple'].append({
+                'ext': 'ass',
+                'data': self._convert_ass_cloud(self._download_json(json['cloud']['read_url'][0], 'cloud_%d' % int(videoid)), videoid, title, width, height)
+            })
+
+        if json['subtitle'] != '':
+            subs['tvple'].append({
+                'ext': 'srt',
+                'data': self._convert_srt_subtitle(self._download_json(json['subtitle'], 'subtitle_%d' % int(videoid)), duration)
+            })
+
+        return subs
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        playurl = self._html_search_regex(r'http://api.tvple.com/crossdomain.xml\n(.*)\n1', self._decode_tvple(re.search(r'data-key="(.*)"', webpage).group(1)), "playurl")
-        playpage = self._download_webpage(playurl, "playurl_%d" % int(video_id))
-        urls = re.findall(r'<url>(.*)</url>', self._decode_tvple(playpage))
+        playpage = self._download_json(re.search(r'data-meta="(.*)"', webpage).group(1), "playurl_%d" % int(video_id))
 
         title = re.search("<h2.*title=\"(.*)\"", webpage).group(1)  # title
         uploader = re.search(r'personacon-sm".*/>\s*(.*)\s*</a>', webpage).group(1)  # username
         uploader_id = re.search(r'"/ch/(.*)/videos"', webpage).group(1)  # userid
-        description = re.search(r'break-word">\s*(.*)\s*<button', webpage, re.DOTALL).group(1).replace(" <br />", "").replace("<br />", "").replace("\n            ", "")  # description
-        resolution = re.search(r'fa-television"></i></span>\s*([0-9]*)x([0-9]*)\s*</li>', webpage)  # resolution
+        description = re.search(r'collapse-content linkify mg-top-base break-word">\s*(.*)\s*<button type="button" class="collapse-button', webpage, re.DOTALL).group(1).replace(" <br />", "").replace("<br />", "").replace("\n            ", "")  # description
         # point = re.search(r'fa-bar-chart"></i></span>\s*(.*)p\s*</li>', webpage).group(1).replace(",", "")  # point?
         view_count = int(re.search(r'fa-play"></i></span>\s*(.*)\s*</li>', webpage).group(1).replace(",", ""))  # played
-        duration = int(re.search(r'fa-video-camera"></i></span>\s*(\d*):(\d*)\s*</li>', webpage).group(1)) * 60 + int(re.search(r'fa-video-camera"></i></span>\s*(\d*):(\d*)\s*</li>', webpage).group(2))  # duration
+        duration = playpage['stream']['duration']  # duration
         # date = re.search(r'<small>\s*(\d{4}-\d{2}-\d{2}) (\d{1,2}:\d{1,2}:\d{1,2}).*\s*</small>', webpage).group(1).replace("-", "")  # date FIXME-sometimes not working
         # time = re.search(r'<small>\s*(\d{4}-\d{2}-\d{2}) (\d{1,2}:\d{1,2}:\d{1,2}).*\s*</small>', webpage).group(2)  # time FIXME-sometimes not working
         categories = re.search(r'badge-info">(.*)</span>', webpage).group(1)  # categories
         tags = re.findall(r'"/tag/(.*)" class="tag user-added">', webpage)  # tags
-        formats = [{
-            'url': urls[0],
-            'ext': 'mp4',
-            'format_id': 'mp4_h264_aac',
-            'width': int(resolution.group(1)),
-            'height': int(resolution.group(2)),
-            'no_resume': True
-        }]
-	subtitles = self.extract_subtitles(title, video_id, urls[1], resolution.group(1), resolution.group(2))
+        formats = []
+        for formatid in playpage['stream']['sources']:
+            formats.append({
+                'url': playpage['stream']['sources'][formatid]['urls']['mp4_avc'],
+                'ext': 'mp4',  # TODO-if file isn't a mp4?
+                'format_id': formatid,
+                'width': playpage['stream']['width'],
+                'height': playpage['stream']['height'],
+                'no_resume': True
+            })
+
+        subtitles = self.extract_subtitles(playpage, title, video_id, duration, playpage['stream']['width'], playpage['stream']['height'])
 
         return {
             'id': video_id,
             'title': title,
             'description': description,
-            'duration': duration,
+            'duration': int(duration),
             'uploader': uploader,
             'uploader_id': uploader_id,
             'view_count': view_count,
             # 'comment_count': comment_count,
+            'thumbnail': playpage['poster'],
             'formats': formats,
             'subtitles': subtitles,
             'categories': categories,
