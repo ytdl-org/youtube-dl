@@ -59,7 +59,7 @@ class NovaMovIE(InfoExtractor):
                 self._FILEKEY_REGEX, webpage, 'filekey', default=default)
             if filekey is not default and (filekey[0] != '"' or filekey[-1] != '"'):
                 return self._search_regex(
-                    r'var\s*%s\s*=\s*"([^"]+)"' % re.escape(filekey), webpage, 'filekey', default=default)
+                    r'var\s+%s\s*=\s*"([^"]+)"' % re.escape(filekey), webpage, 'filekey', default=default)
             else:
                 return filekey
 
