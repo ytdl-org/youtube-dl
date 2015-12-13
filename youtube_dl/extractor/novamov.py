@@ -17,7 +17,7 @@ class NovaMovIE(InfoExtractor):
     IE_NAME = 'novamov'
     IE_DESC = 'NovaMov'
 
-    _VALID_URL_TEMPLATE = r'http://(?:(?:www\.)?%(host)s/(?:file|video)/|(?:(?:embed|www)\.)%(host)s/embed\.php\?(?:.*?&)?v=)(?P<id>[a-z\d]{13})'
+    _VALID_URL_TEMPLATE = r'http://(?:(?:www\.)?%(host)s/(?:file|video|mobile/#/videos)/|(?:(?:embed|www)\.)%(host)s/embed\.php\?(?:.*?&)?v=)(?P<id>[a-z\d]{13})'
     _VALID_URL = _VALID_URL_TEMPLATE % {'host': 'novamov\.com'}
 
     _HOST = 'www.novamov.com'
