@@ -40,6 +40,10 @@ class NovaMovIE(InfoExtractor):
         'skip': '"Invalid token" errors abound (in web interface as well as youtube-dl, there is nothing we can do about it.)'
     }
 
+    def _check_existence(self, webpage, video_id):
+        if re.search(self._FILE_DELETED_REGEX, webpage) is not None:
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -48,8 +52,7 @@ class NovaMovIE(InfoExtractor):
         webpage = self._download_webpage(
             url, video_id, 'Downloading video page')
 
-        if re.search(self._FILE_DELETED_REGEX, webpage) is not None:
-            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+        self._check_existence(webpage, video_id)
 
         def extract_filekey(default=NO_DEFAULT):
             filekey = self._search_regex(
@@ -75,6 +78,7 @@ class NovaMovIE(InfoExtractor):
             request.add_header('Referer', post_url)
             webpage = self._download_webpage(
                 request, video_id, 'Downloading continue to the video page')
+            self._check_existence(webpage, video_id)
 
         filekey = extract_filekey()
 
