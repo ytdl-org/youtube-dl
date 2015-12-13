@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     clean_html,
@@ -17,6 +15,8 @@ from ..utils import (
 
 class FunimationIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?funimation\.com/shows/[^/]+/videos/(?:official|promotional)/(?P<id>[^/?#&]+)'
+
+    _NETRC_MACHINE = 'funimation'
 
     _TESTS = [{
         'url': 'http://www.funimation.com/shows/air/videos/official/breeze',
@@ -62,10 +62,16 @@ class FunimationIE(InfoExtractor):
             'User-Agent': 'Mozilla/5.0 (Windows NT 5.2; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0',
             'Content-Type': 'application/x-www-form-urlencoded'
         })
-        login = self._download_webpage(
+        login_page = self._download_webpage(
             login_request, None, 'Logging in as %s' % username)
-        if re.search(r'<meta property="og:url" content="http://www.funimation.com/login"/>', login) is not None:
-            raise ExtractorError('Unable to login, wrong username or password.', expected=True)
+        if any(p in login_page for p in ('funimation.com/logout', '>Log Out<')):
+            return
+        error = self._html_search_regex(
+            r'(?s)<div[^>]+id=["\']errorMessages["\'][^>]*>(.+?)</div>',
+            login_page, 'error messages', default=None)
+        if error:
+            raise ExtractorError('Unable to login: %s' % error, expected=True)
+        raise ExtractorError('Unable to log in')
 
     def _real_initialize(self):
         self._login()
