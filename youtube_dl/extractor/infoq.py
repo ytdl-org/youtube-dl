@@ -3,10 +3,7 @@ from __future__ import unicode_literals
 import base64
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_unquote,
-    compat_urlparse,
-)
+from ..compat import compat_urllib_parse_unquote
 
 
 class InfoQIE(InfoExtractor):
@@ -45,9 +42,11 @@ class InfoQIE(InfoExtractor):
         video_filename = playpath.split('/')[-1]
         video_id, extension = video_filename.split('.')
 
-        http_base = self._search_regex(
-            r'EXPRESSINSTALL_SWF\s*=\s*[^"]*"((?:https?:)?//[^/"]+/)', webpage,
-            'HTTP base URL')
+        http_video_url = self._search_regex(r'P\.s\s*=\s*\'([^\']+)\'', webpage, 'video URL')
+
+        policy = self._search_regex(r'InfoQConstants.scp\s*=\s*\'([^\']+)\'', webpage, 'policy')
+        signature = self._search_regex(r'InfoQConstants.scs\s*=\s*\'([^\']+)\'', webpage, 'signature')
+        key_pair_id = self._search_regex(r'InfoQConstants.sck\s*=\s*\'([^\']+)\'', webpage, 'key-pair-id')
 
         formats = [{
             'format_id': 'rtmp',
@@ -56,7 +55,11 @@ class InfoQIE(InfoExtractor):
             'play_path': playpath,
         }, {
             'format_id': 'http',
-            'url': compat_urlparse.urljoin(url, http_base) + real_id,
+            'url': http_video_url,
+            'http_headers': {
+                'Cookie': 'CloudFront-Policy=%s; CloudFront-Signature=%s; CloudFront-Key-Pair-Id=%s' % (
+                    policy, signature, key_pair_id),
+            },
         }]
         self._sort_formats(formats)
 
