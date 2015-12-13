@@ -148,7 +148,8 @@ class NowVideoIE(NovaMovIE):
             'ext': 'flv',
             'title': 'youtubedl test video _BaW_jenozKc.mp4',
             'description': 'Description',
-        }
+        },
+        'skip': 'Video 0mw0yow7b6dxa does not exist',
     }
 
 
