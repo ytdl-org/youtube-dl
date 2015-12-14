@@ -15,33 +15,17 @@ from .version import __version__
 
 
 def rsa_verify(message, signature, key):
-    from struct import pack
     from hashlib import sha256
-
     assert isinstance(message, bytes)
-    block_size = 0
-    n = key[0]
-    while n:
-        block_size += 1
-        n >>= 8
-    signature = pow(int(signature, 16), key[1], key[0])
-    raw_bytes = []
-    while signature:
-        raw_bytes.insert(0, pack("B", signature & 0xFF))
-        signature >>= 8
-    signature = (block_size - len(raw_bytes)) * b'\x00' + b''.join(raw_bytes)
-    if signature[0:2] != b'\x00\x01':
+    byte_size = (len(bin(key[0])) - 2 + 8 - 1) // 8
+    signature = ('%x' % pow(int(signature, 16), key[1], key[0])).encode()
+    signature = (byte_size * 2 - len(signature)) * b'0' + signature
+    asn1 = b'3031300d060960864801650304020105000420'
+    asn1 += sha256(message).hexdigest().encode()
+    if byte_size < len(asn1) // 2 + 11:
         return False
-    signature = signature[2:]
-    if b'\x00' not in signature:
-        return False
-    signature = signature[signature.index(b'\x00') + 1:]
-    if not signature.startswith(b'\x30\x31\x30\x0D\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20'):
-        return False
-    signature = signature[19:]
-    if signature != sha256(message).digest():
-        return False
-    return True
+    expected = b'0001' + (byte_size - len(asn1) // 2 - 3) * b'ff' + b'00' + asn1
+    return expected == signature
 
 
 def update_self(to_screen, verbose, opener):
