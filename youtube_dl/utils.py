@@ -1406,6 +1406,15 @@ def remove_end(s, end):
     return s
 
 
+def remove_quotes(s):
+    if s is None or len(s) < 2:
+        return s
+    for quote in ('"', "'", ):
+        if s[0] == quote and s[-1] == quote:
+            return s[1:-1]
+    return s
+
+
 def url_basename(url):
     path = compat_urlparse.urlparse(url).path
     return path.strip('/').split('/')[-1]

@@ -43,6 +43,7 @@ from youtube_dl.utils import (
     sanitize_path,
     prepend_extension,
     replace_extension,
+    remove_quotes,
     shell_quote,
     smuggle_url,
     str_to_int,
@@ -199,6 +200,15 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(replace_extension('abc', 'temp'), 'abc.temp')
         self.assertEqual(replace_extension('.abc', 'temp'), '.abc.temp')
         self.assertEqual(replace_extension('.abc.ext', 'temp'), '.abc.temp')
+
+    def test_remove_quotes(self):
+        self.assertEqual(remove_quotes(None), None)
+        self.assertEqual(remove_quotes('"'), '"')
+        self.assertEqual(remove_quotes("'"), "'")
+        self.assertEqual(remove_quotes(';'), ';')
+        self.assertEqual(remove_quotes('";'), '";')
+        self.assertEqual(remove_quotes('""'), '')
+        self.assertEqual(remove_quotes('";"'), ';')
 
     def test_ordered_set(self):
         self.assertEqual(orderedSet([1, 1, 2, 3, 4, 4, 5, 6, 7, 3, 5]), [1, 2, 3, 4, 5, 6, 7])
