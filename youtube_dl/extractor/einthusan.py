@@ -41,9 +41,12 @@ class EinthusanIE(InfoExtractor):
         video_title = self._html_search_regex(
             r'<h1><a class="movie-title".*?>(.*?)</a></h1>', webpage, 'title')
 
-        video_url = self._html_search_regex(
-            r'''(?s)jwplayer\("mediaplayer"\)\.setup\({.*?'file': '([^']+)'.*?}\);''',
-            webpage, 'video url')
+        movieid = self._html_search_regex(
+            r'data-movieid="(.*?)"', webpage, 'movieid')
+
+        location = 'Washington'
+        geturl = 'http://cdn.einthusan.com/geturl/%s/hd/%s' % (movieid, location)
+        video_url = self._download_webpage(geturl, video_id)
 
         description = self._html_search_meta('description', webpage)
         thumbnail = self._html_search_regex(
