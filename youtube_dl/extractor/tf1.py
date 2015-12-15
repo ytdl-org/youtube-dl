@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 class TF1IE(InfoExtractor):
     """TF1 uses the wat.tv player."""
-    _VALID_URL = r'http://(?:(?:videos|www|lci)\.tf1|www\.tfou)\.fr/.*?-(?P<id>\d+)(?:-\d+)?\.html'
+    _VALID_URL = r'http://(?:(?:videos|www|lci)\.tf1|www\.tfou)\.fr/(?:[^/]+/)*(?P<id>.+?)\.html'
     _TESTS = [{
         'url': 'http://videos.tf1.fr/auto-moto/citroen-grand-c4-picasso-2013-presentation-officielle-8062060.html',
         'info_dict': {
@@ -37,6 +37,9 @@ class TF1IE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://lci.tf1.fr/sept-a-huit/videos/sept-a-huit-du-24-mai-2015-8611550.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tf1.fr/hd1/documentaire/videos/mylene-farmer-d-une-icone.html',
         'only_matching': True,
     }]
 
