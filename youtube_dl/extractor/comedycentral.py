@@ -151,12 +151,7 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
         mobj = re.match(self._VALID_URL, url)
 
         if mobj.group('shortname'):
-            if mobj.group('shortname') in ('tds', 'thedailyshow'):
-                url = 'http://thedailyshow.cc.com/full-episodes/'
-            else:
-                url = 'http://thecolbertreport.cc.com/full-episodes/'
-            mobj = re.match(self._VALID_URL, url, re.VERBOSE)
-            assert mobj is not None
+            return self.url_result('http://www.cc.com/shows/the-daily-show-with-trevor-noah/full-episodes')
 
         if mobj.group('clip'):
             if mobj.group('videotitle'):
@@ -201,7 +196,7 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
 
         uri = mMovieParams[0][1]
         # Correct cc.com in uri
-        uri = re.sub(r'(episode:[^.]+)(\.cc)?\.com', r'\1.cc.com', uri)
+        uri = re.sub(r'(episode:[^.]+)(\.cc)?\.com', r'\1.com', uri)
 
         index_url = 'http://%s.cc.com/feeds/mrss?%s' % (show_name, compat_urllib_parse.urlencode({'uri': uri}))
         idoc = self._download_xml(

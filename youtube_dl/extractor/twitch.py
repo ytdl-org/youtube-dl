@@ -7,13 +7,19 @@ import random
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_parse_qs,
     compat_str,
     compat_urllib_parse,
-    compat_urllib_request,
+    compat_urllib_parse_urlparse,
+    compat_urlparse,
 )
 from ..utils import (
+    encode_dict,
     ExtractorError,
+    int_or_none,
+    parse_duration,
     parse_iso8601,
+    sanitized_Request,
 )
 
 
@@ -22,7 +28,7 @@ class TwitchBaseIE(InfoExtractor):
 
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'http://usher.twitch.tv'
-    _LOGIN_URL = 'https://secure.twitch.tv/user/login'
+    _LOGIN_URL = 'http://www.twitch.tv/login'
     _NETRC_MACHINE = 'twitch'
 
     def _handle_error(self, response):
@@ -42,7 +48,7 @@ class TwitchBaseIE(InfoExtractor):
         for cookie in self._downloader.cookiejar:
             if cookie.name == 'api_token':
                 headers['Twitch-Api-Token'] = cookie.value
-        request = compat_urllib_request.Request(url, headers=headers)
+        request = sanitized_Request(url, headers=headers)
         response = super(TwitchBaseIE, self)._download_json(request, video_id, note)
         self._handle_error(response)
         return response
@@ -55,35 +61,40 @@ class TwitchBaseIE(InfoExtractor):
         if username is None:
             return
 
-        login_page = self._download_webpage(
+        login_page, handle = self._download_webpage_handle(
             self._LOGIN_URL, None, 'Downloading login page')
 
-        authenticity_token = self._search_regex(
-            r'<input name="authenticity_token" type="hidden" value="([^"]+)"',
-            login_page, 'authenticity token')
+        login_form = self._hidden_inputs(login_page)
 
-        login_form = {
-            'utf8': '✓'.encode('utf-8'),
-            'authenticity_token': authenticity_token,
-            'redirect_on_login': '',
-            'embed_form': 'false',
-            'mp_source_action': '',
-            'follow': '',
-            'user[login]': username,
-            'user[password]': password,
-        }
+        login_form.update({
+            'username': username,
+            'password': password,
+        })
 
-        request = compat_urllib_request.Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
-        request.add_header('Referer', self._LOGIN_URL)
+        redirect_url = handle.geturl()
+
+        post_url = self._search_regex(
+            r'<form[^>]+action=(["\'])(?P<url>.+?)\1', login_page,
+            'post url', default=redirect_url, group='url')
+
+        if not post_url.startswith('http'):
+            post_url = compat_urlparse.urljoin(redirect_url, post_url)
+
+        request = sanitized_Request(
+            post_url, compat_urllib_parse.urlencode(encode_dict(login_form)).encode('utf-8'))
+        request.add_header('Referer', redirect_url)
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)
 
-        m = re.search(
-            r"id=([\"'])login_error_message\1[^>]*>(?P<msg>[^<]+)", response)
-        if m:
+        error_message = self._search_regex(
+            r'<div[^>]+class="subwindow_notice"[^>]*>([^<]+)</div>',
+            response, 'error message', default=None)
+        if error_message:
             raise ExtractorError(
-                'Unable to login: %s' % m.group('msg').strip(), expected=True)
+                'Unable to login. Twitch said: %s' % error_message, expected=True)
+
+        if '>Reset your password<' in response:
+            self.report_warning('Twitch asks you to reset your password, go to https://secure.twitch.tv/reset/submit')
 
     def _prefer_source(self, formats):
         try:
@@ -132,14 +143,14 @@ class TwitchItemBaseIE(TwitchBaseIE):
     def _extract_info(self, info):
         return {
             'id': info['_id'],
-            'title': info['title'],
-            'description': info['description'],
-            'duration': info['length'],
-            'thumbnail': info['preview'],
-            'uploader': info['channel']['display_name'],
-            'uploader_id': info['channel']['name'],
-            'timestamp': parse_iso8601(info['recorded_at']),
-            'view_count': info['views'],
+            'title': info.get('title') or 'Untitled Broadcast',
+            'description': info.get('description'),
+            'duration': int_or_none(info.get('length')),
+            'thumbnail': info.get('preview'),
+            'uploader': info.get('channel', {}).get('display_name'),
+            'uploader_id': info.get('channel', {}).get('name'),
+            'timestamp': parse_iso8601(info.get('recorded_at')),
+            'view_count': int_or_none(info.get('views')),
         }
 
     def _real_extract(self, url):
@@ -148,7 +159,7 @@ class TwitchItemBaseIE(TwitchBaseIE):
 
 class TwitchVideoIE(TwitchItemBaseIE):
     IE_NAME = 'twitch:video'
-    _VALID_URL = r'%s/[^/]+/b/(?P<id>[^/]+)' % TwitchBaseIE._VALID_URL_BASE
+    _VALID_URL = r'%s/[^/]+/b/(?P<id>\d+)' % TwitchBaseIE._VALID_URL_BASE
     _ITEM_TYPE = 'video'
     _ITEM_SHORTCUT = 'a'
 
@@ -164,7 +175,7 @@ class TwitchVideoIE(TwitchItemBaseIE):
 
 class TwitchChapterIE(TwitchItemBaseIE):
     IE_NAME = 'twitch:chapter'
-    _VALID_URL = r'%s/[^/]+/c/(?P<id>[^/]+)' % TwitchBaseIE._VALID_URL_BASE
+    _VALID_URL = r'%s/[^/]+/c/(?P<id>\d+)' % TwitchBaseIE._VALID_URL_BASE
     _ITEM_TYPE = 'chapter'
     _ITEM_SHORTCUT = 'c'
 
@@ -183,42 +194,78 @@ class TwitchChapterIE(TwitchItemBaseIE):
 
 class TwitchVodIE(TwitchItemBaseIE):
     IE_NAME = 'twitch:vod'
-    _VALID_URL = r'%s/[^/]+/v/(?P<id>[^/]+)' % TwitchBaseIE._VALID_URL_BASE
+    _VALID_URL = r'%s/[^/]+/v/(?P<id>\d+)' % TwitchBaseIE._VALID_URL_BASE
     _ITEM_TYPE = 'vod'
     _ITEM_SHORTCUT = 'v'
 
-    _TEST = {
-        'url': 'http://www.twitch.tv/ksptv/v/3622000',
+    _TESTS = [{
+        'url': 'http://www.twitch.tv/riotgames/v/6528877?t=5m10s',
         'info_dict': {
-            'id': 'v3622000',
+            'id': 'v6528877',
             'ext': 'mp4',
-            'title': '''KSPTV: Squadcast: "Everyone's on vacation so here's Dahud" Edition!''',
+            'title': 'LCK Summer Split - Week 6 Day 1',
             'thumbnail': 're:^https?://.*\.jpg$',
-            'duration': 6951,
-            'timestamp': 1419028564,
-            'upload_date': '20141219',
-            'uploader': 'KSPTV',
-            'uploader_id': 'ksptv',
+            'duration': 17208,
+            'timestamp': 1435131709,
+            'upload_date': '20150624',
+            'uploader': 'Riot Games',
+            'uploader_id': 'riotgames',
+            'view_count': int,
+            'start_time': 310,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        # Untitled broadcast (title is None)
+        'url': 'http://www.twitch.tv/belkao_o/v/11230755',
+        'info_dict': {
+            'id': 'v11230755',
+            'ext': 'mp4',
+            'title': 'Untitled Broadcast',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'duration': 1638,
+            'timestamp': 1439746708,
+            'upload_date': '20150816',
+            'uploader': 'BelkAO_o',
+            'uploader_id': 'belkao_o',
             'view_count': int,
         },
         'params': {
             # m3u8 download
             'skip_download': True,
         },
-    }
+    }]
 
     def _real_extract(self, url):
         item_id = self._match_id(url)
+
         info = self._download_info(self._ITEM_SHORTCUT, item_id)
         access_token = self._download_json(
             '%s/api/vods/%s/access_token' % (self._API_BASE, item_id), item_id,
             'Downloading %s access token' % self._ITEM_TYPE)
+
         formats = self._extract_m3u8_formats(
-            '%s/vod/%s?nauth=%s&nauthsig=%s'
-            % (self._USHER_BASE, item_id, access_token['token'], access_token['sig']),
+            '%s/vod/%s?%s' % (
+                self._USHER_BASE, item_id,
+                compat_urllib_parse.urlencode({
+                    'allow_source': 'true',
+                    'allow_spectre': 'true',
+                    'player': 'twitchweb',
+                    'nauth': access_token['token'],
+                    'nauthsig': access_token['sig'],
+                })),
             item_id, 'mp4')
+
         self._prefer_source(formats)
         info['formats'] = formats
+
+        parsed_url = compat_urllib_parse_urlparse(url)
+        query = compat_parse_qs(parsed_url.query)
+        if 't' in query:
+            info['start_time'] = parse_duration(query['t'][0])
+
         return info
 
 
@@ -313,9 +360,9 @@ class TwitchBookmarksIE(TwitchPlaylistBaseIE):
 
 class TwitchStreamIE(TwitchBaseIE):
     IE_NAME = 'twitch:stream'
-    _VALID_URL = r'%s/(?P<id>[^/]+)/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
+    _VALID_URL = r'%s/(?P<id>[^/#?]+)/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.twitch.tv/shroomztv',
         'info_dict': {
             'id': '12772022048',
@@ -334,7 +381,10 @@ class TwitchStreamIE(TwitchBaseIE):
             # m3u8 download
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'http://www.twitch.tv/miracle_doto#profile-0',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
@@ -349,6 +399,12 @@ class TwitchStreamIE(TwitchBaseIE):
                 'http://www.twitch.tv/%s/profile' % channel_id,
                 'TwitchProfile', channel_id)
 
+        # Channel name may be typed if different case than the original channel name
+        # (e.g. http://www.twitch.tv/TWITCHPLAYSPOKEMON) that will lead to constructing
+        # an invalid m3u8 URL. Working around by use of original channel name from stream
+        # JSON and fallback to lowercase if it's not available.
+        channel_id = stream.get('channel', {}).get('name') or channel_id.lower()
+
         access_token = self._download_json(
             '%s/api/channels/%s/access_token' % (self._API_BASE, channel_id), channel_id,
             'Downloading channel access token')
@@ -358,13 +414,12 @@ class TwitchStreamIE(TwitchBaseIE):
             'p': random.randint(1000000, 10000000),
             'player': 'twitchweb',
             'segment_preference': '4',
-            'sig': access_token['sig'],
-            'token': access_token['token'],
+            'sig': access_token['sig'].encode('utf-8'),
+            'token': access_token['token'].encode('utf-8'),
         }
-
         formats = self._extract_m3u8_formats(
             '%s/api/channel/hls/%s.m3u8?%s'
-            % (self._USHER_BASE, channel_id, compat_urllib_parse.urlencode(query).encode('utf-8')),
+            % (self._USHER_BASE, channel_id, compat_urllib_parse.urlencode(query)),
             channel_id, 'mp4')
         self._prefer_source(formats)
 

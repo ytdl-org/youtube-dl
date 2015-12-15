@@ -44,7 +44,7 @@ class VultureIE(InfoExtractor):
         query_webpage = self._download_webpage(
             query_url, display_id, note='Downloading query page')
         params_json = self._search_regex(
-            r'(?sm)new MagnifyEmbeddablePlayer\({.*?contentItem:\s*(\{.*?\})\n,\n',
+            r'(?sm)new MagnifyEmbeddablePlayer\({.*?contentItem:\s*(\{.*?\})\n?,\n',
             query_webpage,
             'player params')
         params = json.loads(params_json)

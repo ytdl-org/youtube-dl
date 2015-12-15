@@ -12,7 +12,7 @@ from ..utils import (
 
 class CNNIE(InfoExtractor):
     _VALID_URL = r'''(?x)https?://(?:(?:edition|www)\.)?cnn\.com/video/(?:data/.+?|\?)/
-        (?P<path>.+?/(?P<title>[^/]+?)(?:\.(?:cnn|hln)(?:-ap)?|(?=&)))'''
+        (?P<path>.+?/(?P<title>[^/]+?)(?:\.(?:[a-z\-]+)|(?=&)))'''
 
     _TESTS = [{
         'url': 'http://edition.cnn.com/video/?/video/sports/2013/06/09/nadal-1-on-1.cnn',
@@ -45,6 +45,12 @@ class CNNIE(InfoExtractor):
             'description': 'md5:e7223a503315c9f150acac52e76de086',
             'upload_date': '20141222',
         }
+    }, {
+        'url': 'http://cnn.com/video/?/video/politics/2015/03/27/pkg-arizona-senator-church-attendance-mandatory.ktvk',
+        'only_matching': True,
+    }, {
+        'url': 'http://cnn.com/video/?/video/us/2015/04/06/dnt-baker-refuses-anti-gay-order.wkmg',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

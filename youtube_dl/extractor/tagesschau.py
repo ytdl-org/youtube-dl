@@ -8,17 +8,17 @@ from ..utils import parse_filesize
 
 
 class TagesschauIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/(?:sendung/ts|video/video)(?P<id>-?[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/(?:[^/]+/)*?[^/#?]+?(?P<id>-?[0-9]+)(?:~_[^/#?]+?)?\.html'
 
     _TESTS = [{
-        'url': 'http://www.tagesschau.de/multimedia/video/video1399128.html',
-        'md5': 'bcdeac2194fb296d599ce7929dfa4009',
+        'url': 'http://www.tagesschau.de/multimedia/video/video-102143.html',
+        'md5': '917a228bc7df7850783bc47979673a09',
         'info_dict': {
-            'id': '1399128',
+            'id': '102143',
             'ext': 'mp4',
-            'title': 'Harald Range, Generalbundesanwalt, zu den Ermittlungen',
-            'description': 'md5:69da3c61275b426426d711bde96463ab',
-            'thumbnail': 're:^http:.*\.jpg$',
+            'title': 'Regierungsumbildung in Athen: Neue Minister in Griechenland vereidigt',
+            'description': 'md5:171feccd9d9b3dd54d05d501568f6359',
+            'thumbnail': 're:^https?:.*\.jpg$',
         },
     }, {
         'url': 'http://www.tagesschau.de/multimedia/sendung/ts-5727.html',
@@ -28,8 +28,39 @@ class TagesschauIE(InfoExtractor):
             'ext': 'mp4',
             'description': 'md5:695c01bfd98b7e313c501386327aea59',
             'title': 'Sendung: tagesschau \t04.12.2014 20:00 Uhr',
-            'thumbnail': 're:^http:.*\.jpg$',
-        }
+            'thumbnail': 're:^https?:.*\.jpg$',
+        },
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/politikimradio/audio-18407.html',
+        'md5': 'aef45de271c4bf0a5db834aa40bf774c',
+        'info_dict': {
+            'id': '18407',
+            'ext': 'mp3',
+            'title': 'Flüchtlingsdebatte: Hitzig, aber wenig hilfreich',
+            'description': 'Flüchtlingsdebatte: Hitzig, aber wenig hilfreich',
+            'thumbnail': 're:^https?:.*\.jpg$',
+        },
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/sendung/tsg-3771.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/sendung/tt-3827.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/sendung/nm-3475.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/sendung/weltspiegel-3167.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/tsvorzwanzig-959.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/sendung/bab/bab-3299~_bab-sendung-209.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/video/video-102303~_bab-sendung-211.html',
+        'only_matching': True,
     }]
 
     _FORMATS = {
@@ -49,19 +80,26 @@ class TagesschauIE(InfoExtractor):
             playerpage = self._download_webpage(
                 player_url, display_id, 'Downloading player page')
 
-            medias = re.findall(
-                r'"(http://media.+?)", type:"video/(.+?)", quality:"(.+?)"',
-                playerpage)
             formats = []
-            for url, ext, res in medias:
+            for media in re.finditer(
+                    r'''(?x)
+                        (?P<q_url>["\'])(?P<url>http://media.+?)(?P=q_url)
+                        ,\s*type:(?P<q_type>["\'])(?P<type>video|audio)/(?P<ext>.+?)(?P=q_type)
+                        (?:,\s*quality:(?P<q_quality>["\'])(?P<quality>.+?)(?P=q_quality))?
+                    ''', playerpage):
+                url = media.group('url')
+                type_ = media.group('type')
+                ext = media.group('ext')
+                res = media.group('quality')
                 f = {
-                    'format_id': res + '_' + ext,
+                    'format_id': '%s_%s' % (res, ext) if res else ext,
                     'url': url,
                     'ext': ext,
+                    'vcodec': 'none' if type_ == 'audio' else None,
                 }
                 f.update(self._FORMATS.get(res, {}))
                 formats.append(f)
-            thumbnail_fn = re.findall(r'"(/multimedia/.+?\.jpg)"', playerpage)[-1]
+            thumbnail = self._og_search_thumbnail(playerpage)
             title = self._og_search_title(webpage).strip()
             description = self._og_search_description(webpage).strip()
         else:
@@ -99,17 +137,14 @@ class TagesschauIE(InfoExtractor):
                         'filesize_approx': parse_filesize(m.group('filesize_approx')),
                     })
                 formats.append(format)
-            thumbnail_fn = self._search_regex(
-                r'(?s)<img alt="Sendungsbild".*?src="([^"]+)"',
-                webpage, 'thumbnail', fatal=False)
+            thumbnail = self._og_search_thumbnail(webpage)
             description = self._html_search_regex(
                 r'(?s)<p class="teasertext">(.*?)</p>',
-                webpage, 'description', fatal=False)
+                webpage, 'description', default=None)
             title = self._html_search_regex(
                 r'<span class="headline".*?>(.*?)</span>', webpage, 'title')
 
         self._sort_formats(formats)
-        thumbnail = 'http://www.tagesschau.de' + thumbnail_fn
 
         return {
             'id': display_id,

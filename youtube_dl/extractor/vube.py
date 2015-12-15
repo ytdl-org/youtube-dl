@@ -36,6 +36,7 @@ class VubeIE(InfoExtractor):
                 'comment_count': int,
                 'categories': ['amazing', 'hd', 'best drummer ever', 'william wei', 'bucket drumming', 'street drummer', 'epic street drumming'],
             },
+            'skip': 'Not accessible from Travis CI server',
         }, {
             'url': 'http://vube.com/Chiara+Grispo+Video+Channel/YL2qNPkqon',
             'md5': 'db7aba89d4603dadd627e9d1973946fe',

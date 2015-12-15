@@ -10,11 +10,14 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     find_xpath_attr,
+    lowercase_escape,
+    smuggle_url,
+    unescapeHTML,
 )
 
 
 class NBCIE(InfoExtractor):
-    _VALID_URL = r'http://www\.nbc\.com/(?:[^/]+/)+(?P<id>n?\d+)'
+    _VALID_URL = r'https?://www\.nbc\.com/(?:[^/]+/)+(?P<id>n?\d+)'
 
     _TESTS = [
         {
@@ -37,23 +40,93 @@ class NBCIE(InfoExtractor):
             },
             'skip': 'Only works from US',
         },
+        {
+            'url': 'http://www.nbc.com/saturday-night-live/video/star-wars-teaser/2832821',
+            'info_dict': {
+                'id': '8iUuyzWDdYUZ',
+                'ext': 'flv',
+                'title': 'Star Wars Teaser',
+                'description': 'md5:0b40f9cbde5b671a7ff62fceccc4f442',
+            },
+            'skip': 'Only works from US',
+        },
+        {
+            # This video has expired but with an escaped embedURL
+            'url': 'http://www.nbc.com/parenthood/episode-guide/season-5/just-like-at-home/515',
+            'skip': 'Expired'
+        }
     ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        theplatform_url = self._search_regex(
-            '(?:class="video-player video-player-full" data-mpx-url|class="player" src)="(.*?)"',
-            webpage, 'theplatform url').replace('_no_endcard', '')
+        theplatform_url = unescapeHTML(lowercase_escape(self._html_search_regex(
+            [
+                r'(?:class="video-player video-player-full" data-mpx-url|class="player" src)="(.*?)"',
+                r'<iframe[^>]+src="((?:https?:)?//player\.theplatform\.com/[^"]+)"',
+                r'"embedURL"\s*:\s*"([^"]+)"'
+            ],
+            webpage, 'theplatform url').replace('_no_endcard', '').replace('\\/', '/')))
         if theplatform_url.startswith('//'):
             theplatform_url = 'http:' + theplatform_url
-        return self.url_result(theplatform_url)
+        return self.url_result(smuggle_url(theplatform_url, {'source_url': url}))
+
+
+class NBCSportsVPlayerIE(InfoExtractor):
+    _VALID_URL = r'https?://vplayer\.nbcsports\.com/(?:[^/]+/)+(?P<id>[0-9a-zA-Z_]+)'
+
+    _TESTS = [{
+        'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_share/select/9CsDKds0kvHI',
+        'info_dict': {
+            'id': '9CsDKds0kvHI',
+            'ext': 'flv',
+            'description': 'md5:df390f70a9ba7c95ff1daace988f0d8d',
+            'title': 'Tyler Kalinoski hits buzzer-beater to lift Davidson',
+        }
+    }, {
+        'url': 'http://vplayer.nbcsports.com/p/BxmELC/nbc_embedshare/select/_hqLjQ95yx8Z',
+        'only_matching': True,
+    }]
+
+    @staticmethod
+    def _extract_url(webpage):
+        iframe_m = re.search(
+            r'<iframe[^>]+src="(?P<url>https?://vplayer\.nbcsports\.com/[^"]+)"', webpage)
+        if iframe_m:
+            return iframe_m.group('url')
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        theplatform_url = self._og_search_video_url(webpage)
+        return self.url_result(theplatform_url, 'ThePlatform')
+
+
+class NBCSportsIE(InfoExtractor):
+    # Does not include https becuase its certificate is invalid
+    _VALID_URL = r'http://www\.nbcsports\.com//?(?:[^/]+/)+(?P<id>[0-9a-z-]+)'
+
+    _TEST = {
+        'url': 'http://www.nbcsports.com//college-basketball/ncaab/tom-izzo-michigan-st-has-so-much-respect-duke',
+        'info_dict': {
+            'id': 'PHJSaFWbrTY9',
+            'ext': 'flv',
+            'title': 'Tom Izzo, Michigan St. has \'so much respect\' for Duke',
+            'description': 'md5:ecb459c9d59e0766ac9c7d5d0eda8113',
+        }
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        return self.url_result(
+            NBCSportsVPlayerIE._extract_url(webpage), 'NBCSportsVPlayer')
 
 
 class NBCNewsIE(InfoExtractor):
     _VALID_URL = r'''(?x)https?://(?:www\.)?nbcnews\.com/
         (?:video/.+?/(?P<id>\d+)|
-        (?:feature|nightly-news)/[^/]+/(?P<title>.+))
+        (?:watch|feature|nightly-news)/[^/]+/(?P<title>.+))
         '''
 
     _TESTS = [
@@ -97,6 +170,10 @@ class NBCNewsIE(InfoExtractor):
                 'title': 'Nightly News with Brian Williams Full Broadcast (February 4)',
                 'description': 'md5:1c10c1eccbe84a26e5debb4381e2d3c5',
             },
+        },
+        {
+            'url': 'http://www.nbcnews.com/watch/dateline/full-episode--deadly-betrayal-386250819952',
+            'only_matching': True,
         },
     ]
 
@@ -161,3 +238,28 @@ class NBCNewsIE(InfoExtractor):
                 'url': info['videoAssets'][-1]['publicUrl'],
                 'ie_key': 'ThePlatform',
             }
+
+
+class MSNBCIE(InfoExtractor):
+    # https URLs redirect to corresponding http ones
+    _VALID_URL = r'http://www\.msnbc\.com/[^/]+/watch/(?P<id>[^/]+)'
+    _TEST = {
+        'url': 'http://www.msnbc.com/all-in-with-chris-hayes/watch/the-chaotic-gop-immigration-vote-314487875924',
+        'md5': '6d236bf4f3dddc226633ce6e2c3f814d',
+        'info_dict': {
+            'id': 'n_hayes_Aimm_140801_272214',
+            'ext': 'mp4',
+            'title': 'The chaotic GOP immigration vote',
+            'description': 'The Republican House votes on a border bill that has no chance of getting through the Senate or signed by the President and is drawing criticism from all sides.',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'timestamp': 1406937606,
+            'upload_date': '20140802',
+            'categories': ['MSNBC/Topics/Franchise/Best of last night', 'MSNBC/Topics/General/Congress'],
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        embed_url = self._html_search_meta('embedURL', webpage)
+        return self.url_result(embed_url)

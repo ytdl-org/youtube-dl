@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    parse_duration,
+)
 
 
 class KontrTubeIE(InfoExtractor):
@@ -34,33 +37,28 @@ class KontrTubeIE(InfoExtractor):
         webpage = self._download_webpage(
             url, display_id, 'Downloading page')
 
-        video_url = self._html_search_regex(
+        video_url = self._search_regex(
             r"video_url\s*:\s*'(.+?)/?',", webpage, 'video URL')
-        thumbnail = self._html_search_regex(
-            r"preview_url\s*:\s*'(.+?)/?',", webpage, 'video thumbnail', fatal=False)
+        thumbnail = self._search_regex(
+            r"preview_url\s*:\s*'(.+?)/?',", webpage, 'thumbnail', fatal=False)
         title = self._html_search_regex(
-            r'<title>(.+?)</title>', webpage, 'video title')
+            r'(?s)<h2>(.+?)</h2>', webpage, 'title')
         description = self._html_search_meta(
-            'description', webpage, 'video description')
+            'description', webpage, 'description')
 
-        mobj = re.search(
-            r'<div class="col_2">Длительность: <span>(?P<minutes>\d+)м:(?P<seconds>\d+)с</span></div>',
-            webpage)
-        duration = int(mobj.group('minutes')) * 60 + int(mobj.group('seconds')) if mobj else None
+        duration = self._search_regex(
+            r'Длительность: <em>([^<]+)</em>', webpage, 'duration', fatal=False)
+        if duration:
+            duration = parse_duration(duration.replace('мин', 'min').replace('сек', 'sec'))
 
-        view_count = self._html_search_regex(
-            r'<div class="col_2">Просмотров: <span>(\d+)</span></div>',
+        view_count = self._search_regex(
+            r'Просмотров: <em>([^<]+)</em>',
             webpage, 'view count', fatal=False)
+        if view_count:
+            view_count = int_or_none(view_count.replace(' ', ''))
 
-        comment_count = None
-        comment_str = self._html_search_regex(
-            r'Комментарии: <span>([^<]+)</span>', webpage, 'comment count', fatal=False)
-        if comment_str.startswith('комментариев нет'):
-            comment_count = 0
-        else:
-            mobj = re.search(r'\d+ из (?P<total>\d+) комментариев', comment_str)
-            if mobj:
-                comment_count = mobj.group('total')
+        comment_count = int_or_none(self._search_regex(
+            r'Комментарии \((\d+)\)<', webpage, ' comment count', fatal=False))
 
         return {
             'id': video_id,

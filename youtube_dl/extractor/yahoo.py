@@ -15,12 +15,15 @@ from ..utils import (
     unescapeHTML,
     ExtractorError,
     int_or_none,
+    mimetype2ext,
 )
+
+from .nbc import NBCSportsVPlayerIE
 
 
 class YahooIE(InfoExtractor):
     IE_DESC = 'Yahoo screen and movies'
-    _VALID_URL = r'(?P<url>(?P<host>https?://(?:[a-zA-Z]{2}\.)?[\da-zA-Z_-]+\.yahoo\.com)/(?:[^/]+/)*(?P<display_id>.+?)-(?P<id>[0-9]+)(?:-[a-z]+)?\.html)'
+    _VALID_URL = r'(?P<url>(?P<host>https?://(?:[a-zA-Z]{2}\.)?[\da-zA-Z_-]+\.yahoo\.com)/(?:[^/]+/)*(?P<display_id>.+)?-(?P<id>[0-9]+)(?:-[a-z]+)?\.html)'
     _TESTS = [
         {
             'url': 'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
@@ -98,7 +101,7 @@ class YahooIE(InfoExtractor):
             }
         }, {
             'url': 'http://news.yahoo.com/video/china-moses-crazy-blues-104538833.html',
-            'md5': '67010fdf3a08d290e060a4dd96baa07b',
+            'md5': '88e209b417f173d86186bef6e4d1f160',
             'info_dict': {
                 'id': 'f885cf7f-43d4-3450-9fac-46ac30ece521',
                 'ext': 'mp4',
@@ -129,12 +132,35 @@ class YahooIE(InfoExtractor):
         }, {
             'url': 'https://gma.yahoo.com/pizza-delivery-man-surprised-huge-tip-college-kids-195200785.html',
             'only_matching': True,
+        }, {
+            'note': 'NBC Sports embeds',
+            'url': 'http://sports.yahoo.com/blogs/ncaab-the-dagger/tyler-kalinoski-s-buzzer-beater-caps-davidson-s-comeback-win-185609842.html?guid=nbc_cbk_davidsonbuzzerbeater_150313',
+            'info_dict': {
+                'id': '9CsDKds0kvHI',
+                'ext': 'flv',
+                'description': 'md5:df390f70a9ba7c95ff1daace988f0d8d',
+                'title': 'Tyler Kalinoski hits buzzer-beater to lift Davidson',
+            }
+        }, {
+            'url': 'https://tw.news.yahoo.com/-100120367.html',
+            'only_matching': True,
+        }, {
+            # Query result is embedded in webpage, but explicit request to video API fails with geo restriction
+            'url': 'https://screen.yahoo.com/community/communitary-community-episode-1-ladders-154501237.html',
+            'md5': '4fbafb9c9b6f07aa8f870629f6671b35',
+            'info_dict': {
+                'id': '1f32853c-a271-3eef-8cb6-f6d6872cb504',
+                'ext': 'mp4',
+                'title': 'Communitary - Community Episode 1: Ladders',
+                'description': 'md5:8fc39608213295748e1e289807838c97',
+                'duration': 1646,
+            },
         }
     ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        display_id = mobj.group('display_id')
+        display_id = mobj.group('display_id') or self._match_id(url)
         page_id = mobj.group('id')
         url = mobj.group('url')
         host = mobj.group('host')
@@ -151,6 +177,23 @@ class YahooIE(InfoExtractor):
                 items = json.loads(items_json)
                 video_id = items[0]['id']
                 return self._get_info(video_id, display_id, webpage)
+        # Look for NBCSports iframes
+        nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
+        if nbc_sports_url:
+            return self.url_result(nbc_sports_url, 'NBCSportsVPlayer')
+
+        # Query result is often embedded in webpage as JSON. Sometimes explicit requests
+        # to video API results in a failure with geo restriction reason therefore using
+        # embedded query result when present sounds reasonable.
+        config_json = self._search_regex(
+            r'window\.Af\.bootstrap\[[^\]]+\]\s*=\s*({.*?"applet_type"\s*:\s*"td-applet-videoplayer".*?});(?:</script>|$)',
+            webpage, 'videoplayer applet', default=None)
+        if config_json:
+            config = self._parse_json(config_json, display_id, fatal=False)
+            if config:
+                sapi = config.get('models', {}).get('applet_model', {}).get('data', {}).get('sapi')
+                if sapi:
+                    return self._extract_info(display_id, sapi, webpage)
 
         items_json = self._search_regex(
             r'mediaItems: ({.*?})$', webpage, 'items', flags=re.MULTILINE,
@@ -171,22 +214,10 @@ class YahooIE(InfoExtractor):
             video_id = info['id']
         return self._get_info(video_id, display_id, webpage)
 
-    def _get_info(self, video_id, display_id, webpage):
-        region = self._search_regex(
-            r'\\?"region\\?"\s*:\s*\\?"([^"]+?)\\?"',
-            webpage, 'region', fatal=False, default='US')
-        data = compat_urllib_parse.urlencode({
-            'protocol': 'http',
-            'region': region,
-        })
-        query_url = (
-            'https://video.media.yql.yahoo.com/v1/video/sapi/streams/'
-            '{id}?{data}'.format(id=video_id, data=data))
-        query_result = self._download_json(
-            query_url, display_id, 'Downloading video info')
-
-        info = query_result['query']['results']['mediaObj'][0]
+    def _extract_info(self, display_id, query, webpage):
+        info = query['query']['results']['mediaObj'][0]
         meta = info.get('meta')
+        video_id = info.get('id')
 
         if not meta:
             msg = info['status'].get('msg')
@@ -212,11 +243,30 @@ class YahooIE(InfoExtractor):
                     'ext': 'flv',
                 })
             else:
+                if s.get('format') == 'm3u8_playlist':
+                    format_info['protocol'] = 'm3u8_native'
+                    format_info['ext'] = 'mp4'
                 format_url = compat_urlparse.urljoin(host, path)
                 format_info['url'] = format_url
             formats.append(format_info)
 
         self._sort_formats(formats)
+
+        closed_captions = self._html_search_regex(
+            r'"closedcaptions":(\[[^\]]+\])', webpage, 'closed captions',
+            default='[]')
+
+        cc_json = self._parse_json(closed_captions, video_id, fatal=False)
+        subtitles = {}
+        if cc_json:
+            for closed_caption in cc_json:
+                lang = closed_caption['lang']
+                if lang not in subtitles:
+                    subtitles[lang] = []
+                subtitles[lang].append({
+                    'url': closed_caption['url'],
+                    'ext': mimetype2ext(closed_caption['content_type']),
+                })
 
         return {
             'id': video_id,
@@ -226,7 +276,23 @@ class YahooIE(InfoExtractor):
             'description': clean_html(meta['description']),
             'thumbnail': meta['thumbnail'] if meta.get('thumbnail') else self._og_search_thumbnail(webpage),
             'duration': int_or_none(meta.get('duration')),
+            'subtitles': subtitles,
         }
+
+    def _get_info(self, video_id, display_id, webpage):
+        region = self._search_regex(
+            r'\\?"region\\?"\s*:\s*\\?"([^"]+?)\\?"',
+            webpage, 'region', fatal=False, default='US')
+        data = compat_urllib_parse.urlencode({
+            'protocol': 'http',
+            'region': region,
+        })
+        query_url = (
+            'https://video.media.yql.yahoo.com/v1/video/sapi/streams/'
+            '{id}?{data}'.format(id=video_id, data=data))
+        query_result = self._download_json(
+            query_url, display_id, 'Downloading video info')
+        return self._extract_info(display_id, query_result, webpage)
 
 
 class YahooSearchIE(SearchInfoExtractor):

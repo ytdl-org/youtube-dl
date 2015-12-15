@@ -9,12 +9,14 @@ from .common import InfoExtractor
 from ..compat import (
     compat_str,
     compat_urllib_parse,
-    compat_urllib_request,
 )
 from ..utils import (
     clean_html,
     ExtractorError,
-    unified_strdate,
+    int_or_none,
+    float_or_none,
+    parse_iso8601,
+    sanitized_Request,
 )
 
 
@@ -25,21 +27,38 @@ class NocoIE(InfoExtractor):
     _SUB_LANG_TEMPLATE = '&sub_lang=%s'
     _NETRC_MACHINE = 'noco'
 
-    _TEST = {
-        'url': 'http://noco.tv/emission/11538/nolife/ami-ami-idol-hello-france/',
-        'md5': '0a993f0058ddbcd902630b2047ef710e',
-        'info_dict': {
-            'id': '11538',
-            'ext': 'mp4',
-            'title': 'Ami Ami Idol - Hello! France',
-            'description': 'md5:4eaab46ab68fa4197a317a88a53d3b86',
-            'upload_date': '20140412',
-            'uploader': 'Nolife',
-            'uploader_id': 'NOL',
-            'duration': 2851.2,
+    _TESTS = [
+        {
+            'url': 'http://noco.tv/emission/11538/nolife/ami-ami-idol-hello-france/',
+            'md5': '0a993f0058ddbcd902630b2047ef710e',
+            'info_dict': {
+                'id': '11538',
+                'ext': 'mp4',
+                'title': 'Ami Ami Idol - Hello! France',
+                'description': 'md5:4eaab46ab68fa4197a317a88a53d3b86',
+                'upload_date': '20140412',
+                'uploader': 'Nolife',
+                'uploader_id': 'NOL',
+                'duration': 2851.2,
+            },
+            'skip': 'Requires noco account',
         },
-        'skip': 'Requires noco account',
-    }
+        {
+            'url': 'http://noco.tv/emission/12610/lbl42/the-guild/s01e01-wake-up-call',
+            'md5': 'c190f1f48e313c55838f1f412225934d',
+            'info_dict': {
+                'id': '12610',
+                'ext': 'mp4',
+                'title': 'The Guild #1 - Wake-Up Call',
+                'timestamp': 1403863200,
+                'upload_date': '20140627',
+                'uploader': 'LBL42',
+                'uploader_id': 'LBL',
+                'duration': 233.023,
+            },
+            'skip': 'Requires noco account',
+        }
+    ]
 
     def _real_initialize(self):
         self._login()
@@ -55,7 +74,7 @@ class NocoIE(InfoExtractor):
             'username': username,
             'password': password,
         }
-        request = compat_urllib_request.Request(self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
+        request = sanitized_Request(self._LOGIN_URL, compat_urllib_parse.urlencode(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
 
         login = self._download_json(request, None, 'Logging in as %s' % username)
@@ -90,51 +109,70 @@ class NocoIE(InfoExtractor):
             'shows/%s/medias' % video_id,
             video_id, 'Downloading video JSON')
 
+        show = self._call_api(
+            'shows/by_id/%s' % video_id,
+            video_id, 'Downloading show JSON')[0]
+
+        options = self._call_api(
+            'users/init', video_id,
+            'Downloading user options JSON')['options']
+        audio_lang_pref = options.get('audio_language') or options.get('language', 'fr')
+
+        if audio_lang_pref == 'original':
+            audio_lang_pref = show['original_lang']
+        if len(medias) == 1:
+            audio_lang_pref = list(medias.keys())[0]
+        elif audio_lang_pref not in medias:
+            audio_lang_pref = 'fr'
+
         qualities = self._call_api(
             'qualities',
             video_id, 'Downloading qualities JSON')
 
         formats = []
 
-        for lang, lang_dict in medias['fr']['video_list'].items():
-            for format_id, fmt in lang_dict['quality_list'].items():
-                format_id_extended = '%s-%s' % (lang, format_id) if lang != 'none' else format_id
+        for audio_lang, audio_lang_dict in medias.items():
+            preference = 1 if audio_lang == audio_lang_pref else 0
+            for sub_lang, lang_dict in audio_lang_dict['video_list'].items():
+                for format_id, fmt in lang_dict['quality_list'].items():
+                    format_id_extended = 'audio-%s_sub-%s_%s' % (audio_lang, sub_lang, format_id)
 
-                video = self._call_api(
-                    'shows/%s/video/%s/fr' % (video_id, format_id.lower()),
-                    video_id, 'Downloading %s video JSON' % format_id_extended,
-                    lang if lang != 'none' else None)
+                    video = self._call_api(
+                        'shows/%s/video/%s/%s' % (video_id, format_id.lower(), audio_lang),
+                        video_id, 'Downloading %s video JSON' % format_id_extended,
+                        sub_lang if sub_lang != 'none' else None)
 
-                file_url = video['file']
-                if not file_url:
-                    continue
+                    file_url = video['file']
+                    if not file_url:
+                        continue
 
-                if file_url in ['forbidden', 'not found']:
-                    popmessage = video['popmessage']
-                    self._raise_error(popmessage['title'], popmessage['message'])
+                    if file_url in ['forbidden', 'not found']:
+                        popmessage = video['popmessage']
+                        self._raise_error(popmessage['title'], popmessage['message'])
 
-                formats.append({
-                    'url': file_url,
-                    'format_id': format_id_extended,
-                    'width': fmt['res_width'],
-                    'height': fmt['res_lines'],
-                    'abr': fmt['audiobitrate'],
-                    'vbr': fmt['videobitrate'],
-                    'filesize': fmt['filesize'],
-                    'format_note': qualities[format_id]['quality_name'],
-                    'preference': qualities[format_id]['priority'],
-                })
+                    formats.append({
+                        'url': file_url,
+                        'format_id': format_id_extended,
+                        'width': int_or_none(fmt.get('res_width')),
+                        'height': int_or_none(fmt.get('res_lines')),
+                        'abr': int_or_none(fmt.get('audiobitrate')),
+                        'vbr': int_or_none(fmt.get('videobitrate')),
+                        'filesize': int_or_none(fmt.get('filesize')),
+                        'format_note': qualities[format_id].get('quality_name'),
+                        'quality': qualities[format_id].get('priority'),
+                        'preference': preference,
+                    })
 
         self._sort_formats(formats)
 
-        show = self._call_api(
-            'shows/by_id/%s' % video_id,
-            video_id, 'Downloading show JSON')[0]
+        timestamp = parse_iso8601(show.get('online_date_start_utc'), ' ')
 
-        upload_date = unified_strdate(show['online_date_start_utc'])
-        uploader = show['partner_name']
-        uploader_id = show['partner_key']
-        duration = show['duration_ms'] / 1000.0
+        if timestamp is not None and timestamp < 0:
+            timestamp = None
+
+        uploader = show.get('partner_name')
+        uploader_id = show.get('partner_key')
+        duration = float_or_none(show.get('duration_ms'), 1000)
 
         thumbnails = []
         for thumbnail_key, thumbnail_url in show.items():
@@ -157,7 +195,7 @@ class NocoIE(InfoExtractor):
         if episode_number:
             title += ' #' + compat_str(episode_number)
         if episode:
-            title += ' - ' + episode
+            title += ' - ' + compat_str(episode)
 
         description = show.get('show_resume') or show.get('family_resume')
 
@@ -166,7 +204,7 @@ class NocoIE(InfoExtractor):
             'title': title,
             'description': description,
             'thumbnails': thumbnails,
-            'upload_date': upload_date,
+            'timestamp': timestamp,
             'uploader': uploader,
             'uploader_id': uploader_id,
             'duration': duration,

@@ -3,12 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-    compat_urllib_parse,
-)
+from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     parse_duration,
+    sanitized_Request,
     str_to_int,
 )
 
@@ -32,7 +30,7 @@ class XTubeIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        req = compat_urllib_request.Request(url)
+        req = sanitized_Request(url)
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
@@ -59,7 +57,7 @@ class XTubeIE(InfoExtractor):
         for format_id, video_url in re.findall(
                 r'flashvars\.quality_(.+?)\s*=\s*"([^"]+)"', webpage):
             fmt = {
-                'url': compat_urllib_parse.unquote(video_url),
+                'url': compat_urllib_parse_unquote(video_url),
                 'format_id': format_id,
             }
             m = re.search(r'^(?P<height>\d+)[pP]', format_id)
@@ -68,7 +66,7 @@ class XTubeIE(InfoExtractor):
             formats.append(fmt)
 
         if not formats:
-            video_url = compat_urllib_parse.unquote(self._search_regex(
+            video_url = compat_urllib_parse_unquote(self._search_regex(
                 r'flashvars\.video_url\s*=\s*"([^"]+)"',
                 webpage, 'video URL'))
             formats.append({'url': video_url})

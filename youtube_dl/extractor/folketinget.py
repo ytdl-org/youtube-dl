@@ -30,6 +30,10 @@ class FolketingetIE(InfoExtractor):
             'upload_date': '20141120',
             'duration': 3960,
         },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):

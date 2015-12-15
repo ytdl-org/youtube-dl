@@ -17,13 +17,22 @@ IGNORED_FILES = [
     'buildserver.py',
 ]
 
+IGNORED_DIRS = [
+    '.git',
+    '.tox',
+]
 
 from test.helper import assertRegexpMatches
 
 
 class TestUnicodeLiterals(unittest.TestCase):
     def test_all_files(self):
-        for dirpath, _, filenames in os.walk(rootDir):
+        for dirpath, dirnames, filenames in os.walk(rootDir):
+            for ignore_dir in IGNORED_DIRS:
+                if ignore_dir in dirnames:
+                    # If we remove the directory from dirnames os.walk won't
+                    # recurse into it
+                    dirnames.remove(ignore_dir)
             for basename in filenames:
                 if not basename.endswith('.py'):
                     continue

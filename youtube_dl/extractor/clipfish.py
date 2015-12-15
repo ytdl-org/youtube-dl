@@ -1,53 +1,62 @@
 from __future__ import unicode_literals
 
-import re
-import time
-import xml.etree.ElementTree
-
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
-    parse_duration,
+    int_or_none,
+    unified_strdate,
 )
 
 
 class ClipfishIE(InfoExtractor):
-    IE_NAME = 'clipfish'
-
-    _VALID_URL = r'^https?://(?:www\.)?clipfish\.de/.*?/video/(?P<id>[0-9]+)/'
+    _VALID_URL = r'https?://(?:www\.)?clipfish\.de/(?:[^/]+/)+video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.clipfish.de/special/game-trailer/video/3966754/fifa-14-e3-2013-trailer/',
-        'md5': '2521cd644e862936cf2e698206e47385',
+        'md5': '79bc922f3e8a9097b3d68a93780fd475',
         'info_dict': {
             'id': '3966754',
             'ext': 'mp4',
             'title': 'FIFA 14 - E3 2013 Trailer',
+            'description': 'Video zu FIFA 14: E3 2013 Trailer',
+            'upload_date': '20130611',
             'duration': 82,
-        },
-        'skip': 'Blocked in the US'
+            'view_count': int,
+        }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group(1)
+        video_id = self._match_id(url)
 
-        info_url = ('http://www.clipfish.de/devxml/videoinfo/%s?ts=%d' %
-                    (video_id, int(time.time())))
-        doc = self._download_xml(
-            info_url, video_id, note='Downloading info page')
-        title = doc.find('title').text
-        video_url = doc.find('filename').text
-        if video_url is None:
-            xml_bytes = xml.etree.ElementTree.tostring(doc)
-            raise ExtractorError('Cannot find video URL in document %r' %
-                                 xml_bytes)
-        thumbnail = doc.find('imageurl').text
-        duration = parse_duration(doc.find('duration').text)
+        video_info = self._download_json(
+            'http://www.clipfish.de/devapi/id/%s?format=json&apikey=hbbtv' % video_id,
+            video_id)['items'][0]
+
+        formats = []
+
+        m3u8_url = video_info.get('media_videourl_hls')
+        if m3u8_url:
+            formats.append({
+                'url': m3u8_url.replace('de.hls.fra.clipfish.de', 'hls.fra.clipfish.de'),
+                'ext': 'mp4',
+                'format_id': 'hls',
+            })
+
+        mp4_url = video_info.get('media_videourl')
+        if mp4_url:
+            formats.append({
+                'url': mp4_url,
+                'format_id': 'mp4',
+                'width': int_or_none(video_info.get('width')),
+                'height': int_or_none(video_info.get('height')),
+                'tbr': int_or_none(video_info.get('bitrate')),
+            })
 
         return {
             'id': video_id,
-            'title': title,
-            'url': video_url,
-            'thumbnail': thumbnail,
-            'duration': duration,
+            'title': video_info['title'],
+            'description': video_info.get('descr'),
+            'formats': formats,
+            'thumbnail': video_info.get('media_content_thumbnail_large') or video_info.get('media_thumbnail'),
+            'duration': int_or_none(video_info.get('media_length')),
+            'upload_date': unified_strdate(video_info.get('pubDate')),
+            'view_count': int_or_none(video_info.get('media_views'))
         }

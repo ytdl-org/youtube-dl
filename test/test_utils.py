@@ -21,9 +21,11 @@ from youtube_dl.utils import (
     clean_html,
     DateRange,
     detect_exe_version,
+    determine_ext,
     encodeFilename,
     escape_rfc3986,
     escape_url,
+    ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
     InAdvancePagedList,
@@ -38,6 +40,10 @@ from youtube_dl.utils import (
     parse_iso8601,
     read_batch_urls,
     sanitize_filename,
+    sanitize_path,
+    prepend_extension,
+    replace_extension,
+    remove_quotes,
     shell_quote,
     smuggle_url,
     str_to_int,
@@ -48,12 +54,24 @@ from youtube_dl.utils import (
     unified_strdate,
     unsmuggle_url,
     uppercase_escape,
+    lowercase_escape,
     url_basename,
     urlencode_postdata,
     version_tuple,
     xpath_with_ns,
+    xpath_element,
+    xpath_text,
+    xpath_attr,
     render_table,
     match_str,
+    parse_dfxp_time_expr,
+    dfxp2srt,
+    cli_option,
+    cli_valueless_option,
+    cli_bool_option,
+)
+from youtube_dl.compat import (
+    compat_etree_fromstring,
 )
 
 
@@ -131,6 +149,67 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_filename('_BD_eEpuzXw', is_id=True), '_BD_eEpuzXw')
         self.assertEqual(sanitize_filename('N0Y__7-UOdI', is_id=True), 'N0Y__7-UOdI')
 
+    def test_sanitize_path(self):
+        if sys.platform != 'win32':
+            return
+
+        self.assertEqual(sanitize_path('abc'), 'abc')
+        self.assertEqual(sanitize_path('abc/def'), 'abc\\def')
+        self.assertEqual(sanitize_path('abc\\def'), 'abc\\def')
+        self.assertEqual(sanitize_path('abc|def'), 'abc#def')
+        self.assertEqual(sanitize_path('<>:"|?*'), '#######')
+        self.assertEqual(sanitize_path('C:/abc/def'), 'C:\\abc\\def')
+        self.assertEqual(sanitize_path('C?:/abc/def'), 'C##\\abc\\def')
+
+        self.assertEqual(sanitize_path('\\\\?\\UNC\\ComputerName\\abc'), '\\\\?\\UNC\\ComputerName\\abc')
+        self.assertEqual(sanitize_path('\\\\?\\UNC/ComputerName/abc'), '\\\\?\\UNC\\ComputerName\\abc')
+
+        self.assertEqual(sanitize_path('\\\\?\\C:\\abc'), '\\\\?\\C:\\abc')
+        self.assertEqual(sanitize_path('\\\\?\\C:/abc'), '\\\\?\\C:\\abc')
+        self.assertEqual(sanitize_path('\\\\?\\C:\\ab?c\\de:f'), '\\\\?\\C:\\ab#c\\de#f')
+        self.assertEqual(sanitize_path('\\\\?\\C:\\abc'), '\\\\?\\C:\\abc')
+
+        self.assertEqual(
+            sanitize_path('youtube/%(uploader)s/%(autonumber)s-%(title)s-%(upload_date)s.%(ext)s'),
+            'youtube\\%(uploader)s\\%(autonumber)s-%(title)s-%(upload_date)s.%(ext)s')
+
+        self.assertEqual(
+            sanitize_path('youtube/TheWreckingYard ./00001-Not bad, Especially for Free! (1987 Yamaha 700)-20141116.mp4.part'),
+            'youtube\\TheWreckingYard #\\00001-Not bad, Especially for Free! (1987 Yamaha 700)-20141116.mp4.part')
+        self.assertEqual(sanitize_path('abc/def...'), 'abc\\def..#')
+        self.assertEqual(sanitize_path('abc.../def'), 'abc..#\\def')
+        self.assertEqual(sanitize_path('abc.../def...'), 'abc..#\\def..#')
+
+        self.assertEqual(sanitize_path('../abc'), '..\\abc')
+        self.assertEqual(sanitize_path('../../abc'), '..\\..\\abc')
+        self.assertEqual(sanitize_path('./abc'), 'abc')
+        self.assertEqual(sanitize_path('./../abc'), '..\\abc')
+
+    def test_prepend_extension(self):
+        self.assertEqual(prepend_extension('abc.ext', 'temp'), 'abc.temp.ext')
+        self.assertEqual(prepend_extension('abc.ext', 'temp', 'ext'), 'abc.temp.ext')
+        self.assertEqual(prepend_extension('abc.unexpected_ext', 'temp', 'ext'), 'abc.unexpected_ext.temp')
+        self.assertEqual(prepend_extension('abc', 'temp'), 'abc.temp')
+        self.assertEqual(prepend_extension('.abc', 'temp'), '.abc.temp')
+        self.assertEqual(prepend_extension('.abc.ext', 'temp'), '.abc.temp.ext')
+
+    def test_replace_extension(self):
+        self.assertEqual(replace_extension('abc.ext', 'temp'), 'abc.temp')
+        self.assertEqual(replace_extension('abc.ext', 'temp', 'ext'), 'abc.temp')
+        self.assertEqual(replace_extension('abc.unexpected_ext', 'temp', 'ext'), 'abc.unexpected_ext.temp')
+        self.assertEqual(replace_extension('abc', 'temp'), 'abc.temp')
+        self.assertEqual(replace_extension('.abc', 'temp'), '.abc.temp')
+        self.assertEqual(replace_extension('.abc.ext', 'temp'), '.abc.temp')
+
+    def test_remove_quotes(self):
+        self.assertEqual(remove_quotes(None), None)
+        self.assertEqual(remove_quotes('"'), '"')
+        self.assertEqual(remove_quotes("'"), "'")
+        self.assertEqual(remove_quotes(';'), ';')
+        self.assertEqual(remove_quotes('";'), '";')
+        self.assertEqual(remove_quotes('""'), '')
+        self.assertEqual(remove_quotes('";"'), ';')
+
     def test_ordered_set(self):
         self.assertEqual(orderedSet([1, 1, 2, 3, 4, 4, 5, 6, 7, 3, 5]), [1, 2, 3, 4, 5, 6, 7])
         self.assertEqual(orderedSet([]), [])
@@ -140,8 +219,10 @@ class TestUtil(unittest.TestCase):
 
     def test_unescape_html(self):
         self.assertEqual(unescapeHTML('%20;'), '%20;')
-        self.assertEqual(
-            unescapeHTML('&eacute;'), 'é')
+        self.assertEqual(unescapeHTML('&#x2F;'), '/')
+        self.assertEqual(unescapeHTML('&#47;'), '/')
+        self.assertEqual(unescapeHTML('&eacute;'), 'é')
+        self.assertEqual(unescapeHTML('&#2013266066;'), '&#2013266066;')
 
     def test_daterange(self):
         _20century = DateRange("19000101", "20000101")
@@ -165,6 +246,15 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(
             unified_strdate('2/2/2015 6:47:40 PM', day_first=False),
             '20150202')
+        self.assertEqual(unified_strdate('25-09-2014'), '20140925')
+        self.assertEqual(unified_strdate('UNKNOWN DATE FORMAT'), None)
+
+    def test_determine_ext(self):
+        self.assertEqual(determine_ext('http://example.com/foo/bar.mp4/?download'), 'mp4')
+        self.assertEqual(determine_ext('http://example.com/foo/bar/?download', None), None)
+        self.assertEqual(determine_ext('http://example.com/foo/bar.nonext/?download', None), None)
+        self.assertEqual(determine_ext('http://example.com/foo/bar/mp4?download', None), None)
+        self.assertEqual(determine_ext('http://example.com/foo/bar.m3u8//?download'), 'm3u8')
 
     def test_find_xpath_attr(self):
         testxml = '''<root>
@@ -172,12 +262,21 @@ class TestUtil(unittest.TestCase):
             <node x="a"/>
             <node x="a" y="c" />
             <node x="b" y="d" />
+            <node x="" />
         </root>'''
-        doc = xml.etree.ElementTree.fromstring(testxml)
+        doc = compat_etree_fromstring(testxml)
 
+        self.assertEqual(find_xpath_attr(doc, './/fourohfour', 'n'), None)
         self.assertEqual(find_xpath_attr(doc, './/fourohfour', 'n', 'v'), None)
+        self.assertEqual(find_xpath_attr(doc, './/node', 'n'), None)
+        self.assertEqual(find_xpath_attr(doc, './/node', 'n', 'v'), None)
+        self.assertEqual(find_xpath_attr(doc, './/node', 'x'), doc[1])
         self.assertEqual(find_xpath_attr(doc, './/node', 'x', 'a'), doc[1])
+        self.assertEqual(find_xpath_attr(doc, './/node', 'x', 'b'), doc[3])
+        self.assertEqual(find_xpath_attr(doc, './/node', 'y'), doc[2])
         self.assertEqual(find_xpath_attr(doc, './/node', 'y', 'c'), doc[2])
+        self.assertEqual(find_xpath_attr(doc, './/node', 'y', 'd'), doc[3])
+        self.assertEqual(find_xpath_attr(doc, './/node', 'x', ''), doc[4])
 
     def test_xpath_with_ns(self):
         testxml = '''<root xmlns:media="http://example.com/">
@@ -186,11 +285,55 @@ class TestUtil(unittest.TestCase):
                 <url>http://server.com/download.mp3</url>
             </media:song>
         </root>'''
-        doc = xml.etree.ElementTree.fromstring(testxml)
+        doc = compat_etree_fromstring(testxml)
         find = lambda p: doc.find(xpath_with_ns(p, {'media': 'http://example.com/'}))
         self.assertTrue(find('media:song') is not None)
         self.assertEqual(find('media:song/media:author').text, 'The Author')
         self.assertEqual(find('media:song/url').text, 'http://server.com/download.mp3')
+
+    def test_xpath_element(self):
+        doc = xml.etree.ElementTree.Element('root')
+        div = xml.etree.ElementTree.SubElement(doc, 'div')
+        p = xml.etree.ElementTree.SubElement(div, 'p')
+        p.text = 'Foo'
+        self.assertEqual(xpath_element(doc, 'div/p'), p)
+        self.assertEqual(xpath_element(doc, ['div/p']), p)
+        self.assertEqual(xpath_element(doc, ['div/bar', 'div/p']), p)
+        self.assertEqual(xpath_element(doc, 'div/bar', default='default'), 'default')
+        self.assertEqual(xpath_element(doc, ['div/bar'], default='default'), 'default')
+        self.assertTrue(xpath_element(doc, 'div/bar') is None)
+        self.assertTrue(xpath_element(doc, ['div/bar']) is None)
+        self.assertTrue(xpath_element(doc, ['div/bar'], 'div/baz') is None)
+        self.assertRaises(ExtractorError, xpath_element, doc, 'div/bar', fatal=True)
+        self.assertRaises(ExtractorError, xpath_element, doc, ['div/bar'], fatal=True)
+        self.assertRaises(ExtractorError, xpath_element, doc, ['div/bar', 'div/baz'], fatal=True)
+
+    def test_xpath_text(self):
+        testxml = '''<root>
+            <div>
+                <p>Foo</p>
+            </div>
+        </root>'''
+        doc = compat_etree_fromstring(testxml)
+        self.assertEqual(xpath_text(doc, 'div/p'), 'Foo')
+        self.assertEqual(xpath_text(doc, 'div/bar', default='default'), 'default')
+        self.assertTrue(xpath_text(doc, 'div/bar') is None)
+        self.assertRaises(ExtractorError, xpath_text, doc, 'div/bar', fatal=True)
+
+    def test_xpath_attr(self):
+        testxml = '''<root>
+            <div>
+                <p x="a">Foo</p>
+            </div>
+        </root>'''
+        doc = compat_etree_fromstring(testxml)
+        self.assertEqual(xpath_attr(doc, 'div/p', 'x'), 'a')
+        self.assertEqual(xpath_attr(doc, 'div/bar', 'x'), None)
+        self.assertEqual(xpath_attr(doc, 'div/p', 'y'), None)
+        self.assertEqual(xpath_attr(doc, 'div/bar', 'x', default='default'), 'default')
+        self.assertEqual(xpath_attr(doc, 'div/p', 'y', default='default'), 'default')
+        self.assertRaises(ExtractorError, xpath_attr, doc, 'div/bar', 'x', fatal=True)
+        self.assertRaises(ExtractorError, xpath_attr, doc, 'div/p', 'y', fatal=True)
 
     def test_smuggle_url(self):
         data = {"ö": "ö", "abc": [3]}
@@ -250,6 +393,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_duration('02:03:04'), 7384)
         self.assertEqual(parse_duration('01:02:03:04'), 93784)
         self.assertEqual(parse_duration('1 hour 3 minutes'), 3780)
+        self.assertEqual(parse_duration('87 Min.'), 5220)
 
     def test_fix_xml_ampersands(self):
         self.assertEqual(
@@ -310,6 +454,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_iso8601('2014-03-23T22:04:26+0000'), 1395612266)
         self.assertEqual(parse_iso8601('2014-03-23T22:04:26Z'), 1395612266)
         self.assertEqual(parse_iso8601('2014-03-23T22:04:26.1234Z'), 1395612266)
+        self.assertEqual(parse_iso8601('2015-09-29T08:27:31.727'), 1443515251)
+        self.assertEqual(parse_iso8601('2015-09-29T08-27-31.727'), None)
 
     def test_strip_jsonp(self):
         stripped = strip_jsonp('cb ([ {"id":"532cb",\n\n\n"x":\n3}\n]\n);')
@@ -323,6 +469,10 @@ class TestUtil(unittest.TestCase):
     def test_uppercase_escape(self):
         self.assertEqual(uppercase_escape('aä'), 'aä')
         self.assertEqual(uppercase_escape('\\U0001d550'), '𝕐')
+
+    def test_lowercase_escape(self):
+        self.assertEqual(lowercase_escape('aä'), 'aä')
+        self.assertEqual(lowercase_escape('\\u0026'), '&')
 
     def test_limit_length(self):
         self.assertEqual(limit_length(None, 12), None)
@@ -376,6 +526,9 @@ class TestUtil(unittest.TestCase):
             "playlist":[{"controls":{"all":null}}]
         }''')
 
+        inp = '''"The CW\\'s \\'Crazy Ex-Girlfriend\\'"'''
+        self.assertEqual(js_to_json(inp), '''"The CW's 'Crazy Ex-Girlfriend'"''')
+
         inp = '"SAND Number: SAND 2013-7800P\\nPresenter: Tom Russo\\nHabanero Software Training - Xyce Software\\nXyce, Sandia\\u0027s"'
         json_code = js_to_json(inp)
         self.assertEqual(json.loads(json_code), json.loads(inp))
@@ -396,6 +549,12 @@ class TestUtil(unittest.TestCase):
         d = json.loads(on)
         self.assertEqual(d['x'], 1)
         self.assertEqual(d['y'], 'a')
+
+        on = js_to_json('["abc", "def",]')
+        self.assertEqual(json.loads(on), ['abc', 'def'])
+
+        on = js_to_json('{"abc": "def",}')
+        self.assertEqual(json.loads(on), {'abc': 'def'})
 
     def test_clean_html(self):
         self.assertEqual(clean_html('a:\nb'), 'a: b')
@@ -500,6 +659,102 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
         self.assertFalse(match_str(
             'like_count > 100 & dislike_count <? 50 & description',
             {'like_count': 190, 'dislike_count': 10}))
+
+    def test_parse_dfxp_time_expr(self):
+        self.assertEqual(parse_dfxp_time_expr(None), 0.0)
+        self.assertEqual(parse_dfxp_time_expr(''), 0.0)
+        self.assertEqual(parse_dfxp_time_expr('0.1'), 0.1)
+        self.assertEqual(parse_dfxp_time_expr('0.1s'), 0.1)
+        self.assertEqual(parse_dfxp_time_expr('00:00:01'), 1.0)
+        self.assertEqual(parse_dfxp_time_expr('00:00:01.100'), 1.1)
+
+    def test_dfxp2srt(self):
+        dfxp_data = '''<?xml version="1.0" encoding="UTF-8"?>
+            <tt xmlns="http://www.w3.org/ns/ttml" xml:lang="en" xmlns:tts="http://www.w3.org/ns/ttml#parameter">
+            <body>
+                <div xml:lang="en">
+                    <p begin="0" end="1">The following line contains Chinese characters and special symbols</p>
+                    <p begin="1" end="2">第二行<br/>♪♪</p>
+                    <p begin="2" dur="1"><span>Third<br/>Line</span></p>
+                </div>
+            </body>
+            </tt>'''
+        srt_data = '''1
+00:00:00,000 --> 00:00:01,000
+The following line contains Chinese characters and special symbols
+
+2
+00:00:01,000 --> 00:00:02,000
+第二行
+♪♪
+
+3
+00:00:02,000 --> 00:00:03,000
+Third
+Line
+
+'''
+        self.assertEqual(dfxp2srt(dfxp_data), srt_data)
+
+        dfxp_data_no_default_namespace = '''<?xml version="1.0" encoding="UTF-8"?>
+            <tt xml:lang="en" xmlns:tts="http://www.w3.org/ns/ttml#parameter">
+            <body>
+                <div xml:lang="en">
+                    <p begin="0" end="1">The first line</p>
+                </div>
+            </body>
+            </tt>'''
+        srt_data = '''1
+00:00:00,000 --> 00:00:01,000
+The first line
+
+'''
+        self.assertEqual(dfxp2srt(dfxp_data_no_default_namespace), srt_data)
+
+    def test_cli_option(self):
+        self.assertEqual(cli_option({'proxy': '127.0.0.1:3128'}, '--proxy', 'proxy'), ['--proxy', '127.0.0.1:3128'])
+        self.assertEqual(cli_option({'proxy': None}, '--proxy', 'proxy'), [])
+        self.assertEqual(cli_option({}, '--proxy', 'proxy'), [])
+
+    def test_cli_valueless_option(self):
+        self.assertEqual(cli_valueless_option(
+            {'downloader': 'external'}, '--external-downloader', 'downloader', 'external'), ['--external-downloader'])
+        self.assertEqual(cli_valueless_option(
+            {'downloader': 'internal'}, '--external-downloader', 'downloader', 'external'), [])
+        self.assertEqual(cli_valueless_option(
+            {'nocheckcertificate': True}, '--no-check-certificate', 'nocheckcertificate'), ['--no-check-certificate'])
+        self.assertEqual(cli_valueless_option(
+            {'nocheckcertificate': False}, '--no-check-certificate', 'nocheckcertificate'), [])
+        self.assertEqual(cli_valueless_option(
+            {'checkcertificate': True}, '--no-check-certificate', 'checkcertificate', False), [])
+        self.assertEqual(cli_valueless_option(
+            {'checkcertificate': False}, '--no-check-certificate', 'checkcertificate', False), ['--no-check-certificate'])
+
+    def test_cli_bool_option(self):
+        self.assertEqual(
+            cli_bool_option(
+                {'nocheckcertificate': True}, '--no-check-certificate', 'nocheckcertificate'),
+            ['--no-check-certificate', 'true'])
+        self.assertEqual(
+            cli_bool_option(
+                {'nocheckcertificate': True}, '--no-check-certificate', 'nocheckcertificate', separator='='),
+            ['--no-check-certificate=true'])
+        self.assertEqual(
+            cli_bool_option(
+                {'nocheckcertificate': True}, '--check-certificate', 'nocheckcertificate', 'false', 'true'),
+            ['--check-certificate', 'false'])
+        self.assertEqual(
+            cli_bool_option(
+                {'nocheckcertificate': True}, '--check-certificate', 'nocheckcertificate', 'false', 'true', '='),
+            ['--check-certificate=false'])
+        self.assertEqual(
+            cli_bool_option(
+                {'nocheckcertificate': False}, '--check-certificate', 'nocheckcertificate', 'false', 'true'),
+            ['--check-certificate', 'true'])
+        self.assertEqual(
+            cli_bool_option(
+                {'nocheckcertificate': False}, '--check-certificate', 'nocheckcertificate', 'false', 'true', '='),
+            ['--check-certificate=true'])
 
 
 if __name__ == '__main__':

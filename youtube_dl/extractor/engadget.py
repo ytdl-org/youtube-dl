@@ -10,7 +10,7 @@ from ..utils import (
 
 class EngadgetIE(InfoExtractor):
     _VALID_URL = r'''(?x)https?://www.engadget.com/
-        (?:video/5min/(?P<id>\d+)|
+        (?:video(?:/5min)?/(?P<id>\d+)|
             [\d/]+/.*?)
         '''
 

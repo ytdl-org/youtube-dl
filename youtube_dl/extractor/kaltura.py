@@ -2,23 +2,41 @@
 from __future__ import unicode_literals
 
 import re
+import base64
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import (
+    compat_urllib_parse,
+    compat_urlparse,
+)
 from ..utils import (
+    clean_html,
     ExtractorError,
     int_or_none,
+    unsmuggle_url,
 )
 
 
 class KalturaIE(InfoExtractor):
     _VALID_URL = r'''(?x)
-    (?:kaltura:|
-       https?://(:?(?:www|cdnapisec)\.)?kaltura\.com/index\.php/kwidget/(?:[^/]+/)*?wid/_
-    )(?P<partner_id>\d+)
-    (?::|
-       /(?:[^/]+/)*?entry_id/
-    )(?P<id>[0-9a-z_]+)'''
+                (?:
+                    kaltura:(?P<partner_id_s>\d+):(?P<id_s>[0-9a-z_]+)|
+                    https?://
+                        (:?(?:www|cdnapi(?:sec)?)\.)?kaltura\.com/
+                        (?:
+                            (?:
+                                # flash player
+                                index\.php/kwidget/
+                                (?:[^/]+/)*?wid/_(?P<partner_id>\d+)/
+                                (?:[^/]+/)*?entry_id/(?P<id>[0-9a-z_]+)|
+                                # html5 player
+                                html5/html5lib/
+                                (?:[^/]+/)*?entry_id/(?P<id_html5>[0-9a-z_]+)
+                                .*\?.*\bwid=_(?P<partner_id_html5>\d+)
+                            )
+                        )
+                )
+                '''
     _API_BASE = 'http://cdnapi.kaltura.com/api_v3/index.php?'
     _TESTS = [
         {
@@ -43,6 +61,10 @@ class KalturaIE(InfoExtractor):
             'url': 'https://cdnapisec.kaltura.com/index.php/kwidget/wid/_557781/uiconf_id/22845202/entry_id/1_plr1syf3',
             'only_matching': True,
         },
+        {
+            'url': 'https://cdnapisec.kaltura.com/html5/html5lib/v2.30.2/mwEmbedFrame.php/p/1337/uiconf_id/20540612/entry_id/1_sf5ovm7u?wid=_243342',
+            'only_matching': True,
+        }
     ]
 
     def _kaltura_api_call(self, video_id, actions, *args, **kwargs):
@@ -105,31 +127,47 @@ class KalturaIE(InfoExtractor):
             video_id, actions, note='Downloading video info JSON')
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        url, smuggled_data = unsmuggle_url(url, {})
+
         mobj = re.match(self._VALID_URL, url)
-        partner_id, entry_id = mobj.group('partner_id'), mobj.group('id')
+        partner_id = mobj.group('partner_id_s') or mobj.group('partner_id') or mobj.group('partner_id_html5')
+        entry_id = mobj.group('id_s') or mobj.group('id') or mobj.group('id_html5')
 
         info, source_data = self._get_video_info(entry_id, partner_id)
 
-        formats = [{
-            'format_id': '%(fileExt)s-%(bitrate)s' % f,
-            'ext': f['fileExt'],
-            'tbr': f['bitrate'],
-            'fps': f.get('frameRate'),
-            'filesize_approx': int_or_none(f.get('size'), invscale=1024),
-            'container': f.get('containerFormat'),
-            'vcodec': f.get('videoCodecId'),
-            'height': f.get('height'),
-            'width': f.get('width'),
-            'url': '%s/flavorId/%s' % (info['dataUrl'], f['id']),
-        } for f in source_data['flavorAssets']]
+        source_url = smuggled_data.get('source_url')
+        if source_url:
+            referrer = base64.b64encode(
+                '://'.join(compat_urlparse.urlparse(source_url)[:2])
+                .encode('utf-8')).decode('utf-8')
+        else:
+            referrer = None
+
+        formats = []
+        for f in source_data['flavorAssets']:
+            video_url = '%s/flavorId/%s' % (info['dataUrl'], f['id'])
+            if referrer:
+                video_url += '?referrer=%s' % referrer
+            formats.append({
+                'format_id': '%(fileExt)s-%(bitrate)s' % f,
+                'ext': f.get('fileExt'),
+                'tbr': int_or_none(f['bitrate']),
+                'fps': int_or_none(f.get('frameRate')),
+                'filesize_approx': int_or_none(f.get('size'), invscale=1024),
+                'container': f.get('containerFormat'),
+                'vcodec': f.get('videoCodecId'),
+                'height': int_or_none(f.get('height')),
+                'width': int_or_none(f.get('width')),
+                'url': video_url,
+            })
+        self._check_formats(formats, entry_id)
         self._sort_formats(formats)
 
         return {
-            'id': video_id,
+            'id': entry_id,
             'title': info['name'],
             'formats': formats,
-            'description': info.get('description'),
+            'description': clean_html(info.get('description')),
             'thumbnail': info.get('thumbnailUrl'),
             'duration': info.get('duration'),
             'timestamp': info.get('createdAt'),

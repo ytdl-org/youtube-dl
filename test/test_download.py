@@ -102,7 +102,7 @@ def generator(test_case):
 
         params = get_params(test_case.get('params', {}))
         if is_playlist and 'playlist' not in test_case:
-            params.setdefault('extract_flat', True)
+            params.setdefault('extract_flat', 'in_playlist')
             params.setdefault('skip_download', True)
 
         ydl = YoutubeDL(params, auto_init=False)
@@ -136,7 +136,9 @@ def generator(test_case):
                     # We're not using .download here sine that is just a shim
                     # for outside error handling, and returns the exit code
                     # instead of the result dict.
-                    res_dict = ydl.extract_info(test_case['url'])
+                    res_dict = ydl.extract_info(
+                        test_case['url'],
+                        force_generic_extractor=params.get('force_generic_extractor', False))
                 except (DownloadError, ExtractorError) as err:
                     # Check if the exception is not a network related one
                     if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError, compat_http_client.BadStatusLine) or (err.exc_info[0] == compat_HTTPError and err.exc_info[1].code == 503):
@@ -153,7 +155,7 @@ def generator(test_case):
                     break
 
             if is_playlist:
-                self.assertEqual(res_dict['_type'], 'playlist')
+                self.assertTrue(res_dict['_type'] in ['playlist', 'multi_video'])
                 self.assertTrue('entries' in res_dict)
                 expect_info_dict(self, res_dict, test_case.get('info_dict', {}))
 

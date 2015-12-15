@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     parse_iso8601,
@@ -8,7 +10,8 @@ from ..utils import (
 
 
 class FoxNewsIE(InfoExtractor):
-    _VALID_URL = r'https?://video\.foxnews\.com/v/(?:video-embed\.html\?video_id=)?(?P<id>\d+)'
+    IE_DESC = 'Fox News and Fox Business Video'
+    _VALID_URL = r'https?://(?P<host>video\.fox(?:news|business)\.com)/v/(?:video-embed\.html\?video_id=)?(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'http://video.foxnews.com/v/3937480/frozen-in-time/#sp=show-clips',
@@ -42,13 +45,19 @@ class FoxNewsIE(InfoExtractor):
             'url': 'http://video.foxnews.com/v/video-embed.html?video_id=3937480&d=video.foxnews.com',
             'only_matching': True,
         },
+        {
+            'url': 'http://video.foxbusiness.com/v/4442309889001',
+            'only_matching': True,
+        },
     ]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        host = mobj.group('host')
 
         video = self._download_json(
-            'http://video.foxnews.com/v/feed/video/%s.js?template=fox' % video_id, video_id)
+            'http://%s/v/feed/video/%s.js?template=fox' % (host, video_id), video_id)
 
         item = video['channel']['item']
         title = item['title']

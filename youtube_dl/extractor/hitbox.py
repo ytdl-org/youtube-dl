@@ -10,6 +10,7 @@ from ..utils import (
     float_or_none,
     int_or_none,
     compat_str,
+    determine_ext,
 )
 
 
@@ -42,7 +43,8 @@ class HitboxIE(InfoExtractor):
     def _extract_metadata(self, url, video_id):
         thumb_base = 'https://edge.sf.hitbox.tv'
         metadata = self._download_json(
-            '%s/%s' % (url, video_id), video_id)
+            '%s/%s' % (url, video_id), video_id,
+            'Downloading metadata JSON')
 
         date = 'media_live_since'
         media_type = 'livestream'
@@ -87,21 +89,41 @@ class HitboxIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        player_config = self._download_json(
+            'https://www.hitbox.tv/api/player/config/video/%s' % video_id,
+            video_id, 'Downloading video JSON')
+
+        formats = []
+        for video in player_config['clip']['bitrates']:
+            label = video.get('label')
+            if label == 'Auto':
+                continue
+            video_url = video.get('url')
+            if not video_url:
+                continue
+            bitrate = int_or_none(video.get('bitrate'))
+            if determine_ext(video_url) == 'm3u8':
+                if not video_url.startswith('http'):
+                    continue
+                formats.append({
+                    'url': video_url,
+                    'ext': 'mp4',
+                    'tbr': bitrate,
+                    'format_note': label,
+                    'protocol': 'm3u8_native',
+                })
+            else:
+                formats.append({
+                    'url': video_url,
+                    'tbr': bitrate,
+                    'format_note': label,
+                })
+        self._sort_formats(formats)
+
         metadata = self._extract_metadata(
             'https://www.hitbox.tv/api/media/video',
             video_id)
-
-        player_config = self._download_json(
-            'https://www.hitbox.tv/api/player/config/video/%s' % video_id,
-            video_id)
-
-        clip = player_config.get('clip')
-        video_url = clip.get('url')
-        res = clip.get('bitrates', [])[0].get('label')
-
-        metadata['resolution'] = res
-        metadata['url'] = video_url
-        metadata['protocol'] = 'm3u8'
+        metadata['formats'] = formats
 
         return metadata
 
@@ -129,10 +151,6 @@ class HitboxLiveIE(HitboxIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        metadata = self._extract_metadata(
-            'https://www.hitbox.tv/api/media/live',
-            video_id)
-
         player_config = self._download_json(
             'https://www.hitbox.tv/api/player/config/live/%s' % video_id,
             video_id)
@@ -147,20 +165,39 @@ class HitboxLiveIE(HitboxIE):
                 servers.append(base_url)
                 for stream in cdn.get('bitrates'):
                     label = stream.get('label')
-                    if label != 'Auto':
+                    if label == 'Auto':
+                        continue
+                    stream_url = stream.get('url')
+                    if not stream_url:
+                        continue
+                    bitrate = int_or_none(stream.get('bitrate'))
+                    if stream.get('provider') == 'hls' or determine_ext(stream_url) == 'm3u8':
+                        if not stream_url.startswith('http'):
+                            continue
                         formats.append({
-                            'url': '%s/%s' % (base_url, stream.get('url')),
+                            'url': stream_url,
                             'ext': 'mp4',
-                            'vbr': stream.get('bitrate'),
-                            'resolution': label,
+                            'tbr': bitrate,
+                            'format_note': label,
+                            'rtmp_live': True,
+                        })
+                    else:
+                        formats.append({
+                            'url': '%s/%s' % (base_url, stream_url),
+                            'ext': 'mp4',
+                            'tbr': bitrate,
                             'rtmp_live': True,
                             'format_note': host,
                             'page_url': url,
                             'player_url': 'http://www.hitbox.tv/static/player/flowplayer/flowplayer.commercial-3.2.16.swf',
                         })
-
         self._sort_formats(formats)
+
+        metadata = self._extract_metadata(
+            'https://www.hitbox.tv/api/media/live',
+            video_id)
         metadata['formats'] = formats
         metadata['is_live'] = True
         metadata['title'] = self._live_title(metadata.get('title'))
+
         return metadata

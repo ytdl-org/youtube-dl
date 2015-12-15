@@ -1,21 +1,26 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..compat import (
+    compat_HTTPError,
     compat_urllib_parse,
     compat_urllib_request,
 )
 from ..utils import (
     ExtractorError,
+    float_or_none,
+    int_or_none,
+    sanitized_Request,
 )
 
 
 class UdemyIE(InfoExtractor):
     IE_NAME = 'udemy'
     _VALID_URL = r'https?://www\.udemy\.com/(?:[^#]+#/lecture/|lecture/view/?\?lectureId=)(?P<id>\d+)'
-    _LOGIN_URL = 'https://www.udemy.com/join/login-submit/'
+    _LOGIN_URL = 'https://www.udemy.com/join/login-popup/?displayType=ajax&showSkipButton=1'
+    _ORIGIN_URL = 'https://www.udemy.com'
+    _SUCCESSFULLY_ENROLLED = '>You have enrolled in this course!<'
+    _ALREADY_ENROLLED = '>You are already taking this course.<'
     _NETRC_MACHINE = 'udemy'
 
     _TESTS = [{
@@ -30,6 +35,29 @@ class UdemyIE(InfoExtractor):
         },
         'skip': 'Requires udemy account credentials',
     }]
+
+    def _enroll_course(self, webpage, course_id):
+        enroll_url = self._search_regex(
+            r'href=(["\'])(?P<url>https?://(?:www\.)?udemy\.com/course/subscribe/.+?)\1',
+            webpage, 'enroll url', group='url',
+            default='https://www.udemy.com/course/subscribe/?courseId=%s' % course_id)
+        webpage = self._download_webpage(enroll_url, course_id, 'Enrolling in the course')
+        if self._SUCCESSFULLY_ENROLLED in webpage:
+            self.to_screen('%s: Successfully enrolled in' % course_id)
+        elif self._ALREADY_ENROLLED in webpage:
+            self.to_screen('%s: Already enrolled in' % course_id)
+
+    def _download_lecture(self, course_id, lecture_id):
+        return self._download_json(
+            'https://www.udemy.com/api-2.0/users/me/subscribed-courses/%s/lectures/%s?%s' % (
+                course_id, lecture_id, compat_urllib_parse.urlencode({
+                    'video_only': '',
+                    'auto_play': '',
+                    'fields[lecture]': 'title,description,asset',
+                    'fields[asset]': 'asset_type,stream_url,thumbnail_url,download_urls,data',
+                    'instructorPreviewMode': 'False',
+                })),
+            lecture_id, 'Downloading lecture JSON')
 
     def _handle_error(self, response):
         if not isinstance(response, dict):
@@ -52,12 +80,13 @@ class UdemyIE(InfoExtractor):
                 headers['X-Udemy-Client-Id'] = cookie.value
             elif cookie.name == 'access_token':
                 headers['X-Udemy-Bearer-Token'] = cookie.value
+                headers['X-Udemy-Authorization'] = 'Bearer %s' % cookie.value
 
         if isinstance(url_or_request, compat_urllib_request.Request):
             for header, value in headers.items():
                 url_or_request.add_header(header, value)
         else:
-            url_or_request = compat_urllib_request.Request(url_or_request, headers=headers)
+            url_or_request = sanitized_Request(url_or_request, headers=headers)
 
         response = super(UdemyIE, self)._download_json(url_or_request, video_id, note)
         self._handle_error(response)
@@ -69,77 +98,114 @@ class UdemyIE(InfoExtractor):
     def _login(self):
         (username, password) = self._get_login_info()
         if username is None:
-            raise ExtractorError(
-                'Udemy account is required, use --username and --password options to provide account credentials.',
-                expected=True)
-
-        login_popup = self._download_webpage(
-            'https://www.udemy.com/join/login-popup?displayType=ajax&showSkipButton=1', None,
-            'Downloading login popup')
-
-        if login_popup == '<div class="run-command close-popup redirect" data-url="https://www.udemy.com/"></div>':
             return
 
-        csrf = self._html_search_regex(
-            r'<input type="hidden" name="csrf" value="(.+?)"',
-            login_popup, 'csrf token')
+        login_popup = self._download_webpage(
+            self._LOGIN_URL, None, 'Downloading login popup')
 
-        login_form = {
-            'email': username,
-            'password': password,
-            'csrf': csrf,
-            'displayType': 'json',
-            'isSubmitted': '1',
-        }
-        request = compat_urllib_request.Request(
+        def is_logged(webpage):
+            return any(p in webpage for p in ['href="https://www.udemy.com/user/logout/', '>Logout<'])
+
+        # already logged in
+        if is_logged(login_popup):
+            return
+
+        login_form = self._form_hidden_inputs('login-form', login_popup)
+
+        login_form.update({
+            'email': username.encode('utf-8'),
+            'password': password.encode('utf-8'),
+        })
+
+        request = sanitized_Request(
             self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
-        response = self._download_json(
+        request.add_header('Referer', self._ORIGIN_URL)
+        request.add_header('Origin', self._ORIGIN_URL)
+
+        response = self._download_webpage(
             request, None, 'Logging in as %s' % username)
 
-        if 'returnUrl' not in response:
+        if not is_logged(response):
+            error = self._html_search_regex(
+                r'(?s)<div[^>]+class="form-errors[^"]*">(.+?)</div>',
+                response, 'error message', default=None)
+            if error:
+                raise ExtractorError('Unable to login: %s' % error, expected=True)
             raise ExtractorError('Unable to log in')
 
     def _real_extract(self, url):
         lecture_id = self._match_id(url)
 
-        lecture = self._download_json(
-            'https://www.udemy.com/api-1.1/lectures/%s' % lecture_id,
-            lecture_id, 'Downloading lecture JSON')
+        webpage = self._download_webpage(url, lecture_id)
 
-        asset_type = lecture.get('assetType') or lecture.get('asset_type')
+        course_id = self._search_regex(
+            r'data-course-id=["\'](\d+)', webpage, 'course id')
+
+        try:
+            lecture = self._download_lecture(course_id, lecture_id)
+        except ExtractorError as e:
+            # Error could possibly mean we are not enrolled in the course
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                self._enroll_course(webpage, course_id)
+                lecture_id = self._download_lecture(course_id, lecture_id)
+            else:
+                raise
+
+        title = lecture['title']
+        description = lecture.get('description')
+
+        asset = lecture['asset']
+
+        asset_type = asset.get('assetType') or asset.get('asset_type')
         if asset_type != 'Video':
             raise ExtractorError(
                 'Lecture %s is not a video' % lecture_id, expected=True)
 
-        asset = lecture['asset']
-
         stream_url = asset.get('streamUrl') or asset.get('stream_url')
-        mobj = re.search(r'(https?://www\.youtube\.com/watch\?v=.*)', stream_url)
-        if mobj:
-            return self.url_result(mobj.group(1), 'Youtube')
+        if stream_url:
+            youtube_url = self._search_regex(
+                r'(https?://www\.youtube\.com/watch\?v=.*)', stream_url, 'youtube URL', default=None)
+            if youtube_url:
+                return self.url_result(youtube_url, 'Youtube')
 
         video_id = asset['id']
         thumbnail = asset.get('thumbnailUrl') or asset.get('thumbnail_url')
-        duration = asset['data']['duration']
+        duration = float_or_none(asset.get('data', {}).get('duration'))
+        outputs = asset.get('data', {}).get('outputs', {})
 
-        download_url = asset.get('downloadUrl') or asset.get('download_url')
+        formats = []
+        for format_ in asset.get('download_urls', {}).get('Video', []):
+            video_url = format_.get('file')
+            if not video_url:
+                continue
+            format_id = format_.get('label')
+            f = {
+                'url': format_['file'],
+                'height': int_or_none(format_id),
+            }
+            if format_id:
+                # Some videos contain additional metadata (e.g.
+                # https://www.udemy.com/ios9-swift/learn/#/lecture/3383208)
+                output = outputs.get(format_id)
+                if isinstance(output, dict):
+                    f.update({
+                        'format_id': '%sp' % (output.get('label') or format_id),
+                        'width': int_or_none(output.get('width')),
+                        'height': int_or_none(output.get('height')),
+                        'vbr': int_or_none(output.get('video_bitrate_in_kbps')),
+                        'vcodec': output.get('video_codec'),
+                        'fps': int_or_none(output.get('frame_rate')),
+                        'abr': int_or_none(output.get('audio_bitrate_in_kbps')),
+                        'acodec': output.get('audio_codec'),
+                        'asr': int_or_none(output.get('audio_sample_rate')),
+                        'tbr': int_or_none(output.get('total_bitrate_in_kbps')),
+                        'filesize': int_or_none(output.get('file_size_in_bytes')),
+                    })
+                else:
+                    f['format_id'] = '%sp' % format_id
+            formats.append(f)
 
-        video = download_url.get('Video') or download_url.get('video')
-        video_480p = download_url.get('Video480p') or download_url.get('video_480p')
-
-        formats = [
-            {
-                'url': video_480p[0],
-                'format_id': '360p',
-            },
-            {
-                'url': video[0],
-                'format_id': '720p',
-            },
-        ]
-
-        title = lecture['title']
-        description = lecture['description']
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
@@ -153,9 +219,7 @@ class UdemyIE(InfoExtractor):
 
 class UdemyCourseIE(UdemyIE):
     IE_NAME = 'udemy:course'
-    _VALID_URL = r'https?://www\.udemy\.com/(?P<coursepath>[\da-z-]+)'
-    _SUCCESSFULLY_ENROLLED = '>You have enrolled in this course!<'
-    _ALREADY_ENROLLED = '>You are already taking this course.<'
+    _VALID_URL = r'https?://www\.udemy\.com/(?P<id>[\da-z-]+)'
     _TESTS = []
 
     @classmethod
@@ -163,24 +227,18 @@ class UdemyCourseIE(UdemyIE):
         return False if UdemyIE.suitable(url) else super(UdemyCourseIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        course_path = mobj.group('coursepath')
+        course_path = self._match_id(url)
+
+        webpage = self._download_webpage(url, course_path)
 
         response = self._download_json(
             'https://www.udemy.com/api-1.1/courses/%s' % course_path,
             course_path, 'Downloading course JSON')
 
-        course_id = int(response['id'])
-        course_title = response['title']
+        course_id = response['id']
+        course_title = response.get('title')
 
-        webpage = self._download_webpage(
-            'https://www.udemy.com/course/subscribe/?courseId=%s' % course_id,
-            course_id, 'Enrolling in the course')
-
-        if self._SUCCESSFULLY_ENROLLED in webpage:
-            self.to_screen('%s: Successfully enrolled in' % course_id)
-        elif self._ALREADY_ENROLLED in webpage:
-            self.to_screen('%s: Already enrolled in' % course_id)
+        self._enroll_course(webpage, course_id)
 
         response = self._download_json(
             'https://www.udemy.com/api-1.1/courses/%s/curriculum' % course_id,

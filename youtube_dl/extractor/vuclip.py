@@ -49,7 +49,7 @@ class VuClipIE(InfoExtractor):
         links_code = self._search_regex(
             r'''(?xs)
                 (?:
-                    <img\s+src="/im/play.gif".*?>|
+                    <img\s+src="[^"]*/play.gif".*?>|
                     <!--\ player\ end\ -->\s*</div><!--\ thumb\ end-->
                 )
                 (.*?)

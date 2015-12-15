@@ -30,3 +30,31 @@ class TMZIE(InfoExtractor):
             'description': self._og_search_description(webpage),
             'thumbnail': self._html_search_meta('ThumbURL', webpage),
         }
+
+
+class TMZArticleIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?tmz\.com/\d{4}/\d{2}/\d{2}/(?P<id>[^/]+)/?'
+    _TEST = {
+        'url': 'http://www.tmz.com/2015/04/19/bobby-brown-bobbi-kristina-awake-video-concert',
+        'md5': 'e482a414a38db73087450e3a6ce69d00',
+        'info_dict': {
+            'id': '0_6snoelag',
+            'ext': 'mp4',
+            'title': 'Bobby Brown Tells Crowd ... Bobbi Kristina is Awake',
+            'description': 'Bobby Brown stunned his audience during a concert Saturday night, when he told the crowd, "Bobbi is awake.  She\'s watching me."',
+        }
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+        embedded_video_info_str = self._html_search_regex(
+            r'tmzVideoEmbedV2\("([^)]+)"\);', webpage, 'embedded video info')
+
+        embedded_video_info = self._parse_json(
+            embedded_video_info_str, video_id,
+            transform_source=lambda s: s.replace('\\', ''))
+
+        return self.url_result(
+            'http://www.tmz.com/videos/%s/' % embedded_video_info['id'])

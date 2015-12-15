@@ -13,12 +13,13 @@ from ..utils import (
 
 
 class XuiteIE(InfoExtractor):
+    IE_DESC = '隨意窩Xuite影音'
     _REGEX_BASE64 = r'(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?'
     _VALID_URL = r'https?://vlog\.xuite\.net/(?:play|embed)/(?P<id>%s)' % _REGEX_BASE64
     _TESTS = [{
         # Audio
         'url': 'http://vlog.xuite.net/play/RGkzc1ZULTM4NjA5MTQuZmx2',
-        'md5': '63a42c705772aa53fd4c1a0027f86adf',
+        'md5': 'e79284c87b371424885448d11f6398c8',
         'info_dict': {
             'id': '3860914',
             'ext': 'mp3',
@@ -69,18 +70,26 @@ class XuiteIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def base64_decode_utf8(data):
+        return base64.b64decode(data.encode('utf-8')).decode('utf-8')
+
+    @staticmethod
+    def base64_encode_utf8(data):
+        return base64.b64encode(data.encode('utf-8')).decode('utf-8')
+
     def _extract_flv_config(self, media_id):
-        base64_media_id = base64.b64encode(media_id.encode('utf-8')).decode('utf-8')
+        base64_media_id = self.base64_encode_utf8(media_id)
         flv_config = self._download_xml(
             'http://vlog.xuite.net/flash/player?media=%s' % base64_media_id,
             'flv config')
         prop_dict = {}
         for prop in flv_config.findall('./property'):
-            prop_id = base64.b64decode(prop.attrib['id']).decode('utf-8')
+            prop_id = self.base64_decode_utf8(prop.attrib['id'])
             # CDATA may be empty in flv config
             if not prop.text:
                 continue
-            encoded_content = base64.b64decode(prop.text).decode('utf-8')
+            encoded_content = self.base64_decode_utf8(prop.text)
             prop_dict[prop_id] = compat_urllib_parse_unquote(encoded_content)
         return prop_dict
 

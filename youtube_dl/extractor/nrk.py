@@ -4,8 +4,9 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import compat_urlparse
 from ..utils import (
+    determine_ext,
     ExtractorError,
     float_or_none,
     parse_duration,
@@ -14,46 +15,58 @@ from ..utils import (
 
 
 class NRKIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?nrk\.no/(?:video|lyd)/[^/]+/(?P<id>[\dA-F]{16})'
+    _VALID_URL = r'(?:nrk:|https?://(?:www\.)?nrk\.no/video/PS\*)(?P<id>\d+)'
 
     _TESTS = [
         {
-            'url': 'http://www.nrk.no/video/dompap_og_andre_fugler_i_piip_show/D0FA54B5C8B6CE59/emne/piipshow/',
-            'md5': 'a6eac35052f3b242bb6bb7f43aed5886',
+            'url': 'http://www.nrk.no/video/PS*150533',
+            'md5': 'bccd850baebefe23b56d708a113229c2',
             'info_dict': {
                 'id': '150533',
                 'ext': 'flv',
                 'title': 'Dompap og andre fugler i Piip-Show',
-                'description': 'md5:d9261ba34c43b61c812cb6b0269a5c8f'
+                'description': 'md5:d9261ba34c43b61c812cb6b0269a5c8f',
+                'duration': 263,
             }
         },
         {
-            'url': 'http://www.nrk.no/lyd/lyd_av_oppleser_for_blinde/AEFDDD5473BA0198/',
-            'md5': '3471f2a51718195164e88f46bf427668',
+            'url': 'http://www.nrk.no/video/PS*154915',
+            'md5': '0b1493ba1aae7d9579a5ad5531bc395a',
             'info_dict': {
                 'id': '154915',
                 'ext': 'flv',
                 'title': 'Slik høres internett ut når du er blind',
                 'description': 'md5:a621f5cc1bd75c8d5104cb048c6b8568',
+                'duration': 20,
             }
         },
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
-        page = self._download_webpage(url, video_id)
-
-        video_id = self._html_search_regex(r'<div class="nrk-video" data-nrk-id="(\d+)">', page, 'video id')
+        video_id = self._match_id(url)
 
         data = self._download_json(
-            'http://v7.psapi.nrk.no/mediaelement/%s' % video_id, video_id, 'Downloading media JSON')
+            'http://v8.psapi.nrk.no/mediaelement/%s' % video_id,
+            video_id, 'Downloading media JSON')
 
-        if data['usageRights']['isGeoBlocked']:
-            raise ExtractorError('NRK har ikke rettig-heter til å vise dette programmet utenfor Norge', expected=True)
+        media_url = data.get('mediaUrl')
 
-        video_url = data['mediaUrl'] + '?hdcore=3.1.1&plugin=aasp-3.1.1.69.124'
+        if not media_url:
+            if data['usageRights']['isGeoBlocked']:
+                raise ExtractorError(
+                    'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
+                    expected=True)
+
+        if determine_ext(media_url) == 'f4m':
+            formats = self._extract_f4m_formats(
+                media_url + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81', video_id, f4m_id='hds')
+        else:
+            formats = [{
+                'url': media_url,
+                'ext': 'flv',
+            }]
+
+        duration = parse_duration(data.get('duration'))
 
         images = data.get('images')
         if images:
@@ -65,20 +78,61 @@ class NRKIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'url': video_url,
-            'ext': 'flv',
             'title': data['title'],
             'description': data['description'],
+            'duration': duration,
             'thumbnail': thumbnail,
+            'formats': formats,
         }
 
 
+class NRKPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?nrk\.no/(?!video)(?:[^/]+/)+(?P<id>[^/]+)'
+
+    _TESTS = [{
+        'url': 'http://www.nrk.no/troms/gjenopplev-den-historiske-solformorkelsen-1.12270763',
+        'info_dict': {
+            'id': 'gjenopplev-den-historiske-solformorkelsen-1.12270763',
+            'title': 'Gjenopplev den historiske solformørkelsen',
+            'description': 'md5:c2df8ea3bac5654a26fc2834a542feed',
+        },
+        'playlist_count': 2,
+    }, {
+        'url': 'http://www.nrk.no/kultur/bok/rivertonprisen-til-karin-fossum-1.12266449',
+        'info_dict': {
+            'id': 'rivertonprisen-til-karin-fossum-1.12266449',
+            'title': 'Rivertonprisen til Karin Fossum',
+            'description': 'Første kvinne på 15 år til å vinne krimlitteraturprisen.',
+        },
+        'playlist_count': 5,
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result('nrk:%s' % video_id, 'NRK')
+            for video_id in re.findall(
+                r'class="[^"]*\brich\b[^"]*"[^>]+data-video-id="([^"]+)"',
+                webpage)
+        ]
+
+        playlist_title = self._og_search_title(webpage)
+        playlist_description = self._og_search_description(webpage)
+
+        return self.playlist_result(
+            entries, playlist_id, playlist_title, playlist_description)
+
+
 class NRKTVIE(InfoExtractor):
-    _VALID_URL = r'(?P<baseurl>http://tv\.nrk(?:super)?\.no/)(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})(?:/\d{2}-\d{2}-\d{4})?(?:#del=(?P<part_id>\d+))?'
+    IE_DESC = 'NRK TV and NRK Radio'
+    _VALID_URL = r'(?P<baseurl>https?://(?:tv|radio)\.nrk(?:super)?\.no/)(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})(?:/\d{2}-\d{2}-\d{4})?(?:#del=(?P<part_id>\d+))?'
 
     _TESTS = [
         {
-            'url': 'http://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
+            'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
             'md5': 'adf2c5454fa2bf032f47a9f8fb351342',
             'info_dict': {
                 'id': 'MUHH48000314',
@@ -90,7 +144,7 @@ class NRKTVIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://tv.nrk.no/program/mdfp15000514',
+            'url': 'https://tv.nrk.no/program/mdfp15000514',
             'md5': '383650ece2b25ecec996ad7b5bb2a384',
             'info_dict': {
                 'id': 'mdfp15000514',
@@ -103,7 +157,7 @@ class NRKTVIE(InfoExtractor):
         },
         {
             # single playlist video
-            'url': 'http://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015#del=2',
+            'url': 'https://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015#del=2',
             'md5': 'adbd1dbd813edaf532b0a253780719c2',
             'info_dict': {
                 'id': 'MSPO40010515-part2',
@@ -115,7 +169,7 @@ class NRKTVIE(InfoExtractor):
             'skip': 'Only works from Norway',
         },
         {
-            'url': 'http://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015',
+            'url': 'https://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015',
             'playlist': [
                 {
                     'md5': '9480285eff92d64f06e02a5367970a7a',
@@ -146,44 +200,22 @@ class NRKTVIE(InfoExtractor):
                 'duration': 6947.5199999999995,
             },
             'skip': 'Only works from Norway',
+        },
+        {
+            'url': 'https://radio.nrk.no/serie/dagsnytt/NPUB21019315/12-07-2015#',
+            'only_matching': True,
         }
     ]
 
-    def _seconds2str(self, s):
-        return '%02d:%02d:%02d.%03d' % (s / 3600, (s % 3600) / 60, s % 60, (s % 1) * 1000)
-
-    def _debug_print(self, txt):
-        if self._downloader.params.get('verbose', False):
-            self.to_screen('[debug] %s' % txt)
-
-    def _get_subtitles(self, subtitlesurl, video_id, baseurl):
-        url = "%s%s" % (baseurl, subtitlesurl)
-        self._debug_print('%s: Subtitle url: %s' % (video_id, url))
-        captions = self._download_xml(
-            url, video_id, 'Downloading subtitles',
-            transform_source=lambda s: s.replace(r'<br />', '\r\n'))
-        lang = captions.get('lang', 'no')
-        ps = captions.findall('./{0}body/{0}div/{0}p'.format('{http://www.w3.org/ns/ttml}'))
-        srt = ''
-        for pos, p in enumerate(ps):
-            begin = parse_duration(p.get('begin'))
-            duration = parse_duration(p.get('dur'))
-            starttime = self._seconds2str(begin)
-            endtime = self._seconds2str(begin + duration)
-            srt += '%s\r\n%s --> %s\r\n%s\r\n\r\n' % (compat_str(pos), starttime, endtime, p.text)
-        return {lang: [
-            {'ext': 'ttml', 'url': url},
-            {'ext': 'srt', 'data': srt},
-        ]}
-
     def _extract_f4m(self, manifest_url, video_id):
-        return self._extract_f4m_formats(manifest_url + '?hdcore=3.1.1&plugin=aasp-3.1.1.69.124', video_id)
+        return self._extract_f4m_formats(
+            manifest_url + '?hdcore=3.1.1&plugin=aasp-3.1.1.69.124', video_id, f4m_id='hds')
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         part_id = mobj.group('part_id')
-        baseurl = mobj.group('baseurl')
+        base_url = mobj.group('baseurl')
 
         webpage = self._download_webpage(url, video_id)
 
@@ -239,15 +271,18 @@ class NRKTVIE(InfoExtractor):
 
         m3u8_url = re.search(r'data-hls-media="([^"]+)"', webpage)
         if m3u8_url:
-            formats.extend(self._extract_m3u8_formats(m3u8_url.group(1), video_id, 'mp4'))
+            formats.extend(self._extract_m3u8_formats(m3u8_url.group(1), video_id, 'mp4', m3u8_id='hls'))
         self._sort_formats(formats)
 
         subtitles_url = self._html_search_regex(
-            r'data-subtitlesurl[ ]*=[ ]*"([^"]+)"',
-            webpage, 'subtitle URL', default=None)
-        subtitles = None
+            r'data-subtitlesurl\s*=\s*(["\'])(?P<url>.+?)\1',
+            webpage, 'subtitle URL', default=None, group='url')
+        subtitles = {}
         if subtitles_url:
-            subtitles = self.extract_subtitles(subtitles_url, video_id, baseurl)
+            subtitles['no'] = [{
+                'ext': 'ttml',
+                'url': compat_urlparse.urljoin(base_url, subtitles_url),
+            }]
 
         return {
             'id': video_id,

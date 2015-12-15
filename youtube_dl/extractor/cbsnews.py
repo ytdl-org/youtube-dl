@@ -32,7 +32,7 @@ class CBSNewsIE(InfoExtractor):
                 'id': 'fort-hood-shooting-army-downplays-mental-illness-as-cause-of-attack',
                 'ext': 'flv',
                 'title': 'Fort Hood shooting: Army downplays mental illness as cause of attack',
-                'thumbnail': 'http://cbsnews2.cbsistatic.com/hub/i/r/2014/04/04/0c9fbc66-576b-41ca-8069-02d122060dd2/thumbnail/140x90/6dad7a502f88875ceac38202984b6d58/en-0404-werner-replace-640x360.jpg',
+                'thumbnail': 're:^https?://.*\.jpg$',
                 'duration': 205,
             },
             'params': {
@@ -67,9 +67,12 @@ class CBSNewsIE(InfoExtractor):
                 'format_id': format_id,
             }
             if uri.startswith('rtmp'):
+                play_path = re.sub(
+                    r'{slistFilePath}', '',
+                    uri.split('<break>')[-1].split('{break}')[-1])
                 fmt.update({
                     'app': 'ondemand?auth=cbs',
-                    'play_path': 'mp4:' + uri.split('<break>')[-1],
+                    'play_path': 'mp4:' + play_path,
                     'player_url': 'http://www.cbsnews.com/[[IMPORT]]/vidtech.cbsinteractive.com/player/3_3_0/CBSI_PLAYER_HD.swf',
                     'page_url': 'http://www.cbsnews.com',
                     'ext': 'flv',

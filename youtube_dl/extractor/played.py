@@ -5,12 +5,10 @@ import re
 import os.path
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -38,9 +36,7 @@ class PlayedIE(InfoExtractor):
         if m_error:
             raise ExtractorError(m_error.group('msg'), expected=True)
 
-        fields = re.findall(
-            r'type="hidden" name="([^"]+)"\s+value="([^"]+)">', orig_webpage)
-        data = dict(fields)
+        data = self._hidden_inputs(orig_webpage)
 
         self._sleep(2, video_id)
 
@@ -48,7 +44,7 @@ class PlayedIE(InfoExtractor):
         headers = {
             b'Content-Type': b'application/x-www-form-urlencoded',
         }
-        req = compat_urllib_request.Request(url, post, headers)
+        req = sanitized_Request(url, post, headers)
         webpage = self._download_webpage(
             req, video_id, note='Downloading video page ...')
 

@@ -2,6 +2,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import (
+    int_or_none,
+    float_or_none,
+)
 
 
 class TenPlayIE(InfoExtractor):
@@ -49,18 +53,23 @@ class TenPlayIE(InfoExtractor):
             if protocol == 'rtmp':
                 url = url.replace('&mp4:', '')
 
+                tbr = int_or_none(rendition.get('encodingRate'), 1000)
+
             formats.append({
-                'format_id': '_'.join(['rtmp', rendition['videoContainer'].lower(), rendition['videoCodec'].lower()]),
-                'width': rendition['frameWidth'],
-                'height': rendition['frameHeight'],
-                'tbr': rendition['encodingRate'] / 1024,
-                'filesize': rendition['size'],
+                'format_id': '_'.join(
+                    ['rtmp', rendition['videoContainer'].lower(),
+                     rendition['videoCodec'].lower(), '%sk' % tbr]),
+                'width': int_or_none(rendition['frameWidth']),
+                'height': int_or_none(rendition['frameHeight']),
+                'tbr': tbr,
+                'filesize': int_or_none(rendition['size']),
                 'protocol': protocol,
                 'ext': ext,
                 'vcodec': rendition['videoCodec'].lower(),
                 'container': rendition['videoContainer'].lower(),
                 'url': url,
             })
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
@@ -74,8 +83,8 @@ class TenPlayIE(InfoExtractor):
                 'url': json['thumbnailURL']
             }],
             'thumbnail': json['videoStillURL'],
-            'duration': json['length'] / 1000,
-            'timestamp': float(json['creationDate']) / 1000,
-            'uploader': json['customFields']['production_company_distributor'] if 'production_company_distributor' in json['customFields'] else 'TENplay',
-            'view_count': json['playsTotal']
+            'duration': float_or_none(json.get('length'), 1000),
+            'timestamp': float_or_none(json.get('creationDate'), 1000),
+            'uploader': json.get('customFields', {}).get('production_company_distributor') or 'TENplay',
+            'view_count': int_or_none(json.get('playsTotal')),
         }

@@ -5,7 +5,7 @@ import os
 from os.path import dirname as dirn
 import sys
 
-sys.path.append(dirn(dirn((os.path.abspath(__file__)))))
+sys.path.insert(0, dirn(dirn((os.path.abspath(__file__)))))
 import youtube_dl
 
 BASH_COMPLETION_FILE = "youtube-dl.bash-completion"

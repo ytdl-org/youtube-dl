@@ -113,7 +113,7 @@ class WatIE(InfoExtractor):
             video_url = self._download_webpage(
                 'http://www.wat.tv/get%s?token=%s&getURL=1&country=%s' % (webid, compute_token(webid), country),
                 real_id,
-                'Downloding %s video URL' % fmt[0],
+                'Downloading %s video URL' % fmt[0],
                 'Failed to download %s video URL' % fmt[0],
                 False)
             if not video_url:

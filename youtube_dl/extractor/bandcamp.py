@@ -10,6 +10,8 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    float_or_none,
+    int_or_none,
 )
 
 
@@ -52,11 +54,11 @@ class BandcampIE(InfoExtractor):
                     ext, abr_str = format_id.split('-', 1)
                     formats.append({
                         'format_id': format_id,
-                        'url': format_url,
+                        'url': self._proto_relative_url(format_url, 'http:'),
                         'ext': ext,
                         'vcodec': 'none',
                         'acodec': ext,
-                        'abr': int(abr_str),
+                        'abr': int_or_none(abr_str),
                     })
 
                 self._sort_formats(formats)
@@ -65,14 +67,14 @@ class BandcampIE(InfoExtractor):
                     'id': compat_str(data['id']),
                     'title': data['title'],
                     'formats': formats,
-                    'duration': float(data['duration']),
+                    'duration': float_or_none(data.get('duration')),
                 }
             else:
                 raise ExtractorError('No free songs found')
 
         download_link = m_download.group(1)
         video_id = self._search_regex(
-            r'(?ms)var TralbumData = {.*?id: (?P<id>\d+),?$',
+            r'(?ms)var TralbumData = .*?[{,]\s*id: (?P<id>\d+),?$',
             webpage, 'video id')
 
         download_webpage = self._download_webpage(download_link, video_id, 'Downloading free downloads page')
@@ -93,8 +95,8 @@ class BandcampIE(InfoExtractor):
         final_url_webpage = self._download_webpage(request_url, video_id, 'Requesting download url')
         # If we could correctly generate the .rand field the url would be
         # in the "download_url" key
-        final_url = self._search_regex(
-            r'"retry_url":"(.*?)"', final_url_webpage, 'final video URL')
+        final_url = self._proto_relative_url(self._search_regex(
+            r'"retry_url":"(.+?)"', final_url_webpage, 'final video URL'), 'http:')
 
         return {
             'id': video_id,

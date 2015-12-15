@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import re
+import itertools
 
 from .common import InfoExtractor
 
@@ -38,11 +39,14 @@ class VierIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         video_id = self._search_regex(
-            r'"nid"\s*:\s*"(\d+)"', webpage, 'video id')
+            [r'data-nid="(\d+)"', r'"nid"\s*:\s*"(\d+)"'],
+            webpage, 'video id')
         application = self._search_regex(
-            r'"application"\s*:\s*"([^"]+)"', webpage, 'application', default='vier_vod')
+            [r'data-application="([^"]+)"', r'"application"\s*:\s*"([^"]+)"'],
+            webpage, 'application', default='vier_vod')
         filename = self._search_regex(
-            r'"filename"\s*:\s*"([^"]+)"', webpage, 'filename')
+            [r'data-filename="([^"]+)"', r'"filename"\s*:\s*"([^"]+)"'],
+            webpage, 'filename')
 
         playlist_url = 'http://vod.streamcloud.be/%s/mp4:_definst_/%s.mp4/playlist.m3u8' % (application, filename)
         formats = self._extract_m3u8_formats(playlist_url, display_id, 'mp4')
@@ -88,31 +92,27 @@ class VierVideosIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         program = mobj.group('program')
 
-        webpage = self._download_webpage(url, program)
-
         page_id = mobj.group('page')
         if page_id:
             page_id = int(page_id)
             start_page = page_id
-            last_page = start_page + 1
             playlist_id = '%s-page%d' % (program, page_id)
         else:
             start_page = 0
-            last_page = int(self._search_regex(
-                r'videos\?page=(\d+)">laatste</a>',
-                webpage, 'last page', default=0)) + 1
             playlist_id = program
 
         entries = []
-        for current_page_id in range(start_page, last_page):
+        for current_page_id in itertools.count(start_page):
             current_page = self._download_webpage(
                 'http://www.vier.be/%s/videos?page=%d' % (program, current_page_id),
                 program,
-                'Downloading page %d' % (current_page_id + 1)) if current_page_id != page_id else webpage
+                'Downloading page %d' % (current_page_id + 1))
             page_entries = [
                 self.url_result('http://www.vier.be' + video_url, 'Vier')
                 for video_url in re.findall(
                     r'<h3><a href="(/[^/]+/videos/[^/]+(?:/\d+)?)">', current_page)]
             entries.extend(page_entries)
+            if page_id or '>Meer<' not in current_page:
+                break
 
         return self.playlist_result(entries, playlist_id)

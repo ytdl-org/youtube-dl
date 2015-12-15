@@ -29,6 +29,7 @@ class SexyKarmaIE(InfoExtractor):
             'view_count': int,
             'comment_count': int,
             'categories': list,
+            'age_limit': 18,
         }
     }, {
         'url': 'http://www.sexykarma.com/gonewild/video/pot-pixie-tribute-8Id6EZPbuHf.html',

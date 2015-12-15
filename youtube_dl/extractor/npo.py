@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     fix_xml_ampersands,
@@ -7,7 +9,6 @@ from ..utils import (
     qualities,
     strip_jsonp,
     unified_strdate,
-    url_basename,
 )
 
 
@@ -16,13 +17,42 @@ class NPOBaseIE(InfoExtractor):
         token_page = self._download_webpage(
             'http://ida.omroep.nl/npoplayer/i.js',
             video_id, note='Downloading token')
-        return self._search_regex(
+        token = self._search_regex(
             r'npoplayer\.token = "(.+?)"', token_page, 'token')
+        # Decryption algorithm extracted from http://npoplayer.omroep.nl/csjs/npoplayer-min.js
+        token_l = list(token)
+        first = second = None
+        for i in range(5, len(token_l) - 4):
+            if token_l[i].isdigit():
+                if first is None:
+                    first = i
+                elif second is None:
+                    second = i
+        if first is None or second is None:
+            first = 12
+            second = 13
+
+        token_l[first], token_l[second] = token_l[second], token_l[first]
+
+        return ''.join(token_l)
 
 
 class NPOIE(NPOBaseIE):
-    IE_NAME = 'npo.nl'
-    _VALID_URL = r'https?://(?:www\.)?npo\.nl/(?!live|radio)[^/]+/[^/]+/(?P<id>[^/?]+)'
+    IE_NAME = 'npo'
+    IE_DESC = 'npo.nl and ntr.nl'
+    _VALID_URL = r'''(?x)
+                    (?:
+                        npo:|
+                        https?://
+                            (?:www\.)?
+                            (?:
+                                npo\.nl/(?!live|radio)(?:[^/]+/){2}|
+                                ntr\.nl/(?:[^/]+/){2,}|
+                                omroepwnl\.nl/video/fragment/[^/]+__
+                            )
+                        )
+                        (?P<id>[^/?#]+)
+                '''
 
     _TESTS = [
         {
@@ -42,7 +72,7 @@ class NPOIE(NPOBaseIE):
             'info_dict': {
                 'id': 'VARA_101191800',
                 'ext': 'm4v',
-                'title': 'De Mega Mike & Mega Thomas show',
+                'title': 'De Mega Mike & Mega Thomas show: The best of.',
                 'description': 'md5:3b74c97fc9d6901d5a665aac0e5400f4',
                 'upload_date': '20090227',
                 'duration': 2400,
@@ -54,8 +84,8 @@ class NPOIE(NPOBaseIE):
             'info_dict': {
                 'id': 'VPWON_1169289',
                 'ext': 'm4v',
-                'title': 'Tegenlicht',
-                'description': 'md5:d6476bceb17a8c103c76c3b708f05dd1',
+                'title': 'Tegenlicht: De toekomst komt uit Afrika',
+                'description': 'md5:52cf4eefbc96fffcbdc06d024147abea',
                 'upload_date': '20130225',
                 'duration': 3000,
             },
@@ -84,6 +114,30 @@ class NPOIE(NPOBaseIE):
                 'title': 'Hoe gaat Europa verder na Parijs?',
             },
         },
+        {
+            'url': 'http://www.ntr.nl/Aap-Poot-Pies/27/detail/Aap-poot-pies/VPWON_1233944#content',
+            'md5': '01c6a2841675995da1f0cf776f03a9c3',
+            'info_dict': {
+                'id': 'VPWON_1233944',
+                'ext': 'm4v',
+                'title': 'Aap, poot, pies',
+                'description': 'md5:c9c8005d1869ae65b858e82c01a91fde',
+                'upload_date': '20150508',
+                'duration': 599,
+            },
+        },
+        {
+            'url': 'http://www.omroepwnl.nl/video/fragment/vandaag-de-dag-verkiezingen__POMS_WNL_853698',
+            'md5': 'd30cd8417b8b9bca1fdff27428860d08',
+            'info_dict': {
+                'id': 'POW_00996502',
+                'ext': 'm4v',
+                'title': '''"Dit is wel een 'landslide'..."''',
+                'description': 'md5:f8d66d537dfb641380226e31ca57b8e8',
+                'upload_date': '20150508',
+                'duration': 462,
+            },
+        }
     ]
 
     def _real_extract(self, url):
@@ -92,11 +146,23 @@ class NPOIE(NPOBaseIE):
 
     def _get_info(self, video_id):
         metadata = self._download_json(
-            'http://e.omroep.nl/metadata/aflevering/%s' % video_id,
+            'http://e.omroep.nl/metadata/%s' % video_id,
             video_id,
             # We have to remove the javascript callback
             transform_source=strip_jsonp,
         )
+
+        # For some videos actual video id (prid) is different (e.g. for
+        # http://www.omroepwnl.nl/video/fragment/vandaag-de-dag-verkiezingen__POMS_WNL_853698
+        # video id is POMS_WNL_853698 but prid is POW_00996502)
+        video_id = metadata.get('prid') or video_id
+
+        # titel is too generic in some cases so utilize aflevering_titel as well
+        # when available (e.g. http://tegenlicht.vpro.nl/afleveringen/2014-2015/access-to-africa.html)
+        title = metadata['titel']
+        sub_title = metadata.get('aflevering_titel')
+        if sub_title and sub_title != title:
+            title += ': %s' % sub_title
 
         token = self._get_token(video_id)
 
@@ -170,8 +236,8 @@ class NPOIE(NPOBaseIE):
 
         return {
             'id': video_id,
-            'title': metadata['titel'],
-            'description': metadata['info'],
+            'title': title,
+            'description': metadata.get('info'),
             'thumbnail': metadata.get('images', [{'url': None}])[-1]['url'],
             'upload_date': unified_strdate(metadata.get('gidsdatum')),
             'duration': parse_duration(metadata.get('tijdsduur')),
@@ -219,7 +285,8 @@ class NPOLiveIE(NPOBaseIE):
         if streams:
             for stream in streams:
                 stream_type = stream.get('type').lower()
-                if stream_type == 'ss':
+                # smooth streaming is not supported
+                if stream_type in ['ss', 'ms']:
                     continue
                 stream_info = self._download_json(
                     'http://ida.omroep.nl/aapi/?stream=%s&token=%s&type=jsonp'
@@ -230,7 +297,10 @@ class NPOLiveIE(NPOBaseIE):
                 stream_url = self._download_json(
                     stream_info['stream'], display_id,
                     'Downloading %s URL' % stream_type,
-                    transform_source=strip_jsonp)
+                    'Unable to download %s URL' % stream_type,
+                    transform_source=strip_jsonp, fatal=False)
+                if not stream_url:
+                    continue
                 if stream_type == 'hds':
                     f4m_formats = self._extract_f4m_formats(stream_url, display_id)
                     # f4m downloader downloads only piece of live stream
@@ -242,6 +312,7 @@ class NPOLiveIE(NPOBaseIE):
                 else:
                     formats.append({
                         'url': stream_url,
+                        'preference': -10,
                     })
 
         self._sort_formats(formats)
@@ -335,9 +406,9 @@ class NPORadioFragmentIE(InfoExtractor):
         }
 
 
-class TegenlichtVproIE(NPOIE):
-    IE_NAME = 'tegenlicht.vpro.nl'
-    _VALID_URL = r'https?://tegenlicht\.vpro\.nl/afleveringen/.*?'
+class VPROIE(NPOIE):
+    IE_NAME = 'vpro'
+    _VALID_URL = r'https?://(?:www\.)?(?:tegenlicht\.)?vpro\.nl/(?:[^/]+/){2,}(?P<id>[^/]+)\.html'
 
     _TESTS = [
         {
@@ -346,17 +417,72 @@ class TegenlichtVproIE(NPOIE):
             'info_dict': {
                 'id': 'VPWON_1169289',
                 'ext': 'm4v',
-                'title': 'Tegenlicht',
-                'description': 'md5:d6476bceb17a8c103c76c3b708f05dd1',
+                'title': 'De toekomst komt uit Afrika',
+                'description': 'md5:52cf4eefbc96fffcbdc06d024147abea',
                 'upload_date': '20130225',
             },
         },
+        {
+            'url': 'http://www.vpro.nl/programmas/2doc/2015/sergio-herman.html',
+            'info_dict': {
+                'id': 'sergio-herman',
+                'title': 'Sergio Herman: Fucking perfect',
+            },
+            'playlist_count': 2,
+        },
+        {
+            # playlist with youtube embed
+            'url': 'http://www.vpro.nl/programmas/2doc/2015/education-education.html',
+            'info_dict': {
+                'id': 'education-education',
+                'title': '2Doc',
+            },
+            'playlist_count': 2,
+        }
     ]
 
     def _real_extract(self, url):
-        name = url_basename(url)
-        webpage = self._download_webpage(url, name)
-        urn = self._html_search_meta('mediaurn', webpage)
-        info_page = self._download_json(
-            'http://rs.vpro.nl/v2/api/media/%s.json' % urn, name)
-        return self._get_info(info_page['mid'])
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result('npo:%s' % video_id if not video_id.startswith('http') else video_id)
+            for video_id in re.findall(r'data-media-id="([^"]+)"', webpage)
+        ]
+
+        playlist_title = self._search_regex(
+            r'<title>\s*([^>]+?)\s*-\s*Teledoc\s*-\s*VPRO\s*</title>',
+            webpage, 'playlist title', default=None) or self._og_search_title(webpage)
+
+        return self.playlist_result(entries, playlist_id, playlist_title)
+
+
+class WNLIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?omroepwnl\.nl/video/detail/(?P<id>[^/]+)__\d+'
+
+    _TEST = {
+        'url': 'http://www.omroepwnl.nl/video/detail/vandaag-de-dag-6-mei__060515',
+        'info_dict': {
+            'id': 'vandaag-de-dag-6-mei',
+            'title': 'Vandaag de Dag 6 mei',
+        },
+        'playlist_count': 4,
+    }
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result('npo:%s' % video_id, 'NPO')
+            for video_id, part in re.findall(
+                r'<a[^>]+href="([^"]+)"[^>]+class="js-mid"[^>]*>(Deel \d+)', webpage)
+        ]
+
+        playlist_title = self._html_search_regex(
+            r'(?s)<h1[^>]+class="subject"[^>]*>(.+?)</h1>',
+            webpage, 'playlist title')
+
+        return self.playlist_result(entries, playlist_id, playlist_title)

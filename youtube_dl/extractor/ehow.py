@@ -1,9 +1,7 @@
 from __future__ import unicode_literals
 
-from ..compat import (
-    compat_urllib_parse,
-)
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse_unquote
 
 
 class EHowIE(InfoExtractor):
@@ -26,7 +24,7 @@ class EHowIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         video_url = self._search_regex(
             r'(?:file|source)=(http[^\'"&]*)', webpage, 'video URL')
-        final_url = compat_urllib_parse.unquote(video_url)
+        final_url = compat_urllib_parse_unquote(video_url)
         uploader = self._html_search_meta('uploader', webpage)
         title = self._og_search_title(webpage).replace(' | eHow', '')
 

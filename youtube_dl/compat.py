@@ -1,14 +1,20 @@
 from __future__ import unicode_literals
 
+import binascii
 import collections
+import email
 import getpass
+import io
 import optparse
 import os
 import re
+import shlex
 import shutil
 import socket
 import subprocess
 import sys
+import itertools
+import xml.etree.ElementTree
 
 
 try:
@@ -37,19 +43,24 @@ except ImportError:  # Python 2
     import urlparse as compat_urlparse
 
 try:
+    import urllib.response as compat_urllib_response
+except ImportError:  # Python 2
+    import urllib as compat_urllib_response
+
+try:
     import http.cookiejar as compat_cookiejar
 except ImportError:  # Python 2
     import cookielib as compat_cookiejar
 
 try:
+    import http.cookies as compat_cookies
+except ImportError:  # Python 2
+    import Cookie as compat_cookies
+
+try:
     import html.entities as compat_html_entities
 except ImportError:  # Python 2
     import htmlentitydefs as compat_html_entities
-
-try:
-    import html.parser as compat_html_parser
-except ImportError:  # Python 2
-    import HTMLParser as compat_html_parser
 
 try:
     import http.client as compat_http_client
@@ -79,47 +90,113 @@ except ImportError:
     import BaseHTTPServer as compat_http_server
 
 try:
+    compat_str = unicode  # Python 2
+except NameError:
+    compat_str = str
+
+try:
+    from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
     from urllib.parse import unquote as compat_urllib_parse_unquote
-except ImportError:
-    def compat_urllib_parse_unquote(string, encoding='utf-8', errors='replace'):
-        if string == '':
+    from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
+except ImportError:  # Python 2
+    _asciire = (compat_urllib_parse._asciire if hasattr(compat_urllib_parse, '_asciire')
+                else re.compile('([\x00-\x7f]+)'))
+
+    # HACK: The following are the correct unquote_to_bytes, unquote and unquote_plus
+    # implementations from cpython 3.4.3's stdlib. Python 2's version
+    # is apparently broken (see https://github.com/rg3/youtube-dl/pull/6244)
+
+    def compat_urllib_parse_unquote_to_bytes(string):
+        """unquote_to_bytes('abc%20def') -> b'abc def'."""
+        # Note: strings are encoded as UTF-8. This is only an issue if it contains
+        # unescaped non-ASCII characters, which URIs should not.
+        if not string:
+            # Is it a string-like object?
+            string.split
+            return b''
+        if isinstance(string, compat_str):
+            string = string.encode('utf-8')
+        bits = string.split(b'%')
+        if len(bits) == 1:
             return string
-        res = string.split('%')
-        if len(res) == 1:
+        res = [bits[0]]
+        append = res.append
+        for item in bits[1:]:
+            try:
+                append(compat_urllib_parse._hextochr[item[:2]])
+                append(item[2:])
+            except KeyError:
+                append(b'%')
+                append(item)
+        return b''.join(res)
+
+    def compat_urllib_parse_unquote(string, encoding='utf-8', errors='replace'):
+        """Replace %xx escapes by their single-character equivalent. The optional
+        encoding and errors parameters specify how to decode percent-encoded
+        sequences into Unicode characters, as accepted by the bytes.decode()
+        method.
+        By default, percent-encoded sequences are decoded with UTF-8, and invalid
+        sequences are replaced by a placeholder character.
+
+        unquote('abc%20def') -> 'abc def'.
+        """
+        if '%' not in string:
+            string.split
             return string
         if encoding is None:
             encoding = 'utf-8'
         if errors is None:
             errors = 'replace'
-        # pct_sequence: contiguous sequence of percent-encoded bytes, decoded
-        pct_sequence = b''
-        string = res[0]
-        for item in res[1:]:
-            try:
-                if not item:
-                    raise ValueError
-                pct_sequence += item[:2].decode('hex')
-                rest = item[2:]
-                if not rest:
-                    # This segment was just a single percent-encoded character.
-                    # May be part of a sequence of code units, so delay decoding.
-                    # (Stored in pct_sequence).
-                    continue
-            except ValueError:
-                rest = '%' + item
-            # Encountered non-percent-encoded characters. Flush the current
-            # pct_sequence.
-            string += pct_sequence.decode(encoding, errors) + rest
-            pct_sequence = b''
-        if pct_sequence:
-            # Flush the final pct_sequence
-            string += pct_sequence.decode(encoding, errors)
-        return string
+        bits = _asciire.split(string)
+        res = [bits[0]]
+        append = res.append
+        for i in range(1, len(bits), 2):
+            append(compat_urllib_parse_unquote_to_bytes(bits[i]).decode(encoding, errors))
+            append(bits[i + 1])
+        return ''.join(res)
+
+    def compat_urllib_parse_unquote_plus(string, encoding='utf-8', errors='replace'):
+        """Like unquote(), but also replace plus signs by spaces, as required for
+        unquoting HTML form values.
+
+        unquote_plus('%7e/abc+def') -> '~/abc def'
+        """
+        string = string.replace('+', ' ')
+        return compat_urllib_parse_unquote(string, encoding, errors)
 
 try:
-    compat_str = unicode  # Python 2
-except NameError:
-    compat_str = str
+    from urllib.request import DataHandler as compat_urllib_request_DataHandler
+except ImportError:  # Python < 3.4
+    # Ported from CPython 98774:1733b3bd46db, Lib/urllib/request.py
+    class compat_urllib_request_DataHandler(compat_urllib_request.BaseHandler):
+        def data_open(self, req):
+            # data URLs as specified in RFC 2397.
+            #
+            # ignores POSTed data
+            #
+            # syntax:
+            # dataurl   := "data:" [ mediatype ] [ ";base64" ] "," data
+            # mediatype := [ type "/" subtype ] *( ";" parameter )
+            # data      := *urlchar
+            # parameter := attribute "=" value
+            url = req.get_full_url()
+
+            scheme, data = url.split(":", 1)
+            mediatype, data = data.split(",", 1)
+
+            # even base64 encoded data URLs might be quoted so unquote in any case:
+            data = compat_urllib_parse_unquote_to_bytes(data)
+            if mediatype.endswith(";base64"):
+                data = binascii.a2b_base64(data)
+                mediatype = mediatype[:-7]
+
+            if not mediatype:
+                mediatype = "text/plain;charset=US-ASCII"
+
+            headers = email.message_from_string(
+                "Content-type: %s\nContent-length: %d\n" % (mediatype, len(data)))
+
+            return compat_urllib_response.addinfourl(io.BytesIO(data), headers, url)
 
 try:
     compat_basestring = basestring  # Python 2
@@ -136,6 +213,43 @@ try:
 except ImportError:  # Python 2.6
     from xml.parsers.expat import ExpatError as compat_xml_parse_error
 
+if sys.version_info[0] >= 3:
+    compat_etree_fromstring = xml.etree.ElementTree.fromstring
+else:
+    # python 2.x tries to encode unicode strings with ascii (see the
+    # XMLParser._fixtext method)
+    etree = xml.etree.ElementTree
+
+    try:
+        _etree_iter = etree.Element.iter
+    except AttributeError:  # Python <=2.6
+        def _etree_iter(root):
+            for el in root.findall('*'):
+                yield el
+                for sub in _etree_iter(el):
+                    yield sub
+
+    # on 2.6 XML doesn't have a parser argument, function copied from CPython
+    # 2.7 source
+    def _XML(text, parser=None):
+        if not parser:
+            parser = etree.XMLParser(target=etree.TreeBuilder())
+        parser.feed(text)
+        return parser.close()
+
+    def _element_factory(*args, **kwargs):
+        el = etree.Element(*args, **kwargs)
+        for k, v in el.items():
+            if isinstance(v, bytes):
+                el.set(k, v.decode('utf-8'))
+        return el
+
+    def compat_etree_fromstring(text):
+        doc = _XML(text, parser=etree.XMLParser(target=etree.TreeBuilder(element_factory=_element_factory)))
+        for el in _etree_iter(doc):
+            if el.text is not None and isinstance(el.text, bytes):
+                el.text = el.text.decode('utf-8')
+        return doc
 
 try:
     from urllib.parse import parse_qs as compat_parse_qs
@@ -192,6 +306,17 @@ except ImportError:  # Python < 3.3
             return s
         else:
             return "'" + s.replace("'", "'\"'\"'") + "'"
+
+
+if sys.version_info >= (2, 7, 3):
+    compat_shlex_split = shlex.split
+else:
+    # Working around shlex issue with unicode strings on some python 2
+    # versions (see http://bugs.python.org/issue1548891)
+    def compat_shlex_split(s, comments=False, posix=True):
+        if isinstance(s, compat_str):
+            s = s.encode('utf-8')
+        return shlex.split(s, comments, posix)
 
 
 def compat_ord(c):
@@ -371,54 +496,82 @@ if hasattr(shutil, 'get_terminal_size'):  # Python >= 3.3
 else:
     _terminal_size = collections.namedtuple('terminal_size', ['columns', 'lines'])
 
-    def compat_get_terminal_size():
-        columns = compat_getenv('COLUMNS', None)
+    def compat_get_terminal_size(fallback=(80, 24)):
+        columns = compat_getenv('COLUMNS')
         if columns:
             columns = int(columns)
         else:
             columns = None
-        lines = compat_getenv('LINES', None)
+        lines = compat_getenv('LINES')
         if lines:
             lines = int(lines)
         else:
             lines = None
 
-        try:
-            sp = subprocess.Popen(
-                ['stty', 'size'],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out, err = sp.communicate()
-            lines, columns = map(int, out.split())
-        except:
-            pass
+        if columns is None or lines is None or columns <= 0 or lines <= 0:
+            try:
+                sp = subprocess.Popen(
+                    ['stty', 'size'],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                out, err = sp.communicate()
+                _lines, _columns = map(int, out.split())
+            except Exception:
+                _columns, _lines = _terminal_size(*fallback)
+
+            if columns is None or columns <= 0:
+                columns = _columns
+            if lines is None or lines <= 0:
+                lines = _lines
         return _terminal_size(columns, lines)
 
+try:
+    itertools.count(start=0, step=1)
+    compat_itertools_count = itertools.count
+except TypeError:  # Python 2.6
+    def compat_itertools_count(start=0, step=1):
+        n = start
+        while True:
+            yield n
+            n += step
+
+if sys.version_info >= (3, 0):
+    from tokenize import tokenize as compat_tokenize_tokenize
+else:
+    from tokenize import generate_tokens as compat_tokenize_tokenize
 
 __all__ = [
     'compat_HTTPError',
     'compat_basestring',
     'compat_chr',
     'compat_cookiejar',
+    'compat_cookies',
+    'compat_etree_fromstring',
     'compat_expanduser',
     'compat_get_terminal_size',
     'compat_getenv',
     'compat_getpass',
     'compat_html_entities',
-    'compat_html_parser',
     'compat_http_client',
     'compat_http_server',
+    'compat_itertools_count',
     'compat_kwargs',
     'compat_ord',
     'compat_parse_qs',
     'compat_print',
+    'compat_shlex_split',
     'compat_socket_create_connection',
     'compat_str',
     'compat_subprocess_get_DEVNULL',
+    'compat_tokenize_tokenize',
     'compat_urllib_error',
     'compat_urllib_parse',
     'compat_urllib_parse_unquote',
+    'compat_urllib_parse_unquote_plus',
+    'compat_urllib_parse_unquote_to_bytes',
     'compat_urllib_parse_urlparse',
     'compat_urllib_request',
+    'compat_urllib_request_DataHandler',
+    'compat_urllib_response',
     'compat_urlparse',
     'compat_urlretrieve',
     'compat_xml_parse_error',

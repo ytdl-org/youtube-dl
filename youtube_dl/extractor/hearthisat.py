@@ -4,12 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-    compat_urlparse,
-)
+from ..compat import compat_urlparse
 from ..utils import (
     HEADRequest,
+    sanitized_Request,
     str_to_int,
     urlencode_postdata,
     urlhandle_detect_ext,
@@ -47,7 +45,7 @@ class HearThisAtIE(InfoExtractor):
             r'intTrackId\s*=\s*(\d+)', webpage, 'track ID')
 
         payload = urlencode_postdata({'tracks[]': track_id})
-        req = compat_urllib_request.Request(self._PLAYLIST_URL, payload)
+        req = sanitized_Request(self._PLAYLIST_URL, payload)
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
 
         track = self._download_json(req, track_id, 'Downloading playlist')[0]
