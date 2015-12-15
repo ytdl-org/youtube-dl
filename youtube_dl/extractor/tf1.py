@@ -22,7 +22,7 @@ class TF1IE(InfoExtractor):
     }, {
         'url': 'http://www.tfou.fr/chuggington/videos/le-grand-mysterioso-chuggington-7085291-739.html',
         'info_dict': {
-            'id': '12043945',
+            'id': 'le-grand-mysterioso-chuggington-7085291-739',
             'ext': 'mp4',
             'title': 'Le grand Mystérioso - Chuggington',
             'description': 'Le grand Mystérioso - Emery rêve qu\'un article lui soit consacré dans le journal.',
@@ -32,6 +32,7 @@ class TF1IE(InfoExtractor):
             # Sometimes wat serves the whole file with the --test option
             'skip_download': True,
         },
+        'skip': 'HTTP Error 410: Gone',
     }, {
         'url': 'http://www.tf1.fr/tf1/koh-lanta/videos/replay-koh-lanta-22-mai-2015.html',
         'only_matching': True,
