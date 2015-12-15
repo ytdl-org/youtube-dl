@@ -43,11 +43,9 @@ class TF1IE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        embed_url = self._html_search_regex(
-            r'["\'](https?://www.wat.tv/embedframe/.*?)["\']', webpage, 'embed url')
-        embed_page = self._download_webpage(embed_url, video_id,
-                                            'Downloading embed player page')
-        wat_id = self._search_regex(r'UVID=(.*?)&', embed_page, 'wat id')
+        wat_id = self._html_search_regex(
+            r'(["\'])(?:https?:)?//www\.wat\.tv/embedframe/.*?(?P<id>\d+)\1',
+            webpage, 'wat id', group='id')
         wat_info = self._download_json(
             'http://www.wat.tv/interface/contentv3/%s' % wat_id, video_id)
         return self.url_result(wat_info['media']['url'], 'Wat')
