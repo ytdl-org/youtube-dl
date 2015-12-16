@@ -186,6 +186,20 @@ class VimeoIE(VimeoBaseInfoExtractor):
             },
         },
         {
+            # contains original format
+            'url': 'https://vimeo.com/33951933',
+            'md5': '53c688fa95a55bf4b7293d37a89c5c53',
+            'info_dict': {
+                'id': '33951933',
+                'ext': 'mp4',
+                'title': 'FOX CLASSICS - Forever Classic ID - A Full Minute',
+                'uploader': 'The DMCI',
+                'uploader_id': 'dmci',
+                'upload_date': '20111220',
+                'description': 'md5:ae23671e82d05415868f7ad1aec21147',
+            },
+        },
+        {
             'url': 'https://vimeo.com/109815029',
             'note': 'Video not completely processed, "failed" seed status',
             'only_matching': True,
