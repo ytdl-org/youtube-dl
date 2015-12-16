@@ -23,6 +23,7 @@ from ..utils import (
     unsmuggle_url,
     urlencode_postdata,
     unescapeHTML,
+    parse_filesize,
 )
 
 
@@ -392,6 +393,20 @@ class VimeoIE(VimeoBaseInfoExtractor):
             comment_count = None
 
         formats = []
+        download_request = sanitized_Request('https://vimeo.com/%s?action=load_download_config' % video_id, headers={
+            'X-Requested-With': 'XMLHttpRequest'})
+        download_data = self._download_json(download_request, video_id, fatal=False)
+        if download_data:
+            source_file = download_data.get('source_file')
+            if source_file and not source_file.get('is_cold') and not source_file.get('is_defrosting'):
+                formats.append({
+                    'url': source_file['download_url'],
+                    'ext': source_file['extension'].lower(),
+                    'width': int_or_none(source_file.get('width')),
+                    'height': int_or_none(source_file.get('height')),
+                    'filesize': parse_filesize(source_file.get('size')),
+                    'format_id': source_file.get('public_name', 'Original'),
+                })
         config_files = config['video'].get('files') or config['request'].get('files', {})
         for f in config_files.get('progressive', []):
             video_url = f.get('url')
