@@ -138,6 +138,7 @@ class YoukuIE(InfoExtractor):
                     compat_urllib_parse.urlencode(param)
                 video_urls.append(video_url)
             video_urls_dict[format] = video_urls
+            print(video_urls)
 
         return video_urls_dict
 
@@ -164,10 +165,6 @@ class YoukuIE(InfoExtractor):
             'flvhd': 'flv',
             'mp4': 'mp4',
             'mp4hd': 'mp4',
-            'mp4hd2': 'flv',
-            'mp4hd3': 'flv',
-            'hd2': 'flv',
-            'hd3': 'flv',
         }
         return ext_dict[fm]
 
@@ -231,6 +228,16 @@ class YoukuIE(InfoExtractor):
         # generate video_urls_dict
         video_urls_dict = self.construct_video_urls(data)
 
+        # get the number of segs of the longest video stream
+        def get_segs(streams):
+            times = max([stream.get('milliseconds_video') for stream in streams])
+            seq = []
+            for stream in streams:
+                if times == stream.get('milliseconds_video'):
+                    seq.append(len(stream.get('segs')))
+            return seq
+
+        seq = get_segs(data['stream'])
         # construct info
         entries = [{
             'id': '%s_part%d' % (video_id, i + 1),
@@ -238,12 +245,12 @@ class YoukuIE(InfoExtractor):
             'formats': [],
             # some formats are not available for all parts, we have to detect
             # which one has all
-        } for i in range(max(len(v.get('segs')) for v in data['stream']))]
-        for stream in data['stream']:
-            fm = stream.get('stream_type')
-            video_urls = video_urls_dict[fm]
-            for video_url, seg, entry in zip(video_urls, stream['segs'], entries):
-                entry['formats'].append({
+            } for i in range(min(seq))]
+        stream = data['stream'][seq.index(min(seq))]
+        fm = stream.get('stream_type')
+        video_urls = video_urls_dict[fm]
+        for video_url, seg, entry in zip(video_urls, stream['segs'], entries):
+            entry['formats'].append({
                     'url': video_url,
                     'format_id': self.get_format_name(fm),
                     'ext': self.parse_ext_l(fm),
