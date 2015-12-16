@@ -140,7 +140,6 @@ class YoukuIE(InfoExtractor):
                     compat_urllib_parse.urlencode(param)
                 video_urls.append(video_url)
             video_urls_dict[format] = video_urls
-            print(video_urls)
 
         return video_urls_dict
 
