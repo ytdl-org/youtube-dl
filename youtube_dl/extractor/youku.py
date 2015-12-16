@@ -145,50 +145,52 @@ class YoukuIE(InfoExtractor):
                     compat_urllib_parse.urlencode(param)
                 video_urls.append(video_url)
             video_urls_dict[format] = video_urls
+            print(video_urls)
 
         return video_urls_dict
 
     def get_hd(self, fm):
         hd_id_dict = {
-            'flv': '0',
-            'mp4': '1',
-            'hd2': '2',
-            'hd3': '3',
             '3gp': '0',
-            '3gphd': '1',
+            'flv': '0',
             'flvhd': '0',
+            'mp4hd2': '0',
+            'mp4hd3': '0',
+            'mp4': '1',
             'mp4hd': '1',
-            'mp4hd2': '1'
+            '3gphd': '1',
+            'hd2': '2',
+            'hd3': '3'
         }
         return hd_id_dict[fm]
 
     def parse_ext_l(self, fm):
         ext_dict = {
             'flv': 'flv',
-            'mp4': 'mp4',
-            'mp4hd': 'mp4',
             'mp4hd2': 'flv',
             'mp4hd3': 'flv',
+            'flvhd': 'flv',
             'hd2': 'flv',
             'hd3': 'flv',
             '3gp': 'flv',
-            '3gphd': 'mp4',
-            'flvhd': 'flv'
+            'mp4': 'mp4',
+            'mp4hd': 'mp4',
+            '3gphd': 'mp4'
         }
         return ext_dict[fm]
 
     def get_format_name(self, fm):
         _dict = {
-            '3gp': 'h6',
-            '3gphd': 'h5',
-            'flvhd': 'h4',
-            'flv': 'h4',
-            'mp4': 'h3',
-            'hd2': 'h2',
             'hd3': 'h1',
+            'hd2': 'h2',
+            'mp4': 'h3',
             'mp4hd': 'h3',
+            'flv': 'h4',
+            'flvhd': 'h4',
+            'mp4hd2': 'h4',
             'mp4hd3': 'h4',
-            'mp4hd2': 'h4'
+            '3gphd': 'h5',
+            '3gp': 'h6'
         }
         return _dict[fm]
 
@@ -244,6 +246,16 @@ class YoukuIE(InfoExtractor):
         # generate video_urls_dict
         video_urls_dict = self.construct_video_urls(data)
 
+        # get the number of segs of the longest video stream
+        def get_segs(streams):
+            times = max([stream.get('milliseconds_video') for stream in streams])
+            seq = []
+            for stream in streams:
+                if times == stream.get('milliseconds_video'):
+                    seq.append(len(stream.get('segs')))
+            return seq
+
+        seq = get_segs(data['stream'])
         # construct info
         entries = [{
             'id': '%s_part%d' % (video_id, i + 1),
@@ -251,12 +263,12 @@ class YoukuIE(InfoExtractor):
             'formats': [],
             # some formats are not available for all parts, we have to detect
             # which one has all
-        } for i in range(max(len(v.get('segs')) for v in data['stream']))]
-        for stream in data['stream']:
-            fm = stream.get('stream_type')
-            video_urls = video_urls_dict[fm]
-            for video_url, seg, entry in zip(video_urls, stream['segs'], entries):
-                entry['formats'].append({
+            } for i in range(min(seq))]
+        stream = data['stream'][seq.index(min(seq))]
+        fm = stream.get('stream_type')
+        video_urls = video_urls_dict[fm]
+        for video_url, seg, entry in zip(video_urls, stream['segs'], entries):
+            entry['formats'].append({
                     'url': video_url,
                     'format_id': self.get_format_name(fm),
                     'ext': self.parse_ext_l(fm),
