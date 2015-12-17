@@ -110,8 +110,7 @@ class NocoIE(InfoExtractor):
             expected=True)
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         # Timestamp adjustment offset between server time and local time
         # must be calculated in order to use timestamps closest to server's
