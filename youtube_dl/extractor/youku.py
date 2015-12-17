@@ -87,6 +87,10 @@ class YoukuIE(InfoExtractor):
         # get oip
         oip = data['security']['ip']
 
+<<<<<<< HEAD
+=======
+        # get fileid
+>>>>>>> githubMaster/youku_bugfix
         fileid_dict = {}
         for stream in data['stream']:
             format = stream.get('stream_type')
