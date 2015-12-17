@@ -221,7 +221,7 @@ class YoukuIE(InfoExtractor):
                     'Youku said: Sorry, this video is available in China only', expected=True)
             else:
                 msg = 'Youku server reported error %i' % error.get('code')
-                if error is not None:
+                if error_note is not None:
                     msg += ': ' + error_note
                 raise ExtractorError(msg)
 
