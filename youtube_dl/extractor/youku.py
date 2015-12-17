@@ -245,17 +245,17 @@ class YoukuIE(InfoExtractor):
             'formats': [],
             # some formats are not available for all parts, we have to detect
             # which one has all
-            } for i in range(min(seq))]
+        } for i in range(min(seq))]
         stream = data['stream'][seq.index(min(seq))]
         fm = stream.get('stream_type')
         video_urls = video_urls_dict[fm]
         for video_url, seg, entry in zip(video_urls, stream['segs'], entries):
             entry['formats'].append({
-                    'url': video_url,
-                    'format_id': self.get_format_name(fm),
-                    'ext': self.parse_ext_l(fm),
-                    'filesize': int(seg['size']),
-                })
+                'url': video_url,
+                'format_id': self.get_format_name(fm),
+                'ext': self.parse_ext_l(fm),
+                'filesize': int(seg['size']),
+            })
 
         return {
             '_type': 'multi_video',
