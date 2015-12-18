@@ -387,6 +387,10 @@ class BrightcoveNewIE(InfoExtractor):
         'params': {
             'skip_download': True,
         }
+    }, {
+        # ref: prefixed video id
+        'url': 'http://players.brightcove.net/3910869709001/21519b5c-4b3b-4363-accb-bdc8f358f823_default/index.html?videoId=ref:7069442',
+        'only_matching': True,
     }]
 
     @staticmethod
