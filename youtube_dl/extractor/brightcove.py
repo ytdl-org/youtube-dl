@@ -398,7 +398,7 @@ class BrightcoveNewIE(InfoExtractor):
     def _extract_urls(webpage):
         # Reference:
         # 1. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideoiniframe
-        # 2. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideousingjavascript)
+        # 2. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideousingjavascript
         # 3. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/embed-in-page.html
 
         entries = []
