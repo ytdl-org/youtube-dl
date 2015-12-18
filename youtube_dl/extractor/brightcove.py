@@ -390,6 +390,11 @@ class BrightcoveNewIE(InfoExtractor):
     }]
 
     @staticmethod
+    def _extract_url(webpage):
+        urls = BrightcoveNewIE._extract_urls(webpage)
+        return urls[0] if urls else None
+
+    @staticmethod
     def _extract_urls(webpage):
         # Reference:
         # 1. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideoiniframe
