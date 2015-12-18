@@ -355,7 +355,7 @@ class BrightcoveLegacyIE(InfoExtractor):
 
 class BrightcoveNewIE(InfoExtractor):
     IE_NAME = 'brightcove:new'
-    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*videoId=(?P<video_id>\d+)'
+    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*videoId=(?P<video_id>(?:ref:)?\d+)'
     _TESTS = [{
         'url': 'http://players.brightcove.net/929656772001/e41d32dc-ec74-459e-a845-6c69f7b724ea_default/index.html?videoId=4463358922001',
         'md5': 'c8100925723840d4b0d243f7025703be',
@@ -414,7 +414,7 @@ class BrightcoveNewIE(InfoExtractor):
                 # may be optional and what to do when it is
                 r'''(?sx)
                     <video[^>]+
-                        data-video-id=["\'](\d+)["\'][^>]*>.*?
+                        data-video-id=["\']((?:ref:)?\d+)["\'][^>]*>.*?
                     </video>.*?
                     <script[^>]+
                         src=["\'](?:https?:)?//players\.brightcove\.net/
