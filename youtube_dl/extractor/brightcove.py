@@ -400,6 +400,7 @@ class BrightcoveNewIE(InfoExtractor):
         # 1. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideoiniframe
         # 2. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideousingjavascript
         # 3. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/embed-in-page.html
+        # 4. https://support.brightcove.com/en/video-cloud/docs/dynamically-assigning-videos-player
 
         entries = []
 
@@ -412,6 +413,7 @@ class BrightcoveNewIE(InfoExtractor):
         for video_id, account_id, player_id, embed in re.findall(
                 # According to examples from [3] it's unclear whether video id
                 # may be optional and what to do when it is
+                # According to [4] data-video-id may be prefixed with ref:
                 r'''(?sx)
                     <video[^>]+
                         data-video-id=["\']((?:ref:)?\d+)["\'][^>]*>.*?
