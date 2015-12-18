@@ -88,10 +88,10 @@ class NDRIE(NDRBaseIE):
             'embedURL', webpage, 'embed URL', fatal=True)
         description = self._search_regex(
             r'<p[^>]+itemprop="description">([^<]+)</p>',
-            webpage, 'description', fatal=False)
+            webpage, 'description', default=None) or self._og_search_description(webpage)
         timestamp = parse_iso8601(
             self._search_regex(
-                r'<span itemprop="datePublished" content="([^"]+)">',
+                r'<span[^>]+itemprop="(?:datePublished|uploadDate)"[^>]+content="([^"]+)"',
                 webpage, 'upload date', fatal=False))
         return {
             '_type': 'url_transparent',
