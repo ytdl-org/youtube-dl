@@ -33,18 +33,16 @@ class GPUTechConfIE(InfoExtractor):
         doc = self._download_xml('%sxml/%s.xml' % (root_path, xml_file_id), video_id)
 
         metadata = xpath_element(doc, 'metadata')
-        http_host = xpath_text(metadata, 'httpHost')
+        http_host = xpath_text(metadata, 'httpHost', 'http host', True)
         mbr_videos = xpath_element(metadata, 'MBRVideos')
 
         formats = []
         for mbr_video in mbr_videos.findall('MBRVideo'):
             stream_name = xpath_text(mbr_video, 'streamName')
             if stream_name:
-                bitrate = int_or_none(xpath_text(mbr_video, 'bitrate'))
                 formats.append({
                     'url': 'http://%s/%s' % (http_host, stream_name.replace('mp4:', '')),
-                    'tbr': bitrate,
-                    'format_id': 'http-%d' % bitrate,
+                    'tbr': int_or_none(xpath_text(mbr_video, 'bitrate')),
                 })
         self._sort_formats(formats)
 
