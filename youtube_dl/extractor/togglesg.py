@@ -94,11 +94,17 @@ class ToggleSgIE(InfoExtractor):
         params = {
             'initObj': {
                 'Locale': {
-                    'LocaleLanguage': '', 'LocaleCountry': '',
-                    'LocaleDevice': '', 'LocaleUserState': 0
+                    'LocaleLanguage': '',
+                    'LocaleCountry': '',
+                    'LocaleDevice': '',
+                    'LocaleUserState': 0
                 },
-                'Platform': 0, 'SiteGuid': 0, 'DomainID': '0', 'UDID': '',
-                'ApiUser': api_user, 'ApiPass': api_pass
+                'Platform': 0,
+                'SiteGuid': 0,
+                'DomainID': '0',
+                'UDID': '',
+                'ApiUser': api_user,
+                'ApiPass': api_pass
             },
             'MediaID': video_id,
             'mediaType': 0,
