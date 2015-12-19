@@ -1806,6 +1806,15 @@ def args_to_str(args):
     return ' '.join(shlex_quote(a) for a in args)
 
 
+def error_to_str(err):
+    err_str = str(err)
+    # On python 2 error byte string must be decoded with proper
+    # encoding rather than ascii
+    if sys.version_info[0] < 3:
+        err_str = err_str.decode(preferredencoding())
+    return err_str
+
+
 def mimetype2ext(mt):
     _, _, res = mt.rpartition('/')
 
