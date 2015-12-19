@@ -11,7 +11,8 @@ from ..utils import (
     int_or_none,
     determine_ext,
     parse_iso8601,
-    remove_end
+    remove_end,
+    sanitized_Request,
 )
 from ..compat import compat_urllib_request
 
@@ -107,7 +108,7 @@ class ToggleSgIE(InfoExtractor):
             'mediaType': 0,
         }
 
-        req = compat_urllib_request.Request(
+        req = sanitized_Request(
             'http://tvpapi.as.tvinci.com/v2_9/gateways/jsonpostgw.aspx?m=GetMediaInfo',
             json.dumps(params).encode('utf-8'))
         info = self._download_json(req, video_id, 'Downloading video info json')
