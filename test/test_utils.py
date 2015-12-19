@@ -661,8 +661,8 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
             {'like_count': 190, 'dislike_count': 10}))
 
     def test_parse_dfxp_time_expr(self):
-        self.assertEqual(parse_dfxp_time_expr(None), 0.0)
-        self.assertEqual(parse_dfxp_time_expr(''), 0.0)
+        self.assertEqual(parse_dfxp_time_expr(None), None)
+        self.assertEqual(parse_dfxp_time_expr(''), None)
         self.assertEqual(parse_dfxp_time_expr('0.1'), 0.1)
         self.assertEqual(parse_dfxp_time_expr('0.1s'), 0.1)
         self.assertEqual(parse_dfxp_time_expr('00:00:01'), 1.0)
@@ -676,6 +676,9 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
                     <p begin="0" end="1">The following line contains Chinese characters and special symbols</p>
                     <p begin="1" end="2">第二行<br/>♪♪</p>
                     <p begin="2" dur="1"><span>Third<br/>Line</span></p>
+                    <p begin="3" end="-1">Lines with invalid timestamps are ignored</p>
+                    <p begin="-1" end="-1">Ignore, two</p>
+                    <p begin="3" dur="-1">Ignored, three</p>
                 </div>
             </body>
             </tt>'''

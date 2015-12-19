@@ -1976,7 +1976,7 @@ def match_filter_func(filter_str):
 
 def parse_dfxp_time_expr(time_expr):
     if not time_expr:
-        return 0.0
+        return
 
     mobj = re.match(r'^(?P<time_offset>\d+(?:\.\d+)?)s?$', time_expr)
     if mobj:
@@ -2020,10 +2020,15 @@ def dfxp2srt(dfxp_data):
         raise ValueError('Invalid dfxp/TTML subtitle')
 
     for para, index in zip(paras, itertools.count(1)):
-        begin_time = parse_dfxp_time_expr(para.attrib['begin'])
+        begin_time = parse_dfxp_time_expr(para.attrib.get('begin'))
         end_time = parse_dfxp_time_expr(para.attrib.get('end'))
+        dur = parse_dfxp_time_expr(para.attrib.get('dur'))
+        if begin_time is None:
+            continue
         if not end_time:
-            end_time = begin_time + parse_dfxp_time_expr(para.attrib['dur'])
+            if not dur:
+                continue
+            end_time = begin_time + dur
         out.append('%d\n%s --> %s\n%s\n\n' % (
             index,
             srt_subtitles_timecode(begin_time),
