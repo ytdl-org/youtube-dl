@@ -15,7 +15,7 @@ from ..utils import (
 )
 
 
-class ToggleSgIE(InfoExtractor):
+class ToggleIE(InfoExtractor):
     IE_NAME = 'togglesg'
     _VALID_URL = r'https?://video\.toggle\.sg/(?:en|zh)/(?:series|clips|movies)/(?:[^/]+/)+(?P<id>[0-9]+)'
     _TESTS = [{
