@@ -84,12 +84,15 @@ class ToggleSgIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id, note='Downloading video page')
+        webpage = self._download_webpage(
+            url, video_id, note='Downloading video page')
 
         api_user = self._search_regex(
-            r'apiUser:\s*"([^"]+)"', webpage, 'apiUser', default=self._API_USER)
+            r'apiUser\s*:\s*(["\'])(?P<user>.+?)\1', webpage, 'apiUser',
+            default=self._API_USER, group='user')
         api_pass = self._search_regex(
-            r'apiPass:\s*"([^"]+)"', webpage, 'apiPass', default=self._API_PASS)
+            r'apiPass\s*:\s*(["\'])(?P<pass>.+?)\1', webpage, 'apiPass',
+            default=self._API_PASS, group='pass')
 
         params = {
             'initObj': {
@@ -131,11 +134,10 @@ class ToggleSgIE(InfoExtractor):
                     video_file['URL'], video_id, ext='mp4', m3u8_id=vid_format,
                     note='Downloading %s m3u8 information' % vid_format,
                     errnote='Failed to download %s m3u8 information' % vid_format,
-                    fatal=False
-                )
+                    fatal=False)
                 if m3u8_formats:
                     formats.extend(m3u8_formats)
-            if ext in ['mp4', 'wvm']:
+            elif ext in ('mp4', 'wvm'):
                 # wvm are drm-protected files
                 formats.append({
                     'ext': ext,
