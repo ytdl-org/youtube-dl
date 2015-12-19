@@ -34,6 +34,7 @@ from ..utils import (
     fix_xml_ampersands,
     float_or_none,
     int_or_none,
+    preferredencoding,
     RegexNotFoundError,
     sanitize_filename,
     sanitized_Request,
@@ -332,7 +333,12 @@ class InfoExtractor(object):
                 return False
             if errnote is None:
                 errnote = 'Unable to download webpage'
-            errmsg = '%s: %s' % (errnote, compat_str(err))
+            err_str = str(err)
+            # On python 2 error byte string must be decoded with proper
+            # encoding rather than ascii
+            if sys.version_info[0] < 3:
+                err_str = err_str.decode(preferredencoding())
+            errmsg = '%s: %s' % (errnote, err_str)
             if fatal:
                 raise ExtractorError(errmsg, sys.exc_info()[2], cause=err)
             else:
