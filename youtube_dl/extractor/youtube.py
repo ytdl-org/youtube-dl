@@ -26,6 +26,7 @@ from ..compat import (
 from ..utils import (
     clean_html,
     encode_dict,
+    error_to_str,
     ExtractorError,
     float_or_none,
     get_element_by_attribute,
@@ -903,7 +904,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'https://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id,
                 video_id, note=False)
         except ExtractorError as err:
-            self._downloader.report_warning('unable to download video subtitles: %s' % compat_str(err))
+            self._downloader.report_warning('unable to download video subtitles: %s' % error_to_str(err))
             return {}
 
         sub_lang_list = {}

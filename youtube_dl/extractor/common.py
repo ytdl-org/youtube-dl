@@ -30,11 +30,11 @@ from ..utils import (
     clean_html,
     compiled_regex_type,
     determine_ext,
+    error_to_str,
     ExtractorError,
     fix_xml_ampersands,
     float_or_none,
     int_or_none,
-    preferredencoding,
     RegexNotFoundError,
     sanitize_filename,
     sanitized_Request,
@@ -333,12 +333,8 @@ class InfoExtractor(object):
                 return False
             if errnote is None:
                 errnote = 'Unable to download webpage'
-            err_str = str(err)
-            # On python 2 error byte string must be decoded with proper
-            # encoding rather than ascii
-            if sys.version_info[0] < 3:
-                err_str = err_str.decode(preferredencoding())
-            errmsg = '%s: %s' % (errnote, err_str)
+
+            errmsg = '%s: %s' % (errnote, error_to_str(err))
             if fatal:
                 raise ExtractorError(errmsg, sys.exc_info()[2], cause=err)
             else:
@@ -628,7 +624,7 @@ class InfoExtractor(object):
                 else:
                     raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
             except (IOError, netrc.NetrcParseError) as err:
-                self._downloader.report_warning('parsing .netrc: %s' % compat_str(err))
+                self._downloader.report_warning('parsing .netrc: %s' % error_to_str(err))
 
         return (username, password)
 

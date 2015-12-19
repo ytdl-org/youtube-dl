@@ -7,10 +7,10 @@ import itertools
 
 from .common import InfoExtractor
 
-from ..compat import compat_str
 from ..utils import (
-    ExtractorError,
     determine_ext,
+    error_to_str,
+    ExtractorError,
     int_or_none,
     parse_iso8601,
     sanitized_Request,
@@ -278,7 +278,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                 'https://api.dailymotion.com/video/%s/subtitles?fields=id,language,url' % video_id,
                 video_id, note=False)
         except ExtractorError as err:
-            self._downloader.report_warning('unable to download video subtitles: %s' % compat_str(err))
+            self._downloader.report_warning('unable to download video subtitles: %s' % error_to_str(err))
             return {}
         info = json.loads(sub_list)
         if (info['total'] > 0):
