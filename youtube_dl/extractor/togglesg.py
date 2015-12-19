@@ -17,7 +17,7 @@ from ..utils import (
 
 class ToggleSgIE(InfoExtractor):
     IE_NAME = 'togglesg'
-    _VALID_URL = r'https?://video\.toggle\.sg/(?:en|zh)/(?:series|clips|movies)/.+?/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://video\.toggle\.sg/(?:en|zh)/(?:series|clips|movies)/(?:[^/]+/)+(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://video.toggle.sg/en/series/lion-moms-tif/trailers/lion-moms-premier/343115',
         'info_dict': {
@@ -46,8 +46,9 @@ class ToggleSgIE(InfoExtractor):
             'skip_download': 'DRM-protected wvm download',
         }
     }, {
+        # this also tests correct video id extraction
         'note': 'm3u8 links are geo-restricted, but Android/mp4 is okay',
-        'url': 'http://video.toggle.sg/en/series/28th-sea-games-5-show/ep11/332861',
+        'url': 'http://video.toggle.sg/en/series/28th-sea-games-5-show/28th-sea-games-5-show-ep11/332861',
         'info_dict': {
             'id': '332861',
             'ext': 'mp4',
