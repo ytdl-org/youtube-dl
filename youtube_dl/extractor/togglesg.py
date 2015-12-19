@@ -124,12 +124,15 @@ class ToggleSgIE(InfoExtractor):
 
         formats = []
         for video_file in info.get('Files', []):
-            ext = determine_ext(video_file['URL'])
-            vid_format = video_file['Format'].replace(' ', '')
+            video_url, vid_format = video_file.get('URL'), video_file.get('Format')
+            if not video_url or not vid_format:
+                continue
+            ext = determine_ext(video_url)
+            vid_format = vid_format.replace(' ', '')
             # if geo-restricted, m3u8 is inaccessible, but mp4 is okay
             if ext == 'm3u8':
                 m3u8_formats = self._extract_m3u8_formats(
-                    video_file['URL'], video_id, ext='mp4', m3u8_id=vid_format,
+                    video_url, video_id, ext='mp4', m3u8_id=vid_format,
                     note='Downloading %s m3u8 information' % vid_format,
                     errnote='Failed to download %s m3u8 information' % vid_format,
                     fatal=False)
@@ -139,7 +142,7 @@ class ToggleSgIE(InfoExtractor):
                 # wvm are drm-protected files
                 formats.append({
                     'ext': ext,
-                    'url': video_file['URL'],
+                    'url': video_url,
                     'format_id': vid_format,
                     'preference': self._FORMAT_PREFERENCES.get(ext + '-' + vid_format) or -1,
                     'format_note': 'DRM-protected video' if ext == 'wvm' else None
