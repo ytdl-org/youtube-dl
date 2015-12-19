@@ -8,6 +8,7 @@ from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     ExtractorError,
+    float_or_none,
     int_or_none,
     parse_iso8601,
     sanitized_Request,
@@ -152,6 +153,10 @@ class ToggleSgIE(InfoExtractor):
         description = info.get('Description')
         created_at = parse_iso8601(info.get('CreationDate') or None)
 
+        average_rating = float_or_none(info.get('Rating'))
+        view_count = int_or_none(info.get('ViewCounter') or info.get('view_counter'))
+        like_count = int_or_none(info.get('LikeCounter') or info.get('like_counter'))
+
         thumbnails = []
         for picture in info.get('Pictures', []):
             if not isinstance(picture, dict):
@@ -177,6 +182,9 @@ class ToggleSgIE(InfoExtractor):
             'description': description,
             'duration': duration,
             'timestamp': created_at,
+            'average_rating': average_rating,
+            'view_count': view_count,
+            'like_count': like_count,
             'thumbnails': thumbnails,
             'formats': formats,
         }
