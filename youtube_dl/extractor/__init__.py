@@ -675,6 +675,7 @@ from .tnaflix import (
     EMPFlixIE,
     MovieFapIE,
 )
+from .togglesg import ToggleSgIE
 from .thvideo import (
     THVideoIE,
     THVideoPlaylistIE
