@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import json
+import re
 
 from .common import InfoExtractor
 from ..utils import (
@@ -119,12 +120,8 @@ class ToggleSgIE(InfoExtractor):
         info = self._download_json(req, video_id, 'Downloading video info json')
 
         title = info['MediaName']
-        duration = int_or_none(info.get('Duration'))
-        thumbnail = info.get('PicURL')
-        description = info.get('Description')
-        created_at = parse_iso8601(info.get('CreationDate') or None)
-        formats = []
 
+        formats = []
         for video_file in info.get('Files', []):
             ext = determine_ext(video_file['URL'])
             vid_format = video_file['Format'].replace(' ', '')
@@ -146,12 +143,33 @@ class ToggleSgIE(InfoExtractor):
                     'preference': self._FORMAT_PREFERENCES.get(ext + '-' + vid_format) or -1,
                     'format_note': 'DRM-protected video' if ext == 'wvm' else None
                 })
-
         if not formats:
             # Most likely because geo-blocked
             raise ExtractorError('No downloadable videos found', expected=True)
-
         self._sort_formats(formats)
+
+        duration = int_or_none(info.get('Duration'))
+        description = info.get('Description')
+        created_at = parse_iso8601(info.get('CreationDate') or None)
+
+        thumbnails = []
+        for picture in info.get('Pictures', []):
+            if not isinstance(picture, dict):
+                continue
+            pic_url = picture.get('URL')
+            if not pic_url:
+                continue
+            thumbnail = {
+                'url': pic_url,
+            }
+            pic_size = picture.get('PicSize', '')
+            m = re.search(r'(?P<width>\d+)[xX](?P<height>\d+)', pic_size)
+            if m:
+                thumbnail.update({
+                    'width': int(m.group('width')),
+                    'height': int(m.group('height')),
+                })
+            thumbnails.append(thumbnail)
 
         return {
             'id': video_id,
@@ -159,6 +177,6 @@ class ToggleSgIE(InfoExtractor):
             'description': description,
             'duration': duration,
             'timestamp': created_at,
-            'thumbnail': thumbnail,
+            'thumbnails': thumbnails,
             'formats': formats,
         }
