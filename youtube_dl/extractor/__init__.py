@@ -235,6 +235,7 @@ from .golem import GolemIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
 from .goshgay import GoshgayIE
+from .gputechconf import GPUTechConfIE
 from .groupon import GrouponIE
 from .hark import HarkIE
 from .hearthisat import HearThisAtIE
