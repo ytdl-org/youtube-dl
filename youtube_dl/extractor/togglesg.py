@@ -2,19 +2,15 @@
 from __future__ import unicode_literals
 
 import json
-import re
-import itertools
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     ExtractorError,
     int_or_none,
-    determine_ext,
     parse_iso8601,
-    remove_end,
     sanitized_Request,
 )
-from ..compat import compat_urllib_request
 
 
 class ToggleSgIE(InfoExtractor):
