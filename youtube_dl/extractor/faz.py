@@ -38,7 +38,7 @@ class FazIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
         config_xml_url = self._search_regex(
-            r'writeFLV\(\'(.+?)\',', webpage, 'config xml url')
+            r'(?:var\s+)?videoXMLURL\s*=\s*"([^"]+)', webpage, 'config xml url')
         config = self._download_xml(
             config_xml_url, video_id, 'Downloading config xml')
 
