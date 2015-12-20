@@ -1712,6 +1712,10 @@ def encode_dict(d, encoding='utf-8'):
     return dict((encode(k), encode(v)) for k, v in d.items())
 
 
+def encode_compat_str(string, encoding=preferredencoding(), errors='strict'):
+    return string if isinstance(string, compat_str) else compat_str(string, encoding, errors)
+
+
 US_RATINGS = {
     'G': 0,
     'PG': 10,
