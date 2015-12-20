@@ -1,10 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..utils import js_to_json
+from .youtube import YoutubeIE
+from ..utils import (
+    js_to_json,
+    qualities,
+    determine_ext,
+)
 
 
 class Tele13IE(InfoExtractor):
@@ -25,12 +28,12 @@ class Tele13IE(InfoExtractor):
         },
         {
             'url': 'http://www.t13.cl/videos/mundo/tendencias/video-captan-misteriosa-bola-fuego-cielos-bangkok',
-            'md5': '65d1ae54812c96f4b345dd21d3bb1adc',
+            'md5': '867adf6a3b3fef932c68a71d70b70946',
             'info_dict': {
                 'id': 'rOoKv2OMpOw',
                 'ext': 'mp4',
                 'title': 'Shooting star seen on 7-Sep-2015',
-                'description': 'md5:a1cd2e74f6ee6851552c9cf5851d6b06',
+                'description': 'md5:7292ff2a34b2f673da77da222ae77e1e',
                 'uploader': 'Porjai Jaturongkhakun',
                 'upload_date': '20150906',
                 'uploader_id': 'UCnLY_3ezwNcDSC_Wc6suZxw',
@@ -41,41 +44,38 @@ class Tele13IE(InfoExtractor):
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
-
         webpage = self._download_webpage(url, display_id)
 
-        setup_js = self._parse_json(
-            js_to_json(
-                self._search_regex(
-                    r"jwplayer\('player-vivo'\).setup\((\{.*?\})\)",
-                    webpage,
-                    'setup code',
-                    flags=re.DOTALL
-                ).replace('\n//', '')
-            ),
-            display_id
-        )
-        title = setup_js['title']
-        thumbnail = setup_js.get('image') or setup_js['playlist'][0].get('image')
-        description = self._html_search_meta(
-            'description', webpage, 'description')
+        setup_js = self._search_regex(r"(?s)jwplayer\('player-vivo'\).setup\((\{.*?\})\)", webpage, 'setup code')
+        sources = self._parse_json(self._search_regex(r'sources\s*:\s*(\[[^\]]+\])', setup_js, 'sources'), display_id, js_to_json)
 
+        preference = qualities(['Móvil', 'SD', 'HD'])
         formats = []
-        for f in setup_js['playlist'][0]['sources']:
+        urls = []
+        for f in sources:
             format_url = f['file']
-            if format_url != '':
-                if '.m3u8' in format_url:
-                    formats.extend(self._extract_m3u8_formats(format_url, display_id))
+            if format_url and format_url not in urls:
+                ext = determine_ext(format_url)
+                if ext == 'm3u8':
+                    m3u8_formats = self._extract_m3u8_formats(format_url, display_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
+                    if m3u8_formats:
+                        formats.extend(m3u8_formats)
+                elif YoutubeIE.suitable(format_url):
+                    return self.url_result(format_url, 'Youtube')
                 else:
-                    if 'youtube.com' in format_url:
-                        return self.url_result(format_url, 'Youtube')
-                    else:
-                        formats.append({'url': format_url, 'format_id': f.get('label')})
+                    formats.append({
+                        'url': format_url,
+                        'format_id': f.get('label'),
+                        'preference': preference(f.get('label')),
+                        'ext': ext,
+                    })
+                urls.append(format_url)
+        self._sort_formats(formats)
 
         return {
             'id': display_id,
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
+            'title': self._search_regex(r'title\s*:\s*"([^"]+)"', setup_js, 'title'),
+            'description': self._html_search_meta('description', webpage, 'description'),
+            'thumbnail': self._search_regex(r'image\s*:\s*"([^"]+)"', setup_js, 'thumbnail', default=None),
             'formats': formats,
         }
