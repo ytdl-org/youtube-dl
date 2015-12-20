@@ -2582,7 +2582,7 @@ def get_root_dirs():
     # ../../ of youtube_dl/utils.py
     ret.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-    return ret
+    return map(decodeFilename, ret)
 
 
 def find_file_in_root(file_path):
