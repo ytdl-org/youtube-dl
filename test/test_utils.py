@@ -22,6 +22,7 @@ from youtube_dl.utils import (
     DateRange,
     detect_exe_version,
     determine_ext,
+    encode_compat_str,
     encodeFilename,
     escape_rfc3986,
     escape_url,
@@ -448,6 +449,10 @@ class TestUtil(unittest.TestCase):
     def test_urlencode_postdata(self):
         data = urlencode_postdata({'username': 'foo@bar.com', 'password': '1234'})
         self.assertTrue(isinstance(data, bytes))
+
+    def test_encode_compat_str(self):
+        self.assertEqual(encode_compat_str(b'\xd1\x82\xd0\xb5\xd1\x81\xd1\x82', 'utf-8'), 'тест')
+        self.assertEqual(encode_compat_str('тест', 'utf-8'), 'тест')
 
     def test_parse_iso8601(self):
         self.assertEqual(parse_iso8601('2014-03-23T23:04:26+0100'), 1395612266)
