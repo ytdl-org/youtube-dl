@@ -675,8 +675,8 @@ class YoutubeDL(object):
                     return self.process_ie_result(ie_result, download, extra_info)
                 else:
                     return ie_result
-            except ExtractorError as de:  # An error we somewhat expected
-                self.report_error(compat_str(de), de.format_traceback())
+            except ExtractorError as e:  # An error we somewhat expected
+                self.report_error(error_to_str(e), e.format_traceback())
                 break
             except MaxDownloadsReached:
                 raise
