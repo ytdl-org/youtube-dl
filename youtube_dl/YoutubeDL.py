@@ -47,6 +47,7 @@ from .utils import (
     DEFAULT_OUTTMPL,
     determine_ext,
     DownloadError,
+    encode_compat_str,
     encodeFilename,
     error_to_str,
     ExtractorError,
@@ -496,7 +497,7 @@ class YoutubeDL(object):
                     tb = ''
                     if hasattr(sys.exc_info()[1], 'exc_info') and sys.exc_info()[1].exc_info[0]:
                         tb += ''.join(traceback.format_exception(*sys.exc_info()[1].exc_info))
-                    tb += compat_str(traceback.format_exc())
+                    tb += encode_compat_str(traceback.format_exc())
                 else:
                     tb_data = traceback.format_list(traceback.extract_stack())
                     tb = ''.join(tb_data)
@@ -682,7 +683,7 @@ class YoutubeDL(object):
                 raise
             except Exception as e:
                 if self.params.get('ignoreerrors', False):
-                    self.report_error(error_to_str(e), tb=compat_str(traceback.format_exc()))
+                    self.report_error(error_to_str(e), tb=encode_compat_str(traceback.format_exc()))
                     break
                 else:
                     raise

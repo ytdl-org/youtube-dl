@@ -9,7 +9,7 @@ import subprocess
 import sys
 from zipimport import zipimporter
 
-from .compat import compat_str
+from .utils import encode_compat_str
 
 from .version import __version__
 
@@ -61,7 +61,7 @@ def update_self(to_screen, verbose, opener):
         newversion = opener.open(VERSION_URL).read().decode('utf-8').strip()
     except Exception:
         if verbose:
-            to_screen(compat_str(traceback.format_exc()))
+            to_screen(encode_compat_str(traceback.format_exc()))
         to_screen('ERROR: can\'t find the current version. Please try again later.')
         return
     if newversion == __version__:
@@ -74,7 +74,7 @@ def update_self(to_screen, verbose, opener):
         versions_info = json.loads(versions_info)
     except Exception:
         if verbose:
-            to_screen(compat_str(traceback.format_exc()))
+            to_screen(encode_compat_str(traceback.format_exc()))
         to_screen('ERROR: can\'t obtain versions info. Please try again later.')
         return
     if 'signature' not in versions_info:
@@ -123,7 +123,7 @@ def update_self(to_screen, verbose, opener):
             urlh.close()
         except (IOError, OSError):
             if verbose:
-                to_screen(compat_str(traceback.format_exc()))
+                to_screen(encode_compat_str(traceback.format_exc()))
             to_screen('ERROR: unable to download latest version')
             return
 
@@ -137,7 +137,7 @@ def update_self(to_screen, verbose, opener):
                 outf.write(newcontent)
         except (IOError, OSError):
             if verbose:
-                to_screen(compat_str(traceback.format_exc()))
+                to_screen(encode_compat_str(traceback.format_exc()))
             to_screen('ERROR: unable to write the new version')
             return
 
@@ -157,7 +157,7 @@ start /b "" cmd /c del "%%~f0"&exit /b"
             return  # Do not show premature success messages
         except (IOError, OSError):
             if verbose:
-                to_screen(compat_str(traceback.format_exc()))
+                to_screen(encode_compat_str(traceback.format_exc()))
             to_screen('ERROR: unable to overwrite current version')
             return
 
@@ -169,7 +169,7 @@ start /b "" cmd /c del "%%~f0"&exit /b"
             urlh.close()
         except (IOError, OSError):
             if verbose:
-                to_screen(compat_str(traceback.format_exc()))
+                to_screen(encode_compat_str(traceback.format_exc()))
             to_screen('ERROR: unable to download latest version')
             return
 
@@ -183,7 +183,7 @@ start /b "" cmd /c del "%%~f0"&exit /b"
                 outf.write(newcontent)
         except (IOError, OSError):
             if verbose:
-                to_screen(compat_str(traceback.format_exc()))
+                to_screen(encode_compat_str(traceback.format_exc()))
             to_screen('ERROR: unable to overwrite current version')
             return
 
