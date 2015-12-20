@@ -1775,6 +1775,10 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
         },
     }]
 
+    @classmethod
+    def suitable(cls, url):
+        return False if YoutubePlaylistsIE.suitable(url) else super(YoutubeChannelIE, cls).suitable(url)
+
     def _real_extract(self, url):
         channel_id = self._match_id(url)
 
@@ -1848,10 +1852,10 @@ class YoutubeUserIE(YoutubeChannelIE):
             return super(YoutubeUserIE, cls).suitable(url)
 
 
-class YoutubeUserPlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
-    IE_DESC = 'YouTube.com user playlists'
-    _VALID_URL = r'https?://(?:\w+\.)?youtube\.com/user/(?P<id>[^/]+)/playlists'
-    IE_NAME = 'youtube:user:playlists'
+class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
+    IE_DESC = 'YouTube.com user/channel playlists'
+    _VALID_URL = r'https?://(?:\w+\.)?youtube\.com/(?:user|channel)/(?P<id>[^/]+)/playlists'
+    IE_NAME = 'youtube:playlists'
 
     _TESTS = [{
         'url': 'http://www.youtube.com/user/ThirstForScience/playlists',
@@ -1867,6 +1871,13 @@ class YoutubeUserPlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
         'info_dict': {
             'id': 'igorkle1',
             'title': 'Игорь Клейнер',
+        },
+    }, {
+        'url': 'https://www.youtube.com/channel/UCiU1dHvZObB2iP6xkJ__Icw/playlists',
+        'playlist_mincount': 17,
+        'info_dict': {
+            'id': 'UCiU1dHvZObB2iP6xkJ__Icw',
+            'title': 'Chem Player',
         },
     }]
 
