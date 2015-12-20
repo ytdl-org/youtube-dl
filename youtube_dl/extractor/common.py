@@ -30,7 +30,7 @@ from ..utils import (
     clean_html,
     compiled_regex_type,
     determine_ext,
-    error_to_str,
+    error_to_compat_str,
     ExtractorError,
     fix_xml_ampersands,
     float_or_none,
@@ -334,7 +334,7 @@ class InfoExtractor(object):
             if errnote is None:
                 errnote = 'Unable to download webpage'
 
-            errmsg = '%s: %s' % (errnote, error_to_str(err))
+            errmsg = '%s: %s' % (errnote, error_to_compat_str(err))
             if fatal:
                 raise ExtractorError(errmsg, sys.exc_info()[2], cause=err)
             else:
@@ -624,7 +624,7 @@ class InfoExtractor(object):
                 else:
                     raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
             except (IOError, netrc.NetrcParseError) as err:
-                self._downloader.report_warning('parsing .netrc: %s' % error_to_str(err))
+                self._downloader.report_warning('parsing .netrc: %s' % error_to_compat_str(err))
 
         return (username, password)
 

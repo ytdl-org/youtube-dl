@@ -7,7 +7,7 @@ import time
 
 from ..utils import (
     encodeFilename,
-    error_to_str,
+    error_to_compat_str,
     decodeArgument,
     format_bytes,
     timeconvert,
@@ -186,7 +186,7 @@ class FileDownloader(object):
                 return
             os.rename(encodeFilename(old_filename), encodeFilename(new_filename))
         except (IOError, OSError) as err:
-            self.report_error('unable to rename file: %s' % error_to_str(err))
+            self.report_error('unable to rename file: %s' % error_to_compat_str(err))
 
     def try_utime(self, filename, last_modified_hdr):
         """Try to set the last-modified time of the given file."""

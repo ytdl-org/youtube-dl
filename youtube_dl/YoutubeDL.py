@@ -49,7 +49,7 @@ from .utils import (
     DownloadError,
     encode_compat_str,
     encodeFilename,
-    error_to_str,
+    error_to_compat_str,
     ExtractorError,
     format_bytes,
     formatSeconds,
@@ -683,7 +683,7 @@ class YoutubeDL(object):
                 raise
             except Exception as e:
                 if self.params.get('ignoreerrors', False):
-                    self.report_error(error_to_str(e), tb=encode_compat_str(traceback.format_exc()))
+                    self.report_error(error_to_compat_str(e), tb=encode_compat_str(traceback.format_exc()))
                     break
                 else:
                     raise
@@ -1461,7 +1461,7 @@ class YoutubeDL(object):
             if dn and not os.path.exists(dn):
                 os.makedirs(dn)
         except (OSError, IOError) as err:
-            self.report_error('unable to create directory ' + error_to_str(err))
+            self.report_error('unable to create directory ' + error_to_compat_str(err))
             return
 
         if self.params.get('writedescription', False):
@@ -1512,7 +1512,7 @@ class YoutubeDL(object):
                             sub_info['url'], info_dict['id'], note=False)
                     except ExtractorError as err:
                         self.report_warning('Unable to download subtitle for "%s": %s' %
-                                            (sub_lang, error_to_str(err.cause)))
+                                            (sub_lang, error_to_compat_str(err.cause)))
                         continue
                 try:
                     sub_filename = subtitles_filename(filename, sub_lang, sub_format)
@@ -2041,4 +2041,4 @@ class YoutubeDL(object):
                                    (info_dict['extractor'], info_dict['id'], thumb_display_id, thumb_filename))
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     self.report_warning('Unable to download thumbnail "%s": %s' %
-                                        (t['url'], error_to_str(err)))
+                                        (t['url'], error_to_compat_str(err)))
