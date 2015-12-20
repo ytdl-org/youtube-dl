@@ -649,6 +649,7 @@ from .teamcoco import TeamcocoIE
 from .techtalks import TechTalksIE
 from .ted import TEDIE
 from .telebruxelles import TeleBruxellesIE
+from .tele5 import Tele5IE
 from .telecinco import TelecincoIE
 from .telegraaf import TelegraafIE
 from .telemb import TeleMBIE
