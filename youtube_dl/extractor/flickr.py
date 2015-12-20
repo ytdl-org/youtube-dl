@@ -25,6 +25,8 @@ class FlickrIE(InfoExtractor):
             'uploader_id': '10922353@N03',
             'uploader': 'Forest Wander',
             'comment_count': int,
+            'view_count': int,
+            'tags': list,
         }
     }
 
@@ -78,6 +80,8 @@ class FlickrIE(InfoExtractor):
                 'uploader_id': owner.get('nsid'),
                 'uploader': owner.get('realname'),
                 'comment_count': int_or_none(video_info.get('comments', {}).get('_content')),
+                'view_count': int_or_none(video_info.get('views')),
+                'tags': [tag.get('_content') for tag in video_info.get('tags', {}).get('tag', [])]
             }
         else:
             raise ExtractorError('not a video', expected=True)
