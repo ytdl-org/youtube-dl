@@ -52,8 +52,8 @@ class GenVideosIE(InfoExtractor):
         ) #returns json containing the url of the video (in 360p, 720p and 1080p).
         #For example - {"360":"\/\/html5player.org\/embed?url=https%3A%2F%2Flh3.googleusercontent.com%2FW6-SNGaDLWNyucD3pMqa1uMBapGDbtMTOtwpXrEu-w%3Dm18","720":"\/\/html5player.org\/embed?url=https%3A%2F%2Flh3.googleusercontent.com%2FW6-SNGaDLWNyucD3pMqa1uMBapGDbtMTOtwpXrEu-w%3Dm22","1080":"\/\/html5player.org\/embed?url=https%3A%2F%2Flh3.googleusercontent.com%2FW6-SNGaDLWNyucD3pMqa1uMBapGDbtMTOtwpXrEu-w%3Dm37"}
         urls_data_json = json.loads(urls_data.text)
-        _360p_redirect_url = parse_qs(urlparse(urls_data_json['360']).query)['url'][0]
-        _360p_url = urllib.urlopen(_360p_redirect_url).geturl()
+        _360p_url = parse_qs(urlparse(urls_data_json['360']).query)['url'][0]
+        #_360p_url = urllib.urlopen(_360p_redirect_url).geturl()
         # TODO : return all possible formats instead of just 360p
 
 
