@@ -78,7 +78,6 @@ from .camdemy import (
     CamdemyIE,
     CamdemyFolderIE
 )
-from .canal13cl import Canal13clIE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
 from .cbs import CBSIE
@@ -648,6 +647,7 @@ from .teachingchannel import TeachingChannelIE
 from .teamcoco import TeamcocoIE
 from .techtalks import TechTalksIE
 from .ted import TEDIE
+from .tele13 import Tele13IE
 from .telebruxelles import TeleBruxellesIE
 from .telecinco import TelecincoIE
 from .telegraaf import TelegraafIE
