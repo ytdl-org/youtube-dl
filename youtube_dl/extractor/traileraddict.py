@@ -1,64 +1,70 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
-import re
+from string import ascii_lowercase
+from hashlib import md5
 
 from .common import InfoExtractor
+from ..utils import int_or_none
+from ..compat import compat_parse_qs
 
 
 class TrailerAddictIE(InfoExtractor):
-    _WORKING = False
-    _VALID_URL = r'(?:http://)?(?:www\.)?traileraddict\.com/(?:trailer|clip)/(?P<movie>.+?)/(?P<trailer_name>.+)'
+    _VALID_URL = r'https?://(?:www\.)?traileraddict\.com/(?P<id>.+)'
     _TEST = {
-        'url': 'http://www.traileraddict.com/trailer/prince-avalanche/trailer',
-        'md5': '41365557f3c8c397d091da510e73ceb4',
+        'url': 'http://www.traileraddict.com/prince-avalanche/trailer',
+        'md5': '57e39dbcf4142ceb8e1f242ff423fd71',
         'info_dict': {
             'id': '76184',
             'ext': 'mp4',
-            'title': 'Prince Avalanche Trailer',
-            'description': 'Trailer for Prince Avalanche.\n\nTwo highway road workers spend the summer of 1988 away from their city lives. The isolated landscape becomes a place of misadventure as the men find themselves at odds with each other and the women they left behind.',
+            'title': 'Prince Avalanche (2013) Trailer',
+            'description': 'Trailer for Prince Avalanche. Two highway road workers spend the summer of 1988 away from their city lives. The isolated landscape becomes a place of misadventure as the men find...',
         }
     }
 
+    def _get_video_info(self, video_id):
+        hash_str = ''
+        for num in video_id:
+            hash_str += ascii_lowercase[int(num)]
+        hash_str += video_id
+        token = md5(hash_str.encode()).hexdigest()[2:7]
+        return compat_parse_qs(self._download_webpage(
+            'http://v.traileraddict.com/js/flash/fv-secure.php?tid=%s&token=%s' % (video_id, token),
+            video_id))
+
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        name = mobj.group('movie') + '/' + mobj.group('trailer_name')
-        webpage = self._download_webpage(url, name)
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
 
-        title = self._search_regex(r'<title>(.+?)</title>',
-                                   webpage, 'video title').replace(' - Trailer Addict', '')
-        view_count_str = self._search_regex(
-            r'<span class="views_n">([0-9,.]+)</span>',
-            webpage, 'view count', fatal=False)
-        view_count = (
-            None if view_count_str is None
-            else int(view_count_str.replace(',', '')))
-        video_id = self._search_regex(
-            r'<param\s+name="movie"\s+value="/emb/([0-9]+)"\s*/>',
-            webpage, 'video id')
+        title = self._og_search_title(webpage)
+        description = self._og_search_description(webpage)
+        thumbnail_url = self._og_search_thumbnail(webpage)
+        embed_url = self._html_search_meta('embedUrl', webpage, 'embed url')
+        video_id = self._search_regex('/em[bd]/(\d+)', embed_url, 'video id')
 
-        # Presence of (no)watchplus function indicates HD quality is available
-        if re.search(r'function (no)?watchplus()', webpage):
-            fvar = "fvarhd"
-        else:
-            fvar = "fvar"
+        video_info = self._get_video_info(video_id)
 
-        info_url = "http://www.traileraddict.com/%s.php?tid=%s" % (fvar, str(video_id))
-        info_webpage = self._download_webpage(info_url, video_id, "Downloading the info webpage")
+        formats = [{
+            'url': video_info['fileurl'][0].strip(),
+            'width': int_or_none(video_info.get('vidwidth')[0]),
+            'height': int_or_none(video_info.get('vidheight')[0]),
+            'format_id': 'sd',
+        }]
 
-        final_url = self._search_regex(r'&fileurl=(.+)',
-                                       info_webpage, 'Download url').replace('%3F', '?')
-        thumbnail_url = self._search_regex(r'&image=(.+?)&',
-                                           info_webpage, 'thumbnail url')
+        if video_info.get('hdurl')[0].startswith('http://'):
+            formats.append({
+                'url': video_info['hdurl'][0].strip(),
+                'width': int_or_none(video_info.get('hd_vidwidth')[0]),
+                'height': int_or_none(video_info.get('hd_vidheight')[0]),
+                'format_id': 'hd',
+            })
 
-        description = self._html_search_regex(
-            r'(?s)<div class="synopsis">.*?<div class="movie_label_info"[^>]*>(.*?)</div>',
-            webpage, 'description', fatal=False)
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'url': final_url,
             'title': title,
             'thumbnail': thumbnail_url,
             'description': description,
-            'view_count': view_count,
+            'formats': formats,
         }
