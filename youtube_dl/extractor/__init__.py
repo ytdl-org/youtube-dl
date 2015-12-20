@@ -220,6 +220,7 @@ from .gametrailers import GametrailersIE
 from .gazeta import GazetaIE
 from .gdcvault import GDCVaultIE
 from .generic import GenericIE
+from .genvideos import GenVideosIE
 from .gfycat import GfycatIE
 from .giantbomb import GiantBombIE
 from .giga import GigaIE
