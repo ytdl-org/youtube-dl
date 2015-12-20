@@ -523,6 +523,7 @@ from .rai import RaiIE
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
 from .redtube import RedTubeIE
+from .regiotv import RegioTVIE
 from .restudy import RestudyIE
 from .reverbnation import ReverbNationIE
 from .ringtv import RingTVIE
