@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import datetime
 import re
 import time
+import base64
 
 from .common import InfoExtractor
 from ..compat import (
@@ -16,6 +17,7 @@ from ..utils import (
     parse_iso8601,
     sanitized_Request,
     int_or_none,
+    str_or_none,
     encode_data_uri,
 )
 
@@ -239,3 +241,58 @@ class LetvPlaylistIE(LetvTvIE):
         },
         'playlist_mincount': 7
     }]
+
+
+class LetvCloudIE(InfoExtractor):
+    IE_DESC = '乐视云'
+    _VALID_URL = r'http://yuntv\.letv\.com/bcloud.html\?.*$'
+
+    _TESTS = [{
+        'url': 'http://yuntv.letv.com/bcloud.html?uu=p7jnfw5hw9&vu=467623dedf',
+        'md5': '26450599afd64c513bc77030ad15db44',
+        'info_dict': {
+            'id': 'p7jnfw5hw9_467623dedf',
+            'ext': 'mp4',
+            'title': 'p7jnfw5hw9_467623dedf',
+        },
+    }, {
+        'url': 'http://yuntv.letv.com/bcloud.html?uu=p7jnfw5hw9&vu=ec93197892&pu=2c7cd40209&auto_play=1&gpcflag=1&width=640&height=360',
+        'info_dict': {
+            'id': 'p7jnfw5hw9_ec93197892',
+            'ext': 'mp4',
+            'title': 'p7jnfw5hw9_ec93197892',
+        },
+    }, {
+        'url': 'http://yuntv.letv.com/bcloud.html?uu=p7jnfw5hw9&vu=187060b6fd',
+        'info_dict': {
+            'id': 'p7jnfw5hw9_187060b6fd',
+            'ext': 'mp4',
+            'title': 'p7jnfw5hw9_187060b6fd',
+        },
+    }]
+
+    def _real_extract(self, url):
+        uu = re.search('uu=([\w]+)', url).group(1)
+        vu = re.search('vu=([\w]+)', url).group(1)
+        media_id = uu + '_' + vu
+
+        play_json_req = sanitized_Request(
+            'http://api.letvcloud.com/gpc.php?cf=html5&sign=signxxxxx&ver=2.2&format=json&' +
+            "uu=" + uu + "&vu=" + vu)
+        play_json = self._download_json(play_json_req, media_id, 'Downloading playJson data')
+
+        formats = [{
+            'url': base64.b64decode(media['play_url']['main_url'].encode('utf-8')).decode("utf-8"),
+            'ext': 'mp4',
+            'format_id': int_or_none(media.get('play_url', {}).get('vtype')),
+            'format_note': str_or_none(media.get('play_url', {}).get('definition')),
+            'width': int_or_none(media.get('play_url', {}).get('vwidth')),
+            'height': int_or_none(media.get('play_url', {}).get('vheight')),
+        } for media in play_json['data']['video_info']['media'].values()]
+        self._sort_formats(formats)
+
+        return {
+            'id': media_id,
+            'title': media_id,
+            'formats': formats,
+        }
