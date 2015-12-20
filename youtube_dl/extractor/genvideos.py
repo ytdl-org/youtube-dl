@@ -15,7 +15,7 @@ class GenVideosIE(InfoExtractor):
     # For example
     # * http://genvideos.com/watch_kMjlhMWE5OT.html#video=tBa-Q-WkbPqwzs34b7ArqU7VomQMb2n-RAlARWKWKTI
     # * http://genvideos.org/watch_kMjlhMWE5OT.html#video=tBa-Q-WkbPqwzs34b7ArqU7VomQMb2n-RAlARWKWKTI
-    _TEST = {
+    _TESTS = [{
         'url': 'http://genvideos.org/watch?v=kMjlhMWE5OT',
         #'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
         'info_dict': {
@@ -29,7 +29,14 @@ class GenVideosIE(InfoExtractor):
             # * A regular expression; start the string with re:
             # * Any Python type (for example int or float)
         }
-    }
+    }, {
+        'url': 'https://genvideos.org/watch?v=Pitch_Perfect_2_2015#video=tBa-Q-WkbPqwzs34b7ArqU7VomQMb2n-RAlARWKWKTI',
+        'info_dict':{
+            'id': 'Pitch_Perfect_2_2015',
+            'ext': 'mp4',
+            'title': 'Pitch Perfect 2 (2015) - HD 1080p'
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
