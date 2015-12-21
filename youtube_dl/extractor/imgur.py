@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class ImgurIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?!gallery)(?P<id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(gallery/)?(?P<id>[a-zA-Z0-9]{6,})'
 
     _TESTS = [{
         'url': 'https://i.imgur.com/A61SaA1.gifv',
@@ -100,7 +100,7 @@ class ImgurIE(InfoExtractor):
 
 
 class ImgurAlbumIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:i\.)?imgur\.com/gallery/(?P<id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(gallery/)?(?P<id>[a-zA-Z0-9]{5})(?![a-zA-Z0-9])'
 
     _TESTS = [{
         'url': 'http://imgur.com/gallery/Q95ko',
