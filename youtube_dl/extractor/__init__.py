@@ -657,6 +657,7 @@ from .tenplay import TenPlayIE
 from .testurl import TestURLIE
 from .testtube import TestTubeIE
 from .tf1 import TF1IE
+from .theintercept import TheInterceptIE
 from .theonion import TheOnionIE
 from .theplatform import (
     ThePlatformIE,
