@@ -231,6 +231,7 @@ from .globo import (
 from .godtube import GodTubeIE
 from .goldenmoustache import GoldenMoustacheIE
 from .golem import GolemIE
+from .googledrive import GoogleDriveIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
 from .goshgay import GoshgayIE
