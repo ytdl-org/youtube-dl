@@ -122,7 +122,7 @@ class ImgurAlbumIE(InfoExtractor):
         album_img_data = self._download_json(
             'http://imgur.com/gallery/%s/album_images/hit.json?all=true' % album_id,album_id)['data']
 
-        if(len(album_img_data) == 0):
+        if len(album_img_data) == 0 :
             entries = [self.url_result('http://imgur.com/%s' % album_id)]
         else:
             album_images = album_img_data['images']
