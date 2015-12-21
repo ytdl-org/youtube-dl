@@ -113,12 +113,15 @@ class ImgurAlbumIE(InfoExtractor):
     def _real_extract(self, url):
         album_id = self._match_id(url)
 
-        album_images = self._download_json(
-            'http://imgur.com/gallery/%s/album_images/hit.json?all=true' % album_id,
-            album_id)['data']['images']
+        album_img_data = self._download_json(
+            'http://imgur.com/gallery/%s/album_images/hit.json?all=true' % album_id,album_id)['data']
 
-        entries = [
-            self.url_result('http://imgur.com/%s' % image['hash'])
-            for image in album_images if image.get('hash')]
+        if(len(album_img_data) == 0):
+            entries = [self.url_result('http://imgur.com/%s' % album_id)]
+        else:
+            album_images = album_img_data['images']
+            entries = [
+                self.url_result('http://imgur.com/%s' % image['hash'])
+                for image in album_images if image.get('hash')]
 
         return self.playlist_result(entries, album_id)
