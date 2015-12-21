@@ -61,6 +61,10 @@ from .beatportpro import BeatportProIE
 from .bet import BetIE
 from .bild import BildIE
 from .bilibili import BiliBiliIE
+from .bleacherreport import (
+    BleacherReportIE,
+    BleacherReportCMSIE,
+)
 from .blinkx import BlinkxIE
 from .bloomberg import BloombergIE
 from .bpb import BpbIE

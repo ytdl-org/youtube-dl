@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import itertools
 
-from .common import InfoExtractor
+from .amp import AMPIE
 from ..compat import (
     compat_HTTPError,
     compat_urllib_parse,
@@ -12,14 +12,11 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     clean_html,
-    determine_ext,
-    int_or_none,
-    parse_iso8601,
     sanitized_Request,
 )
 
 
-class DramaFeverBaseIE(InfoExtractor):
+class DramaFeverBaseIE(AMPIE):
     _LOGIN_URL = 'https://www.dramafever.com/accounts/login/'
     _NETRC_MACHINE = 'dramafever'
 
@@ -80,59 +77,24 @@ class DramaFeverIE(DramaFeverBaseIE):
             'timestamp': 1404336058,
             'upload_date': '20140702',
             'duration': 343,
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url).replace('/', '.')
 
         try:
-            feed = self._download_json(
-                'http://www.dramafever.com/amp/episode/feed.json?guid=%s' % video_id,
-                video_id, 'Downloading episode JSON')['channel']['item']
+            info = self._extract_feed_info(
+                'http://www.dramafever.com/amp/episode/feed.json?guid=%s' % video_id)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError):
                 raise ExtractorError(
                     'Currently unavailable in your country.', expected=True)
             raise
-
-        media_group = feed.get('media-group', {})
-
-        formats = []
-        for media_content in media_group['media-content']:
-            src = media_content.get('@attributes', {}).get('url')
-            if not src:
-                continue
-            ext = determine_ext(src)
-            if ext == 'f4m':
-                formats.extend(self._extract_f4m_formats(
-                    src, video_id, f4m_id='hds'))
-            elif ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    src, video_id, 'mp4', m3u8_id='hls'))
-            else:
-                formats.append({
-                    'url': src,
-                })
-        self._sort_formats(formats)
-
-        title = media_group.get('media-title')
-        description = media_group.get('media-description')
-        duration = int_or_none(media_group['media-content'][0].get('@attributes', {}).get('duration'))
-        thumbnail = self._proto_relative_url(
-            media_group.get('media-thumbnail', {}).get('@attributes', {}).get('url'))
-        timestamp = parse_iso8601(feed.get('pubDate'), ' ')
-
-        subtitles = {}
-        for media_subtitle in media_group.get('media-subTitle', []):
-            lang = media_subtitle.get('@attributes', {}).get('lang')
-            href = media_subtitle.get('@attributes', {}).get('href')
-            if not lang or not href:
-                continue
-            subtitles[lang] = [{
-                'ext': 'ttml',
-                'url': href,
-            }]
 
         series_id, episode_number = video_id.split('.')
         episode_info = self._download_json(
@@ -146,21 +108,12 @@ class DramaFeverIE(DramaFeverBaseIE):
             if value:
                 subfile = value[0].get('subfile') or value[0].get('new_subfile')
                 if subfile and subfile != 'http://www.dramafever.com/st/':
-                    subtitles.setdefault('English', []).append({
+                    info['subtitiles'].setdefault('English', []).append({
                         'ext': 'srt',
                         'url': subfile,
                     })
 
-        return {
-            'id': video_id,
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'timestamp': timestamp,
-            'duration': duration,
-            'formats': formats,
-            'subtitles': subtitles,
-        }
+        return info
 
 
 class DramaFeverSeriesIE(DramaFeverBaseIE):
