@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import int_or_none
 
@@ -23,7 +25,7 @@ class JWPlatformIE(InfoExtractor):
     @staticmethod
     def _extract_url(webpage):
         mobj = re.search(
-            r'<script[^>]+?src=["\'](?P<url>(?:https?:)?//content.jwplatform.com/players/[a-zA-Z0-9]{8}',
+            r'<script[^>]+?src=["\'](?P<url>(?:https?:)?//content.jwplatform.com/players/[a-zA-Z0-9]{8})',
             webpage)
         if mobj:
             return mobj.group('url')
@@ -42,7 +44,9 @@ class JWPlatformIE(InfoExtractor):
             source_url = self._proto_relative_url(source['file'])
             source_type = source.get('type') or ''
             if source_type == 'application/vnd.apple.mpegurl':
-                formats.extend(self._extract_m3u8_formats(source_url, video_id, 'mp4', 'm3u8_native', fatal=None))
+                m3u8_formats = self._extract_m3u8_formats(source_url, video_id, 'mp4', 'm3u8_native', fatal=None)
+                if m3u8_formats:
+                    formats.extend(m3u8_formats)
             elif source_type.startswith('audio'):
                 formats.append({
                     'url': source_url,
@@ -57,7 +61,7 @@ class JWPlatformIE(InfoExtractor):
         self._sort_formats(formats)
 
         return {
-            'id': video_data['mediaid'],
+            'id': video_id,
             'title': video_data['title'],
             'description': video_data.get('description'),
             'thumbnail': self._proto_relative_url(video_data.get('image')),

@@ -53,6 +53,7 @@ from .onionstudios import OnionStudiosIE
 from .snagfilms import SnagFilmsEmbedIE
 from .screenwavemedia import ScreenwaveMediaIE
 from .mtv import MTVServicesEmbeddedIE
+from .jwplatform import JWPlatformIE
 
 
 class GenericIE(InfoExtractor):
@@ -1786,6 +1787,11 @@ class GenericIE(InfoExtractor):
         snagfilms_url = SnagFilmsEmbedIE._extract_url(webpage)
         if snagfilms_url:
             return self.url_result(snagfilms_url)
+
+        # Look for JWPlatform embeds
+        jwplatform_url = JWPlatformIE._extract_url(webpage)
+        if jwplatform_url:
+            return self.url_result(jwplatform_url, 'JWPlatform')
 
         # Look for ScreenwaveMedia embeds
         mobj = re.search(ScreenwaveMediaIE.EMBED_PATTERN, webpage)
