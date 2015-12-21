@@ -112,8 +112,11 @@ class ImgurAlbumIE(InfoExtractor):
         'url': 'https://imgur.com/gallery/YcAQlkx',
         'info_dict': {
             'id': 'YcAQlkx',
+            'ext': 'mp4',
+            'title': 'Classic Steve Carell gif...cracks me up everytime....damn the repost downvotes....',
+            'description': 'Imgur: The most awesome images on the Internet.'
+
         },
-        'playlist_count': 1,
     }]
 
     def _real_extract(self, url):
@@ -123,7 +126,7 @@ class ImgurAlbumIE(InfoExtractor):
             'http://imgur.com/gallery/%s/album_images/hit.json?all=true' % album_id, album_id)['data']
 
         if len(album_img_data) == 0:
-            entries = [self.url_result('http://imgur.com/%s' % album_id)]
+            return self.url_result('http://imgur.com/%s' % album_id)
         else:
             album_images = album_img_data['images']
             entries = [
