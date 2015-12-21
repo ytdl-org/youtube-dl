@@ -102,13 +102,19 @@ class ImgurIE(InfoExtractor):
 class ImgurAlbumIE(InfoExtractor):
     _VALID_URL = r'https?://(?:i\.)?imgur\.com/gallery/(?P<id>[a-zA-Z0-9]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://imgur.com/gallery/Q95ko',
         'info_dict': {
             'id': 'Q95ko',
         },
         'playlist_count': 25,
-    }
+    },{
+        'url': 'https://imgur.com/gallery/YcAQlkx',
+        'info_dict': {
+            'id': 'YcAQlkx',
+        },
+        'playlist_count': 1,
+    }]
 
     def _real_extract(self, url):
         album_id = self._match_id(url)
