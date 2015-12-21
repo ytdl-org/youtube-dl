@@ -108,7 +108,7 @@ class ImgurAlbumIE(InfoExtractor):
             'id': 'Q95ko',
         },
         'playlist_count': 25,
-    },{
+    }, {
         'url': 'https://imgur.com/gallery/YcAQlkx',
         'info_dict': {
             'id': 'YcAQlkx',
@@ -120,9 +120,9 @@ class ImgurAlbumIE(InfoExtractor):
         album_id = self._match_id(url)
 
         album_img_data = self._download_json(
-            'http://imgur.com/gallery/%s/album_images/hit.json?all=true' % album_id,album_id)['data']
+            'http://imgur.com/gallery/%s/album_images/hit.json?all=true' % album_id, album_id)['data']
 
-        if len(album_img_data) == 0 :
+        if len(album_img_data) == 0:
             entries = [self.url_result('http://imgur.com/%s' % album_id)]
         else:
             album_images = album_img_data['images']
