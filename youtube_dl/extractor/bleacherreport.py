@@ -26,7 +26,7 @@ class BleacherReportIE(InfoExtractor):
             'uploader': 'Team Stream Now ',
         },
         'add_ie': ['Ooyala'],
-    },{
+    }, {
         'url': 'http://bleacherreport.com/articles/2586817-aussie-golfers-get-fright-of-their-lives-after-being-chased-by-angry-kangaroo',
         'md5': 'af5f90dc9c7ba1c19d0a3eac806bbf50',
         'info_dict': {
@@ -35,25 +35,11 @@ class BleacherReportIE(InfoExtractor):
             'title': 'Aussie Golfers Get Fright of Their Lives After Being Chased by Angry Kangaroo',
             'timestamp': 1446839961,
             'uploader': 'Sean Fay',
-            'description': 'md5:e95afafa43619816552723878b3b0a84',
+            'description': 'md5:825e94e0f3521df52fa83b2ed198fa20',
             'uploader_id': 6466954,
             'upload_date': '20151011',
         },
         'add_ie': ['Youtube'],
-    },{
-        'url': 'http://bleacherreport.com/articles/2496438-fsu-stat-projections-is-jalen-ramsey-best-defensive-player-in-college-football',
-        'md5': 'a3ffc3dc73afdbc2010f02d98f990f20',
-        'info_dict': {
-            'id': '2496438',
-            'ext': 'mp4',
-            'title': 'FSU Stat Projections: Is Jalen Ramsey Best Defensive Player in College Football?',
-            'upload_date': '20150615',
-            'uploader': 'Team Stream Now ',
-            'timestamp': 1434380212,
-            'description': 'CFB, ACC, Florida State',
-            'uploader_id': 3992341,
-        },
-        'add_ie': ['Vine'],
     }]
 
     def _real_extract(self, url):
@@ -115,7 +101,6 @@ class BleacherReportCMSIE(AMPIE):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         info = self._extract_feed_info('http://cms.bleacherreport.com/media/items/%s/akamai.json' % video_id)
         info['id'] = video_id
         return info

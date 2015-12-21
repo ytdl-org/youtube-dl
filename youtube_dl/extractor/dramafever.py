@@ -13,9 +13,6 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     clean_html,
-    determine_ext,
-    int_or_none,
-    parse_iso8601,
 )
 
 
@@ -91,7 +88,8 @@ class DramaFeverIE(DramaFeverBaseIE):
         video_id = self._match_id(url).replace('/', '.')
 
         try:
-            info = self._extract_feed_info('http://www.dramafever.com/amp/episode/feed.json?guid=%s' % video_id)
+            info = self._extract_feed_info(
+                'http://www.dramafever.com/amp/episode/feed.json?guid=%s' % video_id)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError):
                 raise ExtractorError(

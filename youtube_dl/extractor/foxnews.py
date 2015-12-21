@@ -3,10 +3,6 @@ from __future__ import unicode_literals
 import re
 
 from .amp import AMPIE
-from ..utils import (
-    parse_iso8601,
-    int_or_none,
-)
 
 
 class FoxNewsIE(AMPIE):
@@ -22,8 +18,8 @@ class FoxNewsIE(AMPIE):
                 'title': 'Frozen in Time',
                 'description': '16-year-old girl is size of toddler',
                 'duration': 265,
-                #'timestamp': 1304411491,
-                #'upload_date': '20110503',
+                # 'timestamp': 1304411491,
+                # 'upload_date': '20110503',
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
         },
@@ -36,8 +32,8 @@ class FoxNewsIE(AMPIE):
                 'title': "Rep. Luis Gutierrez on if Obama's immigration plan is legal",
                 'description': "Congressman discusses president's plan",
                 'duration': 292,
-                #'timestamp': 1417662047,
-                #'upload_date': '20141204',
+                # 'timestamp': 1417662047,
+                # 'upload_date': '20141204',
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
         },
@@ -52,10 +48,9 @@ class FoxNewsIE(AMPIE):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        host = mobj.group('host')
+        host, video_id = re.match(self._VALID_URL, url).groups()
 
-        info = self._extract_feed_info('http://%s/v/feed/video/%s.js?template=fox' % (host, video_id))
+        info = self._extract_feed_info(
+            'http://%s/v/feed/video/%s.js?template=fox' % (host, video_id))
         info['id'] = video_id
         return info
