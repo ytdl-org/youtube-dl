@@ -61,6 +61,7 @@ from .beatportpro import BeatportProIE
 from .bet import BetIE
 from .bild import BildIE
 from .bilibili import BiliBiliIE
+from .biobiotv import BioBioTVIE
 from .blinkx import BlinkxIE
 from .bloomberg import BloombergIE
 from .bpb import BpbIE
