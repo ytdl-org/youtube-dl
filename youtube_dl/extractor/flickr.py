@@ -50,13 +50,19 @@ class FlickrIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        api_key = self._download_json('https://www.flickr.com/hermes_error_beacon.gne', video_id, 'Downloading api key',)['site_key']
+        api_key = self._download_json(
+            'https://www.flickr.com/hermes_error_beacon.gne', video_id,
+            'Downloading api key')['site_key']
 
-        video_info = self._call_api('photos.getInfo', video_id, api_key, 'Downloading video info')['photo']
+        video_info = self._call_api(
+            'photos.getInfo', video_id, api_key, 'Downloading video info')['photo']
         if video_info['media'] == 'video':
-            streams = self._call_api('video.getStreamInfo', video_id, api_key, 'Downloading streams info', video_info['secret'])['streams']
+            streams = self._call_api(
+                'video.getStreamInfo', video_id, api_key,
+                'Downloading streams info', video_info['secret'])['streams']
 
-            preference = qualities(['iphone_wifi', '700', 'appletv', 'orig'])
+            preference = qualities(
+                ['288p', 'iphone_wifi', '100', '300', '700', '360p', 'appletv', '720p', '1080p', 'orig'])
 
             formats = []
             for stream in streams['stream']:
