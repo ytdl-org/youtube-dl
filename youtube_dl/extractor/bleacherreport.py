@@ -90,7 +90,7 @@ class BleacherReportCMSIE(AMPIE):
     _VALID_URL = r'https?://(?:www\.)?bleacherreport\.com/video_embed\?id=(?P<id>[0-9a-f-]{36})'
     _TESTS = [{
         'url': 'http://bleacherreport.com/video_embed?id=8fd44c2f-3dc5-4821-9118-2c825a98c0e1',
-        'md5': 'f0ca220af012d4df857b54f792c586bb',
+        'md5': '8c2c12e3af7805152675446c905d159b',
         'info_dict': {
             'id': '8fd44c2f-3dc5-4821-9118-2c825a98c0e1',
             'ext': 'flv',
