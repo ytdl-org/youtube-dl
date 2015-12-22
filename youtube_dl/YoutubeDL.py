@@ -47,7 +47,9 @@ from .utils import (
     DEFAULT_OUTTMPL,
     determine_ext,
     DownloadError,
+    encode_compat_str,
     encodeFilename,
+    error_to_compat_str,
     ExtractorError,
     format_bytes,
     formatSeconds,
@@ -495,7 +497,7 @@ class YoutubeDL(object):
                     tb = ''
                     if hasattr(sys.exc_info()[1], 'exc_info') and sys.exc_info()[1].exc_info[0]:
                         tb += ''.join(traceback.format_exception(*sys.exc_info()[1].exc_info))
-                    tb += compat_str(traceback.format_exc())
+                    tb += encode_compat_str(traceback.format_exc())
                 else:
                     tb_data = traceback.format_list(traceback.extract_stack())
                     tb = ''.join(tb_data)
@@ -674,14 +676,14 @@ class YoutubeDL(object):
                     return self.process_ie_result(ie_result, download, extra_info)
                 else:
                     return ie_result
-            except ExtractorError as de:  # An error we somewhat expected
-                self.report_error(compat_str(de), de.format_traceback())
+            except ExtractorError as e:  # An error we somewhat expected
+                self.report_error(compat_str(e), e.format_traceback())
                 break
             except MaxDownloadsReached:
                 raise
             except Exception as e:
                 if self.params.get('ignoreerrors', False):
-                    self.report_error(compat_str(e), tb=compat_str(traceback.format_exc()))
+                    self.report_error(error_to_compat_str(e), tb=encode_compat_str(traceback.format_exc()))
                     break
                 else:
                     raise
@@ -1459,7 +1461,7 @@ class YoutubeDL(object):
             if dn and not os.path.exists(dn):
                 os.makedirs(dn)
         except (OSError, IOError) as err:
-            self.report_error('unable to create directory ' + compat_str(err))
+            self.report_error('unable to create directory ' + error_to_compat_str(err))
             return
 
         if self.params.get('writedescription', False):
@@ -1510,7 +1512,7 @@ class YoutubeDL(object):
                             sub_info['url'], info_dict['id'], note=False)
                     except ExtractorError as err:
                         self.report_warning('Unable to download subtitle for "%s": %s' %
-                                            (sub_lang, compat_str(err.cause)))
+                                            (sub_lang, error_to_compat_str(err.cause)))
                         continue
                 try:
                     sub_filename = subtitles_filename(filename, sub_lang, sub_format)
@@ -2039,4 +2041,4 @@ class YoutubeDL(object):
                                    (info_dict['extractor'], info_dict['id'], thumb_display_id, thumb_filename))
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     self.report_warning('Unable to download thumbnail "%s": %s' %
-                                        (t['url'], compat_str(err)))
+                                        (t['url'], error_to_compat_str(err)))

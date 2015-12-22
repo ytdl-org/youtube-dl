@@ -1406,6 +1406,15 @@ def remove_end(s, end):
     return s
 
 
+def remove_quotes(s):
+    if s is None or len(s) < 2:
+        return s
+    for quote in ('"', "'", ):
+        if s[0] == quote and s[-1] == quote:
+            return s[1:-1]
+    return s
+
+
 def url_basename(url):
     path = compat_urlparse.urlparse(url).path
     return path.strip('/').split('/')[-1]
@@ -1703,6 +1712,10 @@ def encode_dict(d, encoding='utf-8'):
     return dict((encode(k), encode(v)) for k, v in d.items())
 
 
+def encode_compat_str(string, encoding=preferredencoding(), errors='strict'):
+    return string if isinstance(string, compat_str) else compat_str(string, encoding, errors)
+
+
 US_RATINGS = {
     'G': 0,
     'PG': 10,
@@ -1795,6 +1808,15 @@ def ytdl_is_updateable():
 def args_to_str(args):
     # Get a short string representation for a subprocess command
     return ' '.join(shlex_quote(a) for a in args)
+
+
+def error_to_compat_str(err):
+    err_str = str(err)
+    # On python 2 error byte string must be decoded with proper
+    # encoding rather than ascii
+    if sys.version_info[0] < 3:
+        err_str = err_str.decode(preferredencoding())
+    return err_str
 
 
 def mimetype2ext(mt):
@@ -1967,15 +1989,15 @@ def match_filter_func(filter_str):
 
 def parse_dfxp_time_expr(time_expr):
     if not time_expr:
-        return 0.0
+        return
 
     mobj = re.match(r'^(?P<time_offset>\d+(?:\.\d+)?)s?$', time_expr)
     if mobj:
         return float(mobj.group('time_offset'))
 
-    mobj = re.match(r'^(\d+):(\d\d):(\d\d(?:\.\d+)?)$', time_expr)
+    mobj = re.match(r'^(\d+):(\d\d):(\d\d(?:(?:\.|:)\d+)?)$', time_expr)
     if mobj:
-        return 3600 * int(mobj.group(1)) + 60 * int(mobj.group(2)) + float(mobj.group(3))
+        return 3600 * int(mobj.group(1)) + 60 * int(mobj.group(2)) + float(mobj.group(3).replace(':', '.'))
 
 
 def srt_subtitles_timecode(seconds):
@@ -2011,10 +2033,15 @@ def dfxp2srt(dfxp_data):
         raise ValueError('Invalid dfxp/TTML subtitle')
 
     for para, index in zip(paras, itertools.count(1)):
-        begin_time = parse_dfxp_time_expr(para.attrib['begin'])
+        begin_time = parse_dfxp_time_expr(para.attrib.get('begin'))
         end_time = parse_dfxp_time_expr(para.attrib.get('end'))
+        dur = parse_dfxp_time_expr(para.attrib.get('dur'))
+        if begin_time is None:
+            continue
         if not end_time:
-            end_time = begin_time + parse_dfxp_time_expr(para.attrib['dur'])
+            if not dur:
+                continue
+            end_time = begin_time + dur
         out.append('%d\n%s --> %s\n%s\n\n' % (
             index,
             srt_subtitles_timecode(begin_time),

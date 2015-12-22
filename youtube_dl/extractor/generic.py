@@ -44,7 +44,6 @@ from .myvi import MyviIE
 from .condenast import CondeNastIE
 from .udn import UDNEmbedIE
 from .senateisvp import SenateISVPIE
-from .bliptv import BlipTVIE
 from .svt import SVTIE
 from .pornhub import PornHubIE
 from .xhamster import XHamsterEmbedIE
@@ -55,6 +54,8 @@ from .snagfilms import SnagFilmsEmbedIE
 from .screenwavemedia import ScreenwaveMediaIE
 from .mtv import MTVServicesEmbeddedIE
 from .pladform import PladformIE
+from .googledrive import GoogleDriveIE
+from .jwplatform import JWPlatformIE
 
 
 class GenericIE(InfoExtractor):
@@ -1440,11 +1441,6 @@ class GenericIE(InfoExtractor):
                 'id': match.group('id')
             }
 
-        # Look for embedded blip.tv player
-        bliptv_url = BlipTVIE._extract_url(webpage)
-        if bliptv_url:
-            return self.url_result(bliptv_url, 'BlipTV')
-
         # Look for SVT player
         svt_url = SVTIE._extract_url(webpage)
         if svt_url:
@@ -1769,6 +1765,11 @@ class GenericIE(InfoExtractor):
         if nbc_sports_url:
             return self.url_result(nbc_sports_url, 'NBCSportsVPlayer')
 
+        # Look for Google Drive embeds
+        google_drive_url = GoogleDriveIE._extract_url(webpage)
+        if google_drive_url:
+            return self.url_result(google_drive_url, 'GoogleDrive')
+
         # Look for UDN embeds
         mobj = re.search(
             r'<iframe[^>]+src="(?P<url>%s)"' % UDNEmbedIE._PROTOCOL_RELATIVE_VALID_URL, webpage)
@@ -1795,6 +1796,11 @@ class GenericIE(InfoExtractor):
         snagfilms_url = SnagFilmsEmbedIE._extract_url(webpage)
         if snagfilms_url:
             return self.url_result(snagfilms_url)
+
+        # Look for JWPlatform embeds
+        jwplatform_url = JWPlatformIE._extract_url(webpage)
+        if jwplatform_url:
+            return self.url_result(jwplatform_url, 'JWPlatform')
 
         # Look for ScreenwaveMedia embeds
         mobj = re.search(ScreenwaveMediaIE.EMBED_PATTERN, webpage)

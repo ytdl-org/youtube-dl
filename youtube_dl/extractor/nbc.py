@@ -3,10 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_HTTPError,
-)
+from ..compat import compat_HTTPError
 from ..utils import (
     ExtractorError,
     find_xpath_attr,
@@ -189,7 +186,7 @@ class NBCNewsIE(InfoExtractor):
                 'title': info.find('headline').text,
                 'ext': 'flv',
                 'url': find_xpath_attr(info, 'media', 'type', 'flashVideo').text,
-                'description': compat_str(info.find('caption').text),
+                'description': info.find('caption').text,
                 'thumbnail': find_xpath_attr(info, 'media', 'type', 'thumbnail').text,
             }
         else:

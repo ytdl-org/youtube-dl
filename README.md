@@ -757,7 +757,7 @@ with youtube_dl.YoutubeDL(ydl_opts) as ydl:
     ydl.download(['http://www.youtube.com/watch?v=BaW_jenozKc'])
 ```
 
-Most likely, you'll want to use various options. For a list of what can be done, have a look at [youtube_dl/YoutubeDL.py](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/YoutubeDL.py#L117-L265). For a start, if you want to intercept youtube-dl's output, set a `logger` object.
+Most likely, you'll want to use various options. For a list of what can be done, have a look at [`youtube_dl/YoutubeDL.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/YoutubeDL.py#L121-L269). For a start, if you want to intercept youtube-dl's output, set a `logger` object.
 
 Here's a more complete example of a program that outputs only errors (and a short message after the download is finished), and downloads/converts the video to an mp3 file:
 

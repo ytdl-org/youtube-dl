@@ -9,6 +9,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_str,
     compat_urllib_parse,
+    compat_urlparse,
 )
 from ..utils import (
     clean_html,
@@ -82,14 +83,21 @@ class NocoIE(InfoExtractor):
         if 'erreur' in login:
             raise ExtractorError('Unable to login: %s' % clean_html(login['erreur']), expected=True)
 
+    @staticmethod
+    def _ts():
+        return int(time.time() * 1000)
+
     def _call_api(self, path, video_id, note, sub_lang=None):
-        ts = compat_str(int(time.time() * 1000))
+        ts = compat_str(self._ts() + self._ts_offset)
         tk = hashlib.md5((hashlib.md5(ts.encode('ascii')).hexdigest() + '#8S?uCraTedap6a').encode('ascii')).hexdigest()
         url = self._API_URL_TEMPLATE % (path, ts, tk)
         if sub_lang:
             url += self._SUB_LANG_TEMPLATE % sub_lang
 
-        resp = self._download_json(url, video_id, note)
+        request = sanitized_Request(url)
+        request.add_header('Referer', self._referer)
+
+        resp = self._download_json(request, video_id, note)
 
         if isinstance(resp, dict) and resp.get('error'):
             self._raise_error(resp['error'], resp['description'])
@@ -102,8 +110,22 @@ class NocoIE(InfoExtractor):
             expected=True)
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
+
+        # Timestamp adjustment offset between server time and local time
+        # must be calculated in order to use timestamps closest to server's
+        # in all API requests (see https://github.com/rg3/youtube-dl/issues/7864)
+        webpage = self._download_webpage(url, video_id)
+
+        player_url = self._search_regex(
+            r'(["\'])(?P<player>https?://noco\.tv/(?:[^/]+/)+NocoPlayer.+?\.swf.*?)\1',
+            webpage, 'noco player', group='player',
+            default='http://noco.tv/cdata/js/player/NocoPlayer-v1.2.40.swf')
+
+        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(player_url).query)
+        ts = int_or_none(qs.get('ts', [None])[0])
+        self._ts_offset = ts - self._ts() if ts else 0
+        self._referer = player_url
 
         medias = self._call_api(
             'shows/%s/medias' % video_id,
@@ -155,8 +177,8 @@ class NocoIE(InfoExtractor):
                         'format_id': format_id_extended,
                         'width': int_or_none(fmt.get('res_width')),
                         'height': int_or_none(fmt.get('res_lines')),
-                        'abr': int_or_none(fmt.get('audiobitrate')),
-                        'vbr': int_or_none(fmt.get('videobitrate')),
+                        'abr': int_or_none(fmt.get('audiobitrate'), 1000),
+                        'vbr': int_or_none(fmt.get('videobitrate'), 1000),
                         'filesize': int_or_none(fmt.get('filesize')),
                         'format_note': qualities[format_id].get('quality_name'),
                         'quality': qualities[format_id].get('priority'),

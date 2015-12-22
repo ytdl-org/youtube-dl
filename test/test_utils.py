@@ -22,6 +22,7 @@ from youtube_dl.utils import (
     DateRange,
     detect_exe_version,
     determine_ext,
+    encode_compat_str,
     encodeFilename,
     escape_rfc3986,
     escape_url,
@@ -43,6 +44,7 @@ from youtube_dl.utils import (
     sanitize_path,
     prepend_extension,
     replace_extension,
+    remove_quotes,
     shell_quote,
     smuggle_url,
     str_to_int,
@@ -199,6 +201,15 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(replace_extension('abc', 'temp'), 'abc.temp')
         self.assertEqual(replace_extension('.abc', 'temp'), '.abc.temp')
         self.assertEqual(replace_extension('.abc.ext', 'temp'), '.abc.temp')
+
+    def test_remove_quotes(self):
+        self.assertEqual(remove_quotes(None), None)
+        self.assertEqual(remove_quotes('"'), '"')
+        self.assertEqual(remove_quotes("'"), "'")
+        self.assertEqual(remove_quotes(';'), ';')
+        self.assertEqual(remove_quotes('";'), '";')
+        self.assertEqual(remove_quotes('""'), '')
+        self.assertEqual(remove_quotes('";"'), ';')
 
     def test_ordered_set(self):
         self.assertEqual(orderedSet([1, 1, 2, 3, 4, 4, 5, 6, 7, 3, 5]), [1, 2, 3, 4, 5, 6, 7])
@@ -439,6 +450,10 @@ class TestUtil(unittest.TestCase):
         data = urlencode_postdata({'username': 'foo@bar.com', 'password': '1234'})
         self.assertTrue(isinstance(data, bytes))
 
+    def test_encode_compat_str(self):
+        self.assertEqual(encode_compat_str(b'\xd1\x82\xd0\xb5\xd1\x81\xd1\x82', 'utf-8'), 'тест')
+        self.assertEqual(encode_compat_str('тест', 'utf-8'), 'тест')
+
     def test_parse_iso8601(self):
         self.assertEqual(parse_iso8601('2014-03-23T23:04:26+0100'), 1395612266)
         self.assertEqual(parse_iso8601('2014-03-23T22:04:26+0000'), 1395612266)
@@ -651,12 +666,13 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
             {'like_count': 190, 'dislike_count': 10}))
 
     def test_parse_dfxp_time_expr(self):
-        self.assertEqual(parse_dfxp_time_expr(None), 0.0)
-        self.assertEqual(parse_dfxp_time_expr(''), 0.0)
+        self.assertEqual(parse_dfxp_time_expr(None), None)
+        self.assertEqual(parse_dfxp_time_expr(''), None)
         self.assertEqual(parse_dfxp_time_expr('0.1'), 0.1)
         self.assertEqual(parse_dfxp_time_expr('0.1s'), 0.1)
         self.assertEqual(parse_dfxp_time_expr('00:00:01'), 1.0)
         self.assertEqual(parse_dfxp_time_expr('00:00:01.100'), 1.1)
+        self.assertEqual(parse_dfxp_time_expr('00:00:01:100'), 1.1)
 
     def test_dfxp2srt(self):
         dfxp_data = '''<?xml version="1.0" encoding="UTF-8"?>
@@ -666,6 +682,9 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
                     <p begin="0" end="1">The following line contains Chinese characters and special symbols</p>
                     <p begin="1" end="2">第二行<br/>♪♪</p>
                     <p begin="2" dur="1"><span>Third<br/>Line</span></p>
+                    <p begin="3" end="-1">Lines with invalid timestamps are ignored</p>
+                    <p begin="-1" end="-1">Ignore, two</p>
+                    <p begin="3" dur="-1">Ignored, three</p>
                 </div>
             </body>
             </tt>'''

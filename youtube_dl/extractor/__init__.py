@@ -61,8 +61,11 @@ from .beatportpro import BeatportProIE
 from .bet import BetIE
 from .bild import BildIE
 from .bilibili import BiliBiliIE
+from .bleacherreport import (
+    BleacherReportIE,
+    BleacherReportCMSIE,
+)
 from .blinkx import BlinkxIE
-from .bliptv import BlipTVIE, BlipTVUserIE
 from .bloomberg import BloombergIE
 from .bpb import BpbIE
 from .br import BRIE
@@ -78,7 +81,6 @@ from .camdemy import (
     CamdemyIE,
     CamdemyFolderIE
 )
-from .canal13cl import Canal13clIE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
 from .cbs import CBSIE
@@ -232,9 +234,11 @@ from .globo import (
 from .godtube import GodTubeIE
 from .goldenmoustache import GoldenMoustacheIE
 from .golem import GolemIE
+from .googledrive import GoogleDriveIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
 from .goshgay import GoshgayIE
+from .gputechconf import GPUTechConfIE
 from .groupon import GrouponIE
 from .hark import HarkIE
 from .hearthisat import HearThisAtIE
@@ -281,6 +285,7 @@ from .jadorecettepub import JadoreCettePubIE
 from .jeuxvideo import JeuxVideoIE
 from .jove import JoveIE
 from .jukebox import JukeboxIE
+from .jwplatform import JWPlatformIE
 from .jpopsukitv import JpopsukiIE
 from .kaltura import KalturaIE
 from .kanalplay import KanalPlayIE
@@ -335,6 +340,7 @@ from .lynda import (
 from .m6 import M6IE
 from .macgamestore import MacGameStoreIE
 from .mailru import MailRuIE
+from .makertv import MakerTVIE
 from .malemotion import MalemotionIE
 from .mdr import MDRIE
 from .metacafe import MetacafeIE
@@ -647,6 +653,7 @@ from .teachingchannel import TeachingChannelIE
 from .teamcoco import TeamcocoIE
 from .techtalks import TechTalksIE
 from .ted import TEDIE
+from .tele13 import Tele13IE
 from .telebruxelles import TeleBruxellesIE
 from .telecinco import TelecincoIE
 from .telegraaf import TelegraafIE
@@ -675,6 +682,7 @@ from .tnaflix import (
     EMPFlixIE,
     MovieFapIE,
 )
+from .toggle import ToggleIE
 from .thvideo import (
     THVideoIE,
     THVideoPlaylistIE
@@ -850,7 +858,7 @@ from .youtube import (
     YoutubeTruncatedIDIE,
     YoutubeTruncatedURLIE,
     YoutubeUserIE,
-    YoutubeUserPlaylistsIE,
+    YoutubePlaylistsIE,
     YoutubeWatchLaterIE,
 )
 from .zapiks import ZapiksIE

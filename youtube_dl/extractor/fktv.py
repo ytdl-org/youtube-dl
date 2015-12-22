@@ -1,12 +1,10 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     clean_html,
     determine_ext,
-    ExtractorError,
+    js_to_json,
 )
 
 
@@ -32,24 +30,22 @@ class FKTVIE(InfoExtractor):
             'http://fernsehkritik.tv/folge-%s/play' % episode, episode)
         title = clean_html(self._html_search_regex(
             '<h3>([^<]+)</h3>', webpage, 'title'))
-        matches = re.search(
-            r'(?s)<video(?:(?!poster)[^>])+(?:poster="([^"]+)")?[^>]*>(.*)</video>',
-            webpage)
-        if matches is None:
-            raise ExtractorError('Unable to extract the video')
+        thumbnail = self._search_regex(r'POSTER\s*=\s*"([^"]+)', webpage, 'thumbnail', fatal=False)
+        sources = self._parse_json(self._search_regex(r'(?s)MEDIA\s*=\s*(\[.+?\]);', webpage, 'media'), episode, js_to_json)
 
-        poster, sources = matches.groups()
-        if poster is None:
-            self.report_warning('unable to extract thumbnail')
+        formats = []
+        for source in sources:
+            furl = source.get('src')
+            if furl:
+                formats.append({
+                    'url': furl,
+                    'format_id': determine_ext(furl),
+                })
+        self._sort_formats(formats)
 
-        urls = re.findall(r'<source[^>]+src="([^"]+)"', sources)
-        formats = [{
-            'url': furl,
-            'format_id': determine_ext(furl),
-        } for furl in urls]
         return {
             'id': episode,
             'title': title,
             'formats': formats,
-            'thumbnail': poster,
+            'thumbnail': thumbnail,
         }

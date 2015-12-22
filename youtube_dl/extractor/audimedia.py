@@ -15,7 +15,7 @@ class AudiMediaIE(InfoExtractor):
         'url': 'https://audimedia.tv/en/vid/60-seconds-of-audi-sport-104-2015-wec-bahrain-rookie-test',
         'md5': '79a8b71c46d49042609795ab59779b66',
         'info_dict': {
-            'id': '1564',
+            'id': '1565',
             'ext': 'mp4',
             'title': '60 Seconds of Audi Sport 104/2015 - WEC Bahrain, Rookie Test',
             'description': 'md5:60e5d30a78ced725f7b8d34370762941',

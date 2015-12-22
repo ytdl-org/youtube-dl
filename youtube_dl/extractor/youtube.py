@@ -26,6 +26,7 @@ from ..compat import (
 from ..utils import (
     clean_html,
     encode_dict,
+    error_to_compat_str,
     ExtractorError,
     float_or_none,
     get_element_by_attribute,
@@ -33,6 +34,7 @@ from ..utils import (
     int_or_none,
     orderedSet,
     parse_duration,
+    remove_quotes,
     remove_start,
     sanitized_Request,
     smuggle_url,
@@ -395,12 +397,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'upload_date': '20120506',
                 'title': 'Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]',
+                'alt_title': 'I Love It (feat. Charli XCX)',
                 'description': 'md5:782e8651347686cba06e58f71ab51773',
                 'tags': ['Icona Pop i love it', 'sweden', 'pop music', 'big beat records', 'big beat', 'charli',
                          'xcx', 'charli xcx', 'girls', 'hbo', 'i love it', "i don't care", 'icona', 'pop',
                          'iconic ep', 'iconic', 'love', 'it'],
                 'uploader': 'Icona Pop',
                 'uploader_id': 'IconaPop',
+                'creator': 'Icona Pop',
             }
         },
         {
@@ -411,9 +415,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'upload_date': '20130703',
                 'title': 'Justin Timberlake - Tunnel Vision (Explicit)',
+                'alt_title': 'Tunnel Vision',
                 'description': 'md5:64249768eec3bc4276236606ea996373',
                 'uploader': 'justintimberlakeVEVO',
                 'uploader_id': 'justintimberlakeVEVO',
+                'creator': 'Justin Timberlake',
                 'age_limit': 18,
             }
         },
@@ -492,10 +498,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'id': 'nfWlot6h_JM',
                 'ext': 'm4a',
                 'title': 'Taylor Swift - Shake It Off',
+                'alt_title': 'Shake It Off',
                 'description': 'md5:95f66187cd7c8b2c13eb78e1223b63c3',
                 'uploader': 'TaylorSwiftVEVO',
                 'uploader_id': 'TaylorSwiftVEVO',
                 'upload_date': '20140818',
+                'creator': 'Taylor Swift',
             },
             'params': {
                 'youtube_include_dash_manifest': True,
@@ -551,9 +559,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'upload_date': '20100430',
                 'uploader_id': 'deadmau5',
+                'creator': 'deadmau5',
                 'description': 'md5:12c56784b8032162bb936a5f76d55360',
                 'uploader': 'deadmau5',
                 'title': 'Deadmau5 - Some Chords (HD)',
+                'alt_title': 'Some Chords',
             },
             'expected_warnings': [
                 'DASH manifest missing',
@@ -701,10 +711,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'id': 'lsguqyKfVQg',
                 'ext': 'mp4',
                 'title': '{dark walk}; Loki/AC/Dishonored; collab w/Elflover21',
+                'alt_title': 'Dark Walk',
                 'description': 'md5:8085699c11dc3f597ce0410b0dcbb34a',
                 'upload_date': '20151119',
                 'uploader_id': 'IronSoulElf',
                 'uploader': 'IronSoulElf',
+                'creator': 'Todd Haberman, Daniel Law Heath & Aaron Kaplan',
             },
             'params': {
                 'skip_download': True,
@@ -892,7 +904,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'https://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id,
                 video_id, note=False)
         except ExtractorError as err:
-            self._downloader.report_warning('unable to download video subtitles: %s' % compat_str(err))
+            self._downloader.report_warning('unable to download video subtitles: %s' % error_to_compat_str(err))
             return {}
 
         sub_lang_list = {}
@@ -1308,6 +1320,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
         upload_date = unified_strdate(upload_date)
 
+        m_music = re.search(
+            r'<h4[^>]+class="title"[^>]*>\s*Music\s*</h4>\s*<ul[^>]*>\s*<li>(?P<title>.+?) by (?P<creator>.+?)(?:\(.+?\))?</li',
+            video_webpage)
+        if m_music:
+            video_alt_title = remove_quotes(unescapeHTML(m_music.group('title')))
+            video_creator = clean_html(m_music.group('creator'))
+        else:
+            video_alt_title = video_creator = None
+
         m_cat_container = self._search_regex(
             r'(?s)<h4[^>]*>\s*Category\s*</h4>\s*<ul[^>]*>(.*?)</ul>',
             video_webpage, 'categories', default=None)
@@ -1537,7 +1558,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'uploader': video_uploader,
             'uploader_id': video_uploader_id,
             'upload_date': upload_date,
+            'creator': video_creator,
             'title': video_title,
+            'alt_title': video_alt_title,
             'thumbnail': video_thumbnail,
             'description': video_description,
             'categories': video_categories,
@@ -1752,6 +1775,10 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
         },
     }]
 
+    @classmethod
+    def suitable(cls, url):
+        return False if YoutubePlaylistsIE.suitable(url) else super(YoutubeChannelIE, cls).suitable(url)
+
     def _real_extract(self, url):
         channel_id = self._match_id(url)
 
@@ -1825,10 +1852,10 @@ class YoutubeUserIE(YoutubeChannelIE):
             return super(YoutubeUserIE, cls).suitable(url)
 
 
-class YoutubeUserPlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
-    IE_DESC = 'YouTube.com user playlists'
-    _VALID_URL = r'https?://(?:\w+\.)?youtube\.com/user/(?P<id>[^/]+)/playlists'
-    IE_NAME = 'youtube:user:playlists'
+class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
+    IE_DESC = 'YouTube.com user/channel playlists'
+    _VALID_URL = r'https?://(?:\w+\.)?youtube\.com/(?:user|channel)/(?P<id>[^/]+)/playlists'
+    IE_NAME = 'youtube:playlists'
 
     _TESTS = [{
         'url': 'http://www.youtube.com/user/ThirstForScience/playlists',
@@ -1844,6 +1871,13 @@ class YoutubeUserPlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
         'info_dict': {
             'id': 'igorkle1',
             'title': 'Игорь Клейнер',
+        },
+    }, {
+        'url': 'https://www.youtube.com/channel/UCiU1dHvZObB2iP6xkJ__Icw/playlists',
+        'playlist_mincount': 17,
+        'info_dict': {
+            'id': 'UCiU1dHvZObB2iP6xkJ__Icw',
+            'title': 'Chem Player',
         },
     }]
 

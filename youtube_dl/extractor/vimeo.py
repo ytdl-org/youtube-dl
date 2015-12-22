@@ -23,6 +23,7 @@ from ..utils import (
     unsmuggle_url,
     urlencode_postdata,
     unescapeHTML,
+    parse_filesize,
 )
 
 
@@ -182,6 +183,20 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'title': 'Pier Solar OUYA Official Trailer',
                 'uploader': 'Tulio Gonçalves',
                 'uploader_id': 'user28849593',
+            },
+        },
+        {
+            # contains original format
+            'url': 'https://vimeo.com/33951933',
+            'md5': '53c688fa95a55bf4b7293d37a89c5c53',
+            'info_dict': {
+                'id': '33951933',
+                'ext': 'mp4',
+                'title': 'FOX CLASSICS - Forever Classic ID - A Full Minute',
+                'uploader': 'The DMCI',
+                'uploader_id': 'dmci',
+                'upload_date': '20111220',
+                'description': 'md5:ae23671e82d05415868f7ad1aec21147',
             },
         },
         {
@@ -392,6 +407,21 @@ class VimeoIE(VimeoBaseInfoExtractor):
             comment_count = None
 
         formats = []
+        download_request = sanitized_Request('https://vimeo.com/%s?action=load_download_config' % video_id, headers={
+            'X-Requested-With': 'XMLHttpRequest'})
+        download_data = self._download_json(download_request, video_id, fatal=False)
+        if download_data:
+            source_file = download_data.get('source_file')
+            if source_file and not source_file.get('is_cold') and not source_file.get('is_defrosting'):
+                formats.append({
+                    'url': source_file['download_url'],
+                    'ext': source_file['extension'].lower(),
+                    'width': int_or_none(source_file.get('width')),
+                    'height': int_or_none(source_file.get('height')),
+                    'filesize': parse_filesize(source_file.get('size')),
+                    'format_id': source_file.get('public_name', 'Original'),
+                    'preference': 1,
+                })
         config_files = config['video'].get('files') or config['request'].get('files', {})
         for f in config_files.get('progressive', []):
             video_url = f.get('url')
@@ -408,12 +438,12 @@ class VimeoIE(VimeoBaseInfoExtractor):
         m3u8_url = config_files.get('hls', {}).get('url')
         if m3u8_url:
             m3u8_formats = self._extract_m3u8_formats(
-                m3u8_url, video_id, 'mp4', 'm3u8_native', 0, 'hls', fatal=False)
+                m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
             if m3u8_formats:
                 formats.extend(m3u8_formats)
         # Bitrates are completely broken. Single m3u8 may contain entries in kbps and bps
         # at the same time without actual units specified. This lead to wrong sorting.
-        self._sort_formats(formats, field_preference=('height', 'width', 'fps', 'format_id'))
+        self._sort_formats(formats, field_preference=('preference', 'height', 'width', 'fps', 'format_id'))
 
         subtitles = {}
         text_tracks = config['request'].get('text_tracks')

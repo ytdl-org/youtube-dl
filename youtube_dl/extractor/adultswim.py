@@ -68,7 +68,7 @@ class AdultSwimIE(InfoExtractor):
                 'md5': '3e346a2ab0087d687a05e1e7f3b3e529',
                 'info_dict': {
                     'id': 'sY3cMUR_TbuE4YmdjzbIcQ-0',
-                    'ext': 'flv',
+                    'ext': 'mp4',
                     'title': 'Tim and Eric Awesome Show Great Job! - Dr. Steve Brule, For Your Wine',
                     'description': 'Dr. Brule reports live from Wine Country with a special report on wines.  \r\nWatch Tim and Eric Awesome Show Great Job! episode #20, "Embarrassed" on Adult Swim.\r\n\r\n',
                 },
@@ -79,6 +79,10 @@ class AdultSwimIE(InfoExtractor):
             'title': 'Tim and Eric Awesome Show Great Job! - Dr. Steve Brule, For Your Wine',
             'description': 'Dr. Brule reports live from Wine Country with a special report on wines.  \r\nWatch Tim and Eric Awesome Show Great Job! episode #20, "Embarrassed" on Adult Swim.\r\n\r\n',
         },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
     }]
 
     @staticmethod

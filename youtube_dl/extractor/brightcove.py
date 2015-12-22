@@ -355,7 +355,7 @@ class BrightcoveLegacyIE(InfoExtractor):
 
 class BrightcoveNewIE(InfoExtractor):
     IE_NAME = 'brightcove:new'
-    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*videoId=(?P<video_id>\d+)'
+    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*videoId=(?P<video_id>(?:ref:)?\d+)'
     _TESTS = [{
         'url': 'http://players.brightcove.net/929656772001/e41d32dc-ec74-459e-a845-6c69f7b724ea_default/index.html?videoId=4463358922001',
         'md5': 'c8100925723840d4b0d243f7025703be',
@@ -387,14 +387,24 @@ class BrightcoveNewIE(InfoExtractor):
         'params': {
             'skip_download': True,
         }
+    }, {
+        # ref: prefixed video id
+        'url': 'http://players.brightcove.net/3910869709001/21519b5c-4b3b-4363-accb-bdc8f358f823_default/index.html?videoId=ref:7069442',
+        'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_url(webpage):
+        urls = BrightcoveNewIE._extract_urls(webpage)
+        return urls[0] if urls else None
 
     @staticmethod
     def _extract_urls(webpage):
         # Reference:
         # 1. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideoiniframe
-        # 2. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideousingjavascript)
+        # 2. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideousingjavascript
         # 3. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/embed-in-page.html
+        # 4. https://support.brightcove.com/en/video-cloud/docs/dynamically-assigning-videos-player
 
         entries = []
 
@@ -407,9 +417,10 @@ class BrightcoveNewIE(InfoExtractor):
         for video_id, account_id, player_id, embed in re.findall(
                 # According to examples from [3] it's unclear whether video id
                 # may be optional and what to do when it is
+                # According to [4] data-video-id may be prefixed with ref:
                 r'''(?sx)
                     <video[^>]+
-                        data-video-id=["\'](\d+)["\'][^>]*>.*?
+                        data-video-id=["\']((?:ref:)?\d+)["\'][^>]*>.*?
                     </video>.*?
                     <script[^>]+
                         src=["\'](?:https?:)?//players\.brightcove\.net/
