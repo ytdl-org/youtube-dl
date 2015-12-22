@@ -32,8 +32,8 @@ class ComCarCoffIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         full_data = json.loads(self._search_regex(
-            r'<script type="application/json" id="videoData">(?P<json>.+?)</script>',
-            webpage, 'full data json'))
+            r'\nwindow.app = (?P<json>.+?);\n',
+            webpage, 'full data json'))['videoData']
 
         video_id = full_data['activeVideo']['video']
         video_data = full_data.get('videos', {}).get(video_id) or full_data['singleshots'][video_id]
