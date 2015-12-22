@@ -37,9 +37,11 @@ class DaumIE(InfoExtractor):
         video_id = mobj.group('id')
         canonical_url = 'http://tvpot.daum.net/v/%s' % video_id
         webpage = self._download_webpage(canonical_url, video_id)
+        og_url = self._og_search_url(webpage, default=None) or self._search_regex(
+            r'<link[^>]+rel=(["\'])canonical\1[^>]+href=(["\'])(?P<url>.+?)\2',
+            webpage, 'canonical url', group='url')
         full_id = self._search_regex(
-            r'src=["\']http://videofarm\.daum\.net/controller/video/viewer/Video\.html\?.*?vid=(.+?)[&"\']',
-            webpage, 'full id')
+            r'tvpot\.daum\.net/v/([^/]+)', og_url, 'full id')
         query = compat_urllib_parse.urlencode({'vid': full_id})
         info = self._download_xml(
             'http://tvpot.daum.net/clip/ClipInfoXml.do?' + query, video_id,
