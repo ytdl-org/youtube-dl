@@ -93,7 +93,7 @@ class XstreamIE(InfoExtractor):
             formats.append({
                 'url': link.get('href'),
                 'format_id': link.get('rel'),
-                'preference': 2,
+                'preference': 1,
             })
 
         thumbnails = [{

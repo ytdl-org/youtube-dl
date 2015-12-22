@@ -104,10 +104,10 @@ class VGTVIE(XstreamIE):
         },
         {
             'url': 'http://www.aftenposten.no/webtv/#!/video/21039/trailer-sweatshop-i-can-t-take-any-more',
-            'md5': '7fbc265a3ca4933a423c7a66aa879a67',
+            'md5': 'fd828cd29774a729bf4d4425fe192972',
             'info_dict': {
                 'id': '21039',
-                'ext': 'mp4',
+                'ext': 'mov',
                 'title': 'TRAILER: «SWEATSHOP» - I can´t take any more',
                 'description': 'md5:21891f2b0dd7ec2f78d84a50e54f8238',
                 'duration': 66,
@@ -174,16 +174,15 @@ class VGTVIE(XstreamIE):
         for mp4_url in mp4_urls:
             format_info = {
                 'url': mp4_url,
-                'preference': 1,
             }
             mobj = re.search('(\d+)_(\d+)_(\d+)', mp4_url)
             if mobj:
-                vbr = int(mobj.group(3))
+                tbr = int(mobj.group(3))
                 format_info.update({
                     'width': int(mobj.group(1)),
                     'height': int(mobj.group(2)),
-                    'vbr': vbr,
-                    'format_id': 'mp4-%s' % vbr,
+                    'tbr': tbr,
+                    'format_id': 'mp4-%s' % tbr,
                 })
             formats.append(format_info)
 
@@ -210,7 +209,7 @@ class BTArticleIE(InfoExtractor):
     _VALID_URL = 'http://(?:www\.)?bt\.no/(?:[^/]+/)+(?P<id>[^/]+)-\d+\.html'
     _TEST = {
         'url': 'http://www.bt.no/nyheter/lokalt/Kjemper-for-internatet-1788214.html',
-        'md5': 'd055e8ee918ef2844745fcfd1a4175fb',
+        'md5': '2acbe8ad129b3469d5ae51b1158878df',
         'info_dict': {
             'id': '23199',
             'ext': 'mp4',
@@ -227,7 +226,7 @@ class BTArticleIE(InfoExtractor):
     def _real_extract(self, url):
         webpage = self._download_webpage(url, self._match_id(url))
         video_id = self._search_regex(
-            r'SVP\.Player\.load\(\s*(\d+)', webpage, 'video id')
+            r'<video[^>]+data-id="(\d+)"', webpage, 'video id')
         return self.url_result('bttv:%s' % video_id, 'VGTV')
 
 
@@ -235,7 +234,7 @@ class BTVestlendingenIE(InfoExtractor):
     IE_NAME = 'bt:vestlendingen'
     IE_DESC = 'Bergens Tidende - Vestlendingen'
     _VALID_URL = 'http://(?:www\.)?bt\.no/spesial/vestlendingen/#!/(?P<id>\d+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.bt.no/spesial/vestlendingen/#!/86588',
         'md5': 'd7d17e3337dc80de6d3a540aefbe441b',
         'info_dict': {
@@ -246,7 +245,19 @@ class BTVestlendingenIE(InfoExtractor):
             'timestamp': 1430473209,
             'upload_date': '20150501',
         },
-    }
+        'skip': '404 Error',
+    }, {
+        'url': 'http://www.bt.no/spesial/vestlendingen/#!/86255',
+        'md5': 'a2893f8632e96389f4bdf36aa9463ceb',
+        'info_dict': {
+            'id': '86255',
+            'ext': 'mov',
+            'title': 'Du må tåle å fryse og være sulten',
+            'description': 'md5:b8046f4d022d5830ddab04865791d063',
+            'upload_date': '20150321',
+            'timestamp': 1426942023,
+        },
+    }]
 
     def _real_extract(self, url):
         return self.url_result('bttv:%s' % self._match_id(url), 'VGTV')
