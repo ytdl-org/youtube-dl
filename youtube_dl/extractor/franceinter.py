@@ -33,7 +33,7 @@ class FranceInterIE(InfoExtractor):
         video_url = 'http://www.franceinter.fr/' + path
 
         title = self._html_search_regex(
-            r'<span class="title">(.+?)</span>', webpage, 'title')
+            r'<span class="title-diffusion">(.+?)</span>', webpage, 'title')
         description = self._html_search_regex(
             r'<span class="description">(.*?)</span>',
             webpage, 'description', fatal=False)
