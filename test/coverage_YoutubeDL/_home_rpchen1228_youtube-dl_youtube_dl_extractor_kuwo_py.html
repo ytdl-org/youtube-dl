@@ -1,0 +1,727 @@
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
+    <title>Coverage for /home/rpchen1228/youtube-dl/youtube_dl/extractor/kuwo.py: 35%</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.hotkeys.js"></script>
+    <script type="text/javascript" src="jquery.isonscreen.js"></script>
+    <script type="text/javascript" src="coverage_html.js"></script>
+    <script type="text/javascript">
+        jQuery(document).ready(coverage.pyfile_ready);
+    </script>
+</head>
+<body class="pyfile">
+
+<div id="header">
+    <div class="content">
+        <h1>Coverage for <b>/home/rpchen1228/youtube-dl/youtube_dl/extractor/kuwo.py</b> :
+            <span class="pc_cov">35%</span>
+        </h1>
+
+        <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
+
+        <h2 class="stats">
+            109 statements &nbsp;
+            <span class="run hide_run shortkey_r button_toggle_run">45 run</span>
+            <span class="mis shortkey_m button_toggle_mis">64 missing</span>
+            <span class="exc shortkey_x button_toggle_exc">0 excluded</span>
+
+            
+                <span class="par run hide_run shortkey_p button_toggle_par">0 partial</span>
+            
+        </h2>
+    </div>
+</div>
+
+<div class="help_panel">
+    <img id="panel_icon" src="keybd_open.png" alt="Hide keyboard shortcuts" />
+<p class="legend">Hot-keys on this page</p>
+    <div>
+<p class="keyhelp">
+        <span class="key">r</span>
+        <span class="key">m</span>
+        <span class="key">x</span>
+        <span class="key">p</span> &nbsp; toggle line displays
+    </p>
+<p class="keyhelp">
+        <span class="key">j</span>
+        <span class="key">k</span> &nbsp; next/prev highlighted chunk
+    </p>
+<p class="keyhelp">
+        <span class="key">0</span> &nbsp; (zero) top of page
+    </p>
+<p class="keyhelp">
+        <span class="key">1</span> &nbsp; (one) first highlighted chunk
+    </p>
+    </div>
+</div>
+
+<div id="source">
+    <table>
+        <tr>
+            <td class="linenos">
+<p id="n1" class="pln"><a href="#n1">1</a></p>
+<p id="n2" class="stm run hide_run"><a href="#n2">2</a></p>
+<p id="n3" class="pln"><a href="#n3">3</a></p>
+<p id="n4" class="stm run hide_run"><a href="#n4">4</a></p>
+<p id="n5" class="stm run hide_run"><a href="#n5">5</a></p>
+<p id="n6" class="pln"><a href="#n6">6</a></p>
+<p id="n7" class="stm run hide_run"><a href="#n7">7</a></p>
+<p id="n8" class="stm run hide_run"><a href="#n8">8</a></p>
+<p id="n9" class="pln"><a href="#n9">9</a></p>
+<p id="n10" class="pln"><a href="#n10">10</a></p>
+<p id="n11" class="pln"><a href="#n11">11</a></p>
+<p id="n12" class="pln"><a href="#n12">12</a></p>
+<p id="n13" class="pln"><a href="#n13">13</a></p>
+<p id="n14" class="pln"><a href="#n14">14</a></p>
+<p id="n15" class="pln"><a href="#n15">15</a></p>
+<p id="n16" class="stm run hide_run"><a href="#n16">16</a></p>
+<p id="n17" class="stm run hide_run"><a href="#n17">17</a></p>
+<p id="n18" class="pln"><a href="#n18">18</a></p>
+<p id="n19" class="pln"><a href="#n19">19</a></p>
+<p id="n20" class="pln"><a href="#n20">20</a></p>
+<p id="n21" class="pln"><a href="#n21">21</a></p>
+<p id="n22" class="pln"><a href="#n22">22</a></p>
+<p id="n23" class="pln"><a href="#n23">23</a></p>
+<p id="n24" class="pln"><a href="#n24">24</a></p>
+<p id="n25" class="pln"><a href="#n25">25</a></p>
+<p id="n26" class="stm run hide_run"><a href="#n26">26</a></p>
+<p id="n27" class="stm mis"><a href="#n27">27</a></p>
+<p id="n28" class="stm mis"><a href="#n28">28</a></p>
+<p id="n29" class="stm mis"><a href="#n29">29</a></p>
+<p id="n30" class="pln"><a href="#n30">30</a></p>
+<p id="n31" class="pln"><a href="#n31">31</a></p>
+<p id="n32" class="pln"><a href="#n32">32</a></p>
+<p id="n33" class="pln"><a href="#n33">33</a></p>
+<p id="n34" class="stm mis"><a href="#n34">34</a></p>
+<p id="n35" class="stm mis"><a href="#n35">35</a></p>
+<p id="n36" class="pln"><a href="#n36">36</a></p>
+<p id="n37" class="pln"><a href="#n37">37</a></p>
+<p id="n38" class="pln"><a href="#n38">38</a></p>
+<p id="n39" class="pln"><a href="#n39">39</a></p>
+<p id="n40" class="pln"><a href="#n40">40</a></p>
+<p id="n41" class="pln"><a href="#n41">41</a></p>
+<p id="n42" class="stm mis"><a href="#n42">42</a></p>
+<p id="n43" class="stm mis"><a href="#n43">43</a></p>
+<p id="n44" class="pln"><a href="#n44">44</a></p>
+<p id="n45" class="pln"><a href="#n45">45</a></p>
+<p id="n46" class="stm run hide_run"><a href="#n46">46</a></p>
+<p id="n47" class="stm run hide_run"><a href="#n47">47</a></p>
+<p id="n48" class="stm run hide_run"><a href="#n48">48</a></p>
+<p id="n49" class="stm run hide_run"><a href="#n49">49</a></p>
+<p id="n50" class="stm run hide_run"><a href="#n50">50</a></p>
+<p id="n51" class="pln"><a href="#n51">51</a></p>
+<p id="n52" class="pln"><a href="#n52">52</a></p>
+<p id="n53" class="pln"><a href="#n53">53</a></p>
+<p id="n54" class="pln"><a href="#n54">54</a></p>
+<p id="n55" class="pln"><a href="#n55">55</a></p>
+<p id="n56" class="pln"><a href="#n56">56</a></p>
+<p id="n57" class="pln"><a href="#n57">57</a></p>
+<p id="n58" class="pln"><a href="#n58">58</a></p>
+<p id="n59" class="pln"><a href="#n59">59</a></p>
+<p id="n60" class="pln"><a href="#n60">60</a></p>
+<p id="n61" class="pln"><a href="#n61">61</a></p>
+<p id="n62" class="pln"><a href="#n62">62</a></p>
+<p id="n63" class="pln"><a href="#n63">63</a></p>
+<p id="n64" class="pln"><a href="#n64">64</a></p>
+<p id="n65" class="pln"><a href="#n65">65</a></p>
+<p id="n66" class="pln"><a href="#n66">66</a></p>
+<p id="n67" class="pln"><a href="#n67">67</a></p>
+<p id="n68" class="pln"><a href="#n68">68</a></p>
+<p id="n69" class="pln"><a href="#n69">69</a></p>
+<p id="n70" class="pln"><a href="#n70">70</a></p>
+<p id="n71" class="pln"><a href="#n71">71</a></p>
+<p id="n72" class="pln"><a href="#n72">72</a></p>
+<p id="n73" class="pln"><a href="#n73">73</a></p>
+<p id="n74" class="pln"><a href="#n74">74</a></p>
+<p id="n75" class="stm run hide_run"><a href="#n75">75</a></p>
+<p id="n76" class="stm mis"><a href="#n76">76</a></p>
+<p id="n77" class="stm mis"><a href="#n77">77</a></p>
+<p id="n78" class="pln"><a href="#n78">78</a></p>
+<p id="n79" class="pln"><a href="#n79">79</a></p>
+<p id="n80" class="stm mis"><a href="#n80">80</a></p>
+<p id="n81" class="stm mis"><a href="#n81">81</a></p>
+<p id="n82" class="pln"><a href="#n82">82</a></p>
+<p id="n83" class="stm mis"><a href="#n83">83</a></p>
+<p id="n84" class="pln"><a href="#n84">84</a></p>
+<p id="n85" class="stm mis"><a href="#n85">85</a></p>
+<p id="n86" class="pln"><a href="#n86">86</a></p>
+<p id="n87" class="pln"><a href="#n87">87</a></p>
+<p id="n88" class="stm mis"><a href="#n88">88</a></p>
+<p id="n89" class="stm mis"><a href="#n89">89</a></p>
+<p id="n90" class="stm mis"><a href="#n90">90</a></p>
+<p id="n91" class="pln"><a href="#n91">91</a></p>
+<p id="n92" class="stm mis"><a href="#n92">92</a></p>
+<p id="n93" class="pln"><a href="#n93">93</a></p>
+<p id="n94" class="stm mis"><a href="#n94">94</a></p>
+<p id="n95" class="pln"><a href="#n95">95</a></p>
+<p id="n96" class="pln"><a href="#n96">96</a></p>
+<p id="n97" class="pln"><a href="#n97">97</a></p>
+<p id="n98" class="stm mis"><a href="#n98">98</a></p>
+<p id="n99" class="stm mis"><a href="#n99">99</a></p>
+<p id="n100" class="stm mis"><a href="#n100">100</a></p>
+<p id="n101" class="pln"><a href="#n101">101</a></p>
+<p id="n102" class="pln"><a href="#n102">102</a></p>
+<p id="n103" class="pln"><a href="#n103">103</a></p>
+<p id="n104" class="pln"><a href="#n104">104</a></p>
+<p id="n105" class="stm mis"><a href="#n105">105</a></p>
+<p id="n106" class="pln"><a href="#n106">106</a></p>
+<p id="n107" class="pln"><a href="#n107">107</a></p>
+<p id="n108" class="stm mis"><a href="#n108">108</a></p>
+<p id="n109" class="stm mis"><a href="#n109">109</a></p>
+<p id="n110" class="pln"><a href="#n110">110</a></p>
+<p id="n111" class="stm mis"><a href="#n111">111</a></p>
+<p id="n112" class="pln"><a href="#n112">112</a></p>
+<p id="n113" class="pln"><a href="#n113">113</a></p>
+<p id="n114" class="pln"><a href="#n114">114</a></p>
+<p id="n115" class="pln"><a href="#n115">115</a></p>
+<p id="n116" class="pln"><a href="#n116">116</a></p>
+<p id="n117" class="pln"><a href="#n117">117</a></p>
+<p id="n118" class="pln"><a href="#n118">118</a></p>
+<p id="n119" class="pln"><a href="#n119">119</a></p>
+<p id="n120" class="pln"><a href="#n120">120</a></p>
+<p id="n121" class="stm run hide_run"><a href="#n121">121</a></p>
+<p id="n122" class="stm run hide_run"><a href="#n122">122</a></p>
+<p id="n123" class="stm run hide_run"><a href="#n123">123</a></p>
+<p id="n124" class="stm run hide_run"><a href="#n124">124</a></p>
+<p id="n125" class="stm run hide_run"><a href="#n125">125</a></p>
+<p id="n126" class="pln"><a href="#n126">126</a></p>
+<p id="n127" class="pln"><a href="#n127">127</a></p>
+<p id="n128" class="pln"><a href="#n128">128</a></p>
+<p id="n129" class="pln"><a href="#n129">129</a></p>
+<p id="n130" class="pln"><a href="#n130">130</a></p>
+<p id="n131" class="pln"><a href="#n131">131</a></p>
+<p id="n132" class="pln"><a href="#n132">132</a></p>
+<p id="n133" class="pln"><a href="#n133">133</a></p>
+<p id="n134" class="pln"><a href="#n134">134</a></p>
+<p id="n135" class="stm run hide_run"><a href="#n135">135</a></p>
+<p id="n136" class="stm mis"><a href="#n136">136</a></p>
+<p id="n137" class="pln"><a href="#n137">137</a></p>
+<p id="n138" class="stm mis"><a href="#n138">138</a></p>
+<p id="n139" class="pln"><a href="#n139">139</a></p>
+<p id="n140" class="pln"><a href="#n140">140</a></p>
+<p id="n141" class="pln"><a href="#n141">141</a></p>
+<p id="n142" class="stm mis"><a href="#n142">142</a></p>
+<p id="n143" class="pln"><a href="#n143">143</a></p>
+<p id="n144" class="pln"><a href="#n144">144</a></p>
+<p id="n145" class="stm mis"><a href="#n145">145</a></p>
+<p id="n146" class="pln"><a href="#n146">146</a></p>
+<p id="n147" class="pln"><a href="#n147">147</a></p>
+<p id="n148" class="pln"><a href="#n148">148</a></p>
+<p id="n149" class="stm mis"><a href="#n149">149</a></p>
+<p id="n150" class="pln"><a href="#n150">150</a></p>
+<p id="n151" class="pln"><a href="#n151">151</a></p>
+<p id="n152" class="pln"><a href="#n152">152</a></p>
+<p id="n153" class="pln"><a href="#n153">153</a></p>
+<p id="n154" class="stm mis"><a href="#n154">154</a></p>
+<p id="n155" class="pln"><a href="#n155">155</a></p>
+<p id="n156" class="pln"><a href="#n156">156</a></p>
+<p id="n157" class="stm run hide_run"><a href="#n157">157</a></p>
+<p id="n158" class="stm run hide_run"><a href="#n158">158</a></p>
+<p id="n159" class="stm run hide_run"><a href="#n159">159</a></p>
+<p id="n160" class="stm run hide_run"><a href="#n160">160</a></p>
+<p id="n161" class="stm run hide_run"><a href="#n161">161</a></p>
+<p id="n162" class="pln"><a href="#n162">162</a></p>
+<p id="n163" class="pln"><a href="#n163">163</a></p>
+<p id="n164" class="pln"><a href="#n164">164</a></p>
+<p id="n165" class="pln"><a href="#n165">165</a></p>
+<p id="n166" class="pln"><a href="#n166">166</a></p>
+<p id="n167" class="pln"><a href="#n167">167</a></p>
+<p id="n168" class="pln"><a href="#n168">168</a></p>
+<p id="n169" class="pln"><a href="#n169">169</a></p>
+<p id="n170" class="pln"><a href="#n170">170</a></p>
+<p id="n171" class="stm run hide_run"><a href="#n171">171</a></p>
+<p id="n172" class="stm mis"><a href="#n172">172</a></p>
+<p id="n173" class="stm mis"><a href="#n173">173</a></p>
+<p id="n174" class="pln"><a href="#n174">174</a></p>
+<p id="n175" class="pln"><a href="#n175">175</a></p>
+<p id="n176" class="pln"><a href="#n176">176</a></p>
+<p id="n177" class="stm mis"><a href="#n177">177</a></p>
+<p id="n178" class="pln"><a href="#n178">178</a></p>
+<p id="n179" class="pln"><a href="#n179">179</a></p>
+<p id="n180" class="stm mis"><a href="#n180">180</a></p>
+<p id="n181" class="pln"><a href="#n181">181</a></p>
+<p id="n182" class="pln"><a href="#n182">182</a></p>
+<p id="n183" class="stm mis"><a href="#n183">183</a></p>
+<p id="n184" class="pln"><a href="#n184">184</a></p>
+<p id="n185" class="pln"><a href="#n185">185</a></p>
+<p id="n186" class="pln"><a href="#n186">186</a></p>
+<p id="n187" class="stm mis"><a href="#n187">187</a></p>
+<p id="n188" class="pln"><a href="#n188">188</a></p>
+<p id="n189" class="pln"><a href="#n189">189</a></p>
+<p id="n190" class="stm run hide_run"><a href="#n190">190</a></p>
+<p id="n191" class="stm run hide_run"><a href="#n191">191</a></p>
+<p id="n192" class="stm run hide_run"><a href="#n192">192</a></p>
+<p id="n193" class="stm run hide_run"><a href="#n193">193</a></p>
+<p id="n194" class="stm run hide_run"><a href="#n194">194</a></p>
+<p id="n195" class="pln"><a href="#n195">195</a></p>
+<p id="n196" class="pln"><a href="#n196">196</a></p>
+<p id="n197" class="pln"><a href="#n197">197</a></p>
+<p id="n198" class="pln"><a href="#n198">198</a></p>
+<p id="n199" class="pln"><a href="#n199">199</a></p>
+<p id="n200" class="pln"><a href="#n200">200</a></p>
+<p id="n201" class="pln"><a href="#n201">201</a></p>
+<p id="n202" class="pln"><a href="#n202">202</a></p>
+<p id="n203" class="pln"><a href="#n203">203</a></p>
+<p id="n204" class="pln"><a href="#n204">204</a></p>
+<p id="n205" class="pln"><a href="#n205">205</a></p>
+<p id="n206" class="pln"><a href="#n206">206</a></p>
+<p id="n207" class="pln"><a href="#n207">207</a></p>
+<p id="n208" class="pln"><a href="#n208">208</a></p>
+<p id="n209" class="pln"><a href="#n209">209</a></p>
+<p id="n210" class="pln"><a href="#n210">210</a></p>
+<p id="n211" class="stm run hide_run"><a href="#n211">211</a></p>
+<p id="n212" class="stm mis"><a href="#n212">212</a></p>
+<p id="n213" class="stm mis"><a href="#n213">213</a></p>
+<p id="n214" class="pln"><a href="#n214">214</a></p>
+<p id="n215" class="pln"><a href="#n215">215</a></p>
+<p id="n216" class="pln"><a href="#n216">216</a></p>
+<p id="n217" class="stm mis"><a href="#n217">217</a></p>
+<p id="n218" class="pln"><a href="#n218">218</a></p>
+<p id="n219" class="pln"><a href="#n219">219</a></p>
+<p id="n220" class="pln"><a href="#n220">220</a></p>
+<p id="n221" class="stm mis"><a href="#n221">221</a></p>
+<p id="n222" class="stm mis"><a href="#n222">222</a></p>
+<p id="n223" class="stm mis"><a href="#n223">223</a></p>
+<p id="n224" class="stm mis"><a href="#n224">224</a></p>
+<p id="n225" class="pln"><a href="#n225">225</a></p>
+<p id="n226" class="pln"><a href="#n226">226</a></p>
+<p id="n227" class="pln"><a href="#n227">227</a></p>
+<p id="n228" class="pln"><a href="#n228">228</a></p>
+<p id="n229" class="stm mis"><a href="#n229">229</a></p>
+<p id="n230" class="pln"><a href="#n230">230</a></p>
+<p id="n231" class="pln"><a href="#n231">231</a></p>
+<p id="n232" class="pln"><a href="#n232">232</a></p>
+<p id="n233" class="pln"><a href="#n233">233</a></p>
+<p id="n234" class="pln"><a href="#n234">234</a></p>
+<p id="n235" class="stm mis"><a href="#n235">235</a></p>
+<p id="n236" class="stm mis"><a href="#n236">236</a></p>
+<p id="n237" class="pln"><a href="#n237">237</a></p>
+<p id="n238" class="stm mis"><a href="#n238">238</a></p>
+<p id="n239" class="pln"><a href="#n239">239</a></p>
+<p id="n240" class="pln"><a href="#n240">240</a></p>
+<p id="n241" class="stm run hide_run"><a href="#n241">241</a></p>
+<p id="n242" class="stm run hide_run"><a href="#n242">242</a></p>
+<p id="n243" class="stm run hide_run"><a href="#n243">243</a></p>
+<p id="n244" class="stm run hide_run"><a href="#n244">244</a></p>
+<p id="n245" class="stm run hide_run"><a href="#n245">245</a></p>
+<p id="n246" class="pln"><a href="#n246">246</a></p>
+<p id="n247" class="pln"><a href="#n247">247</a></p>
+<p id="n248" class="pln"><a href="#n248">248</a></p>
+<p id="n249" class="pln"><a href="#n249">249</a></p>
+<p id="n250" class="pln"><a href="#n250">250</a></p>
+<p id="n251" class="pln"><a href="#n251">251</a></p>
+<p id="n252" class="pln"><a href="#n252">252</a></p>
+<p id="n253" class="pln"><a href="#n253">253</a></p>
+<p id="n254" class="pln"><a href="#n254">254</a></p>
+<p id="n255" class="stm run hide_run"><a href="#n255">255</a></p>
+<p id="n256" class="stm mis"><a href="#n256">256</a></p>
+<p id="n257" class="stm mis"><a href="#n257">257</a></p>
+<p id="n258" class="pln"><a href="#n258">258</a></p>
+<p id="n259" class="pln"><a href="#n259">259</a></p>
+<p id="n260" class="pln"><a href="#n260">260</a></p>
+<p id="n261" class="stm mis"><a href="#n261">261</a></p>
+<p id="n262" class="pln"><a href="#n262">262</a></p>
+<p id="n263" class="pln"><a href="#n263">263</a></p>
+<p id="n264" class="stm mis"><a href="#n264">264</a></p>
+<p id="n265" class="pln"><a href="#n265">265</a></p>
+<p id="n266" class="pln"><a href="#n266">266</a></p>
+<p id="n267" class="pln"><a href="#n267">267</a></p>
+<p id="n268" class="stm mis"><a href="#n268">268</a></p>
+<p id="n269" class="pln"><a href="#n269">269</a></p>
+<p id="n270" class="pln"><a href="#n270">270</a></p>
+<p id="n271" class="stm mis"><a href="#n271">271</a></p>
+<p id="n272" class="pln"><a href="#n272">272</a></p>
+<p id="n273" class="pln"><a href="#n273">273</a></p>
+<p id="n274" class="pln"><a href="#n274">274</a></p>
+<p id="n275" class="stm mis"><a href="#n275">275</a></p>
+<p id="n276" class="pln"><a href="#n276">276</a></p>
+<p id="n277" class="pln"><a href="#n277">277</a></p>
+<p id="n278" class="stm run hide_run"><a href="#n278">278</a></p>
+<p id="n279" class="stm run hide_run"><a href="#n279">279</a></p>
+<p id="n280" class="stm run hide_run"><a href="#n280">280</a></p>
+<p id="n281" class="stm run hide_run"><a href="#n281">281</a></p>
+<p id="n282" class="stm run hide_run"><a href="#n282">282</a></p>
+<p id="n283" class="pln"><a href="#n283">283</a></p>
+<p id="n284" class="pln"><a href="#n284">284</a></p>
+<p id="n285" class="pln"><a href="#n285">285</a></p>
+<p id="n286" class="pln"><a href="#n286">286</a></p>
+<p id="n287" class="pln"><a href="#n287">287</a></p>
+<p id="n288" class="pln"><a href="#n288">288</a></p>
+<p id="n289" class="pln"><a href="#n289">289</a></p>
+<p id="n290" class="pln"><a href="#n290">290</a></p>
+<p id="n291" class="stm run hide_run"><a href="#n291">291</a></p>
+<p id="n292" class="pln"><a href="#n292">292</a></p>
+<p id="n293" class="pln"><a href="#n293">293</a></p>
+<p id="n294" class="pln"><a href="#n294">294</a></p>
+<p id="n295" class="pln"><a href="#n295">295</a></p>
+<p id="n296" class="stm run hide_run"><a href="#n296">296</a></p>
+<p id="n297" class="stm mis"><a href="#n297">297</a></p>
+<p id="n298" class="stm mis"><a href="#n298">298</a></p>
+<p id="n299" class="pln"><a href="#n299">299</a></p>
+<p id="n300" class="pln"><a href="#n300">300</a></p>
+<p id="n301" class="pln"><a href="#n301">301</a></p>
+<p id="n302" class="stm mis"><a href="#n302">302</a></p>
+<p id="n303" class="pln"><a href="#n303">303</a></p>
+<p id="n304" class="pln"><a href="#n304">304</a></p>
+<p id="n305" class="stm mis"><a href="#n305">305</a></p>
+<p id="n306" class="stm mis"><a href="#n306">306</a></p>
+<p id="n307" class="stm mis"><a href="#n307">307</a></p>
+<p id="n308" class="pln"><a href="#n308">308</a></p>
+<p id="n309" class="stm mis"><a href="#n309">309</a></p>
+<p id="n310" class="pln"><a href="#n310">310</a></p>
+<p id="n311" class="stm mis"><a href="#n311">311</a></p>
+<p id="n312" class="pln"><a href="#n312">312</a></p>
+<p id="n313" class="stm mis"><a href="#n313">313</a></p>
+<p id="n314" class="pln"><a href="#n314">314</a></p>
+<p id="n315" class="pln"><a href="#n315">315</a></p>
+<p id="n316" class="pln"><a href="#n316">316</a></p>
+<p id="n317" class="pln"><a href="#n317">317</a></p>
+<p id="n318" class="pln"><a href="#n318">318</a></p>
+                
+            </td>
+            <td class="text">
+<p id="t1" class="pln"><span class="com"># coding: utf-8</span><span class="strut">&nbsp;</span></p>
+<p id="t2" class="stm run hide_run"><span class="key">from</span> <span class="nam">__future__</span> <span class="key">import</span> <span class="nam">unicode_literals</span><span class="strut">&nbsp;</span></p>
+<p id="t3" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t4" class="stm run hide_run"><span class="key">import</span> <span class="nam">re</span><span class="strut">&nbsp;</span></p>
+<p id="t5" class="stm run hide_run"><span class="key">import</span> <span class="nam">itertools</span><span class="strut">&nbsp;</span></p>
+<p id="t6" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t7" class="stm run hide_run"><span class="key">from</span> <span class="op">.</span><span class="nam">common</span> <span class="key">import</span> <span class="nam">InfoExtractor</span><span class="strut">&nbsp;</span></p>
+<p id="t8" class="stm run hide_run"><span class="key">from</span> <span class="op">.</span><span class="op">.</span><span class="nam">utils</span> <span class="key">import</span> <span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t9" class="pln">&nbsp; &nbsp; <span class="nam">get_element_by_id</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t10" class="pln">&nbsp; &nbsp; <span class="nam">clean_html</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t11" class="pln">&nbsp; &nbsp; <span class="nam">ExtractorError</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t12" class="pln">&nbsp; &nbsp; <span class="nam">remove_start</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t13" class="pln"><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t14" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t15" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t16" class="stm run hide_run"><span class="key">class</span> <span class="nam">KuwoBaseIE</span><span class="op">(</span><span class="nam">InfoExtractor</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t17" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_FORMATS</span> <span class="op">=</span> <span class="op">[</span><span class="strut">&nbsp;</span></p>
+<p id="t18" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">{</span><span class="str">&#39;format&#39;</span><span class="op">:</span> <span class="str">&#39;ape&#39;</span><span class="op">,</span> <span class="str">&#39;ext&#39;</span><span class="op">:</span> <span class="str">&#39;ape&#39;</span><span class="op">,</span> <span class="str">&#39;preference&#39;</span><span class="op">:</span> <span class="num">100</span><span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t19" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">{</span><span class="str">&#39;format&#39;</span><span class="op">:</span> <span class="str">&#39;mp3-320&#39;</span><span class="op">,</span> <span class="str">&#39;ext&#39;</span><span class="op">:</span> <span class="str">&#39;mp3&#39;</span><span class="op">,</span> <span class="str">&#39;br&#39;</span><span class="op">:</span> <span class="str">&#39;320kmp3&#39;</span><span class="op">,</span> <span class="str">&#39;abr&#39;</span><span class="op">:</span> <span class="num">320</span><span class="op">,</span> <span class="str">&#39;preference&#39;</span><span class="op">:</span> <span class="num">80</span><span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t20" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">{</span><span class="str">&#39;format&#39;</span><span class="op">:</span> <span class="str">&#39;mp3-192&#39;</span><span class="op">,</span> <span class="str">&#39;ext&#39;</span><span class="op">:</span> <span class="str">&#39;mp3&#39;</span><span class="op">,</span> <span class="str">&#39;br&#39;</span><span class="op">:</span> <span class="str">&#39;192kmp3&#39;</span><span class="op">,</span> <span class="str">&#39;abr&#39;</span><span class="op">:</span> <span class="num">192</span><span class="op">,</span> <span class="str">&#39;preference&#39;</span><span class="op">:</span> <span class="num">70</span><span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t21" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">{</span><span class="str">&#39;format&#39;</span><span class="op">:</span> <span class="str">&#39;mp3-128&#39;</span><span class="op">,</span> <span class="str">&#39;ext&#39;</span><span class="op">:</span> <span class="str">&#39;mp3&#39;</span><span class="op">,</span> <span class="str">&#39;br&#39;</span><span class="op">:</span> <span class="str">&#39;128kmp3&#39;</span><span class="op">,</span> <span class="str">&#39;abr&#39;</span><span class="op">:</span> <span class="num">128</span><span class="op">,</span> <span class="str">&#39;preference&#39;</span><span class="op">:</span> <span class="num">60</span><span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t22" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">{</span><span class="str">&#39;format&#39;</span><span class="op">:</span> <span class="str">&#39;wma&#39;</span><span class="op">,</span> <span class="str">&#39;ext&#39;</span><span class="op">:</span> <span class="str">&#39;wma&#39;</span><span class="op">,</span> <span class="str">&#39;preference&#39;</span><span class="op">:</span> <span class="num">20</span><span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t23" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">{</span><span class="str">&#39;format&#39;</span><span class="op">:</span> <span class="str">&#39;aac&#39;</span><span class="op">,</span> <span class="str">&#39;ext&#39;</span><span class="op">:</span> <span class="str">&#39;aac&#39;</span><span class="op">,</span> <span class="str">&#39;abr&#39;</span><span class="op">:</span> <span class="num">48</span><span class="op">,</span> <span class="str">&#39;preference&#39;</span><span class="op">:</span> <span class="num">10</span><span class="op">}</span><span class="strut">&nbsp;</span></p>
+<p id="t24" class="pln">&nbsp; &nbsp; <span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t25" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t26" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">_get_formats</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">song_id</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t27" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">formats</span> <span class="op">=</span> <span class="op">[</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t28" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">for</span> <span class="nam">file_format</span> <span class="key">in</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_FORMATS</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t29" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">song_url</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_download_webpage</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t30" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;http://antiserver.kuwo.cn/anti.s?format=%s&amp;br=%s&amp;rid=MUSIC_%s&amp;type=convert_url&amp;response=url&#39;</span> <span class="op">%</span><span class="strut">&nbsp;</span></p>
+<p id="t31" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="op">(</span><span class="nam">file_format</span><span class="op">[</span><span class="str">&#39;ext&#39;</span><span class="op">]</span><span class="op">,</span> <span class="nam">file_format</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">&#39;br&#39;</span><span class="op">,</span> <span class="str">&#39;&#39;</span><span class="op">)</span><span class="op">,</span> <span class="nam">song_id</span><span class="op">)</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t32" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">song_id</span><span class="op">,</span> <span class="nam">note</span><span class="op">=</span><span class="str">&#39;Download %s url info&#39;</span> <span class="op">%</span> <span class="nam">file_format</span><span class="op">[</span><span class="str">&#39;format&#39;</span><span class="op">]</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t33" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t34" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">song_url</span><span class="op">.</span><span class="nam">startswith</span><span class="op">(</span><span class="str">&#39;http://&#39;</span><span class="op">)</span> <span class="key">or</span> <span class="nam">song_url</span><span class="op">.</span><span class="nam">startswith</span><span class="op">(</span><span class="str">&#39;https://&#39;</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t35" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">formats</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t36" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;url&#39;</span><span class="op">:</span> <span class="nam">song_url</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t37" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;format_id&#39;</span><span class="op">:</span> <span class="nam">file_format</span><span class="op">[</span><span class="str">&#39;format&#39;</span><span class="op">]</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t38" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;format&#39;</span><span class="op">:</span> <span class="nam">file_format</span><span class="op">[</span><span class="str">&#39;format&#39;</span><span class="op">]</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t39" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;preference&#39;</span><span class="op">:</span> <span class="nam">file_format</span><span class="op">[</span><span class="str">&#39;preference&#39;</span><span class="op">]</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t40" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;abr&#39;</span><span class="op">:</span> <span class="nam">file_format</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">&#39;abr&#39;</span><span class="op">)</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t41" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="op">}</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t42" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">self</span><span class="op">.</span><span class="nam">_sort_formats</span><span class="op">(</span><span class="nam">formats</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t43" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">formats</span><span class="strut">&nbsp;</span></p>
+<p id="t44" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t45" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t46" class="stm run hide_run"><span class="key">class</span> <span class="nam">KuwoIE</span><span class="op">(</span><span class="nam">KuwoBaseIE</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t47" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">IE_NAME</span> <span class="op">=</span> <span class="str">&#39;kuwo:song&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t48" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">IE_DESC</span> <span class="op">=</span> <span class="str">&#39;&#37239;&#25105;&#38899;&#20048;&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t49" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_VALID_URL</span> <span class="op">=</span> <span class="str">r&#39;http://www\.kuwo\.cn/yinyue/(?P&lt;id&gt;\d+?)/&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t50" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_TESTS</span> <span class="op">=</span> <span class="op">[</span><span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t51" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;url&#39;</span><span class="op">:</span> <span class="str">&#39;http://www.kuwo.cn/yinyue/635632/&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t52" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;info_dict&#39;</span><span class="op">:</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t53" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;id&#39;</span><span class="op">:</span> <span class="str">&#39;635632&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t54" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;ext&#39;</span><span class="op">:</span> <span class="str">&#39;ape&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t55" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;title&#39;</span><span class="op">:</span> <span class="str">&#39;&#29233;&#25105;&#21035;&#36208;&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t56" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;creator&#39;</span><span class="op">:</span> <span class="str">&#39;&#24352;&#38663;&#23731;&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t57" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;upload_date&#39;</span><span class="op">:</span> <span class="str">&#39;20080122&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t58" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;description&#39;</span><span class="op">:</span> <span class="str">&#39;md5:ed13f58e3c3bf3f7fd9fbc4e5a7aa75c&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t59" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t60" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;skip&#39;</span><span class="op">:</span> <span class="str">&#39;this song has been offline because of copyright issues&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t61" class="pln">&nbsp; &nbsp; <span class="op">}</span><span class="op">,</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t62" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;url&#39;</span><span class="op">:</span> <span class="str">&#39;http://www.kuwo.cn/yinyue/6446136/&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t63" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;info_dict&#39;</span><span class="op">:</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t64" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;id&#39;</span><span class="op">:</span> <span class="str">&#39;6446136&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t65" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;ext&#39;</span><span class="op">:</span> <span class="str">&#39;mp3&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t66" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;title&#39;</span><span class="op">:</span> <span class="str">&#39;&#24515;&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t67" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;creator&#39;</span><span class="op">:</span> <span class="str">&#39;IU&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t68" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;upload_date&#39;</span><span class="op">:</span> <span class="str">&#39;20150518&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t69" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t70" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;params&#39;</span><span class="op">:</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t71" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;format&#39;</span><span class="op">:</span> <span class="str">&#39;mp3-320&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t72" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t73" class="pln">&nbsp; &nbsp; <span class="op">}</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t74" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t75" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">_real_extract</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">url</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t76" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">song_id</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_match_id</span><span class="op">(</span><span class="nam">url</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t77" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">webpage</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_download_webpage</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t78" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">url</span><span class="op">,</span> <span class="nam">song_id</span><span class="op">,</span> <span class="nam">note</span><span class="op">=</span><span class="str">&#39;Download song detail info&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t79" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">errnote</span><span class="op">=</span><span class="str">&#39;Unable to get song detail info&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t80" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="str">&#39;&#23545;&#19981;&#36215;&#65292;&#35813;&#27468;&#26354;&#30001;&#20110;&#29256;&#26435;&#38382;&#39064;&#24050;&#34987;&#19979;&#32447;&#65292;&#23558;&#36820;&#22238;&#32593;&#31449;&#39318;&#39029;&#39;</span> <span class="key">in</span> <span class="nam">webpage</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t81" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">raise</span> <span class="nam">ExtractorError</span><span class="op">(</span><span class="str">&#39;this song has been offline because of copyright issues&#39;</span><span class="op">,</span> <span class="nam">expected</span><span class="op">=</span><span class="nam">True</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t82" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t83" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">song_name</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_html_search_regex</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t84" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;(?s)class=&quot;(?:[^&quot;\s]+\s+)*title(?:\s+[^&quot;\s]+)*&quot;.*?&lt;h1[^&gt;]+title=&quot;([^&quot;]+)&quot;&#39;</span><span class="op">,</span> <span class="nam">webpage</span><span class="op">,</span> <span class="str">&#39;song name&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t85" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">singer_name</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_html_search_regex</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t86" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;&lt;div[^&gt;]+class=&quot;s_img&quot;&gt;\s*&lt;a[^&gt;]+title=&quot;([^&gt;]+)&quot;&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t87" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">webpage</span><span class="op">,</span> <span class="str">&#39;singer name&#39;</span><span class="op">,</span> <span class="nam">fatal</span><span class="op">=</span><span class="nam">False</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t88" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">lrc_content</span> <span class="op">=</span> <span class="nam">clean_html</span><span class="op">(</span><span class="nam">get_element_by_id</span><span class="op">(</span><span class="str">&#39;lrcContent&#39;</span><span class="op">,</span> <span class="nam">webpage</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t89" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">lrc_content</span> <span class="op">==</span> <span class="str">&#39;&#26242;&#26080;&#39;</span><span class="op">:</span>&nbsp; &nbsp;&nbsp; <span class="com"># indicates no lyrics</span><span class="strut">&nbsp;</span></p>
+<p id="t90" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">lrc_content</span> <span class="op">=</span> <span class="nam">None</span><span class="strut">&nbsp;</span></p>
+<p id="t91" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t92" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">formats</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_get_formats</span><span class="op">(</span><span class="nam">song_id</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t93" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t94" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">album_id</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_html_search_regex</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t95" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;&lt;p[^&gt;]+class=&quot;album&quot;[^&lt;]+&lt;a[^&gt;]+href=&quot;http://www\.kuwo\.cn/album/(\d+)/&quot;&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t96" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">webpage</span><span class="op">,</span> <span class="str">&#39;album id&#39;</span><span class="op">,</span> <span class="nam">fatal</span><span class="op">=</span><span class="nam">False</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t97" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t98" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">publish_time</span> <span class="op">=</span> <span class="nam">None</span><span class="strut">&nbsp;</span></p>
+<p id="t99" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">album_id</span> <span class="key">is</span> <span class="key">not</span> <span class="nam">None</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t100" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">album_info_page</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_download_webpage</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t101" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;http://www.kuwo.cn/album/%s/&#39;</span> <span class="op">%</span> <span class="nam">album_id</span><span class="op">,</span> <span class="nam">song_id</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t102" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">note</span><span class="op">=</span><span class="str">&#39;Download album detail info&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t103" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">errnote</span><span class="op">=</span><span class="str">&#39;Unable to get album detail info&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t104" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t105" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">publish_time</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_html_search_regex</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t106" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;&#21457;&#34892;&#26102;&#38388;&#65306;(\d{4}-\d{2}-\d{2})&#39;</span><span class="op">,</span> <span class="nam">album_info_page</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t107" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;publish time&#39;</span><span class="op">,</span> <span class="nam">fatal</span><span class="op">=</span><span class="nam">False</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t108" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">publish_time</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t109" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">publish_time</span> <span class="op">=</span> <span class="nam">publish_time</span><span class="op">.</span><span class="nam">replace</span><span class="op">(</span><span class="str">&#39;-&#39;</span><span class="op">,</span> <span class="str">&#39;&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t110" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t111" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t112" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;id&#39;</span><span class="op">:</span> <span class="nam">song_id</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t113" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;title&#39;</span><span class="op">:</span> <span class="nam">song_name</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t114" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;creator&#39;</span><span class="op">:</span> <span class="nam">singer_name</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t115" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;upload_date&#39;</span><span class="op">:</span> <span class="nam">publish_time</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t116" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;description&#39;</span><span class="op">:</span> <span class="nam">lrc_content</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t117" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;formats&#39;</span><span class="op">:</span> <span class="nam">formats</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t118" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">}</span><span class="strut">&nbsp;</span></p>
+<p id="t119" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t120" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t121" class="stm run hide_run"><span class="key">class</span> <span class="nam">KuwoAlbumIE</span><span class="op">(</span><span class="nam">InfoExtractor</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t122" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">IE_NAME</span> <span class="op">=</span> <span class="str">&#39;kuwo:album&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t123" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">IE_DESC</span> <span class="op">=</span> <span class="str">&#39;&#37239;&#25105;&#38899;&#20048; - &#19987;&#36753;&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t124" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_VALID_URL</span> <span class="op">=</span> <span class="str">r&#39;http://www\.kuwo\.cn/album/(?P&lt;id&gt;\d+?)/&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t125" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_TEST</span> <span class="op">=</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t126" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;url&#39;</span><span class="op">:</span> <span class="str">&#39;http://www.kuwo.cn/album/502294/&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t127" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;info_dict&#39;</span><span class="op">:</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t128" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;id&#39;</span><span class="op">:</span> <span class="str">&#39;502294&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t129" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;title&#39;</span><span class="op">:</span> <span class="str">&#39;M&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t130" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;description&#39;</span><span class="op">:</span> <span class="str">&#39;md5:6a7235a84cc6400ec3b38a7bdaf1d60c&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t131" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t132" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;playlist_count&#39;</span><span class="op">:</span> <span class="num">2</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t133" class="pln">&nbsp; &nbsp; <span class="op">}</span><span class="strut">&nbsp;</span></p>
+<p id="t134" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t135" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">_real_extract</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">url</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t136" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">album_id</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_match_id</span><span class="op">(</span><span class="nam">url</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t137" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t138" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">webpage</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_download_webpage</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t139" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">url</span><span class="op">,</span> <span class="nam">album_id</span><span class="op">,</span> <span class="nam">note</span><span class="op">=</span><span class="str">&#39;Download album info&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t140" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">errnote</span><span class="op">=</span><span class="str">&#39;Unable to get album info&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t141" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t142" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">album_name</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_html_search_regex</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t143" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;&lt;div[^&gt;]+class=&quot;comm&quot;[^&lt;]+&lt;h1[^&gt;]+title=&quot;([^&quot;]+)&quot;&#39;</span><span class="op">,</span> <span class="nam">webpage</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t144" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;album name&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t145" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">album_intro</span> <span class="op">=</span> <span class="nam">remove_start</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t146" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">clean_html</span><span class="op">(</span><span class="nam">get_element_by_id</span><span class="op">(</span><span class="str">&#39;intro&#39;</span><span class="op">,</span> <span class="nam">webpage</span><span class="op">)</span><span class="op">)</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t147" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;%s&#31616;&#20171;&#65306;&#39;</span> <span class="op">%</span> <span class="nam">album_name</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t148" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t149" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">entries</span> <span class="op">=</span> <span class="op">[</span><span class="strut">&nbsp;</span></p>
+<p id="t150" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">self</span><span class="op">.</span><span class="nam">url_result</span><span class="op">(</span><span class="nam">song_url</span><span class="op">,</span> <span class="str">&#39;Kuwo&#39;</span><span class="op">)</span> <span class="key">for</span> <span class="nam">song_url</span> <span class="key">in</span> <span class="nam">re</span><span class="op">.</span><span class="nam">findall</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t151" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;&lt;p[^&gt;]+class=&quot;listen&quot;&gt;&lt;a[^&gt;]+href=&quot;(http://www\.kuwo\.cn/yinyue/\d+/)&quot;&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t152" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">webpage</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t153" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t154" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">self</span><span class="op">.</span><span class="nam">playlist_result</span><span class="op">(</span><span class="nam">entries</span><span class="op">,</span> <span class="nam">album_id</span><span class="op">,</span> <span class="nam">album_name</span><span class="op">,</span> <span class="nam">album_intro</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t155" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t156" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t157" class="stm run hide_run"><span class="key">class</span> <span class="nam">KuwoChartIE</span><span class="op">(</span><span class="nam">InfoExtractor</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t158" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">IE_NAME</span> <span class="op">=</span> <span class="str">&#39;kuwo:chart&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t159" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">IE_DESC</span> <span class="op">=</span> <span class="str">&#39;&#37239;&#25105;&#38899;&#20048; - &#25490;&#34892;&#27036;&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t160" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_VALID_URL</span> <span class="op">=</span> <span class="str">r&#39;http://yinyue\.kuwo\.cn/billboard_(?P&lt;id&gt;[^.]+).htm&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t161" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_TEST</span> <span class="op">=</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t162" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;url&#39;</span><span class="op">:</span> <span class="str">&#39;http://yinyue.kuwo.cn/billboard_&#39321;&#28207;&#20013;&#25991;&#40857;&#34382;&#27036;.htm&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t163" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;info_dict&#39;</span><span class="op">:</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t164" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;id&#39;</span><span class="op">:</span> <span class="str">&#39;&#39321;&#28207;&#20013;&#25991;&#40857;&#34382;&#27036;&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t165" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;title&#39;</span><span class="op">:</span> <span class="str">&#39;&#39321;&#28207;&#20013;&#25991;&#40857;&#34382;&#27036;&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t166" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;description&#39;</span><span class="op">:</span> <span class="str">&#39;re:\d{4}&#31532;\d{2}&#26399;&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t167" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t168" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;playlist_mincount&#39;</span><span class="op">:</span> <span class="num">10</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t169" class="pln">&nbsp; &nbsp; <span class="op">}</span><span class="strut">&nbsp;</span></p>
+<p id="t170" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t171" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">_real_extract</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">url</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t172" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">chart_id</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_match_id</span><span class="op">(</span><span class="nam">url</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t173" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">webpage</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_download_webpage</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t174" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">url</span><span class="op">,</span> <span class="nam">chart_id</span><span class="op">,</span> <span class="nam">note</span><span class="op">=</span><span class="str">&#39;Download chart info&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t175" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">errnote</span><span class="op">=</span><span class="str">&#39;Unable to get chart info&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t176" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t177" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">chart_name</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_html_search_regex</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t178" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;&lt;h1[^&gt;]+class=&quot;unDis&quot;&gt;([^&lt;]+)&lt;/h1&gt;&#39;</span><span class="op">,</span> <span class="nam">webpage</span><span class="op">,</span> <span class="str">&#39;chart name&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t179" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t180" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">chart_desc</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_html_search_regex</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t181" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;&lt;p[^&gt;]+class=&quot;tabDef&quot;&gt;(\d{4}&#31532;\d{2}&#26399;)&lt;/p&gt;&#39;</span><span class="op">,</span> <span class="nam">webpage</span><span class="op">,</span> <span class="str">&#39;chart desc&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t182" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t183" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">entries</span> <span class="op">=</span> <span class="op">[</span><span class="strut">&nbsp;</span></p>
+<p id="t184" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">self</span><span class="op">.</span><span class="nam">url_result</span><span class="op">(</span><span class="nam">song_url</span><span class="op">,</span> <span class="str">&#39;Kuwo&#39;</span><span class="op">)</span> <span class="key">for</span> <span class="nam">song_url</span> <span class="key">in</span> <span class="nam">re</span><span class="op">.</span><span class="nam">findall</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t185" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;&lt;a[^&gt;]+href=&quot;(http://www\.kuwo\.cn/yinyue/\d+)/&quot;&#39;</span><span class="op">,</span> <span class="nam">webpage</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t186" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t187" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">self</span><span class="op">.</span><span class="nam">playlist_result</span><span class="op">(</span><span class="nam">entries</span><span class="op">,</span> <span class="nam">chart_id</span><span class="op">,</span> <span class="nam">chart_name</span><span class="op">,</span> <span class="nam">chart_desc</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t188" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t189" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t190" class="stm run hide_run"><span class="key">class</span> <span class="nam">KuwoSingerIE</span><span class="op">(</span><span class="nam">InfoExtractor</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t191" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">IE_NAME</span> <span class="op">=</span> <span class="str">&#39;kuwo:singer&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t192" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">IE_DESC</span> <span class="op">=</span> <span class="str">&#39;&#37239;&#25105;&#38899;&#20048; - &#27468;&#25163;&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t193" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_VALID_URL</span> <span class="op">=</span> <span class="str">r&#39;http://www\.kuwo\.cn/mingxing/(?P&lt;id&gt;[^/]+)&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t194" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_TESTS</span> <span class="op">=</span> <span class="op">[</span><span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t195" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;url&#39;</span><span class="op">:</span> <span class="str">&#39;http://www.kuwo.cn/mingxing/bruno+mars/&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t196" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;info_dict&#39;</span><span class="op">:</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t197" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;id&#39;</span><span class="op">:</span> <span class="str">&#39;bruno+mars&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t198" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;title&#39;</span><span class="op">:</span> <span class="str">&#39;Bruno Mars&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t199" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t200" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;playlist_count&#39;</span><span class="op">:</span> <span class="num">10</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t201" class="pln">&nbsp; &nbsp; <span class="op">}</span><span class="op">,</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t202" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;url&#39;</span><span class="op">:</span> <span class="str">&#39;http://www.kuwo.cn/mingxing/Ali/music.htm&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t203" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;info_dict&#39;</span><span class="op">:</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t204" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;id&#39;</span><span class="op">:</span> <span class="str">&#39;Ali&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t205" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;title&#39;</span><span class="op">:</span> <span class="str">&#39;Ali&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t206" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t207" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;playlist_mincount&#39;</span><span class="op">:</span> <span class="num">95</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t208" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;skip&#39;</span><span class="op">:</span> <span class="str">&#39;Regularly stalls travis build&#39;</span><span class="op">,</span>&nbsp; <span class="com"># See https://travis-ci.org/rg3/youtube-dl/jobs/78878540</span><span class="strut">&nbsp;</span></p>
+<p id="t209" class="pln">&nbsp; &nbsp; <span class="op">}</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t210" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t211" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">_real_extract</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">url</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t212" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">singer_id</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_match_id</span><span class="op">(</span><span class="nam">url</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t213" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">webpage</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_download_webpage</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t214" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">url</span><span class="op">,</span> <span class="nam">singer_id</span><span class="op">,</span> <span class="nam">note</span><span class="op">=</span><span class="str">&#39;Download singer info&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t215" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">errnote</span><span class="op">=</span><span class="str">&#39;Unable to get singer info&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t216" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t217" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">singer_name</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_html_search_regex</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t218" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;&lt;div class=&quot;title clearfix&quot;&gt;\s*&lt;h1&gt;([^&lt;]+)&lt;span&#39;</span><span class="op">,</span> <span class="nam">webpage</span><span class="op">,</span> <span class="str">&#39;singer name&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t219" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t220" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t221" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">entries</span> <span class="op">=</span> <span class="op">[</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t222" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">first_page_only</span> <span class="op">=</span> <span class="nam">False</span> <span class="key">if</span> <span class="nam">re</span><span class="op">.</span><span class="nam">search</span><span class="op">(</span><span class="str">r&#39;/music(?:_\d+)?\.htm&#39;</span><span class="op">,</span> <span class="nam">url</span><span class="op">)</span> <span class="key">else</span> <span class="nam">True</span><span class="strut">&nbsp;</span></p>
+<p id="t223" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">for</span> <span class="nam">page_num</span> <span class="key">in</span> <span class="nam">itertools</span><span class="op">.</span><span class="nam">count</span><span class="op">(</span><span class="num">1</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t224" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">webpage</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_download_webpage</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t225" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;http://www.kuwo.cn/mingxing/%s/music_%d.htm&#39;</span> <span class="op">%</span> <span class="op">(</span><span class="nam">singer_id</span><span class="op">,</span> <span class="nam">page_num</span><span class="op">)</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t226" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">singer_id</span><span class="op">,</span> <span class="nam">note</span><span class="op">=</span><span class="str">&#39;Download song list page #%d&#39;</span> <span class="op">%</span> <span class="nam">page_num</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t227" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">errnote</span><span class="op">=</span><span class="str">&#39;Unable to get song list page #%d&#39;</span> <span class="op">%</span> <span class="nam">page_num</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t228" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t229" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">entries</span><span class="op">.</span><span class="nam">extend</span><span class="op">(</span><span class="op">[</span><span class="strut">&nbsp;</span></p>
+<p id="t230" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">self</span><span class="op">.</span><span class="nam">url_result</span><span class="op">(</span><span class="nam">song_url</span><span class="op">,</span> <span class="str">&#39;Kuwo&#39;</span><span class="op">)</span> <span class="key">for</span> <span class="nam">song_url</span> <span class="key">in</span> <span class="nam">re</span><span class="op">.</span><span class="nam">findall</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t231" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;&lt;p[^&gt;]+class=&quot;m_name&quot;&gt;&lt;a[^&gt;]+href=&quot;(http://www\.kuwo\.cn/yinyue/\d+)/&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t232" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">webpage</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t233" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="op">]</span><span class="op">[</span><span class="op">:</span><span class="num">10</span> <span class="key">if</span> <span class="nam">first_page_only</span> <span class="key">else</span> <span class="nam">None</span><span class="op">]</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t234" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t235" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">first_page_only</span> <span class="key">or</span> <span class="key">not</span> <span class="nam">re</span><span class="op">.</span><span class="nam">search</span><span class="op">(</span><span class="str">r&#39;&lt;a[^&gt;]+href=&quot;[^&quot;]+&quot;&gt;&#19979;&#19968;&#39029;&lt;/a&gt;&#39;</span><span class="op">,</span> <span class="nam">webpage</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t236" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">break</span><span class="strut">&nbsp;</span></p>
+<p id="t237" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t238" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">self</span><span class="op">.</span><span class="nam">playlist_result</span><span class="op">(</span><span class="nam">entries</span><span class="op">,</span> <span class="nam">singer_id</span><span class="op">,</span> <span class="nam">singer_name</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t239" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t240" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t241" class="stm run hide_run"><span class="key">class</span> <span class="nam">KuwoCategoryIE</span><span class="op">(</span><span class="nam">InfoExtractor</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t242" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">IE_NAME</span> <span class="op">=</span> <span class="str">&#39;kuwo:category&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t243" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">IE_DESC</span> <span class="op">=</span> <span class="str">&#39;&#37239;&#25105;&#38899;&#20048; - &#20998;&#31867;&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t244" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_VALID_URL</span> <span class="op">=</span> <span class="str">r&#39;http://yinyue\.kuwo\.cn/yy/cinfo_(?P&lt;id&gt;\d+?).htm&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t245" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_TEST</span> <span class="op">=</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t246" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;url&#39;</span><span class="op">:</span> <span class="str">&#39;http://yinyue.kuwo.cn/yy/cinfo_86375.htm&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t247" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;info_dict&#39;</span><span class="op">:</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t248" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;id&#39;</span><span class="op">:</span> <span class="str">&#39;86375&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t249" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;title&#39;</span><span class="op">:</span> <span class="str">&#39;&#20843;&#21313;&#24180;&#20195;&#31934;&#36873;&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t250" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;description&#39;</span><span class="op">:</span> <span class="str">&#39;&#36825;&#20123;&#37117;&#26159;&#23646;&#20110;&#20843;&#21313;&#24180;&#20195;&#30340;&#22238;&#24518;&#65281;&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t251" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t252" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;playlist_count&#39;</span><span class="op">:</span> <span class="num">30</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t253" class="pln">&nbsp; &nbsp; <span class="op">}</span><span class="strut">&nbsp;</span></p>
+<p id="t254" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t255" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">_real_extract</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">url</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t256" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">category_id</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_match_id</span><span class="op">(</span><span class="nam">url</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t257" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">webpage</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_download_webpage</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t258" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">url</span><span class="op">,</span> <span class="nam">category_id</span><span class="op">,</span> <span class="nam">note</span><span class="op">=</span><span class="str">&#39;Download category info&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t259" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">errnote</span><span class="op">=</span><span class="str">&#39;Unable to get category info&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t260" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t261" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">category_name</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_html_search_regex</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t262" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;&lt;h1[^&gt;]+title=&quot;([^&lt;&gt;]+?)&quot;&gt;[^&lt;&gt;]+?&lt;/h1&gt;&#39;</span><span class="op">,</span> <span class="nam">webpage</span><span class="op">,</span> <span class="str">&#39;category name&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t263" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t264" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">category_desc</span> <span class="op">=</span> <span class="nam">remove_start</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t265" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">get_element_by_id</span><span class="op">(</span><span class="str">&#39;intro&#39;</span><span class="op">,</span> <span class="nam">webpage</span><span class="op">)</span><span class="op">.</span><span class="nam">strip</span><span class="op">(</span><span class="op">)</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t266" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;%s&#31616;&#20171;&#65306;&#39;</span> <span class="op">%</span> <span class="nam">category_name</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t267" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t268" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">jsonm</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_parse_json</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">_html_search_regex</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t269" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;var\s+jsonm\s*=\s*([^;]+);&#39;</span><span class="op">,</span> <span class="nam">webpage</span><span class="op">,</span> <span class="str">&#39;category songs&#39;</span><span class="op">)</span><span class="op">,</span> <span class="nam">category_id</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t270" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t271" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">entries</span> <span class="op">=</span> <span class="op">[</span><span class="strut">&nbsp;</span></p>
+<p id="t272" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">self</span><span class="op">.</span><span class="nam">url_result</span><span class="op">(</span><span class="str">&#39;http://www.kuwo.cn/yinyue/%s/&#39;</span> <span class="op">%</span> <span class="nam">song</span><span class="op">[</span><span class="str">&#39;musicrid&#39;</span><span class="op">]</span><span class="op">,</span> <span class="str">&#39;Kuwo&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t273" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">for</span> <span class="nam">song</span> <span class="key">in</span> <span class="nam">jsonm</span><span class="op">[</span><span class="str">&#39;musiclist&#39;</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t274" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t275" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">self</span><span class="op">.</span><span class="nam">playlist_result</span><span class="op">(</span><span class="nam">entries</span><span class="op">,</span> <span class="nam">category_id</span><span class="op">,</span> <span class="nam">category_name</span><span class="op">,</span> <span class="nam">category_desc</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t276" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t277" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t278" class="stm run hide_run"><span class="key">class</span> <span class="nam">KuwoMvIE</span><span class="op">(</span><span class="nam">KuwoBaseIE</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t279" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">IE_NAME</span> <span class="op">=</span> <span class="str">&#39;kuwo:mv&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t280" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">IE_DESC</span> <span class="op">=</span> <span class="str">&#39;&#37239;&#25105;&#38899;&#20048; - MV&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t281" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_VALID_URL</span> <span class="op">=</span> <span class="str">r&#39;http://www\.kuwo\.cn/mv/(?P&lt;id&gt;\d+?)/&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t282" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_TEST</span> <span class="op">=</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t283" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;url&#39;</span><span class="op">:</span> <span class="str">&#39;http://www.kuwo.cn/mv/6480076/&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t284" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;info_dict&#39;</span><span class="op">:</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t285" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;id&#39;</span><span class="op">:</span> <span class="str">&#39;6480076&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t286" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;ext&#39;</span><span class="op">:</span> <span class="str">&#39;mkv&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t287" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;title&#39;</span><span class="op">:</span> <span class="str">&#39;&#25105;&#20204;&#23478;MV&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t288" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;creator&#39;</span><span class="op">:</span> <span class="str">&#39;2PM&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t289" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t290" class="pln">&nbsp; &nbsp; <span class="op">}</span><span class="strut">&nbsp;</span></p>
+<p id="t291" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_FORMATS</span> <span class="op">=</span> <span class="nam">KuwoBaseIE</span><span class="op">.</span><span class="nam">_FORMATS</span> <span class="op">+</span> <span class="op">[</span><span class="strut">&nbsp;</span></p>
+<p id="t292" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">{</span><span class="str">&#39;format&#39;</span><span class="op">:</span> <span class="str">&#39;mkv&#39;</span><span class="op">,</span> <span class="str">&#39;ext&#39;</span><span class="op">:</span> <span class="str">&#39;mkv&#39;</span><span class="op">,</span> <span class="str">&#39;preference&#39;</span><span class="op">:</span> <span class="num">250</span><span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t293" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">{</span><span class="str">&#39;format&#39;</span><span class="op">:</span> <span class="str">&#39;mp4&#39;</span><span class="op">,</span> <span class="str">&#39;ext&#39;</span><span class="op">:</span> <span class="str">&#39;mp4&#39;</span><span class="op">,</span> <span class="str">&#39;preference&#39;</span><span class="op">:</span> <span class="num">200</span><span class="op">}</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t294" class="pln">&nbsp; &nbsp; <span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t295" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t296" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">_real_extract</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">url</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t297" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">song_id</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_match_id</span><span class="op">(</span><span class="nam">url</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t298" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">webpage</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_download_webpage</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t299" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">url</span><span class="op">,</span> <span class="nam">song_id</span><span class="op">,</span> <span class="nam">note</span><span class="op">=</span><span class="str">&#39;Download mv detail info: %s&#39;</span> <span class="op">%</span> <span class="nam">song_id</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t300" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">errnote</span><span class="op">=</span><span class="str">&#39;Unable to get mv detail info: %s&#39;</span> <span class="op">%</span> <span class="nam">song_id</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t301" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t302" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">mobj</span> <span class="op">=</span> <span class="nam">re</span><span class="op">.</span><span class="nam">search</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t303" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;&lt;h1[^&gt;]+title=&quot;(?P&lt;song&gt;[^&quot;]+)&quot;&gt;[^&lt;]+&lt;span[^&gt;]+title=&quot;(?P&lt;singer&gt;[^&quot;]+)&quot;&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t304" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">webpage</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t305" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">mobj</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t306" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">song_name</span> <span class="op">=</span> <span class="nam">mobj</span><span class="op">.</span><span class="nam">group</span><span class="op">(</span><span class="str">&#39;song&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t307" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">singer_name</span> <span class="op">=</span> <span class="nam">mobj</span><span class="op">.</span><span class="nam">group</span><span class="op">(</span><span class="str">&#39;singer&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t308" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t309" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">raise</span> <span class="nam">ExtractorError</span><span class="op">(</span><span class="str">&#39;Unable to find song or singer names&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t310" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t311" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">formats</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_get_formats</span><span class="op">(</span><span class="nam">song_id</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t312" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t313" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t314" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;id&#39;</span><span class="op">:</span> <span class="nam">song_id</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t315" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;title&#39;</span><span class="op">:</span> <span class="nam">song_name</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t316" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;creator&#39;</span><span class="op">:</span> <span class="nam">singer_name</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t317" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;formats&#39;</span><span class="op">:</span> <span class="nam">formats</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t318" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">}</span><span class="strut">&nbsp;</span></p>
+                
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div id="footer">
+    <div class="content">
+        <p>
+            <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.org">coverage.py v4.0.3</a>,
+            created at 2015-12-22 22:06
+        </p>
+    </div>
+</div>
+
+</body>
+</html>

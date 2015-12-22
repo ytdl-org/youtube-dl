@@ -1,0 +1,229 @@
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
+    <title>Coverage for /home/rpchen1228/youtube-dl/youtube_dl/extractor/vulture.py: 42%</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.hotkeys.js"></script>
+    <script type="text/javascript" src="jquery.isonscreen.js"></script>
+    <script type="text/javascript" src="coverage_html.js"></script>
+    <script type="text/javascript">
+        jQuery(document).ready(coverage.pyfile_ready);
+    </script>
+</head>
+<body class="pyfile">
+
+<div id="header">
+    <div class="content">
+        <h1>Coverage for <b>/home/rpchen1228/youtube-dl/youtube_dl/extractor/vulture.py</b> :
+            <span class="pc_cov">42%</span>
+        </h1>
+
+        <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
+
+        <h2 class="stats">
+            26 statements &nbsp;
+            <span class="run hide_run shortkey_r button_toggle_run">11 run</span>
+            <span class="mis shortkey_m button_toggle_mis">15 missing</span>
+            <span class="exc shortkey_x button_toggle_exc">0 excluded</span>
+
+            
+                <span class="par run hide_run shortkey_p button_toggle_par">0 partial</span>
+            
+        </h2>
+    </div>
+</div>
+
+<div class="help_panel">
+    <img id="panel_icon" src="keybd_open.png" alt="Hide keyboard shortcuts" />
+<p class="legend">Hot-keys on this page</p>
+    <div>
+<p class="keyhelp">
+        <span class="key">r</span>
+        <span class="key">m</span>
+        <span class="key">x</span>
+        <span class="key">p</span> &nbsp; toggle line displays
+    </p>
+<p class="keyhelp">
+        <span class="key">j</span>
+        <span class="key">k</span> &nbsp; next/prev highlighted chunk
+    </p>
+<p class="keyhelp">
+        <span class="key">0</span> &nbsp; (zero) top of page
+    </p>
+<p class="keyhelp">
+        <span class="key">1</span> &nbsp; (one) first highlighted chunk
+    </p>
+    </div>
+</div>
+
+<div id="source">
+    <table>
+        <tr>
+            <td class="linenos">
+<p id="n1" class="stm run hide_run"><a href="#n1">1</a></p>
+<p id="n2" class="pln"><a href="#n2">2</a></p>
+<p id="n3" class="stm run hide_run"><a href="#n3">3</a></p>
+<p id="n4" class="stm run hide_run"><a href="#n4">4</a></p>
+<p id="n5" class="stm run hide_run"><a href="#n5">5</a></p>
+<p id="n6" class="pln"><a href="#n6">6</a></p>
+<p id="n7" class="stm run hide_run"><a href="#n7">7</a></p>
+<p id="n8" class="stm run hide_run"><a href="#n8">8</a></p>
+<p id="n9" class="pln"><a href="#n9">9</a></p>
+<p id="n10" class="pln"><a href="#n10">10</a></p>
+<p id="n11" class="pln"><a href="#n11">11</a></p>
+<p id="n12" class="pln"><a href="#n12">12</a></p>
+<p id="n13" class="pln"><a href="#n13">13</a></p>
+<p id="n14" class="stm run hide_run"><a href="#n14">14</a></p>
+<p id="n15" class="stm run hide_run"><a href="#n15">15</a></p>
+<p id="n16" class="stm run hide_run"><a href="#n16">16</a></p>
+<p id="n17" class="stm run hide_run"><a href="#n17">17</a></p>
+<p id="n18" class="pln"><a href="#n18">18</a></p>
+<p id="n19" class="pln"><a href="#n19">19</a></p>
+<p id="n20" class="pln"><a href="#n20">20</a></p>
+<p id="n21" class="pln"><a href="#n21">21</a></p>
+<p id="n22" class="pln"><a href="#n22">22</a></p>
+<p id="n23" class="pln"><a href="#n23">23</a></p>
+<p id="n24" class="pln"><a href="#n24">24</a></p>
+<p id="n25" class="pln"><a href="#n25">25</a></p>
+<p id="n26" class="pln"><a href="#n26">26</a></p>
+<p id="n27" class="pln"><a href="#n27">27</a></p>
+<p id="n28" class="pln"><a href="#n28">28</a></p>
+<p id="n29" class="pln"><a href="#n29">29</a></p>
+<p id="n30" class="pln"><a href="#n30">30</a></p>
+<p id="n31" class="pln"><a href="#n31">31</a></p>
+<p id="n32" class="pln"><a href="#n32">32</a></p>
+<p id="n33" class="stm run hide_run"><a href="#n33">33</a></p>
+<p id="n34" class="stm mis"><a href="#n34">34</a></p>
+<p id="n35" class="stm mis"><a href="#n35">35</a></p>
+<p id="n36" class="pln"><a href="#n36">36</a></p>
+<p id="n37" class="stm mis"><a href="#n37">37</a></p>
+<p id="n38" class="stm mis"><a href="#n38">38</a></p>
+<p id="n39" class="pln"><a href="#n39">39</a></p>
+<p id="n40" class="stm mis"><a href="#n40">40</a></p>
+<p id="n41" class="pln"><a href="#n41">41</a></p>
+<p id="n42" class="stm mis"><a href="#n42">42</a></p>
+<p id="n43" class="pln"><a href="#n43">43</a></p>
+<p id="n44" class="stm mis"><a href="#n44">44</a></p>
+<p id="n45" class="pln"><a href="#n45">45</a></p>
+<p id="n46" class="stm mis"><a href="#n46">46</a></p>
+<p id="n47" class="pln"><a href="#n47">47</a></p>
+<p id="n48" class="pln"><a href="#n48">48</a></p>
+<p id="n49" class="pln"><a href="#n49">49</a></p>
+<p id="n50" class="stm mis"><a href="#n50">50</a></p>
+<p id="n51" class="pln"><a href="#n51">51</a></p>
+<p id="n52" class="stm mis"><a href="#n52">52</a></p>
+<p id="n53" class="stm mis"><a href="#n53">53</a></p>
+<p id="n54" class="pln"><a href="#n54">54</a></p>
+<p id="n55" class="stm mis"><a href="#n55">55</a></p>
+<p id="n56" class="stm mis"><a href="#n56">56</a></p>
+<p id="n57" class="stm mis"><a href="#n57">57</a></p>
+<p id="n58" class="pln"><a href="#n58">58</a></p>
+<p id="n59" class="stm mis"><a href="#n59">59</a></p>
+<p id="n60" class="pln"><a href="#n60">60</a></p>
+<p id="n61" class="pln"><a href="#n61">61</a></p>
+<p id="n62" class="pln"><a href="#n62">62</a></p>
+<p id="n63" class="pln"><a href="#n63">63</a></p>
+<p id="n64" class="pln"><a href="#n64">64</a></p>
+<p id="n65" class="pln"><a href="#n65">65</a></p>
+<p id="n66" class="pln"><a href="#n66">66</a></p>
+<p id="n67" class="pln"><a href="#n67">67</a></p>
+<p id="n68" class="pln"><a href="#n68">68</a></p>
+<p id="n69" class="pln"><a href="#n69">69</a></p>
+                
+            </td>
+            <td class="text">
+<p id="t1" class="stm run hide_run"><span class="key">from</span> <span class="nam">__future__</span> <span class="key">import</span> <span class="nam">unicode_literals</span><span class="strut">&nbsp;</span></p>
+<p id="t2" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t3" class="stm run hide_run"><span class="key">import</span> <span class="nam">json</span><span class="strut">&nbsp;</span></p>
+<p id="t4" class="stm run hide_run"><span class="key">import</span> <span class="nam">os</span><span class="op">.</span><span class="nam">path</span><span class="strut">&nbsp;</span></p>
+<p id="t5" class="stm run hide_run"><span class="key">import</span> <span class="nam">re</span><span class="strut">&nbsp;</span></p>
+<p id="t6" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t7" class="stm run hide_run"><span class="key">from</span> <span class="op">.</span><span class="nam">common</span> <span class="key">import</span> <span class="nam">InfoExtractor</span><span class="strut">&nbsp;</span></p>
+<p id="t8" class="stm run hide_run"><span class="key">from</span> <span class="op">.</span><span class="op">.</span><span class="nam">utils</span> <span class="key">import</span> <span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t9" class="pln">&nbsp; &nbsp; <span class="nam">int_or_none</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t10" class="pln">&nbsp; &nbsp; <span class="nam">parse_iso8601</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t11" class="pln"><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t12" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t13" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t14" class="stm run hide_run"><span class="key">class</span> <span class="nam">VultureIE</span><span class="op">(</span><span class="nam">InfoExtractor</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t15" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">IE_NAME</span> <span class="op">=</span> <span class="str">&#39;vulture.com&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t16" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_VALID_URL</span> <span class="op">=</span> <span class="str">r&#39;https?://video\.vulture\.com/video/(?P&lt;display_id&gt;[^/]+)/&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t17" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_TEST</span> <span class="op">=</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t18" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;url&#39;</span><span class="op">:</span> <span class="str">&#39;http://video.vulture.com/video/Mindy-Kaling-s-Harvard-Speech/player?layout=compact&amp;read_more=1&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t19" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;md5&#39;</span><span class="op">:</span> <span class="str">&#39;8d997845642a2b5152820f7257871bc8&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t20" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;info_dict&#39;</span><span class="op">:</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t21" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;id&#39;</span><span class="op">:</span> <span class="str">&#39;6GHRQL3RV7MSD1H4&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t22" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;ext&#39;</span><span class="op">:</span> <span class="str">&#39;mp4&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t23" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;title&#39;</span><span class="op">:</span> <span class="str">&#39;kaling-speech-2-MAGNIFY STANDARD CONTAINER REVISED&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t24" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;uploader_id&#39;</span><span class="op">:</span> <span class="str">&#39;Sarah&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t25" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;thumbnail&#39;</span><span class="op">:</span> <span class="str">&#39;re:^http://.*\.jpg$&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t26" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;timestamp&#39;</span><span class="op">:</span> <span class="num">1401288564</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t27" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;upload_date&#39;</span><span class="op">:</span> <span class="str">&#39;20140528&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t28" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;description&#39;</span><span class="op">:</span> <span class="str">&#39;Uplifting and witty, as predicted.&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t29" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;duration&#39;</span><span class="op">:</span> <span class="num">1015</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t30" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">}</span><span class="strut">&nbsp;</span></p>
+<p id="t31" class="pln">&nbsp; &nbsp; <span class="op">}</span><span class="strut">&nbsp;</span></p>
+<p id="t32" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t33" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">_real_extract</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">url</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t34" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">mobj</span> <span class="op">=</span> <span class="nam">re</span><span class="op">.</span><span class="nam">match</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">_VALID_URL</span><span class="op">,</span> <span class="nam">url</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t35" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">display_id</span> <span class="op">=</span> <span class="nam">mobj</span><span class="op">.</span><span class="nam">group</span><span class="op">(</span><span class="str">&#39;display_id&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t36" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t37" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">webpage</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_download_webpage</span><span class="op">(</span><span class="nam">url</span><span class="op">,</span> <span class="nam">display_id</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t38" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">query_string</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_search_regex</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t39" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&quot;queryString\s*=\s*&#39;([^&#39;]+)&#39;&quot;</span><span class="op">,</span> <span class="nam">webpage</span><span class="op">,</span> <span class="str">&#39;query string&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t40" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">video_id</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_search_regex</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t41" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;content=([^&amp;]+)&#39;</span><span class="op">,</span> <span class="nam">query_string</span><span class="op">,</span> <span class="str">&#39;video ID&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t42" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">query_url</span> <span class="op">=</span> <span class="str">&#39;http://video.vulture.com/embed/player/container/1000/1000/?%s&#39;</span> <span class="op">%</span> <span class="nam">query_string</span><span class="strut">&nbsp;</span></p>
+<p id="t43" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t44" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">query_webpage</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_download_webpage</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t45" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">query_url</span><span class="op">,</span> <span class="nam">display_id</span><span class="op">,</span> <span class="nam">note</span><span class="op">=</span><span class="str">&#39;Downloading query page&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t46" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">params_json</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">_search_regex</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t47" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">r&#39;(?sm)new MagnifyEmbeddablePlayer\({.*?contentItem:\s*(\{.*?\})\n?,\n&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t48" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">query_webpage</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t49" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;player params&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t50" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">params</span> <span class="op">=</span> <span class="nam">json</span><span class="op">.</span><span class="nam">loads</span><span class="op">(</span><span class="nam">params_json</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t51" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t52" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">upload_timestamp</span> <span class="op">=</span> <span class="nam">parse_iso8601</span><span class="op">(</span><span class="nam">params</span><span class="op">[</span><span class="str">&#39;posted&#39;</span><span class="op">]</span><span class="op">.</span><span class="nam">replace</span><span class="op">(</span><span class="str">&#39; &#39;</span><span class="op">,</span> <span class="str">&#39;T&#39;</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t53" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">uploader_id</span> <span class="op">=</span> <span class="nam">params</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">&#39;user&#39;</span><span class="op">,</span> <span class="op">{</span><span class="op">}</span><span class="op">)</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">&#39;handle&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t54" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t55" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">media_item</span> <span class="op">=</span> <span class="nam">params</span><span class="op">[</span><span class="str">&#39;media_item&#39;</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t56" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">title</span> <span class="op">=</span> <span class="nam">os</span><span class="op">.</span><span class="nam">path</span><span class="op">.</span><span class="nam">splitext</span><span class="op">(</span><span class="nam">media_item</span><span class="op">[</span><span class="str">&#39;title&#39;</span><span class="op">]</span><span class="op">)</span><span class="op">[</span><span class="num">0</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t57" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">duration</span> <span class="op">=</span> <span class="nam">int_or_none</span><span class="op">(</span><span class="nam">media_item</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">&#39;duration_seconds&#39;</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t58" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t59" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="op">{</span><span class="strut">&nbsp;</span></p>
+<p id="t60" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;id&#39;</span><span class="op">:</span> <span class="nam">video_id</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t61" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;display_id&#39;</span><span class="op">:</span> <span class="nam">display_id</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t62" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;url&#39;</span><span class="op">:</span> <span class="nam">media_item</span><span class="op">[</span><span class="str">&#39;pipeline_xid&#39;</span><span class="op">]</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t63" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;title&#39;</span><span class="op">:</span> <span class="nam">title</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t64" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;timestamp&#39;</span><span class="op">:</span> <span class="nam">upload_timestamp</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t65" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;thumbnail&#39;</span><span class="op">:</span> <span class="nam">params</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">&#39;thumbnail_url&#39;</span><span class="op">)</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t66" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;uploader_id&#39;</span><span class="op">:</span> <span class="nam">uploader_id</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t67" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;description&#39;</span><span class="op">:</span> <span class="nam">params</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">&#39;description&#39;</span><span class="op">)</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t68" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&#39;duration&#39;</span><span class="op">:</span> <span class="nam">duration</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t69" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="op">}</span><span class="strut">&nbsp;</span></p>
+                
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div id="footer">
+    <div class="content">
+        <p>
+            <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.org">coverage.py v4.0.3</a>,
+            created at 2015-12-22 22:06
+        </p>
+    </div>
+</div>
+
+</body>
+</html>
