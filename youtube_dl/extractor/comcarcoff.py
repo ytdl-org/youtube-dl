@@ -31,9 +31,10 @@ class ComCarCoffIE(InfoExtractor):
             display_id = 'comediansincarsgettingcoffee.com'
         webpage = self._download_webpage(url, display_id)
 
-        full_data = json.loads(self._search_regex(
-            r'\nwindow.app = (?P<json>.+?);\n',
-            webpage, 'full data json'))['videoData']
+        full_data = self._parse_json(
+            self._search_regex(
+                r'window\.app\s*=\s*({.+?});\n', webpage, 'full data json'),
+            display_id)['videoData']
 
         video_id = full_data['activeVideo']['video']
         video_data = full_data.get('videos', {}).get(video_id) or full_data['singleshots'][video_id]
