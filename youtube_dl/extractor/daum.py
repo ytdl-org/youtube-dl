@@ -25,6 +25,18 @@ class DaumIE(InfoExtractor):
             'duration': 3868,
         },
     }, {
+        # Test for https://github.com/rg3/youtube-dl/issues/7949
+        'url': 'http://tvpot.daum.net/mypot/View.do?ownerid=M1O35s8HPOo0&clipid=73147290',
+        'md5': 'c92d78bcee4424451f1667f275c1dc97',
+        'info_dict': {
+            'id': '73147290',
+            'ext': 'mp4',
+            'title': '싸이 - 나팔바지 [유희열의 스케치북] 299회 20151218',
+            'description': '싸이 - 나팔바지',
+            'upload_date': '20151219',
+            'duration': 232,
+        },
+    }, {
         'url': 'http://tvpot.daum.net/v/vab4dyeDBysyBssyukBUjBz',
         'only_matching': True,
     }, {
