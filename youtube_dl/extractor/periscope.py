@@ -31,9 +31,8 @@ class PeriscopeIE(InfoExtractor):
     }]
 
     def _call_api(self, method, value):
-        attribute = 'token' if len(value) > 13 else 'broadcast_id'
         return self._download_json(
-            'https://api.periscope.tv/api/v2/%s?%s=%s' % (method, attribute, value), value)
+            'https://api.periscope.tv/api/v2/%s?broadcast_id=%s' % (method, value), value)
 
     def _real_extract(self, url):
         token = self._match_id(url)
