@@ -68,9 +68,13 @@ class ArteTVPlus7IE(InfoExtractor):
     def _extract_url_info(cls, url):
         mobj = re.match(cls._VALID_URL, url)
         lang = mobj.group('lang')
-        # This is not a real id, it can be for example AJT for the news
-        # http://www.arte.tv/guide/fr/emissions/AJT/arte-journal
-        video_id = mobj.group('id')
+        query = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+        if 'vid' in query:
+            video_id = query['vid'][0]
+        else:
+            # This is not a real id, it can be for example AJT for the news
+            # http://www.arte.tv/guide/fr/emissions/AJT/arte-journal
+            video_id = mobj.group('id')
         return video_id, lang
 
     def _real_extract(self, url):
@@ -79,9 +83,15 @@ class ArteTVPlus7IE(InfoExtractor):
         return self._extract_from_webpage(webpage, video_id, lang)
 
     def _extract_from_webpage(self, webpage, video_id, lang):
+        patterns_templates = (r'arte_vp_url=["\'](.*?%s.*?)["\']', r'data-url=["\']([^"]+%s[^"]+)["\']')
+        ids = (video_id, '')
+        # some pages contain multiple videos (like
+        # http://www.arte.tv/guide/de/sendungen/XEN/xenius/?vid=055918-015_PLUS7-D),
+        # so we first try to look for json URLs that contain the video id from
+        # the 'vid' parameter.
+        patterns = [t % re.escape(_id) for _id in ids for t in patterns_templates]
         json_url = self._html_search_regex(
-            [r'arte_vp_url=["\'](.*?)["\']', r'data-url=["\']([^"]+)["\']'],
-            webpage, 'json vp url', default=None)
+            patterns, webpage, 'json vp url', default=None)
         if not json_url:
             iframe_url = self._html_search_regex(
                 r'<iframe[^>]+src=(["\'])(?P<url>.+\bjson_url=.+?)\1',
