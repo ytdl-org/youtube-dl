@@ -25,7 +25,10 @@ from .aol import AolIE
 from .allocine import AllocineIE
 from .aparat import AparatIE
 from .appleconnect import AppleConnectIE
-from .appletrailers import AppleTrailersIE
+from .appletrailers import (
+    AppleTrailersIE,
+    AppleTrailersSectionIE,
+)
 from .archiveorg import ArchiveOrgIE
 from .ard import (
     ARDIE,
