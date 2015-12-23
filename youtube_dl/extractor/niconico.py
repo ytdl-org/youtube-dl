@@ -92,8 +92,14 @@ class NiconicoIE(InfoExtractor):
 
     def _login(self):
         (username, password) = self._get_login_info()
-        # No authentication to be performed
         if not username:
+            # Check session cookie
+            for cookie in self._downloader.cookiejar:
+                if cookie.name == 'user_session':
+                    self._AUTHENTICATED = True
+                    return True
+
+            # No authentication to be performed
             return True
 
         # Log in
