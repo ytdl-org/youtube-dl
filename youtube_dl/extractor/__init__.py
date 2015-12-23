@@ -234,6 +234,7 @@ from .globo import (
     GloboArticleIE,
 )
 from .godtube import GodTubeIE
+from .gogoanime import GoGoAnimeIE
 from .goldenmoustache import GoldenMoustacheIE
 from .golem import GolemIE
 from .googledrive import GoogleDriveIE
