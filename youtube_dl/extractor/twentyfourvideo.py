@@ -17,7 +17,7 @@ class TwentyFourVideoIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.24video.net/video/view/1044982',
-            'md5': 'd041af8b5b4246ea466226a0d6693345',
+            'md5': 'e09fc0901d9eaeedac872f154931deeb',
             'info_dict': {
                 'id': '1044982',
                 'ext': 'mp4',
