@@ -65,6 +65,12 @@ class AppleTrailersIE(InfoExtractor):
             },
         ]
     }, {
+        'url': 'http://trailers.apple.com/trailers/magnolia/blackthorn/',
+        'info_dict': {
+            'id': 'blackthorn',
+        },
+        'playlist_mincount': 2,
+    }, {
         'url': 'http://trailers.apple.com/ca/metropole/autrui/',
         'only_matching': True,
     }]
@@ -97,6 +103,9 @@ class AppleTrailersIE(InfoExtractor):
             trailer_info_json = self._search_regex(self._JSON_RE,
                                                    on_click, 'trailer info')
             trailer_info = json.loads(trailer_info_json)
+            first_url = trailer_info.get('url')
+            if not first_url:
+                continue
             title = trailer_info['title']
             video_id = movie + '-' + re.sub(r'[^a-zA-Z0-9]', '', title).lower()
             thumbnail = li.find('.//img').attrib['src']
@@ -108,7 +117,6 @@ class AppleTrailersIE(InfoExtractor):
             if m:
                 duration = 60 * int(m.group('minutes')) + int(m.group('seconds'))
 
-            first_url = trailer_info['url']
             trailer_id = first_url.split('/')[-1].rpartition('_')[0].lower()
             settings_json_url = compat_urlparse.urljoin(url, 'includes/settings/%s.json' % trailer_id)
             settings = self._download_json(settings_json_url, trailer_id, 'Downloading settings json')
