@@ -80,7 +80,7 @@ class AppleTrailersIE(InfoExtractor):
 
         def fix_html(s):
             s = re.sub(r'(?s)<script[^<]*?>.*?</script>', '', s)
-            s = re.sub(r'<img ([^<]*?)>', r'<img \1/>', s)
+            s = re.sub(r'<img ([^<]*?)/?>', r'<img \1/>', s)
             # The ' in the onClick attributes are not escaped, it couldn't be parsed
             # like: http://trailers.apple.com/trailers/wb/gravity/
 
