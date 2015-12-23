@@ -5,6 +5,8 @@ from .common import InfoExtractor
 from ..utils import (
     parse_iso8601,
     int_or_none,
+    xpath_attr,
+    xpath_element,
 )
 
 
@@ -69,12 +71,14 @@ class TwentyFourVideoIE(InfoExtractor):
             r'http://www.24video.net/video/xml/%s?mode=init' % video_id,
             video_id, 'Downloading init XML')
 
-        video = self._download_xml(
+        video_xml = self._download_xml(
             'http://www.24video.net/video/xml/%s?mode=play' % video_id,
-            video_id, 'Downloading video XML').find('.//video')
+            video_id, 'Downloading video XML')
+
+        video = xpath_element(video_xml, './/video', 'video', fatal=True)
 
         formats = [{
-            'url': video.attrib['url'],
+            'url': xpath_attr(video, '', 'url', 'video URL', fatal=True),
         }]
 
         like_count = int_or_none(video.get('ratingPlus'))
