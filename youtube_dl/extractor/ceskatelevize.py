@@ -74,6 +74,18 @@ class CeskaTelevizeIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         },
+    }, {
+        'url': 'http://www.ceskatelevize.cz/ivysilani/embed/iFramePlayer.php'
+               + '?hash=d260c032e72b25f88449ac8161c47faf3741769a&IDEC=210%20522%2016045/0006&index=137019&channelID=1',
+        'info_dict': {
+            'id': '61924494876913324',
+            'ext': 'mp4',
+            'title': u'Pavel Kříž & Alice Stodůlková: Paso doble',
+        },
+        'expected_warnings': [
+            'OpenGraph title',
+            'OpenGraph description',
+        ]
     }]
 
     def _real_extract(self, url):
@@ -118,7 +130,7 @@ class CeskaTelevizeIE(InfoExtractor):
         req = sanitized_Request(compat_urllib_parse_unquote(playlist_url))
         req.add_header('Referer', url)
 
-        playlist_title = self._og_search_title(webpage)
+        playlist_title = self._og_search_title(webpage, fatal=False)
         playlist_description = self._og_search_description(webpage)
 
         playlist = self._download_json(req, playlist_id)['playlist']
@@ -133,7 +145,13 @@ class CeskaTelevizeIE(InfoExtractor):
             self._sort_formats(formats)
 
             item_id = item.get('id') or item['assetId']
-            title = item['title']
+
+            if playlist_title is None:
+                title = item['title']
+            elif playlist_len == 1:
+                title = playlist_title
+            else:
+                title = '%s (%s)' % (playlist_title, item['title'])
 
             duration = float_or_none(item.get('duration'))
             thumbnail = item.get('previewImageUrl')
@@ -146,7 +164,7 @@ class CeskaTelevizeIE(InfoExtractor):
 
             entries.append({
                 'id': item_id,
-                'title': playlist_title if playlist_len == 1 else '%s (%s)' % (playlist_title, title),
+                'title': title,
                 'description': playlist_description if playlist_len == 1 else None,
                 'thumbnail': thumbnail,
                 'duration': duration,
