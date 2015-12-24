@@ -131,7 +131,7 @@ class ZDFIE(InfoExtractor):
 
 
 class ZDFChannelIE(InfoExtractor):
-    _VALID_URL = r'(?:zdf:topic:|https?://www\.zdf\.de/ZDFmediathek(?:#)?/.*kanaluebersicht/)(?P<id>[0-9]+)'
+    _VALID_URL = r'(?:zdf:topic:|https?://www\.zdf\.de/ZDFmediathek(?:#)?/.*kanaluebersicht/(?:(?:aktuellste|meist-gesehen)/)?)(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.zdf.de/ZDFmediathek#/kanaluebersicht/1586442/sendung/Titanic',
         'info_dict': {
