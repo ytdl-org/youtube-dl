@@ -132,13 +132,22 @@ class ZDFIE(InfoExtractor):
 
 class ZDFChannelIE(InfoExtractor):
     _VALID_URL = r'(?:zdf:topic:|https?://www\.zdf\.de/ZDFmediathek(?:#)?/.*kanaluebersicht/(?:[^/]+/)?)(?P<id>[0-9]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.zdf.de/ZDFmediathek#/kanaluebersicht/1586442/sendung/Titanic',
         'info_dict': {
             'id': '1586442',
         },
         'playlist_count': 3,
-    }
+    }, {
+        'url': 'http://www.zdf.de/ZDFmediathek/kanaluebersicht/aktuellste/332',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.zdf.de/ZDFmediathek/kanaluebersicht/meist-gesehen/332',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.zdf.de/ZDFmediathek/kanaluebersicht/_/1798716?bc=nrt;nrm?flash=off',
+        'only_matching': True,
+    }]
     _PAGE_SIZE = 50
 
     def _fetch_page(self, channel_id, page):
