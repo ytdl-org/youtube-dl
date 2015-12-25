@@ -109,7 +109,7 @@ class IGNIE(InfoExtractor):
         if page_type != 'video':
             multiple_urls = re.findall(
                 r'<param name="flashvars"[^>]*value="[^"]*?url=(https?://www\.ign\.com/videos/.*?)["&]',
-                 webpage)
+                webpage)
             if multiple_urls:
                 entries = [self.url_result(u, ie='IGN') for u in multiple_urls]
                 return {
@@ -209,7 +209,7 @@ class PCMagIE(IGNIE):
             'upload_date': '20150106',
             'uploader_id': 'cozzipix@gmail.com',
         }
-    },{
+    }, {
         'url': 'http://www.pcmag.com/article2/0,2817,2470156,00.asp',
         'md5': '94130c1ca07ba0adb6088350681f16c1',
         'info_dict': {
