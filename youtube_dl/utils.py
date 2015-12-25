@@ -2538,10 +2538,13 @@ class I18N(object):
         else:
             lang, _ = locale.getdefaultlocale()
 
-        try:
-            t = gettext.translation(self.domain, find_file_in_root('share/locale/'), [lang])
-        except (OSError, IOError):  # OSError for 3.3+ and IOError otherwise
-            t = None
+        for root in get_root_dirs():
+            try:
+                t = gettext.translation(self.domain, os.path.join(root, 'share', 'locale'), [lang])
+                if t is not None:
+                    break
+            except (OSError, IOError):  # OSError for 3.3+ and IOError otherwise
+                t = None
 
         if t is None and sys.platform == 'win32' and hasattr(sys, 'frozen'):
             locale_data_zip = _load_exe_resource('LOCALE_DATA', 'LOCALE_DATA.ZIP')
@@ -2583,13 +2586,6 @@ def get_root_dirs():
     ret.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     return map(decodeFilename, ret)
-
-
-def find_file_in_root(file_path):
-    for root in get_root_dirs():
-        full_path = os.path.join(root, file_path)
-        if os.path.exists(full_path):
-            return full_path
 
 
 class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
