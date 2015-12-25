@@ -2585,6 +2585,9 @@ def get_root_dirs():
     # ../../ of youtube_dl/utils.py
     ret.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+    if sys.prefix not in ret:
+        ret.append(sys.prefix)  # fallback
+
     return map(decodeFilename, ret)
 
 
