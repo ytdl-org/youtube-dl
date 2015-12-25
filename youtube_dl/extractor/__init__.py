@@ -260,6 +260,7 @@ from .huffpost import HuffPostIE
 from .hypem import HypemIE
 from .iconosquare import IconosquareIE
 from .ign import IGNIE, OneUPIE
+from .ikshow import IkshowIE
 from .imdb import (
     ImdbIE,
     ImdbListIE
