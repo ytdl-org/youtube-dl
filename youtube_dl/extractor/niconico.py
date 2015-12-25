@@ -134,12 +134,15 @@ class NiconicoIE(InfoExtractor):
             'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id, video_id,
             note='Downloading video info page')
 
+        flv_info_webpage = ''
+
         if self._AUTHENTICATED:
             # Get flv info
             flv_info_webpage = self._download_webpage(
                 'http://flapi.nicovideo.jp/api/getflv/' + video_id + '?as3=1',
                 video_id, 'Downloading flv info')
-        else:
+
+        if not self._AUTHENTICATED or 'closed=1' in flv_info_webpage:
             # Get external player info
             ext_player_info = self._download_webpage(
                 'http://ext.nicovideo.jp/thumb_watch/' + video_id, video_id)
