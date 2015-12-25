@@ -2531,20 +2531,22 @@ class I18N(object):
     def __init__(self):
         self.default_lang = None
         self.domain = 'youtube_dl'
+        self._translation_cache = {}
 
-    def translate(self, s):
-        if self.default_lang is not None:
-            lang = self.default_lang
-        else:
-            lang, _ = locale.getdefaultlocale()
+    def _load_translation(self, lang):
+        t = self._translation_cache.get(lang)
 
-        for root in get_root_dirs():
-            try:
-                t = gettext.translation(self.domain, os.path.join(root, 'share', 'locale'), [lang])
-                if t is not None:
-                    break
-            except (OSError, IOError):  # OSError for 3.3+ and IOError otherwise
-                t = None
+        if t is not None:
+            return t
+
+        if t is None:
+            for root in get_root_dirs():
+                try:
+                    t = gettext.translation(self.domain, os.path.join(root, 'share', 'locale'), [lang])
+                    if t is not None:
+                        break
+                except (OSError, IOError):  # OSError for 3.3+ and IOError otherwise
+                    t = None
 
         if t is None and sys.platform == 'win32' and hasattr(sys, 'frozen'):
             locale_data_zip = _load_exe_resource('LOCALE_DATA', 'LOCALE_DATA.ZIP')
@@ -2559,6 +2561,18 @@ class I18N(object):
                     t = gettext.GNUTranslations(mo_file)
             zipf.close()
 
+        if t is not None:
+            self._translation_cache[lang] = t
+
+        return t
+
+    def translate(self, s):
+        if self.default_lang is not None:
+            lang = self.default_lang
+        else:
+            lang, _ = locale.getdefaultlocale()
+
+        t = self._load_translation(lang)
         if t is None:
             return s
 
