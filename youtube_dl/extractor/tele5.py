@@ -18,8 +18,20 @@ class Tele5IE(InfoExtractor):
 
     def _get_video_url(self, thumbnail, entity_id, video_js_url):
         video_js = self._download_webpage(video_js_url, None)
-        flavor_id = re.compile(r'''"id\\":\\"(.*?)\\"''').findall(video_js)[-1]
-        return thumbnail.split('thumbnail/')[0] + 'playManifest/entryId/{}/flavorId/{}/format/url/protocol/http/a.mp4'.format(entity_id, flavor_id)
+        match = re.compile(r'''\\"flavorParamsId\\":(\d),\\"width\\":(\d+),\\"height\\":(\d+),\\"bitrate\\":(\d+),\\"frameRate\\":(\d+),.+?,\\"id\\":\\"(\w+)\\",.+?,\\"size\\":(\d+),''').findall(video_js)
+        formats = []
+        for m in match:
+            # assumes matches are already in the right order, from worst to best quality
+            formats.append({
+                'url': thumbnail.split('thumbnail/')[0] + 'playManifest/entryId/{}/flavorId/{}/format/url/protocol/http/a.mp4'.format(entity_id, m[5]),
+                'format_id': m[0], # needs to be string otherwise cmp fails
+                'width':     int(m[1]),
+                'height':    int(m[2]),
+                'tbr':       int(m[3]), # needs to be an integer
+                'frameRate': int(m[4]),
+                'filesize':  int(m[6])
+            })
+        return formats
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -47,11 +59,11 @@ class Tele5IE(InfoExtractor):
                     'uiconf_id': uiconf_id,
                     'entity_id': entity_id,
                 })
-                video_url = self._get_video_url(thumbnail, entity_id, video_js_url)
+                formats = self._get_video_url(thumbnail, entity_id, video_js_url)
                 entries.append({
                     'id': entity_id,
                     'title': data['name'],
-                    'url': video_url,
+                    'formats': formats,
                     'thumbnail': data['thumbnail']
                 })
             return self.playlist_result(entries, video_id, title)
