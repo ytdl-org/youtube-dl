@@ -528,7 +528,10 @@ from .radiode import RadioDeIE
 from .radiojavan import RadioJavanIE
 from .radiobremen import RadioBremenIE
 from .radiofrance import RadioFranceIE
-from .rai import RaiIE
+from .rai import (
+    RaiTVIE,
+    RaiIE,
+)
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
 from .redtube import RedTubeIE
