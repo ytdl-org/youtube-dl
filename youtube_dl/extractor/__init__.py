@@ -253,6 +253,7 @@ from .history import HistoryIE
 from .hitbox import HitboxIE, HitboxLiveIE
 from .hornbunny import HornBunnyIE
 from .hotnewhiphop import HotNewHipHopIE
+from .hotstar import HotStarIE
 from .howcast import HowcastIE
 from .howstuffworks import HowStuffWorksIE
 from .huffpost import HuffPostIE
