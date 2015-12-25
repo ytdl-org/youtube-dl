@@ -30,6 +30,7 @@ from youtube_dl.utils import (
     fix_xml_ampersands,
     InAdvancePagedList,
     intlist_to_bytes,
+    I18N,
     is_html,
     js_to_json,
     limit_length,
@@ -745,6 +746,35 @@ The first line
             cli_bool_option(
                 {'nocheckcertificate': False}, '--check-certificate', 'nocheckcertificate', 'false', 'true', '='),
             ['--check-certificate=true'])
+
+    def test_i18n(self):
+        old_locale = os.environ.get('LC_ALL')
+        if old_locale is not None:
+            del os.environ['LC_ALL']
+
+        instance = I18N()
+        instance.set_default_language('en_US')
+        self.assertEqual(instance.translate('Test URL: %s'), 'Test URL: %s')
+
+        instance = I18N()
+        instance.set_default_language('zh_TW')
+        self.assertEqual(instance.translate('Test URL: %s'), '測試網址：%s')
+
+        # A fake language code
+        instance = I18N()
+        instance.set_default_language('pp_QQ')
+        self.assertEqual(instance.translate('Test URL: %s'), 'Test URL: %s')
+
+        # setting locale via environ is not applicable on Windows
+        if not sys.platform.startswith('win'):
+            os.environ['LC_ALL'] = 'zh_TW'
+            instance = I18N()
+            self.assertEqual(instance.translate('Test URL: %s'), '測試網址：%s')
+
+        if old_locale is not None:
+            os.environ['LC_ALL'] = old_locale
+        else:
+            del os.environ['LC_ALL']
 
 
 if __name__ == '__main__':

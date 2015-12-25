@@ -17,3 +17,7 @@ notifications:
 #    channels:
 #      - "irc.freenode.org#youtube-dl"
 #    skip_join: true
+addons:
+  apt:
+    packages:
+      - gettext
