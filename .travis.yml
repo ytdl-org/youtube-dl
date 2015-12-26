@@ -7,7 +7,7 @@ python:
   - "3.4"
   - "3.5"
 sudo: false
-script: nosetests test --verbose
+script: bash ./devscripts/run_travis_test.sh
 notifications:
   email:
     - filippo.valsorda@gmail.com
