@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    int_or_none,
     parse_duration,
     remove_end,
 )
@@ -19,6 +20,8 @@ class LRTIE(InfoExtractor):
             'title': 'Septynios Kauno dienos',
             'description': 'md5:24d84534c7dc76581e59f5689462411a',
             'duration': 1783,
+            'view_count': int,
+            'like_count': int,
         },
         'params': {
             'skip_download': True,  # m3u8 download
@@ -41,6 +44,13 @@ class LRTIE(InfoExtractor):
             r'var\s+record_len\s*=\s*(["\'])(?P<duration>[0-9]+:[0-9]+:[0-9]+)\1',
             webpage, 'duration', default=None, group='duration'))
 
+        view_count = int_or_none(self._html_search_regex(
+            r'<div[^>]+class=(["\']).*?record-desc-seen.*?\1[^>]*>(?P<count>.+?)</div>',
+            webpage, 'view count', fatal=False, group='count'))
+        like_count = int_or_none(self._search_regex(
+            r'<span[^>]+id=(["\'])flikesCount.*?\1>(?P<count>\d+)<',
+            webpage, 'like count', fatal=False, group='count'))
+
         return {
             'id': video_id,
             'title': title,
@@ -48,4 +58,6 @@ class LRTIE(InfoExtractor):
             'thumbnail': thumbnail,
             'description': description,
             'duration': duration,
+            'view_count': view_count,
+            'like_count': like_count,
         }
