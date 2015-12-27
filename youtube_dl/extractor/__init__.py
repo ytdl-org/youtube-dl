@@ -198,7 +198,10 @@ from .fourtube import FourTubeIE
 from .foxgay import FoxgayIE
 from .foxnews import FoxNewsIE
 from .foxsports import FoxSportsIE
-from .franceculture import FranceCultureIE
+from .franceculture import (
+    FranceCultureIE,
+    FranceCultureUrlIE,
+)
 from .franceinter import FranceInterIE
 from .francetv import (
     PluzzIE,
