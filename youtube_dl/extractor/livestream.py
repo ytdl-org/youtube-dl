@@ -254,7 +254,7 @@ class LivestreamOriginalIE(InfoExtractor):
         'playlist_mincount': 4,
     }, {
         # live stream
-        'url': 'http://www.livestream.com/znsbahamas',
+        'url': 'http://original.livestream.com/znsbahamas',
         'only_matching': True,
     }]
 
