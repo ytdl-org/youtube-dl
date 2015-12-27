@@ -70,10 +70,12 @@ class SportDeutschlandIE(InfoExtractor):
 
             smil_doc = self._download_xml(
                 smil_url, video_id, note='Downloading SMIL metadata')
-            base_url = smil_doc.find('./head/meta').attrib['base']
+            base_url_el = smil_doc.find('./head/meta')
+            if base_url_el:
+                base_url = base_url_el.attrib['base']
             formats.extend([{
                 'format_id': 'rmtp',
-                'url': base_url,
+                'url': base_url if base_url_el else n.attrib['src'],
                 'play_path': n.attrib['src'],
                 'ext': 'flv',
                 'preference': -100,
