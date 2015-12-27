@@ -119,7 +119,7 @@ from .dailymotion import (
 from .daum import DaumIE
 from .dbtv import DBTVIE
 from .dcn import (
-    DCNGeneralIE,
+    DCNIE,
     DCNVideoIE,
     DCNLiveIE,
     DCNSeasonIE,

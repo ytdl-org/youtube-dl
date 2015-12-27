@@ -17,24 +17,61 @@ from ..utils import (
 )
 
 
-class DCNGeneralIE(InfoExtractor):
+class DCNIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?show/(?P<show_id>\d+)/[^/]+(?:/(?P<video_id>\d+)/(?P<season_id>\d+))?'
 
     def _real_extract(self, url):
         show_id, video_id, season_id = re.match(self._VALID_URL, url).groups()
-        url = ''
-        ie_key = ''
         if video_id and int(video_id) > 0:
-            return self.url_result('http://www.dcndigital.ae/#/media/%s' % video_id, 'DCNVideo')
+            return self.url_result(
+                'http://www.dcndigital.ae/media/%s' % video_id, 'DCNVideo')
+        elif season_id and int(season_id) > 0:
+            return self.url_result(smuggle_url(
+                'http://www.dcndigital.ae/program/season/%s' % season_id,
+                {'show_id': show_id}), 'DCNSeason')
         else:
-            if season_id and int(season_id) > 0:
-                url = smuggle_url('http://www.dcndigital.ae/#/program/season/%s' % season_id, {'show_id': show_id})
-            else:
-                url = 'http://www.dcndigital.ae/#/program/%s' % show_id
-            return self.url_result(url, 'DCNSeason')
+            return self.url_result(
+                'http://www.dcndigital.ae/program/%s' % show_id, 'DCNSeason')
 
 
-class DCNVideoIE(InfoExtractor):
+class DCNBaseIE(InfoExtractor):
+    def _extract_video_info(self, video_data, video_id, is_live):
+        title = video_data.get('title_en') or video_data['title_ar']
+        img = video_data.get('img')
+        thumbnail = 'http://admin.mangomolo.com/analytics/%s' % img if img else None
+        duration = int_or_none(video_data.get('duration'))
+        description = video_data.get('description_en') or video_data.get('description_ar')
+        timestamp = parse_iso8601(video_data.get('create_time'), ' ')
+
+        return {
+            'id': video_id,
+            'title': self._live_title(title) if is_live else title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'duration': duration,
+            'timestamp': timestamp,
+            'is_live': is_live,
+        }
+
+    def _extract_video_formats(self, webpage, video_id, entry_protocol):
+        m3u8_url = self._html_search_regex(
+            r'file\s*:\s*"([^"]+)', webpage, 'm3u8 url')
+        formats = self._extract_m3u8_formats(
+            m3u8_url, video_id, 'mp4', entry_protocol, m3u8_id='hls')
+
+        rtsp_url = self._search_regex(
+            r'<a[^>]+href="(rtsp://[^"]+)"', webpage, 'rtsp url', fatal=False)
+        if rtsp_url:
+            formats.append({
+                'url': rtsp_url,
+                'format_id': 'rtsp',
+            })
+
+        self._sort_formats(formats)
+        return formats
+
+
+class DCNVideoIE(DCNBaseIE):
     IE_NAME = 'dcn:video'
     _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?(?:video/[^/]+|media|catchup/[^/]+/[^/]+)/(?P<id>\d+)'
     _TEST = {
@@ -45,7 +82,6 @@ class DCNVideoIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'رحلة العمر : الحلقة 1',
             'description': 'md5:0156e935d870acb8ef0a66d24070c6d6',
-            'thumbnail': 're:^https?://.*\.jpg$',
             'duration': 2041,
             'timestamp': 1227504126,
             'upload_date': '20081124',
@@ -62,51 +98,23 @@ class DCNVideoIE(InfoExtractor):
         request = compat_urllib_request.Request(
             'http://admin.mangomolo.com/analytics/index.php/plus/video?id=%s' % video_id,
             headers={'Origin': 'http://www.dcndigital.ae'})
-
-        video = self._download_json(request, video_id)
-        title = video.get('title_en') or video['title_ar']
-        img = video.get('img')
-        thumbnail = 'http://admin.mangomolo.com/analytics/%s' % img if img else None
-        duration = int_or_none(video.get('duration'))
-        description = video.get('description_en') or video.get('description_ar')
-        timestamp = parse_iso8601(video.get('create_time') or video.get('update_time'), ' ')
+        video_data = self._download_json(request, video_id)
+        info = self._extract_video_info(video_data, video_id, False)
 
         webpage = self._download_webpage(
-            'http://admin.mangomolo.com/analytics/index.php/customers/embed/video?'
-            + compat_urllib_parse.urlencode({
-                'id': video['id'],
-                'user_id': video['user_id'],
-                'signature': video['signature'],
+            'http://admin.mangomolo.com/analytics/index.php/customers/embed/video?' +
+            compat_urllib_parse.urlencode({
+                'id': video_data['id'],
+                'user_id': video_data['user_id'],
+                'signature': video_data['signature'],
                 'countries': 'Q0M=',
                 'filter': 'DENY',
             }), video_id)
-
-        m3u8_url = self._html_search_regex(r'file:\s*"([^"]+)', webpage, 'm3u8 url')
-        formats = self._extract_m3u8_formats(
-            m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls')
-
-        rtsp_url = self._search_regex(
-            r'<a[^>]+href="(rtsp://[^"]+)"', webpage, 'rtsp url', fatal=False)
-        if rtsp_url:
-            formats.append({
-                'url': rtsp_url,
-                'format_id': 'rtsp',
-            })
-
-        self._sort_formats(formats)
-
-        return {
-            'id': video_id,
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'duration': duration,
-            'timestamp': timestamp,
-            'formats': formats,
-        }
+        info['formats'] = self._extract_video_formats(webpage, video_id, 'm3u8_native')
+        return info
 
 
-class DCNLiveIE(InfoExtractor):
+class DCNLiveIE(DCNBaseIE):
     IE_NAME = 'dcn:live'
     _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?live/(?P<id>\d+)'
     _TEST = {
@@ -132,45 +140,20 @@ class DCNLiveIE(InfoExtractor):
             'http://admin.mangomolo.com/analytics/index.php/plus/getchanneldetails?channel_id=%s' % channel_id,
             headers={'Origin': 'http://www.dcndigital.ae'})
 
-        channel = self._download_json(request, channel_id)
-        title = channel.get('title_en') or channel['title_ar']
-        img = channel.get('thumbnail')
-        thumbnail = 'http://admin.mangomolo.com/analytics/%s' % img if img else None
-        description = channel.get('description_en') or channel.get('description_ar')
-        timestamp = parse_iso8601(channel.get('create_time') or channel.get('update_time'), ' ')
+        channel_data = self._download_json(request, channel_id)
+        info = self._extract_video_info(channel_data, channel_id, True)
 
         webpage = self._download_webpage(
             'http://admin.mangomolo.com/analytics/index.php/customers/embed/index?' +
             compat_urllib_parse.urlencode({
-                'id': base64.b64encode(channel['user_id'].encode()).decode(),
-                'channelid': base64.b64encode(channel['id'].encode()).decode(),
-                'signature': channel['signature'],
+                'id': base64.b64encode(channel_data['user_id'].encode()).decode(),
+                'channelid': base64.b64encode(channel_data['id'].encode()).decode(),
+                'signature': channel_data['signature'],
                 'countries': 'Q0M=',
                 'filter': 'DENY',
             }), channel_id)
-
-        m3u8_url = self._html_search_regex(r'file:\s*"([^"]+)', webpage, 'm3u8 url')
-        formats = self._extract_m3u8_formats(
-            m3u8_url, channel_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls')
-
-        rtsp_url = self._search_regex(
-            r'<a[^>]+href="(rtsp://[^"]+)"', webpage, 'rtsp url', fatal=False)
-        if rtsp_url:
-            formats.append({
-                'url': rtsp_url,
-                'format_id': 'rtsp',
-            })
-
-        self._sort_formats(formats)
-
-        return {
-            'id': channel_id,
-            'title': self._live_title(title),
-            'description': description,
-            'thumbnail': thumbnail,
-            'formats': formats,
-            'is_live': True,
-        }
+        info['formats'] = self._extract_video_formats(webpage, channel_id, 'm3u8')
+        return info
 
 
 class DCNSeasonIE(InfoExtractor):
@@ -218,6 +201,7 @@ class DCNSeasonIE(InfoExtractor):
 
                 entries = []
                 for video in show['videos']:
-                    entries.append(self.url_result('http://www.dcndigital.ae/#/media/%s' % video['id'], 'DCNVideo'))
+                    entries.append(self.url_result(
+                        'http://www.dcndigital.ae/media/%s' % video['id'], 'DCNVideo'))
 
                 return self.playlist_result(entries, season_id, title)
