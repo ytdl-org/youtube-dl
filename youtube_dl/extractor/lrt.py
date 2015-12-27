@@ -30,13 +30,16 @@ class LRTIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         title = remove_end(self._og_search_title(webpage), ' - LRT')
+        m3u8_url = self._search_regex(
+            r'file\s*:\s*(["\'])(?P<url>.+?)\1\s*\+\s*location\.hash\.substring\(1\)',
+            webpage, 'm3u8 url', group='url')
+        formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
+
         thumbnail = self._og_search_thumbnail(webpage)
         description = self._og_search_description(webpage)
         duration = parse_duration(self._search_regex(
-            r"var record_len = '([0-9]+:[0-9]+:[0-9]+)';", webpage, 'record_len', fatal=False, default=None))
-
-        link = self._search_regex(r'file: "(.*)" \+ location\.hash\.substring\(1\)', webpage, 'link to m3u8')
-        formats = self._extract_m3u8_formats(link, video_id, "mp4")
+            r'var\s+record_len\s*=\s*(["\'])(?P<duration>[0-9]+:[0-9]+:[0-9]+)\1',
+            webpage, 'duration', default=None, group='duration'))
 
         return {
             'id': video_id,
