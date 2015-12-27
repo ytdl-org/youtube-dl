@@ -110,7 +110,7 @@ class _NA_formatter(object):
     to prevent stuff such as {upload_date:%Y} from yielding errors"""
     def __format__(self, fmt):
         return 'NA'
-    def __str__(self, fmt):
+    def __str__(self):
         return 'NA'  # just in case; can probably be removed
 
 
