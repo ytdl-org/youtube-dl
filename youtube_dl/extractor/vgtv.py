@@ -86,9 +86,10 @@ class VGTVIE(XstreamIE):
         {
             # streamType: wasLive
             'url': 'http://www.vgtv.no/#!/live/113063/direkte-v75-fra-solvalla',
+            'md5': '458f4841239dab414343b50e5af8869c',
             'info_dict': {
                 'id': '113063',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'V75 fra Solvalla 30.05.15',
                 'description': 'md5:b3743425765355855f88e096acc93231',
                 'thumbnail': 're:^https?://.*\.jpg',
@@ -96,10 +97,6 @@ class VGTVIE(XstreamIE):
                 'timestamp': 1432975582,
                 'upload_date': '20150530',
                 'view_count': int,
-            },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
             },
         },
         {
@@ -160,12 +157,15 @@ class VGTVIE(XstreamIE):
                 formats.extend(m3u8_formats)
 
         hds_url = streams.get('hds')
-        # wasLive hds are always 404
-        if hds_url and stream_type != 'wasLive':
+        if hds_url:
+            hdcore_sign = 'hdcore=3.7.0'
             f4m_formats = self._extract_f4m_formats(
-                hds_url + '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18', video_id, f4m_id='hds', fatal=False)
+                hds_url + '?%s' % hdcore_sign, video_id, f4m_id='hds', fatal=False)
             if f4m_formats:
-                formats.extend(f4m_formats)
+                for entry in f4m_formats:
+                    # URLs without the extra param induce an 404 error
+                    entry.update({'extra_param_to_segment_url': hdcore_sign})
+                    formats.append(entry)
 
         mp4_urls = streams.get('pseudostreaming') or []
         mp4_url = streams.get('mp4')
