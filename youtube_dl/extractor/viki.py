@@ -279,7 +279,7 @@ class VikiIE(VikiBaseIE):
                 if format_id == 'm3u8':
                     m3u8_formats = self._extract_m3u8_formats(
                         format_dict['url'], video_id, 'mp4', 'm3u8_native',
-                        m3u8_id='m3u8-%s' % protocol, fatal=None)
+                        m3u8_id='m3u8-%s' % protocol, fatal=False)
                     if m3u8_formats:
                         formats.extend(m3u8_formats)
                 else:
