@@ -45,7 +45,7 @@ class KalturaIE(InfoExtractor):
             'info_dict': {
                 'id': '1_1jc2y3e4',
                 'ext': 'mp4',
-                'title': 'Track 4',
+                'title': 'Straight from the Heart',
                 'upload_date': '20131219',
                 'uploader_id': 'mlundberg@wolfgangsvault.com',
                 'description': 'The Allman Brothers Band, 12/16/1981',
@@ -115,12 +115,9 @@ class KalturaIE(InfoExtractor):
                 'version': '-1',
             },
             {
-                'action': 'getContextData',
-                'contextDataParams:objectType': 'KalturaEntryContextDataParams',
-                'contextDataParams:referrer': 'http://www.kaltura.com/',
-                'contextDataParams:streamerType': 'http',
+                'action': 'getbyentryid',
                 'entryId': video_id,
-                'service': 'baseentry',
+                'service': 'flavorAsset',
             },
         ]
         return self._kaltura_api_call(
@@ -133,7 +130,7 @@ class KalturaIE(InfoExtractor):
         partner_id = mobj.group('partner_id_s') or mobj.group('partner_id') or mobj.group('partner_id_html5')
         entry_id = mobj.group('id_s') or mobj.group('id') or mobj.group('id_html5')
 
-        info, source_data = self._get_video_info(entry_id, partner_id)
+        info, flavor_assets = self._get_video_info(entry_id, partner_id)
 
         source_url = smuggled_data.get('source_url')
         if source_url:
@@ -144,7 +141,10 @@ class KalturaIE(InfoExtractor):
             referrer = None
 
         formats = []
-        for f in source_data['flavorAssets']:
+        for f in flavor_assets:
+            # Continue if asset is not ready
+            if f['status'] != 2:
+                continue
             video_url = '%s/flavorId/%s' % (info['dataUrl'], f['id'])
             if referrer:
                 video_url += '?referrer=%s' % referrer
@@ -160,6 +160,14 @@ class KalturaIE(InfoExtractor):
                 'width': int_or_none(f.get('width')),
                 'url': video_url,
             })
+        m3u8_url = info['dataUrl'].replace('format/url', 'format/applehttp')
+        if referrer:
+            m3u8_url += '?referrer=%s' % referrer
+        m3u8_formats = self._extract_m3u8_formats(
+            m3u8_url, entry_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
+        if m3u8_formats:
+            formats.extend(m3u8_formats)
+
         self._check_formats(formats, entry_id)
         self._sort_formats(formats)
 
