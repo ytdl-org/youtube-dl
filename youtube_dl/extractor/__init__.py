@@ -703,7 +703,13 @@ from .tube8 import Tube8IE
 from .tubitv import TubiTvIE
 from .tudou import TudouIE
 from .tumblr import TumblrIE
-from .tunein import TuneInIE
+from .tunein import (
+    TuneInClipIE,
+    TuneInStationIE,
+    TuneInProgramIE,
+    TuneInTopicIE,
+    TuneInShortenerIE,
+)
 from .turbo import TurboIE
 from .tutv import TutvIE
 from .tv2 import (
