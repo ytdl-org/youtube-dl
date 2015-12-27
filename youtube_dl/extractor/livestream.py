@@ -97,6 +97,8 @@ class LivestreamIE(InfoExtractor):
             video_url = video_data.get(key)
             if video_url:
                 ext = determine_ext(video_url)
+                if ext == 'm3u8':
+                    continue
                 bitrate = int_or_none(self._search_regex(
                     r'(\d+)\.%s' % ext, video_url, 'bitrate', default=None))
                 formats.append({
