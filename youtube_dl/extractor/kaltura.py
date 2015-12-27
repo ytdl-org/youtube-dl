@@ -160,10 +160,11 @@ class KalturaIE(InfoExtractor):
                 'width': int_or_none(f.get('width')),
                 'url': video_url,
             })
-
+        m3u8_url = info['dataUrl'].replace('format/url', 'format/applehttp')
+        if referrer:
+            m3u8_url += '?referrer=%s' % referrer
         m3u8_formats = self._extract_m3u8_formats(
-            info['dataUrl'].replace('format/url', 'format/applehttp'),
-            entry_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
+            m3u8_url, entry_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
         if m3u8_formats:
             formats.extend(m3u8_formats)
 
