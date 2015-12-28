@@ -8,10 +8,10 @@ from .common import InfoExtractor
 
 class TvpIE(InfoExtractor):
     IE_NAME = 'tvp.pl'
-    _VALID_URL = r'https?://(?:vod|www)\.tvp\.pl/.*/(?P<id>\d+)$'
+    _VALID_URL = r'https?://(?:vod|www)\.tvp\.pl.*?/(?P<id>\d+).*?$'
 
     _TESTS = [{
-        'url': 'http://vod.tvp.pl/filmy-fabularne/filmy-za-darmo/ogniem-i-mieczem/wideo/odc-2/4278035',
+        'url': 'http://vod.tvp.pl/4278035/odc-2',
         'md5': 'cdd98303338b8a7f7abab5cd14092bf2',
         'info_dict': {
             'id': '4278035',
@@ -28,7 +28,7 @@ class TvpIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.tvp.pl/there-can-be-anything-so-i-shortened-it/17916176',
-        'md5': 'c3b15ed1af288131115ff17a17c19dda',
+        'md5': 'b95f1f14afb419103e7af378fb706d61',
         'info_dict': {
             'id': '17916176',
             'ext': 'mp4',
@@ -36,7 +36,7 @@ class TvpIE(InfoExtractor):
         },
     }, {
         'url': 'http://vod.tvp.pl/seriale/obyczajowe/na-sygnale/sezon-2-27-/odc-39/17834272',
-        'md5': 'c3b15ed1af288131115ff17a17c19dda',
+        'md5': 'd2a61fd2fbe3a8865f992af244e2f1b5',
         'info_dict': {
             'id': '17834272',
             'ext': 'mp4',
@@ -46,6 +46,10 @@ class TvpIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        if "player" not in webpage:
+            return self.url_result(url, ie=TvpSeriesIE.ie_key())
 
         webpage = self._download_webpage(
             'http://www.tvp.pl/sess/tvplayer.php?object_id=%s' % video_id, video_id)
@@ -62,25 +66,14 @@ class TvpIE(InfoExtractor):
         thumbnail = self._search_regex(
             r"poster\s*:\s*'([^']+)'", webpage, 'thumbnail', default=None)
 
-        video_url = self._search_regex(
-            r'0:{src:([\'"])(?P<url>.*?)\1', webpage, 'formats', group='url', default=None)
-        if not video_url:
+        formats = []
+        matches = re.finditer(r'\d+:{src:([\'"])(?P<url>.*?)\1', webpage)
+        for m in matches:
+            formats += self._prepare_format(m.group('url'), video_id)
+        if not formats:
             video_url = self._download_json(
-                'http://www.tvp.pl/pub/stat/videofileinfo?video_id=%s' % video_id,
-                video_id)['video_url']
-
-        ext = video_url.rsplit('.', 1)[-1]
-        if ext != 'ism/manifest':
-            if '/' in ext:
-                ext = 'mp4'
-            formats = [{
-                'format_id': 'direct',
-                'url': video_url,
-                'ext': ext,
-            }]
-        else:
-            m3u8_url = re.sub('([^/]*)\.ism/manifest', r'\1.ism/\1.m3u8', video_url)
-            formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
+                'http://www.tvp.pl/pub/stat/videofileinfo?video_id=%s' % video_id, video_id)['video_url']
+            formats += self._prepare_format(video_url, video_id, lq=True)
 
         self._sort_formats(formats)
 
@@ -91,20 +84,34 @@ class TvpIE(InfoExtractor):
             'formats': formats,
         }
 
+    def _prepare_format(self, video_url, video_id, lq=False):
+        ext = video_url.rsplit('.', 1)[-1]
+        if ext != 'ism/manifest':
+            if '/' in ext:
+                ext = 'mp4'
+            return [{
+                'format_id': 'direct' + ('_lq' if lq else ''),
+                'url': video_url,
+                'ext': ext,
+            }]
+        else:
+            m3u8_url = re.sub('([^/]*)\.ism/manifest', r'\1.ism/\1.m3u8', video_url)
+            return self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
+
 
 class TvpSeriesIE(InfoExtractor):
     IE_NAME = 'tvp.pl:Series'
-    _VALID_URL = r'https?://vod\.tvp\.pl/(?:[^/]+/){2}(?P<id>[^/]+)/?$'
+    _VALID_URL = r'https?://vod\.tvp\.pl/(?P<id>[^/]+)/.*$'
 
     _TESTS = [{
-        'url': 'http://vod.tvp.pl/filmy-fabularne/filmy-za-darmo/ogniem-i-mieczem',
+        'url': 'http://vod.tvp.pl/4278026/ogniem-i-mieczem',
         'info_dict': {
             'title': 'Ogniem i mieczem',
             'id': '4278026',
         },
         'playlist_count': 4,
     }, {
-        'url': 'http://vod.tvp.pl/audycje/podroze/boso-przez-swiat',
+        'url': 'http://vod.tvp.pl/9329207/boso-przez-swiat',
         'info_dict': {
             'title': 'Boso przez świat',
             'id': '9329207',
@@ -113,16 +120,18 @@ class TvpSeriesIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id, tries=5)
+        display_id = url.split("/")[-1]
+        webpage = self._download_webpage(url, display_id)
 
-        title = self._html_search_regex(
-            r'(?s) id=[\'"]path[\'"]>(?:.*? / ){2}(.*?)</span>', webpage, 'series')
-        playlist_id = self._search_regex(r'nodeId:\s*(\d+)', webpage, 'playlist id')
+        if "player" in webpage:
+            return self.url_result(url, ie=TvpIE.ie_key())
+
+        title = self._og_search_title(webpage)
+        playlist_id = self._match_id(url)
         playlist = self._download_webpage(
-            'http://vod.tvp.pl/vod/seriesAjax?type=series&nodeId=%s&recommend'
-            'edId=0&sort=&page=0&pageSize=10000' % playlist_id, display_id, tries=5,
-            note='Downloading playlist')
+            'http://vod.tvp.pl/shared/listing.php?page=1&count=1000&type=video&direct=false'
+            '&filter=%%7B%%22playable%%22%%3Atrue%%7D&template=directory/listing.html'
+            '&parent_id=%s' % playlist_id, display_id, note='Downloading playlist')
 
         videos_paths = re.findall(
             '(?s)class="shortTitle">.*?href="(/[^"]+)', playlist)
