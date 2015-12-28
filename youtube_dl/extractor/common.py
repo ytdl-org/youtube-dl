@@ -885,7 +885,7 @@ class InfoExtractor(object):
             fatal=fatal)
 
         if manifest is False:
-            return manifest
+            return []
 
         formats = []
         manifest_version = '1.0'
@@ -956,7 +956,7 @@ class InfoExtractor(object):
             errnote=errnote or 'Failed to download m3u8 information',
             fatal=fatal)
         if res is False:
-            return res
+            return []
         m3u8_doc, urlh = res
         m3u8_url = urlh.geturl()
         last_info = None
