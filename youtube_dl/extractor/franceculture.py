@@ -29,7 +29,7 @@ class FranceCultureIE(InfoExtractor):
         }
     }
 
-    def _extract_infos_from_player(self, url, video_id):
+    def _extract_from_player(self, url, video_id):
 
         webpage = self._download_webpage(url, video_id)
 
@@ -104,4 +104,4 @@ class FranceCultureEmissionIE(FranceCultureIE):
             return None
         new_id = self._search_regex('play=(?P<id>[0-9]+)', video_path, 'new_id', group='id')
         video_url = compat_urlparse.urljoin(url, video_path)
-        return self._extract_infos_from_player(video_url, new_id)
+        return self._extract_from_player(video_url, new_id)
