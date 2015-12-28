@@ -54,10 +54,14 @@ class DCNBaseIE(InfoExtractor):
         }
 
     def _extract_video_formats(self, webpage, video_id, entry_protocol):
+        formats = []
         m3u8_url = self._html_search_regex(
-            r'file\s*:\s*"([^"]+)', webpage, 'm3u8 url')
-        formats = self._extract_m3u8_formats(
-            m3u8_url, video_id, 'mp4', entry_protocol, m3u8_id='hls')
+            r'file\s*:\s*"([^"]+)', webpage, 'm3u8 url', fatal=False)
+        if m3u8_url:
+            m3u8_formats = self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', entry_protocol, m3u8_id='hls', fatal=None)
+            if m3u8_formats:
+                formats.extend(m3u8_formats)
 
         rtsp_url = self._search_regex(
             r'<a[^>]+href="(rtsp://[^"]+)"', webpage, 'rtsp url', fatal=False)
@@ -117,21 +121,6 @@ class DCNVideoIE(DCNBaseIE):
 class DCNLiveIE(DCNBaseIE):
     IE_NAME = 'dcn:live'
     _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?live/(?P<id>\d+)'
-    _TEST = {
-        'url': 'http://www.dcndigital.ae/#/live/6/dubai-tv',
-        'info_dict':
-        {
-            'id': '6',
-            'ext': 'mp4',
-            'title': 're:^Dubai Al Oula [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
-            'thumbnail': 're:^https?://.*\.png$',
-            'is_live': True,
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-    }
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
