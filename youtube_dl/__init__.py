@@ -60,6 +60,9 @@ def _real_main(argv=None):
     if opts.default_language is not None:
         i18n_service.set_default_language(opts.default_language)
 
+    if opts.verbose:
+        i18n_service.set_default_language('en_US')
+
     # Set user agent
     if opts.user_agent is not None:
         std_headers['User-Agent'] = opts.user_agent

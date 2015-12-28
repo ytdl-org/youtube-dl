@@ -542,7 +542,7 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option(
         '-v', '--verbose',
         action='store_true', dest='verbose', default=False,
-        help='Print various debugging information')
+        help='Print various debugging information. Localization is disabled with this option.')
     verbosity.add_option(
         '--dump-pages', '--dump-intermediate-pages',
         action='store_true', dest='dump_intermediate_pages', default=False,
