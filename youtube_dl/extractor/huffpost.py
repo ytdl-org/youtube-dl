@@ -39,8 +39,9 @@ class HuffPostIE(InfoExtractor):
         data = self._download_json(api_url, video_id)['data']
 
         video_title = data['title']
-        duration = parse_duration(data['running_time'])
-        upload_date = unified_strdate(data['schedule']['starts_at'])
+        duration = parse_duration(data.get('running_time'))
+        upload_date = unified_strdate(
+            data.get('schedule', {}).get('starts_at') or data.get('segment_start_date_time'))
         description = data.get('description')
 
         thumbnails = []
@@ -59,16 +60,11 @@ class HuffPostIE(InfoExtractor):
             'ext': 'mp4',
             'url': url,
             'vcodec': 'none' if key.startswith('audio/') else None,
-        } for key, url in data['sources']['live'].items()]
-        if data.get('fivemin_id'):
-            fid = data['fivemin_id']
-            fcat = str(int(fid) // 100 + 1)
-            furl = 'http://avideos.5min.com/2/' + fcat[-3:] + '/' + fcat + '/' + fid + '.mp4'
-            formats.append({
-                'format': 'fivemin',
-                'url': furl,
-                'preference': 1,
-            })
+        } for key, url in data.get('sources', {}).get('live', {}).items()]
+
+        if not formats and data.get('fivemin_id'):
+            return self.url_result('5min:%s' % data['fivemin_id'])
+
         self._sort_formats(formats)
 
         return {

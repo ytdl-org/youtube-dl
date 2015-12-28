@@ -1,34 +1,32 @@
 from __future__ import unicode_literals
 
 import base64
-import re
 
 from .common import InfoExtractor
-from ..utils import compat_parse_qs
+from ..compat import compat_parse_qs
 
 
 class TutvIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tu\.tv/videos/(?P<id>[^/?]+)'
     _TEST = {
         'url': 'http://tu.tv/videos/robots-futbolistas',
-        'md5': '627c7c124ac2a9b5ab6addb94e0e65f7',
+        'md5': '0cd9e28ad270488911b0d2a72323395d',
         'info_dict': {
             'id': '2973058',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Robots futbolistas',
         },
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
         internal_id = self._search_regex(r'codVideo=([0-9]+)', webpage, 'internal video ID')
 
         data_content = self._download_webpage(
             'http://tu.tv/flvurl.php?codVideo=%s' % internal_id, video_id, 'Downloading video info')
-        video_url = base64.b64decode(compat_parse_qs(data_content)['kpt'][0]).decode('utf-8')
+        video_url = base64.b64decode(compat_parse_qs(data_content)['kpt'][0].encode('utf-8')).decode('utf-8')
 
         return {
             'id': internal_id,

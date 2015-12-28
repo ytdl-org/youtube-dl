@@ -6,32 +6,56 @@ from .common import InfoExtractor
 
 
 class BloombergIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.bloomberg\.com/video/(?P<name>.+?)\.html'
+    _VALID_URL = r'https?://(?:www\.)?bloomberg\.com/(?:[^/]+/)*(?P<id>[^/?#]+)'
 
-    _TEST = {
-        'url': 'http://www.bloomberg.com/video/shah-s-presentation-on-foreign-exchange-strategies-qurhIVlJSB6hzkVi229d8g.html',
+    _TESTS = [{
+        'url': 'http://www.bloomberg.com/news/videos/b/aaeae121-5949-481e-a1ce-4562db6f5df2',
         # The md5 checksum changes
         'info_dict': {
             'id': 'qurhIVlJSB6hzkVi229d8g',
             'ext': 'flv',
             'title': 'Shah\'s Presentation on Foreign-Exchange Strategies',
-            'description': 'md5:0681e0d30dcdfc6abf34594961d8ea88',
+            'description': 'md5:a8ba0302912d03d246979735c17d2761',
         },
-    }
+    }, {
+        'url': 'http://www.bloomberg.com/news/articles/2015-11-12/five-strange-things-that-have-been-happening-in-financial-markets',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.bloomberg.com/politics/videos/2015-11-25/karl-rove-on-jeb-bush-s-struggles-stopping-trump',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        name = mobj.group('name')
+        name = self._match_id(url)
         webpage = self._download_webpage(url, name)
-        f4m_url = self._search_regex(
-            r'<source src="(https?://[^"]+\.f4m.*?)"', webpage,
-            'f4m url')
+        video_id = self._search_regex(
+            r'["\']bmmrId["\']\s*:\s*(["\'])(?P<url>.+?)\1',
+            webpage, 'id', group='url')
         title = re.sub(': Video$', '', self._og_search_title(webpage))
 
+        embed_info = self._download_json(
+            'http://www.bloomberg.com/api/embed?id=%s' % video_id, video_id)
+        formats = []
+        for stream in embed_info['streams']:
+            stream_url = stream.get('url')
+            if not stream_url:
+                continue
+            if stream['muxing_format'] == 'TS':
+                m3u8_formats = self._extract_m3u8_formats(
+                    stream_url, video_id, 'mp4', m3u8_id='hls', fatal=False)
+                if m3u8_formats:
+                    formats.extend(m3u8_formats)
+            else:
+                f4m_formats = self._extract_f4m_formats(
+                    stream_url, video_id, f4m_id='hds', fatal=False)
+                if f4m_formats:
+                    formats.extend(f4m_formats)
+        self._sort_formats(formats)
+
         return {
-            'id': name.split('-')[-1],
+            'id': video_id,
             'title': title,
-            'formats': self._extract_f4m_formats(f4m_url, name),
+            'formats': formats,
             'description': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
         }

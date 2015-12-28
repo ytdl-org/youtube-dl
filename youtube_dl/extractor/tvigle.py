@@ -5,73 +5,95 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     float_or_none,
-    str_to_int,
+    int_or_none,
+    parse_age_limit,
 )
 
 
 class TvigleIE(InfoExtractor):
     IE_NAME = 'tvigle'
     IE_DESC = 'Интернет-телевидение Tvigle.ru'
-    _VALID_URL = r'http://(?:www\.)?tvigle\.ru/(?:[^/]+/)+(?P<display_id>[^/]+)/$'
+    _VALID_URL = r'https?://(?:www\.)?(?:tvigle\.ru/(?:[^/]+/)+(?P<display_id>[^/]+)/$|cloud\.tvigle\.ru/video/(?P<id>\d+))'
 
     _TESTS = [
         {
-            'url': 'http://www.tvigle.ru/video/brat/',
-            'md5': 'ff4344a4894b0524441fb6f8218dc716',
+            'url': 'http://www.tvigle.ru/video/sokrat/',
+            'md5': '36514aed3657d4f70b4b2cef8eb520cd',
             'info_dict': {
-                'id': '5118490',
-                'display_id': 'brat',
-                'ext': 'mp4',
-                'title': 'Брат',
-                'description': 'md5:d16ac7c0b47052ea51fddb92c4e413eb',
-                'duration': 5722.6,
-                'age_limit': 16,
+                'id': '1848932',
+                'display_id': 'sokrat',
+                'ext': 'flv',
+                'title': 'Сократ',
+                'description': 'md5:d6b92ffb7217b4b8ebad2e7665253c17',
+                'duration': 6586,
+                'age_limit': 12,
             },
+            'skip': 'georestricted',
         },
         {
             'url': 'http://www.tvigle.ru/video/vladimir-vysotskii/vedushchii-teleprogrammy-60-minut-ssha-o-vladimire-vysotskom/',
-            'md5': 'd9012d7c7c598fe7a11d7fb46dc1f574',
+            'md5': 'e7efe5350dd5011d0de6550b53c3ba7b',
             'info_dict': {
                 'id': '5142516',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'Ведущий телепрограммы «60 минут» (США) о Владимире Высоцком',
                 'description': 'md5:027f7dc872948f14c96d19b4178428a4',
                 'duration': 186.080,
                 'age_limit': 0,
             },
-        },
+            'skip': 'georestricted',
+        }, {
+            'url': 'https://cloud.tvigle.ru/video/5267604/',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
         display_id = mobj.group('display_id')
 
-        webpage = self._download_webpage(url, display_id)
-
-        video_id = self._html_search_regex(
-            r'<li class="video-preview current_playing" id="(\d+)">', webpage, 'video id')
+        if not video_id:
+            webpage = self._download_webpage(url, display_id)
+            video_id = self._html_search_regex(
+                r'class="video-preview current_playing" id="(\d+)">',
+                webpage, 'video id')
 
         video_data = self._download_json(
             'http://cloud.tvigle.ru/api/play/video/%s/' % video_id, display_id)
 
         item = video_data['playlist']['items'][0]
 
+        videos = item.get('videos')
+
+        error_message = item.get('errorMessage')
+        if not videos and error_message:
+            raise ExtractorError(
+                '%s returned error: %s' % (self.IE_NAME, error_message), expected=True)
+
         title = item['title']
-        description = item['description']
-        thumbnail = item['thumbnail']
-        duration = float_or_none(item['durationMilliseconds'], 1000)
-        age_limit = str_to_int(item['ageRestrictions'])
+        description = item.get('description')
+        thumbnail = item.get('thumbnail')
+        duration = float_or_none(item.get('durationMilliseconds'), 1000)
+        age_limit = parse_age_limit(item.get('ageRestrictions'))
 
         formats = []
         for vcodec, fmts in item['videos'].items():
-            for quality, video_url in fmts.items():
+            for format_id, video_url in fmts.items():
+                if format_id == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        video_url, video_id, 'mp4', m3u8_id=vcodec))
+                    continue
+                height = self._search_regex(
+                    r'^(\d+)[pP]$', format_id, 'height', default=None)
                 formats.append({
                     'url': video_url,
-                    'format_id': '%s-%s' % (vcodec, quality),
+                    'format_id': '%s-%s' % (vcodec, format_id),
                     'vcodec': vcodec,
-                    'height': int(quality[:-1]),
-                    'filesize': item['video_files_size'][vcodec][quality],
+                    'height': int_or_none(height),
+                    'filesize': int_or_none(item.get('video_files_size', {}).get(vcodec, {}).get(format_id)),
                 })
         self._sort_formats(formats)
 

@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import re
 import json
+import os
 
 from .common import InfoExtractor
 from ..compat import (
@@ -19,6 +20,15 @@ class NHLBaseInfoExtractor(InfoExtractor):
     def _fix_json(json_string):
         return json_string.replace('\\\'', '\'')
 
+    def _real_extract_video(self, video_id):
+        vid_parts = video_id.split(',')
+        if len(vid_parts) == 3:
+            video_id = '%s0%s%s-X-h' % (vid_parts[0][:4], vid_parts[1], vid_parts[2].rjust(4, '0'))
+        json_url = 'http://video.nhl.com/videocenter/servlets/playlist?ids=%s&format=json' % video_id
+        data = self._download_json(
+            json_url, video_id, transform_source=self._fix_json)
+        return self._extract_video(data[0])
+
     def _extract_video(self, info):
         video_id = info['id']
         self.report_extraction(video_id)
@@ -26,7 +36,8 @@ class NHLBaseInfoExtractor(InfoExtractor):
         initial_video_url = info['publishPoint']
         if info['formats'] == '1':
             parsed_url = compat_urllib_parse_urlparse(initial_video_url)
-            path = parsed_url.path.replace('.', '_sd.', 1)
+            filename, ext = os.path.splitext(parsed_url.path)
+            path = '%s_sd%s' % (filename, ext)
             data = compat_urllib_parse.urlencode({
                 'type': 'fvod',
                 'path': compat_urlparse.urlunparse(parsed_url[:2] + (path,) + parsed_url[3:])
@@ -39,7 +50,7 @@ class NHLBaseInfoExtractor(InfoExtractor):
             video_url = initial_video_url
 
         join = compat_urlparse.urljoin
-        return {
+        ret = {
             'id': video_id,
             'title': info['name'],
             'url': video_url,
@@ -48,11 +59,20 @@ class NHLBaseInfoExtractor(InfoExtractor):
             'thumbnail': join(join(video_url, '/u/'), info['bigImage']),
             'upload_date': unified_strdate(info['releaseDate'].split('.')[0]),
         }
+        if video_url.startswith('rtmp:'):
+            mobj = re.match(r'(?P<tc_url>rtmp://[^/]+/(?P<app>[a-z0-9/]+))/(?P<play_path>mp4:.*)', video_url)
+            ret.update({
+                'tc_url': mobj.group('tc_url'),
+                'play_path': mobj.group('play_path'),
+                'app': mobj.group('app'),
+                'no_resume': True,
+            })
+        return ret
 
 
 class NHLIE(NHLBaseInfoExtractor):
     IE_NAME = 'nhl.com'
-    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/console(?:\?(?:.*?[?&])?)id=(?P<id>[0-9a-z-]+)'
+    _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/(?:console|embed)?(?:\?(?:.*?[?&])?)(?:id|hlg|playlist)=(?P<id>[-0-9a-zA-Z,]+)'
 
     _TESTS = [{
         'url': 'http://video.canucks.nhl.com/videocenter/console?catid=6?id=453614',
@@ -90,15 +110,80 @@ class NHLIE(NHLBaseInfoExtractor):
     }, {
         'url': 'http://video.flames.nhl.com/videocenter/console?id=630616',
         'only_matching': True,
+    }, {
+        'url': 'http://video.nhl.com/videocenter/?id=736722',
+        'only_matching': True,
+    }, {
+        'url': 'http://video.nhl.com/videocenter/console?hlg=20142015,2,299&lang=en',
+        'md5': '076fcb88c255154aacbf0a7accc3f340',
+        'info_dict': {
+            'id': '2014020299-X-h',
+            'ext': 'mp4',
+            'title': 'Penguins at Islanders / Game Highlights',
+            'description': 'Home broadcast - Pittsburgh Penguins at New York Islanders - November 22, 2014',
+            'duration': 268,
+            'upload_date': '20141122',
+        }
+    }, {
+        'url': 'http://video.oilers.nhl.com/videocenter/console?id=691469&catid=4',
+        'info_dict': {
+            'id': '691469',
+            'ext': 'mp4',
+            'title': 'RAW | Craig MacTavish Full Press Conference',
+            'description': 'Oilers GM Craig MacTavish addresses the media at Rexall Place on Friday.',
+            'upload_date': '20141205',
+        },
+        'params': {
+            'skip_download': True,  # Requires rtmpdump
+        }
+    }, {
+        'url': 'http://video.nhl.com/videocenter/embed?playlist=836127',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        json_url = 'http://video.nhl.com/videocenter/servlets/playlist?ids=%s&format=json' % video_id
-        data = self._download_json(
-            json_url, video_id, transform_source=self._fix_json)
-        return self._extract_video(data[0])
+        video_id = self._match_id(url)
+        return self._real_extract_video(video_id)
+
+
+class NHLNewsIE(NHLBaseInfoExtractor):
+    IE_NAME = 'nhl.com:news'
+    IE_DESC = 'NHL news'
+    _VALID_URL = r'https?://(?:.+?\.)?nhl\.com/(?:ice|club)/news\.html?(?:\?(?:.*?[?&])?)id=(?P<id>[-0-9a-zA-Z]+)'
+
+    _TESTS = [{
+        'url': 'http://www.nhl.com/ice/news.htm?id=750727',
+        'md5': '4b3d1262e177687a3009937bd9ec0be8',
+        'info_dict': {
+            'id': '736722',
+            'ext': 'mp4',
+            'title': 'Cal Clutterbuck has been fined $2,000',
+            'description': 'md5:45fe547d30edab88b23e0dd0ab1ed9e6',
+            'duration': 37,
+            'upload_date': '20150128',
+        },
+    }, {
+        # iframe embed
+        'url': 'http://sabres.nhl.com/club/news.htm?id=780189',
+        'md5': '9f663d1c006c90ac9fb82777d4294e12',
+        'info_dict': {
+            'id': '836127',
+            'ext': 'mp4',
+            'title': 'Morning Skate: OTT vs. BUF (9/23/15)',
+            'description': "Brian Duff chats with Tyler Ennis prior to Buffalo's first preseason home game.",
+            'duration': 93,
+            'upload_date': '20150923',
+        },
+    }]
+
+    def _real_extract(self, url):
+        news_id = self._match_id(url)
+        webpage = self._download_webpage(url, news_id)
+        video_id = self._search_regex(
+            [r'pVid(\d+)', r"nlid\s*:\s*'(\d+)'",
+             r'<iframe[^>]+src=["\']https?://video.*?\.nhl\.com/videocenter/embed\?.*\bplaylist=(\d+)'],
+            webpage, 'video id')
+        return self._real_extract_video(video_id)
 
 
 class NHLVideocenterIE(NHLBaseInfoExtractor):

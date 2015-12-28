@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -13,10 +11,15 @@ class ServingSysIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://bs.serving-sys.com/BurstingPipe/adServer.bs?cn=is&c=23&pl=VAST&pli=5349193&PluID=0&pos=7135&ord=[timestamp]&cim=1?',
+        'info_dict': {
+            'id': '5349193',
+            'title': 'AdAPPter_Hyundai_demo',
+        },
         'playlist': [{
-            'file': '29955898.flv',
             'md5': 'baed851342df6846eb8677a60a011a0f',
             'info_dict': {
+                'id': '29955898',
+                'ext': 'flv',
                 'title': 'AdAPPter_Hyundai_demo (1)',
                 'duration': 74,
                 'tbr': 1378,
@@ -24,9 +27,10 @@ class ServingSysIE(InfoExtractor):
                 'height': 400,
             },
         }, {
-            'file': '29907998.flv',
             'md5': '979b4da2655c4bc2d81aeb915a8c5014',
             'info_dict': {
+                'id': '29907998',
+                'ext': 'flv',
                 'title': 'AdAPPter_Hyundai_demo (2)',
                 'duration': 34,
                 'width': 854,
@@ -37,14 +41,13 @@ class ServingSysIE(InfoExtractor):
         'params': {
             'playlistend': 2,
         },
-        'skip': 'Blocked in the US [sic]',
+        '_skip': 'Blocked in the US [sic]',
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        pl_id = mobj.group('id')
-
+        pl_id = self._match_id(url)
         vast_doc = self._download_xml(url, pl_id)
+
         title = vast_doc.find('.//AdTitle').text
         media = vast_doc.find('.//MediaFile').text
         info_url = self._search_regex(r'&adData=([^&]+)&', media, 'info URL')

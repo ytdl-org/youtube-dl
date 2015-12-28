@@ -1,11 +1,7 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..utils import (
-    compat_urllib_parse,
-)
+from ..compat import compat_urllib_parse_unquote
 
 
 class XBefIE(InfoExtractor):
@@ -23,17 +19,16 @@ class XBefIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        m = re.match(self._VALID_URL, url)
-        video_id = m.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
         title = self._html_search_regex(
             r'<h1[^>]*>(.*?)</h1>', webpage, 'title')
 
         config_url_enc = self._download_webpage(
             'http://xbef.com/Main/GetVideoURLEncoded/%s' % video_id, video_id,
             note='Retrieving config URL')
-        config_url = compat_urllib_parse.unquote(config_url_enc)
+        config_url = compat_urllib_parse_unquote(config_url_enc)
         config = self._download_xml(
             config_url, video_id, note='Retrieving config')
 

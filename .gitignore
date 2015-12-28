@@ -31,3 +31,5 @@ updates_key.pem
 test/testdata
 .tox
 youtube-dl.zsh
+.idea
+.idea/*

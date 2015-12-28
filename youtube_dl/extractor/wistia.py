@@ -1,9 +1,10 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..utils import ExtractorError, compat_urllib_request
+from ..utils import (
+    ExtractorError,
+    sanitized_Request,
+)
 
 
 class WistiaIE(InfoExtractor):
@@ -22,10 +23,9 @@ class WistiaIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
-        request = compat_urllib_request.Request(self._API_URL.format(video_id))
+        request = sanitized_Request(self._API_URL.format(video_id))
         request.add_header('Referer', url)  # Some videos require this.
         data_json = self._download_json(request, video_id)
         if data_json.get('error'):

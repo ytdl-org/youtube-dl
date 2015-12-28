@@ -4,54 +4,52 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    compat_urllib_parse,
-    remove_start,
-)
+from ..utils import sanitized_Request
 
 
 class VideoMegaIE(InfoExtractor):
-    _VALID_URL = r'''(?x)https?://
-        (?:www\.)?videomega\.tv/
-        (?:iframe\.php)?\?ref=(?P<id>[A-Za-z0-9]+)
-        '''
-    _TEST = {
-        'url': 'http://videomega.tv/?ref=GKeGPVedBe',
-        'md5': '240fb5bcf9199961f48eb17839b084d6',
+    _VALID_URL = r'(?:videomega:|https?://(?:www\.)?videomega\.tv/(?:(?:view|iframe|cdn)\.php)?\?ref=)(?P<id>[A-Za-z0-9]+)'
+    _TESTS = [{
+        'url': 'http://videomega.tv/cdn.php?ref=AOSQBJYKIDDIKYJBQSOA',
+        'md5': 'cc1920a58add3f05c6a93285b84fb3aa',
         'info_dict': {
-            'id': 'GKeGPVedBe',
+            'id': 'AOSQBJYKIDDIKYJBQSOA',
             'ext': 'mp4',
-            'title': 'XXL - All Sports United',
+            'title': '1254207',
             'thumbnail': 're:^https?://.*\.jpg$',
         }
-    }
+    }, {
+        'url': 'http://videomega.tv/cdn.php?ref=AOSQBJYKIDDIKYJBQSOA&width=1070&height=600',
+        'only_matching': True,
+    }, {
+        'url': 'http://videomega.tv/view.php?ref=090051111052065112106089103052052103089106112065052111051090',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
-        url = 'http://videomega.tv/iframe.php?ref={0:}'.format(video_id)
-        webpage = self._download_webpage(url, video_id)
+        iframe_url = 'http://videomega.tv/cdn.php?ref=%s' % video_id
+        req = sanitized_Request(iframe_url)
+        req.add_header('Referer', url)
+        req.add_header('Cookie', 'noadvtday=0')
+        webpage = self._download_webpage(req, video_id)
 
-        escaped_data = self._search_regex(
-            r'unescape\("([^"]+)"\)', webpage, 'escaped data')
-        playlist = compat_urllib_parse.unquote(escaped_data)
-
+        title = self._html_search_regex(
+            r'<title>(.+?)</title>', webpage, 'title')
+        title = re.sub(
+            r'(?:^[Vv]ideo[Mm]ega\.tv\s-\s*|\s*-\svideomega\.tv$)', '', title)
         thumbnail = self._search_regex(
-            r'image:\s*"([^"]+)"', playlist, 'thumbnail', fatal=False)
-        url = self._search_regex(r'file:\s*"([^"]+)"', playlist, 'URL')
-        title = remove_start(self._html_search_regex(
-            r'<title>(.*?)</title>', webpage, 'title'), 'VideoMega.tv - ')
-
-        formats = [{
-            'format_id': 'sd',
-            'url': url,
-        }]
-        self._sort_formats(formats)
+            r'<video[^>]+?poster="([^"]+)"', webpage, 'thumbnail', fatal=False)
+        video_url = self._search_regex(
+            r'<source[^>]+?src="([^"]+)"', webpage, 'video URL')
 
         return {
             'id': video_id,
             'title': title,
-            'formats': formats,
+            'url': video_url,
             'thumbnail': thumbnail,
+            'http_headers': {
+                'Referer': iframe_url,
+            },
         }

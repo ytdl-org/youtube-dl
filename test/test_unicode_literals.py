@@ -1,9 +1,13 @@
 from __future__ import unicode_literals
 
-import io
+# Allow direct execution
 import os
-import re
+import sys
 import unittest
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import io
+import re
 
 rootDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -13,10 +17,22 @@ IGNORED_FILES = [
     'buildserver.py',
 ]
 
+IGNORED_DIRS = [
+    '.git',
+    '.tox',
+]
+
+from test.helper import assertRegexpMatches
+
 
 class TestUnicodeLiterals(unittest.TestCase):
     def test_all_files(self):
-        for dirpath, _, filenames in os.walk(rootDir):
+        for dirpath, dirnames, filenames in os.walk(rootDir):
+            for ignore_dir in IGNORED_DIRS:
+                if ignore_dir in dirnames:
+                    # If we remove the directory from dirnames os.walk won't
+                    # recurse into it
+                    dirnames.remove(ignore_dir)
             for basename in filenames:
                 if not basename.endswith('.py'):
                     continue
@@ -29,9 +45,10 @@ class TestUnicodeLiterals(unittest.TestCase):
 
                 if "'" not in code and '"' not in code:
                     continue
-                self.assertRegexpMatches(
+                assertRegexpMatches(
+                    self,
                     code,
-                    r'(?:#.*\n*)?from __future__ import (?:[a-z_]+,\s*)*unicode_literals',
+                    r'(?:(?:#.*?|\s*)\n)*from __future__ import (?:[a-z_]+,\s*)*unicode_literals',
                     'unicode_literals import  missing in %s' % fn)
 
                 m = re.search(r'(?<=\s)u[\'"](?!\)|,|$)', code)

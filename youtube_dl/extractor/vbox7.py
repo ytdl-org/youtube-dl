@@ -1,19 +1,19 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
-    compat_urllib_request,
-
+    compat_urlparse,
+)
+from ..utils import (
     ExtractorError,
+    sanitized_Request,
 )
 
 
 class Vbox7IE(InfoExtractor):
-    _VALID_URL = r'http://(www\.)?vbox7\.com/play:(?P<id>[^/]+)'
+    _VALID_URL = r'http://(?:www\.)?vbox7\.com/play:(?P<id>[^/]+)'
     _TEST = {
         'url': 'http://vbox7.com/play:249bb972c2',
         'md5': '99f65c0c9ef9b682b97313e052734c3f',
@@ -25,14 +25,23 @@ class Vbox7IE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
-        redirect_page, urlh = self._download_webpage_handle(url, video_id)
-        new_location = self._search_regex(r'window\.location = \'(.*)\';',
-                                          redirect_page, 'redirect location')
-        redirect_url = urlh.geturl() + new_location
-        webpage = self._download_webpage(redirect_url, video_id,
+        # need to get the page 3 times for the correct jsSecretToken cookie
+        # which is necessary for the correct title
+        def get_session_id():
+            redirect_page = self._download_webpage(url, video_id)
+            session_id_url = self._search_regex(
+                r'var\s*url\s*=\s*\'([^\']+)\';', redirect_page,
+                'session id url')
+            self._download_webpage(
+                compat_urlparse.urljoin(url, session_id_url), video_id,
+                'Getting session id')
+
+        get_session_id()
+        get_session_id()
+
+        webpage = self._download_webpage(url, video_id,
                                          'Downloading redirect page')
 
         title = self._html_search_regex(r'<title>(.*)</title>',
@@ -40,7 +49,7 @@ class Vbox7IE(InfoExtractor):
 
         info_url = "http://vbox7.com/play/magare.do"
         data = compat_urllib_parse.urlencode({'as3': '1', 'vid': video_id})
-        info_request = compat_urllib_request.Request(info_url, data)
+        info_request = sanitized_Request(info_url, data)
         info_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         info_response = self._download_webpage(info_request, video_id, 'Downloading info webpage')
         if info_response is None:

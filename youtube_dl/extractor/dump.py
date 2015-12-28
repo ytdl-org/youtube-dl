@@ -28,12 +28,12 @@ class DumpIE(InfoExtractor):
         video_url = self._search_regex(
             r's1.addVariable\("file",\s*"([^"]+)"', webpage, 'video URL')
 
-        thumb = self._og_search_thumbnail(webpage)
-        title = self._search_regex(r'<b>([^"]+)</b>', webpage, 'title')
+        title = self._og_search_title(webpage)
+        thumbnail = self._og_search_thumbnail(webpage)
 
         return {
             'id': video_id,
             'title': title,
             'url': video_url,
-            'thumbnail': thumb,
+            'thumbnail': thumbnail,
         }

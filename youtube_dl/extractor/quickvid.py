@@ -3,8 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urlparse,
+)
+from ..utils import (
     determine_ext,
     int_or_none,
 )
@@ -22,6 +24,7 @@ class QuickVidIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.(?:png|jpg|gif)$',
             'view_count': int,
         },
+        'skip': 'Not accessible from Travis CI server',
     }
 
     def _real_extract(self, url):

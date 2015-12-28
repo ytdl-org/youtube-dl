@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     determine_ext,
     float_or_none,
@@ -30,7 +31,7 @@ class IzleseneIE(InfoExtractor):
                 'description': 'md5:253753e2655dde93f59f74b572454f6d',
                 'thumbnail': 're:^http://.*\.jpg',
                 'uploader_id': 'pelikzzle',
-                'timestamp': 1404302298,
+                'timestamp': int,
                 'upload_date': '20140702',
                 'duration': 95.395,
                 'age_limit': 0,
@@ -46,7 +47,7 @@ class IzleseneIE(InfoExtractor):
                 'description': 'Tarkan Dortmund 2006 Konseri',
                 'thumbnail': 're:^http://.*\.jpg',
                 'uploader_id': 'parlayankiz',
-                'timestamp': 1163322193,
+                'timestamp': int,
                 'upload_date': '20061112',
                 'duration': 253.666,
                 'age_limit': 0,
@@ -67,9 +68,9 @@ class IzleseneIE(InfoExtractor):
 
         uploader = self._html_search_regex(
             r"adduserUsername\s*=\s*'([^']+)';",
-            webpage, 'uploader', fatal=False, default='')
+            webpage, 'uploader', fatal=False)
         timestamp = parse_iso8601(self._html_search_meta(
-            'uploadDate', webpage, 'upload date', fatal=False))
+            'uploadDate', webpage, 'upload date'))
 
         duration = float_or_none(self._html_search_regex(
             r'"videoduration"\s*:\s*"([^"]+)"',
@@ -80,17 +81,13 @@ class IzleseneIE(InfoExtractor):
             r'comment_count\s*=\s*\'([^\']+)\';',
             webpage, 'comment_count', fatal=False)
 
-        family_friendly = self._html_search_meta(
-            'isFamilyFriendly', webpage, 'age limit', fatal=False)
-
         content_url = self._html_search_meta(
             'contentURL', webpage, 'content URL', fatal=False)
         ext = determine_ext(content_url, 'mp4')
 
         # Might be empty for some videos.
         streams = self._html_search_regex(
-            r'"qualitylevel"\s*:\s*"([^"]+)"',
-            webpage, 'streams', fatal=False, default='')
+            r'"qualitylevel"\s*:\s*"([^"]+)"', webpage, 'streams', default='')
 
         formats = []
         if streams:
@@ -98,15 +95,15 @@ class IzleseneIE(InfoExtractor):
                 quality, url = re.search(r'\[(\w+)\](.+)', stream).groups()
                 formats.append({
                     'format_id': '%sp' % quality if quality else 'sd',
-                    'url': url,
+                    'url': compat_urllib_parse_unquote(url),
                     'ext': ext,
                 })
         else:
             stream_url = self._search_regex(
-                r'"streamurl"\s?:\s?"([^"]+)"', webpage, 'stream URL')
+                r'"streamurl"\s*:\s*"([^"]+)"', webpage, 'stream URL')
             formats.append({
                 'format_id': 'sd',
-                'url': stream_url,
+                'url': compat_urllib_parse_unquote(stream_url),
                 'ext': ext,
             })
 
@@ -120,6 +117,6 @@ class IzleseneIE(InfoExtractor):
             'duration': duration,
             'view_count': int_or_none(view_count),
             'comment_count': int_or_none(comment_count),
-            'age_limit': 18 if family_friendly == 'False' else 0,
+            'age_limit': self._family_friendly_search(webpage),
             'formats': formats,
         }

@@ -2,7 +2,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import float_or_none
+from ..compat import compat_urllib_parse_urlparse
+from ..utils import (
+    determine_ext,
+    float_or_none,
+)
 
 
 class SpiegeltvIE(InfoExtractor):
@@ -17,7 +21,7 @@ class SpiegeltvIE(InfoExtractor):
             'thumbnail': 're:http://.*\.jpg$',
         },
         'params': {
-            # rtmp download
+            # m3u8 download
             'skip_download': True,
         }
     }, {
@@ -51,9 +55,43 @@ class SpiegeltvIE(InfoExtractor):
         is_wide = media_json['is_wide']
 
         server_json = self._download_json(
-            'http://www.spiegel.tv/streaming_servers/', video_id,
-            note='Downloading server information')
-        server = server_json[0]['endpoint']
+            'http://spiegeltv-prod-static.s3.amazonaws.com/projectConfigs/projectConfig.json',
+            video_id, note='Downloading server information')
+
+        format = '16x9' if is_wide else '4x3'
+
+        formats = []
+        for streamingserver in server_json['streamingserver']:
+            endpoint = streamingserver.get('endpoint')
+            if not endpoint:
+                continue
+            play_path = 'mp4:%s_spiegeltv_0500_%s.m4v' % (uuid, format)
+            if endpoint.startswith('rtmp'):
+                formats.append({
+                    'url': endpoint,
+                    'format_id': 'rtmp',
+                    'app': compat_urllib_parse_urlparse(endpoint).path[1:],
+                    'play_path': play_path,
+                    'player_path': 'http://prod-static.spiegel.tv/frontend-076.swf',
+                    'ext': 'flv',
+                    'rtmp_live': True,
+                })
+            elif determine_ext(endpoint) == 'm3u8':
+                formats.append({
+                    'url': endpoint.replace('[video]', play_path),
+                    'ext': 'm4v',
+                    'format_id': 'hls',  # Prefer hls since it allows to workaround georestriction
+                    'protocol': 'm3u8',
+                    'preference': 1,
+                    'http_headers': {
+                        'Accept-Encoding': 'deflate',  # gzip causes trouble on the server side
+                    },
+                })
+            else:
+                formats.append({
+                    'url': endpoint,
+                })
+        self._check_formats(formats, video_id)
 
         thumbnails = []
         for image in media_json['images']:
@@ -65,16 +103,12 @@ class SpiegeltvIE(InfoExtractor):
 
         description = media_json['subtitle']
         duration = float_or_none(media_json.get('duration_in_ms'), scale=1000)
-        format = '16x9' if is_wide else '4x3'
-
-        url = server + 'mp4:' + uuid + '_spiegeltv_0500_' + format + '.m4v'
 
         return {
             'id': video_id,
             'title': title,
-            'url': url,
-            'ext': 'm4v',
             'description': description,
             'duration': duration,
-            'thumbnails': thumbnails
+            'thumbnails': thumbnails,
+            'formats': formats,
         }

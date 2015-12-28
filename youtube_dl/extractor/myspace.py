@@ -88,6 +88,7 @@ class MySpaceIE(InfoExtractor):
                 self.report_warning(
                     '%s: No downloadable song on this page' % video_id)
                 return
+
             def search_data(name):
                 return self._search_regex(
                     r'''data-%s=([\'"])(?P<data>.*?)\1''' % name,

@@ -3,11 +3,13 @@ from __future__ import unicode_literals
 
 import json
 import random
-import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
+)
+from ..utils import (
+    ExtractorError,
 )
 
 
@@ -100,26 +102,44 @@ class EightTracksIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        playlist_id = mobj.group('id')
+        playlist_id = self._match_id(url)
 
         webpage = self._download_webpage(url, playlist_id)
 
-        json_like = self._search_regex(
-            r"(?s)PAGE.mix = (.*?);\n", webpage, 'trax information')
-        data = json.loads(json_like)
+        data = self._parse_json(
+            self._search_regex(
+                r"(?s)PAGE\.mix\s*=\s*({.+?});\n", webpage, 'trax information'),
+            playlist_id)
 
         session = str(random.randint(0, 1000000000))
         mix_id = data['id']
         track_count = data['tracks_count']
+        duration = data['duration']
+        avg_song_duration = float(duration) / track_count
+        # duration is sometimes negative, use predefined avg duration
+        if avg_song_duration <= 0:
+            avg_song_duration = 300
         first_url = 'http://8tracks.com/sets/%s/play?player=sm&mix_id=%s&format=jsonh' % (session, mix_id)
         next_url = first_url
         entries = []
+
         for i in range(track_count):
-            api_json = self._download_webpage(
-                next_url, playlist_id,
-                note='Downloading song information %d/%d' % (i + 1, track_count),
-                errnote='Failed to download song information')
+            api_json = None
+            download_tries = 0
+
+            while api_json is None:
+                try:
+                    api_json = self._download_webpage(
+                        next_url, playlist_id,
+                        note='Downloading song information %d/%d' % (i + 1, track_count),
+                        errnote='Failed to download song information')
+                except ExtractorError:
+                    if download_tries > 3:
+                        raise
+                    else:
+                        download_tries += 1
+                        self._sleep(avg_song_duration, playlist_id)
+
             api_data = json.loads(api_json)
             track_data = api_data['set']['track']
             info = {
@@ -131,6 +151,7 @@ class EightTracksIE(InfoExtractor):
                 'ext': 'm4a',
             }
             entries.append(info)
+
             next_url = 'http://8tracks.com/sets/%s/next?player=sm&mix_id=%s&format=jsonh&track_id=%s' % (
                 session, mix_id, track_data['id'])
         return {

@@ -5,8 +5,8 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_urllib_request,
     parse_iso8601,
+    sanitized_Request,
 )
 
 
@@ -36,10 +36,12 @@ class SportDeutschlandIE(InfoExtractor):
             'upload_date': '20140825',
             'description': 'md5:60a20536b57cee7d9a4ec005e8687504',
             'timestamp': 1408976060,
+            'duration': 2732,
             'title': 'Li-Ning Badminton Weltmeisterschaft 2014 Kopenhagen: Herren Einzel, Wei Lee vs. Keun Lee',
             'thumbnail': 're:^https?://.*\.jpg$',
             'view_count': int,
             'categories': ['Li-Ning Badminton WM 2014'],
+
         }
     }]
 
@@ -48,16 +50,16 @@ class SportDeutschlandIE(InfoExtractor):
         video_id = mobj.group('id')
         sport_id = mobj.group('sport')
 
-        api_url = 'http://splink.tv/api/permalinks/%s/%s' % (
+        api_url = 'http://proxy.vidibusdynamic.net/sportdeutschland.tv/api/permalinks/%s/%s?access_token=true' % (
             sport_id, video_id)
-        req = compat_urllib_request.Request(api_url, headers={
+        req = sanitized_Request(api_url, headers={
             'Accept': 'application/vnd.vidibus.v2.html+json',
             'Referer': url,
         })
         data = self._download_json(req, video_id)
 
-        categories = list(data.get('section', {}).get('tags', {}).values())
         asset = data['asset']
+        categories = [data['section']['title']]
 
         formats = []
         smil_url = asset['video']
@@ -68,10 +70,12 @@ class SportDeutschlandIE(InfoExtractor):
 
             smil_doc = self._download_xml(
                 smil_url, video_id, note='Downloading SMIL metadata')
-            base_url = smil_doc.find('./head/meta').attrib['base']
+            base_url_el = smil_doc.find('./head/meta')
+            if base_url_el:
+                base_url = base_url_el.attrib['base']
             formats.extend([{
                 'format_id': 'rmtp',
-                'url': base_url,
+                'url': base_url if base_url_el else n.attrib['src'],
                 'play_path': n.attrib['src'],
                 'ext': 'flv',
                 'preference': -100,
@@ -88,6 +92,7 @@ class SportDeutschlandIE(InfoExtractor):
             'title': asset['title'],
             'thumbnail': asset.get('image'),
             'description': asset.get('teaser'),
+            'duration': asset.get('duration'),
             'categories': categories,
             'view_count': asset.get('views'),
             'rtmp_live': asset.get('live'),

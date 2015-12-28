@@ -22,8 +22,10 @@ class KhanAcademyIE(InfoExtractor):
             'description': 'The perfect cipher',
             'duration': 176,
             'uploader': 'Brit Cruise',
+            'uploader_id': 'khanacademy',
             'upload_date': '20120411',
-        }
+        },
+        'add_ie': ['Youtube'],
     }, {
         'url': 'https://www.khanacademy.org/math/applied-math/cryptography',
         'info_dict': {

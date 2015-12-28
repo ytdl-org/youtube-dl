@@ -10,10 +10,11 @@ from .common import InfoExtractor
 from ..compat import (
     compat_ord,
     compat_urllib_parse,
-    compat_urllib_request,
+    compat_urllib_parse_unquote,
 )
 from ..utils import (
     ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -82,7 +83,7 @@ class MyVideoIE(InfoExtractor):
 
         mobj = re.search(r'data-video-service="/service/data/video/%s/config' % video_id, webpage)
         if mobj is not None:
-            request = compat_urllib_request.Request('http://www.myvideo.de/service/data/video/%s/config' % video_id, '')
+            request = sanitized_Request('http://www.myvideo.de/service/data/video/%s/config' % video_id, '')
             response = self._download_webpage(request, video_id,
                                               'Downloading video info')
             info = json.loads(base64.b64decode(response).decode('utf-8'))
@@ -107,7 +108,7 @@ class MyVideoIE(InfoExtractor):
             if not a == '_encxml':
                 params[a] = b
             else:
-                encxml = compat_urllib_parse.unquote(b)
+                encxml = compat_urllib_parse_unquote(b)
         if not params.get('domain'):
             params['domain'] = 'www.myvideo.de'
         xmldata_url = '%s?%s' % (encxml, compat_urllib_parse.urlencode(params))
@@ -135,7 +136,7 @@ class MyVideoIE(InfoExtractor):
         video_url = None
         mobj = re.search('connectionurl=\'(.*?)\'', dec_data)
         if mobj:
-            video_url = compat_urllib_parse.unquote(mobj.group(1))
+            video_url = compat_urllib_parse_unquote(mobj.group(1))
             if 'myvideo2flash' in video_url:
                 self.report_warning(
                     'Rewriting URL to use unencrypted rtmp:// ...',
@@ -147,10 +148,10 @@ class MyVideoIE(InfoExtractor):
             mobj = re.search('path=\'(http.*?)\' source=\'(.*?)\'', dec_data)
             if mobj is None:
                 raise ExtractorError('unable to extract url')
-            video_url = compat_urllib_parse.unquote(mobj.group(1)) + compat_urllib_parse.unquote(mobj.group(2))
+            video_url = compat_urllib_parse_unquote(mobj.group(1)) + compat_urllib_parse_unquote(mobj.group(2))
 
         video_file = self._search_regex('source=\'(.*?)\'', dec_data, 'video file')
-        video_file = compat_urllib_parse.unquote(video_file)
+        video_file = compat_urllib_parse_unquote(video_file)
 
         if not video_file.endswith('f4m'):
             ppath, prefix = video_file.split('.')
@@ -159,7 +160,7 @@ class MyVideoIE(InfoExtractor):
             video_playpath = ''
 
         video_swfobj = self._search_regex('swfobject.embedSWF\(\'(.+?)\'', webpage, 'swfobj')
-        video_swfobj = compat_urllib_parse.unquote(video_swfobj)
+        video_swfobj = compat_urllib_parse_unquote(video_swfobj)
 
         video_title = self._html_search_regex("<h1(?: class='globalHd')?>(.*?)</h1>",
                                               webpage, 'title')

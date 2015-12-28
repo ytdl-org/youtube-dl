@@ -4,7 +4,7 @@ import itertools
 import re
 
 from .common import SearchInfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
 )
 

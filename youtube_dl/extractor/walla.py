@@ -3,14 +3,14 @@ from __future__ import unicode_literals
 
 import re
 
-from .subtitles import SubtitlesInfoExtractor
+from .common import InfoExtractor
 from ..utils import (
     xpath_text,
     int_or_none,
 )
 
 
-class WallaIE(SubtitlesInfoExtractor):
+class WallaIE(InfoExtractor):
     _VALID_URL = r'http://vod\.walla\.co\.il/[^/]+/(?P<id>\d+)/(?P<display_id>.+)'
     _TEST = {
         'url': 'http://vod.walla.co.il/movie/2642630/one-direction-all-for-one',
@@ -52,13 +52,10 @@ class WallaIE(SubtitlesInfoExtractor):
         subtitles = {}
         for subtitle in item.findall('./subtitles/subtitle'):
             lang = xpath_text(subtitle, './title')
-            subtitles[self._SUBTITLE_LANGS.get(lang, lang)] = xpath_text(subtitle, './src')
-
-        if self._downloader.params.get('listsubtitles', False):
-            self._list_available_subtitles(video_id, subtitles)
-            return
-
-        subtitles = self.extract_subtitles(video_id, subtitles)
+            subtitles[self._SUBTITLE_LANGS.get(lang, lang)] = [{
+                'ext': 'srt',
+                'url': xpath_text(subtitle, './src'),
+            }]
 
         formats = []
         for quality in item.findall('./qualities/quality'):

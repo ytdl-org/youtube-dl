@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
 )
 
@@ -25,6 +25,18 @@ class DaumIE(InfoExtractor):
             'duration': 3868,
         },
     }, {
+        # Test for https://github.com/rg3/youtube-dl/issues/7949
+        'url': 'http://tvpot.daum.net/mypot/View.do?ownerid=M1O35s8HPOo0&clipid=73147290',
+        'md5': 'c92d78bcee4424451f1667f275c1dc97',
+        'info_dict': {
+            'id': '73147290',
+            'ext': 'mp4',
+            'title': '싸이 - 나팔바지 [유희열의 스케치북] 299회 20151218',
+            'description': '싸이 - 나팔바지',
+            'upload_date': '20151219',
+            'duration': 232,
+        },
+    }, {
         'url': 'http://tvpot.daum.net/v/vab4dyeDBysyBssyukBUjBz',
         'only_matching': True,
     }, {
@@ -37,9 +49,11 @@ class DaumIE(InfoExtractor):
         video_id = mobj.group('id')
         canonical_url = 'http://tvpot.daum.net/v/%s' % video_id
         webpage = self._download_webpage(canonical_url, video_id)
+        og_url = self._og_search_url(webpage, default=None) or self._search_regex(
+            r'<link[^>]+rel=(["\'])canonical\1[^>]+href=(["\'])(?P<url>.+?)\2',
+            webpage, 'canonical url', group='url')
         full_id = self._search_regex(
-            r'<iframe src="http://videofarm.daum.net/controller/video/viewer/Video.html\?.*?vid=(.+?)[&"]',
-            webpage, 'full id')
+            r'tvpot\.daum\.net/v/([^/]+)', og_url, 'full id')
         query = compat_urllib_parse.urlencode({'vid': full_id})
         info = self._download_xml(
             'http://tvpot.daum.net/clip/ClipInfoXml.do?' + query, video_id,

@@ -6,7 +6,7 @@ import os
 import textwrap
 
 # We must be able to import youtube_dl
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import youtube_dl
 
@@ -16,7 +16,7 @@ def main():
         template = tmplf.read()
 
     ie_htmls = []
-    for ie in sorted(youtube_dl.gen_extractors(), key=lambda i: i.IE_NAME.lower()):
+    for ie in youtube_dl.list_extractors(age_limit=None):
         ie_html = '<b>{}</b>'.format(ie.IE_NAME)
         ie_desc = getattr(ie, 'IE_DESC', None)
         if ie_desc is False:

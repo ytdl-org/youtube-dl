@@ -1,36 +1,32 @@
 from __future__ import unicode_literals
 
-import os
 import re
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_urllib_parse_urlparse,
-    compat_urllib_request,
-    compat_urllib_parse,
-)
-from ..aes import (
-    aes_decrypt_text
+    sanitized_Request,
+    url_basename,
 )
 
 
 class KeezMoviesIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?keezmovies\.com/video/.+?(?P<videoid>[0-9]+)(?:[/?&]|$)'
+    _VALID_URL = r'https?://(?:www\.)?keezmovies\.com/video/.+?(?P<id>[0-9]+)(?:[/?&]|$)'
     _TEST = {
         'url': 'http://www.keezmovies.com/video/petite-asian-lady-mai-playing-in-bathtub-1214711',
-        'file': '1214711.mp4',
-        'md5': '6e297b7e789329923fcf83abb67c9289',
+        'md5': '1c1e75d22ffa53320f45eeb07bc4cdc0',
         'info_dict': {
+            'id': '1214711',
+            'ext': 'mp4',
             'title': 'Petite Asian Lady Mai Playing In Bathtub',
             'age_limit': 18,
+            'thumbnail': 're:^https?://.*\.jpg$',
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
+        video_id = self._match_id(url)
 
-        req = compat_urllib_request.Request(url)
+        req = sanitized_Request(url)
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
@@ -40,24 +36,31 @@ class KeezMoviesIE(InfoExtractor):
             embedded_url = mobj.group(1)
             return self.url_result(embedded_url)
 
-        video_title = self._html_search_regex(r'<h1 [^>]*>([^<]+)', webpage, 'title')
-        video_url = compat_urllib_parse.unquote(self._html_search_regex(r'video_url=(.+?)&amp;', webpage, 'video_url'))
-        if 'encrypted=true' in webpage:
-            password = self._html_search_regex(r'video_title=(.+?)&amp;', webpage, 'password')
-            video_url = aes_decrypt_text(video_url, password, 32).decode('utf-8')
-        path = compat_urllib_parse_urlparse(video_url).path
-        extension = os.path.splitext(path)[1][1:]
-        format = path.split('/')[4].split('_')[:2]
-        format = "-".join(format)
+        video_title = self._html_search_regex(
+            r'<h1 [^>]*>([^<]+)', webpage, 'title')
+        flashvars = self._parse_json(self._search_regex(
+            r'var\s+flashvars\s*=\s*([^;]+);', webpage, 'flashvars'), video_id)
+
+        formats = []
+        for height in (180, 240, 480):
+            if flashvars.get('quality_%dp' % height):
+                video_url = flashvars['quality_%dp' % height]
+                a_format = {
+                    'url': video_url,
+                    'height': height,
+                    'format_id': '%dp' % height,
+                }
+                filename_parts = url_basename(video_url).split('_')
+                if len(filename_parts) >= 2 and re.match(r'\d+[Kk]', filename_parts[1]):
+                    a_format['tbr'] = int(filename_parts[1][:-1])
+                formats.append(a_format)
 
         age_limit = self._rta_search(webpage)
 
         return {
             'id': video_id,
             'title': video_title,
-            'url': video_url,
-            'ext': extension,
-            'format': format,
-            'format_id': format,
+            'formats': formats,
             'age_limit': age_limit,
+            'thumbnail': flashvars.get('image_url')
         }

@@ -5,13 +5,13 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     parse_duration,
+    sanitized_Request,
     unified_strdate,
-    compat_urllib_request,
 )
 
 
 class NuvidIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www|m)\.nuvid\.com/video/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www|m)\.nuvid\.com/video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://m.nuvid.com/video/1310741/',
         'md5': 'eab207b7ac4fccfb4e23c86201f11277',
@@ -26,13 +26,12 @@ class NuvidIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         formats = []
 
         for dwnld_speed, format_id in [(0, '3gp'), (5, 'mp4')]:
-            request = compat_urllib_request.Request(
+            request = sanitized_Request(
                 'http://m.nuvid.com/play/%s' % video_id)
             request.add_header('Cookie', 'skip_download_page=1; dwnld_speed=%d; adv_show=1' % dwnld_speed)
             webpage = self._download_webpage(

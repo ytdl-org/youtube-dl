@@ -4,10 +4,14 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
     compat_urlparse,
+)
+from ..utils import (
     ExtractorError,
+    float_or_none,
+    int_or_none,
 )
 
 
@@ -50,11 +54,11 @@ class BandcampIE(InfoExtractor):
                     ext, abr_str = format_id.split('-', 1)
                     formats.append({
                         'format_id': format_id,
-                        'url': format_url,
+                        'url': self._proto_relative_url(format_url, 'http:'),
                         'ext': ext,
                         'vcodec': 'none',
                         'acodec': ext,
-                        'abr': int(abr_str),
+                        'abr': int_or_none(abr_str),
                     })
 
                 self._sort_formats(formats)
@@ -63,33 +67,36 @@ class BandcampIE(InfoExtractor):
                     'id': compat_str(data['id']),
                     'title': data['title'],
                     'formats': formats,
-                    'duration': float(data['duration']),
+                    'duration': float_or_none(data.get('duration')),
                 }
             else:
                 raise ExtractorError('No free songs found')
 
         download_link = m_download.group(1)
         video_id = self._search_regex(
-            r'var TralbumData = {.*?id: (?P<id>\d+),?$',
-            webpage, 'video id', flags=re.MULTILINE | re.DOTALL)
+            r'(?ms)var TralbumData = .*?[{,]\s*id: (?P<id>\d+),?$',
+            webpage, 'video id')
 
         download_webpage = self._download_webpage(download_link, video_id, 'Downloading free downloads page')
         # We get the dictionary of the track from some javascript code
-        info = re.search(r'items: (.*?),$', download_webpage, re.MULTILINE).group(1)
-        info = json.loads(info)[0]
+        all_info = self._parse_json(self._search_regex(
+            r'(?sm)items: (.*?),$', download_webpage, 'items'), video_id)
+        info = all_info[0]
         # We pick mp3-320 for now, until format selection can be easily implemented.
         mp3_info = info['downloads']['mp3-320']
         # If we try to use this url it says the link has expired
         initial_url = mp3_info['url']
-        re_url = r'(?P<server>http://(.*?)\.bandcamp\.com)/download/track\?enc=mp3-320&fsig=(?P<fsig>.*?)&id=(?P<id>.*?)&ts=(?P<ts>.*)$'
-        m_url = re.match(re_url, initial_url)
+        m_url = re.match(
+            r'(?P<server>http://(.*?)\.bandcamp\.com)/download/track\?enc=mp3-320&fsig=(?P<fsig>.*?)&id=(?P<id>.*?)&ts=(?P<ts>.*)$',
+            initial_url)
         # We build the url we will use to get the final track url
         # This url is build in Bandcamp in the script download_bunde_*.js
         request_url = '%s/statdownload/track?enc=mp3-320&fsig=%s&id=%s&ts=%s&.rand=665028774616&.vrs=1' % (m_url.group('server'), m_url.group('fsig'), video_id, m_url.group('ts'))
         final_url_webpage = self._download_webpage(request_url, video_id, 'Requesting download url')
         # If we could correctly generate the .rand field the url would be
         # in the "download_url" key
-        final_url = re.search(r'"retry_url":"(.*?)"', final_url_webpage).group(1)
+        final_url = self._proto_relative_url(self._search_regex(
+            r'"retry_url":"(.+?)"', final_url_webpage, 'final video URL'), 'http:')
 
         return {
             'id': video_id,
@@ -104,7 +111,7 @@ class BandcampIE(InfoExtractor):
 
 class BandcampAlbumIE(InfoExtractor):
     IE_NAME = 'Bandcamp:album'
-    _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<title>[^?#]+))'
+    _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<album_id>[^?#]+)|/?(?:$|[?#]))'
 
     _TESTS = [{
         'url': 'http://blazo.bandcamp.com/album/jazz-format-mixtape-vol-1',
@@ -128,36 +135,49 @@ class BandcampAlbumIE(InfoExtractor):
         ],
         'info_dict': {
             'title': 'Jazz Format Mixtape vol.1',
+            'id': 'jazz-format-mixtape-vol-1',
+            'uploader_id': 'blazo',
         },
         'params': {
             'playlistend': 2
         },
-        'skip': 'Bandcamp imposes download limits. See test_playlists:test_bandcamp_album for the playlist test'
+        'skip': 'Bandcamp imposes download limits.'
     }, {
         'url': 'http://nightbringer.bandcamp.com/album/hierophany-of-the-open-grave',
         'info_dict': {
             'title': 'Hierophany of the Open Grave',
+            'uploader_id': 'nightbringer',
+            'id': 'hierophany-of-the-open-grave',
         },
         'playlist_mincount': 9,
+    }, {
+        'url': 'http://dotscale.bandcamp.com',
+        'info_dict': {
+            'title': 'Loom',
+            'id': 'dotscale',
+            'uploader_id': 'dotscale',
+        },
+        'playlist_mincount': 7,
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        playlist_id = mobj.group('subdomain')
-        title = mobj.group('title')
-        display_id = title or playlist_id
-        webpage = self._download_webpage(url, display_id)
+        uploader_id = mobj.group('subdomain')
+        album_id = mobj.group('album_id')
+        playlist_id = album_id or uploader_id
+        webpage = self._download_webpage(url, playlist_id)
         tracks_paths = re.findall(r'<a href="(.*?)" itemprop="url">', webpage)
         if not tracks_paths:
             raise ExtractorError('The page doesn\'t contain any tracks')
         entries = [
             self.url_result(compat_urlparse.urljoin(url, t_path), ie=BandcampIE.ie_key())
             for t_path in tracks_paths]
-        title = self._search_regex(r'album_title : "(.*?)"', webpage, 'title')
+        title = self._search_regex(
+            r'album_title\s*:\s*"(.*?)"', webpage, 'title', fatal=False)
         return {
             '_type': 'playlist',
+            'uploader_id': uploader_id,
             'id': playlist_id,
-            'display_id': display_id,
             'title': title,
             'entries': entries,
         }

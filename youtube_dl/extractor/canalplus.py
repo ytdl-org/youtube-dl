@@ -5,6 +5,8 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
+    HEADRequest,
     unified_strdate,
     url_basename,
     qualities,
@@ -13,23 +15,24 @@ from ..utils import (
 
 class CanalplusIE(InfoExtractor):
     IE_DESC = 'canalplus.fr, piwiplus.fr and d8.tv'
-    _VALID_URL = r'https?://(?:www\.(?P<site>canalplus\.fr|piwiplus\.fr|d8\.tv)/.*?/(?P<path>.*)|player\.canalplus\.fr/#/(?P<id>[0-9]+))'
+    _VALID_URL = r'https?://(?:www\.(?P<site>canalplus\.fr|piwiplus\.fr|d8\.tv|itele\.fr)/.*?/(?P<path>.*)|player\.canalplus\.fr/#/(?P<id>[0-9]+))'
     _VIDEO_INFO_TEMPLATE = 'http://service.canal-plus.com/video/rest/getVideosLiees/%s/%s'
     _SITE_ID_MAP = {
         'canalplus.fr': 'cplus',
         'piwiplus.fr': 'teletoon',
         'd8.tv': 'd8',
+        'itele.fr': 'itele',
     }
 
     _TESTS = [{
-        'url': 'http://www.canalplus.fr/c-infos-documentaires/pid1830-c-zapping.html?vid=922470',
-        'md5': '3db39fb48b9685438ecf33a1078023e4',
+        'url': 'http://www.canalplus.fr/c-emissions/pid1830-c-zapping.html?vid=1263092',
+        'md5': 'b3481d7ca972f61e37420798d0a9d934',
         'info_dict': {
-            'id': '922470',
+            'id': '1263092',
             'ext': 'flv',
-            'title': 'Zapping - 26/08/13',
-            'description': 'Le meilleur de toutes les chaînes, tous les jours.\nEmission du 26 août 2013',
-            'upload_date': '20130826',
+            'title': 'Le Zapping - 13/05/15',
+            'description': 'md5:09738c0d06be4b5d06a0940edb0da73f',
+            'upload_date': '20150513',
         },
     }, {
         'url': 'http://www.piwiplus.fr/videos-piwi/pid1405-le-labyrinthe-boing-super-ranger.html?vid=1108190',
@@ -51,6 +54,16 @@ class CanalplusIE(InfoExtractor):
             'upload_date': '20131108',
         },
         'skip': 'videos get deleted after a while',
+    }, {
+        'url': 'http://www.itele.fr/france/video/aubervilliers-un-lycee-en-colere-111559',
+        'md5': 'f3a46edcdf28006598ffaf5b30e6a2d4',
+        'info_dict': {
+            'id': '1213714',
+            'ext': 'flv',
+            'title': 'Aubervilliers : un lycée en colère - Le 11/02/2015 à 06h45',
+            'description': 'md5:8216206ec53426ea6321321f3b3c16db',
+            'upload_date': '20150211',
+        },
     }]
 
     def _real_extract(self, url):
@@ -65,7 +78,8 @@ class CanalplusIE(InfoExtractor):
         if video_id is None:
             webpage = self._download_webpage(url, display_id)
             video_id = self._search_regex(
-                r'<canal:player[^>]+?videoId="(\d+)"', webpage, 'video id')
+                [r'<canal:player[^>]+?videoId=(["\'])(?P<id>\d+)', r'id=["\']canal_video_player(?P<id>\d+)'],
+                webpage, 'video id', group='id')
 
         info_url = self._VIDEO_INFO_TEMPLATE % (site_id, video_id)
         doc = self._download_xml(info_url, video_id, 'Downloading video XML')
@@ -76,6 +90,16 @@ class CanalplusIE(InfoExtractor):
 
         preference = qualities(['MOBILE', 'BAS_DEBIT', 'HAUT_DEBIT', 'HD', 'HLS', 'HDS'])
 
+        fmt_url = next(iter(media.find('VIDEOS'))).text
+        if '/geo' in fmt_url.lower():
+            response = self._request_webpage(
+                HEADRequest(fmt_url), video_id,
+                'Checking if the video is georestricted')
+            if '/blocage' in response.geturl():
+                raise ExtractorError(
+                    'The video is not available in your country',
+                    expected=True)
+
         formats = []
         for fmt in media.find('VIDEOS'):
             format_url = fmt.text
@@ -83,15 +107,11 @@ class CanalplusIE(InfoExtractor):
                 continue
             format_id = fmt.tag
             if format_id == 'HLS':
-                hls_formats = self._extract_m3u8_formats(format_url, video_id, 'flv')
-                for fmt in hls_formats:
-                    fmt['preference'] = preference(format_id)
-                formats.extend(hls_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', preference=preference(format_id)))
             elif format_id == 'HDS':
-                hds_formats = self._extract_f4m_formats(format_url + '?hdcore=2.11.3', video_id)
-                for fmt in hds_formats:
-                    fmt['preference'] = preference(format_id)
-                formats.extend(hds_formats)
+                formats.extend(self._extract_f4m_formats(
+                    format_url + '?hdcore=2.11.3', video_id, preference=preference(format_id)))
             else:
                 formats.append({
                     'url': format_url,

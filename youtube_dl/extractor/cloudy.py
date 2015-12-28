@@ -105,6 +105,7 @@ class CloudyIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         file_key = self._search_regex(
-            r'filekey\s*=\s*"([^"]+)"', webpage, 'file_key')
+            [r'key\s*:\s*"([^"]+)"', r'filekey\s*=\s*"([^"]+)"'],
+            webpage, 'file_key')
 
         return self._extract_video(video_host, video_id, file_key)

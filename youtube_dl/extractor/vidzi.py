@@ -20,8 +20,14 @@ class VidziIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        video_url = self._html_search_regex(
-            r'{\s*file\s*:\s*"([^"]+)"\s*}', webpage, 'video url')
+        video_host = self._html_search_regex(
+            r'id=\'vplayer\'><img src="http://(.*?)/i', webpage,
+            'video host')
+        video_hash = self._html_search_regex(
+            r'\|([a-z0-9]+)\|hls\|type', webpage, 'video_hash')
+        ext = self._html_search_regex(
+            r'\|tracks\|([a-z0-9]+)\|', webpage, 'video ext')
+        video_url = 'http://' + video_host + '/' + video_hash + '/v.' + ext
         title = self._html_search_regex(
             r'(?s)<h2 class="video-title">(.*?)</h2>', webpage, 'title')
 

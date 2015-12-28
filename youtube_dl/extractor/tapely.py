@@ -5,16 +5,16 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
     clean_html,
-    compat_urllib_request,
+    ExtractorError,
     float_or_none,
     parse_iso8601,
+    sanitized_Request,
 )
 
 
 class TapelyIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tape\.ly/(?P<id>[A-Za-z0-9\-_]+)(?:/(?P<songnr>\d+))?'
+    _VALID_URL = r'https?://(?:www\.)?(?:tape\.ly|tapely\.com)/(?P<id>[A-Za-z0-9\-_]+)(?:/(?P<songnr>\d+))?'
     _API_URL = 'http://tape.ly/showtape?id={0:}'
     _S3_SONG_URL = 'http://mytape.s3.amazonaws.com/{0:}'
     _SOUNDCLOUD_SONG_URL = 'http://api.soundcloud.com{0:}'
@@ -40,6 +40,10 @@ class TapelyIE(InfoExtractor):
                 'ext': 'm4a',
             },
         },
+        {
+            'url': 'https://tapely.com/my-grief-as-told-by-water',
+            'only_matching': True,
+        },
     ]
 
     def _real_extract(self, url):
@@ -47,7 +51,7 @@ class TapelyIE(InfoExtractor):
         display_id = mobj.group('id')
 
         playlist_url = self._API_URL.format(display_id)
-        request = compat_urllib_request.Request(playlist_url)
+        request = sanitized_Request(playlist_url)
         request.add_header('X-Requested-With', 'XMLHttpRequest')
         request.add_header('Accept', 'application/json')
         request.add_header('Referer', url)

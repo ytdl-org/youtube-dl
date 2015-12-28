@@ -1,51 +1,64 @@
 from __future__ import unicode_literals
 
-import re
 import base64
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
-    compat_urllib_request,
-    compat_urllib_parse,
     int_or_none,
+    sanitized_Request,
 )
 
 
 class SharedIE(InfoExtractor):
-    _VALID_URL = r'http://shared\.sx/(?P<id>[\da-z]{10})'
+    IE_DESC = 'shared.sx and vivo.sx'
+    _VALID_URL = r'http://(?:shared|vivo)\.sx/(?P<id>[\da-z]{10})'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://shared.sx/0060718775',
         'md5': '106fefed92a8a2adb8c98e6a0652f49b',
         'info_dict': {
             'id': '0060718775',
             'ext': 'mp4',
             'title': 'Bmp4',
+            'filesize': 1720110,
         },
-    }
+    }, {
+        'url': 'http://vivo.sx/d7ddda0e78',
+        'md5': '15b3af41be0b4fe01f4df075c2678b2c',
+        'info_dict': {
+            'id': 'd7ddda0e78',
+            'ext': 'mp4',
+            'title': 'Chicken',
+            'filesize': 528031,
+        },
+    }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
 
-        page = self._download_webpage(url, video_id)
+        if '>File does not exist<' in webpage:
+            raise ExtractorError(
+                'Video %s does not exist' % video_id, expected=True)
 
-        if re.search(r'>File does not exist<', page) is not None:
-            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
-
-        download_form = dict(re.findall(r'<input type="hidden" name="([^"]+)" value="([^"]*)"', page))
-
-        request = compat_urllib_request.Request(url, compat_urllib_parse.urlencode(download_form))
+        download_form = self._hidden_inputs(webpage)
+        request = sanitized_Request(
+            url, compat_urllib_parse.urlencode(download_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
 
-        video_page = self._download_webpage(request, video_id, 'Downloading video page')
+        video_page = self._download_webpage(
+            request, video_id, 'Downloading video page')
 
-        video_url = self._html_search_regex(r'data-url="([^"]+)"', video_page, 'video URL')
-        title = base64.b64decode(self._html_search_meta('full:title', page, 'title')).decode('utf-8')
-        filesize = int_or_none(self._html_search_meta('full:size', page, 'file size', fatal=False))
+        video_url = self._html_search_regex(
+            r'data-url="([^"]+)"', video_page, 'video URL')
+        title = base64.b64decode(self._html_search_meta(
+            'full:title', webpage, 'title').encode('utf-8')).decode('utf-8')
+        filesize = int_or_none(self._html_search_meta(
+            'full:size', webpage, 'file size', fatal=False))
         thumbnail = self._html_search_regex(
-            r'data-poster="([^"]+)"', video_page, 'thumbnail', fatal=False, default=None)
+            r'data-poster="([^"]+)"', video_page, 'thumbnail', default=None)
 
         return {
             'id': video_id,

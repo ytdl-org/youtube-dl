@@ -13,17 +13,17 @@ class KankanIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://yinyue.kankan.com/vod/48/48863.shtml',
-        'file': '48863.flv',
         'md5': '29aca1e47ae68fc28804aca89f29507e',
         'info_dict': {
+            'id': '48863',
+            'ext': 'flv',
             'title': 'Ready To Go',
         },
         'skip': 'Only available from China',
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         title = self._search_regex(r'(?:G_TITLE=|G_MOVIE_TITLE = )[\'"](.+?)[\'"]', webpage, 'video title')

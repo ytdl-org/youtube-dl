@@ -1,47 +1,59 @@
 from __future__ import unicode_literals
 
-import re
-import json
-
 from .common import InfoExtractor
+from ..utils import (
+    parse_duration,
+    parse_iso8601,
+)
+from ..compat import compat_str
 
 
 class DiscoveryIE(InfoExtractor):
-    _VALID_URL = r'http://www\.discovery\.com\/[a-zA-Z0-9\-]*/[a-zA-Z0-9\-]*/videos/(?P<id>[a-zA-Z0-9\-]*)(.htm)?'
-    _TEST = {
+    _VALID_URL = r'http://www\.discovery\.com\/[a-zA-Z0-9\-]*/[a-zA-Z0-9\-]*/videos/(?P<id>[a-zA-Z0-9_\-]*)(?:\.htm)?'
+    _TESTS = [{
         'url': 'http://www.discovery.com/tv-shows/mythbusters/videos/mission-impossible-outtakes.htm',
-        'md5': 'e12614f9ee303a6ccef415cb0793eba2',
         'info_dict': {
-            'id': '614784',
+            'id': '20769',
             'ext': 'mp4',
-            'title': 'MythBusters: Mission Impossible Outtakes',
+            'title': 'Mission Impossible Outtakes',
             'description': ('Watch Jamie Hyneman and Adam Savage practice being'
                             ' each other -- to the point of confusing Jamie\'s dog -- and '
                             'don\'t miss Adam moon-walking as Jamie ... behind Jamie\'s'
                             ' back.'),
             'duration': 156,
+            'timestamp': 1303099200,
+            'upload_date': '20110418',
         },
-    }
+        'params': {
+            'skip_download': True,  # requires ffmpeg
+        }
+    }, {
+        'url': 'http://www.discovery.com/tv-shows/mythbusters/videos/mythbusters-the-simpsons',
+        'info_dict': {
+            'id': 'mythbusters-the-simpsons',
+            'title': 'MythBusters: The Simpsons',
+        },
+        'playlist_count': 9,
+    }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        webpage = self._download_webpage(url, video_id)
+        video_id = self._match_id(url)
+        info = self._download_json(url + '?flat=1', video_id)
 
-        video_list_json = self._search_regex(r'var videoListJSON = ({.*?});',
-                                             webpage, 'video list', flags=re.DOTALL)
-        video_list = json.loads(video_list_json)
-        info = video_list['clips'][0]
-        formats = []
-        for f in info['mp4']:
-            formats.append(
-                {'url': f['src'], 'ext': 'mp4', 'tbr': int(f['bitrate'][:-1])})
+        video_title = info.get('playlist_title') or info.get('video_title')
 
-        return {
-            'id': info['contentId'],
-            'title': video_list['name'],
-            'formats': formats,
-            'description': info['videoCaption'],
-            'thumbnail': info.get('videoStillURL') or info.get('thumbnailURL'),
-            'duration': info['duration'],
-        }
+        entries = [{
+            'id': compat_str(video_info['id']),
+            'formats': self._extract_m3u8_formats(
+                video_info['src'], video_id, ext='mp4',
+                note='Download m3u8 information for video %d' % (idx + 1)),
+            'title': video_info['title'],
+            'description': video_info.get('description'),
+            'duration': parse_duration(video_info.get('video_length')),
+            'webpage_url': video_info.get('href'),
+            'thumbnail': video_info.get('thumbnailURL'),
+            'alt_title': video_info.get('secondary_title'),
+            'timestamp': parse_iso8601(video_info.get('publishedDate')),
+        } for idx, video_info in enumerate(info['playlist'])]
+
+        return self.playlist_result(entries, video_id, video_title)

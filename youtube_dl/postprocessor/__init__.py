@@ -1,27 +1,38 @@
 from __future__ import unicode_literals
 
-from .atomicparsley import AtomicParsleyPP
+from .embedthumbnail import EmbedThumbnailPP
 from .ffmpeg import (
     FFmpegPostProcessor,
-    FFmpegAudioFixPP,
     FFmpegEmbedSubtitlePP,
     FFmpegExtractAudioPP,
+    FFmpegFixupStretchedPP,
+    FFmpegFixupM4aPP,
     FFmpegMergerPP,
     FFmpegMetadataPP,
-    FFmpegVideoConvertor,
+    FFmpegVideoConvertorPP,
+    FFmpegSubtitlesConvertorPP,
 )
 from .xattrpp import XAttrMetadataPP
 from .execafterdownload import ExecAfterDownloadPP
+from .metadatafromtitle import MetadataFromTitlePP
+
+
+def get_postprocessor(key):
+    return globals()[key + 'PP']
+
 
 __all__ = [
-    'AtomicParsleyPP',
+    'EmbedThumbnailPP',
     'ExecAfterDownloadPP',
-    'FFmpegAudioFixPP',
     'FFmpegEmbedSubtitlePP',
     'FFmpegExtractAudioPP',
+    'FFmpegFixupM4aPP',
+    'FFmpegFixupStretchedPP',
     'FFmpegMergerPP',
     'FFmpegMetadataPP',
     'FFmpegPostProcessor',
-    'FFmpegVideoConvertor',
+    'FFmpegSubtitlesConvertorPP',
+    'FFmpegVideoConvertorPP',
+    'MetadataFromTitlePP',
     'XAttrMetadataPP',
 ]

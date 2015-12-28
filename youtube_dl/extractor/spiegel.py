@@ -9,7 +9,7 @@ from .spiegeltv import SpiegeltvIE
 
 
 class SpiegelIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/video/[^/]*-(?P<id>[0-9]+)(?:-embed)?(?:\.html)?(?:#.*)?$'
+    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/video/[^/]*-(?P<id>[0-9]+)(?:-embed|-iframe)?(?:\.html)?(?:#.*)?$'
     _TESTS = [{
         'url': 'http://www.spiegel.de/video/vulkan-tungurahua-in-ecuador-ist-wieder-aktiv-video-1259285.html',
         'md5': '2c2754212136f35fb4b19767d242f66e',
@@ -39,6 +39,9 @@ class SpiegelIE(InfoExtractor):
             'description': 'SPIEGEL ONLINE-Nutzer durften den deutschen Astronauten Alexander Gerst über sein Leben auf der ISS-Station befragen. Hier kommen seine Antworten auf die besten sechs Fragen.',
             'title': 'Fragen an Astronaut Alexander Gerst: "Bekommen Sie die Tageszeiten mit?"',
         }
+    }, {
+        'url': 'http://www.spiegel.de/video/astronaut-alexander-gerst-von-der-iss-station-beantwortet-fragen-video-1519126-iframe.html',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -55,28 +58,30 @@ class SpiegelIE(InfoExtractor):
         description = self._html_search_meta('description', webpage, 'description')
 
         base_url = self._search_regex(
-            r'var\s+server\s*=\s*"([^"]+)\"', webpage, 'server URL')
+            [r'server\s*:\s*(["\'])(?P<url>.+?)\1', r'var\s+server\s*=\s*"(?P<url>[^"]+)\"'],
+            webpage, 'server URL', group='url')
 
         xml_url = base_url + video_id + '.xml'
         idoc = self._download_xml(xml_url, video_id)
 
-        formats = [
-            {
-                'format_id': n.tag.rpartition('type')[2],
-                'url': base_url + n.find('./filename').text,
-                'width': int(n.find('./width').text),
-                'height': int(n.find('./height').text),
-                'abr': int(n.find('./audiobitrate').text),
-                'vbr': int(n.find('./videobitrate').text),
-                'vcodec': n.find('./codec').text,
-                'acodec': 'MP4A',
-            }
-            for n in list(idoc)
-            # Blacklist type 6, it's extremely LQ and not available on the same server
-            if n.tag.startswith('type') and n.tag != 'type6'
-        ]
+        formats = []
+        for n in list(idoc):
+            if n.tag.startswith('type') and n.tag != 'type6':
+                format_id = n.tag.rpartition('type')[2]
+                video_url = base_url + n.find('./filename').text
+                formats.append({
+                    'format_id': format_id,
+                    'url': video_url,
+                    'width': int(n.find('./width').text),
+                    'height': int(n.find('./height').text),
+                    'abr': int(n.find('./audiobitrate').text),
+                    'vbr': int(n.find('./videobitrate').text),
+                    'vcodec': n.find('./codec').text,
+                    'acodec': 'MP4A',
+                })
         duration = float(idoc[0].findall('./duration')[0].text)
 
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         return {

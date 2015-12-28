@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     parse_duration,
@@ -20,9 +18,10 @@ class LA7IE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.la7.tv/richplayer/?assetid=50355319',
-        'file': '50355319.mp4',
         'md5': 'ec7d1f0224d20ba293ab56cf2259651f',
         'info_dict': {
+            'id': '50355319',
+            'ext': 'mp4',
             'title': 'IL DIVO',
             'description': 'Un film di Paolo Sorrentino con Toni Servillo, Anna Bonaiuto, Giulio Bosetti  e Flavio Bucci',
             'duration': 6254,
@@ -31,9 +30,7 @@ class LA7IE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         xml_url = 'http://www.la7.tv/repliche/content/index.php?contentId=%s' % video_id
         doc = self._download_xml(xml_url, video_id)
 

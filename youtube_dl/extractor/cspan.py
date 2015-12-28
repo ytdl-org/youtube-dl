@@ -7,7 +7,11 @@ from ..utils import (
     int_or_none,
     unescapeHTML,
     find_xpath_attr,
+    smuggle_url,
+    determine_ext,
+    ExtractorError,
 )
+from .senateisvp import SenateISVPIE
 
 
 class CSpanIE(InfoExtractor):
@@ -15,76 +19,120 @@ class CSpanIE(InfoExtractor):
     IE_DESC = 'C-SPAN'
     _TESTS = [{
         'url': 'http://www.c-span.org/video/?313572-1/HolderonV',
-        'md5': '8e44ce11f0f725527daccc453f553eb0',
+        'md5': '94b29a4f131ff03d23471dd6f60b6a1d',
         'info_dict': {
             'id': '315139',
             'ext': 'mp4',
             'title': 'Attorney General Eric Holder on Voting Rights Act Decision',
-            'description': 'Attorney General Eric Holder spoke to reporters following the Supreme Court decision in Shelby County v. Holder in which the court ruled that the preclearance provisions of the Voting Rights Act could not be enforced until Congress established new guidelines for review.',
+            'description': 'Attorney General Eric Holder speaks to reporters following the Supreme Court decision in [Shelby County v. Holder], in which the court ruled that the preclearance provisions of the Voting Rights Act could not be enforced.',
         },
         'skip': 'Regularly fails on travis, for unknown reasons',
     }, {
         'url': 'http://www.c-span.org/video/?c4486943/cspan-international-health-care-models',
-        # For whatever reason, the served video alternates between
-        # two different ones
-        #'md5': 'dbb0f047376d457f2ab8b3929cbb2d0c',
+        'md5': '8e5fbfabe6ad0f89f3012a7943c1287b',
         'info_dict': {
-            'id': '340723',
+            'id': 'c4486943',
             'ext': 'mp4',
-            'title': 'International Health Care Models',
+            'title': 'CSPAN - International Health Care Models',
             'description': 'md5:7a985a2d595dba00af3d9c9f0783c967',
         }
     }, {
         'url': 'http://www.c-span.org/video/?318608-1/gm-ignition-switch-recall',
+        'md5': '2ae5051559169baadba13fc35345ae74',
         'info_dict': {
             'id': '342759',
+            'ext': 'mp4',
             'title': 'General Motors Ignition Switch Recall',
+            'duration': 14848,
+            'description': 'md5:118081aedd24bf1d3b68b3803344e7f3'
         },
-        'playlist_duration_sum': 14855,
+    }, {
+        # Video from senate.gov
+        'url': 'http://www.c-span.org/video/?104517-1/immigration-reforms-needed-protect-skilled-american-workers',
+        'info_dict': {
+            'id': 'judiciary031715',
+            'ext': 'flv',
+            'title': 'Immigration Reforms Needed to Protect Skilled American Workers',
+        }
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        page_id = mobj.group('id')
-        webpage = self._download_webpage(url, page_id)
-        video_id = self._search_regex(r'progid=\'?([0-9]+)\'?>', webpage, 'video id')
+        video_id = self._match_id(url)
+        video_type = None
+        webpage = self._download_webpage(url, video_id)
+        # We first look for clipid, because clipprog always appears before
+        patterns = [r'id=\'clip(%s)\'\s*value=\'([0-9]+)\'' % t for t in ('id', 'prog')]
+        results = list(filter(None, (re.search(p, webpage) for p in patterns)))
+        if results:
+            matches = results[0]
+            video_type, video_id = matches.groups()
+            video_type = 'clip' if video_type == 'id' else 'program'
+        else:
+            senate_isvp_url = SenateISVPIE._search_iframe_url(webpage)
+            if senate_isvp_url:
+                title = self._og_search_title(webpage)
+                surl = smuggle_url(senate_isvp_url, {'force_title': title})
+                return self.url_result(surl, 'SenateISVP', video_id, title)
+        if video_type is None or video_id is None:
+            raise ExtractorError('unable to find video id and type')
 
-        description = self._html_search_regex(
-            [
-                # The full description
-                r'<div class=\'expandable\'>(.*?)<a href=\'#\'',
-                # If the description is small enough the other div is not
-                # present, otherwise this is a stripped version
-                r'<p class=\'initial\'>(.*?)</p>'
-            ],
-            webpage, 'description', flags=re.DOTALL)
+        def get_text_attr(d, attr):
+            return d.get(attr, {}).get('#text')
 
-        info_url = 'http://c-spanvideo.org/videoLibrary/assets/player/ajax-player.php?os=android&html5=program&id=' + video_id
-        data = self._download_json(info_url, video_id)
+        data = self._download_json(
+            'http://www.c-span.org/assets/player/ajax-player.php?os=android&html5=%s&id=%s' % (video_type, video_id),
+            video_id)['video']
+        if data['@status'] != 'Success':
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, get_text_attr(data, 'error')), expected=True)
 
         doc = self._download_xml(
-            'http://www.c-span.org/common/services/flashXml.php?programid=' + video_id,
+            'http://www.c-span.org/common/services/flashXml.php?%sid=%s' % (video_type, video_id),
             video_id)
+
+        description = self._html_search_meta('description', webpage)
 
         title = find_xpath_attr(doc, './/string', 'name', 'title').text
         thumbnail = find_xpath_attr(doc, './/string', 'name', 'poster').text
 
-        files = data['video']['files']
+        files = data['files']
+        capfile = get_text_attr(data, 'capfile')
 
-        entries = [{
-            'id': '%s_%d' % (video_id, partnum + 1),
-            'title': (
-                title if len(files) == 1 else
-                '%s part %d' % (title, partnum + 1)),
-            'url': unescapeHTML(f['path']['#text']),
-            'description': description,
-            'thumbnail': thumbnail,
-            'duration': int_or_none(f.get('length', {}).get('#text')),
-        } for partnum, f in enumerate(files)]
+        entries = []
+        for partnum, f in enumerate(files):
+            formats = []
+            for quality in f['qualities']:
+                formats.append({
+                    'format_id': '%s-%sp' % (get_text_attr(quality, 'bitrate'), get_text_attr(quality, 'height')),
+                    'url': unescapeHTML(get_text_attr(quality, 'file')),
+                    'height': int_or_none(get_text_attr(quality, 'height')),
+                    'tbr': int_or_none(get_text_attr(quality, 'bitrate')),
+                })
+            self._sort_formats(formats)
+            entries.append({
+                'id': '%s_%d' % (video_id, partnum + 1),
+                'title': (
+                    title if len(files) == 1 else
+                    '%s part %d' % (title, partnum + 1)),
+                'formats': formats,
+                'description': description,
+                'thumbnail': thumbnail,
+                'duration': int_or_none(get_text_attr(f, 'length')),
+                'subtitles': {
+                    'en': [{
+                        'url': capfile,
+                        'ext': determine_ext(capfile, 'dfxp')
+                    }],
+                } if capfile else None,
+            })
 
-        return {
-            '_type': 'playlist',
-            'entries': entries,
-            'title': title,
-            'id': video_id,
-        }
+        if len(entries) == 1:
+            entry = dict(entries[0])
+            entry['id'] = 'c' + video_id if video_type == 'clip' else video_id
+            return entry
+        else:
+            return {
+                '_type': 'playlist',
+                'entries': entries,
+                'title': title,
+                'id': 'c' + video_id if video_type == 'clip' else video_id,
+            }

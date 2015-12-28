@@ -57,9 +57,7 @@ class TeacherTubeIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_meta('title', webpage, 'title', fatal=True)

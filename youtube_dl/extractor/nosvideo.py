@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    compat_urllib_request,
+    sanitized_Request,
     urlencode_postdata,
     xpath_text,
     xpath_with_ns,
@@ -32,15 +32,14 @@ class NosVideoIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         fields = {
             'id': video_id,
             'op': 'download1',
             'method_free': 'Continue to Video',
         }
-        req = compat_urllib_request.Request(url, urlencode_postdata(fields))
+        req = sanitized_Request(url, urlencode_postdata(fields))
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
         webpage = self._download_webpage(req, video_id,
                                          'Downloading download page')

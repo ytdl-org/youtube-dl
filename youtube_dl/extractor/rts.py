@@ -4,18 +4,31 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_str,
+    compat_urllib_parse_urlparse,
+)
 from ..utils import (
     int_or_none,
     parse_duration,
     parse_iso8601,
     unescapeHTML,
-    compat_str,
+    xpath_text,
 )
 
 
 class RTSIE(InfoExtractor):
     IE_DESC = 'RTS.ch'
-    _VALID_URL = r'https?://(?:www\.)?rts\.ch/(?:(?:[^/]+/){2,}(?P<id>[0-9]+)-(?P<display_id>.+?)\.html|play/tv/[^/]+/video/(?P<display_id_new>.+?)\?id=(?P<id_new>[0-9]+))'
+    _VALID_URL = r'''(?x)
+                    (?:
+                        rts:(?P<rts_id>\d+)|
+                        https?://
+                            (?:www\.)?rts\.ch/
+                            (?:
+                                (?:[^/]+/){2,}(?P<id>[0-9]+)-(?P<display_id>.+?)\.html|
+                                play/tv/[^/]+/video/(?P<display_id_new>.+?)\?id=(?P<id_new>[0-9]+)
+                            )
+                    )'''
 
     _TESTS = [
         {
@@ -119,6 +132,15 @@ class RTSIE(InfoExtractor):
             },
         },
         {
+            # article with videos on rhs
+            'url': 'http://www.rts.ch/sport/hockey/6693917-hockey-davos-decroche-son-31e-titre-de-champion-de-suisse.html',
+            'info_dict': {
+                'id': '6693917',
+                'title': 'Hockey: Davos décroche son 31e titre de champion de Suisse',
+            },
+            'playlist_mincount': 5,
+        },
+        {
             'url': 'http://www.rts.ch/play/tv/le-19h30/video/le-chantier-du-nouveau-parlement-vaudois-a-permis-une-trouvaille-historique?id=6348280',
             'only_matching': True,
         }
@@ -126,7 +148,7 @@ class RTSIE(InfoExtractor):
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
-        video_id = m.group('id') or m.group('id_new')
+        video_id = m.group('rts_id') or m.group('id') or m.group('id_new')
         display_id = m.group('display_id') or m.group('display_id_new')
 
         def download_json(internal_id):
@@ -139,6 +161,15 @@ class RTSIE(InfoExtractor):
         # video_id extracted out of URL is not always a real id
         if 'video' not in all_info and 'audio' not in all_info:
             page = self._download_webpage(url, display_id)
+
+            # article with videos on rhs
+            videos = re.findall(
+                r'<article[^>]+class="content-item"[^>]*>\s*<a[^>]+data-video-urn="urn:rts:video:(\d+)"',
+                page)
+            if videos:
+                entries = [self.url_result('rts:%s' % video_urn, 'RTS') for video_urn in videos]
+                return self.playlist_result(entries, video_id, self._og_search_title(page))
+
             internal_id = self._html_search_regex(
                 r'<(?:video|audio) data-id="([0-9]+)"', page,
                 'internal video id')
@@ -157,11 +188,27 @@ class RTSIE(InfoExtractor):
             return int_or_none(self._search_regex(
                 r'-([0-9]+)k\.', url, 'bitrate', default=None))
 
-        formats = [{
-            'format_id': fid,
-            'url': furl,
-            'tbr': extract_bitrate(furl),
-        } for fid, furl in info['streams'].items()]
+        formats = []
+        for format_id, format_url in info['streams'].items():
+            if format_url.endswith('.f4m'):
+                token = self._download_xml(
+                    'http://tp.srgssr.ch/token/akahd.xml?stream=%s/*' % compat_urllib_parse_urlparse(format_url).path,
+                    video_id, 'Downloading %s token' % format_id)
+                auth_params = xpath_text(token, './/authparams', 'auth params')
+                if not auth_params:
+                    continue
+                formats.extend(self._extract_f4m_formats(
+                    '%s?%s&hdcore=3.4.0&plugin=aasp-3.4.0.132.66' % (format_url, auth_params),
+                    video_id, f4m_id=format_id))
+            elif format_url.endswith('.m3u8'):
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', m3u8_id=format_id))
+            else:
+                formats.append({
+                    'format_id': format_id,
+                    'url': format_url,
+                    'tbr': extract_bitrate(format_url),
+                })
 
         if 'media' in info:
             formats.extend([{
@@ -170,6 +217,7 @@ class RTSIE(InfoExtractor):
                 'tbr': media['rate'] or extract_bitrate(media['url']),
             } for media in info['media'] if media.get('rate')])
 
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         return {

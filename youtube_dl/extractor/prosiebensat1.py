@@ -5,8 +5,14 @@ import re
 
 from hashlib import sha1
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_urllib_parse,
+)
+from ..utils import (
+    ExtractorError,
+    determine_ext,
+    float_or_none,
+    int_or_none,
     unified_strdate,
 )
 
@@ -14,15 +20,20 @@ from ..utils import (
 class ProSiebenSat1IE(InfoExtractor):
     IE_NAME = 'prosiebensat1'
     IE_DESC = 'ProSiebenSat.1 Digital'
-    _VALID_URL = r'https?://(?:www\.)?(?:(?:prosieben|prosiebenmaxx|sixx|sat1|kabeleins|ran|the-voice-of-germany)\.de|fem\.com)/(?P<id>.+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:(?:prosieben|prosiebenmaxx|sixx|sat1|kabeleins|the-voice-of-germany)\.(?:de|at|ch)|ran\.de|fem\.com)/(?P<id>.+)'
 
     _TESTS = [
         {
+            # Tests changes introduced in https://github.com/rg3/youtube-dl/pull/6242
+            # in response to fixing https://github.com/rg3/youtube-dl/issues/6215:
+            # - malformed f4m manifest support
+            # - proper handling of URLs starting with `https?://` in 2.0 manifests
+            # - recursive child f4m manifests extraction
             'url': 'http://www.prosieben.de/tv/circus-halligalli/videos/218-staffel-2-episode-18-jahresrueckblick-ganze-folge',
             'info_dict': {
                 'id': '2104602',
                 'ext': 'mp4',
-                'title': 'Staffel 2, Episode 18 - Jahresrückblick',
+                'title': 'Episode 18 - Staffel 2',
                 'description': 'md5:8733c81b702ea472e069bc48bb658fc1',
                 'upload_date': '20131231',
                 'duration': 5845.04,
@@ -85,7 +96,7 @@ class ProSiebenSat1IE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Im Interview: Kai Wiesinger',
                 'description': 'md5:e4e5370652ec63b95023e914190b4eb9',
-                'upload_date': '20140225',
+                'upload_date': '20140203',
                 'duration': 522.56,
             },
             'params': {
@@ -100,7 +111,7 @@ class ProSiebenSat1IE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Jagd auf Fertigkost im Elsthal - Teil 2',
                 'description': 'md5:2669cde3febe9bce13904f701e774eb6',
-                'upload_date': '20140225',
+                'upload_date': '20141014',
                 'duration': 2410.44,
             },
             'params': {
@@ -152,18 +163,29 @@ class ProSiebenSat1IE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            'url': 'http://www.prosieben.de/tv/joko-gegen-klaas/videos/playlists/episode-8-ganze-folge-playlist',
+            'info_dict': {
+                'id': '439664',
+                'title': 'Episode 8 - Ganze Folge - Playlist',
+                'description': 'md5:63b8963e71f481782aeea877658dec84',
+            },
+            'playlist_count': 2,
+        },
     ]
 
     _CLIPID_REGEXES = [
         r'"clip_id"\s*:\s+"(\d+)"',
         r'clipid: "(\d+)"',
         r'clip[iI]d=(\d+)',
+        r"'itemImageUrl'\s*:\s*'/dynamic/thumbnails/full/\d+/(\d+)",
     ]
     _TITLE_REGEXES = [
         r'<h2 class="subtitle" itemprop="name">\s*(.+?)</h2>',
         r'<header class="clearfix">\s*<h3>(.+?)</h3>',
         r'<!-- start video -->\s*<h1>(.+?)</h1>',
         r'<h1 class="att-name">\s*(.+?)</h1>',
+        r'<header class="module_header">\s*<h2>([^<]+)</h2>\s*</header>',
     ]
     _DESCRIPTION_REGEXES = [
         r'<p itemprop="description">\s*(.+?)</p>',
@@ -178,15 +200,23 @@ class ProSiebenSat1IE(InfoExtractor):
         r'<span style="padding-left: 4px;line-height:20px; color:#404040">(\d{2}\.\d{2}\.\d{4})</span>',
         r'(\d{2}\.\d{2}\.\d{4}) \| \d{2}:\d{2} Min<br/>',
     ]
+    _PAGE_TYPE_REGEXES = [
+        r'<meta name="page_type" content="([^"]+)">',
+        r"'itemType'\s*:\s*'([^']*)'",
+    ]
+    _PLAYLIST_ID_REGEXES = [
+        r'content[iI]d=(\d+)',
+        r"'itemId'\s*:\s*'([^']*)'",
+    ]
+    _PLAYLIST_CLIP_REGEXES = [
+        r'(?s)data-qvt=.+?<a href="([^"]+)"',
+    ]
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-
+    def _extract_clip(self, url, webpage):
         clip_id = self._html_search_regex(self._CLIPID_REGEXES, webpage, 'clip id')
 
-        access_token = 'testclient'
-        client_name = 'kolibri-1.2.5'
+        access_token = 'prosieben'
+        client_name = 'kolibri-2.0.19-splec4'
         client_location = url
 
         videos_api_url = 'http://vas.sim-technik.de/vas/live/v2/videos?%s' % compat_urllib_parse.urlencode({
@@ -196,10 +226,13 @@ class ProSiebenSat1IE(InfoExtractor):
             'ids': clip_id,
         })
 
-        videos = self._download_json(videos_api_url, clip_id, 'Downloading videos JSON')
+        video = self._download_json(videos_api_url, clip_id, 'Downloading videos JSON')[0]
 
-        duration = float(videos[0]['duration'])
-        source_ids = [source['id'] for source in videos[0]['sources']]
+        if video.get('is_protected') is True:
+            raise ExtractorError('This video is DRM protected.', expected=True)
+
+        duration = float_or_none(video.get('duration'))
+        source_ids = [source['id'] for source in video['sources']]
         source_ids_str = ','.join(map(str, source_ids))
 
         g = '01!8d8F_)r9]4s[qeuXfP%'
@@ -246,27 +279,37 @@ class ProSiebenSat1IE(InfoExtractor):
             urls_sources = urls_sources.values()
 
         def fix_bitrate(bitrate):
+            bitrate = int_or_none(bitrate)
+            if not bitrate:
+                return None
             return (bitrate // 1000) if bitrate % 1000 == 0 else bitrate
 
         for source in urls_sources:
             protocol = source['protocol']
+            source_url = source['url']
             if protocol == 'rtmp' or protocol == 'rtmpe':
-                mobj = re.search(r'^(?P<url>rtmpe?://[^/]+/(?P<app>[^/]+))/(?P<playpath>.+)$', source['url'])
+                mobj = re.search(r'^(?P<url>rtmpe?://[^/]+)/(?P<path>.+)$', source_url)
                 if not mobj:
                     continue
+                path = mobj.group('path')
+                mp4colon_index = path.rfind('mp4:')
+                app = path[:mp4colon_index]
+                play_path = path[mp4colon_index:]
                 formats.append({
-                    'url': mobj.group('url'),
-                    'app': mobj.group('app'),
-                    'play_path': mobj.group('playpath'),
+                    'url': '%s/%s' % (mobj.group('url'), app),
+                    'app': app,
+                    'play_path': play_path,
                     'player_url': 'http://livepassdl.conviva.com/hf/ver/2.79.0.17083/LivePassModuleMain.swf',
                     'page_url': 'http://www.prosieben.de',
                     'vbr': fix_bitrate(source['bitrate']),
                     'ext': 'mp4',
                     'format_id': '%s_%s' % (source['cdn'], source['bitrate']),
                 })
+            elif 'f4mgenerator' in source_url or determine_ext(source_url) == 'f4m':
+                formats.extend(self._extract_f4m_formats(source_url, clip_id))
             else:
                 formats.append({
-                    'url': source['url'],
+                    'url': source_url,
                     'vbr': fix_bitrate(source['bitrate']),
                 })
 
@@ -281,3 +324,31 @@ class ProSiebenSat1IE(InfoExtractor):
             'duration': duration,
             'formats': formats,
         }
+
+    def _extract_playlist(self, url, webpage):
+        playlist_id = self._html_search_regex(
+            self._PLAYLIST_ID_REGEXES, webpage, 'playlist id')
+        for regex in self._PLAYLIST_CLIP_REGEXES:
+            playlist_clips = re.findall(regex, webpage)
+            if playlist_clips:
+                title = self._html_search_regex(
+                    self._TITLE_REGEXES, webpage, 'title')
+                description = self._html_search_regex(
+                    self._DESCRIPTION_REGEXES, webpage, 'description', fatal=False)
+                entries = [
+                    self.url_result(
+                        re.match('(.+?//.+?)/', url).group(1) + clip_path,
+                        'ProSiebenSat1')
+                    for clip_path in playlist_clips]
+                return self.playlist_result(entries, playlist_id, title, description)
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        page_type = self._search_regex(
+            self._PAGE_TYPE_REGEXES, webpage,
+            'page type', default='clip').lower()
+        if page_type == 'clip':
+            return self._extract_clip(url, webpage)
+        elif page_type == 'playlist':
+            return self._extract_playlist(url, webpage)

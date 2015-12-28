@@ -6,7 +6,6 @@ import json
 from .common import InfoExtractor
 from .youtube import YoutubeIE
 from ..utils import (
-    compat_urlparse,
     clean_html,
     ExtractorError,
     get_element_by_id,
@@ -15,28 +14,27 @@ from ..utils import (
 
 class TechTVMITIE(InfoExtractor):
     IE_NAME = 'techtv.mit.edu'
-    _VALID_URL = r'https?://techtv\.mit\.edu/(videos|embeds)/(?P<id>\d+)'
+    _VALID_URL = r'https?://techtv\.mit\.edu/(?:videos|embeds)/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://techtv.mit.edu/videos/25418-mit-dna-learning-center-set',
-        'md5': '1f8cb3e170d41fd74add04d3c9330e5f',
+        'md5': '00a3a27ee20d44bcaa0933ccec4a2cf7',
         'info_dict': {
             'id': '25418',
             'ext': 'mp4',
-            'title': 'MIT DNA Learning Center Set',
-            'description': 'md5:82313335e8a8a3f243351ba55bc1b474',
+            'title': 'MIT DNA and Protein Sets',
+            'description': 'md5:46f5c69ce434f0a97e7c628cc142802d',
         },
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         raw_page = self._download_webpage(
             'http://techtv.mit.edu/videos/%s' % video_id, video_id)
         clean_page = re.compile(r'<!--.*?-->', re.S).sub('', raw_page)
 
-        base_url = self._search_regex(
-            r'ipadUrl: \'(.+?cloudfront.net/)', raw_page, 'base url')
+        base_url = self._proto_relative_url(self._search_regex(
+            r'ipadUrl: \'(.+?cloudfront.net/)', raw_page, 'base url'), 'http:')
         formats_json = self._search_regex(
             r'bitrates: (\[.+?\])', raw_page, 'video formats')
         formats_mit = json.loads(formats_json)
@@ -88,7 +86,7 @@ class MITIE(TechTVMITIE):
         webpage = self._download_webpage(url, page_title)
         embed_url = self._search_regex(
             r'<iframe .*?src="(.+?)"', webpage, 'embed url')
-        return self.url_result(embed_url, ie='TechTVMIT')
+        return self.url_result(embed_url)
 
 
 class OCWMITIE(InfoExtractor):
@@ -104,7 +102,9 @@ class OCWMITIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Lecture 7: Multiple Discrete Random Variables: Expectations, Conditioning, Independence',
                 'description': 'In this lecture, the professor discussed multiple random variables, expectations, and binomial distribution.',
-                #'subtitles': 'http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-041-probabilistic-systems-analysis-and-applied-probability-fall-2010/video-lectures/lecture-7-multiple-variables-expectations-independence/MIT6_041F11_lec07_300k.mp4.srt'
+                'upload_date': '20121109',
+                'uploader_id': 'MIT',
+                'uploader': 'MIT OpenCourseWare',
             }
         },
         {
@@ -113,8 +113,10 @@ class OCWMITIE(InfoExtractor):
                 'id': '7K1sB05pE0A',
                 'ext': 'mp4',
                 'title': 'Session 1: Introduction to Derivatives',
+                'upload_date': '20090818',
+                'uploader_id': 'MIT',
+                'uploader': 'MIT OpenCourseWare',
                 'description': 'This section contains lecture video excerpts, lecture notes, an interactive mathlet with supporting documents, and problem solving videos.',
-                #'subtitles': 'http://ocw.mit.edu//courses/mathematics/18-01sc-single-variable-calculus-fall-2010/ocw-18.01-f07-lec01_300k.SRT'
             }
         }
     ]
@@ -133,7 +135,6 @@ class OCWMITIE(InfoExtractor):
             metadata = re.sub(r'[\'"]', '', embed_chapter_media.group(1))
             metadata = re.split(r', ?', metadata)
             yt = metadata[1]
-            subs = compat_urlparse.urljoin(self._BASE_URL, metadata[7])
         else:
             # search for call to ocw_embed_chapter_media(container_id, media_url, provider, page_url, image_url, captions_file)
             embed_media = re.search(r'ocw_embed_media\((.+?)\)', webpage)
@@ -141,7 +142,6 @@ class OCWMITIE(InfoExtractor):
                 metadata = re.sub(r'[\'"]', '', embed_media.group(1))
                 metadata = re.split(r', ?', metadata)
                 yt = metadata[1]
-                subs = compat_urlparse.urljoin(self._BASE_URL, metadata[5])
             else:
                 raise ExtractorError('Unable to find embedded YouTube video.')
         video_id = YoutubeIE.extract_id(yt)
@@ -152,7 +152,5 @@ class OCWMITIE(InfoExtractor):
             'title': title,
             'description': description,
             'url': yt,
-            'url_transparent'
-            'subtitles': subs,
             'ie_key': 'Youtube',
         }

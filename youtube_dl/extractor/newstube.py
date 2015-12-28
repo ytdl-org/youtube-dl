@@ -31,7 +31,7 @@ class NewstubeIE(InfoExtractor):
         page = self._download_webpage(url, video_id, 'Downloading page')
 
         video_guid = self._html_search_regex(
-            r'<meta property="og:video" content="https?://(?:www\.)?newstube\.ru/freshplayer\.swf\?guid=(?P<guid>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})',
+            r'<meta property="og:video:url" content="https?://(?:www\.)?newstube\.ru/freshplayer\.swf\?guid=(?P<guid>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})',
             page, 'video GUID')
 
         player = self._download_xml(

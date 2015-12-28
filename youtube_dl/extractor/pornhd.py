@@ -8,7 +8,6 @@ from ..utils import (
     int_or_none,
     js_to_json,
     qualities,
-    determine_ext,
 )
 
 
@@ -37,7 +36,8 @@ class PornHdIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id or video_id)
 
         title = self._html_search_regex(
-            r'<title>(.+) porn HD.+?</title>', webpage, 'title')
+            [r'<span[^>]+class=["\']video-name["\'][^>]*>([^<]+)',
+             r'<title>(.+?) - .*?[Pp]ornHD.*?</title>'], webpage, 'title')
         description = self._html_search_regex(
             r'<div class="description">([^<]+)</div>', webpage, 'description', fatal=False)
         view_count = int_or_none(self._html_search_regex(
@@ -45,13 +45,19 @@ class PornHdIE(InfoExtractor):
         thumbnail = self._search_regex(
             r"'poster'\s*:\s*'([^']+)'", webpage, 'thumbnail', fatal=False)
 
-        quality = qualities(['SD', 'HD'])
-        formats = [{
-            'url': source['file'],
-            'format_id': '%s-%s' % (source['label'], determine_ext(source['file'])),
-            'quality': quality(source['label']),
-        } for source in json.loads(js_to_json(self._search_regex(
-            r"(?s)'sources'\s*:\s*(\[.+?\])", webpage, 'sources')))]
+        quality = qualities(['sd', 'hd'])
+        sources = json.loads(js_to_json(self._search_regex(
+            r"(?s)'sources'\s*:\s*(\{.+?\})\s*\}[;,)]",
+            webpage, 'sources')))
+        formats = []
+        for qname, video_url in sources.items():
+            if not video_url:
+                continue
+            formats.append({
+                'url': video_url,
+                'format_id': qname,
+                'quality': quality(qname),
+            })
         self._sort_formats(formats)
 
         return {

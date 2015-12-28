@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import re
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse
 from ..utils import (
-    compat_urllib_parse,
-    compat_urllib_request,
+    ExtractorError,
+    sanitized_Request,
 )
 
 
 class VodlockerIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vodlocker\.com/(?P<id>[0-9a-zA-Z]+)(?:\..*?)?'
+    _VALID_URL = r'https?://(?:www\.)?vodlocker\.com/(?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:\..*?)?'
 
     _TESTS = [{
         'url': 'http://vodlocker.com/e8wvyzz4sl42',
@@ -24,21 +24,21 @@ class VodlockerIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        fields = dict(re.findall(r'''(?x)<input\s+
-            type="hidden"\s+
-            name="([^"]+)"\s+
-            (?:id="[^"]+"\s+)?
-            value="([^"]*)"
-            ''', webpage))
+        if any(p in webpage for p in (
+                '>THIS FILE WAS DELETED<',
+                '>File Not Found<',
+                'The file you were looking for could not be found, sorry for any inconvenience.<')):
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+
+        fields = self._hidden_inputs(webpage)
 
         if fields['op'] == 'download1':
             self._sleep(3, video_id)  # they do detect when requests happen too fast!
             post = compat_urllib_parse.urlencode(fields)
-            req = compat_urllib_request.Request(url, post)
+            req = sanitized_Request(url, post)
             req.add_header('Content-type', 'application/x-www-form-urlencoded')
             webpage = self._download_webpage(
                 req, video_id, 'Downloading video page')

@@ -89,7 +89,7 @@ def generator(test_case):
 
         for tc in test_cases:
             info_dict = tc.get('info_dict', {})
-            if not tc.get('file') and not (info_dict.get('id') and info_dict.get('ext')):
+            if not (info_dict.get('id') and info_dict.get('ext')):
                 raise Exception('Test definition incorrect. The output file cannot be known. Are both \'id\' and \'ext\' keys present?')
 
         if 'skip' in test_case:
@@ -102,7 +102,7 @@ def generator(test_case):
 
         params = get_params(test_case.get('params', {}))
         if is_playlist and 'playlist' not in test_case:
-            params.setdefault('extract_flat', True)
+            params.setdefault('extract_flat', 'in_playlist')
             params.setdefault('skip_download', True)
 
         ydl = YoutubeDL(params, auto_init=False)
@@ -116,7 +116,7 @@ def generator(test_case):
         expect_warnings(ydl, test_case.get('expected_warnings', []))
 
         def get_tc_filename(tc):
-            return tc.get('file') or ydl.prepare_filename(tc.get('info_dict', {}))
+            return ydl.prepare_filename(tc.get('info_dict', {}))
 
         res_dict = None
 
@@ -136,7 +136,9 @@ def generator(test_case):
                     # We're not using .download here sine that is just a shim
                     # for outside error handling, and returns the exit code
                     # instead of the result dict.
-                    res_dict = ydl.extract_info(test_case['url'])
+                    res_dict = ydl.extract_info(
+                        test_case['url'],
+                        force_generic_extractor=params.get('force_generic_extractor', False))
                 except (DownloadError, ExtractorError) as err:
                     # Check if the exception is not a network related one
                     if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError, compat_http_client.BadStatusLine) or (err.exc_info[0] == compat_HTTPError and err.exc_info[1].code == 503):
@@ -153,9 +155,9 @@ def generator(test_case):
                     break
 
             if is_playlist:
-                self.assertEqual(res_dict['_type'], 'playlist')
+                self.assertTrue(res_dict['_type'] in ['playlist', 'multi_video'])
                 self.assertTrue('entries' in res_dict)
-                expect_info_dict(self, test_case.get('info_dict', {}), res_dict)
+                expect_info_dict(self, res_dict, test_case.get('info_dict', {}))
 
             if 'playlist_mincount' in test_case:
                 assertGreaterEqual(
@@ -204,7 +206,7 @@ def generator(test_case):
                 with io.open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
 
-                expect_info_dict(self, tc.get('info_dict', {}), info_dict)
+                expect_info_dict(self, info_dict, tc.get('info_dict', {}))
         finally:
             try_rm_tcs_files()
             if is_playlist and res_dict is not None and res_dict.get('entries'):

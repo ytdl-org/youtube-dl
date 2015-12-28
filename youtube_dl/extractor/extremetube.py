@@ -4,20 +4,19 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_urllib_parse_urlparse,
-    compat_urllib_request,
-    compat_urllib_parse,
+    int_or_none,
+    sanitized_Request,
     str_to_int,
 )
 
 
 class ExtremeTubeIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?(?P<url>extremetube\.com/.*?video/.+?(?P<videoid>[0-9]+))(?:[/?&]|$)'
+    _VALID_URL = r'https?://(?:www\.)?extremetube\.com/(?:[^/]+/)?video/(?P<id>[^/#?&]+)'
     _TESTS = [{
         'url': 'http://www.extremetube.com/video/music-video-14-british-euro-brit-european-cumshots-swallow-652431',
-        'md5': '1fb9228f5e3332ec8c057d6ac36f33e0',
+        'md5': '344d0c6d50e2f16b06e49ca011d8ac69',
         'info_dict': {
-            'id': '652431',
+            'id': 'music-video-14-british-euro-brit-european-cumshots-swallow-652431',
             'ext': 'mp4',
             'title': 'Music Video 14 british euro brit european cumshots swallow',
             'uploader': 'unknown',
@@ -27,14 +26,18 @@ class ExtremeTubeIE(InfoExtractor):
     }, {
         'url': 'http://www.extremetube.com/gay/video/abcde-1234',
         'only_matching': True,
+    }, {
+        'url': 'http://www.extremetube.com/video/latina-slut-fucked-by-fat-black-dick',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.extremetube.com/video/652431',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('videoid')
-        url = 'http://www.' + mobj.group('url')
+        video_id = self._match_id(url)
 
-        req = compat_urllib_request.Request(url)
+        req = sanitized_Request(url)
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
@@ -47,19 +50,43 @@ class ExtremeTubeIE(InfoExtractor):
             r'Views:\s*</strong>\s*<span>([\d,\.]+)</span>',
             webpage, 'view count', fatal=False))
 
-        video_url = compat_urllib_parse.unquote(self._html_search_regex(
-            r'video_url=(.+?)&amp;', webpage, 'video_url'))
-        path = compat_urllib_parse_urlparse(video_url).path
-        format = path.split('/')[5].split('_')[:2]
-        format = "-".join(format)
+        flash_vars = self._parse_json(
+            self._search_regex(
+                r'var\s+flashvars\s*=\s*({.+?});', webpage, 'flash vars'),
+            video_id)
+
+        formats = []
+        for quality_key, video_url in flash_vars.items():
+            height = int_or_none(self._search_regex(
+                r'quality_(\d+)[pP]$', quality_key, 'height', default=None))
+            if not height:
+                continue
+            f = {
+                'url': video_url,
+            }
+            mobj = re.search(
+                r'/(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+', video_url)
+            if mobj:
+                height = int(mobj.group('height'))
+                bitrate = int(mobj.group('bitrate'))
+                f.update({
+                    'format_id': '%dp-%dk' % (height, bitrate),
+                    'height': height,
+                    'tbr': bitrate,
+                })
+            else:
+                f.update({
+                    'format_id': '%dp' % height,
+                    'height': height,
+                })
+            formats.append(f)
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': video_title,
+            'formats': formats,
             'uploader': uploader,
             'view_count': view_count,
-            'url': video_url,
-            'format': format,
-            'format_id': format,
             'age_limit': 18,
         }

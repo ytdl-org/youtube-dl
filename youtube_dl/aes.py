@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-__all__ = ['aes_encrypt', 'key_expansion', 'aes_ctr_decrypt', 'aes_cbc_decrypt', 'aes_decrypt_text']
-
 import base64
 from math import ceil
 
@@ -154,7 +152,7 @@ def aes_decrypt_text(data, password, key_size_bytes):
     """
     NONCE_LENGTH_BYTES = 8
 
-    data = bytes_to_intlist(base64.b64decode(data))
+    data = bytes_to_intlist(base64.b64decode(data.encode('utf-8')))
     password = bytes_to_intlist(password.encode('utf-8'))
 
     key = password[:key_size_bytes] + [0] * (key_size_bytes - len(password))
@@ -329,3 +327,5 @@ def inc(data):
             data[i] = data[i] + 1
             break
     return data
+
+__all__ = ['aes_encrypt', 'key_expansion', 'aes_ctr_decrypt', 'aes_cbc_decrypt', 'aes_decrypt_text']

@@ -35,7 +35,7 @@ if [ ! -z "$useless_files" ]; then echo "ERROR: Non-.py files in youtube_dl: $us
 if [ ! -f "updates_key.pem" ]; then echo 'ERROR: updates_key.pem missing'; exit 1; fi
 
 /bin/echo -e "\n### First of all, testing..."
-make cleanall
+make clean
 if $skip_tests ; then
     echo 'SKIPPING TESTS'
 else
@@ -45,9 +45,9 @@ fi
 /bin/echo -e "\n### Changing version in version.py..."
 sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
 
-/bin/echo -e "\n### Committing README.md and youtube_dl/version.py..."
-make README.md
-git add README.md youtube_dl/version.py
+/bin/echo -e "\n### Committing documentation and youtube_dl/version.py..."
+make README.md CONTRIBUTING.md supportedsites
+git add README.md CONTRIBUTING.md docs/supportedsites.md youtube_dl/version.py
 git commit -m "release $version"
 
 /bin/echo -e "\n### Now tagging, signing and pushing..."

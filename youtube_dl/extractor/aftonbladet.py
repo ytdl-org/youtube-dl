@@ -1,17 +1,16 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
+from ..utils import int_or_none
 
 
 class AftonbladetIE(InfoExtractor):
-    _VALID_URL = r'^http://tv\.aftonbladet\.se/webbtv.+?(?P<video_id>article[0-9]+)\.ab(?:$|[?#])'
+    _VALID_URL = r'http://tv\.aftonbladet\.se/abtv/articles/(?P<id>[0-9]+)'
     _TEST = {
-        'url': 'http://tv.aftonbladet.se/webbtv/nyheter/vetenskap/rymden/article36015.ab',
+        'url': 'http://tv.aftonbladet.se/abtv/articles/36015',
         'info_dict': {
-            'id': 'article36015',
+            'id': '36015',
             'ext': 'mp4',
             'title': 'Vulkanutbrott i rymden - nu släpper NASA bilderna',
             'description': 'Jupiters måne mest aktiv av alla himlakroppar',
@@ -21,15 +20,14 @@ class AftonbladetIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.search(self._VALID_URL, url)
-
-        video_id = mobj.group('video_id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         # find internal video meta data
         meta_url = 'http://aftonbladet-play.drlib.aptoma.no/video/%s.json'
-        internal_meta_id = self._html_search_regex(
-            r'data-aptomaId="([\w\d]+)"', webpage, 'internal_meta_id')
+        player_config = self._parse_json(self._html_search_regex(
+            r'data-player-config="([^"]+)"', webpage, 'player config'), video_id)
+        internal_meta_id = player_config['videoId']
         internal_meta_url = meta_url % internal_meta_id
         internal_meta_json = self._download_json(
             internal_meta_url, video_id, 'Downloading video meta data')
@@ -47,9 +45,9 @@ class AftonbladetIE(InfoExtractor):
             formats.append({
                 'url': 'http://%s:%d/%s/%s' % (p['address'], p['port'], p['path'], p['filename']),
                 'ext': 'mp4',
-                'width': fmt['width'],
-                'height': fmt['height'],
-                'tbr': fmt['bitrate'],
+                'width': int_or_none(fmt.get('width')),
+                'height': int_or_none(fmt.get('height')),
+                'tbr': int_or_none(fmt.get('bitrate')),
                 'protocol': 'http',
             })
         self._sort_formats(formats)
@@ -58,9 +56,9 @@ class AftonbladetIE(InfoExtractor):
             'id': video_id,
             'title': internal_meta_json['title'],
             'formats': formats,
-            'thumbnail': internal_meta_json['imageUrl'],
-            'description': internal_meta_json['shortPreamble'],
-            'timestamp': internal_meta_json['timePublished'],
-            'duration': internal_meta_json['duration'],
-            'view_count': internal_meta_json['views'],
+            'thumbnail': internal_meta_json.get('imageUrl'),
+            'description': internal_meta_json.get('shortPreamble'),
+            'timestamp': int_or_none(internal_meta_json.get('timePublished')),
+            'duration': int_or_none(internal_meta_json.get('duration')),
+            'view_count': int_or_none(internal_meta_json.get('views')),
         }

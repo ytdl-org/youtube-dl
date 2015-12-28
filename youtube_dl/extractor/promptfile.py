@@ -4,11 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse
 from ..utils import (
-    ExtractorError,
     determine_ext,
-    compat_urllib_parse,
-    compat_urllib_request,
+    ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -33,12 +33,9 @@ class PromptFileIE(InfoExtractor):
             raise ExtractorError('Video %s does not exist' % video_id,
                                  expected=True)
 
-        fields = dict(re.findall(r'''(?x)type="hidden"\s+
-            name="(.+?)"\s+
-            value="(.*?)"
-            ''', webpage))
+        fields = self._hidden_inputs(webpage)
         post = compat_urllib_parse.urlencode(fields)
-        req = compat_urllib_request.Request(url, post)
+        req = sanitized_Request(url, post)
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
         webpage = self._download_webpage(
             req, video_id, 'Downloading video page')
