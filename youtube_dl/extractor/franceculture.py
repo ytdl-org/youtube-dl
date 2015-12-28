@@ -75,7 +75,7 @@ class FranceCultureIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        return self._extract_infos_from_player(url, video_id)
+        return self._extract_from_player(url, video_id)
 
 
 class FranceCultureEmissionIE(FranceCultureIE):
