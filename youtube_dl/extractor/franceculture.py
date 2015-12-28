@@ -22,8 +22,8 @@ class FranceCultureIE(InfoExtractor):
             'alt_title': 'Carnet nomade | 13-14',
             'vcodec': 'none',
             'upload_date': '20140301',
-            'thumbnail': r're:^http://www\.franceculture\.fr/.*/images/player/Carnet-nomade\.jpg$',
-            'description': 'startswith:Avec :Jean-Baptiste Péretié pour son documentaire sur Arte "La revanche des « geeks », une enquête menée aux Etats',
+            'thumbnail': r're:^http://static\.franceculture\.fr/.*/images/player/Carnet-nomade\.jpg$',
+            'description': 'startswith:Avec :Jean-Baptiste Péretié pour son documentaire sur Arte "La revanche',
             'timestamp': 1393700400,
         }
     }
