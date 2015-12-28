@@ -135,7 +135,12 @@ from .dailymotion import (
 )
 from .daum import DaumIE
 from .dbtv import DBTVIE
-from .dcn import DCNIE
+from .dcn import (
+    DCNIE,
+    DCNVideoIE,
+    DCNLiveIE,
+    DCNSeasonIE,
+)
 from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE
 from .democracynow import DemocracynowIE
