@@ -74,7 +74,7 @@ class FacebookIE(InfoExtractor):
             return
 
         login_page_req = sanitized_Request(self._LOGIN_URL)
-        login_page_req.add_header('Cookie', 'locale=en_US')
+        self._set_cookie('facebook.com', 'locale', 'en_US')
         login_page = self._download_webpage(login_page_req, None,
                                             note='Downloading login page',
                                             errnote='Unable to download login page')
@@ -108,10 +108,17 @@ class FacebookIE(InfoExtractor):
                 self._downloader.report_warning('unable to log in: bad username/password, or exceded login rate limit (~3/min). Check credentials or wait.')
                 return
 
+            fb_dtsg = self._search_regex(
+                r'name="fb_dtsg" value="(.+?)"', login_results, 'fb_dtsg', default=None)
+            h = self._search_regex(
+                r'name="h"\s+(?:\w+="[^"]+"\s+)*?value="([^"]+)"', login_results, 'h', default=None)
+
+            if not fb_dtsg or not h:
+                return
+
             check_form = {
-                'fb_dtsg': self._search_regex(r'name="fb_dtsg" value="(.+?)"', login_results, 'fb_dtsg'),
-                'h': self._search_regex(
-                    r'name="h"\s+(?:\w+="[^"]+"\s+)*?value="([^"]+)"', login_results, 'h'),
+                'fb_dtsg': fb_dtsg,
+                'h': h,
                 'name_action_selected': 'dont_save',
             }
             check_req = sanitized_Request(self._CHECKPOINT_URL, urlencode_postdata(check_form))
