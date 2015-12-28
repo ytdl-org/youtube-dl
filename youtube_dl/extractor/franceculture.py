@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..compat import (
     compat_urlparse,
@@ -10,6 +8,7 @@ from ..compat import (
 from ..utils import (
     determine_ext,
     int_or_none,
+    ExtractorError,
 )
 
 
@@ -79,7 +78,7 @@ class FranceCultureIE(InfoExtractor):
         return self._extract_infos_from_player(url, video_id)
 
 
-class FranceCultureUrlIE(FranceCultureIE):
+class FranceCultureEmissionIE(FranceCultureIE):
     _VALID_URL = r'https?://(?:www\.)?franceculture\.fr/emission-(?P<id>[^?#]+)'
     _TEST = {
         'url': 'http://www.franceculture.fr/emission-les-carnets-de-la-creation-jean-gabriel-periot-cineaste-2015-10-13',
@@ -95,19 +94,14 @@ class FranceCultureUrlIE(FranceCultureIE):
         }
     }
 
-    # dl url
-    # find : <a class="rf-player-open" href="/player/reecouter?play=5093239"><img ...></a>
-    # extract '/player/reecouter?play=5093239' join to url base of franceculture
-    # extract mp3 with FranceCultureIE _extract_infos_from_player
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         video_path = self._html_search_regex(
-            r'<a class="rf-player-open".*?href="([^"]+)"', webpage, 'video path','no_path_player')
+            r'<a class="rf-player-open".*?href="([^"]+)"', webpage, 'video path', 'no_path_player')
         if video_path == 'no_path_player':
-            self.to_screen('no player : no sound in this page.')
+            raise ExtractorError('no player : no sound in this page.', expected=True)
             return None
-        new_id = re.search('play=(?P<id>[0-9]+)', video_path).group('id')
+        new_id = self._search_regex('play=(?P<id>[0-9]+)', video_path, 'new_id', group='id')
         video_url = compat_urlparse.urljoin(url, video_path)
         return self._extract_infos_from_player(video_url, new_id)

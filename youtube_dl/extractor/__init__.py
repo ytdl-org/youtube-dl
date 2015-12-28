@@ -200,7 +200,7 @@ from .foxnews import FoxNewsIE
 from .foxsports import FoxSportsIE
 from .franceculture import (
     FranceCultureIE,
-    FranceCultureUrlIE,
+    FranceCultureEmissionIE,
 )
 from .franceinter import FranceInterIE
 from .francetv import (
