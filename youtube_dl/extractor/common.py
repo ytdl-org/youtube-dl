@@ -910,10 +910,8 @@ class InfoExtractor(object):
                 # may differ leading to inability to resolve the format by requested
                 # bitrate in f4m downloader
                 if determine_ext(manifest_url) == 'f4m':
-                    f4m_formats = self._extract_f4m_formats(
-                        manifest_url, video_id, preference, f4m_id, fatal=fatal)
-                    if f4m_formats:
-                        formats.extend(f4m_formats)
+                    formats.extend(self._extract_f4m_formats(
+                        manifest_url, video_id, preference, f4m_id, fatal=fatal))
                     continue
             tbr = int_or_none(media_el.attrib.get('bitrate'))
             formats.append({
@@ -1147,10 +1145,8 @@ class InfoExtractor(object):
             src_url = src if src.startswith('http') else compat_urlparse.urljoin(base, src)
 
             if proto == 'm3u8' or src_ext == 'm3u8':
-                m3u8_formats = self._extract_m3u8_formats(
-                    src_url, video_id, ext or 'mp4', m3u8_id='hls', fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    src_url, video_id, ext or 'mp4', m3u8_id='hls', fatal=False))
                 continue
 
             if src_ext == 'f4m':
@@ -1162,9 +1158,7 @@ class InfoExtractor(object):
                     }
                 f4m_url += '&' if '?' in f4m_url else '?'
                 f4m_url += compat_urllib_parse.urlencode(f4m_params)
-                f4m_formats = self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False)
-                if f4m_formats:
-                    formats.extend(f4m_formats)
+                formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False))
                 continue
 
             if src_url.startswith('http') and self._is_valid_url(src, video_id):

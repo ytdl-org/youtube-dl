@@ -58,15 +58,11 @@ class RutubeIE(InfoExtractor):
         for format_id, format_url in options['video_balancer'].items():
             ext = determine_ext(format_url)
             if ext == 'm3u8':
-                m3u8_formats = self._extract_m3u8_formats(
-                    format_url, video_id, 'mp4', m3u8_id=format_id, fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', m3u8_id=format_id, fatal=False))
             elif ext == 'f4m':
-                f4m_formats = self._extract_f4m_formats(
-                    format_url, video_id, f4m_id=format_id, fatal=False)
-                if f4m_formats:
-                    formats.extend(f4m_formats)
+                formats.extend(self._extract_f4m_formats(
+                    format_url, video_id, f4m_id=format_id, fatal=False))
             else:
                 formats.append({
                     'url': format_url,

@@ -369,11 +369,9 @@ class GloboIE(InfoExtractor):
             resource_url = resource['url']
             signed_url = '%s?h=%s&k=%s' % (resource_url, signed_hash, 'flash')
             if resource_id.endswith('m3u8') or resource_url.endswith('.m3u8'):
-                m3u8_formats = self._extract_m3u8_formats(
+                formats.extend(self._extract_m3u8_formats(
                     signed_url, resource_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                    m3u8_id='hls', fatal=False))
             else:
                 formats.append({
                     'url': signed_url,

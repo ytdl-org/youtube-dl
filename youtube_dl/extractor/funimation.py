@@ -151,11 +151,9 @@ class FunimationIE(InfoExtractor):
                         errors.append(format_url)
                         continue
                     if determine_ext(format_url) == 'm3u8':
-                        m3u8_formats = self._extract_m3u8_formats(
+                        formats.extend(self._extract_m3u8_formats(
                             format_url + auth_token, display_id, 'mp4', entry_protocol='m3u8_native',
-                            preference=preference, m3u8_id='%s-hls' % funimation_id, fatal=False)
-                        if m3u8_formats:
-                            formats.extend(m3u8_formats)
+                            preference=preference, m3u8_id='%s-hls' % funimation_id, fatal=False))
                     else:
                         tbr = int_or_none(self._search_regex(
                             r'-(\d+)[Kk]', format_url, 'tbr', default=None))

@@ -57,9 +57,7 @@ class Tele13IE(InfoExtractor):
             if format_url and format_url not in urls:
                 ext = determine_ext(format_url)
                 if ext == 'm3u8':
-                    m3u8_formats = self._extract_m3u8_formats(format_url, display_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
-                    if m3u8_formats:
-                        formats.extend(m3u8_formats)
+                    formats.extend(self._extract_m3u8_formats(format_url, display_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
                 elif YoutubeIE.suitable(format_url):
                     return self.url_result(format_url, 'Youtube')
                 else:

@@ -223,11 +223,9 @@ class BBCCoUkIE(InfoExtractor):
             elif transfer_format == 'dash':
                 pass
             elif transfer_format == 'hls':
-                m3u8_formats = self._extract_m3u8_formats(
+                formats.extend(self._extract_m3u8_formats(
                     href, programme_id, ext='mp4', entry_protocol='m3u8_native',
-                    m3u8_id=supplier, fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                    m3u8_id=supplier, fatal=False))
             # Direct link
             else:
                 formats.append({

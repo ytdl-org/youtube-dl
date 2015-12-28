@@ -45,15 +45,11 @@ class AudiMediaIE(InfoExtractor):
 
             stream_url_hls = json_data.get('stream_url_hls')
             if stream_url_hls:
-                m3u8_formats = self._extract_m3u8_formats(stream_url_hls, video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls', fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                formats.extend(self._extract_m3u8_formats(stream_url_hls, video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls', fatal=False))
 
             stream_url_hds = json_data.get('stream_url_hds')
             if stream_url_hds:
-                f4m_formats = self._extract_f4m_formats(json_data.get('stream_url_hds') + '?hdcore=3.4.0', video_id, -1, f4m_id='hds', fatal=False)
-                if f4m_formats:
-                    formats.extend(f4m_formats)
+                formats.extend(self._extract_f4m_formats(json_data.get('stream_url_hds') + '?hdcore=3.4.0', video_id, -1, f4m_id='hds', fatal=False))
 
             for video_version in json_data.get('video_versions'):
                 video_version_url = video_version.get('download_url') or video_version.get('stream_url')

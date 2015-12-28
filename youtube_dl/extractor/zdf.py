@@ -125,20 +125,14 @@ class ZDFIE(InfoExtractor):
             if ext == 'meta':
                 continue
             elif ext == 'smil':
-                smil_formats = self._extract_smil_formats(
-                    video_url, video_id, fatal=False)
-                if smil_formats:
-                    formats.extend(smil_formats)
+                formats.extend(self._extract_smil_formats(
+                    video_url, video_id, fatal=False))
             elif ext == 'm3u8':
-                m3u8_formats = self._extract_m3u8_formats(
-                    video_url, video_id, 'mp4', m3u8_id='hls', fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    video_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
             elif ext == 'f4m':
-                f4m_formats = self._extract_f4m_formats(
-                    video_url, video_id, f4m_id='hds', fatal=False)
-                if f4m_formats:
-                    formats.extend(f4m_formats)
+                formats.extend(self._extract_f4m_formats(
+                    video_url, video_id, f4m_id='hds', fatal=False))
             else:
                 proto = format_m.group('proto').lower()
 

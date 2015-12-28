@@ -132,13 +132,11 @@ class ToggleIE(InfoExtractor):
             vid_format = vid_format.replace(' ', '')
             # if geo-restricted, m3u8 is inaccessible, but mp4 is okay
             if ext == 'm3u8':
-                m3u8_formats = self._extract_m3u8_formats(
+                formats.extend(self._extract_m3u8_formats(
                     video_url, video_id, ext='mp4', m3u8_id=vid_format,
                     note='Downloading %s m3u8 information' % vid_format,
                     errnote='Failed to download %s m3u8 information' % vid_format,
-                    fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                    fatal=False))
             elif ext in ('mp4', 'wvm'):
                 # wvm are drm-protected files
                 formats.append({

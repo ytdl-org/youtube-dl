@@ -469,11 +469,9 @@ class BrightcoveNewIE(InfoExtractor):
             if source_type == 'application/x-mpegURL':
                 if not src:
                     continue
-                m3u8_formats = self._extract_m3u8_formats(
+                formats.extend(self._extract_m3u8_formats(
                     src, video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                    m3u8_id='hls', fatal=False))
             else:
                 streaming_src = source.get('streaming_src')
                 stream_name, app_name = source.get('stream_name'), source.get('app_name')

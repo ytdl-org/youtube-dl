@@ -113,16 +113,12 @@ class ARDMediathekIE(InfoExtractor):
                     if quality != 'auto' and ext in ('f4m', 'm3u8'):
                         continue
                     if ext == 'f4m':
-                        f4m_formats = self._extract_f4m_formats(
+                        formats.extend(self._extract_f4m_formats(
                             stream_url + '?hdcore=3.1.1&plugin=aasp-3.1.1.69.124',
-                            video_id, preference=-1, f4m_id='hds', fatal=False)
-                        if f4m_formats:
-                            formats.extend(f4m_formats)
+                            video_id, preference=-1, f4m_id='hds', fatal=False))
                     elif ext == 'm3u8':
-                        m3u8_formats = self._extract_m3u8_formats(
-                            stream_url, video_id, 'mp4', preference=1, m3u8_id='hls', fatal=False)
-                        if m3u8_formats:
-                            formats.extend(m3u8_formats)
+                        formats.extend(self._extract_m3u8_formats(
+                            stream_url, video_id, 'mp4', preference=1, m3u8_id='hls', fatal=False))
                     else:
                         if server and server.startswith('rtmp'):
                             f = {

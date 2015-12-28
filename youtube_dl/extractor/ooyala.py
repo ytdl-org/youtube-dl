@@ -44,17 +44,11 @@ class OoyalaBaseIE(InfoExtractor):
                     urls.append(url)
                     delivery_type = stream['delivery_type']
                     if delivery_type == 'hls' or '.m3u8' in url:
-                        m3u8_formats = self._extract_m3u8_formats(url, embed_code, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
-                        if m3u8_formats:
-                            formats.extend(m3u8_formats)
+                        formats.extend(self._extract_m3u8_formats(url, embed_code, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
                     elif delivery_type == 'hds' or '.f4m' in url:
-                        f4m_formats = self._extract_f4m_formats(url, embed_code, f4m_id='hds', fatal=False)
-                        if f4m_formats:
-                            formats.extend(f4m_formats)
+                        formats.extend(self._extract_f4m_formats(url, embed_code, f4m_id='hds', fatal=False))
                     elif '.smil' in url:
-                        smil_formats = self._extract_smil_formats(url, embed_code, fatal=False)
-                        if smil_formats:
-                            formats.extend(smil_formats)
+                        formats.extend(self._extract_smil_formats(url, embed_code, fatal=False))
                     else:
                         formats.append({
                             'url': url,

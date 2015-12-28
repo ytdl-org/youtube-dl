@@ -110,23 +110,17 @@ class LivestreamIE(InfoExtractor):
 
         smil_url = video_data.get('smil_url')
         if smil_url:
-            smil_formats = self._extract_smil_formats(smil_url, video_id)
-            if smil_formats:
-                formats.extend(smil_formats)
+            formats.extend(self._extract_smil_formats(smil_url, video_id))
 
         m3u8_url = video_data.get('m3u8_url')
         if m3u8_url:
-            m3u8_formats = self._extract_m3u8_formats(
-                m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
-            if m3u8_formats:
-                formats.extend(m3u8_formats)
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
 
         f4m_url = video_data.get('f4m_url')
         if f4m_url:
-            f4m_formats = self._extract_f4m_formats(
-                f4m_url, video_id, f4m_id='hds', fatal=False)
-            if f4m_formats:
-                formats.extend(f4m_formats)
+            formats.extend(self._extract_f4m_formats(
+                f4m_url, video_id, f4m_id='hds', fatal=False))
         self._sort_formats(formats)
 
         comments = [{
@@ -158,17 +152,13 @@ class LivestreamIE(InfoExtractor):
         formats = []
         smil_url = stream_info.get('play_url')
         if smil_url:
-            smil_formats = self._extract_smil_formats(smil_url, broadcast_id)
-            if smil_formats:
-                formats.extend(smil_formats)
+            formats.extend(self._extract_smil_formats(smil_url, broadcast_id))
 
         entry_protocol = 'm3u8' if is_live else 'm3u8_native'
         m3u8_url = stream_info.get('m3u8_url')
         if m3u8_url:
-            m3u8_formats = self._extract_m3u8_formats(
-                m3u8_url, broadcast_id, 'mp4', entry_protocol, m3u8_id='hls', fatal=False)
-            if m3u8_formats:
-                formats.extend(m3u8_formats)
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, broadcast_id, 'mp4', entry_protocol, m3u8_id='hls', fatal=False))
 
         rtsp_url = stream_info.get('rtsp_url')
         if rtsp_url:
@@ -293,10 +283,8 @@ class LivestreamOriginalIE(InfoExtractor):
 
         m3u8_url = video_data.get('httpUrl')
         if m3u8_url:
-            m3u8_formats = self._extract_m3u8_formats(
-                m3u8_url, video_id, 'mp4', entry_protocol, m3u8_id='hls', fatal=False)
-            if m3u8_formats:
-                formats.extend(m3u8_formats)
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', entry_protocol, m3u8_id='hls', fatal=False))
 
         rtsp_url = video_data.get('rtspUrl')
         if rtsp_url:

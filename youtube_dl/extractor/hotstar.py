@@ -55,9 +55,7 @@ class HotStarIE(InfoExtractor):
                 format_url = format_data['src']
                 ext = determine_ext(format_url)
                 if ext == 'm3u8':
-                    m3u8_formats = self._extract_m3u8_formats(format_url, video_id, 'mp4', m3u8_id='hls', fatal=False)
-                    if m3u8_formats:
-                        formats.extend(m3u8_formats)
+                    formats.extend(self._extract_m3u8_formats(format_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
                 elif ext == 'f4m':
                     # produce broken files
                     continue

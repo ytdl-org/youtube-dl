@@ -65,18 +65,14 @@ class EitbIE(InfoExtractor):
             if token_data:
                 token = token_data.get('token')
                 if token:
-                    m3u8_formats = self._extract_m3u8_formats(
-                        '%s?hdnts=%s' % (hls_url, token), video_id, m3u8_id='hls', fatal=False)
-                    if m3u8_formats:
-                        formats.extend(m3u8_formats)
+                    formats.extend(self._extract_m3u8_formats(
+                        '%s?hdnts=%s' % (hls_url, token), video_id, m3u8_id='hls', fatal=False))
 
         hds_url = media.get('HDS_SURL')
         if hds_url:
-            f4m_formats = self._extract_f4m_formats(
+            formats.extend(self._extract_f4m_formats(
                 '%s?hdcore=3.7.0' % hds_url.replace('euskalsvod', 'euskalvod'),
-                video_id, f4m_id='hds', fatal=False)
-            if f4m_formats:
-                formats.extend(f4m_formats)
+                video_id, f4m_id='hds', fatal=False))
 
         self._sort_formats(formats)
 

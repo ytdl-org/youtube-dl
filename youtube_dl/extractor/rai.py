@@ -116,17 +116,13 @@ class RaiTVIE(InfoExtractor):
                 ext = determine_ext(media_url)
                 content_type = xpath_text(element, 'content-type')
                 if ext == 'm3u8':
-                    m3u8_formats = self._extract_m3u8_formats(
+                    formats.extend(self._extract_m3u8_formats(
                         media_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls',
-                        fatal=False)
-                    if m3u8_formats:
-                        formats.extend(m3u8_formats)
+                        fatal=False))
                 elif ext == 'f4m':
-                    f4m_formats = self._extract_f4m_formats(
+                    formats.extend(self._extract_f4m_formats(
                         media_url + '?hdcore=3.7.0&plugin=aasp-3.7.0.39.44',
-                        video_id, f4m_id='hds', fatal=False)
-                    if f4m_formats:
-                        formats.extend(f4m_formats)
+                        video_id, f4m_id='hds', fatal=False))
                 elif ext == 'stl':
                     has_subtitle = True
                 elif content_type.startswith('video/'):

@@ -134,10 +134,8 @@ class AtresPlayerIE(InfoExtractor):
 
         m3u8_url = player.get('urlVideoHls')
         if m3u8_url:
-            m3u8_formats = self._extract_m3u8_formats(
-                m3u8_url, episode_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
-            if m3u8_formats:
-                formats.extend(m3u8_formats)
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, episode_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
 
         timestamp = int_or_none(self._download_webpage(
             self._TIME_API_URL,
@@ -170,9 +168,7 @@ class AtresPlayerIE(InfoExtractor):
                 continue
             else:
                 f4m_url = video_url[:-9] + '/manifest.f4m'
-            f4m_formats = self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False)
-            if f4m_formats:
-                formats.extend(f4m_formats)
+            formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False))
         self._sort_formats(formats)
 
         path_data = player.get('pathData')

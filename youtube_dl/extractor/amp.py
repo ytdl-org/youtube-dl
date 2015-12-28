@@ -53,16 +53,12 @@ class AMPIE(InfoExtractor):
             media = media_data['@attributes']
             media_type = media['type']
             if media_type == 'video/f4m':
-                f4m_formats = self._extract_f4m_formats(
+                formats.extend(self._extract_f4m_formats(
                     media['url'] + '?hdcore=3.4.0&plugin=aasp-3.4.0.132.124',
-                    video_id, f4m_id='hds', fatal=False)
-                if f4m_formats:
-                    formats.extend(f4m_formats)
+                    video_id, f4m_id='hds', fatal=False))
             elif media_type == 'application/x-mpegURL':
-                m3u8_formats = self._extract_m3u8_formats(
-                    media['url'], video_id, 'mp4', m3u8_id='hls', fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    media['url'], video_id, 'mp4', m3u8_id='hls', fatal=False))
             else:
                 formats.append({
                     'format_id': media_data['media-category']['@attributes']['label'],

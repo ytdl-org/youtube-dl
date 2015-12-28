@@ -56,10 +56,8 @@ class DCNBaseIE(InfoExtractor):
         m3u8_url = self._html_search_regex(
             r'file\s*:\s*"([^"]+)', webpage, 'm3u8 url', fatal=False)
         if m3u8_url:
-            m3u8_formats = self._extract_m3u8_formats(
-                m3u8_url, video_id, 'mp4', entry_protocol, m3u8_id='hls', fatal=None)
-            if m3u8_formats:
-                formats.extend(m3u8_formats)
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', entry_protocol, m3u8_id='hls', fatal=None))
 
         rtsp_url = self._search_regex(
             r'<a[^>]+href="(rtsp://[^"]+)"', webpage, 'rtsp url', fatal=False)

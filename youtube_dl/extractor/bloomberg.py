@@ -41,15 +41,11 @@ class BloombergIE(InfoExtractor):
             if not stream_url:
                 continue
             if stream['muxing_format'] == 'TS':
-                m3u8_formats = self._extract_m3u8_formats(
-                    stream_url, video_id, 'mp4', m3u8_id='hls', fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    stream_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
             else:
-                f4m_formats = self._extract_f4m_formats(
-                    stream_url, video_id, f4m_id='hds', fatal=False)
-                if f4m_formats:
-                    formats.extend(f4m_formats)
+                formats.extend(self._extract_f4m_formats(
+                    stream_url, video_id, f4m_id='hds', fatal=False))
         self._sort_formats(formats)
 
         return {

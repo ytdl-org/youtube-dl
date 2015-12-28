@@ -277,11 +277,9 @@ class VikiIE(VikiBaseIE):
                 r'^(\d+)[pP]$', format_id, 'height', default=None))
             for protocol, format_dict in stream_dict.items():
                 if format_id == 'm3u8':
-                    m3u8_formats = self._extract_m3u8_formats(
+                    formats.extend(self._extract_m3u8_formats(
                         format_dict['url'], video_id, 'mp4', 'm3u8_native',
-                        m3u8_id='m3u8-%s' % protocol, fatal=False)
-                    if m3u8_formats:
-                        formats.extend(m3u8_formats)
+                        m3u8_id='m3u8-%s' % protocol, fatal=False))
                 else:
                     formats.append({
                         'url': format_dict['url'],

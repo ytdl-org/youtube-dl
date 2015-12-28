@@ -44,10 +44,8 @@ class JWPlatformIE(InfoExtractor):
             source_url = self._proto_relative_url(source['file'])
             source_type = source.get('type') or ''
             if source_type == 'application/vnd.apple.mpegurl':
-                m3u8_formats = self._extract_m3u8_formats(
-                    source_url, video_id, 'mp4', 'm3u8_native', fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    source_url, video_id, 'mp4', 'm3u8_native', fatal=False))
             elif source_type.startswith('audio'):
                 formats.append({
                     'url': source_url,

@@ -121,15 +121,11 @@ class BRIE(InfoExtractor):
             format_url = xpath_text(asset, ['downloadUrl', 'url'])
             asset_type = asset.get('type')
             if asset_type == 'HDS':
-                f4m_formats = self._extract_f4m_formats(
-                    format_url + '?hdcore=3.2.0', media_id, f4m_id='hds', fatal=False)
-                if f4m_formats:
-                    formats.extend(f4m_formats)
+                formats.extend(self._extract_f4m_formats(
+                    format_url + '?hdcore=3.2.0', media_id, f4m_id='hds', fatal=False))
             elif asset_type == 'HLS':
-                m3u8_formats = self._extract_m3u8_formats(
-                    format_url, media_id, 'mp4', 'm3u8_native', m3u8_id='hds', fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, media_id, 'mp4', 'm3u8_native', m3u8_id='hds', fatal=False))
             else:
                 format_info = {
                     'ext': xpath_text(asset, 'mediaType'),
