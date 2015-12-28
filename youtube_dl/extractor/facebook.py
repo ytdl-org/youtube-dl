@@ -100,6 +100,11 @@ class FacebookIE(InfoExtractor):
             login_results = self._download_webpage(request, None,
                                                    note='Logging in', errnote='unable to fetch login page')
             if re.search(r'<form(.*)name="login"(.*)</form>', login_results) is not None:
+                error = self._html_search_regex(
+                    r'(?s)<div[^>]+class=(["\']).*?login_error_box.*?\1[^>]*><div[^>]*>.*?</div><div[^>]*>(?P<error>.+?)</div>',
+                    login_results, 'login error', default=None, group='error')
+                if error:
+                    raise ExtractorError('Unable to login: %s' % error, expected=True)
                 self._downloader.report_warning('unable to log in: bad username/password, or exceded login rate limit (~3/min). Check credentials or wait.')
                 return
 
