@@ -487,7 +487,22 @@ class VimeoAlbumVideoIE(VimeoIE):
         (?P<id>[0-9]+)
         /?(?:[?&].*)?(?:[#].*)?$'''
     IE_NAME = 'vimeo:album_video'
-    _TESTS = []
+    _TESTS = [{
+        'url': 'https://vimeo.com/album/3717291/video/150187356',
+        'note': 'Private (only me) video in password-protected album',
+        'info_dict': {
+            'id': '150187356',
+            'ext': 'mp4',
+            'title': 'bbb sunflower 1080p 60fps normal',
+            'upload_date': '20151228',
+            'uploader_id': 'user31929058',
+            'uploader': 'dcywka',
+            'description': 'Blender Foundation | blender.org',
+        },
+        'params': {
+            'videopassword': 'youtube-dl',
+        }
+    }]
 
     def _extract_download_urls(self, mobj):
         video_id = mobj.group('id')
@@ -612,6 +627,17 @@ class VimeoAlbumIE(VimeoChannelIE):
         'info_dict': {
             'title': 'test',
             'id': '3253534',
+        },
+        'playlist_count': 1,
+        'params': {
+            'videopassword': 'youtube-dl',
+        }
+    }, {
+        'note': 'Password-protected album with private video',
+        'url': 'https://vimeo.com/album/3717291',
+        'info_dict': {
+            'title': 'youtube-dl test private album',
+            'id': '3717291',
         },
         'playlist_count': 1,
         'params': {
