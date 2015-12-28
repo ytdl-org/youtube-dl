@@ -101,7 +101,6 @@ class FranceCultureEmissionIE(FranceCultureIE):
             r'<a class="rf-player-open".*?href="([^"]+)"', webpage, 'video path', 'no_path_player')
         if video_path == 'no_path_player':
             raise ExtractorError('no player : no sound in this page.', expected=True)
-            return None
         new_id = self._search_regex('play=(?P<id>[0-9]+)', video_path, 'new_id', group='id')
         video_url = compat_urlparse.urljoin(url, video_path)
         return self._extract_from_player(video_url, new_id)
