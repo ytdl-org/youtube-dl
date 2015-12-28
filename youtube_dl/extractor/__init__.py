@@ -778,6 +778,7 @@ from .viidea import ViideaIE
 from .vimeo import (
     VimeoIE,
     VimeoAlbumIE,
+    VimeoAlbumVideoIE,
     VimeoChannelIE,
     VimeoGroupsIE,
     VimeoLikesIE,

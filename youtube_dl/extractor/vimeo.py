@@ -237,7 +237,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         if url.startswith('http://'):
             # vimeo only supports https now, but the user can give an http url
             url = url.replace('http://', 'https://')
-        password_request = sanitized_Request(url + '/password', data)
+        password_request = sanitized_Request(url, data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         password_request.add_header('Referer', url)
         self._set_vimeo_cookie('vuid', vuid)
@@ -261,6 +261,15 @@ class VimeoIE(VimeoBaseInfoExtractor):
     def _real_initialize(self):
         self._login()
 
+    def _extract_download_urls(self, mobj):
+        video_id = mobj.group('id')
+        if mobj.group('pro') or mobj.group('player'):
+            url = 'https://player.vimeo.com/video/' + video_id
+        else:
+            url = 'https://vimeo.com/' + video_id
+        json_url = 'https://vimeo.com/%s?action=load_download_config' % video_id
+        return url, json_url
+
     def _real_extract(self, url):
         url, data = unsmuggle_url(url)
         headers = std_headers
@@ -274,10 +283,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         orig_url = url
-        if mobj.group('pro') or mobj.group('player'):
-            url = 'https://player.vimeo.com/video/' + video_id
-        else:
-            url = 'https://vimeo.com/' + video_id
+        url, json_url = self._extract_download_urls(mobj)
 
         # Retrieve video webpage to extract further information
         request = sanitized_Request(url, None, headers)
@@ -407,7 +413,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             comment_count = None
 
         formats = []
-        download_request = sanitized_Request('https://vimeo.com/%s?action=load_download_config' % video_id, headers={
+        download_request = sanitized_Request(json_url, headers={
             'X-Requested-With': 'XMLHttpRequest'})
         download_data = self._download_json(download_request, video_id, fatal=False)
         if download_data:
@@ -470,6 +476,28 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'comment_count': comment_count,
             'subtitles': subtitles,
         }
+
+
+class VimeoAlbumVideoIE(VimeoIE):
+    _VALID_URL = r'''(?x)
+        https?://
+        (?:(?:www|(?P<player>player))\.)?
+        vimeo(?P<pro>pro)?\.com/
+        album/(?P<list_id>[0-9]+)/video/
+        (?P<id>[0-9]+)
+        /?(?:[?&].*)?(?:[#].*)?$'''
+    IE_NAME = 'vimeo:album_video'
+    _TESTS = []
+
+    def _extract_download_urls(self, mobj):
+        video_id = mobj.group('id')
+        list_id = mobj.group('list_id')
+        if mobj.group('pro') or mobj.group('player'):
+            url = 'https://player.vimeo.com/video/' + video_id
+        else:
+            url = 'https://vimeo.com/album/' + list_id + '/video/' + video_id
+        json_url = 'https://vimeo.com/album/%s/video/%s?action=load_download_config' % (list_id, video_id)
+        return url, json_url
 
 
 class VimeoChannelIE(VimeoBaseInfoExtractor):
@@ -569,7 +597,7 @@ class VimeoUserIE(VimeoChannelIE):
 
 class VimeoAlbumIE(VimeoChannelIE):
     IE_NAME = 'vimeo:album'
-    _VALID_URL = r'https://vimeo\.com/album/(?P<id>\d+)'
+    _VALID_URL = r'https://vimeo\.com/album/(?P<id>\d+)/?(?:$|[?#])'
     _TITLE_RE = r'<header id="page_header">\n\s*<h1>(.*?)</h1>'
     _TESTS = [{
         'url': 'https://vimeo.com/album/2632481',
@@ -597,6 +625,23 @@ class VimeoAlbumIE(VimeoChannelIE):
     def _real_extract(self, url):
         album_id = self._match_id(url)
         return self._extract_videos(album_id, 'https://vimeo.com/album/%s' % album_id)
+
+    def _title_and_entries(self, list_id, base_url):
+        for pagenum in itertools.count(1):
+            page_url = self._page_url(base_url, pagenum)
+            webpage = self._download_webpage(
+                page_url, list_id,
+                'Downloading page %s' % pagenum)
+
+            if pagenum == 1:
+                webpage = self._login_list_password(page_url, list_id, webpage)
+                yield self._extract_list_title(webpage)
+
+            for video_id in re.findall(r'id="clip_(\d+?)"', webpage):
+                yield self.url_result('https://vimeo.com/album/%s/video/%s' % (list_id, video_id), 'VimeoAlbumVideo')
+
+            if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
+                break
 
 
 class VimeoGroupsIE(VimeoAlbumIE):
