@@ -77,7 +77,7 @@ class DaumIE(InfoExtractor):
 
 class DaumClipIE(InfoExtractor):
     _VALID_URL = r'https?://(?:m\.)?tvpot\.daum\.net/(?:clip/ClipView.do|mypot/View.do)\?.*?clipid=(?P<id>\d+)'
-    IE_NAME = 'daum.net'
+    IE_NAME = 'daum.net:clip'
 
     _TESTS = [{
         'url': 'http://tvpot.daum.net/clip/ClipView.do?clipid=52554690',
