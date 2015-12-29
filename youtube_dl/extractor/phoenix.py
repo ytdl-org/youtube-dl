@@ -4,6 +4,7 @@ from .zdf import ZDFIE
 
 
 class PhoenixIE(ZDFIE):
+    IE_NAME = 'phoenix.de'
     _VALID_URL = r'''(?x)https?://(?:www\.)?phoenix\.de/content/
         (?:
             phoenix/die_sendungen/(?:[^/]+/)?
