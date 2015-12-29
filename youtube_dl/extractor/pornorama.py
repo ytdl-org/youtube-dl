@@ -27,10 +27,6 @@ class PornoramaIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        mobj = re.search(r'<h1 class="inlineError">(.+?)</h1>', webpage)
-        if mobj:
-            raise ExtractorError('%s said: %s' % (self.IE_NAME, clean_html(mobj.group(1))), expected=True)
-
         video_url = compat_urllib_parse_unquote(
             self._search_regex(r'flv_url=(.+?)&', webpage, 'video URL'))
         video_title = self._html_search_regex(
