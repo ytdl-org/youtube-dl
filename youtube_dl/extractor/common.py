@@ -765,7 +765,7 @@ class InfoExtractor(object):
 
     def _sort_formats(self, formats, field_preference=None):
         if not formats:
-            raise ExtractorError('No video formats found')
+            return
 
         def _formats_key(f):
             # TODO remove the following workaround
