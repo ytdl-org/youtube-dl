@@ -57,29 +57,26 @@ class SRGSSRIE(InfoExtractor):
         formats = []
         for source in media_data.get('Playlists', {}).get('Playlist', []) + media_data.get('Downloads', {}).get('Download', []):
             protocol = source.get('@protocol')
-            if protocol in ('HTTP-HDS', 'HTTP-HLS'):
-                assets = {}
-                for quality in source['url']:
-                    assets[quality['@quality']] = quality['text']
-                asset_url = assets.get('HD') or assets.get('HQ') or assets.get('SD') or assets.get('MQ') or assets.get('LQ')
-                if '.f4m' in asset_url:
+            for asset in source['url']:
+                asset_url = asset['text']
+                quality = asset['@quality']
+                format_id = '%s-%s' % (protocol, quality)
+                if protocol == 'HTTP-HDS':
                     formats.extend(self._extract_f4m_formats(
                         asset_url + '?hdcore=3.4.0', media_id,
-                        f4m_id='hds', fatal=False))
-                elif '.m3u8' in asset_url:
+                        f4m_id=format_id, fatal=False))
+                elif protocol == 'HTTP-HLS':
                     formats.extend(self._extract_m3u8_formats(
                         asset_url, media_id, 'mp4', 'm3u8_native',
-                        m3u8_id='hls', fatal=False))
-            else:
-                for asset in source['url']:
-                    asset_url = asset['text']
+                        m3u8_id=format_id, fatal=False))
+                else:
                     ext = None
-                    if asset_url.startswith('rtmp'):
+                    if protocol == 'RTMP':
                         ext = self._search_regex(r'([a-z0-9]+):[^/]+', asset_url, 'ext')
                     formats.append({
-                        'format_id': asset['@quality'],
+                        'format_id': format_id,
                         'url': asset_url,
-                        'preference': preference(asset['@quality']),
+                        'preference': preference(quality),
                         'ext': ext,
                     })
         self._sort_formats(formats)
