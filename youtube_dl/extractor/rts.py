@@ -197,7 +197,7 @@ class RTSIE(SRGSSRIE):
                     media_id, f4m_id=format_id, fatal=False))
             elif format_url.endswith('.m3u8'):
                 formats.extend(self._extract_m3u8_formats(
-                    format_url, media_id, 'mp4', m3u8_id=format_id, fatal=False))
+                    format_url, media_id, 'mp4', 'm3u8_native', m3u8_id=format_id, fatal=False))
             else:
                 formats.append({
                     'format_id': format_id,

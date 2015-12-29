@@ -29,7 +29,8 @@ class SRGSSRIE(InfoExtractor):
             media_id)[media_type.capitalize()]
 
         if media_data.get('block') and media_data['block'] in self._ERRORS:
-            raise ExtractorError('%s said: %s' % (self.IE_NAME, self._ERRORS[media_data['block']]), expected=True)
+            raise ExtractorError('%s said: %s' % (
+                self.IE_NAME, self._ERRORS[media_data['block']]), expected=True)
 
         return media_data
 
@@ -62,9 +63,13 @@ class SRGSSRIE(InfoExtractor):
                     assets[quality['@quality']] = quality['text']
                 asset_url = assets.get('HD') or assets.get('HQ') or assets.get('SD') or assets.get('MQ') or assets.get('LQ')
                 if '.f4m' in asset_url:
-                    formats.extend(self._extract_f4m_formats(asset_url + '?hdcore=3.4.0', media_id, f4m_id='hds', fatal=False))
+                    formats.extend(self._extract_f4m_formats(
+                        asset_url + '?hdcore=3.4.0', media_id,
+                        f4m_id='hds', fatal=False))
                 elif '.m3u8' in asset_url:
-                    formats.extend(self._extract_m3u8_formats(asset_url, media_id, m3u8_id='hls', fatal=False))
+                    formats.extend(self._extract_m3u8_formats(
+                        asset_url, media_id, 'mp4', 'm3u8_native',
+                        m3u8_id='hls', fatal=False))
             else:
                 for asset in source['url']:
                     asset_url = asset['text']
