@@ -54,6 +54,7 @@ from .snagfilms import SnagFilmsEmbedIE
 from .screenwavemedia import ScreenwaveMediaIE
 from .mtv import MTVServicesEmbeddedIE
 from .pladform import PladformIE
+from .videomore import VideomoreIE
 from .googledrive import GoogleDriveIE
 from .jwplatform import JWPlatformIE
 from .ultimedia import UltimediaIE
@@ -1742,6 +1743,11 @@ class GenericIE(InfoExtractor):
         pladform_url = PladformIE._extract_url(webpage)
         if pladform_url:
             return self.url_result(pladform_url)
+
+        # Look for Videomore embeds
+        videomore_url = VideomoreIE._extract_url(webpage)
+        if videomore_url:
+            return self.url_result(videomore_url)
 
         # Look for Playwire embeds
         mobj = re.search(
