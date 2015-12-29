@@ -108,7 +108,7 @@ class DramaFeverIE(DramaFeverBaseIE):
             if value:
                 subfile = value[0].get('subfile') or value[0].get('new_subfile')
                 if subfile and subfile != 'http://www.dramafever.com/st/':
-                    info['subtitiles'].setdefault('English', []).append({
+                    info.setdefault('subtitles', {}).setdefault('English', []).append({
                         'ext': 'srt',
                         'url': subfile,
                     })
