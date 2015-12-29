@@ -13,6 +13,7 @@ from ..utils import (
 
 
 class VideomoreIE(InfoExtractor):
+    IE_NAME = 'videomore'
     _VALID_URL = r'videomore:(?P<sid>\d+)$|https?://videomore\.ru/(?:(?:embed|[^/]+/[^/]+)/|[^/]+\?.*\btrack_id=)(?P<id>\d+)(?:[/?#&]|\.(?:xml|json)|$)'
     _TESTS = [{
         'url': 'http://videomore.ru/kino_v_detalayah/5_sezon/367617',
