@@ -56,6 +56,7 @@ from .mtv import MTVServicesEmbeddedIE
 from .pladform import PladformIE
 from .googledrive import GoogleDriveIE
 from .jwplatform import JWPlatformIE
+from .ultimedia import UltimediaIE
 
 
 class GenericIE(InfoExtractor):
@@ -1806,6 +1807,11 @@ class GenericIE(InfoExtractor):
         mobj = re.search(ScreenwaveMediaIE.EMBED_PATTERN, webpage)
         if mobj is not None:
             return self.url_result(unescapeHTML(mobj.group('url')), 'ScreenwaveMedia')
+
+        # Look for Ulltimedia embeds
+        ultimedia_url = UltimediaIE._extract_url(webpage)
+        if ultimedia_url:
+            return self.url_result(self._proto_relative_url(ultimedia_url), 'Ultimedia')
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(
