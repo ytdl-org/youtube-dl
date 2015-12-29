@@ -781,6 +781,11 @@ from .viddler import ViddlerIE
 from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
 from .videomega import VideoMegaIE
+from .videomore import (
+    VideomoreIE,
+    VideomoreVideoIE,
+    VideomoreSeasonIE,
+)
 from .videopremium import VideoPremiumIE
 from .videott import VideoTtIE
 from .vidme import VidmeIE
