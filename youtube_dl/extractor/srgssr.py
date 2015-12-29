@@ -90,6 +90,7 @@ class SRGSSRIE(InfoExtractor):
 
 
 class SRGSSRPlayIE(InfoExtractor):
+    IE_DESC = 'srf.ch, rts.ch, rsi.ch, rtr.ch and swissinfo.ch play sites'
     _VALID_URL = r'https?://(?:(?:www|play)\.)?(?P<bu>srf|rts|rsi|rtr|swissinfo)\.ch/play/(?:tv|radio)/[^/]+/(?P<type>video|audio)/[^?]+\?id=(?P<id>[0-9a-f\-]{36}|\d+)'
 
     _TESTS = [{
