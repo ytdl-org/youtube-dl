@@ -47,31 +47,24 @@ class SRGSSRIE(InfoExtractor):
         created_date = media_data.get('createdDate') or metadata.get('createdDate')
         timestamp = parse_iso8601(created_date)
 
-        thumbnails = []
-        if 'Image' in media_data:
-            for image in media_data['Image']['ImageRepresentations']['ImageRepresentation']:
-                thumbnails.append({
-                    'id': image.get('id'),
-                    'url': image['url'],
-                })
+        thumbnails = [{
+            'id': image.get('id'),
+            'url': image['url'],
+        } for image in media_data.get('Image', {}).get('ImageRepresentations', {}).get('ImageRepresentation', [])]
 
         preference = qualities(['LQ', 'MQ', 'SD', 'HQ', 'HD'])
         formats = []
-        for source in media_data['Playlists']['Playlist']:
-            assets = {}
+        for source in media_data.get('Playlists', {}).get('Playlist', []) + media_data.get('Downloads', {}).get('Download', []):
             protocol = source.get('@protocol')
             if protocol in ('HTTP-HDS', 'HTTP-HLS'):
+                assets = {}
                 for quality in source['url']:
                     assets[quality['@quality']] = quality['text']
                 asset_url = assets.get('HD') or assets.get('HQ') or assets.get('SD') or assets.get('MQ') or assets.get('LQ')
                 if '.f4m' in asset_url:
-                    f4m_formats = formats.extend(self._extract_f4m_formats(asset_url + '?hdcore=3.4.0', media_id, f4m_id='hds', fatal=False))
-                    if f4m_formats:
-                        formats.extend(f4m_formats)
+                    formats.extend(self._extract_f4m_formats(asset_url + '?hdcore=3.4.0', media_id, f4m_id='hds', fatal=False))
                 elif '.m3u8' in asset_url:
-                    m3u8_formats = formats.extend(self._extract_m3u8_formats(asset_url, media_id, m3u8_id='hls', fatal=False))
-                    if m3u8_formats:
-                        formats.extend(m3u8_formats)
+                    formats.extend(self._extract_m3u8_formats(asset_url, media_id, m3u8_id='hls', fatal=False))
             else:
                 for asset in source['url']:
                     asset_url = asset['text']
@@ -83,15 +76,6 @@ class SRGSSRIE(InfoExtractor):
                         'url': asset_url,
                         'preference': preference(asset['@quality']),
                         'ext': ext,
-                    })
-
-        if 'Downloads' in media_data:
-            for source in media_data['Downloads']['Download']:
-                for asset in source['url']:
-                    formats.append({
-                        'format_id': asset['@quality'],
-                        'url': asset['text'],
-                        'preference': preference(asset['@quality'])
                     })
         self._sort_formats(formats)
 
@@ -149,7 +133,7 @@ class SRGSSRPlayIE(InfoExtractor):
         'info_dict': {
             'id': '6348260',
             'display_id': '6348260',
-            'ext': 'flv',
+            'ext': 'mp4',
             'duration': 1796,
             'title': 'Le 19h30',
             'description': '',
@@ -159,6 +143,10 @@ class SRGSSRPlayIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.image',
             'view_count': int,
         },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
     }]
 
     def _real_extract(self, url):

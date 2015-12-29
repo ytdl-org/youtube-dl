@@ -28,7 +28,7 @@ class RTSIE(SRGSSRIE):
             'info_dict': {
                 'id': '3449373',
                 'display_id': 'les-enfants-terribles',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'duration': 1488,
                 'title': 'Les Enfants Terribles',
                 'description': 'France Pommier et sa soeur Luce Feral, les deux filles de ce groupe de 5.',
@@ -38,6 +38,10 @@ class RTSIE(SRGSSRIE):
                 'thumbnail': 're:^https?://.*\.image',
                 'view_count': int,
             },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            }
         },
         {
             'url': 'http://www.rts.ch/emissions/passe-moi-les-jumelles/5624067-entre-ciel-et-mer.html',
@@ -45,7 +49,7 @@ class RTSIE(SRGSSRIE):
             'info_dict': {
                 'id': '5742494',
                 'display_id': '5742494',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'duration': 3720,
                 'title': 'Les yeux dans les cieux - Mon homard au Canada',
                 'description': 'md5:d22ee46f5cc5bac0912e5a0c6d44a9f7',
@@ -55,6 +59,10 @@ class RTSIE(SRGSSRIE):
                 'thumbnail': 're:^https?://.*\.image',
                 'view_count': int,
             },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            }
         },
         {
             'url': 'http://www.rts.ch/video/sport/hockey/5745975-1-2-kloten-fribourg-5-2-second-but-pour-gotteron-par-kwiatowski.html',
@@ -80,7 +88,7 @@ class RTSIE(SRGSSRIE):
             'info_dict': {
                 'id': '5745356',
                 'display_id': 'londres-cachee-par-un-epais-smog',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'duration': 33,
                 'title': 'Londres cachée par un épais smog',
                 'description': 'Un important voile de smog recouvre Londres depuis mercredi, provoqué par la pollution et du sable du Sahara.',
@@ -90,6 +98,10 @@ class RTSIE(SRGSSRIE):
                 'thumbnail': 're:^https?://.*\.image',
                 'view_count': int,
             },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            }
         },
         {
             'url': 'http://www.rts.ch/audio/couleur3/programmes/la-belle-video-de-stephane-laurenceau/5706148-urban-hippie-de-damien-krisl-03-04-2014.html',
@@ -180,16 +192,12 @@ class RTSIE(SRGSSRIE):
                 auth_params = xpath_text(token, './/authparams', 'auth params')
                 if not auth_params:
                     continue
-                f4m_formats = self._extract_f4m_formats(
+                formats.extend(self._extract_f4m_formats(
                     '%s?%s&hdcore=3.4.0&plugin=aasp-3.4.0.132.66' % (format_url, auth_params),
-                    media_id, f4m_id=format_id, fatal=False)
-                if f4m_formats:
-                    formats.extend(f4m_formats)
+                    media_id, f4m_id=format_id, fatal=False))
             elif format_url.endswith('.m3u8'):
-                m3u8_formats = self._extract_m3u8_formats(
-                    format_url, media_id, 'mp4', m3u8_id=format_id, fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, media_id, 'mp4', m3u8_id=format_id, fatal=False))
             else:
                 formats.append({
                     'format_id': format_id,
