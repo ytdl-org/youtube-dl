@@ -107,7 +107,8 @@ class RaiTVIE(InfoExtractor):
                 return xml.replace(' tag elementi', '').replace('>/', '</')
 
             relinker = self._download_xml(
-                media['mediaUri'] + '&output=43', video_id, transform_source=fix_xml)
+                media['mediaUri'] + '&output=43',
+                video_id, transform_source=fix_xml)
 
             has_subtitle = False
 
@@ -117,8 +118,8 @@ class RaiTVIE(InfoExtractor):
                 content_type = xpath_text(element, 'content-type')
                 if ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
-                        media_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls',
-                        fatal=False))
+                        media_url, video_id, 'mp4', 'm3u8_native',
+                        m3u8_id='hls', fatal=False))
                 elif ext == 'f4m':
                     formats.extend(self._extract_f4m_formats(
                         media_url + '?hdcore=3.7.0&plugin=aasp-3.7.0.39.44',
