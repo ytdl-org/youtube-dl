@@ -46,8 +46,12 @@ class Tele13IE(InfoExtractor):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
 
-        setup_js = self._search_regex(r"(?s)jwplayer\('player-vivo'\).setup\((\{.*?\})\)", webpage, 'setup code')
-        sources = self._parse_json(self._search_regex(r'sources\s*:\s*(\[[^\]]+\])', setup_js, 'sources'), display_id, js_to_json)
+        setup_js = self._search_regex(
+            r"(?s)jwplayer\('player-vivo'\).setup\((\{.*?\})\)",
+            webpage, 'setup code')
+        sources = self._parse_json(self._search_regex(
+            r'sources\s*:\s*(\[[^\]]+\])', setup_js, 'sources'),
+            display_id, js_to_json)
 
         preference = qualities(['Móvil', 'SD', 'HD'])
         formats = []
@@ -57,7 +61,9 @@ class Tele13IE(InfoExtractor):
             if format_url and format_url not in urls:
                 ext = determine_ext(format_url)
                 if ext == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(format_url, display_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, display_id, 'mp4', 'm3u8_native',
+                        m3u8_id='hls', fatal=False))
                 elif YoutubeIE.suitable(format_url):
                     return self.url_result(format_url, 'Youtube')
                 else:
@@ -72,8 +78,11 @@ class Tele13IE(InfoExtractor):
 
         return {
             'id': display_id,
-            'title': self._search_regex(r'title\s*:\s*"([^"]+)"', setup_js, 'title'),
-            'description': self._html_search_meta('description', webpage, 'description'),
-            'thumbnail': self._search_regex(r'image\s*:\s*"([^"]+)"', setup_js, 'thumbnail', default=None),
+            'title': self._search_regex(
+                r'title\s*:\s*"([^"]+)"', setup_js, 'title'),
+            'description': self._html_search_meta(
+                'description', webpage, 'description'),
+            'thumbnail': self._search_regex(
+                r'image\s*:\s*"([^"]+)"', setup_js, 'thumbnail', default=None),
             'formats': formats,
         }
