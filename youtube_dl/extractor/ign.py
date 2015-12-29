@@ -120,19 +120,24 @@ class IGNIE(InfoExtractor):
 
         video_id = self._find_video_id(webpage)
         if not video_id:
-            return self.url_result(self._search_regex(self._EMBED_RE, webpage, 'embed url'))
+            return self.url_result(self._search_regex(
+                self._EMBED_RE, webpage, 'embed url'))
         return self._get_video_info(video_id)
 
     def _get_video_info(self, video_id):
-        api_data = self._download_json(self._API_URL_TEMPLATE % video_id, video_id)
+        api_data = self._download_json(
+            self._API_URL_TEMPLATE % video_id, video_id)
 
         formats = []
         m3u8_url = api_data['refs'].get('m3uUrl')
         if m3u8_url:
-            formats.extend(self._extract_m3u8_formats(m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', 'm3u8_native',
+                m3u8_id='hls', fatal=False))
         f4m_url = api_data['refs'].get('f4mUrl')
         if f4m_url:
-            formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False))
+            formats.extend(self._extract_f4m_formats(
+                f4m_url, video_id, f4m_id='hds', fatal=False))
         for asset in api_data['assets']:
             formats.append({
                 'url': asset['url'],
