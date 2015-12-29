@@ -133,7 +133,10 @@ from .dailymotion import (
     DailymotionUserIE,
     DailymotionCloudIE,
 )
-from .daum import DaumIE
+from .daum import (
+    DaumIE,
+    DaumClipIE,
+)
 from .dbtv import DBTVIE
 from .dcn import (
     DCNIE,
