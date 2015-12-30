@@ -184,6 +184,7 @@ from .eporner import EpornerIE
 from .eroprofile import EroProfileIE
 from .escapist import EscapistIE
 from .espn import ESPNIE
+from .espnfc import ESPNFCIE
 from .esri import EsriVideoIE
 from .europa import EuropaIE
 from .everyonesmixtape import EveryonesMixtapeIE
