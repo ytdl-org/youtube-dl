@@ -5,7 +5,6 @@ from .common import InfoExtractor
 
 class ESPNIE(InfoExtractor):
     _VALID_URL = r'https?://espn\.go\.com/(?:[^/]+/)*(?P<id>[^/]+)'
-    _WORKING = False
     _TESTS = [{
         'url': 'http://espn.go.com/video/clip?id=10365079',
         'info_dict': {
