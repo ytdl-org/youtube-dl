@@ -147,7 +147,7 @@ class UdemyIE(InfoExtractor):
             # Error could possibly mean we are not enrolled in the course
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                 self._enroll_course(webpage, course_id)
-                lecture_id = self._download_lecture(course_id, lecture_id)
+                lecture = self._download_lecture(course_id, lecture_id)
             else:
                 raise
 
