@@ -5,6 +5,7 @@ import re
 import json
 
 from .common import InfoExtractor
+from ..utils import remove_start
 
 
 class CBSNewsIE(InfoExtractor):
@@ -62,6 +63,7 @@ class CBSNewsIE(InfoExtractor):
             uri = item.get('media' + format_id + 'URI')
             if not uri:
                 continue
+            uri = remove_start(uri, '{manifest:none}')
             fmt = {
                 'url': uri,
                 'format_id': format_id,
@@ -70,6 +72,8 @@ class CBSNewsIE(InfoExtractor):
                 play_path = re.sub(
                     r'{slistFilePath}', '',
                     uri.split('<break>')[-1].split('{break}')[-1])
+                play_path = re.sub(
+                    r'{manifest:.+}.*$', '', play_path)
                 fmt.update({
                     'app': 'ondemand?auth=cbs',
                     'play_path': 'mp4:' + play_path,
