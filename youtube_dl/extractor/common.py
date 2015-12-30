@@ -200,6 +200,26 @@ class InfoExtractor(object):
     end_time:       Time in seconds where the reproduction should end, as
                     specified in the URL.
 
+    The following fields should only be used when the video belongs to some logical
+    chapter or section:
+
+    chapter:        Name or title of the chapter the video belongs to.
+    chapter_id:     Number or id of the chapter the video belongs to, as an integer
+                    or unicode string.
+
+    The following fields should only be used when the video is an episode of some
+    series or programme:
+
+    series:         Title of the series or programme the video episode belongs to.
+    season:         Title of the season the video episode belongs to.
+    season_id:      Number or id of the season the video episode belongs to, as an
+                    integer or unicode string.
+    episode:        Title of the video episode. Unlike mandatory video title field,
+                    this field should denote the exact title of the video episode
+                    without any kind of decoration.
+    episode_id:     Number or id of the video episode within a season, as an integer
+                    or unicode string.
+
     Unless mentioned otherwise, the fields should be Unicode strings.
 
     Unless mentioned otherwise, None is equivalent to absence of information.
