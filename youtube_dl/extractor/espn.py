@@ -11,7 +11,7 @@ class ESPNIE(InfoExtractor):
             'id': 'FkYWtmazr6Ed8xmvILvKLWjd4QvYZpzG',
             'ext': 'mp4',
             'title': 'dm_140128_30for30Shorts___JudgingJewellv2',
-            'description': '',
+            'description': None,
         },
         'params': {
             # m3u8 download
