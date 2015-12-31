@@ -739,6 +739,7 @@ from .tvc import (
     TVCArticleIE,
 )
 from .tvigle import TvigleIE
+from .tvland import TVLandIE
 from .tvp import TvpIE, TvpSeriesIE
 from .tvplay import TVPlayIE
 from .tweakers import TweakersIE
