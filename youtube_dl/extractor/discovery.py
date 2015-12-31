@@ -19,7 +19,7 @@ class DiscoveryIE(InfoExtractor):
             sciencechannel|
             tlc|
             velocity
-        )\.com/([^/]+/)*(?P<id>[^\./\?#]+)'''
+        )\.com/(?:[^/]+/)*(?P<id>[^./?#]+)'''
     _TESTS = [{
         'url': 'http://www.discovery.com/tv-shows/mythbusters/videos/mission-impossible-outtakes.htm',
         'info_dict': {
