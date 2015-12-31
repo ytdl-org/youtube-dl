@@ -126,7 +126,8 @@ class BBCCoUkIE(InfoExtractor):
             'params': {
                 # rtmp download
                 'skip_download': True,
-            }
+            },
+            'skip': 'Clip no longer available on BBC Music',
         }, {
             'url': 'http://www.bbc.co.uk/music/clips/p025c0zz',
             'note': 'Video',
@@ -184,6 +185,7 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
+            'skip': 'This episode is not currently available on BBC iPlayer Radio',
         }, {
             'url': 'http://www.bbc.co.uk/iplayer/playlist/p01dvks4',
             'only_matching': True,
