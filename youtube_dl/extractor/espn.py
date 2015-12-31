@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import remove_end
 
 
 class ESPNIE(InfoExtractor):
@@ -10,7 +11,7 @@ class ESPNIE(InfoExtractor):
         'info_dict': {
             'id': 'FkYWtmazr6Ed8xmvILvKLWjd4QvYZpzG',
             'ext': 'mp4',
-            'title': 'dm_140128_30for30Shorts___JudgingJewellv2',
+            'title': '30 for 30 Shorts: Judging Jewell',
             'description': None,
         },
         'params': {
@@ -23,7 +24,7 @@ class ESPNIE(InfoExtractor):
         'info_dict': {
             'id': '50NDFkeTqRHB0nXBOK-RGdSG5YQPuxHg',
             'ext': 'mp4',
-            'title': 'int_151206_Must_See_Moments_Best_of_MLS_2015_season',
+            'title': 'Must-See Moments: Best of the MLS season',
         },
         'params': {
             # m3u8 download
@@ -65,6 +66,13 @@ class ESPNIE(InfoExtractor):
         pcode = self._search_regex(
             r'["\']pcode=([^"\']+)["\']', player, 'pcode')
 
-        return self.url_result(
-            'ooyalaexternal:%s:%s:%s' % (cms, video_id, pcode),
-            'OoyalaExternal')
+        title = remove_end(
+            self._og_search_title(webpage),
+            '- ESPN Video').strip()
+
+        return {
+            '_type': 'url_transparent',
+            'url': 'ooyalaexternal:%s:%s:%s' % (cms, video_id, pcode),
+            'ie_key': 'OoyalaExternal',
+            'title': title,
+        }
