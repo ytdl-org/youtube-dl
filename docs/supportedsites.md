@@ -28,6 +28,7 @@
  - **AlJazeera**
  - **Allocine**
  - **AlphaPorno**
+ - **AnimalPlanet**
  - **anitube.se**
  - **AnySex**
  - **Aparat**
@@ -125,7 +126,7 @@
  - **dailymotion:user**
  - **DailymotionCloud**
  - **daum.net**
- - **daum.net**
+ - **daum.net:clip**
  - **DBTV**
  - **DCN**
  - **dcn:live**
@@ -164,7 +165,7 @@
  - **Eporner**
  - **EroProfile**
  - **Escapist**
- - **ESPN** (Currently broken)
+ - **ESPN**
  - **EsriVideo**
  - **Europa**
  - **EveryonesMixtape**
@@ -181,6 +182,7 @@
  - **Flickr**
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
  - **FootyRoom**
+ - **FOX**
  - **Foxgay**
  - **FoxNews**: Fox News and Fox Business Video
  - **FoxSports**
@@ -259,7 +261,6 @@
  - **JeuxVideo**
  - **Jove**
  - **jpopsuki.tv**
- - **Jukebox**
  - **JWPlatform**
  - **Kaltura**
  - **KanalPlay**: Kanal 5/9/11 Play
@@ -405,6 +406,7 @@
  - **OnionStudios**
  - **Ooyala**
  - **OoyalaExternal**
+ - **OraTV**
  - **orf:fm4**: radio FM4
  - **orf:iptv**: iptv.ORF.at
  - **orf:oe1**: Radio Österreich 1
@@ -415,7 +417,7 @@
  - **pcmag**
  - **Periscope**: Periscope
  - **PhilharmonieDeParis**: Philharmonie de Paris
- - **Phoenix**
+ - **phoenix.de**
  - **Photobucket**
  - **Pinkbike**
  - **Pladform**
@@ -535,7 +537,8 @@
  - **SportBoxEmbed**
  - **SportDeutschland**
  - **Sportschau**
- - **Srf**
+ - **SRGSSR**
+ - **SRGSSRPlay**: srf.ch, rts.ch, rsi.ch, rtr.ch and swissinfo.ch play sites
  - **SSA**
  - **stanfordoc**: Stanford Open ClassRoom
  - **Steam**
@@ -646,6 +649,9 @@
  - **VideoDetective**
  - **videofy.me**
  - **VideoMega**
+ - **videomore**
+ - **videomore:season**
+ - **videomore:video**
  - **VideoPremium**
  - **VideoTt**: video.tt - Your True Tube
  - **videoweed**: VideoWeed

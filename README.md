@@ -400,7 +400,7 @@ which means you can modify it, redistribute it or use it however you like.
                                      downloading, similar to find's -exec
                                      syntax. Example: --exec 'adb push {}
                                      /sdcard/Music/ && rm {}'
-    --convert-subtitles FORMAT       Convert the subtitles to other format
+    --convert-subs FORMAT            Convert the subtitles to other format
                                      (currently supported: srt|ass|vtt)
 
 # CONFIGURATION
