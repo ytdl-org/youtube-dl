@@ -18,6 +18,18 @@ class ESPNIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
+        # intl video, from http://www.espnfc.us/video/mls-highlights/150/video/2743663/must-see-moments-best-of-the-mls-season
+        'url': 'http://espn.go.com/video/clip?id=2743663',
+        'info_dict': {
+            'id': '50NDFkeTqRHB0nXBOK-RGdSG5YQPuxHg',
+            'ext': 'mp4',
+            'title': 'int_151206_Must_See_Moments_Best_of_MLS_2015_season',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
         'url': 'https://espn.go.com/video/iframe/twitter/?cms=espn&id=10365079',
         'only_matching': True,
     }, {
@@ -43,12 +55,16 @@ class ESPNIE(InfoExtractor):
             r'class="video-play-button"[^>]+data-id="(\d+)',
             webpage, 'video id')
 
+        cms = 'espn'
+        if 'data-source="intl"' in webpage:
+            cms = 'intl'
+        player_url = 'https://espn.go.com/video/iframe/twitter/?id=%s&cms=%s' % (video_id, cms)
         player = self._download_webpage(
-            'https://espn.go.com/video/iframe/twitter/?id=%s' % video_id, video_id)
+            player_url, video_id)
 
         pcode = self._search_regex(
             r'["\']pcode=([^"\']+)["\']', player, 'pcode')
 
         return self.url_result(
-            'ooyalaexternal:espn:%s:%s' % (video_id, pcode),
+            'ooyalaexternal:%s:%s:%s' % (cms, video_id, pcode),
             'OoyalaExternal')
