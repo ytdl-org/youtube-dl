@@ -695,7 +695,7 @@ from .thesixtyone import TheSixtyOneIE
 from .thisamericanlife import ThisAmericanLifeIE
 from .thisav import ThisAVIE
 from .tinypic import TinyPicIE
-from .tlc import TlcIE, TlcDeIE
+from .tlc import TlcDeIE
 from .tmz import (
     TMZIE,
     TMZArticleIE,
