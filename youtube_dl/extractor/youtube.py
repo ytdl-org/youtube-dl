@@ -1834,7 +1834,8 @@ class YoutubeUserIE(YoutubeChannelIE):
         'url': 'https://www.youtube.com/user/TheLinuxFoundation',
         'playlist_mincount': 320,
         'info_dict': {
-            'title': 'TheLinuxFoundation',
+            'title': 'Uploads from TheLinuxFoundation',
+            'id': 'UUfX55Sx5hEFjoC3cNs6mCUQ',
         }
     }, {
         'url': 'ytuser:phihag',
@@ -1992,8 +1993,11 @@ class YoutubeShowIE(YoutubePlaylistsBaseInfoExtractor):
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
-        return super(YoutubeShowIE, self)._real_extract(
-            'https://www.youtube.com/show/%s/playlists' % playlist_id)
+
+        playlist_url = 'https://www.youtube.com/show/%s/playlists' % playlist_id
+        webpage = self._download_webpage(playlist_url, playlist_id)
+        title = self._og_search_title(webpage, fatal=False)
+        return self.playlist_result(self._entries(webpage, playlist_id), playlist_id, title)
 
 
 class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
