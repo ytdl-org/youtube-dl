@@ -497,6 +497,7 @@ from .orf import (
     ORFFM4IE,
     ORFIPTVIE,
 )
+from .pandoratv import PandoraTVIE
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
