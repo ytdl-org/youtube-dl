@@ -56,7 +56,7 @@ class NickIE(MTVServicesInfoExtractor):
     def _get_feed_query(self, uri):
         return compat_urllib_parse.urlencode({
             'feed': 'nick_arc_player_prime',
-            'mgid': uri
+            'mgid': uri,
         })
 
     def _extract_mgid(self, webpage):

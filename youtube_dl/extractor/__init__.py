@@ -434,6 +434,7 @@ from .nextmedia import (
     NextMediaActionNewsIE,
     AppleDailyIE,
 )
+from .nextmovie import NextMovieIE
 from .nfb import NFBIE
 from .nfl import NFLIE
 from .nhl import (
