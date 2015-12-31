@@ -491,6 +491,7 @@ from .ooyala import (
     OoyalaIE,
     OoyalaExternalIE,
 )
+from .ora import OraTVIE
 from .orf import (
     ORFTVthekIE,
     ORFOE1IE,
