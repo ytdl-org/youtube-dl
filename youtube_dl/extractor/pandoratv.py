@@ -15,6 +15,8 @@ from ..utils import (
 
 
 class PandoraTVIE(InfoExtractor):
+    IE_NAME = 'pandora.tv'
+    IE_DESC = '판도라TV'
     _VALID_URL = r'https?://(?:.+?\.)?channel\.pandora\.tv/channel/video\.ptv\?'
     _TEST = {
         'url': 'http://jp.channel.pandora.tv/channel/video.ptv?c1=&prgid=53294230&ch_userid=mikakim&ref=main&lot=cate_01_2',
