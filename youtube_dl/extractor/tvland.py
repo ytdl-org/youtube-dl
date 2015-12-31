@@ -1,13 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .mtv import MTVIE
+from .mtv import MTVServicesInfoExtractor
 
 
-class TVLandIE(MTVIE):
+class TVLandIE(MTVServicesInfoExtractor):
     IE_NAME = 'tvland.com'
     _VALID_URL = r'https?://(?:www\.)?tvland\.com/(?:video-clips|episodes)/(?P<id>[^/?#.]+)'
-    _FEED_URL = 'http://www.tvland.com/feeds/mrss/?uri='
+    _FEED_URL = 'http://www.tvland.com/feeds/mrss/'
     _TESTS = [{
         'url': 'http://www.tvland.com/episodes/hqhps2/everybody-loves-raymond-the-invasion-ep-048',
         'playlist': [
@@ -62,9 +62,3 @@ class TVLandIE(MTVIE):
             'description': 'md5:7d192f56ca8d958645c83f0de8ef0269'
         },
     }]
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-        mgid = self._search_regex(r'data-mgid="([^"]+)"', webpage, 'mgid')
-        return self._get_videos_info_from_url(self._FEED_URL + mgid, video_id)
