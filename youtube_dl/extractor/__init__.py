@@ -441,6 +441,7 @@ from .nhl import (
     NHLNewsIE,
     NHLVideocenterIE,
 )
+from .nick import NickIE
 from .niconico import NiconicoIE, NiconicoPlaylistIE
 from .ninegag import NineGagIE
 from .noco import NocoIE
