@@ -155,7 +155,16 @@ class YahooIE(InfoExtractor):
                 'description': 'md5:8fc39608213295748e1e289807838c97',
                 'duration': 1646,
             },
-        }
+        }, {
+            # it uses an alias to get the video_id
+            'url': 'https://www.yahoo.com/movies/the-stars-of-daddys-home-have-very-different-212843197.html',
+            'info_dict': {
+                'id': '40eda9c8-8e5f-3552-8745-830f67d0c737',
+                'ext': 'mp4',
+                'title': 'Will Ferrell & Mark Wahlberg Are Pro-Spanking',
+                'description': 'While they play feuding fathers in \'Daddy\'s Home,\' star Will Ferrell & Mark Wahlberg share their true feelings on parenthood.',
+            },
+        },
     ]
 
     def _real_extract(self, url):
@@ -199,13 +208,22 @@ class YahooIE(InfoExtractor):
             r'mediaItems: ({.*?})$', webpage, 'items', flags=re.MULTILINE,
             default=None)
         if items_json is None:
-            CONTENT_ID_REGEXES = [
-                r'YUI\.namespace\("Media"\)\.CONTENT_ID\s*=\s*"([^"]+)"',
-                r'root\.App\.Cache\.context\.videoCache\.curVideo = \{"([^"]+)"',
-                r'"first_videoid"\s*:\s*"([^"]+)"',
-                r'%s[^}]*"ccm_id"\s*:\s*"([^"]+)"' % re.escape(page_id),
-            ]
-            video_id = self._search_regex(CONTENT_ID_REGEXES, webpage, 'content ID')
+            alias = self._search_regex(
+                r'"aliases":{"video":"(.*?)"', webpage, 'alias', default=None)
+            if alias is not None:
+                alias_info = self._download_json(
+                    'https://www.yahoo.com/_td/api/resource/VideoService.videos;video_aliases=["%s"]' % alias,
+                    display_id, 'Downloading alias info')
+                video_id = alias_info[0]['id']
+            else:
+                CONTENT_ID_REGEXES = [
+                    r'YUI\.namespace\("Media"\)\.CONTENT_ID\s*=\s*"([^"]+)"',
+                    r'root\.App\.Cache\.context\.videoCache\.curVideo = \{"([^"]+)"',
+                    r'"first_videoid"\s*:\s*"([^"]+)"',
+                    r'%s[^}]*"ccm_id"\s*:\s*"([^"]+)"' % re.escape(page_id),
+                ]
+                video_id = self._search_regex(
+                    CONTENT_ID_REGEXES, webpage, 'content ID')
         else:
             items = json.loads(items_json)
             info = items['mediaItems']['query']['results']['mediaObj'][0]
