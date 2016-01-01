@@ -108,8 +108,9 @@ class InfoExtractor(object):
                                  -2 or smaller for less than default.
                                  < -1000 to hide the format (if there is
                                     another one which is strictly better)
-                    * language_preference  Is this in the correct requested
-                                 language?
+                    * language   Language code, e.g. "de" or "en-US".
+                    * language_preference  Is this in the language mentioned in
+                                 the URL?
                                  10 if it's what the URL is about,
                                  -1 for default (don't know),
                                  -10 otherwise, other values reserved for now.

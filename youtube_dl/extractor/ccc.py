@@ -58,11 +58,12 @@ class CCCIE(InfoExtractor):
             webpage, 'duration', fatal=False, group='duration'))
 
         matches = re.finditer(r'''(?xs)
-            <(?:span|div)\s+class='label\s+filetype'>(?P<format>.*?)</(?:span|div)>\s*
+            <(?:span|div)\s+class='label\s+filetype'>(?P<format>[^<]*)</(?:span|div)>\s*
+            <(?:span|div)\s+class='label\s+filetype'>(?P<lang>[^<]*)</(?:span|div)>\s*
             <a\s+download\s+href='(?P<http_url>[^']+)'>\s*
             (?:
                 .*?
-                <a\s+href='(?P<torrent_url>[^']+\.torrent)'
+                <a\s+(?:download\s+)?href='(?P<torrent_url>[^']+\.torrent)'
             )?''', webpage)
         formats = []
         for m in matches:
@@ -70,12 +71,15 @@ class CCCIE(InfoExtractor):
             format_id = self._search_regex(
                 r'.*/([a-z0-9_-]+)/[^/]*$',
                 m.group('http_url'), 'format id', default=None)
+            if format_id:
+                format_id = m.group('lang') + '-' + format_id
             vcodec = 'h264' if 'h264' in format_id else (
                 'none' if format_id in ('mp3', 'opus') else None
             )
             formats.append({
                 'format_id': format_id,
                 'format': format,
+                'language': m.group('lang'),
                 'url': m.group('http_url'),
                 'vcodec': vcodec,
                 'preference': preference(format_id),
