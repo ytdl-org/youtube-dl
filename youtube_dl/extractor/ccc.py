@@ -21,10 +21,10 @@ class CCCIE(InfoExtractor):
             'id': '30C3_-_5443_-_en_-_saal_g_-_201312281830_-_introduction_to_processor_design_-_byterazor',
             'ext': 'mp4',
             'title': 'Introduction to Processor Design',
-            'description': 'md5:5ddbf8c734800267f2cee4eab187bc1b',
+            'description': 'md5:80be298773966f66d56cb11260b879af',
             'thumbnail': 're:^https?://.*\.jpg$',
             'view_count': int,
-            'upload_date': '20131229',
+            'upload_date': '20131228',
         }
     }, {
         'url': 'https://media.ccc.de/v/32c3-7368-shopshifting#download',
@@ -43,7 +43,7 @@ class CCCIE(InfoExtractor):
         title = self._html_search_regex(
             r'(?s)<h1>(.*?)</h1>', webpage, 'title')
         description = self._html_search_regex(
-            r"(?s)<p class='description'>(.*?)</p>",
+            r"(?s)<h3>About</h3>(.+?)<h3>",
             webpage, 'description', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
             r"(?s)<span[^>]+class='[^']*fa-calendar-o'[^>]*>(.+?)</span>",
