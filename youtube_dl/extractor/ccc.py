@@ -12,13 +12,13 @@ from ..utils import (
 
 class CCCIE(InfoExtractor):
     IE_NAME = 'media.ccc.de'
-    _VALID_URL = r'https?://(?:www\.)?media\.ccc\.de/[^?#]+/[^?#/]*?_(?P<id>[0-9]{8,})._[^?#/]*\.html'
+    _VALID_URL = r'https?://(?:www\.)?media\.ccc\.de/v/(?P<id>[^/?#&]+)'
 
-    _TEST = {
-        'url': 'http://media.ccc.de/browse/congress/2013/30C3_-_5443_-_en_-_saal_g_-_201312281830_-_introduction_to_processor_design_-_byterazor.html#video',
+    _TESTS = [{
+        'url': 'https://media.ccc.de/v/30C3_-_5443_-_en_-_saal_g_-_201312281830_-_introduction_to_processor_design_-_byterazor#video',
         'md5': '3a1eda8f3a29515d27f5adb967d7e740',
         'info_dict': {
-            'id': '20131228183',
+            'id': '30C3_-_5443_-_en_-_saal_g_-_201312281830_-_introduction_to_processor_design_-_byterazor',
             'ext': 'mp4',
             'title': 'Introduction to Processor Design',
             'description': 'md5:5ddbf8c734800267f2cee4eab187bc1b',
@@ -26,7 +26,10 @@ class CCCIE(InfoExtractor):
             'view_count': int,
             'upload_date': '20131229',
         }
-    }
+    }, {
+        'url': 'https://media.ccc.de/v/32c3-7368-shopshifting#download',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
