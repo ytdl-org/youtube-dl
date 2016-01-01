@@ -1208,8 +1208,6 @@ class YoutubeDL(object):
             raise ExtractorError('Missing "id" field in extractor result')
         if 'title' not in info_dict:
             raise ExtractorError('Missing "title" field in extractor result')
-        if not info_dict.get('formats'):
-            raise ExtractorError('No video formats found')
 
         if 'playlist' not in info_dict:
             # It isn't part of a playlist
