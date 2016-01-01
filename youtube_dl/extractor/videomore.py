@@ -25,9 +25,9 @@ class VideomoreIE(InfoExtractor):
             'description': 'В гостях – лучшие романтические комедии года, «Выживший» Иньярриту и «Стив Джобс» Дэнни Бойла.',
             'series': 'Кино в деталях',
             'episode': 'В гостях Алексей Чумаков и Юлия Ковальчук',
-            'episode_id': None,
+            'episode_number': None,
             'season': 'Сезон 2015',
-            'season_id': 5,
+            'season_number': 5,
             'thumbnail': 're:^https?://.*\.jpg',
             'duration': 2910,
             'age_limit': 16,
@@ -42,9 +42,9 @@ class VideomoreIE(InfoExtractor):
             'description': '«Медведей» ждет решающий матч. Макеев выясняет отношения со Стрельцовым. Парни узнают подробности прошлого Макеева.',
             'series': 'Молодежка',
             'episode': '80 серия',
-            'episode_id': 40,
+            'episode_number': 40,
             'season': '2 сезон',
-            'season_id': 2,
+            'season_number': 2,
             'thumbnail': 're:^https?://.*\.jpg',
             'duration': 2809,
             'age_limit': 16,
@@ -62,9 +62,9 @@ class VideomoreIE(InfoExtractor):
             'description': 'Молодежка 3 сезон скоро',
             'series': 'Молодежка',
             'episode': 'Команда проиграла из-за Бакина?',
-            'episode_id': None,
+            'episode_number': None,
             'season': 'Промо',
-            'season_id': 99,
+            'season_number': 99,
             'thumbnail': 're:^https?://.*\.jpg',
             'duration': 29,
             'age_limit': 16,
@@ -128,9 +128,9 @@ class VideomoreIE(InfoExtractor):
 
         series = data.get('project_title')
         episode = data.get('title')
-        episode_id = data.get('episode_of_season') or None
+        episode_number = int_or_none(data.get('episode_of_season') or None)
         season = data.get('season_title')
-        season_id = data.get('season_pos') or None
+        season_number = int_or_none(data.get('season_pos') or None)
 
         return {
             'id': video_id,
@@ -138,9 +138,9 @@ class VideomoreIE(InfoExtractor):
             'description': description,
             'series': series,
             'episode': episode,
-            'episode_id': episode_id,
+            'episode_number': episode_number,
             'season': season,
-            'season_id': season_id,
+            'season_number': season_number,
             'thumbnails': thumbnails,
             'timestamp': timestamp,
             'duration': duration,
