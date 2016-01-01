@@ -46,7 +46,7 @@ class CCCIE(InfoExtractor):
             r"(?s)<p class='description'>(.*?)</p>",
             webpage, 'description', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
-            r"(?s)<span class='[^']*fa-calendar-o'></span>(.*?)</li>",
+            r"(?s)<span[^>]+class='[^']*fa-calendar-o'[^>]*>(.+?)</span>",
             webpage, 'upload date', fatal=False))
         view_count = int_or_none(self._html_search_regex(
             r"(?s)<span class='[^']*fa-eye'></span>(.*?)</li>",
