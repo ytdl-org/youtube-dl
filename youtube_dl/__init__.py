@@ -57,8 +57,8 @@ def _real_main(argv=None):
 
     parser, opts, args = parseOpts(argv)
 
-    if opts.default_language is not None:
-        i18n_service.set_default_language(opts.default_language)
+    if opts.i18n_language is not None:
+        i18n_service.set_default_language(opts.i18n_language)
 
     if opts.verbose:
         i18n_service.set_default_language('en_US')

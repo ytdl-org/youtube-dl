@@ -176,8 +176,8 @@ def parseOpts(overrideArguments=None):
         default=False,
         help='Do not emit color codes in output')
     general.add_option(
-        '--default-language',
-        dest='default_language', metavar='LANG_CODE',
+        '--lang',
+        dest='i18n_language', metavar='LANG_CODE',
         help='Specify the default user interface language. Language codes should correspond to RFC 1766 standard, such as en_US or zh_TW.UTF-8. Default is en_US.')
 
     network = optparse.OptionGroup(parser, 'Network Options')
