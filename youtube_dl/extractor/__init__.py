@@ -328,6 +328,7 @@ from .kuwo import (
 from .la7 import LA7IE
 from .laola1tv import Laola1TvIE
 from .lecture2go import Lecture2GoIE
+from .lenfilm import LenFilmIE
 from .letv import (
     LetvIE,
     LetvTvIE,
