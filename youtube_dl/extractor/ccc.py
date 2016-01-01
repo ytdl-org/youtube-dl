@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
+    parse_duration,
     qualities,
     unified_strdate,
 )
@@ -25,6 +26,7 @@ class CCCIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.jpg$',
             'view_count': int,
             'upload_date': '20131228',
+            'duration': 3660,
         }
     }, {
         'url': 'https://media.ccc.de/v/32c3-7368-shopshifting#download',
@@ -51,6 +53,9 @@ class CCCIE(InfoExtractor):
         view_count = int_or_none(self._html_search_regex(
             r"(?s)<span class='[^']*fa-eye'></span>(.*?)</li>",
             webpage, 'view count', fatal=False))
+        duration = parse_duration(self._html_search_regex(
+            r'(?s)<span[^>]+class=(["\']).*?fa-clock-o.*?\1[^>]*></span>(?P<duration>.+?)</li',
+            webpage, 'duration', fatal=False, group='duration'))
 
         matches = re.finditer(r'''(?xs)
             <(?:span|div)\s+class='label\s+filetype'>(?P<format>.*?)</(?:span|div)>\s*
@@ -98,5 +103,6 @@ class CCCIE(InfoExtractor):
             'thumbnail': thumbnail,
             'view_count': view_count,
             'upload_date': upload_date,
+            'duration': duration,
             'formats': formats,
         }
