@@ -904,7 +904,7 @@ class InfoExtractor(object):
                         default_criteria_order.remove(field)
 
             default_key_dict = dict(default_key)
-            return [default_key_dict[field] for field in criteria_order]
+            return [default_key_dict[criterion] for criterion in criteria_order]
 
         formats.sort(key=_formats_key)
 
