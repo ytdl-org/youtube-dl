@@ -1551,7 +1551,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     if f.get('vcodec') != 'none':
                         f['stretched_ratio'] = ratio
 
-        self._sort_formats(formats)
+        self._sort_formats(
+            formats,
+            criteria_relative_preference=('height', 'width', 'ext_preference', 'tbr'))
 
         return {
             'id': video_id,
