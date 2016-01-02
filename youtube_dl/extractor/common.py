@@ -882,7 +882,7 @@ class InfoExtractor(object):
                     not criteria_exclusion):
                 return [value for _, value in default_key]
 
-            default_criteria_order = list(list(zip(*default_key))[0])
+            default_criteria_order = [name for name, _ in default_key]
             criteria_order = []
             if criteria_preference:
                 for field in criteria_preference:
