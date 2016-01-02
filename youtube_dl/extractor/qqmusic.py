@@ -178,7 +178,7 @@ class QQMusicSingerIE(QQPlaylistBaseIE):
         'info_dict': {
             'id': '001BLpXF2DyJe2',
             'title': '林俊杰',
-            'description': 'md5:2a222d89ba4455a3af19940c0481bb78',
+            'description': 'md5:870ec08f7d8547c29c93010899103751',
         },
         'playlist_count': 12,
     }
@@ -273,7 +273,7 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
         'url': 'http://y.qq.com/#type=toplist&p=top_3',
         'info_dict': {
             'id': 'top_3',
-            'title': 'QQ音乐巅峰榜·欧美',
+            'title': '巅峰榜·欧美',
             'description': 'QQ音乐巅峰榜·欧美根据用户收听行为自动生成，集结当下最流行的欧美新歌！:更新时间：每周四22点|统'
                            '计周期：一周（上周四至本周三）|统计对象：三个月内发行的欧美歌曲|统计数量：100首|统计算法：根据'
                            '歌曲在一周内的有效播放次数，由高到低取前100名（同一歌手最多允许5首歌曲同时上榜）|有效播放次数：'
