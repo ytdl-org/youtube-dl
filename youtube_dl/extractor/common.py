@@ -880,7 +880,7 @@ class InfoExtractor(object):
 
             if (not criteria_preference and not criteria_relative_preference and
                     not criteria_exclusion):
-                return default_key
+                return [value for _, value in default_key]
 
             default_criteria_order = list(list(zip(*default_key))[0])
             criteria_order = []
