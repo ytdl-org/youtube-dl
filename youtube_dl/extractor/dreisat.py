@@ -1,9 +1,16 @@
 from __future__ import unicode_literals
 
 import re
-from .zdf import ZDFIE
 
-class DreiSatIE(ZDFIE):
+from .common import InfoExtractor
+from ..utils import (
+    ExtractorError,
+    unified_strdate,
+    determine_ext,
+)
+
+
+class DreiSatIE(InfoExtractor):
     IE_NAME = '3sat'
     _VALID_URL = r'(?:http://)?(?:www\.)?3sat\.de/mediathek/(?:index\.php|mediathek\.php)?\?(?:(?:mode|display)=[^&]+&)*obj=(?P<id>[0-9]+)$'
     _TESTS = [
@@ -28,6 +35,64 @@ class DreiSatIE(ZDFIE):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        api_url = 'http://www.3sat.de/mediathek/xmlservice/web/beitragsDetails?ak=web&id=%s' % video_id
+        details_url = 'http://www.3sat.de/mediathek/xmlservice/web/beitragsDetails?ak=web&id=%s' % video_id
+        details_doc = self._download_xml(details_url, video_id, 'Downloading video details')
 
-        return self.extract_from_xml_url(video_id, api_url)
+        status_code = details_doc.find('./status/statuscode')
+        if status_code is not None and status_code.text != 'ok':
+            code = status_code.text
+            if code == 'notVisibleAnymore':
+                message = 'Video %s is not available' % video_id
+            else:
+                message = '%s returned error: %s' % (self.IE_NAME, code)
+            raise ExtractorError(message, expected=True)
+
+        thumbnail_els = details_doc.findall('.//teaserimage')
+        thumbnails = [{
+            'width': int(te.attrib['key'].partition('x')[0]),
+            'height': int(te.attrib['key'].partition('x')[2]),
+            'url': te.text,
+        } for te in thumbnail_els]
+
+        information_el = details_doc.find('.//information')
+        video_title = information_el.find('./title').text
+        video_description = information_el.find('./detail').text
+
+        details_el = details_doc.find('.//details')
+        video_uploader = details_el.find('./channel').text
+        upload_date = unified_strdate(details_el.find('./airtime').text)
+
+        format_els = details_doc.findall('.//formitaet')
+        formats = []
+
+        for fe in format_els:
+            if fe.find('./url').text.startswith('http://www.metafilegenerator.de/'):
+                continue
+            url = fe.find('./url').text
+            # ext = determine_ext(url, None)
+            # if ext == 'meta':
+            #     doc = self._download_xml(url, video_id, 'Getting rtmp URL')
+            #     url = doc.find('./default-stream-url').text
+
+            formats.append({
+                'format_id': fe.attrib['basetype'],
+                'width': int(fe.find('./width').text),
+                'height': int(fe.find('./height').text),
+                'url': url,
+                'filesize': int(fe.find('./filesize').text),
+                'video_bitrate': int(fe.find('./videoBitrate').text),
+            })
+
+        self._sort_formats(formats)
+
+        return {
+            '_type': 'video',
+            'id': video_id,
+            'title': video_title,
+            'formats': formats,
+            'description': video_description,
+            'thumbnails': thumbnails,
+            'thumbnail': thumbnails[-1]['url'],
+            'uploader': video_uploader,
+            'upload_date': upload_date,
+        }
