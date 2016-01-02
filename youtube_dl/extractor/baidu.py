@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import unescapeHTML
 
 
 class BaiduVideoIE(InfoExtractor):
@@ -14,7 +15,7 @@ class BaiduVideoIE(InfoExtractor):
         'info_dict': {
             'id': '1069',
             'title': '中华小当家 TV版国语',
-            'description': 'md5:40a9c1b1c7f4e05d642e7bb1c84eeda0',
+            'description': 'md5:51be07afe461cf99fa61231421b5397c',
         },
         'playlist_count': 52,
     }, {
@@ -40,7 +41,7 @@ class BaiduVideoIE(InfoExtractor):
         playlist_detail = self._call_api('xqinfo', category, playlist_id)
 
         playlist_title = playlist_detail['title']
-        playlist_description = playlist_detail.get('intro')
+        playlist_description = unescapeHTML(playlist_detail.get('intro'))
 
         episodes_detail = self._call_api('xqsingle', category, playlist_id)
 
