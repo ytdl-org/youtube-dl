@@ -859,7 +859,7 @@ class InfoExtractor(object):
             def field_criterion(name, default=-1):
                 return name, f.get(name) if f.get(name) is not None else default
 
-            default_key = (
+            default_criteria_values = (
                 synthetic_criterion('preference', preference),
                 field_criterion('language_preference'),
                 field_criterion('quality'),
@@ -880,9 +880,9 @@ class InfoExtractor(object):
 
             if (not criteria_preference and not criteria_relative_preference and
                     not criteria_exclusion):
-                return [value for _, value in default_key]
+                return [value for _, value in default_criteria_values]
 
-            default_criteria_order = [name for name, _ in default_key]
+            default_criteria_order = [name for name, _ in default_criteria_values]
             criteria_order = []
             if criteria_preference:
                 for field in criteria_preference:
@@ -903,8 +903,8 @@ class InfoExtractor(object):
                             criteria_order.append(field)
                         default_criteria_order.remove(field)
 
-            default_key_dict = dict(default_key)
-            return [default_key_dict[criterion] for criterion in criteria_order]
+            default_criteria_dict = dict(default_criteria_values)
+            return [default_criteria_dict[criterion] for criterion in criteria_order]
 
         formats.sort(key=_formats_key)
 
