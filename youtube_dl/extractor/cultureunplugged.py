@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 
 class CultureUnpluggedIE(InfoExtractor):
-    _VALID_URL = r'http?://(?:www\.)?cultureunplugged\.com/documentary\/watch-online\/play\/(?P<id>\d+)\/(?P<display_id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?cultureunplugged\.com/documentary/watch-online/play/(?P<id>\d+)/(?P<display_id>[^/]+)'
     _TEST = {
         'url': 'http://www.cultureunplugged.com/documentary/watch-online/play/53662/The-Next--Best-West',
         'md5': 'ac6c093b089f7d05e79934dcb3d228fc',
@@ -27,10 +27,10 @@ class CultureUnpluggedIE(InfoExtractor):
         json_url = 'http://www.cultureunplugged.com/movie-data/cu-%s.json' % (video_id)
         json_output = self._download_json(json_url, video_id)
 
-        title = json_output['title']
-        description = json_output['synopsis']
-        creator = json_output['producer']
-        thumbnail = json_output['large_thumb']
+        title = json_output.get('title')
+        description = json_output.get('synopsis')
+        creator = json_output.get('producer')
+        thumbnail = json_output.get('large_thumb')
 
         formats = [{
             'url': json_output['url'],
