@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     unified_strdate,
+    determine_ext,
 )
 
 
@@ -62,15 +63,25 @@ class DreiSatIE(InfoExtractor):
         upload_date = unified_strdate(details_el.find('./airtime').text)
 
         format_els = details_doc.findall('.//formitaet')
-        formats = [{
-            'format_id': fe.attrib['basetype'],
-            'width': int(fe.find('./width').text),
-            'height': int(fe.find('./height').text),
-            'url': fe.find('./url').text,
-            'filesize': int(fe.find('./filesize').text),
-            'video_bitrate': int(fe.find('./videoBitrate').text),
-        } for fe in format_els
-            if not fe.find('./url').text.startswith('http://www.metafilegenerator.de/')]
+        formats = []
+
+        for fe in format_els:
+            if fe.find('./url').text.startswith('http://www.metafilegenerator.de/'):
+                continue
+            url = fe.find('./url').text
+            # ext = determine_ext(url, None)
+            # if ext == 'meta':
+            #     doc = self._download_xml(url, video_id, 'Getting rtmp URL')
+            #     url = doc.find('./default-stream-url').text
+
+            formats.append({
+                'format_id': fe.attrib['basetype'],
+                'width': int(fe.find('./width').text),
+                'height': int(fe.find('./height').text),
+                'url': url,
+                'filesize': int(fe.find('./filesize').text),
+                'video_bitrate': int(fe.find('./videoBitrate').text),
+            })
 
         self._sort_formats(formats)
 
