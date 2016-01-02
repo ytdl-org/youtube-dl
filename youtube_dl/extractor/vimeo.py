@@ -441,7 +441,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
         # Bitrates are completely broken. Single m3u8 may contain entries in kbps and bps
         # at the same time without actual units specified. This lead to wrong sorting.
-        self._sort_formats(formats, field_preference=('preference', 'height', 'width', 'fps', 'format_id'))
+        self._sort_formats(formats, criteria_preference=('preference', 'height', 'width', 'fps', 'format_id'))
 
         subtitles = {}
         text_tracks = config['request'].get('text_tracks')
