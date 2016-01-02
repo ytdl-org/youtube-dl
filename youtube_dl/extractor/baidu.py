@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
 
 
 class BaiduVideoIE(InfoExtractor):
@@ -47,8 +46,6 @@ class BaiduVideoIE(InfoExtractor):
 
         entries = []
         for episode in episodes_detail['videos']:
-            episode_id = '%s_%s' % (playlist_id, episode['episode'])
-
             entries.append(self.url_result(
                 episode['url'], video_title=episode['title']))
 
