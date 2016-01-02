@@ -23,7 +23,17 @@ class BBCCoUkIE(InfoExtractor):
     IE_NAME = 'bbc.co.uk'
     IE_DESC = 'BBC iPlayer'
     _ID_REGEX = r'[pb][\da-z]{7}'
-    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:(?:programmes/(?!articles/)|iplayer(?:/[^/]+)?/(?:episode/|playlist/))|music/clips[/#])(?P<id>%s)' % _ID_REGEX
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?bbc\.co\.uk/
+                        (?:
+                            programmes/(?!articles/)|
+                            iplayer(?:/[^/]+)?/(?:episode/|playlist/)|
+                            music/clips[/#]|
+                            radio/player/
+                        )
+                        (?P<id>%s)
+                    ''' % _ID_REGEX
 
     _MEDIASELECTOR_URLS = [
         # Provides HQ HLS streams with even better quality that pc mediaset but fails
@@ -192,6 +202,9 @@ class BBCCoUkIE(InfoExtractor):
             'only_matching': True,
         }, {
             'url': 'http://www.bbc.co.uk/iplayer/cbeebies/episode/b0480276/bing-14-atchoo',
+            'only_matching': True,
+        }, {
+            'url': 'http://www.bbc.co.uk/radio/player/p03cchwf',
             'only_matching': True,
         }
     ]
