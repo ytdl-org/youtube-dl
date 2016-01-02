@@ -764,7 +764,57 @@ class InfoExtractor(object):
             html, '%s form' % form_id, group='form')
         return self._hidden_inputs(form)
 
-    def _sort_formats(self, formats, field_preference=None):
+    def _sort_formats(self, formats, criteria_preference=None,
+                      criteria_relative_preference=None, criteria_exclusion=None):
+        """
+        Sort formats.
+
+        Sorting behavior can be customized by specifying absolute or relative criteria
+        order and criteria exclusion. Criteria is either a field from formats dictionary
+        or a synthetic expression calculated based on some data from formats dictionary.
+        Currently following criteria are supported for sorting customization:
+
+        Field criteria (see description of formats dict for each field explanation):
+            format_id
+            width
+            height
+            tbr
+            abr
+            vbr
+            fps
+            filesize
+            filesize_approx
+            language_preference
+            quality
+            source_preference
+
+        Synthetic criteria:
+            preference              Calculated based on preference field with some corrections
+            proto_preference        Calculated based on protocol field and prioritizes
+                                    direct HTTP(s) URLs
+            ext_preference          Video extension preference, calculated based on ext field
+                                    and value of prefer_free_formats setting
+            audio_ext_preference    Audio extension preference, calculated based on ext field
+                                    and value of prefer_free_formats setting
+
+        Default criteria preference (from most priority to least):
+            preference
+            language_preference
+            quality
+            tbr
+            filesize
+            vbr
+            height
+            width
+            proto_preference
+            ext_preference
+            abr
+            audio_ext_preference
+            fps
+            filesize_approx
+            source_preference
+            format_id
+        """
         if not formats:
             raise ExtractorError('No video formats found')
 
@@ -773,9 +823,6 @@ class InfoExtractor(object):
             from ..utils import determine_ext
             if not f.get('ext') and 'url' in f:
                 f['ext'] = determine_ext(f['url'])
-
-            if isinstance(field_preference, (list, tuple)):
-                return tuple(f.get(field) if f.get(field) is not None else -1 for field in field_preference)
 
             preference = f.get('preference')
             if preference is None:
@@ -806,24 +853,59 @@ class InfoExtractor(object):
                     ext_preference = -1
                 audio_ext_preference = 0
 
-            return (
-                preference,
-                f.get('language_preference') if f.get('language_preference') is not None else -1,
-                f.get('quality') if f.get('quality') is not None else -1,
-                f.get('tbr') if f.get('tbr') is not None else -1,
-                f.get('filesize') if f.get('filesize') is not None else -1,
-                f.get('vbr') if f.get('vbr') is not None else -1,
-                f.get('height') if f.get('height') is not None else -1,
-                f.get('width') if f.get('width') is not None else -1,
-                proto_preference,
-                ext_preference,
-                f.get('abr') if f.get('abr') is not None else -1,
-                audio_ext_preference,
-                f.get('fps') if f.get('fps') is not None else -1,
-                f.get('filesize_approx') if f.get('filesize_approx') is not None else -1,
-                f.get('source_preference') if f.get('source_preference') is not None else -1,
-                f.get('format_id') if f.get('format_id') is not None else '',
+            def synthetic_criterion(name, value):
+                return name, value
+
+            def field_criterion(name, default=-1):
+                return name, f.get(name) if f.get(name) is not None else default
+
+            default_key = (
+                synthetic_criterion('preference', preference),
+                field_criterion('language_preference'),
+                field_criterion('quality'),
+                field_criterion('tbr'),
+                field_criterion('filesize'),
+                field_criterion('vbr'),
+                field_criterion('height'),
+                field_criterion('width'),
+                synthetic_criterion('proto_preference', proto_preference),
+                synthetic_criterion('ext_preference', ext_preference),
+                field_criterion('abr'),
+                synthetic_criterion('audio_ext_preference', audio_ext_preference),
+                field_criterion('fps'),
+                field_criterion('filesize_approx'),
+                field_criterion('source_preference'),
+                field_criterion('format_id', ''),
             )
+
+            if (not criteria_preference and not criteria_relative_preference and
+                    not criteria_exclusion):
+                return default_key
+
+            default_criteria_order = list(list(zip(*default_key))[0])
+            criteria_order = []
+            if criteria_preference:
+                for field in criteria_preference:
+                    if field in default_criteria_order:
+                        criteria_order.append(field)
+            else:
+                relative_order = (list(criteria_relative_preference)
+                                  if criteria_relative_preference else [])
+                while default_criteria_order:
+                    field = default_criteria_order[0]
+                    if field in relative_order:
+                        for rel_field in relative_order:
+                            if rel_field in default_criteria_order:
+                                criteria_order.append(rel_field)
+                                default_criteria_order.remove(rel_field)
+                    else:
+                        if not criteria_exclusion or field not in criteria_exclusion:
+                            criteria_order.append(field)
+                        default_criteria_order.remove(field)
+
+            default_key_dict = dict(default_key)
+            return [default_key_dict[field] for field in criteria_order]
+
         formats.sort(key=_formats_key)
 
     def _check_formats(self, formats, video_id):
