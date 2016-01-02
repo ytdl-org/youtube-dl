@@ -48,10 +48,9 @@ class BaiduVideoIE(InfoExtractor):
         episodes_detail = self._call_api(
             'xqsingle', category, playlist_id, 'Download episodes JSON metadata')
 
-        entries = []
-        for episode in episodes_detail['videos']:
-            entries.append(self.url_result(
-                episode['url'], video_title=episode['title']))
+        entries = [self.url_result(
+            episode['url'], video_title=episode['title']
+        ) for episode in episodes_detail['videos']]
 
         return self.playlist_result(
             entries, playlist_id, playlist_title, playlist_description)
