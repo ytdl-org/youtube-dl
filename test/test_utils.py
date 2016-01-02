@@ -28,6 +28,7 @@ from youtube_dl.utils import (
     encodeFilename,
     escape_rfc3986,
     escape_url,
+    extract_attributes,
     ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
@@ -75,6 +76,7 @@ from youtube_dl.utils import (
     cli_bool_option,
 )
 from youtube_dl.compat import (
+    compat_chr,
     compat_etree_fromstring,
 )
 
@@ -590,6 +592,44 @@ class TestUtil(unittest.TestCase):
 
         on = js_to_json('{"abc": "def",}')
         self.assertEqual(json.loads(on), {'abc': 'def'})
+
+    def test_extract_attributes(self):
+        self.assertEqual(extract_attributes('<e x="y">'), {'x': 'y'})
+        self.assertEqual(extract_attributes("<e x='y'>"), {'x': 'y'})
+        self.assertEqual(extract_attributes('<e x=y>'), {'x': 'y'})
+        self.assertEqual(extract_attributes('<e x="a \'b\' c">'), {'x': "a 'b' c"})
+        self.assertEqual(extract_attributes('<e x=\'a "b" c\'>'), {'x': 'a "b" c'})
+        self.assertEqual(extract_attributes('<e x="&#121;">'), {'x': 'y'})
+        self.assertEqual(extract_attributes('<e x="&#x79;">'), {'x': 'y'})
+        self.assertEqual(extract_attributes('<e x="&amp;">'), {'x': '&'})  # XML
+        self.assertEqual(extract_attributes('<e x="&quot;">'), {'x': '"'})
+        self.assertEqual(extract_attributes('<e x="&pound;">'), {'x': '£'}) # HTML 3.2
+        self.assertEqual(extract_attributes('<e x="&lambda;">'), {'x': 'λ'}) # HTML 4.0
+        self.assertEqual(extract_attributes('<e x="&foo">'), {'x': '&foo'})
+        self.assertEqual(extract_attributes('<e x="\'">'), {'x': "'"})
+        self.assertEqual(extract_attributes('<e x=\'"\'>'), {'x': '"'})
+        self.assertEqual(extract_attributes('<e x >'), {'x': None})
+        self.assertEqual(extract_attributes('<e x=y a>'), {'x': 'y', 'a': None})
+        self.assertEqual(extract_attributes('<e x= y>'), {'x': 'y'})
+        self.assertEqual(extract_attributes('<e x=1 y=2 x=3>'), {'y': '2', 'x': '3'})
+        self.assertEqual(extract_attributes('<e \nx=\ny\n>'), {'x': 'y'})
+        self.assertEqual(extract_attributes('<e \nx=\n"y"\n>'), {'x': 'y'})
+        self.assertEqual(extract_attributes("<e \nx=\n'y'\n>"), {'x': 'y'})
+        self.assertEqual(extract_attributes('<e \nx="\ny\n">'), {'x': '\ny\n'})
+        self.assertEqual(extract_attributes('<e CAPS=x>'), {'caps': 'x'}) # Names lowercased
+        self.assertEqual(extract_attributes('<e x=1 X=2>'), {'x': '2'})
+        self.assertEqual(extract_attributes('<e X=1 x=2>'), {'x': '2'})
+        self.assertEqual(extract_attributes('<e _:funny-name1=1>'), {'_:funny-name1': '1'})
+        self.assertEqual(extract_attributes('<e x="Fáilte 世界 \U0001f600">'), {'x': 'Fáilte 世界 \U0001f600'})
+        self.assertEqual(extract_attributes('<e x="décompose&#769;">'), {'x': 'décompose\u0301'})
+        # "Narrow" Python builds don't support unicode code points outside BMP.
+        try:
+            compat_chr(0x10000)
+            supports_outside_bmp = True
+        except ValueError:
+            supports_outside_bmp = False
+        if supports_outside_bmp:
+            self.assertEqual(extract_attributes('<e x="Smile &#128512;!">'), {'x': 'Smile \U0001f600!'})
 
     def test_clean_html(self):
         self.assertEqual(clean_html('a:\nb'), 'a: b')
