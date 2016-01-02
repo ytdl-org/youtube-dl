@@ -102,6 +102,68 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['ext'], 'flv')
 
+    def test_sort_formats(self):
+        # Format with higher tbr has lower resolution
+        formats = [
+            {'format_id': '1', 'tbr': 1000, 'height': 640, 'url': TEST_URL},
+            {'format_id': '2', 'tbr': 1050, 'height': 460, 'url': TEST_URL},
+        ]
+        info_dict = _make_result(formats)
+
+        # Format with better tbr is selected by default
+        ydl = YDL()
+        yie = YoutubeIE(ydl)
+        yie._sort_formats(info_dict['formats'])
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], '2')
+
+        # Force considered fields to height, width and tbr exclusively in this order,
+        # better height is selected
+        ydl = YDL()
+        yie = YoutubeIE(ydl)
+        yie._sort_formats(info_dict['formats'], criteria_preference=('height', 'width', 'tbr'))
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], '1')
+
+        # Force considered fields to height and width exclusively in this order,
+        # tbr is excluded completely, better height is selected
+        ydl = YDL()
+        yie = YoutubeIE(ydl)
+        yie._sort_formats(info_dict['formats'], criteria_preference=('height', 'width'))
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], '1')
+
+        # Tweak relative field preference (prefer height and width over tbr) preserving
+        # all remaining default fields, better height is selected
+        ydl = YDL()
+        yie = YoutubeIE(ydl)
+        yie._sort_formats(info_dict['formats'], criteria_relative_preference=('height', 'width', 'tbr'))
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], '1')
+
+        # Tweak relative field preference (prefer width over height) preserving
+        # all remaining default fields, better tbr is selected since height and width
+        # preference not changed relatively to tbr
+        ydl = YDL()
+        yie = YoutubeIE(ydl)
+        yie._sort_formats(info_dict['formats'], criteria_relative_preference=('width', 'height'))
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], '2')
+
+        # Exclude tbr from consideration along with default sorting,
+        # better height is selected
+        ydl = YDL()
+        yie = YoutubeIE(ydl)
+        yie._sort_formats(info_dict['formats'], criteria_exclusion=('tbr',))
+        ydl.process_ie_result(info_dict)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], '1')
+
     def test_format_selection(self):
         formats = [
             {'format_id': '35', 'ext': 'mp4', 'preference': 1, 'url': TEST_URL},
