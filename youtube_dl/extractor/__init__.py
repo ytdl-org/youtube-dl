@@ -364,6 +364,7 @@ from .mdr import MDRIE
 from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mgoon import MgoonIE
+from .min20 import Min20IE
 from .minhateca import MinhatecaIE
 from .ministrygrid import MinistryGridIE
 from .miomio import MioMioIE
