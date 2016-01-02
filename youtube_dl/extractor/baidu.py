@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..utils import unescapeHTML
 
 
 class BaiduVideoIE(InfoExtractor):
@@ -14,8 +14,8 @@ class BaiduVideoIE(InfoExtractor):
         'url': 'http://v.baidu.com/comic/1069.htm?frp=bdbrand&q=%E4%B8%AD%E5%8D%8E%E5%B0%8F%E5%BD%93%E5%AE%B6',
         'info_dict': {
             'id': '1069',
-            'title': '中华小当家 TV版 (全52集)',
-            'description': 'md5:395a419e41215e531c857bb037bbaf80',
+            'title': '中华小当家 TV版国语',
+            'description': 'md5:51be07afe461cf99fa61231421b5397c',
         },
         'playlist_count': 52,
     }, {
@@ -25,45 +25,32 @@ class BaiduVideoIE(InfoExtractor):
             'title': 're:^奔跑吧兄弟',
             'description': 'md5:1bf88bad6d850930f542d51547c089b8',
         },
-        'playlist_mincount': 3,
+        'playlist_mincount': 12,
     }]
 
+    def _call_api(self, path, category, playlist_id, note):
+        return self._download_json('http://app.video.baidu.com/%s/?worktype=adnative%s&id=%s' % (
+            path, category, playlist_id), playlist_id, note)
+
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        playlist_id = mobj.group('id')
-        category = category2 = mobj.group('type')
+        category, playlist_id = re.match(self._VALID_URL, url).groups()
         if category == 'show':
-            category2 = 'tvshow'
+            category = 'tvshow'
+        if category == 'tv':
+            category = 'tvplay'
 
-        webpage = self._download_webpage(url, playlist_id)
+        playlist_detail = self._call_api(
+            'xqinfo', category, playlist_id, 'Download playlist JSON metadata')
 
-        playlist_title = self._html_search_regex(
-            r'title\s*:\s*(["\'])(?P<title>[^\']+)\1', webpage,
-            'playlist title', group='title')
-        playlist_description = self._html_search_regex(
-            r'<input[^>]+class="j-data-intro"[^>]+value="([^"]+)"/>', webpage,
-            playlist_id, 'playlist description')
+        playlist_title = playlist_detail['title']
+        playlist_description = unescapeHTML(playlist_detail.get('intro'))
 
-        site = self._html_search_regex(
-            r'filterSite\s*:\s*["\']([^"]*)["\']', webpage,
-            'primary provider site')
-        api_result = self._download_json(
-            'http://v.baidu.com/%s_intro/?dtype=%sPlayUrl&id=%s&site=%s' % (
-                category, category2, playlist_id, site),
-            playlist_id, 'Get playlist links')
+        episodes_detail = self._call_api(
+            'xqsingle', category, playlist_id, 'Download episodes JSON metadata')
 
-        entries = []
-        for episode in api_result[0]['episodes']:
-            episode_id = '%s_%s' % (playlist_id, episode['episode'])
-
-            redirect_page = self._download_webpage(
-                compat_urlparse.urljoin(url, episode['url']), episode_id,
-                note='Download Baidu redirect page')
-            real_url = self._html_search_regex(
-                r'location\.replace\("([^"]+)"\)', redirect_page, 'real URL')
-
-            entries.append(self.url_result(
-                real_url, video_title=episode['single_title']))
+        entries = [self.url_result(
+            episode['url'], video_title=episode['title']
+        ) for episode in episodes_detail['videos']]
 
         return self.playlist_result(
             entries, playlist_id, playlist_title, playlist_description)
