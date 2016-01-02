@@ -770,7 +770,7 @@ class InfoExtractor(object):
         Sort formats.
 
         Sorting behavior can be customized by specifying absolute or relative criteria
-        order and criteria exclusion. Criteria is either a field from formats dictionary
+        order and criteria exclusion. Criterion is either a field from formats dictionary
         or a synthetic expression calculated based on some data from formats dictionary.
         Currently following criteria are supported for sorting customization:
 
