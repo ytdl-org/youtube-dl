@@ -41,6 +41,8 @@ class IviIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Двое из ларца - Дело Гольдберга (1 часть)',
                 'series': 'Двое из ларца',
+                'season': 'Сезон 1',
+                'season_number': 1,
                 'episode': 'Дело Гольдберга (1 часть)',
                 'episode_number': 1,
                 'duration': 2655,
@@ -105,6 +107,13 @@ class IviIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
+        season = self._search_regex(
+            r'<li[^>]+class="season active"[^>]*><a[^>]+>([^<]+)',
+            webpage, 'season', default=None)
+        season_number = int_or_none(self._search_regex(
+            r'<li[^>]+class="season active"[^>]*><a[^>]+data-season(?:-index)?="(\d+)"',
+            webpage, 'season number', default=None))
+
         episode_number = int_or_none(self._search_regex(
             r'<meta[^>]+itemprop="episode"[^>]*>\s*<meta[^>]+itemprop="episodeNumber"[^>]+content="(\d+)',
             webpage, 'episode number', default=None))
@@ -116,6 +125,8 @@ class IviIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'series': compilation,
+            'season': season,
+            'season_number': season_number,
             'episode': episode,
             'episode_number': episode_number,
             'thumbnails': thumbnails,
