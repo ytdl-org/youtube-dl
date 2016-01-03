@@ -364,7 +364,6 @@ from .mdr import MDRIE
 from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mgoon import MgoonIE
-from .min20 import Min20IE
 from .minhateca import MinhatecaIE
 from .ministrygrid import MinistryGridIE
 from .miomio import MioMioIE
@@ -747,6 +746,7 @@ from .tvp import TvpIE, TvpSeriesIE
 from .tvplay import TVPlayIE
 from .tweakers import TweakersIE
 from .twentyfourvideo import TwentyFourVideoIE
+from .twentymin import TwentyMinutenIE
 from .twentytwotracks import (
     TwentyTwoTracksIE,
     TwentyTwoTracksGenreIE
