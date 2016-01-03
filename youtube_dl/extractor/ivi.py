@@ -146,8 +146,11 @@ class IviCompilationIE(InfoExtractor):
     }]
 
     def _extract_entries(self, html, compilation_id):
-        return [self.url_result('http://www.ivi.ru/watch/%s/%s' % (compilation_id, serie), 'Ivi')
-                for serie in re.findall(r'<strong><a href="/watch/%s/(\d+)">(?:[^<]+)</a></strong>' % compilation_id, html)]
+        return [
+            self.url_result(
+                'http://www.ivi.ru/watch/%s/%s' % (compilation_id, serie), IviIE.ie_key())
+            for serie in re.findall(
+                r'<a href="/watch/%s/(\d+)"[^>]+data-id="\1"' % compilation_id, html)]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -155,7 +158,8 @@ class IviCompilationIE(InfoExtractor):
         season_id = mobj.group('seasonid')
 
         if season_id is not None:  # Season link
-            season_page = self._download_webpage(url, compilation_id, 'Downloading season %s web page' % season_id)
+            season_page = self._download_webpage(
+                url, compilation_id, 'Downloading season %s web page' % season_id)
             playlist_id = '%s/season%s' % (compilation_id, season_id)
             playlist_title = self._html_search_meta('title', season_page, 'title')
             entries = self._extract_entries(season_page, compilation_id)
@@ -163,8 +167,9 @@ class IviCompilationIE(InfoExtractor):
             compilation_page = self._download_webpage(url, compilation_id, 'Downloading compilation web page')
             playlist_id = compilation_id
             playlist_title = self._html_search_meta('title', compilation_page, 'title')
-            seasons = re.findall(r'<a href="/watch/%s/season(\d+)">[^<]+</a>' % compilation_id, compilation_page)
-            if len(seasons) == 0:  # No seasons in this compilation
+            seasons = re.findall(
+                r'<a href="/watch/%s/season(\d+)' % compilation_id, compilation_page)
+            if not seasons:  # No seasons in this compilation
                 entries = self._extract_entries(compilation_page, compilation_id)
             else:
                 entries = []
