@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-
 from ..utils import (
     float_or_none,
     unescapeHTML,
@@ -98,19 +97,19 @@ class RteRadioIE(InfoExtractor):
         formats = []
 
         if mg.get('url') and not mg['url'].startswith('rtmpe:'):
-            formats.append({'url': mg.get('url')})
+            formats.append({'url': mg['url']})
 
         if mg.get('hls_server') and mg.get('hls_url'):
-            hls_url = mg['hls_server'] + mg['hls_url']
-            hls_formats = self._extract_m3u8_formats(
-                hls_url, item_id, 'mp4', m3u8_id='hls', fatal=False)
-            formats.extend(hls_formats)
+            formats.extend(self._extract_m3u8_formats(
+                mg['hls_server'] + mg['hls_url'], item_id, 'mp4',
+                entry_protocol='m3u8_native', m3u8_id='hls', fatal=False))
 
         if mg.get('hds_server') and mg.get('hds_url'):
-            f4m_url = mg['hds_server'] + mg['hds_url']
-            f4m_formats = self._extract_f4m_formats(
-                f4m_url, item_id, f4m_id='hds', fatal=False)
-            formats.extend(f4m_formats)
+            formats.extend(self._extract_f4m_formats(
+                mg['hds_server'] + mg['hds_url'], item_id,
+                f4m_id='hds', fatal=False))
+
+        self._sort_formats(formats)
 
         return {
             'id': item_id,
