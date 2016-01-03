@@ -58,7 +58,6 @@ class RteIE(InfoExtractor):
         }
 
 
-
 class RteRadioIE(InfoExtractor):
     IE_NAME = 'rte:radio'
     IE_DESC = 'Raidió Teilifís Éireann radio'
@@ -102,15 +101,15 @@ class RteRadioIE(InfoExtractor):
             formats.append({'url': mg.get('url')})
 
         if mg.get('hls_server') and mg.get('hls_url'):
-            hls_url = mg['hls_server'] +  mg['hls_url']
+            hls_url = mg['hls_server'] + mg['hls_url']
             hls_formats = self._extract_m3u8_formats(
-                    hls_url, item_id, 'mp4', m3u8_id='hls', fatal=False)
+                hls_url, item_id, 'mp4', m3u8_id='hls', fatal=False)
             formats.extend(hls_formats)
 
         if mg.get('hds_server') and mg.get('hds_url'):
             f4m_url = mg['hds_server'] + mg['hds_url']
             f4m_formats = self._extract_f4m_formats(
-                    f4m_url, item_id, f4m_id='hds', fatal=False)
+                f4m_url, item_id, f4m_id='hds', fatal=False)
             formats.extend(f4m_formats)
 
         return {
