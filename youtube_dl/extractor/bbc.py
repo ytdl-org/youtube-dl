@@ -124,14 +124,14 @@ class BBCCoUkIE(InfoExtractor):
             },
             'skip': 'Episode is no longer available on BBC iPlayer Radio',
         }, {
-            'url': 'http://www.bbc.co.uk/music/clips/p02frcc3',
+            'url': 'http://www.bbc.co.uk/music/clips/p022h44b',
             'note': 'Audio',
             'info_dict': {
-                'id': 'p02frcch',
+                'id': 'p022h44j',
                 'ext': 'flv',
-                'title': 'Pete Tong, Past, Present and Future Special, Madeon - After Hours mix',
-                'description': 'French house superstar Madeon takes us out of the club and onto the after party.',
-                'duration': 3507,
+                'title': 'BBC Proms Music Guides, Rachmaninov: Symphonic Dances',
+                'description': "In this Proms Music Guide, Andrew McGregor looks at Rachmaninov's Symphonic Dances.",
+                'duration': 227,
             },
             'params': {
                 # rtmp download
@@ -182,13 +182,12 @@ class BBCCoUkIE(InfoExtractor):
         }, {
             # iptv-all mediaset fails with geolocation however there is no geo restriction
             # for this programme at all
-            'url': 'http://www.bbc.co.uk/programmes/b06bp7lf',
+            'url': 'http://www.bbc.co.uk/programmes/b06rkn85',
             'info_dict': {
-                'id': 'b06bp7kf',
+                'id': 'b06rkms3',
                 'ext': 'flv',
-                'title': "Annie Mac's Friday Night, B.Traits sits in for Annie",
-                'description': 'B.Traits sits in for Annie Mac with a Mini-Mix from Disclosure.',
-                'duration': 10800,
+                'title': "Best of the Mini-Mixes 2015: Part 3, Annie Mac's Friday Night - BBC Radio 1",
+                'description': "Annie has part three in the Best of the Mini-Mixes 2015, plus the year's Most Played!",
             },
             'params': {
                 # rtmp download
