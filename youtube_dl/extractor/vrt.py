@@ -8,7 +8,7 @@ from ..utils import float_or_none
 
 
 class VRTIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:deredactie|sporza|cobra)\.be/cm/(?:[^/]+/)+(?P<id>[^/]+)/*'
+    _VALID_URL = r'https?://(?:deredactie|sporza|cobra(?:\.canvas)?)\.be/cm/(?:[^/]+/)+(?P<id>[^/]+)/*'
     _TESTS = [
         # deredactie.be
         {
@@ -52,6 +52,10 @@ class VRTIE(InfoExtractor):
                 'duration': 661,
             }
         },
+        {
+            'url': 'http://cobra.canvas.be/cm/cobra/videozone/rubriek/film-videozone/1.2377055',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
