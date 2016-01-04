@@ -105,13 +105,16 @@ class DramaFeverIE(DramaFeverBaseIE):
             video_id, 'Downloading episode info JSON', fatal=False)
         if episode_info:
             value = episode_info.get('value')
-            if value:
-                subfile = value[0].get('subfile') or value[0].get('new_subfile')
-                if subfile and subfile != 'http://www.dramafever.com/st/':
-                    info.setdefault('subtitles', {}).setdefault('English', []).append({
-                        'ext': 'srt',
-                        'url': subfile,
-                    })
+            if isinstance(value, list):
+                for v in value:
+                    if v.get('type') == 'Episode':
+                        subfile = v.get('subfile') or v.get('new_subfile')
+                        if subfile and subfile != 'http://www.dramafever.com/st/':
+                            info.setdefault('subtitles', {}).setdefault('English', []).append({
+                                'ext': 'srt',
+                                'url': subfile,
+                            })
+                        break
 
         return info
 
