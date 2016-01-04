@@ -12,6 +12,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     clean_html,
+    int_or_none,
     sanitized_Request,
 )
 
@@ -114,6 +115,7 @@ class DramaFeverIE(DramaFeverBaseIE):
                                 'ext': 'srt',
                                 'url': subfile,
                             })
+                        info['episode_number'] = int_or_none(v.get('number'))
                         break
 
         return info
