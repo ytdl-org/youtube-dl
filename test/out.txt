@@ -1,0 +1,575 @@
+Name                                                                        Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------------------------------------------
+__init__.py                                                                     0      0   100%   
+helper.py                                                                     142    101    29%   33-37, 45-52, 64, 67, 70, 74-80, 84-90, 97-158, 164-166, 170-203, 211, 215-222, 226-229, 233-239
+test_YoutubeDL.py                                                             418      0   100%   
+/home/rpchen1228/youtube-dl/youtube_dl/YoutubeDL.py                          1224    608    50%   28, 297-321, 327-331, 334, 345-349, 352, 356-365, 382-386, 402, 408-415, 427, 437-443, 446-453, 456-460, 463-467, 470-471, 474-477, 488-507, 514-524, 531-536, 540-543, 557, 560, 562, 564, 582, 584-586, 597-598, 601-602, 605-607, 610-615, 617, 619, 644-687, 690, 709-714, 722, 728-742, 783-805, 810, 828-829, 837-859, 887, 909, 976, 1009, 1019-1021, 1045, 1106-1109, 1149-1150, 1184, 1197, 1199, 1210, 1212-1219, 1222, 1230-1234, 1241, 1244-1247, 1260, 1267, 1279-1280, 1307-1308, 1310-1311, 1315-1323, 1357, 1364, 1383-1384, 1397-1398, 1402, 1405, 1418, 1420, 1422-1427, 1429, 1431, 1433, 1435, 1437, 1439, 1445-1652, 1656-1676, 1679-1693, 1697, 1707, 1713-1714, 1720-1721, 1726-1732, 1739-1751, 1754-1760, 1767, 1782, 1784, 1786, 1788-1790, 1793-1797, 1799, 1803, 1805-1810, 1812-1814, 1816, 1818, 1820-1822, 1824-1826, 1830-1839, 1844-1856, 1861-1866, 1873, 1879-1935, 1950-1953, 1957-1960, 1965, 1982-1989, 1992-1995, 1998-2030
+/home/rpchen1228/youtube-dl/youtube_dl/__init__.py                            201    184     8%   49-405, 409-416
+/home/rpchen1228/youtube-dl/youtube_dl/aes.py                                 150    119    21%   21-34, 46-60, 70-95, 106-116, 127-137, 153-175, 253, 257, 261, 265-269, 273, 277-279, 283-290, 294-298, 302, 306-310, 314-318, 322-329
+/home/rpchen1228/youtube-dl/youtube_dl/cache.py                                70     51    27%   20-24, 27-30, 35, 38-53, 57-77, 80-93
+/home/rpchen1228/youtube-dl/youtube_dl/compat.py                              383    243    37%   83, 94-95, 99-100, 113-131, 143-156, 164-165, 182-199, 203-204, 208-209, 213-214, 217, 225-230, 235-238, 241-245, 248-252, 262-287, 291-299, 305-308, 316-319, 323-326, 330-331, 337-341, 355-402, 407-412, 417-425, 428-432, 441-443, 449-469, 477-492, 495, 500-525, 530-535, 538
+/home/rpchen1228/youtube-dl/youtube_dl/downloader/__init__.py                  24     10    58%   30-42
+/home/rpchen1228/youtube-dl/youtube_dl/downloader/common.py                   227    184    19%   57-60, 64-71, 75-77, 81-83, 87-95, 99-101, 105-108, 112-114, 118-127, 132-137, 140, 143, 146, 149, 152, 155, 159-169, 173-176, 179-181, 184-189, 193-210, 214, 217-231, 234-290, 294, 298, 302-305, 309, 316-342, 346, 349-350, 355, 358-371
+/home/rpchen1228/youtube-dl/youtube_dl/downloader/dash.py                      39     33    15%   14-66
+/home/rpchen1228/youtube-dl/youtube_dl/downloader/external.py                  98     69    30%   19-38, 46, 50, 53, 56, 59, 62, 66-75, 80-88, 93-98, 103-111, 116-129, 134-137, 147, 154-155
+/home/rpchen1228/youtube-dl/youtube_dl/downloader/f4m.py                      249    216    13%   33, 36, 39, 42-48, 54-60, 64-79, 85-113, 119-162, 169-171, 175, 180-192, 196, 200, 206-209, 214-222, 226, 237-251, 254-255, 258-272, 275-283, 286-391
+/home/rpchen1228/youtube-dl/youtube_dl/downloader/fragment.py                  53     40    25%   16, 25-26, 29-44, 51-97, 100-105
+/home/rpchen1228/youtube-dl/youtube_dl/downloader/hls.py                       67     53    21%   21-62, 71-112
+/home/rpchen1228/youtube-dl/youtube_dl/downloader/http.py                     146    135     8%   23-253
+/home/rpchen1228/youtube-dl/youtube_dl/downloader/rtmp.py                     147    136     7%   19, 25-203
+/home/rpchen1228/youtube-dl/youtube_dl/downloader/rtsp.py                      26     19    27%   15-45
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/__init__.py                  547      2    99%   866, 873
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/abc.py                        22     13    41%   54-84
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/abc7news.py                   21     13    38%   37-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/academicearth.py              15      7    53%   22-35
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/addanime.py                   40     31    23%   35-88
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/adobetv.py                    35     24    31%   32-64, 93-124
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/adultswim.py                  80     69    14%   86-88, 92-94, 98-102, 105-205
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/aftenposten.py                 7      1    86%   23
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/aftonbladet.py                24     17    29%   23-55
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/airmozilla.py                 20     12    40%   35-61
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/aljazeera.py                  10      4    60%   23-28
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/allocine.py                   29     19    34%   53-83
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/alphaporno.py                 21     14    33%   34-64
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/anitube.py                    24     16    33%   25-53
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/anysex.py                     19     11    42%   29-50
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/aol.py                        19     11    42%   42-64
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/aparat.py                     21     13    38%   29-53
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/appleconnect.py               17     10    41%   28-41
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/appletrailers.py              49     38    22%   74-142
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/archiveorg.py                 21     12    43%   34-58
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ard.py                       127    105    17%   65-90, 99-143, 147-217, 237-266, 296-312
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/arte.py                      118     81    31%   29-55, 69-74, 77-79, 82-91, 94-162, 205-210, 218-228, 260-264
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/atresplayer.py                71     50    30%   54, 57-75, 79-155
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/atttechchannel.py             16      9    44%   27-46
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/audiomack.py                  37     21    43%   49-66, 114-144
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/azubu.py                      26     18    31%   49-82
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/baidu.py                      26     17    35%   32-68
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/bambuser.py                   55     33    40%   49-70, 74, 77-90, 119-140
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/bandcamp.py                   54     39    28%   42-101, 164-177
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/bbc.py                       354    303    14%   200, 203-204, 207-251, 254, 257-260, 263-268, 271, 274-294, 297-310, 313-323, 326, 331-341, 344-352, 355-366, 369-392, 395-396, 399, 403, 407-448, 451-481, 657, 663-684, 687-690, 701-907, 927-937
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/beatportpro.py                43     34    21%   43-97
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/beeg.py                       26     19    27%   29-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/behindkink.py                 15      7    53%   27-37
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/bet.py                        25     17    32%   57-98
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/bild.py                       11      3    73%   28-33
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/bilibili.py                   50     39    22%   43-139
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/blinkx.py                     36     27    25%   32-76
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/bliptv.py                     94     77    18%   122-127, 130-203, 218-229, 246-291
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/bloomberg.py                  19     12    37%   23-38
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/bpb.py                        12      5    58%   23-32
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/br.py                         37     26    30%   80-110, 114-134, 137-143
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/breakcom.py                   22     13    41%   29-57
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/brightcove.py                204    178    13%   118-165, 173-183, 187-188, 195-196, 202-222, 227-247, 252-274, 277-287, 291-353, 399-422, 425-512
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/buzzfeed.py                   19     11    42%   54-69
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/byutv.py                      18      9    50%   27-48
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/c56.py                        15      7    53%   24-41
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/camdemy.py                    39     25    36%   65-93, 136-153
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/canal13cl.py                  16      9    44%   24-40
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/canalc2.py                    19     10    47%   29-51
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/canalplus.py                  42     31    26%   70-123
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/cbs.py                        14      6    57%   50-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/cbsnews.py                    30     21    30%   46-84
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/cbssports.py                  13      6    54%   22-30
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ccc.py                        30     21    30%   32-91
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ceskatelevize.py              71     60    15%   80-157, 160-163, 174-192
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/channel9.py                  136    105    23%   75-100, 103-109, 112-122, 125-126, 129-130, 133-134, 137-138, 141-142, 145-146, 149-150, 153, 156-159, 162-163, 166-167, 170-171, 174, 178-226, 229-238, 241-255, 258-262, 265-283
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/chaturbate.py                 15      8    47%   27-43
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/chilloutzone.py               34     24    29%   53-91
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/chirbit.py                    26     13    50%   31-50, 73-84
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/cinchcast.py                  19     12    37%   20-45
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/cinemassacre.py               23     13    43%   79-103
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/clipfish.py                   23     15    35%   31-61
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/cliphunter.py                 30     20    33%   16, 39-76
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/clipsyndicate.py              17     10    41%   29-48
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/cloudy.py                     44     30    32%   52-93, 100-111
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/clubic.py                     21     12    43%   33-55
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/clyp.py                       22     15    32%   27-50
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/cmt.py                         7      0   100%   
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/cnet.py                       34     26    24%   44-76
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/cnn.py                        56     40    29%   57-112, 139-141, 164-166
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/collegehumor.py               30     21    30%   56-92
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/collegerama.py                32     23    28%   46-84
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/comcarcoff.py                 18     10    44%   29-48
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/comedycentral.py              80     63    21%   151-263
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/common.py                    717    576    20%   263-265, 269-273, 278, 282-284, 288-296, 304, 308, 317, 321-340, 345-353, 357-370, 373-433, 437-452, 458-464, 471-476, 480-489, 492-493, 498, 502, 506, 510, 514, 518, 524, 533-540, 545-553, 562-587, 593-597, 605-627, 636-643, 648-652, 659, 664-669, 672, 675, 678, 681-684, 687, 690-692, 697, 701-705, 709-721, 725-736, 739, 744-756, 759-762, 766, 772, 775, 785, 795-796, 828-829, 836-848, 852, 858-865, 868-872, 877-924, 931-1013, 1017-1025, 1028-1036, 1040-1043, 1046, 1051-1080, 1091, 1095-1179, 1182-1202, 1205-1210, 1213-1245, 1249-1251, 1254-1263, 1266-1273, 1276-1279, 1283-1285, 1288-1299, 1305-1314, 1317-1320, 1323, 1329-1332, 1337-1340, 1343-1346, 1349, 1361, 1365, 1368-1385, 1389, 1393
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/commonmistakes.py             20      7    65%   22-29, 42-46
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/condenast.py                  51     37    27%   74-83, 86-121, 130-148
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/cracked.py                    27     19    30%   40-81
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/criterion.py                  15      8    47%   23-35
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/crooksandliars.py             14      7    50%   31-50
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/crunchyroll.py               209    177    15%   39-51, 54, 57-67, 72-80, 134-160, 163-170, 173-235, 238-239, 248-263, 266-363, 402-417
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/cspan.py                      35     25    29%   60-118
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ctsnews.py                    25     17    32%   54-87
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/dailymotion.py               163    123    25%   28-30, 33-34, 37-38, 108-249, 264-265, 269-281, 299-318, 321-325, 358-366, 392-400, 403-415
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/daum.py                       25     16    36%   36-67
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/dbtv.py                       21     12    43%   36-64
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/dcn.py                        25     17    32%   37-76
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/dctp.py                       24     17    29%   25-52
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/deezer.py                     32     23    28%   29-82
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/defense.py                    14      7    50%   21-34
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/democracynow.py               37     26    30%   39-82
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/dfb.py                        20     11    45%   26-42
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/dhm.py                        17      9    47%   34-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/discovery.py                  13      5    62%   40-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/dotsub.py                     14      7    50%   30-42
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/douyutv.py                    43     32    26%   49-103
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/dplay.py                      16      8    50%   25-45
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/dramafever.py                 97     73    25%   31-36, 41-42, 45-66, 87-154, 190-216
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/drbonanza.py                  54     45    17%   47-126
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/dreisat.py                    32     23    28%   35-77
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/dropbox.py                    17      7    59%   29-36
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/drtuber.py                    23     15    35%   29-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/drtv.py                       55     48    13%   29-106
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/dump.py                       14      7    50%   24-34
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/dumpert.py                    26     16    38%   30-61
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/dvtv.py                       27     16    41%   77-92, 100-125
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/eagleplatform.py              38     27    29%   53-55, 58-60, 63, 66-101
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ebaumsworld.py                10      4    60%   21-26
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/echomsk.py                    17     10    41%   22-42
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ehow.py                       15      7    53%   23-31
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/eighttracks.py                41     30    27%   105-157
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/einthusan.py                  17     10    41%   37-55
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/eitb.py                       39     30    23%   33-83
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ellentv.py                    30     15    50%   29-44, 60-65, 73-77, 80
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/elpais.py                     19     11    42%   25-47
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/embedly.py                     8      1    88%   16
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/engadget.py                   15      7    53%   29-37
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/eporner.py                    27     19    30%   30-62
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/eroprofile.py                 36     23    36%   42-62, 65, 68-88
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/escapist.py                   40     30    25%   17-36, 68-99
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/espn.py                       13      6    54%   39-53
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/esri.py                       24     15    38%   32-66
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/europa.py                     38     30    21%   41-84
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/everyonesmixtape.py           29     20    31%   41-74
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/exfm.py                       19      9    53%   42-50
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/expotv.py                     29     21    28%   30-71
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/extremetube.py                32     23    28%   38-85
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/facebook.py                   76     59    22%   72-120, 123, 126-173
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/faz.py                        22     15    32%   37-61
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/fc2.py                        46     34    26%   47-73, 76-109
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/fczenit.py                    15      8    47%   22-37
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/firstpost.py                  16     10    38%   21-44
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/firsttv.py                    19     10    47%   42-70
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/fivemin.py                    32     21    34%   94-136
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/fivetv.py                     15      7    53%   67-81
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/fktv.py                       21     12    43%   29-50
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/flickr.py                     28     19    32%   28-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/folketinget.py                24     15    38%   40-67
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/footyroom.py                  19     13    32%   26-49
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/fourtube.py                   39     29    26%   40-106
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/foxgay.py                     14      8    43%   22-41
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/foxnews.py                    34     25    26%   55-95
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/foxsports.py                  11      4    64%   22-31
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/franceculture.py              20     12    40%   32-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/franceinter.py                17      9    47%   26-43
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/francetv.py                  105     71    32%   22-94, 113-123, 166-176, 289-294, 316-320, 343-354
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/freesound.py                  13      6    54%   23-33
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/freespeech.py                 15      6    60%   27-33
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/freevideo.py                  13      6    54%   22-33
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/funnyordie.py                 32     23    28%   37-81
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/gamekings.py                  16      9    44%   41-61
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/gameone.py                    37     22    41%   60-99, 123-130
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/gamersyde.py                  29     21    28%   28-63
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/gamespot.py                   32     22    31%   38-75
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/gamestar.py                   20     12    40%   32-61
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/gametrailers.py                6      0   100%   
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/gazeta.py                     13      6    54%   27-37
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/gdcvault.py                   80     67    16%   60-76, 79-111, 114-134, 137-194
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/generic.py                   437    399     9%   1053, 1056-1079, 1090-1118, 1125-1900
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/gfycat.py                     37     30    19%   50-97
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/giantbomb.py                  35     26    26%   31-73
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/giga.py                       28     20    29%   46-91
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/glide.py                      14      7    50%   22-35
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/globo.py                     275    223    19%   78, 82-85, 88-92, 96, 100, 104, 108, 112-117, 121-134, 138-163, 167-194, 198-203, 207-210, 214-294, 298, 303, 307, 311, 315, 319-321, 325, 329-330, 333-390, 432, 435-438
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/godtube.py                    19     11    42%   32-50
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/goldenmoustache.py            13      7    46%   31-41
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/golem.py                      28     19    32%   31-71
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/googleplus.py                 27     16    41%   27-67
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/googlesearch.py               24     12    50%   29-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/goshgay.py                    16      8    50%   29-44
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/groupon.py                    17     11    35%   29-44
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/hark.py                        9      3    67%   22-26
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/hearthisat.py                 43     33    23%   42-104
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/heise.py                      28     21    25%   37-79
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/hellporno.py                  29     21    28%   28-63
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/helsinki.py                   14      6    57%   26-38
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/hentaistigma.py               13      7    46%   20-34
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/historicfilms.py              16      9    44%   23-40
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/history.py                    11      4    64%   23-31
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/hitbox.py                     82     67    18%   44-75, 90-128, 152-203
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/hornbunny.py                  18     10    44%   28-48
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/hotnewhiphop.py               29     20    31%   29-64
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/howcast.py                    11      4    64%   27-35
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/howstuffworks.py              27     20    26%   56-99
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/huffpost.py                   27     18    33%   36-70
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/hypem.py                      33     23    30%   30-61
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/iconosquare.py                22     15    32%   31-73
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ign.py                        42     24    43%   78-85, 88-109, 112-116, 142-145
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/imdb.py                       40     23    43%   28-61, 84-93
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/imgur.py                      33     20    39%   37-94, 114-124
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ina.py                        14      7    50%   22-32
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/indavideo.py                  36     25    31%   40-78, 131-137
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/infoq.py                      22     14    36%   30-63
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/instagram.py                  43     29    33%   30-38, 79-132
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/internetvideoarchive.py       40     29    28%   31, 35-41, 44-86
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/iprima.py                     40     29    28%   50-105
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/iqiyi.py                     113     91    19%   100, 103-174, 177-178, 181-182, 185-204, 210-211, 214-279
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ir90tv.py                     13      6    54%   25-36
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ivi.py                        74     51    31%   58-59, 62-63, 66-122, 154, 158-182
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/izlesene.py                   31     22    29%   59-110
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/jadorecettepub.py             16      8    50%   26-41
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/jeuxvideo.py                  17     10    41%   28-50
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/jove.py                       23     14    39%   44-72
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/jpopsukitv.py                 20     12    40%   31-57
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/jukebox.py                    26     18    31%   26-54
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/kaltura.py                    37     24    35%   65-80, 83-91, 95-120, 124-144
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/kanalplay.py                  32     21    34%   39, 49-52, 55-89
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/kankan.py                     24     15    38%   26-44
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/karaoketv.py                  15      7    53%   23-36
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/karrierevideos.py             26     18    31%   46-86
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/keek.py                       10      3    70%   23-27
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/keezmovies.py                 25     16    36%   27-50
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/khanacademy.py                19     10    47%   40-76
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/kickstarter.py                16     10    38%   42-64
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/kontrtube.py                  26     16    38%   33-63
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/krasview.py                   20     11    45%   34-51
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ku6.py                        13      7    46%   19-28
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/kuwo.py                      109     64    41%   27-43, 76-111, 136-154, 172-187, 212-238, 256-275, 297-313
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/la7.py                        20     12    40%   33-52
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/laola1tv.py                   36     27    25%   31-78
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/lecture2go.py                 24     16    33%   29-55
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/letv.py                       89     66    26%   68, 72-76, 79-83, 88-104, 107-181, 204-216
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/libsyn.py                     20     12    40%   37-62
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/lifenews.py                   56     40    29%   60-122, 141-163
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/limelight.py                  88     57    35%   19, 24, 29-32, 35-108, 165-170, 191-204, 221-229
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/liveleak.py                   31     22    29%   57-112
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/livestream.py                120     93    23%   60-100, 103-121, 132-153, 156-191, 217-227, 235-242, 252-259, 270-274
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/lnkgo.py                      29     20    31%   53-103
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/lrt.py                        24     15    38%   33-61
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/lynda.py                     122     94    23%   25, 28-83, 86-90, 118-162, 171-189, 192-197, 209-250
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/m6.py                         23     15    35%   26-48
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/macgamestore.py               16      7    56%   23-38
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/mailru.py                     29     20    31%   48-81
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/malemotion.py                 15      8    47%   22-40
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/mdr.py                        57     48    16%   66-161
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/metacafe.py                   92     78    15%   108, 112-123, 127-244
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/metacritic.py                 21     13    38%   26-49
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/mgoon.py                      31     22    29%   44-78
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/minhateca.py                  22     14    36%   32-63
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ministrygrid.py               23     14    39%   29-57
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/miomio.py                     39     29    26%   46-101
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/mit.py                        56     34    39%   31-59, 84-89, 125-149
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/mitele.py                     34     25    26%   34-81
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/mixcloud.py                   36     25    31%   47-55, 58-95
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/mlb.py                        30     22    27%   125-163
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/moevideo.py                   35     22    37%   61-108
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/mofosex.py                    23     14    39%   28-45
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/mojvideo.py                   20     12    40%   29-51
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/moniker.py                    40     29    28%   64-113
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/mooshare.py                   36     25    31%   47-106
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/morningstar.py                16      8    50%   25-41
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/motherless.py                 27     18    33%   61-93
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/motorsport.py                 14      6    57%   33-45
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/movieclips.py                 15      8    47%   26-36
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/moviezine.py                  14      7    50%   24-39
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/movshare.py                   11      0   100%   
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/mpora.py                      24     16    33%   24-55
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/mtv.py                       189    146    23%   23, 32, 37-41, 44, 47-52, 55-67, 70-95, 98-107, 110-161, 171-178, 181-184, 188-212, 233-236, 239-246, 249-251, 275, 278-293, 353-369
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/muenchentv.py                 29     20    31%   33-68
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/musicplayon.py                25     17    32%   30-66
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/muzu.py                       20     12    40%   26-58
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/mwave.py                      23     15    35%   28-50
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/myspace.py                    54     39    28%   75-137, 162-174
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/myspass.py                    37     28    24%   27-66
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/myvi.py                       14      6    57%   49-52, 55-60
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/myvideo.py                    91     75    18%   38-51, 54, 57-168
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/myvidster.py                   9      3    67%   24-27
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nationalgeographic.py         15      8    47%   37-50
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/naver.py                      33     24    27%   42-90
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nba.py                        18     11    39%   40-57
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nbc.py                        79     53    33%   60-70, 91-94, 97-100, 118-120, 179-233, 260-263
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ndr.py                        75     44    41%   17-20, 87-96, 149-154, 175-227
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ndtv.py                       28     20    29%   30-64
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nerdcubed.py                  10      3    70%   21-31
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nerdist.py                    28     21    25%   32-71
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/neteasemusic.py              157     98    38%   25-33, 37-52, 56, 59-61, 119-134, 137-159, 186-199, 225-242, 269-288, 308-320, 374-414, 433-459
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/netzkino.py                   24     16    33%   38-78
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/newgrounds.py                 17      9    47%   23-37
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/newstube.py                   39     31    21%   28-85
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nextmedia.py                  55     26    53%   28-30, 33-50, 53, 56, 59-60, 63, 66, 87-91, 170, 174, 177, 180
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nfb.py                        42     33    21%   33-85
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nfl.py                        63     50    21%   134-138, 143-149, 157-223
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nhl.py                        75     47    37%   21, 24-30, 33-70, 145-146, 180-186, 203-233
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/niconico.py                  100     79    21%   91, 94-114, 117-236, 267-280
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ninegag.py                    27     17    37%   70-94
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/noco.py                       91     72    21%   64, 67-83, 86-97, 100, 105-202
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/normalboots.py                15      8    47%   31-48
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nosvideo.py                   32     20    38%   37-72
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nova.py                       37     28    24%   100-171
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/novamov.py                    43     26    40%   45-91
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nowness.py                    57     34    40%   15-36, 39-45, 90-91, 106-108, 125-133
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nowtv.py                      58     40    31%   25-61, 196-203, 229-256
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nowvideo.py                   12      0   100%   
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/npo.py                       152    114    25%   17-37, 144-145, 148-237, 269-320, 350, 353-366, 391-402, 445-458, 474-488
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nrk.py                        77     58    25%   45-68, 101-115, 201, 205-277
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ntvde.py                      19     11    42%   33-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ntvru.py                      30     21    30%   86-120
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nuvid.py                      26     17    35%   31-66
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/nytimes.py                    35     22    37%   13-52, 86-88, 111-117
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/odnoklassniki.py              41     33    20%   75-152
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/oktoberfesttv.py              14      8    43%   25-40
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/onionstudios.py               25     16    36%   32-35, 38-68
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ooyala.py                     66     47    29%   18-29, 38-105, 146, 150, 154-156, 191-196
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/orf.py                       106     76    28%   57-129, 148-160, 176-198, 227-285
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/parliamentliveuk.py           18      9    50%   27-47
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/patreon.py                    24     17    29%   82-110
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/pbs.py                        80     70    13%   187-254, 257-322
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/periscope.py                  35     26    26%   34-35, 39-74
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/philharmoniedeparis.py        28     20    29%   39-78
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/phoenix.py                    12      5    58%   37-45
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/photobucket.py                18      9    50%   26-38
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/pinkbike.py                   27     19    30%   40-84
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/pladform.py                   21     14    33%   48-82
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/planetaplay.py                25     14    44%   31-56
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/played.py                     25     14    44%   33-58
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/playfm.py                     29     19    34%   38-63
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/playtvak.py                   58     49    16%   93-172
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/playvid.py                    42     33    21%   31-80
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/playwire.py                   32     24    25%   37-72
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/pluralsight.py                87     67    23%   39, 42-74, 77-157, 182-207
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/podomatic.py                  24     14    42%   42-61
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/porn91.py                     26     17    35%   30-66
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/pornhd.py                     26     17    35%   32-62
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/pornhub.py                    62     45    27%   44-47, 50, 54-118, 144-158
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/pornotube.py                  31     22    29%   34-84
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/pornovoisines.py              33     21    36%   44, 47-83
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/pornoxo.py                    19     11    42%   28-56
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/primesharetv.py               21     13    38%   25-57
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/promptfile.py                 24     15    38%   31-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/prosiebensat1.py              85     64    25%   216-318, 329-343, 346-354
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/puls4.py                      27     20    26%   39-88
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/pyvideo.py                    17      9    47%   39-55
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/qqmusic.py                   110     68    38%   73-74, 77-150, 156, 160-168, 186-213, 240-256, 292-310, 329-344
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/quickvid.py                   17      8    53%   31-48
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/r7.py                         31     24    23%   45-80
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/radiobremen.py                20     11    45%   29-56
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/radiode.py                    17     10    41%   25-45
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/radiofrance.py                18     10    44%   26-53
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/radiojavan.py                 19     11    42%   30-58
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/rai.py                        56     45    20%   92, 97-154, 167-179
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/rbmaradio.py                  19     10    47%   30-45
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/rds.py                        21     12    43%   36-63
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/redtube.py                    16      9    44%   21-38
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/restudy.py                    12      6    50%   24-35
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/reverbnation.py               12      4    67%   25-34
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ringtv.py                     17     10    41%   22-38
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ro220.py                      16      8    50%   22-37
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/rottentomatoes.py              5      0   100%   
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/roxwel.py                     20     12    40%   30-43
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/rtbf.py                       20     12    40%   39-61
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/rte.py                        20     13    35%   29-55
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/rtl2.py                       30     23    23%   38-79
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/rtlnl.py                      31     22    29%   71-130
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/rtp.py                        22     15    32%   31-83
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/rts.py                        49     39    20%   150-223
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/rtve.py                      102     74    27%   20-58, 90-94, 97-118, 129-132, 155-168, 196-212
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/rtvnh.py                      19     12    37%   22-42
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ruhd.py                       15      9    40%   22-39
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/rutube.py                     70     30    57%   42-59, 96-102, 120-131, 134-136, 149-154
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/rutv.py                       61     51    16%   106-115, 118-194
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ruutu.py                      41     33    20%   46-95
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/safari.py                     59     32    46%   32-34, 37-71, 107-119, 142-158
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/sandia.py                     51     39    24%   38-110
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/sapo.py                       30     21    30%   66-106
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/savefrom.py                   12      3    75%   31-33
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/sbs.py                        13      6    54%   33-47
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/scivee.py                     16      8    50%   24-50
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/screencast.py                 35     27    23%   60-105
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/screencastomatic.py           19     11    42%   27-42
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/screenwavemedia.py            44     31    30%   23-93, 114-132
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/senateisvp.py                 51     38    25%   83-87, 90-92, 95-140
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/servingsys.py                 15      8    47%   48-67
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/sexu.py                       18     11    39%   25-53
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/sexykarma.py                  23     14    39%   71-108
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/shahid.py                     38     28    26%   37-41, 46-48, 51-98
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/shared.py                     23     13    43%   41-65
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/sharesix.py                   25     16    36%   46-88
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/sina.py                       26     17    35%   44-51, 59-73
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/slideshare.py                 23     13    43%   29-47
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/slutload.py                   14      7    50%   23-38
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/smotri.py                    145    111    23%   146-157, 160-162, 165-237, 265-278, 295-309, 318-399
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/snagfilms.py                  57     44    23%   42-46, 49-87, 133-171
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/snotr.py                      18     10    44%   39-60
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/sohu.py                       69     60    13%   93-210
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/soompi.py                     71     51    28%   20-24, 44, 47-63, 66-109, 134-146
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/soundcloud.py                159    124    22%   121, 125, 128-207, 210-246, 262-287, 372-425, 447-465
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/soundgasm.py                  25     12    52%   24-35, 56-64
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/southpark.py                  27      0   100%   
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/space.py                      19     10    47%   25-38
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/spankbang.py                  18     11    39%   25-52
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/spankwire.py                  42     32    24%   51-117
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/spiegel.py                    43     28    35%   48-86, 116-137
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/spiegeltv.py                  41     33    20%   33-107
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/spike.py                      12      4    67%   26-29
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/sport5.py                     26     18    31%   39-84
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/sportbox.py                   31     17    45%   39-56, 88, 93-110
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/sportdeutschland.py           28     19    32%   51-89
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/srf.py                        34     26    24%   47-96
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/srmediathek.py                16      7    56%   26-37
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ssa.py                        18     11    39%   29-49
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/stanfordoc.py                 40     30    25%   28-91
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/steam.py                      43     33    23%   63-123
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/stitcher.py                   19     11    42%   51-73
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/streamcloud.py                22     13    41%   29-57
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/streamcz.py                   38     26    32%   17-22, 54-90
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/streetvoice.py                13      5    62%   32-40
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/sunporno.py                   23     15    35%   31-64
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/svt.py                        44     28    36%   14-43, 69-72, 75-78, 112-115
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/swrmediathek.py               28     20    29%   58-94
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/syfy.py                       16      9    44%   34-46
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/sztvhu.py                     14      8    43%   21-35
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tagesschau.py                 42     33    21%   73-149
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tapely.py                     46     34    26%   52-100
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tass.py                       21     13    38%   34-56
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/teachertube.py                46     29    37%   60-87, 116-131
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/teachingchannel.py            13      5    62%   27-33
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/teamcoco.py                   69     56    19%   74-161
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/techtalks.py                  19     11    42%   44-64
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ted.py                        95     78    18%   111-113, 116-126, 131-140, 146-225, 237-250, 253-271
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/telebruxelles.py              14      8    43%   38-52
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/telecinco.py                  24     14    42%   59-86
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/telegraaf.py                  14      7    50%   24-35
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/telemb.py                     24     16    33%   41-71
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/teletask.py                   14      6    57%   37-53
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tenplay.py                    24     16    33%   36-74
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/testtube.py                   27     20    26%   39-80
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/testurl.py                    36     28    22%   16-64
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tf1.py                        13      7    46%   44-53
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/theonion.py                   25     18    28%   24-56
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/theplatform.py               135    110    19%   32-59, 62-75, 151-164, 167-237, 261-308
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/thesixtyone.py                21     10    52%   70-93
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/thisamericanlife.py            9      3    67%   24-29
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/thisav.py                     17      9    47%   25-40
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/thvideo.py                    27     15    44%   29-49, 73-84
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tinypic.py                    24     14    42%   31-51
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tlc.py                        25     10    60%   52-67
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tmz.py                        18      8    56%   23-26, 49-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tnaflix.py                    95     62    35%   33-65, 72-137
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/toutv.py                      23     14    39%   37-63
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/toypics.py                    32     19    41%   24-33, 54-77
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/traileraddict.py              24     16    33%   23-57
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/trilulilu.py                  29     21    28%   24-73
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/trutube.py                    13      6    54%   24-35
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tube8.py                      36     25    31%   41-81
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tubitv.py                     38     24    37%   38-52, 56, 59-75
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tudou.py                      37     28    24%   36-41, 44-89
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tumblr.py                     32     24    25%   73-125
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tunein.py                     38     27    29%   49-99
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/turbo.py                      29     20    31%   32-60
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tutv.py                       14      6    57%   22-31
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tv2.py                        49     37    24%   35-85, 115-126
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tv4.py                        22     14    36%   65-91
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tvc.py                        29     16    45%   29-32, 35-57, 101-102
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tvigle.py                     37     27    27%   54-100
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tvp.py                        40     27    33%   48-87, 116-133
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tvplay.py                     33     23    30%   197-240
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/tweakers.py                    9      3    67%   22-25
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/twentyfourvideo.py            28     20    29%   41-95
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/twentytwotracks.py            41     25    39%   19-39, 42-45, 48-50, 60-67, 75-86
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/twitch.py                    188    117    38%   35-39, 44-54, 57, 60-97, 100-105, 110, 115-141, 144, 157, 242-269, 277-293, 298-299, 302, 352-358, 390-444
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/twitter.py                    63     47    25%   73-125, 178-228
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ubu.py                        21     13    38%   26-52
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/udemy.py                     101     76    25%   36-44, 47-65, 68, 71-106, 109-150, 169, 172-201
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/udn.py                        28     18    36%   38-73
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ultimedia.py                  31     22    29%   45-98
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/unistra.py                    21     13    38%   36-60
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/urort.py                      20     11    45%   35-61
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ustream.py                    57     42    26%   47-97, 123-141
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/varzesh3.py                   14      8    43%   22-39
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vbox7.py                      26     18    31%   28-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/veehd.py                      37     27    27%   54-110
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/veoh.py                       50     38    24%   59-79, 82, 95-129
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vessel.py                     64     46    28%   35-38, 42-48, 51-58, 62-73, 76, 79-122
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vesti.py                      21     11    48%   104-121
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vevo.py                       83     69    17%   76-86, 91-113, 116-148, 151-166, 171-220
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vgtv.py                       55     34    38%   89-145, 179-182, 203
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vh1.py                        19      9    53%   112-124
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vice.py                       16      8    50%   30-39
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/viddler.py                    35     27    23%   62-106
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/videodetective.py             13      5    62%   23-27
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/videofyme.py                  13      5    62%   33-40
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/videomega.py                  19     11    42%   30-47
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/videopremium.py               15      7    53%   25-38
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/videott.py                    17      6    65%   35-52
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/videoweed.py                  10      0   100%   
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vidme.py                      39     31    21%   132-190
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vidzi.py                      14      8    43%   20-34
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vier.py                       44     30    32%   35-58, 92-118
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/viewster.py                   62     52    16%   79-82, 85-165
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/viidea.py                     49     40    18%   114-188
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/viki.py                      116     81    30%   34-46, 50-63, 66, 71, 74-89, 93-97, 200-276, 312-336
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vimeo.py                     295    219    26%   35-54, 57-63, 66, 197-207, 210-225, 230-237, 243, 246-423, 457, 460, 463-485, 490-506, 513-515, 532-534, 562, 565-566, 582, 585-587, 618-621, 636, 639-644, 647, 665-697
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vimple.py                     22     12    45%   9-20, 50-60
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vine.py                       37     22    41%   84-104, 138-160
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vk.py                         90     67    26%   171-192, 196, 199-300, 330-343
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vlive.py                      36     22    39%   34-79
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vodlocker.py                  21     14    33%   26-51
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/voicerepublic.py              34     25    26%   38-90
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vporn.py                      32     24    25%   52-104
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vrt.py                        25     17    32%   58-87
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vube.py                       45     34    24%   102-158
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vuclip.py                     29     20    31%   30-78
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/vulture.py                    26     15    42%   34-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/walla.py                      32     23    28%   37-77
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/washingtonpost.py             25     17    32%   67-126
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/wat.py                        57     46    19%   50-51, 54-127
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/wayofthemaster.py             17     10    41%   22-48
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/wdr.py                        87     66    24%   99-168, 199-200, 236-280
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/webofstories.py               50     35    30%   43-95, 117-141
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/weibo.py                      20     13    35%   34-49
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/wimp.py                       14      7    50%   30-43
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/wistia.py                     27     18    33%   24-57
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/worldstarhiphop.py            23     16    30%   29-59
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/wrzuta.py                     26     17    35%   43-73
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/wsj.py                        28     20    29%   30-78
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/xbef.py                       16      9    44%   22-38
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/xboxclips.py                  16      9    44%   28-45
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/xfileshare.py                 31     20    35%   89-133
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/xhamster.py                   57     44    23%   48-127, 161, 166-174
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/xminus.py                     24     15    38%   35-67
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/xnxx.py                       14      7    50%   22-35
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/xstream.py                    34     26    24%   46-108
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/xtube.py                      48     34    29%   33-78, 104-125
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/xuite.py                      48     34    29%   75, 79, 82-94, 97-140
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/xvideos.py                    29     19    34%   33-68
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/xxxymovies.py                 22     14    36%   32-69
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/yahoo.py                     105     84    20%   162-215, 218-271, 283-295, 306-323
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/yam.py                        29     19    34%   75-115
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/yandexmusic.py                67     39    42%   37-45, 49-55, 66-73, 78, 99-112, 140-175
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/yesjapan.py                   23     16    30%   29-55
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/yinyuetai.py                  16      7    56%   29-49
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/ynet.py                       19     10    47%   34-45
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/youjizz.py                    26     18    31%   25-53
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/youku.py                     100     85    15%   67-151, 154-162, 165-173, 176-184, 187-248
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/youporn.py                    54     44    19%   62-156
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/yourupload.py                 13      7    46%   36-45
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/youtube.py                   784    638    19%   57, 63, 75-171, 174-178, 184-204, 207-224, 686, 690, 694, 698, 702, 705-748, 751-787, 790-796, 799-803, 808-826, 830-859, 864-912, 916-920, 923-935, 938-939, 943-1006, 1009-1452, 1574, 1579-1594, 1597-1621, 1625-1644, 1673-1714, 1738-1742, 1758-1787, 1810-1833, 1854-1868, 1885, 1888, 1891-1921, 1933, 1943-1945, 2009, 2029-2030
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/zapiks.py                     36     28    22%   50-100
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/zdf.py                        76     60    21%   17-96, 128-130, 145-161, 169-173
+/home/rpchen1228/youtube-dl/youtube_dl/extractor/zingmp3.py                    55     36    35%   13-26, 34-54, 78-88, 109-118
+/home/rpchen1228/youtube-dl/youtube_dl/jsinterp.py                            166    149    10%   31-35, 38-56, 59-211, 214-230, 233-244, 247-248, 251-258
+/home/rpchen1228/youtube-dl/youtube_dl/options.py                             260    251     3%   23-801
+/home/rpchen1228/youtube-dl/youtube_dl/postprocessor/__init__.py                9      1    89%   21
+/home/rpchen1228/youtube-dl/youtube_dl/postprocessor/common.py                 20      6    70%   56, 59-62, 65
+/home/rpchen1228/youtube-dl/youtube_dl/postprocessor/embedthumbnail.py         48     38    21%   26-27, 30-92
+/home/rpchen1228/youtube-dl/youtube_dl/postprocessor/execafterdownload.py      19     11    42%   12-13, 16-28
+/home/rpchen1228/youtube-dl/youtube_dl/postprocessor/ffmpeg.py                354    309    13%   34-35, 38-47, 51, 54-110, 114, 118, 122, 126, 129-155, 158, 164, 169-174, 178-199, 202-210, 213-292, 297-298, 301-315, 320-354, 359-397, 402-408, 412-425, 430-444, 449-462, 467-468, 471-523
+/home/rpchen1228/youtube-dl/youtube_dl/postprocessor/metadatafromtitle.py      31     21    32%   15-17, 26-35, 38-47
+/home/rpchen1228/youtube-dl/youtube_dl/postprocessor/xattrpp.py                86     75    13%   21-31, 52-176
+/home/rpchen1228/youtube-dl/youtube_dl/swfinterp.py                           665    608     9%   15-42, 47, 50, 59, 78, 81, 84-85, 92, 95, 99-109, 113-115, 120-123, 127-130, 134-137, 141-144, 148-150, 167, 171, 174, 182-414, 417, 420-431, 434-829
+/home/rpchen1228/youtube-dl/youtube_dl/update.py                              161    146     9%   18-44, 50-190, 194-198, 202-206
+/home/rpchen1228/youtube-dl/youtube_dl/utils.py                              1163    847    27%   83-84, 92-140, 146-163, 170-178, 182-203, 207-218, 222-231, 236, 242-259, 265-276, 289-308, 313-317, 327, 329, 335, 337, 349, 351, 354, 362-373, 378-382, 388-406, 410-414, 422, 426, 439, 445, 452-458, 462-467, 471, 475-481, 485-490, 498-499, 502-515, 519-526, 538, 540, 542, 544, 553-555, 560-562, 580-581, 601, 628-629, 636-656, 682, 688-691, 695-699, 710-737, 740-778, 791-796, 819, 828-853, 859-919, 924, 929, 933, 940-962, 968-972, 980-989, 994, 998-1000, 1003, 1008-1013, 1021-1088, 1093, 1097-1098, 1104-1109, 1114-1119, 1123-1125, 1130-1181, 1187, 1190, 1195-1197, 1200-1206, 1209-1212, 1215, 1218, 1221, 1225-1226, 1230-1237, 1243-1245, 1249-1254, 1258-1268, 1273, 1328-1331, 1338-1341, 1346, 1353-1364, 1368-1370, 1374-1376, 1386, 1390-1400, 1404, 1409-1412, 1416-1421, 1425-1467, 1471-1472, 1479-1480, 1488-1492, 1499-1507, 1511-1518, 1524, 1529-1530, 1533-1567, 1572-1574, 1577-1596, 1600-1601, 1608-1609, 1617-1619, 1624-1625, 1634-1644, 1651-1663, 1667, 1671, 1684-1687, 1691, 1696-1717, 1722-1727, 1735-1740, 1744, 1748-1753, 1758-1760, 1765, 1769-1771, 1779-1793, 1797, 1805-1807, 1813-1827, 1831-1849, 1854-1857, 1883, 1892, 1894, 1902-1916, 1937-1946, 1950, 1954-1992, 1996-1997, 2001-2005, 2009-2010, 2014-2018, 2213, 2218-2220, 2480, 2493-2500
+/home/rpchen1228/youtube-dl/youtube_dl/version.py                               2      0   100%   
+---------------------------------------------------------------------------------------------------------
+TOTAL                                                                       29031  20043    31%   
