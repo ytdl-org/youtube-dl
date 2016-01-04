@@ -115,7 +115,12 @@ class DramaFeverIE(DramaFeverBaseIE):
                                 'ext': 'srt',
                                 'url': subfile,
                             })
-                        info['episode_number'] = int_or_none(v.get('number'))
+                        episode_number = int_or_none(v.get('number'))
+                        episode_fallback = 'Episode'
+                        if episode_number:
+                            episode_fallback += ' %d' % episode_number
+                        info['episode'] = v.get('title', episode_fallback)
+                        info['episode_number'] = episode_number
                         break
 
         return info
