@@ -76,5 +76,6 @@ class AMPIE(InfoExtractor):
             'thumbnails': thumbnails,
             'timestamp': parse_iso8601(item.get('pubDate'), ' '),
             'duration': int_or_none(media_content[0].get('@attributes', {}).get('duration')),
+            'subtitles': subtitles,
             'formats': formats,
         }
