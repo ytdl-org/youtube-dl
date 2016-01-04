@@ -119,7 +119,7 @@ class DramaFeverIE(DramaFeverBaseIE):
                         episode_fallback = 'Episode'
                         if episode_number:
                             episode_fallback += ' %d' % episode_number
-                        info['episode'] = v.get('title', episode_fallback)
+                        info['episode'] = v.get('title') or episode_fallback
                         info['episode_number'] = episode_number
                         break
 
