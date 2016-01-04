@@ -46,7 +46,7 @@ class HlsFD(FileDownloader):
 
         self._debug_cmd(args)
 
-        retval = subprocess.call(args)
+        retval = subprocess.call(args, stdin=subprocess.PIPE)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen('\r[%s] %s bytes' % (args[0], fsize))
