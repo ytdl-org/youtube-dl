@@ -473,6 +473,7 @@ from .npo import (
     VPROIE,
     WNLIE
 )
+from .npr import NprIE
 from .nrk import (
     NRKIE,
     NRKPlaylistIE,
