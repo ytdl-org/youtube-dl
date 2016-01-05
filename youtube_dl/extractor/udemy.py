@@ -41,7 +41,7 @@ class UdemyIE(InfoExtractor):
             webpage, 'checkout url', group='url', default=None))
         if checkout_url:
             raise ExtractorError(
-                'Course %s is not free. You have to pay for it before you can download.'
+                'Course %s is not free. You have to pay for it before you can download. '
                 'Use this URL to confirm purchase: %s' % (course_id, checkout_url), expected=True)
 
         enroll_url = unescapeHTML(self._search_regex(
