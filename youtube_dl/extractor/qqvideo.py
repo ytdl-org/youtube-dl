@@ -36,12 +36,16 @@ class QqVideoIE(InfoExtractor):
         if (video_id is None):
             video_id = mobj.group('vid')
 
+        info_doc = self._download_xml(
+                'http://vv.video.qq.com/getinfo?vid=%s&otype=xml&platform=1' % video_id,
+                video_id, 'fetch video metadata')
+
+        title = info_doc.find('./vl/vi/ti').text
+
         url_doc = self._download_xml(
                 'http://vv.video.qq.com/geturl?vid=%s&otype=xml&platform=1' % video_id,
-                video_id, 'Downloading video metadata')
+                video_id, 'fetch video url')
 
-        webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex('<h1\s+class="mod_player_title"[^>]*>(.+?)</h1>', webpage, "video title", '')
         url = url_doc.find('./vd/vi/url').text
         ext = self._search_regex('\.([\d\w]+)\?', url, '', '')
 
