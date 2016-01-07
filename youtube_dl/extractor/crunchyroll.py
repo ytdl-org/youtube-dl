@@ -338,6 +338,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 'height': int_or_none(xpath_text(metadata, './height')),
                 'width': int_or_none(xpath_text(metadata, './width')),
             }
+            
+            if video_url is None:
+                continue
 
             if '.fplive.net/' in video_url:
                 video_url = re.sub(r'^rtmpe?://', 'http://', video_url.strip())
