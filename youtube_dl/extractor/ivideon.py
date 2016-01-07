@@ -4,14 +4,17 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import (
+    compat_urllib_parse,
+    compat_urlparse,
+)
 from ..utils import qualities
 
 
 class IvideonIE(InfoExtractor):
     IE_NAME = 'ivideon'
     IE_DESC = 'Ivideon TV'
-    _VALID_URL = r'https?://(?:www\.)?ivideon\.com/tv/camera/(?P<id>\d+-[\da-f]+)/(?P<camera_id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?ivideon\.com/tv/(?:[^/]+/)*camera/(?P<id>\d+-[\da-f]+)/(?P<camera_id>\d+)'
     _TESTS = [{
         'url': 'https://www.ivideon.com/tv/camera/100-916ca13b5c4ad9f564266424a026386d/0/',
         'info_dict': {
@@ -27,6 +30,9 @@ class IvideonIE(InfoExtractor):
     }, {
         'url': 'https://www.ivideon.com/tv/camera/100-c4ee4cb9ede885cf62dfbe93d7b53783/589824/?lang=ru',
         'only_matching': True,
+    }, {
+        'url': 'https://www.ivideon.com/tv/map/22.917923/-31.816406/16/camera/100-e7bc16c7d4b5bbd633fd5350b66dfa9a/0',
+        'only_matching': True,
     }]
 
     _QUALITIES = ('low', 'mid', 'hi')
@@ -35,8 +41,10 @@ class IvideonIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         server_id, camera_id = mobj.group('id'), mobj.group('camera_id')
         camera_name, description = None, None
+        camera_url = compat_urlparse.urljoin(
+            url, '/tv/camera/%s/%s/' % (server_id, camera_id))
 
-        webpage = self._download_webpage(url, server_id, fatal=False)
+        webpage = self._download_webpage(camera_url, server_id, fatal=False)
         if webpage:
             config_string = self._search_regex(
                 r'var\s+config\s*=\s*({.+?});', webpage, 'config', default=None)
