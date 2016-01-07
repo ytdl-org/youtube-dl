@@ -299,6 +299,7 @@ from .ivi import (
     IviIE,
     IviCompilationIE
 )
+from .ivideon import IvideonIE
 from .izlesene import IzleseneIE
 from .jadorecettepub import JadoreCettePubIE
 from .jeuxvideo import JeuxVideoIE
