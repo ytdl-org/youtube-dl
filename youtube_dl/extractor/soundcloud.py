@@ -384,27 +384,24 @@ class SoundcloudUserIE(SoundcloudIE):
         resource = mobj.group('rsrc') or 'all'
         base_url = self._BASE_URL_MAP[resource] % user['id']
 
-        next_href = None
+        COMMON_QUERY = {
+            'limit': 50,
+            'client_id': self._CLIENT_ID,
+            'linked_partitioning': '1',
+        }
+
+        query = COMMON_QUERY.copy()
+        query['offset'] = 0
+
+        next_href = base_url + '?' + compat_urllib_parse.urlencode(query)
 
         entries = []
         for i in itertools.count():
-            if not next_href:
-                data = compat_urllib_parse.urlencode({
-                    'offset': i * 50,
-                    'limit': 50,
-                    'client_id': self._CLIENT_ID,
-                    'linked_partitioning': '1',
-                    'representation': 'speedy',
-                })
-                next_href = base_url + '?' + data
-
             response = self._download_json(
                 next_href, uploader, 'Downloading track page %s' % (i + 1))
 
             collection = response['collection']
-
             if not collection:
-                self.to_screen('%s: End page received' % uploader)
                 break
 
             def resolve_permalink_url(candidates):
@@ -419,12 +416,15 @@ class SoundcloudUserIE(SoundcloudIE):
                 if permalink_url:
                     entries.append(self.url_result(permalink_url))
 
-            if 'next_href' in response:
-                next_href = response['next_href']
-                if not next_href:
-                    break
-            else:
-                next_href = None
+            next_href = response.get('next_href')
+            if not next_href:
+                break
+
+            parsed_next_href = compat_urlparse.urlparse(response['next_href'])
+            qs = compat_urlparse.parse_qs(parsed_next_href.query)
+            qs.update(COMMON_QUERY)
+            next_href = compat_urlparse.urlunparse(
+                parsed_next_href._replace(query=compat_urllib_parse.urlencode(qs, True)))
 
         return {
             '_type': 'playlist',
