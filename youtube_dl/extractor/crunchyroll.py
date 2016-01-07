@@ -329,8 +329,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 streamdata_req, video_id,
                 note='Downloading media info for %s' % video_format)
             stream_info = streamdata.find('./{default}preload/stream_info')
-            video_url = stream_info.find('./host').text
-            video_play_path = stream_info.find('./file').text
+            video_url = xpath_text(stream_info, './host')
+            video_play_path = xpath_text(stream_info, './file')
+            if not video_url or not video_play_path:
+                continue
             metadata = stream_info.find('./metadata')
             format_info = {
                 'format': video_format,
@@ -338,9 +340,6 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 'height': int_or_none(xpath_text(metadata, './height')),
                 'width': int_or_none(xpath_text(metadata, './width')),
             }
-            
-            if video_url is None:
-                continue
 
             if '.fplive.net/' in video_url:
                 video_url = re.sub(r'^rtmpe?://', 'http://', video_url.strip())
