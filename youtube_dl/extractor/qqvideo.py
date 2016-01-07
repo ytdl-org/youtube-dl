@@ -41,7 +41,7 @@ class QqVideoIE(InfoExtractor):
                 video_id, 'Downloading video metadata')
 
         webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex('<title>(.+?)</title>', webpage, "video title", '')
+        title = self._html_search_regex('<h1\s+class="mod_player_title"[^>]*>(.+?)</h1>', webpage, "video title", '')
         url = url_doc.find('./vd/vi/url').text
         ext = self._search_regex('\.([\d\w]+)\?', url, '', '')
 
