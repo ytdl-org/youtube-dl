@@ -15,7 +15,7 @@ class QqVideoIE(InfoExtractor):
     _TESTS = [{
         'url': 'http://v.qq.com/page/9/n/6/9jWRYWGYvn6.html',
         'info_dict': {
-            'id': '42',
+            'id': '9jWRYWGYvn6',
             'ext': 'mp4',
             'title': '歼-20试飞63次 国防部指挥例行试验',
         }
@@ -23,7 +23,7 @@ class QqVideoIE(InfoExtractor):
         {
             'url': 'http://v.qq.com/cover/o/oy8cl3wkrebcv8h.html?vid=x001970x491',
             'info_dict': {
-                'id': '42',
+                'id': 'x001970x491',
                 'ext': 'mp4',
                 'title': '韩国青瓦台召开紧急会议 国防部加紧检查战备状态',
             },

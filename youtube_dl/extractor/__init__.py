@@ -271,6 +271,7 @@ from .howstuffworks import HowStuffWorksIE
 from .huffpost import HuffPostIE
 from .hypem import HypemIE
 from .iconosquare import IconosquareIE
+from .ifeng import IfengIE
 from .ign import (
     IGNIE,
     OneUPIE,
