@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
-
 class IfengIE(InfoExtractor):
     IE_NAME = 'ifeng'
     IE_DESC = '凤凰网'
