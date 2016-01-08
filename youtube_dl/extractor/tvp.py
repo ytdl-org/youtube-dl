@@ -1,54 +1,17 @@
 # -*- encoding: utf-8 -*-
 from .common import InfoExtractor, ExtractorError
 
-VIDEO_LISTING_URL = ('http://www.api.v3.tvp.pl/shared/listing.php'
-                     '?dump=json&direct=true&count=-1&parent_id={id}')
-META_URL = 'http://www.tvp.pl/shared/video_data.php?dump=json&video_id={id}'
-TOKENIZER_URL = 'http://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id={id}'
-FILE_INFO_URL = 'http://www.tvp.pl/pub/stat/videofileinfo?video_id={id}'
-IGNORED_MIMETYPES = 'application/vnd.ms-ss', 'application/x-mpegurl'
-
-
-class TvpApi:
-
-    def __init__(self, ie):
-        """:type ie: InfoExtractor"""
-        self.ie = ie
-
-    def listing(self, id):
-        json = self._get_json(VIDEO_LISTING_URL, id)
-        return json
-
-    def meta(self, id):
-        json = self._get_json(META_URL, id)
-        return json
-
-    def info(self, id):
-        json = self._get_json(FILE_INFO_URL, id)
-        return json
-
-    def context(self, id):
-        meta = self.meta(id)
-        return meta['context']
-
-    def formats(self, id):
-        json = self._get_json(TOKENIZER_URL, id)
-        status = json['status']
-        if status == 'NOT_PLAYABLE':
-            raise ExtractorError("video is not playable", expected=True)
-        if status != 'OK':
-            raise ExtractorError("unknown status: %s", status)
-        return json['formats']
-
-    def _get_json(self, url, id):
-        id = int(id)
-        formatted_url = url.format(id=id)
-        return self.ie._download_json(formatted_url, id)
-
 
 class TvpIE(InfoExtractor):
     IE_NAME = 'tvp.pl'
     _VALID_URL = r'https?://(\w+\.)+tvp\.pl/(?P<id>\d+)/.*'
+
+    _VIDEO_LISTING_URL = ('http://www.api.v3.tvp.pl/shared/listing.php'
+                          '?dump=json&direct=true&count=-1&parent_id={id}')
+    _META_URL = 'http://www.tvp.pl/shared/video_data.php?dump=json&video_id={id}'
+    _TOKENIZER_URL = 'http://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id={id}'
+    _FILE_INFO_URL = 'http://www.tvp.pl/pub/stat/videofileinfo?video_id={id}'
+    _IGNORED_MIMETYPES = 'application/vnd.ms-ss', 'application/x-mpegurl'
 
     _TESTS = [{
         'url': 'http://vod.tvp.pl/4278035/odc-2',
@@ -112,11 +75,11 @@ class TvpIE(InfoExtractor):
         'playlist_count': 86,
     }]
 
-    def _real_initialize(self):
-        self.api = TvpApi(self)
+    def _get_json(self, url, entry_id):
+        formatted_url = url.format(id=int(entry_id))
+        return self._download_json(formatted_url, entry_id)
 
-    @staticmethod
-    def _format_formats(formats, video_id):
+    def _format_formats(self, formats, video_id):
 
         mime_ext = {
             'video/x-ms-wmv': 'wmv',
@@ -125,7 +88,7 @@ class TvpIE(InfoExtractor):
 
         viable_formats = []
         for f in formats:
-            if f['mimeType'] in IGNORED_MIMETYPES:
+            if f['mimeType'] in self._IGNORED_MIMETYPES:
                 continue
 
             elif f['mimeType'].startswith('video/'):
@@ -136,23 +99,37 @@ class TvpIE(InfoExtractor):
 
         return viable_formats
 
-    def _get_video(self, context):
-        id = context['material_id']
-        if context['title_root']:
-            title = context['title_root']
-        elif not context['website_title']:
-            title = context['title']
-        else:
-            title = ', '.join([context['website_title'], context['title']])
-        url = context['url']
-        description = context['description_root']
+    @staticmethod
+    def _guess_title(item):
+        title_root = item.get('title_root')
+        title = item.get('title')
+        website_title = item.get('website_title')
+        if title_root:
+            return item['title_root']
+        if title and website_title:
+            return '{}, {}'.format(website_title, title)
+        return title
 
-        formats = self._format_formats(self.api.formats(id), id)
+    def _get_video(self, context):
+        video_id = str(context['material_id'])
+        title = self._guess_title(context)
+        url = context['url']
+        description = context.get('description_root')
+
+        formats_req = self._get_json(self._TOKENIZER_URL, video_id)
+        req_status = formats_req['status']
+        if req_status == 'NOT_PLAYABLE':
+            raise ExtractorError('(%s) is not playable' % title,
+                                 expected=True, video_id=video_id)
+        elif req_status != 'OK':
+            raise ExtractorError('(%s) unknown status: %s' % (title, req_status),
+                                 video_id=video_id)
+        formats = self._format_formats(formats_req['formats'], video_id)
 
         self._sort_formats(formats)
 
         return {
-            'id': str(id),
+            'id': video_id,
             'url': url,
             'title': title,
             'description': description,
@@ -164,30 +141,32 @@ class TvpIE(InfoExtractor):
 
         while ids:
             item_id = ids.pop()
-            listing = self.api.listing(item_id)
+            listing = self._get_json(self._VIDEO_LISTING_URL, item_id)
             for item in listing['items']:
                 if 'directory_video' in item['types']:
                     ids.append(item['_id'])
                 if 'video' in item['types'] and item['is_released']:
-                    meta = self.api.context(item['_id'])
-                    yield self._get_video(meta)
+                    yield {
+                        '_type': 'url',
+                        'title': self._guess_title(item),
+                        'url': item['url']}
 
     def _get_playlist(self, context):
-        id = context['material_id']
+        pls_id = str(context['material_id'])
         title = context['title']
-        description = context['lead_root']
+        description = context.get('lead_root')
 
-        return self.playlist_result(self._get_playlist_videos(id),
-                                    str(id), title, description)
+        return self.playlist_result(self._get_playlist_videos(pls_id),
+                                    pls_id, title, description)
 
     def _real_extract(self, url):
-        id = self._match_id(url)
-        ctx = self.api.context(id)
+        entry_id = self._match_id(url)
+        ctx = self._get_json(self._META_URL, entry_id)['context']
         if ctx['format_id'] == 0:
-            file_info = self.api.info(id)
+            file_info = self._get_json(self._FILE_INFO_URL, entry_id)
             original_id = file_info.get('copy_of_object_id')
             if original_id:
-                ctx = self.api.context(original_id)
+                ctx = self._get_json(self._META_URL, original_id)['context']
 
         is_playlist = ctx['format_id'] == 0
         return self._get_playlist(ctx) if is_playlist else self._get_video(ctx)
@@ -233,8 +212,3 @@ class TvpLegacyIE(TvpIE):
             'description': 'Ekipa Wiktora ratuje młodą matkę, która spadła ze schodów trzymając na rękach noworodka. Okazuje się, że dziewczyna jest surogatką, a biologiczni rodzice dziecka próbują zmusić ją do oddania synka…',
         },
     }]
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        context = self.api.context(video_id)
-        return self._get_video(context)
