@@ -4,10 +4,10 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    unified_strdate,
-    str_to_int,
+    float_or_none,
     int_or_none,
-    parse_duration,
+    str_to_int,
+    unified_strdate,
 )
 
 
@@ -85,8 +85,9 @@ class XHamsterIE(InfoExtractor):
              r'''<video[^>]+poster=(?P<q>["'])(?P<thumbnail>.+?)(?P=q)[^>]*>'''],
             webpage, 'thumbnail', fatal=False, group='thumbnail')
 
-        duration = parse_duration(self._html_search_regex(r'<span>Runtime:</span> (\d+:\d+)</div>',
-                                                          webpage, 'duration', fatal=False))
+        duration = float_or_none(self._search_regex(
+            r'(["\'])duration\1\s*:\s*(["\'])(?P<duration>.+?)\2',
+            webpage, 'duration', fatal=False, group='duration'))
 
         view_count = self._html_search_regex(r'<span>Views:</span> ([^<]+)</div>', webpage, 'view count', fatal=False)
         if view_count:
