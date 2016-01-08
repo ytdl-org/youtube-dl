@@ -78,7 +78,7 @@ class XHamsterIE(InfoExtractor):
             webpage, 'upload date', fatal=False))
 
         uploader = self._html_search_regex(
-            r"<a href='[^']+xhamster\.com/user/[^>]+>(?P<uploader>[^<]+)",
+            r'<span[^>]+itemprop=["\']author[^>]+><a[^>]+href=["\'].+?xhamster\.com/user/[^>]+>(?P<uploader>.+?)</a>',
             webpage, 'uploader', default='anonymous')
 
         thumbnail = self._search_regex(
