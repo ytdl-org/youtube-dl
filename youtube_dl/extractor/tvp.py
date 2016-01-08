@@ -89,10 +89,6 @@ class TvpIE(InfoExtractor):
         'playlist_count': 86,
     }]
 
-    @classmethod
-    def suitable(cls, url):
-        return super(TvpIE, cls).suitable(url)
-
     def _real_initialize(self):
         self.api = TvpApi(self)
 
