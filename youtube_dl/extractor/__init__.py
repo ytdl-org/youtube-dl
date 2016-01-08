@@ -788,6 +788,7 @@ from .vgtv import (
 from .vh1 import VH1IE
 from .vice import ViceIE
 from .viddler import ViddlerIE
+from .videa import VideaIE
 from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
 from .videomega import VideoMegaIE
