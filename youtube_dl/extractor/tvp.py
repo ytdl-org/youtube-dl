@@ -35,7 +35,7 @@ class TvpApi:
         json = self._get_json(TOKENIZER_URL, id)
         status = json['status']
         if status == 'NOT_PLAYABLE':
-            raise ExtractorError("video is not playable")
+            raise ExtractorError("video is not playable", expected=True)
         if status != 'OK':
             raise ExtractorError("unknown status: %s", status)
         return json['formats']
@@ -147,11 +147,7 @@ class TvpIE(InfoExtractor):
         url = context['url']
         description = context['description_root']
 
-        try:
-            formats = self._format_formats(self.api.formats(id), id)
-        except ExtractorError as e:
-            self.to_screen("%s: %s" % (title, e))
-            raise
+        formats = self._format_formats(self.api.formats(id), id)
 
         self._sort_formats(formats)
 
@@ -174,10 +170,7 @@ class TvpIE(InfoExtractor):
                     ids.append(item['_id'])
                 if 'video' in item['types'] and item['is_released']:
                     meta = self.api.context(item['_id'])
-                    try:
-                        yield self._get_video(meta)
-                    except ExtractorError:
-                        pass
+                    yield self._get_video(meta)
 
     def _get_playlist(self, context):
         id = context['material_id']
