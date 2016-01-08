@@ -209,6 +209,11 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'url': 'https://vimeo.com/groups/travelhd/videos/22439234',
             'only_matching': True,
         },
+        {
+            # source file returns 403: Forbidden
+            'url': 'https://vimeo.com/7809605',
+            'only_matching': True,
+        },
     ]
 
     @staticmethod
