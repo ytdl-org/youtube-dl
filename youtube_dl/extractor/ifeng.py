@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
+
 class IfengIE(InfoExtractor):
     IE_NAME = 'ifeng'
     IE_DESC = '凤凰网'
@@ -23,6 +24,14 @@ class IfengIE(InfoExtractor):
                 'id': '01e29bc2-1e89-41ee-9a91-25d56e2b0740',
                 'ext': 'mp4',
                 'title': '陈羽凡锁骨骨折 盼早日康复',
+            },
+        },
+        {
+            'url': 'http://v.ifeng.com/mil/mainland/201601/01168f8e-bcd5-459b-91b4-f85893b3e40a.shtml',
+            'info_dict': {
+                'id': '01168f8e-bcd5-459b-91b4-f85893b3e40a',
+                'ext': 'mp4',
+                'title': '2015年中美两国组织多次演练',
             },
         }
     ]
