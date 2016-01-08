@@ -89,9 +89,9 @@ class XHamsterIE(InfoExtractor):
             r'(["\'])duration\1\s*:\s*(["\'])(?P<duration>.+?)\2',
             webpage, 'duration', fatal=False, group='duration'))
 
-        view_count = self._html_search_regex(r'<span>Views:</span> ([^<]+)</div>', webpage, 'view count', fatal=False)
-        if view_count:
-            view_count = str_to_int(view_count)
+        view_count = int_or_none(self._search_regex(
+            r'content=["\']User(?:View|Play)s:(\d+)',
+            webpage, 'view count', fatal=False))
 
         mobj = re.search(r"hint='(?P<likecount>\d+) Likes / (?P<dislikecount>\d+) Dislikes'", webpage)
         (like_count, dislike_count) = (mobj.group('likecount'), mobj.group('dislikecount')) if mobj else (None, None)
