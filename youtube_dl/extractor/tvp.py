@@ -48,7 +48,7 @@ class TvpApi:
 
 class TvpIE(InfoExtractor):
     IE_NAME = 'tvp.pl'
-    _VALID_URL = r'https?://(?:vod|www)\.(\w+\.)?tvp\.pl/(?P<id>\d+)/.*'
+    _VALID_URL = r'https?://(\w+\.)+tvp\.pl/(?P<id>\d+)/.*'
 
     _TESTS = [{
         'url': 'http://vod.tvp.pl/4278035/odc-2',
