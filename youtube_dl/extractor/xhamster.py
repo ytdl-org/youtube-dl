@@ -65,7 +65,7 @@ class XHamsterIE(InfoExtractor):
 
         title = self._html_search_regex(
             [r'<title>(?P<title>.+?)(?:, (?:[^,]+? )?Porn: xHamster| - xHamster\.com)</title>',
-             r'<h1>([^<]+)</h1>'], webpage, 'title')
+             r'<h1(?: itemprop="name")?>([^<]+)</h1>'], webpage, 'title')
 
         # Only a few videos have an description
         mobj = re.search(r'<span>Description: </span>([^<]+)', webpage)
