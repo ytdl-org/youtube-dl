@@ -22,7 +22,7 @@ class XHamsterIE(InfoExtractor):
                 'title': 'FemaleAgent Shy beauty takes the bait',
                 'upload_date': '20121014',
                 'uploader': 'Ruseful2011',
-                'duration': 893,
+                'duration': 893.52,
                 'age_limit': 18,
             }
         },
@@ -34,7 +34,7 @@ class XHamsterIE(InfoExtractor):
                 'title': 'Britney Spears  Sexy Booty',
                 'upload_date': '20130914',
                 'uploader': 'jojo747400',
-                'duration': 200,
+                'duration': 200.48,
                 'age_limit': 18,
             }
         },
