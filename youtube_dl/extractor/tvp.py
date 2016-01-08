@@ -59,6 +59,14 @@ class TvpIE(InfoExtractor):
             'title': 'Ogniem i mieczem, odc. 2',
             'description': 'Bohun dowiaduje się o złamaniu przez kniahinię danego mu słowa i wyrusza do Rozłogów. Helenie w ostatniej chwili udaje się uciec dzięki pomocy Zagłoby.'
         },
+        }, {
+        'url': 'http://warszawa.tvp.pl/23433721/03012016',
+        'md5': '8740c6e0532f37e836104f3fb38921d9',
+        'info_dict': {
+            'id': '23433721',
+            'ext': 'mp4',
+            'title': 'Echa tygodnia – kraj, 03.01.2016',
+        },
     }, {
         'url': 'http://www.rodzinka.tvp.pl/22729075/odc-169',
         'md5': '4dc102e0883555d31b120e8328c02022',
