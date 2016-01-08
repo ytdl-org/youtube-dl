@@ -217,7 +217,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/.+?)\1', webpage)
         if mobj:
             player_url = unescapeHTML(mobj.group('url'))
-            surl = smuggle_url(player_url, {'Referer': url})
+            surl = smuggle_url(player_url, {'http_headers': {'Referer': url}})
             return surl
         # Look for embedded (swf embed) Vimeo player
         mobj = re.search(
@@ -262,11 +262,11 @@ class VimeoIE(VimeoBaseInfoExtractor):
         self._login()
 
     def _real_extract(self, url):
-        url, data = unsmuggle_url(url)
+        url, data = unsmuggle_url(url, {})
         headers = std_headers
-        if data is not None:
+        if 'http_headers' in data:
             headers = headers.copy()
-            headers.update(data)
+            headers.update(data['http_headers'])
         if 'Referer' not in headers:
             headers['Referer'] = url
 
@@ -342,7 +342,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 raise ExtractorError('The author has restricted the access to this video, try with the "--referer" option')
 
             if re.search(r'<form[^>]+?id="pw_form"', webpage) is not None:
-                if data and '_video_password_verified' in data:
+                if '_video_password_verified' in data:
                     raise ExtractorError('video password verification failed!')
                 self._verify_video_password(url, video_id, webpage)
                 return self._real_extract(
@@ -353,6 +353,13 @@ class VimeoIE(VimeoBaseInfoExtractor):
         else:
             if config.get('view') == 4:
                 config = self._verify_player_video_password(url, video_id)
+
+        if '>You rented this title.<' in webpage:
+            feature_id = config.get('video', {}).get('vod', {}).get('feature_id')
+            if feature_id and not data.get('force_feature_id', False):
+                return self.url_result(smuggle_url(
+                    'https://player.vimeo.com/player/%s' % feature_id,
+                    {'force_feature_id': True}), 'Vimeo')
 
         # Extract title
         video_title = config["video"]["title"]
