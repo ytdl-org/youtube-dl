@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 from .common import InfoExtractor, ExtractorError
 
 VIDEO_LISTING_URL = ('http://www.api.v3.tvp.pl/shared/listing.php'
