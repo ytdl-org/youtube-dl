@@ -72,10 +72,9 @@ class XHamsterIE(InfoExtractor):
         mobj = re.search(r'<span>Description: </span>([^<]+)', webpage)
         description = mobj.group(1) if mobj else None
 
-        upload_date = self._html_search_regex(r'hint=\'(\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2} [A-Z]{3,4}\'',
-                                              webpage, 'upload date', fatal=False)
-        if upload_date:
-            upload_date = unified_strdate(upload_date)
+        upload_date = unified_strdate(self._search_regex(
+            r'hint=["\'](\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2} [A-Z]{3,4}',
+            webpage, 'upload date', fatal=False))
 
         uploader = self._html_search_regex(
             r"<a href='[^']+xhamster\.com/user/[^>]+>(?P<uploader>[^<]+)",
