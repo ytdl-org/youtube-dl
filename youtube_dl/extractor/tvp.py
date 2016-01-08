@@ -4,6 +4,7 @@ VIDEO_LISTING_URL = ('http://www.api.v3.tvp.pl/shared/listing.php'
                      '?dump=json&direct=true&count=-1&parent_id={id}')
 META_URL = 'http://www.tvp.pl/shared/video_data.php?dump=json&video_id={id}'
 TOKENIZER_URL = 'http://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id={id}'
+FILE_INFO_URL = 'http://www.tvp.pl/pub/stat/videofileinfo?video_id={id}'
 IGNORED_MIMETYPES = 'application/vnd.ms-ss', 'application/x-mpegurl'
 
 
@@ -19,6 +20,10 @@ class TvpApi:
 
     def meta(self, id):
         json = self._get_json(META_URL, id)
+        return json
+
+    def info(self, id):
+        json = self._get_json(FILE_INFO_URL, id)
         return json
 
     def context(self, id):
@@ -42,7 +47,7 @@ class TvpApi:
 
 class TvpIE(InfoExtractor):
     IE_NAME = 'tvp.pl'
-    _VALID_URL = r'https?://(?:vod\.|www\.)?tvp\.pl/(?P<id>\d+)/.*'
+    _VALID_URL = r'https?://(?:vod|www)\.(\w+\.)?tvp\.pl/(?P<id>\d+)/.*'
 
     _TESTS = [{
         'url': 'http://vod.tvp.pl/4278035/odc-2',
@@ -53,6 +58,15 @@ class TvpIE(InfoExtractor):
             'title': 'Ogniem i mieczem, odc. 2',
             'description': 'Bohun dowiaduje się o złamaniu przez kniahinię danego mu słowa i wyrusza do Rozłogów. Helenie w ostatniej chwili udaje się uciec dzięki pomocy Zagłoby.'
         },
+    }, {
+        'url': 'http://www.rodzinka.tvp.pl/22729075/odc-169',
+        'md5': '4dc102e0883555d31b120e8328c02022',
+        'info_dict': {
+            'id': '22353810',
+            'ext': 'mp4',
+            'title': 'rodzinka.pl, odc. 169',
+            'description': 'Natalia szykuje dla Marii paczkę z ubrankami dla dziecka,\nale ciężko jej się z nimi rozstać – wiążę się z tym zbyt wiele wspomnień. Kacper chce wymusić od Ludwika pieniądze opowiadając o wróżce zębuszcze. A czy zna tak zwanego „Skrzata Dlatata”?',
+            },
     }, {
         'url': 'http://vod.tvp.pl/194536/i-seria-odc-13',
         'md5': '8aa518c15e5cc32dfe8db400dc921fbb',
@@ -165,8 +179,14 @@ class TvpIE(InfoExtractor):
                                     str(id), title, description)
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        ctx = self.api.context(video_id)
+        id = self._match_id(url)
+        ctx = self.api.context(id)
+        if ctx['format_id'] == 0:
+            file_info = self.api.info(id)
+            original_id = file_info.get('copy_of_object_id')
+            if original_id:
+                ctx = self.api.context(original_id)
+
         is_playlist = ctx['format_id'] == 0
         return self._get_playlist(ctx) if is_playlist else self._get_video(ctx)
 
