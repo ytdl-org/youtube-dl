@@ -11,6 +11,7 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    determine_ext,
     encode_dict,
     ExtractorError,
     InAdvancePagedList,
@@ -419,16 +420,21 @@ class VimeoIE(VimeoBaseInfoExtractor):
         download_data = self._download_json(download_request, video_id, fatal=False)
         if download_data:
             source_file = download_data.get('source_file')
-            if source_file and not source_file.get('is_cold') and not source_file.get('is_defrosting'):
-                formats.append({
-                    'url': source_file['download_url'],
-                    'ext': source_file['extension'].lower(),
-                    'width': int_or_none(source_file.get('width')),
-                    'height': int_or_none(source_file.get('height')),
-                    'filesize': parse_filesize(source_file.get('size')),
-                    'format_id': source_file.get('public_name', 'Original'),
-                    'preference': 1,
-                })
+            if isinstance(source_file, dict):
+                download_url = source_file.get('download_url')
+                if download_url and not source_file.get('is_cold') and not source_file.get('is_defrosting'):
+                    source_name = source_file.get('public_name', 'Original')
+                    if self._is_valid_url(download_url, video_id, '%s video' % source_name):
+                        ext = source_file.get('extension', determine_ext(download_url)).lower(),
+                        formats.append({
+                            'url': download_url,
+                            'ext': ext,
+                            'width': int_or_none(source_file.get('width')),
+                            'height': int_or_none(source_file.get('height')),
+                            'filesize': parse_filesize(source_file.get('size')),
+                            'format_id': source_name,
+                            'preference': 1,
+                        })
         config_files = config['video'].get('files') or config['request'].get('files', {})
         for f in config_files.get('progressive', []):
             video_url = f.get('url')
