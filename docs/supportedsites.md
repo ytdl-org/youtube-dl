@@ -1,6 +1,7 @@
 # Supported sites
  - **1tv**: Первый канал
  - **1up.com**
+ - **20min**
  - **220.ro**
  - **22tracks:genre**
  - **22tracks:track**
@@ -255,6 +256,7 @@
  - **Ir90Tv**
  - **ivi**: ivi.ru
  - **ivi:compilation**: ivi.ru compilations
+ - **ivideon**: Ivideon TV
  - **Izlesene**
  - **JadoreCettePub**
  - **JeuxVideo**
@@ -386,13 +388,14 @@
  - **nowness**
  - **nowness:playlist**
  - **nowness:series**
- - **NowTV**
+ - **NowTV** (Currently broken)
  - **NowTVList**
  - **nowvideo**: NowVideo
  - **npo**: npo.nl and ntr.nl
  - **npo.nl:live**
  - **npo.nl:radio**
  - **npo.nl:radio:fragment**
+ - **Npr**
  - **NRK**
  - **NRKPlaylist**
  - **NRKTV**: NRK TV and NRK Radio
@@ -464,11 +467,13 @@
  - **RegioTV**
  - **Restudy**
  - **ReverbNation**
+ - **Revision3**
  - **RingTV**
  - **RottenTomatoes**
  - **Roxwel**
  - **RTBF**
- - **Rte**
+ - **rte**: Raidió Teilifís Éireann TV
+ - **rte:radio**: Raidió Teilifís Éireann radio
  - **rtl.nl**: rtl.nl and rtlxl.nl
  - **RTL2**
  - **RTP**
@@ -573,7 +578,6 @@
  - **TeleMB**
  - **TeleTask**
  - **TenPlay**
- - **TestTube**
  - **TF1**
  - **TheIntercept**
  - **TheOnion**
