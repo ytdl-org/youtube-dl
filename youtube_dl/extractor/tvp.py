@@ -153,7 +153,7 @@ class TvpIE(InfoExtractor):
 
     def _get_playlist(self, context):
         pls_id = str(context['material_id'])
-        title = context['title']
+        title = self._guess_title(context)
         description = context.get('lead_root')
 
         return self.playlist_result(self._get_playlist_videos(pls_id),
