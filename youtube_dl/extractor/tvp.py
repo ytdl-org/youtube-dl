@@ -75,9 +75,10 @@ class TvpIE(InfoExtractor):
         'playlist_count': 86,
     }]
 
-    def _get_json(self, url, entry_id):
+    def _get_json(self, url, entry_id, fatal=True):
         formatted_url = url.format(id=int(entry_id))
-        return self._download_json(formatted_url, entry_id)
+        json = self._download_json(formatted_url, entry_id, fatal=fatal)
+        return {} if json is None else json
 
     def _format_formats(self, formats, video_id):
 
@@ -164,7 +165,7 @@ class TvpIE(InfoExtractor):
         entry_id = self._match_id(url)
         ctx = self._get_json(self._META_URL, entry_id)['context']
         if ctx['format_id'] == 0:
-            file_info = self._get_json(self._FILE_INFO_URL, entry_id)
+            file_info = self._get_json(self._FILE_INFO_URL, entry_id, fatal=False)
             original_id = file_info.get('copy_of_object_id')
             if original_id:
                 ctx = self._get_json(self._META_URL, original_id)['context']
