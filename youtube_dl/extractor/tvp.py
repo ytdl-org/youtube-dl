@@ -88,14 +88,15 @@ class TvpIE(InfoExtractor):
 
         viable_formats = []
         for f in formats:
-            if f['mimeType'] in self._IGNORED_MIMETYPES:
+            if f.get('mimeType') in self._IGNORED_MIMETYPES:
+                continue
+            if 'url' not in f:
                 continue
 
-            elif f['mimeType'].startswith('video/'):
-                viable_formats.append(
-                    {'url': f['url'],
-                     'ext': mime_ext.get(f['mimeType']),
-                     'vbr': f['totalBitrate']})
+            viable_formats.append(
+                {'url': f['url'],
+                 'ext': mime_ext.get(f.get('mimeType')),
+                 'vbr': f.get('totalBitrate')})
 
         return viable_formats
 
