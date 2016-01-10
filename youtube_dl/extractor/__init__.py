@@ -61,6 +61,7 @@ from .beeg import BeegIE
 from .behindkink import BehindKinkIE
 from .beatportpro import BeatportProIE
 from .bet import BetIE
+from .bigflix import BigflixIE
 from .bild import BildIE
 from .bilibili import BiliBiliIE
 from .bleacherreport import (
