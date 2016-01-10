@@ -1857,7 +1857,7 @@ def encode_data_uri(data, mime_type):
 
 
 def age_restricted(content_limit, age_limit):
-    """ Returns True iff the content should be blocked """
+    """ Returns True if the content should be blocked """
 
     if age_limit is None:  # No limit set
         return False
