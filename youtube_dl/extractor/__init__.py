@@ -128,6 +128,7 @@ from .crunchyroll import (
 )
 from .cspan import CSpanIE
 from .ctsnews import CtsNewsIE
+from .cultureunplugged import CultureUnpluggedIE
 from .dailymotion import (
     DailymotionIE,
     DailymotionPlaylistIE,
