@@ -16,7 +16,7 @@ from ..utils import (
 
 class PBSIE(InfoExtractor):
     _STATIONS = (
-        (r'(?:video|www)\.pbs\.org', 'PBS: Public Broadcasting Service'),  # http://www.pbs.org/
+        (r'(?:video|www|player)\.pbs\.org', 'PBS: Public Broadcasting Service'),  # http://www.pbs.org/
         (r'video\.aptv\.org', 'APT - Alabama Public Television (WBIQ)'),  # http://aptv.org/
         (r'video\.gpb\.org', 'GPB/Georgia Public Broadcasting (WGTV)'),  # http://www.gpb.org/
         (r'video\.mpbonline\.org', 'Mississippi Public Broadcasting (WMPN)'),  # http://www.mpbonline.org

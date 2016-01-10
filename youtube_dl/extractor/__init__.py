@@ -15,7 +15,6 @@ from .adobetv import (
     AdobeTVVideoIE,
 )
 from .adultswim import AdultSwimIE
-from .aftenposten import AftenpostenIE
 from .aftonbladet import AftonbladetIE
 from .airmozilla import AirMozillaIE
 from .aljazeera import AlJazeeraIE
@@ -26,7 +25,10 @@ from .aol import AolIE
 from .allocine import AllocineIE
 from .aparat import AparatIE
 from .appleconnect import AppleConnectIE
-from .appletrailers import AppleTrailersIE
+from .appletrailers import (
+    AppleTrailersIE,
+    AppleTrailersSectionIE,
+)
 from .archiveorg import ArchiveOrgIE
 from .ard import (
     ARDIE,
@@ -591,10 +593,6 @@ from .snagfilms import (
 )
 from .snotr import SnotrIE
 from .sohu import SohuIE
-from .soompi import (
-    SoompiIE,
-    SoompiShowIE,
-)
 from .soundcloud import (
     SoundcloudIE,
     SoundcloudSetIE,
@@ -663,6 +661,7 @@ from .tenplay import TenPlayIE
 from .testurl import TestURLIE
 from .testtube import TestTubeIE
 from .tf1 import TF1IE
+from .theintercept import TheInterceptIE
 from .theonion import TheOnionIE
 from .theplatform import (
     ThePlatformIE,

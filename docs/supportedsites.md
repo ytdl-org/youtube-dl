@@ -23,7 +23,6 @@
  - **AdobeTVShow**
  - **AdobeTVVideo**
  - **AdultSwim**
- - **Aftenposten**
  - **Aftonbladet**
  - **AirMozilla**
  - **AlJazeera**
@@ -34,7 +33,8 @@
  - **Aparat**
  - **AppleConnect**
  - **AppleDaily**: 臺灣蘋果日報
- - **AppleTrailers**
+ - **appletrailers**
+ - **appletrailers:section**
  - **archive.org**: archive.org videos
  - **ARD**
  - **ARD:mediathek**
@@ -502,8 +502,6 @@
  - **SnagFilmsEmbed**
  - **Snotr**
  - **Sohu**
- - **soompi**
- - **soompi:show**
  - **soundcloud**
  - **soundcloud:playlist**
  - **soundcloud:search**: Soundcloud search
@@ -627,7 +625,7 @@
  - **Vessel**
  - **Vesti**: Вести.Ru
  - **Vevo**
- - **VGTV**: VGTV and BTTV
+ - **VGTV**: VGTV, BTTV, FTV, Aftenposten and Aftonbladet
  - **vh1.com**
  - **Vice**
  - **Viddler**

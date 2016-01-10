@@ -5,6 +5,8 @@ from .common import InfoExtractor
 from ..utils import (
     parse_iso8601,
     int_or_none,
+    xpath_attr,
+    xpath_element,
 )
 
 
@@ -15,7 +17,7 @@ class TwentyFourVideoIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.24video.net/video/view/1044982',
-            'md5': 'd041af8b5b4246ea466226a0d6693345',
+            'md5': 'e09fc0901d9eaeedac872f154931deeb',
             'info_dict': {
                 'id': '1044982',
                 'ext': 'mp4',
@@ -64,33 +66,24 @@ class TwentyFourVideoIE(InfoExtractor):
             r'<div class="comments-title" id="comments-count">(\d+) комментари',
             webpage, 'comment count', fatal=False))
 
-        formats = []
+        # Sets some cookies
+        self._download_xml(
+            r'http://www.24video.net/video/xml/%s?mode=init' % video_id,
+            video_id, 'Downloading init XML')
 
-        pc_video = self._download_xml(
+        video_xml = self._download_xml(
             'http://www.24video.net/video/xml/%s?mode=play' % video_id,
-            video_id, 'Downloading PC video URL').find('.//video')
+            video_id, 'Downloading video XML')
 
-        formats.append({
-            'url': pc_video.attrib['url'],
-            'format_id': 'pc',
-            'quality': 1,
-        })
+        video = xpath_element(video_xml, './/video', 'video', fatal=True)
 
-        like_count = int_or_none(pc_video.get('ratingPlus'))
-        dislike_count = int_or_none(pc_video.get('ratingMinus'))
-        age_limit = 18 if pc_video.get('adult') == 'true' else 0
+        formats = [{
+            'url': xpath_attr(video, '', 'url', 'video URL', fatal=True),
+        }]
 
-        mobile_video = self._download_xml(
-            'http://www.24video.net/video/xml/%s' % video_id,
-            video_id, 'Downloading mobile video URL').find('.//video')
-
-        formats.append({
-            'url': mobile_video.attrib['url'],
-            'format_id': 'mobile',
-            'quality': 0,
-        })
-
-        self._sort_formats(formats)
+        like_count = int_or_none(video.get('ratingPlus'))
+        dislike_count = int_or_none(video.get('ratingMinus'))
+        age_limit = 18 if video.get('adult') == 'true' else 0
 
         return {
             'id': video_id,
