@@ -170,7 +170,7 @@ class VideomoreVideoIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        # season single serie with og:video:iframe
+        # season single series with og:video:iframe
         'url': 'http://videomore.ru/poslednii_ment/1_sezon/14_seriya',
         'only_matching': True,
     }, {

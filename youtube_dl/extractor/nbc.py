@@ -100,7 +100,7 @@ class NBCSportsVPlayerIE(InfoExtractor):
 
 
 class NBCSportsIE(InfoExtractor):
-    # Does not include https becuase its certificate is invalid
+    # Does not include https because its certificate is invalid
     _VALID_URL = r'http://www\.nbcsports\.com//?(?:[^/]+/)+(?P<id>[0-9a-z-]+)'
 
     _TEST = {

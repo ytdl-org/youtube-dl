@@ -32,7 +32,7 @@ class IviIE(InfoExtractor):
             },
             'skip': 'Only works from Russia',
         },
-        # Serial's serie
+        # Serial's series
         {
             'url': 'http://www.ivi.ru/watch/dvoe_iz_lartsa/9549',
             'md5': '221f56b35e3ed815fde2df71032f4b3e',

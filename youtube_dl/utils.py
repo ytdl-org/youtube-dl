@@ -984,7 +984,7 @@ def date_from_str(date_str):
         if sign == '-':
             time = -time
         unit = match.group('unit')
-        # A bad aproximation?
+        # A bad approximation?
         if unit == 'month':
             unit = 'day'
             time *= 30
@@ -1307,7 +1307,7 @@ def parse_filesize(s):
     if s is None:
         return None
 
-    # The lower-case forms are of course incorrect and inofficial,
+    # The lower-case forms are of course incorrect and unofficial,
     # but we support those too
     _UNIT_TABLE = {
         'B': 1,
