@@ -53,7 +53,7 @@ class BigflixIE(InfoExtractor):
 
         formats = []
         for height, encoded_url in re.findall(
-            r'ContentURL_(\d{3,4})[pP][^=]+=([^&]+)', webpage):
+                r'ContentURL_(\d{3,4})[pP][^=]+=([^&]+)', webpage):
             video_url = decode_url(encoded_url)
             f = {
                 'url': video_url,
