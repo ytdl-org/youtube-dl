@@ -66,7 +66,7 @@ class FragmentFD(FileDownloader):
             if s['status'] not in ('downloading', 'finished'):
                 return
 
-            frag_total_bytes = s.get('total_bytes', 0)
+            frag_total_bytes = s.get('total_bytes') or 0
             if s['status'] == 'finished':
                 state['downloaded_bytes'] += frag_total_bytes
                 state['frag_index'] += 1
