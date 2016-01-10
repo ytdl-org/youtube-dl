@@ -17,7 +17,7 @@ class MDRIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?(?:mdr|kika)\.de/(?:.*)/[a-z]+(?P<id>\d+)(?:_.+?)?\.html'
 
     _TESTS = [{
-        # MDR regularily deletes its videos
+        # MDR regularly deletes its videos
         'url': 'http://www.mdr.de/fakt/video189002.html',
         'only_matching': True,
     }, {

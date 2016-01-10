@@ -37,7 +37,7 @@ class OraTVIE(InfoExtractor):
             formats = self._extract_m3u8_formats(
                 m3u8_url, display_id, 'mp4', 'm3u8_native',
                 m3u8_id='hls', fatal=False)
-            # simular to GameSpotIE
+            # similar to GameSpotIE
             m3u8_path = compat_urlparse.urlparse(m3u8_url).path
             QUALITIES_RE = r'((,[a-z]+\d+)+,?)'
             available_qualities = self._search_regex(

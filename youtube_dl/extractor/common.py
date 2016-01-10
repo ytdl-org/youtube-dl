@@ -313,9 +313,9 @@ class InfoExtractor(object):
         except ExtractorError:
             raise
         except compat_http_client.IncompleteRead as e:
-            raise ExtractorError('A network error has occured.', cause=e, expected=True)
+            raise ExtractorError('A network error has occurred.', cause=e, expected=True)
         except (KeyError, StopIteration) as e:
-            raise ExtractorError('An extractor error has occured.', cause=e)
+            raise ExtractorError('An extractor error has occurred.', cause=e)
 
     def set_downloader(self, downloader):
         """Sets the downloader for this IE."""
