@@ -6,7 +6,7 @@ from .common import InfoExtractor, ExtractorError
 
 class TvpIE(InfoExtractor):
     IE_NAME = 'tvp.pl'
-    _VALID_URL = r'https?://(\w+\.)+tvp\.pl/(?P<id>\d+)/.*'
+    _VALID_URL = r'https?://(\w+\.)+tvp\.(?:pl|info)/(?P<id>\d+)/.*'
 
     _VIDEO_LISTING_URL = ('http://www.api.v3.tvp.pl/shared/listing.php'
                           '?dump=json&direct=true&count=-1&parent_id={id}')
