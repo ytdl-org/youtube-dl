@@ -150,10 +150,9 @@ class TvpIE(InfoExtractor):
                 if 'directory_video' in item['types']:
                     ids.append(item['_id'])
                 if 'video' in item['types'] and item['is_released']:
-                    yield {
-                        '_type': 'url',
-                        'title': self._guess_title(item),
-                        'url': item['url']}
+                    yield self.url_result(item['url'],
+                                          video_id=item['_id'],
+                                          video_title=self._guess_title(item))
 
     def _get_playlist(self, context):
         pls_id = str(context['material_id'])
