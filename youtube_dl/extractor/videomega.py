@@ -8,6 +8,7 @@ from ..utils import sanitized_Request
 
 
 class VideoMegaIE(InfoExtractor):
+    _WORKING = False
     _VALID_URL = r'(?:videomega:|https?://(?:www\.)?videomega\.tv/(?:(?:view|iframe|cdn)\.php)?\?ref=)(?P<id>[A-Za-z0-9]+)'
     _TESTS = [{
         'url': 'http://videomega.tv/cdn.php?ref=AOSQBJYKIDDIKYJBQSOA',
