@@ -5,6 +5,7 @@ from .common import InfoExtractor
 
 
 class IfengIE(InfoExtractor):
+    ''' ifeng extractor '''
     IE_NAME = 'ifeng'
     IE_DESC = '凤凰网'
     # http://v.ifeng.com/mil/mainland/201601/01d92436-8afe-4af0-82a4-cef889018295.shtml
@@ -37,13 +38,14 @@ class IfengIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
+        ''' extract ifeng url '''
         video_id = self._match_id(url);
 
         d = video_id[-2]
         dd = video_id[-2:]
 
         info_doc = self._download_xml(
-                'http://v.ifeng.com/video_info_new/%s/%s/%s.xml' % (d, dd, video_id),
+                'http://v.ifeng.com/video_info_new/{0}/{1}/{2}.xml'.format(d, dd, video_id),
                 video_id, 'fetch video metadata')
 
         title = info_doc.find('./item').get('Name')
