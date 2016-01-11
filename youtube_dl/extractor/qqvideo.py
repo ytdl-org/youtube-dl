@@ -7,6 +7,7 @@ from .common import InfoExtractor
 
 
 class QqVideoIE(InfoExtractor):
+    """ qq viedo extractor """
     IE_NAME = 'qq'
     IE_DESC = '腾讯'
     # http://v.qq.com/page/9/n/6/9jWRYWGYvn6.html
@@ -31,19 +32,20 @@ class QqVideoIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
+        """ extract qq video url """
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         if (video_id is None):
             video_id = mobj.group('vid')
 
         info_doc = self._download_xml(
-                'http://vv.video.qq.com/getinfo?vid=%s&otype=xml&platform=1' % video_id,
+                'http://vv.video.qq.com/getinfo?vid={0}&otype=xml&platform=1'.format(video_id),
                 video_id, 'fetch video metadata')
 
         title = info_doc.find('./vl/vi/ti').text
 
         url_doc = self._download_xml(
-                'http://vv.video.qq.com/geturl?vid=%s&otype=xml&platform=1' % video_id,
+                'http://vv.video.qq.com/geturl?vid={0}&otype=xml&platform=1'.format(video_id),
                 video_id, 'fetch video url')
 
         url = url_doc.find('./vd/vi/url').text
