@@ -232,7 +232,7 @@ class PluralsightIE(PluralsightBaseIE):
         # { a = author, cn = clip_id, lc = end, m = name }
 
         return {
-            'id': clip['clipName'],
+            'id': clip['name'],
             'title': '%s - %s' % (module['title'], clip['title']),
             'duration': int_or_none(clip.get('duration')) or parse_duration(clip.get('formattedDuration')),
             'creator': author,
