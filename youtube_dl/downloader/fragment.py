@@ -78,17 +78,10 @@ class FragmentFD(FileDownloader):
             state['total_bytes_estimate'] = estimated_size
             state['elapsed'] = time_now - start
 
-            if s['status'] == 'finished':
-                progress = self.calc_percent(state['frag_index'], total_frags)
-            else:
-                frag_downloaded_bytes = s['downloaded_bytes']
-                frag_progress = self.calc_percent(frag_downloaded_bytes,
-                                                  frag_total_bytes)
-                progress = self.calc_percent(state['frag_index'], total_frags)
-                progress += frag_progress / float(total_frags)
-
+            if s['status'] != 'finished':
                 state['eta'] = self.calc_eta(
-                    start, time_now, estimated_size, state['downloaded_bytes'] + frag_downloaded_bytes)
+                    start, time_now, estimated_size,
+                    state['downloaded_bytes'] + s['downloaded_bytes'])
                 state['speed'] = s.get('speed')
             self._hook_progress(state)
 
