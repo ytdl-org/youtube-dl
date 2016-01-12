@@ -149,14 +149,15 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                     ext = determine_ext(media_url)
                     if type_ == 'application/x-mpegURL' or ext == 'm3u8':
                         formats.extend(self._extract_m3u8_formats(
-                            media_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
+                            media_url, video_id, 'mp4', preference=-1,
+                            m3u8_id='hls', fatal=False))
                     elif type_ == 'application/f4m' or ext == 'f4m':
                         formats.extend(self._extract_f4m_formats(
                             media_url, video_id, preference=-1, f4m_id='hds', fatal=False))
                     else:
                         f = {
                             'url': media_url,
-                            'format_id': quality,
+                            'format_id': 'http-%s' % quality,
                         }
                         m = re.search(r'H264-(?P<width>\d+)x(?P<height>\d+)', media_url)
                         if m:
