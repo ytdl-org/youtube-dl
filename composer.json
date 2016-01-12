@@ -1,0 +1,5 @@
+{
+	"name": "rg3/youtube-dl",
+	"description": "Small command-line program to download videos from YouTube.com and other video sites",
+	"license": "Unlicense"
+}
