@@ -58,14 +58,17 @@ class FragmentFD(FileDownloader):
             'frag_count': total_frags,
             'filename': ctx['filename'],
             'tmpfilename': ctx['tmpfilename'],
+        }
+
+        start = time.time()
+        ctx.update({
+            'started': start,
             # Total complete fragments downloaded so far in bytes
-            '_complete_frags_downloaded_bytes': 0,
+            'complete_frags_downloaded_bytes': 0,
             # Amount of fragment's bytes downloaded by the time of the previous
             # frag progress hook invocation
-            '_prev_frag_downloaded_bytes': 0,
-        }
-        start = time.time()
-        ctx['started'] = start
+            'prev_frag_downloaded_bytes': 0,
+        })
 
         def frag_progress_hook(s):
             if s['status'] not in ('downloading', 'finished'):
@@ -74,7 +77,7 @@ class FragmentFD(FileDownloader):
             frag_total_bytes = s.get('total_bytes') or 0
 
             estimated_size = (
-                (state['_complete_frags_downloaded_bytes'] + frag_total_bytes) /
+                (ctx['complete_frags_downloaded_bytes'] + frag_total_bytes) /
                 (state['frag_index'] + 1) * total_frags)
             time_now = time.time()
             state['total_bytes_estimate'] = estimated_size
@@ -82,17 +85,17 @@ class FragmentFD(FileDownloader):
 
             if s['status'] == 'finished':
                 state['frag_index'] += 1
-                state['downloaded_bytes'] += frag_total_bytes - state['_prev_frag_downloaded_bytes']
-                state['_complete_frags_downloaded_bytes'] = state['downloaded_bytes']
-                state['_prev_frag_downloaded_bytes'] = 0
+                state['downloaded_bytes'] += frag_total_bytes - ctx['prev_frag_downloaded_bytes']
+                ctx['complete_frags_downloaded_bytes'] = state['downloaded_bytes']
+                ctx['prev_frag_downloaded_bytes'] = 0
             else:
                 frag_downloaded_bytes = s['downloaded_bytes']
-                state['downloaded_bytes'] += frag_downloaded_bytes - state['_prev_frag_downloaded_bytes']
+                state['downloaded_bytes'] += frag_downloaded_bytes - ctx['prev_frag_downloaded_bytes']
                 state['eta'] = self.calc_eta(
                     start, time_now, estimated_size,
                     state['downloaded_bytes'])
                 state['speed'] = s.get('speed')
-                state['_prev_frag_downloaded_bytes'] = frag_downloaded_bytes
+                ctx['prev_frag_downloaded_bytes'] = frag_downloaded_bytes
             self._hook_progress(state)
 
         ctx['dl'].add_progress_hook(frag_progress_hook)
