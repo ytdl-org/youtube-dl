@@ -4,7 +4,9 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-
+from ..utils import (
+    ExtractorError,
+)
 
 class QqVideoIE(InfoExtractor):
     """ qq viedo extractor """
@@ -47,61 +49,77 @@ class QqVideoIE(InfoExtractor):
 
     ]
 
-    def _real_extract(self, url):
-        """ extract qq video url """
-        mobj = re.match(self._VALID_URL, url)
-        pid = mobj.group('pid')
-        video_id = mobj.group('id') or mobj.group('vid') or pid
+    def _soap_extract(self, url, video_id):
+        """ extract soap opera url of qq video,"""
+        webpage = self._download_webpage(url, video_id, 'download web page: {0}'.format(url))
+        album_list = [album.group('vid') for album in re.finditer(r'(?is)<a[^>]+class="album_link"\s+id="(?P<vid>[\w\d\-_]+)"[^>]+>.*?</a>', webpage)]
+        if len(album_list) == 0:
+            raise ExtractorError('invalid video id: {0}'.format(video_id))
+        elif video_id in album_list:
+            album_list.clear()
+            album_list.append(video_id)
 
-        info_doc = self._download_xml(
-                'http://vv.video.qq.com/getinfo?vid={0}&otype=xml&defaultfmt=shd'.format(video_id),
-                video_id, 'fetch video metadata')
-
-        title = info_doc.find('./vl/vi/ti').text
-
-        if (pid is not None):
+        entries = []
+        for album_index in range(len(album_list)):
+            vid = album_list[album_index]
+            info_doc = self._download_xml(
+                    'http://vv.video.qq.com/getinfo?vid={0}&otype=xml&defaultfmt=shd'.format(vid),
+                    vid, 'fetch video metadata: {0}'.format(vid))
             fclip = info_doc.find('./vl/vi/cl/fc').text
             fn = info_doc.find('./vl/vi/fn').text
             vtypes = {v.find('./name').text:v.find('./id').text for v in info_doc.findall('./fl/fi')}
-            url = info_doc.findall('./vl/vi/ul/ui/url')[-1].text
-            entries = [{
-                           'id': '{0}_part{1}'.format(video_id, i + 1),
-                           'title': title,
-                           'formats': [],
-                       } for i in range(int(fclip))]
+            base_url = info_doc.findall('./vl/vi/ul/ui/url')[-1].text
+            title = info_doc.find('./vl/vi/ti').text
             for i in range(int(fclip)):
                 newfn = '{0}.{1}.{2}'.format(fn[:-4], i + 1, 'mp4')
                 qid = vtypes['sd']
                 if 'fhd' in vtypes:
-                  qid = vtypes['fhd']
+                    qid = vtypes['fhd']
                 elif 'shd' in vtypes:
                     qid = vtypes['shd']
                 elif 'hd' in vtypes:
                     qid = vtypes['hd']
                 key_doc = self._download_xml(
-                    'http://vv.video.qq.com/getkey?format=10{0}&otype=xml&vid={1}&filename={2}'.format(int(qid) % 10000, video_id, newfn),
-                        video_id, 'get {0}{1} vkey'.format('clip', i + 1))
+                        'http://vv.video.qq.com/getkey?format=10{0}&otype=xml&vid={1}&filename={2}'.format(int(qid) % 10000, vid, newfn),
+                        vid, 'get {0} {1}{2} vkey with vid: {3}'.format(title, 'clip', i + 1, vid))
                 vkey = key_doc.find('./key').text
-                video_url = '{0}{1}?vkey={2}&type={3}'.format(url, newfn, vkey, 'mp4')
-                entries[i]['formats'].append({
-                    'url': video_url,
-                    'ext': 'mp4',
+                video_url = '{0}{1}?vkey={2}&type={3}'.format(base_url, newfn, vkey, 'mp4')
+                entries.append({
+                    'id': '{0}_part{1}'.format(vid, i + 1),
+                    'title': title,
+                    'formats': [{
+                        'url': video_url,
+                        'ext': 'mp4'
+                    }],
                 })
-            return {
-                '_type': 'multi_video',
-                'id': video_id,
-                'title': title,
-                'entries': entries,
-            }
-        else:
-            url_doc = self._download_xml(
+        return {
+            '_type': 'multi_video',
+            'id': video_id,
+            'title': title,
+            'entries': entries,
+        }
+
+    def _video_extract(self, url, video_id):
+        """ extract normal qq video url """
+        video_url = self._download_xml(
                     'http://vv.video.qq.com/geturl?vid={0}&otype=xml'.format(video_id),
-                    video_id, 'fetch video url')
-            url = url_doc.find('./vd/vi/url').text
-            ext = self._search_regex('\.([\d\w]+)\?', url, '', '')
-            return {
-                'id': video_id,
-                'title': title,
-                'url': url,
-                'ext': ext,
-            }
+                    video_id, 'fetch video url').find('./vd/vi/url').text
+        ext = self._search_regex('\.([\d\w]+)\?', video_url, '', '')
+        title = self._download_xml(
+                'http://vv.video.qq.com/getinfo?vid={0}&otype=xml&defaultfmt=shd'.format(video_id),
+                video_id, 'fetch video metadata').find('./vl/vi/ti').text
+        return {
+            'id': video_id,
+            'title': title,
+            'url': video_url,
+            'ext': ext,
+        }
+
+    def _real_extract(self, url):
+        """ extract qq video url """
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id') or mobj.group('vid') or mobj.group('pid')
+        if (mobj.group('pid') is not None):
+            return self._soap_extract(url, video_id)
+        else:
+            return self._video_extract(url, video_id)
