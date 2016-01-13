@@ -1487,7 +1487,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             if codecs:
                                 codecs = codecs.split(',')
                                 if len(codecs) == 2:
-                                    acodec, vcodec = codecs[0], codecs[1]
+                                    acodec, vcodec = codecs[1], codecs[0]
                                 else:
                                     acodec, vcodec = (codecs[0], 'none') if kind == 'audio' else ('none', codecs[0])
                                 dct.update({
