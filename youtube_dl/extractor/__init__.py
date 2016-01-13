@@ -723,7 +723,11 @@ from .trilulilu import TriluliluIE
 from .trutube import TruTubeIE
 from .tube8 import Tube8IE
 from .tubitv import TubiTvIE
-from .tudou import TudouIE
+from .tudou import (
+    TudouIE,
+    TudouPlaylistIE,
+    TudouAlbumIE,
+)
 from .tumblr import TumblrIE
 from .tunein import (
     TuneInClipIE,
