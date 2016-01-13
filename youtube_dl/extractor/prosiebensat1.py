@@ -20,7 +20,7 @@ from ..utils import (
 class ProSiebenSat1IE(InfoExtractor):
     IE_NAME = 'prosiebensat1'
     IE_DESC = 'ProSiebenSat.1 Digital'
-    _VALID_URL = r'https?://(?:www\.)?(?:(?:prosieben|prosiebenmaxx|sixx|sat1|kabeleins|the-voice-of-germany)\.(?:de|at|ch)|ran\.de|fem\.com)/(?P<id>.+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:(?:prosieben|prosiebenmaxx|sixx|sat1|kabeleins|the-voice-of-germany|7tv)\.(?:de|at|ch)|ran\.de|fem\.com)/(?P<id>.+)'
 
     _TESTS = [
         {
@@ -172,6 +172,20 @@ class ProSiebenSat1IE(InfoExtractor):
             },
             'playlist_count': 2,
         },
+        {
+            'url': 'http://www.7tv.de/circus-halligalli/615-best-of-circus-halligalli-ganze-folge',
+            'info_dict': {
+                'id': '4187506',
+                'ext': 'flv',
+                'title': 'Best of Circus HalliGalli',
+                'description': 'md5:8849752efd90b9772c9db6fdf87fb9e9',
+                'upload_date': '20151229',
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            },
+        },
     ]
 
     _CLIPID_REGEXES = [
@@ -186,12 +200,14 @@ class ProSiebenSat1IE(InfoExtractor):
         r'<!-- start video -->\s*<h1>(.+?)</h1>',
         r'<h1 class="att-name">\s*(.+?)</h1>',
         r'<header class="module_header">\s*<h2>([^<]+)</h2>\s*</header>',
+        r'<h2 class="video-title" itemprop="name">\s*(.+?)</h2>',
     ]
     _DESCRIPTION_REGEXES = [
         r'<p itemprop="description">\s*(.+?)</p>',
         r'<div class="videoDecription">\s*<p><strong>Beschreibung</strong>: (.+?)</p>',
         r'<div class="g-plusone" data-size="medium"></div>\s*</div>\s*</header>\s*(.+?)\s*<footer>',
         r'<p class="att-description">\s*(.+?)\s*</p>',
+        r'<p class="video-description" itemprop="description">\s*(.+?)</p>',
     ]
     _UPLOAD_DATE_REGEXES = [
         r'<meta property="og:published_time" content="(.+?)">',
