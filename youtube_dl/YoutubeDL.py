@@ -898,6 +898,9 @@ class YoutubeDL(object):
             STR_OPERATORS = {
                 '=': operator.eq,
                 '!=': operator.ne,
+                '^=': lambda attr, value: attr.startswith(value),
+                '$=': lambda attr, value: attr.endswith(value),
+                '*=': lambda attr, value: value in attr,
             }
             str_operator_rex = re.compile(r'''(?x)
                 \s*(?P<key>ext|acodec|vcodec|container|protocol)
