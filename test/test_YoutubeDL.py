@@ -12,7 +12,7 @@ import copy
 
 from test.helper import FakeYDL, assertRegexpMatches
 from youtube_dl import YoutubeDL
-from youtube_dl.compat import compat_str
+from youtube_dl.compat import compat_str, compat_urllib_error
 from youtube_dl.extractor import YoutubeIE
 from youtube_dl.postprocessor.common import PostProcessor
 from youtube_dl.utils import ExtractorError, match_filter_func
@@ -630,6 +630,11 @@ class TestYoutubeDL(unittest.TestCase):
 
         result = get_ids({'playlist_items': '10'})
         self.assertEqual(result, [])
+
+    def test_urlopen_no_file_protocol(self):
+        # see https://github.com/rg3/youtube-dl/issues/8227
+        ydl = YDL()
+        self.assertRaises(compat_urllib_error.URLError, ydl.urlopen, 'file:///etc/passwd')
 
 
 if __name__ == '__main__':
