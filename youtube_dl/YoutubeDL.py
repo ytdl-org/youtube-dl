@@ -745,7 +745,7 @@ class YoutubeDL(object):
 
             return self.process_ie_result(
                 new_result, download=download, extra_info=extra_info)
-        elif result_type == 'playlist' or result_type == 'multi_video':
+        elif result_type == 'playlist':
             # We process each entry in the playlist
             playlist = ie_result.get('title', None) or ie_result.get('id', None)
             self.to_screen('[download] Downloading playlist: %s' % playlist)
@@ -1190,9 +1190,9 @@ class YoutubeDL(object):
         if add_headers:
             res.update(add_headers)
 
-        cookies = self._calc_cookies(info_dict)
-        if cookies:
-            res['Cookie'] = cookies
+        #cookies = self._calc_cookies(info_dict)
+        #if cookies:
+        #    res['Cookie'] = cookies
 
         return res
 
@@ -1274,8 +1274,13 @@ class YoutubeDL(object):
 
         # We check that all the formats have the format and format_id fields
         for i, format in enumerate(formats):
-            if 'url' not in format:
-                raise ExtractorError('Missing "url" key in result (index %d)' % i)
+            if 'parts' in format and len(format['parts']) == 0:
+                raise ExtractorError('Empty "parts" key in result (index %d)' % i)
+            if 'parts' in format and len(format['parts']) == 1:
+                format.update(format['parts'][0])
+                del format['parts']
+            if 'url' not in format and 'parts' not in format:
+                raise ExtractorError('Missing "url" or "parts" key in result (index %d)' % i)
 
             if format.get('format_id') is None:
                 format['format_id'] = compat_str(i)
@@ -1299,7 +1304,10 @@ class YoutubeDL(object):
                 )
             # Automatically determine file extension if missing
             if 'ext' not in format:
-                format['ext'] = determine_ext(format['url']).lower()
+                if 'parts' in format:
+                    format['ext'] = determine_ext(format['parts'][0]['url']).lower()
+                else:
+                    format['ext'] = determine_ext(format['url']).lower()
             # Add HTTP headers, so that external programs can use them from the
             # json output
             full_format_info = info_dict.copy()
@@ -1430,12 +1438,19 @@ class YoutubeDL(object):
         if self.params.get('forceid', False):
             self.to_stdout(info_dict['id'])
         if self.params.get('forceurl', False):
+            def print_format_url(format_info):
+                if 'parts' in format_info:
+                    for f in format_info['parts']:
+                        self.to_stdout(f['url'] + f.get('play_path', ''))
+                else:
+                    self.to_stdout(format_info['url'] + format_info.get('play_path', ''))
+
             if info_dict.get('requested_formats') is not None:
                 for f in info_dict['requested_formats']:
-                    self.to_stdout(f['url'] + f.get('play_path', ''))
+                    print_format_url(f)
             else:
                 # For RTMP URLs, also include the playpath
-                self.to_stdout(info_dict['url'] + info_dict.get('play_path', ''))
+                print_format_url(info_dict)
         if self.params.get('forcethumbnail', False) and info_dict.get('thumbnail') is not None:
             self.to_stdout(info_dict['thumbnail'])
         if self.params.get('forcedescription', False) and info_dict.get('description') is not None:
@@ -1839,6 +1854,10 @@ class YoutubeDL(object):
             if res:
                 res += ', '
             res += '~' + format_bytes(fdict['filesize_approx'])
+        if fdict.get('parts'):
+            if res:
+                res += ', '
+            res += 'multipart'
         return res
 
     def list_formats(self, info_dict):
