@@ -5,12 +5,13 @@ from .common import InfoExtractor
 from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
+    NO_DEFAULT,
     sanitized_Request,
 )
 
 
 class VodlockerIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vodlocker\.com/(?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:\..*?)?'
+    _VALID_URL = r'https?://(?:www\.)?vodlocker\.(?:com|city)/(?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:\..*?)?'
 
     _TESTS = [{
         'url': 'http://vodlocker.com/e8wvyzz4sl42',
@@ -43,16 +44,31 @@ class VodlockerIE(InfoExtractor):
             webpage = self._download_webpage(
                 req, video_id, 'Downloading video page')
 
+        def extract_file_url(html, default=NO_DEFAULT):
+            return self._search_regex(
+                r'file:\s*"(http[^\"]+)",', html, 'file url', default=default)
+
+        video_url = extract_file_url(webpage, default=None)
+
+        if not video_url:
+            embed_url = self._search_regex(
+                r'<iframe[^>]+src=(["\'])(?P<url>(?:https?://)?vodlocker\.(?:com|city)/embed-.+?)\1',
+                webpage, 'embed url', group='url')
+            embed_webpage = self._download_webpage(
+                embed_url, video_id, 'Downloading embed webpage')
+            video_url = extract_file_url(embed_webpage)
+            thumbnail_webpage = embed_webpage
+        else:
+            thumbnail_webpage = webpage
+
         title = self._search_regex(
             r'id="file_title".*?>\s*(.*?)\s*<(?:br|span)', webpage, 'title')
         thumbnail = self._search_regex(
-            r'image:\s*"(http[^\"]+)",', webpage, 'thumbnail')
-        url = self._search_regex(
-            r'file:\s*"(http[^\"]+)",', webpage, 'file url')
+            r'image:\s*"(http[^\"]+)",', thumbnail_webpage, 'thumbnail', fatal=False)
 
         formats = [{
             'format_id': 'sd',
-            'url': url,
+            'url': video_url,
         }]
 
         return {
