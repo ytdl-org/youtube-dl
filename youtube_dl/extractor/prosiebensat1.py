@@ -32,7 +32,7 @@ class ProSiebenSat1IE(InfoExtractor):
             'url': 'http://www.prosieben.de/tv/circus-halligalli/videos/218-staffel-2-episode-18-jahresrueckblick-ganze-folge',
             'info_dict': {
                 'id': '2104602',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'Episode 18 - Staffel 2',
                 'description': 'md5:8733c81b702ea472e069bc48bb658fc1',
                 'upload_date': '20131231',
@@ -138,14 +138,13 @@ class ProSiebenSat1IE(InfoExtractor):
             'url': 'http://www.the-voice-of-germany.de/video/31-andreas-kuemmert-rocket-man-clip',
             'info_dict': {
                 'id': '2572814',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'Andreas Kümmert: Rocket Man',
                 'description': 'md5:6ddb02b0781c6adf778afea606652e38',
                 'upload_date': '20131017',
                 'duration': 469.88,
             },
             'params': {
-                # rtmp download
                 'skip_download': True,
             },
         },
@@ -153,13 +152,12 @@ class ProSiebenSat1IE(InfoExtractor):
             'url': 'http://www.fem.com/wellness/videos/wellness-video-clip-kurztripps-zum-valentinstag.html',
             'info_dict': {
                 'id': '2156342',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'Kurztrips zum Valentinstag',
-                'description': 'Romantischer Kurztrip zum Valentinstag? Wir verraten, was sich hier wirklich lohnt.',
+                'description': 'Romantischer Kurztrip zum Valentinstag? Nina Heinemann verrät, was sich hier wirklich lohnt.',
                 'duration': 307.24,
             },
             'params': {
-                # rtmp download
                 'skip_download': True,
             },
         },
@@ -182,7 +180,6 @@ class ProSiebenSat1IE(InfoExtractor):
                 'upload_date': '20151229',
             },
             'params': {
-                # rtmp download
                 'skip_download': True,
             },
         },
@@ -192,6 +189,7 @@ class ProSiebenSat1IE(InfoExtractor):
         r'"clip_id"\s*:\s+"(\d+)"',
         r'clipid: "(\d+)"',
         r'clip[iI]d=(\d+)',
+        r'clip[iI]d\s*=\s*["\'](\d+)',
         r"'itemImageUrl'\s*:\s*'/dynamic/thumbnails/full/\d+/(\d+)",
     ]
     _TITLE_REGEXES = [
@@ -201,6 +199,7 @@ class ProSiebenSat1IE(InfoExtractor):
         r'<h1 class="att-name">\s*(.+?)</h1>',
         r'<header class="module_header">\s*<h2>([^<]+)</h2>\s*</header>',
         r'<h2 class="video-title" itemprop="name">\s*(.+?)</h2>',
+        r'<div[^>]+id="veeseoTitle"[^>]*>(.+?)</div>',
     ]
     _DESCRIPTION_REGEXES = [
         r'<p itemprop="description">\s*(.+?)</p>',
@@ -208,6 +207,7 @@ class ProSiebenSat1IE(InfoExtractor):
         r'<div class="g-plusone" data-size="medium"></div>\s*</div>\s*</header>\s*(.+?)\s*<footer>',
         r'<p class="att-description">\s*(.+?)\s*</p>',
         r'<p class="video-description" itemprop="description">\s*(.+?)</p>',
+        r'<div[^>]+id="veeseoDescription"[^>]*>(.+?)</div>',
     ]
     _UPLOAD_DATE_REGEXES = [
         r'<meta property="og:published_time" content="(.+?)">',
