@@ -170,7 +170,7 @@ class ORFOE1IE(InfoExtractor):
 class ORFFM4IE(InfoExtractor):
     IE_NAME = 'orf:fm4'
     IE_DESC = 'radio FM4'
-    _VALID_URL = r'http://fm4\.orf\.at/7tage/?#(?P<date>[0-9]+)/(?P<show>\w+)'
+    _VALID_URL = r'http://fm4\.orf\.at/(?:7tage/?#|player/)(?P<date>[0-9]+)/(?P<show>\w+)'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
