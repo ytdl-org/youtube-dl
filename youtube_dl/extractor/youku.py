@@ -14,6 +14,8 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     sanitized_Request,
+    int_or_none,
+    float_or_none,
 )
 
 
@@ -66,7 +68,7 @@ class YoukuIE(InfoExtractor):
         },
     }]
 
-    def construct_video_urls(self, data):
+    def construct_formats(self, data):
         # get sid, token
         def yk_t(s1, s2):
             ls = list(range(256))
@@ -115,10 +117,10 @@ class YoukuIE(InfoExtractor):
             return ep
 
         # generate video_urls
-        video_urls_dict = {}
+        formats = []
         for stream in data['stream']:
             format = stream.get('stream_type')
-            video_urls = []
+            parts = []
             for dt in stream['segs']:
                 n = str(stream['segs'].index(dt))
                 param = {
@@ -139,10 +141,19 @@ class YoukuIE(InfoExtractor):
                     '/st/' + self.parse_ext_l(format) + \
                     '/fileid/' + get_fileid(format, n) + '?' + \
                     compat_urllib_parse.urlencode(param)
-                video_urls.append(video_url)
-            video_urls_dict[format] = video_urls
-
-        return video_urls_dict
+                parts.append({
+                    'url': video_url,
+                    'filesize': int_or_none(dt.get('size')),
+                })
+            formats.append({
+                'format_id': self.get_format_name(format),
+                'parts': parts,
+                'width': int_or_none(stream.get('width')),
+                'height': int_or_none(stream.get('height')),
+                'filesize': int_or_none(stream.get('size')),
+                'ext': self.parse_ext_l(format),
+            })
+        return formats
 
     @staticmethod
     def get_ysuid():
@@ -235,34 +246,13 @@ class YoukuIE(InfoExtractor):
                     msg += ': ' + error_note
                 raise ExtractorError(msg)
 
-        # get video title
-        title = data['video']['title']
-
-        # generate video_urls_dict
-        video_urls_dict = self.construct_video_urls(data)
-
-        # construct info
-        entries = [{
-            'id': '%s_part%d' % (video_id, i + 1),
-            'title': title,
-            'formats': [],
-            # some formats are not available for all parts, we have to detect
-            # which one has all
-        } for i in range(max(len(v.get('segs')) for v in data['stream']))]
-        for stream in data['stream']:
-            fm = stream.get('stream_type')
-            video_urls = video_urls_dict[fm]
-            for video_url, seg, entry in zip(video_urls, stream['segs'], entries):
-                entry['formats'].append({
-                    'url': video_url,
-                    'format_id': self.get_format_name(fm),
-                    'ext': self.parse_ext_l(fm),
-                    'filesize': int(seg['size']),
-                })
+        video_data = data['video']
 
         return {
-            '_type': 'multi_video',
             'id': video_id,
-            'title': title,
-            'entries': entries,
+            'title': video_data['title'],
+            'duration': float_or_none(video_data.get('seconds')),
+            'uploader': video_data.get('username'),
+            'uploader_id': video_data.get('userid'),
+            'formats': self.construct_formats(data),
         }
