@@ -65,6 +65,7 @@
  - **Beeg**
  - **BehindKink**
  - **Bet**
+ - **Bigflix**
  - **Bild**: Bild.de
  - **BiliBili**
  - **BleacherReport**
@@ -251,7 +252,7 @@
  - **Instagram**
  - **instagram:user**: Instagram user profile
  - **InternetVideoArchive**
- - **IPrima**
+ - **IPrima** (Currently broken)
  - **iqiyi**: 爱奇艺
  - **Ir90Tv**
  - **ivi**: ivi.ru
@@ -602,7 +603,9 @@
  - **TruTube**
  - **Tube8**
  - **TubiTv**
- - **Tudou**
+ - **tudou**
+ - **tudou:album**
+ - **tudou:playlist**
  - **Tumblr**
  - **tunein:clip**
  - **tunein:program**
@@ -655,12 +658,12 @@
  - **video.mit.edu**
  - **VideoDetective**
  - **videofy.me**
- - **VideoMega**
+ - **VideoMega** (Currently broken)
  - **videomore**
  - **videomore:season**
  - **videomore:video**
  - **VideoPremium**
- - **VideoTt**: video.tt - Your True Tube
+ - **VideoTt**: video.tt - Your True Tube (Currently broken)
  - **videoweed**: VideoWeed
  - **Vidme**
  - **Vidzi**
