@@ -1994,7 +1994,7 @@ class YoutubeDL(object):
         file_handler = compat_urllib_request.FileHandler()
 
         def file_open(*args, **kwargs):
-            raise compat_urllib_error.URLError('file:/// protocol is explicitly disabled in youtube-dl for security reasons')
+            raise compat_urllib_error.URLError('file:// scheme is explicitly disabled in youtube-dl for security reasons')
         file_handler.file_open = file_open
 
         opener = compat_urllib_request.build_opener(
