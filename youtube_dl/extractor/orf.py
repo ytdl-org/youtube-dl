@@ -172,6 +172,20 @@ class ORFFM4IE(InfoExtractor):
     IE_DESC = 'radio FM4'
     _VALID_URL = r'http://fm4\.orf\.at/(?:7tage/?#|player/)(?P<date>[0-9]+)/(?P<show>\w+)'
 
+    _TEST = {
+        'url': 'http://fm4.orf.at/player/20160110/IS/',
+        'md5': '01e736e8f1cef7e13246e880a59ad298',
+        'info_dict': {
+            'id': '2016-01-10_2100_tl_54_7DaysSun13_11244',
+            'ext': 'mp3',
+            'title': 'Im Sumpf',
+            'description': 'md5:384c543f866c4e422a55f66a62d669cd',
+            'duration': 7173,
+            'timestamp': 1452456073,
+            'upload_date': '20160110',
+        },
+    }
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         show_date = mobj.group('date')
