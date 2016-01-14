@@ -32,6 +32,7 @@ from ..utils import (
     get_element_by_attribute,
     get_element_by_id,
     int_or_none,
+    mimetype2ext,
     orderedSet,
     parse_duration,
     remove_quotes,
@@ -1083,9 +1084,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         full_info.update(f)
                         codecs = r.attrib.get('codecs')
                         if codecs:
-                            if full_info.get('acodec') == 'none' and 'vcodec' not in full_info:
+                            if full_info.get('acodec') == 'none':
                                 full_info['vcodec'] = codecs
-                            elif full_info.get('vcodec') == 'none' and 'acodec' not in full_info:
+                            elif full_info.get('vcodec') == 'none':
                                 full_info['acodec'] = codecs
                         formats.append(full_info)
                     else:
@@ -1454,15 +1455,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 if 'ratebypass' not in url:
                     url += '&ratebypass=yes'
 
+                dct = {
+                    'format_id': format_id,
+                    'url': url,
+                    'player_url': player_url,
+                }
+                if format_id in self._formats:
+                    dct.update(self._formats[format_id])
+
                 # Some itags are not included in DASH manifest thus corresponding formats will
                 # lack metadata (see https://github.com/rg3/youtube-dl/pull/5993).
                 # Trying to extract metadata from url_encoded_fmt_stream_map entry.
                 mobj = re.search(r'^(?P<width>\d+)[xX](?P<height>\d+)$', url_data.get('size', [''])[0])
                 width, height = (int(mobj.group('width')), int(mobj.group('height'))) if mobj else (None, None)
-                dct = {
-                    'format_id': format_id,
-                    'url': url,
-                    'player_url': player_url,
+
+                more_fields = {
                     'filesize': int_or_none(url_data.get('clen', [None])[0]),
                     'tbr': float_or_none(url_data.get('bitrate', [None])[0], 1000),
                     'width': width,
@@ -1470,13 +1477,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'fps': int_or_none(url_data.get('fps', [None])[0]),
                     'format_note': url_data.get('quality_label', [None])[0] or url_data.get('quality', [None])[0],
                 }
+                for key, value in more_fields.items():
+                    if value:
+                        dct[key] = value
                 type_ = url_data.get('type', [None])[0]
                 if type_:
                     type_split = type_.split(';')
                     kind_ext = type_split[0].split('/')
                     if len(kind_ext) == 2:
-                        kind, ext = kind_ext
-                        dct['ext'] = ext
+                        kind, _ = kind_ext
+                        dct['ext'] = mimetype2ext(type_split[0])
                         if kind in ('audio', 'video'):
                             codecs = None
                             for mobj in re.finditer(
@@ -1494,8 +1504,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                     'acodec': acodec,
                                     'vcodec': vcodec,
                                 })
-                if format_id in self._formats:
-                    dct.update(self._formats[format_id])
                 formats.append(dct)
         elif video_info.get('hlsvp'):
             manifest_url = video_info['hlsvp'][0]
