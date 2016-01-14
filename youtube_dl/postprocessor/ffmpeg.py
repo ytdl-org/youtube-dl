@@ -166,12 +166,13 @@ class FFmpegPostProcessor(PostProcessor):
 
 
 class FFmpegExtractAudioPP(FFmpegPostProcessor):
-    def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, nopostoverwrites=False):
+    def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, preferredvolume=None, nopostoverwrites=False):
         FFmpegPostProcessor.__init__(self, downloader)
         if preferredcodec is None:
             preferredcodec = 'best'
         self._preferredcodec = preferredcodec
         self._preferredquality = preferredquality
+        self._preferredvolume = preferredvolume
         self._nopostoverwrites = nopostoverwrites
 
     def get_audio_codec(self, path):
@@ -242,6 +243,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                         more_opts += ['-q:a', self._preferredquality]
                     else:
                         more_opts += ['-b:a', self._preferredquality + 'k']
+                if self._preferredvolume is not None:
+                    more_opts += ['-af', 'volume=volume='+self._preferredvolume+'dB:precision=fixed']
         else:
             # We convert the audio (lossy)
             acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'opus': 'opus', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
@@ -253,6 +256,10 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                     more_opts += ['-q:a', self._preferredquality]
                 else:
                     more_opts += ['-b:a', self._preferredquality + 'k']
+
+            if self._preferredvolume is not None:
+                more_opts += ['-af', 'volume=volume='+self._preferredvolume+'dB:precision=fixed']
+
             if self._preferredcodec == 'aac':
                 more_opts += ['-f', 'adts']
             if self._preferredcodec == 'm4a':
