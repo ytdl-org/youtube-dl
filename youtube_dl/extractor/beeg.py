@@ -34,7 +34,7 @@ class BeegIE(InfoExtractor):
         video_id = self._match_id(url)
 
         video = self._download_json(
-            'http://beeg.com/api/v5/video/%s' % video_id, video_id)
+            'https://api.beeg.com/api/v5/video/%s' % video_id, video_id)
 
         def split(o, e):
             def cut(s, x):
