@@ -1986,14 +1986,19 @@ class YoutubeDL(object):
         https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)
         ydlh = YoutubeDLHandler(self.params, debuglevel=debuglevel)
         data_handler = compat_urllib_request_DataHandler()
-        unknown_handler = compat_urllib_request.UnknownHandler()
-        handlers = (proxy_handler, https_handler, cookie_processor, ydlh, data_handler, unknown_handler)
-        # we don't use build_opener because it automatically adds FileHandler,
-        # which can be used for malicious purposes (see
+
+        # When passing our own FileHandler instance, build_opener won't add the
+        # default FileHandler and allows us to disable the file protocol, which
+        # can be used for malicious purposes (see
         # https://github.com/rg3/youtube-dl/issues/8227)
-        opener = compat_urllib_request.OpenerDirector()
-        for handler in handlers:
-            opener.add_handler(handler)
+        file_handler = compat_urllib_request.FileHandler()
+
+        def file_open(*args, **kwargs):
+            raise compat_urllib_error.URLError('file protocol is disabled')
+        file_handler.file_open = file_open
+
+        opener = compat_urllib_request.build_opener(
+            proxy_handler, https_handler, cookie_processor, ydlh, data_handler, file_handler)
 
         # Delete the default user-agent header, which would otherwise apply in
         # cases where our custom HTTP handler doesn't come into play
