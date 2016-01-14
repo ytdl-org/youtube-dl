@@ -60,7 +60,7 @@ class BeegIE(InfoExtractor):
 
         def decrypt_url(encrypted_url):
             encrypted_url = self._proto_relative_url(
-                encrypted_url.replace('{DATA_MARKERS}', ''), 'http:')
+                encrypted_url.replace('{DATA_MARKERS}', ''), 'https:')
             key = self._search_regex(
                 r'/key=(.*?)%2Cend=', encrypted_url, 'key', default=None)
             if not key:
