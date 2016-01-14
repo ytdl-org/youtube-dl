@@ -35,7 +35,7 @@ class NTVDeIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         info = self._parse_json(self._search_regex(
-            r'(?s)ntv.pageInfo.article =\s(\{.*?\});', webpage, 'info'),
+            r'(?s)ntv\.pageInfo\.article\s*=\s*(\{.*?\});', webpage, 'info'),
             video_id, transform_source=js_to_json)
         timestamp = int_or_none(info.get('publishedDateAsUnixTimeStamp'))
         vdata = self._parse_json(self._search_regex(
