@@ -789,10 +789,28 @@ class InfoExtractor(object):
             raise ExtractorError('No video formats found')
 
         def _formats_key(f):
+            if 'parts' in f:
+                for part_key, format_key in [('duration', 'duration'), ('filesize', 'filesize_approx')]:
+                    if format_key in f:
+                        continue
+                    total = 0
+                    for part in f['parts']:
+                        value = part.get(part_key)
+                        if not value:
+                            total = None
+                            break
+                        total += value
+                    f[format_key] = total
             # TODO remove the following workaround
             from ..utils import determine_ext
-            if not f.get('ext') and 'url' in f:
-                f['ext'] = determine_ext(f['url'])
+            if not f.get('ext'):
+                if 'url' in f:
+                    f['ext'] = determine_ext(f['url'])
+                elif 'parts' in f:
+                    for part in f['parts']:
+                        if 'url' in part:
+                            f['ext'] = determine_ext(part['url'])
+                            break
 
             if isinstance(field_preference, (list, tuple)):
                 return tuple(f.get(field) if f.get(field) is not None else -1 for field in field_preference)
