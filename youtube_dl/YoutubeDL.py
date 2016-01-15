@@ -1274,8 +1274,19 @@ class YoutubeDL(object):
 
         # We check that all the formats have the format and format_id fields
         for i, format in enumerate(formats):
-            if 'url' not in format:
-                raise ExtractorError('Missing "url" key in result (index %d)' % i)
+            if 'parts' in format:
+                if len(format['parts']) == 0:
+                    raise ExtractorError('Empty "parts" array in result (index %d)' % i)
+                elif len(format['parts']) == 1:
+                    format.update(format['parts'][0])
+                    del format['parts']
+            if 'parts' in format:
+                for j, part in enumerate(format['parts']):
+                    if 'url' not in part:
+                        raise ExtractorError('Missing "url" key in result (index %d, part %d)' % (i, j))
+            else:
+                if 'url' not in format:
+                    raise ExtractorError('Missing "url" key in result (index %d)' % i)
 
             if format.get('format_id') is None:
                 format['format_id'] = compat_str(i)
@@ -1302,9 +1313,15 @@ class YoutubeDL(object):
                 format['ext'] = determine_ext(format['url']).lower()
             # Add HTTP headers, so that external programs can use them from the
             # json output
-            full_format_info = info_dict.copy()
-            full_format_info.update(format)
-            format['http_headers'] = self._calc_headers(full_format_info)
+            if 'parts' in format:
+                for part in format['parts']:
+                    full_format_info = info_dict.copy()
+                    full_format_info.update(part)
+                    part['http_headers'] = self._calc_headers(full_format_info)
+            else:
+                full_format_info = info_dict.copy()
+                full_format_info.update(format)
+                format['http_headers'] = self._calc_headers(full_format_info)
 
         # TODO Central sorting goes here
 
@@ -1430,12 +1447,19 @@ class YoutubeDL(object):
         if self.params.get('forceid', False):
             self.to_stdout(info_dict['id'])
         if self.params.get('forceurl', False):
+            def print_format_url(format_info):
+                if 'parts' in format_info:
+                    for f in format_info['parts']:
+                        self.to_stdout(f['url'] + f.get('play_path', ''))
+                    self.to_stdout('')
+                else:
+                    self.to_stdout(format_info['url'] + format_info.get('play_path', ''))
             if info_dict.get('requested_formats') is not None:
                 for f in info_dict['requested_formats']:
-                    self.to_stdout(f['url'] + f.get('play_path', ''))
+                    print_format_url(f)
             else:
                 # For RTMP URLs, also include the playpath
-                self.to_stdout(info_dict['url'] + info_dict.get('play_path', ''))
+                print_format_url(info_dict)
         if self.params.get('forcethumbnail', False) and info_dict.get('thumbnail') is not None:
             self.to_stdout(info_dict['thumbnail'])
         if self.params.get('forcedescription', False) and info_dict.get('description') is not None:
@@ -1546,8 +1570,8 @@ class YoutubeDL(object):
                     fd = get_suitable_downloader(info, self.params)(self, self.params)
                     for ph in self._progress_hooks:
                         fd.add_progress_hook(ph)
-                    if self.params.get('verbose'):
-                        self.to_stdout('[debug] Invoking downloader on %r' % info.get('url'))
+                    if self.params.get('verbose') and 'url' in info:
+                        self.to_stdout('[debug] Invoking downloader on %r' % info['url'])
                     return fd.download(name, info)
 
                 if info_dict.get('requested_formats') is not None:
@@ -1839,6 +1863,10 @@ class YoutubeDL(object):
             if res:
                 res += ', '
             res += '~' + format_bytes(fdict['filesize_approx'])
+        if fdict.get('parts'):
+            if res:
+                res += ', '
+            res += '%d parts' % len(fdict['parts'])
         return res
 
     def list_formats(self, info_dict):
