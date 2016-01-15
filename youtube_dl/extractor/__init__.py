@@ -130,6 +130,7 @@ from .crunchyroll import (
 )
 from .cspan import CSpanIE
 from .ctsnews import CtsNewsIE
+from .cwtv import CWTVIE
 from .dailymotion import (
     DailymotionIE,
     DailymotionPlaylistIE,
