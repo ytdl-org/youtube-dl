@@ -1891,6 +1891,8 @@ def determine_protocol(info_dict):
     if protocol is not None:
         return protocol
 
+    if 'parts' in info_dict:
+        return 'multipart'
     url = info_dict['url']
     if url.startswith('rtmp'):
         return 'rtmp'

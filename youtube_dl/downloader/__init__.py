@@ -9,6 +9,7 @@ from .http import HttpFD
 from .rtsp import RtspFD
 from .rtmp import RtmpFD
 from .dash import DashSegmentsFD
+from .multipart import MultiPartFD
 
 from ..utils import (
     determine_protocol,
@@ -22,6 +23,7 @@ PROTOCOL_MAP = {
     'rtsp': RtspFD,
     'f4m': F4mFD,
     'http_dash_segments': DashSegmentsFD,
+    'multipart': MultiPartFD,
 }
 
 
