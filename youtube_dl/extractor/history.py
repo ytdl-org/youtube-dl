@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import smuggle_url
+from ..compat import compat_urllib_parse
 
 
 class HistoryIE(InfoExtractor):
@@ -19,13 +20,21 @@ class HistoryIE(InfoExtractor):
         'add_ie': ['ThePlatform'],
     }]
 
+    _VIDEO_URL_RE = [
+        r"media_url\s*=\s*'[^']'",
+        r'data-mediaurl="([^"]+)"'
+    ]
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
 
-        video_url = self._search_regex(
-            r'data-href="[^"]*/%s"[^>]+data-release-url="([^"]+)"' % video_id,
-            webpage, 'video url')
+        media_url = self._search_regex(self._VIDEO_URL_RE, webpage, 'video url')
 
-        return self.url_result(smuggle_url(video_url, {'sig': {'key': 'crazyjava', 'secret': 's3cr3t'}}))
+        pdk_signature = webpage = self._download_webpage(
+            'https://signature.video.aetndigital.com/?' +
+            compat_urllib_parse.urlencode({'url': media_url}), video_id)
+
+        return self.url_result(smuggle_url(
+            media_url + '?mbr=true&format=smil&sig=' + pdk_signature, {'force_smil_url': True}))
