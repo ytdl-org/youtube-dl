@@ -5,7 +5,7 @@ from ..utils import smuggle_url
 
 
 class AEIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:(?:history|aetv|mylifetime)\.com|fyi.tv)/(?:[^/]+/)+(?P<id>[^/]+?)(?:$|[?#])'
+    _VALID_URL = r'https?://(?:www\.)?(?:(?:history|aetv|mylifetime)\.com|fyi\.tv)/(?:[^/]+/)+(?P<id>[^/]+?)(?:$|[?#])'
 
     _TESTS = [{
         'url': 'http://www.history.com/topics/valentines-day/history-of-valentines-day/videos/bet-you-didnt-know-valentines-day?m=528e394da93ae&s=undefined&f=1&free=false',
