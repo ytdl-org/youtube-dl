@@ -4,8 +4,8 @@ from .common import InfoExtractor
 from ..utils import smuggle_url
 
 
-class HistoryIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?history\.com/(?:[^/]+/)+(?P<id>[^/]+?)(?:$|[?#])'
+class AEIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?(?:(?:history|aetv|mylifetime)\.com|fyi.tv)/(?:[^/]+/)+(?P<id>[^/]+?)(?:$|[?#])'
 
     _TESTS = [{
         'url': 'http://www.history.com/topics/valentines-day/history-of-valentines-day/videos/bet-you-didnt-know-valentines-day?m=528e394da93ae&s=undefined&f=1&free=false',
@@ -33,6 +33,15 @@ class HistoryIE(InfoExtractor):
             'skip_download': True,
         },
         'add_ie': ['ThePlatform'],
+    }, {
+        'url': 'http://www.aetv.com/shows/duck-dynasty/video/inlawful-entry',
+        'only_matching': True
+    }, {
+        'url': 'http://www.fyi.tv/shows/tiny-house-nation/videos/207-sq-ft-minnesota-prairie-cottage',
+        'only_matching': True
+    }, {
+        'url': 'http://www.mylifetime.com/shows/project-runway-junior/video/season-1/episode-6/superstar-clients',
+        'only_matching': True
     }]
 
     def _real_extract(self, url):
