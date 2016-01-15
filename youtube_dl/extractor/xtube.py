@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class XTubeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>xtube\.com/watch\.php\?v=(?P<id>[^/?&#]+))'
+    _VALID_URL = r'(?:xtube:|https?://(?:www\.)?xtube\.com/watch\.php\?.*\bv=)(?P<id>[^/?&#]+)'
     _TEST = {
         'url': 'http://www.xtube.com/watch.php?v=kVTUy_G222_',
         'md5': '092fbdd3cbe292c920ef6fc6a8a9cdab',
@@ -30,7 +30,7 @@ class XTubeIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        req = sanitized_Request(url)
+        req = sanitized_Request('http://www.xtube.com/watch.php?v=%s' % video_id)
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
