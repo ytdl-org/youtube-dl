@@ -24,6 +24,7 @@
  - **AdobeTVShow**
  - **AdobeTVVideo**
  - **AdultSwim**
+ - **AE**
  - **Aftonbladet**
  - **AirMozilla**
  - **AlJazeera**
@@ -85,6 +86,7 @@
  - **CamdemyFolder**
  - **canalc2.tv**
  - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
+ - **Canvas**
  - **CBS**
  - **CBSNews**: CBS News
  - **CBSSports**
@@ -122,6 +124,7 @@
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
  - **culturebox.francetvinfo.fr**
+ - **CWTV**
  - **dailymotion**
  - **dailymotion:playlist**
  - **dailymotion:user**
@@ -229,7 +232,6 @@
  - **Helsinki**: helsinki.fi
  - **HentaiStigma**
  - **HistoricFilms**
- - **History**
  - **hitbox**
  - **hitbox:live**
  - **HornBunny**
