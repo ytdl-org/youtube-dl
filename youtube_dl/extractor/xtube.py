@@ -1,10 +1,12 @@
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
+    int_or_none,
     parse_duration,
     sanitized_Request,
     str_to_int,
@@ -88,45 +90,43 @@ class XTubeIE(InfoExtractor):
 
 class XTubeUserIE(InfoExtractor):
     IE_DESC = 'XTube user profile'
-    _VALID_URL = r'https?://(?:www\.)?xtube\.com/community/profile\.php\?(.*?)user=(?P<username>[^&#]+)(?:$|[&#])'
+    _VALID_URL = r'https?://(?:www\.)?xtube\.com/profile/(?P<id>[^/]+-\d+)'
     _TEST = {
-        'url': 'http://www.xtube.com/community/profile.php?user=greenshowers',
+        'url': 'http://www.xtube.com/profile/greenshowers-4056496',
         'info_dict': {
-            'id': 'greenshowers',
+            'id': 'greenshowers-4056496',
             'age_limit': 18,
         },
         'playlist_mincount': 155,
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        username = mobj.group('username')
+        user_id = self._match_id(url)
 
-        profile_page = self._download_webpage(
-            url, username, note='Retrieving profile page')
+        entries = []
+        for pagenum in itertools.count(1):
+            request = sanitized_Request(
+                'http://www.xtube.com/profile/%s/videos/%d' % (user_id, pagenum),
+                headers={
+                    'Cookie': 'popunder=4',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Referer': url,
+                })
 
-        video_count = int(self._search_regex(
-            r'<strong>%s\'s Videos \(([0-9]+)\)</strong>' % username, profile_page,
-            'video count'))
+            page = self._download_json(
+                request, user_id, 'Downloading videos JSON page %d' % pagenum)
 
-        PAGE_SIZE = 25
-        urls = []
-        page_count = (video_count + PAGE_SIZE + 1) // PAGE_SIZE
-        for n in range(1, page_count + 1):
-            lpage_url = 'http://www.xtube.com/user_videos.php?page=%d&u=%s' % (n, username)
-            lpage = self._download_webpage(
-                lpage_url, username,
-                note='Downloading page %d/%d' % (n, page_count))
-            urls.extend(
-                re.findall(r'addthis:url="([^"]+)"', lpage))
+            html = page.get('html')
+            if not html:
+                break
 
-        return {
-            '_type': 'playlist',
-            'id': username,
-            'age_limit': 18,
-            'entries': [{
-                '_type': 'url',
-                'url': eurl,
-                'ie_key': 'XTube',
-            } for eurl in urls]
-        }
+            for _, video_id in re.findall(r'data-plid=(["\'])(.+?)\1', html):
+                entries.append(self.url_result('xtube:%s' % video_id, XTubeIE.ie_key()))
+
+            page_count = int_or_none(page.get('pageCount'))
+            if not page_count or pagenum == page_count:
+                break
+
+        playlist = self.playlist_result(entries, user_id)
+        playlist['age_limit'] = 18
+        return playlist
