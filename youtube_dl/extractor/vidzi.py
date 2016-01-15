@@ -24,7 +24,7 @@ class VidziIE(InfoExtractor):
             r'id=\'vplayer\'><img src="http://(.*?)/i', webpage,
             'video host')
         video_hash = self._html_search_regex(
-            r'\|([a-z0-9]+)\|hls\|type', webpage, 'video_hash')
+            r'\|([a-z0-9]+)\|hls\|\|type', webpage, 'video_hash')
         ext = self._html_search_regex(
             r'\|tracks\|([a-z0-9]+)\|', webpage, 'video ext')
         video_url = 'http://' + video_host + '/' + video_hash + '/v.' + ext
