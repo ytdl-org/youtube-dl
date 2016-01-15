@@ -1244,6 +1244,12 @@ class YoutubeDL(object):
             except (ValueError, OverflowError, OSError):
                 pass
 
+        # Auto generate title fields corresponding to the *_number fields when missing
+        # in order to always have clean titles. This is very common for TV series.
+        for field in ('chapter', 'season', 'episode'):
+            if info_dict.get('%s_number' % field) is not None and not info_dict.get(field):
+                info_dict[field] = '%s %d' % (field.capitalize(), info_dict['%s_number' % field])
+
         subtitles = info_dict.get('subtitles')
         if subtitles:
             for _, subtitle in subtitles.items():
