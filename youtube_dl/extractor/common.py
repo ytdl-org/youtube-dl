@@ -34,6 +34,7 @@ from ..utils import (
     fix_xml_ampersands,
     float_or_none,
     int_or_none,
+    parse_iso8601,
     RegexNotFoundError,
     sanitize_filename,
     sanitized_Request,
@@ -761,6 +762,42 @@ class InfoExtractor(object):
     def _twitter_search_player(self, html):
         return self._html_search_meta('twitter:player', html,
                                       'twitter card player')
+
+    def _search_json_ld(self, html, video_id, fatal=True):
+        json_ld = self._search_regex(
+            r'(?s)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json_ld>.+?)</script>',
+            html, 'JSON-LD', fatal=fatal, group='json_ld')
+        if not json_ld:
+            return {}
+        return self._json_ld(json_ld, video_id, fatal=fatal)
+
+    def _json_ld(self, json_ld, video_id, fatal=True):
+        if isinstance(json_ld, compat_str):
+            json_ld = self._parse_json(json_ld, video_id, fatal=fatal)
+        if not json_ld:
+            return {}
+        info = {}
+        if json_ld.get('@context') == 'http://schema.org':
+            item_type = json_ld.get('@type')
+            if item_type == 'TVEpisode':
+                info.update({
+                    'episode': unescapeHTML(json_ld.get('name')),
+                    'episode_number': int_or_none(json_ld.get('episodeNumber')),
+                    'description': unescapeHTML(json_ld.get('description')),
+                })
+                part_of_season = json_ld.get('partOfSeason')
+                if isinstance(part_of_season, dict) and part_of_season.get('@type') == 'TVSeason':
+                    info['season_number'] = int_or_none(part_of_season.get('seasonNumber'))
+                part_of_series = json_ld.get('partOfSeries')
+                if isinstance(part_of_series, dict) and part_of_series.get('@type') == 'TVSeries':
+                    info['series'] = unescapeHTML(part_of_series.get('name'))
+            elif item_type == 'Article':
+                info.update({
+                    'timestamp': parse_iso8601(json_ld.get('datePublished')),
+                    'title': unescapeHTML(json_ld.get('headline')),
+                    'description': unescapeHTML(json_ld.get('articleBody')),
+                })
+        return dict((k, v) for k, v in info.items() if v is not None)
 
     @staticmethod
     def _hidden_inputs(html):
