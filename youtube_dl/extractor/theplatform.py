@@ -85,7 +85,7 @@ class ThePlatformBaseIE(InfoExtractor):
 class ThePlatformIE(ThePlatformBaseIE):
     _VALID_URL = r'''(?x)
         (?:https?://(?:link|player)\.theplatform\.com/[sp]/(?P<provider_id>[^/]+)/
-           (?:(?P<media>(?:[^/]+/)+select/media/)|(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/))?
+           (?:(?P<media>(?:(?:[^/]+/)+select/)?media/)|(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/))?
          |theplatform:)(?P<id>[^/\?&]+)'''
 
     _TESTS = [{
