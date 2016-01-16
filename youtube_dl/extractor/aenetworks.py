@@ -4,7 +4,9 @@ from .common import InfoExtractor
 from ..utils import smuggle_url
 
 
-class AEIE(InfoExtractor):
+class AENetworksIE(InfoExtractor):
+    IE_NAME = 'aenetworks'
+    IE_DESC = 'A+E Networks: A&E, Lifetime, History.com, FYI Network'
     _VALID_URL = r'https?://(?:www\.)?(?:(?:history|aetv|mylifetime)\.com|fyi\.tv)/(?:[^/]+/)+(?P<id>[^/]+?)(?:$|[?#])'
 
     _TESTS = [{
