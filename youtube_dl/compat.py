@@ -433,7 +433,7 @@ if sys.version_info < (3, 0) and sys.platform == 'win32':
 else:
     compat_getpass = getpass.getpass
 
-# Old 2.6 and 2.7 releases require kwargs to be bytes
+# Python < 2.6.5 require kwargs to be bytes
 try:
     def _testfunc(x):
         pass
