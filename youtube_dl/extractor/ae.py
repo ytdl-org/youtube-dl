@@ -55,4 +55,9 @@ class AEIE(InfoExtractor):
         ]
         video_url = self._search_regex(video_url_re, webpage, 'video url')
 
-        return self.url_result(smuggle_url(video_url, {'sig': {'key': 'crazyjava', 'secret': 's3cr3t'}}))
+        info = self._search_json_ld(webpage, video_id, fatal=False)
+        info.update({
+            '_type': 'url_transparent',
+            'url': smuggle_url(video_url, {'sig': {'key': 'crazyjava', 'secret': 's3cr3t'}}),
+        })
+        return info
