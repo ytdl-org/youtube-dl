@@ -20,13 +20,14 @@ class AEIE(InfoExtractor):
             'skip_download': True,
         },
         'add_ie': ['ThePlatform'],
+        'expected_warnings': ['JSON-LD'],
     }, {
         'url': 'http://www.history.com/shows/mountain-men/season-1/episode-1',
         'info_dict': {
             'id': 'eg47EERs_JsZ',
             'ext': 'mp4',
             'title': "Winter Is Coming",
-            'description': 'md5:a40e370925074260b1c8a633c632c63a',
+            'description': 'md5:641f424b7a19d8e24f26dea22cf59d74',
         },
         'params': {
             # m3u8 download
