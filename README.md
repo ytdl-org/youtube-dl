@@ -529,6 +529,9 @@ $ youtube-dl -f 'bestvideo[height<=480]+bestaudio/best[height<=480]'
 
 # Download best video only format but no bigger that 50 MB
 $ youtube-dl -f 'best[filesize<50M]'
+
+# Download best format available via direct link over HTTP/HTTPS protocol
+$ youtube-dl -f '(bestvideo+bestaudio/best)[protocol^=http]'
 ```
 
 
