@@ -718,19 +718,10 @@ class BBCIE(BBCCoUkIE):
 
         webpage = self._download_webpage(url, playlist_id)
 
-        timestamp = None
-        playlist_title = None
-        playlist_description = None
-
-        ld = self._parse_json(
-            self._search_regex(
-                r'(?s)<script type="application/ld\+json">(.+?)</script>',
-                webpage, 'ld json', default='{}'),
-            playlist_id, fatal=False)
-        if ld:
-            timestamp = parse_iso8601(ld.get('datePublished'))
-            playlist_title = ld.get('headline')
-            playlist_description = ld.get('articleBody')
+        json_ld_info = self._search_json_ld(webpage, playlist_id, default=None)
+        timestamp = json_ld_info.get('timestamp')
+        playlist_title = json_ld_info.get('title')
+        playlist_description = json_ld_info.get('description')
 
         if not timestamp:
             timestamp = parse_iso8601(self._search_regex(
