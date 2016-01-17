@@ -44,10 +44,14 @@ py2exe_options = {
     "dll_excludes": ['w9xpopen.exe', 'crypt32.dll'],
 }
 
+
+def u(s):
+    return s.decode('utf-8')
+
 py2exe_console = [{
     "script": "./youtube_dl/__main__.py",
     "dest_base": "youtube-dl",
-    "other_resources": [(u'LOCALE_DATA', u'LOCALE_DATA.ZIP', zipped_folder('share'))],
+    "other_resources": [(u(b'LOCALE_DATA'), u(b'LOCALE_DATA.ZIP'), zipped_folder('share'))],
 }]
 
 py2exe_params = {
