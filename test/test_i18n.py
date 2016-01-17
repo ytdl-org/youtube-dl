@@ -20,7 +20,10 @@ rootDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, rootDir)
 
 from youtube_dl.version import __version__
-from youtube_dl.compat import subprocess_check_output
+from youtube_dl.compat import (
+    subprocess_check_output,
+    compat_str,
+)
 from youtube_dl.utils import (
     decodeFilename,
     get_subprocess_encoding,
@@ -42,6 +45,15 @@ def ydl_path(venv_root):
         return [os.path.join(venv_root, 'Scripts', 'youtube-dl.exe')]
 
     return [sys.executable, os.path.join(venv_root, 'bin', 'youtube-dl')]
+
+
+def normalized_version(ver):
+    try:
+        from pip._vendor import packaging
+    except ImportError:
+        return version
+
+    return compat_str(packaging.version.Version(ver))
 
 
 class I18NTestCase(object):
@@ -98,7 +110,7 @@ class TestPipInstall(I18NTestCase, unittest.TestCase):
         with chdir_to('test'):
             subprocess.check_call([
                 'pip', 'install', '--quiet',
-                os.path.join('..', 'dist', 'youtube_dl-%s.tar.gz' % __version__)])
+                os.path.join('..', 'dist', 'youtube_dl-%s.tar.gz' % normalized_version(__version__))])
 
     @classmethod
     def uninstall(cls):
