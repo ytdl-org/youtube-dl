@@ -65,6 +65,7 @@ class I18NTestCase(object):
         self.assertEqual(output_with_lang_opt('en_US.UTF-8'), 'I18N test message')
         self.assertEqual(output_with_lang_opt('zh_TW.UTF-8'), 'I18N測試訊息')
 
+    @unittest.skipIf(sys.platform.startswith('win'), 'LC_ALL not applicable on Windows')
     def test_lc_all(self):
         def output_with_lc_all(lang):
             return subprocess_check_output([
