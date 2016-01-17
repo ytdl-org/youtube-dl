@@ -21,7 +21,10 @@ sys.path.insert(0, rootDir)
 
 from youtube_dl.version import __version__
 from youtube_dl.compat import subprocess_check_output
-from youtube_dl.utils import decodeFilename
+from youtube_dl.utils import (
+    decodeFilename,
+    get_subprocess_encoding,
+)
 
 rootDir_u = decodeFilename(rootDir)
 
@@ -32,6 +35,13 @@ def chdir_to(path):
     os.chdir(os.path.join(rootDir_u, path))
     yield
     os.chdir(oldpwd)
+
+
+def ydl_path(venv_root):
+    if sys.platform.startswith('win'):
+        return [os.path.join(venv_root, 'Scripts', 'youtube-dl.exe')]
+
+    return [sys.executable, os.path.join(venv_root, 'bin', 'youtube-dl')]
 
 
 class I18NTestCase(object):
@@ -58,9 +68,9 @@ class I18NTestCase(object):
 
     def test_lang_opt(self):
         def output_with_lang_opt(lang):
-            return subprocess_check_output([
-                sys.executable, self.PROGRAM, 'i18n:test', '--lang', lang
-            ]).decode('utf-8').strip()
+            return subprocess_check_output(self.PROGRAM + [
+                'i18n:test', '--lang', lang
+            ]).decode(get_subprocess_encoding()).strip()
 
         self.assertEqual(output_with_lang_opt('en_US.UTF-8'), 'I18N test message')
         self.assertEqual(output_with_lang_opt('zh_TW.UTF-8'), 'I18N測試訊息')
@@ -68,9 +78,9 @@ class I18NTestCase(object):
     @unittest.skipIf(sys.platform.startswith('win'), 'LC_ALL not applicable on Windows')
     def test_lc_all(self):
         def output_with_lc_all(lang):
-            return subprocess_check_output([
-                sys.executable, self.PROGRAM, 'i18n:test'
-            ], env=dict(os.environ, LC_ALL=lang)).decode('utf-8').strip()
+            return subprocess_check_output(self.PROGRAM + [
+                'i18n:test'
+            ], env=dict(os.environ, LC_ALL=lang)).decode(get_subprocess_encoding()).strip()
 
         self.assertEqual(output_with_lc_all('en_US.UTF-8'), 'I18N test message')
         self.assertEqual(output_with_lc_all('zh_TW.UTF-8'), 'I18N測試訊息')
@@ -80,7 +90,7 @@ class I18NTestCase(object):
 class TestPipInstall(I18NTestCase, unittest.TestCase):
     @classmethod
     def install(cls):
-        cls.PROGRAM = os.path.join(os.environ['VIRTUAL_ENV'], 'bin', 'youtube-dl')
+        cls.PROGRAM = ydl_path(os.environ['VIRTUAL_ENV'])
 
         with chdir_to('.'):
             subprocess.check_call([sys.executable, 'setup.py', '--quiet', 'sdist'])
@@ -100,7 +110,7 @@ class TestPipInstall(I18NTestCase, unittest.TestCase):
 class TestDirectInstall(I18NTestCase, unittest.TestCase):
     @classmethod
     def install(cls):
-        cls.PROGRAM = os.path.join(os.environ['VIRTUAL_ENV'], 'bin', 'youtube-dl')
+        cls.PROGRAM = ydl_path(os.environ['VIRTUAL_ENV'])
 
         with chdir_to('.'):
             subprocess.check_call([sys.executable, 'setup.py', '--quiet', 'install'])
@@ -111,8 +121,9 @@ class TestDirectInstall(I18NTestCase, unittest.TestCase):
             subprocess.check_call(['pip', 'uninstall', '--yes', 'youtube_dl'])
 
 
+@unittest.skipIf(sys.platform.startswith('win'), 'Zipped youtube-dl is not designed for Windows')
 class TestZippedApp(I18NTestCase, unittest.TestCase):
-    PROGRAM = os.path.join(rootDir_u, 'youtube-dl')
+    PROGRAM = [sys.executable, os.path.join(rootDir_u, 'youtube-dl')]
 
     @classmethod
     def install(cls):
