@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-13 00:33+0800\n"
+"POT-Creation-Date: 2016-01-17 16:08+0800\n"
 "PO-Revision-Date: 2015-12-13 01:04+0800\n"
 "Last-Translator: yan12125@gmail.com\n"
 "Language-Team: Chinese (traditional)\n"
@@ -46,6 +46,10 @@ msgstr "[下載] "
 #, python-format
 msgid "%s: Downloading webpage"
 msgstr "%s: 下載網頁"
+
+#: youtube_dl/extractor/i18ntest.py:13
+msgid "I18N test message"
+msgstr "I18N測試訊息"
 
 #: youtube_dl/extractor/testurl.py:65
 #, python-format

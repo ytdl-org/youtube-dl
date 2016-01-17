@@ -251,6 +251,7 @@ from .howcast import HowcastIE
 from .howstuffworks import HowStuffWorksIE
 from .huffpost import HuffPostIE
 from .hypem import HypemIE
+from .i18ntest import I18NTestIE
 from .iconosquare import IconosquareIE
 from .ign import IGNIE, OneUPIE
 from .imdb import (

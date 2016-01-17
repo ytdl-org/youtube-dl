@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-13 03:32+0800\n"
+"POT-Creation-Date: 2016-01-17 16:08+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,6 +44,10 @@ msgstr ""
 #: youtube_dl/extractor/common.py:507
 #, python-format
 msgid "%s: Downloading webpage"
+msgstr ""
+
+#: youtube_dl/extractor/i18ntest.py:13
+msgid "I18N test message"
 msgstr ""
 
 #: youtube_dl/extractor/testurl.py:65
