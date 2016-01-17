@@ -51,7 +51,7 @@ def normalized_version(ver):
     try:
         from pip._vendor import packaging
     except ImportError:
-        return version
+        return ver
 
     return compat_str(packaging.version.Version(ver))
 
