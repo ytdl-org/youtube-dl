@@ -2541,7 +2541,7 @@ class I18N(object):
         except KeyError:
             zinfo = None
         if zinfo is not None:
-            with zipf.open(zinfo) as mo_file:
+            with contextlib.closing(zipf.open(zinfo)) as mo_file:
                 t = gettext.GNUTranslations(mo_file)
         zipf.close()
         return t
