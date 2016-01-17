@@ -33,6 +33,7 @@ import tempfile
 import traceback
 import xml.etree.ElementTree
 import zipfile
+import zipimport
 import zlib
 
 from .compat import (
@@ -1789,9 +1790,8 @@ def is_outdated_version(version, limit, assume_new=True):
 
 def ytdl_is_updateable():
     """ Returns if youtube-dl can be updated with -U """
-    from zipimport import zipimporter
 
-    return isinstance(globals().get('__loader__'), zipimporter) or hasattr(sys, 'frozen')
+    return isinstance(globals().get('__loader__'), zipimport.zipimporter) or hasattr(sys, 'frozen')
 
 
 def args_to_str(args):
@@ -2533,6 +2533,19 @@ class I18N(object):
         self.domain = 'youtube_dl'
         self._translation_cache = {}
 
+    def _load_translation_from_zipfile(self, f, lang):
+        t = None
+        zipf = zipfile.ZipFile(f)
+        try:
+            zinfo = zipf.getinfo('share/locale/%s/LC_MESSAGES/%s.mo' % (lang, self.domain))
+        except KeyError:
+            zinfo = None
+        if zinfo is not None:
+            with zipf.open(zinfo) as mo_file:
+                t = gettext.GNUTranslations(mo_file)
+        zipf.close()
+        return t
+
     def _load_translation(self, lang):
         t = self._translation_cache.get(lang)
 
@@ -2547,18 +2560,15 @@ class I18N(object):
             except (OSError, IOError):  # OSError for 3.3+ and IOError otherwise
                 t = None
 
+        if t is None and isinstance(globals().get('__loader__'), zipimport.zipimporter):
+            myself = globals()['__loader__'].archive
+            with open(myself, 'rb') as f:
+                t = self._load_translation_from_zipfile(f, lang)
+
         if t is None and sys.platform == 'win32' and hasattr(sys, 'frozen'):
             locale_data_zip = _load_exe_resource('LOCALE_DATA', 'LOCALE_DATA.ZIP')
             f = io.BytesIO(locale_data_zip)
-            zipf = zipfile.ZipFile(f)
-            try:
-                zinfo = zipf.getinfo('share/locale/%s/LC_MESSAGES/%s.mo' % (lang, self.domain))
-            except KeyError:
-                zinfo = None
-            if zinfo is not None:
-                with zipf.open(zinfo) as mo_file:
-                    t = gettext.GNUTranslations(mo_file)
-            zipf.close()
+            t = self._load_translation_from_zipfile(f, lang)
 
         if t is not None:
             self._translation_cache[lang] = t
@@ -2581,7 +2591,8 @@ class I18N(object):
         return ret
 
     def set_default_language(self, default_lang):
-        self.default_lang = default_lang
+        # split to save locale only, for example zh_TW.UTF-8 => zh_TW
+        self.default_lang = default_lang.split('.')[0]
 
 i18n_service = I18N()
 tr = i18n_service.translate
