@@ -132,11 +132,6 @@ class AtresPlayerIE(InfoExtractor):
                 })
             formats.append(format_info)
 
-        m3u8_url = player.get('urlVideoHls')
-        if m3u8_url:
-            formats.extend(self._extract_m3u8_formats(
-                m3u8_url, episode_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
-
         timestamp = int_or_none(self._download_webpage(
             self._TIME_API_URL,
             video_id, 'Downloading timestamp', fatal=False), 1000, time.time())
