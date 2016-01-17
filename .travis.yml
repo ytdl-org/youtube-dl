@@ -21,3 +21,4 @@ addons:
   apt:
     packages:
       - gettext
+      - language-pack-zh-hant
