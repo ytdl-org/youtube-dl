@@ -23,11 +23,13 @@ from youtube_dl.version import __version__
 from youtube_dl.compat import subprocess_check_output
 from youtube_dl.utils import decodeFilename
 
+rootDir_u = decodeFilename(rootDir)
+
 
 @contextlib.contextmanager
 def chdir_to(path):
     oldpwd = os.getcwd()
-    os.chdir(os.path.join(decodeFilename(rootDir), path))
+    os.chdir(os.path.join(rootDir_u, path))
     yield
     os.chdir(oldpwd)
 
@@ -106,6 +108,19 @@ class TestDirectInstall(I18NTestCase, unittest.TestCase):
         with chdir_to('test'):
             subprocess.check_call(['pip', 'uninstall', '--yes', 'youtube_dl'])
 
+
+class TestZippedApp(I18NTestCase, unittest.TestCase):
+    PROGRAM = os.path.join(rootDir_u, 'youtube-dl')
+
+    @classmethod
+    def install(cls):
+        with chdir_to('.'):
+            cls.make('youtube-dl')
+
+    @classmethod
+    def uninstall(cls):
+        with chdir_to('.'):
+            os.unlink('youtube-dl')
 
 if __name__ == '__main__':
     unittest.main()
