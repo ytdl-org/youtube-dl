@@ -77,10 +77,10 @@ class I18NTestCase(object):
 
 @unittest.skipUnless(os.environ.get('VIRTUAL_ENV'), 'Requires virtualenv because of call to pip install')
 class TestPipInstall(I18NTestCase, unittest.TestCase):
-    PROGRAM = os.path.join(os.environ['VIRTUAL_ENV'], 'bin', 'youtube-dl')
-
     @classmethod
     def install(cls):
+        cls.PROGRAM = os.path.join(os.environ['VIRTUAL_ENV'], 'bin', 'youtube-dl')
+
         with chdir_to('.'):
             subprocess.check_call([sys.executable, 'setup.py', '--quiet', 'sdist'])
 
@@ -95,11 +95,12 @@ class TestPipInstall(I18NTestCase, unittest.TestCase):
             subprocess.check_call(['pip', 'uninstall', '--yes', 'youtube_dl'])
 
 
+@unittest.skipUnless(os.environ.get('VIRTUAL_ENV'), 'Requires virtualenv because of call to setup.py install')
 class TestDirectInstall(I18NTestCase, unittest.TestCase):
-    PROGRAM = os.path.join(os.environ['VIRTUAL_ENV'], 'bin', 'youtube-dl')
-
     @classmethod
     def install(cls):
+        cls.PROGRAM = os.path.join(os.environ['VIRTUAL_ENV'], 'bin', 'youtube-dl')
+
         with chdir_to('.'):
             subprocess.check_call([sys.executable, 'setup.py', '--quiet', 'install'])
 
