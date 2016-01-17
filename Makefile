@@ -52,8 +52,8 @@ tar: youtube-dl.tar.gz
 
 pypi-files: youtube-dl.bash-completion README.txt youtube-dl.1 youtube-dl.fish update-gmo
 
-youtube-dl: youtube_dl/*.py youtube_dl/*/*.py
-	zip --quiet youtube-dl youtube_dl/*.py youtube_dl/*/*.py
+youtube-dl: youtube_dl/*.py youtube_dl/*/*.py update-gmo
+	zip --quiet youtube-dl youtube_dl/*.py youtube_dl/*/*.py share/locale/*/LC_MESSAGES/*.mo
 	zip --quiet --junk-paths youtube-dl youtube_dl/__main__.py
 	echo '#!$(PYTHON)' > youtube-dl
 	cat youtube-dl.zip >> youtube-dl
