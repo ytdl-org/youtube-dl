@@ -1237,7 +1237,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     (?:[a-zA-Z-]+="[^"]+"\s+)*?
                     (?:title|href)="([^"]+)"\s+
                     (?:[a-zA-Z-]+="[^"]+"\s+)*?
-                    class="(?:yt-uix-redirect-link|yt-uix-sessionlink[^"]*)".*?>
+                    class="(?:yt-uix-redirect-link|yt-uix-sessionlink[^"]*)"[^>]*>
                 [^<]+\.{3}\s*
                 </a>
             ''', r'\1', video_description)
