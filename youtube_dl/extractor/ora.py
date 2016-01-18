@@ -21,7 +21,6 @@ class OraTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Vine & YouTube Stars Zach King & King Bach On Their Viral Videos!',
             'description': 'md5:ebbc5b1424dd5dba7be7538148287ac1',
-            'duration': 1477,
         }
     }
 
@@ -30,9 +29,9 @@ class OraTVIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         video_data = self._search_regex(
-            r'"current"\s*:\s*({[^}]+?})', webpage, 'current video')
+            r'"video"\s*:\s*({[^}]+?})', webpage, 'current video')
         m3u8_url = self._search_regex(
-            r'"hls_stream"\s*:\s*"([^"]+)', video_data, 'm3u8 url', None)
+            r'hls_stream\s*:\s*"([^"]+)', video_data, 'm3u8 url', None)
         if m3u8_url:
             formats = self._extract_m3u8_formats(
                 m3u8_url, display_id, 'mp4', 'm3u8_native',
@@ -62,14 +61,12 @@ class OraTVIE(InfoExtractor):
 
         return {
             'id': self._search_regex(
-                r'"video_id"\s*:\s*(\d+)', video_data, 'video id'),
+                r'"id"\s*:\s*(\d+)', video_data, 'video id'),
             'display_id': display_id,
             'title': unescapeHTML(self._og_search_title(webpage)),
             'description': get_element_by_attribute(
                 'class', 'video_txt_decription', webpage),
             'thumbnail': self._proto_relative_url(self._search_regex(
                 r'"thumb"\s*:\s*"([^"]+)', video_data, 'thumbnail', None)),
-            'duration': int(self._search_regex(
-                r'"duration"\s*:\s*(\d+)', video_data, 'duration')),
             'formats': formats,
         }
