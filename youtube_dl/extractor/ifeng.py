@@ -50,17 +50,29 @@ class IfengIE(InfoExtractor):
 
         title = info_doc.find('./item').get('Name')
 
+        entry = {
+            'id': '{0}'.format(video_id),
+            'title': title,
+            'formats': []
+        }
+
         for element in info_doc.findall('./videos/video'):
             if element.get('mediaType') != 'mp4':
                 continue
 
-            url = element.get('VideoPlayUrl')
+            quality = -1
             if element.get('type') == '500k':
-                break
+                quality = 0
+
+            entry['formats'].append({
+                'url': element.get('VideoPlayUrl'),
+                'ext': 'mp4',
+                'quality' : quality
+            })
 
         return {
             'id': video_id,
             'title': title,
-            'url': url,
-            'ext': 'mp4',
+            '_type': 'multi_video',
+            'entries': [entry],
         }
