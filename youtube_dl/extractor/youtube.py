@@ -706,6 +706,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         },
         {
             # Title with JS-like syntax "};" (see https://github.com/rg3/youtube-dl/issues/7468)
+            # Also tests cut-off URL expansion in video description (see
+            # https://github.com/rg3/youtube-dl/issues/1892,
+            # https://github.com/rg3/youtube-dl/issues/8164)
             'url': 'https://www.youtube.com/watch?v=lsguqyKfVQg',
             'info_dict': {
                 'id': 'lsguqyKfVQg',
