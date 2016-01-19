@@ -336,7 +336,8 @@ from .lecture2go import Lecture2GoIE
 from .letv import (
     LetvIE,
     LetvTvIE,
-    LetvPlaylistIE
+    LetvPlaylistIE,
+    LetvCloudIE,
 )
 from .libsyn import LibsynIE
 from .lifenews import (
@@ -856,6 +857,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import WeiboIE
+from .weiqitv import WeiqitvIE
 from .wimp import WimpIE
 from .wistia import WistiaIE
 from .worldstarhiphop import WorldStarHipHopIE
