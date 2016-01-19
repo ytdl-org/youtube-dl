@@ -45,7 +45,7 @@ class WeiqiTVIE(InfoExtractor):
 
         return {
             '_type': 'url_transparent',
-            "ie_key": 'LetvCloud',
+            'ie_key': 'LetvCloud',
             'url': letvcloud_url,
             'title': info_json['name'],
             'id': media_id,
