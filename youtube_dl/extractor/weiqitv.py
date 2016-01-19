@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 
 
-class WeiqitvIE(InfoExtractor):
+class WeiqiTVIE(InfoExtractor):
     IE_DESC = 'WQTV'
     _VALID_URL = r'http://www\.weiqitv\.com/index/video_play\?videoId=(?P<id>[A-Za-z0-9]+)'
 
