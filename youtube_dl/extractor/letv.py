@@ -287,6 +287,14 @@ class LetvCloudIE(InfoExtractor):
             'uu=' + uu + '&vu=' + vu)
         play_json = self._download_json(play_json_req, media_id, 'Downloading playJson data')
 
+        if not play_json.get('data'):
+            if play_json.get('message'):
+                raise ExtractorError('Letv cloud said: %s' % play_json['message'], expected=True)
+            elif play_json.get('code'):
+                raise ExtractorError('Letv cloud returned error %d' % play_json['code'], expected=True)
+            else:
+                raise ExtractorError('Letv cloud returned an unknwon error')
+
         formats = []
         for media in play_json['data']['video_info']['media'].values():
             play_url = media['play_url']
