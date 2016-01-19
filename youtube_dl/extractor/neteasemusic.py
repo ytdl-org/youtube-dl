@@ -12,7 +12,10 @@ from ..compat import (
     compat_str,
     compat_itertools_count,
 )
-from ..utils import sanitized_Request
+from ..utils import (
+    sanitized_Request,
+    float_or_none,
+)
 
 
 class NetEaseMusicBaseIE(InfoExtractor):
@@ -52,7 +55,7 @@ class NetEaseMusicBaseIE(InfoExtractor):
                     formats.append({
                         'url': song_url,
                         'ext': details.get('extension'),
-                        'abr': details.get('bitrate', 0) / 1000,
+                        'abr': float_or_none(details.get('bitrate'), scale=1000),
                         'format_id': song_format,
                         'filesize': details.get('size'),
                         'asr': details.get('sr')
