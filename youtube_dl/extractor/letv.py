@@ -272,8 +272,14 @@ class LetvCloudIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        uu = re.search('uu=([\w]+)', url).group(1)
-        vu = re.search('vu=([\w]+)', url).group(1)
+        uu_mobj = re.search('uu=([\w]+)', url)
+        vu_mobj = re.search('vu=([\w]+)', url)
+
+        if not uu_mobj or not vu_mobj:
+            raise ExtractorError('Invalid URL: %s' % url, expected=True)
+
+        uu = uu_mobj.group(1)
+        vu = vu_mobj.group(1)
         media_id = uu + '_' + vu
 
         play_json_req = sanitized_Request(
