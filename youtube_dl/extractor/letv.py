@@ -19,6 +19,7 @@ from ..utils import (
     int_or_none,
     str_or_none,
     encode_data_uri,
+    url_basename,
 )
 
 
@@ -295,12 +296,17 @@ class LetvCloudIE(InfoExtractor):
             else:
                 raise ExtractorError('Letv cloud returned an unknwon error')
 
+        def b64decode(s):
+            return base64.b64decode(s.encode('utf-8')).decode('utf-8')
+
         formats = []
         for media in play_json['data']['video_info']['media'].values():
             play_url = media['play_url']
+            url = b64decode(play_url['main_url'])
+            decoded_url = b64decode(url_basename(url))
             formats.append({
-                'url': base64.b64decode(play_url['main_url'].encode('utf-8')).decode('utf-8'),
-                'ext': 'mp4',
+                'url': url,
+                'ext': determine_ext(decoded_url),
                 'format_id': int_or_none(play_url.get('vtype')),
                 'format_note': str_or_none(play_url.get('definition')),
                 'width': int_or_none(play_url.get('vwidth')),
