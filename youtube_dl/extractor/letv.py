@@ -253,21 +253,21 @@ class LetvCloudIE(InfoExtractor):
         'info_dict': {
             'id': 'p7jnfw5hw9_467623dedf',
             'ext': 'mp4',
-            'title': 'p7jnfw5hw9_467623dedf',
+            'title': 'Video p7jnfw5hw9_467623dedf',
         },
     }, {
         'url': 'http://yuntv.letv.com/bcloud.html?uu=p7jnfw5hw9&vu=ec93197892&pu=2c7cd40209&auto_play=1&gpcflag=1&width=640&height=360',
         'info_dict': {
             'id': 'p7jnfw5hw9_ec93197892',
             'ext': 'mp4',
-            'title': 'p7jnfw5hw9_ec93197892',
+            'title': 'Video p7jnfw5hw9_ec93197892',
         },
     }, {
         'url': 'http://yuntv.letv.com/bcloud.html?uu=p7jnfw5hw9&vu=187060b6fd',
         'info_dict': {
             'id': 'p7jnfw5hw9_187060b6fd',
             'ext': 'mp4',
-            'title': 'p7jnfw5hw9_187060b6fd',
+            'title': 'Video p7jnfw5hw9_187060b6fd',
         },
     }]
 
@@ -310,6 +310,6 @@ class LetvCloudIE(InfoExtractor):
 
         return {
             'id': media_id,
-            'title': media_id,
+            'title': 'Video %s' % media_id,
             'formats': formats,
         }
