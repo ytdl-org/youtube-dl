@@ -777,7 +777,7 @@ from .udemy import (
     UdemyCourseIE
 )
 from .udn import UDNEmbedIE
-from .ultimedia import UltimediaIE
+from .digiteka import DigitekaIE
 from .unistra import UnistraIE
 from .urort import UrortIE
 from .ustream import UstreamIE, UstreamChannelIE

@@ -57,7 +57,7 @@ from .pladform import PladformIE
 from .videomore import VideomoreIE
 from .googledrive import GoogleDriveIE
 from .jwplatform import JWPlatformIE
-from .ultimedia import UltimediaIE
+from .digiteka import DigitekaIE
 
 
 class GenericIE(InfoExtractor):
@@ -1814,10 +1814,10 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(unescapeHTML(mobj.group('url')), 'ScreenwaveMedia')
 
-        # Look for Ulltimedia embeds
-        ultimedia_url = UltimediaIE._extract_url(webpage)
-        if ultimedia_url:
-            return self.url_result(self._proto_relative_url(ultimedia_url), 'Ultimedia')
+        # Look for Digiteka embeds
+        digiteka_url = DigitekaIE._extract_url(webpage)
+        if digiteka_url:
+            return self.url_result(self._proto_relative_url(digiteka_url), DigitekaIE.ie_key())
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(

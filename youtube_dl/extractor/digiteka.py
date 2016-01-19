@@ -7,7 +7,7 @@ from .common import InfoExtractor
 from ..utils import int_or_none
 
 
-class UltimediaIE(InfoExtractor):
+class DigitekaIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         https?://(?:www\.)?(?:digiteka\.net|ultimedia\.com)/
         (?:
