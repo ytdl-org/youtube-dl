@@ -281,14 +281,17 @@ class LetvCloudIE(InfoExtractor):
             "uu=" + uu + "&vu=" + vu)
         play_json = self._download_json(play_json_req, media_id, 'Downloading playJson data')
 
-        formats = [{
-            'url': base64.b64decode(media['play_url']['main_url'].encode('utf-8')).decode("utf-8"),
-            'ext': 'mp4',
-            'format_id': int_or_none(media.get('play_url', {}).get('vtype')),
-            'format_note': str_or_none(media.get('play_url', {}).get('definition')),
-            'width': int_or_none(media.get('play_url', {}).get('vwidth')),
-            'height': int_or_none(media.get('play_url', {}).get('vheight')),
-        } for media in play_json['data']['video_info']['media'].values()]
+        formats = []
+        for media in play_json['data']['video_info']['media'].values():
+            play_url = media['play_url']
+            formats.append({
+                'url': base64.b64decode(play_url['main_url'].encode('utf-8')).decode("utf-8"),
+                'ext': 'mp4',
+                'format_id': int_or_none(play_url.get('vtype')),
+                'format_note': str_or_none(play_url.get('definition')),
+                'width': int_or_none(play_url.get('vwidth')),
+                'height': int_or_none(play_url.get('vheight')),
+            })
         self._sort_formats(formats)
 
         return {
