@@ -1508,6 +1508,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             for a_format in formats:
                 a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
         else:
+            unavailable_message = self._html_search_regex(
+                r'(?s)<h1[^>]+id="unavailable-message"[^>]*>(.+?)</h1>',
+                video_webpage, 'unavailable message', default=None)
+            if unavailable_message:
+                raise ExtractorError(unavailable_message, expected=True)
             raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
         # Look for the DASH manifest
