@@ -1402,7 +1402,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded Dailymotion player
         matches = re.findall(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/embed/video/.+?)\1', webpage)
+            r'<(?:embed|iframe)[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/(?:embed|swf)/video/.+?)\1', webpage)
         if matches:
             return _playlist_from_matches(
                 matches, lambda m: unescapeHTML(m[1]))
