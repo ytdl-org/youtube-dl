@@ -613,7 +613,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
             'params': {
                 'skip_download': 'requires avconv',
-            }
+            },
+            'skip': 'This live event has ended.',
         },
         # Extraction from multiple DASH manifests (https://github.com/rg3/youtube-dl/pull/6097)
         {
