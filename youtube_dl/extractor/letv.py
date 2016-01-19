@@ -245,7 +245,7 @@ class LetvPlaylistIE(LetvTvIE):
 
 class LetvCloudIE(InfoExtractor):
     IE_DESC = '乐视云'
-    _VALID_URL = r'http://yuntv\.letv\.com/bcloud.html\?.*$'
+    _VALID_URL = r'https?://yuntv\.letv\.com/bcloud.html\?.+'
 
     _TESTS = [{
         'url': 'http://yuntv.letv.com/bcloud.html?uu=p7jnfw5hw9&vu=467623dedf',
