@@ -278,14 +278,14 @@ class LetvCloudIE(InfoExtractor):
 
         play_json_req = sanitized_Request(
             'http://api.letvcloud.com/gpc.php?cf=html5&sign=signxxxxx&ver=2.2&format=json&' +
-            "uu=" + uu + "&vu=" + vu)
+            'uu=' + uu + '&vu=' + vu)
         play_json = self._download_json(play_json_req, media_id, 'Downloading playJson data')
 
         formats = []
         for media in play_json['data']['video_info']['media'].values():
             play_url = media['play_url']
             formats.append({
-                'url': base64.b64decode(play_url['main_url'].encode('utf-8')).decode("utf-8"),
+                'url': base64.b64decode(play_url['main_url'].encode('utf-8')).decode('utf-8'),
                 'ext': 'mp4',
                 'format_id': int_or_none(play_url.get('vtype')),
                 'format_note': str_or_none(play_url.get('definition')),
