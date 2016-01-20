@@ -31,7 +31,7 @@ class OraTVIE(InfoExtractor):
         video_data = self._search_regex(
             r'"video"\s*:\s*({[^}]+?})', webpage, 'current video')
         m3u8_url = self._search_regex(
-            r'hls_stream\s*:\s*"([^"]+)', video_data, 'm3u8 url', None)
+            r'"?hls_stream"?\s*:\s*"([^"]+)', video_data, 'm3u8 url', None)
         if m3u8_url:
             formats = self._extract_m3u8_formats(
                 m3u8_url, display_id, 'mp4', 'm3u8_native',
