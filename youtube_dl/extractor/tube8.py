@@ -1,10 +1,9 @@
 from __future__ import unicode_literals
 
-import json
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse_urlparse
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     sanitized_Request,
@@ -44,14 +43,28 @@ class Tube8IE(InfoExtractor):
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, display_id)
 
-        flashvars = json.loads(self._html_search_regex(
-            r'flashvars\s*=\s*({.+?});\r?\n', webpage, 'flashvars'))
+        flashvars = self._parse_json(
+            self._search_regex(
+                r'flashvars\s*=\s*({.+?});\r?\n', webpage, 'flashvars'),
+            video_id)
 
-        video_url = flashvars['video_url']
-        if flashvars.get('encrypted') is True:
-            video_url = aes_decrypt_text(video_url, flashvars['video_title'], 32).decode('utf-8')
-        path = compat_urllib_parse_urlparse(video_url).path
-        format_id = '-'.join(path.split('/')[4].split('_')[:2])
+        formats = []
+        for key, video_url in flashvars.items():
+            if not isinstance(video_url, compat_str) or not video_url.startswith('http'):
+                continue
+            height = self._search_regex(
+                r'quality_(\d+)[pP]', key, 'height', default=None)
+            if not height:
+                continue
+            if flashvars.get('encrypted') is True:
+                video_url = aes_decrypt_text(
+                    video_url, flashvars['video_title'], 32).decode('utf-8')
+            formats.append({
+                'url': video_url,
+                'format_id': '%sp' % height,
+                'height': int(height),
+            })
+        self._sort_formats(formats)
 
         thumbnail = flashvars.get('image_url')
 
@@ -79,15 +92,14 @@ class Tube8IE(InfoExtractor):
         return {
             'id': video_id,
             'display_id': display_id,
-            'url': video_url,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
             'uploader': uploader,
-            'format_id': format_id,
             'view_count': view_count,
             'like_count': like_count,
             'dislike_count': dislike_count,
             'comment_count': comment_count,
             'age_limit': 18,
+            'formats': formats,
         }
