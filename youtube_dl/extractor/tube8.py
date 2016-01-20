@@ -27,7 +27,7 @@ class Tube8IE(InfoExtractor):
             'age_limit': 18,
             'duration': 230,
         }
-    },{
+    }, {
         'url': 'http://www.tube8.com/shemale/teen/blonde-cd-gets-kidnapped-by-two-blacks-and-punished-for-being-a-slutty-girl/19569151/',
         'only_matching': True,
     }]
