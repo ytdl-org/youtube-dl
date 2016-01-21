@@ -155,10 +155,10 @@ class ViewsterIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        synopsis = info.get('Synopsis', {})
+        synopsis = info.get('Synopsis') or {}
         # Prefer title outside synopsis since it's less messy
         title = (info.get('Title') or synopsis['Title']).strip()
-        description = synopsis.get('Detailed') or info.get('Synopsis', {}).get('Short')
+        description = synopsis.get('Detailed') or (info.get('Synopsis') or {}).get('Short')
         duration = int_or_none(info.get('Duration'))
         timestamp = parse_iso8601(info.get('ReleaseDate'))
 

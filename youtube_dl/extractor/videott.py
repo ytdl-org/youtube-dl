@@ -11,6 +11,7 @@ from ..utils import (
 
 
 class VideoTtIE(InfoExtractor):
+    _WORKING = False
     ID_NAME = 'video.tt'
     IE_DESC = 'video.tt - Your True Tube'
     _VALID_URL = r'http://(?:www\.)?video\.tt/(?:(?:video|embed)/|watch_video\.php\?v=)(?P<id>[\da-zA-Z]{9})'

@@ -8,7 +8,7 @@ from ..utils import float_or_none
 
 
 class VRTIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:deredactie|sporza|cobra)\.be/cm/(?:[^/]+/)+(?P<id>[^/]+)/*'
+    _VALID_URL = r'https?://(?:deredactie|sporza|cobra(?:\.canvas)?)\.be/cm/(?:[^/]+/)+(?P<id>[^/]+)/*'
     _TESTS = [
         # deredactie.be
         {
@@ -52,6 +52,10 @@ class VRTIE(InfoExtractor):
                 'duration': 661,
             }
         },
+        {
+            'url': 'http://cobra.canvas.be/cm/cobra/videozone/rubriek/film-videozone/1.2377055',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
@@ -69,11 +73,11 @@ class VRTIE(InfoExtractor):
         if mobj:
             formats.extend(self._extract_m3u8_formats(
                 '%s/%s' % (mobj.group('server'), mobj.group('path')),
-                video_id, 'mp4'))
+                video_id, 'mp4', m3u8_id='hls'))
         mobj = re.search(r'data-video-src="(?P<src>[^"]+)"', webpage)
         if mobj:
             formats.extend(self._extract_f4m_formats(
-                '%s/manifest.f4m' % mobj.group('src'), video_id))
+                '%s/manifest.f4m' % mobj.group('src'), video_id, f4m_id='hds'))
         self._sort_formats(formats)
 
         title = self._og_search_title(webpage)

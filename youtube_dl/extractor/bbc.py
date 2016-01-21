@@ -23,7 +23,17 @@ class BBCCoUkIE(InfoExtractor):
     IE_NAME = 'bbc.co.uk'
     IE_DESC = 'BBC iPlayer'
     _ID_REGEX = r'[pb][\da-z]{7}'
-    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/(?:(?:programmes/(?!articles/)|iplayer(?:/[^/]+)?/(?:episode/|playlist/))|music/clips[/#])(?P<id>%s)' % _ID_REGEX
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?bbc\.co\.uk/
+                        (?:
+                            programmes/(?!articles/)|
+                            iplayer(?:/[^/]+)?/(?:episode/|playlist/)|
+                            music/clips[/#]|
+                            radio/player/
+                        )
+                        (?P<id>%s)
+                    ''' % _ID_REGEX
 
     _MEDIASELECTOR_URLS = [
         # Provides HQ HLS streams with even better quality that pc mediaset but fails
@@ -114,14 +124,14 @@ class BBCCoUkIE(InfoExtractor):
             },
             'skip': 'Episode is no longer available on BBC iPlayer Radio',
         }, {
-            'url': 'http://www.bbc.co.uk/music/clips/p02frcc3',
+            'url': 'http://www.bbc.co.uk/music/clips/p022h44b',
             'note': 'Audio',
             'info_dict': {
-                'id': 'p02frcch',
+                'id': 'p022h44j',
                 'ext': 'flv',
-                'title': 'Pete Tong, Past, Present and Future Special, Madeon - After Hours mix',
-                'description': 'French house superstar Madeon takes us out of the club and onto the after party.',
-                'duration': 3507,
+                'title': 'BBC Proms Music Guides, Rachmaninov: Symphonic Dances',
+                'description': "In this Proms Music Guide, Andrew McGregor looks at Rachmaninov's Symphonic Dances.",
+                'duration': 227,
             },
             'params': {
                 # rtmp download
@@ -172,13 +182,12 @@ class BBCCoUkIE(InfoExtractor):
         }, {
             # iptv-all mediaset fails with geolocation however there is no geo restriction
             # for this programme at all
-            'url': 'http://www.bbc.co.uk/programmes/b06bp7lf',
+            'url': 'http://www.bbc.co.uk/programmes/b06rkn85',
             'info_dict': {
-                'id': 'b06bp7kf',
+                'id': 'b06rkms3',
                 'ext': 'flv',
-                'title': "Annie Mac's Friday Night, B.Traits sits in for Annie",
-                'description': 'B.Traits sits in for Annie Mac with a Mini-Mix from Disclosure.',
-                'duration': 10800,
+                'title': "Best of the Mini-Mixes 2015: Part 3, Annie Mac's Friday Night - BBC Radio 1",
+                'description': "Annie has part three in the Best of the Mini-Mixes 2015, plus the year's Most Played!",
             },
             'params': {
                 # rtmp download
@@ -192,6 +201,9 @@ class BBCCoUkIE(InfoExtractor):
             'only_matching': True,
         }, {
             'url': 'http://www.bbc.co.uk/iplayer/cbeebies/episode/b0480276/bing-14-atchoo',
+            'only_matching': True,
+        }, {
+            'url': 'http://www.bbc.co.uk/radio/player/p03cchwf',
             'only_matching': True,
         }
     ]
@@ -469,7 +481,8 @@ class BBCCoUkIE(InfoExtractor):
 
         if programme_id:
             formats, subtitles = self._download_media_selector(programme_id)
-            title = self._og_search_title(webpage)
+            title = self._og_search_title(webpage, default=None) or self._html_search_regex(
+                r'<h2[^>]+id="parent-title"[^>]*>(.+?)</h2>', webpage, 'title')
             description = self._search_regex(
                 r'<p class="[^"]*medium-description[^"]*">([^<]+)</p>',
                 webpage, 'description', default=None)
@@ -705,19 +718,10 @@ class BBCIE(BBCCoUkIE):
 
         webpage = self._download_webpage(url, playlist_id)
 
-        timestamp = None
-        playlist_title = None
-        playlist_description = None
-
-        ld = self._parse_json(
-            self._search_regex(
-                r'(?s)<script type="application/ld\+json">(.+?)</script>',
-                webpage, 'ld json', default='{}'),
-            playlist_id, fatal=False)
-        if ld:
-            timestamp = parse_iso8601(ld.get('datePublished'))
-            playlist_title = ld.get('headline')
-            playlist_description = ld.get('articleBody')
+        json_ld_info = self._search_json_ld(webpage, playlist_id, default=None)
+        timestamp = json_ld_info.get('timestamp')
+        playlist_title = json_ld_info.get('title')
+        playlist_description = json_ld_info.get('description')
 
         if not timestamp:
             timestamp = parse_iso8601(self._search_regex(

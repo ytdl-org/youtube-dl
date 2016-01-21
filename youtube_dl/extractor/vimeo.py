@@ -11,6 +11,7 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    determine_ext,
     encode_dict,
     ExtractorError,
     InAdvancePagedList,
@@ -208,6 +209,11 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'url': 'https://vimeo.com/groups/travelhd/videos/22439234',
             'only_matching': True,
         },
+        {
+            # source file returns 403: Forbidden
+            'url': 'https://vimeo.com/7809605',
+            'only_matching': True,
+        },
     ]
 
     @staticmethod
@@ -217,7 +223,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/.+?)\1', webpage)
         if mobj:
             player_url = unescapeHTML(mobj.group('url'))
-            surl = smuggle_url(player_url, {'Referer': url})
+            surl = smuggle_url(player_url, {'http_headers': {'Referer': url}})
             return surl
         # Look for embedded (swf embed) Vimeo player
         mobj = re.search(
@@ -262,11 +268,11 @@ class VimeoIE(VimeoBaseInfoExtractor):
         self._login()
 
     def _real_extract(self, url):
-        url, data = unsmuggle_url(url)
+        url, data = unsmuggle_url(url, {})
         headers = std_headers
-        if data is not None:
+        if 'http_headers' in data:
             headers = headers.copy()
-            headers.update(data)
+            headers.update(data['http_headers'])
         if 'Referer' not in headers:
             headers['Referer'] = url
 
@@ -342,7 +348,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 raise ExtractorError('The author has restricted the access to this video, try with the "--referer" option')
 
             if re.search(r'<form[^>]+?id="pw_form"', webpage) is not None:
-                if data and '_video_password_verified' in data:
+                if '_video_password_verified' in data:
                     raise ExtractorError('video password verification failed!')
                 self._verify_video_password(url, video_id, webpage)
                 return self._real_extract(
@@ -353,6 +359,13 @@ class VimeoIE(VimeoBaseInfoExtractor):
         else:
             if config.get('view') == 4:
                 config = self._verify_player_video_password(url, video_id)
+
+        if '>You rented this title.<' in webpage:
+            feature_id = config.get('video', {}).get('vod', {}).get('feature_id')
+            if feature_id and not data.get('force_feature_id', False):
+                return self.url_result(smuggle_url(
+                    'https://player.vimeo.com/player/%s' % feature_id,
+                    {'force_feature_id': True}), 'Vimeo')
 
         # Extract title
         video_title = config["video"]["title"]
@@ -412,16 +425,21 @@ class VimeoIE(VimeoBaseInfoExtractor):
         download_data = self._download_json(download_request, video_id, fatal=False)
         if download_data:
             source_file = download_data.get('source_file')
-            if source_file and not source_file.get('is_cold') and not source_file.get('is_defrosting'):
-                formats.append({
-                    'url': source_file['download_url'],
-                    'ext': source_file['extension'].lower(),
-                    'width': int_or_none(source_file.get('width')),
-                    'height': int_or_none(source_file.get('height')),
-                    'filesize': parse_filesize(source_file.get('size')),
-                    'format_id': source_file.get('public_name', 'Original'),
-                    'preference': 1,
-                })
+            if isinstance(source_file, dict):
+                download_url = source_file.get('download_url')
+                if download_url and not source_file.get('is_cold') and not source_file.get('is_defrosting'):
+                    source_name = source_file.get('public_name', 'Original')
+                    if self._is_valid_url(download_url, video_id, '%s video' % source_name):
+                        ext = source_file.get('extension', determine_ext(download_url)).lower()
+                        formats.append({
+                            'url': download_url,
+                            'ext': ext,
+                            'width': int_or_none(source_file.get('width')),
+                            'height': int_or_none(source_file.get('height')),
+                            'filesize': parse_filesize(source_file.get('size')),
+                            'format_id': source_name,
+                            'preference': 1,
+                        })
         config_files = config['video'].get('files') or config['request'].get('files', {})
         for f in config_files.get('progressive', []):
             video_url = f.get('url')

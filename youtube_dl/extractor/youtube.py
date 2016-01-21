@@ -613,7 +613,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
             'params': {
                 'skip_download': 'requires avconv',
-            }
+            },
+            'skip': 'This live event has ended.',
         },
         # Extraction from multiple DASH manifests (https://github.com/rg3/youtube-dl/pull/6097)
         {
@@ -706,6 +707,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         },
         {
             # Title with JS-like syntax "};" (see https://github.com/rg3/youtube-dl/issues/7468)
+            # Also tests cut-off URL expansion in video description (see
+            # https://github.com/rg3/youtube-dl/issues/1892,
+            # https://github.com/rg3/youtube-dl/issues/8164)
             'url': 'https://www.youtube.com/watch?v=lsguqyKfVQg',
             'info_dict': {
                 'id': 'lsguqyKfVQg',
@@ -1235,10 +1239,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             video_description = re.sub(r'''(?x)
                 <a\s+
                     (?:[a-zA-Z-]+="[^"]+"\s+)*?
-                    title="([^"]+)"\s+
+                    (?:title|href)="([^"]+)"\s+
                     (?:[a-zA-Z-]+="[^"]+"\s+)*?
-                    class="yt-uix-redirect-link"\s*>
-                [^<]+
+                    class="(?:yt-uix-redirect-link|yt-uix-sessionlink[^"]*)"[^>]*>
+                [^<]+\.{3}\s*
                 </a>
             ''', r'\1', video_description)
             video_description = clean_html(video_description)
@@ -1487,7 +1491,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             if codecs:
                                 codecs = codecs.split(',')
                                 if len(codecs) == 2:
-                                    acodec, vcodec = codecs[0], codecs[1]
+                                    acodec, vcodec = codecs[1], codecs[0]
                                 else:
                                     acodec, vcodec = (codecs[0], 'none') if kind == 'audio' else ('none', codecs[0])
                                 dct.update({
@@ -1505,6 +1509,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             for a_format in formats:
                 a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
         else:
+            unavailable_message = self._html_search_regex(
+                r'(?s)<h1[^>]+id="unavailable-message"[^>]*>(.+?)</h1>',
+                video_webpage, 'unavailable message', default=None)
+            if unavailable_message:
+                raise ExtractorError(unavailable_message, expected=True)
             raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
         # Look for the DASH manifest

@@ -4,10 +4,16 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import compat_str
+from ..utils import (
+    int_or_none,
+    float_or_none,
+    unescapeHTML,
+)
 
 
 class TudouIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tudou\.com/(?:listplay|programs(?:/view)?|albumplay)/([^/]+/)*(?P<id>[^/?#]+?)(?:\.html)?/?(?:$|[?#])'
+    IE_NAME = 'tudou'
+    _VALID_URL = r'https?://(?:www\.)?tudou\.com/(?:(?:programs|wlplay)/view|(?:listplay|albumplay)/[\w-]{11})/(?P<id>[\w-]{11})'
     _TESTS = [{
         'url': 'http://www.tudou.com/listplay/zzdE77v6Mmo/2xN2duXMxmw.html',
         'md5': '140a49ed444bd22f93330985d8475fcb',
@@ -16,6 +22,11 @@ class TudouIE(InfoExtractor):
             'ext': 'f4v',
             'title': '卡马乔国足开大脚长传冲吊集锦',
             'thumbnail': 're:^https?://.*\.jpg$',
+            'timestamp': 1372113489000,
+            'description': '卡马乔卡家军，开大脚先进战术不完全集锦！',
+            'duration': 289.04,
+            'view_count': int,
+            'filesize': int,
         }
     }, {
         'url': 'http://www.tudou.com/programs/view/ajX3gyhL0pc/',
@@ -24,10 +35,12 @@ class TudouIE(InfoExtractor):
             'ext': 'f4v',
             'title': 'La Sylphide-Bolshoi-Ekaterina Krysanova & Vyacheslav Lopatin 2012',
             'thumbnail': 're:^https?://.*\.jpg$',
+            'timestamp': 1349207518000,
+            'description': 'md5:294612423894260f2dcd5c6c04fe248b',
+            'duration': 5478.33,
+            'view_count': int,
+            'filesize': int,
         }
-    }, {
-        'url': 'http://www.tudou.com/albumplay/cJAHGih4yYg.html',
-        'only_matching': True,
     }]
 
     _PLAYER_URL = 'http://js.tudouui.com/bin/lingtong/PortalPlayer_177.swf'
@@ -42,24 +55,20 @@ class TudouIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        item_data = self._download_json(
+            'http://www.tudou.com/tvp/getItemInfo.action?ic=%s' % video_id, video_id)
 
-        youku_vcode = self._search_regex(
-            r'vcode\s*:\s*[\'"]([^\'"]*)[\'"]', webpage, 'youku vcode', default=None)
+        youku_vcode = item_data.get('vcode')
         if youku_vcode:
             return self.url_result('youku:' + youku_vcode, ie='Youku')
 
-        title = self._search_regex(
-            r',kw\s*:\s*[\'"]([^\'"]+)[\'"]', webpage, 'title')
-        thumbnail_url = self._search_regex(
-            r',pic\s*:\s*[\'"]([^\'"]+)[\'"]', webpage, 'thumbnail URL', fatal=False)
+        title = unescapeHTML(item_data['kw'])
+        description = item_data.get('desc')
+        thumbnail_url = item_data.get('pic')
+        view_count = int_or_none(item_data.get('playTimes'))
+        timestamp = int_or_none(item_data.get('pt'))
 
-        player_url = self._search_regex(
-            r'playerUrl\s*:\s*[\'"]([^\'"]+\.swf)[\'"]',
-            webpage, 'player URL', default=self._PLAYER_URL)
-
-        segments = self._parse_json(self._search_regex(
-            r'segs: \'([^\']+)\'', webpage, 'segments'), video_id)
+        segments = self._parse_json(item_data['itemSegs'], video_id)
         # It looks like the keys are the arguments that have to be passed as
         # the hd field in the request url, we pick the higher
         # Also, filter non-number qualities (see issue #3643).
@@ -80,8 +89,13 @@ class TudouIE(InfoExtractor):
                 'ext': ext,
                 'title': title,
                 'thumbnail': thumbnail_url,
+                'description': description,
+                'view_count': view_count,
+                'timestamp': timestamp,
+                'duration': float_or_none(part.get('seconds'), 1000),
+                'filesize': int_or_none(part.get('size')),
                 'http_headers': {
-                    'Referer': player_url,
+                    'Referer': self._PLAYER_URL,
                 },
             }
             result.append(part_info)
@@ -92,3 +106,47 @@ class TudouIE(InfoExtractor):
             'id': video_id,
             'title': title,
         }
+
+
+class TudouPlaylistIE(InfoExtractor):
+    IE_NAME = 'tudou:playlist'
+    _VALID_URL = r'https?://(?:www\.)?tudou\.com/listplay/(?P<id>[\w-]{11})\.html'
+    _TESTS = [{
+        'url': 'http://www.tudou.com/listplay/zzdE77v6Mmo.html',
+        'info_dict': {
+            'id': 'zzdE77v6Mmo',
+        },
+        'playlist_mincount': 209,
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        playlist_data = self._download_json(
+            'http://www.tudou.com/tvp/plist.action?lcode=%s' % playlist_id, playlist_id)
+        entries = [self.url_result(
+            'http://www.tudou.com/programs/view/%s' % item['icode'],
+            'Tudou', item['icode'],
+            item['kw']) for item in playlist_data['items']]
+        return self.playlist_result(entries, playlist_id)
+
+
+class TudouAlbumIE(InfoExtractor):
+    IE_NAME = 'tudou:album'
+    _VALID_URL = r'https?://(?:www\.)?tudou\.com/album(?:cover|play)/(?P<id>[\w-]{11})'
+    _TESTS = [{
+        'url': 'http://www.tudou.com/albumplay/v5qckFJvNJg.html',
+        'info_dict': {
+            'id': 'v5qckFJvNJg',
+        },
+        'playlist_mincount': 45,
+    }]
+
+    def _real_extract(self, url):
+        album_id = self._match_id(url)
+        album_data = self._download_json(
+            'http://www.tudou.com/tvp/alist.action?acode=%s' % album_id, album_id)
+        entries = [self.url_result(
+            'http://www.tudou.com/programs/view/%s' % item['icode'],
+            'Tudou', item['icode'],
+            item['kw']) for item in album_data['items']]
+        return self.playlist_result(entries, album_id)

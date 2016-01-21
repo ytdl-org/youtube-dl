@@ -34,6 +34,7 @@ from ..utils import (
     fix_xml_ampersands,
     float_or_none,
     int_or_none,
+    parse_iso8601,
     RegexNotFoundError,
     sanitize_filename,
     sanitized_Request,
@@ -108,8 +109,9 @@ class InfoExtractor(object):
                                  -2 or smaller for less than default.
                                  < -1000 to hide the format (if there is
                                     another one which is strictly better)
-                    * language_preference  Is this in the correct requested
-                                 language?
+                    * language   Language code, e.g. "de" or "en-US".
+                    * language_preference  Is this in the language mentioned in
+                                 the URL?
                                  10 if it's what the URL is about,
                                  -1 for default (don't know),
                                  -10 otherwise, other values reserved for now.
@@ -199,6 +201,26 @@ class InfoExtractor(object):
                     specified in the URL.
     end_time:       Time in seconds where the reproduction should end, as
                     specified in the URL.
+
+    The following fields should only be used when the video belongs to some logical
+    chapter or section:
+
+    chapter:        Name or title of the chapter the video belongs to.
+    chapter_number: Number of the chapter the video belongs to, as an integer.
+    chapter_id:     Id of the chapter the video belongs to, as a unicode string.
+
+    The following fields should only be used when the video is an episode of some
+    series or programme:
+
+    series:         Title of the series or programme the video episode belongs to.
+    season:         Title of the season the video episode belongs to.
+    season_number:  Number of the season the video episode belongs to, as an integer.
+    season_id:      Id of the season the video episode belongs to, as a unicode string.
+    episode:        Title of the video episode. Unlike mandatory video title field,
+                    this field should denote the exact title of the video episode
+                    without any kind of decoration.
+    episode_number: Number of the video episode within a season, as an integer.
+    episode_id:     Id of the video episode, as a unicode string.
 
     Unless mentioned otherwise, the fields should be Unicode strings.
 
@@ -292,9 +314,9 @@ class InfoExtractor(object):
         except ExtractorError:
             raise
         except compat_http_client.IncompleteRead as e:
-            raise ExtractorError('A network error has occured.', cause=e, expected=True)
+            raise ExtractorError('A network error has occurred.', cause=e, expected=True)
         except (KeyError, StopIteration) as e:
-            raise ExtractorError('An extractor error has occured.', cause=e)
+            raise ExtractorError('An extractor error has occurred.', cause=e)
 
     def set_downloader(self, downloader):
         """Sets the downloader for this IE."""
@@ -740,6 +762,42 @@ class InfoExtractor(object):
     def _twitter_search_player(self, html):
         return self._html_search_meta('twitter:player', html,
                                       'twitter card player')
+
+    def _search_json_ld(self, html, video_id, **kwargs):
+        json_ld = self._search_regex(
+            r'(?s)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json_ld>.+?)</script>',
+            html, 'JSON-LD', group='json_ld', **kwargs)
+        if not json_ld:
+            return {}
+        return self._json_ld(json_ld, video_id, fatal=kwargs.get('fatal', True))
+
+    def _json_ld(self, json_ld, video_id, fatal=True):
+        if isinstance(json_ld, compat_str):
+            json_ld = self._parse_json(json_ld, video_id, fatal=fatal)
+        if not json_ld:
+            return {}
+        info = {}
+        if json_ld.get('@context') == 'http://schema.org':
+            item_type = json_ld.get('@type')
+            if item_type == 'TVEpisode':
+                info.update({
+                    'episode': unescapeHTML(json_ld.get('name')),
+                    'episode_number': int_or_none(json_ld.get('episodeNumber')),
+                    'description': unescapeHTML(json_ld.get('description')),
+                })
+                part_of_season = json_ld.get('partOfSeason')
+                if isinstance(part_of_season, dict) and part_of_season.get('@type') == 'TVSeason':
+                    info['season_number'] = int_or_none(part_of_season.get('seasonNumber'))
+                part_of_series = json_ld.get('partOfSeries')
+                if isinstance(part_of_series, dict) and part_of_series.get('@type') == 'TVSeries':
+                    info['series'] = unescapeHTML(part_of_series.get('name'))
+            elif item_type == 'Article':
+                info.update({
+                    'timestamp': parse_iso8601(json_ld.get('datePublished')),
+                    'title': unescapeHTML(json_ld.get('headline')),
+                    'description': unescapeHTML(json_ld.get('articleBody')),
+                })
+        return dict((k, v) for k, v in info.items() if v is not None)
 
     @staticmethod
     def _hidden_inputs(html):

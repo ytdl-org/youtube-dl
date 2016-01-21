@@ -71,6 +71,7 @@ class NowTVBaseIE(InfoExtractor):
 
 
 class NowTVIE(NowTVBaseIE):
+    _WORKING = False
     _VALID_URL = r'https?://(?:www\.)?nowtv\.(?:de|at|ch)/(?:rtl|rtl2|rtlnitro|superrtl|ntv|vox)/(?P<show_id>[^/]+)/(?:(?:list/[^/]+|jahr/\d{4}/\d{1,2})/)?(?P<id>[^/]+)/(?:player|preview)'
 
     _TESTS = [{

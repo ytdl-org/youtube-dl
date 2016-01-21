@@ -11,6 +11,7 @@ from ..utils import (
     strip_jsonp,
     unescapeHTML,
     clean_html,
+    ExtractorError,
 )
 
 
@@ -177,7 +178,7 @@ class QQMusicSingerIE(QQPlaylistBaseIE):
         'info_dict': {
             'id': '001BLpXF2DyJe2',
             'title': '林俊杰',
-            'description': 'md5:2a222d89ba4455a3af19940c0481bb78',
+            'description': 'md5:870ec08f7d8547c29c93010899103751',
         },
         'playlist_count': 12,
     }
@@ -272,7 +273,7 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
         'url': 'http://y.qq.com/#type=toplist&p=top_3',
         'info_dict': {
             'id': 'top_3',
-            'title': 'QQ音乐巅峰榜·欧美',
+            'title': '巅峰榜·欧美',
             'description': 'QQ音乐巅峰榜·欧美根据用户收听行为自动生成，集结当下最流行的欧美新歌！:更新时间：每周四22点|统'
                            '计周期：一周（上周四至本周三）|统计对象：三个月内发行的欧美歌曲|统计数量：100首|统计算法：根据'
                            '歌曲在一周内的有效播放次数，由高到低取前100名（同一歌手最多允许5首歌曲同时上榜）|有效播放次数：'
@@ -315,7 +316,7 @@ class QQMusicPlaylistIE(QQPlaylistBaseIE):
     IE_DESC = 'QQ音乐 - 歌单'
     _VALID_URL = r'http://y\.qq\.com/#type=taoge&id=(?P<id>[0-9]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://y.qq.com/#type=taoge&id=3462654915',
         'info_dict': {
             'id': '3462654915',
@@ -323,7 +324,16 @@ class QQMusicPlaylistIE(QQPlaylistBaseIE):
             'description': 'md5:d2c9d758a96b9888cf4fe82f603121d4',
         },
         'playlist_count': 40,
-    }
+        'skip': 'playlist gone',
+    }, {
+        'url': 'http://y.qq.com/#type=taoge&id=1374105607',
+        'info_dict': {
+            'id': '1374105607',
+            'title': '易入人心的华语民谣',
+            'description': '民谣的歌曲易于传唱、、歌词朗朗伤口、旋律简单温馨。属于那种才入耳孔。却上心头的感觉。没有太多的复杂情绪。简单而直接地表达乐者的情绪，就是这样的简单才易入人心。',
+        },
+        'playlist_count': 20,
+    }]
 
     def _real_extract(self, url):
         list_id = self._match_id(url)
@@ -331,14 +341,21 @@ class QQMusicPlaylistIE(QQPlaylistBaseIE):
         list_json = self._download_json(
             'http://i.y.qq.com/qzone-music/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg?type=1&json=1&utf8=1&onlysong=0&disstid=%s'
             % list_id, list_id, 'Download list page',
-            transform_source=strip_jsonp)['cdlist'][0]
+            transform_source=strip_jsonp)
+        if not len(list_json.get('cdlist', [])):
+            if list_json.get('code'):
+                raise ExtractorError(
+                    'QQ Music said: error %d in fetching playlist info' % list_json['code'],
+                    expected=True)
+            raise ExtractorError('Unable to get playlist info')
 
+        cdlist = list_json['cdlist'][0]
         entries = [
             self.url_result(
                 'http://y.qq.com/#type=song&mid=' + song['songmid'], 'QQMusic', song['songmid']
-            ) for song in list_json['songlist']
+            ) for song in cdlist['songlist']
         ]
 
-        list_name = list_json.get('dissname')
-        list_description = clean_html(unescapeHTML(list_json.get('desc')))
+        list_name = cdlist.get('dissname')
+        list_description = clean_html(unescapeHTML(cdlist.get('desc')))
         return self.playlist_result(entries, list_id, list_name, list_description)

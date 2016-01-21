@@ -13,6 +13,7 @@ from ..utils import (
     determine_ext,
     qualities,
     float_or_none,
+    ExtractorError,
 )
 
 
@@ -59,7 +60,6 @@ class ZDFIE(InfoExtractor):
                     'ext': 'flv',
                     'format_id': '%s-%d' % (proto, bitrate),
                     'tbr': bitrate,
-                    'protocol': proto,
                 })
         self._sort_formats(formats)
         return formats
@@ -69,6 +69,15 @@ class ZDFIE(InfoExtractor):
             xml_url, video_id,
             note='Downloading video info',
             errnote='Failed to download video info')
+
+        status_code = doc.find('./status/statuscode')
+        if status_code is not None and status_code.text != 'ok':
+            code = status_code.text
+            if code == 'notVisibleAnymore':
+                message = 'Video %s is not available' % video_id
+            else:
+                message = '%s returned error: %s' % (self.IE_NAME, code)
+            raise ExtractorError(message, expected=True)
 
         title = doc.find('.//information/title').text
         description = xpath_text(doc, './/information/detail', 'description')
@@ -129,10 +138,10 @@ class ZDFIE(InfoExtractor):
                     video_url, video_id, fatal=False))
             elif ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
-                    video_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
+                    video_url, video_id, 'mp4', m3u8_id=format_id, fatal=False))
             elif ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
-                    video_url, video_id, f4m_id='hds', fatal=False))
+                    video_url, video_id, f4m_id=format_id, fatal=False))
             else:
                 proto = format_m.group('proto').lower()
 

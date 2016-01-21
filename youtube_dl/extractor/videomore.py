@@ -23,10 +23,55 @@ class VideomoreIE(InfoExtractor):
             'ext': 'flv',
             'title': 'В гостях Алексей Чумаков и Юлия Ковальчук',
             'description': 'В гостях – лучшие романтические комедии года, «Выживший» Иньярриту и «Стив Джобс» Дэнни Бойла.',
+            'series': 'Кино в деталях',
+            'episode': 'В гостях Алексей Чумаков и Юлия Ковальчук',
+            'episode_number': None,
+            'season': 'Сезон 2015',
+            'season_number': 5,
             'thumbnail': 're:^https?://.*\.jpg',
             'duration': 2910,
             'age_limit': 16,
             'view_count': int,
+        },
+    }, {
+        'url': 'http://videomore.ru/embed/259974',
+        'info_dict': {
+            'id': '259974',
+            'ext': 'flv',
+            'title': '80 серия',
+            'description': '«Медведей» ждет решающий матч. Макеев выясняет отношения со Стрельцовым. Парни узнают подробности прошлого Макеева.',
+            'series': 'Молодежка',
+            'episode': '80 серия',
+            'episode_number': 40,
+            'season': '2 сезон',
+            'season_number': 2,
+            'thumbnail': 're:^https?://.*\.jpg',
+            'duration': 2809,
+            'age_limit': 16,
+            'view_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://videomore.ru/molodezhka/sezon_promo/341073',
+        'info_dict': {
+            'id': '341073',
+            'ext': 'flv',
+            'title': 'Команда проиграла из-за Бакина?',
+            'description': 'Молодежка 3 сезон скоро',
+            'series': 'Молодежка',
+            'episode': 'Команда проиграла из-за Бакина?',
+            'episode_number': None,
+            'season': 'Промо',
+            'season_number': 99,
+            'thumbnail': 're:^https?://.*\.jpg',
+            'duration': 29,
+            'age_limit': 16,
+            'view_count': int,
+        },
+        'params': {
+            'skip_download': True,
         },
     }, {
         'url': 'http://videomore.ru/elki_3?track_id=364623',
@@ -81,10 +126,21 @@ class VideomoreIE(InfoExtractor):
             'url': thumbnail,
         } for thumbnail in data.get('big_thumbnail_urls', [])]
 
+        series = data.get('project_title')
+        episode = data.get('title')
+        episode_number = int_or_none(data.get('episode_of_season') or None)
+        season = data.get('season_title')
+        season_number = int_or_none(data.get('season_pos') or None)
+
         return {
             'id': video_id,
             'title': title,
             'description': description,
+            'series': series,
+            'episode': episode,
+            'episode_number': episode_number,
+            'season': season,
+            'season_number': season_number,
             'thumbnails': thumbnails,
             'timestamp': timestamp,
             'duration': duration,
@@ -114,7 +170,7 @@ class VideomoreVideoIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        # season single serie with og:video:iframe
+        # season single series with og:video:iframe
         'url': 'http://videomore.ru/poslednii_ment/1_sezon/14_seriya',
         'only_matching': True,
     }, {

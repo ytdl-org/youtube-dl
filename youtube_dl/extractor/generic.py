@@ -57,7 +57,7 @@ from .pladform import PladformIE
 from .videomore import VideomoreIE
 from .googledrive import GoogleDriveIE
 from .jwplatform import JWPlatformIE
-from .ultimedia import UltimediaIE
+from .digiteka import DigitekaIE
 
 
 class GenericIE(InfoExtractor):
@@ -487,7 +487,7 @@ class GenericIE(InfoExtractor):
                 'description': 'md5:8145d19d320ff3e52f28401f4c4283b9',
             }
         },
-        # Embeded Ustream video
+        # Embedded Ustream video
         {
             'url': 'http://www.american.edu/spa/pti/nsa-privacy-janus-2014.cfm',
             'md5': '27b99cdb639c9b12a79bca876a073417',
@@ -1402,7 +1402,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded Dailymotion player
         matches = re.findall(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/embed/video/.+?)\1', webpage)
+            r'<(?:embed|iframe)[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/(?:embed|swf)/video/.+?)\1', webpage)
         if matches:
             return _playlist_from_matches(
                 matches, lambda m: unescapeHTML(m[1]))
@@ -1644,7 +1644,7 @@ class GenericIE(InfoExtractor):
         if myvi_url:
             return self.url_result(myvi_url)
 
-        # Look for embeded soundcloud player
+        # Look for embedded soundcloud player
         mobj = re.search(
             r'<iframe\s+(?:[a-zA-Z0-9_-]+="[^"]+"\s+)*src="(?P<url>https?://(?:w\.)?soundcloud\.com/player[^"]+)"',
             webpage)
@@ -1814,10 +1814,10 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(unescapeHTML(mobj.group('url')), 'ScreenwaveMedia')
 
-        # Look for Ulltimedia embeds
-        ultimedia_url = UltimediaIE._extract_url(webpage)
-        if ultimedia_url:
-            return self.url_result(self._proto_relative_url(ultimedia_url), 'Ultimedia')
+        # Look for Digiteka embeds
+        digiteka_url = DigitekaIE._extract_url(webpage)
+        if digiteka_url:
+            return self.url_result(self._proto_relative_url(digiteka_url), DigitekaIE.ie_key())
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(

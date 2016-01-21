@@ -187,7 +187,8 @@ class AdultSwimIE(InfoExtractor):
                 media_url = file_el.text
                 if determine_ext(media_url) == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
-                        media_url, segment_title, 'mp4', preference=0, m3u8_id='hls'))
+                        media_url, segment_title, 'mp4', preference=0,
+                        m3u8_id='hls', fatal=False))
                 else:
                     formats.append({
                         'format_id': '%s_%s' % (bitrate, ftype),

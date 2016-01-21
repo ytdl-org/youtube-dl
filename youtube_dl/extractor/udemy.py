@@ -11,6 +11,7 @@ from ..utils import (
     float_or_none,
     int_or_none,
     sanitized_Request,
+    unescapeHTML,
 )
 
 
@@ -19,8 +20,6 @@ class UdemyIE(InfoExtractor):
     _VALID_URL = r'https?://www\.udemy\.com/(?:[^#]+#/lecture/|lecture/view/?\?lectureId=)(?P<id>\d+)'
     _LOGIN_URL = 'https://www.udemy.com/join/login-popup/?displayType=ajax&showSkipButton=1'
     _ORIGIN_URL = 'https://www.udemy.com'
-    _SUCCESSFULLY_ENROLLED = '>You have enrolled in this course!<'
-    _ALREADY_ENROLLED = '>You are already taking this course.<'
     _NETRC_MACHINE = 'udemy'
 
     _TESTS = [{
@@ -37,15 +36,21 @@ class UdemyIE(InfoExtractor):
     }]
 
     def _enroll_course(self, webpage, course_id):
-        enroll_url = self._search_regex(
+        checkout_url = unescapeHTML(self._search_regex(
+            r'href=(["\'])(?P<url>https?://(?:www\.)?udemy\.com/payment/checkout/.+?)\1',
+            webpage, 'checkout url', group='url', default=None))
+        if checkout_url:
+            raise ExtractorError(
+                'Course %s is not free. You have to pay for it before you can download. '
+                'Use this URL to confirm purchase: %s' % (course_id, checkout_url), expected=True)
+
+        enroll_url = unescapeHTML(self._search_regex(
             r'href=(["\'])(?P<url>https?://(?:www\.)?udemy\.com/course/subscribe/.+?)\1',
-            webpage, 'enroll url', group='url',
-            default='https://www.udemy.com/course/subscribe/?courseId=%s' % course_id)
-        webpage = self._download_webpage(enroll_url, course_id, 'Enrolling in the course')
-        if self._SUCCESSFULLY_ENROLLED in webpage:
-            self.to_screen('%s: Successfully enrolled in' % course_id)
-        elif self._ALREADY_ENROLLED in webpage:
-            self.to_screen('%s: Already enrolled in' % course_id)
+            webpage, 'enroll url', group='url', default=None))
+        if enroll_url:
+            webpage = self._download_webpage(enroll_url, course_id, 'Enrolling in the course')
+            if '>You have enrolled in' in webpage:
+                self.to_screen('%s: Successfully enrolled in the course' % course_id)
 
     def _download_lecture(self, course_id, lecture_id):
         return self._download_json(
@@ -244,10 +249,25 @@ class UdemyCourseIE(UdemyIE):
             'https://www.udemy.com/api-1.1/courses/%s/curriculum' % course_id,
             course_id, 'Downloading course curriculum')
 
-        entries = [
-            self.url_result(
-                'https://www.udemy.com/%s/#/lecture/%s' % (course_path, asset['id']), 'Udemy')
-            for asset in response if asset.get('assetType') or asset.get('asset_type') == 'Video'
-        ]
+        entries = []
+        chapter, chapter_number = None, None
+        for asset in response:
+            asset_type = asset.get('assetType') or asset.get('asset_type')
+            if asset_type == 'Video':
+                asset_id = asset.get('id')
+                if asset_id:
+                    entry = {
+                        '_type': 'url_transparent',
+                        'url': 'https://www.udemy.com/%s/#/lecture/%s' % (course_path, asset['id']),
+                        'ie_key': UdemyIE.ie_key(),
+                    }
+                    if chapter_number:
+                        entry['chapter_number'] = chapter_number
+                    if chapter:
+                        entry['chapter'] = chapter
+                    entries.append(entry)
+            elif asset.get('type') == 'chapter':
+                chapter_number = asset.get('index') or asset.get('object_index')
+                chapter = asset.get('title')
 
         return self.playlist_result(entries, course_id, course_title)

@@ -46,7 +46,16 @@ class HlsFD(FileDownloader):
 
         self._debug_cmd(args)
 
-        retval = subprocess.call(args)
+        proc = subprocess.Popen(args, stdin=subprocess.PIPE)
+        try:
+            retval = proc.wait()
+        except KeyboardInterrupt:
+            # subprocces.run would send the SIGKILL signal to ffmpeg and the
+            # mp4 file couldn't be played, but if we ask ffmpeg to quit it
+            # produces a file that is playable (this is mostly useful for live
+            # streams)
+            proc.communicate(b'q')
+            raise
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen('\r[%s] %s bytes' % (args[0], fsize))

@@ -14,6 +14,7 @@ from ..utils import (
 
 
 class IPrimaIE(InfoExtractor):
+    _WORKING = False
     _VALID_URL = r'https?://play\.iprima\.cz/(?:[^/]+/)*(?P<id>[^?#]+)'
 
     _TESTS = [{

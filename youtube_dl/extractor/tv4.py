@@ -67,7 +67,7 @@ class TV4IE(InfoExtractor):
         info = self._download_json(
             'http://www.tv4play.se/player/assets/%s.json' % video_id, video_id, 'Downloading video info JSON')
 
-        # If is_geo_restricted is true, it doesn't neceserally mean we can't download it
+        # If is_geo_restricted is true, it doesn't necessarily mean we can't download it
         if info['is_geo_restricted']:
             self.report_warning('This content might not be available in your country due to licensing restrictions.')
         if info['requires_subscription']:
