@@ -54,11 +54,9 @@ class BioBioTVIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        title = self._html_search_meta(
-            'og:title', webpage, 'title', fatal=True)
+        title = self._og_search_title(webpage)
 
-        thumbnail = self._html_search_meta(
-            'og:image', webpage, 'thumbnail', fatal=True)
+        thumbnail = self._og_search_thumbnail(webpage)
 
         video_id = self._html_search_regex(
             r'loadFWPlayerVideo\(\"player_0\", \"\d{4}/(.+)\.mp4\"\)', webpage, 'title')
