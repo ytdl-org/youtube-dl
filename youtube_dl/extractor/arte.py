@@ -199,25 +199,16 @@ class ArteTVCreativeIE(ArteTVPlus7IE):
 
 class ArteTVFutureIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:future'
-    _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de)/(thema|sujet)/.*?#article-anchor-(?P<id>\d+)'
+    _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de)/[^/]+/(?P<id>.+)'
 
-    _TEST = {
-        'url': 'http://future.arte.tv/fr/sujet/info-sciences#article-anchor-7081',
+    _TESTS = [{
+        'url': 'http://future.arte.tv/fr/info-sciences/les-ecrevisses-aussi-sont-anxieuses',
         'info_dict': {
-            'id': '5201',
+            'id': '050940-028-A',
             'ext': 'mp4',
-            'title': 'Les champignons au secours de la planète',
-            'upload_date': '20131101',
+            'title': 'Les écrevisses aussi peuvent être anxieuses',
         },
-    }
-
-    def _real_extract(self, url):
-        anchor_id, lang = self._extract_url_info(url)
-        webpage = self._download_webpage(url, anchor_id)
-        row = self._search_regex(
-            r'(?s)id="%s"[^>]*>.+?(<div[^>]*arte_vp_url[^>]*>)' % anchor_id,
-            webpage, 'row')
-        return self._extract_from_webpage(row, anchor_id, lang)
+    }]
 
 
 class ArteTVDDCIE(ArteTVPlus7IE):
