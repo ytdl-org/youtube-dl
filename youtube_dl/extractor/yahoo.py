@@ -221,7 +221,8 @@ class YahooIE(InfoExtractor):
                     r'root\.App\.Cache\.context\.videoCache\.curVideo = \{"([^"]+)"',
                     r'"first_videoid"\s*:\s*"([^"]+)"',
                     r'%s[^}]*"ccm_id"\s*:\s*"([^"]+)"' % re.escape(page_id),
-                    r'yahoo:\/\/article\/view\?uuid=([^&]+)&',
+                    r'<article[^>]data-uuid=["\']([^"\']+)',
+                    r'yahoo://article/view\?.*\buuid=([^&"\']+)',
                 ]
                 video_id = self._search_regex(
                     CONTENT_ID_REGEXES, webpage, 'content ID')
