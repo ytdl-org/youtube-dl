@@ -85,10 +85,21 @@ class CBSNewsIE(InfoExtractor):
                 fmt['ext'] = 'mp4'
             formats.append(fmt)
 
+        cap_url = 'http://www.cbsnews.com/videos/captions/%s.adb_xml' % video_info['mpxRefId']
+        
+        subtitles = {
+                        'en': [{
+                            'url': cap_url,
+                            'ext': 'xml'
+
+                        }],
+                    }
+
         return {
             'id': video_id,
             'title': title,
             'thumbnail': thumbnail,
             'duration': duration,
             'formats': formats,
+            'subtitles': subtitles,
         }
