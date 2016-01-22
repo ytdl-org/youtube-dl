@@ -199,16 +199,26 @@ class ArteTVCreativeIE(ArteTVPlus7IE):
 
 class ArteTVFutureIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:future'
-    _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de)/[^/]+/(?P<id>.+)'
+    _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de)/(?P<id>.+)'
 
-    _TESTS = [{
-        'url': 'http://future.arte.tv/fr/info-sciences/les-ecrevisses-aussi-sont-anxieuses',
-        'info_dict': {
-            'id': '050940-028-A',
-            'ext': 'mp4',
-            'title': 'Les écrevisses aussi peuvent être anxieuses',
+    _TESTS = [
+        {
+            'url': 'http://future.arte.tv/fr/info-sciences/les-ecrevisses-aussi-sont-anxieuses',
+            'info_dict': {
+                'id': '050940-028-A',
+                'ext': 'mp4',
+                'title': 'Les écrevisses aussi peuvent être anxieuses',
+            },
         },
-    }]
+        {
+            'url': 'http://future.arte.tv/fr/la-science-est-elle-responsable',
+            'info_dict': {
+                'id': '061982-002-A',
+                'ext': 'mp4',
+                'title': 'Brian P. Schmidt - Prix Nobel de physique 2011',
+            },
+        }
+    ]
 
 
 class ArteTVDDCIE(ArteTVPlus7IE):
