@@ -199,25 +199,26 @@ class ArteTVCreativeIE(ArteTVPlus7IE):
 
 class ArteTVFutureIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:future'
-    _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de)/(thema|sujet)/.*?#article-anchor-(?P<id>\d+)'
+    _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de)/(?P<id>.+)'
 
-    _TEST = {
-        'url': 'http://future.arte.tv/fr/sujet/info-sciences#article-anchor-7081',
-        'info_dict': {
-            'id': '5201',
-            'ext': 'mp4',
-            'title': 'Les champignons au secours de la planète',
-            'upload_date': '20131101',
+    _TESTS = [
+        {
+            'url': 'http://future.arte.tv/fr/info-sciences/les-ecrevisses-aussi-sont-anxieuses',
+            'info_dict': {
+                'id': '050940-028-A',
+                'ext': 'mp4',
+                'title': 'Les écrevisses aussi peuvent être anxieuses',
+            },
         },
-    }
-
-    def _real_extract(self, url):
-        anchor_id, lang = self._extract_url_info(url)
-        webpage = self._download_webpage(url, anchor_id)
-        row = self._search_regex(
-            r'(?s)id="%s"[^>]*>.+?(<div[^>]*arte_vp_url[^>]*>)' % anchor_id,
-            webpage, 'row')
-        return self._extract_from_webpage(row, anchor_id, lang)
+        {
+            'url': 'http://future.arte.tv/fr/la-science-est-elle-responsable',
+            'info_dict': {
+                'id': '061982-002-A',
+                'ext': 'mp4',
+                'title': 'Brian P. Schmidt - Prix Nobel de physique 2011',
+            },
+        }
+    ]
 
 
 class ArteTVDDCIE(ArteTVPlus7IE):
