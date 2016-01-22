@@ -35,21 +35,11 @@ class CBSNewsIE(InfoExtractor):
                 'title': 'Fort Hood shooting: Army downplays mental illness as cause of attack',
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'duration': 205,
-            },
-            'params': {
-                # rtmp download
-                'skip_download': True,
-            },
-        },
-        {
-            'url': 'http://www.cbsnews.com/videos/mountain-lions-of-l-a/',
-            'info_dict': {
-                'id': 'Mountain Lions of L.A.',
-                'ext': 'flv',
-                'title': 'Fort Hood shooting: Army downplays mental illness as cause of attack',
-                'thumbnail': 're:^http?://.*\.jpg$',
-                'subtitles': 're:^http?://.*\.xml$',
-                'duration': 787,
+                'subtitles': {
+                    'en': [{
+                        'ext': 'ttml',
+                    }],
+                },
             },
             'params': {
                 # rtmp download
@@ -100,15 +90,12 @@ class CBSNewsIE(InfoExtractor):
                 fmt['ext'] = 'mp4'
             formats.append(fmt)
 
+        subtitles = {}
         if 'mpxRefId' in video_info:
-            cap_url = 'http://www.cbsnews.com/videos/captions/%s.adb_xml' % video_info['mpxRefId']
-            subtitles = {
-                'en': [{
-                    'url': cap_url,
-                    'ext': 'xml'
-                }], }
-        else:
-            subtitles = {}
+            subtitles['en'] = [{
+                'ext': 'ttml',
+                'url': 'http://www.cbsnews.com/videos/captions/%s.adb_xml' % video_info['mpxRefId'],
+            }]
 
         return {
             'id': video_id,
