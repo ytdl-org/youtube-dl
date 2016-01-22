@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .nuevo import NuevoBaseIE
 
 
@@ -22,12 +20,11 @@ class AnitubeIE(NuevoBaseIE):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
         key = self._search_regex(
             r'src=["\']https?://[^/]+/embed/([A-Za-z0-9_-]+)', webpage, 'key')
 
-        config_url = 'http://www.anitube.se/nuevo/econfig.php?key=%s' % key
-        return self._extract_nuevo(config_url, video_id)
+        return self._extract_nuevo(
+            'http://www.anitube.se/nuevo/econfig.php?key=%s' % key, video_id)
