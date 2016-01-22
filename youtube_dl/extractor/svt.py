@@ -37,11 +37,13 @@ class SVTBaseIE(InfoExtractor):
                 })
         self._sort_formats(formats)
 
-        # SVT does not tell us the language, so we assume swedish.
         subtitles = {}
-        for sr in video_info['subtitleReferences']:
-            if 'url' in sr:
-                subtitles.setdefault('sv', []).append({'url': sr['url']})
+        subtitle_references = video_info.get('subtitleReferences')
+        if isinstance(subtitle_references, list):
+            for sr in subtitle_references:
+                subtitle_url = sr.get('url')
+                if subtitle_url:
+                    subtitles.setdefault('sv', []).append({'url': subtitle_url})
 
         duration = video_info.get('materialLength')
         age_limit = 18 if video_info.get('inappropriateForChildren') else 0
@@ -90,30 +92,23 @@ class SVTIE(SVTBaseIE):
 class SVTPlayIE(SVTBaseIE):
     IE_DESC = 'SVT Play and Öppet arkiv'
     _VALID_URL = r'https?://(?:www\.)?(?P<host>svtplay|oppetarkiv)\.se/video/(?P<id>[0-9]+)'
-    _TESTS = [{
-        'url': 'http://www.svtplay.se/video/2609989/sm-veckan/sm-veckan-rally-final-sasong-1-sm-veckan-rally-final',
-        'md5': 'ade3def0643fa1c40587a422f98edfd9',
+    _TEST = {
+        'url': 'http://www.svtplay.se/video/5996901/flygplan-till-haile-selassie/flygplan-till-haile-selassie-2',
+        'md5': '2b6704fe4a28801e1a098bbf3c5ac611',
         'info_dict': {
-            'id': '2609989',
-            'ext': 'flv',
-            'title': 'SM veckan vinter, Örebro - Rally, final',
-            'duration': 4500,
+            'id': '5996901',
+            'ext': 'mp4',
+            'title': 'Flygplan till Haile Selassie',
+            'duration': 3527,
             'thumbnail': 're:^https?://.*[\.-]jpg$',
             'age_limit': 0,
+            'subtitles': {
+                'sv': [{
+                    'ext': 'wsrt',
+                }]
+            },
         },
-    }, {
-        'url': 'http://www.oppetarkiv.se/video/1058509/rederiet-sasong-1-avsnitt-1-av-318',
-        'md5': 'c3101a17ce9634f4c1f9800f0746c187',
-        'info_dict': {
-            'id': '1058509',
-            'ext': 'flv',
-            'title': 'Farlig kryssning',
-            'duration': 2566,
-            'thumbnail': 're:^https?://.*[\.-]jpg$',
-            'age_limit': 0,
-        },
-        'skip': 'Only works from Sweden',
-    }]
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
