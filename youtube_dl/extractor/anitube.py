@@ -2,10 +2,10 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
+from .nuevo import NuevoBaseIE
 
 
-class AnitubeIE(InfoExtractor):
+class AnitubeIE(NuevoBaseIE):
     IE_NAME = 'anitube.se'
     _VALID_URL = r'https?://(?:www\.)?anitube\.se/video/(?P<id>\d+)'
 
@@ -29,31 +29,5 @@ class AnitubeIE(InfoExtractor):
         key = self._search_regex(
             r'src=["\']https?://[^/]+/embed/([A-Za-z0-9_-]+)', webpage, 'key')
 
-        config_xml = self._download_xml(
-            'http://www.anitube.se/nuevo/econfig.php?key=%s' % key, key)
-
-        video_title = config_xml.find('title').text
-        thumbnail = config_xml.find('image').text
-        duration = float(config_xml.find('duration').text)
-
-        formats = []
-        video_url = config_xml.find('file')
-        if video_url is not None:
-            formats.append({
-                'format_id': 'sd',
-                'url': video_url.text,
-            })
-        video_url = config_xml.find('filehd')
-        if video_url is not None:
-            formats.append({
-                'format_id': 'hd',
-                'url': video_url.text,
-            })
-
-        return {
-            'id': video_id,
-            'title': video_title,
-            'thumbnail': thumbnail,
-            'duration': duration,
-            'formats': formats
-        }
+        config_url = 'http://www.anitube.se/nuevo/econfig.php?key=%s' % key
+        return self._extract_nuevo(config_url, video_id)
