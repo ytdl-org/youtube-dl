@@ -16,7 +16,7 @@ class NuevoBaseIE(InfoExtractor):
 
         title = xpath_text(config, './title', 'title', fatal=True).strip()
         video_id = xpath_text(config, './mediaid', default=video_id)
-        thumbnail = xpath_text(config, './image')
+        thumbnail = xpath_text(config, ['./image', './thumb'])
         duration = float_or_none(xpath_text(config, './duration'))
 
         formats = []
