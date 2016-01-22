@@ -37,6 +37,12 @@ class SVTBaseIE(InfoExtractor):
                 })
         self._sort_formats(formats)
 
+        # SVT does not tell us the language, so we assume swedish.
+        subtitles = {}
+        for sr in video_info['subtitleReferences']:
+            if 'url' in sr:
+                subtitles.setdefault('sv', []).append({'url': sr['url']})
+
         duration = video_info.get('materialLength')
         age_limit = 18 if video_info.get('inappropriateForChildren') else 0
 
@@ -44,6 +50,7 @@ class SVTBaseIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'formats': formats,
+            'subtitles': subtitles,
             'thumbnail': thumbnail,
             'duration': duration,
             'age_limit': age_limit,
