@@ -249,6 +249,23 @@ class ArteTVConcertIE(ArteTVPlus7IE):
     }
 
 
+class ArteTVCinemaIE(ArteTVPlus7IE):
+    IE_NAME = 'arte.tv:cinema'
+    _VALID_URL = r'https?://cinema\.arte\.tv/(?P<lang>de|fr)/(?P<id>.+)'
+
+    _TEST = {
+        'url': 'http://cinema.arte.tv/de/node/38291',
+        'md5': '6b275511a5107c60bacbeeda368c3aa1',
+        'info_dict': {
+            'id': '055876-000_PWA12025-D',
+            'ext': 'mp4',
+            'title': 'Tod auf dem Nil',
+            'upload_date': '20160122',
+            'description': 'md5:7f749bbb77d800ef2be11d54529b96bc',
+        },
+    }
+
+
 class ArteTVEmbedIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:embed'
     _VALID_URL = r'''(?x)

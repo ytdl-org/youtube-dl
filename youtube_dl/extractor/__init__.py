@@ -42,6 +42,7 @@ from .arte import (
     ArteTVCreativeIE,
     ArteTVConcertIE,
     ArteTVFutureIE,
+    ArteTVCinemaIE,
     ArteTVDDCIE,
     ArteTVEmbedIE,
 )
