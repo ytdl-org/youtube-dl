@@ -1831,6 +1831,8 @@ def mimetype2ext(mt):
         'x-ms-wmv': 'wmv',
         'x-mp4-fragmented': 'mp4',
         'ttml+xml': 'ttml',
+        '3gpp': '3gp',
+        'x-flv': 'flv',
     }.get(res, res)
 
 
