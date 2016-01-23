@@ -339,8 +339,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      preference, for example: "srt" or
                                      "ass/srt/best"
     --sub-lang LANGS                 Languages of the subtitles to download
-                                     (optional) separated by commas, use IETF
-                                     language tags like 'en,pt'
+                                     (optional) separated by commas, use --list-
+                                     subs for available language tags
 
 ## Authentication Options:
     -u, --username USERNAME          Login with this account ID
