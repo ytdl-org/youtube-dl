@@ -1828,11 +1828,11 @@ def mimetype2ext(mt):
     _, _, res = mt.rpartition('/')
 
     return {
-        'x-ms-wmv': 'wmv',
-        'x-mp4-fragmented': 'mp4',
-        'ttml+xml': 'ttml',
         '3gpp': '3gp',
+        'ttml+xml': 'ttml',
         'x-flv': 'flv',
+        'x-mp4-fragmented': 'mp4',
+        'x-ms-wmv': 'wmv',
     }.get(res, res)
 
 
