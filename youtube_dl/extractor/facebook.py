@@ -23,15 +23,23 @@ from ..utils import (
 
 class FacebookIE(InfoExtractor):
     _VALID_URL = r'''(?x)
-        https?://(?:\w+\.)?facebook\.com/
-        (?:[^#]*?\#!/)?
-        (?:
-            (?:video/video\.php|photo\.php|video\.php|video/embed)\?(?:.*?)
-            (?:v|video_id)=|
-            [^/]+/videos/(?:[^/]+/)?
-        )
-        (?P<id>[0-9]+)
-        (?:.*)'''
+                (?:
+                    https?://
+                        (?:\w+\.)?facebook\.com/
+                        (?:[^#]*?\#!/)?
+                        (?:
+                            (?:
+                                video/video\.php|
+                                photo\.php|
+                                video\.php|
+                                video/embed
+                            )\?(?:.*?)(?:v|video_id)=|
+                            [^/]+/videos/(?:[^/]+/)?
+                        )|
+                    facebook:
+                )
+                (?P<id>[0-9]+)
+                '''
     _LOGIN_URL = 'https://www.facebook.com/login.php?next=http%3A%2F%2Ffacebook.com%2Fhome.php&login_attempt=1'
     _CHECKPOINT_URL = 'https://www.facebook.com/checkpoint/?next=http%3A%2F%2Ffacebook.com%2Fhome.php&_fb_noscript=1'
     _NETRC_MACHINE = 'facebook'
@@ -65,6 +73,9 @@ class FacebookIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.facebook.com/ChristyClarkForBC/videos/vb.22819070941/10153870694020942/?type=2&theater',
+        'only_matching': True,
+    }, {
+        'url': 'facebook:544765982287235',
         'only_matching': True,
     }]
 
