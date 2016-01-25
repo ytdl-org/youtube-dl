@@ -196,7 +196,10 @@ from .everyonesmixtape import EveryonesMixtapeIE
 from .exfm import ExfmIE
 from .expotv import ExpoTVIE
 from .extremetube import ExtremeTubeIE
-from .facebook import FacebookIE
+from .facebook import (
+    FacebookIE,
+    FacebookPostIE,
+)
 from .faz import FazIE
 from .fc2 import FC2IE
 from .fczenit import FczenitIE

@@ -199,3 +199,33 @@ class FacebookIE(InfoExtractor):
             'formats': formats,
             'uploader': uploader,
         }
+
+
+class FacebookPostIE(InfoExtractor):
+    IE_NAME = 'facebook:post'
+    _VALID_URL = r'https?://(?:\w+\.)?facebook\.com/[^/]+/posts/(?P<id>\d+)'
+    _TEST = {
+        'url': 'https://www.facebook.com/maxlayn/posts/10153807558977570',
+        'md5': '037b1fa7f3c2d02b7a0d7bc16031ecc6',
+        'info_dict': {
+            'id': '544765982287235',
+            'ext': 'mp4',
+            'title': '"What are you doing running in the snow?"',
+            'uploader': 'FailArmy',
+        }
+    }
+
+    def _real_extract(self, url):
+        post_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, post_id)
+
+        entries = [
+            self.url_result('facebook:%s' % video_id, FacebookIE.ie_key())
+            for video_id in self._parse_json(
+                self._search_regex(
+                    r'(["\'])video_ids\1\s*:\s*(?P<ids>\[.+?\])',
+                    webpage, 'video ids', group='ids'),
+                post_id)]
+
+        return self.playlist_result(entries, post_id)
