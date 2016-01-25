@@ -551,6 +551,7 @@ from .qqmusic import (
     QQMusicToplistIE,
     QQMusicPlaylistIE,
 )
+from .qqvideo import QqVideoIE
 from .quickvid import QuickVidIE
 from .r7 import R7IE
 from .radiode import RadioDeIE
