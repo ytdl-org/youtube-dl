@@ -68,11 +68,16 @@ class CSpanIE(InfoExtractor):
             video_type, video_id = matches.groups()
             video_type = 'clip' if video_type == 'id' else 'program'
         else:
-            senate_isvp_url = SenateISVPIE._search_iframe_url(webpage)
-            if senate_isvp_url:
-                title = self._og_search_title(webpage)
-                surl = smuggle_url(senate_isvp_url, {'force_title': title})
-                return self.url_result(surl, 'SenateISVP', video_id, title)
+            m = re.search(r'data-(?P<type>clip|prog)id=["\'](?P<id>\d+)', webpage)
+            if m:
+                video_id = m.group('id')
+                video_type = 'program' if m.group('type') == 'prog' else 'clip'
+            else:
+                senate_isvp_url = SenateISVPIE._search_iframe_url(webpage)
+                if senate_isvp_url:
+                    title = self._og_search_title(webpage)
+                    surl = smuggle_url(senate_isvp_url, {'force_title': title})
+                    return self.url_result(surl, 'SenateISVP', video_id, title)
         if video_type is None or video_id is None:
             raise ExtractorError('unable to find video id and type')
 
