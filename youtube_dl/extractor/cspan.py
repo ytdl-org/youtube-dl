@@ -112,6 +112,13 @@ class CSpanIE(InfoExtractor):
                     'height': int_or_none(get_text_attr(quality, 'height')),
                     'tbr': int_or_none(get_text_attr(quality, 'bitrate')),
                 })
+            if not formats:
+                path = get_text_attr(f, 'path')
+                if not path:
+                    continue
+                formats = self._extract_m3u8_formats(
+                    path, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls') if determine_ext(path) == 'm3u8' else [{'url': path, }]
             self._sort_formats(formats)
             entries.append({
                 'id': '%s_%d' % (video_id, partnum + 1),
