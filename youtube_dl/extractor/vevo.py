@@ -26,67 +26,52 @@ class VevoIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.vevo.com/watch/hurts/somebody-to-die-for/GB1101300280',
-        'md5': '2dbc7e9fd4f1c60436c9aa73a5406193',
+        'md5': '95ee28ee45e70130e3ab02b0f579ae23',
         'info_dict': {
-            'id': 'Pt1kc_FniKM',
+            'id': 'GB1101300280',
             'ext': 'mp4',
-            'title': 'Hurts - Somebody to Die For',
-            'description': 'md5:13e925b89af6b01c7e417332bd23c4bf',
-            'uploader_id': 'HurtsVEVO',
-            'uploader': 'HurtsVEVO',
+            'title': 'Somebody to Die For',
             'upload_date': '20130624',
-            'duration': 230,
+            'uploader': 'Hurts',
+            'timestamp': 1372057200,
         },
-        'add_ie': ['Youtube'],
     }, {
         'note': 'v3 SMIL format',
         'url': 'http://www.vevo.com/watch/cassadee-pope/i-wish-i-could-break-your-heart/USUV71302923',
-        'md5': '13d5204f520af905eeffa675040b8e76',
+        'md5': 'f6ab09b034f8c22969020b042e5ac7fc',
         'info_dict': {
-            'id': 'ByGmQn1uxJw',
+            'id': 'USUV71302923',
             'ext': 'mp4',
-            'title': 'Cassadee Pope - I Wish I Could Break Your Heart',
-            'description': 'md5:5e9721c92ef117a6f69d00e9b42ceba7',
-            'uploader_id': 'CassadeeVEVO',
-            'uploader': 'CassadeeVEVO',
+            'title': 'I Wish I Could Break Your Heart',
             'upload_date': '20140219',
-            'duration': 226,
-            'age_limit': 0,
+            'uploader': 'Cassadee Pope',
+            'timestamp': 1392796919,
         },
-        'add_ie': ['Youtube'],
     }, {
         'note': 'Age-limited video',
         'url': 'https://www.vevo.com/watch/justin-timberlake/tunnel-vision-explicit/USRV81300282',
         'info_dict': {
-            'id': '07FYdnEawAQ',
+            'id': 'USRV81300282',
             'ext': 'mp4',
-            'age_limit': 18,
-            'title': 'Justin Timberlake - Tunnel Vision (Explicit)',
-            'description': 'md5:64249768eec3bc4276236606ea996373',
-            'uploader_id': 'justintimberlakeVEVO',
-            'uploader': 'justintimberlakeVEVO',
+            'title': 'Tunnel Vision (Explicit)',
             'upload_date': '20130703',
-            'duration': 419,
+            'age_limit': 18,
+            'uploader': 'Justin Timberlake',
+            'timestamp': 1372888800,
         },
-        'params': {
-            'skip_download': 'true',
-        },
-        'add_ie': ['Youtube'],
     }, {
         'note': 'No video_info',
         'url': 'http://www.vevo.com/watch/k-camp-1/Till-I-Die/USUV71503000',
-        'md5': 'a8b84d1d1957cd01046441b701b270fb',
+        'md5': '8b83cc492d72fc9cf74a02acee7dc1b0',
         'info_dict': {
-            'id': 'Lad2jHtJCqY',
+            'id': 'USUV71503000',
             'ext': 'mp4',
-            'title': 'K Camp - Till I Die ft. T.I.',
-            'description': 'md5:0694920ededdee4a14cfc39695cc8ec3',
-            'uploader_id': 'KCampVEVO',
-            'uploader': 'KCampVEVO',
+            'title': 'Till I Die',
             'upload_date': '20151207',
-            'duration': 193,
+            'age_limit': 18,
+            'uploader': 'K Camp',
+            'timestamp': 1449468000,
         },
-        'add_ie': ['Youtube'],
     }]
     _SMIL_BASE_URL = 'http://smil.lvl3.vevo.com'
     _SOURCE_TYPES = {
@@ -146,7 +131,7 @@ class VevoIE(InfoExtractor):
             })
         return formats
 
-    def _initialize_api(self, video_url, video_id):
+    def _initialize_api(self, video_id):
         req = sanitized_Request(
             'http://www.vevo.com/auth', data=b'')
         webpage = self._download_webpage(
@@ -155,7 +140,8 @@ class VevoIE(InfoExtractor):
             errnote='Unable to retrieve oauth token')
 
         if 'THIS PAGE IS CURRENTLY UNAVAILABLE IN YOUR REGION' in webpage:
-            raise ExtractorError('%s said: This page is currently unavailable in your region.' % self.IE_NAME, expected=True)
+            raise ExtractorError(
+                '%s said: This page is currently unavailable in your region.' % self.IE_NAME, expected=True)
 
         auth_info = self._parse_json(webpage, video_id)
         self._api_url_template = self.http_scheme() + '//apiv2.vevo.com/%s?token=' + auth_info['access_token']
@@ -167,7 +153,8 @@ class VevoIE(InfoExtractor):
         video_id = self._match_id(url)
 
         json_url = 'http://videoplayer.vevo.com/VideoService/AuthenticateVideo?isrc=%s' % video_id
-        response = self._download_json(json_url, video_id, 'Downloading video info', 'Unable to download info')
+        response = self._download_json(
+            json_url, video_id, 'Downloading video info', 'Unable to download info')
         video_info = response.get('video') or {}
         video_versions = video_info.get('videoVersions')
         uploader = None
@@ -176,29 +163,22 @@ class VevoIE(InfoExtractor):
         formats = []
 
         if not video_info:
-            ytid = response.get('errorInfo', {}).get('ytid')
-            if ytid:
-                return self.url_result(ytid, 'Youtube', ytid)
-
             if response.get('statusCode') != 909:
+                ytid = response.get('errorInfo', {}).get('ytid')
+                if ytid:
+                    self.report_warning(
+                        'Video is geoblocked, trying with the YouTube video %s' % ytid)
+                    return self.url_result(ytid, 'Youtube', ytid)
+
                 if 'statusMessage' in response:
                     raise ExtractorError('%s said: %s' % (
                         self.IE_NAME, response['statusMessage']), expected=True)
                 raise ExtractorError('Unable to extract videos')
 
-            if url.startswith('vevo:'):
-                raise ExtractorError(
-                    'Please specify full Vevo URL for downloading', expected=True)
-
-            self._initialize_api(url, video_id)
+            self._initialize_api(video_id)
             video_info = self._call_api(
                 'video/%s' % video_id, video_id, 'Downloading api video info',
                 'Failed to download video info')
-
-            ytid = video_info.get('youTubeId')
-            if ytid:
-                return self.url_result(
-                    ytid, 'Youtube', ytid)
 
             video_versions = self._call_api(
                 'video/%s/streams' % video_id, video_id,
@@ -215,7 +195,7 @@ class VevoIE(InfoExtractor):
                 version = self._VERSIONS.get(video_version['version'])
                 version_url = video_version.get('url')
                 if not version_url:
-                        continue
+                    continue
 
                 if '.mpd' in version_url or '.ism' in version_url:
                     continue
@@ -261,8 +241,7 @@ class VevoIE(InfoExtractor):
             for video_version in video_info['videoVersions']:
                 version = self._VERSIONS.get(video_version['version'])
                 if version == 'youtube':
-                    return self.url_result(
-                        video_version['id'], 'Youtube', video_version['id'])
+                    continue
                 else:
                     source_type = self._SOURCE_TYPES.get(video_version['sourceType'])
                     renditions = compat_etree_fromstring(video_version['data'])
@@ -287,7 +266,7 @@ class VevoIE(InfoExtractor):
                             note='Downloading %s m3u8 information' % version,
                             errnote='Failed to download %s m3u8 information' % version,
                             fatal=False))
-                    elif source_type == 'smil' and not smil_parsed:
+                    elif source_type == 'smil' and version == 'level3' and not smil_parsed:
                         formats.extend(self._extract_smil_formats(
                             renditions.find('rendition').attrib['url'], video_id, False))
                         smil_parsed = True
