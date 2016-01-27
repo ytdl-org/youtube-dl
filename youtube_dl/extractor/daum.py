@@ -2,7 +2,6 @@
 
 from __future__ import unicode_literals
 
-import re
 import itertools
 
 from .common import InfoExtractor
@@ -14,6 +13,7 @@ from ..utils import (
     int_or_none,
     str_to_int,
     xpath_text,
+    unescapeHTML,
 )
 
 
@@ -114,7 +114,7 @@ class DaumIE(InfoExtractor):
 
 
 class DaumClipIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:m\.)?tvpot\.daum\.net/(?:clip/ClipView.(?:do|tv)|mypot/View.do)\?.*?clipid=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:m\.)?tvpot\.daum\.net/(?:clip/ClipView.do|mypot/View.do)\?.*?clipid=(?P<id>\d+)'
     IE_NAME = 'daum.net:clip'
 
     _TESTS = [{
@@ -129,9 +129,6 @@ class DaumClipIE(InfoExtractor):
             'duration': 3868,
             'view_count': int,
         },
-    }, {
-        'url': 'http://m.tvpot.daum.net/clip/ClipView.tv?clipid=54999425',
-        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -144,7 +141,7 @@ class DaumClipIE(InfoExtractor):
             '_type': 'url_transparent',
             'id': video_id,
             'url': 'http://tvpot.daum.net/v/%s' % clip_info['vid'],
-            'title': clip_info['title'],
+            'title': unescapeHTML(clip_info['title']),
             'thumbnail': clip_info.get('thumb_url'),
             'description': clip_info.get('contents'),
             'duration': int_or_none(clip_info.get('duration')),
@@ -158,7 +155,7 @@ class DaumListIE(InfoExtractor):
     def _get_entries(self, list_id, list_id_type):
         name = None
         entries = []
-        for pagenum in itertools.count(start=1):
+        for pagenum in itertools.count(1):
             list_info = self._download_json(
                 'http://tvpot.daum.net/mypot/json/GetClipInfo.do?size=48&init=true&order=date&page=%d&%s=%s' % (
                     pagenum, list_id_type, list_id), list_id,'Downloading list info - %s' % pagenum)
@@ -211,6 +208,8 @@ class DaumPlaylistIE(DaumListIE):
             return self.url_result(url, 'DaumClip')
 
         list_id = self._match_id(url)
+        self.to_screen('Downloading playlist %s - add --no-playlist to just download video' % list_id)
+
         name, entries = self._get_entries(list_id, 'playlistid')
 
         return self.playlist_result(entries, list_id, name)
@@ -232,7 +231,7 @@ class DaumUserIE(DaumListIE):
         'info_dict': {
             'id': '73801156',
             'ext': 'mp4',
-            'title': '[미공개] 김구라, 오만석이 부릅니다 &#39;오케피&#39; - 마이 리틀 텔레비전 20160116',
+            'title': '[미공개] 김구라, 오만석이 부릅니다 \'오케피\' - 마이 리틀 텔레비전 20160116',
             'upload_date': '20160117',
             'description': 'md5:5e91d2d6747f53575badd24bd62b9f36'
         },
@@ -261,6 +260,7 @@ class DaumUserIE(DaumListIE):
             return self.url_result(url, 'DaumPlaylist')
 
         list_id = self._match_id(url)
+        self.to_screen('Downloading playlist %s - add --no-playlist to just download video' % list_id)
         name, entries = self._get_entries(list_id, 'ownerid')
 
         return self.playlist_result(entries, list_id, name)
