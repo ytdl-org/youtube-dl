@@ -38,7 +38,7 @@ class SpankBangIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = self._html_search_regex(
-            r'(?s)<h1>(.+?)</h1>', webpage, 'title')
+            r'(?s)<h1[^>]*>(.+?)</h1>', webpage, 'title')
         description = self._search_regex(
             r'class="desc"[^>]*>([^<]+)',
             webpage, 'description', default=None)
