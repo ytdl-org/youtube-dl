@@ -1020,6 +1020,18 @@ class InfoExtractor(object):
             return []
         m3u8_doc, urlh = res
         m3u8_url = urlh.geturl()
+        # A Media Playlist Tag MUST NOT appear in a Master Playlist
+        # https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3
+        # The EXT-X-TARGETDURATION tag is REQUIRED for every M3U8 Media Playlists
+        # https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3.1
+        if '#EXT-X-TARGETDURATION' in m3u8_doc:
+            return [{
+                'url': m3u8_url,
+                'format_id': m3u8_id,
+                'ext': ext,
+                'protocol': entry_protocol,
+                'preference': preference,
+            }]
         last_info = None
         last_media = None
         kv_rex = re.compile(
@@ -1170,6 +1182,7 @@ class InfoExtractor(object):
         formats = []
         rtmp_count = 0
         http_count = 0
+        m3u8_count = 0
 
         videos = smil.findall(self._xpath_ns('.//video', namespace))
         for video in videos:
@@ -1209,8 +1222,17 @@ class InfoExtractor(object):
             src_url = src if src.startswith('http') else compat_urlparse.urljoin(base, src)
 
             if proto == 'm3u8' or src_ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    src_url, video_id, ext or 'mp4', m3u8_id='hls', fatal=False))
+                m3u8_formats = self._extract_m3u8_formats(
+                    src_url, video_id, ext or 'mp4', m3u8_id='hls', fatal=False)
+                if len(m3u8_formats) == 1:
+                    m3u8_count += 1
+                    m3u8_formats[0].update({
+                        'format_id': 'hls-%d' % (m3u8_count if bitrate is None else bitrate),
+                        'tbr': bitrate,
+                        'width': width,
+                        'height': height,
+                    })
+                formats.extend(m3u8_formats)
                 continue
 
             if src_ext == 'f4m':
