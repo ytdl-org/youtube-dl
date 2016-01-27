@@ -825,6 +825,12 @@ class InfoExtractor(object):
         if not formats:
             raise ExtractorError('No video formats found')
 
+        for f in formats:
+            # Automatically determine tbr when missing based on abr and vbr (improves
+            # formats sorting in some cases)
+            if 'tbr' not in f and 'abr' in f and 'vbr' in f:
+                f['tbr'] = f['abr'] + f['vbr']
+
         def _formats_key(f):
             # TODO remove the following workaround
             from ..utils import determine_ext
