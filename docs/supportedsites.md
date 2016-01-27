@@ -180,6 +180,7 @@
  - **ExpoTV**
  - **ExtremeTube**
  - **facebook**
+ - **facebook:post**
  - **faz.net**
  - **fc2**
  - **Fczenit**
