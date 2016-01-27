@@ -5,7 +5,6 @@ import re
 import json
 
 from .theplatform import ThePlatformIE
-from ..utils import remove_start
 
 
 class CBSNewsIE(ThePlatformIE):
