@@ -391,6 +391,10 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         for (name, value) in metadata.items():
             options.extend(['-metadata', '%s=%s' % (name, value)])
 
+        # https://github.com/rg3/youtube-dl/issues/8350
+        if info['protocol'] == 'm3u8_native':
+            options.extend(['-bsf:a', 'aac_adtstoasc'])
+
         self._downloader.to_screen('[ffmpeg] Adding metadata to \'%s\'' % filename)
         self.run_ffmpeg(filename, temp_filename, options)
         os.remove(encodeFilename(filename))
