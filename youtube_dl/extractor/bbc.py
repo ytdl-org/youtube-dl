@@ -194,6 +194,19 @@ class BBCCoUkIE(InfoExtractor):
                 'skip_download': True,
             },
         }, {
+            # compact player (https://github.com/rg3/youtube-dl/issues/8147)
+            'url': 'http://www.bbc.co.uk/programmes/p028bfkf/player',
+            'info_dict': {
+                'id': 'p028bfkj',
+                'ext': 'flv',
+                'title': 'Extract from BBC documentary Look Stranger - Giant Leeks and Magic Brews',
+                'description': 'Extract from BBC documentary Look Stranger - Giant Leeks and Magic Brews',
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            },
+        }, {
             'url': 'http://www.bbc.co.uk/iplayer/playlist/p01dvks4',
             'only_matching': True,
         }, {
