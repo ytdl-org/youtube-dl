@@ -906,7 +906,7 @@ class YoutubeDL(object):
             str_operator_rex = re.compile(r'''(?x)
                 \s*(?P<key>ext|acodec|vcodec|container|protocol)
                 \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?
-                \s*(?P<value>[a-zA-Z0-9_-]+)
+                \s*(?P<value>[a-zA-Z0-9._-]+)
                 \s*$
                 ''' % '|'.join(map(re.escape, STR_OPERATORS.keys())))
             m = str_operator_rex.search(filter_spec)
