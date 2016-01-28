@@ -485,7 +485,8 @@ class BBCCoUkIE(InfoExtractor):
                 (r'<h2[^>]+id="parent-title"[^>]*>(.+?)</h2>',
                  r'<div[^>]+class="info"[^>]*>\s*<h1>(.+?)</h1>'), webpage, 'title')
             description = self._search_regex(
-                r'<p class="[^"]*medium-description[^"]*">([^<]+)</p>',
+                (r'<p class="[^"]*medium-description[^"]*">([^<]+)</p>',
+                 r'<div[^>]+class="info_+synopsis"[^>]*>([^<]+)</div>'),
                 webpage, 'description', default=None)
             if not description:
                 description = self._html_search_meta('description', webpage)
