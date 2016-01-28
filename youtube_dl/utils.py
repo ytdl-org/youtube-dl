@@ -2015,29 +2015,74 @@ def dfxp2srt(dfxp_data):
     _x = functools.partial(xpath_with_ns, ns_map={
         'ttml': 'http://www.w3.org/ns/ttml',
         'ttaf1': 'http://www.w3.org/2006/10/ttaf1',
+        'ttmltts': 'http://www.w3.org/ns/ttml#styling',
+        'ttaf1tts': 'http://www.w3.org/2006/10/ttaf1#styling',
+        'ttaf1ttsg': 'http://www.w3.org/2006/10/ttaf1#style',
     })
 
-    def parse_node(node):
-        str_or_empty = functools.partial(str_or_none, default='')
+    def get_node_style(node, styles):
+        style = styles.get(node.get('style'), {}).copy()
+        for ttml_attr, srt_attr in {'color': 'color', 'fontSize': 'size'}.items():
+            val = node.get(_x('ttmltts:%s') % ttml_attr) or node.get(_x('ttaf1tts:%s') % ttml_attr) or node.get(_x('ttaf1ttsg:%s') % ttml_attr)
+            if val:
+                style[srt_attr] = val
+        return style
 
-        out = str_or_empty(node.text)
+    str_or_empty = functools.partial(str_or_none, default='')
 
-        for child in node:
-            if child.tag in (_x('ttml:br'), _x('ttaf1:br'), 'br'):
-                out += '\n' + str_or_empty(child.tail)
-            elif child.tag in (_x('ttml:span'), _x('ttaf1:span'), 'span'):
-                out += str_or_empty(parse_node(child))
-            else:
-                out += str_or_empty(xml.etree.ElementTree.tostring(child))
+    class TTMLElementParser:
+        out = ''
+        style = {}
 
+        def start(self, tag, attrib):
+            if tag in (_x('ttml:br'), _x('ttaf1:br'), 'br'):
+                self.out += '\n'
+            elif tag in (_x('ttml:span'), _x('ttaf1:span'), 'span'):
+                self.style = get_node_style(attrib, styles)
+                if self.style:
+                    attrib = ''
+                    for key, val in self.style.items():
+                        attrib += '%s="%s" ' % (key, val)
+                    self.out += '<font %s>' % attrib
+
+        def end(self, tag):
+            if tag in (_x('ttml:span'), _x('ttaf1:span'), 'span'):
+                if self.style:
+                    self.out += '</font>'
+
+        def data(self, data):
+            self.out += str_or_empty(data)
+
+        def close(self):
+            return self.out.strip()
+
+    def parse_node(node, default_style, styles):
+        style = get_node_style(node, styles) or default_style
+        target = TTMLElementParser()
+        parser = xml.etree.ElementTree.XMLParser(target=target)
+        parser.feed(xml.etree.ElementTree.tostring(node))
+        out = parser.close()
+        if out and style:
+            attrib = ''
+            for key, val in style.items():
+                attrib += '%s="%s" ' % (key, val)
+            out = '<font %s>%s</font>' % (attrib, out)
         return out
 
     dfxp = compat_etree_fromstring(dfxp_data.encode('utf-8'))
     out = []
-    paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall(_x('.//ttaf1:p')) or dfxp.findall('.//p')
 
+    paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall(_x('.//ttaf1:p')) or dfxp.findall('.//p')
     if not paras:
         raise ValueError('Invalid dfxp/TTML subtitle')
+
+    styles = {}
+    style_nodes = dfxp.findall(_x('.//ttml:style')) or dfxp.findall(_x('.//ttaf1:style'))
+    if style_nodes:
+        for i in range(2):
+            for style_node in style_nodes:
+                styles[style_node.get('id')] = get_node_style(style_node, styles)
+    default_style = get_node_style(xpath_element(dfxp, [_x('.//ttml:body'), _x('.//ttaf1:body'), 'body']), styles) or get_node_style(xpath_element(dfxp, [_x('.//ttml:div'), _x('.//ttaf1:div'), 'div']), styles)
 
     for para, index in zip(paras, itertools.count(1)):
         begin_time = parse_dfxp_time_expr(para.attrib.get('begin'))
@@ -2053,7 +2098,7 @@ def dfxp2srt(dfxp_data):
             index,
             srt_subtitles_timecode(begin_time),
             srt_subtitles_timecode(end_time),
-            parse_node(para)))
+            parse_node(para, default_style, styles)))
 
     return ''.join(out)
 
