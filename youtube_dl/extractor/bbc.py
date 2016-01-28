@@ -482,7 +482,8 @@ class BBCCoUkIE(InfoExtractor):
         if programme_id:
             formats, subtitles = self._download_media_selector(programme_id)
             title = self._og_search_title(webpage, default=None) or self._html_search_regex(
-                r'<h2[^>]+id="parent-title"[^>]*>(.+?)</h2>', webpage, 'title')
+                (r'<h2[^>]+id="parent-title"[^>]*>(.+?)</h2>',
+                 r'<div[^>]+class="info"[^>]*>\s*<h1>(.+?)</h1>'), webpage, 'title')
             description = self._search_regex(
                 r'<p class="[^"]*medium-description[^"]*">([^<]+)</p>',
                 webpage, 'description', default=None)
