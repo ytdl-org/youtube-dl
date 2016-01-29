@@ -50,7 +50,7 @@ from .atresplayer import AtresPlayerIE
 from .atttechchannel import ATTTechChannelIE
 from .audimedia import AudiMediaIE
 from .audiomack import AudiomackIE, AudiomackAlbumIE
-from .azubu import AzubuIE
+from .azubu import AzubuIE, AzubuLiveIE
 from .baidu import BaiduVideoIE
 from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE
