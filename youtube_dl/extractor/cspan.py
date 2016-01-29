@@ -113,7 +113,7 @@ class CSpanIE(InfoExtractor):
                     'tbr': int_or_none(get_text_attr(quality, 'bitrate')),
                 })
             if not formats:
-                path = get_text_attr(f, 'path')
+                path = unescapeHTML(get_text_attr(f, 'path'))
                 if not path:
                     continue
                 formats = self._extract_m3u8_formats(
