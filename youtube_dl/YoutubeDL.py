@@ -1423,6 +1423,7 @@ class YoutubeDL(object):
                 raise MaxDownloadsReached()
 
         info_dict['fulltitle'] = info_dict['title']
+        info_dict['title'] = " ".join(info_dict['title'].split())
         if len(info_dict['title']) > 200:
             info_dict['title'] = info_dict['title'][:197] + '...'
 
