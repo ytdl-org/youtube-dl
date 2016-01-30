@@ -49,9 +49,6 @@ class DaumIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         query = compat_urllib_parse.urlencode({'vid': video_id})
-        info = self._download_xml(
-            'http://tvpot.daum.net/clip/ClipInfoXml.do?' + query, video_id,
-            'Downloading video info')
         movie_data = self._download_json(
             'http://videofarm.daum.net/controller/api/closed/v1_2/IntegratedMovieData.json?' + query,
             video_id, 'Downloading video formats info')
@@ -59,6 +56,10 @@ class DaumIE(InfoExtractor):
         # For urls like http://m.tvpot.daum.net/v/65139429, where the video_id is really a clipid
         if not movie_data.get('output_list', {}).get('output_list') and re.match(r'^\d+$', video_id):
             return self.url_result('http://tvpot.daum.net/clip/ClipView.do?clipid=%s' % video_id)
+
+        info = self._download_xml(
+            'http://tvpot.daum.net/clip/ClipInfoXml.do?' + query, video_id,
+            'Downloading video info')
 
         formats = []
         for format_el in movie_data['output_list']['output_list']:
