@@ -73,6 +73,7 @@ class FacebookIE(InfoExtractor):
     }, {
         'note': 'Video with DASH manifest',
         'url': 'https://www.facebook.com/video.php?v=957955867617029',
+        'md5': '54706e4db4f5ad58fbad82dde1f1213f',
         'info_dict': {
             'id': '957955867617029',
             'ext': 'mp4',
