@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 import re
+import itertools
 
 from .common import InfoExtractor
 from ..compat import (
@@ -13,6 +14,7 @@ from ..utils import (
     int_or_none,
     str_to_int,
     xpath_text,
+    unescapeHTML,
 )
 
 
@@ -143,7 +145,7 @@ class DaumClipIE(InfoExtractor):
             '_type': 'url_transparent',
             'id': video_id,
             'url': 'http://tvpot.daum.net/v/%s' % clip_info['vid'],
-            'title': clip_info['title'],
+            'title': unescapeHTML(clip_info['title']),
             'thumbnail': clip_info.get('thumb_url'),
             'description': clip_info.get('contents'),
             'duration': int_or_none(clip_info.get('duration')),
@@ -151,3 +153,118 @@ class DaumClipIE(InfoExtractor):
             'view_count': int_or_none(clip_info.get('play_count')),
             'ie_key': 'Daum',
         }
+
+
+class DaumListIE(InfoExtractor):
+    def _get_entries(self, list_id, list_id_type):
+        name = None
+        entries = []
+        for pagenum in itertools.count(1):
+            list_info = self._download_json(
+                'http://tvpot.daum.net/mypot/json/GetClipInfo.do?size=48&init=true&order=date&page=%d&%s=%s' % (
+                    pagenum, list_id_type, list_id), list_id,'Downloading list info - %s' % pagenum)
+            
+            entries.extend([
+                self.url_result(
+                    'http://tvpot.daum.net/v/%s' % clip['vid'])
+                for clip in list_info['clip_list']
+            ])
+
+            if not name:
+                name = list_info.get('playlist_bean', {}).get('name') or \
+                    list_info.get('potInfo', {}).get('name')
+
+            if not list_info.get('has_more'):
+                break
+
+        return name, entries
+
+
+class DaumPlaylistIE(DaumListIE):
+    _VALID_URL = r'https?://(?:m\.)?tvpot\.daum\.net/mypot/(?:View\.do|Top\.tv)\?.*?playlistid=(?P<id>[0-9]+)'
+    IE_NAME = 'daum.net:playlist'
+
+    _TESTS = [{
+        'note': 'Playlist url with clipid',
+        'url': 'http://tvpot.daum.net/mypot/View.do?playlistid=6213966&clipid=73806844',
+        'info_dict': {
+            'id': '6213966',
+            'title': 'Woorissica Official',
+        },
+        'playlist_mincount': 181
+    }, {
+        'note': 'Playlist url with clipid - noplaylist',
+        'url': 'http://tvpot.daum.net/mypot/View.do?playlistid=6213966&clipid=73806844',
+        'info_dict': {
+            'id': '73806844',
+            'ext': 'mp4',
+            'title': '151017 Airport',
+            'upload_date': '20160117',
+        },
+        'params': {
+            'noplaylist': True,
+            'skip_download': True,
+        }
+    }]
+
+    def _real_extract(self, url):
+        if DaumClipIE.suitable(url) and self._downloader.params.get('noplaylist'):
+            return self.url_result(url, 'DaumClip')
+
+        list_id = self._match_id(url)
+        self.to_screen('Downloading playlist %s - add --no-playlist to just download video' % list_id)
+
+        name, entries = self._get_entries(list_id, 'playlistid')
+
+        return self.playlist_result(entries, list_id, name)
+
+
+class DaumUserIE(DaumListIE):
+    _VALID_URL = r'https?://(?:m\.)?tvpot\.daum\.net/mypot/(?:View|Top)\.do\?.*?ownerid=(?P<id>[0-9a-zA-Z]+)'
+    IE_NAME = 'daum.net:user'
+
+    _TESTS = [{
+        'url': 'http://tvpot.daum.net/mypot/View.do?ownerid=o2scDLIVbHc0',
+        'info_dict': {
+            'id': 'o2scDLIVbHc0',
+            'title': '마이 리틀 텔레비전',
+        },
+        'playlist_mincount': 213
+    }, {
+        'url': 'http://tvpot.daum.net/mypot/View.do?ownerid=o2scDLIVbHc0&clipid=73801156',
+        'info_dict': {
+            'id': '73801156',
+            'ext': 'mp4',
+            'title': '[미공개] 김구라, 오만석이 부릅니다 \'오케피\' - 마이 리틀 텔레비전 20160116',
+            'upload_date': '20160117',
+            'description': 'md5:5e91d2d6747f53575badd24bd62b9f36'
+        },
+        'params': {
+            'noplaylist': True,
+            'skip_download': True,
+        }
+    }, {
+        'note': 'Playlist url has ownerid and playlistid, playlistid takes precedence',
+        'url': 'http://tvpot.daum.net/mypot/View.do?ownerid=o2scDLIVbHc0&playlistid=6196631',
+        'info_dict': {
+            'id': '6196631',
+            'title': '마이 리틀 텔레비전 - 20160109',
+        },
+        'playlist_count': 11
+    }, {
+        'url': 'http://tvpot.daum.net/mypot/Top.do?ownerid=o2scDLIVbHc0',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        if DaumClipIE.suitable(url) and self._downloader.params.get('noplaylist'):
+            return self.url_result(url, 'DaumClip')
+
+        if DaumPlaylistIE.suitable(url):
+            return self.url_result(url, 'DaumPlaylist')
+
+        list_id = self._match_id(url)
+        self.to_screen('Downloading playlist %s - add --no-playlist to just download video' % list_id)
+        name, entries = self._get_entries(list_id, 'ownerid')
+
+        return self.playlist_result(entries, list_id, name)
