@@ -1376,10 +1376,15 @@ class InfoExtractor(object):
                         full_info.update(f)
                         codecs = r.attrib.get('codecs')
                         if codecs:
-                            if full_info.get('acodec') == 'none':
-                                full_info['vcodec'] = codecs
-                            elif full_info.get('vcodec') == 'none':
-                                full_info['acodec'] = codecs
+                            if mime_type.startswith('video/'):
+                                vcodec, acodec = codecs, 'none'
+                            else:  # mime_type.startswith('audio/')
+                                vcodec, acodec = 'none', codecs
+
+                            full_info.update({
+                                'vcodec': vcodec,
+                                'acodec': acodec,
+                            })
                         formats.append(full_info)
                     else:
                         existing_format.update(f)
