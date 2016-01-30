@@ -18,12 +18,16 @@ class NBAIE(InfoExtractor):
         'md5': '9e7729d3010a9c71506fd1248f74e4f4',
         'info_dict': {
             'id': '0021200253-okc-bkn-recap',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Thunder vs. Nets',
             'description': 'Kevin Durant scores 32 points and dishes out six assists as the Thunder beat the Nets in Brooklyn.',
             'duration': 181,
             'timestamp': 1354638466,
             'upload_date': '20121204',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
     }, {
         'url': 'http://www.nba.com/video/games/hornets/2014/12/05/0021400276-nyk-cha-play5.nba/',
@@ -68,7 +72,7 @@ class NBAIE(InfoExtractor):
             if video_url.startswith('/'):
                 continue
             if video_url.endswith('.m3u8'):
-                formats.extend(self._extract_m3u8_formats(video_url, video_id, m3u8_id='hls', fatal=False))
+                formats.extend(self._extract_m3u8_formats(video_url, video_id, ext='mp4', m3u8_id='hls', fatal=False))
             elif video_url.endswith('.f4m'):
                 formats.extend(self._extract_f4m_formats(video_url + '?hdcore=3.4.1.1', video_id, f4m_id='hds', fatal=False))
             else:
