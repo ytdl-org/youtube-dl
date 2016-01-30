@@ -332,6 +332,7 @@ class F4mFD(FragmentFD):
         ctx = {
             'filename': filename,
             'total_frags': total_frags,
+            'live': live,
         }
 
         self._prepare_frag_download(ctx)
