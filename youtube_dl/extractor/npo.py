@@ -428,7 +428,8 @@ class SchoolTVIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        video_id = self._search_regex(r'data-mid="([^"]+)"', webpage, 'video_id')
+        video_id = self._search_regex(
+            r'data-mid=(["\'])(?P<id>.+?)\1', webpage, 'video_id', group='id')
         return {
             '_type': 'url_transparent',
             'ie_key': 'NPO',
