@@ -1330,7 +1330,7 @@ class InfoExtractor(object):
             })
         return entries
 
-    def _parse_dash_manifest(self, video_id, dash_doc, namespace=None, formats_dict={}, fatal=True):
+    def _parse_dash_manifest(self, dash_doc, namespace=None, formats_dict={}):
         def _add_ns(path):
             return self._xpath_ns(path, namespace)
 
