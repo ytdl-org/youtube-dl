@@ -9,9 +9,9 @@ from ..utils import (
 
 
 class GamekingsIE(InfoExtractor):
-    _VALID_URL = r'http://www\.gamekings\.tv/(?:videos|nieuws)/(?P<id>[^/]+)'
+    _VALID_URL = r'http://www\.gamekings\.nl/(?:videos|nieuws)/(?P<id>[^/]+)'
     _TESTS = [{
-        'url': 'http://www.gamekings.tv/videos/phoenix-wright-ace-attorney-dual-destinies-review/',
+        'url': 'http://www.gamekings.nl/videos/phoenix-wright-ace-attorney-dual-destinies-review/',
         # MD5 is flaky, seems to change regularly
         # 'md5': '2f32b1f7b80fdc5cb616efb4f387f8a3',
         'info_dict': {
@@ -23,7 +23,7 @@ class GamekingsIE(InfoExtractor):
         },
     }, {
         # vimeo video
-        'url': 'http://www.gamekings.tv/videos/the-legend-of-zelda-majoras-mask/',
+        'url': 'http://www.gamekings.nl/videos/the-legend-of-zelda-majoras-mask/',
         'md5': '12bf04dfd238e70058046937657ea68d',
         'info_dict': {
             'id': 'the-legend-of-zelda-majoras-mask',
@@ -33,7 +33,7 @@ class GamekingsIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.jpg$',
         },
     }, {
-        'url': 'http://www.gamekings.tv/nieuws/gamekings-extra-shelly-en-david-bereiden-zich-voor-op-de-livestream/',
+        'url': 'http://www.gamekings.nl/nieuws/gamekings-extra-shelly-en-david-bereiden-zich-voor-op-de-livestream/',
         'only_matching': True,
     }]
 
