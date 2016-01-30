@@ -53,8 +53,8 @@ class ESPNIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_id = self._search_regex(
-            r'class="video-play-button"[^>]+data-id="(\d+)',
-            webpage, 'video id')
+            r'class=(["\']).*?video-play-button.*?\1[^>]+data-id=["\'](?P<id>\d+)',
+            webpage, 'video id', group='id')
 
         cms = 'espn'
         if 'data-source="intl"' in webpage:

@@ -828,7 +828,7 @@ class InfoExtractor(object):
         for f in formats:
             # Automatically determine tbr when missing based on abr and vbr (improves
             # formats sorting in some cases)
-            if 'tbr' not in f and 'abr' in f and 'vbr' in f:
+            if 'tbr' not in f and f.get('abr') is not None and f.get('vbr') is not None:
                 f['tbr'] = f['abr'] + f['vbr']
 
         def _formats_key(f):
