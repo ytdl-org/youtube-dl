@@ -322,7 +322,8 @@ class F4mFD(FragmentFD):
             metadata = None
 
         fragments_list = build_fragments_list(boot_info)
-        if self.params.get('test', False):
+        test = self.params.get('test', False)
+        if test:
             # We only download the first fragment
             fragments_list = fragments_list[:1]
         total_frags = len(fragments_list)
@@ -387,7 +388,7 @@ class F4mFD(FragmentFD):
                 else:
                     raise
 
-            if not fragments_list and live and bootstrap_url:
+            if not fragments_list and not test and live and bootstrap_url:
                 fragments_list = self._update_live_fragments(bootstrap_url, frag_i)
                 total_frags += len(fragments_list)
                 if fragments_list and (fragments_list[0][1] > frag_i + 1):
