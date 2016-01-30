@@ -150,10 +150,32 @@ class FacebookIE(InfoExtractor):
         url = 'https://www.facebook.com/video/video.php?v=%s' % video_id
         webpage = self._download_webpage(url, video_id)
 
+        video_data = None
+
         BEFORE = '{swf.addParam(param[0], param[1]);});\n'
         AFTER = '.forEach(function(variable) {swf.addVariable(variable[0], variable[1]);});'
         m = re.search(re.escape(BEFORE) + '(.*?)' + re.escape(AFTER), webpage)
-        if not m:
+        if m:
+            data = dict(json.loads(m.group(1)))
+            params_raw = compat_urllib_parse_unquote(data['params'])
+            video_data = json.loads(params_raw)['video_data']
+
+        def video_data_list2dict(video_data):
+            ret = {}
+            for item in video_data:
+                format_id = item['stream_type']
+                ret.setdefault(format_id, []).append(item)
+            return ret
+
+        if not video_data:
+            server_js_data = self._parse_json(self._search_regex(
+                r'handleServerJS\(({.+})\);', webpage, 'server js data'), video_id)
+            for item in server_js_data['instances']:
+                if item[1][0] == 'VideoConfig':
+                    video_data = video_data_list2dict(item[2][0]['videoData'])
+                    break
+
+        if not video_data:
             m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
             if m_msg is not None:
                 raise ExtractorError(
@@ -161,12 +183,9 @@ class FacebookIE(InfoExtractor):
                     expected=True)
             else:
                 raise ExtractorError('Cannot parse data')
-        data = dict(json.loads(m.group(1)))
-        params_raw = compat_urllib_parse_unquote(data['params'])
-        params = json.loads(params_raw)
 
         formats = []
-        for format_id, f in params['video_data'].items():
+        for format_id, f in video_data.items():
             if not f or not isinstance(f, list):
                 continue
             for quality in ('sd', 'hd'):
