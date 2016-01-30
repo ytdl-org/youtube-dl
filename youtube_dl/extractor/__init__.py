@@ -483,6 +483,7 @@ from .npo import (
     NPOLiveIE,
     NPORadioIE,
     NPORadioFragmentIE,
+    SchoolTVIE,
     VPROIE,
     WNLIE
 )
