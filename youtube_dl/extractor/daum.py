@@ -5,7 +5,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import (
+    compat_urllib_parse,
+    compat_urllib_parse_unquote,
+)
 from ..utils import (
     int_or_none,
     str_to_int,
@@ -14,7 +17,7 @@ from ..utils import (
 
 
 class DaumIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:m\.)?tvpot\.daum\.net/v/(?P<id>[^?#&]+)'
+    _VALID_URL = r'https?://(?:(?:m\.)?tvpot\.daum\.net/v/|videofarm\.daum\.net/controller/player/VodPlayer\.swf\?vid=)(?P<id>[^?#&]+)'
     IE_NAME = 'daum.net'
 
     _TESTS = [{
@@ -44,10 +47,23 @@ class DaumIE(InfoExtractor):
     }, {
         'url': 'http://tvpot.daum.net/v/07dXWRka62Y%24',
         'only_matching': True,
+    }, {
+        'url': 'http://videofarm.daum.net/controller/player/VodPlayer.swf?vid=vwIpVpCQsT8%24&ref=',
+        'info_dict': {
+            'id': 'vwIpVpCQsT8$',
+            'ext': 'flv',
+            'title': '01-Korean War ( Trouble on the horizon )',
+            'description': '\nKorean War 01\nTrouble on the horizon\n전쟁의 먹구름',
+            'upload_date': '20080223',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'duration': 249,
+            'view_count': int,
+            'comment_count': int,
+        },
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        video_id = compat_urllib_parse_unquote(self._match_id(url))
         query = compat_urllib_parse.urlencode({'vid': video_id})
         movie_data = self._download_json(
             'http://videofarm.daum.net/controller/api/closed/v1_2/IntegratedMovieData.json?' + query,
