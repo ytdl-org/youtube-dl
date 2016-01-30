@@ -1472,14 +1472,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         return '/signature/%s' % dec_s
 
                     dash_manifest_url = re.sub(r'/s/([a-fA-F0-9\.]+)', decrypt_sig, dash_manifest_url)
-                    dash_doc = self._download_xml(
-                        dash_manifest_url, video_id,
-                        note='Downloading DASH manifest',
-                        errnote='Could not download DASH manifest',
-                        fatal=dash_mpd_fatal)
 
-                    for df in self._parse_dash_manifest(
-                            dash_doc, namespace='urn:mpeg:DASH:schema:MPD:2011', formats_dict=self._formats):
+                    for df in self._extract_dash_manifest_formats(
+                            dash_manifest_url, video_id, fatal=dash_mpd_fatal,
+                            namespace='urn:mpeg:DASH:schema:MPD:2011', formats_dict=self._formats):
                         # Do not overwrite DASH format found in some previous DASH manifest
                         if df['format_id'] not in dash_formats:
                             dash_formats[df['format_id']] = df

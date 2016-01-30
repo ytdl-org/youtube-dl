@@ -1330,6 +1330,21 @@ class InfoExtractor(object):
             })
         return entries
 
+    def _download_dash_manifest(self, dash_manifest_url, video_id, fatal=True):
+        return self._download_xml(
+            dash_manifest_url, video_id,
+            note='Downloading DASH manifest',
+            errnote='Could not download DASH manifest',
+            fatal=fatal)
+
+    def _extract_dash_manifest_formats(self, dash_manifest_url, video_id, fatal=True, namespace=None, formats_dict={}):
+        dash_doc = self._download_dash_manifest(dash_manifest_url, video_id, fatal)
+        if dash_doc is False:
+            return []
+
+        return self._parse_dash_manifest(
+            dash_doc, namespace=namespace, formats_dict=formats_dict)
+
     def _parse_dash_manifest(self, dash_doc, namespace=None, formats_dict={}):
         def _add_ns(path):
             return self._xpath_ns(path, namespace)
