@@ -1330,9 +1330,9 @@ class InfoExtractor(object):
             })
         return entries
 
-    def _parse_dash_manifest(self, video_id, dash_doc, default_ns='urn:mpeg:DASH:schema:MPD:2011', formats_dict={}, fatal=True):
-        def _add_ns(tag):
-            return '{%s}%s' % (default_ns, tag)
+    def _parse_dash_manifest(self, video_id, dash_doc, namespace=None, formats_dict={}, fatal=True):
+        def _add_ns(path):
+            return self._xpath_ns(path, namespace)
 
         formats = []
         for a in dash_doc.findall('.//' + _add_ns('AdaptationSet')):

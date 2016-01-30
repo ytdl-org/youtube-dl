@@ -1479,7 +1479,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         fatal=dash_mpd_fatal)
 
                     for df in self._parse_dash_manifest(
-                            video_id, dash_doc, formats_dict=self._formats, fatal=dash_mpd_fatal):
+                            video_id, dash_doc, namespace='urn:mpeg:DASH:schema:MPD:2011', formats_dict=self._formats, fatal=dash_mpd_fatal):
                         # Do not overwrite DASH format found in some previous DASH manifest
                         if df['format_id'] not in dash_formats:
                             dash_formats[df['format_id']] = df

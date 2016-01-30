@@ -216,7 +216,7 @@ class FacebookIE(InfoExtractor):
             if dash_manifest:
                 formats.extend(self._parse_dash_manifest(
                     video_id, compat_etree_fromstring(compat_urllib_parse_unquote_plus(dash_manifest)),
-                    default_ns='urn:mpeg:dash:schema:mpd:2011'))
+                    namespace='urn:mpeg:dash:schema:mpd:2011'))
         if not formats:
             raise ExtractorError('Cannot find video formats')
 
