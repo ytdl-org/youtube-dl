@@ -419,7 +419,7 @@ def parseOpts(overrideArguments=None):
         '--hls-use-mpegts',
         dest='hls_use_mpegts', action='store_true',
         help='Use the mpegts container for HLS videos, allowing to play the '
-             'video while downloading (some players may not be able to play it')
+             'video while downloading (some players may not be able to play it)')
     downloader.add_option(
         '--external-downloader',
         dest='external_downloader', metavar='COMMAND',
