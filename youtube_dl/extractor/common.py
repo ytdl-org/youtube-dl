@@ -1346,8 +1346,8 @@ class InfoExtractor(object):
                 elif mime_type.startswith('audio/') or mime_type.startswith('video/'):
                     segment_list = r.find(_add_ns('SegmentList'))
                     format_id = r.attrib['id']
-                    video_url = url_el.text if url_el else None
-                    filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength') if url_el else None)
+                    video_url = url_el.text if url_el is not None else None
+                    filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength') if url_el is not None else None)
                     f = {
                         'format_id': format_id,
                         'url': video_url,
