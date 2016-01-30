@@ -45,6 +45,7 @@ class FileDownloader(object):
                         (experimental)
     external_downloader_args:  A list of additional command-line arguments for the
                         external downloader.
+    hls_use_mpegts:     Use the mpegts container for HLS videos.
 
     Subclasses of this one must re-define the real_download method.
     """

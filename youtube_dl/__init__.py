@@ -369,6 +369,7 @@ def _real_main(argv=None):
         'no_color': opts.no_color,
         'ffmpeg_location': opts.ffmpeg_location,
         'hls_prefer_native': opts.hls_prefer_native,
+        'hls_use_mpegts': opts.hls_use_mpegts,
         'external_downloader_args': external_downloader_args,
         'postprocessor_args': postprocessor_args,
         'cn_verification_proxy': opts.cn_verification_proxy,

@@ -39,7 +39,11 @@ class HlsFD(FileDownloader):
                 '-headers',
                 ''.join('%s: %s\r\n' % (key, val) for key, val in headers.items())]
 
-        args += ['-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc']
+        args += ['-i', url, '-c', 'copy']
+        if self.params.get('hls_use_mpegts', False):
+            args += ['-f', 'mpegts']
+        else:
+            args += ['-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
 
         args = [encodeArgument(opt) for opt in args]
         args.append(encodeFilename(ffpp._ffmpeg_filename_argument(tmpfilename), True))

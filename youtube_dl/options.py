@@ -416,6 +416,11 @@ def parseOpts(overrideArguments=None):
         dest='hls_prefer_native', action='store_true',
         help='Use the native HLS downloader instead of ffmpeg (experimental)')
     downloader.add_option(
+        '--hls-use-mpegts',
+        dest='hls_use_mpegts', action='store_true',
+        help='Use the mpegts container for HLS videos, allowing to play the '
+             'video while downloading (some players may not be able to play it')
+    downloader.add_option(
         '--external-downloader',
         dest='external_downloader', metavar='COMMAND',
         help='Use the specified external downloader. '
