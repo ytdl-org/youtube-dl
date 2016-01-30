@@ -1330,22 +1330,24 @@ class InfoExtractor(object):
             })
         return entries
 
-    def _parse_dash_manifest(self, video_id, dash_doc, fatal=True):
+    def _parse_dash_manifest(self, video_id, dash_doc, default_ns='urn:mpeg:DASH:schema:MPD:2011', formats_dict={}, fatal=True):
+        def _add_ns(tag):
+            return '{%s}%s' % (default_ns, tag)
+
         formats = []
-        for a in dash_doc.findall('.//{urn:mpeg:DASH:schema:MPD:2011}AdaptationSet'):
+        for a in dash_doc.findall('.//' + _add_ns('AdaptationSet')):
             mime_type = a.attrib.get('mimeType')
-            for r in a.findall('{urn:mpeg:DASH:schema:MPD:2011}Representation'):
-                url_el = r.find('{urn:mpeg:DASH:schema:MPD:2011}BaseURL')
-                if url_el is None:
-                    continue
+            for r in a.findall(_add_ns('Representation')):
+                mime_type = r.attrib.get('mimeType') or mime_type
+                url_el = r.find(_add_ns('BaseURL'))
                 if mime_type == 'text/vtt':
                     # TODO implement WebVTT downloading
                     pass
                 elif mime_type.startswith('audio/') or mime_type.startswith('video/'):
-                    segment_list = r.find('{urn:mpeg:DASH:schema:MPD:2011}SegmentList')
+                    segment_list = r.find(_add_ns('SegmentList'))
                     format_id = r.attrib['id']
-                    video_url = url_el.text
-                    filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength'))
+                    video_url = url_el.text if url_el else None
+                    filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength') if url_el else None)
                     f = {
                         'format_id': format_id,
                         'url': video_url,
@@ -1357,17 +1359,20 @@ class InfoExtractor(object):
                         'fps': int_or_none(r.attrib.get('frameRate')),
                     }
                     if segment_list is not None:
+                        initialization_url = segment_list.find(_add_ns('Initialization')).attrib['sourceURL']
                         f.update({
-                            'initialization_url': segment_list.find('{urn:mpeg:DASH:schema:MPD:2011}Initialization').attrib['sourceURL'],
-                            'segment_urls': [segment.attrib.get('media') for segment in segment_list.findall('{urn:mpeg:DASH:schema:MPD:2011}SegmentURL')],
+                            'initialization_url': initialization_url,
+                            'segment_urls': [segment.attrib.get('media') for segment in segment_list.findall(_add_ns('SegmentURL'))],
                             'protocol': 'http_dash_segments',
                         })
+                        if not f.get('url'):
+                            f['url'] = initialization_url
                     try:
                         existing_format = next(
                             fo for fo in formats
                             if fo['format_id'] == format_id)
                     except StopIteration:
-                        full_info = self._formats.get(format_id, {}).copy()
+                        full_info = formats_dict.get(format_id, {}).copy()
                         full_info.update(f)
                         codecs = r.attrib.get('codecs')
                         if codecs:
