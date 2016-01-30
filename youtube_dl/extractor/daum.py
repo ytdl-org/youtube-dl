@@ -37,7 +37,9 @@ class DaumIE(InfoExtractor):
             'title': 'md5:a100d65d09cec246d8aa9bde7de45aed',
             'description': 'md5:79794514261164ff27e36a21ad229fc5',
             'upload_date': '20150604',
-            'duration': 154
+            'duration': 154,
+            'view_count': int,
+            'comment_count': int,
         },
     }, {
         'url': 'http://tvpot.daum.net/v/07dXWRka62Y%24',
