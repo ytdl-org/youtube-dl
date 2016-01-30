@@ -6,9 +6,11 @@ import socket
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_etree_fromstring,
     compat_http_client,
     compat_urllib_error,
     compat_urllib_parse_unquote,
+    compat_urllib_parse_unquote_plus,
 )
 from ..utils import (
     error_to_compat_str,
@@ -44,6 +46,9 @@ class FacebookIE(InfoExtractor):
     _CHECKPOINT_URL = 'https://www.facebook.com/checkpoint/?next=http%3A%2F%2Ffacebook.com%2Fhome.php&_fb_noscript=1'
     _NETRC_MACHINE = 'facebook'
     IE_NAME = 'facebook'
+
+    _CHROME_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36'
+
     _TESTS = [{
         'url': 'https://www.facebook.com/video.php?v=637842556329505&fref=nf',
         'md5': '6a40d33c0eccbb1af76cf0485a052659',
@@ -65,6 +70,15 @@ class FacebookIE(InfoExtractor):
         'expected_warnings': [
             'title'
         ]
+    }, {
+        'note': 'Video with DASH manifest',
+        'url': 'https://www.facebook.com/video.php?v=957955867617029',
+        'info_dict': {
+            'id': '957955867617029',
+            'ext': 'mp4',
+            'title': 'When you post epic content on instagram.com/433 8 million followers, this is ...',
+            'uploader': 'Demy de Zeeuw',
+        },
     }, {
         'url': 'https://www.facebook.com/video.php?v=10204634152394104',
         'only_matching': True,
@@ -147,8 +161,9 @@ class FacebookIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        url = 'https://www.facebook.com/video/video.php?v=%s' % video_id
-        webpage = self._download_webpage(url, video_id)
+        req = sanitized_Request('https://www.facebook.com/video/video.php?v=%s' % video_id)
+        req.add_header('User-Agent', self._CHROME_USER_AGENT)
+        webpage = self._download_webpage(req, video_id)
 
         video_data = None
 
@@ -197,8 +212,15 @@ class FacebookIE(InfoExtractor):
                             'url': src,
                             'preference': -10 if format_id == 'progressive' else 0,
                         })
+            dash_manifest = f[0].get('dash_manifest')
+            if dash_manifest:
+                formats.extend(self._parse_dash_manifest(
+                    video_id, compat_etree_fromstring(compat_urllib_parse_unquote_plus(dash_manifest)),
+                    default_ns='urn:mpeg:dash:schema:mpd:2011'))
         if not formats:
             raise ExtractorError('Cannot find video formats')
+
+        self._sort_formats(formats)
 
         video_title = self._html_search_regex(
             r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage, 'title',
