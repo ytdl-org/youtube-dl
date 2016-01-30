@@ -406,6 +406,37 @@ class NPORadioFragmentIE(InfoExtractor):
         }
 
 
+class SchoolTVIE(InfoExtractor):
+    IE_NAME = 'schooltv'
+    _VALID_URL = r'https?://(?:www\.)?schooltv\.nl/video/(?P<id>[^/?#&]+)'
+
+    _TEST = {
+        'url': 'http://www.schooltv.nl/video/ademhaling-de-hele-dag-haal-je-adem-maar-wat-gebeurt-er-dan-eigenlijk-in-je-lichaam/',
+        'info_dict': {
+            'id': 'WO_NTR_429477',
+            'display_id': 'ademhaling-de-hele-dag-haal-je-adem-maar-wat-gebeurt-er-dan-eigenlijk-in-je-lichaam',
+            'title': 'Ademhaling: De hele dag haal je adem. Maar wat gebeurt er dan eigenlijk in je lichaam?',
+            'ext': 'mp4',
+            'description': 'md5:abfa0ff690adb73fd0297fd033aaa631'
+        },
+        'params': {
+            # Skip because of m3u8 download
+            'skip_download': True
+        }
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._search_regex(r'data-mid="([^"]+)"', webpage, 'video_id')
+        return {
+            '_type': 'url_transparent',
+            'ie_key': 'NPO',
+            'url': 'npo:%s' % video_id,
+            'display_id': display_id
+        }
+
+
 class VPROIE(NPOIE):
     IE_NAME = 'vpro'
     _VALID_URL = r'https?://(?:www\.)?(?:tegenlicht\.)?vpro\.nl/(?:[^/]+/){2,}(?P<id>[^/]+)\.html'
