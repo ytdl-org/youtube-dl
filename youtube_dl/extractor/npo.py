@@ -189,7 +189,7 @@ class NPOIE(NPOBaseIE):
                 if not video_url:
                     continue
                 if format_id == 'adaptive':
-                    formats.extend(self._extract_m3u8_formats(video_url, video_id))
+                    formats.extend(self._extract_m3u8_formats(video_url, video_id, 'mp4'))
                 else:
                     formats.append({
                         'url': video_url,
