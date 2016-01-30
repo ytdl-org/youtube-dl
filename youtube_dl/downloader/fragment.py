@@ -79,15 +79,13 @@ class FragmentFD(FileDownloader):
                 return
 
             time_now = time.time()
-
+            state['elapsed'] = time_now - start
             frag_total_bytes = s.get('total_bytes') or 0
-
             if not ctx['live']:
                 estimated_size = (
                     (ctx['complete_frags_downloaded_bytes'] + frag_total_bytes) /
                     (state['frag_index'] + 1) * total_frags)
                 state['total_bytes_estimate'] = estimated_size
-            state['elapsed'] = time_now - start
 
             if s['status'] == 'finished':
                 state['frag_index'] += 1
