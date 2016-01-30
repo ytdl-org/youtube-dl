@@ -1330,6 +1330,58 @@ class InfoExtractor(object):
             })
         return entries
 
+    def _parse_dash_manifest(self, video_id, dash_doc, fatal=True):
+        formats = []
+        for a in dash_doc.findall('.//{urn:mpeg:DASH:schema:MPD:2011}AdaptationSet'):
+            mime_type = a.attrib.get('mimeType')
+            for r in a.findall('{urn:mpeg:DASH:schema:MPD:2011}Representation'):
+                url_el = r.find('{urn:mpeg:DASH:schema:MPD:2011}BaseURL')
+                if url_el is None:
+                    continue
+                if mime_type == 'text/vtt':
+                    # TODO implement WebVTT downloading
+                    pass
+                elif mime_type.startswith('audio/') or mime_type.startswith('video/'):
+                    segment_list = r.find('{urn:mpeg:DASH:schema:MPD:2011}SegmentList')
+                    format_id = r.attrib['id']
+                    video_url = url_el.text
+                    filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength'))
+                    f = {
+                        'format_id': format_id,
+                        'url': video_url,
+                        'width': int_or_none(r.attrib.get('width')),
+                        'height': int_or_none(r.attrib.get('height')),
+                        'tbr': int_or_none(r.attrib.get('bandwidth'), 1000),
+                        'asr': int_or_none(r.attrib.get('audioSamplingRate')),
+                        'filesize': filesize,
+                        'fps': int_or_none(r.attrib.get('frameRate')),
+                    }
+                    if segment_list is not None:
+                        f.update({
+                            'initialization_url': segment_list.find('{urn:mpeg:DASH:schema:MPD:2011}Initialization').attrib['sourceURL'],
+                            'segment_urls': [segment.attrib.get('media') for segment in segment_list.findall('{urn:mpeg:DASH:schema:MPD:2011}SegmentURL')],
+                            'protocol': 'http_dash_segments',
+                        })
+                    try:
+                        existing_format = next(
+                            fo for fo in formats
+                            if fo['format_id'] == format_id)
+                    except StopIteration:
+                        full_info = self._formats.get(format_id, {}).copy()
+                        full_info.update(f)
+                        codecs = r.attrib.get('codecs')
+                        if codecs:
+                            if full_info.get('acodec') == 'none':
+                                full_info['vcodec'] = codecs
+                            elif full_info.get('vcodec') == 'none':
+                                full_info['acodec'] = codecs
+                        formats.append(full_info)
+                    else:
+                        existing_format.update(f)
+                else:
+                    self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
+        return formats
+
     def _live_title(self, name):
         """ Generate the title for a live video """
         now = datetime.datetime.now()
