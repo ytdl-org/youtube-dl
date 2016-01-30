@@ -38,7 +38,8 @@ class DaumIE(InfoExtractor):
             'description': 'md5:79794514261164ff27e36a21ad229fc5',
             'upload_date': '20150604',
             'duration': 154
-        },    }, {
+        },
+    }, {
         'url': 'http://tvpot.daum.net/v/07dXWRka62Y%24',
         'only_matching': True,
     }]
