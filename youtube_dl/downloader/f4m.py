@@ -273,15 +273,21 @@ class F4mFD(FragmentFD):
         return fragments_list
 
     def _parse_bootstrap_node(self, node, base_url):
-        if node.text is None:
+        # Sometimes non empty inline bootstrap info can be specified along
+        # with bootstrap url attribute (e.g. dummy inline bootstrap info
+        # contains whitespace characters in [1]). We will prefer bootstrap
+        # url over inline bootstrap info when present.
+        # 1. http://live-1-1.rutube.ru/stream/1024/HDS/SD/C2NKsS85HQNckgn5HdEmOQ/1454167650/S-s604419906/move/four/dirs/upper/1024-576p.f4m
+        bootstrap_url = node.get('url')
+        if bootstrap_url:
             bootstrap_url = compat_urlparse.urljoin(
-                base_url, node.attrib['url'])
+                base_url, bootstrap_url)
             boot_info = self._get_bootstrap_from_url(bootstrap_url)
         else:
             bootstrap_url = None
             bootstrap = base64.b64decode(node.text.encode('ascii'))
             boot_info = read_bootstrap_info(bootstrap)
-        return (boot_info, bootstrap_url)
+        return boot_info, bootstrap_url
 
     def real_download(self, filename, info_dict):
         man_url = info_dict['url']
