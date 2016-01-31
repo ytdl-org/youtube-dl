@@ -479,6 +479,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
             self._downloader.to_screen('[ffmpeg] There aren\'t any subtitles to convert')
             return [], info
         self._downloader.to_screen('[ffmpeg] Converting subtitles')
+        sub_filenames = []
         for lang, sub in subs.items():
             ext = sub['ext']
             if ext == new_ext:
@@ -486,6 +487,8 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                     '[ffmpeg] Subtitle file for %s is already in the requested'
                     'format' % new_ext)
                 continue
+            old_file = subtitles_filename(filename, lang, ext)
+            sub_filenames.append(old_file)
             new_file = subtitles_filename(filename, lang, new_ext)
 
             if ext == 'dfxp' or ext == 'ttml':
@@ -493,7 +496,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                     'You have requested to convert dfxp (TTML) subtitles into another format, '
                     'which results in style information loss')
 
-                dfxp_file = subtitles_filename(filename, lang, ext)
+                dfxp_file = old_file
                 srt_file = subtitles_filename(filename, lang, 'srt')
 
                 with io.open(dfxp_file, 'rt', encoding='utf-8') as f:
@@ -511,9 +514,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                 if new_ext == 'srt':
                     continue
 
-            self.run_ffmpeg(
-                subtitles_filename(filename, lang, ext),
-                new_file, ['-f', new_format])
+            self.run_ffmpeg(old_file, new_file, ['-f', new_format])
 
             with io.open(new_file, 'rt', encoding='utf-8') as f:
                 subs[lang] = {
@@ -521,4 +522,4 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                     'data': f.read(),
                 }
 
-        return [], info
+        return sub_filenames, info
