@@ -55,6 +55,7 @@
  - **audiomack**
  - **audiomack:album**
  - **Azubu**
+ - **AzubuLive**
  - **BaiduVideo**: 百度视频
  - **bambuser**
  - **bambuser:channel**
@@ -315,6 +316,7 @@
  - **mailru**: Видео@Mail.Ru
  - **MakerTV**
  - **Malemotion**
+ - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
  - **metacafe**
@@ -507,6 +509,7 @@
  - **Sapo**: SAPO Vídeos
  - **savefrom.net**
  - **SBS**: sbs.com.au
+ - **schooltv**
  - **SciVee**
  - **screen.yahoo:search**: Yahoo screen search
  - **Screencast**
