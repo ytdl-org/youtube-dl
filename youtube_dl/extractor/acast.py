@@ -23,14 +23,19 @@ class ACastIE(ACastBaseIE):
             'ext': 'mp3',
             'title': '"Where Are You?": Taipei 101, Taiwan',
             'timestamp': 1196172000000,
-            'description': 'md5:0c5d8201dfea2b93218ea986c91eee6e',
+            'description': 'md5:a0b4ef3634e63866b542e5b1199a1a0e',
             'duration': 211,
         }
     }
 
     def _real_extract(self, url):
         channel, display_id = re.match(self._VALID_URL, url).groups()
-        cast_data = self._download_json(self._API_BASE_URL + 'channels/%s/acasts/%s/playback' % (channel, display_id), display_id)
+
+        embed_page = self._download_webpage(
+            re.sub('(?:www\.)?acast\.com', 'embedcdn.acast.com', url), display_id)
+        cast_data = self._parse_json(self._search_regex(
+            r'window\[\'acast/queries\'\]\s*=\s*([^;]+);', embed_page, 'acast data'),
+            display_id)['GetAcast/%s/%s' % (channel, display_id)]
 
         return {
             'id': compat_str(cast_data['id']),
