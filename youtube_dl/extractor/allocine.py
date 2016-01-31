@@ -9,6 +9,7 @@ from ..compat import compat_str
 from ..utils import (
     qualities,
     unescapeHTML,
+    xpath_element,
 )
 
 
@@ -71,7 +72,7 @@ class AllocineIE(InfoExtractor):
 
         xml = self._download_xml('http://www.allocine.fr/ws/AcVisiondataV4.ashx?media=%s' % video_id, display_id)
 
-        video = xml.find('./AcVisionVideo').attrib
+        video = xpath_element(xml, './/AcVisionVideo').attrib
         quality = qualities(['ld', 'md', 'hd'])
 
         formats = []
