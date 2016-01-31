@@ -8,11 +8,7 @@ from ..compat import compat_str
 from ..utils import int_or_none
 
 
-class ACastBaseIE(InfoExtractor):
-    _API_BASE_URL = 'https://www.acast.com/api/'
-
-
-class ACastIE(ACastBaseIE):
+class ACastIE(InfoExtractor):
     IE_NAME = 'acast'
     _VALID_URL = r'https?://(?:www\.)?acast\.com/(?P<channel>[^/]+)/(?P<id>[^/#?]+)'
     _TEST = {
@@ -49,7 +45,7 @@ class ACastIE(ACastBaseIE):
         }
 
 
-class ACastChannelIE(ACastBaseIE):
+class ACastChannelIE(InfoExtractor):
     IE_NAME = 'acast:channel'
     _VALID_URL = r'https?://(?:www\.)?acast\.com/(?P<id>[^/#?]+)'
     _TEST = {
@@ -61,6 +57,7 @@ class ACastChannelIE(ACastBaseIE):
         },
         'playlist_mincount': 20,
     }
+    _API_BASE_URL = 'https://www.acast.com/api/'
 
     @classmethod
     def suitable(cls, url):
