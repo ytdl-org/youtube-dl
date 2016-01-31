@@ -6,6 +6,7 @@ from ..utils import (
     xpath_text,
     xpath_with_ns,
 )
+from .youtube import YoutubeIE
 
 
 class GamekingsIE(InfoExtractor):
@@ -47,10 +48,10 @@ class GamekingsIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         playlist_id = self._search_regex(
-            r'gogoVideo\(.*,\s*"([^"]+)', webpage, 'playlist id')
+            r'gogoVideo\([^,]+,\s*"([^"]+)', webpage, 'playlist id')
 
         # Check if a YouTube embed is used
-        if playlist_id.find('youtube') != -1:
+        if YoutubeIE.suitable(playlist_id):
             return self.url_result(playlist_id, ie='Youtube')
 
         playlist = self._download_xml(
