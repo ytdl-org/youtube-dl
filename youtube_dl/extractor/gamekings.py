@@ -12,8 +12,7 @@ class GamekingsIE(InfoExtractor):
     _VALID_URL = r'http://www\.gamekings\.nl/(?:videos|nieuws)/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://www.gamekings.nl/videos/phoenix-wright-ace-attorney-dual-destinies-review/',
-        # MD5 is flaky, seems to change regularly
-        # 'md5': '2f32b1f7b80fdc5cb616efb4f387f8a3',
+        'md5': '5208d3a17adeaef829a7861887cb9029',
         'info_dict': {
             'id': 'HkSQKetlGOU',
             'ext': 'mp4',
