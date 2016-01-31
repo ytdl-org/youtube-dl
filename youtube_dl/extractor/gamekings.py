@@ -11,6 +11,7 @@ from ..utils import (
 class GamekingsIE(InfoExtractor):
     _VALID_URL = r'http://www\.gamekings\.nl/(?:videos|nieuws)/(?P<id>[^/]+)'
     _TESTS = [{
+        # YouTube embed video
         'url': 'http://www.gamekings.nl/videos/phoenix-wright-ace-attorney-dual-destinies-review/',
         'md5': '5208d3a17adeaef829a7861887cb9029',
         'info_dict': {
@@ -23,6 +24,7 @@ class GamekingsIE(InfoExtractor):
             'uploader': 'Gamekings Vault',
             'upload_date': '20151123',
         },
+        'add_ie': ['Youtube'],
     }, {
         # vimeo video
         'url': 'http://www.gamekings.nl/videos/the-legend-of-zelda-majoras-mask/',
