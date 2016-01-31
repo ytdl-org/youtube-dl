@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 import re
 import time
-import datetime
+from datetime import datetime
 
 
 class TvpleIE(InfoExtractor):
@@ -120,7 +120,7 @@ class TvpleIE(InfoExtractor):
         like_count = int(re.search(r'찜 하기\n<span class="badge">(\d*)</span>', webpage).group(1))  # liked
 
         uploadeddatetime = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})에 업로드됨', webpage)
-        timestamp = time.mktime(datetime.datetime.strptime(uploadeddatetime.group(1), '%Y-%m-%d %H:%M:%S').timetuple()) + (60 * 60 * 9)  # timestamp + KST(+9)
+        timestamp = time.mktime(datetime.strptime(uploadeddatetime.group(1), '%Y-%m-%d %H:%M:%S').timetuple()) + (60 * 60 * 9)  # timestamp + KST(+9)
 
         categories = re.search(r'badge-info">(.*)</span>', webpage).group(1)  # categories
         tags = re.findall(r'class="tag "\n.*}">(.*)</a>', webpage)  # tags
