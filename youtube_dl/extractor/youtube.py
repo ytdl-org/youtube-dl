@@ -181,7 +181,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             return
 
 
-class YoutubeEntryListBaseInfoExtractor(InfoExtractor):
+class YoutubeEntryListBaseInfoExtractor(YoutubeBaseInfoExtractor):
     # Extract entries from page with "Load more" button
     def _entries(self, page, playlist_id):
         more_widget_html = content_html = page
@@ -1602,7 +1602,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         }
 
 
-class YoutubePlaylistIE(YoutubeBaseInfoExtractor, YoutubePlaylistBaseInfoExtractor):
+class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     IE_DESC = 'YouTube.com playlists'
     _VALID_URL = r"""(?x)(?:
                         (?:https?://)?
