@@ -233,7 +233,7 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
 
 class YoutubePlaylistsBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
     def _process_page(self, content):
-        for playlist_id in re.findall(r'href="/?playlist\?list=(.+?)"', content):
+        for playlist_id in set(re.findall(r'href="/?playlist\?list=([0-9A-Za-z-_]{10,})"', content)):
             yield self.url_result(
                 'https://www.youtube.com/playlist?list=%s' % playlist_id, 'YoutubePlaylist')
 
