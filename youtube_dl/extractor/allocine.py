@@ -71,7 +71,7 @@ class AllocineIE(InfoExtractor):
 
         xml = self._download_xml('http://www.allocine.fr/ws/AcVisiondataV4.ashx?media=%s' % video_id, display_id)
 
-        video = xml.find('.//AcVisionVideo').attrib
+        video = xml.find('./AcVisionVideo').attrib
         quality = qualities(['ld', 'md', 'hd'])
 
         formats = []
