@@ -1330,6 +1330,83 @@ class InfoExtractor(object):
             })
         return entries
 
+    def _download_dash_manifest(self, dash_manifest_url, video_id, fatal=True):
+        return self._download_xml(
+            dash_manifest_url, video_id,
+            note='Downloading DASH manifest',
+            errnote='Could not download DASH manifest',
+            fatal=fatal)
+
+    def _extract_dash_manifest_formats(self, dash_manifest_url, video_id, fatal=True, namespace=None, formats_dict={}):
+        dash_doc = self._download_dash_manifest(dash_manifest_url, video_id, fatal)
+        if dash_doc is False:
+            return []
+
+        return self._parse_dash_manifest(
+            dash_doc, namespace=namespace, formats_dict=formats_dict)
+
+    def _parse_dash_manifest(self, dash_doc, namespace=None, formats_dict={}):
+        def _add_ns(path):
+            return self._xpath_ns(path, namespace)
+
+        formats = []
+        for a in dash_doc.findall('.//' + _add_ns('AdaptationSet')):
+            mime_type = a.attrib.get('mimeType')
+            for r in a.findall(_add_ns('Representation')):
+                mime_type = r.attrib.get('mimeType') or mime_type
+                url_el = r.find(_add_ns('BaseURL'))
+                if mime_type == 'text/vtt':
+                    # TODO implement WebVTT downloading
+                    pass
+                elif mime_type.startswith('audio/') or mime_type.startswith('video/'):
+                    segment_list = r.find(_add_ns('SegmentList'))
+                    format_id = r.attrib['id']
+                    video_url = url_el.text if url_el is not None else None
+                    filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength') if url_el is not None else None)
+                    f = {
+                        'format_id': format_id,
+                        'url': video_url,
+                        'width': int_or_none(r.attrib.get('width')),
+                        'height': int_or_none(r.attrib.get('height')),
+                        'tbr': int_or_none(r.attrib.get('bandwidth'), 1000),
+                        'asr': int_or_none(r.attrib.get('audioSamplingRate')),
+                        'filesize': filesize,
+                        'fps': int_or_none(r.attrib.get('frameRate')),
+                    }
+                    if segment_list is not None:
+                        initialization_url = segment_list.find(_add_ns('Initialization')).attrib['sourceURL']
+                        f.update({
+                            'initialization_url': initialization_url,
+                            'segment_urls': [segment.attrib.get('media') for segment in segment_list.findall(_add_ns('SegmentURL'))],
+                            'protocol': 'http_dash_segments',
+                        })
+                        if not f.get('url'):
+                            f['url'] = initialization_url
+                    try:
+                        existing_format = next(
+                            fo for fo in formats
+                            if fo['format_id'] == format_id)
+                    except StopIteration:
+                        full_info = formats_dict.get(format_id, {}).copy()
+                        full_info.update(f)
+                        codecs = r.attrib.get('codecs')
+                        if codecs:
+                            if mime_type.startswith('video/'):
+                                vcodec, acodec = codecs, 'none'
+                            else:  # mime_type.startswith('audio/')
+                                vcodec, acodec = 'none', codecs
+
+                            full_info.update({
+                                'vcodec': vcodec,
+                                'acodec': acodec,
+                            })
+                        formats.append(full_info)
+                    else:
+                        existing_format.update(f)
+                else:
+                    self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
+        return formats
+
     def _live_title(self, name):
         """ Generate the title for a live video """
         now = datetime.datetime.now()
