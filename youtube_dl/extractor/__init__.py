@@ -142,6 +142,8 @@ from .dailymotion import (
 from .daum import (
     DaumIE,
     DaumClipIE,
+    DaumPlaylistIE,
+    DaumUserIE,
 )
 from .dbtv import DBTVIE
 from .dcn import (
