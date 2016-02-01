@@ -707,7 +707,6 @@ class YoutubeDL(object):
         It will also download the videos if 'download'.
         Returns the resolved ie_result.
         """
-
         result_type = ie_result.get('_type', 'video')
 
         if result_type in ('url', 'url_transparent'):
@@ -736,7 +735,7 @@ class YoutubeDL(object):
 
             force_properties = dict(
                 (k, v) for k, v in ie_result.items() if v is not None)
-            for f in ('_type', 'url'):
+            for f in ('_type', 'url', 'ie_key'):
                 if f in force_properties:
                     del force_properties[f]
             new_result = info.copy()

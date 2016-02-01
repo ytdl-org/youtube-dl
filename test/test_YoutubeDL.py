@@ -14,6 +14,7 @@ from test.helper import FakeYDL, assertRegexpMatches
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import compat_str, compat_urllib_error
 from youtube_dl.extractor import YoutubeIE
+from youtube_dl.extractor.common import InfoExtractor
 from youtube_dl.postprocessor.common import PostProcessor
 from youtube_dl.utils import ExtractorError, match_filter_func
 
@@ -645,6 +646,42 @@ class TestYoutubeDL(unittest.TestCase):
         # see https://github.com/rg3/youtube-dl/issues/8227
         ydl = YDL()
         self.assertRaises(compat_urllib_error.URLError, ydl.urlopen, 'file:///etc/passwd')
+
+    def test_do_not_override_ie_key_in_url_transparent(self):
+        ydl = YDL()
+
+        class Foo1IE(InfoExtractor):
+            _VALID_URL = r'foo1:'
+
+            def _real_extract(self, url):
+                return {
+                    '_type': 'url_transparent',
+                    'url': 'foo2:',
+                    'ie_key': 'Foo2',
+                }
+
+        class Foo2IE(InfoExtractor):
+            _VALID_URL = r'foo2:'
+
+            def _real_extract(self, url):
+                return {
+                    '_type': 'url',
+                    'url': 'foo3:',
+                    'ie_key': 'Foo3',
+                }
+
+        class Foo3IE(InfoExtractor):
+            _VALID_URL = r'foo3:'
+
+            def _real_extract(self, url):
+                return _make_result([{'url': TEST_URL}])
+
+        ydl.add_info_extractor(Foo1IE(ydl))
+        ydl.add_info_extractor(Foo2IE(ydl))
+        ydl.add_info_extractor(Foo3IE(ydl))
+        ydl.extract_info('foo1:')
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['url'], TEST_URL)
 
 
 if __name__ == '__main__':
