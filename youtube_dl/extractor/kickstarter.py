@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import smuggle_url
 
 
 class KickStarterIE(InfoExtractor):
@@ -27,7 +28,8 @@ class KickStarterIE(InfoExtractor):
             'uploader_id': 'pebble',
             'uploader': 'Pebble Technology',
             'title': 'Pebble iOS Notifications',
-        }
+        },
+        'add_ie': ['Vimeo'],
     }, {
         'url': 'https://www.kickstarter.com/projects/1420158244/power-drive-2000/widget/video.html',
         'info_dict': {
@@ -52,7 +54,7 @@ class KickStarterIE(InfoExtractor):
             return {
                 '_type': 'url_transparent',
                 'ie_key': 'Generic',
-                'url': url,
+                'url': smuggle_url(url, {'to_generic': True}),
                 'title': title,
             }
 
