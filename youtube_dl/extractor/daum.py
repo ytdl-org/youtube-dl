@@ -242,7 +242,7 @@ class DaumPlaylistIE(DaumListIE):
 
 
 class DaumUserIE(DaumListIE):
-    _VALID_URL = r'https?://(?:m\.)?tvpot\.daum\.net/mypot/(?:View|Top)\.do\?.*?ownerid=(?P<id>[0-9a-zA-Z]+)'
+    _VALID_URL = r'https?://(?:m\.)?tvpot\.daum\.net/mypot/(?:View|Top)\.(?:do|tv)\?.*?ownerid=(?P<id>[0-9a-zA-Z]+)'
     IE_NAME = 'daum.net:user'
 
     _TESTS = [{
@@ -275,6 +275,9 @@ class DaumUserIE(DaumListIE):
         'playlist_count': 11
     }, {
         'url': 'http://tvpot.daum.net/mypot/Top.do?ownerid=o2scDLIVbHc0',
+        'only_matching': True,
+    }, {
+        'url': 'http://m.tvpot.daum.net/mypot/Top.tv?ownerid=45x1okb1If50&playlistid=3569733',
         'only_matching': True,
     }]
 
