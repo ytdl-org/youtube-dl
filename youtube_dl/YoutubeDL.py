@@ -1753,7 +1753,7 @@ class YoutubeDL(object):
                 extractor = info_dict.get('ie_key')  # key in a playlist
         if extractor is None:
             return None  # Incomplete video information
-        return extractor.lower() + ' ' + info_dict['id']
+        return extractor.lower() + ' ' + str(info_dict['id'])
 
     def in_download_archive(self, info_dict):
         fn = self.params.get('download_archive')
