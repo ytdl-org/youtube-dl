@@ -7,8 +7,10 @@ import itertools
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_parse_qs,
     compat_urllib_parse,
     compat_urllib_parse_unquote,
+    compat_urlparse,
 )
 from ..utils import (
     int_or_none,
@@ -117,6 +119,7 @@ class DaumIE(InfoExtractor):
 class DaumClipIE(InfoExtractor):
     _VALID_URL = r'https?://(?:m\.)?tvpot\.daum\.net/(?:clip/ClipView.(?:do|tv)|mypot/View.do)\?.*?clipid=(?P<id>\d+)'
     IE_NAME = 'daum.net:clip'
+    _URL_TEMPLATE = 'http://tvpot.daum.net/clip/ClipView.do?clipid=%s'
 
     _TESTS = [{
         'url': 'http://tvpot.daum.net/clip/ClipView.do?clipid=52554690',
@@ -134,6 +137,10 @@ class DaumClipIE(InfoExtractor):
         'url': 'http://m.tvpot.daum.net/clip/ClipView.tv?clipid=54999425',
         'only_matching': True,
     }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if DaumPlaylistIE.suitable(url) or DaumUserIE.suitable(url) else super(DaumClipIE, cls).suitable(url)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -179,10 +186,21 @@ class DaumListIE(InfoExtractor):
 
         return name, entries
 
+    def _check_clip(self, url, list_id):
+        query_dict = compat_parse_qs(compat_urlparse.urlparse(url).query)
+        if 'clipid' in query_dict:
+            clip_id = query_dict['clipid'][0]
+            if self._downloader.params.get('noplaylist'):
+                self.to_screen('Downloading just video %s because of --no-playlist' % clip_id)
+                return self.url_result(DaumClipIE._URL_TEMPLATE % clip_id, 'DaumClip')
+            else:
+                self.to_screen('Downloading playlist %s - add --no-playlist to just download video' % list_id)
+
 
 class DaumPlaylistIE(DaumListIE):
     _VALID_URL = r'https?://(?:m\.)?tvpot\.daum\.net/mypot/(?:View\.do|Top\.tv)\?.*?playlistid=(?P<id>[0-9]+)'
     IE_NAME = 'daum.net:playlist'
+    _URL_TEMPLATE = 'http://tvpot.daum.net/mypot/View.do?playlistid=%s'
 
     _TESTS = [{
         'note': 'Playlist url with clipid',
@@ -207,12 +225,16 @@ class DaumPlaylistIE(DaumListIE):
         }
     }]
 
-    def _real_extract(self, url):
-        if DaumClipIE.suitable(url) and self._downloader.params.get('noplaylist'):
-            return self.url_result(url, 'DaumClip')
+    @classmethod
+    def suitable(cls, url):
+        return False if DaumUserIE.suitable(url) else super(DaumPlaylistIE, cls).suitable(url)
 
+    def _real_extract(self, url):
         list_id = self._match_id(url)
-        self.to_screen('Downloading playlist %s - add --no-playlist to just download video' % list_id)
+
+        clip_result = self._check_clip(url, list_id)
+        if clip_result:
+            return clip_result
 
         name, entries = self._get_entries(list_id, 'playlistid')
 
@@ -257,14 +279,17 @@ class DaumUserIE(DaumListIE):
     }]
 
     def _real_extract(self, url):
-        if DaumClipIE.suitable(url) and self._downloader.params.get('noplaylist'):
-            return self.url_result(url, 'DaumClip')
-
-        if DaumPlaylistIE.suitable(url):
-            return self.url_result(url, 'DaumPlaylist')
-
         list_id = self._match_id(url)
-        self.to_screen('Downloading playlist %s - add --no-playlist to just download video' % list_id)
+
+        clip_result = self._check_clip(url, list_id)
+        if clip_result:
+            return clip_result
+
+        query_dict = compat_parse_qs(compat_urlparse.urlparse(url).query)
+        if 'playlistid' in query_dict:
+            playlist_id = query_dict['playlistid'][0]
+            return self.url_result(DaumPlaylistIE._URL_TEMPLATE % playlist_id, 'DaumPlaylist')
+
         name, entries = self._get_entries(list_id, 'ownerid')
 
         return self.playlist_result(entries, list_id, name)
