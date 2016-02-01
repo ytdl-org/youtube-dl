@@ -8,7 +8,7 @@ from ..utils import smuggle_url
 class KickStarterIE(InfoExtractor):
     _VALID_URL = r'https?://www\.kickstarter\.com/projects/(?P<id>[^/]*)/.*'
     _TESTS = [{
-        'url': 'https://www.kickstarter.com/projects/1404461844/intersection-the-story-of-josh-grant?ref=home_location',
+        'url': 'https://www.kickstarter.com/projects/1404461844/intersection-the-story-of-josh-grant/description',
         'md5': 'c81addca81327ffa66c642b5d8b08cab',
         'info_dict': {
             'id': '1404461844',
@@ -45,7 +45,7 @@ class KickStarterIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_regex(
-            r'<title>\s*(.*?)(?:\s*&mdash; Kickstarter)?\s*</title>',
+            r'<title>\s*(.*?)(?:\s*&mdash;\s*Kickstarter)?\s*</title>',
             webpage, 'title')
         video_url = self._search_regex(
             r'data-video-url="(.*?)"',
