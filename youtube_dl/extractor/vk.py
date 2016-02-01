@@ -321,7 +321,7 @@ class VKIE(InfoExtractor):
 class VKUserVideosIE(InfoExtractor):
     IE_NAME = 'vk:uservideos'
     IE_DESC = "VK - User's Videos"
-    _VALID_URL = r'https?://vk\.com/videos(?P<id>-?[0-9]+)$'
+    _VALID_URL = r'https?://vk\.com/videos(?P<id>-?[0-9]+)(?!\?.*\bz=video)(?:[/?#&]|$)'
     _TEMPLATE_URL = 'https://vk.com/videos'
     _TESTS = [{
         'url': 'http://vk.com/videos205387401',
@@ -332,6 +332,9 @@ class VKUserVideosIE(InfoExtractor):
         'playlist_mincount': 4,
     }, {
         'url': 'http://vk.com/videos-77521',
+        'only_matching': True,
+    }, {
+        'url': 'http://vk.com/videos-97664626?section=all',
         'only_matching': True,
     }]
 
