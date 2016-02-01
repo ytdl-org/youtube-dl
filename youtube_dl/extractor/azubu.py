@@ -3,7 +3,11 @@ from __future__ import unicode_literals
 import json
 
 from .common import InfoExtractor
-from ..utils import float_or_none
+from ..utils import (
+    ExtractorError,
+    float_or_none,
+    sanitized_Request,
+)
 
 
 class AzubuIE(InfoExtractor):
@@ -90,4 +94,38 @@ class AzubuIE(InfoExtractor):
             'uploader_id': uploader_id,
             'view_count': view_count,
             'formats': formats,
+        }
+
+
+class AzubuLiveIE(InfoExtractor):
+    _VALID_URL = r'http://www.azubu.tv/(?P<id>[^/]+)$'
+
+    _TEST = {
+        'url': 'http://www.azubu.tv/MarsTVMDLen',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        user = self._match_id(url)
+
+        info = self._download_json(
+            'http://api.azubu.tv/public/modules/last-video/{0}/info'.format(user),
+            user)['data']
+        if info['type'] != 'STREAM':
+            raise ExtractorError('{0} is not streaming live'.format(user), expected=True)
+
+        req = sanitized_Request(
+            'https://edge-elb.api.brightcove.com/playback/v1/accounts/3361910549001/videos/ref:' + info['reference_id'])
+        req.add_header('Accept', 'application/json;pk=BCpkADawqM1gvI0oGWg8dxQHlgT8HkdE2LnAlWAZkOlznO39bSZX726u4JqnDsK3MDXcO01JxXK2tZtJbgQChxgaFzEVdHRjaDoxaOu8hHOO8NYhwdxw9BzvgkvLUlpbDNUuDoc4E4wxDToV')
+        bc_info = self._download_json(req, user)
+        m3u8_url = next(source['src'] for source in bc_info['sources'] if source['container'] == 'M2TS')
+        formats = self._extract_m3u8_formats(m3u8_url, user, ext='mp4')
+
+        return {
+            'id': info['id'],
+            'title': self._live_title(info['title']),
+            'uploader_id': user,
+            'formats': formats,
+            'is_live': True,
+            'thumbnail': bc_info['poster'],
         }

@@ -56,7 +56,7 @@ class TestAllURLsMatching(unittest.TestCase):
         assertChannel('https://www.youtube.com/channel/HCtnHdj3df7iM/videos')
 
     def test_youtube_user_matching(self):
-        self.assertMatch('www.youtube.com/NASAgovVideo/videos', ['youtube:user'])
+        self.assertMatch('http://www.youtube.com/NASAgovVideo/videos', ['youtube:user'])
 
     def test_youtube_feeds(self):
         self.assertMatch('https://www.youtube.com/feed/watch_later', ['youtube:watchlater'])

@@ -49,7 +49,7 @@ class KanalPlayIE(InfoExtractor):
         subs = self._download_json(
             'http://www.kanal%splay.se/api/subtitles/%s' % (channel_id, video_id),
             video_id, 'Downloading subtitles JSON', fatal=False)
-        return {'se': [{'ext': 'srt', 'data': self._fix_subtitles(subs)}]} if subs else {}
+        return {'sv': [{'ext': 'srt', 'data': self._fix_subtitles(subs)}]} if subs else {}
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

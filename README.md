@@ -173,6 +173,10 @@ which means you can modify it, redistribute it or use it however you like.
                                      expected filesize (experimental)
     --hls-prefer-native              Use the native HLS downloader instead of
                                      ffmpeg (experimental)
+    --hls-use-mpegts                 Use the mpegts container for HLS videos,
+                                     allowing to play the video while
+                                     downloading (some players may not be able
+                                     to play it)
     --external-downloader COMMAND    Use the specified external downloader.
                                      Currently supports
                                      aria2c,axel,curl,httpie,wget
@@ -339,8 +343,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      preference, for example: "srt" or
                                      "ass/srt/best"
     --sub-lang LANGS                 Languages of the subtitles to download
-                                     (optional) separated by commas, use IETF
-                                     language tags like 'en,pt'
+                                     (optional) separated by commas, use --list-
+                                     subs for available language tags
 
 ## Authentication Options:
     -u, --username USERNAME          Login with this account ID

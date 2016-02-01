@@ -34,11 +34,11 @@ class SpankBangIE(InfoExtractor):
             'ext': 'mp4',
             'format_id': '%sp' % height,
             'height': int(height),
-        } for height in re.findall(r'<span[^>]+q_(\d+)p', webpage)]
+        } for height in re.findall(r'<(?:span|li)[^>]+q_(\d+)p', webpage)]
         self._sort_formats(formats)
 
         title = self._html_search_regex(
-            r'(?s)<h1>(.+?)</h1>', webpage, 'title')
+            r'(?s)<h1[^>]*>(.+?)</h1>', webpage, 'title')
         description = self._search_regex(
             r'class="desc"[^>]*>([^<]+)',
             webpage, 'description', default=None)

@@ -21,7 +21,7 @@ from youtube_dl.extractor import (
     NPOIE,
     ComedyCentralIE,
     NRKTVIE,
-    RaiIE,
+    RaiTVIE,
     VikiIE,
     ThePlatformIE,
     ThePlatformFeedIE,
@@ -260,7 +260,7 @@ class TestNRKSubtitles(BaseTestSubtitles):
 
 class TestRaiSubtitles(BaseTestSubtitles):
     url = 'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-cb27157f-9dd0-4aee-b788-b1f67643a391.html'
-    IE = RaiIE
+    IE = RaiTVIE
 
     def test_allsubtitles(self):
         self.DL.params['writesubtitles'] = True

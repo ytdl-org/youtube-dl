@@ -825,6 +825,12 @@ class InfoExtractor(object):
         if not formats:
             raise ExtractorError('No video formats found')
 
+        for f in formats:
+            # Automatically determine tbr when missing based on abr and vbr (improves
+            # formats sorting in some cases)
+            if 'tbr' not in f and f.get('abr') is not None and f.get('vbr') is not None:
+                f['tbr'] = f['abr'] + f['vbr']
+
         def _formats_key(f):
             # TODO remove the following workaround
             from ..utils import determine_ext
@@ -1014,6 +1020,18 @@ class InfoExtractor(object):
             return []
         m3u8_doc, urlh = res
         m3u8_url = urlh.geturl()
+        # A Media Playlist Tag MUST NOT appear in a Master Playlist
+        # https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3
+        # The EXT-X-TARGETDURATION tag is REQUIRED for every M3U8 Media Playlists
+        # https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3.1
+        if '#EXT-X-TARGETDURATION' in m3u8_doc:
+            return [{
+                'url': m3u8_url,
+                'format_id': m3u8_id,
+                'ext': ext,
+                'protocol': entry_protocol,
+                'preference': preference,
+            }]
         last_info = None
         last_media = None
         kv_rex = re.compile(
@@ -1058,9 +1076,9 @@ class InfoExtractor(object):
                     # TODO: looks like video codec is not always necessarily goes first
                     va_codecs = codecs.split(',')
                     if va_codecs[0]:
-                        f['vcodec'] = va_codecs[0].partition('.')[0]
+                        f['vcodec'] = va_codecs[0]
                     if len(va_codecs) > 1 and va_codecs[1]:
-                        f['acodec'] = va_codecs[1].partition('.')[0]
+                        f['acodec'] = va_codecs[1]
                 resolution = last_info.get('RESOLUTION')
                 if resolution:
                     width_str, height_str = resolution.split('x')
@@ -1164,6 +1182,7 @@ class InfoExtractor(object):
         formats = []
         rtmp_count = 0
         http_count = 0
+        m3u8_count = 0
 
         videos = smil.findall(self._xpath_ns('.//video', namespace))
         for video in videos:
@@ -1203,8 +1222,17 @@ class InfoExtractor(object):
             src_url = src if src.startswith('http') else compat_urlparse.urljoin(base, src)
 
             if proto == 'm3u8' or src_ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    src_url, video_id, ext or 'mp4', m3u8_id='hls', fatal=False))
+                m3u8_formats = self._extract_m3u8_formats(
+                    src_url, video_id, ext or 'mp4', m3u8_id='hls', fatal=False)
+                if len(m3u8_formats) == 1:
+                    m3u8_count += 1
+                    m3u8_formats[0].update({
+                        'format_id': 'hls-%d' % (m3u8_count if bitrate is None else bitrate),
+                        'tbr': bitrate,
+                        'width': width,
+                        'height': height,
+                    })
+                formats.extend(m3u8_formats)
                 continue
 
             if src_ext == 'f4m':

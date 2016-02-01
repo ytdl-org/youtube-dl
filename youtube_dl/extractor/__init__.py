@@ -42,6 +42,7 @@ from .arte import (
     ArteTVCreativeIE,
     ArteTVConcertIE,
     ArteTVFutureIE,
+    ArteTVCinemaIE,
     ArteTVDDCIE,
     ArteTVEmbedIE,
 )
@@ -49,7 +50,7 @@ from .atresplayer import AtresPlayerIE
 from .atttechchannel import ATTTechChannelIE
 from .audimedia import AudiMediaIE
 from .audiomack import AudiomackIE, AudiomackAlbumIE
-from .azubu import AzubuIE
+from .azubu import AzubuIE, AzubuLiveIE
 from .baidu import BaiduVideoIE
 from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE
@@ -195,7 +196,10 @@ from .everyonesmixtape import EveryonesMixtapeIE
 from .exfm import ExfmIE
 from .expotv import ExpoTVIE
 from .extremetube import ExtremeTubeIE
-from .facebook import FacebookIE
+from .facebook import (
+    FacebookIE,
+    FacebookPostIE,
+)
 from .faz import FazIE
 from .fc2 import FC2IE
 from .fczenit import FczenitIE
@@ -357,6 +361,7 @@ from .livestream import (
     LivestreamShortenerIE,
 )
 from .lnkgo import LnkGoIE
+from .lovehomeporn import LoveHomePornIE
 from .lrt import LRTIE
 from .lynda import (
     LyndaIE,
@@ -367,6 +372,7 @@ from .macgamestore import MacGameStoreIE
 from .mailru import MailRuIE
 from .makertv import MakerTVIE
 from .malemotion import MalemotionIE
+from .matchtv import MatchTVIE
 from .mdr import MDRIE
 from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
@@ -477,6 +483,7 @@ from .npo import (
     NPOLiveIE,
     NPORadioIE,
     NPORadioFragmentIE,
+    SchoolTVIE,
     VPROIE,
     WNLIE
 )
@@ -579,6 +586,7 @@ from .rts import RTSIE
 from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE
 from .rtvnh import RTVNHIE
 from .ruhd import RUHDIE
+from .ruleporn import RulePornIE
 from .rutube import (
     RutubeIE,
     RutubeChannelIE,
@@ -725,6 +733,7 @@ from .toutv import TouTvIE
 from .toypics import ToypicsUserIE, ToypicsIE
 from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
+from .trollvids import TrollvidsIE
 from .trutube import TruTubeIE
 from .tube8 import Tube8IE
 from .tubitv import TubiTvIE

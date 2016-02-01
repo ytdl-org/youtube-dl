@@ -199,25 +199,19 @@ class ArteTVCreativeIE(ArteTVPlus7IE):
 
 class ArteTVFutureIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:future'
-    _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de)/(thema|sujet)/.*?#article-anchor-(?P<id>\d+)'
+    _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de)/(?P<id>.+)'
 
-    _TEST = {
-        'url': 'http://future.arte.tv/fr/sujet/info-sciences#article-anchor-7081',
+    _TESTS = [{
+        'url': 'http://future.arte.tv/fr/info-sciences/les-ecrevisses-aussi-sont-anxieuses',
         'info_dict': {
-            'id': '5201',
+            'id': '050940-028-A',
             'ext': 'mp4',
-            'title': 'Les champignons au secours de la planète',
-            'upload_date': '20131101',
+            'title': 'Les écrevisses aussi peuvent être anxieuses',
         },
-    }
-
-    def _real_extract(self, url):
-        anchor_id, lang = self._extract_url_info(url)
-        webpage = self._download_webpage(url, anchor_id)
-        row = self._search_regex(
-            r'(?s)id="%s"[^>]*>.+?(<div[^>]*arte_vp_url[^>]*>)' % anchor_id,
-            webpage, 'row')
-        return self._extract_from_webpage(row, anchor_id, lang)
+    }, {
+        'url': 'http://future.arte.tv/fr/la-science-est-elle-responsable',
+        'only_matching': True,
+    }]
 
 
 class ArteTVDDCIE(ArteTVPlus7IE):
@@ -251,6 +245,23 @@ class ArteTVConcertIE(ArteTVPlus7IE):
             'title': 'The Notwist im Pariser Konzertclub "Divan du Monde"',
             'upload_date': '20140128',
             'description': 'md5:486eb08f991552ade77439fe6d82c305',
+        },
+    }
+
+
+class ArteTVCinemaIE(ArteTVPlus7IE):
+    IE_NAME = 'arte.tv:cinema'
+    _VALID_URL = r'https?://cinema\.arte\.tv/(?P<lang>de|fr)/(?P<id>.+)'
+
+    _TEST = {
+        'url': 'http://cinema.arte.tv/de/node/38291',
+        'md5': '6b275511a5107c60bacbeeda368c3aa1',
+        'info_dict': {
+            'id': '055876-000_PWA12025-D',
+            'ext': 'mp4',
+            'title': 'Tod auf dem Nil',
+            'upload_date': '20160122',
+            'description': 'md5:7f749bbb77d800ef2be11d54529b96bc',
         },
     }
 

@@ -1819,6 +1819,17 @@ class GenericIE(InfoExtractor):
         if digiteka_url:
             return self.url_result(self._proto_relative_url(digiteka_url), DigitekaIE.ie_key())
 
+        # Look for Limelight embeds
+        mobj = re.search(r'LimelightPlayer\.doLoad(Media|Channel|ChannelList)\(["\'](?P<id>[a-z0-9]{32})', webpage)
+        if mobj:
+            lm = {
+                'Media': 'media',
+                'Channel': 'channel',
+                'ChannelList': 'channel_list',
+            }
+            return self.url_result('limelight:%s:%s' % (
+                lm[mobj.group(1)], mobj.group(2)), 'Limelight%s' % mobj.group(1), mobj.group(2))
+
         # Look for AdobeTVVideo embeds
         mobj = re.search(
             r'<iframe[^>]+src=[\'"]((?:https?:)?//video\.tv\.adobe\.com/v/\d+[^"]+)[\'"]',

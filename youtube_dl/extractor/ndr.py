@@ -193,7 +193,7 @@ class NDREmbedBaseIE(InfoExtractor):
                     src + '?hdcore=3.7.0&plugin=aasp-3.7.0.39.44', video_id, f4m_id='hds'))
             elif ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
-                    src, video_id, m3u8_id='hls', entry_protocol='m3u8_native'))
+                    src, video_id, 'mp4', m3u8_id='hls', entry_protocol='m3u8_native'))
             else:
                 quality = f.get('quality')
                 ff = {

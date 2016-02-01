@@ -45,6 +45,10 @@ class ViideaIE(InfoExtractor):
             'upload_date': '20130627',
             'duration': 565,
         },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         # video with invalid direct format links (HTTP 403)
         'url': 'http://videolectures.net/russir2010_filippova_nlp/',

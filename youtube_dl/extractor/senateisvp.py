@@ -53,17 +53,25 @@ class SenateISVPIE(InfoExtractor):
         'url': 'http://www.senate.gov/isvp/?comm=judiciary&type=live&stt=&filename=judiciary031715&auto_play=false&wmode=transparent&poster=http%3A%2F%2Fwww.judiciary.senate.gov%2Fthemes%2Fjudiciary%2Fimages%2Fvideo-poster-flash-fit.png',
         'info_dict': {
             'id': 'judiciary031715',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Integrated Senate Video Player',
             'thumbnail': 're:^https?://.*\.(?:jpg|png)$',
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         'url': 'http://www.senate.gov/isvp/?type=live&comm=commerce&filename=commerce011514.mp4&auto_play=false',
         'info_dict': {
             'id': 'commerce011514',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Integrated Senate Video Player'
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         'url': 'http://www.senate.gov/isvp/?type=arch&comm=intel&filename=intel090613&hc_location=ufi',
         # checksum differs each time

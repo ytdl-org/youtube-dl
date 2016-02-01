@@ -23,15 +23,23 @@ from ..utils import (
 
 class FacebookIE(InfoExtractor):
     _VALID_URL = r'''(?x)
-        https?://(?:\w+\.)?facebook\.com/
-        (?:[^#]*?\#!/)?
-        (?:
-            (?:video/video\.php|photo\.php|video\.php|video/embed)\?(?:.*?)
-            (?:v|video_id)=|
-            [^/]+/videos/(?:[^/]+/)?
-        )
-        (?P<id>[0-9]+)
-        (?:.*)'''
+                (?:
+                    https?://
+                        (?:\w+\.)?facebook\.com/
+                        (?:[^#]*?\#!/)?
+                        (?:
+                            (?:
+                                video/video\.php|
+                                photo\.php|
+                                video\.php|
+                                video/embed
+                            )\?(?:.*?)(?:v|video_id)=|
+                            [^/]+/videos/(?:[^/]+/)?
+                        )|
+                    facebook:
+                )
+                (?P<id>[0-9]+)
+                '''
     _LOGIN_URL = 'https://www.facebook.com/login.php?next=http%3A%2F%2Ffacebook.com%2Fhome.php&login_attempt=1'
     _CHECKPOINT_URL = 'https://www.facebook.com/checkpoint/?next=http%3A%2F%2Ffacebook.com%2Fhome.php&_fb_noscript=1'
     _NETRC_MACHINE = 'facebook'
@@ -65,6 +73,9 @@ class FacebookIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.facebook.com/ChristyClarkForBC/videos/vb.22819070941/10153870694020942/?type=2&theater',
+        'only_matching': True,
+    }, {
+        'url': 'facebook:544765982287235',
         'only_matching': True,
     }]
 
@@ -139,10 +150,32 @@ class FacebookIE(InfoExtractor):
         url = 'https://www.facebook.com/video/video.php?v=%s' % video_id
         webpage = self._download_webpage(url, video_id)
 
+        video_data = None
+
         BEFORE = '{swf.addParam(param[0], param[1]);});\n'
         AFTER = '.forEach(function(variable) {swf.addVariable(variable[0], variable[1]);});'
         m = re.search(re.escape(BEFORE) + '(.*?)' + re.escape(AFTER), webpage)
-        if not m:
+        if m:
+            data = dict(json.loads(m.group(1)))
+            params_raw = compat_urllib_parse_unquote(data['params'])
+            video_data = json.loads(params_raw)['video_data']
+
+        def video_data_list2dict(video_data):
+            ret = {}
+            for item in video_data:
+                format_id = item['stream_type']
+                ret.setdefault(format_id, []).append(item)
+            return ret
+
+        if not video_data:
+            server_js_data = self._parse_json(self._search_regex(
+                r'handleServerJS\(({.+})\);', webpage, 'server js data'), video_id)
+            for item in server_js_data['instances']:
+                if item[1][0] == 'VideoConfig':
+                    video_data = video_data_list2dict(item[2][0]['videoData'])
+                    break
+
+        if not video_data:
             m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
             if m_msg is not None:
                 raise ExtractorError(
@@ -150,12 +183,9 @@ class FacebookIE(InfoExtractor):
                     expected=True)
             else:
                 raise ExtractorError('Cannot parse data')
-        data = dict(json.loads(m.group(1)))
-        params_raw = compat_urllib_parse_unquote(data['params'])
-        params = json.loads(params_raw)
 
         formats = []
-        for format_id, f in params['video_data'].items():
+        for format_id, f in video_data.items():
             if not f or not isinstance(f, list):
                 continue
             for quality in ('sd', 'hd'):
@@ -188,3 +218,33 @@ class FacebookIE(InfoExtractor):
             'formats': formats,
             'uploader': uploader,
         }
+
+
+class FacebookPostIE(InfoExtractor):
+    IE_NAME = 'facebook:post'
+    _VALID_URL = r'https?://(?:\w+\.)?facebook\.com/[^/]+/posts/(?P<id>\d+)'
+    _TEST = {
+        'url': 'https://www.facebook.com/maxlayn/posts/10153807558977570',
+        'md5': '037b1fa7f3c2d02b7a0d7bc16031ecc6',
+        'info_dict': {
+            'id': '544765982287235',
+            'ext': 'mp4',
+            'title': '"What are you doing running in the snow?"',
+            'uploader': 'FailArmy',
+        }
+    }
+
+    def _real_extract(self, url):
+        post_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, post_id)
+
+        entries = [
+            self.url_result('facebook:%s' % video_id, FacebookIE.ie_key())
+            for video_id in self._parse_json(
+                self._search_regex(
+                    r'(["\'])video_ids\1\s*:\s*(?P<ids>\[.+?\])',
+                    webpage, 'video ids', group='ids'),
+                post_id)]
+
+        return self.playlist_result(entries, post_id)

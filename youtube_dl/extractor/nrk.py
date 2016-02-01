@@ -133,26 +133,32 @@ class NRKTVIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
-            'md5': 'adf2c5454fa2bf032f47a9f8fb351342',
             'info_dict': {
                 'id': 'MUHH48000314',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': '20 spørsmål',
                 'description': 'md5:bdea103bc35494c143c6a9acdd84887a',
                 'upload_date': '20140523',
                 'duration': 1741.52,
             },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
         },
         {
             'url': 'https://tv.nrk.no/program/mdfp15000514',
-            'md5': '383650ece2b25ecec996ad7b5bb2a384',
             'info_dict': {
                 'id': 'mdfp15000514',
-                'ext': 'flv',
-                'title': 'Kunnskapskanalen: Grunnlovsjubiléet - Stor ståhei for ingenting',
+                'ext': 'mp4',
+                'title': 'Grunnlovsjubiléet - Stor ståhei for ingenting',
                 'description': 'md5:654c12511f035aed1e42bdf5db3b206a',
                 'upload_date': '20140524',
-                'duration': 4605.0,
+                'duration': 4605.08,
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
             },
         },
         {

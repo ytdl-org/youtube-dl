@@ -32,6 +32,7 @@ from ..utils import (
     get_element_by_attribute,
     get_element_by_id,
     int_or_none,
+    mimetype2ext,
     orderedSet,
     parse_duration,
     remove_quotes,
@@ -180,7 +181,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             return
 
 
-class YoutubeEntryListBaseInfoExtractor(InfoExtractor):
+class YoutubeEntryListBaseInfoExtractor(YoutubeBaseInfoExtractor):
     # Extract entries from page with "Load more" button
     def _entries(self, page, playlist_id):
         more_widget_html = content_html = page
@@ -232,7 +233,7 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
 
 class YoutubePlaylistsBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
     def _process_page(self, content):
-        for playlist_id in re.findall(r'href="/?playlist\?list=(.+?)"', content):
+        for playlist_id in orderedSet(re.findall(r'href="/?playlist\?list=([0-9A-Za-z-_]{10,})"', content)):
             yield self.url_result(
                 'https://www.youtube.com/playlist?list=%s' % playlist_id, 'YoutubePlaylist')
 
@@ -277,55 +278,55 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                      $"""
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
     _formats = {
-        '5': {'ext': 'flv', 'width': 400, 'height': 240},
-        '6': {'ext': 'flv', 'width': 450, 'height': 270},
-        '13': {'ext': '3gp'},
-        '17': {'ext': '3gp', 'width': 176, 'height': 144},
-        '18': {'ext': 'mp4', 'width': 640, 'height': 360},
-        '22': {'ext': 'mp4', 'width': 1280, 'height': 720},
-        '34': {'ext': 'flv', 'width': 640, 'height': 360},
-        '35': {'ext': 'flv', 'width': 854, 'height': 480},
-        '36': {'ext': '3gp', 'width': 320, 'height': 240},
-        '37': {'ext': 'mp4', 'width': 1920, 'height': 1080},
-        '38': {'ext': 'mp4', 'width': 4096, 'height': 3072},
-        '43': {'ext': 'webm', 'width': 640, 'height': 360},
-        '44': {'ext': 'webm', 'width': 854, 'height': 480},
-        '45': {'ext': 'webm', 'width': 1280, 'height': 720},
-        '46': {'ext': 'webm', 'width': 1920, 'height': 1080},
-        '59': {'ext': 'mp4', 'width': 854, 'height': 480},
-        '78': {'ext': 'mp4', 'width': 854, 'height': 480},
+        '5': {'ext': 'flv', 'width': 400, 'height': 240, 'acodec': 'mp3', 'abr': 64, 'vcodec': 'h263'},
+        '6': {'ext': 'flv', 'width': 450, 'height': 270, 'acodec': 'mp3', 'abr': 64, 'vcodec': 'h263'},
+        '13': {'ext': '3gp', 'acodec': 'aac', 'vcodec': 'mp4v'},
+        '17': {'ext': '3gp', 'width': 176, 'height': 144, 'acodec': 'aac', 'abr': 24, 'vcodec': 'mp4v'},
+        '18': {'ext': 'mp4', 'width': 640, 'height': 360, 'acodec': 'aac', 'abr': 96, 'vcodec': 'h264'},
+        '22': {'ext': 'mp4', 'width': 1280, 'height': 720, 'acodec': 'aac', 'abr': 192, 'vcodec': 'h264'},
+        '34': {'ext': 'flv', 'width': 640, 'height': 360, 'acodec': 'aac', 'abr': 128, 'vcodec': 'h264'},
+        '35': {'ext': 'flv', 'width': 854, 'height': 480, 'acodec': 'aac', 'abr': 128, 'vcodec': 'h264'},
+        '36': {'ext': '3gp', 'width': 320, 'height': 240, 'acodec': 'aac', 'abr': 32, 'vcodec': 'mp4v'},
+        '37': {'ext': 'mp4', 'width': 1920, 'height': 1080, 'acodec': 'aac', 'abr': 192, 'vcodec': 'h264'},
+        '38': {'ext': 'mp4', 'width': 4096, 'height': 3072, 'acodec': 'aac', 'abr': 192, 'vcodec': 'h264'},
+        '43': {'ext': 'webm', 'width': 640, 'height': 360, 'acodec': 'vorbis', 'abr': 128, 'vcodec': 'vp8'},
+        '44': {'ext': 'webm', 'width': 854, 'height': 480, 'acodec': 'vorbis', 'abr': 128, 'vcodec': 'vp8'},
+        '45': {'ext': 'webm', 'width': 1280, 'height': 720, 'acodec': 'vorbis', 'abr': 192, 'vcodec': 'vp8'},
+        '46': {'ext': 'webm', 'width': 1920, 'height': 1080, 'acodec': 'vorbis', 'abr': 192, 'vcodec': 'vp8'},
+        '59': {'ext': 'mp4', 'width': 854, 'height': 480, 'acodec': 'aac', 'abr': 128, 'vcodec': 'h264'},
+        '78': {'ext': 'mp4', 'width': 854, 'height': 480, 'acodec': 'aac', 'abr': 128, 'vcodec': 'h264'},
 
 
-        # 3d videos
-        '82': {'ext': 'mp4', 'height': 360, 'format_note': '3D', 'preference': -20},
-        '83': {'ext': 'mp4', 'height': 480, 'format_note': '3D', 'preference': -20},
-        '84': {'ext': 'mp4', 'height': 720, 'format_note': '3D', 'preference': -20},
-        '85': {'ext': 'mp4', 'height': 1080, 'format_note': '3D', 'preference': -20},
-        '100': {'ext': 'webm', 'height': 360, 'format_note': '3D', 'preference': -20},
-        '101': {'ext': 'webm', 'height': 480, 'format_note': '3D', 'preference': -20},
-        '102': {'ext': 'webm', 'height': 720, 'format_note': '3D', 'preference': -20},
+        # 3D videos
+        '82': {'ext': 'mp4', 'height': 360, 'format_note': '3D', 'acodec': 'aac', 'abr': 128, 'vcodec': 'h264', 'preference': -20},
+        '83': {'ext': 'mp4', 'height': 480, 'format_note': '3D', 'acodec': 'aac', 'abr': 128, 'vcodec': 'h264', 'preference': -20},
+        '84': {'ext': 'mp4', 'height': 720, 'format_note': '3D', 'acodec': 'aac', 'abr': 192, 'vcodec': 'h264', 'preference': -20},
+        '85': {'ext': 'mp4', 'height': 1080, 'format_note': '3D', 'acodec': 'aac', 'abr': 192, 'vcodec': 'h264', 'preference': -20},
+        '100': {'ext': 'webm', 'height': 360, 'format_note': '3D', 'acodec': 'vorbis', 'abr': 128, 'vcodec': 'vp8', 'preference': -20},
+        '101': {'ext': 'webm', 'height': 480, 'format_note': '3D', 'acodec': 'vorbis', 'abr': 192, 'vcodec': 'vp8', 'preference': -20},
+        '102': {'ext': 'webm', 'height': 720, 'format_note': '3D', 'acodec': 'vorbis', 'abr': 192, 'vcodec': 'vp8', 'preference': -20},
 
         # Apple HTTP Live Streaming
-        '92': {'ext': 'mp4', 'height': 240, 'format_note': 'HLS', 'preference': -10},
-        '93': {'ext': 'mp4', 'height': 360, 'format_note': 'HLS', 'preference': -10},
-        '94': {'ext': 'mp4', 'height': 480, 'format_note': 'HLS', 'preference': -10},
-        '95': {'ext': 'mp4', 'height': 720, 'format_note': 'HLS', 'preference': -10},
-        '96': {'ext': 'mp4', 'height': 1080, 'format_note': 'HLS', 'preference': -10},
-        '132': {'ext': 'mp4', 'height': 240, 'format_note': 'HLS', 'preference': -10},
-        '151': {'ext': 'mp4', 'height': 72, 'format_note': 'HLS', 'preference': -10},
+        '92': {'ext': 'mp4', 'height': 240, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 48, 'vcodec': 'h264', 'preference': -10},
+        '93': {'ext': 'mp4', 'height': 360, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 128, 'vcodec': 'h264', 'preference': -10},
+        '94': {'ext': 'mp4', 'height': 480, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 128, 'vcodec': 'h264', 'preference': -10},
+        '95': {'ext': 'mp4', 'height': 720, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 256, 'vcodec': 'h264', 'preference': -10},
+        '96': {'ext': 'mp4', 'height': 1080, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 256, 'vcodec': 'h264', 'preference': -10},
+        '132': {'ext': 'mp4', 'height': 240, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 48, 'vcodec': 'h264', 'preference': -10},
+        '151': {'ext': 'mp4', 'height': 72, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 24, 'vcodec': 'h264', 'preference': -10},
 
         # DASH mp4 video
-        '133': {'ext': 'mp4', 'height': 240, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '134': {'ext': 'mp4', 'height': 360, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '135': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '136': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '137': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '138': {'ext': 'mp4', 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},  # Height can vary (https://github.com/rg3/youtube-dl/issues/4559)
-        '160': {'ext': 'mp4', 'height': 144, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '264': {'ext': 'mp4', 'height': 1440, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '298': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'h264'},
-        '299': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'h264'},
-        '266': {'ext': 'mp4', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'vcodec': 'h264'},
+        '133': {'ext': 'mp4', 'height': 240, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'h264', 'preference': -40},
+        '134': {'ext': 'mp4', 'height': 360, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'h264', 'preference': -40},
+        '135': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'h264', 'preference': -40},
+        '136': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'h264', 'preference': -40},
+        '137': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'h264', 'preference': -40},
+        '138': {'ext': 'mp4', 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'h264', 'preference': -40},  # Height can vary (https://github.com/rg3/youtube-dl/issues/4559)
+        '160': {'ext': 'mp4', 'height': 144, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'h264', 'preference': -40},
+        '264': {'ext': 'mp4', 'height': 1440, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'h264', 'preference': -40},
+        '298': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'h264', 'fps': 60, 'preference': -40},
+        '299': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'h264', 'fps': 60, 'preference': -40},
+        '266': {'ext': 'mp4', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'h264', 'preference': -40},
 
         # Dash mp4 audio
         '139': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'vcodec': 'none', 'abr': 48, 'preference': -50, 'container': 'm4a_dash'},
@@ -339,26 +340,26 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '170': {'ext': 'webm', 'height': 1080, 'width': 1920, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
         '218': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
         '219': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
-        '278': {'ext': 'webm', 'height': 144, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'container': 'webm', 'vcodec': 'vp9'},
-        '242': {'ext': 'webm', 'height': 240, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '243': {'ext': 'webm', 'height': 360, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '244': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '245': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '246': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '247': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '248': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '271': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
+        '278': {'ext': 'webm', 'height': 144, 'format_note': 'DASH video', 'acodec': 'none', 'container': 'webm', 'vcodec': 'vp9', 'preference': -40},
+        '242': {'ext': 'webm', 'height': 240, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'vp9', 'preference': -40},
+        '243': {'ext': 'webm', 'height': 360, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'vp9', 'preference': -40},
+        '244': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'vp9', 'preference': -40},
+        '245': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'vp9', 'preference': -40},
+        '246': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'vp9', 'preference': -40},
+        '247': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'vp9', 'preference': -40},
+        '248': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'vp9', 'preference': -40},
+        '271': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'vp9', 'preference': -40},
         # itag 272 videos are either 3840x2160 (e.g. RtoitU2A-3E) or 7680x4320 (sLprVF6d7Ug)
-        '272': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40},
-        '302': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'vp9'},
-        '303': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'vp9'},
-        '308': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'vp9'},
-        '313': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'vcodec': 'vp9'},
-        '315': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'preference': -40, 'fps': 60, 'vcodec': 'vp9'},
+        '272': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'vp9', 'preference': -40},
+        '302': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'vp9', 'fps': 60, 'preference': -40},
+        '303': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'vp9', 'fps': 60, 'preference': -40},
+        '308': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'vp9', 'fps': 60, 'preference': -40},
+        '313': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'vp9', 'preference': -40},
+        '315': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'acodec': 'none', 'vcodec': 'vp9', 'fps': 60, 'preference': -40},
 
         # Dash webm audio
-        '171': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH audio', 'abr': 128, 'preference': -50},
-        '172': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH audio', 'abr': 256, 'preference': -50},
+        '171': {'ext': 'webm', 'acodec': 'vorbis', 'vcodec': 'none', 'format_note': 'DASH audio', 'abr': 128, 'preference': -50},
+        '172': {'ext': 'webm', 'acodec': 'vorbis', 'vcodec': 'none', 'format_note': 'DASH audio', 'abr': 256, 'preference': -50},
 
         # Dash webm audio with opus inside
         '249': {'ext': 'webm', 'vcodec': 'none', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 50, 'preference': -50},
@@ -964,6 +965,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         try:
             args = player_config['args']
             caption_url = args['ttsurl']
+            if not caption_url:
+                self._downloader.report_warning(err_msg)
+                return {}
             timestamp = args['timestamp']
             # We get the available subtitles
             list_params = compat_urllib_parse.urlencode({
@@ -1087,9 +1091,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         full_info.update(f)
                         codecs = r.attrib.get('codecs')
                         if codecs:
-                            if full_info.get('acodec') == 'none' and 'vcodec' not in full_info:
+                            if full_info.get('acodec') == 'none':
                                 full_info['vcodec'] = codecs
-                            elif full_info.get('vcodec') == 'none' and 'acodec' not in full_info:
+                            elif full_info.get('vcodec') == 'none':
                                 full_info['acodec'] = codecs
                         formats.append(full_info)
                     else:
@@ -1458,15 +1462,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 if 'ratebypass' not in url:
                     url += '&ratebypass=yes'
 
+                dct = {
+                    'format_id': format_id,
+                    'url': url,
+                    'player_url': player_url,
+                }
+                if format_id in self._formats:
+                    dct.update(self._formats[format_id])
+
                 # Some itags are not included in DASH manifest thus corresponding formats will
                 # lack metadata (see https://github.com/rg3/youtube-dl/pull/5993).
                 # Trying to extract metadata from url_encoded_fmt_stream_map entry.
                 mobj = re.search(r'^(?P<width>\d+)[xX](?P<height>\d+)$', url_data.get('size', [''])[0])
                 width, height = (int(mobj.group('width')), int(mobj.group('height'))) if mobj else (None, None)
-                dct = {
-                    'format_id': format_id,
-                    'url': url,
-                    'player_url': player_url,
+
+                more_fields = {
                     'filesize': int_or_none(url_data.get('clen', [None])[0]),
                     'tbr': float_or_none(url_data.get('bitrate', [None])[0], 1000),
                     'width': width,
@@ -1474,13 +1484,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'fps': int_or_none(url_data.get('fps', [None])[0]),
                     'format_note': url_data.get('quality_label', [None])[0] or url_data.get('quality', [None])[0],
                 }
+                for key, value in more_fields.items():
+                    if value:
+                        dct[key] = value
                 type_ = url_data.get('type', [None])[0]
                 if type_:
                     type_split = type_.split(';')
                     kind_ext = type_split[0].split('/')
                     if len(kind_ext) == 2:
-                        kind, ext = kind_ext
-                        dct['ext'] = ext
+                        kind, _ = kind_ext
+                        dct['ext'] = mimetype2ext(type_split[0])
                         if kind in ('audio', 'video'):
                             codecs = None
                             for mobj in re.finditer(
@@ -1498,8 +1511,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                     'acodec': acodec,
                                     'vcodec': vcodec,
                                 })
-                if format_id in self._formats:
-                    dct.update(self._formats[format_id])
                 formats.append(dct)
         elif video_info.get('hlsvp'):
             manifest_url = video_info['hlsvp'][0]
@@ -1591,7 +1602,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         }
 
 
-class YoutubePlaylistIE(YoutubeBaseInfoExtractor, YoutubePlaylistBaseInfoExtractor):
+class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     IE_DESC = 'YouTube.com playlists'
     _VALID_URL = r"""(?x)(?:
                         (?:https?://)?
@@ -1835,7 +1846,7 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
 
 class YoutubeUserIE(YoutubeChannelIE):
     IE_DESC = 'YouTube.com user videos (URL or "ytuser" keyword)'
-    _VALID_URL = r'(?:(?:(?:https?://)?(?:\w+\.)?youtube\.com/(?:user/)?(?!(?:attribution_link|watch|results)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)(?P<id>[A-Za-z0-9_-]+)'
+    _VALID_URL = r'(?:(?:https?://(?:\w+\.)?youtube\.com/(?:user/)?(?!(?:attribution_link|watch|results)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)(?P<id>[A-Za-z0-9_-]+)'
     _TEMPLATE_URL = 'https://www.youtube.com/user/%s/videos'
     IE_NAME = 'youtube:user'
 

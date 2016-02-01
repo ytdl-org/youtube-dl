@@ -4,11 +4,10 @@ from __future__ import unicode_literals
 import re
 import json
 
-from .common import InfoExtractor
-from ..utils import remove_start
+from .theplatform import ThePlatformIE
 
 
-class CBSNewsIE(InfoExtractor):
+class CBSNewsIE(ThePlatformIE):
     IE_DESC = 'CBS News'
     _VALID_URL = r'http://(?:www\.)?cbsnews\.com/(?:[^/]+/)+(?P<id>[\da-z_-]+)'
 
@@ -31,13 +30,18 @@ class CBSNewsIE(InfoExtractor):
             'url': 'http://www.cbsnews.com/videos/fort-hood-shooting-army-downplays-mental-illness-as-cause-of-attack/',
             'info_dict': {
                 'id': 'fort-hood-shooting-army-downplays-mental-illness-as-cause-of-attack',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Fort Hood shooting: Army downplays mental illness as cause of attack',
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'duration': 205,
+                'subtitles': {
+                    'en': [{
+                        'ext': 'ttml',
+                    }],
+                },
             },
             'params': {
-                # rtmp download
+                # m3u8 download
                 'skip_download': True,
             },
         },
@@ -58,32 +62,23 @@ class CBSNewsIE(InfoExtractor):
         duration = item.get('duration')
         thumbnail = item.get('mediaImage') or item.get('thumbnail')
 
+        subtitles = {}
+        if 'mpxRefId' in video_info:
+            subtitles['en'] = [{
+                'ext': 'ttml',
+                'url': 'http://www.cbsnews.com/videos/captions/%s.adb_xml' % video_info['mpxRefId'],
+            }]
+
         formats = []
         for format_id in ['RtmpMobileLow', 'RtmpMobileHigh', 'Hls', 'RtmpDesktop']:
-            uri = item.get('media' + format_id + 'URI')
-            if not uri:
+            pid = item.get('media' + format_id)
+            if not pid:
                 continue
-            uri = remove_start(uri, '{manifest:none}')
-            fmt = {
-                'url': uri,
-                'format_id': format_id,
-            }
-            if uri.startswith('rtmp'):
-                play_path = re.sub(
-                    r'{slistFilePath}', '',
-                    uri.split('<break>')[-1].split('{break}')[-1])
-                play_path = re.sub(
-                    r'{manifest:.+}.*$', '', play_path)
-                fmt.update({
-                    'app': 'ondemand?auth=cbs',
-                    'play_path': 'mp4:' + play_path,
-                    'player_url': 'http://www.cbsnews.com/[[IMPORT]]/vidtech.cbsinteractive.com/player/3_3_0/CBSI_PLAYER_HD.swf',
-                    'page_url': 'http://www.cbsnews.com',
-                    'ext': 'flv',
-                })
-            elif uri.endswith('.m3u8'):
-                fmt['ext'] = 'mp4'
-            formats.append(fmt)
+            release_url = 'http://link.theplatform.com/s/dJ5BDC/%s?format=SMIL&mbr=true' % pid
+            tp_formats, tp_subtitles = self._extract_theplatform_smil(release_url, video_id, 'Downloading %s SMIL data' % pid)
+            formats.extend(tp_formats)
+            subtitles = self._merge_subtitles(subtitles, tp_subtitles)
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
@@ -91,4 +86,5 @@ class CBSNewsIE(InfoExtractor):
             'thumbnail': thumbnail,
             'duration': duration,
             'formats': formats,
+            'subtitles': subtitles,
         }

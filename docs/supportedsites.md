@@ -24,7 +24,7 @@
  - **AdobeTVShow**
  - **AdobeTVVideo**
  - **AdultSwim**
- - **AE**
+ - **aenetworks**: A+E Networks: A&E, Lifetime, History.com, FYI Network
  - **Aftonbladet**
  - **AirMozilla**
  - **AlJazeera**
@@ -43,6 +43,7 @@
  - **ARD:mediathek**
  - **arte.tv**
  - **arte.tv:+7**
+ - **arte.tv:cinema**
  - **arte.tv:concert**
  - **arte.tv:creative**
  - **arte.tv:ddc**
@@ -54,6 +55,7 @@
  - **audiomack**
  - **audiomack:album**
  - **Azubu**
+ - **AzubuLive**
  - **BaiduVideo**: 百度视频
  - **bambuser**
  - **bambuser:channel**
@@ -124,6 +126,7 @@
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
  - **culturebox.francetvinfo.fr**
+ - **CultureUnplugged**
  - **CWTV**
  - **dailymotion**
  - **dailymotion:playlist**
@@ -141,6 +144,7 @@
  - **defense.gouv.fr**
  - **democracynow**
  - **DHM**: Filmarchiv - Deutsches Historisches Museum
+ - **Digiteka**
  - **Discovery**
  - **Dotsub**
  - **DouyuTV**: 斗鱼
@@ -177,6 +181,7 @@
  - **ExpoTV**
  - **ExtremeTube**
  - **facebook**
+ - **facebook:post**
  - **faz.net**
  - **fc2**
  - **Fczenit**
@@ -287,7 +292,9 @@
  - **la7.tv**
  - **Laola1Tv**
  - **Lecture2Go**
+ - **Lemonde**
  - **Letv**: 乐视网
+ - **LetvCloud**: 乐视云
  - **LetvPlaylist**
  - **LetvTv**
  - **Libsyn**
@@ -300,6 +307,7 @@
  - **livestream**
  - **livestream:original**
  - **LnkGo**
+ - **LoveHomePorn**
  - **lrt.lt**
  - **lynda**: lynda.com videos
  - **lynda:course**: lynda.com online courses
@@ -308,6 +316,7 @@
  - **mailru**: Видео@Mail.Ru
  - **MakerTV**
  - **Malemotion**
+ - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
  - **metacafe**
@@ -486,6 +495,7 @@
  - **rtve.es:live**: RTVE.es live streams
  - **RTVNH**
  - **RUHD**
+ - **RulePorn**
  - **rutube**: Rutube videos
  - **rutube:channel**: Rutube channels
  - **rutube:embed**: Rutube embedded videos
@@ -499,6 +509,7 @@
  - **Sapo**: SAPO Vídeos
  - **savefrom.net**
  - **SBS**: sbs.com.au
+ - **schooltv**
  - **SciVee**
  - **screen.yahoo:search**: Yahoo screen search
  - **Screencast**
@@ -602,6 +613,7 @@
  - **ToypicsUser**: Toypics user profile
  - **TrailerAddict** (Currently broken)
  - **Trilulilu**
+ - **trollvids**
  - **TruTube**
  - **Tube8**
  - **TubiTv**
@@ -640,7 +652,6 @@
  - **udemy**
  - **udemy:course**
  - **UDNEmbed**: 聯合影音
- - **Ultimedia**
  - **Unistra**
  - **Urort**: NRK P3 Urørt
  - **ustream**
@@ -707,6 +718,7 @@
  - **WebOfStories**
  - **WebOfStoriesPlaylist**
  - **Weibo**
+ - **WeiqiTV**: WQTV
  - **wholecloud**: WholeCloud
  - **Wimp**
  - **Wistia**
@@ -758,3 +770,4 @@
  - **ZDFChannel**
  - **zingmp3:album**: mp3.zing.vn albums
  - **zingmp3:song**: mp3.zing.vn songs
+ - **ZippCast**
