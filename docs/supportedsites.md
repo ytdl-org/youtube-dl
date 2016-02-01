@@ -134,6 +134,8 @@
  - **DailymotionCloud**
  - **daum.net**
  - **daum.net:clip**
+ - **daum.net:playlist**
+ - **daum.net:user**
  - **DBTV**
  - **DCN**
  - **dcn:live**
