@@ -42,7 +42,7 @@ class DaumIE(InfoExtractor):
         'info_dict': {
             'id': '65139429',
             'ext': 'mp4',
-            'title': 'md5:a100d65d09cec246d8aa9bde7de45aed',
+            'title': '1297회, \'아빠 아들로 태어나길 잘 했어\' 민수, 감동의 눈물[아빠 어디가] 20150118',
             'description': 'md5:79794514261164ff27e36a21ad229fc5',
             'upload_date': '20150604',
             'thumbnail': 're:^https?://.*\.(?:jpg|png)',
