@@ -10,6 +10,7 @@ import re
 import socket
 import sys
 import time
+import math
 
 from ..compat import (
     compat_cookiejar,
@@ -44,6 +45,7 @@ from ..utils import (
     xpath_text,
     xpath_with_ns,
     determine_protocol,
+    parse_duration,
 )
 
 
@@ -1330,81 +1332,145 @@ class InfoExtractor(object):
             })
         return entries
 
-    def _download_dash_manifest(self, dash_manifest_url, video_id, fatal=True):
-        return self._download_xml(
-            dash_manifest_url, video_id,
-            note='Downloading DASH manifest',
-            errnote='Could not download DASH manifest',
+    def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}):
+        res = self._download_webpage_handle(
+            mpd_url, video_id,
+            note=note or 'Downloading MPD manifest',
+            errnote=errnote or 'Failed to download MPD manifest',
             fatal=fatal)
+        if res is False:
+            return []
+        mpd, urlh = res
+        mpd_base_url = re.match(r'https?://.+/', urlh.geturl()).group()
 
-    def _extract_dash_manifest_formats(self, dash_manifest_url, video_id, fatal=True, namespace=None, formats_dict={}):
-        dash_doc = self._download_dash_manifest(dash_manifest_url, video_id, fatal)
-        if dash_doc is False:
+        return self._parse_mpd(
+            compat_etree_fromstring(mpd.encode('utf-8')), mpd_id, mpd_base_url, formats_dict=formats_dict)
+
+    def _parse_mpd(self, mpd_doc, mpd_id=None, mpd_base_url='', formats_dict={}):
+        if mpd_doc.get('type') == 'dynamic':
             return []
 
-        return self._parse_dash_manifest(
-            dash_doc, namespace=namespace, formats_dict=formats_dict)
-
-    def _parse_dash_manifest(self, dash_doc, namespace=None, formats_dict={}):
-        def _add_ns(path):
-            return self._xpath_ns(path, namespace)
-
-        formats = []
-        for a in dash_doc.findall('.//' + _add_ns('AdaptationSet')):
-            mime_type = a.attrib.get('mimeType')
-            for r in a.findall(_add_ns('Representation')):
-                mime_type = r.attrib.get('mimeType') or mime_type
-                url_el = r.find(_add_ns('BaseURL'))
-                if mime_type == 'text/vtt':
-                    # TODO implement WebVTT downloading
-                    pass
-                elif mime_type.startswith('audio/') or mime_type.startswith('video/'):
-                    segment_list = r.find(_add_ns('SegmentList'))
-                    format_id = r.attrib['id']
-                    video_url = url_el.text if url_el is not None else None
-                    filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength') if url_el is not None else None)
-                    f = {
-                        'format_id': format_id,
-                        'url': video_url,
-                        'width': int_or_none(r.attrib.get('width')),
-                        'height': int_or_none(r.attrib.get('height')),
-                        'tbr': int_or_none(r.attrib.get('bandwidth'), 1000),
-                        'asr': int_or_none(r.attrib.get('audioSamplingRate')),
-                        'filesize': filesize,
-                        'fps': int_or_none(r.attrib.get('frameRate')),
-                    }
-                    if segment_list is not None:
-                        initialization_url = segment_list.find(_add_ns('Initialization')).attrib['sourceURL']
-                        f.update({
-                            'initialization_url': initialization_url,
-                            'segment_urls': [segment.attrib.get('media') for segment in segment_list.findall(_add_ns('SegmentURL'))],
-                            'protocol': 'http_dash_segments',
-                        })
-                        if not f.get('url'):
-                            f['url'] = initialization_url
-                    try:
-                        existing_format = next(
-                            fo for fo in formats
-                            if fo['format_id'] == format_id)
-                    except StopIteration:
-                        full_info = formats_dict.get(format_id, {}).copy()
-                        full_info.update(f)
-                        codecs = r.attrib.get('codecs')
-                        if codecs:
-                            if mime_type.startswith('video/'):
-                                vcodec, acodec = codecs, 'none'
-                            else:  # mime_type.startswith('audio/')
-                                vcodec, acodec = 'none', codecs
-
-                            full_info.update({
-                                'vcodec': vcodec,
-                                'acodec': acodec,
-                            })
-                        formats.append(full_info)
+        def extract_multisegment_info(element, ms_parent_info):
+            ms_info = ms_parent_info.copy()
+            segment_list = element.find(self._xpath_ns('SegmentList', namespace))
+            if segment_list is not None:
+                segment_urls_e = segment_list.findall(self._xpath_ns('SegmentURL', namespace))
+                if segment_urls_e:
+                    ms_info['segment_urls'] = [segment.attrib['media'] for segment in segment_urls_e]
+                initialization = segment_list.find(self._xpath_ns('Initialization', namespace))
+                if initialization is not None:
+                    ms_info['initialization_url'] = initialization.attrib['sourceURL']
+            else:
+                segment_template = element.find(self._xpath_ns('SegmentTemplate', namespace))
+                if segment_template is not None:
+                    start_number = segment_template.get('startNumber')
+                    if start_number:
+                        ms_info['start_number'] = int(start_number)
+                    segment_timeline = segment_template.find(self._xpath_ns('SegmentTimeline', namespace))
+                    if segment_timeline is not None:
+                        s_e = segment_timeline.findall(self._xpath_ns('S', namespace))
+                        if s_e:
+                            ms_info['total_number'] = 0
+                            for s in s_e:
+                                ms_info['total_number'] += 1 + int(s.get('r', '0'))
                     else:
-                        existing_format.update(f)
-                else:
-                    self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
+                        timescale = segment_template.get('timescale')
+                        if timescale:
+                            ms_info['timescale'] = int(timescale)
+                        segment_duration = segment_template.get('duration')
+                        if segment_duration:
+                            ms_info['segment_duration'] = int(segment_duration)
+                    media_template = segment_template.get('media')
+                    if media_template:
+                        ms_info['media_template'] = media_template
+                    initialization = segment_template.get('initialization')
+                    if initialization:
+                        ms_info['initialization_url'] = initialization
+                    else:
+                        initialization = segment_template.find(self._xpath_ns('Initialization', namespace))
+                        if initialization is not None:
+                            ms_info['initialization_url'] = initialization.attrib['sourceURL']
+            return ms_info
+
+        namespace = self._search_regex(r'(?i)^{([^}]+)?}MPD$', mpd_doc.tag, 'namespace')
+        mpd_duration = parse_duration(mpd_doc.get('mediaPresentationDuration'))
+        formats = []
+        for period in mpd_doc.findall(self._xpath_ns('Period', namespace)):
+            period_duration = parse_duration(period.get('duration')) or mpd_duration
+            period_ms_info = extract_multisegment_info(period, {
+                'start_number': 1,
+                'timescale': 1,
+            })
+            for adaptation_set in period.findall(self._xpath_ns('AdaptationSet', namespace)):
+                adaption_set_ms_info = extract_multisegment_info(adaptation_set, period_ms_info)
+                for representation in adaptation_set.findall(self._xpath_ns('Representation', namespace)):
+                    representation_attrib = adaptation_set.attrib.copy()
+                    representation_attrib.update(representation.attrib)
+                    mime_type = representation_attrib.get('mimeType')
+                    content_type = mime_type.split('/')[0] if mime_type else representation_attrib.get('contentType')
+                    if content_type == 'text':
+                        # TODO implement WebVTT downloading
+                        pass
+                    elif content_type == 'video' or content_type == 'audio':
+                        base_url = ''
+                        for element in (representation, adaptation_set, period, mpd_doc):
+                            base_url_e = element.find(self._xpath_ns('BaseURL', namespace))
+                            if base_url_e is not None:
+                                base_url = base_url_e.text + base_url
+                                if re.match(r'^https?://', base_url):
+                                    break
+                        if not re.match(r'^https?://', base_url):
+                            base_url = mpd_base_url + base_url
+                        representation_id = representation_attrib.get('id')
+                        f = {
+                            'format_id': mpd_id or representation_id,
+                            'url': base_url,
+                            'width': int_or_none(representation_attrib.get('width')),
+                            'height': int_or_none(representation_attrib.get('height')),
+                            'tbr': int_or_none(representation_attrib.get('bandwidth'), 1000),
+                            'asr': int_or_none(representation_attrib.get('audioSamplingRate')),
+                            'fps': int_or_none(representation_attrib.get('frameRate')),
+                            'vcodec': 'none' if content_type == 'audio' else representation_attrib.get('codecs'),
+                            'acodec': 'none' if content_type == 'video' else representation_attrib.get('codecs'),
+                            'language': representation_attrib.get('lang'),
+                            'format_note': 'DASH %s' % content_type,
+                        }
+                        representation_ms_info = extract_multisegment_info(representation, adaption_set_ms_info)
+                        if 'segment_urls' not in representation_ms_info and 'media_template' in representation_ms_info:
+                            if 'total_number' not in representation_ms_info and 'segment_duration':
+                                segment_duration = representation_ms_info['segment_duration'] / representation_ms_info['timescale']
+                                representation_ms_info['total_number'] = int(math.ceil(period_duration / segment_duration))
+                            media_template = representation_ms_info['media_template']
+                            media_template = media_template.replace('$RepresentationID$', representation_id)
+                            media_template = re.sub(r'\$(Bandwidth)(?:%(0\d+d))?\$', r'%(\1)\2', media_template)
+                            media_template = media_template % {'Bandwidth': representation_attrib.get('bandwidth')}
+                            media_template = re.sub(r'\$(Number)(?:%(0\d+d))?\$', r'%(\1)\2', media_template)
+                            media_template.replace('$$', '$')
+                            representation_ms_info['segment_urls'] = [media_template % {'Number': segment_number} for segment_number in range(representation_ms_info['start_number'], representation_ms_info['total_number'] + representation_ms_info['start_number'])]
+                        if 'segment_urls' in representation_ms_info:
+                            f.update({
+                                'segment_urls': representation_ms_info['segment_urls'],
+                                'protocol': 'http_dash_segments',
+                            })
+                            if 'initialization_url' in representation_ms_info:
+                                initialization_url = representation_ms_info['initialization_url'].replace('$RepresentationID$', representation_id)
+                                f.update({
+                                    'initialization_url': initialization_url,
+                                })
+                                if not f.get('url'):
+                                    f['url'] = initialization_url
+                        try:
+                            existing_format = next(
+                                fo for fo in formats
+                                if fo['format_id'] == representation_id)
+                        except StopIteration:
+                            full_info = formats_dict.get(representation_id, {}).copy()
+                            full_info.update(f)
+                            formats.append(full_info)
+                        else:
+                            existing_format.update(f)
+                    else:
+                        self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
         return formats
 
     def _live_title(self, name):
