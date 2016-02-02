@@ -70,14 +70,11 @@ class SRGSSRIE(InfoExtractor):
                         asset_url, media_id, 'mp4', 'm3u8_native',
                         m3u8_id=format_id, fatal=False))
                 else:
-                    ext = None
-                    if protocol == 'RTMP':
-                        ext = self._search_regex(r'([a-z0-9]+):[^/]+', asset_url, 'ext')
                     formats.append({
                         'format_id': format_id,
                         'url': asset_url,
                         'preference': preference(quality),
-                        'ext': ext,
+                        'ext': 'flv' if protocol == 'RTMP' else None,
                     })
         self._sort_formats(formats)
 
