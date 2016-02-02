@@ -1442,9 +1442,9 @@ class InfoExtractor(object):
                                 representation_ms_info['total_number'] = int(math.ceil(period_duration / segment_duration))
                             media_template = representation_ms_info['media_template']
                             media_template = media_template.replace('$RepresentationID$', representation_id)
-                            media_template = re.sub(r'\$(Bandwidth)(?:%(0\d+d))?\$', r'%(\1)\2', media_template)
+                            media_template = re.sub(r'\$(Bandwidth)(?:%(0\d+)d)?\$', r'%(\1)\2d', media_template)
                             media_template = media_template % {'Bandwidth': representation_attrib.get('bandwidth')}
-                            media_template = re.sub(r'\$(Number)(?:%(0\d+d))?\$', r'%(\1)\2', media_template)
+                            media_template = re.sub(r'\$(Number)(?:%(0\d+)d)?\$', r'%(\1)\2d', media_template)
                             media_template.replace('$$', '$')
                             representation_ms_info['segment_urls'] = [media_template % {'Number': segment_number} for segment_number in range(representation_ms_info['start_number'], representation_ms_info['total_number'] + representation_ms_info['start_number'])]
                         if 'segment_urls' in representation_ms_info:
