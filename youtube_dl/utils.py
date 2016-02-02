@@ -2017,7 +2017,7 @@ def dfxp2srt(dfxp_data):
         'ttaf1': 'http://www.w3.org/2006/10/ttaf1',
     })
 
-    class TTMLPElementParser:
+    class TTMLPElementParser(object):
         out = ''
 
         def start(self, tag, attrib):
