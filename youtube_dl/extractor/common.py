@@ -1350,25 +1350,30 @@ class InfoExtractor(object):
         if mpd_doc.get('type') == 'dynamic':
             return []
 
+        namespace = self._search_regex(r'(?i)^{([^}]+)?}MPD$', mpd_doc.tag, 'namespace')
+
+        def _add_ns(path):
+            return self._xpath_ns(path, namespace)
+
         def extract_multisegment_info(element, ms_parent_info):
             ms_info = ms_parent_info.copy()
-            segment_list = element.find(self._xpath_ns('SegmentList', namespace))
+            segment_list = element.find(_add_ns('SegmentList'))
             if segment_list is not None:
-                segment_urls_e = segment_list.findall(self._xpath_ns('SegmentURL', namespace))
+                segment_urls_e = segment_list.findall(_add_ns('SegmentURL'))
                 if segment_urls_e:
                     ms_info['segment_urls'] = [segment.attrib['media'] for segment in segment_urls_e]
-                initialization = segment_list.find(self._xpath_ns('Initialization', namespace))
+                initialization = segment_list.find(_add_ns('Initialization'))
                 if initialization is not None:
                     ms_info['initialization_url'] = initialization.attrib['sourceURL']
             else:
-                segment_template = element.find(self._xpath_ns('SegmentTemplate', namespace))
+                segment_template = element.find(_add_ns('SegmentTemplate'))
                 if segment_template is not None:
                     start_number = segment_template.get('startNumber')
                     if start_number:
                         ms_info['start_number'] = int(start_number)
-                    segment_timeline = segment_template.find(self._xpath_ns('SegmentTimeline', namespace))
+                    segment_timeline = segment_template.find(_add_ns('SegmentTimeline'))
                     if segment_timeline is not None:
-                        s_e = segment_timeline.findall(self._xpath_ns('S', namespace))
+                        s_e = segment_timeline.findall(_add_ns('S'))
                         if s_e:
                             ms_info['total_number'] = 0
                             for s in s_e:
@@ -1387,23 +1392,22 @@ class InfoExtractor(object):
                     if initialization:
                         ms_info['initialization_url'] = initialization
                     else:
-                        initialization = segment_template.find(self._xpath_ns('Initialization', namespace))
+                        initialization = segment_template.find(_add_ns('Initialization'))
                         if initialization is not None:
                             ms_info['initialization_url'] = initialization.attrib['sourceURL']
             return ms_info
 
-        namespace = self._search_regex(r'(?i)^{([^}]+)?}MPD$', mpd_doc.tag, 'namespace')
         mpd_duration = parse_duration(mpd_doc.get('mediaPresentationDuration'))
         formats = []
-        for period in mpd_doc.findall(self._xpath_ns('Period', namespace)):
+        for period in mpd_doc.findall(_add_ns('Period')):
             period_duration = parse_duration(period.get('duration')) or mpd_duration
             period_ms_info = extract_multisegment_info(period, {
                 'start_number': 1,
                 'timescale': 1,
             })
-            for adaptation_set in period.findall(self._xpath_ns('AdaptationSet', namespace)):
+            for adaptation_set in period.findall(_add_ns('AdaptationSet')):
                 adaption_set_ms_info = extract_multisegment_info(adaptation_set, period_ms_info)
-                for representation in adaptation_set.findall(self._xpath_ns('Representation', namespace)):
+                for representation in adaptation_set.findall(_add_ns('Representation')):
                     representation_attrib = adaptation_set.attrib.copy()
                     representation_attrib.update(representation.attrib)
                     mime_type = representation_attrib.get('mimeType')
@@ -1414,7 +1418,7 @@ class InfoExtractor(object):
                     elif content_type == 'video' or content_type == 'audio':
                         base_url = ''
                         for element in (representation, adaptation_set, period, mpd_doc):
-                            base_url_e = element.find(self._xpath_ns('BaseURL', namespace))
+                            base_url_e = element.find(_add_ns('BaseURL'))
                             if base_url_e is not None:
                                 base_url = base_url_e.text + base_url
                                 if re.match(r'^https?://', base_url):
