@@ -197,8 +197,14 @@ class VevoIE(InfoExtractor):
                 if not version_url:
                     continue
 
-                if '.mpd' in version_url or '.ism' in version_url:
+                if '.ism' in version_url:
                     continue
+                elif '.mpd' in version_url:
+                    formats.extend(self._extract_mpd_formats(
+                        version_url, video_id, mpd_id='dash-%s' % version,
+                        note='Downloading %s MPD information' % version,
+                        errnote='Failed to download %s MPD information' % version,
+                        fatal=False))
                 elif '.m3u8' in version_url:
                     formats.extend(self._extract_m3u8_formats(
                         version_url, video_id, 'mp4', 'm3u8_native',
