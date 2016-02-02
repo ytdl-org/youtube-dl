@@ -2017,20 +2017,27 @@ def dfxp2srt(dfxp_data):
         'ttaf1': 'http://www.w3.org/2006/10/ttaf1',
     })
 
+    class TTMLPElementParser:
+        out = ''
+
+        def start(self, tag, attrib):
+            if tag in (_x('ttml:br'), _x('ttaf1:br'), 'br'):
+                self.out += '\n'
+
+        def end(self, tag):
+            pass
+
+        def data(self, data):
+            self.out += data
+
+        def close(self):
+            return self.out.strip()
+
     def parse_node(node):
-        str_or_empty = functools.partial(str_or_none, default='')
-
-        out = str_or_empty(node.text)
-
-        for child in node:
-            if child.tag in (_x('ttml:br'), _x('ttaf1:br'), 'br'):
-                out += '\n' + str_or_empty(child.tail)
-            elif child.tag in (_x('ttml:span'), _x('ttaf1:span'), 'span'):
-                out += str_or_empty(parse_node(child))
-            else:
-                out += str_or_empty(xml.etree.ElementTree.tostring(child))
-
-        return out
+        target = TTMLPElementParser()
+        parser = xml.etree.ElementTree.XMLParser(target=target)
+        parser.feed(xml.etree.ElementTree.tostring(node))
+        return parser.close()
 
     dfxp = compat_etree_fromstring(dfxp_data.encode('utf-8'))
     out = []
