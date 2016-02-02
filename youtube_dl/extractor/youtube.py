@@ -1463,7 +1463,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # Look for the DASH manifest
         if self._downloader.params.get('youtube_include_dash_manifest', True):
             dash_mpd_fatal = True
-            for dash_manifest_url in dash_mpds:
+            for mpd_url in dash_mpds:
                 dash_formats = {}
                 try:
                     def decrypt_sig(mobj):
@@ -1471,11 +1471,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         dec_s = self._decrypt_signature(s, video_id, player_url, age_gate)
                         return '/signature/%s' % dec_s
 
-                    dash_manifest_url = re.sub(r'/s/([a-fA-F0-9\.]+)', decrypt_sig, dash_manifest_url)
+                    mpd_url = re.sub(r'/s/([a-fA-F0-9\.]+)', decrypt_sig, mpd_url)
 
-                    for df in self._extract_dash_manifest_formats(
-                            dash_manifest_url, video_id, fatal=dash_mpd_fatal,
-                            namespace='urn:mpeg:DASH:schema:MPD:2011', formats_dict=self._formats):
+                    for df in self._extract_mpd_formats(
+                            mpd_url, video_id, fatal=dash_mpd_fatal,
+                            formats_dict=self._formats):
                         # Do not overwrite DASH format found in some previous DASH manifest
                         if df['format_id'] not in dash_formats:
                             dash_formats[df['format_id']] = df
