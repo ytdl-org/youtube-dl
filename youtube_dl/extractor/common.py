@@ -1426,6 +1426,7 @@ class InfoExtractor(object):
                         if not re.match(r'^https?://', base_url):
                             base_url = mpd_base_url + base_url
                         representation_id = representation_attrib.get('id')
+                        lang = representation_attrib.get('lang')
                         f = {
                             'format_id': mpd_id or representation_id,
                             'url': base_url,
@@ -1436,7 +1437,7 @@ class InfoExtractor(object):
                             'fps': int_or_none(representation_attrib.get('frameRate')),
                             'vcodec': 'none' if content_type == 'audio' else representation_attrib.get('codecs'),
                             'acodec': 'none' if content_type == 'video' else representation_attrib.get('codecs'),
-                            'language': representation_attrib.get('lang'),
+                            'language': lang if lang not in ('mul', 'und', 'zxx', 'mis') else None,
                             'format_note': 'DASH %s' % content_type,
                         }
                         representation_ms_info = extract_multisegment_info(representation, adaption_set_ms_info)
