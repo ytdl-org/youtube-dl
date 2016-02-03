@@ -455,6 +455,8 @@ The `-o` option allows users to indicate a template for the output file names. T
  - `format_id`: The sequence will be replaced by the format code specified by `--format`.
  - `duration`: The sequence will be replaced by the length of the video in seconds.
 
+Note that some of the aforementioned sequences are not guaranteed to be present since they depend on the metadata obtained by particular extractor, such sequences will be replaced with `NA`.
+
 The current default template is `%(title)s-%(id)s.%(ext)s`.
 
 In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
