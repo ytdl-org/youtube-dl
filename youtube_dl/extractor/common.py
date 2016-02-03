@@ -1355,6 +1355,9 @@ class InfoExtractor(object):
         def _add_ns(path):
             return self._xpath_ns(path, namespace)
 
+        def is_drm_protected(element):
+            return element.find(_add_ns('ContentProtection')) is not None
+
         def extract_multisegment_info(element, ms_parent_info):
             ms_info = ms_parent_info.copy()
             segment_list = element.find(_add_ns('SegmentList'))
@@ -1406,8 +1409,12 @@ class InfoExtractor(object):
                 'timescale': 1,
             })
             for adaptation_set in period.findall(_add_ns('AdaptationSet')):
+                if is_drm_protected(adaptation_set):
+                    continue
                 adaption_set_ms_info = extract_multisegment_info(adaptation_set, period_ms_info)
                 for representation in adaptation_set.findall(_add_ns('Representation')):
+                    if is_drm_protected(representation):
+                        continue
                     representation_attrib = adaptation_set.attrib.copy()
                     representation_attrib.update(representation.attrib)
                     mime_type = representation_attrib.get('mimeType')
