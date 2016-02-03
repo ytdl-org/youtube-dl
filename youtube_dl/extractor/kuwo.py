@@ -31,6 +31,10 @@ class KuwoBaseIE(InfoExtractor):
                 (file_format['ext'], file_format.get('br', ''), song_id),
                 song_id, note='Download %s url info' % file_format['format'],
             )
+
+            if song_url == 'IPDeny':
+                raise ExtractorError('This song is blocked in this region', expected=True)
+
             if song_url.startswith('http://') or song_url.startswith('https://'):
                 formats.append({
                     'url': song_url,
