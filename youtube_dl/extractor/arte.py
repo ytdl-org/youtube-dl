@@ -13,6 +13,7 @@ from ..utils import (
     unified_strdate,
     get_element_by_attribute,
     int_or_none,
+    NO_DEFAULT,
     qualities,
 )
 
@@ -93,9 +94,18 @@ class ArteTVPlus7IE(InfoExtractor):
         json_url = self._html_search_regex(
             patterns, webpage, 'json vp url', default=None)
         if not json_url:
-            iframe_url = self._html_search_regex(
-                r'<iframe[^>]+src=(["\'])(?P<url>.+\bjson_url=.+?)\1',
-                webpage, 'iframe url', group='url')
+            def find_iframe_url(webpage, default=NO_DEFAULT):
+                return self._html_search_regex(
+                    r'<iframe[^>]+src=(["\'])(?P<url>.+\bjson_url=.+?)\1',
+                    webpage, 'iframe url', group='url', default=default)
+
+            iframe_url = find_iframe_url(webpage, None)
+            if not iframe_url:
+                embed_url = self._html_search_regex(
+                    r'arte_vp_url_oembed=\'([^\']+?)\'', webpage, 'embed url')
+                player = self._download_json(
+                    embed_url, video_id, 'Downloading player page')
+                iframe_url = find_iframe_url(player['html'])
             json_url = compat_parse_qs(
                 compat_urllib_parse_urlparse(iframe_url).query)['json_url'][0]
         return self._extract_from_json_url(json_url, video_id, lang)
