@@ -918,7 +918,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if lang in sub_lang_list:
                 continue
             sub_formats = []
-            for ext in ['sbv', 'vtt', 'srt']:
+            for ext in ['vtt', 'ttml']:
                 params = compat_urllib_parse.urlencode({
                     'lang': lang,
                     'v': video_id,
