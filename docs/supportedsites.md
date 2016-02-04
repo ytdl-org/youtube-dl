@@ -91,6 +91,7 @@
  - **Canvas**
  - **CBS**
  - **CBSNews**: CBS News
+ - **CBSNewsLiveVideo**: CBS News Live Videos
  - **CBSSports**
  - **CeskaTelevize**
  - **channel9**: Channel 9
