@@ -822,7 +822,10 @@ from .videomore import (
 )
 from .videopremium import VideoPremiumIE
 from .videott import VideoTtIE
-from .vidme import VidmeIE
+from .vidme import (
+    VidmeIE,
+    VidmeUserIE,
+)
 from .vidzi import VidziIE
 from .vier import VierIE, VierVideosIE
 from .viewster import ViewsterIE

@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import itertools
+
 from .common import InfoExtractor
 from ..compat import compat_HTTPError
 from ..utils import (
@@ -11,7 +13,7 @@ from ..utils import (
 
 
 class VidmeIE(InfoExtractor):
-    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]+)'
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{,5})(?:[^\da-zA-Z]|$)'
     _TESTS = [{
         'url': 'https://vid.me/QNB',
         'md5': 'f42d05e7149aeaec5c037b17e5d3dc82',
@@ -202,3 +204,47 @@ class VidmeIE(InfoExtractor):
             'comment_count': comment_count,
             'formats': formats,
         }
+
+
+class VidmeUserIE(InfoExtractor):
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{6,})'
+    _TEST = {
+        'url': 'https://vid.me/EFARCHIVE',
+        'info_dict': {
+            'id': '3834632',
+            'title': 'EFARCHIVE',
+        },
+        'playlist_mincount': 238,
+    }
+
+    # Max possible limit according to https://docs.vid.me/#api-Videos-List
+    _LIMIT = 100
+
+    def _entries(self, user_id, user_name):
+        for page_num in itertools.count(1):
+            page = self._download_json(
+                'https://api.vid.me/videos/list?user=%s&limit=%d&offset=%d'
+                % (user_id, self._LIMIT, (page_num - 1) * self._LIMIT), user_name,
+                'Downloading user page %d' % page_num)
+
+            videos = page.get('videos', [])
+            if not videos:
+                break
+
+            for video in videos:
+                video_url = video.get('full_url') or video.get('embed_url')
+                if video_url:
+                    yield self.url_result(video_url, VidmeIE.ie_key())
+
+            total = int_or_none(page.get('page', {}).get('total'))
+            if total and self._LIMIT * page_num >= total:
+                break
+
+    def _real_extract(self, url):
+        user_name = self._match_id(url)
+
+        user_id = self._download_json(
+            'https://api.vid.me/userByUsername?username=%s' % user_name,
+            user_name)['user']['user_id']
+
+        return self.playlist_result(self._entries(user_id, user_name), user_id, user_name)
