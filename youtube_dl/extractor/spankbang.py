@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 class SpankBangIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:www|[a-z]{2})\.)?spankbang\.com/(?P<id>[\da-z]+)/video'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://spankbang.com/3vvn/video/fantasy+solo',
         'md5': '1cc433e1d6aa14bc376535b8679302f7',
         'info_dict': {
@@ -19,7 +19,11 @@ class SpankBangIE(InfoExtractor):
             'uploader': 'silly2587',
             'age_limit': 18,
         }
-    }
+    }, {
+        # 480p only
+        'url': 'http://spankbang.com/1vt0/video/solvane+gangbang',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
