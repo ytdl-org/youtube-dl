@@ -206,26 +206,16 @@ class VidmeIE(InfoExtractor):
         }
 
 
-class VidmeUserIE(InfoExtractor):
-    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{6,})'
-    _TEST = {
-        'url': 'https://vid.me/EFARCHIVE',
-        'info_dict': {
-            'id': '3834632',
-            'title': 'EFARCHIVE',
-        },
-        'playlist_mincount': 238,
-    }
-
+class VidmeListBaseIE(InfoExtractor):
     # Max possible limit according to https://docs.vid.me/#api-Videos-List
     _LIMIT = 100
 
     def _entries(self, user_id, user_name):
         for page_num in itertools.count(1):
             page = self._download_json(
-                'https://api.vid.me/videos/list?user=%s&limit=%d&offset=%d'
-                % (user_id, self._LIMIT, (page_num - 1) * self._LIMIT), user_name,
-                'Downloading user page %d' % page_num)
+                'https://api.vid.me/videos/%s?user=%s&limit=%d&offset=%d'
+                % (self._API_ITEM, user_id, self._LIMIT, (page_num - 1) * self._LIMIT),
+                user_name, 'Downloading user %s page %d' % (self._API_ITEM, page_num))
 
             videos = page.get('videos', [])
             if not videos:
@@ -247,4 +237,34 @@ class VidmeUserIE(InfoExtractor):
             'https://api.vid.me/userByUsername?username=%s' % user_name,
             user_name)['user']['user_id']
 
-        return self.playlist_result(self._entries(user_id, user_name), user_id, user_name)
+        return self.playlist_result(
+            self._entries(user_id, user_name), user_id,
+            '%s - %s' % (user_name, self._TITLE))
+
+
+class VidmeUserIE(VidmeListBaseIE):
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{6,})(?!/likes)(?:[^\da-zA-Z]|$)'
+    _API_ITEM = 'list'
+    _TITLE = 'Videos'
+    _TEST = {
+        'url': 'https://vid.me/EFARCHIVE',
+        'info_dict': {
+            'id': '3834632',
+            'title': 'EFARCHIVE - %s' % _TITLE,
+        },
+        'playlist_mincount': 238,
+    }
+
+
+class VidmeUserLikesIE(VidmeListBaseIE):
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{6,})/likes'
+    _API_ITEM = 'likes'
+    _TITLE = 'Likes'
+    _TEST = {
+        'url': 'https://vid.me/ErinAlexis/likes',
+        'info_dict': {
+            'id': '6483530',
+            'title': 'ErinAlexis - %s' % _TITLE,
+        },
+        'playlist_mincount': 415,
+    }

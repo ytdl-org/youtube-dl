@@ -825,6 +825,7 @@ from .videott import VideoTtIE
 from .vidme import (
     VidmeIE,
     VidmeUserIE,
+    VidmeUserLikesIE,
 )
 from .vidzi import VidziIE
 from .vier import VierIE, VierVideosIE
