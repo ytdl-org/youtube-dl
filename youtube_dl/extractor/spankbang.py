@@ -35,6 +35,7 @@ class SpankBangIE(InfoExtractor):
             'format_id': '%sp' % height,
             'height': int(height),
         } for height in re.findall(r'<(?:span|li|p)[^>]+[qb]_(\d+)p', webpage)]
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         title = self._html_search_regex(
