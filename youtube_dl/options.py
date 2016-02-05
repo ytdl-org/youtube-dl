@@ -354,6 +354,11 @@ def parseOpts(overrideArguments=None):
             'If a merge is required (e.g. bestvideo+bestaudio), '
             'output to given container format. One of mkv, mp4, ogg, webm, flv. '
             'Ignored if no merge is required'))
+    video_format.add_option(
+        '--skip-protocols',
+        action='callback', dest='skip_protocols', type='str',
+        default=[], callback=_comma_separated_values_options_callback,
+        help='Protocols to exclude from the format extraction separated by commas (Possible values: m3u8, f4m, dash and smil)')
 
     subtitles = optparse.OptionGroup(parser, 'Subtitle Options')
     subtitles.add_option(
