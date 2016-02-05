@@ -340,14 +340,6 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='listformats',
         help='List all available formats of requested videos')
     video_format.add_option(
-        '--youtube-include-dash-manifest',
-        action='store_true', dest='youtube_include_dash_manifest', default=True,
-        help=optparse.SUPPRESS_HELP)
-    video_format.add_option(
-        '--youtube-skip-dash-manifest',
-        action='store_false', dest='youtube_include_dash_manifest',
-        help='Do not download the DASH manifests and related data on YouTube videos')
-    video_format.add_option(
         '--merge-output-format',
         action='store', dest='merge_output_format', metavar='FORMAT', default=None,
         help=(

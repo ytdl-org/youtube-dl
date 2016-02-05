@@ -471,7 +471,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': 'UHDTV TEST 8K VIDEO.mp4'
             },
             'params': {
-                'youtube_include_dash_manifest': True,
                 'format': '141',
             },
         },
@@ -488,7 +487,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'upload_date': '20131011',
             },
             'params': {
-                'youtube_include_dash_manifest': True,
                 'format': '141',
             },
         },
@@ -507,7 +505,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'creator': 'Taylor Swift',
             },
             'params': {
-                'youtube_include_dash_manifest': True,
                 'format': '141',
             },
         },
@@ -645,9 +642,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': 'Retransmisión XVIII Media maratón Zaragoza 2015',
             },
             'params': {
-                'youtube_include_dash_manifest': True,
                 'format': '135',  # bestvideo
-            }
+            },
+            'skip': 'This live event has ended.',
         },
         {
             # Multifeed videos (multiple cameras), URL is for Main Camera
@@ -747,6 +744,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'params': {
                 'skip_download': True,
             },
+            'skip': 'YouTube said: This video does not exist.',
         },
         {
             'url': 'https://www.youtube.com/watch?feature=player_embedded&amp;amp;v=V36LpHqtcDY',
@@ -1113,7 +1111,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     add_dash_mpd(video_info)
                 if args.get('livestream') == '1' or args.get('live_playback') == 1:
                     is_live = True
-            if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
+            if not video_info or 'dash' not in self._downloader.params.get('skip_protocols', []):
                 # We also try looking in get_video_info since it may contain different dashmpd
                 # URL that points to a DASH manifest with possibly different itag set (some itags
                 # are missing from DASH manifest pointed by webpage's dashmpd, some - from DASH
@@ -1461,7 +1459,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
         # Look for the DASH manifest
-        if self._downloader.params.get('youtube_include_dash_manifest', True):
+        if 'dash' not in self._downloader.params.get('skip_protocols', []):
             dash_mpd_fatal = True
             for dash_manifest_url in dash_mpds:
                 dash_formats = {}

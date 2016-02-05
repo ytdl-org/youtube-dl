@@ -939,7 +939,7 @@ class InfoExtractor(object):
     def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None,
                              transform_source=lambda s: fix_xml_ampersands(s).strip(),
                              fatal=True):
-        if 'f4m' in self._downloader.params.get('skip_protocols'):
+        if 'f4m' in self._downloader.params.get('skip_protocols', []):
             return []
         manifest = self._download_xml(
             manifest_url, video_id, 'Downloading f4m manifest',
@@ -997,7 +997,7 @@ class InfoExtractor(object):
                               entry_protocol='m3u8', preference=None,
                               m3u8_id=None, note=None, errnote=None,
                               fatal=True):
-        if 'm3u8' in self._downloader.params.get('skip_protocols'):
+        if 'm3u8' in self._downloader.params.get('skip_protocols', []):
             return []
 
         formats = [{
@@ -1109,7 +1109,7 @@ class InfoExtractor(object):
         return '/'.join(out)
 
     def _extract_smil_formats(self, smil_url, video_id, fatal=True, f4m_params=None):
-        if 'smil' in self._downloader.params.get('skip_protocols'):
+        if 'smil' in self._downloader.params.get('skip_protocols', []):
             return []
         smil = self._download_smil(smil_url, video_id, fatal=fatal)
 
@@ -1344,7 +1344,7 @@ class InfoExtractor(object):
             fatal=fatal)
 
     def _extract_dash_manifest_formats(self, dash_manifest_url, video_id, fatal=True, namespace=None, formats_dict={}):
-        if 'dash' in self._downloader.params.get('skip_protocols'):
+        if 'dash' in self._downloader.params.get('skip_protocols', []):
             return []
         dash_doc = self._download_dash_manifest(dash_manifest_url, video_id, fatal)
         if dash_doc is False:
