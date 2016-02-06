@@ -457,16 +457,16 @@ The `-o` option allows users to indicate a template for the output file names. T
 
 Available for the video that belongs to some logical chapter or section:
  - `chapter`: Name or title of the chapter the video belongs to.
- - `chapter_number`: Number of the chapter the video belongs to, as an integer.
- - `chapter_id`: Id of the chapter the video belongs to, as a unicode string.
+ - `chapter_number`: Number of the chapter the video belongs to.
+ - `chapter_id`: Id of the chapter the video belongs to.
 
 Available for the video that is an episode of some series or programme:
  - `series`: Title of the series or programme the video episode belongs to.
  - `season`: Title of the season the video episode belongs to.
- - `season_number`: Number of the season the video episode belongs to, as an integer.
- - `season_id`:Id of the season the video episode belongs to, as a unicode string.
+ - `season_number`: Number of the season the video episode belongs to.
+ - `season_id`:Id of the season the video episode belongs to.
  - `episode`: Title of the video episode.
- - `episode_number`: Number of the video episode within a season, as an integer.
+ - `episode_number`: Number of the video episode within a season.
  - `episode_id`: Id of the video episode, as a unicode string.
 
 Each aforementioned sequence when referenced in output template will be replaced by the actual value corresponding to the sequence name. Note that some of the sequences are not guaranteed to be present since they depend on the metadata obtained by particular extractor, such sequences will be replaced with `NA`.
