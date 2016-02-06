@@ -1229,15 +1229,13 @@ class GenericIE(InfoExtractor):
 
         # Check for direct link to a video
         content_type = head_response.headers.get('Content-Type', '')
-        m = re.match(r'^(?P<type>audio|video|application(?=/(?:ogg$|dash\+xml|(?:vnd\.apple\.|x-)?mpegurl)))/(?P<format_id>.+)$', content_type)
+        m = re.match(r'^(?P<type>audio|video|application(?=/(?:ogg$|(?:vnd\.apple\.|x-)?mpegurl)))/(?P<format_id>.+)$', content_type)
         if m:
             upload_date = unified_strdate(
                 head_response.headers.get('Last-Modified'))
             formats = []
             if m.group('format_id').endswith('mpegurl'):
                 formats = self._extract_m3u8_formats(url, video_id, 'mp4')
-            elif m.group('format_id').startswith('dash+xml'):
-                formats = self._extract_mpd_formats(url, video_id)
             else:
                 formats = [{
                     'format_id': m.group('format_id'),
