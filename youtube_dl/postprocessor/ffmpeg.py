@@ -518,6 +518,8 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
 
                 if new_ext == 'srt':
                     continue
+                else:
+                    sub_filenames.append(srt_file)
 
             self.run_ffmpeg(old_file, new_file, ['-f', new_format])
 
