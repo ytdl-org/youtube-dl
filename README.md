@@ -455,7 +455,7 @@ The `-o` option allows users to indicate a template for the output file names. T
  - `format_id`: Format code specified by `--format`.
  - `duration`: Length of the video in seconds.
 
-Available for the video that belong to some logical chapter or section:
+Available for the video that belongs to some logical chapter or section:
  - `chapter`: Name or title of the chapter the video belongs to.
  - `chapter_number`: Number of the chapter the video belongs to, as an integer.
  - `chapter_id`: Id of the chapter the video belongs to, as a unicode string.
