@@ -340,20 +340,17 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='listformats',
         help='List all available formats of requested videos')
     video_format.add_option(
-        '--youtube-include-dash-manifest',
-        action='store_true', dest='youtube_include_dash_manifest', default=True,
-        help=optparse.SUPPRESS_HELP)
-    video_format.add_option(
-        '--youtube-skip-dash-manifest',
-        action='store_false', dest='youtube_include_dash_manifest',
-        help='Do not download the DASH manifests and related data on YouTube videos')
-    video_format.add_option(
         '--merge-output-format',
         action='store', dest='merge_output_format', metavar='FORMAT', default=None,
         help=(
             'If a merge is required (e.g. bestvideo+bestaudio), '
             'output to given container format. One of mkv, mp4, ogg, webm, flv. '
             'Ignored if no merge is required'))
+    video_format.add_option(
+        '--skip-protocols',
+        action='callback', dest='skip_protocols', type='str',
+        default=[], callback=_comma_separated_values_options_callback,
+        help='Protocols to exclude from the format extraction separated by commas (Possible values: m3u8, f4m, dash and smil)')
 
     subtitles = optparse.OptionGroup(parser, 'Subtitle Options')
     subtitles.add_option(

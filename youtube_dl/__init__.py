@@ -352,7 +352,6 @@ def _real_main(argv=None):
         'prefer_ffmpeg': opts.prefer_ffmpeg,
         'include_ads': opts.include_ads,
         'default_search': opts.default_search,
-        'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
         'encoding': opts.encoding,
         'extract_flat': opts.extract_flat,
         'merge_output_format': opts.merge_output_format,
@@ -373,6 +372,7 @@ def _real_main(argv=None):
         'external_downloader_args': external_downloader_args,
         'postprocessor_args': postprocessor_args,
         'cn_verification_proxy': opts.cn_verification_proxy,
+        'skip_protocols': opts.skip_protocols,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
