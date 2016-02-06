@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import os
 import re
 import subprocess
+import sys
 
 from .common import FileDownloader
 from .fragment import FragmentFD
@@ -57,8 +58,10 @@ class HlsFD(FileDownloader):
             # subprocces.run would send the SIGKILL signal to ffmpeg and the
             # mp4 file couldn't be played, but if we ask ffmpeg to quit it
             # produces a file that is playable (this is mostly useful for live
-            # streams)
-            proc.communicate(b'q')
+            # streams). Note that Windows is not affected and produces playable
+            # files (see https://github.com/rg3/youtube-dl/issues/8300).
+            if sys.platform != 'win32':
+                proc.communicate(b'q')
             raise
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
