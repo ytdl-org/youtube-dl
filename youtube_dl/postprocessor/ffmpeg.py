@@ -510,7 +510,6 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                     f.write(srt_data)
                 old_file = srt_file
 
-                ext = 'srt'
                 subs[lang] = {
                     'ext': 'srt',
                     'data': srt_data
