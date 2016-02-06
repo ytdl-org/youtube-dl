@@ -1291,7 +1291,7 @@ class GenericIE(InfoExtractor):
 
         self.report_extraction(video_id)
 
-        # Is it an RSS feed, a SMIL file or a XSPF playlist?
+        # Is it an RSS feed, a SMIL file, an XSPF playlist or a MPD manifest?
         try:
             doc = compat_etree_fromstring(webpage.encode('utf-8'))
             if doc.tag == 'rss':
@@ -1300,6 +1300,12 @@ class GenericIE(InfoExtractor):
                 return self._parse_smil(doc, url, video_id)
             elif doc.tag == '{http://xspf.org/ns/0/}playlist':
                 return self.playlist_result(self._parse_xspf(doc, video_id), video_id)
+            elif re.match(r'(?i)^(?:{[^}]+})?MPD$', doc.tag):
+                return {
+                    'id': video_id,
+                    'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
+                    'formats': self._parse_mpd_formats(doc, video_id),
+                }
         except compat_xml_parse_error:
             pass
 
