@@ -1481,6 +1481,7 @@ class InfoExtractor(object):
                             existing_format.update(f)
                     else:
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
+        self._sort_formats(formats)
         return formats
 
     def _live_title(self, name):
