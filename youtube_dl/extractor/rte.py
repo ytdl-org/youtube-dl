@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     float_or_none,
@@ -61,12 +63,15 @@ class RteIE(InfoExtractor):
 class RteRadioIE(InfoExtractor):
     IE_NAME = 'rte:radio'
     IE_DESC = 'Raidió Teilifís Éireann radio'
-    # Radioplayer URLs have the specifier #!rii=<channel_id>:<id>:<playable_item_id>:<date>:
+    # Radioplayer URLs have two distinct specifier formats,
+    # the old format #!rii=<channel_id>:<id>:<playable_item_id>:<date>:
+    # the new format #!rii=b<channel_id>_<id>_<playable_item_id>_<date>_
     # where the IDs are int/empty, the date is DD-MM-YYYY, and the specifier may be truncated.
     # An <id> uniquely defines an individual recording, and is the only part we require.
-    _VALID_URL = r'https?://(?:www\.)?rte\.ie/radio/utils/radioplayer/rteradioweb\.html#!rii=(?:[0-9]*)(?:%3A|:)(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?rte\.ie/radio/utils/radioplayer/rteradioweb\.html#!rii=(?:b?[0-9]*)(?:%3A|:|%5F|_)(?P<id>[0-9]+)'
 
-    _TEST = {
+    _TESTS = [{
+        # Old-style player URL; HLS and RTMPE formats
         'url': 'http://www.rte.ie/radio/utils/radioplayer/rteradioweb.html#!rii=16:10507902:2414:27-12-2015:',
         'info_dict': {
             'id': '10507902',
@@ -81,7 +86,23 @@ class RteRadioIE(InfoExtractor):
         'params': {
             'skip_download': 'f4m fails with --test atm'
         }
-    }
+    }, {
+        # New-style player URL; RTMPE formats only
+        'url': 'http://rte.ie/radio/utils/radioplayer/rteradioweb.html#!rii=b16_3250678_8861_06-04-2012_',
+        'info_dict': {
+            'id': '3250678',
+            'ext': 'flv',
+            'title': 'The Lyric Concert with Paul Herriott',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'description': '',
+            'timestamp': 1333742400,
+            'upload_date': '20120406',
+            'duration': 7199.016,
+        },
+        'params': {
+            'skip_download': 'f4m fails with --test atm'
+        }
+    }]
 
     def _real_extract(self, url):
         item_id = self._match_id(url)
@@ -102,8 +123,18 @@ class RteRadioIE(InfoExtractor):
 
         formats = []
 
-        if mg.get('url') and not mg['url'].startswith('rtmpe:'):
-            formats.append({'url': mg['url']})
+        if mg.get('url'):
+            m = re.match(r'(?P<url>rtmpe?://[^/]+)/(?P<app>.+)/(?P<playpath>mp4:.*)', mg['url'])
+            if m:
+                m = m.groupdict()
+                formats.append({
+                    'url': m['url'] + '/' + m['app'],
+                    'app': m['app'],
+                    'play_path': m['playpath'],
+                    'player_url': url,
+                    'ext': 'flv',
+                    'format_id': 'rtmp',
+                })
 
         if mg.get('hls_server') and mg.get('hls_url'):
             formats.extend(self._extract_m3u8_formats(
