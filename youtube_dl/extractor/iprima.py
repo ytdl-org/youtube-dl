@@ -37,7 +37,8 @@ class IPrimaIE(InfoExtractor):
 
         video_id = self._search_regex(r'data-product="([^"]+)">', webpage, 'real id')
 
-        req = sanitized_Request('http://play.iprima.cz/prehravac/init?_infuse=1'
+        req = sanitized_Request(
+            'http://play.iprima.cz/prehravac/init?_infuse=1'
             '&_ts=%s&productId=%s' % (round(time.time()), 'p22201'))
         req.add_header('Referer', url)
         playerpage = self._download_webpage(req, video_id, note='Downloading player')
