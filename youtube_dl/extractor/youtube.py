@@ -369,6 +369,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # RTMP (unnamed)
         '_rtmp': {'protocol': 'rtmp'},
     }
+    _SUBTITLE_FORMATS = ('ttml', 'vtt')
 
     IE_NAME = 'youtube'
     _TESTS = [
@@ -918,7 +919,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if lang in sub_lang_list:
                 continue
             sub_formats = []
-            for ext in ['ttml', 'vtt']:
+            for ext in self._SUBTITLE_FORMATS:
                 params = compat_urllib_parse.urlencode({
                     'lang': lang,
                     'v': video_id,
@@ -988,7 +989,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             for lang_node in caption_list.findall('target'):
                 sub_lang = lang_node.attrib['lang_code']
                 sub_formats = []
-                for ext in ['sbv', 'vtt', 'srt']:
+                for ext in self._SUBTITLE_FORMATS:
                     params = compat_urllib_parse.urlencode({
                         'lang': original_lang,
                         'tlang': sub_lang,
