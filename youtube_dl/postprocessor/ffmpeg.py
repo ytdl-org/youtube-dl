@@ -508,6 +508,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
 
                 with io.open(srt_file, 'wt', encoding='utf-8') as f:
                     f.write(srt_data)
+                old_file = srt_file
 
                 ext = 'srt'
                 subs[lang] = {
