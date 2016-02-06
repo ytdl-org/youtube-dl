@@ -40,9 +40,10 @@ class DashSegmentsFD(FileDownloader):
             return '%s%s%s' % (base_url, '' if base_url.endswith('/') else '/', target_url)
 
         with open(tmpfilename, 'wb') as outf:
-            append_url_to_file(
-                outf, combine_url(base_url, info_dict['initialization_url']),
-                'initialization segment')
+            if info_dict.get('initialization_url'):
+                append_url_to_file(
+                    outf, combine_url(base_url, info_dict['initialization_url']),
+                    'initialization segment')
             for i, segment_url in enumerate(segment_urls):
                 segment_len = append_url_to_file(
                     outf, combine_url(base_url, segment_url),
