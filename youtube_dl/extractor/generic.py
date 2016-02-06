@@ -1959,6 +1959,8 @@ class GenericIE(InfoExtractor):
                 return self.playlist_result(self._extract_xspf_playlist(video_url, video_id), video_id)
             elif ext == 'm3u8':
                 entry_info_dict['formats'] = self._extract_m3u8_formats(video_url, video_id, ext='mp4')
+            elif ext == 'mpd':
+                entry_info_dict['formats'] = self._extract_mpd_formats(video_url, video_id)
             else:
                 entry_info_dict['url'] = video_url
 
