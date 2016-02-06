@@ -523,7 +523,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
 
             with io.open(new_file, 'rt', encoding='utf-8') as f:
                 subs[lang] = {
-                    'ext': ext,
+                    'ext': new_ext,
                     'data': f.read(),
                 }
 
