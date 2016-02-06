@@ -249,7 +249,7 @@ class TestFormatSelection(unittest.TestCase):
         def format_info(f_id):
             info = YoutubeIE._formats[f_id].copy()
 
-            # XXX: In real cases InfoExtractor._parse_mpd() fills up 'acodec'
+            # XXX: In real cases InfoExtractor._parse_mpd_formats() fills up 'acodec'
             # and 'vcodec', while in tests such information is incomplete since
             # commit a6c2c24479e5f4827ceb06f64d855329c0a6f593
             # test_YoutubeDL.test_youtube_format_selection is broken without

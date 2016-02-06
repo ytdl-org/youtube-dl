@@ -1343,14 +1343,14 @@ class InfoExtractor(object):
         mpd, urlh = res
         mpd_base_url = re.match(r'https?://.+/', urlh.geturl()).group()
 
-        return self._parse_mpd(
+        return self._parse_mpd_formats(
             compat_etree_fromstring(mpd.encode('utf-8')), mpd_id, mpd_base_url, formats_dict=formats_dict)
 
-    def _parse_mpd(self, mpd_doc, mpd_id=None, mpd_base_url='', formats_dict={}):
+    def _parse_mpd_formats(self, mpd_doc, mpd_id=None, mpd_base_url='', formats_dict={}):
         if mpd_doc.get('type') == 'dynamic':
             return []
 
-        namespace = self._search_regex(r'(?i)^{([^}]+)?}MPD$', mpd_doc.tag, 'namespace')
+        namespace = self._search_regex(r'(?i)^{([^}]+)?}MPD$', mpd_doc.tag, 'namespace', default=None)
 
         def _add_ns(path):
             return self._xpath_ns(path, namespace)
