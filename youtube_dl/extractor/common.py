@@ -1,4 +1,4 @@
-from __future__ import unicode_literals, division
+from __future__ import unicode_literals
 
 import base64
 import datetime
@@ -1450,8 +1450,8 @@ class InfoExtractor(object):
                         representation_ms_info = extract_multisegment_info(representation, adaption_set_ms_info)
                         if 'segment_urls' not in representation_ms_info and 'media_template' in representation_ms_info:
                             if 'total_number' not in representation_ms_info and 'segment_duration':
-                                segment_duration = representation_ms_info['segment_duration'] / representation_ms_info['timescale']
-                                representation_ms_info['total_number'] = int(math.ceil(period_duration / segment_duration))
+                                segment_duration = float(representation_ms_info['segment_duration']) / float(representation_ms_info['timescale'])
+                                representation_ms_info['total_number'] = int(math.ceil(float(period_duration) / segment_duration))
                             media_template = representation_ms_info['media_template']
                             media_template = media_template.replace('$RepresentationID$', representation_id)
                             media_template = re.sub(r'\$(Number|Bandwidth)(?:%(0\d+)d)?\$', r'%(\1)\2d', media_template)
