@@ -442,30 +442,60 @@ On Windows you may also need to setup the `%HOME%` environment variable manually
 
 The `-o` option allows users to indicate a template for the output file names. The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format `%(NAME)s`. To clarify, that is a percent symbol followed by a name in parentheses, followed by a lowercase S. Allowed names are:
 
- - `id`: The sequence will be replaced by the video identifier.
- - `url`: The sequence will be replaced by the video URL.
- - `uploader`: The sequence will be replaced by the nickname of the person who uploaded the video.
- - `upload_date`: The sequence will be replaced by the upload date in YYYYMMDD format.
- - `title`: The sequence will be replaced by the video title.
- - `ext`: The sequence will be replaced by the appropriate extension (like flv or mp4).
- - `epoch`: The sequence will be replaced by the Unix epoch when creating the file.
- - `autonumber`: The sequence will be replaced by a five-digit number that will be increased with each download, starting at zero.
- - `playlist`: The sequence will be replaced by the name or the id of the playlist that contains the video.
- - `playlist_index`: The sequence will be replaced by the index of the video in the playlist padded with leading zeros according to the total length of the playlist.
- - `format_id`: The sequence will be replaced by the format code specified by `--format`.
- - `duration`: The sequence will be replaced by the length of the video in seconds.
+ - `id`: Video identifier.
+ - `url`: Video URL.
+ - `uploader`: Nickname of the person who uploaded the video.
+ - `upload_date`: Upload date in YYYYMMDD format.
+ - `title`: Video title.
+ - `ext`: Video filename extension.
+ - `epoch`: Unix epoch when creating the file.
+ - `autonumber`: Five-digit number that will be increased with each download, starting at zero.
+ - `playlist`: Name or id of the playlist that contains the video.
+ - `playlist_index`: Index of the video in the playlist padded with leading zeros according to the total length of the playlist.
+ - `format_id`: Format code specified by `--format`.
+ - `duration`: Length of the video in seconds.
 
-Note that some of the aforementioned sequences are not guaranteed to be present since they depend on the metadata obtained by particular extractor, such sequences will be replaced with `NA`.
+Available for the video that belong to some logical chapter or section:
+ - `chapter`: Name or title of the chapter the video belongs to.
+ - `chapter_number`: Number of the chapter the video belongs to, as an integer.
+ - `chapter_id`: Id of the chapter the video belongs to, as a unicode string.
+
+Available for the video that is an episode of some series or programme:
+ - `series`: Title of the series or programme the video episode belongs to.
+ - `season`: Title of the season the video episode belongs to.
+ - `season_number`: Number of the season the video episode belongs to, as an integer.
+ - `season_id`:Id of the season the video episode belongs to, as a unicode string.
+ - `episode`: Title of the video episode.
+ - `episode_number`: Number of the video episode within a season, as an integer.
+ - `episode_id`: Id of the video episode, as a unicode string.
+
+Each aforementioned sequence when referenced in output template will be replaced by the actual value corresponding to the sequence name. Note that some of the sequences are not guaranteed to be present since they depend on the metadata obtained by particular extractor, such sequences will be replaced with `NA`.
+
+For example for `-o %(title)s-%(id)s.%(ext)s` and mp4 video with title `youtube-dl test video` and id `BaW_jenozKcj` this will result in a `youtube-dl test video-BaW_jenozKcj.mp4` file created in the current directory.
+
+Output template can also contain arbitrary hierarchical path, e.g. `-o %(playlist)s/%(playlist_index)s - %(title)s.%(ext)s` that will result in downloading each video in a directory corresponding to this path template. Any missing directory will be automatically created for you.
 
 The current default template is `%(title)s-%(id)s.%(ext)s`.
 
 In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
 
+Examples:
+
 ```bash
 $ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc
 youtube-dl test video ''_ä↭𝕐.mp4    # All kinds of weird characters
+
 $ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc --restrict-filenames
 youtube-dl_test_video_.mp4          # A simple file name
+
+# Download YouTube playlist videos in separate directory indexed by video order in a playlist
+$ youtube-dl -o '%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s' https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re
+
+# Download Udemy course keeping each chapter in separate directory under MyVideos directory in your home
+$ youtube-dl -u user -p password -o '~/MyVideos/%(playlist)s/%(chapter_number)s - %(chapter)s/%(title)s.%(ext)s' https://www.udemy.com/java-tutorial/
+
+# Download entire series season keeping each series and each season in separate directory under C:/MyVideos
+$ youtube-dl -o 'C:/MyVideos/%(series)s/%(season_number)s - %(season)s/%(episode_number)s - %(episode)s.%(ext)s' http://videomore.ru/kino_v_detalayah/5_sezon/367617
 ```
 
 # FORMAT SELECTION
