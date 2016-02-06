@@ -464,7 +464,7 @@ Available for the video that is an episode of some series or programme:
  - `series`: Title of the series or programme the video episode belongs to.
  - `season`: Title of the season the video episode belongs to.
  - `season_number`: Number of the season the video episode belongs to.
- - `season_id`:Id of the season the video episode belongs to.
+ - `season_id`: Id of the season the video episode belongs to.
  - `episode`: Title of the video episode.
  - `episode_number`: Number of the video episode within a season.
  - `episode_id`: Id of the video episode, as a unicode string.
