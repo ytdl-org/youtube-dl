@@ -452,9 +452,15 @@ class TestUtil(unittest.TestCase):
         self.assertTrue(isinstance(data, bytes))
 
     def test_dict_get(self):
-        d = {
-            'a': 42,
+        FALSE_VALUES = {
+            'none': None,
+            'false': False,
+            'zero': 0,
+            'empty_string': '',
+            'empty_list': [],
         }
+        d = FALSE_VALUES.copy()
+        d['a'] = 42
         self.assertEqual(dict_get(d, 'a'), 42)
         self.assertEqual(dict_get(d, 'b'), None)
         self.assertEqual(dict_get(d, 'b', 42), 42)
@@ -463,6 +469,9 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(dict_get(d, ('b', 'c', 'a', 'd', )), 42)
         self.assertEqual(dict_get(d, ('b', 'c', )), None)
         self.assertEqual(dict_get(d, ('b', 'c', ), 42), 42)
+        for key, false_value in FALSE_VALUES.items():
+            self.assertEqual(dict_get(d, ('b', 'c', key, )), None)
+            self.assertEqual(dict_get(d, ('b', 'c', key, ), skip_false_values=False), false_value)
 
     def test_encode_compat_str(self):
         self.assertEqual(encode_compat_str(b'\xd1\x82\xd0\xb5\xd1\x81\xd1\x82', 'utf-8'), 'тест')

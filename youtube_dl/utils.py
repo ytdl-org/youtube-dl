@@ -1717,11 +1717,12 @@ def encode_dict(d, encoding='utf-8'):
     return dict((encode(k), encode(v)) for k, v in d.items())
 
 
-def dict_get(d, key_or_keys, default=None):
+def dict_get(d, key_or_keys, default=None, skip_false_values=True):
     if isinstance(key_or_keys, (list, tuple)):
         for key in key_or_keys:
-            if d.get(key):
-                return d[key]
+            if key not in d or d[key] is None or skip_false_values and not d[key]:
+                continue
+            return d[key]
         return default
     return d.get(key_or_keys, default)
 
