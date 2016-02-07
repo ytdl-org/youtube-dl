@@ -44,10 +44,6 @@ class KonserthusetPlayIE(InfoExtractor):
 
         source = next(f for f in playlist if f.get('bitrates'))
 
-        connection_url = (player_config.get('rtmp', {}).get(
-            'netConnectionUrl') or player_config.get(
-            'plugins', {}).get('bwcheck', {}).get('netConnectionUrl'))
-
         FORMAT_ID_REGEX = r'_([^_]+)_h264m\.mp4'
 
         formats = []
@@ -58,6 +54,9 @@ class KonserthusetPlayIE(InfoExtractor):
             fallback_format_id = self._search_regex(
                 FORMAT_ID_REGEX, fallback_url, 'format id', default=None)
 
+        connection_url = (player_config.get('rtmp', {}).get(
+            'netConnectionUrl') or player_config.get(
+            'plugins', {}).get('bwcheck', {}).get('netConnectionUrl'))
         if connection_url:
             for f in source['bitrates']:
                 video_url = f.get('url')
