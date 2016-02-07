@@ -442,32 +442,46 @@ On Windows you may also need to setup the `%HOME%` environment variable manually
 
 The `-o` option allows users to indicate a template for the output file names. The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format `%(NAME)s`. To clarify, that is a percent symbol followed by a name in parentheses, followed by a lowercase S. Allowed names are:
 
- - `id`: Video identifier.
- - `url`: Video URL.
- - `uploader`: Nickname of the person who uploaded the video.
- - `upload_date`: Upload date in YYYYMMDD format.
- - `title`: Video title.
- - `ext`: Video filename extension.
- - `epoch`: Unix epoch when creating the file.
- - `autonumber`: Five-digit number that will be increased with each download, starting at zero.
- - `playlist`: Name or id of the playlist that contains the video.
- - `playlist_index`: Index of the video in the playlist padded with leading zeros according to the total length of the playlist.
- - `format_id`: Format code specified by `--format`.
- - `duration`: Length of the video in seconds.
+ - `id`: Video identifier
+ - `title`: Video title
+ - `url`: Video URL
+ - `ext`: Video filename extension
+ - `alt_title`: A secondary title of the video
+ - `display_id`: An alternative identifier for the video
+ - `uploader`: Full name of the video uploader
+ - `creator`: The main artist who created the video
+ - `release_date`: The date (YYYYMMDD) when the video was released
+ - `timestamp`: UNIX timestamp of the moment the video became available
+ - `upload_date`: Video upload date (YYYYMMDD)
+ - `uploader_id`: Nickname or id of the video uploader
+ - `location`: Physical location where the video was filmed
+ - `duration`: Length of the video in seconds
+ - `view_count`: How many users have watched the video on the platform
+ - `like_count`: Number of positive ratings of the video
+ - `dislike_count`: Number of negative ratings of the video
+ - `repost_count`: Number of reposts of the video
+ - `average_rating`: Average rating give by users, the scale used depends on the webpage
+ - `comment_count`: Number of comments on the video
+ - `age_limit`: Age restriction for the video (years)
+ - `epoch`: Unix epoch when creating the file
+ - `autonumber`: Five-digit number that will be increased with each download, starting at zero
+ - `playlist`: Name or id of the playlist that contains the video
+ - `playlist_index`: Index of the video in the playlist padded with leading zeros according to the total length of the playlist
+ - `format_id`: Format code specified by `--format`
 
 Available for the video that belongs to some logical chapter or section:
- - `chapter`: Name or title of the chapter the video belongs to.
- - `chapter_number`: Number of the chapter the video belongs to.
- - `chapter_id`: Id of the chapter the video belongs to.
+ - `chapter`: Name or title of the chapter the video belongs to
+ - `chapter_number`: Number of the chapter the video belongs to
+ - `chapter_id`: Id of the chapter the video belongs to
 
 Available for the video that is an episode of some series or programme:
- - `series`: Title of the series or programme the video episode belongs to.
- - `season`: Title of the season the video episode belongs to.
- - `season_number`: Number of the season the video episode belongs to.
- - `season_id`: Id of the season the video episode belongs to.
- - `episode`: Title of the video episode.
- - `episode_number`: Number of the video episode within a season.
- - `episode_id`: Id of the video episode, as a unicode string.
+ - `series`: Title of the series or programme the video episode belongs to
+ - `season`: Title of the season the video episode belongs to
+ - `season_number`: Number of the season the video episode belongs to
+ - `season_id`: Id of the season the video episode belongs to
+ - `episode`: Title of the video episode
+ - `episode_number`: Number of the video episode within a season
+ - `episode_id`: Id of the video episode
 
 Each aforementioned sequence when referenced in output template will be replaced by the actual value corresponding to the sequence name. Note that some of the sequences are not guaranteed to be present since they depend on the metadata obtained by particular extractor, such sequences will be replaced with `NA`.
 
