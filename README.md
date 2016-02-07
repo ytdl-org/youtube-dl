@@ -480,6 +480,8 @@ The `-o` option allows users to indicate a template for the output file names. T
  - `filesize`: The number of bytes, if known in advance
  - `filesize_approx`: An estimate for the number of bytes
  - `protocol`: The protocol that will be used for the actual download
+ - `extractor`: Name of the extractor
+ - `extractor_key`: Key name of the extractor
  - `epoch`: Unix epoch when creating the file
  - `autonumber`: Five-digit number that will be increased with each download, starting at zero
  - `playlist`: Name or id of the playlist that contains the video
