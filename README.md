@@ -505,6 +505,8 @@ For example for `-o %(title)s-%(id)s.%(ext)s` and mp4 video with title `youtube-
 
 Output template can also contain arbitrary hierarchical path, e.g. `-o %(playlist)s/%(playlist_index)s - %(title)s.%(ext)s` that will result in downloading each video in a directory corresponding to this path template. Any missing directory will be automatically created for you.
 
+To specify percent literal in output template use `%%`. To output to stdout use `-o -`.
+
 The current default template is `%(title)s-%(id)s.%(ext)s`.
 
 In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
