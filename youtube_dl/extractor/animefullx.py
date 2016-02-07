@@ -5,34 +5,49 @@ from .common import InfoExtractor
 
 
 class AnimefullxIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?yourextractor\.com/watch/(?P<id>[0-9]+)'
-    _TEST = {
-        'url': 'http://yourextractor.com/watch/42',
-        'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
+    _VALID_URL = r'https?://(?:www\.)?animefullx\.com/watch/(?P<id>([a-zA-Z0-9-]+)?\d+)'
+    _TESTS = [{
+        'url': 'http://www.animefullx.com/watch/chobits-episode-1/',
+        'md5': '48615cd86808a814d67f095c607c9435',
         'info_dict': {
-            'id': '42',
+            'id': 'chobits-episode-1',
             'ext': 'mp4',
-            'title': 'Video title goes here',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
+            'title': 'Watch Chobits Episode 1 English Subbed Online - Animefullx',
+        },
+    }, {
+        'url': 'http://www.animefullx.com/watch/ao-no-exorcist-episode-1/',
+        'md5': '913b370e9568ab2c53733d6ebf9c2bcd',
+        'info_dict': {
+            'id': 'ao-no-exorcist-episode-1',
+            'ext': 'mp4',
+            'title': 'Watch Ao no Exorcist Episode 1 English Subbed Online - Animefullx',
         }
-    }
+    }, {
+        'url': 'http://www.animefullx.com/watch/8-man-after-episode-1/',
+        'md5': 'b57f34b03cd37e7fb5530337802e9a4a',
+        'info_dict': {
+            'id': '8-man-after-episode-1',
+            'ext': 'mp4',
+            'title': 'Watch 8 Man After Episode 1 English Subbed Online - Animefullx',
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+        scripturl = self._html_search_regex(r'<iframe src="([^"]+)"', webpage, u'script URL')
 
-        # TODO more code goes here, for example ...
-        title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title')
+        if ( scripturl[ 0 ] == '/' ):
+            script = self._download_webpage( 'http://www.animefullx.com/'+scripturl[1:], '' )
+        if ( 'http' in scripturl ):
+            script = self._download_webpage( scripturl, '' )
+
+        video_url = self._html_search_regex(r'file:\ ?"([^"]+)"', script, u'video URL')
 
         return {
+            '_type': 'video',
             'id': video_id,
-            'title': title,
-            'description': self._og_search_description(webpage),
-            'uploader': self._search_regex(r'<div[^>]+id="uploader"[^>]*>([^<]+)<', webpage, 'uploader', fatal=False),
-            # TODO more properties (see youtube_dl/extractor/common.py)
+            'url': video_url,
+            'title': self._og_search_title( webpage ),
+            'ext': 'mp4',
         }
