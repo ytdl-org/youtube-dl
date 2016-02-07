@@ -463,11 +463,27 @@ The `-o` option allows users to indicate a template for the output file names. T
  - `average_rating`: Average rating give by users, the scale used depends on the webpage
  - `comment_count`: Number of comments on the video
  - `age_limit`: Age restriction for the video (years)
+ - `format`: A human-readable description of the format 
+ - `format_id`: Format code specified by `--format`
+ - `format_note`: Additional info about the format
+ - `width`: Width of the video
+ - `height`: Height of the video
+ - `resolution`: Textual description of width and height
+ - `tbr`: Average bitrate of audio and video in KBit/s
+ - `abr`: Average audio bitrate in KBit/s
+ - `acodec`: Name of the audio codec in use
+ - `asr`: Audio sampling rate in Hertz
+ - `vbr`: Average video bitrate in KBit/s
+ - `fps`: Frame rate
+ - `vcodec`: Name of the video codec in use
+ - `container`: Name of the container format
+ - `filesize`: The number of bytes, if known in advance
+ - `filesize_approx`: An estimate for the number of bytes
+ - `protocol`: The protocol that will be used for the actual download
  - `epoch`: Unix epoch when creating the file
  - `autonumber`: Five-digit number that will be increased with each download, starting at zero
  - `playlist`: Name or id of the playlist that contains the video
  - `playlist_index`: Index of the video in the playlist padded with leading zeros according to the total length of the playlist
- - `format_id`: Format code specified by `--format`
 
 Available for the video that belongs to some logical chapter or section:
  - `chapter`: Name or title of the chapter the video belongs to
