@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class KonserthusetPlayIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?konserthusetplay\.se/\?m=(?P<id>[^&]+)'
+    _VALID_URL = r'https?://(?:www\.)?konserthusetplay\.se/\?.*\bm=(?P<id>[^&]+)'
     _TEST = {
         'url': 'http://www.konserthusetplay.se/?m=CKDDnlCY-dhWAAqiMERd-A',
         'info_dict': {
