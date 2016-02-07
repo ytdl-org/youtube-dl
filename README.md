@@ -530,6 +530,9 @@ $ youtube-dl -u user -p password -o '~/MyVideos/%(playlist)s/%(chapter_number)s 
 
 # Download entire series season keeping each series and each season in separate directory under C:/MyVideos
 $ youtube-dl -o 'C:/MyVideos/%(series)s/%(season_number)s - %(season)s/%(episode_number)s - %(episode)s.%(ext)s' http://videomore.ru/kino_v_detalayah/5_sezon/367617
+
+# Stream the video being downloaded to stdout
+$ youtube-dl -o - BaW_jenozKc
 ```
 
 # FORMAT SELECTION
