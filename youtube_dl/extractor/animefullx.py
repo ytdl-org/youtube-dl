@@ -37,10 +37,10 @@ class AnimefullxIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         scripturl = self._html_search_regex(r'<iframe src="([^"]+)"', webpage, u'script URL')
 
-        if ( scripturl[ 0 ] == '/' ):
-            script = self._download_webpage( 'http://www.animefullx.com/'+scripturl[1:], '' )
-        if ( 'http' in scripturl ):
-            script = self._download_webpage( scripturl, '' )
+        if (scripturl[0] == '/'):
+            script = self._download_webpage('http://www.animefullx.com/' + scripturl[1:], '')
+        if ('http' in scripturl):
+            script = self._download_webpage(scripturl, '')
 
         video_url = self._html_search_regex(r'file:\ ?"([^"]+)"', script, u'video URL')
 
@@ -48,6 +48,6 @@ class AnimefullxIE(InfoExtractor):
             '_type': 'video',
             'id': video_id,
             'url': video_url,
-            'title': self._og_search_title( webpage ),
+            'title': self._og_search_title(webpage),
             'ext': 'mp4',
         }
