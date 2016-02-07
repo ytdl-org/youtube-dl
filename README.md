@@ -513,7 +513,7 @@ The current default template is `%(title)s-%(id)s.%(ext)s`.
 
 In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
 
-Examples (note on Windows you may need to use double quotes instead of single)::
+Examples (note on Windows you may need to use double quotes instead of single):
 
 ```bash
 $ youtube-dl --get-filename -o '%(title)s.%(ext)s' BaW_jenozKc
