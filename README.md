@@ -505,7 +505,7 @@ Each aforementioned sequence when referenced in output template will be replaced
 
 For example for `-o %(title)s-%(id)s.%(ext)s` and mp4 video with title `youtube-dl test video` and id `BaW_jenozKcj` this will result in a `youtube-dl test video-BaW_jenozKcj.mp4` file created in the current directory.
 
-Output template can also contain arbitrary hierarchical path, e.g. `-o %(playlist)s/%(playlist_index)s - %(title)s.%(ext)s` that will result in downloading each video in a directory corresponding to this path template. Any missing directory will be automatically created for you.
+Output template can also contain arbitrary hierarchical path, e.g. `-o '%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'` that will result in downloading each video in a directory corresponding to this path template. Any missing directory will be automatically created for you.
 
 To specify percent literal in output template use `%%`. To output to stdout use `-o -`.
 
@@ -513,13 +513,13 @@ The current default template is `%(title)s-%(id)s.%(ext)s`.
 
 In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
 
-Examples:
+Examples (note on Windows you may need to use double quotes instead of single)::
 
 ```bash
-$ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc
+$ youtube-dl --get-filename -o '%(title)s.%(ext)s' BaW_jenozKc
 youtube-dl test video ''_ä↭𝕐.mp4    # All kinds of weird characters
 
-$ youtube-dl --get-filename -o "%(title)s.%(ext)s" BaW_jenozKc --restrict-filenames
+$ youtube-dl --get-filename -o '%(title)s.%(ext)s' BaW_jenozKc --restrict-filenames
 youtube-dl_test_video_.mp4          # A simple file name
 
 # Download YouTube playlist videos in separate directory indexed by video order in a playlist
@@ -529,7 +529,7 @@ $ youtube-dl -o '%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s' https://ww
 $ youtube-dl -u user -p password -o '~/MyVideos/%(playlist)s/%(chapter_number)s - %(chapter)s/%(title)s.%(ext)s' https://www.udemy.com/java-tutorial/
 
 # Download entire series season keeping each series and each season in separate directory under C:/MyVideos
-$ youtube-dl -o 'C:/MyVideos/%(series)s/%(season_number)s - %(season)s/%(episode_number)s - %(episode)s.%(ext)s' http://videomore.ru/kino_v_detalayah/5_sezon/367617
+$ youtube-dl -o "C:/MyVideos/%(series)s/%(season_number)s - %(season)s/%(episode_number)s - %(episode)s.%(ext)s" http://videomore.ru/kino_v_detalayah/5_sezon/367617
 
 # Stream the video being downloaded to stdout
 $ youtube-dl -o - BaW_jenozKc
