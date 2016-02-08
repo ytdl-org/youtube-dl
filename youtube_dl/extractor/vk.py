@@ -265,7 +265,7 @@ class VKIE(InfoExtractor):
             return self.url_result(pladform_url)
 
         m_rutube = re.search(
-            r'\ssrc="((?:https?:)?//rutube\.ru\\?/video\\?/embed(?:.*?))\\?"', info_page)
+            r'\ssrc="((?:https?:)?//rutube\.ru\\?/(?:video|play)\\?/embed(?:.*?))\\?"', info_page)
         if m_rutube is not None:
             rutube_url = self._proto_relative_url(
                 m_rutube.group(1).replace('\\', ''))
