@@ -289,6 +289,29 @@ class ArteTVCinemaIE(ArteTVPlus7IE):
     }
 
 
+class ArteTVMagazineIE(ArteTVPlus7IE):
+    IE_NAME = 'arte.tv:magazine'
+    _VALID_URL = r'https?://(?:www\.)?arte\.tv/magazine/(?P<name>.*?)/(?P<lang>fr|de)/(?P<id>.*?)'
+
+    _TESTS = [{
+        'url': 'http://www.arte.tv/magazine/trepalium/fr/entretien-avec-le-realisateur-vincent-lannoo-trepalium',
+        'md5': '66a093339c1278bb3719157ef07107b2',
+        'info_dict': {
+            'id': '065965-000-A',
+            'ext': 'mp4',
+            'title': 'Trepalium - Extrait Ep.01',
+        },
+    }, {
+        'url': 'http://www.arte.tv/magazine/metropolis/de/frank-woeste-german-paris-metropolis',
+        'md5': '53185a2b4876383552c037c21aeca8f7',
+        'info_dict': {
+            'id': '066149-000-A',
+            'ext': 'mp4',
+            'title': 'Bonus: Frank Woeste - ein deutscher Jazzmusiker in Paris',
+        },
+    }]
+
+
 class ArteTVEmbedIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:embed'
     _VALID_URL = r'''(?x)
