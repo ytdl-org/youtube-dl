@@ -3,14 +3,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_HTTPError,
-)
+from ..compat import compat_HTTPError
 from ..utils import (
     ExtractorError,
     find_xpath_attr,
     lowercase_escape,
+    smuggle_url,
     unescapeHTML,
 )
 
@@ -21,31 +19,38 @@ class NBCIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.nbc.com/the-tonight-show/segments/112966',
-            # md5 checksum is not stable
             'info_dict': {
-                'id': 'c9xnCo0YPOPH',
-                'ext': 'flv',
+                'id': '112966',
+                'ext': 'mp4',
                 'title': 'Jimmy Fallon Surprises Fans at Ben & Jerry\'s',
                 'description': 'Jimmy gives out free scoops of his new "Tonight Dough" ice cream flavor by surprising customers at the Ben & Jerry\'s scoop shop.',
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
             },
         },
         {
             'url': 'http://www.nbc.com/the-tonight-show/episodes/176',
             'info_dict': {
-                'id': 'XwU9KZkp98TH',
+                'id': '176',
                 'ext': 'flv',
                 'title': 'Ricky Gervais, Steven Van Zandt, ILoveMakonnen',
                 'description': 'A brand new episode of The Tonight Show welcomes Ricky Gervais, Steven Van Zandt and ILoveMakonnen.',
             },
-            'skip': 'Only works from US',
+            'skip': '404 Not Found',
         },
         {
             'url': 'http://www.nbc.com/saturday-night-live/video/star-wars-teaser/2832821',
             'info_dict': {
-                'id': '8iUuyzWDdYUZ',
-                'ext': 'flv',
+                'id': '2832821',
+                'ext': 'mp4',
                 'title': 'Star Wars Teaser',
                 'description': 'md5:0b40f9cbde5b671a7ff62fceccc4f442',
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
             },
             'skip': 'Only works from US',
         },
@@ -62,12 +67,17 @@ class NBCIE(InfoExtractor):
         theplatform_url = unescapeHTML(lowercase_escape(self._html_search_regex(
             [
                 r'(?:class="video-player video-player-full" data-mpx-url|class="player" src)="(.*?)"',
+                r'<iframe[^>]+src="((?:https?:)?//player\.theplatform\.com/[^"]+)"',
                 r'"embedURL"\s*:\s*"([^"]+)"'
             ],
             webpage, 'theplatform url').replace('_no_endcard', '').replace('\\/', '/')))
         if theplatform_url.startswith('//'):
             theplatform_url = 'http:' + theplatform_url
-        return self.url_result(theplatform_url)
+        return {
+            '_type': 'url_transparent',
+            'url': smuggle_url(theplatform_url, {'source_url': url}),
+            'id': video_id,
+        }
 
 
 class NBCSportsVPlayerIE(InfoExtractor):
@@ -101,7 +111,7 @@ class NBCSportsVPlayerIE(InfoExtractor):
 
 
 class NBCSportsIE(InfoExtractor):
-    # Does not include https becuase its certificate is invalid
+    # Does not include https because its certificate is invalid
     _VALID_URL = r'http://www\.nbcsports\.com//?(?:[^/]+/)+(?P<id>[0-9a-z-]+)'
 
     _TEST = {
@@ -187,7 +197,7 @@ class NBCNewsIE(InfoExtractor):
                 'title': info.find('headline').text,
                 'ext': 'flv',
                 'url': find_xpath_attr(info, 'media', 'type', 'flashVideo').text,
-                'description': compat_str(info.find('caption').text),
+                'description': info.find('caption').text,
                 'thumbnail': find_xpath_attr(info, 'media', 'type', 'thumbnail').text,
             }
         else:

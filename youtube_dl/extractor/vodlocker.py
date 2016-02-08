@@ -2,14 +2,16 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
+from ..compat import compat_urllib_parse
+from ..utils import (
+    ExtractorError,
+    NO_DEFAULT,
+    sanitized_Request,
 )
 
 
 class VodlockerIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vodlocker\.com/(?P<id>[0-9a-zA-Z]+)(?:\..*?)?'
+    _VALID_URL = r'https?://(?:www\.)?vodlocker\.(?:com|city)/(?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:\..*?)?'
 
     _TESTS = [{
         'url': 'http://vodlocker.com/e8wvyzz4sl42',
@@ -26,26 +28,47 @@ class VodlockerIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
+        if any(p in webpage for p in (
+                '>THIS FILE WAS DELETED<',
+                '>File Not Found<',
+                'The file you were looking for could not be found, sorry for any inconvenience.<')):
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+
         fields = self._hidden_inputs(webpage)
 
         if fields['op'] == 'download1':
             self._sleep(3, video_id)  # they do detect when requests happen too fast!
             post = compat_urllib_parse.urlencode(fields)
-            req = compat_urllib_request.Request(url, post)
+            req = sanitized_Request(url, post)
             req.add_header('Content-type', 'application/x-www-form-urlencoded')
             webpage = self._download_webpage(
                 req, video_id, 'Downloading video page')
 
+        def extract_file_url(html, default=NO_DEFAULT):
+            return self._search_regex(
+                r'file:\s*"(http[^\"]+)",', html, 'file url', default=default)
+
+        video_url = extract_file_url(webpage, default=None)
+
+        if not video_url:
+            embed_url = self._search_regex(
+                r'<iframe[^>]+src=(["\'])(?P<url>(?:https?://)?vodlocker\.(?:com|city)/embed-.+?)\1',
+                webpage, 'embed url', group='url')
+            embed_webpage = self._download_webpage(
+                embed_url, video_id, 'Downloading embed webpage')
+            video_url = extract_file_url(embed_webpage)
+            thumbnail_webpage = embed_webpage
+        else:
+            thumbnail_webpage = webpage
+
         title = self._search_regex(
             r'id="file_title".*?>\s*(.*?)\s*<(?:br|span)', webpage, 'title')
         thumbnail = self._search_regex(
-            r'image:\s*"(http[^\"]+)",', webpage, 'thumbnail')
-        url = self._search_regex(
-            r'file:\s*"(http[^\"]+)",', webpage, 'file url')
+            r'image:\s*"(http[^\"]+)",', thumbnail_webpage, 'thumbnail', fatal=False)
 
         formats = [{
             'format_id': 'sd',
-            'url': url,
+            'url': video_url,
         }]
 
         return {

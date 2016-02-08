@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 class SpankBangIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:www|[a-z]{2})\.)?spankbang\.com/(?P<id>[\da-z]+)/video'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://spankbang.com/3vvn/video/fantasy+solo',
         'md5': '1cc433e1d6aa14bc376535b8679302f7',
         'info_dict': {
@@ -19,7 +19,11 @@ class SpankBangIE(InfoExtractor):
             'uploader': 'silly2587',
             'age_limit': 18,
         }
-    }
+    }, {
+        # 480p only
+        'url': 'http://spankbang.com/1vt0/video/solvane+gangbang',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -34,11 +38,12 @@ class SpankBangIE(InfoExtractor):
             'ext': 'mp4',
             'format_id': '%sp' % height,
             'height': int(height),
-        } for height in re.findall(r'<span[^>]+q_(\d+)p', webpage)]
+        } for height in re.findall(r'<(?:span|li|p)[^>]+[qb]_(\d+)p', webpage)]
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         title = self._html_search_regex(
-            r'(?s)<h1>(.+?)</h1>', webpage, 'title')
+            r'(?s)<h1[^>]*>(.+?)</h1>', webpage, 'title')
         description = self._search_regex(
             r'class="desc"[^>]*>([^<]+)',
             webpage, 'description', default=None)

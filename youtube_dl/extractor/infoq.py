@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from __future__ import unicode_literals
 
 import base64
@@ -5,8 +7,9 @@ import base64
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse_unquote,
-    compat_urlparse,
+    compat_parse_qs,
 )
+from ..utils import determine_ext
 
 
 class InfoQIE(InfoExtractor):
@@ -16,7 +19,7 @@ class InfoQIE(InfoExtractor):
         'url': 'http://www.infoq.com/presentations/A-Few-of-My-Favorite-Python-Things',
         'md5': 'b5ca0e0a8c1fed93b0e65e48e462f9a2',
         'info_dict': {
-            'id': '12-jan-pythonthings',
+            'id': 'A-Few-of-My-Favorite-Python-Things',
             'ext': 'mp4',
             'description': 'Mike Pirnat presents some tips and tricks, standard libraries and third party packages that make programming in Python a richer experience.',
             'title': 'A Few of My Favorite [Python] Things',
@@ -24,7 +27,70 @@ class InfoQIE(InfoExtractor):
     }, {
         'url': 'http://www.infoq.com/fr/presentations/changez-avis-sur-javascript',
         'only_matching': True,
+    }, {
+        'url': 'http://www.infoq.com/cn/presentations/openstack-continued-delivery',
+        'md5': '4918d0cca1497f2244572caf626687ef',
+        'info_dict': {
+            'id': 'openstack-continued-delivery',
+            'title': 'OpenStack持续交付之路',
+            'ext': 'flv',
+            'description': 'md5:308d981fb28fa42f49f9568322c683ff',
+        },
     }]
+
+    def _extract_bokecc_videos(self, webpage, video_id):
+        # TODO: bokecc.com is a Chinese video cloud platform
+        # It should have an independent extractor but I don't have other
+        # examples using bokecc
+        player_params_str = self._html_search_regex(
+            r'<script[^>]+src="http://p\.bokecc\.com/player\?([^"]+)',
+            webpage, 'player params', default=None)
+
+        player_params = compat_parse_qs(player_params_str)
+
+        info_xml = self._download_xml(
+            'http://p.bokecc.com/servlet/playinfo?uid=%s&vid=%s&m=1' % (
+                player_params['siteid'][0], player_params['vid'][0]), video_id)
+
+        return [{
+            'format_id': 'bokecc',
+            'url': quality.find('./copy').attrib['playurl'],
+            'preference': int(quality.attrib['value']),
+        } for quality in info_xml.findall('./video/quality')]
+
+    def _extract_rtmp_videos(self, webpage):
+        # The server URL is hardcoded
+        video_url = 'rtmpe://video.infoq.com/cfx/st/'
+
+        # Extract video URL
+        encoded_id = self._search_regex(
+            r"jsclassref\s*=\s*'([^']*)'", webpage, 'encoded id', default=None)
+
+        real_id = compat_urllib_parse_unquote(base64.b64decode(encoded_id.encode('ascii')).decode('utf-8'))
+        playpath = 'mp4:' + real_id
+
+        return [{
+            'format_id': 'rtmp',
+            'url': video_url,
+            'ext': determine_ext(playpath),
+            'play_path': playpath,
+        }]
+
+    def _extract_http_videos(self, webpage):
+        http_video_url = self._search_regex(r'P\.s\s*=\s*\'([^\']+)\'', webpage, 'video URL')
+
+        policy = self._search_regex(r'InfoQConstants.scp\s*=\s*\'([^\']+)\'', webpage, 'policy')
+        signature = self._search_regex(r'InfoQConstants.scs\s*=\s*\'([^\']+)\'', webpage, 'signature')
+        key_pair_id = self._search_regex(r'InfoQConstants.sck\s*=\s*\'([^\']+)\'', webpage, 'key-pair-id')
+
+        return [{
+            'format_id': 'http',
+            'url': http_video_url,
+            'http_headers': {
+                'Cookie': 'CloudFront-Policy=%s; CloudFront-Signature=%s; CloudFront-Key-Pair-Id=%s' % (
+                    policy, signature, key_pair_id),
+            },
+        }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -33,31 +99,12 @@ class InfoQIE(InfoExtractor):
         video_title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title')
         video_description = self._html_search_meta('description', webpage, 'description')
 
-        # The server URL is hardcoded
-        video_url = 'rtmpe://video.infoq.com/cfx/st/'
+        if '/cn/' in url:
+            # for China videos, HTTP video URL exists but always fails with 403
+            formats = self._extract_bokecc_videos(webpage, video_id)
+        else:
+            formats = self._extract_rtmp_videos(webpage) + self._extract_http_videos(webpage)
 
-        # Extract video URL
-        encoded_id = self._search_regex(
-            r"jsclassref\s*=\s*'([^']*)'", webpage, 'encoded id')
-        real_id = compat_urllib_parse_unquote(base64.b64decode(encoded_id.encode('ascii')).decode('utf-8'))
-        playpath = 'mp4:' + real_id
-
-        video_filename = playpath.split('/')[-1]
-        video_id, extension = video_filename.split('.')
-
-        http_base = self._search_regex(
-            r'EXPRESSINSTALL_SWF\s*=\s*[^"]*"((?:https?:)?//[^/"]+/)', webpage,
-            'HTTP base URL')
-
-        formats = [{
-            'format_id': 'rtmp',
-            'url': video_url,
-            'ext': extension,
-            'play_path': playpath,
-        }, {
-            'format_id': 'http',
-            'url': compat_urlparse.urljoin(url, http_base) + real_id,
-        }]
         self._sort_formats(formats)
 
         return {

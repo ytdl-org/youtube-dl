@@ -2,6 +2,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import (
+    xpath_element,
+    xpath_text,
+    int_or_none,
+)
 
 
 class FazIE(InfoExtractor):
@@ -37,31 +42,32 @@ class FazIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
+        description = self._og_search_description(webpage)
         config_xml_url = self._search_regex(
-            r'writeFLV\(\'(.+?)\',', webpage, 'config xml url')
+            r'videoXMLURL\s*=\s*"([^"]+)', webpage, 'config xml url')
         config = self._download_xml(
             config_xml_url, video_id, 'Downloading config xml')
 
-        encodings = config.find('ENCODINGS')
+        encodings = xpath_element(config, 'ENCODINGS', 'encodings', True)
         formats = []
         for pref, code in enumerate(['LOW', 'HIGH', 'HQ']):
-            encoding = encodings.find(code)
-            if encoding is None:
-                continue
-            encoding_url = encoding.find('FILENAME').text
-            formats.append({
-                'url': encoding_url,
-                'format_id': code.lower(),
-                'quality': pref,
-            })
+            encoding = xpath_element(encodings, code)
+            if encoding:
+                encoding_url = xpath_text(encoding, 'FILENAME')
+                if encoding_url:
+                    formats.append({
+                        'url': encoding_url,
+                        'format_id': code.lower(),
+                        'quality': pref,
+                        'tbr': int_or_none(xpath_text(encoding, 'AVERAGEBITRATE')),
+                    })
         self._sort_formats(formats)
 
-        descr = self._html_search_regex(
-            r'<p class="Content Copy">(.*?)</p>', webpage, 'description', fatal=False)
         return {
             'id': video_id,
             'title': self._og_search_title(webpage),
             'formats': formats,
-            'description': descr,
-            'thumbnail': config.find('STILL/STILL_BIG').text,
+            'description': description.strip() if description else None,
+            'thumbnail': xpath_text(config, 'STILL/STILL_BIG'),
+            'duration': int_or_none(xpath_text(config, 'DURATION')),
         }

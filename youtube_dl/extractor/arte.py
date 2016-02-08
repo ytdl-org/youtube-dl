@@ -13,6 +13,7 @@ from ..utils import (
     unified_strdate,
     get_element_by_attribute,
     int_or_none,
+    NO_DEFAULT,
     qualities,
 )
 
@@ -68,9 +69,13 @@ class ArteTVPlus7IE(InfoExtractor):
     def _extract_url_info(cls, url):
         mobj = re.match(cls._VALID_URL, url)
         lang = mobj.group('lang')
-        # This is not a real id, it can be for example AJT for the news
-        # http://www.arte.tv/guide/fr/emissions/AJT/arte-journal
-        video_id = mobj.group('id')
+        query = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+        if 'vid' in query:
+            video_id = query['vid'][0]
+        else:
+            # This is not a real id, it can be for example AJT for the news
+            # http://www.arte.tv/guide/fr/emissions/AJT/arte-journal
+            video_id = mobj.group('id')
         return video_id, lang
 
     def _real_extract(self, url):
@@ -79,13 +84,28 @@ class ArteTVPlus7IE(InfoExtractor):
         return self._extract_from_webpage(webpage, video_id, lang)
 
     def _extract_from_webpage(self, webpage, video_id, lang):
+        patterns_templates = (r'arte_vp_url=["\'](.*?%s.*?)["\']', r'data-url=["\']([^"]+%s[^"]+)["\']')
+        ids = (video_id, '')
+        # some pages contain multiple videos (like
+        # http://www.arte.tv/guide/de/sendungen/XEN/xenius/?vid=055918-015_PLUS7-D),
+        # so we first try to look for json URLs that contain the video id from
+        # the 'vid' parameter.
+        patterns = [t % re.escape(_id) for _id in ids for t in patterns_templates]
         json_url = self._html_search_regex(
-            [r'arte_vp_url=["\'](.*?)["\']', r'data-url=["\']([^"]+)["\']'],
-            webpage, 'json vp url', default=None)
+            patterns, webpage, 'json vp url', default=None)
         if not json_url:
-            iframe_url = self._html_search_regex(
-                r'<iframe[^>]+src=(["\'])(?P<url>.+\bjson_url=.+?)\1',
-                webpage, 'iframe url', group='url')
+            def find_iframe_url(webpage, default=NO_DEFAULT):
+                return self._html_search_regex(
+                    r'<iframe[^>]+src=(["\'])(?P<url>.+\bjson_url=.+?)\1',
+                    webpage, 'iframe url', group='url', default=default)
+
+            iframe_url = find_iframe_url(webpage, None)
+            if not iframe_url:
+                embed_url = self._html_search_regex(
+                    r'arte_vp_url_oembed=\'([^\']+?)\'', webpage, 'embed url')
+                player = self._download_json(
+                    embed_url, video_id, 'Downloading player page')
+                iframe_url = find_iframe_url(player['html'])
             json_url = compat_parse_qs(
                 compat_urllib_parse_urlparse(iframe_url).query)['json_url'][0]
         return self._extract_from_json_url(json_url, video_id, lang)
@@ -189,25 +209,19 @@ class ArteTVCreativeIE(ArteTVPlus7IE):
 
 class ArteTVFutureIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:future'
-    _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de)/(thema|sujet)/.*?#article-anchor-(?P<id>\d+)'
+    _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de)/(?P<id>.+)'
 
-    _TEST = {
-        'url': 'http://future.arte.tv/fr/sujet/info-sciences#article-anchor-7081',
+    _TESTS = [{
+        'url': 'http://future.arte.tv/fr/info-sciences/les-ecrevisses-aussi-sont-anxieuses',
         'info_dict': {
-            'id': '5201',
+            'id': '050940-028-A',
             'ext': 'mp4',
-            'title': 'Les champignons au secours de la planète',
-            'upload_date': '20131101',
+            'title': 'Les écrevisses aussi peuvent être anxieuses',
         },
-    }
-
-    def _real_extract(self, url):
-        anchor_id, lang = self._extract_url_info(url)
-        webpage = self._download_webpage(url, anchor_id)
-        row = self._search_regex(
-            r'(?s)id="%s"[^>]*>.+?(<div[^>]*arte_vp_url[^>]*>)' % anchor_id,
-            webpage, 'row')
-        return self._extract_from_webpage(row, anchor_id, lang)
+    }, {
+        'url': 'http://future.arte.tv/fr/la-science-est-elle-responsable',
+        'only_matching': True,
+    }]
 
 
 class ArteTVDDCIE(ArteTVPlus7IE):
@@ -241,6 +255,23 @@ class ArteTVConcertIE(ArteTVPlus7IE):
             'title': 'The Notwist im Pariser Konzertclub "Divan du Monde"',
             'upload_date': '20140128',
             'description': 'md5:486eb08f991552ade77439fe6d82c305',
+        },
+    }
+
+
+class ArteTVCinemaIE(ArteTVPlus7IE):
+    IE_NAME = 'arte.tv:cinema'
+    _VALID_URL = r'https?://cinema\.arte\.tv/(?P<lang>de|fr)/(?P<id>.+)'
+
+    _TEST = {
+        'url': 'http://cinema.arte.tv/de/node/38291',
+        'md5': '6b275511a5107c60bacbeeda368c3aa1',
+        'info_dict': {
+            'id': '055876-000_PWA12025-D',
+            'ext': 'mp4',
+            'title': 'Tod auf dem Nil',
+            'upload_date': '20160122',
+            'description': 'md5:7f749bbb77d800ef2be11d54529b96bc',
         },
     }
 

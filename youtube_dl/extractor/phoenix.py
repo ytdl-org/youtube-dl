@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
-from .zdf import extract_from_xml_url
+from .zdf import ZDFIE
 
 
-class PhoenixIE(InfoExtractor):
+class PhoenixIE(ZDFIE):
+    IE_NAME = 'phoenix.de'
     _VALID_URL = r'''(?x)https?://(?:www\.)?phoenix\.de/content/
         (?:
             phoenix/die_sendungen/(?:[^/]+/)?
@@ -41,5 +41,5 @@ class PhoenixIE(InfoExtractor):
             r'<div class="phx_vod" id="phx_vod_([0-9]+)"',
             webpage, 'internal video ID')
 
-        api_url = 'http://www.phoenix.de/php/zdfplayer-v1.3/data/beitragsDetails.php?ak=web&id=%s' % internal_id
-        return extract_from_xml_url(self, video_id, api_url)
+        api_url = 'http://www.phoenix.de/php/mediaplayer/data/beitrags_details.php?ak=web&id=%s' % internal_id
+        return self.extract_from_xml_url(video_id, api_url)

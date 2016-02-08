@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
+    parse_duration,
     qualities,
     unified_strdate,
 )
@@ -12,21 +13,25 @@ from ..utils import (
 
 class CCCIE(InfoExtractor):
     IE_NAME = 'media.ccc.de'
-    _VALID_URL = r'https?://(?:www\.)?media\.ccc\.de/[^?#]+/[^?#/]*?_(?P<id>[0-9]{8,})._[^?#/]*\.html'
+    _VALID_URL = r'https?://(?:www\.)?media\.ccc\.de/v/(?P<id>[^/?#&]+)'
 
-    _TEST = {
-        'url': 'http://media.ccc.de/browse/congress/2013/30C3_-_5443_-_en_-_saal_g_-_201312281830_-_introduction_to_processor_design_-_byterazor.html#video',
+    _TESTS = [{
+        'url': 'https://media.ccc.de/v/30C3_-_5443_-_en_-_saal_g_-_201312281830_-_introduction_to_processor_design_-_byterazor#video',
         'md5': '3a1eda8f3a29515d27f5adb967d7e740',
         'info_dict': {
-            'id': '20131228183',
+            'id': '30C3_-_5443_-_en_-_saal_g_-_201312281830_-_introduction_to_processor_design_-_byterazor',
             'ext': 'mp4',
             'title': 'Introduction to Processor Design',
-            'description': 'md5:5ddbf8c734800267f2cee4eab187bc1b',
+            'description': 'md5:80be298773966f66d56cb11260b879af',
             'thumbnail': 're:^https?://.*\.jpg$',
             'view_count': int,
-            'upload_date': '20131229',
+            'upload_date': '20131228',
+            'duration': 3660,
         }
-    }
+    }, {
+        'url': 'https://media.ccc.de/v/32c3-7368-shopshifting#download',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -40,21 +45,25 @@ class CCCIE(InfoExtractor):
         title = self._html_search_regex(
             r'(?s)<h1>(.*?)</h1>', webpage, 'title')
         description = self._html_search_regex(
-            r"(?s)<p class='description'>(.*?)</p>",
+            r"(?s)<h3>About</h3>(.+?)<h3>",
             webpage, 'description', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
-            r"(?s)<span class='[^']*fa-calendar-o'></span>(.*?)</li>",
+            r"(?s)<span[^>]+class='[^']*fa-calendar-o'[^>]*>(.+?)</span>",
             webpage, 'upload date', fatal=False))
         view_count = int_or_none(self._html_search_regex(
             r"(?s)<span class='[^']*fa-eye'></span>(.*?)</li>",
             webpage, 'view count', fatal=False))
+        duration = parse_duration(self._html_search_regex(
+            r'(?s)<span[^>]+class=(["\']).*?fa-clock-o.*?\1[^>]*></span>(?P<duration>.+?)</li',
+            webpage, 'duration', fatal=False, group='duration'))
 
         matches = re.finditer(r'''(?xs)
-            <(?:span|div)\s+class='label\s+filetype'>(?P<format>.*?)</(?:span|div)>\s*
+            <(?:span|div)\s+class='label\s+filetype'>(?P<format>[^<]*)</(?:span|div)>\s*
+            <(?:span|div)\s+class='label\s+filetype'>(?P<lang>[^<]*)</(?:span|div)>\s*
             <a\s+download\s+href='(?P<http_url>[^']+)'>\s*
             (?:
                 .*?
-                <a\s+href='(?P<torrent_url>[^']+\.torrent)'
+                <a\s+(?:download\s+)?href='(?P<torrent_url>[^']+\.torrent)'
             )?''', webpage)
         formats = []
         for m in matches:
@@ -62,12 +71,15 @@ class CCCIE(InfoExtractor):
             format_id = self._search_regex(
                 r'.*/([a-z0-9_-]+)/[^/]*$',
                 m.group('http_url'), 'format id', default=None)
+            if format_id:
+                format_id = m.group('lang') + '-' + format_id
             vcodec = 'h264' if 'h264' in format_id else (
                 'none' if format_id in ('mp3', 'opus') else None
             )
             formats.append({
                 'format_id': format_id,
                 'format': format,
+                'language': m.group('lang'),
                 'url': m.group('http_url'),
                 'vcodec': vcodec,
                 'preference': preference(format_id),
@@ -95,5 +107,6 @@ class CCCIE(InfoExtractor):
             'thumbnail': thumbnail,
             'view_count': view_count,
             'upload_date': upload_date,
+            'duration': duration,
             'formats': formats,
         }

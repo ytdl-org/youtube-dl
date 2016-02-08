@@ -1,25 +1,23 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
     encode_dict,
     int_or_none,
+    sanitized_Request,
 )
 
 
-class GorillaVidIE(InfoExtractor):
-    IE_DESC = 'GorillaVid.in, daclips.in, movpod.in, fastvideo.in, realvid.net and filehoot.com'
+class XFileShareIE(InfoExtractor):
+    IE_DESC = 'XFileShare based sites: GorillaVid.in, daclips.in, movpod.in, fastvideo.in, realvid.net, filehoot.com and vidto.me'
     _VALID_URL = r'''(?x)
         https?://(?P<host>(?:www\.)?
-            (?:daclips\.in|gorillavid\.in|movpod\.in|fastvideo\.in|realvid\.net|filehoot\.com))/
+            (?:daclips\.in|gorillavid\.in|movpod\.in|fastvideo\.in|realvid\.net|filehoot\.com|vidto\.me))/
         (?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:-[0-9]+x[0-9]+\.html)?
     '''
 
@@ -76,6 +74,13 @@ class GorillaVidIE(InfoExtractor):
             'title': 'youtube-dl test video \'äBaW_jenozKc.mp4.mp4',
             'thumbnail': 're:http://.*\.jpg',
         }
+    }, {
+        'url': 'http://vidto.me/ku5glz52nqe1.html',
+        'info_dict': {
+            'id': 'ku5glz52nqe1',
+            'ext': 'mp4',
+            'title': 'test'
+        }
     }]
 
     def _real_extract(self, url):
@@ -99,18 +104,23 @@ class GorillaVidIE(InfoExtractor):
 
             post = compat_urllib_parse.urlencode(encode_dict(fields))
 
-            req = compat_urllib_request.Request(url, post)
+            req = sanitized_Request(url, post)
             req.add_header('Content-type', 'application/x-www-form-urlencoded')
 
             webpage = self._download_webpage(req, video_id, 'Downloading video page')
 
-        title = self._search_regex(
-            [r'style="z-index: [0-9]+;">([^<]+)</span>', r'<td nowrap>([^<]+)</td>', r'>Watch (.+) '],
-            webpage, 'title', default=None) or self._og_search_title(webpage)
+        title = (self._search_regex(
+            [r'style="z-index: [0-9]+;">([^<]+)</span>',
+             r'<td nowrap>([^<]+)</td>',
+             r'>Watch (.+) ',
+             r'<h2 class="video-page-head">([^<]+)</h2>'],
+            webpage, 'title', default=None) or self._og_search_title(webpage)).strip()
         video_url = self._search_regex(
-            r'file\s*:\s*["\'](http[^"\']+)["\'],', webpage, 'file url')
+            [r'file\s*:\s*["\'](http[^"\']+)["\'],',
+             r'file_link\s*=\s*\'(https?:\/\/[0-9a-zA-z.\/\-_]+)'],
+            webpage, 'file url')
         thumbnail = self._search_regex(
-            r'image\s*:\s*["\'](http[^"\']+)["\'],', webpage, 'thumbnail', fatal=False)
+            r'image\s*:\s*["\'](http[^"\']+)["\'],', webpage, 'thumbnail', default=None)
 
         formats = [{
             'format_id': 'sd',

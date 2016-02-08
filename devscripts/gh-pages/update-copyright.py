@@ -5,7 +5,7 @@ from __future__ import with_statement, unicode_literals
 
 import datetime
 import glob
-import io  # For Python 2 compatibilty
+import io  # For Python 2 compatibility
 import os
 import re
 

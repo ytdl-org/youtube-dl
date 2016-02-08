@@ -4,26 +4,48 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from .xstream import XstreamIE
 from ..utils import (
     ExtractorError,
     float_or_none,
 )
 
 
-class VGTVIE(InfoExtractor):
-    IE_DESC = 'VGTV and BTTV'
+class VGTVIE(XstreamIE):
+    IE_DESC = 'VGTV, BTTV, FTV, Aftenposten and Aftonbladet'
+
+    _HOST_TO_APPNAME = {
+        'vgtv.no': 'vgtv',
+        'bt.no/tv': 'bttv',
+        'aftenbladet.no/tv': 'satv',
+        'fvn.no/fvntv': 'fvntv',
+        'aftenposten.no/webtv': 'aptv',
+    }
+
+    _APP_NAME_TO_VENDOR = {
+        'vgtv': 'vgtv',
+        'bttv': 'bt',
+        'satv': 'sa',
+        'fvntv': 'fvn',
+        'aptv': 'ap',
+    }
+
     _VALID_URL = r'''(?x)
-                    (?:
-                        vgtv:|
-                        http://(?:www\.)?
+                    (?:https?://(?:www\.)?
+                    (?P<host>
+                        %s
                     )
-                    (?P<host>vgtv|bt)
+                    /
                     (?:
-                        :|
-                        \.no/(?:tv/)?\#!/(?:video|live)/
-                    )
-                    (?P<id>[0-9]+)
-                    '''
+                        \#!/(?:video|live)/|
+                        embed?.*id=
+                    )|
+                    (?P<appname>
+                        %s
+                    ):)
+                    (?P<id>\d+)
+                    ''' % ('|'.join(_HOST_TO_APPNAME.keys()), '|'.join(_APP_NAME_TO_VENDOR.keys()))
+
     _TESTS = [
         {
             # streamType: vod
@@ -59,17 +81,18 @@ class VGTVIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
+            'skip': 'Video is no longer available',
         },
         {
-            # streamType: live
+            # streamType: wasLive
             'url': 'http://www.vgtv.no/#!/live/113063/direkte-v75-fra-solvalla',
             'info_dict': {
                 'id': '113063',
-                'ext': 'flv',
-                'title': 're:^DIREKTE: V75 fra Solvalla [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+                'ext': 'mp4',
+                'title': 'V75 fra Solvalla 30.05.15',
                 'description': 'md5:b3743425765355855f88e096acc93231',
                 'thumbnail': 're:^https?://.*\.jpg',
-                'duration': 0,
+                'duration': 25966,
                 'timestamp': 1432975582,
                 'upload_date': '20150530',
                 'view_count': int,
@@ -78,6 +101,20 @@ class VGTVIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
+        },
+        {
+            'url': 'http://www.aftenposten.no/webtv/#!/video/21039/trailer-sweatshop-i-can-t-take-any-more',
+            'md5': 'fd828cd29774a729bf4d4425fe192972',
+            'info_dict': {
+                'id': '21039',
+                'ext': 'mov',
+                'title': 'TRAILER: «SWEATSHOP» - I can´t take any more',
+                'description': 'md5:21891f2b0dd7ec2f78d84a50e54f8238',
+                'duration': 66,
+                'timestamp': 1417002452,
+                'upload_date': '20141126',
+                'view_count': int,
+            }
         },
         {
             'url': 'http://www.bt.no/tv/#!/video/100250/norling-dette-er-forskjellen-paa-1-divisjon-og-eliteserien',
@@ -89,20 +126,26 @@ class VGTVIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         host = mobj.group('host')
-
-        HOST_WEBSITES = {
-            'vgtv': 'vgtv',
-            'bt': 'bttv',
-        }
+        appname = self._HOST_TO_APPNAME[host] if host else mobj.group('appname')
+        vendor = self._APP_NAME_TO_VENDOR[appname]
 
         data = self._download_json(
             'http://svp.vg.no/svp/api/v1/%s/assets/%s?appName=%s-website'
-            % (host, video_id, HOST_WEBSITES[host]),
+            % (vendor, video_id, appname),
             video_id, 'Downloading media JSON')
 
         if data.get('status') == 'inactive':
             raise ExtractorError(
                 'Video %s is no longer available' % video_id, expected=True)
+
+        info = {
+            'formats': [],
+        }
+        if len(video_id) == 5:
+            if appname == 'bttv':
+                info = self._extract_video_info('btno', video_id)
+            elif appname == 'aptv':
+                info = self._extract_video_info('ap', video_id)
 
         streams = data['streamUrls']
         stream_type = data.get('streamType')
@@ -112,47 +155,53 @@ class VGTVIE(InfoExtractor):
         hls_url = streams.get('hls')
         if hls_url:
             formats.extend(self._extract_m3u8_formats(
-                hls_url, video_id, 'mp4', m3u8_id='hls'))
+                hls_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
 
         hds_url = streams.get('hds')
-        # wasLive hds are always 404
-        if hds_url and stream_type != 'wasLive':
-            formats.extend(self._extract_f4m_formats(
-                hds_url + '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18',
-                video_id, f4m_id='hds'))
+        if hds_url:
+            hdcore_sign = 'hdcore=3.7.0'
+            f4m_formats = self._extract_f4m_formats(
+                hds_url + '?%s' % hdcore_sign, video_id, f4m_id='hds', fatal=False)
+            if f4m_formats:
+                for entry in f4m_formats:
+                    # URLs without the extra param induce an 404 error
+                    entry.update({'extra_param_to_segment_url': hdcore_sign})
+                    formats.append(entry)
 
+        mp4_urls = streams.get('pseudostreaming') or []
         mp4_url = streams.get('mp4')
         if mp4_url:
-            _url = hls_url or hds_url
-            MP4_URL_TEMPLATE = '%s/%%s.%s' % (mp4_url.rpartition('/')[0], mp4_url.rpartition('.')[-1])
-            for mp4_format in _url.split(','):
-                m = re.search('(?P<width>\d+)_(?P<height>\d+)_(?P<vbr>\d+)', mp4_format)
-                if not m:
-                    continue
-                width = int(m.group('width'))
-                height = int(m.group('height'))
-                vbr = int(m.group('vbr'))
-                formats.append({
-                    'url': MP4_URL_TEMPLATE % mp4_format,
-                    'format_id': 'mp4-%s' % vbr,
-                    'width': width,
-                    'height': height,
-                    'vbr': vbr,
-                    'preference': 1,
+            mp4_urls.append(mp4_url)
+        for mp4_url in mp4_urls:
+            format_info = {
+                'url': mp4_url,
+            }
+            mobj = re.search('(\d+)_(\d+)_(\d+)', mp4_url)
+            if mobj:
+                tbr = int(mobj.group(3))
+                format_info.update({
+                    'width': int(mobj.group(1)),
+                    'height': int(mobj.group(2)),
+                    'tbr': tbr,
+                    'format_id': 'mp4-%s' % tbr,
                 })
-        self._sort_formats(formats)
+            formats.append(format_info)
 
-        return {
+        info['formats'].extend(formats)
+
+        self._sort_formats(info['formats'])
+
+        info.update({
             'id': video_id,
-            'title': self._live_title(data['title']),
+            'title': self._live_title(data['title']) if stream_type == 'live' else data['title'],
             'description': data['description'],
             'thumbnail': data['images']['main'] + '?t[]=900x506q80',
             'timestamp': data['published'],
             'duration': float_or_none(data['duration'], 1000),
             'view_count': data['displays'],
-            'formats': formats,
             'is_live': True if stream_type == 'live' else False,
-        }
+        })
+        return info
 
 
 class BTArticleIE(InfoExtractor):
@@ -161,7 +210,7 @@ class BTArticleIE(InfoExtractor):
     _VALID_URL = 'http://(?:www\.)?bt\.no/(?:[^/]+/)+(?P<id>[^/]+)-\d+\.html'
     _TEST = {
         'url': 'http://www.bt.no/nyheter/lokalt/Kjemper-for-internatet-1788214.html',
-        'md5': 'd055e8ee918ef2844745fcfd1a4175fb',
+        'md5': '2acbe8ad129b3469d5ae51b1158878df',
         'info_dict': {
             'id': '23199',
             'ext': 'mp4',
@@ -178,15 +227,15 @@ class BTArticleIE(InfoExtractor):
     def _real_extract(self, url):
         webpage = self._download_webpage(url, self._match_id(url))
         video_id = self._search_regex(
-            r'SVP\.Player\.load\(\s*(\d+)', webpage, 'video id')
-        return self.url_result('vgtv:bt:%s' % video_id, 'VGTV')
+            r'<video[^>]+data-id="(\d+)"', webpage, 'video id')
+        return self.url_result('bttv:%s' % video_id, 'VGTV')
 
 
 class BTVestlendingenIE(InfoExtractor):
     IE_NAME = 'bt:vestlendingen'
     IE_DESC = 'Bergens Tidende - Vestlendingen'
     _VALID_URL = 'http://(?:www\.)?bt\.no/spesial/vestlendingen/#!/(?P<id>\d+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.bt.no/spesial/vestlendingen/#!/86588',
         'md5': 'd7d17e3337dc80de6d3a540aefbe441b',
         'info_dict': {
@@ -197,7 +246,19 @@ class BTVestlendingenIE(InfoExtractor):
             'timestamp': 1430473209,
             'upload_date': '20150501',
         },
-    }
+        'skip': '404 Error',
+    }, {
+        'url': 'http://www.bt.no/spesial/vestlendingen/#!/86255',
+        'md5': 'a2893f8632e96389f4bdf36aa9463ceb',
+        'info_dict': {
+            'id': '86255',
+            'ext': 'mov',
+            'title': 'Du må tåle å fryse og være sulten',
+            'description': 'md5:b8046f4d022d5830ddab04865791d063',
+            'upload_date': '20150321',
+            'timestamp': 1426942023,
+        },
+    }]
 
     def _real_extract(self, url):
-        return self.url_result('xstream:btno:%s' % self._match_id(url), 'Xstream')
+        return self.url_result('bttv:%s' % self._match_id(url), 'VGTV')

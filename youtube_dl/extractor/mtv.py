@@ -5,7 +5,6 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
-    compat_urllib_request,
     compat_str,
 )
 from ..utils import (
@@ -13,6 +12,7 @@ from ..utils import (
     find_xpath_attr,
     fix_xml_ampersands,
     HEADRequest,
+    sanitized_Request,
     unescapeHTML,
     url_basename,
     RegexNotFoundError,
@@ -53,7 +53,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
     def _extract_mobile_video_formats(self, mtvn_id):
         webpage_url = self._MOBILE_TEMPLATE % mtvn_id
-        req = compat_urllib_request.Request(webpage_url)
+        req = sanitized_Request(webpage_url)
         # Otherwise we get a webpage that would execute some javascript
         req.add_header('User-Agent', 'curl/7')
         webpage = self._download_webpage(req, mtvn_id,
@@ -167,14 +167,16 @@ class MTVServicesInfoExtractor(InfoExtractor):
             'description': description,
         }
 
+    def _get_feed_query(self, uri):
+        data = {'uri': uri}
+        if self._LANG:
+            data['lang'] = self._LANG
+        return compat_urllib_parse.urlencode(data)
+
     def _get_videos_info(self, uri):
         video_id = self._id_from_uri(uri)
         feed_url = self._get_feed_url(uri)
-        data = compat_urllib_parse.urlencode({'uri': uri})
-        info_url = feed_url + '?'
-        if self._LANG:
-            info_url += 'lang=%s&' % self._LANG
-        info_url += data
+        info_url = feed_url + '?' + self._get_feed_query(uri)
         return self._get_videos_info_from_url(info_url, video_id)
 
     def _get_videos_info_from_url(self, url, video_id):
@@ -184,9 +186,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         return self.playlist_result(
             [self._get_video_info(item) for item in idoc.findall('.//item')])
 
-    def _real_extract(self, url):
-        title = url_basename(url)
-        webpage = self._download_webpage(url, title)
+    def _extract_mgid(self, webpage):
         try:
             # the url can be http://media.mtvnservices.com/fb/{mgid}.swf
             # or http://media.mtvnservices.com/{mgid}
@@ -207,7 +207,12 @@ class MTVServicesInfoExtractor(InfoExtractor):
                 'sm4:video:embed', webpage, 'sm4 embed', default='')
             mgid = self._search_regex(
                 r'embed/(mgid:.+?)["\'&?/]', sm4_embed, 'mgid')
+        return mgid
 
+    def _real_extract(self, url):
+        title = url_basename(url)
+        webpage = self._download_webpage(url, title)
+        mgid = self._extract_mgid(webpage)
         videos_info = self._get_videos_info(mgid)
         return videos_info
 

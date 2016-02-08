@@ -8,11 +8,11 @@ from .common import InfoExtractor
 from ..compat import (
     compat_str,
     compat_urllib_parse,
-    compat_urllib_request,
 )
 from ..utils import (
     int_or_none,
     float_or_none,
+    sanitized_Request,
 )
 
 
@@ -46,6 +46,12 @@ class YandexMusicTrackIE(InfoExtractor):
                 % (data['host'], key, data['ts'] + data['path'], storage[1]))
 
     def _get_track_info(self, track):
+        thumbnail = None
+        cover_uri = track.get('albums', [{}])[0].get('coverUri')
+        if cover_uri:
+            thumbnail = cover_uri.replace('%%', 'orig')
+            if not thumbnail.startswith('http'):
+                thumbnail = 'http://' + thumbnail
         return {
             'id': track['id'],
             'ext': 'mp3',
@@ -53,6 +59,7 @@ class YandexMusicTrackIE(InfoExtractor):
             'title': '%s - %s' % (track['artists'][0]['name'], track['title']),
             'filesize': int_or_none(track.get('fileSize')),
             'duration': float_or_none(track.get('durationMs'), 1000),
+            'thumbnail': thumbnail,
         }
 
     def _real_extract(self, url):
@@ -147,7 +154,7 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
         if len(tracks) < len(track_ids):
             present_track_ids = set([compat_str(track['id']) for track in tracks if track.get('id')])
             missing_track_ids = set(map(compat_str, track_ids)) - set(present_track_ids)
-            request = compat_urllib_request.Request(
+            request = sanitized_Request(
                 'https://music.yandex.ru/handlers/track-entries.jsx',
                 compat_urllib_parse.urlencode({
                     'entries': ','.join(missing_track_ids),

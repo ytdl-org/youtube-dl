@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import (
     int_or_none,
     js_to_json,
@@ -34,7 +35,7 @@ class NTVDeIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         info = self._parse_json(self._search_regex(
-            r'(?s)ntv.pageInfo.article =\s(\{.*?\});', webpage, 'info'),
+            r'(?s)ntv\.pageInfo\.article\s*=\s*(\{.*?\});', webpage, 'info'),
             video_id, transform_source=js_to_json)
         timestamp = int_or_none(info.get('publishedDateAsUnixTimeStamp'))
         vdata = self._parse_json(self._search_regex(
@@ -42,18 +43,24 @@ class NTVDeIE(InfoExtractor):
             webpage, 'player data'),
             video_id, transform_source=js_to_json)
         duration = parse_duration(vdata.get('duration'))
-        formats = [{
-            'format_id': 'flash',
-            'url': 'rtmp://fms.n-tv.de/' + vdata['video'],
-        }, {
-            'format_id': 'mobile',
-            'url': 'http://video.n-tv.de' + vdata['videoMp4'],
-            'tbr': 400,  # estimation
-        }]
-        m3u8_url = 'http://video.n-tv.de' + vdata['videoM3u8']
-        formats.extend(self._extract_m3u8_formats(
-            m3u8_url, video_id, ext='mp4',
-            entry_protocol='m3u8_native', preference=0))
+
+        formats = []
+        if vdata.get('video'):
+            formats.append({
+                'format_id': 'flash',
+                'url': 'rtmp://fms.n-tv.de/%s' % vdata['video'],
+            })
+        if vdata.get('videoMp4'):
+            formats.append({
+                'format_id': 'mobile',
+                'url': compat_urlparse.urljoin('http://video.n-tv.de', vdata['videoMp4']),
+                'tbr': 400,  # estimation
+            })
+        if vdata.get('videoM3u8'):
+            m3u8_url = compat_urlparse.urljoin('http://video.n-tv.de', vdata['videoM3u8'])
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, ext='mp4', entry_protocol='m3u8_native',
+                preference=0, m3u8_id='hls', fatal=False))
         self._sort_formats(formats)
 
         return {

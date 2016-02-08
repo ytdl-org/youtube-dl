@@ -189,7 +189,7 @@ class NPOIE(NPOBaseIE):
                 if not video_url:
                     continue
                 if format_id == 'adaptive':
-                    formats.extend(self._extract_m3u8_formats(video_url, video_id))
+                    formats.extend(self._extract_m3u8_formats(video_url, video_id, 'mp4'))
                 else:
                     formats.append({
                         'url': video_url,
@@ -403,6 +403,38 @@ class NPORadioFragmentIE(InfoExtractor):
             'id': audio_id,
             'url': audio_url,
             'title': title,
+        }
+
+
+class SchoolTVIE(InfoExtractor):
+    IE_NAME = 'schooltv'
+    _VALID_URL = r'https?://(?:www\.)?schooltv\.nl/video/(?P<id>[^/?#&]+)'
+
+    _TEST = {
+        'url': 'http://www.schooltv.nl/video/ademhaling-de-hele-dag-haal-je-adem-maar-wat-gebeurt-er-dan-eigenlijk-in-je-lichaam/',
+        'info_dict': {
+            'id': 'WO_NTR_429477',
+            'display_id': 'ademhaling-de-hele-dag-haal-je-adem-maar-wat-gebeurt-er-dan-eigenlijk-in-je-lichaam',
+            'title': 'Ademhaling: De hele dag haal je adem. Maar wat gebeurt er dan eigenlijk in je lichaam?',
+            'ext': 'mp4',
+            'description': 'md5:abfa0ff690adb73fd0297fd033aaa631'
+        },
+        'params': {
+            # Skip because of m3u8 download
+            'skip_download': True
+        }
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._search_regex(
+            r'data-mid=(["\'])(?P<id>.+?)\1', webpage, 'video_id', group='id')
+        return {
+            '_type': 'url_transparent',
+            'ie_key': 'NPO',
+            'url': 'npo:%s' % video_id,
+            'display_id': display_id
         }
 
 

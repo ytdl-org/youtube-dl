@@ -5,12 +5,12 @@ import re
 import json
 import base64
 import zlib
-import xml.etree.ElementTree
 
 from hashlib import sha1
 from math import pow, sqrt, floor
 from .common import InfoExtractor
 from ..compat import (
+    compat_etree_fromstring,
     compat_urllib_parse,
     compat_urllib_parse_unquote,
     compat_urllib_request,
@@ -21,7 +21,9 @@ from ..utils import (
     bytes_to_intlist,
     intlist_to_bytes,
     int_or_none,
+    lowercase_escape,
     remove_end,
+    sanitized_Request,
     unified_strdate,
     urlencode_postdata,
     xpath_text,
@@ -32,9 +34,29 @@ from ..aes import (
 
 
 class CrunchyrollBaseIE(InfoExtractor):
+    _NETRC_MACHINE = 'crunchyroll'
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            return
+        self.report_login()
+        login_url = 'https://www.crunchyroll.com/?a=formhandler'
+        data = urlencode_postdata({
+            'formname': 'RpcApiUser_Login',
+            'name': username,
+            'password': password,
+        })
+        login_request = sanitized_Request(login_url, data)
+        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        self._download_webpage(login_request, None, False, 'Wrong login info')
+
+    def _real_initialize(self):
+        self._login()
+
     def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None):
         request = (url_or_request if isinstance(url_or_request, compat_urllib_request.Request)
-                   else compat_urllib_request.Request(url_or_request))
+                   else sanitized_Request(url_or_request))
         # Accept-Language must be set explicitly to accept any language to avoid issues
         # similar to https://github.com/rg3/youtube-dl/issues/6797.
         # Along with IP address Crunchyroll uses Accept-Language to guess whether georestriction
@@ -46,10 +68,22 @@ class CrunchyrollBaseIE(InfoExtractor):
         return super(CrunchyrollBaseIE, self)._download_webpage(
             request, video_id, note, errnote, fatal, tries, timeout, encoding)
 
+    @staticmethod
+    def _add_skip_wall(url):
+        parsed_url = compat_urlparse.urlparse(url)
+        qs = compat_urlparse.parse_qs(parsed_url.query)
+        # Always force skip_wall to bypass maturity wall, namely 18+ confirmation message:
+        # > This content may be inappropriate for some people.
+        # > Are you sure you want to continue?
+        # since it's not disabled by default in crunchyroll account's settings.
+        # See https://github.com/rg3/youtube-dl/issues/7202.
+        qs['skip_wall'] = ['1']
+        return compat_urlparse.urlunparse(
+            parsed_url._replace(query=compat_urllib_parse.urlencode(qs, True)))
+
 
 class CrunchyrollIE(CrunchyrollBaseIE):
     _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:media(?:-|/\?id=)|[^/]*/[^/?&]*?)(?P<video_id>[0-9]+))(?:[/?&]|$)'
-    _NETRC_MACHINE = 'crunchyroll'
     _TESTS = [{
         'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
         'info_dict': {
@@ -72,7 +106,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             'id': '589804',
             'ext': 'flv',
             'title': 'Culture Japan Episode 1 – Rebuilding Japan after the 3.11',
-            'description': 'md5:fe2743efedb49d279552926d0bd0cd9e',
+            'description': 'md5:2fbc01f90b87e8e9137296f37b461c12',
             'thumbnail': 're:^https?://.*\.jpg$',
             'uploader': 'Danny Choo Network',
             'upload_date': '20120213',
@@ -81,9 +115,12 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             # rtmp
             'skip_download': True,
         },
-
     }, {
         'url': 'http://www.crunchyroll.fr/girl-friend-beta/episode-11-goodbye-la-mode-661697',
+        'only_matching': True,
+    }, {
+        # geo-restricted (US), 18+ maturity wall, non-premium available
+        'url': 'http://www.crunchyroll.com/cosplay-complex-ova/episode-1-the-birth-of-the-cosplay-club-565617',
         'only_matching': True,
     }]
 
@@ -93,24 +130,6 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         '720': ('62', '106'),
         '1080': ('80', '108'),
     }
-
-    def _login(self):
-        (username, password) = self._get_login_info()
-        if username is None:
-            return
-        self.report_login()
-        login_url = 'https://www.crunchyroll.com/?a=formhandler'
-        data = urlencode_postdata({
-            'formname': 'RpcApiUser_Login',
-            'name': username,
-            'password': password,
-        })
-        login_request = compat_urllib_request.Request(login_url, data)
-        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        self._download_webpage(login_request, None, False, 'Wrong login info')
-
-    def _real_initialize(self):
-        self._login()
 
     def _decrypt_subtitles(self, data, iv, id):
         data = bytes_to_intlist(base64.b64decode(data.encode('utf-8')))
@@ -217,7 +236,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         return output
 
     def _extract_subtitles(self, subtitle):
-        sub_root = xml.etree.ElementTree.fromstring(subtitle)
+        sub_root = compat_etree_fromstring(subtitle)
         return [{
             'ext': 'srt',
             'data': self._convert_subtitles_to_srt(sub_root),
@@ -228,7 +247,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
     def _get_subtitles(self, video_id, webpage):
         subtitles = {}
-        for sub_id, sub_name in re.findall(r'\?ssid=([0-9]+)" title="([^"]+)', webpage):
+        for sub_id, sub_name in re.findall(r'\bssid=([0-9]+)"[^>]+?\btitle="([^"]+)', webpage):
             sub_page = self._download_webpage(
                 'http://www.crunchyroll.com/xml/?req=RpcApiSubtitle_GetXml&subtitle_script_id=' + sub_id,
                 video_id, note='Downloading subtitles for ' + sub_name)
@@ -254,7 +273,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         else:
             webpage_url = 'http://www.' + mobj.group('url')
 
-        webpage = self._download_webpage(webpage_url, video_id, 'Downloading webpage')
+        webpage = self._download_webpage(self._add_skip_wall(webpage_url), video_id, 'Downloading webpage')
         note_m = self._html_search_regex(
             r'<div class="showmedia-trailer-notice">(.+?)</div>',
             webpage, 'trailer-notice', default='')
@@ -270,11 +289,15 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         if 'To view this, please log in to verify you are 18 or older.' in webpage:
             self.raise_login_required()
 
-        video_title = self._html_search_regex(r'<h1[^>]*>(.+?)</h1>', webpage, 'video_title', flags=re.DOTALL)
+        video_title = self._html_search_regex(
+            r'(?s)<h1[^>]*>((?:(?!<h1).)*?<span[^>]+itemprop=["\']title["\'][^>]*>(?:(?!<h1).)+?)</h1>',
+            webpage, 'video_title')
         video_title = re.sub(r' {2,}', ' ', video_title)
-        video_description = self._html_search_regex(r'"description":"([^"]+)', webpage, 'video_description', default='')
-        if not video_description:
-            video_description = None
+        video_description = self._html_search_regex(
+            r'<script[^>]*>\s*.+?\[media_id=%s\].+?"description"\s*:\s*"([^"]+)' % video_id,
+            webpage, 'description', default=None)
+        if video_description:
+            video_description = lowercase_escape(video_description.replace(r'\r\n', '\n'))
         video_upload_date = self._html_search_regex(
             [r'<div>Availability for free users:(.+?)</div>', r'<div>[^<>]+<span>\s*(.+?\d{4})\s*</span></div>'],
             webpage, 'video_upload_date', fatal=False, flags=re.DOTALL)
@@ -285,7 +308,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             'video_uploader', fatal=False)
 
         playerdata_url = compat_urllib_parse_unquote(self._html_search_regex(r'"config_url":"([^"]+)', webpage, 'playerdata_url'))
-        playerdata_req = compat_urllib_request.Request(playerdata_url)
+        playerdata_req = sanitized_Request(playerdata_url)
         playerdata_req.data = compat_urllib_parse.urlencode({'current_page': webpage_url})
         playerdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         playerdata = self._download_webpage(playerdata_req, video_id, note='Downloading media info')
@@ -297,7 +320,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         for fmt in re.findall(r'showmedia\.([0-9]{3,4})p', webpage):
             stream_quality, stream_format = self._FORMAT_IDS[fmt]
             video_format = fmt + 'p'
-            streamdata_req = compat_urllib_request.Request(
+            streamdata_req = sanitized_Request(
                 'http://www.crunchyroll.com/xml/?req=RpcApiVideoPlayer_GetStandardConfig&media_id=%s&video_format=%s&video_quality=%s'
                 % (stream_id, stream_format, stream_quality),
                 compat_urllib_parse.urlencode({'current_page': url}).encode('utf-8'))
@@ -306,8 +329,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 streamdata_req, video_id,
                 note='Downloading media info for %s' % video_format)
             stream_info = streamdata.find('./{default}preload/stream_info')
-            video_url = stream_info.find('./host').text
-            video_play_path = stream_info.find('./file').text
+            video_url = xpath_text(stream_info, './host')
+            video_play_path = xpath_text(stream_info, './file')
+            if not video_url or not video_play_path:
+                continue
             metadata = stream_info.find('./metadata')
             format_info = {
                 'format': video_format,
@@ -352,7 +377,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
     IE_NAME = "crunchyroll:playlist"
-    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?!(?:news|anime-news|library|forum|launchcalendar|lineup|store|comics|freetrial|login))(?P<id>[\w\-]+))/?$'
+    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?!(?:news|anime-news|library|forum|launchcalendar|lineup|store|comics|freetrial|login))(?P<id>[\w\-]+))/?(?:\?|$)'
 
     _TESTS = [{
         'url': 'http://www.crunchyroll.com/a-bridge-to-the-starry-skies-hoshizora-e-kakaru-hashi',
@@ -361,12 +386,25 @@ class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
             'title': 'A Bridge to the Starry Skies - Hoshizora e Kakaru Hashi'
         },
         'playlist_count': 13,
+    }, {
+        # geo-restricted (US), 18+ maturity wall, non-premium available
+        'url': 'http://www.crunchyroll.com/cosplay-complex-ova',
+        'info_dict': {
+            'id': 'cosplay-complex-ova',
+            'title': 'Cosplay Complex OVA'
+        },
+        'playlist_count': 3,
+        'skip': 'Georestricted',
+    }, {
+        # geo-restricted (US), 18+ maturity wall, non-premium will be available since 2015.11.14
+        'url': 'http://www.crunchyroll.com/ladies-versus-butlers?skip_wall=1',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         show_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, show_id)
+        webpage = self._download_webpage(self._add_skip_wall(url), show_id)
         title = self._html_search_regex(
             r'(?s)<h1[^>]*>\s*<span itemprop="name">(.*?)</span>',
             webpage, 'title')

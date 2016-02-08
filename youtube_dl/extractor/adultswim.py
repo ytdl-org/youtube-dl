@@ -41,7 +41,8 @@ class AdultSwimIE(InfoExtractor):
             'id': 'rQxZvXQ4ROaSOqq-or2Mow',
             'title': 'Rick and Morty - Pilot',
             'description': "Rick moves in with his daughter's family and establishes himself as a bad influence on his grandson, Morty. "
-        }
+        },
+        'skip': 'This video is only available for registered users',
     }, {
         'url': 'http://www.adultswim.com/videos/playlists/american-parenting/putting-francine-out-of-business/',
         'playlist': [
@@ -67,7 +68,7 @@ class AdultSwimIE(InfoExtractor):
                 'md5': '3e346a2ab0087d687a05e1e7f3b3e529',
                 'info_dict': {
                     'id': 'sY3cMUR_TbuE4YmdjzbIcQ-0',
-                    'ext': 'flv',
+                    'ext': 'mp4',
                     'title': 'Tim and Eric Awesome Show Great Job! - Dr. Steve Brule, For Your Wine',
                     'description': 'Dr. Brule reports live from Wine Country with a special report on wines.  \r\nWatch Tim and Eric Awesome Show Great Job! episode #20, "Embarrassed" on Adult Swim.\r\n\r\n',
                 },
@@ -78,6 +79,10 @@ class AdultSwimIE(InfoExtractor):
             'title': 'Tim and Eric Awesome Show Great Job! - Dr. Steve Brule, For Your Wine',
             'description': 'Dr. Brule reports live from Wine Country with a special report on wines.  \r\nWatch Tim and Eric Awesome Show Great Job! episode #20, "Embarrassed" on Adult Swim.\r\n\r\n',
         },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
     }]
 
     @staticmethod
@@ -134,7 +139,13 @@ class AdultSwimIE(InfoExtractor):
             show = bootstrapped_data['show']
             show_title = show['title']
             stream = video_info.get('stream')
-            clips = [stream] if stream else video_info['clips']
+            clips = [stream] if stream else video_info.get('clips')
+            if not clips:
+                raise ExtractorError(
+                    'This video is only available via cable service provider subscription that'
+                    ' is not currently supported. You may want to use --cookies.'
+                    if video_info.get('auth') is True else 'Unable to find stream or clips',
+                    expected=True)
             segment_ids = [clip['videoPlaybackID'] for clip in clips]
 
         episode_id = video_info['id']
@@ -176,7 +187,8 @@ class AdultSwimIE(InfoExtractor):
                 media_url = file_el.text
                 if determine_ext(media_url) == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
-                        media_url, segment_title, 'mp4', 'm3u8_native', preference=0, m3u8_id='hls'))
+                        media_url, segment_title, 'mp4', preference=0,
+                        m3u8_id='hls', fatal=False))
                 else:
                     formats.append({
                         'format_id': '%s_%s' % (bitrate, ftype),

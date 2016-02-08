@@ -105,7 +105,7 @@ class RtmpFD(FileDownloader):
         protocol = info_dict.get('rtmp_protocol', None)
         real_time = info_dict.get('rtmp_real_time', False)
         no_resume = info_dict.get('no_resume', False)
-        continue_dl = info_dict.get('continuedl', True)
+        continue_dl = self.params.get('continuedl', True)
 
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
@@ -117,7 +117,7 @@ class RtmpFD(FileDownloader):
             return False
 
         # Download using rtmpdump. rtmpdump returns exit code 2 when
-        # the connection was interrumpted and resuming appears to be
+        # the connection was interrupted and resuming appears to be
         # possible. This is part of rtmpdump's normal usage, AFAIK.
         basic_args = [
             'rtmpdump', '--verbose', '-r', url,

@@ -1,15 +1,14 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import re
-import json
-
 from .common import InfoExtractor
+from .theplatform import ThePlatformIE
+from ..utils import parse_duration
 
 
-class CBSNewsIE(InfoExtractor):
+class CBSNewsIE(ThePlatformIE):
     IE_DESC = 'CBS News'
-    _VALID_URL = r'http://(?:www\.)?cbsnews\.com/(?:[^/]+/)+(?P<id>[\da-z_-]+)'
+    _VALID_URL = r'http://(?:www\.)?cbsnews\.com/(?:news|videos)/(?P<id>[\da-z_-]+)'
 
     _TESTS = [
         {
@@ -30,53 +29,54 @@ class CBSNewsIE(InfoExtractor):
             'url': 'http://www.cbsnews.com/videos/fort-hood-shooting-army-downplays-mental-illness-as-cause-of-attack/',
             'info_dict': {
                 'id': 'fort-hood-shooting-army-downplays-mental-illness-as-cause-of-attack',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Fort Hood shooting: Army downplays mental illness as cause of attack',
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'duration': 205,
+                'subtitles': {
+                    'en': [{
+                        'ext': 'ttml',
+                    }],
+                },
             },
             'params': {
-                # rtmp download
+                # m3u8 download
                 'skip_download': True,
             },
         },
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
 
-        video_info = json.loads(self._html_search_regex(
+        video_info = self._parse_json(self._html_search_regex(
             r'(?:<ul class="media-list items" id="media-related-items"><li data-video-info|<div id="cbsNewsVideoPlayer" data-video-player-options)=\'({.+?})\'',
-            webpage, 'video JSON info'))
+            webpage, 'video JSON info'), video_id)
 
         item = video_info['item'] if 'item' in video_info else video_info
         title = item.get('articleTitle') or item.get('hed')
         duration = item.get('duration')
         thumbnail = item.get('mediaImage') or item.get('thumbnail')
 
+        subtitles = {}
+        if 'mpxRefId' in video_info:
+            subtitles['en'] = [{
+                'ext': 'ttml',
+                'url': 'http://www.cbsnews.com/videos/captions/%s.adb_xml' % video_info['mpxRefId'],
+            }]
+
         formats = []
         for format_id in ['RtmpMobileLow', 'RtmpMobileHigh', 'Hls', 'RtmpDesktop']:
-            uri = item.get('media' + format_id + 'URI')
-            if not uri:
+            pid = item.get('media' + format_id)
+            if not pid:
                 continue
-            fmt = {
-                'url': uri,
-                'format_id': format_id,
-            }
-            if uri.startswith('rtmp'):
-                fmt.update({
-                    'app': 'ondemand?auth=cbs',
-                    'play_path': 'mp4:' + uri.split('<break>')[-1],
-                    'player_url': 'http://www.cbsnews.com/[[IMPORT]]/vidtech.cbsinteractive.com/player/3_3_0/CBSI_PLAYER_HD.swf',
-                    'page_url': 'http://www.cbsnews.com',
-                    'ext': 'flv',
-                })
-            elif uri.endswith('.m3u8'):
-                fmt['ext'] = 'mp4'
-            formats.append(fmt)
+            release_url = 'http://link.theplatform.com/s/dJ5BDC/%s?format=SMIL&mbr=true' % pid
+            tp_formats, tp_subtitles = self._extract_theplatform_smil(release_url, video_id, 'Downloading %s SMIL data' % pid)
+            formats.extend(tp_formats)
+            subtitles = self._merge_subtitles(subtitles, tp_subtitles)
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
@@ -84,4 +84,43 @@ class CBSNewsIE(InfoExtractor):
             'thumbnail': thumbnail,
             'duration': duration,
             'formats': formats,
+            'subtitles': subtitles,
+        }
+
+
+class CBSNewsLiveVideoIE(InfoExtractor):
+    IE_DESC = 'CBS News Live Videos'
+    _VALID_URL = r'http://(?:www\.)?cbsnews\.com/live/video/(?P<id>[\da-z_-]+)'
+
+    _TEST = {
+        'url': 'http://www.cbsnews.com/live/video/clinton-sanders-prepare-to-face-off-in-nh/',
+        'info_dict': {
+            'id': 'clinton-sanders-prepare-to-face-off-in-nh',
+            'ext': 'flv',
+            'title': 'Clinton, Sanders Prepare To Face Off In NH',
+            'duration': 334,
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        video_info = self._parse_json(self._html_search_regex(
+            r'data-story-obj=\'({.+?})\'', webpage, 'video JSON info'), video_id)['story']
+
+        hdcore_sign = 'hdcore=3.3.1'
+        f4m_formats = self._extract_f4m_formats(video_info['url'] + '&' + hdcore_sign, video_id)
+        if f4m_formats:
+            for entry in f4m_formats:
+                # URLs without the extra param induce an 404 error
+                entry.update({'extra_param_to_segment_url': hdcore_sign})
+
+        return {
+            'id': video_id,
+            'title': video_info['headline'],
+            'thumbnail': video_info.get('thumbnail_url_hd') or video_info.get('thumbnail_url_sd'),
+            'duration': parse_duration(video_info.get('segmentDur')),
+            'formats': f4m_formats,
         }

@@ -53,17 +53,25 @@ class SenateISVPIE(InfoExtractor):
         'url': 'http://www.senate.gov/isvp/?comm=judiciary&type=live&stt=&filename=judiciary031715&auto_play=false&wmode=transparent&poster=http%3A%2F%2Fwww.judiciary.senate.gov%2Fthemes%2Fjudiciary%2Fimages%2Fvideo-poster-flash-fit.png',
         'info_dict': {
             'id': 'judiciary031715',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Integrated Senate Video Player',
             'thumbnail': 're:^https?://.*\.(?:jpg|png)$',
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         'url': 'http://www.senate.gov/isvp/?type=live&comm=commerce&filename=commerce011514.mp4&auto_play=false',
         'info_dict': {
             'id': 'commerce011514',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Integrated Senate Video Player'
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         'url': 'http://www.senate.gov/isvp/?type=arch&comm=intel&filename=intel090613&hc_location=ufi',
         # checksum differs each time
@@ -121,9 +129,9 @@ class SenateISVPIE(InfoExtractor):
                 'url': compat_urlparse.urljoin(domain, filename) + '?v=3.1.0&fp=&r=&g=',
             }]
         else:
-            hdcore_sign = '?hdcore=3.1.0'
+            hdcore_sign = 'hdcore=3.1.0'
             url_params = (domain, video_id, stream_num)
-            f4m_url = '%s/z/%s_1@%s/manifest.f4m' % url_params + hdcore_sign
+            f4m_url = '%s/z/%s_1@%s/manifest.f4m?' % url_params + hdcore_sign
             m3u8_url = '%s/i/%s_1@%s/master.m3u8' % url_params
             for entry in self._extract_f4m_formats(f4m_url, video_id, f4m_id='f4m'):
                 # URLs without the extra param induce an 404 error

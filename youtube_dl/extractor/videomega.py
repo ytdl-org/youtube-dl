@@ -4,10 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
+from ..utils import sanitized_Request
 
 
 class VideoMegaIE(InfoExtractor):
+    _WORKING = False
     _VALID_URL = r'(?:videomega:|https?://(?:www\.)?videomega\.tv/(?:(?:view|iframe|cdn)\.php)?\?ref=)(?P<id>[A-Za-z0-9]+)'
     _TESTS = [{
         'url': 'http://videomega.tv/cdn.php?ref=AOSQBJYKIDDIKYJBQSOA',
@@ -30,7 +31,7 @@ class VideoMegaIE(InfoExtractor):
         video_id = self._match_id(url)
 
         iframe_url = 'http://videomega.tv/cdn.php?ref=%s' % video_id
-        req = compat_urllib_request.Request(iframe_url)
+        req = sanitized_Request(iframe_url)
         req.add_header('Referer', url)
         req.add_header('Cookie', 'noadvtday=0')
         webpage = self._download_webpage(req, video_id)

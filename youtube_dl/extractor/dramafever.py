@@ -3,23 +3,21 @@ from __future__ import unicode_literals
 
 import itertools
 
-from .common import InfoExtractor
+from .amp import AMPIE
 from ..compat import (
     compat_HTTPError,
     compat_urllib_parse,
-    compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
     clean_html,
-    determine_ext,
     int_or_none,
-    parse_iso8601,
+    sanitized_Request,
 )
 
 
-class DramaFeverBaseIE(InfoExtractor):
+class DramaFeverBaseIE(AMPIE):
     _LOGIN_URL = 'https://www.dramafever.com/accounts/login/'
     _NETRC_MACHINE = 'dramafever'
 
@@ -51,7 +49,7 @@ class DramaFeverBaseIE(InfoExtractor):
             'password': password,
         }
 
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)
@@ -69,70 +67,55 @@ class DramaFeverBaseIE(InfoExtractor):
 class DramaFeverIE(DramaFeverBaseIE):
     IE_NAME = 'dramafever'
     _VALID_URL = r'https?://(?:www\.)?dramafever\.com/drama/(?P<id>[0-9]+/[0-9]+)(?:/|$)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.dramafever.com/drama/4512/1/Cooking_with_Shin/',
         'info_dict': {
             'id': '4512.1',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Cooking with Shin 4512.1',
             'description': 'md5:a8eec7942e1664a6896fcd5e1287bfd0',
+            'episode': 'Episode 1',
+            'episode_number': 1,
             'thumbnail': 're:^https?://.*\.jpg',
             'timestamp': 1404336058,
             'upload_date': '20140702',
             'duration': 343,
-        }
-    }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://www.dramafever.com/drama/4826/4/Mnet_Asian_Music_Awards_2015/?ap=1',
+        'info_dict': {
+            'id': '4826.4',
+            'ext': 'mp4',
+            'title': 'Mnet Asian Music Awards 2015 4826.4',
+            'description': 'md5:3ff2ee8fedaef86e076791c909cf2e91',
+            'episode': 'Mnet Asian Music Awards 2015 - Part 3',
+            'episode_number': 4,
+            'thumbnail': 're:^https?://.*\.jpg',
+            'timestamp': 1450213200,
+            'upload_date': '20151215',
+            'duration': 5602,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url).replace('/', '.')
 
         try:
-            feed = self._download_json(
-                'http://www.dramafever.com/amp/episode/feed.json?guid=%s' % video_id,
-                video_id, 'Downloading episode JSON')['channel']['item']
+            info = self._extract_feed_info(
+                'http://www.dramafever.com/amp/episode/feed.json?guid=%s' % video_id)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError):
                 raise ExtractorError(
                     'Currently unavailable in your country.', expected=True)
             raise
-
-        media_group = feed.get('media-group', {})
-
-        formats = []
-        for media_content in media_group['media-content']:
-            src = media_content.get('@attributes', {}).get('url')
-            if not src:
-                continue
-            ext = determine_ext(src)
-            if ext == 'f4m':
-                formats.extend(self._extract_f4m_formats(
-                    src, video_id, f4m_id='hds'))
-            elif ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    src, video_id, 'mp4', m3u8_id='hls'))
-            else:
-                formats.append({
-                    'url': src,
-                })
-        self._sort_formats(formats)
-
-        title = media_group.get('media-title')
-        description = media_group.get('media-description')
-        duration = int_or_none(media_group['media-content'][0].get('@attributes', {}).get('duration'))
-        thumbnail = self._proto_relative_url(
-            media_group.get('media-thumbnail', {}).get('@attributes', {}).get('url'))
-        timestamp = parse_iso8601(feed.get('pubDate'), ' ')
-
-        subtitles = {}
-        for media_subtitle in media_group.get('media-subTitle', []):
-            lang = media_subtitle.get('@attributes', {}).get('lang')
-            href = media_subtitle.get('@attributes', {}).get('href')
-            if not lang or not href:
-                continue
-            subtitles[lang] = [{
-                'ext': 'ttml',
-                'url': href,
-            }]
 
         series_id, episode_number = video_id.split('.')
         episode_info = self._download_json(
@@ -143,24 +126,24 @@ class DramaFeverIE(DramaFeverBaseIE):
             video_id, 'Downloading episode info JSON', fatal=False)
         if episode_info:
             value = episode_info.get('value')
-            if value:
-                subfile = value[0].get('subfile') or value[0].get('new_subfile')
-                if subfile and subfile != 'http://www.dramafever.com/st/':
-                    subtitles.setdefault('English', []).append({
-                        'ext': 'srt',
-                        'url': subfile,
-                    })
+            if isinstance(value, list):
+                for v in value:
+                    if v.get('type') == 'Episode':
+                        subfile = v.get('subfile') or v.get('new_subfile')
+                        if subfile and subfile != 'http://www.dramafever.com/st/':
+                            info.setdefault('subtitles', {}).setdefault('English', []).append({
+                                'ext': 'srt',
+                                'url': subfile,
+                            })
+                        episode_number = int_or_none(v.get('number'))
+                        episode_fallback = 'Episode'
+                        if episode_number:
+                            episode_fallback += ' %d' % episode_number
+                        info['episode'] = v.get('title') or episode_fallback
+                        info['episode_number'] = episode_number
+                        break
 
-        return {
-            'id': video_id,
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'timestamp': timestamp,
-            'duration': duration,
-            'formats': formats,
-            'subtitles': subtitles,
-        }
+        return info
 
 
 class DramaFeverSeriesIE(DramaFeverBaseIE):

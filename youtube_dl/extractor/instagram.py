@@ -10,8 +10,8 @@ from ..utils import (
 
 
 class InstagramIE(InfoExtractor):
-    _VALID_URL = r'https://instagram\.com/p/(?P<id>[\da-zA-Z]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?instagram\.com/p/(?P<id>[^/?#&]+)'
+    _TESTS = [{
         'url': 'https://instagram.com/p/aye83DjauH/?foo=bar#abc',
         'md5': '0d2da106a9d2631273e192b372806516',
         'info_dict': {
@@ -21,7 +21,22 @@ class InstagramIE(InfoExtractor):
             'title': 'Video by naomipq',
             'description': 'md5:1f17f0ab29bd6fe2bfad705f58de3cb8',
         }
-    }
+    }, {
+        # missing description
+        'url': 'https://www.instagram.com/p/BA-pQFBG8HZ/?taken-by=britneyspears',
+        'info_dict': {
+            'id': 'BA-pQFBG8HZ',
+            'ext': 'mp4',
+            'uploader_id': 'britneyspears',
+            'title': 'Video by britneyspears',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://instagram.com/p/-Cmh1cukG2/',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -29,8 +44,8 @@ class InstagramIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         uploader_id = self._search_regex(r'"owner":{"username":"(.+?)"',
                                          webpage, 'uploader id', fatal=False)
-        desc = self._search_regex(r'"caption":"(.*?)"', webpage, 'description',
-                                  fatal=False)
+        desc = self._search_regex(
+            r'"caption":"(.+?)"', webpage, 'description', default=None)
 
         return {
             'id': video_id,
@@ -44,7 +59,7 @@ class InstagramIE(InfoExtractor):
 
 
 class InstagramUserIE(InfoExtractor):
-    _VALID_URL = r'https://instagram\.com/(?P<username>[^/]{2,})/?(?:$|[?#])'
+    _VALID_URL = r'https?://(?:www\.)?instagram\.com/(?P<username>[^/]{2,})/?(?:$|[?#])'
     IE_DESC = 'Instagram user profile'
     IE_NAME = 'instagram:user'
     _TEST = {

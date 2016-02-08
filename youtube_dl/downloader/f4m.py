@@ -5,15 +5,17 @@ import io
 import itertools
 import os
 import time
-import xml.etree.ElementTree as etree
 
 from .fragment import FragmentFD
 from ..compat import (
+    compat_etree_fromstring,
     compat_urlparse,
     compat_urllib_error,
+    compat_urllib_parse_urlparse,
 )
 from ..utils import (
     encodeFilename,
+    fix_xml_ampersands,
     sanitize_open,
     struct_pack,
     struct_unpack,
@@ -271,23 +273,34 @@ class F4mFD(FragmentFD):
         return fragments_list
 
     def _parse_bootstrap_node(self, node, base_url):
-        if node.text is None:
+        # Sometimes non empty inline bootstrap info can be specified along
+        # with bootstrap url attribute (e.g. dummy inline bootstrap info
+        # contains whitespace characters in [1]). We will prefer bootstrap
+        # url over inline bootstrap info when present.
+        # 1. http://live-1-1.rutube.ru/stream/1024/HDS/SD/C2NKsS85HQNckgn5HdEmOQ/1454167650/S-s604419906/move/four/dirs/upper/1024-576p.f4m
+        bootstrap_url = node.get('url')
+        if bootstrap_url:
             bootstrap_url = compat_urlparse.urljoin(
-                base_url, node.attrib['url'])
+                base_url, bootstrap_url)
             boot_info = self._get_bootstrap_from_url(bootstrap_url)
         else:
             bootstrap_url = None
             bootstrap = base64.b64decode(node.text.encode('ascii'))
             boot_info = read_bootstrap_info(bootstrap)
-        return (boot_info, bootstrap_url)
+        return boot_info, bootstrap_url
 
     def real_download(self, filename, info_dict):
         man_url = info_dict['url']
         requested_bitrate = info_dict.get('tbr')
         self.to_screen('[%s] Downloading f4m manifest' % self.FD_NAME)
-        manifest = self.ydl.urlopen(man_url).read()
+        urlh = self.ydl.urlopen(man_url)
+        man_url = urlh.geturl()
+        # Some manifests may be malformed, e.g. prosiebensat1 generated manifests
+        # (see https://github.com/rg3/youtube-dl/issues/6215#issuecomment-121704244
+        # and https://github.com/rg3/youtube-dl/issues/7823)
+        manifest = fix_xml_ampersands(urlh.read().decode('utf-8', 'ignore')).strip()
 
-        doc = etree.fromstring(manifest)
+        doc = compat_etree_fromstring(manifest)
         formats = [(int(f.attrib.get('bitrate', -1)), f)
                    for f in self._get_unencrypted_media(doc)]
         if requested_bitrate is None:
@@ -309,7 +322,8 @@ class F4mFD(FragmentFD):
             metadata = None
 
         fragments_list = build_fragments_list(boot_info)
-        if self.params.get('test', False):
+        test = self.params.get('test', False)
+        if test:
             # We only download the first fragment
             fragments_list = fragments_list[:1]
         total_frags = len(fragments_list)
@@ -319,6 +333,7 @@ class F4mFD(FragmentFD):
         ctx = {
             'filename': filename,
             'total_frags': total_frags,
+            'live': live,
         }
 
         self._prepare_frag_download(ctx)
@@ -329,20 +344,25 @@ class F4mFD(FragmentFD):
         if not live:
             write_metadata_tag(dest_stream, metadata)
 
+        base_url_parsed = compat_urllib_parse_urlparse(base_url)
+
         self._start_frag_download(ctx)
 
         frags_filenames = []
         while fragments_list:
             seg_i, frag_i = fragments_list.pop(0)
             name = 'Seg%d-Frag%d' % (seg_i, frag_i)
-            url = base_url + name
+            query = []
+            if base_url_parsed.query:
+                query.append(base_url_parsed.query)
             if akamai_pv:
-                url += '?' + akamai_pv.strip(';')
+                query.append(akamai_pv.strip(';'))
             if info_dict.get('extra_param_to_segment_url'):
-                url += info_dict.get('extra_param_to_segment_url')
+                query.append(info_dict['extra_param_to_segment_url'])
+            url_parsed = base_url_parsed._replace(path=base_url_parsed.path + name, query='&'.join(query))
             frag_filename = '%s-%s' % (ctx['tmpfilename'], name)
             try:
-                success = ctx['dl'].download(frag_filename, {'url': url})
+                success = ctx['dl'].download(frag_filename, {'url': url_parsed.geturl()})
                 if not success:
                     return False
                 (down, frag_sanitized) = sanitize_open(frag_filename, 'rb')
@@ -368,7 +388,7 @@ class F4mFD(FragmentFD):
                 else:
                     raise
 
-            if not fragments_list and live and bootstrap_url:
+            if not fragments_list and not test and live and bootstrap_url:
                 fragments_list = self._update_live_fragments(bootstrap_url, frag_i)
                 total_frags += len(fragments_list)
                 if fragments_list and (fragments_list[0][1] > frag_i + 1):

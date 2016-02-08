@@ -4,8 +4,8 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urlparse,
+from ..utils import (
+    qualities,
 )
 
 
@@ -30,24 +30,33 @@ class ImdbIE(InfoExtractor):
         descr = self._html_search_regex(
             r'(?s)<span itemprop="description">(.*?)</span>',
             webpage, 'description', fatal=False)
-        available_formats = re.findall(
-            r'case \'(?P<f_id>.*?)\' :$\s+url = \'(?P<path>.*?)\'', webpage,
-            flags=re.MULTILINE)
+        player_url = 'http://www.imdb.com/video/imdb/vi%s/imdb/single' % video_id
+        player_page = self._download_webpage(
+            player_url, video_id, 'Downloading player page')
+        # the player page contains the info for the default format, we have to
+        # fetch other pages for the rest of the formats
+        extra_formats = re.findall(r'href="(?P<url>%s.*?)".*?>(?P<name>.*?)<' % re.escape(player_url), player_page)
+        format_pages = [
+            self._download_webpage(
+                f_url, video_id, 'Downloading info for %s format' % f_name)
+            for f_url, f_name in extra_formats]
+        format_pages.append(player_page)
+
+        quality = qualities(['SD', '480p', '720p'])
         formats = []
-        for f_id, f_path in available_formats:
-            f_path = f_path.strip()
-            format_page = self._download_webpage(
-                compat_urlparse.urljoin(url, f_path),
-                'Downloading info for %s format' % f_id)
+        for format_page in format_pages:
             json_data = self._search_regex(
                 r'<script[^>]+class="imdb-player-data"[^>]*?>(.*?)</script>',
                 format_page, 'json data', flags=re.DOTALL)
             info = json.loads(json_data)
             format_info = info['videoPlayerObject']['video']
+            f_id = format_info['ffname']
             formats.append({
                 'format_id': f_id,
                 'url': format_info['videoInfoList'][0]['videoUrl'],
+                'quality': quality(f_id),
             })
+        self._sort_formats(formats)
 
         return {
             'id': video_id,

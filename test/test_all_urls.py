@@ -56,7 +56,7 @@ class TestAllURLsMatching(unittest.TestCase):
         assertChannel('https://www.youtube.com/channel/HCtnHdj3df7iM/videos')
 
     def test_youtube_user_matching(self):
-        self.assertMatch('www.youtube.com/NASAgovVideo/videos', ['youtube:user'])
+        self.assertMatch('http://www.youtube.com/NASAgovVideo/videos', ['youtube:user'])
 
     def test_youtube_feeds(self):
         self.assertMatch('https://www.youtube.com/feed/watch_later', ['youtube:watchlater'])
@@ -121,8 +121,8 @@ class TestAllURLsMatching(unittest.TestCase):
 
     def test_pbs(self):
         # https://github.com/rg3/youtube-dl/issues/2350
-        self.assertMatch('http://video.pbs.org/viralplayer/2365173446/', ['PBS'])
-        self.assertMatch('http://video.pbs.org/widget/partnerplayer/980042464/', ['PBS'])
+        self.assertMatch('http://video.pbs.org/viralplayer/2365173446/', ['pbs'])
+        self.assertMatch('http://video.pbs.org/widget/partnerplayer/980042464/', ['pbs'])
 
     def test_yahoo_https(self):
         # https://github.com/rg3/youtube-dl/issues/2701

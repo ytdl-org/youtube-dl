@@ -4,7 +4,7 @@ from .mtv import MTVIE
 
 class CMTIE(MTVIE):
     IE_NAME = 'cmt.com'
-    _VALID_URL = r'https?://www\.cmt\.com/videos/.+?/(?P<videoid>[^/]+)\.jhtml'
+    _VALID_URL = r'https?://www\.cmt\.com/(?:videos|shows)/(?:[^/]+/)*(?P<videoid>\d+)'
     _FEED_URL = 'http://www.cmt.com/sitewide/apps/player/embed/rss/'
 
     _TESTS = [{
@@ -16,4 +16,7 @@ class CMTIE(MTVIE):
             'title': 'Garth Brooks - "The Call (featuring Trisha Yearwood)"',
             'description': 'Blame It All On My Roots',
         },
+    }, {
+        'url': 'http://www.cmt.com/shows/party-down-south/party-down-south-ep-407-gone-girl/1738172/playlist/#id=1738172',
+        'only_matching': True,
     }]

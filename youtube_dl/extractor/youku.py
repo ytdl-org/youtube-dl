@@ -2,14 +2,18 @@
 from __future__ import unicode_literals
 
 import base64
+import random
+import string
+import time
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
-
 from ..compat import (
     compat_urllib_parse,
     compat_ord,
-    compat_urllib_request,
+)
+from ..utils import (
+    ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -24,8 +28,8 @@ class YoukuIE(InfoExtractor):
     '''
 
     _TESTS = [{
+        # MD5 is unstable
         'url': 'http://v.youku.com/v_show/id_XMTc1ODE5Njcy.html',
-        'md5': '5f3af4192eabacc4501508d54a8cabd7',
         'info_dict': {
             'id': 'XMTc1ODE5Njcy_part1',
             'title': '★Smile﹗♡ Git Fresh -Booty Music舞蹈.',
@@ -41,6 +45,7 @@ class YoukuIE(InfoExtractor):
             'title': '武媚娘传奇 85',
         },
         'playlist_count': 11,
+        'skip': 'Available in China only',
     }, {
         'url': 'http://v.youku.com/v_show/id_XMTI1OTczNDM5Mg==.html',
         'info_dict': {
@@ -48,7 +53,6 @@ class YoukuIE(InfoExtractor):
             'title': '花千骨 04',
         },
         'playlist_count': 13,
-        'skip': 'Available in China only',
     }, {
         'url': 'http://v.youku.com/v_show/id_XNjA1NzA2Njgw.html',
         'note': 'Video protected with password',
@@ -62,7 +66,7 @@ class YoukuIE(InfoExtractor):
         },
     }]
 
-    def construct_video_urls(self, data1, data2):
+    def construct_video_urls(self, data):
         # get sid, token
         def yk_t(s1, s2):
             ls = list(range(256))
@@ -80,34 +84,24 @@ class YoukuIE(InfoExtractor):
             return bytes(s)
 
         sid, token = yk_t(
-            b'becaf9be', base64.b64decode(data2['ep'].encode('ascii'))
+            b'becaf9be', base64.b64decode(data['security']['encrypt_string'].encode('ascii'))
         ).decode('ascii').split('_')
 
         # get oip
-        oip = data2['ip']
-
-        # get fileid
-        string_ls = list(
-            'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\:._-1234567890')
-        shuffled_string_ls = []
-        seed = data1['seed']
-        N = len(string_ls)
-        for ii in range(N):
-            seed = (seed * 0xd3 + 0x754f) % 0x10000
-            idx = seed * len(string_ls) // 0x10000
-            shuffled_string_ls.append(string_ls[idx])
-            del string_ls[idx]
+        oip = data['security']['ip']
 
         fileid_dict = {}
-        for format in data1['streamtypes']:
-            streamfileid = [
-                int(i) for i in data1['streamfileids'][format].strip('*').split('*')]
-            fileid = ''.join(
-                [shuffled_string_ls[i] for i in streamfileid])
-            fileid_dict[format] = fileid[:8] + '%s' + fileid[10:]
+        for stream in data['stream']:
+            format = stream.get('stream_type')
+            fileid = stream['stream_fileid']
+            fileid_dict[format] = fileid
 
         def get_fileid(format, n):
-            fileid = fileid_dict[format] % hex(int(n))[2:].upper().zfill(2)
+            number = hex(int(str(n), 10))[2:].upper()
+            if len(number) == 1:
+                number = '0' + number
+            streamfileids = fileid_dict[format]
+            fileid = streamfileids[0:8] + number + streamfileids[10:]
             return fileid
 
         # get ep
@@ -122,15 +116,15 @@ class YoukuIE(InfoExtractor):
 
         # generate video_urls
         video_urls_dict = {}
-        for format in data1['streamtypes']:
+        for stream in data['stream']:
+            format = stream.get('stream_type')
             video_urls = []
-            for dt in data1['segs'][format]:
-                n = str(int(dt['no']))
+            for dt in stream['segs']:
+                n = str(stream['segs'].index(dt))
                 param = {
-                    'K': dt['k'],
+                    'K': dt['key'],
                     'hd': self.get_hd(format),
                     'myp': 0,
-                    'ts': dt['seconds'],
                     'ypp': 0,
                     'ctype': 12,
                     'ev': 1,
@@ -141,7 +135,7 @@ class YoukuIE(InfoExtractor):
                 video_url = \
                     'http://k.youku.com/player/getFlvPath/' + \
                     'sid/' + sid + \
-                    '_' + str(int(n) + 1).zfill(2) + \
+                    '_00' + \
                     '/st/' + self.parse_ext_l(format) + \
                     '/fileid/' + get_fileid(format, n) + '?' + \
                     compat_urllib_parse.urlencode(param)
@@ -150,25 +144,38 @@ class YoukuIE(InfoExtractor):
 
         return video_urls_dict
 
+    @staticmethod
+    def get_ysuid():
+        return '%d%s' % (int(time.time()), ''.join([
+            random.choice(string.ascii_letters) for i in range(3)]))
+
     def get_hd(self, fm):
         hd_id_dict = {
+            '3gp': '0',
+            '3gphd': '1',
             'flv': '0',
+            'flvhd': '0',
             'mp4': '1',
+            'mp4hd': '1',
+            'mp4hd2': '1',
+            'mp4hd3': '1',
             'hd2': '2',
             'hd3': '3',
-            '3gp': '0',
-            '3gphd': '1'
         }
         return hd_id_dict[fm]
 
     def parse_ext_l(self, fm):
         ext_dict = {
+            '3gp': 'flv',
+            '3gphd': 'mp4',
             'flv': 'flv',
+            'flvhd': 'flv',
             'mp4': 'mp4',
+            'mp4hd': 'mp4',
+            'mp4hd2': 'flv',
+            'mp4hd3': 'flv',
             'hd2': 'flv',
             'hd3': 'flv',
-            '3gp': 'flv',
-            '3gphd': 'mp4'
         }
         return ext_dict[fm]
 
@@ -177,55 +184,62 @@ class YoukuIE(InfoExtractor):
             '3gp': 'h6',
             '3gphd': 'h5',
             'flv': 'h4',
+            'flvhd': 'h4',
             'mp4': 'h3',
+            'mp4hd': 'h3',
+            'mp4hd2': 'h4',
+            'mp4hd3': 'h4',
             'hd2': 'h2',
-            'hd3': 'h1'
+            'hd3': 'h1',
         }
         return _dict[fm]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        self._set_cookie('youku.com', '__ysuid', self.get_ysuid())
+
         def retrieve_data(req_url, note):
-            req = compat_urllib_request.Request(req_url)
+            headers = {
+                'Referer': req_url,
+            }
+            self._set_cookie('youku.com', 'xreferrer', 'http://www.youku.com')
+            req = sanitized_Request(req_url, headers=headers)
 
             cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
             if cn_verification_proxy:
                 req.add_header('Ytdl-request-proxy', cn_verification_proxy)
 
             raw_data = self._download_json(req, video_id, note=note)
-            return raw_data['data'][0]
+
+            return raw_data['data']
 
         video_password = self._downloader.params.get('videopassword', None)
 
         # request basic data
-        basic_data_url = 'http://v.youku.com/player/getPlayList/VideoIDS/%s' % video_id
+        basic_data_url = "http://play.youku.com/play/get.json?vid=%s&ct=12" % video_id
         if video_password:
-            basic_data_url += '?password=%s' % video_password
+            basic_data_url += '&pwd=%s' % video_password
 
-        data1 = retrieve_data(
-            basic_data_url,
-            'Downloading JSON metadata 1')
-        data2 = retrieve_data(
-            'http://v.youku.com/player/getPlayList/VideoIDS/%s/Pf/4/ctype/12/ev/1' % video_id,
-            'Downloading JSON metadata 2')
+        data = retrieve_data(basic_data_url, 'Downloading JSON metadata')
 
-        error_code = data1.get('error_code')
-        if error_code:
-            error = data1.get('error')
-            if error is not None and '因版权原因无法观看此视频' in error:
+        error = data.get('error')
+        if error:
+            error_note = error.get('note')
+            if error_note is not None and '因版权原因无法观看此视频' in error_note:
                 raise ExtractorError(
                     'Youku said: Sorry, this video is available in China only', expected=True)
             else:
-                msg = 'Youku server reported error %i' % error_code
-                if error is not None:
-                    msg += ': ' + error
+                msg = 'Youku server reported error %i' % error.get('code')
+                if error_note is not None:
+                    msg += ': ' + error_note
                 raise ExtractorError(msg)
 
-        title = data1['title']
+        # get video title
+        title = data['video']['title']
 
         # generate video_urls_dict
-        video_urls_dict = self.construct_video_urls(data1, data2)
+        video_urls_dict = self.construct_video_urls(data)
 
         # construct info
         entries = [{
@@ -234,10 +248,11 @@ class YoukuIE(InfoExtractor):
             'formats': [],
             # some formats are not available for all parts, we have to detect
             # which one has all
-        } for i in range(max(len(v) for v in data1['segs'].values()))]
-        for fm in data1['streamtypes']:
+        } for i in range(max(len(v.get('segs')) for v in data['stream']))]
+        for stream in data['stream']:
+            fm = stream.get('stream_type')
             video_urls = video_urls_dict[fm]
-            for video_url, seg, entry in zip(video_urls, data1['segs'][fm], entries):
+            for video_url, seg, entry in zip(video_urls, stream['segs'], entries):
                 entry['formats'].append({
                     'url': video_url,
                     'format_id': self.get_format_name(fm),

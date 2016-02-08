@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import int_or_none
 
@@ -23,8 +21,7 @@ class FranceInterIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
 
@@ -33,7 +30,7 @@ class FranceInterIE(InfoExtractor):
         video_url = 'http://www.franceinter.fr/' + path
 
         title = self._html_search_regex(
-            r'<span class="title">(.+?)</span>', webpage, 'title')
+            r'<span class="title-diffusion">(.+?)</span>', webpage, 'title')
         description = self._html_search_regex(
             r'<span class="description">(.*?)</span>',
             webpage, 'description', fatal=False)

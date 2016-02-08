@@ -7,14 +7,14 @@ import hmac
 import hashlib
 import itertools
 
+from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
     parse_age_limit,
     parse_iso8601,
+    sanitized_Request,
 )
-from ..compat import compat_urllib_request
-from .common import InfoExtractor
 
 
 class VikiBaseIE(InfoExtractor):
@@ -30,6 +30,12 @@ class VikiBaseIE(InfoExtractor):
 
     _token = None
 
+    _ERRORS = {
+        'geo': 'Sorry, this content is not available in your region.',
+        'upcoming': 'Sorry, this content is not yet available.',
+        # 'paywall': 'paywall',
+    }
+
     def _prepare_call(self, path, timestamp=None, post_data=None):
         path += '?' if '?' not in path else '&'
         if not timestamp:
@@ -43,7 +49,7 @@ class VikiBaseIE(InfoExtractor):
             hashlib.sha1
         ).hexdigest()
         url = self._API_URL_TEMPLATE % (query, sig)
-        return compat_urllib_request.Request(
+        return sanitized_Request(
             url, json.dumps(post_data).encode('utf-8')) if post_data else url
 
     def _call_api(self, path, video_id, note, timestamp=None, post_data=None):
@@ -66,6 +72,12 @@ class VikiBaseIE(InfoExtractor):
         raise ExtractorError(
             '%s returned error: %s' % (self.IE_NAME, error),
             expected=True)
+
+    def _check_errors(self, data):
+        for reason, status in data.get('blocking', {}).items():
+            if status and reason in self._ERRORS:
+                raise ExtractorError('%s said: %s' % (
+                    self.IE_NAME, self._ERRORS[reason]), expected=True)
 
     def _real_initialize(self):
         self._login()
@@ -193,6 +205,7 @@ class VikiIE(VikiBaseIE):
             'timestamp': 1321985454,
             'description': 'md5:44b1e46619df3a072294645c770cef36',
             'title': 'Love In Magic',
+            'age_limit': 13,
         },
     }]
 
@@ -201,6 +214,8 @@ class VikiIE(VikiBaseIE):
 
         video = self._call_api(
             'videos/%s.json' % video_id, video_id, 'Downloading video JSON')
+
+        self._check_errors(video)
 
         title = self.dict_selection(video.get('titles', {}), 'en')
         if not title:
@@ -262,8 +277,9 @@ class VikiIE(VikiBaseIE):
                 r'^(\d+)[pP]$', format_id, 'height', default=None))
             for protocol, format_dict in stream_dict.items():
                 if format_id == 'm3u8':
-                    formats = self._extract_m3u8_formats(
-                        format_dict['url'], video_id, 'mp4', m3u8_id='m3u8-%s' % protocol)
+                    formats.extend(self._extract_m3u8_formats(
+                        format_dict['url'], video_id, 'mp4', 'm3u8_native',
+                        m3u8_id='m3u8-%s' % protocol, fatal=False))
                 else:
                     formats.append({
                         'url': format_dict['url'],
@@ -314,6 +330,8 @@ class VikiChannelIE(VikiBaseIE):
         channel = self._call_api(
             'containers/%s.json' % channel_id, channel_id,
             'Downloading channel JSON')
+
+        self._check_errors(channel)
 
         title = self.dict_selection(channel['titles'], 'en')
 

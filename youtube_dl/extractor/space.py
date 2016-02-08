@@ -3,14 +3,14 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .brightcove import BrightcoveIE
+from .brightcove import BrightcoveLegacyIE
 from ..utils import RegexNotFoundError, ExtractorError
 
 
 class SpaceIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:www|m)\.)?space\.com/\d+-(?P<title>[^/\.\?]*?)-video\.html'
     _TEST = {
-        'add_ie': ['Brightcove'],
+        'add_ie': ['BrightcoveLegacy'],
         'url': 'http://www.space.com/23373-huge-martian-landforms-detail-revealed-by-european-probe-video.html',
         'info_dict': {
             'id': '2780937028001',
@@ -31,8 +31,8 @@ class SpaceIE(InfoExtractor):
             brightcove_url = self._og_search_video_url(webpage)
         except RegexNotFoundError:
             # Other videos works fine with the info from the object
-            brightcove_url = BrightcoveIE._extract_brightcove_url(webpage)
+            brightcove_url = BrightcoveLegacyIE._extract_brightcove_url(webpage)
         if brightcove_url is None:
             raise ExtractorError(
                 'The webpage does not contain a video', expected=True)
-        return self.url_result(brightcove_url, BrightcoveIE.ie_key())
+        return self.url_result(brightcove_url, BrightcoveLegacyIE.ie_key())
