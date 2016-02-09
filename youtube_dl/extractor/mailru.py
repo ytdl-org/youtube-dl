@@ -4,6 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import (
+    int_or_none,
+    remove_end,
+)
 
 
 class MailRuIE(InfoExtractor):
@@ -86,29 +90,36 @@ class MailRuIE(InfoExtractor):
                 'http://api.video.mail.ru/videos/%s.json?new=1' % video_id,
                 video_id, 'Downloading video JSON')
 
-        author = video_data['author']
-        uploader = author['name']
-        uploader_id = author.get('id') or author.get('email')
-        view_count = video_data.get('views_count')
+        formats = []
+        for f in video_data['videos']:
+            video_url = f.get('url')
+            if not video_url:
+                continue
+            format_id = f.get('key')
+            height = int_or_none(self._search_regex(
+                r'^(\d+)[pP]$', format_id, 'height', default=None)) if format_id else None
+            formats.append({
+                'url': video_url,
+                'format_id': format_id,
+                'height': height,
+            })
+        self._sort_formats(formats)
 
         meta_data = video_data['meta']
-        content_id = '%s_%s' % (
-            meta_data.get('accId', ''), meta_data['itemId'])
-        title = meta_data['title']
-        if title.endswith('.mp4'):
-            title = title[:-4]
-        thumbnail = meta_data['poster']
-        duration = meta_data['duration']
-        timestamp = meta_data['timestamp']
+        title = remove_end(meta_data['title'], '.mp4')
 
-        formats = [
-            {
-                'url': video['url'],
-                'format_id': video['key'],
-                'height': int(video['key'].rstrip('p'))
-            } for video in video_data['videos']
-        ]
-        self._sort_formats(formats)
+        author = video_data.get('author')
+        uploader = author.get('name')
+        uploader_id = author.get('id') or author.get('email')
+        view_count = int_or_none(video_data.get('viewsCount') or video_data.get('views_count'))
+
+        acc_id = meta_data.get('accId')
+        item_id = meta_data.get('itemId')
+        content_id = '%s_%s' % (acc_id, item_id) if acc_id and item_id else video_id
+
+        thumbnail = meta_data.get('poster')
+        duration = int_or_none(meta_data.get('duration'))
+        timestamp = int_or_none(meta_data.get('timestamp'))
 
         return {
             'id': content_id,
