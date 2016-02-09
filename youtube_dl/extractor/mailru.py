@@ -42,6 +42,22 @@ class MailRuIE(InfoExtractor):
             },
             'skip': 'Not accessible from Travis CI server',
         },
+        {
+            # only available via metaUrl API
+            'url': 'http://my.mail.ru/mail/720pizle/video/_myvideo/502.html',
+            'md5': '3b26d2491c6949d031a32b96bd97c096',
+            'info_dict': {
+                'id': '56664382_502',
+                'ext': 'mp4',
+                'title': ':8336',
+                'timestamp': 1449094163,
+                'upload_date': '20151202',
+                'uploader': '720pizle@mail.ru',
+                'uploader_id': '720pizle@mail.ru',
+                'duration': 6001,
+            },
+            'skip': 'Not accessible from Travis CI server',
+        }
     ]
 
     def _real_extract(self, url):
@@ -51,8 +67,24 @@ class MailRuIE(InfoExtractor):
         if not video_id:
             video_id = mobj.group('idv2prefix') + mobj.group('idv2suffix')
 
-        video_data = self._download_json(
-            'http://api.video.mail.ru/videos/%s.json?new=1' % video_id, video_id, 'Downloading video JSON')
+        webpage = self._download_webpage(url, video_id)
+
+        video_data = None
+
+        page_config = self._parse_json(self._search_regex(
+            r'(?s)<script[^>]+class="sp-video__page-config"[^>]*>(.+?)</script>',
+            webpage, 'page config', default='{}'), video_id, fatal=False)
+        if page_config:
+            meta_url = page_config.get('metaUrl') or page_config.get('video', {}).get('metaUrl')
+            if meta_url:
+                video_data = self._download_json(
+                    meta_url, video_id, 'Downloading video meta JSON', fatal=False)
+
+        # Fallback old approach
+        if not video_data:
+            video_data = self._download_json(
+                'http://api.video.mail.ru/videos/%s.json?new=1' % video_id,
+                video_id, 'Downloading video JSON')
 
         author = video_data['author']
         uploader = author['name']
