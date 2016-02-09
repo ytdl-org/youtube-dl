@@ -1186,6 +1186,7 @@ class InfoExtractor(object):
         http_count = 0
         m3u8_count = 0
 
+        src_urls = []
         videos = smil.findall(self._xpath_ns('.//video', namespace))
         for video in videos:
             src = video.get('src')
@@ -1222,6 +1223,9 @@ class InfoExtractor(object):
                 continue
 
             src_url = src if src.startswith('http') else compat_urlparse.urljoin(base, src)
+            if src_url in src_urls:
+                continue
+            src_urls.append(src_url)
 
             if proto == 'm3u8' or src_ext == 'm3u8':
                 m3u8_formats = self._extract_m3u8_formats(
@@ -1267,11 +1271,13 @@ class InfoExtractor(object):
         return formats
 
     def _parse_smil_subtitles(self, smil, namespace=None, subtitles_lang='en'):
+        urls = []
         subtitles = {}
         for num, textstream in enumerate(smil.findall(self._xpath_ns('.//textstream', namespace))):
             src = textstream.get('src')
-            if not src:
+            if not src or src in urls:
                 continue
+            urls.append(src)
             ext = textstream.get('ext') or determine_ext(src)
             if not ext:
                 type_ = textstream.get('type')
