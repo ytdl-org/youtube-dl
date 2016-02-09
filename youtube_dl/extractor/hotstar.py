@@ -10,8 +10,8 @@ from ..utils import (
 
 
 class HotStarIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/.*?[/-](?P<id>\d{10})'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/.*?(?P<id>\d{10})|[/-](?P<iq>\d{10})'
+    _TESTS = [{
         'url': 'http://www.hotstar.com/on-air-with-aib--english-1000076273',
         'info_dict': {
             'id': '1000076273',
@@ -26,7 +26,22 @@ class HotStarIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         }
-    }
+    },{
+        'url': 'http://www.hotstar.com/1000000515',
+        'info_dict': {
+            'id': '1000000515',
+            'ext': 'mp4',
+            'title': 'Indradev incites Kartikay',
+            'description': 'md5:1bf7a93bb918c5c3069ce58621337a53',
+            'timestamp': 1357569000,
+            'upload_date': '20130107',
+            'duration': 1265,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
+        }]
 
     _GET_CONTENT_TEMPLATE = 'http://account.hotstar.com/AVS/besc?action=GetAggregatedContentDetails&channel=PCTV&contentId=%s'
     _GET_CDN_TEMPLATE = 'http://getcdn.hotstar.com/AVS/besc?action=GetCDN&asJson=Y&channel=%s&id=%s&type=%s'
