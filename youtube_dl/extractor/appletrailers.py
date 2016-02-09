@@ -138,7 +138,7 @@ class AppleTrailersIE(InfoExtractor):
 
             except ExtractorError as e:
 
-                print('Json download failed, falling back to info from XML')
+                print('Extraction of data from json failed, falling back to info from XML')
                    
                 def construct_direct_download_url():
                     split_character = '_'
