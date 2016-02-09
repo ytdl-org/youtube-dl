@@ -9,6 +9,7 @@ class FOXIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?fox\.com/watch/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.fox.com/watch/255180355939/7684182528',
+        'md5': 'ebd296fcc41dd4b19f8115d8461a3165',
         'info_dict': {
             'id': '255180355939',
             'ext': 'mp4',
@@ -17,10 +18,6 @@ class FOXIE(InfoExtractor):
             'duration': 129,
         },
         'add_ie': ['ThePlatform'],
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
     }
 
     def _real_extract(self, url):
