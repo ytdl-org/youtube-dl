@@ -1440,6 +1440,8 @@ class InfoExtractor(object):
                             base_url = mpd_base_url + base_url
                         representation_id = representation_attrib.get('id')
                         lang = representation_attrib.get('lang')
+                        url_el = representation.find(_add_ns('BaseURL'))
+                        filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength') if url_el is not None else None)
                         f = {
                             'format_id': mpd_id or representation_id,
                             'url': base_url,
@@ -1452,6 +1454,7 @@ class InfoExtractor(object):
                             'acodec': 'none' if content_type == 'video' else representation_attrib.get('codecs'),
                             'language': lang if lang not in ('mul', 'und', 'zxx', 'mis') else None,
                             'format_note': 'DASH %s' % content_type,
+                            'filesize': filesize,
                         }
                         representation_ms_info = extract_multisegment_info(representation, adaption_set_ms_info)
                         if 'segment_urls' not in representation_ms_info and 'media_template' in representation_ms_info:
