@@ -16,10 +16,10 @@ class ViddlerIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?viddler\.com/(?:v|embed|player)/(?P<id>[a-z0-9]+)'
     _TESTS = [{
         'url': 'http://www.viddler.com/v/43903784',
-        'md5': 'ae43ad7cb59431ce043f0ff7fa13cbf4',
+        'md5': '9eee21161d2c7f5b39690c3e325fab2f',
         'info_dict': {
             'id': '43903784',
-            'ext': 'mp4',
+            'ext': 'mov',
             'title': 'Video Made Easy',
             'description': 'md5:6a697ebd844ff3093bd2e82c37b409cd',
             'uploader': 'viddler',
@@ -33,10 +33,10 @@ class ViddlerIE(InfoExtractor):
         }
     }, {
         'url': 'http://www.viddler.com/v/4d03aad9/',
-        'md5': 'faa71fbf70c0bee7ab93076fd007f4b0',
+        'md5': 'f12c5a7fa839c47a79363bfdf69404fb',
         'info_dict': {
             'id': '4d03aad9',
-            'ext': 'mp4',
+            'ext': 'ts',
             'title': 'WALL-TO-GORTAT',
             'upload_date': '20150126',
             'uploader': 'deadspin',
@@ -46,10 +46,10 @@ class ViddlerIE(InfoExtractor):
         }
     }, {
         'url': 'http://www.viddler.com/player/221ebbbd/0/',
-        'md5': '0defa2bd0ea613d14a6e9bd1db6be326',
+        'md5': '740511f61d3d1bb71dc14a0fe01a1c10',
         'info_dict': {
             'id': '221ebbbd',
-            'ext': 'mp4',
+            'ext': 'mov',
             'title': 'LETeens-Grammar-snack-third-conditional',
             'description': ' ',
             'upload_date': '20140929',
