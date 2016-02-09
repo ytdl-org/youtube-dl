@@ -262,7 +262,7 @@
  - **Instagram**
  - **instagram:user**: Instagram user profile
  - **InternetVideoArchive**
- - **IPrima** (Currently broken)
+ - **IPrima**
  - **iqiyi**: 爱奇艺
  - **Ir90Tv**
  - **ivi**: ivi.ru
@@ -283,6 +283,7 @@
  - **KeezMovies**
  - **KhanAcademy**
  - **KickStarter**
+ - **KonserthusetPlay**
  - **kontrtube**: KontrTube.ru - Труба зовёт
  - **KrasView**: Красвью
  - **Ku6**
@@ -681,7 +682,9 @@
  - **VideoPremium**
  - **VideoTt**: video.tt - Your True Tube (Currently broken)
  - **videoweed**: VideoWeed
- - **Vidme**
+ - **vidme**
+ - **vidme:user**
+ - **vidme:user:likes**
  - **Vidzi**
  - **vier**
  - **vier:videos**
