@@ -1,6 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_parse,
+    compat_urlparse,
+)
 from ..utils import (
     float_or_none,
     int_or_none,
@@ -54,16 +58,42 @@ class ViddlerIE(InfoExtractor):
             'view_count': int,
             'comment_count': int,
         }
+    }, {
+        # secret protected
+        'url': 'http://www.viddler.com/v/890c0985?secret=34051570',
+        'info_dict': {
+            'id': '890c0985',
+            'ext': 'mp4',
+            'title': 'Complete Property Training - Traineeships',
+            'description': ' ',
+            'upload_date': '20130606',
+            'uploader': 'TiffanyBowtell',
+            'timestamp': 1370496993,
+            'view_count': int,
+            'comment_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        json_url = (
-            'http://api.viddler.com/api/v2/viddler.videos.getPlaybackDetails.json?video_id=%s&key=v0vhrt7bg2xq1vyxhkct' %
-            video_id)
+        query = {
+            'video_id': video_id,
+            'key': 'v0vhrt7bg2xq1vyxhkct',
+        }
+
+        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+        secret = qs.get('secret', [None])[0]
+        if secret:
+            query['secret'] = secret
+
         headers = {'Referer': 'http://static.cdn-ec.viddler.com/js/arpeggio/v2/embed.html'}
-        request = sanitized_Request(json_url, None, headers)
+        request = sanitized_Request(
+            'http://api.viddler.com/api/v2/viddler.videos.getPlaybackDetails.json?%s'
+            % compat_urllib_parse.urlencode(query), None, headers)
         data = self._download_json(request, video_id)['video']
 
         formats = []
