@@ -57,7 +57,7 @@ class CrackleIE(InfoExtractor):
         subtitles = {}
         formats = self._extract_m3u8_formats(
             'http://content.uplynk.com/ext/%s/%s.m3u8' % (self._UPLYNK_OWNER_ID, video_id),
-            video_id, 'mp4', fatal=None)
+            video_id, 'mp4', m3u8_id='hls', fatal=None)
         path = item.attrib.get('p')
         if path:
             thumbnail = self._THUMBNAIL_TEMPLATE % path
@@ -65,7 +65,7 @@ class CrackleIE(InfoExtractor):
             for mfs_path, mfs_info in self._MEDIA_FILE_SLOTS.items():
                 formats.append({
                     'url': http_base_url + mfs_path,
-                    'format_id': mfs_path.split('.')[0],
+                    'format_id': 'http-' + mfs_path.split('.')[0],
                     'width': mfs_info['width'],
                     'height': mfs_info['height'],
                 })
