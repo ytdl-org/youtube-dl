@@ -49,12 +49,15 @@ class CrackleIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         item = self._download_xml(
-            'http://legacyweb-us.crackle.com/app/revamp/vidwallcache.aspx?flags=-1&fm=%s' % video_id, video_id).find('i')
+            'http://legacyweb-us.crackle.com/app/revamp/vidwallcache.aspx?flags=-1&fm=%s' % video_id,
+            video_id).find('i')
         title = item.attrib['t']
 
         thumbnail = None
         subtitles = {}
-        formats = self._extract_m3u8_formats('http://content.uplynk.com/ext/%s/%s.m3u8' % (self._UPLYNK_OWNER_ID, video_id), video_id, 'mp4', fatal=None)
+        formats = self._extract_m3u8_formats(
+            'http://content.uplynk.com/ext/%s/%s.m3u8' % (self._UPLYNK_OWNER_ID, video_id),
+            video_id, 'mp4', fatal=None)
         path = item.attrib.get('p')
         if path:
             thumbnail = self._THUMBNAIL_TEMPLATE % path
@@ -76,7 +79,7 @@ class CrackleIE(InfoExtractor):
                         'url': '%s/%s%s_%s.xml' % (self._SUBTITLE_SERVER, path, locale, v),
                         'ext': 'ttml',
                     }]
-        self._sort_formats(formats, ('width', 'height', 'tbr'))
+        self._sort_formats(formats, ('width', 'height', 'tbr', 'format_id'))
 
         return {
             'id': video_id,
