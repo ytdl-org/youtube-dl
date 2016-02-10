@@ -613,6 +613,7 @@ from .sbs import SBSIE
 from .scivee import SciVeeIE
 from .screencast import ScreencastIE
 from .screencastomatic import ScreencastOMaticIE
+from .screenjunkies import ScreenJunkiesIE
 from .screenwavemedia import ScreenwaveMediaIE, TeamFourIE
 from .senateisvp import SenateISVPIE
 from .servingsys import ServingSysIE
