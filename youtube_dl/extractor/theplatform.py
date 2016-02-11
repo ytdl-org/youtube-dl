@@ -284,7 +284,7 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
         duration = None
         for item in entry['media$content']:
             smil_url = item['plfile$url'] + '&format=SMIL&Tracking=true&Embedded=true&formats=MPEG4,F4M'
-            cur_video_id = url_basename(smil_url)
+            cur_video_id = ThePlatformIE._match_id(smil_url)
             if first_video_id is None:
                 first_video_id = cur_video_id
                 duration = float_or_none(item.get('plfile$duration'))
