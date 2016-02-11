@@ -366,10 +366,14 @@ class PBSIE(InfoExtractor):
                 webpage, 'upload date', default=None))
 
             # tabbed frontline videos
-            tabbed_videos = re.findall(
-                r'<div[^>]+class="videotab[^"]*"[^>]+vid="(\d+)"', webpage)
-            if tabbed_videos:
-                return tabbed_videos, presumptive_id, upload_date
+            MULTI_PART_REGEXES = (
+                r'<div[^>]+class="videotab[^"]*"[^>]+vid="(\d+)"',
+                r'<a[^>]+href=["\']#video-\d+["\'][^>]+data-coveid=["\'](\d+)',
+            )
+            for p in MULTI_PART_REGEXES:
+                tabbed_videos = re.findall(p, webpage)
+                if tabbed_videos:
+                    return tabbed_videos, presumptive_id, upload_date
 
             MEDIA_ID_REGEXES = [
                 r"div\s*:\s*'videoembed'\s*,\s*mediaid\s*:\s*'(\d+)'",  # frontline video embed
