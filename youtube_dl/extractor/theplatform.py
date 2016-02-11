@@ -20,7 +20,6 @@ from ..utils import (
     int_or_none,
     sanitized_Request,
     unsmuggle_url,
-    url_basename,
     xpath_with_ns,
 )
 
@@ -283,7 +282,7 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
         first_video_id = None
         duration = None
         for item in entry['media$content']:
-            smil_url = item['plfile$url'] + '&format=SMIL&Tracking=true&Embedded=true&formats=MPEG4,F4M'
+            smil_url = item['plfile$url'] + '&format=SMIL&mbr=true'
             cur_video_id = ThePlatformIE._match_id(smil_url)
             if first_video_id is None:
                 first_video_id = cur_video_id
