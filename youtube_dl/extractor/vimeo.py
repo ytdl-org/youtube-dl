@@ -57,7 +57,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
 
     def _extract_xsrft_and_vuid(self, webpage):
         xsrft = self._search_regex(
-            r'xsrft\s*[=:]\s*(?P<q>["\'])(?P<xsrft>.+?)(?P=q)',
+            r'(?:(?P<q1>["\'])xsrft(?P=q1)\s*:|xsrft\s*[=:])\s*(?P<q>["\'])(?P<xsrft>.+?)(?P=q)',
             webpage, 'login token', group='xsrft')
         vuid = self._search_regex(
             r'["\']vuid["\']\s*:\s*(["\'])(?P<vuid>.+?)\1',
