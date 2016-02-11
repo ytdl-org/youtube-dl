@@ -534,6 +534,7 @@ from .planetaplay import PlanetaPlayIE
 from .pladform import PladformIE
 from .played import PlayedIE
 from .playfm import PlayFMIE
+from .plays import PlaysTVIE
 from .playtvak import PlaytvakIE
 from .playvid import PlayvidIE
 from .playwire import PlaywireIE
