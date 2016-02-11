@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_HTTPError
 from ..utils import (
     ExtractorError,
     determine_ext,
@@ -433,20 +434,21 @@ class PBSIE(InfoExtractor):
                 for vid_id in video_id]
             return self.playlist_result(entries, display_id)
 
-        player = self._download_webpage(
-            'http://player.pbs.org/portalplayer/%s' % video_id, display_id)
-
-        info = self._parse_json(
-            self._search_regex(
-                r'(?s)PBS\.videoData\s*=\s*({.+?});\n',
-                player, 'video data', default='{}'),
-            display_id, transform_source=js_to_json, fatal=False)
-
-        # Fallback to old videoInfo API
-        if not info:
+        try:
             info = self._download_json(
                 'http://player.pbs.org/videoInfo/%s?format=json&type=partner' % video_id,
                 display_id, 'Downloading video info JSON')
+        except ExtractorError as e:
+            if not isinstance(e.cause, compat_HTTPError) or e.cause.code != 404:
+                raise
+            # videoInfo API may not work for some videos, fallback to portalplayer API
+            player = self._download_webpage(
+                'http://player.pbs.org/portalplayer/%s' % video_id, display_id)
+            info = self._parse_json(
+                self._search_regex(
+                    r'(?s)PBS\.videoData\s*=\s*({.+?});\n',
+                    player, 'video data', default='{}'),
+                display_id, transform_source=js_to_json, fatal=False)
 
         formats = []
         for encoding_name in ('recommended_encoding', 'alternate_encoding'):
