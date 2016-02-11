@@ -375,7 +375,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     IE_NAME = 'youtube'
     _TESTS = [
         {
-            'url': 'http://www.youtube.com/watch?v=BaW_jenozKcj&t=1s&end=9',
+            'url': 'http://www.youtube.com/watch?v=BaW_jenozKc&t=1s&end=9',
             'info_dict': {
                 'id': 'BaW_jenozKc',
                 'ext': 'mp4',
@@ -441,7 +441,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             }
         },
         {
-            'url': 'http://www.youtube.com/watch?v=BaW_jenozKcj&v=UxxajLWwzqY',
+            'url': 'http://www.youtube.com/watch?v=BaW_jenozKc&v=UxxajLWwzqY',
             'note': 'Use the first video ID in the URL',
             'info_dict': {
                 'id': 'BaW_jenozKc',
