@@ -2,13 +2,9 @@
 from __future__ import unicode_literals
 
 import re
-<<<<<<< HEAD
 from ..utils import (
     HEADRequest,
 )
-=======
-from ..utils import HEADRequest
->>>>>>> 7a50899fde5f12ad3f44bd92141a1161a139f0ee
 
 from .common import InfoExtractor
 
