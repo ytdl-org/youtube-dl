@@ -89,6 +89,10 @@ from .camdemy import (
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
 from .canvas import CanvasIE
+from .cbc import (
+    CBCIE,
+    CBCPlayerIE,
+)
 from .cbs import CBSIE
 from .cbsnews import (
     CBSNewsIE,
