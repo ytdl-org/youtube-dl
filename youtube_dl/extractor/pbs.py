@@ -507,7 +507,7 @@ class PBSIE(InfoExtractor):
             'id': video_id,
             'display_id': display_id,
             'title': info['title'],
-            'description': info['program'].get('description'),
+            'description': info.get('description') or info.get('program', {}).get('description'),
             'thumbnail': info.get('image_url'),
             'duration': int_or_none(info.get('duration')),
             'age_limit': age_limit,
