@@ -26,8 +26,9 @@ class PlaysTVIE(InfoExtractor):
 
         title = self._og_search_title(webpage)
         content = self._parse_json(
-            self._search_regex(r'R\.bindContent\(({.+?})\);', webpage,
-            'content'), video_id)['content']
+            self._search_regex(
+                r'R\.bindContent\(({.+?})\);', webpage,
+                'content'), video_id)['content']
         mpd_url, sources = re.search(
             r'(?s)<video[^>]+data-mpd="([^"]+)"[^>]*>(.+?)</video>',
             content).groups()
