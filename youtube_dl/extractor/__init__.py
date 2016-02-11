@@ -82,6 +82,7 @@ from .brightcove import (
 from .buzzfeed import BuzzFeedIE
 from .byutv import BYUtvIE
 from .c56 import C56IE
+from .cbc import CBCIE
 from .camdemy import (
     CamdemyIE,
     CamdemyFolderIE
