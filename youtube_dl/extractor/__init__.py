@@ -590,7 +590,7 @@ from .ro220 import Ro220IE
 from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtbf import RTBFIE
-from .rte import RteIE, RteRadioIE
+from .rte import RteIE, RteRadioIE, RteArchivesIE
 from .rtlnl import RtlNlIE
 from .rtl2 import RTL2IE
 from .rtp import RTPIE
