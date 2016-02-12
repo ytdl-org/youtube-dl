@@ -81,6 +81,7 @@
  - **CBS**
  - **CBSNews**: CBS News
  - **CBSSports**
+ - **cctv**: 央视网
  - **CeskaTelevize**
  - **channel9**: Channel 9
  - **Chaturbate**
