@@ -61,6 +61,6 @@ class AENetworksIE(InfoExtractor):
         info = self._search_json_ld(webpage, video_id, fatal=False)
         info.update({
             '_type': 'url_transparent',
-            'url': smuggle_url(video_url, {'sig': {'key': 'crazyjava', 'secret': 's3cr3t'}}),
+            'url': smuggle_url(video_url + '?mbr=true&format=SMIL&assetTypes=medium_video_s3', {'sig': {'key': 'crazyjava', 'secret': 's3cr3t'}, 'force_smil_url': True}),
         })
         return info
