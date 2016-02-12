@@ -1196,9 +1196,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if not self._downloader.params.get('noplaylist'):
                 entries = []
                 feed_ids = []
-                multifeed_metadata_list = compat_urllib_parse_unquote_plus(video_info['multifeed_metadata_list'][0])
+                multifeed_metadata_list = video_info['multifeed_metadata_list'][0]
                 for feed in multifeed_metadata_list.split(','):
-                    feed_data = compat_parse_qs(feed)
+                    # Unquote should take place before split on comma (,) since textual
+                    # fields may contain comma as well (see
+                    # https://github.com/rg3/youtube-dl/issues/8536)
+                    feed_data = compat_parse_qs(compat_urllib_parse_unquote_plus(feed))
                     entries.append({
                         '_type': 'url_transparent',
                         'ie_key': 'Youtube',
