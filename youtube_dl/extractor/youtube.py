@@ -705,6 +705,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
+            # Multifeed video with comma in title (see https://github.com/rg3/youtube-dl/issues/8536)
+            'url': 'https://www.youtube.com/watch?v=gVfLd0zydlo',
+            'info_dict': {
+                'id': 'gVfLd0zydlo',
+                'title': 'DevConf.cz 2016 Day 2 Workshops 1 14:00 - 15:30',
+            },
+            'playlist_count': 2,
+        },
+        {
             'url': 'http://vid.plus/FlRa-iH7PGw',
             'only_matching': True,
         },
