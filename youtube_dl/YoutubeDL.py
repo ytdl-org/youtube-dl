@@ -1341,7 +1341,6 @@ class YoutubeDL(object):
         if req_format is None:
             req_format_list = []
             if (self.params.get('outtmpl', DEFAULT_OUTTMPL) != '-' and
-                    info_dict['extractor'] in ['youtube', 'ted'] and
                     not info_dict.get('is_live')):
                 merger = FFmpegMergerPP(self)
                 if merger.available and merger.can_merge():
