@@ -1302,7 +1302,8 @@ class GenericIE(InfoExtractor):
                 return {
                     'id': video_id,
                     'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
-                    'formats': self._parse_mpd_formats(doc, video_id),
+                    'formats': self._parse_mpd_formats(
+                        doc, video_id, mpd_base_url=url.rpartition('/')[0]),
                 }
         except compat_xml_parse_error:
             pass
