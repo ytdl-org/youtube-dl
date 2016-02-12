@@ -224,6 +224,20 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        # MPD from http://dash-mse-test.appspot.com/media.html
+        {
+            'url': 'http://yt-dash-mse-test.commondatastorage.googleapis.com/media/car-20120827-manifest.mpd',
+            'md5': '4b57baab2e30d6eb3a6a09f0ba57ef53',
+            'info_dict': {
+                'id': 'car-20120827-manifest',
+                'ext': 'mp4',
+                'title': 'car-20120827-manifest',
+                'formats': 'mincount:9',
+            },
+            'params': {
+                'format': 'bestvideo',
+            },
+        },
         # google redirect
         {
             'url': 'http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&ved=0CCUQtwIwAA&url=http%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DcmQHVoWB5FY&ei=F-sNU-LLCaXk4QT52ICQBQ&usg=AFQjCNEw4hL29zgOohLXvpJ-Bdh2bils1Q&bvm=bv.61965928,d.bGE',
