@@ -124,6 +124,7 @@ from .cnn import (
     CNNBlogsIE,
     CNNArticleIE,
 )
+from .cntv import CntvIE
 from .collegehumor import CollegeHumorIE
 from .collegerama import CollegeRamaIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
