@@ -89,6 +89,8 @@
  - **canalc2.tv**
  - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
  - **Canvas**
+ - **CBC**
+ - **CBCPlayer**
  - **CBS**
  - **CBSNews**: CBS News
  - **CBSNewsLiveVideo**: CBS News Live Videos
@@ -120,6 +122,7 @@
  - **ComedyCentralShows**: The Daily Show / The Colbert Report
  - **CondeNast**: Condé Nast media group: Allure, Architectural Digest, Ars Technica, Bon Appétit, Brides, Condé Nast, Condé Nast Traveler, Details, Epicurious, GQ, Glamour, Golf Digest, SELF, Teen Vogue, The New Yorker, Vanity Fair, Vogue, W Magazine, WIRED
  - **Cracked**
+ - **Crackle**
  - **Criterion**
  - **CrooksAndLiars**
  - **Crunchyroll**
@@ -445,6 +448,7 @@
  - **PlanetaPlay**
  - **play.fm**
  - **played.to**
+ - **PlaysTV**
  - **Playtvak**: Playtvak.cz, iDNES.cz and Lidovky.cz
  - **Playvid**
  - **Playwire**
