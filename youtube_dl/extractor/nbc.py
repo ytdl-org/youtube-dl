@@ -57,7 +57,7 @@ class NBCIE(InfoExtractor):
         {
             # This video has expired but with an escaped embedURL
             'url': 'http://www.nbc.com/parenthood/episode-guide/season-5/just-like-at-home/515',
-            'skip': 'Expired'
+            'only_matching': True,
         }
     ]
 
