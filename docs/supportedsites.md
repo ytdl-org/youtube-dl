@@ -81,7 +81,6 @@
  - **CBS**
  - **CBSNews**: CBS News
  - **CBSSports**
- - **cctv**: 央视网
  - **CeskaTelevize**
  - **channel9**: Channel 9
  - **Chaturbate**
@@ -101,6 +100,7 @@
  - **CNN**
  - **CNNArticle**
  - **CNNBlogs**
+ - **cntv**: 央视网
  - **CollegeHumor**
  - **CollegeRama**
  - **ComCarCoff**
