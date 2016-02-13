@@ -61,6 +61,7 @@ class CntvIE(InfoExtractor):
         }
     },{
         'url': 'http://tv.cntv.cn/video/C39296/e0210d949f113ddfb38d31f00a4e5c44',
+        'md5': 'd7188ecc2a2f8447c70023895724c31c',
         'info_dict': {
             'id': 'e0210d949f113ddfb38d31f00a4e5c44',
             'ext': 'flv',
@@ -84,6 +85,15 @@ class CntvIE(InfoExtractor):
             video_id = mobj.group('video_id')
 
         # reference to youku.py
+        video_id_regex = [r'var guid[ ="]+([a-zA-Z0-9]+)"',
+                    r'"videoCenterId"[ ,"]+([a-zA-Z0-9]+)"',
+                    r'"changePlayer\(\'([a-zA-Z0-9]+)\'\)\"']
+        video_id = self._search_regex(video_id_regex, webpage, 'video_id', default=None)
+
+        if video_id is None:
+            video_id = self._match_id(url)
+
+        # refer to youku.py
         def retrieve_data(req_url, note):
             req = compat_urllib_request.Request(req_url)
 
