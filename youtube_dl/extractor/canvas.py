@@ -53,6 +53,15 @@ class CanvasIE(InfoExtractor):
                     'url': format_url,
                 })
         self._sort_formats(formats)
+        
+        subtitles = {}
+        for target in data['subtitleUrls']:
+            format_url, format_type = target.get('url'), target.get('type')
+            if format_type == 'CLOSED':
+                subtitles['nl'] = [{
+                    'ext': 'vtt',
+                    'url': format_url,
+                }]
 
         return {
             'id': video_id,
@@ -62,4 +71,5 @@ class CanvasIE(InfoExtractor):
             'formats': formats,
             'duration': float_or_none(data.get('duration'), 1000),
             'thumbnail': data.get('posterImageUrl'),
+            'subtitles': subtitles,
         }
