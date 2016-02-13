@@ -17,6 +17,7 @@ class AnimeOnDemandIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?anime-on-demand\.de/anime/(?P<id>\d+)'
     _LOGIN_URL = 'https://www.anime-on-demand.de/users/sign_in'
     _APPLY_HTML5_URL = 'https://www.anime-on-demand.de/html5apply'
+    _NETRC_MACHINE = 'animeondemand'
     _TEST = {
         'url': 'https://www.anime-on-demand.de/anime/161',
         'info_dict': {
