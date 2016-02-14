@@ -214,7 +214,7 @@ class YoukuIE(InfoExtractor):
 
             return raw_data['data']
 
-        video_password = self._downloader.params.get('videopassword', None)
+        video_password = self._downloader.params.get('videopassword')
 
         # request basic data
         basic_data_url = "http://play.youku.com/play/get.json?vid=%s&ct=12" % video_id

@@ -1744,7 +1744,7 @@ def parse_age_limit(s):
     if s is None:
         return None
     m = re.match(r'^(?P<age>\d{1,2})\+?$', s)
-    return int(m.group('age')) if m else US_RATINGS.get(s, None)
+    return int(m.group('age')) if m else US_RATINGS.get(s)
 
 
 def strip_jsonp(code):

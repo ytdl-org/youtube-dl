@@ -605,12 +605,12 @@ class YoutubeDL(object):
             if rejecttitle:
                 if re.search(rejecttitle, title, re.IGNORECASE):
                     return '"' + title + '" title matched reject pattern "' + rejecttitle + '"'
-        date = info_dict.get('upload_date', None)
+        date = info_dict.get('upload_date')
         if date is not None:
             dateRange = self.params.get('daterange', DateRange())
             if date not in dateRange:
                 return '%s upload date is not in range %s' % (date_from_str(date).isoformat(), dateRange)
-        view_count = info_dict.get('view_count', None)
+        view_count = info_dict.get('view_count')
         if view_count is not None:
             min_views = self.params.get('min_views')
             if min_views is not None and view_count < min_views:
@@ -747,18 +747,18 @@ class YoutubeDL(object):
                 new_result, download=download, extra_info=extra_info)
         elif result_type == 'playlist' or result_type == 'multi_video':
             # We process each entry in the playlist
-            playlist = ie_result.get('title', None) or ie_result.get('id', None)
+            playlist = ie_result.get('title') or ie_result.get('id')
             self.to_screen('[download] Downloading playlist: %s' % playlist)
 
             playlist_results = []
 
             playliststart = self.params.get('playliststart', 1) - 1
-            playlistend = self.params.get('playlistend', None)
+            playlistend = self.params.get('playlistend')
             # For backwards compatibility, interpret -1 as whole list
             if playlistend == -1:
                 playlistend = None
 
-            playlistitems_str = self.params.get('playlist_items', None)
+            playlistitems_str = self.params.get('playlist_items')
             playlistitems = None
             if playlistitems_str is not None:
                 def iter_playlistitems(format):

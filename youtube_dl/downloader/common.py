@@ -157,7 +157,7 @@ class FileDownloader(object):
 
     def slow_down(self, start_time, now, byte_counter):
         """Sleep if the download speed is over the rate limit."""
-        rate_limit = self.params.get('ratelimit', None)
+        rate_limit = self.params.get('ratelimit')
         if rate_limit is None or byte_counter == 0:
             return
         if now is None:

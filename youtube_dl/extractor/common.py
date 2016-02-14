@@ -636,7 +636,7 @@ class InfoExtractor(object):
         downloader_params = self._downloader.params
 
         # Attempt to use provided username and password or .netrc data
-        if downloader_params.get('username', None) is not None:
+        if downloader_params.get('username') is not None:
             username = downloader_params['username']
             password = downloader_params['password']
         elif downloader_params.get('usenetrc', False):
@@ -663,7 +663,7 @@ class InfoExtractor(object):
             return None
         downloader_params = self._downloader.params
 
-        if downloader_params.get('twofactor', None) is not None:
+        if downloader_params.get('twofactor') is not None:
             return downloader_params['twofactor']
 
         return compat_getpass('Type %s and press [Return]: ' % note)
@@ -744,7 +744,7 @@ class InfoExtractor(object):
             'mature': 17,
             'restricted': 19,
         }
-        return RATING_TABLE.get(rating.lower(), None)
+        return RATING_TABLE.get(rating.lower())
 
     def _family_friendly_search(self, html):
         # See http://schema.org/VideoObject
@@ -759,7 +759,7 @@ class InfoExtractor(object):
             '0': 18,
             'false': 18,
         }
-        return RATING_TABLE.get(family_friendly.lower(), None)
+        return RATING_TABLE.get(family_friendly.lower())
 
     def _twitter_search_player(self, html):
         return self._html_search_meta('twitter:player', html,

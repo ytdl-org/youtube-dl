@@ -38,7 +38,7 @@ class FragmentFD(FileDownloader):
                 'continuedl': True,
                 'quiet': True,
                 'noprogress': True,
-                'ratelimit': self.params.get('ratelimit', None),
+                'ratelimit': self.params.get('ratelimit'),
                 'retries': self.params.get('retries', 0),
                 'test': self.params.get('test', False),
             }

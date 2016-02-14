@@ -94,15 +94,15 @@ class RtmpFD(FileDownloader):
             return proc.returncode
 
         url = info_dict['url']
-        player_url = info_dict.get('player_url', None)
-        page_url = info_dict.get('page_url', None)
-        app = info_dict.get('app', None)
-        play_path = info_dict.get('play_path', None)
-        tc_url = info_dict.get('tc_url', None)
-        flash_version = info_dict.get('flash_version', None)
+        player_url = info_dict.get('player_url')
+        page_url = info_dict.get('page_url')
+        app = info_dict.get('app')
+        play_path = info_dict.get('play_path')
+        tc_url = info_dict.get('tc_url')
+        flash_version = info_dict.get('flash_version')
         live = info_dict.get('rtmp_live', False)
-        conn = info_dict.get('rtmp_conn', None)
-        protocol = info_dict.get('rtmp_protocol', None)
+        conn = info_dict.get('rtmp_conn')
+        protocol = info_dict.get('rtmp_protocol')
         real_time = info_dict.get('rtmp_real_time', False)
         no_resume = info_dict.get('no_resume', False)
         continue_dl = self.params.get('continuedl', True)
