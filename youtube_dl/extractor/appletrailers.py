@@ -83,6 +83,9 @@ class AppleTrailersIE(InfoExtractor):
             'id': 'kungfupanda3',
         },
         'playlist_mincount': 4,
+        'expected_warnings': [
+            'Unable to download JSON metadata'
+        ]
     }]
 
     _JSON_RE = r'iTunes.playURL\((.*?)\);'
@@ -132,24 +135,9 @@ class AppleTrailersIE(InfoExtractor):
 
             formats = []
 
-            try:
+            settings = self._download_json(settings_json_url, trailer_id, 'Downloading settings json', fatal=False)
 
-                settings = self._download_json(settings_json_url, trailer_id, 'Downloading settings json')
-
-            except ExtractorError as e:
-
-                print('Extraction of data from json failed, falling back to info from XML')
-
-                direct_download_url = re.sub(r'_([0-9]*p)', '_h\g<1>', first_url)
-                format_extension = first_url.split('.')[-1]
-                formats.append({
-                    'url': direct_download_url,
-                    'format': format_extension,
-                    'width': int_or_none(trailer_info['width']),
-                    'height': int_or_none(trailer_info['height']),
-                })
-
-            else:
+            if settings:
 
                 for format in settings['metadata']['sizes']:
                     # The src is a file pointing to the real video file
@@ -161,6 +149,19 @@ class AppleTrailersIE(InfoExtractor):
                         'height': int_or_none(format['height']),
                     })
                 self._sort_formats(formats)
+
+            else:
+
+                print('Extraction of data from json failed, falling back to info from XML')
+
+                direct_download_url = re.sub(r'_([0-9]*p)', '_h\g<1>', first_url)
+                format_extension = first_url.split('.')[-1]
+                formats.append({
+                    'url': direct_download_url,
+                    'format': format_extension,
+                    'width': int_or_none(trailer_info['width']),
+                    'height': int_or_none(trailer_info['height']),
+                })
 
             playlist.append({
                 '_type': 'video',
