@@ -82,11 +82,22 @@ class HlsFD(FileDownloader):
                             if size_str and size_str[0][0]:
                                 size_av = size_str[0][0][1].strip()
 
-                            now = time.time()
                             size_strn = self.parse_bytes(size_av + 'k')
-                            speed_str = self.format_speed(self.calc_speed(start,now,size_strn))
-                            percentage = self.format_percent(self.calc_percent(self.calc_miliseconds(downloadedstream),self.calc_miliseconds(totalstream)))
-                            self.to_screen('[download] %s: of %s at %s ETA Unknown' % (percentage,totalstream,speed_str))
+                            percent = self.calc_percent(self.calc_miliseconds(downloadedstream),self.calc_miliseconds(totalstream))
+                            data_len = None
+                            if percent > 0:
+                                data_len = int(size_strn * 100 / percent)
+                            now = time.time()
+                            speed = self.calc_speed(start,now,size_strn)
+                            self._hook_progress({
+                                'downloaded_bytes': size_strn,
+                                'total_bytes_estimate': data_len,
+                                'tmpfilename': tmpfilename,
+                                'filename': filename,
+                                'status': 'downloading',
+                                'elapsed': now - start,
+                                'speed': speed,
+                            })
 
                         lineAfterCarriage = ''
             retval = proc.wait()
