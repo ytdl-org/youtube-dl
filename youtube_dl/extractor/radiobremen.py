@@ -28,16 +28,16 @@ class RadioBremenIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        meta_url = "http://www.radiobremen.de/apps/php/mediathek/metadaten.php?id=%s" % video_id
+        meta_url = 'http://www.radiobremen.de/apps/php/mediathek/metadaten.php?id=%s' % video_id
         meta_doc = self._download_webpage(
             meta_url, video_id, 'Downloading metadata')
         title = self._html_search_regex(
-            r"<h1.*>(?P<title>.+)</h1>", meta_doc, "title")
+            r'<h1.*>(?P<title>.+)</h1>', meta_doc, 'title')
         description = self._html_search_regex(
-            r"<p>(?P<description>.*)</p>", meta_doc, "description", fatal=False)
+            r'<p>(?P<description>.*)</p>', meta_doc, 'description', fatal=False)
         duration = parse_duration(self._html_search_regex(
-            r"L&auml;nge:</td>\s+<td>(?P<duration>[0-9]+:[0-9]+)</td>",
-            meta_doc, "duration", fatal=False))
+            r'L&auml;nge:</td>\s+<td>(?P<duration>[0-9]+:[0-9]+)</td>',
+            meta_doc, 'duration', fatal=False))
 
         page_doc = self._download_webpage(
             url, video_id, 'Downloading video information')
@@ -51,7 +51,7 @@ class RadioBremenIE(InfoExtractor):
         formats = [{
             'url': video_url,
             'ext': 'mp4',
-            'width': int(mobj.group("width")),
+            'width': int(mobj.group('width')),
         }]
         return {
             'id': video_id,

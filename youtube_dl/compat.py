@@ -181,20 +181,20 @@ except ImportError:  # Python < 3.4
             # parameter := attribute "=" value
             url = req.get_full_url()
 
-            scheme, data = url.split(":", 1)
-            mediatype, data = data.split(",", 1)
+            scheme, data = url.split(':', 1)
+            mediatype, data = data.split(',', 1)
 
             # even base64 encoded data URLs might be quoted so unquote in any case:
             data = compat_urllib_parse_unquote_to_bytes(data)
-            if mediatype.endswith(";base64"):
+            if mediatype.endswith(';base64'):
                 data = binascii.a2b_base64(data)
                 mediatype = mediatype[:-7]
 
             if not mediatype:
-                mediatype = "text/plain;charset=US-ASCII"
+                mediatype = 'text/plain;charset=US-ASCII'
 
             headers = email.message_from_string(
-                "Content-type: %s\nContent-length: %d\n" % (mediatype, len(data)))
+                'Content-type: %s\nContent-length: %d\n' % (mediatype, len(data)))
 
             return compat_urllib_response.addinfourl(io.BytesIO(data), headers, url)
 
@@ -268,7 +268,7 @@ except ImportError:  # Python 2
             nv = name_value.split('=', 1)
             if len(nv) != 2:
                 if strict_parsing:
-                    raise ValueError("bad query field: %r" % (name_value,))
+                    raise ValueError('bad query field: %r' % (name_value,))
                 # Handle case of a control-name with no equal sign
                 if keep_blank_values:
                     nv.append('')
@@ -466,7 +466,7 @@ if sys.version_info < (2, 7):
         if err is not None:
             raise err
         else:
-            raise socket.error("getaddrinfo returns an empty list")
+            raise socket.error('getaddrinfo returns an empty list')
 else:
     compat_socket_create_connection = socket.create_connection
 

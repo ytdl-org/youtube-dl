@@ -14,14 +14,14 @@ class EveryonesMixtapeIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://everyonesmixtape.com/#/mix/m7m0jJAbMQi/5',
-        "info_dict": {
+        'info_dict': {
             'id': '5bfseWNmlds',
             'ext': 'mp4',
-            "title": "Passion Pit - \"Sleepyhead\" (Official Music Video)",
-            "uploader": "FKR.TV",
-            "uploader_id": "frenchkissrecords",
-            "description": "Music video for \"Sleepyhead\" from Passion Pit's debut EP Chunk Of Change.\nBuy on iTunes: https://itunes.apple.com/us/album/chunk-of-change-ep/id300087641\n\nDirected by The Wilderness.\n\nhttp://www.passionpitmusic.com\nhttp://www.frenchkissrecords.com",
-            "upload_date": "20081015"
+            'title': "Passion Pit - \"Sleepyhead\" (Official Music Video)",
+            'uploader': 'FKR.TV',
+            'uploader_id': 'frenchkissrecords',
+            'description': "Music video for \"Sleepyhead\" from Passion Pit's debut EP Chunk Of Change.\nBuy on iTunes: https://itunes.apple.com/us/album/chunk-of-change-ep/id300087641\n\nDirected by The Wilderness.\n\nhttp://www.passionpitmusic.com\nhttp://www.frenchkissrecords.com",
+            'upload_date': '20081015'
         },
         'params': {
             'skip_download': True,  # This is simply YouTube

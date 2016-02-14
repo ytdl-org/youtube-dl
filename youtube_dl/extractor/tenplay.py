@@ -27,10 +27,10 @@ class TenPlayIE(InfoExtractor):
     }
 
     _video_fields = [
-        "id", "name", "shortDescription", "longDescription", "creationDate",
-        "publishedDate", "lastModifiedDate", "customFields", "videoStillURL",
-        "thumbnailURL", "referenceId", "length", "playsTotal",
-        "playsTrailingWeek", "renditions", "captioning", "startDate", "endDate"]
+        'id', 'name', 'shortDescription', 'longDescription', 'creationDate',
+        'publishedDate', 'lastModifiedDate', 'customFields', 'videoStillURL',
+        'thumbnailURL', 'referenceId', 'length', 'playsTotal',
+        'playsTrailingWeek', 'renditions', 'captioning', 'startDate', 'endDate']
 
     def _real_extract(self, url):
         webpage = self._download_webpage(url, url)

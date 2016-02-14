@@ -63,7 +63,7 @@ class RTL2IE(InfoExtractor):
         download_url = video_info['streamurl']
         download_url = download_url.replace('\\', '')
         stream_url = 'mp4:' + self._html_search_regex(r'ondemand/(.*)', download_url, 'stream URL')
-        rtmp_conn = ["S:connect", "O:1", "NS:pageUrl:" + url, "NB:fpad:0", "NN:videoFunction:1", "O:0"]
+        rtmp_conn = ['S:connect', 'O:1', 'NS:pageUrl:' + url, 'NB:fpad:0', 'NN:videoFunction:1', 'O:0']
 
         formats = [{
             'url': download_url,

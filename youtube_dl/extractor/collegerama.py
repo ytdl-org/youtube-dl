@@ -46,9 +46,9 @@ class CollegeRamaIE(InfoExtractor):
         video_id = self._match_id(url)
 
         player_options_request = {
-            "getPlayerOptionsRequest": {
-                "ResourceId": video_id,
-                "QueryString": "",
+            'getPlayerOptionsRequest': {
+                'ResourceId': video_id,
+                'QueryString': '',
             }
         }
 

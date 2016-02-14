@@ -45,7 +45,7 @@ class CCCIE(InfoExtractor):
         title = self._html_search_regex(
             r'(?s)<h1>(.*?)</h1>', webpage, 'title')
         description = self._html_search_regex(
-            r"(?s)<h3>About</h3>(.+?)<h3>",
+            r'(?s)<h3>About</h3>(.+?)<h3>',
             webpage, 'description', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
             r"(?s)<span[^>]+class='[^']*fa-calendar-o'[^>]*>(.+?)</span>",

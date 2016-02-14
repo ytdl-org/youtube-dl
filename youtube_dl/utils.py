@@ -248,7 +248,7 @@ def xpath_attr(node, xpath, key, name=None, fatal=False, default=NO_DEFAULT):
 
 def get_element_by_id(id, html):
     """Return the content of the tag with the specified ID in the passed HTML document"""
-    return get_element_by_attribute("id", id, html)
+    return get_element_by_attribute('id', id, html)
 
 
 def get_element_by_attribute(attribute, value, html):
@@ -994,7 +994,7 @@ def date_from_str(date_str):
         unit += 's'
         delta = datetime.timedelta(**{unit: time})
         return today + delta
-    return datetime.datetime.strptime(date_str, "%Y%m%d").date()
+    return datetime.datetime.strptime(date_str, '%Y%m%d').date()
 
 
 def hyphenate_date(date_str):
@@ -1074,22 +1074,22 @@ def _windows_write_string(s, out):
 
     GetStdHandle = ctypes.WINFUNCTYPE(
         ctypes.wintypes.HANDLE, ctypes.wintypes.DWORD)(
-        (b"GetStdHandle", ctypes.windll.kernel32))
+        (b'GetStdHandle', ctypes.windll.kernel32))
     h = GetStdHandle(WIN_OUTPUT_IDS[fileno])
 
     WriteConsoleW = ctypes.WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE, ctypes.wintypes.LPWSTR,
         ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD),
-        ctypes.wintypes.LPVOID)((b"WriteConsoleW", ctypes.windll.kernel32))
+        ctypes.wintypes.LPVOID)((b'WriteConsoleW', ctypes.windll.kernel32))
     written = ctypes.wintypes.DWORD(0)
 
-    GetFileType = ctypes.WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)((b"GetFileType", ctypes.windll.kernel32))
+    GetFileType = ctypes.WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)((b'GetFileType', ctypes.windll.kernel32))
     FILE_TYPE_CHAR = 0x0002
     FILE_TYPE_REMOTE = 0x8000
     GetConsoleMode = ctypes.WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE,
         ctypes.POINTER(ctypes.wintypes.DWORD))(
-        (b"GetConsoleMode", ctypes.windll.kernel32))
+        (b'GetConsoleMode', ctypes.windll.kernel32))
     INVALID_HANDLE_VALUE = ctypes.wintypes.DWORD(-1).value
 
     def not_a_console(handle):
@@ -1387,7 +1387,7 @@ def fix_xml_ampersands(xml_str):
 def setproctitle(title):
     assert isinstance(title, compat_str)
     try:
-        libc = ctypes.cdll.LoadLibrary("libc.so.6")
+        libc = ctypes.cdll.LoadLibrary('libc.so.6')
     except OSError:
         return
     title_bytes = title.encode('utf-8')
@@ -1427,7 +1427,7 @@ def url_basename(url):
 
 class HEADRequest(compat_urllib_request.Request):
     def get_method(self):
-        return "HEAD"
+        return 'HEAD'
 
 
 def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1):

@@ -28,7 +28,7 @@ class AENetworksIE(InfoExtractor):
         'info_dict': {
             'id': 'eg47EERs_JsZ',
             'ext': 'mp4',
-            'title': "Winter Is Coming",
+            'title': 'Winter Is Coming',
             'description': 'md5:641f424b7a19d8e24f26dea22cf59d74',
         },
         'params': {

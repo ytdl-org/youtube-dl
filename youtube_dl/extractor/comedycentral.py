@@ -195,7 +195,7 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
             if len(altMovieParams) == 0:
                 raise ExtractorError('unable to find Flash URL in webpage ' + url)
             else:
-                mMovieParams = [("http://media.mtvnservices.com/" + altMovieParams[0], altMovieParams[0])]
+                mMovieParams = [('http://media.mtvnservices.com/' + altMovieParams[0], altMovieParams[0])]
 
         uri = mMovieParams[0][1]
         # Correct cc.com in uri

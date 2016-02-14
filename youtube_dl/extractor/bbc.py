@@ -86,7 +86,7 @@ class BBCCoUkIE(InfoExtractor):
                 'id': 'b00yng1d',
                 'ext': 'flv',
                 'title': 'The Voice UK: Series 3: Blind Auditions 5',
-                'description': "Emma Willis and Marvin Humes present the fifth set of blind auditions in the singing competition, as the coaches continue to build their teams based on voice alone.",
+                'description': 'Emma Willis and Marvin Humes present the fifth set of blind auditions in the singing competition, as the coaches continue to build their teams based on voice alone.',
                 'duration': 5100,
             },
             'params': {

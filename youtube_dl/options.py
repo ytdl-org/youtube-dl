@@ -85,7 +85,7 @@ def parseOpts(overrideArguments=None):
         if option.takes_value():
             opts.append(' %s' % option.metavar)
 
-        return "".join(opts)
+        return ''.join(opts)
 
     def _comma_separated_values_options_callback(option, opt_str, value, parser):
         setattr(parser.values, option.dest, value.split(','))

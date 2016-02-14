@@ -43,7 +43,7 @@ class RteIE(InfoExtractor):
             r'<meta name="thumbnail" content="uri:irus:(.*?)" />', webpage, 'thumbnail')
         thumbnail = 'http://img.rasset.ie/' + thumbnail_id + '.jpg'
 
-        feeds_url = self._html_search_meta("feeds-prefix", webpage, 'feeds url') + video_id
+        feeds_url = self._html_search_meta('feeds-prefix', webpage, 'feeds url') + video_id
         json_string = self._download_json(feeds_url, video_id)
 
         # f4m_url = server + relative_url

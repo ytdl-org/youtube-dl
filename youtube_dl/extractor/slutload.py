@@ -13,8 +13,8 @@ class SlutloadIE(InfoExtractor):
         'info_dict': {
             'id': 'TD73btpBqSxc',
             'ext': 'mp4',
-            "title": "virginie baisee en cam",
-            "age_limit": 18,
+            'title': 'virginie baisee en cam',
+            'age_limit': 18,
             'thumbnail': 're:https?://.*?\.jpg'
         }
     }

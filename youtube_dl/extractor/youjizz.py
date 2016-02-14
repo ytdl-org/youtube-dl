@@ -16,8 +16,8 @@ class YouJizzIE(InfoExtractor):
         'info_dict': {
             'id': '2189178',
             'ext': 'flv',
-            "title": "Zeichentrick 1",
-            "age_limit": 18,
+            'title': 'Zeichentrick 1',
+            'age_limit': 18,
         }
     }
 

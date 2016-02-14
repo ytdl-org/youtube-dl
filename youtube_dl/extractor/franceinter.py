@@ -10,7 +10,7 @@ class FranceInterIE(InfoExtractor):
     _TEST = {
         'url': 'http://www.franceinter.fr/player/reecouter?play=793962',
         'md5': '4764932e466e6f6c79c317d2e74f6884',
-        "info_dict": {
+        'info_dict': {
             'id': '793962',
             'ext': 'mp3',
             'title': 'L’Histoire dans les jeux vidéo',

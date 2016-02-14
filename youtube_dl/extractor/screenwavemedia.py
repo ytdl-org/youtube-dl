@@ -40,7 +40,7 @@ class ScreenwaveMediaIE(InfoExtractor):
                 re.sub(
                     r'(?s)/\*.*?\*/', '',
                     self._search_regex(
-                        r"sources\s*:\s*(\[[^\]]+?\])", playerconfig,
+                        r'sources\s*:\s*(\[[^\]]+?\])', playerconfig,
                         'sources',
                     ).replace(
                         "' + thisObj.options.videoserver + '",

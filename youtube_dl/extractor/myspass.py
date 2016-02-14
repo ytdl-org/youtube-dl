@@ -18,8 +18,8 @@ class MySpassIE(InfoExtractor):
         'info_dict': {
             'id': '11741',
             'ext': 'mp4',
-            "description": "Wer kann in die Fu\u00dfstapfen von Wolfgang Kubicki treten und die Mehrheit der Zuschauer hinter sich versammeln? Wird vielleicht sogar die Absolute Mehrheit geknackt und der Jackpot von 200.000 Euro mit nach Hause genommen?",
-            "title": "Absolute Mehrheit vom 17.02.2013 - Die Highlights, Teil 2",
+            'description': 'Wer kann in die Fu\u00dfstapfen von Wolfgang Kubicki treten und die Mehrheit der Zuschauer hinter sich versammeln? Wird vielleicht sogar die Absolute Mehrheit geknackt und der Jackpot von 200.000 Euro mit nach Hause genommen?',
+            'title': 'Absolute Mehrheit vom 17.02.2013 - Die Highlights, Teil 2',
         },
     }
 

@@ -56,7 +56,7 @@ class PornoVoisinesIE(InfoExtractor):
             r'<h1>(.+?)</h1>', webpage, 'title', flags=re.DOTALL)
         description = self._html_search_regex(
             r'<article id="descriptif">(.+?)</article>',
-            webpage, "description", fatal=False, flags=re.DOTALL)
+            webpage, 'description', fatal=False, flags=re.DOTALL)
 
         thumbnail = self._search_regex(
             r'<div id="mediaspace%s">\s*<img src="/?([^"]+)"' % video_id,

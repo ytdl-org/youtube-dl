@@ -12,8 +12,8 @@ class FreeVideoIE(InfoExtractor):
         'info_dict': {
             'id': 'vysukany-zadecek-22033',
             'ext': 'mp4',
-            "title": "vysukany-zadecek-22033",
-            "age_limit": 18,
+            'title': 'vysukany-zadecek-22033',
+            'age_limit': 18,
         },
         'skip': 'Blocked outside .cz',
     }

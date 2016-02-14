@@ -47,7 +47,7 @@ class LiveLeakIE(InfoExtractor):
         'info_dict': {
             'id': '801_1409392012',
             'ext': 'mp4',
-            'description': "Happened on 27.7.2014. \r\nAt 0:53 you can see people still swimming at near beach.",
+            'description': 'Happened on 27.7.2014. \r\nAt 0:53 you can see people still swimming at near beach.',
             'uploader': 'bony333',
             'title': 'Crazy Hungarian tourist films close call waterspout in Croatia'
         }

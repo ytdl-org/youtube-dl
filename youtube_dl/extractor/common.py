@@ -1497,7 +1497,7 @@ class InfoExtractor(object):
     def _live_title(self, name):
         """ Generate the title for a live video """
         now = datetime.datetime.now()
-        now_str = now.strftime("%Y-%m-%d %H:%M")
+        now_str = now.strftime('%Y-%m-%d %H:%M')
         return name + ' ' + now_str
 
     def _int(self, v, name, fatal=False, **kwargs):
@@ -1570,7 +1570,7 @@ class InfoExtractor(object):
         return {}
 
     def _get_subtitles(self, *args, **kwargs):
-        raise NotImplementedError("This method must be implemented by subclasses")
+        raise NotImplementedError('This method must be implemented by subclasses')
 
     @staticmethod
     def _merge_subtitle_items(subtitle_list1, subtitle_list2):
@@ -1596,7 +1596,7 @@ class InfoExtractor(object):
         return {}
 
     def _get_automatic_captions(self, *args, **kwargs):
-        raise NotImplementedError("This method must be implemented by subclasses")
+        raise NotImplementedError('This method must be implemented by subclasses')
 
 
 class SearchInfoExtractor(InfoExtractor):
@@ -1636,7 +1636,7 @@ class SearchInfoExtractor(InfoExtractor):
 
     def _get_n_results(self, query, n):
         """Get a specified number of results for a query"""
-        raise NotImplementedError("This method must be implemented by subclasses")
+        raise NotImplementedError('This method must be implemented by subclasses')
 
     @property
     def SEARCH_KEY(self):

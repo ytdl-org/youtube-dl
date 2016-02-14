@@ -72,7 +72,7 @@ class EllenTVClipsIE(InfoExtractor):
     def _extract_playlist(self, webpage):
         json_string = self._search_regex(r'playerView.addClips\(\[\{(.*?)\}\]\);', webpage, 'json')
         try:
-            return json.loads("[{" + json_string + "}]")
+            return json.loads('[{' + json_string + '}]')
         except ValueError as ve:
             raise ExtractorError('Failed to download JSON', cause=ve)
 

@@ -26,14 +26,14 @@ class CNNIE(InfoExtractor):
             'upload_date': '20130609',
         },
     }, {
-        "url": "http://edition.cnn.com/video/?/video/us/2013/08/21/sot-student-gives-epic-speech.georgia-institute-of-technology&utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+rss%2Fcnn_topstories+%28RSS%3A+Top+Stories%29",
-        "md5": "b5cc60c60a3477d185af8f19a2a26f4e",
-        "info_dict": {
+        'url': 'http://edition.cnn.com/video/?/video/us/2013/08/21/sot-student-gives-epic-speech.georgia-institute-of-technology&utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+rss%2Fcnn_topstories+%28RSS%3A+Top+Stories%29',
+        'md5': 'b5cc60c60a3477d185af8f19a2a26f4e',
+        'info_dict': {
             'id': 'us/2013/08/21/sot-student-gives-epic-speech.georgia-institute-of-technology',
             'ext': 'mp4',
-            "title": "Student's epic speech stuns new freshmen",
-            "description": "A Georgia Tech student welcomes the incoming freshmen with an epic speech backed by music from \"2001: A Space Odyssey.\"",
-            "upload_date": "20130821",
+            'title': "Student's epic speech stuns new freshmen",
+            'description': "A Georgia Tech student welcomes the incoming freshmen with an epic speech backed by music from \"2001: A Space Odyssey.\"",
+            'upload_date': '20130821',
         }
     }, {
         'url': 'http://www.cnn.com/video/data/2.0/video/living/2014/12/22/growing-america-nashville-salemtown-board-episode-1.hln.html',

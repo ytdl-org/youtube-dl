@@ -80,15 +80,15 @@ class XAttrMetadataPP(PostProcessor):
                     assert ':' not in key
                     assert os.path.exists(path)
 
-                    ads_fn = path + ":" + key
+                    ads_fn = path + ':' + key
                     try:
-                        with open(ads_fn, "wb") as f:
+                        with open(ads_fn, 'wb') as f:
                             f.write(value)
                     except EnvironmentError as e:
                         raise XAttrMetadataError(e.errno, e.strerror)
             else:
-                user_has_setfattr = check_executable("setfattr", ['--version'])
-                user_has_xattr = check_executable("xattr", ['-h'])
+                user_has_setfattr = check_executable('setfattr', ['--version'])
+                user_has_xattr = check_executable('xattr', ['-h'])
 
                 if user_has_setfattr or user_has_xattr:
 
@@ -150,7 +150,7 @@ class XAttrMetadataPP(PostProcessor):
                 value = info.get(infoname)
 
                 if value:
-                    if infoname == "upload_date":
+                    if infoname == 'upload_date':
                         value = hyphenate_date(value)
 
                     byte_value = value.encode('utf-8')

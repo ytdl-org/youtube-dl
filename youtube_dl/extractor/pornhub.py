@@ -27,9 +27,9 @@ class PornHubIE(InfoExtractor):
         'info_dict': {
             'id': '648719015',
             'ext': 'mp4',
-            "uploader": "Babes",
-            "title": "Seductive Indian beauty strips down and fingers her pink pussy",
-            "age_limit": 18
+            'uploader': 'Babes',
+            'title': 'Seductive Indian beauty strips down and fingers her pink pussy',
+            'age_limit': 18
         }
     }, {
         'url': 'http://www.pornhub.com/view_video.php?viewkey=ph557bbb6676d2d',
@@ -95,7 +95,7 @@ class PornHubIE(InfoExtractor):
             path = compat_urllib_parse_urlparse(video_url).path
             extension = os.path.splitext(path)[1][1:]
             format = path.split('/')[5].split('_')[:2]
-            format = "-".join(format)
+            format = '-'.join(format)
 
             m = re.match(r'^(?P<height>[0-9]+)[pP]-(?P<tbr>[0-9]+)[kK]$', format)
             if m is None:

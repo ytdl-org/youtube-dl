@@ -782,7 +782,7 @@ class YoutubeDL(object):
                     entries = ie_entries[playliststart:playlistend]
                 n_entries = len(entries)
                 self.to_screen(
-                    "[%s] playlist %s: Collected %d video ids (downloading %d of them)" %
+                    '[%s] playlist %s: Collected %d video ids (downloading %d of them)' %
                     (ie_result['extractor'], playlist, n_all_entries, n_entries))
             elif isinstance(ie_entries, PagedList):
                 if playlistitems:
@@ -796,7 +796,7 @@ class YoutubeDL(object):
                         playliststart, playlistend)
                 n_entries = len(entries)
                 self.to_screen(
-                    "[%s] playlist %s: Downloading %d videos" %
+                    '[%s] playlist %s: Downloading %d videos' %
                     (ie_result['extractor'], playlist, n_entries))
             else:  # iterable
                 if playlistitems:
@@ -807,7 +807,7 @@ class YoutubeDL(object):
                         ie_entries, playliststart, playlistend))
                 n_entries = len(entries)
                 self.to_screen(
-                    "[%s] playlist %s: Downloading %d videos" %
+                    '[%s] playlist %s: Downloading %d videos' %
                     (ie_result['extractor'], playlist, n_entries))
 
             if self.params.get('playlistreverse', False):

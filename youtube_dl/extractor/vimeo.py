@@ -368,16 +368,16 @@ class VimeoIE(VimeoBaseInfoExtractor):
                     {'force_feature_id': True}), 'Vimeo')
 
         # Extract title
-        video_title = config["video"]["title"]
+        video_title = config['video']['title']
 
         # Extract uploader and uploader_id
-        video_uploader = config["video"]["owner"]["name"]
-        video_uploader_id = config["video"]["owner"]["url"].split('/')[-1] if config["video"]["owner"]["url"] else None
+        video_uploader = config['video']['owner']['name']
+        video_uploader_id = config['video']['owner']['url'].split('/')[-1] if config['video']['owner']['url'] else None
 
         # Extract video thumbnail
-        video_thumbnail = config["video"].get("thumbnail")
+        video_thumbnail = config['video'].get('thumbnail')
         if video_thumbnail is None:
-            video_thumbs = config["video"].get("thumbs")
+            video_thumbs = config['video'].get('thumbs')
             if video_thumbs and isinstance(video_thumbs, dict):
                 _, video_thumbnail = sorted((int(width if width.isdigit() else 0), t_url) for (width, t_url) in video_thumbs.items())[-1]
 
@@ -401,7 +401,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             self._downloader.report_warning('Cannot find video description')
 
         # Extract video duration
-        video_duration = int_or_none(config["video"].get("duration"))
+        video_duration = int_or_none(config['video'].get('duration'))
 
         # Extract upload date
         video_upload_date = None
@@ -703,10 +703,10 @@ class VimeoLikesIE(InfoExtractor):
     _TEST = {
         'url': 'https://vimeo.com/user755559/likes/',
         'playlist_mincount': 293,
-        "info_dict": {
+        'info_dict': {
             'id': 'user755559_likes',
-            "description": "See all the videos urza likes",
-            "title": 'Videos urza likes',
+            'description': 'See all the videos urza likes',
+            'title': 'Videos urza likes',
         },
     }
 

@@ -43,7 +43,7 @@ class SnotrIE(InfoExtractor):
         title = self._og_search_title(webpage)
 
         description = self._og_search_description(webpage)
-        video_url = "http://cdn.videos.snotr.com/%s.flv" % video_id
+        video_url = 'http://cdn.videos.snotr.com/%s.flv' % video_id
 
         view_count = str_to_int(self._html_search_regex(
             r'<p>\n<strong>Views:</strong>\n([\d,\.]+)</p>',
