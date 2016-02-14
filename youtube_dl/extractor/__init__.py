@@ -490,6 +490,7 @@ from .nowtv import (
     NowTVIE,
     NowTVListIE,
 )
+from .noz import NozIE
 from .npo import (
     NPOIE,
     NPOLiveIE,
