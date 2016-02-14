@@ -1,31 +1,35 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
+    compat_urllib_parse,
     compat_urlparse,
+)
+from ..utils import (
     ExtractorError,
     sanitized_Request,
-    xpath_element,
-    xpath_text,
     unified_strdate,
     urlencode_postdata,
+    xpath_element,
+    xpath_text,
 )
 
 
 class Laola1TvIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?laola1\.tv/(?P<lang>[a-z]+)-(?P<portal>[a-z]+)/.*?/(?P<slug>[\w-]+)'
+    _VALID_URL = r'https?://(?:www\.)?laola1\.tv/(?P<lang>[a-z]+)-(?P<portal>[a-z]+)/[^/]+/(?P<slug>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.laola1.tv/de-de/video/straubing-tigers-koelner-haie/227883.html',
         'info_dict': {
-            'categories': ['Eishockey'],
-            'ext': 'flv',
             'id': '227883',
-            'is_live': False,
+            'display_id': 'straubing-tigers-koelner-haie',
+            'ext': 'flv',
             'title': 'Straubing Tigers - Kölner Haie',
             'upload_date': '20140912',
+            'is_live': False,
+            'categories': ['Eishockey'],
         },
         'params': {
             'skip_download': True,
@@ -33,12 +37,13 @@ class Laola1TvIE(InfoExtractor):
     }, {
         'url': 'http://www.laola1.tv/de-de/video/straubing-tigers-koelner-haie',
         'info_dict': {
-            'categories': ['Eishockey'],
-            'ext': 'flv',
             'id': '464602',
-            'is_live': False,
+            'display_id': 'straubing-tigers-koelner-haie',
+            'ext': 'flv',
             'title': 'Straubing Tigers - Kölner Haie',
             'upload_date': '20160129',
+            'is_live': False,
+            'categories': ['Eishockey'],
         },
         'params': {
             'skip_download': True,
@@ -47,67 +52,74 @@ class Laola1TvIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        display_id = mobj.group('slug')
         lang = mobj.group('lang')
         portal = mobj.group('portal')
 
-        webpage = self._download_webpage(url, mobj.group('slug'))
+        webpage = self._download_webpage(url, display_id)
+
         iframe_url = self._search_regex(
             r'<iframe[^>]*?id="videoplayer"[^>]*?src="([^"]+)"',
-            webpage, 'iframe URL')
+            webpage, 'iframe url')
 
         video_id = self._search_regex(
-            r'videoid=(\d+)', iframe_url, 'video ID')
+            r'videoid=(\d+)', iframe_url, 'video id')
 
         iframe = self._download_webpage(compat_urlparse.urljoin(
-            url, iframe_url), video_id, note='Downloading iframe')
+            url, iframe_url), display_id, 'Downloading iframe')
 
         partner_id = self._search_regex(
-            r'partnerid\s*:\s*"([^"]+)"', iframe, 'partner ID')
+            r'partnerid\s*:\s*(["\'])(?P<partner_id>.+?)\1',
+            iframe, 'partner id', group='partner_id')
 
-        xml_url = ('http://www.laola1.tv/server/hd_video.php?' +
-                   'play=%s&partner=%s&portal=%s&v5ident=&lang=%s' % (
-                       video_id, partner_id, portal, lang))
-        hd_doc = self._download_xml(xml_url, video_id)
+        hd_doc = self._download_xml(
+            'http://www.laola1.tv/server/hd_video.php?%s'
+            % compat_urllib_parse.urlencode({
+                'play': video_id,
+                'partner': partner_id,
+                'portal': portal,
+                'lang': lang,
+                'v5ident': '',
+            }), display_id)
 
         _v = lambda x, **k: xpath_text(hd_doc, './/video/' + x, **k)
         title = _v('title', fatal=True)
 
-        categories = _v('meta_sports')
-        if categories:
-            categories = categories.split(',')
+        req = sanitized_Request(
+            'https://club.laola1.tv/sp/laola1/api/v3/user/session/premium/player/stream-access?%s' %
+            compat_urllib_parse.urlencode({
+                'videoId': video_id,
+                'target': '2',
+                'label': 'laola1tv',
+                'area': _v('area'),
+            }),
+            urlencode_postdata(
+                dict((i, v) for i, v in enumerate(_v('req_liga_abos').split(',')))))
 
-        time_date = _v('time_date')
-        time_start = _v('time_start')
-        upload_date = None
-        if time_date and time_start:
-            upload_date = unified_strdate(time_date + ' ' + time_start)
-
-        json_url = ('https://club.laola1.tv/sp/laola1/api/v3/user/session' +
-                    '/premium/player/stream-access?videoId=%s&target=2' +
-                    '&label=laola1tv&area=%s') % (video_id, _v('area'))
-        req = sanitized_Request(json_url, urlencode_postdata(
-            dict((i, v) for i, v in enumerate(_v('req_liga_abos').split(',')))))
-
-        token_url = self._download_json(req, video_id)['data']['stream-access'][0]
-        token_doc = self._download_xml(
-            token_url, video_id, note='Downloading token')
+        token_url = self._download_json(req, display_id)['data']['stream-access'][0]
+        token_doc = self._download_xml(token_url, display_id, 'Downloading token')
 
         token_attrib = xpath_element(token_doc, './/token').attrib
         token_auth = token_attrib['auth']
 
-        if token_auth in ('blocked', 'restricted'):
+        if token_auth in ('blocked', 'restricted', 'error'):
             raise ExtractorError(
                 'Token error: %s' % token_attrib['comment'], expected=True)
 
-        video_url = '%s?hdnea=%s&hdcore=3.2.0' % (token_attrib['url'], token_auth)
+        formats = self._extract_f4m_formats(
+            '%s?hdnea=%s&hdcore=3.2.0' % (token_attrib['url'], token_auth),
+            video_id, f4m_id='hds')
+
+        categories_str = _v('meta_sports')
+        categories = categories_str.split(',') if categories_str else []
 
         return {
-            'categories': categories,
-            'formats': self._extract_f4m_formats(
-                video_url, video_id, f4m_id='hds'),
             'id': video_id,
-            'is_live': _v('islive') == 'true',
+            'display_id': display_id,
             'title': title,
-            'upload_date': upload_date,
+            'upload_date': unified_strdate(_v('time_date')),
             'uploader': _v('meta_organisation'),
+            'categories': categories,
+            'is_live': _v('islive') == 'true',
+            'formats': formats,
         }
