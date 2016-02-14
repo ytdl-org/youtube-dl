@@ -137,6 +137,16 @@ class FileDownloader(object):
         multiplier = 1024.0 ** 'bkmgtpezy'.index(matchobj.group(2).lower())
         return int(round(number * multiplier))
 
+    @staticmethod
+    def calc_miliseconds(time):
+        time = '%s' % time
+        hours, minutes, seconds = (["0", "0"] + time.split(":"))[-3:]
+        hours = int(hours)
+        minutes = int(minutes)
+        seconds = float(seconds)
+        miliseconds = int(3600000 * hours + 60000 * minutes + 1000 * seconds)
+        return int(miliseconds)
+
     def to_screen(self, *args, **kargs):
         self.ydl.to_screen(*args, **kargs)
 

@@ -4,6 +4,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 
 from .common import FileDownloader
 from .fragment import FragmentFD
@@ -51,8 +52,43 @@ class HlsFD(FileDownloader):
 
         self._debug_cmd(args)
 
-        proc = subprocess.Popen(args, stdin=subprocess.PIPE)
+        proc = subprocess.Popen(args, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
+            lineAfterCarriage = ''
+            totalstream = ''
+            start = time.time()
+            while True:
+                tmpoutput = proc.stderr.read(1)
+                if tmpoutput == '' and proc.poll() != None:
+                    break
+                if tmpoutput != '':
+                    downloadedstream = ''
+                    size_av = '0'
+                    lineAfterCarriage += tmpoutput
+                    if tmpoutput == '\r':
+                        if 'Duration' in lineAfterCarriage:
+                            duration_str = [string.split('Duration:')[1:] for string in lineAfterCarriage.split(', ') if 'Duration' in string]
+                            if duration_str and duration_str[0][0]:
+                                totalstream = duration_str[0][0].strip()
+
+                        if 'frame' in lineAfterCarriage:
+                            frame_str = [string.strip().split('=') for string in lineAfterCarriage.split(' ') if 'time=' in string]
+                            size_str =  [string.lower().split('kb') for string in lineAfterCarriage.split(' ') if 'kb' in string.lower()]
+                            if frame_str and frame_str[0][0] == 'time':
+                                downloadedstream = frame_str[0][1].strip()
+
+
+
+                            if size_str and size_str[0][0]:
+                                size_av = size_str[0][0][1].strip()
+
+                            now = time.time()
+                            size_strn = self.parse_bytes(size_av + 'k')
+                            speed_str = self.format_speed(self.calc_speed(start,now,size_strn))
+                            percentage = self.format_percent(self.calc_percent(self.calc_miliseconds(downloadedstream),self.calc_miliseconds(totalstream)))
+                            self.to_screen('[download] %s: of %s at %s ETA Unknown' % (percentage,totalstream,speed_str))
+
+                        lineAfterCarriage = ''
             retval = proc.wait()
         except KeyboardInterrupt:
             # subprocces.run would send the SIGKILL signal to ffmpeg and the
