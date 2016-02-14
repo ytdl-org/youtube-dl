@@ -396,13 +396,13 @@ class DailymotionCloudIE(DailymotionBaseInfoExtractor):
     }]
 
     @classmethod
-    def _extract_dmcloud_url(self, webpage):
-        mobj = re.search(r'<iframe[^>]+src=[\'"](%s)[\'"]' % self._VALID_EMBED_URL, webpage)
+    def _extract_dmcloud_url(cls, webpage):
+        mobj = re.search(r'<iframe[^>]+src=[\'"](%s)[\'"]' % cls._VALID_EMBED_URL, webpage)
         if mobj:
             return mobj.group(1)
 
         mobj = re.search(
-            r'<input[^>]+id=[\'"]dmcloudUrlEmissionSelect[\'"][^>]+value=[\'"](%s)[\'"]' % self._VALID_EMBED_URL,
+            r'<input[^>]+id=[\'"]dmcloudUrlEmissionSelect[\'"][^>]+value=[\'"](%s)[\'"]' % cls._VALID_EMBED_URL,
             webpage)
         if mobj:
             return mobj.group(1)
