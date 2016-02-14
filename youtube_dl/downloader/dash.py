@@ -35,6 +35,7 @@ class DashSegmentsFD(FragmentFD):
             return '%s%s%s' % (base_url, '' if base_url.endswith('/') else '/', target_url)
 
         segments_filenames = []
+
         def append_url_to_file(target_url, target_filename):
             success = ctx['dl'].download(target_filename, {'url': combine_url(base_url, target_url)})
             if not success:
