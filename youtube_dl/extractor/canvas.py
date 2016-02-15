@@ -53,15 +53,14 @@ class CanvasIE(InfoExtractor):
                     'url': format_url,
                 })
         self._sort_formats(formats)
-        
+
         subtitles = {}
-        for target in data['subtitleUrls']:
-            format_url, format_type = target.get('url'), target.get('type')
-            if format_type == 'CLOSED':
-                subtitles['nl'] = [{
-                    'ext': 'vtt',
-                    'url': format_url,
-                }]
+        subtitle_urls = data.get('subtitleUrls')
+        if isinstance(subtitle_urls, list):
+            for subtitle in subtitle_urls:
+                subtitle_url = subtitle.get('url')
+                if subtitle_url and subtitle.get('type') == 'CLOSED':
+                    subtitles.setdefault('nl', []).append({'url': subtitle_url})
 
         return {
             'id': video_id,
