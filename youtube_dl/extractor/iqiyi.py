@@ -105,20 +105,19 @@ class IqiyiIE(InfoExtractor):
         'only_matching': True,
     }, {
         # VIP-only video. The first 2 parts (6 minutes) are available without login
+        # MD5 sums omitted as values are different on Travis CI and my machine
         'url': 'http://www.iqiyi.com/v_19rrny4w8w.html',
         'info_dict': {
             'id': 'f3cf468b39dddb30d676f89a91200dc1',
             'title': '泰坦尼克号',
         },
         'playlist': [{
-            'md5': '436bcde6e1307307d5ba1549715b0bbd',
             'info_dict': {
                 'id': 'f3cf468b39dddb30d676f89a91200dc1_part1',
                 'ext': 'f4v',
                 'title': '泰坦尼克号',
             },
         }, {
-            'md5': 'bfc5e332f4900fde547c69372385649e',
             'info_dict': {
                 'id': 'f3cf468b39dddb30d676f89a91200dc1_part2',
                 'ext': 'f4v',
