@@ -3,13 +3,23 @@ from __future__ import unicode_literals
 
 import hashlib
 import math
+import os
 import random
 import time
 import uuid
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
-from ..utils import ExtractorError
+from ..compat import (
+    compat_parse_qs,
+    compat_urllib_parse,
+    compat_urllib_parse_urlparse,
+)
+from ..utils import (
+    ExtractorError,
+    sanitized_Request,
+    urlencode_postdata,
+    url_basename,
+)
 
 
 class IqiyiIE(InfoExtractor):
@@ -93,6 +103,29 @@ class IqiyiIE(InfoExtractor):
     }, {
         'url': 'http://yule.iqiyi.com/pcb.html',
         'only_matching': True,
+    }, {
+        # VIP-only video. The first 2 parts (6 minutes) are available without login
+        'url': 'http://www.iqiyi.com/v_19rrny4w8w.html',
+        'info_dict': {
+            'id': 'f3cf468b39dddb30d676f89a91200dc1',
+            'title': '泰坦尼克号',
+        },
+        'playlist': [{
+            'md5': '436bcde6e1307307d5ba1549715b0bbd',
+            'info_dict': {
+                'id': 'f3cf468b39dddb30d676f89a91200dc1_part1',
+                'ext': 'f4v',
+                'title': '泰坦尼克号',
+            },
+        }, {
+            'md5': 'bfc5e332f4900fde547c69372385649e',
+            'info_dict': {
+                'id': 'f3cf468b39dddb30d676f89a91200dc1_part2',
+                'ext': 'f4v',
+                'title': '泰坦尼克号',
+            },
+        }],
+        'expected_warnings': ['Needs a VIP account for full video'],
     }]
 
     _FORMATS_MAP = [
@@ -108,7 +141,40 @@ class IqiyiIE(InfoExtractor):
     def md5_text(text):
         return hashlib.md5(text.encode('utf-8')).hexdigest()
 
-    def construct_video_urls(self, data, video_id, _uuid):
+    def _authenticate_vip_video(self, api_video_url, video_id, tvid, _uuid, do_report_warning):
+        auth_params = {
+            # version and platform hard-coded in com/qiyi/player/core/model/remote/AuthenticationRemote.as
+            'version': '2.0',
+            'platform': 'b6c13e26323c537d',
+            'aid': tvid,
+            'tvid': tvid,
+            'uid': '',
+            'deviceId': _uuid,
+            'playType': 'main',  # XXX: always main?
+            'filename': os.path.splitext(url_basename(api_video_url))[0],
+        }
+
+        qd_items = compat_parse_qs(compat_urllib_parse_urlparse(api_video_url).query)
+        for key, val in qd_items.items():
+            auth_params[key] = val[0]
+
+        auth_req = sanitized_Request(
+            'http://api.vip.iqiyi.com/services/ckn.action',
+            urlencode_postdata(auth_params))
+        # iQiyi server throws HTTP 405 error without the following header
+        auth_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        auth_result = self._download_json(
+            auth_req, video_id,
+            note='Downloading video authentication JSON',
+            errnote='Unable to download video authentication JSON')
+        if auth_result['code'] == 'Q00506':  # requires a VIP account
+            if do_report_warning:
+                self.report_warning('Needs a VIP account for full video')
+            return False
+
+        return auth_result
+
+    def construct_video_urls(self, data, video_id, _uuid, tvid):
         def do_xor(x, y):
             a = y % 3
             if a == 1:
@@ -137,6 +203,7 @@ class IqiyiIE(InfoExtractor):
             return self.md5_text(t + mg + x)
 
         video_urls_dict = {}
+        need_vip_warning_report = True
         for format_item in data['vp']['tkl'][0]['vs']:
             if 0 < int(format_item['bid']) <= 10:
                 format_id = self.get_format(format_item['bid'])
@@ -155,11 +222,13 @@ class IqiyiIE(InfoExtractor):
                 vl = segment['l']
                 if not vl.startswith('/'):
                     vl = get_encode_code(vl)
-                key = get_path_key(
-                    vl.split('/')[-1].split('.')[0], format_id, segment_index)
+                is_vip_video = '/vip/' in vl
                 filesize = segment['b']
                 base_url = data['vp']['du'].split('/')
-                base_url.insert(-1, key)
+                if not is_vip_video:
+                    key = get_path_key(
+                        vl.split('/')[-1].split('.')[0], format_id, segment_index)
+                    base_url.insert(-1, key)
                 base_url = '/'.join(base_url)
                 param = {
                     'su': _uuid,
@@ -170,8 +239,23 @@ class IqiyiIE(InfoExtractor):
                     'ct': '',
                     'tn': str(int(time.time()))
                 }
-                api_video_url = base_url + vl + '?' + \
-                    compat_urllib_parse.urlencode(param)
+                api_video_url = base_url + vl
+                if is_vip_video:
+                    api_video_url = api_video_url.replace('.f4v', '.hml')
+                    auth_result = self._authenticate_vip_video(
+                        api_video_url, video_id, tvid, _uuid, need_vip_warning_report)
+                    if auth_result is False:
+                        need_vip_warning_report = False
+                        break
+                    param.update({
+                        't': auth_result['data']['t'],
+                        # cid is hard-coded in com/qiyi/player/core/player/RuntimeData.as
+                        'cid': 'afbe8fd3d73448c9',
+                        'vid': video_id,
+                        'QY00001': auth_result['data']['u'],
+                    })
+                api_video_url += '?' if '?' not in api_video_url else '&'
+                api_video_url += compat_urllib_parse.urlencode(param)
                 js = self._download_json(
                     api_video_url, video_id,
                     note='Download video info of segment %d for format %s' % (segment_index + 1, format_id))
@@ -205,6 +289,7 @@ class IqiyiIE(InfoExtractor):
             'tn': random.random(),
             'um': 0,
             'authkey': self.md5_text(self.md5_text('') + tail),
+            'k_tag': 1,
         }
 
         api_url = 'http://cache.video.qiyi.com/vms' + '?' + \
@@ -236,16 +321,13 @@ class IqiyiIE(InfoExtractor):
         if raw_data['code'] != 'A000000':
             raise ExtractorError('Unable to load data. Error code: ' + raw_data['code'])
 
-        if not raw_data['data']['vp']['tkl']:
-            raise ExtractorError('No support iQiqy VIP video')
-
         data = raw_data['data']
 
         title = data['vi']['vn']
 
         # generate video_urls_dict
         video_urls_dict = self.construct_video_urls(
-            data, video_id, _uuid)
+            data, video_id, _uuid, tvid)
 
         # construct info
         entries = []
