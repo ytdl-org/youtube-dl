@@ -1912,13 +1912,16 @@ class YoutubeSearchDateIE(YoutubeSearchIE):
 class YoutubeSearchURLIE(InfoExtractor):
     IE_DESC = 'YouTube.com search URLs'
     IE_NAME = 'youtube:search_url'
-    _VALID_URL = r'https?://(?:www\.)?youtube\.com/results\?(.*?&)?search_query=(?P<query>[^&]+)(?:[&]|$)'
+    _VALID_URL = r'https?://(?:www\.)?youtube\.com/results\?(.*?&)?(?:search_query|q)=(?P<query>[^&]+)(?:[&]|$)'
     _TESTS = [{
         'url': 'https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video',
         'playlist_mincount': 5,
         'info_dict': {
             'title': 'youtube-dl test video',
         }
+    }, {
+        'url': 'https://www.youtube.com/results?q=test&sp=EgQIBBgB',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
