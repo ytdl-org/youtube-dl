@@ -62,49 +62,41 @@ class TudouIE(InfoExtractor):
         if youku_vcode:
             return self.url_result('youku:' + youku_vcode, ie='Youku')
 
-        title = unescapeHTML(item_data['kw'])
-        description = item_data.get('desc')
-        thumbnail_url = item_data.get('pic')
-        view_count = int_or_none(item_data.get('playTimes'))
-        timestamp = int_or_none(item_data.get('pt'))
-
         segments = self._parse_json(item_data['itemSegs'], video_id)
         # It looks like the keys are the arguments that have to be passed as
-        # the hd field in the request url, we pick the higher
-        # Also, filter non-number qualities (see issue #3643).
-        quality = sorted(filter(lambda k: k.isdigit(), segments.keys()),
-                         key=lambda k: int(k))[-1]
-        parts = segments[quality]
-        result = []
-        len_parts = len(parts)
-        if len_parts > 1:
-            self.to_screen('%s: found %s parts' % (video_id, len_parts))
-        for part in parts:
-            part_id = part['k']
-            final_url = self._url_for_id(part_id, quality)
-            ext = (final_url.split('?')[0]).split('.')[-1]
-            part_info = {
-                'id': '%s' % part_id,
-                'url': final_url,
-                'ext': ext,
-                'title': title,
-                'thumbnail': thumbnail_url,
-                'description': description,
-                'view_count': view_count,
-                'timestamp': timestamp,
-                'duration': float_or_none(part.get('seconds'), 1000),
-                'filesize': int_or_none(part.get('size')),
-                'http_headers': {
-                    'Referer': self._PLAYER_URL,
-                },
-            }
-            result.append(part_info)
+        # the hd field in the request url, we filter non-number qualities (see issue #3643).
+        qualites = sorted(filter(lambda k: k.isdigit(), segments.keys()),
+                          key=lambda k: int(k))
+        formats = []
+        for quality in qualites:
+            parts = []
+            for part in segments[quality]:
+                final_url = self._url_for_id(part['k'], quality)
+                ext = (final_url.split('?')[0]).split('.')[-1]
+                part_info = {
+                    'url': final_url,
+                    'ext': ext,
+                    'duration': float_or_none(part.get('seconds'), 1000),
+                    'filesize': int_or_none(part.get('size')),
+                    'http_headers': {
+                        'Referer': self._PLAYER_URL,
+                    },
+                }
+                parts.append(part_info)
+            formats.append({
+                'formats_id': compat_str(quality),
+                'parts': parts,
+            })
+        self._sort_formats(formats)
 
         return {
-            '_type': 'multi_video',
-            'entries': result,
             'id': video_id,
-            'title': title,
+            'title': unescapeHTML(item_data['kw']),
+            'thumbnail': item_data.get('pic'),
+            'description': item_data.get('desc'),
+            'view_count': int_or_none(item_data.get('playTimes')),
+            'timestamp': int_or_none(item_data.get('pt')),
+            'formats': formats,
         }
 
 

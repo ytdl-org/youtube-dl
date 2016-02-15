@@ -11,6 +11,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     sanitized_Request,
+    int_or_none,
 )
 
 
@@ -127,6 +128,7 @@ class SohuIE(InfoExtractor):
                 raise ExtractorError(
                     'Sohu said: The video is only licensed to users in Mainland China.',
                     expected=True)
+        vid = compat_str(vid_data['id'])
 
         formats_json = {}
         for format_id in ('nor', 'high', 'super', 'ori', 'h2644k', 'h2654k'):
@@ -136,18 +138,12 @@ class SohuIE(InfoExtractor):
             vid_id = compat_str(vid_id)
             formats_json[format_id] = vid_data if vid == vid_id else _fetch_data(vid_id, mytv)
 
-        part_count = vid_data['data']['totalBlocks']
-
-        playlist = []
-        for i in range(part_count):
-            formats = []
-            for format_id, format_data in formats_json.items():
-                allot = format_data['allot']
-
-                data = format_data['data']
-                clips_url = data['clipsURL']
-                su = data['su']
-
+        formats = []
+        for format_id, format_data in formats_json.items():
+            data = format_data['data']
+            part_count = data['totalBlocks']
+            parts = []
+            for i in range(part_count):
                 video_url = 'newflv.sohu.ccgslb.net'
                 cdnId = None
                 retries = 0
@@ -155,8 +151,8 @@ class SohuIE(InfoExtractor):
                 while 'newflv.sohu.ccgslb.net' in video_url:
                     params = {
                         'prot': 9,
-                        'file': clips_url[i],
-                        'new': su[i],
+                        'file': data['clipsURL'][i],
+                        'new': data['su'][i],
                         'prod': 'flash',
                         'rb': 1,
                     }
@@ -170,7 +166,7 @@ class SohuIE(InfoExtractor):
                     if retries > 0:
                         download_note += ' (retry #%d)' % retries
                     part_info = self._parse_json(self._download_webpage(
-                        'http://%s/?%s' % (allot, compat_urllib_parse.urlencode(params)),
+                        'http://%s/?%s' % (format_data['allot'], compat_urllib_parse.urlencode(params)),
                         video_id, download_note), video_id)
 
                     video_url = part_info['url']
@@ -180,32 +176,22 @@ class SohuIE(InfoExtractor):
                     if retries > 5:
                         raise ExtractorError('Failed to get video URL')
 
-                formats.append({
+                parts.append({
                     'url': video_url,
-                    'format_id': format_id,
-                    'filesize': data['clipsBytes'][i],
-                    'width': data['width'],
-                    'height': data['height'],
-                    'fps': data['fps'],
+                    'duration': int_or_none(vid_data['data']['clipsDuration'][i]),
+                    'filesize': int_or_none(data['clipsBytes'][i]),
                 })
-            self._sort_formats(formats)
-
-            playlist.append({
-                'id': '%s_part%d' % (video_id, i + 1),
-                'title': title,
-                'duration': vid_data['data']['clipsDuration'][i],
-                'formats': formats,
+            formats.append({
+                'format_id': format_id,
+                'parts': parts,
+                'width': int_or_none(data['width']),
+                'height': int_or_none(data['height']),
+                'fps': int_or_none(data['fps']),
             })
+        self._sort_formats(formats)
 
-        if len(playlist) == 1:
-            info = playlist[0]
-            info['id'] = video_id
-        else:
-            info = {
-                '_type': 'multi_video',
-                'entries': playlist,
-                'id': video_id,
-                'title': title,
-            }
-
-        return info
+        return {
+            'id': video_id,
+            'title': title,
+            'formats': formats,
+        }

@@ -6,10 +6,14 @@ import math
 import random
 import time
 import uuid
+import re
 
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+)
 
 
 class IqiyiIE(InfoExtractor):
@@ -108,7 +112,7 @@ class IqiyiIE(InfoExtractor):
     def md5_text(text):
         return hashlib.md5(text.encode('utf-8')).hexdigest()
 
-    def construct_video_urls(self, data, video_id, _uuid):
+    def construct_formats(self, data, video_id, _uuid):
         def do_xor(x, y):
             a = y % 3
             if a == 1:
@@ -136,14 +140,14 @@ class IqiyiIE(InfoExtractor):
             t = str(int(math.floor(int(tm) / (600.0))))
             return self.md5_text(t + mg + x)
 
-        video_urls_dict = {}
+        formats = []
         for format_item in data['vp']['tkl'][0]['vs']:
             if 0 < int(format_item['bid']) <= 10:
                 format_id = self.get_format(format_item['bid'])
             else:
                 continue
 
-            video_urls = []
+            parts = []
 
             video_urls_info = format_item['fs']
             if not format_item['fs'][0]['l'].startswith('/'):
@@ -151,13 +155,12 @@ class IqiyiIE(InfoExtractor):
                 if t.endswith('mp4'):
                     video_urls_info = format_item['flvs']
 
-            for segment_index, segment in enumerate(video_urls_info):
-                vl = segment['l']
+            for part_index, part in enumerate(video_urls_info):
+                vl = part['l']
                 if not vl.startswith('/'):
                     vl = get_encode_code(vl)
                 key = get_path_key(
-                    vl.split('/')[-1].split('.')[0], format_id, segment_index)
-                filesize = segment['b']
+                    vl.split('/')[-1].split('.')[0], format_id, part_index)
                 base_url = data['vp']['du'].split('/')
                 base_url.insert(-1, key)
                 base_url = '/'.join(base_url)
@@ -174,13 +177,29 @@ class IqiyiIE(InfoExtractor):
                     compat_urllib_parse.urlencode(param)
                 js = self._download_json(
                     api_video_url, video_id,
-                    note='Download video info of segment %d for format %s' % (segment_index + 1, format_id))
+                    note='Download video info of part %d for format %s' % (part_index + 1, format_id))
                 video_url = js['l']
-                video_urls.append(
-                    (video_url, filesize))
+                parts.append({
+                    'url': video_url,
+                    'filesize': int_or_none(part['b']),
+                })
 
-            video_urls_dict[format_id] = video_urls
-        return video_urls_dict
+            format_info = {
+                'format_id': format_id,
+                'parts': parts,
+                'duration': int_or_none(format_item.get('duration')),
+            }
+            scrsz = format_item.get('scrsz')
+            if scrsz:
+                mobj = re.match(r'(\d+)x(\d+)', scrsz)
+                if mobj:
+                    format_info.update({
+                        'width': int(mobj.group(1)),
+                        'height': int(mobj.group(2)),
+                    })
+            formats.append(format_info)
+        self._sort_formats(formats)
+        return formats
 
     def get_format(self, bid):
         matched_format_ids = [_format_id for _bid, _format_id in self._FORMATS_MAP if _bid == str(bid)]
@@ -241,47 +260,8 @@ class IqiyiIE(InfoExtractor):
 
         data = raw_data['data']
 
-        title = data['vi']['vn']
-
-        # generate video_urls_dict
-        video_urls_dict = self.construct_video_urls(
-            data, video_id, _uuid)
-
-        # construct info
-        entries = []
-        for format_id in video_urls_dict:
-            video_urls = video_urls_dict[format_id]
-            for i, video_url_info in enumerate(video_urls):
-                if len(entries) < i + 1:
-                    entries.append({'formats': []})
-                entries[i]['formats'].append(
-                    {
-                        'url': video_url_info[0],
-                        'filesize': video_url_info[-1],
-                        'format_id': format_id,
-                        'preference': int(self.get_bid(format_id))
-                    }
-                )
-
-        for i in range(len(entries)):
-            self._sort_formats(entries[i]['formats'])
-            entries[i].update(
-                {
-                    'id': '%s_part%d' % (video_id, i + 1),
-                    'title': title,
-                }
-            )
-
-        if len(entries) > 1:
-            info = {
-                '_type': 'multi_video',
-                'id': video_id,
-                'title': title,
-                'entries': entries,
-            }
-        else:
-            info = entries[0]
-            info['id'] = video_id
-            info['title'] = title
-
-        return info
+        return {
+            'id': video_id,
+            'title': data['vi']['vn'],
+            'formats': self.construct_formats(data, video_id, _uuid),
+        }
