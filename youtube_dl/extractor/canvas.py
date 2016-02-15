@@ -6,7 +6,7 @@ from ..utils import float_or_none
 
 class CanvasIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?canvas\.be/video/(?:[^/]+/)*(?P<id>[^/?#&]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.canvas.be/video/de-afspraak/najaar-2015/de-afspraak-veilt-voor-de-warmste-week',
         'md5': 'ea838375a547ac787d4064d8c7860a6c',
         'info_dict': {
@@ -18,7 +18,27 @@ class CanvasIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.jpg$',
             'duration': 49.02,
         }
-    }
+    }, {
+        # with subtitles
+        'url': 'http://www.canvas.be/video/panorama/2016/pieter-0167',
+        'info_dict': {
+            'id': 'mz-ast-5240ff21-2d30-4101-bba6-92b5ec67c625',
+            'display_id': 'pieter-0167',
+            'ext': 'mp4',
+            'title': 'Pieter 0167',
+            'description': 'md5:943cd30f48a5d29ba02c3a104dc4ec4e',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'duration': 2553.08,
+            'subtitles': {
+                'nl': [{
+                    'ext': 'vtt',
+                }],
+            },
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
