@@ -93,8 +93,8 @@ class ScreenJunkiesIE(InfoExtractor):
 
         if not bitrates:
             # When subscriptionLevel > 0, i.e. plus subscription is required
-            # media list will be empty. However, hds and hls uri are still
-            # available. We can grabbing them assuming bitrates to be default.
+            # media list will be empty. However, hds and hls uris are still
+            # available. We can grab them assuming bitrates to be default.
             bitrates = self._DEFAULT_BITRATES
 
         auth_token = embed_vars.get('AuthToken')
