@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     int_or_none,
+    orderedSet,
     sanitized_Request,
     str_to_int,
 )
@@ -118,7 +119,8 @@ class XTubeUserIE(InfoExtractor):
             if not html:
                 break
 
-            for _, video_id in re.findall(r'data-plid=(["\'])(.+?)\1', html):
+            for video_id in orderedSet([video_id for _, video_id in re.findall(
+                    r'data-plid=(["\'])(.+?)\1', html)]):
                 entries.append(self.url_result('xtube:%s' % video_id, XTubeIE.ie_key()))
 
             page_count = int_or_none(page.get('pageCount'))
