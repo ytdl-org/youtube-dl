@@ -5,21 +5,189 @@ import hashlib
 import math
 import os
 import random
+import re
 import time
 import uuid
 
 from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
+    compat_str,
     compat_urllib_parse,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
     ExtractorError,
+    ohdave_rsa_encrypt,
     sanitized_Request,
     urlencode_postdata,
     url_basename,
 )
+
+
+def md5_text(text):
+    return hashlib.md5(text.encode('utf-8')).hexdigest()
+
+
+class IqiyiSDK(object):
+    def __init__(self, target, ip, timestamp):
+        self.target = target
+        self.ip = ip
+        self.timestamp = timestamp
+
+    @staticmethod
+    def split_sum(data):
+        return compat_str(sum(map(lambda p: int(p, 16), list(data))))
+
+    @staticmethod
+    def digit_sum(num):
+        if isinstance(num, int):
+            num = compat_str(num)
+        return compat_str(sum(map(int, num)))
+
+    def even_odd(self):
+        even = self.digit_sum(compat_str(self.timestamp)[::2])
+        odd = self.digit_sum(compat_str(self.timestamp)[1::2])
+        return even, odd
+
+    def preprocess(self, chunksize):
+        self.target = md5_text(self.target)
+        chunks = []
+        for i in range(32 // chunksize):
+            chunks.append(self.target[chunksize * i:chunksize * (i + 1)])
+        if 32 % chunksize:
+            chunks.append(self.target[32 - 32 % chunksize:])
+        return chunks, list(map(int, self.ip.split('.')))
+
+    def mod(self, modulus):
+        chunks, ip = self.preprocess(32)
+        self.target = chunks[0] + ''.join(map(lambda p: compat_str(p % modulus), ip))
+
+    def split(self, chunksize):
+        modulus_map = {
+            4: 256,
+            5: 10,
+            8: 100,
+        }
+
+        chunks, ip = self.preprocess(chunksize)
+        ret = ''
+        for i in range(len(chunks)):
+            ip_part = compat_str(ip[i] % modulus_map[chunksize]) if i < 4 else ''
+            if chunksize == 8:
+                ret += ip_part + chunks[i]
+            else:
+                ret += chunks[i] + ip_part
+        self.target = ret
+
+    def handle_input16(self):
+        self.target = md5_text(self.target)
+        self.target = self.split_sum(self.target[:16]) + self.target + self.split_sum(self.target[16:])
+
+    def handle_input8(self):
+        self.target = md5_text(self.target)
+        ret = ''
+        for i in range(4):
+            part = self.target[8 * i:8 * (i + 1)]
+            ret += self.split_sum(part) + part
+        self.target = ret
+
+    def handleSum(self):
+        self.target = md5_text(self.target)
+        self.target = self.split_sum(self.target) + self.target
+
+    def date(self, scheme):
+        self.target = md5_text(self.target)
+        d = time.localtime(self.timestamp)
+        strings = {
+            'y': compat_str(d.tm_year),
+            'm': '%02d' % d.tm_mon,
+            'd': '%02d' % d.tm_mday,
+        }
+        self.target += ''.join(map(lambda c: strings[c], list(scheme)))
+
+    def split_time_even_odd(self):
+        even, odd = self.even_odd()
+        self.target = odd + md5_text(self.target) + even
+
+    def split_time_odd_even(self):
+        even, odd = self.even_odd()
+        self.target = even + md5_text(self.target) + odd
+
+    def split_ip_time_sum(self):
+        chunks, ip = self.preprocess(32)
+        self.target = compat_str(sum(ip)) + chunks[0] + self.digit_sum(self.timestamp)
+
+    def split_time_ip_sum(self):
+        chunks, ip = self.preprocess(32)
+        self.target = self.digit_sum(self.timestamp) + chunks[0] + compat_str(sum(ip))
+
+
+class IqiyiSDKInterpreter(object):
+    BASE62_TABLE = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+    def __init__(self, sdk_code):
+        self.sdk_code = sdk_code
+
+    @classmethod
+    def base62(cls, num):
+        if num == 0:
+            return '0'
+        ret = ''
+        while num:
+            ret = cls.BASE62_TABLE[num % 62] + ret
+            num = num // 62
+        return ret
+
+    def decode_eval_codes(self):
+        self.sdk_code = self.sdk_code[5:-3]
+
+        mobj = re.search(
+            r"'([^']+)',62,(\d+),'([^']+)'\.split\('\|'\),[^,]+,{}",
+            self.sdk_code)
+        obfucasted_code, count, symbols = mobj.groups()
+        count = int(count)
+        symbols = symbols.split('|')
+        symbol_table = {}
+
+        while count:
+            count -= 1
+            b62count = self.base62(count)
+            symbol_table[b62count] = symbols[count] or b62count
+
+        self.sdk_code = re.sub(
+            r'\b(\w+)\b', lambda mobj: symbol_table[mobj.group(0)],
+            obfucasted_code)
+
+    def run(self, target, ip, timestamp):
+        self.decode_eval_codes()
+
+        functions = re.findall(r'input=([a-zA-Z0-9]+)\(input', self.sdk_code)
+
+        sdk = IqiyiSDK(target, ip, timestamp)
+
+        other_functions = {
+            'handleSum': sdk.handleSum,
+            'handleInput8': sdk.handle_input8,
+            'handleInput16': sdk.handle_input16,
+            'splitTimeEvenOdd': sdk.split_time_even_odd,
+            'splitTimeOddEven': sdk.split_time_odd_even,
+            'splitIpTimeSum': sdk.split_ip_time_sum,
+            'splitTimeIpSum': sdk.split_time_ip_sum,
+        }
+        for function in functions:
+            if re.match(r'mod\d+', function):
+                sdk.mod(int(function[3:]))
+            elif re.match(r'date[ymd]{3}', function):
+                sdk.date(function[4:])
+            elif re.match(r'split\d+', function):
+                sdk.split(int(function[5:]))
+            elif function in other_functions:
+                other_functions[function]()
+            else:
+                raise ExtractorError('Unknown funcion %s' % function)
+
+        return sdk.target
 
 
 class IqiyiIE(InfoExtractor):
@@ -27,6 +195,8 @@ class IqiyiIE(InfoExtractor):
     IE_DESC = '爱奇艺'
 
     _VALID_URL = r'http://(?:[^.]+\.)?iqiyi\.com/.+\.html'
+
+    _NETRC_MACHINE = 'iqiyi'
 
     _TESTS = [{
         'url': 'http://www.iqiyi.com/v_19rrojlavg.html',
@@ -136,9 +306,63 @@ class IqiyiIE(InfoExtractor):
         ('10', 'h1'),
     ]
 
+    def _real_initialize(self):
+        self._login()
+
     @staticmethod
-    def md5_text(text):
-        return hashlib.md5(text.encode('utf-8')).hexdigest()
+    def _rsa_fun(data):
+        # public key extracted from http://static.iqiyi.com/js/qiyiV2/20160129180840/jobs/i18n/i18nIndex.js
+        N = 0xab86b6371b5318aaa1d3c9e612a9f1264f372323c8c0f19875b5fc3b3fd3afcc1e5bec527aa94bfa85bffc157e4245aebda05389a5357b75115ac94f074aefcd
+        e = 65537
+
+        return ohdave_rsa_encrypt(data, e, N)
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+
+        # No authentication to be performed
+        if not username:
+            return True
+
+        data = self._download_json(
+            'http://kylin.iqiyi.com/get_token', None,
+            note='Get token for logging', errnote='Unable to get token for logging')
+        sdk = data['sdk']
+        timestamp = int(time.time())
+        target = '/apis/reglogin/login.action?lang=zh_TW&area_code=null&email=%s&passwd=%s&agenttype=1&from=undefined&keeplogin=0&piccode=&fromurl=&_pos=1' % (
+            username, self._rsa_fun(password.encode('utf-8')))
+
+        interp = IqiyiSDKInterpreter(sdk)
+        sign = interp.run(target, data['ip'], timestamp)
+
+        validation_params = {
+            'target': target,
+            'server': 'BEA3AA1908656AABCCFF76582C4C6660',
+            'token': data['token'],
+            'bird_src': 'f8d91d57af224da7893dd397d52d811a',
+            'sign': sign,
+            'bird_t': timestamp,
+        }
+        validation_result = self._download_json(
+            'http://kylin.iqiyi.com/validate?' + compat_urllib_parse.urlencode(validation_params), None,
+            note='Validate credentials', errnote='Unable to validate credentials')
+
+        MSG_MAP = {
+            'P00107': 'please login via the web interface and enter the CAPTCHA code',
+            'P00117': 'bad username or password',
+        }
+
+        code = validation_result['code']
+        if code != 'A00000':
+            msg = MSG_MAP.get(code)
+            if not msg:
+                msg = 'error %s' % code
+                if validation_result.get('msg'):
+                    msg += ': ' + validation_result['msg']
+            self._downloader.report_warning('unable to log in: ' + msg)
+            return False
+
+        return True
 
     def _authenticate_vip_video(self, api_video_url, video_id, tvid, _uuid, do_report_warning):
         auth_params = {
@@ -199,7 +423,7 @@ class IqiyiIE(InfoExtractor):
                 note='Download path key of segment %d for format %s' % (segment_index + 1, format_id)
             )['t']
             t = str(int(math.floor(int(tm) / (600.0))))
-            return self.md5_text(t + mg + x)
+            return md5_text(t + mg + x)
 
         video_urls_dict = {}
         need_vip_warning_report = True
@@ -278,16 +502,16 @@ class IqiyiIE(InfoExtractor):
         tail = tm + tvid
         param = {
             'key': 'fvip',
-            'src': self.md5_text('youtube-dl'),
+            'src': md5_text('youtube-dl'),
             'tvId': tvid,
             'vid': video_id,
             'vinfo': 1,
             'tm': tm,
-            'enc': self.md5_text(enc_key + tail),
+            'enc': md5_text(enc_key + tail),
             'qyid': _uuid,
             'tn': random.random(),
             'um': 0,
-            'authkey': self.md5_text(self.md5_text('') + tail),
+            'authkey': md5_text(md5_text('') + tail),
             'k_tag': 1,
         }
 
