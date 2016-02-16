@@ -112,6 +112,7 @@ class ORFTVthekIE(InfoExtractor):
                             % geo_str),
                         fatal=False)
 
+            self._check_formats(formats, video_id)
             self._sort_formats(formats)
 
             upload_date = unified_strdate(sd['created_date'])
