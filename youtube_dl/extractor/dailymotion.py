@@ -122,10 +122,13 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         description = self._og_search_description(webpage) or self._html_search_meta(
             'description', webpage, 'description')
 
-        view_count = str_to_int(self._search_regex(
+        view_count_str = self._search_regex(
             [r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserPlays:(\d+)"',
-             r'video_views_count[^>]+>\s+([\d\.,]+)'],
-            webpage, 'view count', fatal=False))
+             r'video_views_count[^>]+>\s+([\d\.,\s]+)'],
+            webpage, 'view count', fatal=False)
+        if view_count_str and view_count_str.split:
+            view_count_str = ''.join(view_count_str.split())
+        view_count = str_to_int(view_count_str)
         comment_count = int_or_none(self._search_regex(
             r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserComments:(\d+)"',
             webpage, 'comment count', fatal=False))
