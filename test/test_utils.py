@@ -35,6 +35,7 @@ from youtube_dl.utils import (
     is_html,
     js_to_json,
     limit_length,
+    ohdave_rsa_encrypt,
     OnDemandPagedList,
     orderedSet,
     parse_duration,
@@ -792,6 +793,13 @@ The first line
                 {'nocheckcertificate': False}, '--check-certificate', 'nocheckcertificate', 'false', 'true', '='),
             ['--check-certificate=true'])
 
+    def test_ohdave_rsa_encrypt(self):
+        N = 0xab86b6371b5318aaa1d3c9e612a9f1264f372323c8c0f19875b5fc3b3fd3afcc1e5bec527aa94bfa85bffc157e4245aebda05389a5357b75115ac94f074aefcd
+        e = 65537
+
+        self.assertEqual(
+            ohdave_rsa_encrypt(b'aa111222', e, N),
+            '726664bd9a23fd0c70f9f1b84aab5e3905ce1e45a584e9cbcf9bcc7510338fc1986d6c599ff990d923aa43c51c0d9013cd572e13bc58f4ae48f2ed8c0b0ba881')
 
 if __name__ == '__main__':
     unittest.main()

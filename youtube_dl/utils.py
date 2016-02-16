@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import base64
+import binascii
 import calendar
 import codecs
 import contextlib
@@ -2582,3 +2583,20 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
             return None  # No Proxy
         return compat_urllib_request.ProxyHandler.proxy_open(
             self, req, proxy, type)
+
+
+def ohdave_rsa_encrypt(data, exponent, modulus):
+    '''
+    Implement OHDave's RSA algorithm. See http://www.ohdave.com/rsa/
+
+    Input:
+        data: data to encrypt, bytes-like object
+        exponent, modulus: parameter e and N of RSA algorithm, both integer
+    Output: hex string of encrypted data
+
+    Limitation: supports one block encryption only
+    '''
+
+    payload = int(binascii.hexlify(data[::-1]), 16)
+    encrypted = pow(payload, exponent, modulus)
+    return '%x' % encrypted
