@@ -36,7 +36,7 @@ class NetzkinoIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        category_id = mobj.group('category').split('-')[-1]
+        category_id = mobj.group('category').split('-')[0]
         video_id = mobj.group('id')
 
         api_url = 'http://api.netzkino.de.simplecache.net/capi-2.0a/categories/%s.json?d=www' % category_id
