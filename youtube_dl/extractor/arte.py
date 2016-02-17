@@ -142,27 +142,30 @@ class ArteTVPlus7IE(InfoExtractor):
         }
         qfunc = qualities(['HQ', 'MQ', 'EQ', 'SQ'])
 
+        LANGS = {
+            'fr': 'F',
+            'de': 'A',
+            'en': 'E[ANG]',
+            'es': 'E[ESP]',
+        }
+
         formats = []
         for format_id, format_dict in player_info['VSR'].items():
             f = dict(format_dict)
             versionCode = f.get('versionCode')
-
-            langcode = {
-                'fr': 'F',
-                'de': 'A',
-            }.get(lang, lang)
-            lang_rexs = [r'VO?%s' % langcode, r'VO?.-ST%s' % langcode]
-            lang_pref = (
-                None if versionCode is None else (
-                    10 if any(re.match(r, versionCode) for r in lang_rexs)
-                    else -10))
+            langcode = LANGS.get(lang, lang)
+            lang_rexs = [r'VO?%s-' % re.escape(langcode), r'VO?.-ST%s$' % re.escape(langcode)]
+            lang_pref = None
+            if versionCode:
+                matched_lang_rexs = [r for r in lang_rexs if re.match(r, versionCode)]
+                lang_pref = -10 if not matched_lang_rexs else 10 * len(matched_lang_rexs)
             source_pref = 0
             if versionCode is not None:
                 # The original version with subtitles has lower relevance
-                if re.match(r'VO-ST(F|A)', versionCode):
+                if re.match(r'VO-ST(F|A|E)', versionCode):
                     source_pref -= 10
                 # The version with sourds/mal subtitles has also lower relevance
-                elif re.match(r'VO?(F|A)-STM\1', versionCode):
+                elif re.match(r'VO?(F|A|E)-STM\1', versionCode):
                     source_pref -= 9
             format = {
                 'format_id': format_id,
