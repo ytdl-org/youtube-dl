@@ -126,7 +126,7 @@ class ArteTVPlus7IE(InfoExtractor):
 
         upload_date_str = player_info.get('shootingDate')
         if not upload_date_str:
-            upload_date_str = player_info.get('VDA', '').split(' ')[0]
+            upload_date_str = (player_info.get('VRA') or player_info.get('VDA') or '').split(' ')[0]
 
         title = player_info['VTI'].strip()
         subtitle = player_info.get('VSU', '').strip()
