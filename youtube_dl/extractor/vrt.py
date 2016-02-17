@@ -79,6 +79,10 @@ class VRTIE(InfoExtractor):
             formats.extend(self._extract_f4m_formats(
                 '%s/manifest.f4m' % mobj.group('src'),
                 video_id, f4m_id='hds', fatal=False))
+
+        if not formats and 'data-video-geoblocking="true"' in webpage:
+            self.raise_geo_restricted('This video is only available in Belgium')
+
         self._sort_formats(formats)
 
         title = self._og_search_title(webpage)
