@@ -102,10 +102,20 @@ class ArteTVPlus7IE(InfoExtractor):
             iframe_url = find_iframe_url(webpage, None)
             if not iframe_url:
                 embed_url = self._html_search_regex(
-                    r'arte_vp_url_oembed=\'([^\']+?)\'', webpage, 'embed url')
-                player = self._download_json(
-                    embed_url, video_id, 'Downloading player page')
-                iframe_url = find_iframe_url(player['html'])
+                    r'arte_vp_url_oembed=\'([^\']+?)\'', webpage, 'embed url', default=None)
+                if embed_url:
+                    player = self._download_json(
+                        embed_url, video_id, 'Downloading player page')
+                    iframe_url = find_iframe_url(player['html'])
+            # en and es URLs produce react-based pages with different layout (e.g.
+            # http://www.arte.tv/guide/en/053330-002-A/carnival-italy?zone=world)
+            if not iframe_url:
+                embed_html = self._parse_json(
+                    self._search_regex(
+                        r'program\s*:\s*({.+?["\']embed_html["\'].+?}),?\s*\n',
+                        webpage, 'program'),
+                    video_id)['embed_html']
+                iframe_url= find_iframe_url(embed_html)
             json_url = compat_parse_qs(
                 compat_urllib_parse_urlparse(iframe_url).query)['json_url'][0]
         return self._extract_from_json_url(json_url, video_id, lang)
