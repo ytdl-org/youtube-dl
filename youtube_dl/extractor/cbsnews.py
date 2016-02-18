@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
-from ..utils import parse_duration
+from ..utils import (
+    parse_duration,
+    find_xpath_attr,
+)
 
 
 class CBSNewsIE(ThePlatformIE):
@@ -47,7 +50,7 @@ class CBSNewsIE(ThePlatformIE):
     ]
 
     def _parse_smil_subtitles(self, smil, namespace=None, subtitles_lang='en'):
-        closed_caption_e = smil.find(self._xpath_ns('.//param[@name=\'ClosedCaptionURL\']', namespace))
+        closed_caption_e = find_xpath_attr(smil, self._xpath_ns('.//param', namespace), 'name', 'ClosedCaptionURL')
         return {
             'en': [{
                 'ext': 'ttml',
