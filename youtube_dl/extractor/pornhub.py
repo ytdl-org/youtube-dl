@@ -129,7 +129,31 @@ class PornHubIE(InfoExtractor):
         }
 
 
-class PornHubPlaylistIE(InfoExtractor):
+class PornHubPlaylistBaseIE(InfoExtractor):
+    def _extract_entries(self, webpage):
+        return [
+            self.url_result('http://www.pornhub.com/%s' % video_url, 'PornHub')
+            for video_url in set(re.findall(
+                r'href="/?(view_video\.php\?.*\bviewkey=[\da-z]+[^"]*)"', webpage))
+        ]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = self._extract_entries(webpage)
+
+        playlist = self._parse_json(
+            self._search_regex(
+                r'playlistObject\s*=\s*({.+?});', webpage, 'playlist'),
+            playlist_id)
+
+        return self.playlist_result(
+            entries, playlist_id, playlist.get('title'), playlist.get('description'))
+
+
+class PornHubPlaylistIE(PornHubPlaylistBaseIE):
     _VALID_URL = r'https?://(?:www\.)?pornhub\.com/playlist/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.pornhub.com/playlist/6201671',
@@ -140,21 +164,20 @@ class PornHubPlaylistIE(InfoExtractor):
         'playlist_mincount': 35,
     }]
 
+
+class PornHubUserVideosIE(PornHubPlaylistBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/users/(?P<id>[^/]+)/videos'
+    _TESTS = [{
+        'url': 'http://www.pornhub.com/users/rushandlia/videos',
+        'info_dict': {
+            'id': 'rushandlia',
+        },
+        'playlist_mincount': 13,
+    }]
+
     def _real_extract(self, url):
-        playlist_id = self._match_id(url)
+        user_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, playlist_id)
+        webpage = self._download_webpage(url, user_id)
 
-        entries = [
-            self.url_result('http://www.pornhub.com/%s' % video_url, 'PornHub')
-            for video_url in set(re.findall(
-                r'href="/?(view_video\.php\?.*\bviewkey=[\da-z]+[^"]*)"', webpage))
-        ]
-
-        playlist = self._parse_json(
-            self._search_regex(
-                r'playlistObject\s*=\s*({.+?});', webpage, 'playlist'),
-            playlist_id)
-
-        return self.playlist_result(
-            entries, playlist_id, playlist.get('title'), playlist.get('description'))
+        return self.playlist_result(self._extract_entries(webpage), user_id)

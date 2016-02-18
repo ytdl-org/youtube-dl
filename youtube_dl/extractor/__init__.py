@@ -555,6 +555,7 @@ from .pornhd import PornHdIE
 from .pornhub import (
     PornHubIE,
     PornHubPlaylistIE,
+    PornHubUserVideosIE,
 )
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
