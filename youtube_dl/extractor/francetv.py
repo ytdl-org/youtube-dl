@@ -289,7 +289,7 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         video_id, catalogue = self._html_search_regex(
-            r'href="http://videos?\.francetv\.fr/video/([^@]+@[^"]+)"',
+            r'(?:href=|player\.setVideo\(\s*)"http://videos?\.francetv\.fr/video/([^@]+@[^"]+)"',
             webpage, 'video ID').split('@')
         return self._extract_video(video_id, catalogue)
 
