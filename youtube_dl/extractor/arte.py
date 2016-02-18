@@ -63,7 +63,7 @@ class ArteTvIE(InfoExtractor):
 
 class ArteTVPlus7IE(InfoExtractor):
     IE_NAME = 'arte.tv:+7'
-    _VALID_URL = r'https?://(?:www\.)?arte\.tv/guide/(?P<lang>fr|de|en|es)/(?:(?:sendungen|emissions)/)?(?P<id>.*?)/(?P<name>.*?)(\?.*)?'
+    _VALID_URL = r'https?://(?:www\.)?arte\.tv/guide/(?P<lang>fr|de|en|es)/(?:(?:sendungen|emissions)/)?(?P<id>[^/]+)/(?P<name>[^/?#&+])'
 
     @classmethod
     def _extract_url_info(cls, url):
@@ -198,7 +198,7 @@ class ArteTVPlus7IE(InfoExtractor):
 # It also uses the arte_vp_url url from the webpage to extract the information
 class ArteTVCreativeIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:creative'
-    _VALID_URL = r'https?://creative\.arte\.tv/(?P<lang>fr|de|en|es)/(?:magazine?/)?(?P<id>[^?#]+)'
+    _VALID_URL = r'https?://creative\.arte\.tv/(?P<lang>fr|de|en|es)/(?:magazine?/)?(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'http://creative.arte.tv/de/magazin/agentur-amateur-corporate-design',
@@ -222,7 +222,7 @@ class ArteTVCreativeIE(ArteTVPlus7IE):
 
 class ArteTVFutureIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:future'
-    _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de|en|es)/(?P<id>.+)'
+    _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de|en|es)/(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'http://future.arte.tv/fr/info-sciences/les-ecrevisses-aussi-sont-anxieuses',
@@ -239,7 +239,7 @@ class ArteTVFutureIE(ArteTVPlus7IE):
 
 class ArteTVDDCIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:ddc'
-    _VALID_URL = r'https?://ddc\.arte\.tv/(?P<lang>emission|folge)/(?P<id>.+)'
+    _VALID_URL = r'https?://ddc\.arte\.tv/(?P<lang>emission|folge)/(?P<id>[^/?#&]+)'
 
     def _real_extract(self, url):
         video_id, lang = self._extract_url_info(url)
@@ -257,7 +257,7 @@ class ArteTVDDCIE(ArteTVPlus7IE):
 
 class ArteTVConcertIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:concert'
-    _VALID_URL = r'https?://concert\.arte\.tv/(?P<lang>fr|de|en|es)/(?P<id>.+)'
+    _VALID_URL = r'https?://concert\.arte\.tv/(?P<lang>fr|de|en|es)/(?P<id>[^/?#&]+)'
 
     _TEST = {
         'url': 'http://concert.arte.tv/de/notwist-im-pariser-konzertclub-divan-du-monde',
