@@ -132,7 +132,7 @@ class PornHubIE(InfoExtractor):
 class PornHubPlaylistBaseIE(InfoExtractor):
     def _extract_entries(self, webpage):
         return [
-            self.url_result('http://www.pornhub.com/%s' % video_url, 'PornHub')
+            self.url_result('http://www.pornhub.com/%s' % video_url, PornHubIE.ie_key())
             for video_url in set(re.findall(
                 r'href="/?(view_video\.php\?.*\bviewkey=[\da-z]+[^"]*)"', webpage))
         ]
