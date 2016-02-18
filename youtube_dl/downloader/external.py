@@ -2,8 +2,12 @@ from __future__ import unicode_literals
 
 import os.path
 import subprocess
+import sys
+import re
 
 from .common import FileDownloader
+from ..postprocessor.ffmpeg import FFmpegPostProcessor
+from ..compat import compat_str
 from ..utils import (
     cli_option,
     cli_valueless_option,
@@ -11,6 +15,7 @@ from ..utils import (
     cli_configuration_args,
     encodeFilename,
     encodeArgument,
+    handle_youtubedl_headers,
 )
 
 
@@ -135,6 +140,66 @@ class HttpieFD(ExternalFD):
         for key, val in info_dict['http_headers'].items():
             cmd += ['%s:%s' % (key, val)]
         return cmd
+
+
+class FFmpegFD(ExternalFD):
+    @classmethod
+    def supports(cls, info_dict):
+        return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps', 'm3u8', 'rtsp', 'rtmp', 'mms')
+
+    @classmethod
+    def get_basename(cls):
+        return FFmpegPostProcessor().basename
+
+    def _call_downloader(self, tmpfilename, info_dict):
+        url = info_dict['url']
+        ffpp = FFmpegPostProcessor(downloader=self)
+        ffpp.check_version()
+
+        args = [ffpp.executable, '-y']
+
+        start_time = info_dict.get('start_time', 0)
+        if start_time:
+            args += ['-ss', compat_str(start_time)]
+        end_time = info_dict.get('end_time')
+        if end_time:
+            args += ['-t', compat_str(end_time - start_time)]
+
+        if info_dict['http_headers'] and re.match(r'^https?://', url):
+            # Trailing \r\n after each HTTP header is important to prevent warning from ffmpeg/avconv:
+            # [http @ 00000000003d2fa0] No trailing CRLF found in HTTP header.
+            headers = handle_youtubedl_headers(info_dict['http_headers'])
+            args += [
+                '-headers',
+                ''.join('%s: %s\r\n' % (key, val) for key, val in headers.items())]
+
+        args += ['-i', url, '-c', 'copy']
+        if info_dict.get('protocol') == 'm3u8':
+            if self.params.get('hls_use_mpegts', False):
+                args += ['-f', 'mpegts']
+            else:
+                args += ['-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
+        else:
+            args += ['-f', info_dict['ext']]
+
+        args = [encodeArgument(opt) for opt in args]
+        args.append(encodeFilename(ffpp._ffmpeg_filename_argument(tmpfilename), True))
+
+        self._debug_cmd(args)
+
+        proc = subprocess.Popen(args, stdin=subprocess.PIPE)
+        try:
+            retval = proc.wait()
+        except KeyboardInterrupt:
+            # subprocces.run would send the SIGKILL signal to ffmpeg and the
+            # mp4 file couldn't be played, but if we ask ffmpeg to quit it
+            # produces a file that is playable (this is mostly useful for live
+            # streams). Note that Windows is not affected and produces playable
+            # files (see https://github.com/rg3/youtube-dl/issues/8300).
+            if sys.platform != 'win32':
+                proc.communicate(b'q')
+            raise
+        return retval
 
 _BY_NAME = dict(
     (klass.get_basename(), klass)

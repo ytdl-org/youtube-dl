@@ -1,14 +1,15 @@
 from __future__ import unicode_literals
 
 from .common import FileDownloader
-from .external import get_external_downloader
 from .f4m import F4mFD
 from .hls import HlsFD
-from .hls import NativeHlsFD
 from .http import HttpFD
-from .rtsp import RtspFD
 from .rtmp import RtmpFD
 from .dash import DashSegmentsFD
+from .external import (
+    get_external_downloader,
+    FFmpegFD,
+)
 
 from ..utils import (
     determine_protocol,
@@ -16,10 +17,10 @@ from ..utils import (
 
 PROTOCOL_MAP = {
     'rtmp': RtmpFD,
-    'm3u8_native': NativeHlsFD,
-    'm3u8': HlsFD,
-    'mms': RtspFD,
-    'rtsp': RtspFD,
+    'm3u8_native': HlsFD,
+    'm3u8': FFmpegFD,
+    'mms': FFmpegFD,
+    'rtsp': FFmpegFD,
     'f4m': F4mFD,
     'http_dash_segments': DashSegmentsFD,
 }
@@ -30,6 +31,9 @@ def get_suitable_downloader(info_dict, params={}):
     protocol = determine_protocol(info_dict)
     info_dict['protocol'] = protocol
 
+    if (info_dict.get('start_time') or info_dict.get('end_time')) and FFmpegFD.supports(info_dict):
+        return FFmpegFD
+
     external_downloader = params.get('external_downloader')
     if external_downloader is not None:
         ed = get_external_downloader(external_downloader)
@@ -37,7 +41,7 @@ def get_suitable_downloader(info_dict, params={}):
             return ed
 
     if protocol == 'm3u8' and params.get('hls_prefer_native'):
-        return NativeHlsFD
+        return HlsFD
 
     return PROTOCOL_MAP.get(protocol, HttpFD)
 
