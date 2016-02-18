@@ -2026,9 +2026,15 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
 class YoutubeWatchLaterIE(YoutubePlaylistIE):
     IE_NAME = 'youtube:watchlater'
     IE_DESC = 'Youtube watch later list, ":ytwatchlater" for short (requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/(?:feed/watch_later|playlist\?list=WL)|:ytwatchlater'
+    _VALID_URL = r'https?://www\.youtube\.com/(?:feed/watch_later|(?:playlist|watch)\?(?:.+&)?list=WL)|:ytwatchlater'
 
-    _TESTS = []  # override PlaylistIE tests
+    _TESTS = [{
+        'url': 'https://www.youtube.com/playlist?list=WL',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/watch?v=bCNU9TrbiRk&index=1&list=WL',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         return self._extract_playlist('WL')
