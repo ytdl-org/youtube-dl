@@ -45,6 +45,7 @@ from .arte import (
     ArteTVFutureIE,
     ArteTVCinemaIE,
     ArteTVDDCIE,
+    ArteTVMagazineIE,
     ArteTVEmbedIE,
 )
 from .atresplayer import AtresPlayerIE
