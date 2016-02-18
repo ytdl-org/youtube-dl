@@ -46,6 +46,15 @@ class CBSNewsIE(ThePlatformIE):
         },
     ]
 
+    def _parse_smil_subtitles(self, smil, namespace=None, subtitles_lang='en'):
+        closed_caption_e = smil.find(self._xpath_ns('.//param[@name=\'ClosedCaptionURL\']', namespace))
+        return {
+            'en': [{
+                'ext': 'ttml',
+                'url': closed_caption_e.attrib['value'],
+            }]
+        } if closed_caption_e is not None and closed_caption_e.attrib.get('value') else []
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -61,12 +70,6 @@ class CBSNewsIE(ThePlatformIE):
         thumbnail = item.get('mediaImage') or item.get('thumbnail')
 
         subtitles = {}
-        if 'mpxRefId' in video_info:
-            subtitles['en'] = [{
-                'ext': 'ttml',
-                'url': 'http://www.cbsnews.com/videos/captions/%s.adb_xml' % video_info['mpxRefId'],
-            }]
-
         formats = []
         for format_id in ['RtmpMobileLow', 'RtmpMobileHigh', 'Hls', 'RtmpDesktop']:
             pid = item.get('media' + format_id)
