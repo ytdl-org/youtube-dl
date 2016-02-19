@@ -935,9 +935,9 @@ with youtube_dl.YoutubeDL(ydl_opts) as ydl:
 
 Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/issues>. Unless you were prompted so or there is another pertinent reason (e.g. GitHub fails to accept the bug report), please do not send bug reports via personal email. For discussions, join us in the IRC channel [#youtube-dl](irc://chat.freenode.net/#youtube-dl) on freenode ([webchat](http://webchat.freenode.net/?randomnick=1&channels=youtube-dl)).
 
-**Please include the full output of youtube-dl when run with `-v`**, i.e. add `-v` flag to your command line, copy the **whole** output and post it in the issue body wrapped in \`\`\` for better formatting. It should look similar to this:
+**Please include the full output of youtube-dl when run with `-v`**, i.e. **add** `-v` flag to **your command line**, copy the **whole** output and post it in the issue body wrapped in \`\`\` for better formatting. It should look similar to this:
 ```
-$ youtube-dl -v http://www.youtube.com/watch?v=BaW_jenozKcj
+$ youtube-dl -v <your command line>
 [debug] System config: []
 [debug] User config: []
 [debug] Command-line args: [u'-v', u'http://www.youtube.com/watch?v=BaW_jenozKcj']
