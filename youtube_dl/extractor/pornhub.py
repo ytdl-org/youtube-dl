@@ -11,6 +11,7 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    int_or_none,
     sanitized_Request,
     str_to_int,
 )
@@ -23,13 +24,18 @@ class PornHubIE(InfoExtractor):
     _VALID_URL = r'https?://(?:[a-z]+\.)?pornhub\.com/(?:view_video\.php\?viewkey=|embed/)(?P<id>[0-9a-z]+)'
     _TESTS = [{
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
-        'md5': '882f488fa1f0026f023f33576004a2ed',
+        'md5': '1e19b41231a02eba417839222ac9d58e',
         'info_dict': {
             'id': '648719015',
             'ext': 'mp4',
-            'uploader': 'Babes',
             'title': 'Seductive Indian beauty strips down and fingers her pink pussy',
-            'age_limit': 18
+            'uploader': 'Babes',
+            'duration': 361,
+            'view_count': int,
+            'like_count': int,
+            'dislike_count': int,
+            'comment_count': int,
+            'age_limit': 18,
         }
     }, {
         'url': 'http://www.pornhub.com/view_video.php?viewkey=ph557bbb6676d2d',
@@ -67,13 +73,23 @@ class PornHubIE(InfoExtractor):
                 'PornHub said: %s' % error_msg,
                 expected=True, video_id=video_id)
 
-        video_title = self._html_search_regex(r'<h1 [^>]+>([^<]+)', webpage, 'title')
+        flashvars = self._parse_json(
+            self._search_regex(
+                r'var\s+flashv1ars_\d+\s*=\s*({.+?});', webpage, 'flashvars', default='{}'),
+            video_id)
+        if flashvars:
+            video_title = flashvars.get('video_title')
+            thumbnail = flashvars.get('image_url')
+            duration = int_or_none(flashvars.get('video_duration'))
+        else:
+            video_title, thumbnail, duration = [None] * 3
+
+        if not video_title:
+            video_title = self._html_search_regex(r'<h1 [^>]+>([^<]+)', webpage, 'title')
+
         video_uploader = self._html_search_regex(
             r'(?s)From:&nbsp;.+?<(?:a href="/users/|a href="/channels/|span class="username)[^>]+>(.+?)<',
             webpage, 'uploader', fatal=False)
-        thumbnail = self._html_search_regex(r'"image_url":"([^"]+)', webpage, 'thumbnail', fatal=False)
-        if thumbnail:
-            thumbnail = compat_urllib_parse_unquote(thumbnail)
 
         view_count = self._extract_count(
             r'<span class="count">([\d,\.]+)</span> views', webpage, 'view')
@@ -120,6 +136,7 @@ class PornHubIE(InfoExtractor):
             'uploader': video_uploader,
             'title': video_title,
             'thumbnail': thumbnail,
+            'duration': duration,
             'view_count': view_count,
             'like_count': like_count,
             'dislike_count': dislike_count,
