@@ -111,7 +111,8 @@ class MTVServicesInfoExtractor(InfoExtractor):
         uri = itemdoc.find('guid').text
         video_id = self._id_from_uri(uri)
         self.report_extraction(video_id)
-        mediagen_url = itemdoc.find('%s/%s' % (_media_xml_tag('group'), _media_xml_tag('content'))).attrib['url']
+        content_el = itemdoc.find('%s/%s' % (_media_xml_tag('group'), _media_xml_tag('content')))
+        mediagen_url = content_el.attrib['url']
         # Remove the templates, like &device={device}
         mediagen_url = re.sub(r'&[^=]*?={.*?}(?=(&|$))', '', mediagen_url)
         if 'acceptMethods' not in mediagen_url:
@@ -159,9 +160,6 @@ class MTVServicesInfoExtractor(InfoExtractor):
         if mtvn_id_node is not None:
             mtvn_id = mtvn_id_node.text
 
-        content_el = find_xpath_attr(itemdoc, self._xpath_ns('.//content', 'http://search.yahoo.com/mrss/'), 'duration')
-        duration = float_or_none(content_el.attrib.get('duration')) if content_el is not None else None
-
         return {
             'title': title,
             'formats': self._extract_video_formats(mediagen_doc, mtvn_id),
@@ -169,7 +167,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
             'id': video_id,
             'thumbnail': self._get_thumbnail_url(uri, itemdoc),
             'description': description,
-            'duration': duration,
+            'duration': float_or_none(content_el.attrib.get('duration')),
         }
 
     def _get_feed_query(self, uri):
