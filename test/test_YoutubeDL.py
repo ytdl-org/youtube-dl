@@ -234,7 +234,7 @@ class TestFormatSelection(unittest.TestCase):
 
     def test_youtube_format_selection(self):
         order = [
-            '38', '37', '46', '22', '45', '35', '44', '18', '34', '43', '6', '5', '36', '17', '13',
+            '38', '37', '46', '22', '45', '35', '44', '18', '34', '43', '6', '5', '17', '36', '13',
             # Apple HTTP Live Streaming
             '96', '95', '94', '93', '92', '132', '151',
             # 3D
