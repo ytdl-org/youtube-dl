@@ -11,6 +11,7 @@ from ..utils import (
     ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
+    float_or_none,
     HEADRequest,
     sanitized_Request,
     unescapeHTML,
@@ -158,6 +159,9 @@ class MTVServicesInfoExtractor(InfoExtractor):
         if mtvn_id_node is not None:
             mtvn_id = mtvn_id_node.text
 
+        content_el = find_xpath_attr(itemdoc, self._xpath_ns('.//content', 'http://search.yahoo.com/mrss/'), 'duration')
+        duration = float_or_none(content_el.attrib.get('duration')) if content_el is not None else None
+
         return {
             'title': title,
             'formats': self._extract_video_formats(mediagen_doc, mtvn_id),
@@ -165,6 +169,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
             'id': video_id,
             'thumbnail': self._get_thumbnail_url(uri, itemdoc),
             'description': description,
+            'duration': duration,
         }
 
     def _get_feed_query(self, uri):
