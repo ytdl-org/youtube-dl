@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
     int_or_none,
+    ExtractorError,
 )
 
 
@@ -72,7 +73,19 @@ class AppleTrailersIE(InfoExtractor):
         'playlist_mincount': 2,
     }, {
         'url': 'http://trailers.apple.com/ca/metropole/autrui/',
+        'info_dict': {
+            'id': 'autrui',
+        },
         'only_matching': True,
+    }, {
+        'url': 'http://trailers.apple.com/trailers/fox/kungfupanda3/',
+        'info_dict': {
+            'id': 'kungfupanda3',
+        },
+        'playlist_mincount': 4,
+        'expected_warnings': [
+            'Unable to download JSON metadata'
+        ]
     }]
 
     _JSON_RE = r'iTunes.playURL\((.*?)\);'
@@ -119,20 +132,36 @@ class AppleTrailersIE(InfoExtractor):
 
             trailer_id = first_url.split('/')[-1].rpartition('_')[0].lower()
             settings_json_url = compat_urlparse.urljoin(url, 'includes/settings/%s.json' % trailer_id)
-            settings = self._download_json(settings_json_url, trailer_id, 'Downloading settings json')
 
             formats = []
-            for format in settings['metadata']['sizes']:
-                # The src is a file pointing to the real video file
-                format_url = re.sub(r'_(\d*p.mov)', r'_h\1', format['src'])
-                formats.append({
-                    'url': format_url,
-                    'format': format['type'],
-                    'width': int_or_none(format['width']),
-                    'height': int_or_none(format['height']),
-                })
 
-            self._sort_formats(formats)
+            settings = self._download_json(settings_json_url, trailer_id, 'Downloading settings json', fatal=False)
+
+            if settings:
+
+                for format in settings['metadata']['sizes']:
+                    # The src is a file pointing to the real video file
+                    format_url = re.sub(r'_(\d*p.mov)', r'_h\1', format['src'])
+                    formats.append({
+                        'url': format_url,
+                        'format': format['type'],
+                        'width': int_or_none(format['width']),
+                        'height': int_or_none(format['height']),
+                    })
+                self._sort_formats(formats)
+
+            else:
+
+                print('Extraction of data from json failed, falling back to info from XML')
+
+                direct_download_url = re.sub(r'_([0-9]*p)', '_h\g<1>', first_url)
+                format_extension = first_url.split('.')[-1]
+                formats.append({
+                    'url': direct_download_url,
+                    'format': format_extension,
+                    'width': int_or_none(trailer_info['width']),
+                    'height': int_or_none(trailer_info['height']),
+                })
 
             playlist.append({
                 '_type': 'video',
