@@ -573,7 +573,7 @@ class IqiyiIE(InfoExtractor):
             entries[i].update(
                 {
                     'id': '%s_part%d' % (video_id, i + 1),
-                    'title': title,
+                    'title': title + '_part' + str(i + 1),
                 }
             )
 
