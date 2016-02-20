@@ -16,6 +16,7 @@ from ..utils import (
     encodeFilename,
     encodeArgument,
     handle_youtubedl_headers,
+    check_executable,
 )
 
 
@@ -51,6 +52,10 @@ class ExternalFD(FileDownloader):
         return self.params.get('external_downloader')
 
     @classmethod
+    def available(cls):
+        return check_executable(cls.get_basename(), cls.available_opt)
+
+    @classmethod
     def supports(cls, info_dict):
         return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps')
 
@@ -81,6 +86,8 @@ class ExternalFD(FileDownloader):
 
 
 class CurlFD(ExternalFD):
+    available_opt = ['-V']
+
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '--location', '-o', tmpfilename]
         for key, val in info_dict['http_headers'].items():
@@ -94,6 +101,8 @@ class CurlFD(ExternalFD):
 
 
 class AxelFD(ExternalFD):
+    available_opt = ['-V']
+
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-o', tmpfilename]
         for key, val in info_dict['http_headers'].items():
@@ -104,6 +113,8 @@ class AxelFD(ExternalFD):
 
 
 class WgetFD(ExternalFD):
+    available_opt = ['--version']
+
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-O', tmpfilename, '-nv', '--no-cookies']
         for key, val in info_dict['http_headers'].items():
@@ -117,6 +128,8 @@ class WgetFD(ExternalFD):
 
 
 class Aria2cFD(ExternalFD):
+    available_opt = ['-v']
+
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-c']
         cmd += self._configuration_args([
@@ -135,6 +148,10 @@ class Aria2cFD(ExternalFD):
 
 
 class HttpieFD(ExternalFD):
+    @classmethod
+    def available(cls):
+        return check_executable('http', ['--version'])
+
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = ['http', '--download', '--output', tmpfilename, info_dict['url']]
         for key, val in info_dict['http_headers'].items():
@@ -146,6 +163,10 @@ class FFmpegFD(ExternalFD):
     @classmethod
     def supports(cls, info_dict):
         return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps', 'm3u8', 'rtsp', 'rtmp', 'mms')
+
+    @classmethod
+    def available(cls):
+        return FFmpegPostProcessor().available
 
     def _call_downloader(self, tmpfilename, info_dict):
         url = info_dict['url']
