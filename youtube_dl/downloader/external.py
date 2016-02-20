@@ -175,7 +175,7 @@ class FFmpegFD(ExternalFD):
 
         args = [ffpp.executable, '-y']
 
-        start_time = info_dict.get('start_time', 0)
+        start_time = info_dict.get('start_time') or 0
         if start_time:
             args += ['-ss', compat_str(start_time)]
         end_time = info_dict.get('end_time')
