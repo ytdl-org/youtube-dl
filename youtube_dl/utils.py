@@ -1397,6 +1397,12 @@ def fix_xml_ampersands(xml_str):
 
 def setproctitle(title):
     assert isinstance(title, compat_str)
+
+    # ctypes in Jython is not complete
+    # http://bugs.jython.org/issue2148
+    if sys.platform.startswith('java'):
+        return
+
     try:
         libc = ctypes.cdll.LoadLibrary('libc.so.6')
     except OSError:
