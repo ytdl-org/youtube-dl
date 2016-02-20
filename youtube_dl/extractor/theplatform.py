@@ -21,6 +21,7 @@ from ..utils import (
     sanitized_Request,
     unsmuggle_url,
     xpath_with_ns,
+    mimetype2ext,
 )
 
 default_ns = 'http://www.w3.org/2005/SMIL21/Language'
@@ -68,7 +69,7 @@ class ThePlatformBaseIE(InfoExtractor):
             for caption in captions:
                 lang, src, mime = caption.get('lang', 'en'), caption.get('src'), caption.get('type')
                 subtitles[lang] = [{
-                    'ext': 'srt' if mime == 'text/srt' else 'ttml',
+                    'ext': mimetype2ext(mime),
                     'url': src,
                 }]
 

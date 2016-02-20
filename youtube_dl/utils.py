@@ -1846,7 +1846,11 @@ def mimetype2ext(mt):
 
     return {
         '3gpp': '3gp',
+        'smptett+xml': 'tt',
+        'srt': 'srt',
+        'ttaf+xml': 'dfxp',
         'ttml+xml': 'ttml',
+        'vtt': 'vtt',
         'x-flv': 'flv',
         'x-mp4-fragmented': 'mp4',
         'x-ms-wmv': 'wmv',

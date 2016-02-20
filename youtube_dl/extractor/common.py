@@ -46,6 +46,7 @@ from ..utils import (
     xpath_with_ns,
     determine_protocol,
     parse_duration,
+    mimetype2ext,
 )
 
 
@@ -1277,16 +1278,7 @@ class InfoExtractor(object):
             if not src or src in urls:
                 continue
             urls.append(src)
-            ext = textstream.get('ext') or determine_ext(src)
-            if not ext:
-                type_ = textstream.get('type')
-                SUBTITLES_TYPES = {
-                    'text/vtt': 'vtt',
-                    'text/srt': 'srt',
-                    'application/smptett+xml': 'tt',
-                }
-                if type_ in SUBTITLES_TYPES:
-                    ext = SUBTITLES_TYPES[type_]
+            ext = textstream.get('ext') or determine_ext(src) or mimetype2ext(textstream.get('type'))
             lang = textstream.get('systemLanguage') or textstream.get('systemLanguageName') or textstream.get('lang') or subtitles_lang
             subtitles.setdefault(lang, []).append({
                 'url': src,
