@@ -1217,13 +1217,23 @@ if sys.platform == 'win32':
             raise OSError('Unlocking file failed: %r' % ctypes.FormatError())
 
 else:
-    import fcntl
+    # Some platforms, such as Jython, is missing fcntl
+    try:
+        import fcntl
 
-    def _lock_file(f, exclusive):
-        fcntl.flock(f, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
+        def _lock_file(f, exclusive):
+            fcntl.flock(f, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
 
-    def _unlock_file(f):
-        fcntl.flock(f, fcntl.LOCK_UN)
+        def _unlock_file(f):
+            fcntl.flock(f, fcntl.LOCK_UN)
+    except ImportError:
+        UNSUPPORTED_MSG = 'file locking is not supported on this platform'
+
+        def _lock_file(f, exclusive):
+            raise IOError(UNSUPPORTED_MSG)
+
+        def _unlock_file(f):
+            raise IOError(UNSUPPORTED_MSG)
 
 
 class locked_file(object):
