@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import hashlib
+import itertools
 import math
 import os
 import random
@@ -19,6 +20,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     ohdave_rsa_encrypt,
+    remove_start,
     sanitized_Request,
     urlencode_postdata,
     url_basename,
@@ -295,6 +297,13 @@ class IqiyiIE(InfoExtractor):
             },
         }],
         'expected_warnings': ['Needs a VIP account for full video'],
+    }, {
+        'url': 'http://www.iqiyi.com/a_19rrhb8ce1.html',
+        'info_dict': {
+            'id': '202918101',
+            'title': '灌篮高手 国语版',
+        },
+        'playlist_count': 101,
     }]
 
     _FORMATS_MAP = [
@@ -526,9 +535,49 @@ class IqiyiIE(InfoExtractor):
         enc_key = '6ab6d0280511493ba85594779759d4ed'
         return enc_key
 
+    def _extract_playlist(self, webpage):
+        PAGE_SIZE = 50
+
+        links = re.findall(
+            r'<a[^>]+class="site-piclist_pic_link"[^>]+href="(http://www\.iqiyi\.com/.+\.html)"',
+            webpage)
+        if not links:
+            return
+
+        album_id = self._search_regex(
+            r'albumId\s*:\s*(\d+),', webpage, 'album ID')
+        album_title = self._search_regex(
+            r'data-share-title="([^"]+)"', webpage, 'album title', fatal=False)
+
+        entries = list(map(self.url_result, links))
+
+        # Start from 2 because links in the first page are already on webpage
+        for page_num in itertools.count(2):
+            pagelist_page = self._download_webpage(
+                'http://cache.video.qiyi.com/jp/avlist/%s/%d/%d/' % (album_id, page_num, PAGE_SIZE),
+                album_id,
+                note='Download playlist page %d' % page_num,
+                errnote='Failed to download playlist page %d' % page_num)
+            pagelist = self._parse_json(
+                remove_start(pagelist_page, 'var tvInfoJs='), album_id)
+            vlist = pagelist['data']['vlist']
+            for item in vlist:
+                entries.append(self.url_result(item['vurl']))
+            if len(vlist) < PAGE_SIZE:
+                break
+
+        return self.playlist_result(entries, album_id, album_title)
+
     def _real_extract(self, url):
         webpage = self._download_webpage(
             url, 'temp_id', note='download video page')
+
+        # There's no simple way to determine whether an URL is a playlist or not
+        # So detect it
+        playlist_result = self._extract_playlist(webpage)
+        if playlist_result:
+            return playlist_result
+
         tvid = self._search_regex(
             r'data-player-tvid\s*=\s*[\'"](\d+)', webpage, 'tvid')
         video_id = self._search_regex(
