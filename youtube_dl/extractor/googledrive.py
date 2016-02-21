@@ -82,7 +82,7 @@ class GoogleDriveIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': self._og_search_thumbnail(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage, default=None),
             'duration': duration,
             'formats': formats,
         }
