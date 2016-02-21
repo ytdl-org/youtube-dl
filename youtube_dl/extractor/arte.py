@@ -240,6 +240,7 @@ class ArteTVFutureIE(ArteTVPlus7IE):
             'id': '050940-028-A',
             'ext': 'mp4',
             'title': 'Les écrevisses aussi peuvent être anxieuses',
+            'upload_date': '20140902',
         },
     }, {
         'url': 'http://future.arte.tv/fr/la-science-est-elle-responsable',
