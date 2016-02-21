@@ -26,7 +26,7 @@ class TwitterCardIE(TwitterBaseIE):
     _TESTS = [
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/560070183650213889',
-            'md5': '4fa26a35f9d1bf4b646590ba8e84be19',
+            # MD5 checksums are different in different places
             'info_dict': {
                 'id': '560070183650213889',
                 'ext': 'mp4',
@@ -48,7 +48,7 @@ class TwitterCardIE(TwitterBaseIE):
         },
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/654001591733886977',
-            'md5': 'b6f35e8b08a0bec6c8af77a2f4b3a814',
+            'md5': 'd4724ffe6d2437886d004fa5de1043b3',
             'info_dict': {
                 'id': 'dq4Oj5quskI',
                 'ext': 'mp4',
@@ -68,8 +68,8 @@ class TwitterCardIE(TwitterBaseIE):
                 'ext': 'mp4',
                 'upload_date': '20151113',
                 'uploader_id': '1189339351084113920',
-                'uploader': '@ArsenalTerje',
-                'title': 'Vine by @ArsenalTerje',
+                'uploader': 'ArsenalTerje',
+                'title': 'Vine by ArsenalTerje',
             },
             'add_ie': ['Vine'],
         }
@@ -142,7 +142,7 @@ class TwitterIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'https://twitter.com/freethenipple/status/643211948184596480',
-        'md5': 'db6612ec5d03355953c3ca9250c97e5e',
+        # MD5 checksums are different in different places
         'info_dict': {
             'id': '643211948184596480',
             'ext': 'mp4',
