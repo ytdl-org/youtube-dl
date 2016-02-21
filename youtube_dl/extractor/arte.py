@@ -110,15 +110,25 @@ class ArteTVPlus7IE(InfoExtractor):
             # en and es URLs produce react-based pages with different layout (e.g.
             # http://www.arte.tv/guide/en/053330-002-A/carnival-italy?zone=world)
             if not iframe_url:
-                embed_html = self._parse_json(
-                    self._search_regex(
-                        r'program\s*:\s*({.+?["\']embed_html["\'].+?}),?\s*\n',
-                        webpage, 'program'),
-                    video_id)['embed_html']
-                iframe_url = find_iframe_url(embed_html)
-            json_url = compat_parse_qs(
-                compat_urllib_parse_urlparse(iframe_url).query)['json_url'][0]
-        return self._extract_from_json_url(json_url, video_id, lang)
+                program = self._search_regex(
+                    r'program\s*:\s*({.+?["\']embed_html["\'].+?}),?\s*\n',
+                    webpage, 'program', default=None)
+                if program:
+                    embed_html = self._parse_json(program,video_id)
+                    if embed_html:
+                        iframe_url = find_iframe_url(embed_html['embed_html'])
+            if iframe_url:
+                json_url = compat_parse_qs(
+                    compat_urllib_parse_urlparse(iframe_url).query)['json_url'][0]
+        if json_url:
+            return self._extract_from_json_url(json_url, video_id, lang)
+        # Differend kind of embed URL (e.g.
+        # http://www.arte.tv/magazine/trepalium/fr/episode-0406-replay-trepalium)
+        embed_url = self._search_regex(
+            r'<iframe[^>]+src=(["\'])(?P<url>.+?)\1',
+            webpage, 'embed url', group='url')
+        return self.url_result(embed_url)
+
 
     def _extract_from_json_url(self, json_url, video_id, lang):
         info = self._download_json(json_url, video_id)
@@ -294,12 +304,24 @@ class ArteTVMagazineIE(ArteTVPlus7IE):
     _VALID_URL = r'https?://(?:www\.)?arte\.tv/magazine/[^/]+/(?P<lang>fr|de|en|es)/(?P<id>[^/?#&]+)'
 
     _TESTS = [{
+        # Embedded via <iframe src="http://www.arte.tv/arte_vp/index.php?json_url=..."
         'url': 'http://www.arte.tv/magazine/trepalium/fr/entretien-avec-le-realisateur-vincent-lannoo-trepalium',
         'md5': '66a093339c1278bb3719157ef07107b2',
         'info_dict': {
             'id': '065965-000-A',
             'ext': 'mp4',
             'title': 'Trepalium - Extrait Ep.01',
+        },
+    }, {
+        # Embedded via <iframe src="http://www.arte.tv/guide/fr/embed/054813-004-A/medium"
+        'url': 'http://www.arte.tv/magazine/trepalium/fr/episode-0406-replay-trepalium',
+        'md5': 'fedc64fc7a946110fe311634e79782ca',
+        'info_dict': {
+            'id': '054813-004_PLUS7-F',
+            'ext': 'mp4',
+            'title': 'Trepalium (4/6)',
+            'description': 'md5:10057003c34d54e95350be4f9b05cb40',
+            'upload_date': '20160218',
         },
     }, {
         'url': 'http://www.arte.tv/magazine/metropolis/de/frank-woeste-german-paris-metropolis',
