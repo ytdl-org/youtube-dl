@@ -229,7 +229,7 @@ class TwitterIE(InfoExtractor):
             })
             return info
 
-        raise ExtractorError('There\'s not video in this tweet.')
+        raise ExtractorError('There\'s no video in this tweet.')
 
 
 class TwitterAmplifyIE(TwitterBaseIE):
