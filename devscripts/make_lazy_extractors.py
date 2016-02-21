@@ -30,7 +30,7 @@ class {name}(LazyLoadExtractor):
 make_valid_template = '''
     @classmethod
     def _make_valid_url(cls):
-        return {!r}
+        return {valid_url!r}
 '''
 
 
@@ -44,7 +44,7 @@ def build_lazy_ie(ie, name):
         s += getsource(ie.suitable)
     if hasattr(ie, '_make_valid_url'):
         # search extractors
-        s += make_valid_template.format(ie._make_valid_url())
+        s += make_valid_template.format(valid_url=ie._make_valid_url())
     return s
 
 names = []
@@ -55,7 +55,7 @@ for ie in _ALL_CLASSES:
     names.append(name)
 
 module_contents.append(
-    '_ALL_CLASSES = [{}]'.format(', '.join(names)))
+    '_ALL_CLASSES = [{0}]'.format(', '.join(names)))
 
 module_src = '\n'.join(module_contents)
 
