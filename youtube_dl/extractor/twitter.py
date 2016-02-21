@@ -165,6 +165,7 @@ class TwitterIE(InfoExtractor):
             'uploader': 'Gifs',
             'uploader_id': 'giphz',
         },
+        'expected_warnings': ['height', 'width'],
     }, {
         'url': 'https://twitter.com/starwars/status/665052190608723968',
         'md5': '39b7199856dee6cd4432e72c74bc69d4',
@@ -212,20 +213,24 @@ class TwitterIE(InfoExtractor):
             return info
 
         mobj = re.search(r'''(?x)
-            <video[^>]+class="animated-gif"[^>]+
-                (?:data-height="(?P<height>\d+)")?[^>]+
-                (?:data-width="(?P<width>\d+)")?[^>]+
-                (?:poster="(?P<poster>[^"]+)")?[^>]*>\s*
+            <video[^>]+class="animated-gif"(?P<more_info>[^>]+)>\s*
                 <source[^>]+video-src="(?P<url>[^"]+)"
         ''', webpage)
 
         if mobj:
+            more_info = mobj.group('more_info')
+            height = int_or_none(self._search_regex(
+                r'data-height="(\d+)"', more_info, 'height', fatal=False))
+            width = int_or_none(self._search_regex(
+                r'data-width="(\d+)"', more_info, 'width', fatal=False))
+            thumbnail = self._search_regex(
+                r'poster="([^"]+)"', more_info, 'poster', fatal=False)
             info.update({
                 'id': twid,
                 'url': mobj.group('url'),
-                'height': int_or_none(mobj.group('height')),
-                'width': int_or_none(mobj.group('width')),
-                'thumbnail': mobj.group('poster'),
+                'height': height,
+                'width': width,
+                'thumbnail': thumbnail,
             })
             return info
 
