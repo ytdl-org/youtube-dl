@@ -11,7 +11,9 @@ class LazyLoadExtractor(object):
     def ie_key(cls):
         return cls.__name__[:-2]
 
-    def __new__(cls):
+    def __new__(cls, *args, **kwargs):
         mod = __import__(cls._module, fromlist=(cls.__name__,))
         real_cls = getattr(mod, cls.__name__)
-        return real_cls.__new__(real_cls)
+        instance = real_cls.__new__(real_cls)
+        instance.__init__(*args, **kwargs)
+        return instance
