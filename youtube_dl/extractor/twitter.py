@@ -243,6 +243,7 @@ class TwitterAmplifyIE(TwitterBaseIE):
             'id': '0ba0c3c7-0af3-4c0a-bed5-7efd1ffa2951',
             'ext': 'mp4',
             'title': 'Twitter Video',
+            'thumbnail': 're:^https?://.*',
         },
     }
 
@@ -254,8 +255,35 @@ class TwitterAmplifyIE(TwitterBaseIE):
             'twitter:amplify:vmap', webpage, 'vmap url')
         video_url = self._get_vmap_video_url(vmap_url, video_id)
 
+        thumbnails = []
+        thumbnail = self._html_search_meta(
+            'twitter:image:src', webpage, 'thumbnail', fatal=False)
+
+        def _find_dimension(target):
+            w = int_or_none(self._html_search_meta(
+                'twitter:%s:width' % target, webpage, fatal=False))
+            h = int_or_none(self._html_search_meta(
+                'twitter:%s:height' % target, webpage, fatal=False))
+            return w, h
+
+        if thumbnail:
+            thumbnail_w, thumbnail_h = _find_dimension('image')
+            thumbnails.append({
+                'url': thumbnail,
+                'width': thumbnail_w,
+                'height': thumbnail_h,
+            })
+
+        video_w, video_h = _find_dimension('player')
+        formats = [{
+            'url': video_url,
+            'width': video_w,
+            'height': video_h,
+        }]
+
         return {
             'id': video_id,
             'title': 'Twitter Video',
-            'url': video_url,
+            'formats': formats,
+            'thumbnails': thumbnails,
         }
