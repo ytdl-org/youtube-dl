@@ -3,7 +3,9 @@ from __future__ import unicode_literals
 try:
     from .lazy_extractors import *
     from .lazy_extractors import _ALL_CLASSES
+    _LAZY_LOADER = True
 except ImportError:
+    _LAZY_LOADER = False
     from .extractors import *
 
     _ALL_CLASSES = [

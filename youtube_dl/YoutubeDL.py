@@ -82,7 +82,7 @@ from .utils import (
     YoutubeDLHandler,
 )
 from .cache import Cache
-from .extractor import get_info_extractor, gen_extractor_classes
+from .extractor import get_info_extractor, gen_extractor_classes, _LAZY_LOADER
 from .downloader import get_suitable_downloader
 from .downloader.rtmp import rtmpdump_version
 from .postprocessor import (
@@ -1959,6 +1959,8 @@ class YoutubeDL(object):
         write_string(encoding_str, encoding=None)
 
         self._write_string('[debug] youtube-dl version ' + __version__ + '\n')
+        if _LAZY_LOADER:
+            self._write_string('[debug] Lazy loading extractors enabled' + '\n')
         try:
             sp = subprocess.Popen(
                 ['git', 'rev-parse', '--short', 'HEAD'],
