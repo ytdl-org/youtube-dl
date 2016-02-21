@@ -900,6 +900,16 @@ class InfoExtractor(object):
                     item='%s video format' % f.get('format_id') if f.get('format_id') else 'video'),
                 formats)
 
+    @staticmethod
+    def _remove_duplicate_formats(formats):
+        format_urls = set()
+        unique_formats = []
+        for f in formats:
+            if f['url'] not in format_urls:
+                format_urls.add(f['url'])
+                unique_formats.append(f)
+        formats[:] = unique_formats
+
     def _is_valid_url(self, url, video_id, item='video'):
         url = self._proto_relative_url(url, scheme='http:')
         # For now assume non HTTP(S) URLs always valid
