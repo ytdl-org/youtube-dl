@@ -41,14 +41,14 @@ def build_lazy_ie(ie, name):
         valid_url=valid_url,
         module=ie.__module__)
     if ie.suitable.__func__ is not InfoExtractor.suitable.__func__:
-        s += getsource(ie.suitable)
+        s += '\n' + getsource(ie.suitable)
     if hasattr(ie, '_make_valid_url'):
         # search extractors
         s += make_valid_template.format(valid_url=ie._make_valid_url())
     return s
 
 names = []
-for ie in _ALL_CLASSES:
+for ie in list(sorted(_ALL_CLASSES[:-1], key=lambda cls: cls.ie_key())) + _ALL_CLASSES[-1:]:
     name = ie.ie_key() + 'IE'
     src = build_lazy_ie(ie, name)
     module_contents.append(src)
@@ -57,7 +57,7 @@ for ie in _ALL_CLASSES:
 module_contents.append(
     '_ALL_CLASSES = [{0}]'.format(', '.join(names)))
 
-module_src = '\n'.join(module_contents)
+module_src = '\n'.join(module_contents) + '\n'
 
 with open(lazy_extractors_filename, 'wt') as f:
     f.write(module_src)
