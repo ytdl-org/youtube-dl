@@ -798,7 +798,11 @@ from .twitch import (
     TwitchBookmarksIE,
     TwitchStreamIE,
 )
-from .twitter import TwitterCardIE, TwitterIE
+from .twitter import (
+    TwitterCardIE,
+    TwitterIE,
+    TwitterAmplifyIE,
+)
 from .ubu import UbuIE
 from .udemy import (
     UdemyIE,

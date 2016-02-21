@@ -14,7 +14,13 @@ from ..utils import (
 )
 
 
-class TwitterCardIE(InfoExtractor):
+class TwitterBaseIE(InfoExtractor):
+    def _get_vmap_video_url(self, vmap_url, video_id):
+        vmap_data = self._download_xml(vmap_url, video_id)
+        return xpath_text(vmap_data, './/MediaFile').strip()
+
+
+class TwitterCardIE(TwitterBaseIE):
     IE_NAME = 'twitter:card'
     _VALID_URL = r'https?://(?:www\.)?twitter\.com/i/cards/tfw/v1/(?P<id>\d+)'
     _TESTS = [
@@ -96,10 +102,8 @@ class TwitterCardIE(InfoExtractor):
                 video_id)
             if 'playlist' not in config:
                 if 'vmapUrl' in config:
-                    vmap_data = self._download_xml(config['vmapUrl'], video_id)
-                    video_url = xpath_text(vmap_data, './/MediaFile').strip()
                     formats.append({
-                        'url': video_url,
+                        'url': self._get_vmap_video_url(config['vmapUrl'], video_id),
                     })
                     break   # same video regardless of UA
                 continue
@@ -226,3 +230,32 @@ class TwitterIE(InfoExtractor):
             return info
 
         raise ExtractorError('There\'s not video in this tweet.')
+
+
+class TwitterAmplifyIE(TwitterBaseIE):
+    IE_NAME = 'twitter:amplify'
+    _VALID_URL = 'https?://amp\.twimg\.com/v/(?P<id>[0-9a-f\-]{36})'
+
+    _TEST = {
+        'url': 'https://amp.twimg.com/v/0ba0c3c7-0af3-4c0a-bed5-7efd1ffa2951',
+        'md5': '7df102d0b9fd7066b86f3159f8e81bf6',
+        'info_dict': {
+            'id': '0ba0c3c7-0af3-4c0a-bed5-7efd1ffa2951',
+            'ext': 'mp4',
+            'title': 'Twitter Video',
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        vmap_url = self._html_search_meta(
+            'twitter:amplify:vmap', webpage, 'vmap url')
+        video_url = self._get_vmap_video_url(vmap_url, video_id)
+
+        return {
+            'id': video_id,
+            'title': 'Twitter Video',
+            'url': video_url,
+        }
