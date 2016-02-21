@@ -338,6 +338,21 @@ class PBSIE(InfoExtractor):
             },
         },
         {
+            # Serves hd only via wigget/partnerplayer page
+            'url': 'http://www.pbs.org/video/2365641075/',
+            'info_dict': {
+                'id': '2365641075',
+                'ext': 'mp4',
+                'title': 'FRONTLINE - Netanyahu at War',
+                'duration': 6852,
+                'thumbnail': 're:^https?://.*\.jpg$',
+                'formats': 'mincount:8',
+            },
+            'params': {
+                'skip_download': True,  # requires ffmpeg
+            },
+        },
+        {
             'url': 'http://player.pbs.org/widget/partnerplayer/2365297708/?start=0&end=0&chapterbar=false&endscreen=false&topbar=true',
             'only_matching': True,
         },
@@ -437,34 +452,54 @@ class PBSIE(InfoExtractor):
                 for vid_id in video_id]
             return self.playlist_result(entries, display_id)
 
+        info = None
+        redirects = []
+        redirect_urls = set()
+
+        def extract_redirect_urls(info):
+            for encoding_name in ('recommended_encoding', 'alternate_encoding'):
+                redirect = info.get(encoding_name)
+                if not redirect:
+                    continue
+                redirect_url = redirect.get('url')
+                if redirect_url and redirect_url not in redirect_urls:
+                    redirects.append(redirect)
+                    redirect_urls.add(redirect_url)
+
         try:
-            info = self._download_json(
+            video_info = self._download_json(
                 'http://player.pbs.org/videoInfo/%s?format=json&type=partner' % video_id,
                 display_id, 'Downloading video info JSON')
+            extract_redirect_urls(video_info)
+            info = video_info
         except ExtractorError as e:
+            # videoInfo API may not work for some videos
             if not isinstance(e.cause, compat_HTTPError) or e.cause.code != 404:
                 raise
-            # videoInfo API may not work for some videos, fallback to portalplayer API
+
+        # Player pages may also serve different qualities
+        for page in ('widget/partnerplayer', 'portalplayer'):
             player = self._download_webpage(
-                'http://player.pbs.org/portalplayer/%s' % video_id, display_id)
-            info = self._parse_json(
-                self._search_regex(
-                    r'(?s)PBS\.videoData\s*=\s*({.+?});\n',
-                    player, 'video data', default='{}'),
-                display_id, transform_source=js_to_json, fatal=False)
+                'http://player.pbs.org/%s/%s' % (page, video_id),
+                display_id, 'Downloading %s page' % page, fatal=False)
+            if player:
+                video_info = self._parse_json(
+                    self._search_regex(
+                        r'(?s)PBS\.videoData\s*=\s*({.+?});\n',
+                        player, '%s video data' % page, default='{}'),
+                    display_id, transform_source=js_to_json, fatal=False)
+                if video_info:
+                    extract_redirect_urls(video_info)
+                    if not info:
+                        info = video_info
 
         formats = []
-        for encoding_name in ('recommended_encoding', 'alternate_encoding'):
-            redirect = info.get(encoding_name)
-            if not redirect:
-                continue
-            redirect_url = redirect.get('url')
-            if not redirect_url:
-                continue
+        for num, redirect in enumerate(redirects):
+            redirect_id = redirect.get('eeid')
 
             redirect_info = self._download_json(
-                redirect_url + '?format=json', display_id,
-                'Downloading %s video url info' % encoding_name)
+                '%s?format=json' % redirect['url'], display_id,
+                'Downloading %s video url info' % (redirect_id or num))
 
             if redirect_info['status'] == 'error':
                 raise ExtractorError(
@@ -483,8 +518,9 @@ class PBSIE(InfoExtractor):
             else:
                 formats.append({
                     'url': format_url,
-                    'format_id': redirect.get('eeid'),
+                    'format_id': redirect_id,
                 })
+        self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
 
         rating_str = info.get('rating')
