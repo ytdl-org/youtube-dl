@@ -306,11 +306,12 @@ class ArteTVMagazineIE(ArteTVPlus7IE):
     _TESTS = [{
         # Embedded via <iframe src="http://www.arte.tv/arte_vp/index.php?json_url=..."
         'url': 'http://www.arte.tv/magazine/trepalium/fr/entretien-avec-le-realisateur-vincent-lannoo-trepalium',
-        'md5': '66a093339c1278bb3719157ef07107b2',
+        'md5': '2a9369bcccf847d1c741e51416299f25',
         'info_dict': {
             'id': '065965-000-A',
             'ext': 'mp4',
             'title': 'Trepalium - Extrait Ep.01',
+            'upload_date': '20160121',
         },
     }, {
         # Embedded via <iframe src="http://www.arte.tv/guide/fr/embed/054813-004-A/medium"
