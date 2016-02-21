@@ -114,7 +114,7 @@ class ArteTVPlus7IE(InfoExtractor):
                     r'program\s*:\s*({.+?["\']embed_html["\'].+?}),?\s*\n',
                     webpage, 'program', default=None)
                 if program:
-                    embed_html = self._parse_json(program,video_id)
+                    embed_html = self._parse_json(program, video_id)
                     if embed_html:
                         iframe_url = find_iframe_url(embed_html['embed_html'])
             if iframe_url:
@@ -128,7 +128,6 @@ class ArteTVPlus7IE(InfoExtractor):
             r'<iframe[^>]+src=(["\'])(?P<url>.+?)\1',
             webpage, 'embed url', group='url')
         return self.url_result(embed_url)
-
 
     def _extract_from_json_url(self, json_url, video_id, lang):
         info = self._download_json(json_url, video_id)
