@@ -1,18 +1,20 @@
 from __future__ import unicode_literals
 
+import os.path
 import re
 
 from .common import InfoExtractor
 from ..utils import (
-    parse_duration,
     int_or_none,
+    parse_duration,
+    remove_start,
     xpath_text,
     xpath_attr,
 )
 
 
 class NBAIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:watch\.|www\.)?nba\.com/(?P<path>(?:[^/]+/)?video/(?P<id>[^?]*?))/?(?:/index\.html)?(?:\?.*)?$'
+    _VALID_URL = r'https?://(?:watch\.|www\.)?nba\.com/(?P<path>(?:[^/]+/)+(?P<id>[^?]*?))/?(?:/index\.html)?(?:\?.*)?$'
     _TESTS = [{
         'url': 'http://www.nba.com/video/games/nets/2012/12/04/0021200253-okc-bkn-recap.nba/index.html',
         'md5': '9e7729d3010a9c71506fd1248f74e4f4',
@@ -44,14 +46,36 @@ class NBAIE(InfoExtractor):
             'timestamp': 1432134543,
             'upload_date': '20150520',
         }
+    }, {
+        'url': 'http://www.nba.com/clippers/news/doc-rivers-were-not-trading-blake',
+        'info_dict': {
+            'id': '1455672027478-Doc_Feb16_720',
+            'ext': 'mp4',
+            'title': 'Practice: Doc Rivers - 2/16/16',
+            'description': 'Head Coach Doc Rivers addresses the media following practice.',
+            'upload_date': '20160217',
+            'timestamp': 1455672000,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
         path, video_id = re.match(self._VALID_URL, url).groups()
         if path.startswith('nba/'):
             path = path[3:]
+
+        if 'video/' not in path:
+            webpage = self._download_webpage(url, video_id)
+            path = remove_start(self._search_regex(r'data-videoid="([^"]+)"', webpage, 'video id'), '/')
+            # See prepareContentId() of pkgCvp.js
+            if path.startswith('video/teams'):
+                path = 'video/channels/proxy/' + path[6:]
+
         video_info = self._download_xml('http://www.nba.com/%s.xml' % path, video_id)
-        video_id = xpath_text(video_info, 'slug')
+        video_id = os.path.splitext(xpath_text(video_info, 'slug'))[0]
         title = xpath_text(video_info, 'headline')
         description = xpath_text(video_info, 'description')
         duration = parse_duration(xpath_text(video_info, 'length'))
