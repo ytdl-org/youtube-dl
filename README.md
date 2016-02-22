@@ -513,7 +513,9 @@ The current default template is `%(title)s-%(id)s.%(ext)s`.
 
 In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
 
-Examples (note on Windows you may need to use double quotes instead of single):
+#### Examples
+
+Note on Windows you may need to use double quotes instead of single.
 
 ```bash
 $ youtube-dl --get-filename -o '%(title)s.%(ext)s' BaW_jenozKc
@@ -595,7 +597,10 @@ Since the end of April 2015 and version 2015.04.26 youtube-dl uses `-f bestvideo
 
 If you want to preserve the old format selection behavior (prior to youtube-dl 2015.04.26), i.e. you want to download the best available quality media served as a single file, you should explicitly specify your choice with `-f best`. You may want to add it to the [configuration file](#configuration) in order not to type it every time you run youtube-dl.
 
-Examples (note on Windows you may need to use double quotes instead of single):
+#### Examples
+
+Note on Windows you may need to use double quotes instead of single.
+
 ```bash
 # Download best mp4 format available or any other best if no mp4 available
 $ youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
