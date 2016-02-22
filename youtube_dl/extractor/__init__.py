@@ -632,6 +632,7 @@ from .sexykarma import SexyKarmaIE
 from .shahid import ShahidIE
 from .shared import SharedIE
 from .sharesix import ShareSixIE
+from .shush import ShushIE
 from .sina import SinaIE
 from .skynewsarabia import (
     SkyNewsArabiaIE,
