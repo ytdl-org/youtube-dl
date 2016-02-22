@@ -890,7 +890,7 @@ After you have ensured this site is distributing it's content legally, you can f
         $ git commit -m '[yourextractor] Add new extractor'
         $ git push origin yourextractor
 
-10. Finally, [create a pull request](https://help.github.com/articles/creating-a-pull-request). We'll then review and merge it.
+11. Finally, [create a pull request](https://help.github.com/articles/creating-a-pull-request). We'll then review and merge it.
 
 In any case, thank you very much for your contributions!
 
