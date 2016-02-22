@@ -30,6 +30,7 @@
  - **AlJazeera**
  - **Allocine**
  - **AlphaPorno**
+ - **AnimeOnDemand**
  - **anitube.se**
  - **AnySex**
  - **Aparat**
@@ -49,6 +50,7 @@
  - **arte.tv:ddc**
  - **arte.tv:embed**
  - **arte.tv:future**
+ - **arte.tv:magazine**
  - **AtresPlayer**
  - **ATTTechChannel**
  - **AudiMedia**
@@ -360,7 +362,7 @@
  - **MySpace:album**
  - **MySpass**
  - **Myvi**
- - **myvideo**
+ - **myvideo** (Currently broken)
  - **MyVidster**
  - **n-tv.de**
  - **NationalGeographic**
@@ -410,6 +412,7 @@
  - **NowTV** (Currently broken)
  - **NowTVList**
  - **nowvideo**: NowVideo
+ - **Noz**
  - **npo**: npo.nl and ntr.nl
  - **npo.nl:live**
  - **npo.nl:radio**
@@ -460,6 +463,7 @@
  - **PornHd**
  - **PornHub**
  - **PornHubPlaylist**
+ - **PornHubUserVideos**
  - **Pornotube**
  - **PornoVoisines**
  - **PornoXO**
@@ -522,6 +526,7 @@
  - **screen.yahoo:search**: Yahoo screen search
  - **Screencast**
  - **ScreencastOMatic**
+ - **ScreenJunkies**
  - **ScreenwaveMedia**
  - **SenateISVP**
  - **ServingSys**
@@ -655,6 +660,7 @@
  - **twitch:video**
  - **twitch:vod**
  - **twitter**
+ - **twitter:amplify**
  - **twitter:card**
  - **Ubu**
  - **udemy**

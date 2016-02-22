@@ -1,6 +1,6 @@
-**Please include the full output of youtube-dl when run with `-v`**, i.e. add `-v` flag to your command line, copy the **whole** output and post it in the issue body wrapped in \`\`\` for better formatting. It should look similar to this:
+**Please include the full output of youtube-dl when run with `-v`**, i.e. **add** `-v` flag to **your command line**, copy the **whole** output and post it in the issue body wrapped in \`\`\` for better formatting. It should look similar to this:
 ```
-$ youtube-dl -v http://www.youtube.com/watch?v=BaW_jenozKcj
+$ youtube-dl -v <your command line>
 [debug] System config: []
 [debug] User config: []
 [debug] Command-line args: [u'-v', u'http://www.youtube.com/watch?v=BaW_jenozKcj']
