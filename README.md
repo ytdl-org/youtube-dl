@@ -440,7 +440,11 @@ On Windows you may also need to setup the `%HOME%` environment variable manually
 
 # OUTPUT TEMPLATE
 
-The `-o` option allows users to indicate a template for the output file names. The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format `%(NAME)s`. To clarify, that is a percent symbol followed by a name in parentheses, followed by a lowercase S. Allowed names are:
+The `-o` option allows users to indicate a template for the output file names.
+
+**tl;dr:** [navigate me to examples](#output-template-examples).
+
+The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format `%(NAME)s`. To clarify, that is a percent symbol followed by a name in parentheses, followed by a lowercase S. Allowed names are:
 
  - `id`: Video identifier
  - `title`: Video title
@@ -513,7 +517,7 @@ The current default template is `%(title)s-%(id)s.%(ext)s`.
 
 In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
 
-#### Examples
+#### Output template examples
 
 Note on Windows you may need to use double quotes instead of single.
 
@@ -547,6 +551,8 @@ By default youtube-dl tries to download the best available quality, i.e. if you 
 But sometimes you may want to download in a different format, for example when you are on a slow or intermittent connection. The key mechanism for achieving this is so called *format selection* based on which you can explicitly specify desired format, select formats based on some criterion or criteria, setup precedence and much more.
 
 The general syntax for format selection is `--format FORMAT` or shorter `-f FORMAT` where `FORMAT` is a *selector expression*, i.e. an expression that describes format or formats you would like to download.
+
+**tl;dr:** [navigate me to examples](#format-selection-examples).
 
 The simplest case is requesting a specific format, for example with `-f 22` you can download the format with format code equal to 22. You can get the list of available format codes for particular video using `--list-formats` or `-F`. Note that these format codes are extractor specific. 
 
@@ -597,7 +603,7 @@ Since the end of April 2015 and version 2015.04.26 youtube-dl uses `-f bestvideo
 
 If you want to preserve the old format selection behavior (prior to youtube-dl 2015.04.26), i.e. you want to download the best available quality media served as a single file, you should explicitly specify your choice with `-f best`. You may want to add it to the [configuration file](#configuration) in order not to type it every time you run youtube-dl.
 
-#### Examples
+#### Format selection examples
 
 Note on Windows you may need to use double quotes instead of single.
 
