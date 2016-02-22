@@ -17,7 +17,7 @@ class XFileShareIE(InfoExtractor):
     IE_DESC = 'XFileShare based sites: GorillaVid.in, daclips.in, movpod.in, fastvideo.in, realvid.net, filehoot.com and vidto.me'
     _VALID_URL = r'''(?x)
         https?://(?P<host>(?:www\.)?
-            (?:daclips\.in|gorillavid\.in|movpod\.in|fastvideo\.in|realvid\.net|filehoot\.com|vidto\.me))/
+            (?:daclips\.in|gorillavid\.in|movpod\.in|fastvideo\.in|realvid\.net|filehoot\.com|vidto\.me|powerwatch\.pw))/
         (?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:-[0-9]+x[0-9]+\.html)?
     '''
 
@@ -81,6 +81,13 @@ class XFileShareIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'test'
         }
+    }, {
+        'url': 'http://powerwatch.pw/duecjibvicbu',
+        'info_dict': {
+            'id': 'duecjibvicbu',
+            'ext': 'mp4',
+            'title': 'Big Buck Bunny trailer',
+        },
     }]
 
     def _real_extract(self, url):
@@ -112,6 +119,7 @@ class XFileShareIE(InfoExtractor):
         title = (self._search_regex(
             [r'style="z-index: [0-9]+;">([^<]+)</span>',
              r'<td nowrap>([^<]+)</td>',
+             r'h4-fine[^>]*>([^<]+)<',
              r'>Watch (.+) ',
              r'<h2 class="video-page-head">([^<]+)</h2>'],
             webpage, 'title', default=None) or self._og_search_title(webpage)).strip()
