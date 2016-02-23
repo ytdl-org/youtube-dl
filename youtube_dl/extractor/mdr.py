@@ -99,7 +99,7 @@ class MDRIE(InfoExtractor):
                 ext = determine_ext(url_el.text)
                 if ext == 'm3u8':
                     url_formats = self._extract_m3u8_formats(
-                        video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                        video_url, video_id, 'mp4', entry_protocol='m3u8',
                         preference=0, m3u8_id='HLS', fatal=False)
                 elif ext == 'f4m':
                     url_formats = self._extract_f4m_formats(
