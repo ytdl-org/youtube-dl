@@ -68,6 +68,7 @@ class KuwoIE(KuwoBaseIE):
             'id': '6446136',
             'ext': 'mp3',
             'title': '心',
+            'description': 'md5:b2ab6295d014005bfc607525bfc1e38a',
             'creator': 'IU',
             'upload_date': '20150518',
         },
