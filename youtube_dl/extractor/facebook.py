@@ -34,8 +34,9 @@ class FacebookIE(InfoExtractor):
                                 video/video\.php|
                                 photo\.php|
                                 video\.php|
-                                video/embed
-                            )\?(?:.*?)(?:v|video_id)=|
+                                video/embed|
+                                story\.php
+                            )\?(?:.*?)(?:v|video_id|story_fbid)=|
                             [^/]+/videos/(?:[^/]+/)?
                         )|
                     facebook:
@@ -91,6 +92,9 @@ class FacebookIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'facebook:544765982287235',
+        'only_matching': True,
+    }, {
+        'url': 'https://m.facebook.com/story.php?story_fbid=1035862816472149&id=116132035111903',
         'only_matching': True,
     }]
 
