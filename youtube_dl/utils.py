@@ -1570,9 +1570,12 @@ class PagedList(object):
 
 
 class OnDemandPagedList(PagedList):
-    def __init__(self, pagefunc, pagesize):
+    def __init__(self, pagefunc, pagesize, use_cache=False):
         self._pagefunc = pagefunc
         self._pagesize = pagesize
+        self._use_cache = use_cache
+        if use_cache:
+            self._cache = {}
 
     def getslice(self, start=0, end=None):
         res = []
@@ -1582,7 +1585,13 @@ class OnDemandPagedList(PagedList):
             if start >= nextfirstid:
                 continue
 
-            page_results = list(self._pagefunc(pagenum))
+            page_results = None
+            if self._use_cache:
+                page_results = self._cache.get(pagenum)
+            if page_results is None:
+                page_results = list(self._pagefunc(pagenum))
+            if self._use_cache:
+                self._cache[pagenum] = page_results
 
             startv = (
                 start % self._pagesize
