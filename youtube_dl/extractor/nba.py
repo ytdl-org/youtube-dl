@@ -1,11 +1,17 @@
 from __future__ import unicode_literals
 
+import functools
 import os.path
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_parse,
+    compat_urlparse,
+)
 from ..utils import (
     int_or_none,
+    OnDemandPagedList,
     parse_duration,
     remove_start,
     xpath_text,
@@ -60,16 +66,81 @@ class NBAIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         },
+    }, {
+        'url': 'http://www.nba.com/timberwolves/wiggins-shootaround#',
+        'info_dict': {
+            'id': 'timberwolves',
+            'title': 'Shootaround Access - Dec. 12 | Andrew Wiggins',
+        },
+        'playlist_count': 30,
+        'params': {
+            # Download the whole playlist takes too long time
+            'playlist_items': '1-30',
+        },
+    }, {
+        'url': 'http://www.nba.com/timberwolves/wiggins-shootaround#',
+        'info_dict': {
+            'id': 'Wigginsmp4',
+            'ext': 'mp4',
+            'title': 'Shootaround Access - Dec. 12 | Andrew Wiggins',
+            'description': 'Wolves rookie Andrew Wiggins addresses the media after Friday\'s shootaround.',
+            'upload_date': '20141212',
+            'timestamp': 1418418600,
+        },
+        'params': {
+            'noplaylist': True,
+            # m3u8 download
+            'skip_download': True,
+        },
     }]
+
+    _PAGE_SIZE = 30
+
+    def _fetch_page(self, team, video_id, page):
+        search_url = 'http://searchapp2.nba.com/nba-search/query.jsp?' + compat_urllib_parse.urlencode({
+            'type': 'teamvideo',
+            'start': page * self._PAGE_SIZE + 1,
+            'npp': (page + 1) * self._PAGE_SIZE + 1,
+            'sort': 'recent',
+            'output': 'json',
+            'site': team,
+        })
+        results = self._download_json(
+            search_url, video_id, note='Download page %d of playlist data' % page)['results'][0]
+        for item in results:
+            yield self.url_result(compat_urlparse.urljoin('http://www.nba.com/', item['url']))
+
+    def _extract_playlist(self, orig_path, video_id, webpage):
+        team = orig_path.split('/')[0]
+
+        if self._downloader.params.get('noplaylist'):
+            self.to_screen('Downloading just video because of --no-playlist')
+            video_path = self._search_regex(
+                r'nbaVideoCore\.firstVideo\s*=\s*\'([^\']+)\';', webpage, 'video path')
+            video_url = 'http://www.nba.com/%s/video/%s' % (team, video_path)
+            return self.url_result(video_url)
+
+        self.to_screen('Downloading playlist - add --no-playlist to just download video')
+        playlist_title = self._og_search_title(webpage, fatal=False)
+        entries = OnDemandPagedList(
+            functools.partial(self._fetch_page, team, video_id),
+            self._PAGE_SIZE, use_cache=True)
+
+        return self.playlist_result(entries, team, playlist_title)
 
     def _real_extract(self, url):
         path, video_id = re.match(self._VALID_URL, url).groups()
+        orig_path = path
         if path.startswith('nba/'):
             path = path[3:]
 
         if 'video/' not in path:
             webpage = self._download_webpage(url, video_id)
             path = remove_start(self._search_regex(r'data-videoid="([^"]+)"', webpage, 'video id'), '/')
+
+            if path == '{{id}}':
+                return self._extract_playlist(orig_path, video_id, webpage)
+
             # See prepareContentId() of pkgCvp.js
             if path.startswith('video/teams'):
                 path = 'video/channels/proxy/' + path[6:]
