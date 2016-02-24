@@ -54,6 +54,11 @@ class MotherlessIE(InfoExtractor):
                 'thumbnail': 're:http://.*\.jpg',
                 'age_limit': 18,
             }
+        },
+        {
+            # no keywords
+            'url': 'http://motherless.com/8B4BBC1',
+            'only_matching': True,
         }
     ]
 
@@ -86,7 +91,7 @@ class MotherlessIE(InfoExtractor):
             r'"thumb-member-username">\s+<a href="/m/([^"]+)"',
             webpage, 'uploader_id')
 
-        categories = self._html_search_meta('keywords', webpage)
+        categories = self._html_search_meta('keywords', webpage, default=None)
         if categories:
             categories = [cat.strip() for cat in categories.split(',')]
 
