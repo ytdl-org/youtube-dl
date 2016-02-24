@@ -249,6 +249,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(
             unified_strdate('2/2/2015 6:47:40 PM', day_first=False),
             '20150202')
+        self.assertEqual(unified_strdate('Feb 14th 2016 5:45PM'), '20160214')
         self.assertEqual(unified_strdate('25-09-2014'), '20140925')
         self.assertEqual(unified_strdate('UNKNOWN DATE FORMAT'), None)
 
