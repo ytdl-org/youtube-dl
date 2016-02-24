@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     str_to_int,
     unified_strdate,
 )
@@ -65,6 +66,11 @@ class MotherlessIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
+        if any(p in webpage for p in (
+                '<title>404 - MOTHERLESS.COM<',
+                ">The page you're looking for cannot be found.<")):
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
         title = self._html_search_regex(
             r'id="view-upload-title">\s+([^<]+)<', webpage, 'title')
