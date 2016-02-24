@@ -18,6 +18,7 @@ from ..compat import (
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
+    base62,
     ExtractorError,
     ohdave_rsa_encrypt,
     remove_start,
@@ -126,20 +127,8 @@ class IqiyiSDK(object):
 
 
 class IqiyiSDKInterpreter(object):
-    BASE62_TABLE = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-
     def __init__(self, sdk_code):
         self.sdk_code = sdk_code
-
-    @classmethod
-    def base62(cls, num):
-        if num == 0:
-            return '0'
-        ret = ''
-        while num:
-            ret = cls.BASE62_TABLE[num % 62] + ret
-            num = num // 62
-        return ret
 
     def decode_eval_codes(self):
         self.sdk_code = self.sdk_code[5:-3]
@@ -154,7 +143,7 @@ class IqiyiSDKInterpreter(object):
 
         while count:
             count -= 1
-            b62count = self.base62(count)
+            b62count = base62(count)
             symbol_table[b62count] = symbols[count] or b62count
 
         self.sdk_code = re.sub(
