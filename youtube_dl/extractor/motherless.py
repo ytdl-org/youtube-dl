@@ -13,55 +13,52 @@ from ..utils import (
 
 class MotherlessIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?motherless\.com/(?:g/[a-z0-9_]+/)?(?P<id>[A-Z0-9]+)'
-    _TESTS = [
-        {
-            'url': 'http://motherless.com/AC3FFE1',
-            'md5': '310f62e325a9fafe64f68c0bccb6e75f',
-            'info_dict': {
-                'id': 'AC3FFE1',
-                'ext': 'mp4',
-                'title': 'Fucked in the ass while playing PS3',
-                'categories': ['Gaming', 'anal', 'reluctant', 'rough', 'Wife'],
-                'upload_date': '20100913',
-                'uploader_id': 'famouslyfuckedup',
-                'thumbnail': 're:http://.*\.jpg',
-                'age_limit': 18,
-            }
-        },
-        {
-            'url': 'http://motherless.com/532291B',
-            'md5': 'bc59a6b47d1f958e61fbd38a4d31b131',
-            'info_dict': {
-                'id': '532291B',
-                'ext': 'mp4',
-                'title': 'Amazing girl playing the omegle game, PERFECT!',
-                'categories': ['Amateur', 'webcam', 'omegle', 'pink', 'young', 'masturbate', 'teen', 'game', 'hairy'],
-                'upload_date': '20140622',
-                'uploader_id': 'Sulivana7x',
-                'thumbnail': 're:http://.*\.jpg',
-                'age_limit': 18,
-            }
-        },
-        {
-            'url': 'http://motherless.com/g/cosplay/633979F',
-            'md5': '0b2a43f447a49c3e649c93ad1fafa4a0',
-            'info_dict': {
-                'id': '633979F',
-                'ext': 'mp4',
-                'title': 'Turtlette',
-                'categories': ['superheroine heroine  superher'],
-                'upload_date': '20140827',
-                'uploader_id': 'shade0230',
-                'thumbnail': 're:http://.*\.jpg',
-                'age_limit': 18,
-            }
-        },
-        {
-            # no keywords
-            'url': 'http://motherless.com/8B4BBC1',
-            'only_matching': True,
+    _TESTS = [{
+        'url': 'http://motherless.com/AC3FFE1',
+        'md5': '310f62e325a9fafe64f68c0bccb6e75f',
+        'info_dict': {
+            'id': 'AC3FFE1',
+            'ext': 'mp4',
+            'title': 'Fucked in the ass while playing PS3',
+            'categories': ['Gaming', 'anal', 'reluctant', 'rough', 'Wife'],
+            'upload_date': '20100913',
+            'uploader_id': 'famouslyfuckedup',
+            'thumbnail': 're:http://.*\.jpg',
+            'age_limit': 18,
         }
-    ]
+    }, {
+        'url': 'http://motherless.com/532291B',
+        'md5': 'bc59a6b47d1f958e61fbd38a4d31b131',
+        'info_dict': {
+            'id': '532291B',
+            'ext': 'mp4',
+            'title': 'Amazing girl playing the omegle game, PERFECT!',
+            'categories': ['Amateur', 'webcam', 'omegle', 'pink', 'young', 'masturbate', 'teen',
+                           'game', 'hairy'],
+            'upload_date': '20140622',
+            'uploader_id': 'Sulivana7x',
+            'thumbnail': 're:http://.*\.jpg',
+            'age_limit': 18,
+        },
+        'skip': '404',
+    }, {
+        'url': 'http://motherless.com/g/cosplay/633979F',
+        'md5': '0b2a43f447a49c3e649c93ad1fafa4a0',
+        'info_dict': {
+            'id': '633979F',
+            'ext': 'mp4',
+            'title': 'Turtlette',
+            'categories': ['superheroine heroine  superher'],
+            'upload_date': '20140827',
+            'uploader_id': 'shade0230',
+            'thumbnail': 're:http://.*\.jpg',
+            'age_limit': 18,
+        }
+    }, {
+        # no keywords
+        'url': 'http://motherless.com/8B4BBC1',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
