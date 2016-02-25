@@ -5,7 +5,7 @@ from .youtube import YoutubeIE
 
 
 class WimpIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?wimp\.com/(?P<id>[^/]+)/'
+    _VALID_URL = r'http://(?:www\.)?wimp\.com/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://www.wimp.com/maruexhausted/',
         'md5': 'ee21217ffd66d058e8b16be340b74883',
@@ -28,17 +28,22 @@ class WimpIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+
         webpage = self._download_webpage(url, video_id)
-        video_url = self._search_regex(
-            [r"[\"']file[\"']\s*[:,]\s*[\"'](.+?)[\"']", r"videoId\s*:\s*[\"']([^\"']+)[\"']"],
-            webpage, 'video URL')
-        if YoutubeIE.suitable(video_url):
-            self.to_screen('Found YouTube video')
+
+        youtube_id = self._search_regex(
+            r"videoId\s*:\s*[\"']([0-9A-Za-z_-]{11})[\"']",
+            webpage, 'video URL', default=None)
+        if youtube_id:
             return {
                 '_type': 'url',
-                'url': video_url,
+                'url': youtube_id,
                 'ie_key': YoutubeIE.ie_key(),
             }
+
+        video_url = self._search_regex(
+            r'<video[^>]+>\s*<source[^>]+src=(["\'])(?P<url>.+?)\1',
+            webpage, 'video URL', group='url')
 
         return {
             'id': video_id,

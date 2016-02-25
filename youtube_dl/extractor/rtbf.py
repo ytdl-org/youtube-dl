@@ -9,8 +9,8 @@ from ..utils import (
 
 
 class RTBFIE(InfoExtractor):
-    _VALID_URL = r'https?://www.rtbf.be/video/[^\?]+\?id=(?P<id>\d+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?rtbf\.be/(?:video/[^?]+\?.*\bid=|ouftivi/(?:[^/]+/)*[^?]+\?.*\bvideoId=)(?P<id>\d+)'
+    _TESTS = [{
         'url': 'https://www.rtbf.be/video/detail_les-diables-au-coeur-episode-2?id=1921274',
         'md5': '799f334ddf2c0a582ba80c44655be570',
         'info_dict': {
@@ -19,7 +19,14 @@ class RTBFIE(InfoExtractor):
             'title': 'Les Diables au coeur (épisode 2)',
             'duration': 3099,
         }
-    }
+    }, {
+        # geo restricted
+        'url': 'http://www.rtbf.be/ouftivi/heros/detail_scooby-doo-mysteres-associes?id=1097&videoId=2057442',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.rtbf.be/ouftivi/niouzz?videoId=2055858',
+        'only_matching': True,
+    }]
 
     _QUALITIES = [
         ('mobile', 'mobile'),

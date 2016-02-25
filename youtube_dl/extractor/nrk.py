@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
+    determine_ext,
     ExtractorError,
     float_or_none,
     parse_duration,
@@ -48,12 +49,22 @@ class NRKIE(InfoExtractor):
             'http://v8.psapi.nrk.no/mediaelement/%s' % video_id,
             video_id, 'Downloading media JSON')
 
-        if data['usageRights']['isGeoBlocked']:
-            raise ExtractorError(
-                'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
-                expected=True)
+        media_url = data.get('mediaUrl')
 
-        video_url = data['mediaUrl'] + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81'
+        if not media_url:
+            if data['usageRights']['isGeoBlocked']:
+                raise ExtractorError(
+                    'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
+                    expected=True)
+
+        if determine_ext(media_url) == 'f4m':
+            formats = self._extract_f4m_formats(
+                media_url + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81', video_id, f4m_id='hds')
+        else:
+            formats = [{
+                'url': media_url,
+                'ext': 'flv',
+            }]
 
         duration = parse_duration(data.get('duration'))
 
@@ -67,12 +78,11 @@ class NRKIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'url': video_url,
-            'ext': 'flv',
             'title': data['title'],
             'description': data['description'],
             'duration': duration,
             'thumbnail': thumbnail,
+            'formats': formats,
         }
 
 
@@ -123,26 +133,32 @@ class NRKTVIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
-            'md5': 'adf2c5454fa2bf032f47a9f8fb351342',
             'info_dict': {
                 'id': 'MUHH48000314',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': '20 spørsmål',
                 'description': 'md5:bdea103bc35494c143c6a9acdd84887a',
                 'upload_date': '20140523',
                 'duration': 1741.52,
             },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
         },
         {
             'url': 'https://tv.nrk.no/program/mdfp15000514',
-            'md5': '383650ece2b25ecec996ad7b5bb2a384',
             'info_dict': {
                 'id': 'mdfp15000514',
-                'ext': 'flv',
-                'title': 'Kunnskapskanalen: Grunnlovsjubiléet - Stor ståhei for ingenting',
+                'ext': 'mp4',
+                'title': 'Grunnlovsjubiléet - Stor ståhei for ingenting',
                 'description': 'md5:654c12511f035aed1e42bdf5db3b206a',
                 'upload_date': '20140524',
-                'duration': 4605.0,
+                'duration': 4605.08,
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
             },
         },
         {

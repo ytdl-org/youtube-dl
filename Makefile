@@ -44,7 +44,7 @@ test:
 ot: offlinetest
 
 offlinetest: codetest
-	nosetests --verbose test --exclude test_download.py --exclude test_age_restriction.py --exclude test_subtitles.py --exclude test_write_annotations.py --exclude test_youtube_lists.py
+	nosetests --verbose test --exclude test_download.py --exclude test_age_restriction.py --exclude test_subtitles.py --exclude test_write_annotations.py --exclude test_youtube_lists.py --exclude test_iqiyi_sdk_interpreter.py
 
 tar: youtube-dl.tar.gz
 
@@ -61,34 +61,34 @@ youtube-dl: youtube_dl/*.py youtube_dl/*/*.py
 	chmod a+x youtube-dl
 
 README.md: youtube_dl/*.py youtube_dl/*/*.py
-	COLUMNS=80 python youtube_dl/__main__.py --help | python devscripts/make_readme.py
+	COLUMNS=80 $(PYTHON) youtube_dl/__main__.py --help | $(PYTHON) devscripts/make_readme.py
 
 CONTRIBUTING.md: README.md
-	python devscripts/make_contributing.py README.md CONTRIBUTING.md
+	$(PYTHON) devscripts/make_contributing.py README.md CONTRIBUTING.md
 
 supportedsites:
-	python devscripts/make_supportedsites.py docs/supportedsites.md
+	$(PYTHON) devscripts/make_supportedsites.py docs/supportedsites.md
 
 README.txt: README.md
 	pandoc -f markdown -t plain README.md -o README.txt
 
 youtube-dl.1: README.md
-	python devscripts/prepare_manpage.py >youtube-dl.1.temp.md
+	$(PYTHON) devscripts/prepare_manpage.py >youtube-dl.1.temp.md
 	pandoc -s -f markdown -t man youtube-dl.1.temp.md -o youtube-dl.1
 	rm -f youtube-dl.1.temp.md
 
 youtube-dl.bash-completion: youtube_dl/*.py youtube_dl/*/*.py devscripts/bash-completion.in
-	python devscripts/bash-completion.py
+	$(PYTHON) devscripts/bash-completion.py
 
 bash-completion: youtube-dl.bash-completion
 
 youtube-dl.zsh: youtube_dl/*.py youtube_dl/*/*.py devscripts/zsh-completion.in
-	python devscripts/zsh-completion.py
+	$(PYTHON) devscripts/zsh-completion.py
 
 zsh-completion: youtube-dl.zsh
 
 youtube-dl.fish: youtube_dl/*.py youtube_dl/*/*.py devscripts/fish-completion.in
-	python devscripts/fish-completion.py
+	$(PYTHON) devscripts/fish-completion.py
 
 fish-completion: youtube-dl.fish
 

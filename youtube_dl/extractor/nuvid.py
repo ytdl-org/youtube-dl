@@ -3,11 +3,9 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-)
 from ..utils import (
     parse_duration,
+    sanitized_Request,
     unified_strdate,
 )
 
@@ -33,7 +31,7 @@ class NuvidIE(InfoExtractor):
         formats = []
 
         for dwnld_speed, format_id in [(0, '3gp'), (5, 'mp4')]:
-            request = compat_urllib_request.Request(
+            request = sanitized_Request(
                 'http://m.nuvid.com/play/%s' % video_id)
             request.add_header('Cookie', 'skip_download_page=1; dwnld_speed=%d; adv_show=1' % dwnld_speed)
             webpage = self._download_webpage(

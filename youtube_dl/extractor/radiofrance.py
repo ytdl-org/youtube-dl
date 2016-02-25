@@ -16,9 +16,9 @@ class RadioFranceIE(InfoExtractor):
         'info_dict': {
             'id': 'one-one',
             'ext': 'ogg',
-            "title": "One to one",
-            "description": "Plutôt que d'imaginer la radio de demain comme technologie ou comme création de contenu, je veux montrer que quelles que soient ses évolutions, j'ai l'intime conviction que la radio continuera d'être un grand média de proximité pour les auditeurs.",
-            "uploader": "Thomas Hercouët",
+            'title': 'One to one',
+            'description': "Plutôt que d'imaginer la radio de demain comme technologie ou comme création de contenu, je veux montrer que quelles que soient ses évolutions, j'ai l'intime conviction que la radio continuera d'être un grand média de proximité pour les auditeurs.",
+            'uploader': 'Thomas Hercouët',
         },
     }
 

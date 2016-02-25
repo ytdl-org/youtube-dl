@@ -86,7 +86,7 @@ class MITIE(TechTVMITIE):
         webpage = self._download_webpage(url, page_title)
         embed_url = self._search_regex(
             r'<iframe .*?src="(.+?)"', webpage, 'embed url')
-        return self.url_result(embed_url, ie='TechTVMIT')
+        return self.url_result(embed_url)
 
 
 class OCWMITIE(InfoExtractor):

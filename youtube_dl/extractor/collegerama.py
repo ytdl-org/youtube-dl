@@ -3,10 +3,10 @@ from __future__ import unicode_literals
 import json
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
 from ..utils import (
     float_or_none,
     int_or_none,
+    sanitized_Request,
 )
 
 
@@ -46,13 +46,13 @@ class CollegeRamaIE(InfoExtractor):
         video_id = self._match_id(url)
 
         player_options_request = {
-            "getPlayerOptionsRequest": {
-                "ResourceId": video_id,
-                "QueryString": "",
+            'getPlayerOptionsRequest': {
+                'ResourceId': video_id,
+                'QueryString': '',
             }
         }
 
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             'http://collegerama.tudelft.nl/Mediasite/PlayerService/PlayerService.svc/json/GetPlayerOptions',
             json.dumps(player_options_request))
         request.add_header('Content-Type', 'application/json')

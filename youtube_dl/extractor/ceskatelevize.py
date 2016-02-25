@@ -5,7 +5,6 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_request,
     compat_urllib_parse,
     compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
@@ -13,6 +12,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     float_or_none,
+    sanitized_Request,
 )
 
 
@@ -100,7 +100,7 @@ class CeskaTelevizeIE(InfoExtractor):
             'requestSource': 'iVysilani',
         }
 
-        req = compat_urllib_request.Request(
+        req = sanitized_Request(
             'http://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
             data=compat_urllib_parse.urlencode(data))
 
@@ -115,7 +115,7 @@ class CeskaTelevizeIE(InfoExtractor):
         if playlist_url == 'error_region':
             raise ExtractorError(NOT_AVAILABLE_STRING, expected=True)
 
-        req = compat_urllib_request.Request(compat_urllib_parse_unquote(playlist_url))
+        req = sanitized_Request(compat_urllib_parse_unquote(playlist_url))
         req.add_header('Referer', url)
 
         playlist_title = self._og_search_title(webpage)
@@ -177,16 +177,16 @@ class CeskaTelevizeIE(InfoExtractor):
             for divider in [1000, 60, 60, 100]:
                 components.append(msec % divider)
                 msec //= divider
-            return "{3:02}:{2:02}:{1:02},{0:03}".format(*components)
+            return '{3:02}:{2:02}:{1:02},{0:03}'.format(*components)
 
         def _fix_subtitle(subtitle):
             for line in subtitle.splitlines():
-                m = re.match(r"^\s*([0-9]+);\s*([0-9]+)\s+([0-9]+)\s*$", line)
+                m = re.match(r'^\s*([0-9]+);\s*([0-9]+)\s+([0-9]+)\s*$', line)
                 if m:
                     yield m.group(1)
                     start, stop = (_msectotimecode(int(t)) for t in m.groups()[1:])
-                    yield "{0} --> {1}".format(start, stop)
+                    yield '{0} --> {1}'.format(start, stop)
                 else:
                     yield line
 
-        return "\r\n".join(_fix_subtitle(subtitles))
+        return '\r\n'.join(_fix_subtitle(subtitles))

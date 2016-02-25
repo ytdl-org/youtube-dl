@@ -4,21 +4,29 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
 from ..utils import (
     float_or_none,
     xpath_text,
     remove_end,
+    int_or_none,
+    ExtractorError,
+    sanitized_Request,
 )
 
 
-class TwitterCardIE(InfoExtractor):
+class TwitterBaseIE(InfoExtractor):
+    def _get_vmap_video_url(self, vmap_url, video_id):
+        vmap_data = self._download_xml(vmap_url, video_id)
+        return xpath_text(vmap_data, './/MediaFile').strip()
+
+
+class TwitterCardIE(TwitterBaseIE):
     IE_NAME = 'twitter:card'
     _VALID_URL = r'https?://(?:www\.)?twitter\.com/i/cards/tfw/v1/(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/560070183650213889',
-            'md5': '7d2f6b4d2eb841a7ccc893d479bfceb4',
+            # MD5 checksums are different in different places
             'info_dict': {
                 'id': '560070183650213889',
                 'ext': 'mp4',
@@ -40,7 +48,7 @@ class TwitterCardIE(InfoExtractor):
         },
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/654001591733886977',
-            'md5': 'b6f35e8b08a0bec6c8af77a2f4b3a814',
+            'md5': 'd4724ffe6d2437886d004fa5de1043b3',
             'info_dict': {
                 'id': 'dq4Oj5quskI',
                 'ext': 'mp4',
@@ -50,6 +58,20 @@ class TwitterCardIE(InfoExtractor):
                 'uploader': 'OMG! Ubuntu!',
                 'uploader_id': 'omgubuntu',
             },
+            'add_ie': ['Youtube'],
+        },
+        {
+            'url': 'https://twitter.com/i/cards/tfw/v1/665289828897005568',
+            'md5': 'ab2745d0b0ce53319a534fccaa986439',
+            'info_dict': {
+                'id': 'iBb2x00UVlv',
+                'ext': 'mp4',
+                'upload_date': '20151113',
+                'uploader_id': '1189339351084113920',
+                'uploader': 'ArsenalTerje',
+                'title': 'Vine by ArsenalTerje',
+            },
+            'add_ie': ['Vine'],
         }
     ]
 
@@ -65,25 +87,23 @@ class TwitterCardIE(InfoExtractor):
         config = None
         formats = []
         for user_agent in USER_AGENTS:
-            request = compat_urllib_request.Request(url)
+            request = sanitized_Request(url)
             request.add_header('User-Agent', user_agent)
             webpage = self._download_webpage(request, video_id)
 
-            youtube_url = self._html_search_regex(
-                r'<iframe[^>]+src="((?:https?:)?//www.youtube.com/embed/[^"]+)"',
-                webpage, 'youtube iframe', default=None)
-            if youtube_url:
-                return self.url_result(youtube_url, 'Youtube')
+            iframe_url = self._html_search_regex(
+                r'<iframe[^>]+src="((?:https?:)?//(?:www.youtube.com/embed/[^"]+|(?:www\.)?vine\.co/v/\w+/card))"',
+                webpage, 'video iframe', default=None)
+            if iframe_url:
+                return self.url_result(iframe_url)
 
             config = self._parse_json(self._html_search_regex(
                 r'data-player-config="([^"]+)"', webpage, 'data player config'),
                 video_id)
             if 'playlist' not in config:
                 if 'vmapUrl' in config:
-                    vmap_data = self._download_xml(config['vmapUrl'], video_id)
-                    video_url = xpath_text(vmap_data, './/MediaFile').strip()
                     formats.append({
-                        'url': video_url,
+                        'url': self._get_vmap_video_url(config['vmapUrl'], video_id),
                     })
                     break   # same video regardless of UA
                 continue
@@ -120,9 +140,9 @@ class TwitterIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.|m\.|mobile\.)?twitter\.com/(?P<user_id>[^/]+)/status/(?P<id>\d+)'
     _TEMPLATE_URL = 'https://twitter.com/%s/status/%s'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://twitter.com/freethenipple/status/643211948184596480',
-        'md5': '31cd83a116fc41f99ae3d909d4caf6a0',
+        # MD5 checksums are different in different places
         'info_dict': {
             'id': '643211948184596480',
             'ext': 'mp4',
@@ -133,7 +153,31 @@ class TwitterIE(InfoExtractor):
             'uploader': 'FREE THE NIPPLE',
             'uploader_id': 'freethenipple',
         },
-    }
+    }, {
+        'url': 'https://twitter.com/giphz/status/657991469417025536/photo/1',
+        'md5': 'f36dcd5fb92bf7057f155e7d927eeb42',
+        'info_dict': {
+            'id': '657991469417025536',
+            'ext': 'mp4',
+            'title': 'Gifs - tu vai cai tu vai cai tu nao eh capaz disso tu vai cai',
+            'description': 'Gifs on Twitter: "tu vai cai tu vai cai tu nao eh capaz disso tu vai cai https://t.co/tM46VHFlO5"',
+            'thumbnail': 're:^https?://.*\.png',
+            'uploader': 'Gifs',
+            'uploader_id': 'giphz',
+        },
+        'expected_warnings': ['height', 'width'],
+    }, {
+        'url': 'https://twitter.com/starwars/status/665052190608723968',
+        'md5': '39b7199856dee6cd4432e72c74bc69d4',
+        'info_dict': {
+            'id': '665052190608723968',
+            'ext': 'mp4',
+            'title': 'Star Wars - A new beginning is coming December 18. Watch the official 60 second #TV spot for #StarWars: #TheForceAwakens.',
+            'description': 'Star Wars on Twitter: "A new beginning is coming December 18. Watch the official 60 second #TV spot for #StarWars: #TheForceAwakens."',
+            'uploader_id': 'starwars',
+            'uploader': 'Star Wars',
+        },
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -144,23 +188,107 @@ class TwitterIE(InfoExtractor):
 
         username = remove_end(self._og_search_title(webpage), ' on Twitter')
 
-        title = self._og_search_description(webpage).strip('').replace('\n', ' ')
+        title = description = self._og_search_description(webpage).strip('').replace('\n', ' ').strip('“”')
 
         # strip  'https -_t.co_BJYgOjSeGA' junk from filenames
-        mobj = re.match(r'“(.*)\s+(https?://[^ ]+)”', title)
-        title, short_url = mobj.groups()
+        title = re.sub(r'\s+(https?://[^ ]+)', '', title)
 
-        card_id = self._search_regex(
-            r'["\']/i/cards/tfw/v1/(\d+)', webpage, 'twitter card url')
-        card_url = 'https://twitter.com/i/cards/tfw/v1/' + card_id
-
-        return {
-            '_type': 'url_transparent',
-            'ie_key': 'TwitterCard',
+        info = {
             'uploader_id': user_id,
             'uploader': username,
-            'url': card_url,
             'webpage_url': url,
-            'description': '%s on Twitter: "%s %s"' % (username, title, short_url),
+            'description': '%s on Twitter: "%s"' % (username, description),
             'title': username + ' - ' + title,
+        }
+
+        card_id = self._search_regex(
+            r'["\']/i/cards/tfw/v1/(\d+)', webpage, 'twitter card url', default=None)
+        if card_id:
+            card_url = 'https://twitter.com/i/cards/tfw/v1/' + card_id
+            info.update({
+                '_type': 'url_transparent',
+                'ie_key': 'TwitterCard',
+                'url': card_url,
+            })
+            return info
+
+        mobj = re.search(r'''(?x)
+            <video[^>]+class="animated-gif"(?P<more_info>[^>]+)>\s*
+                <source[^>]+video-src="(?P<url>[^"]+)"
+        ''', webpage)
+
+        if mobj:
+            more_info = mobj.group('more_info')
+            height = int_or_none(self._search_regex(
+                r'data-height="(\d+)"', more_info, 'height', fatal=False))
+            width = int_or_none(self._search_regex(
+                r'data-width="(\d+)"', more_info, 'width', fatal=False))
+            thumbnail = self._search_regex(
+                r'poster="([^"]+)"', more_info, 'poster', fatal=False)
+            info.update({
+                'id': twid,
+                'url': mobj.group('url'),
+                'height': height,
+                'width': width,
+                'thumbnail': thumbnail,
+            })
+            return info
+
+        raise ExtractorError('There\'s no video in this tweet.')
+
+
+class TwitterAmplifyIE(TwitterBaseIE):
+    IE_NAME = 'twitter:amplify'
+    _VALID_URL = 'https?://amp\.twimg\.com/v/(?P<id>[0-9a-f\-]{36})'
+
+    _TEST = {
+        'url': 'https://amp.twimg.com/v/0ba0c3c7-0af3-4c0a-bed5-7efd1ffa2951',
+        'md5': '7df102d0b9fd7066b86f3159f8e81bf6',
+        'info_dict': {
+            'id': '0ba0c3c7-0af3-4c0a-bed5-7efd1ffa2951',
+            'ext': 'mp4',
+            'title': 'Twitter Video',
+            'thumbnail': 're:^https?://.*',
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        vmap_url = self._html_search_meta(
+            'twitter:amplify:vmap', webpage, 'vmap url')
+        video_url = self._get_vmap_video_url(vmap_url, video_id)
+
+        thumbnails = []
+        thumbnail = self._html_search_meta(
+            'twitter:image:src', webpage, 'thumbnail', fatal=False)
+
+        def _find_dimension(target):
+            w = int_or_none(self._html_search_meta(
+                'twitter:%s:width' % target, webpage, fatal=False))
+            h = int_or_none(self._html_search_meta(
+                'twitter:%s:height' % target, webpage, fatal=False))
+            return w, h
+
+        if thumbnail:
+            thumbnail_w, thumbnail_h = _find_dimension('image')
+            thumbnails.append({
+                'url': thumbnail,
+                'width': thumbnail_w,
+                'height': thumbnail_h,
+            })
+
+        video_w, video_h = _find_dimension('player')
+        formats = [{
+            'url': video_url,
+            'width': video_w,
+            'height': video_h,
+        }]
+
+        return {
+            'id': video_id,
+            'title': 'Twitter Video',
+            'formats': formats,
+            'thumbnails': thumbnails,
         }

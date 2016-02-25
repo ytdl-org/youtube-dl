@@ -18,11 +18,11 @@ class RBMARadioIE(InfoExtractor):
         'info_dict': {
             'id': 'ford-lopatin-live-at-primavera-sound-2011',
             'ext': 'mp3',
-            "uploader_id": "ford-lopatin",
-            "location": "Spain",
-            "description": "Joel Ford and Daniel ’Oneohtrix Point Never’ Lopatin fly their midified pop extravaganza to Spain. Live at Primavera Sound 2011.",
-            "uploader": "Ford & Lopatin",
-            "title": "Live at Primavera Sound 2011",
+            'uploader_id': 'ford-lopatin',
+            'location': 'Spain',
+            'description': 'Joel Ford and Daniel ’Oneohtrix Point Never’ Lopatin fly their midified pop extravaganza to Spain. Live at Primavera Sound 2011.',
+            'uploader': 'Ford & Lopatin',
+            'title': 'Live at Primavera Sound 2011',
         },
     }
 

@@ -40,7 +40,7 @@ class ScreenwaveMediaIE(InfoExtractor):
                 re.sub(
                     r'(?s)/\*.*?\*/', '',
                     self._search_regex(
-                        r"sources\s*:\s*(\[[^\]]+?\])", playerconfig,
+                        r'sources\s*:\s*(\[[^\]]+?\])', playerconfig,
                         'sources',
                     ).replace(
                         "' + thisObj.options.videoserver + '",
@@ -71,7 +71,7 @@ class ScreenwaveMediaIE(InfoExtractor):
         formats = []
         for source in sources:
             if source['type'] == 'hls':
-                formats.extend(self._extract_m3u8_formats(source['file'], video_id))
+                formats.extend(self._extract_m3u8_formats(source['file'], video_id, ext='mp4'))
             else:
                 file_ = source.get('file')
                 if not file_:
@@ -107,7 +107,11 @@ class TeamFourIE(InfoExtractor):
             'upload_date': '20130401',
             'description': 'Check out this and more on our website: http://teamfourstar.com\nTFS Store: http://sharkrobot.com/team-four-star\nFollow on Twitter: http://twitter.com/teamfourstar\nLike on FB: http://facebook.com/teamfourstar',
             'title': 'A Moment With TFS Episode 4',
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):

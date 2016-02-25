@@ -24,7 +24,7 @@ class MetadataFromTitlePP(PostProcessor):
            '(?P<title>.+)\ \-\ (?P<artist>.+)'
         """
         lastpos = 0
-        regex = ""
+        regex = ''
         # replace %(..)s with regex group and escape other string parts
         for match in re.finditer(r'%\((\w+)\)s', fmt):
             regex += re.escape(fmt[lastpos:match.start()])

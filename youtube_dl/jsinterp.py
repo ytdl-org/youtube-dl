@@ -214,7 +214,7 @@ class JSInterpreter(object):
         obj = {}
         obj_m = re.search(
             (r'(?:var\s+)?%s\s*=\s*\{' % re.escape(objname)) +
-            r'\s*(?P<fields>([a-zA-Z$0-9]+\s*:\s*function\(.*?\)\s*\{.*?\})*)' +
+            r'\s*(?P<fields>([a-zA-Z$0-9]+\s*:\s*function\(.*?\)\s*\{.*?\}(?:,\s*)?)*)' +
             r'\}\s*;',
             self.code)
         fields = obj_m.group('fields')
@@ -232,10 +232,10 @@ class JSInterpreter(object):
     def extract_function(self, funcname):
         func_m = re.search(
             r'''(?x)
-                (?:function\s+%s|[{;]%s\s*=\s*function)\s*
+                (?:function\s+%s|[{;,]%s\s*=\s*function|var\s+%s\s*=\s*function)\s*
                 \((?P<args>[^)]*)\)\s*
                 \{(?P<code>[^}]+)\}''' % (
-                re.escape(funcname), re.escape(funcname)),
+                re.escape(funcname), re.escape(funcname), re.escape(funcname)),
             self.code)
         if func_m is None:
             raise ExtractorError('Could not find JS function %r' % funcname)

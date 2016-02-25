@@ -2,74 +2,33 @@
 from __future__ import unicode_literals
 
 import json
-import re
 
 from .common import InfoExtractor
 from ..utils import ExtractorError
+from ..compat import compat_urlparse
 
 
-class TuneInIE(InfoExtractor):
-    _VALID_URL = r'''(?x)https?://(?:www\.)?
-    (?:
-        tunein\.com/
-        (?:
-            radio/.*?-s|
-            station/.*?StationId\=
-        )(?P<id>[0-9]+)
-        |tun\.in/(?P<redirect_id>[A-Za-z0-9]+)
-    )
-    '''
-    _API_URL_TEMPLATE = 'http://tunein.com/tuner/tune/?stationId={0:}&tuneType=Station'
-
-    _INFO_DICT = {
-        'id': '34682',
-        'title': 'Jazz 24 on 88.5 Jazz24 - KPLU-HD2',
-        'ext': 'aac',
-        'thumbnail': 're:^https?://.*\.png$',
-        'location': 'Tacoma, WA',
-    }
-    _TESTS = [
-        {
-            'url': 'http://tunein.com/radio/Jazz24-885-s34682/',
-            'info_dict': _INFO_DICT,
-            'params': {
-                'skip_download': True,  # live stream
-            },
-        },
-        {  # test redirection
-            'url': 'http://tun.in/ser7s',
-            'info_dict': _INFO_DICT,
-            'params': {
-                'skip_download': True,  # live stream
-            },
-        },
-    ]
+class TuneInBaseIE(InfoExtractor):
+    _API_BASE_URL = 'http://tunein.com/tuner/tune/'
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        redirect_id = mobj.group('redirect_id')
-        if redirect_id:
-            # The server doesn't support HEAD requests
-            urlh = self._request_webpage(
-                url, redirect_id, note='Downloading redirect page')
-            url = urlh.geturl()
-            self.to_screen('Following redirect: %s' % url)
-            mobj = re.match(self._VALID_URL, url)
-        station_id = mobj.group('id')
+        content_id = self._match_id(url)
 
-        station_info = self._download_json(
-            self._API_URL_TEMPLATE.format(station_id),
-            station_id, note='Downloading station JSON')
+        content_info = self._download_json(
+            self._API_BASE_URL + self._API_URL_QUERY % content_id,
+            content_id, note='Downloading JSON metadata')
 
-        title = station_info['Title']
-        thumbnail = station_info.get('Logo')
-        location = station_info.get('Location')
-        streams_url = station_info.get('StreamUrl')
+        title = content_info['Title']
+        thumbnail = content_info.get('Logo')
+        location = content_info.get('Location')
+        streams_url = content_info.get('StreamUrl')
         if not streams_url:
-            raise ExtractorError('No downloadable streams found',
-                                 expected=True)
+            raise ExtractorError('No downloadable streams found', expected=True)
+        if not streams_url.startswith('http://'):
+            streams_url = compat_urlparse.urljoin(url, streams_url)
+
         stream_data = self._download_webpage(
-            streams_url, station_id, note='Downloading stream data')
+            streams_url, content_id, note='Downloading stream data')
         streams = json.loads(self._search_regex(
             r'\((.*)\);', stream_data, 'stream info'))['Streams']
 
@@ -97,10 +56,122 @@ class TuneInIE(InfoExtractor):
         self._sort_formats(formats)
 
         return {
-            'id': station_id,
+            'id': content_id,
             'title': title,
             'formats': formats,
             'thumbnail': thumbnail,
             'location': location,
             'is_live': is_live,
         }
+
+
+class TuneInClipIE(TuneInBaseIE):
+    IE_NAME = 'tunein:clip'
+    _VALID_URL = r'https?://(?:www\.)?tunein\.com/station/.*?audioClipId\=(?P<id>\d+)'
+    _API_URL_QUERY = '?tuneType=AudioClip&audioclipId=%s'
+
+    _TESTS = [
+        {
+            'url': 'http://tunein.com/station/?stationId=246119&audioClipId=816',
+            'md5': '99f00d772db70efc804385c6b47f4e77',
+            'info_dict': {
+                'id': '816',
+                'title': '32m',
+                'ext': 'mp3',
+            },
+        },
+    ]
+
+
+class TuneInStationIE(TuneInBaseIE):
+    IE_NAME = 'tunein:station'
+    _VALID_URL = r'https?://(?:www\.)?tunein\.com/(?:radio/.*?-s|station/.*?StationId\=)(?P<id>\d+)'
+    _API_URL_QUERY = '?tuneType=Station&stationId=%s'
+
+    @classmethod
+    def suitable(cls, url):
+        return False if TuneInClipIE.suitable(url) else super(TuneInStationIE, cls).suitable(url)
+
+    _TESTS = [
+        {
+            'url': 'http://tunein.com/radio/Jazz24-885-s34682/',
+            'info_dict': {
+                'id': '34682',
+                'title': 'Jazz 24 on 88.5 Jazz24 - KPLU-HD2',
+                'ext': 'mp3',
+                'location': 'Tacoma, WA',
+            },
+            'params': {
+                'skip_download': True,  # live stream
+            },
+        },
+    ]
+
+
+class TuneInProgramIE(TuneInBaseIE):
+    IE_NAME = 'tunein:program'
+    _VALID_URL = r'https?://(?:www\.)?tunein\.com/(?:radio/.*?-p|program/.*?ProgramId\=)(?P<id>\d+)'
+    _API_URL_QUERY = '?tuneType=Program&programId=%s'
+
+    _TESTS = [
+        {
+            'url': 'http://tunein.com/radio/Jazz-24-p2506/',
+            'info_dict': {
+                'id': '2506',
+                'title': 'Jazz 24 on 91.3 WUKY-HD3',
+                'ext': 'mp3',
+                'location': 'Lexington, KY',
+            },
+            'params': {
+                'skip_download': True,  # live stream
+            },
+        },
+    ]
+
+
+class TuneInTopicIE(TuneInBaseIE):
+    IE_NAME = 'tunein:topic'
+    _VALID_URL = r'https?://(?:www\.)?tunein\.com/topic/.*?TopicId\=(?P<id>\d+)'
+    _API_URL_QUERY = '?tuneType=Topic&topicId=%s'
+
+    _TESTS = [
+        {
+            'url': 'http://tunein.com/topic/?TopicId=101830576',
+            'md5': 'c31a39e6f988d188252eae7af0ef09c9',
+            'info_dict': {
+                'id': '101830576',
+                'title': 'Votez pour moi du 29 octobre 2015 (29/10/15)',
+                'ext': 'mp3',
+                'location': 'Belgium',
+            },
+        },
+    ]
+
+
+class TuneInShortenerIE(InfoExtractor):
+    IE_NAME = 'tunein:shortener'
+    IE_DESC = False  # Do not list
+    _VALID_URL = r'https?://tun\.in/(?P<id>[A-Za-z0-9]+)'
+
+    _TEST = {
+        # test redirection
+        'url': 'http://tun.in/ser7s',
+        'info_dict': {
+            'id': '34682',
+            'title': 'Jazz 24 on 88.5 Jazz24 - KPLU-HD2',
+            'ext': 'mp3',
+            'location': 'Tacoma, WA',
+        },
+        'params': {
+            'skip_download': True,  # live stream
+        },
+    }
+
+    def _real_extract(self, url):
+        redirect_id = self._match_id(url)
+        # The server doesn't support HEAD requests
+        urlh = self._request_webpage(
+            url, redirect_id, note='Downloading redirect page')
+        url = urlh.geturl()
+        self.to_screen('Following redirect: %s' % url)
+        return self.url_result(url)

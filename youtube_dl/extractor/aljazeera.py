@@ -15,7 +15,7 @@ class AlJazeeraIE(InfoExtractor):
             'description': 'As a birth attendant advocating for family planning, Remy is on the frontline of Tondo\'s battle with overcrowding.',
             'uploader': 'Al Jazeera English',
         },
-        'add_ie': ['Brightcove'],
+        'add_ie': ['BrightcoveLegacy'],
         'skip': 'Not accessible from Travis CI server',
     }
 
@@ -32,5 +32,5 @@ class AlJazeeraIE(InfoExtractor):
                 'playerKey=AQ~~%2CAAAAmtVJIFk~%2CTVGOQ5ZTwJbeMWnq5d_H4MOM57xfzApc'
                 '&%40videoPlayer={0}'.format(brightcove_id)
             ),
-            'ie_key': 'Brightcove',
+            'ie_key': 'BrightcoveLegacy',
         }

@@ -8,20 +8,24 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    ExtractorError,
+    determine_ext,
     parse_duration,
     unified_strdate,
+    int_or_none,
+    xpath_text,
 )
 
 
-class RaiIE(InfoExtractor):
-    _VALID_URL = r'(?P<url>(?P<host>http://(?:.+?\.)?(?:rai\.it|rai\.tv|rainews\.it))/dl/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})(?:-.+?)?\.html)'
+class RaiTVIE(InfoExtractor):
+    _VALID_URL = r'http://(?:.+?\.)?(?:rai\.it|rai\.tv|rainews\.it)/dl/(?:[^/]+/)+media/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})(?:-.+?)?\.html'
     _TESTS = [
         {
             'url': 'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-cb27157f-9dd0-4aee-b788-b1f67643a391.html',
-            'md5': 'c064c0b2d09c278fb293116ef5d0a32d',
+            'md5': '96382709b61dd64a6b88e0f791e6df4c',
             'info_dict': {
                 'id': 'cb27157f-9dd0-4aee-b788-b1f67643a391',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'Report del 07/04/2014',
                 'description': 'md5:f27c544694cacb46a078db84ec35d2d9',
                 'upload_date': '20140407',
@@ -30,16 +34,14 @@ class RaiIE(InfoExtractor):
         },
         {
             'url': 'http://www.raisport.rai.it/dl/raiSport/media/rassegna-stampa-04a9f4bd-b563-40cf-82a6-aad3529cb4a9.html',
-            'md5': '8bb9c151924ce241b74dd52ef29ceafa',
+            'md5': 'd9751b78eac9710d62c2447b224dea39',
             'info_dict': {
                 'id': '04a9f4bd-b563-40cf-82a6-aad3529cb4a9',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'TG PRIMO TEMPO',
-                'description': '',
                 'upload_date': '20140612',
                 'duration': 1758,
             },
-            'skip': 'Error 404',
         },
         {
             'url': 'http://www.rainews.it/dl/rainews/media/state-of-the-net-Antonella-La-Carpia-regole-virali-7aafdea9-0e5d-49d5-88a6-7e65da67ae13.html',
@@ -55,110 +57,103 @@ class RaiIE(InfoExtractor):
         },
         {
             'url': 'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-b4a49761-e0cc-4b14-8736-2729f6f73132-tg2.html',
-            'md5': '35694f062977fe6619943f08ed935730',
             'info_dict': {
                 'id': 'b4a49761-e0cc-4b14-8736-2729f6f73132',
                 'ext': 'mp4',
                 'title': 'Alluvione in Sardegna e dissesto idrogeologico',
                 'description': 'Edizione delle ore 20:30 ',
-            }
+            },
+            'skip': 'invalid urls',
         },
         {
             'url': 'http://www.ilcandidato.rai.it/dl/ray/media/Il-Candidato---Primo-episodio-Le-Primarie-28e5525a-b495-45e8-a7c3-bc48ba45d2b6.html',
-            'md5': '02b64456f7cc09f96ff14e7dd489017e',
+            'md5': '496ab63e420574447f70d02578333437',
             'info_dict': {
                 'id': '28e5525a-b495-45e8-a7c3-bc48ba45d2b6',
                 'ext': 'flv',
                 'title': 'Il Candidato - Primo episodio: "Le Primarie"',
-                'description': 'Primo appuntamento con "Il candidato" con Filippo Timi, alias Piero Zucca presidente!',
-                'uploader': 'RaiTre',
+                'description': 'md5:364b604f7db50594678f483353164fb8',
+                'upload_date': '20140923',
+                'duration': 386,
             }
         },
-        {
-            'url': 'http://www.report.rai.it/dl/Report/puntata/ContentItem-0c7a664b-d0f4-4b2c-8835-3f82e46f433e.html',
-            'md5': '037104d2c14132887e5e4cf114569214',
-            'info_dict': {
-                'id': '0c7a664b-d0f4-4b2c-8835-3f82e46f433e',
-                'ext': 'flv',
-                'title': 'Il pacco',
-                'description': 'md5:4b1afae1364115ce5d78ed83cd2e5b3a',
-                'uploader': 'RaiTre',
-                'upload_date': '20141221',
-            },
-        }
     ]
 
-    def _extract_relinker_url(self, webpage):
-        return self._proto_relative_url(self._search_regex(
-            [r'name="videourl" content="([^"]+)"', r'var\s+videoURL(?:_MP4)?\s*=\s*"([^"]+)"'],
-            webpage, 'relinker url', default=None))
-
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        host = mobj.group('host')
+        video_id = self._match_id(url)
+        media = self._download_json(
+            'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-%s.html?json' % video_id,
+            video_id, 'Downloading video JSON')
 
-        webpage = self._download_webpage(url, video_id)
+        thumbnails = []
+        for image_type in ('image', 'image_medium', 'image_300'):
+            thumbnail_url = media.get(image_type)
+            if thumbnail_url:
+                thumbnails.append({
+                    'url': thumbnail_url,
+                })
 
-        relinker_url = self._extract_relinker_url(webpage)
+        subtitles = []
+        formats = []
+        media_type = media['type']
+        if 'Audio' in media_type:
+            formats.append({
+                'format_id': media.get('formatoAudio'),
+                'url': media['audioUrl'],
+                'ext': media.get('formatoAudio'),
+            })
+        elif 'Video' in media_type:
+            def fix_xml(xml):
+                return xml.replace(' tag elementi', '').replace('>/', '</')
 
-        if not relinker_url:
-            iframe_url = self._search_regex(
-                [r'<iframe[^>]+src="([^"]*/dl/[^"]+\?iframe\b[^"]*)"',
-                 r'drawMediaRaiTV\(["\'](.+?)["\']'],
-                webpage, 'iframe')
-            if not iframe_url.startswith('http'):
-                iframe_url = compat_urlparse.urljoin(url, iframe_url)
-            webpage = self._download_webpage(
-                iframe_url, video_id)
-            relinker_url = self._extract_relinker_url(webpage)
+            relinker = self._download_xml(
+                media['mediaUri'] + '&output=43',
+                video_id, transform_source=fix_xml)
 
-        relinker = self._download_json(
-            '%s&output=47' % relinker_url, video_id)
+            has_subtitle = False
 
-        media_url = relinker['video'][0]
-        ct = relinker.get('ct')
-        if ct == 'f4m':
-            formats = self._extract_f4m_formats(
-                media_url + '&hdcore=3.7.0&plugin=aasp-3.7.0.39.44', video_id)
+            for element in relinker.findall('element'):
+                media_url = xpath_text(element, 'url')
+                ext = determine_ext(media_url)
+                content_type = xpath_text(element, 'content-type')
+                if ext == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        media_url, video_id, 'mp4', 'm3u8_native',
+                        m3u8_id='hls', fatal=False))
+                elif ext == 'f4m':
+                    formats.extend(self._extract_f4m_formats(
+                        media_url + '?hdcore=3.7.0&plugin=aasp-3.7.0.39.44',
+                        video_id, f4m_id='hds', fatal=False))
+                elif ext == 'stl':
+                    has_subtitle = True
+                elif content_type.startswith('video/'):
+                    bitrate = int_or_none(xpath_text(element, 'bitrate'))
+                    formats.append({
+                        'url': media_url,
+                        'tbr': bitrate if bitrate > 0 else None,
+                        'format_id': 'http-%d' % bitrate if bitrate > 0 else 'http',
+                    })
+                elif content_type.startswith('image/'):
+                    thumbnails.append({
+                        'url': media_url,
+                    })
+
+            self._sort_formats(formats)
+
+            if has_subtitle:
+                webpage = self._download_webpage(url, video_id)
+                subtitles = self._get_subtitles(video_id, webpage)
         else:
-            formats = [{
-                'url': media_url,
-                'format_id': ct,
-            }]
-
-        json_link = self._html_search_meta(
-            'jsonlink', webpage, 'JSON link', default=None)
-        if json_link:
-            media = self._download_json(
-                host + json_link, video_id, 'Downloading video JSON')
-            title = media.get('name')
-            description = media.get('desc')
-            thumbnail = media.get('image_300') or media.get('image_medium') or media.get('image')
-            duration = parse_duration(media.get('length'))
-            uploader = media.get('author')
-            upload_date = unified_strdate(media.get('date'))
-        else:
-            title = (self._search_regex(
-                r'var\s+videoTitolo\s*=\s*"(.+?)";',
-                webpage, 'title', default=None) or self._og_search_title(webpage)).replace('\\"', '"')
-            description = self._og_search_description(webpage)
-            thumbnail = self._og_search_thumbnail(webpage)
-            duration = None
-            uploader = self._html_search_meta('Editore', webpage, 'uploader')
-            upload_date = unified_strdate(self._html_search_meta(
-                'item-date', webpage, 'upload date', default=None))
-
-        subtitles = self.extract_subtitles(video_id, webpage)
+            raise ExtractorError('not a media file')
 
         return {
             'id': video_id,
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'uploader': uploader,
-            'upload_date': upload_date,
-            'duration': duration,
+            'title': media['name'],
+            'description': media.get('desc'),
+            'thumbnails': thumbnails,
+            'uploader': media.get('author'),
+            'upload_date': unified_strdate(media.get('date')),
+            'duration': parse_duration(media.get('length')),
             'formats': formats,
             'subtitles': subtitles,
         }
@@ -177,3 +172,36 @@ class RaiIE(InfoExtractor):
                 'url': 'http://www.rai.tv%s' % compat_urllib_parse.quote(captions),
             }]
         return subtitles
+
+
+class RaiIE(InfoExtractor):
+    _VALID_URL = r'http://(?:.+?\.)?(?:rai\.it|rai\.tv|rainews\.it)/dl/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})(?:-.+?)?\.html'
+    _TESTS = [
+        {
+            'url': 'http://www.report.rai.it/dl/Report/puntata/ContentItem-0c7a664b-d0f4-4b2c-8835-3f82e46f433e.html',
+            'md5': 'e0e7a8a131e249d1aa0ebf270d1d8db7',
+            'info_dict': {
+                'id': '59d69d28-6bb6-409d-a4b5-ed44096560af',
+                'ext': 'flv',
+                'title': 'Il pacco',
+                'description': 'md5:4b1afae1364115ce5d78ed83cd2e5b3a',
+                'upload_date': '20141221',
+            },
+        }
+    ]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if RaiTVIE.suitable(url) else super(RaiIE, cls).suitable(url)
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        iframe_url = self._search_regex(
+            [r'<iframe[^>]+src="([^"]*/dl/[^"]+\?iframe\b[^"]*)"',
+             r'drawMediaRaiTV\(["\'](.+?)["\']'],
+            webpage, 'iframe')
+        if not iframe_url.startswith('http'):
+            iframe_url = compat_urlparse.urljoin(url, iframe_url)
+        return self.url_result(iframe_url)

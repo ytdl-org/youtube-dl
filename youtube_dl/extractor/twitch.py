@@ -11,7 +11,6 @@ from ..compat import (
     compat_str,
     compat_urllib_parse,
     compat_urllib_parse_urlparse,
-    compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
@@ -20,6 +19,7 @@ from ..utils import (
     int_or_none,
     parse_duration,
     parse_iso8601,
+    sanitized_Request,
 )
 
 
@@ -48,7 +48,7 @@ class TwitchBaseIE(InfoExtractor):
         for cookie in self._downloader.cookiejar:
             if cookie.name == 'api_token':
                 headers['Twitch-Api-Token'] = cookie.value
-        request = compat_urllib_request.Request(url, headers=headers)
+        request = sanitized_Request(url, headers=headers)
         response = super(TwitchBaseIE, self)._download_json(request, video_id, note)
         self._handle_error(response)
         return response
@@ -80,7 +80,7 @@ class TwitchBaseIE(InfoExtractor):
         if not post_url.startswith('http'):
             post_url = compat_urlparse.urljoin(redirect_url, post_url)
 
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             post_url, compat_urllib_parse.urlencode(encode_dict(login_form)).encode('utf-8'))
         request.add_header('Referer', redirect_url)
         response = self._download_webpage(

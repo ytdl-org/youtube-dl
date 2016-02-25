@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import smuggle_url
 
 
 class VidziIE(InfoExtractor):
@@ -13,6 +14,11 @@ class VidziIE(InfoExtractor):
             'id': 'cghql9yq6emu',
             'ext': 'mp4',
             'title': 'youtube-dl test video  1\\\\2\'3/4<5\\\\6ä7↭',
+            'uploader': 'vidzi.tv',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
     }
 
@@ -20,13 +26,14 @@ class VidziIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        video_url = self._html_search_regex(
-            r'{\s*file\s*:\s*"([^"]+)"\s*}', webpage, 'video url')
         title = self._html_search_regex(
             r'(?s)<h2 class="video-title">(.*?)</h2>', webpage, 'title')
 
+        # Vidzi now uses jwplayer, which can be handled by GenericIE
         return {
+            '_type': 'url_transparent',
             'id': video_id,
             'title': title,
-            'url': video_url,
+            'url': smuggle_url(url, {'to_generic': True}),
+            'ie_key': 'Generic',
         }

@@ -8,12 +8,12 @@ from .common import InfoExtractor
 class WorldStarHipHopIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www|m)\.worldstar(?:candy|hiphop)\.com/(?:videos|android)/video\.php\?v=(?P<id>.*)'
     _TESTS = [{
-        "url": "http://www.worldstarhiphop.com/videos/video.php?v=wshh6a7q1ny0G34ZwuIO",
-        "md5": "9d04de741161603bf7071bbf4e883186",
-        "info_dict": {
-            "id": "wshh6a7q1ny0G34ZwuIO",
-            "ext": "mp4",
-            "title": "KO Of The Week: MMA Fighter Gets Knocked Out By Swift Head Kick!"
+        'url': 'http://www.worldstarhiphop.com/videos/video.php?v=wshh6a7q1ny0G34ZwuIO',
+        'md5': '9d04de741161603bf7071bbf4e883186',
+        'info_dict': {
+            'id': 'wshh6a7q1ny0G34ZwuIO',
+            'ext': 'mp4',
+            'title': 'KO Of The Week: MMA Fighter Gets Knocked Out By Swift Head Kick!'
         }
     }, {
         'url': 'http://m.worldstarhiphop.com/android/video.php?v=wshh6a7q1ny0G34ZwuIO',
@@ -21,7 +21,7 @@ class WorldStarHipHopIE(InfoExtractor):
         'info_dict': {
             'id': 'wshh6a7q1ny0G34ZwuIO',
             'ext': 'mp4',
-            "title": "KO Of The Week: MMA Fighter Gets Knocked Out By Swift Head Kick!"
+            'title': 'KO Of The Week: MMA Fighter Gets Knocked Out By Swift Head Kick!'
         }
     }]
 

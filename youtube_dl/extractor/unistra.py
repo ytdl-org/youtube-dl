@@ -38,7 +38,7 @@ class UnistraIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        files = set(re.findall(r'file\s*:\s*"([^"]+)"', webpage))
+        files = set(re.findall(r'file\s*:\s*"(/[^"]+)"', webpage))
 
         quality = qualities(['SD', 'HD'])
         formats = []

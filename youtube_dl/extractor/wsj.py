@@ -84,6 +84,5 @@ class WSJIE(InfoExtractor):
             'duration': duration,
             'upload_date': upload_date,
             'title': title,
-            'formats': formats,
             'categories': categories,
         }

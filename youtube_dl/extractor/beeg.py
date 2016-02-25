@@ -1,6 +1,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_chr,
+    compat_ord,
+    compat_urllib_parse_unquote,
+)
 from ..utils import (
     int_or_none,
     parse_iso8601,
@@ -29,16 +34,49 @@ class BeegIE(InfoExtractor):
         video_id = self._match_id(url)
 
         video = self._download_json(
-            'http://beeg.com/api/v1/video/%s' % video_id, video_id)
+            'https://api.beeg.com/api/v5/video/%s' % video_id, video_id)
+
+        def split(o, e):
+            def cut(s, x):
+                n.append(s[:x])
+                return s[x:]
+            n = []
+            r = len(o) % e
+            if r > 0:
+                o = cut(o, r)
+            while len(o) > e:
+                o = cut(o, e)
+            n.append(o)
+            return n
+
+        def decrypt_key(key):
+            # Reverse engineered from http://static.beeg.com/cpl/1105.js
+            a = '5ShMcIQlssOd7zChAIOlmeTZDaUxULbJRnywYaiB'
+            e = compat_urllib_parse_unquote(key)
+            o = ''.join([
+                compat_chr(compat_ord(e[n]) - compat_ord(a[n % len(a)]) % 21)
+                for n in range(len(e))])
+            return ''.join(split(o, 3)[::-1])
+
+        def decrypt_url(encrypted_url):
+            encrypted_url = self._proto_relative_url(
+                encrypted_url.replace('{DATA_MARKERS}', ''), 'https:')
+            key = self._search_regex(
+                r'/key=(.*?)%2Cend=', encrypted_url, 'key', default=None)
+            if not key:
+                return encrypted_url
+            return encrypted_url.replace(key, decrypt_key(key))
 
         formats = []
         for format_id, video_url in video.items():
+            if not video_url:
+                continue
             height = self._search_regex(
                 r'^(\d+)[pP]$', format_id, 'height', default=None)
             if not height:
                 continue
             formats.append({
-                'url': self._proto_relative_url(video_url.replace('{DATA_MARKERS}', ''), 'http:'),
+                'url': decrypt_url(video_url),
                 'format_id': format_id,
                 'height': int(height),
             })

@@ -41,7 +41,7 @@ class ExfmIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         song_id = mobj.group('id')
-        info_url = "http://ex.fm/api/v3/song/%s" % song_id
+        info_url = 'http://ex.fm/api/v3/song/%s' % song_id
         info = self._download_json(info_url, song_id)['song']
         song_url = info['url']
         if re.match(self._SOUNDCLOUD_URL, song_url) is not None:

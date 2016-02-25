@@ -23,6 +23,7 @@ class ABCIE(InfoExtractor):
             'title': 'Australia to help staff Ebola treatment centre in Sierra Leone',
             'description': 'md5:809ad29c67a05f54eb41f2a105693a67',
         },
+        'skip': 'this video has expired',
     }, {
         'url': 'http://www.abc.net.au/news/2015-08-17/warren-entsch-introduces-same-sex-marriage-bill/6702326',
         'md5': 'db2a5369238b51f9811ad815b69dc086',
@@ -36,6 +37,7 @@ class ABCIE(InfoExtractor):
             'title': 'Marriage Equality: Warren Entsch introduces same sex marriage bill',
         },
         'add_ie': ['Youtube'],
+        'skip': 'Not accessible from Travis CI server',
     }, {
         'url': 'http://www.abc.net.au/news/2015-10-23/nab-lifts-interest-rates-following-westpac-and-cba/6880080',
         'md5': 'b96eee7c9edf4fc5a358a0252881cc1f',
@@ -58,6 +60,9 @@ class ABCIE(InfoExtractor):
             r'inline(?P<type>Video|Audio|YouTube)Data\.push\((?P<json_data>[^)]+)\);',
             webpage)
         if mobj is None:
+            expired = self._html_search_regex(r'(?s)class="expired-(?:video|audio)".+?<span>(.+?)</span>', webpage, 'expired', None)
+            if expired:
+                raise ExtractorError('%s said: %s' % (self.IE_NAME, expired), expected=True)
             raise ExtractorError('Unable to extract video urls')
 
         urls_info = self._parse_json(

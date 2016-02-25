@@ -1,18 +1,30 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import remove_end
 
 
 class ESPNIE(InfoExtractor):
     _VALID_URL = r'https?://espn\.go\.com/(?:[^/]+/)*(?P<id>[^/]+)'
-    _WORKING = False
     _TESTS = [{
         'url': 'http://espn.go.com/video/clip?id=10365079',
         'info_dict': {
             'id': 'FkYWtmazr6Ed8xmvILvKLWjd4QvYZpzG',
             'ext': 'mp4',
-            'title': 'dm_140128_30for30Shorts___JudgingJewellv2',
-            'description': '',
+            'title': '30 for 30 Shorts: Judging Jewell',
+            'description': None,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        # intl video, from http://www.espnfc.us/video/mls-highlights/150/video/2743663/must-see-moments-best-of-the-mls-season
+        'url': 'http://espn.go.com/video/clip?id=2743663',
+        'info_dict': {
+            'id': '50NDFkeTqRHB0nXBOK-RGdSG5YQPuxHg',
+            'ext': 'mp4',
+            'title': 'Must-See Moments: Best of the MLS season',
         },
         'params': {
             # m3u8 download
@@ -41,15 +53,26 @@ class ESPNIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_id = self._search_regex(
-            r'class="video-play-button"[^>]+data-id="(\d+)',
-            webpage, 'video id')
+            r'class=(["\']).*?video-play-button.*?\1[^>]+data-id=["\'](?P<id>\d+)',
+            webpage, 'video id', group='id')
 
+        cms = 'espn'
+        if 'data-source="intl"' in webpage:
+            cms = 'intl'
+        player_url = 'https://espn.go.com/video/iframe/twitter/?id=%s&cms=%s' % (video_id, cms)
         player = self._download_webpage(
-            'https://espn.go.com/video/iframe/twitter/?id=%s' % video_id, video_id)
+            player_url, video_id)
 
         pcode = self._search_regex(
             r'["\']pcode=([^"\']+)["\']', player, 'pcode')
 
-        return self.url_result(
-            'ooyalaexternal:espn:%s:%s' % (video_id, pcode),
-            'OoyalaExternal')
+        title = remove_end(
+            self._og_search_title(webpage),
+            '- ESPN Video').strip()
+
+        return {
+            '_type': 'url_transparent',
+            'url': 'ooyalaexternal:%s:%s:%s' % (cms, video_id, pcode),
+            'ie_key': 'OoyalaExternal',
+            'title': title,
+        }

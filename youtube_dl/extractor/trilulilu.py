@@ -1,80 +1,103 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+    parse_iso8601,
+)
 
 
 class TriluliluIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?trilulilu\.ro/(?:video-[^/]+/)?(?P<id>[^/#\?]+)'
-    _TEST = {
-        'url': 'http://www.trilulilu.ro/video-animatie/big-buck-bunny-1',
-        'md5': 'c1450a00da251e2769b74b9005601cac',
+    _VALID_URL = r'https?://(?:(?:www|m)\.)?trilulilu\.ro/(?:[^/]+/)?(?P<id>[^/#\?]+)'
+    _TESTS = [{
+        'url': 'http://www.trilulilu.ro/big-buck-bunny-1',
+        'md5': '68da087b676a6196a413549212f60cc6',
         'info_dict': {
             'id': 'ae2899e124140b',
             'ext': 'mp4',
             'title': 'Big Buck Bunny',
             'description': ':) pentru copilul din noi',
+            'uploader_id': 'chipy',
+            'upload_date': '20120304',
+            'timestamp': 1330830647,
+            'uploader': 'chipy',
+            'view_count': int,
+            'like_count': int,
+            'comment_count': int,
         },
-    }
+    }, {
+        'url': 'http://www.trilulilu.ro/adena-ft-morreti-inocenta',
+        'md5': '929dfb8729dc71750463af88bbbbf4a4',
+        'info_dict': {
+            'id': 'f299710e3c91c5',
+            'ext': 'mp4',
+            'title': 'Adena ft. Morreti - Inocenta',
+            'description': 'pop music',
+            'uploader_id': 'VEVOmixt',
+            'upload_date': '20151204',
+            'uploader': 'VEVOmixt',
+            'timestamp': 1449187937,
+            'view_count': int,
+            'like_count': int,
+            'comment_count': int,
+        },
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id)
+        media_info = self._download_json('http://m.trilulilu.ro/%s?format=json' % display_id, display_id)
 
-        if re.search(r'Fişierul nu este disponibil pentru vizionare în ţara dumneavoastră', webpage):
-            raise ExtractorError(
-                'This video is not available in your country.', expected=True)
-        elif re.search('Fişierul poate fi accesat doar de către prietenii lui', webpage):
+        age_limit = 0
+        errors = media_info.get('errors', {})
+        if errors.get('friends'):
             raise ExtractorError('This video is private.', expected=True)
+        elif errors.get('geoblock'):
+            raise ExtractorError('This video is not available in your country.', expected=True)
+        elif errors.get('xxx_unlogged'):
+            age_limit = 18
 
-        flashvars_str = self._search_regex(
-            r'block_flash_vars\s*=\s*(\{[^\}]+\})', webpage, 'flashvars', fatal=False, default=None)
+        media_class = media_info.get('class')
+        if media_class not in ('video', 'audio'):
+            raise ExtractorError('not a video or an audio')
 
-        if flashvars_str:
-            flashvars = self._parse_json(flashvars_str, display_id)
+        user = media_info.get('user', {})
+
+        thumbnail = media_info.get('cover_url')
+        if thumbnail:
+            thumbnail.format(width='1600', height='1200')
+
+        # TODO: get correct ext for audio files
+        stream_type = media_info.get('stream_type')
+        formats = [{
+            'url': media_info['href'],
+            'ext': stream_type,
+        }]
+        if media_info.get('is_hd'):
+            formats.append({
+                'format_id': 'hd',
+                'url': media_info['hrefhd'],
+                'ext': stream_type,
+            })
+        if media_class == 'audio':
+            formats[0]['vcodec'] = 'none'
         else:
-            raise ExtractorError(
-                'This page does not contain videos', expected=True)
-
-        if flashvars['isMP3'] == 'true':
-            raise ExtractorError(
-                'Audio downloads are currently not supported', expected=True)
-
-        video_id = flashvars['hash']
-        title = self._og_search_title(webpage)
-        thumbnail = self._og_search_thumbnail(webpage)
-        description = self._og_search_description(webpage, default=None)
-
-        format_url = ('http://fs%(server)s.trilulilu.ro/%(hash)s/'
-                      'video-formats2' % flashvars)
-        format_doc = self._download_xml(
-            format_url, video_id,
-            note='Downloading formats',
-            errnote='Error while downloading formats')
-
-        video_url_template = (
-            'http://fs%(server)s.trilulilu.ro/stream.php?type=video'
-            '&source=site&hash=%(hash)s&username=%(userid)s&'
-            'key=ministhebest&format=%%s&sig=&exp=' %
-            flashvars)
-        formats = [
-            {
-                'format_id': fnode.text.partition('-')[2],
-                'url': video_url_template % fnode.text,
-                'ext': fnode.text.partition('-')[0]
-            }
-
-            for fnode in format_doc.findall('./formats/format')
-        ]
+            formats[0]['format_id'] = 'sd'
 
         return {
-            'id': video_id,
+            'id': media_info['identifier'].split('|')[1],
             'display_id': display_id,
             'formats': formats,
-            'title': title,
-            'description': description,
+            'title': media_info['title'],
+            'description': media_info.get('description'),
             'thumbnail': thumbnail,
+            'uploader_id': user.get('username'),
+            'uploader': user.get('fullname'),
+            'timestamp': parse_iso8601(media_info.get('published'), ' '),
+            'duration': int_or_none(media_info.get('duration')),
+            'view_count': int_or_none(media_info.get('count_views')),
+            'like_count': int_or_none(media_info.get('count_likes')),
+            'comment_count': int_or_none(media_info.get('count_comments')),
+            'age_limit': age_limit,
         }

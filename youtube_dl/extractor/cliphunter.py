@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import determine_ext
+from ..utils import int_or_none
 
 
 _translation_table = {
@@ -42,31 +42,26 @@ class CliphunterIE(InfoExtractor):
         video_title = self._search_regex(
             r'mediaTitle = "([^"]+)"', webpage, 'title')
 
-        fmts = {}
-        for fmt in ('mp4', 'flv'):
-            fmt_list = self._parse_json(self._search_regex(
-                r'var %sjson\s*=\s*(\[.*?\]);' % fmt, webpage, '%s formats' % fmt), video_id)
-            for f in fmt_list:
-                fmts[f['fname']] = _decode(f['sUrl'])
-
-        qualities = self._parse_json(self._search_regex(
-            r'var player_btns\s*=\s*(.*?);\n', webpage, 'quality info'), video_id)
+        gexo_files = self._parse_json(
+            self._search_regex(
+                r'var\s+gexoFiles\s*=\s*({.+?});', webpage, 'gexo files'),
+            video_id)
 
         formats = []
-        for fname, url in fmts.items():
-            f = {
-                'url': url,
-            }
-            if fname in qualities:
-                qual = qualities[fname]
-                f.update({
-                    'format_id': '%s_%sp' % (determine_ext(url), qual['h']),
-                    'width': qual['w'],
-                    'height': qual['h'],
-                    'tbr': qual['br'],
-                })
-            formats.append(f)
-
+        for format_id, f in gexo_files.items():
+            video_url = f.get('url')
+            if not video_url:
+                continue
+            fmt = f.get('fmt')
+            height = f.get('h')
+            format_id = '%s_%sp' % (fmt, height) if fmt and height else format_id
+            formats.append({
+                'url': _decode(video_url),
+                'format_id': format_id,
+                'width': int_or_none(f.get('w')),
+                'height': int_or_none(height),
+                'tbr': int_or_none(f.get('br')),
+            })
         self._sort_formats(formats)
 
         thumbnail = self._search_regex(

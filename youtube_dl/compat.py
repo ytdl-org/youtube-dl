@@ -14,6 +14,7 @@ import socket
 import subprocess
 import sys
 import itertools
+import xml.etree.ElementTree
 
 
 try:
@@ -180,20 +181,20 @@ except ImportError:  # Python < 3.4
             # parameter := attribute "=" value
             url = req.get_full_url()
 
-            scheme, data = url.split(":", 1)
-            mediatype, data = data.split(",", 1)
+            scheme, data = url.split(':', 1)
+            mediatype, data = data.split(',', 1)
 
             # even base64 encoded data URLs might be quoted so unquote in any case:
             data = compat_urllib_parse_unquote_to_bytes(data)
-            if mediatype.endswith(";base64"):
+            if mediatype.endswith(';base64'):
                 data = binascii.a2b_base64(data)
                 mediatype = mediatype[:-7]
 
             if not mediatype:
-                mediatype = "text/plain;charset=US-ASCII"
+                mediatype = 'text/plain;charset=US-ASCII'
 
             headers = email.message_from_string(
-                "Content-type: %s\nContent-length: %d\n" % (mediatype, len(data)))
+                'Content-type: %s\nContent-length: %d\n' % (mediatype, len(data)))
 
             return compat_urllib_response.addinfourl(io.BytesIO(data), headers, url)
 
@@ -212,6 +213,43 @@ try:
 except ImportError:  # Python 2.6
     from xml.parsers.expat import ExpatError as compat_xml_parse_error
 
+if sys.version_info[0] >= 3:
+    compat_etree_fromstring = xml.etree.ElementTree.fromstring
+else:
+    # python 2.x tries to encode unicode strings with ascii (see the
+    # XMLParser._fixtext method)
+    etree = xml.etree.ElementTree
+
+    try:
+        _etree_iter = etree.Element.iter
+    except AttributeError:  # Python <=2.6
+        def _etree_iter(root):
+            for el in root.findall('*'):
+                yield el
+                for sub in _etree_iter(el):
+                    yield sub
+
+    # on 2.6 XML doesn't have a parser argument, function copied from CPython
+    # 2.7 source
+    def _XML(text, parser=None):
+        if not parser:
+            parser = etree.XMLParser(target=etree.TreeBuilder())
+        parser.feed(text)
+        return parser.close()
+
+    def _element_factory(*args, **kwargs):
+        el = etree.Element(*args, **kwargs)
+        for k, v in el.items():
+            if isinstance(v, bytes):
+                el.set(k, v.decode('utf-8'))
+        return el
+
+    def compat_etree_fromstring(text):
+        doc = _XML(text, parser=etree.XMLParser(target=etree.TreeBuilder(element_factory=_element_factory)))
+        for el in _etree_iter(doc):
+            if el.text is not None and isinstance(el.text, bytes):
+                el.text = el.text.decode('utf-8')
+        return doc
 
 try:
     from urllib.parse import parse_qs as compat_parse_qs
@@ -230,7 +268,7 @@ except ImportError:  # Python 2
             nv = name_value.split('=', 1)
             if len(nv) != 2:
                 if strict_parsing:
-                    raise ValueError("bad query field: %r" % (name_value,))
+                    raise ValueError('bad query field: %r' % (name_value,))
                 # Handle case of a control-name with no equal sign
                 if keep_blank_values:
                     nv.append('')
@@ -395,7 +433,7 @@ if sys.version_info < (3, 0) and sys.platform == 'win32':
 else:
     compat_getpass = getpass.getpass
 
-# Old 2.6 and 2.7 releases require kwargs to be bytes
+# Python < 2.6.5 require kwargs to be bytes
 try:
     def _testfunc(x):
         pass
@@ -428,7 +466,7 @@ if sys.version_info < (2, 7):
         if err is not None:
             raise err
         else:
-            raise socket.error("getaddrinfo returns an empty list")
+            raise socket.error('getaddrinfo returns an empty list')
 else:
     compat_socket_create_connection = socket.create_connection
 
@@ -507,6 +545,7 @@ __all__ = [
     'compat_chr',
     'compat_cookiejar',
     'compat_cookies',
+    'compat_etree_fromstring',
     'compat_expanduser',
     'compat_get_terminal_size',
     'compat_getenv',
