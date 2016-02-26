@@ -2639,7 +2639,7 @@ def base_n(num, n, table=None):
 
 def decode_packed_codes(code):
     mobj = re.search(
-        r"'([^']+)',(\d+),(\d+),'([^']+)'\.split\('\|'\),[^,]+,{}",
+        r"}\('(.+)',(\d+),(\d+),'([^']+)'\.split\('\|'\)",
         code)
     obfucasted_code, base, count, symbols = mobj.groups()
     base = int(base)
