@@ -2631,5 +2631,9 @@ def base_n(num, n, table):
     return ret
 
 
+def base36(num):
+    return base_n(num, 36, '0123456789abcdefghijklmnopqrstuvwxyz')
+
+
 def base62(num):
     return base_n(num, 62, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
