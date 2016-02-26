@@ -19,7 +19,9 @@ class TvpleIE(InfoExtractor):
             'uploader_id': 'jack1609',
             'title': '팜플렛으로 yee를 연주하는 김병만',
             'description': '자작입니다. 첫 조교..인가..? 조교라긴 애매하지만, 어쨋든 노래로 만드는 건 이번이 처음입니다.\n원본 영상 출처: https://www.youtube.com/watch?v=E4BPHBL35dE\nyee는 유튜브에 치면 원본 영상이 나오는데 다들 아시죠??? 저작권 문제가 될 경우는 지우겠습니다...\n\n병만로이드라고 불러야 하나??',
-            'duration': 9
+            'duration': 9,
+            'upload_date': '20150531',
+            'timestamp': 1433094762
         }
     }, {
         'url': 'http://tvple.com/208230',
@@ -31,7 +33,9 @@ class TvpleIE(InfoExtractor):
             'uploader_id': 'mesenghe',
             'title': '소환사 협곡의 개새끼',
             'description': 'http://youtu.be/LGABUervp48\n재밌게 봐라\n유튜브나 네이버 동영상으로 퍼가지 말고\n이젠 롤 관련된 건 안 만든다',
-            'duration': 71
+            'duration': 71,
+            'upload_date': '20140927',
+            'timestamp': 1411776051
         }
     }]
 
@@ -108,7 +112,7 @@ class TvpleIE(InfoExtractor):
         title = re.search("<h2.*title=\"(.*)\"", webpage).group(1)  # title
         uploader = re.search(r'personacon-sm".*/>\s*(.*)\s*</a>', webpage).group(1)  # username
         uploader_id = re.search(r'"/ch/(.*)/videos"', webpage).group(1)  # userid
-        description = re.search(r'collapse-content linkify mg-top-base break-word">\s*(.*)\s*<button type="button" class="collapse-button', webpage, re.DOTALL).group(1).replace(" <br />", "").replace("<br />", "").replace("\n            ", "")  # description
+        description = re.search(r'collapse-content linkify break-word">\s*(.*)\s*<button type="button" class="collapse-button', webpage, re.DOTALL).group(1).replace(" <br />", "").replace("<br />", "").replace("\n            ", "")  # description
         view_count = int(re.search(r'fa-play"></i></span>\s*(.*)\s*</li>', webpage).group(1).replace(",", ""))  # played
         try:
             comment_count = int(re.search(r'fa-cloud"></i></span>\s*(\d*)개의 구름', webpage).group(1).replace(",", ""))  # comment count
