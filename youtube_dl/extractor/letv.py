@@ -94,17 +94,16 @@ class LetvIE(InfoExtractor):
             return encrypted_data
         encrypted_data = encrypted_data[5:]
 
-        _loc4_ = bytearray()
-        while encrypted_data:
-            b = compat_ord(encrypted_data[0])
-            _loc4_.extend([b // 16, b & 0x0f])
-            encrypted_data = encrypted_data[1:]
+        _loc4_ = bytearray(2 * len(encrypted_data))
+        for idx, val in enumerate(encrypted_data):
+            b = compat_ord(val)
+            _loc4_[2 * idx] = b // 16
+            _loc4_[2 * idx + 1] = b % 16
         idx = len(_loc4_) - 11
         _loc4_ = _loc4_[idx:] + _loc4_[:idx]
-        _loc7_ = bytearray()
-        while _loc4_:
-            _loc7_.append(_loc4_[0] * 16 + _loc4_[1])
-            _loc4_ = _loc4_[2:]
+        _loc7_ = bytearray(len(encrypted_data))
+        for i in range(len(encrypted_data)):
+            _loc7_[i] = _loc4_[2 * i] * 16 + _loc4_[2 * i + 1]
 
         return bytes(_loc7_)
 
