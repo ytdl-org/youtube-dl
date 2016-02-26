@@ -18,6 +18,7 @@ import xml.etree.ElementTree
 from youtube_dl.utils import (
     age_restricted,
     args_to_str,
+    encode_base_n,
     clean_html,
     DateRange,
     detect_exe_version,
@@ -801,6 +802,17 @@ The first line
         self.assertEqual(
             ohdave_rsa_encrypt(b'aa111222', e, N),
             '726664bd9a23fd0c70f9f1b84aab5e3905ce1e45a584e9cbcf9bcc7510338fc1986d6c599ff990d923aa43c51c0d9013cd572e13bc58f4ae48f2ed8c0b0ba881')
+
+    def test_encode_base_n(self):
+        self.assertEqual(encode_base_n(0, 30), '0')
+        self.assertEqual(encode_base_n(80, 30), '2k')
+
+        custom_table = '9876543210ZYXWVUTSRQPONMLKJIHGFEDCBA'
+        self.assertEqual(encode_base_n(0, 30, custom_table), '9')
+        self.assertEqual(encode_base_n(80, 30, custom_table), '7P')
+
+        self.assertRaises(ValueError, encode_base_n, 0, 70)
+        self.assertRaises(ValueError, encode_base_n, 0, 60, custom_table)
 
 if __name__ == '__main__':
     unittest.main()

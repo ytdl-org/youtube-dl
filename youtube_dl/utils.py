@@ -2621,14 +2621,16 @@ def ohdave_rsa_encrypt(data, exponent, modulus):
     return '%x' % encrypted
 
 
-def base_n(num, n, table=None):
-    if num == 0:
-        return '0'
-
+def encode_base_n(num, n, table=None):
     FULL_TABLE = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    assert n <= len(FULL_TABLE)
     if not table:
         table = FULL_TABLE[:n]
+
+    if n > len(table):
+        raise ValueError('base %d exceeds table length %d' % (n, len(table)))
+
+    if num == 0:
+        return table[0]
 
     ret = ''
     while num:
@@ -2649,7 +2651,7 @@ def decode_packed_codes(code):
 
     while count:
         count -= 1
-        base_n_count = base_n(count, base)
+        base_n_count = encode_base_n(count, base)
         symbol_table[base_n_count] = symbols[count] or base_n_count
 
     return re.sub(
