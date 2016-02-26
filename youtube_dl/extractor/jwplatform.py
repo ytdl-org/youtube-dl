@@ -8,7 +8,7 @@ from ..utils import int_or_none
 
 
 class JWPlatformBaseIE(InfoExtractor):
-    def _parse_jwplayer_data(self, jwplayer_data, video_id):
+    def _parse_jwplayer_data(self, jwplayer_data, video_id, require_title=True):
         video_data = jwplayer_data['playlist'][0]
         subtitles = {}
         for track in video_data['tracks']:
@@ -19,7 +19,7 @@ class JWPlatformBaseIE(InfoExtractor):
         for source in video_data['sources']:
             source_url = self._proto_relative_url(source['file'])
             source_type = source.get('type') or ''
-            if source_type == 'application/vnd.apple.mpegurl':
+            if source_type in ('application/vnd.apple.mpegurl', 'hls'):
                 formats.extend(self._extract_m3u8_formats(
                     source_url, video_id, 'mp4', 'm3u8_native', fatal=False))
             elif source_type.startswith('audio'):
@@ -37,7 +37,7 @@ class JWPlatformBaseIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': video_data['title'],
+            'title': video_data['title'] if require_title else video_data.get('title'),
             'description': video_data.get('description'),
             'thumbnail': self._proto_relative_url(video_data.get('image')),
             'timestamp': int_or_none(video_data.get('pubdate')),
