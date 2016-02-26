@@ -975,40 +975,67 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return {}
         try:
             args = player_config['args']
-            caption_url = args['ttsurl']
-            if not caption_url:
-                self._downloader.report_warning(err_msg)
-                return {}
-            timestamp = args['timestamp']
-            # We get the available subtitles
-            list_params = compat_urllib_parse.urlencode({
-                'type': 'list',
-                'tlangs': 1,
-                'asrs': 1,
-            })
-            list_url = caption_url + '&' + list_params
-            caption_list = self._download_xml(list_url, video_id)
-            original_lang_node = caption_list.find('track')
-            if original_lang_node is None:
-                self._downloader.report_warning('Video doesn\'t have automatic captions')
-                return {}
-            original_lang = original_lang_node.attrib['lang_code']
-            caption_kind = original_lang_node.attrib.get('kind', '')
+            caption_url = args.get('ttsurl')
+            if caption_url:
+                timestamp = args['timestamp']
+                # We get the available subtitles
+                list_params = compat_urllib_parse.urlencode({
+                    'type': 'list',
+                    'tlangs': 1,
+                    'asrs': 1,
+                })
+                list_url = caption_url + '&' + list_params
+                caption_list = self._download_xml(list_url, video_id)
+                original_lang_node = caption_list.find('track')
+                if original_lang_node is None:
+                    self._downloader.report_warning('Video doesn\'t have automatic captions')
+                    return {}
+                original_lang = original_lang_node.attrib['lang_code']
+                caption_kind = original_lang_node.attrib.get('kind', '')
+
+                sub_lang_list = {}
+                for lang_node in caption_list.findall('target'):
+                    sub_lang = lang_node.attrib['lang_code']
+                    sub_formats = []
+                    for ext in self._SUBTITLE_FORMATS:
+                        params = compat_urllib_parse.urlencode({
+                            'lang': original_lang,
+                            'tlang': sub_lang,
+                            'fmt': ext,
+                            'ts': timestamp,
+                            'kind': caption_kind,
+                        })
+                        sub_formats.append({
+                            'url': caption_url + '&' + params,
+                            'ext': ext,
+                        })
+                    sub_lang_list[sub_lang] = sub_formats
+                return sub_lang_list
+
+            # Some videos don't provide ttsurl but rather caption_tracks and
+            # caption_translation_languages (e.g. 20LmZk1hakA)
+            caption_tracks = args['caption_tracks']
+            caption_translation_languages = args['caption_translation_languages']
+            caption_url = compat_parse_qs(caption_tracks.split(',')[0])['u'][0]
+            parsed_caption_url = compat_urlparse.urlparse(caption_url)
+            caption_qs = compat_parse_qs(parsed_caption_url.query)
 
             sub_lang_list = {}
-            for lang_node in caption_list.findall('target'):
-                sub_lang = lang_node.attrib['lang_code']
+            for lang in caption_translation_languages.split(','):
+                lang_qs = compat_parse_qs(compat_urllib_parse_unquote_plus(lang))
+                sub_lang = lang_qs.get('lc', [None])[0]
+                if not sub_lang:
+                    continue
                 sub_formats = []
                 for ext in self._SUBTITLE_FORMATS:
-                    params = compat_urllib_parse.urlencode({
-                        'lang': original_lang,
-                        'tlang': sub_lang,
-                        'fmt': ext,
-                        'ts': timestamp,
-                        'kind': caption_kind,
+                    caption_qs.update({
+                        'tlang': [sub_lang],
+                        'fmt': [ext],
                     })
+                    sub_url = compat_urlparse.urlunparse(parsed_caption_url._replace(
+                        query=compat_urllib_parse.urlencode(caption_qs, True)))
                     sub_formats.append({
-                        'url': caption_url + '&' + params,
+                        'url': sub_url,
                         'ext': ext,
                     })
                 sub_lang_list[sub_lang] = sub_formats
