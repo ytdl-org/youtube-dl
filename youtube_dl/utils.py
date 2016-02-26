@@ -2621,19 +2621,17 @@ def ohdave_rsa_encrypt(data, exponent, modulus):
     return '%x' % encrypted
 
 
-def base_n(num, n, table):
+def base_n(num, n, table=None):
     if num == 0:
         return '0'
+
+    FULL_TABLE = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    assert n <= len(FULL_TABLE)
+    if not table:
+        table = FULL_TABLE[:n]
+
     ret = ''
     while num:
         ret = table[num % n] + ret
         num = num // n
     return ret
-
-
-def base36(num):
-    return base_n(num, 36, '0123456789abcdefghijklmnopqrstuvwxyz')
-
-
-def base62(num):
-    return base_n(num, 62, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')

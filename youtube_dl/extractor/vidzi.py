@@ -5,7 +5,7 @@ import re
 
 from .jwplatform import JWPlatformBaseIE
 from ..utils import (
-    base36,
+    base_n,
     js_to_json,
 )
 
@@ -42,7 +42,7 @@ class VidziIE(JWPlatformBaseIE):
         while count:
             count -= 1
             if symbols[count]:
-                code = re.sub(r'\b%s\b' % base36(count), symbols[count], code)
+                code = re.sub(r'\b%s\b' % base_n(count, 36), symbols[count], code)
 
         code = code.replace('\\\'', '\'')
         jwplayer_data = self._parse_json(

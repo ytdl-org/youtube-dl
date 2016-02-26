@@ -18,7 +18,7 @@ from ..compat import (
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
-    base62,
+    base_n,
     ExtractorError,
     ohdave_rsa_encrypt,
     remove_start,
@@ -143,7 +143,7 @@ class IqiyiSDKInterpreter(object):
 
         while count:
             count -= 1
-            b62count = base62(count)
+            b62count = base_n(count, 62)
             symbol_table[b62count] = symbols[count] or b62count
 
         self.sdk_code = re.sub(
