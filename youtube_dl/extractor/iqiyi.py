@@ -18,7 +18,7 @@ from ..compat import (
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
-    base_n,
+    decode_packed_codes,
     ExtractorError,
     ohdave_rsa_encrypt,
     remove_start,
@@ -130,28 +130,8 @@ class IqiyiSDKInterpreter(object):
     def __init__(self, sdk_code):
         self.sdk_code = sdk_code
 
-    def decode_eval_codes(self):
-        self.sdk_code = self.sdk_code[5:-3]
-
-        mobj = re.search(
-            r"'([^']+)',62,(\d+),'([^']+)'\.split\('\|'\),[^,]+,{}",
-            self.sdk_code)
-        obfucasted_code, count, symbols = mobj.groups()
-        count = int(count)
-        symbols = symbols.split('|')
-        symbol_table = {}
-
-        while count:
-            count -= 1
-            b62count = base_n(count, 62)
-            symbol_table[b62count] = symbols[count] or b62count
-
-        self.sdk_code = re.sub(
-            r'\b(\w+)\b', lambda mobj: symbol_table[mobj.group(0)],
-            obfucasted_code)
-
     def run(self, target, ip, timestamp):
-        self.decode_eval_codes()
+        self.sdk_code = decode_packed_codes(self.sdk_code)
 
         functions = re.findall(r'input=([a-zA-Z0-9]+)\(input', self.sdk_code)
 

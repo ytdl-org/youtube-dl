@@ -2635,3 +2635,23 @@ def base_n(num, n, table=None):
         ret = table[num % n] + ret
         num = num // n
     return ret
+
+
+def decode_packed_codes(code):
+    mobj = re.search(
+        r"'([^']+)',(\d+),(\d+),'([^']+)'\.split\('\|'\),[^,]+,{}",
+        code)
+    obfucasted_code, base, count, symbols = mobj.groups()
+    base = int(base)
+    count = int(count)
+    symbols = symbols.split('|')
+    symbol_table = {}
+
+    while count:
+        count -= 1
+        base_n_count = base_n(count, base)
+        symbol_table[base_n_count] = symbols[count] or base_n_count
+
+    return re.sub(
+        r'\b(\w+)\b', lambda mobj: symbol_table[mobj.group(0)],
+        obfucasted_code)
