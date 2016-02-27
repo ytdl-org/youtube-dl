@@ -737,6 +737,7 @@ from .tmz import (
     TMZArticleIE,
 )
 from .tnaflix import (
+    TNAFlixNetworkEmbedIE,
     TNAFlixIE,
     EMPFlixIE,
     MovieFapIE,
