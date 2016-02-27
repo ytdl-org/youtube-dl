@@ -47,6 +47,7 @@ from .senateisvp import SenateISVPIE
 from .svt import SVTIE
 from .pornhub import PornHubIE
 from .xhamster import XHamsterEmbedIE
+from .tnaflix import TNAFlixNetworkEmbedIE
 from .vimeo import VimeoIE
 from .dailymotion import DailymotionCloudIE
 from .onionstudios import OnionStudiosIE
@@ -1632,6 +1633,11 @@ class GenericIE(InfoExtractor):
         xhamster_urls = XHamsterEmbedIE._extract_urls(webpage)
         if xhamster_urls:
             return _playlist_from_matches(xhamster_urls, ie='XHamsterEmbed')
+
+        # Look for embedded TNAFlixNetwork player
+        tnaflix_urls = TNAFlixNetworkEmbedIE._extract_urls(webpage)
+        if tnaflix_urls:
+            return _playlist_from_matches(tnaflix_urls, ie=TNAFlixNetworkEmbedIE.ie_key())
 
         # Look for embedded Tvigle player
         mobj = re.search(
