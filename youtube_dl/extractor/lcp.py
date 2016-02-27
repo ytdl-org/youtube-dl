@@ -32,7 +32,6 @@ class LcpIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Politique Matin - Politique matin',
             'upload_date': '20160225',
-            'description': 'Politique Matin - Politique matin',
             'timestamp': 1456391602
         }
     }, {
@@ -65,7 +64,7 @@ class LcpIE(InfoExtractor):
         video_timestamp = parse_iso8601(media_files_info.get('MediaInfo', {}).get('PublishDate'))
 
         title = self._og_search_title(webpage)
-        description = self._html_search_regex(self._meta_regex('description'), webpage, 'description', group='content', default=title)
+        description = self._html_search_meta('description', webpage, default=None)
 
         return {
             'id': media_files_info.get('EntryName'),
