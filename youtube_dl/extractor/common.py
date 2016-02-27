@@ -1033,11 +1033,21 @@ class InfoExtractor(object):
             return []
         m3u8_doc, urlh = res
         m3u8_url = urlh.geturl()
-        # A Media Playlist Tag MUST NOT appear in a Master Playlist
-        # https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3
-        # The EXT-X-TARGETDURATION tag is REQUIRED for every M3U8 Media Playlists
-        # https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3.1
-        if '#EXT-X-TARGETDURATION' in m3u8_doc:
+
+        # We should try extracting formats only from master playlists [1], i.e.
+        # playlists that describe available qualities. On the other hand media
+        # playlists [2] should be returned as is since they contain just the media
+        # without qualities renditions.
+        # Fortunately, master playlist can be easily distinguished from media
+        # playlist based on particular tags availability. As of [1, 2] master
+        # playlist tags MUST NOT appear in a media playist and vice versa.
+        # As of [3] #EXT-X-TARGETDURATION tag is REQUIRED for every media playlist
+        # and MUST NOT appear in master playlist thus we can clearly detect media
+        # playlist with this criterion.
+        # 1. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.4
+        # 2. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3
+        # 3. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3.1
+        if '#EXT-X-TARGETDURATION' in m3u8_doc:  # media playlist, return as is
             return [{
                 'url': m3u8_url,
                 'format_id': m3u8_id,
