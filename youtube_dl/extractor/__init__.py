@@ -349,6 +349,7 @@ from .kuwo import (
 )
 from .la7 import LA7IE
 from .laola1tv import Laola1TvIE
+from .lcp import LcpIE
 from .lecture2go import Lecture2GoIE
 from .lemonde import LemondeIE
 from .letv import (
