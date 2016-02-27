@@ -1084,19 +1084,29 @@ class InfoExtractor(object):
                     'protocol': entry_protocol,
                     'preference': preference,
                 }
-                codecs = last_info.get('CODECS')
-                if codecs:
-                    # TODO: looks like video codec is not always necessarily goes first
-                    va_codecs = codecs.split(',')
-                    if va_codecs[0]:
-                        f['vcodec'] = va_codecs[0]
-                    if len(va_codecs) > 1 and va_codecs[1]:
-                        f['acodec'] = va_codecs[1]
                 resolution = last_info.get('RESOLUTION')
                 if resolution:
                     width_str, height_str = resolution.split('x')
                     f['width'] = int(width_str)
                     f['height'] = int(height_str)
+                codecs = last_info.get('CODECS')
+                if codecs:
+                    vcodec, acodec = [None] * 2
+                    va_codecs = codecs.split(',')
+                    if len(va_codecs) == 1:
+                        # Audio only entries usually come with single codec and
+                        # no resolution. For more robustness we also check it to
+                        # be mp4 audio.
+                        if not resolution and va_codecs[0].startswith('mp4a'):
+                            vcodec, acodec = 'none', va_codecs[0]
+                        else:
+                            vcodec = va_codecs[0]
+                    else:
+                        vcodec, acodec = va_codecs[:2]
+                    f.update({
+                        'acodec': acodec,
+                        'vcodec': vcodec,
+                    })
                 if last_media is not None:
                     f['m3u8_media'] = last_media
                     last_media = None
