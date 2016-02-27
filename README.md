@@ -419,6 +419,8 @@ For example, with the following configuration file youtube-dl will always extrac
 -o ~/Movies/%(title)s.%(ext)s
 ```
 
+Note that options in configuration file are just the same options aka switches used in regular command line calls thus there **must be no whitespace** after `-` or `--`, e.g. `-o` or `--proxy` but not `- o` or `-- proxy`.
+
 You can use `--ignore-config` if you want to disable the configuration file for a particular youtube-dl run.
 
 ### Authentication with `.netrc` file
