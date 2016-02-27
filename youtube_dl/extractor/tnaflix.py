@@ -117,7 +117,7 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
         title = self._html_search_regex(
             self._TITLE_REGEX, webpage, 'title') if self._TITLE_REGEX else self._og_search_title(webpage)
 
-        age_limit = self._rta_search(webpage)
+        age_limit = self._rta_search(webpage) or 18
 
         duration = parse_duration(self._html_search_meta(
             'duration', webpage, 'duration', default=None))
