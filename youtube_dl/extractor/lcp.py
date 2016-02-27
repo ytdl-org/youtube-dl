@@ -42,7 +42,7 @@ class LcpIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         # Extract the required info of the media files gathered in a dictionary
-        media_files_info = None #self.__extract_from_webpage(display_id, webpage)
+        media_files_info = self.__extract_from_webpage(display_id, webpage)
         # Some web pages embed videos from other platforms like dailymotion, therefore we pass on these URLs
         if not media_files_info:
             return self.url_result(url, 'Generic')
