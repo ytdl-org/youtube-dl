@@ -10,7 +10,7 @@ from ..utils import int_or_none
 
 
 class DPlayIE(InfoExtractor):
-    _VALID_URL = r'http://(?P<domain>it\.dplay\.com|www\.dplay\.(?:dk|se))/[^/]+/(?P<id>[^/?#]+)'
+    _VALID_URL = r'http://(?P<domain>it\.dplay\.com|www\.dplay\.(?:dk|se|no))/[^/]+/(?P<id>[^/?#]+)'
 
     _TESTS = [{
         'url': 'http://it.dplay.com/take-me-out/stagione-1-episodio-25/',
@@ -64,6 +64,9 @@ class DPlayIE(InfoExtractor):
             'episode_number': 12,
             'age_limit': 0,
         },
+    }, {
+        'url': 'http://www.dplay.no/pga-tour/season-1-hoydepunkter-18-21-februar/',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
