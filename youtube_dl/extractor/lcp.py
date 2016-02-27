@@ -28,6 +28,13 @@ class LcpIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Politique Matin - Politique matin'
         }
+    }, {
+        'url': 'http://www.lcp.fr/le-direct',
+        'info_dict': {
+            'title': 'Le direct | LCP Assembl\xe9e nationale',
+            'id': 'le-direct',
+        },
+        'playlist_mincount': 1
     }]
 
     def _real_extract(self, url):
@@ -35,9 +42,9 @@ class LcpIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         # Extract the required info of the media files gathered in a dictionary
-        media_files_info = self.__extract_from_webpage(display_id, webpage)
+        media_files_info = None #self.__extract_from_webpage(display_id, webpage)
         # Some web pages embed videos from other platforms like dailymotion, therefore we pass on these URLs
-        if media_files_info is None:
+        if not media_files_info:
             return self.url_result(url, 'Generic')
 
         video_formats = self.__get_video_formats(media_files_info)
@@ -55,12 +62,12 @@ class LcpIE(InfoExtractor):
         embed_url = self.__extract_embed_url(webpage)
         embed_regex = r'(?:[a-zA-Z0-9]+\.)?lcp\.fr/embed/(?P<clip_id>[A-za-z0-9]+)/(?P<player_id>[A-za-z0-9]+)/(?P<skin_name>[^\/]+)'
 
-        clip_id = self._search_regex(embed_regex, embed_url, 'clip id', group='clip_id', fatal=False)
-        player_id = self._search_regex(embed_regex, embed_url, 'player id', group='player_id', fatal=False)
-        skin_name = self._search_regex(embed_regex, embed_url, 'skin name', group='skin_name', fatal=False)
+        clip_id = self._search_regex(embed_regex, embed_url, 'clip id', group='clip_id', default=None)
+        player_id = self._search_regex(embed_regex, embed_url, 'player id', group='player_id', default=None)
+        skin_name = self._search_regex(embed_regex, embed_url, 'skin name', group='skin_name', default=None)
 
         # Check whether the matches failed, which might be when dealing with other players (e.g., dailymotion stream)
-        if (clip_id is None) or (player_id is None) or (skin_name is None):
+        if not clip_id or not player_id or not skin_name:
             return None
 
         return self.__extract_from_player(display_id, clip_id, player_id, skin_name)
@@ -83,40 +90,42 @@ class LcpIE(InfoExtractor):
 
         # All videos are part of a playlist, a single video is also put in a playlist
         media_files_info = info_json.get('Playlist')
-        if media_files_info is not None:
-            media_files_info = media_files_info[0]
-        return media_files_info
+        if not media_files_info:
+            return None
+        return media_files_info[0]
 
     def __get_thumbnails(self, media_files_info):
         thumbnails = []
         media_thumbnail_info = media_files_info.get('MediaInfo', {}).get('Poster')
-        if media_thumbnail_info is not None:
-            for thumbnail in media_thumbnail_info:
-                thumbnails.append({
-                    'url': thumbnail.get('Url'),
-                    'width': int_or_none(thumbnail.get('Size'))
-                })
+        if not media_thumbnail_info:
+            return None
+        for thumbnail in media_thumbnail_info:
+            thumbnails.append({
+                'url': thumbnail.get('Url'),
+                'width': int_or_none(thumbnail.get('Size'))
+            })
         return thumbnails
 
     def __get_video_formats(self, media_files_info):
         formats = []
         media_files = media_files_info.get('MediaFiles')
+        if not media_files:
+            return None
 
-        if media_files is not None:
-            formats.extend(self.__get_mp4_video_formats(media_files))
-            self._sort_formats(formats)
-
+        formats.extend(self.__get_mp4_video_formats(media_files))
+        self._sort_formats(formats)
         return formats
 
     def __get_mp4_video_formats(self, media_files_json):
         formats = []
         mp4_files_json = media_files_json.get('Mp4')
-        if mp4_files_json is not None:
-            for video_info in mp4_files_json:
-                bitrate = int_or_none(video_info.get('Bitrate'), scale=0.001) # Scale bitrate to KBit/s
-                formats.append({
-                    'url': video_info.get('Url'),
-                    'ext': 'mp4',
-                    'tbr': bitrate
-                })
+        if not mp4_files_json:
+            return None
+        for video_info in mp4_files_json:
+            bitrate = int_or_none(video_info.get('Bitrate'), scale=1000) # Scale bitrate to KBit/s
+            formats.append({
+                'url': video_info.get('Url'),
+                'ext': 'mp4',
+                'tbr': bitrate
+            })
         return formats
