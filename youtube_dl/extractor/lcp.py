@@ -100,8 +100,11 @@ class LcpIE(InfoExtractor):
         if not media_thumbnail_info:
             return None
         for thumbnail in media_thumbnail_info:
+            thumbnail_url = thumbnail.get('Url')
+            if not thumbnail_url:
+                continue
             thumbnails.append({
-                'url': thumbnail.get('Url'),
+                'url': thumbnail_url,
                 'width': int_or_none(thumbnail.get('Size'))
             })
         return thumbnails
@@ -123,8 +126,11 @@ class LcpIE(InfoExtractor):
             return None
         for video_info in mp4_files_json:
             bitrate = int_or_none(video_info.get('Bitrate'), scale=1000) # Scale bitrate to KBit/s
+            video_url = video_info.get('Url')
+            if not video_url:
+                continue
             formats.append({
-                'url': video_info.get('Url'),
+                'url': video_url,
                 'ext': 'mp4',
                 'tbr': bitrate
             })
