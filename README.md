@@ -409,11 +409,14 @@ which means you can modify it, redistribute it or use it however you like.
 
 # CONFIGURATION
 
-You can configure youtube-dl by placing any supported command line option to a configuration file. On Linux, the system wide configuration file is located at `/etc/youtube-dl.conf` and the user wide configuration file at `~/.config/youtube-dl/config`. On Windows, the user wide configuration file locations are `%APPDATA%\youtube-dl\config.txt` or `C:\Users\<user name>\youtube-dl.conf`. For example, with the following configuration file youtube-dl will always extract the audio, not copy the mtime and use a proxy:
+You can configure youtube-dl by placing any supported command line option to a configuration file. On Linux, the system wide configuration file is located at `/etc/youtube-dl.conf` and the user wide configuration file at `~/.config/youtube-dl/config`. On Windows, the user wide configuration file locations are `%APPDATA%\youtube-dl\config.txt` or `C:\Users\<user name>\youtube-dl.conf`.
+
+For example, with the following configuration file youtube-dl will always extract the audio, not copy the mtime, use a proxy and save all videos under `Movies` directory in your `$HOME`:
 ```
---extract-audio
+-x
 --no-mtime
 --proxy 127.0.0.1:3128
+-o ~/Movies/%(title)s.%(ext)s
 ```
 
 You can use `--ignore-config` if you want to disable the configuration file for a particular youtube-dl run.
