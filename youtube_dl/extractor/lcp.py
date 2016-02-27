@@ -2,7 +2,8 @@
 from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
-    int_or_none
+    int_or_none,
+    parse_iso8601
 )
 
 
@@ -17,7 +18,10 @@ class LcpIE(InfoExtractor):
             'id': 'd56d03e9',
             'url': 're:http://httpod.scdn.arkena.com/11970/d56d03e9_[0-9]+.mp4',
             'ext': 'mp4',
-            'title': 'Schwartzenberg (PRG) préconise à François Hollande de participer à une primaire à gauche'
+            'title': 'Schwartzenberg (PRG) préconise à François Hollande de participer à une primaire à gauche',
+            'upload_date': '20160226',
+            'description': 'Le président du groupe parlementaire radical, républicain, démocrate et progressiste (RRDP) y voit une bonne occasion pour le président de la République de se "relégitimer".',
+            'timestamp': 1456488895
         }
     }, {
         'url': 'http://www.lcp.fr/emissions/politique-matin/271085-politique-matin',
@@ -26,7 +30,10 @@ class LcpIE(InfoExtractor):
             'id': '327336',
             'url': 're:http://httpod.scdn.arkena.com/11970/327336_[0-9]+.mp4',
             'ext': 'mp4',
-            'title': 'Politique Matin - Politique matin'
+            'title': 'Politique Matin - Politique matin',
+            'upload_date': '20160225',
+            'description': 'Politique Matin - Politique matin',
+            'timestamp': 1456391602
         }
     }, {
         'url': 'http://www.lcp.fr/le-direct',
@@ -42,19 +49,31 @@ class LcpIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         # Extract the required info of the media files gathered in a dictionary
-        media_files_info = self.__extract_from_webpage(display_id, webpage)
+        media_dict = self.__extract_from_webpage(display_id, webpage)
         # Some web pages embed videos from other platforms like dailymotion, therefore we pass on these URLs
-        if not media_files_info:
+        if not media_dict:
             return self.url_result(url, 'Generic')
 
+        # All videos are part of a playlist, a single video is also put in a playlist
+        playlist_files_info = media_dict.get('Playlist')
+        if not playlist_files_info:
+            return self.url_result(url, 'Generic')
+
+        media_files_info = playlist_files_info[0]
         video_formats = self.__get_video_formats(media_files_info)
         video_thumbnails = self.__get_thumbnails(media_files_info)
+        video_timestamp = parse_iso8601(media_files_info.get('MediaInfo', {}).get('PublishDate'))
+
+        title = self._og_search_title(webpage)
+        description = self._html_search_regex(self._meta_regex('description'), webpage, 'description', group='content', default=title)
 
         return {
-            'id': media_files_info['EntryName'],
-            'title': self._og_search_title(webpage),
+            'id': media_files_info.get('EntryName'),
+            'title': title,
             'formats': video_formats,
-            'thumbnails': video_thumbnails
+            'thumbnails': video_thumbnails,
+            'description': description,
+            'timestamp': video_timestamp
         }
 
     def __extract_from_webpage(self, display_id, webpage):
@@ -83,16 +102,9 @@ class LcpIE(InfoExtractor):
                                                                                                               skin_name,
                                                                                                               player_id)
         arkena_info = self._download_webpage(arkena_url, 'clip_info_' + clip_id)
-
         arkena_info_regex = r'\?\((?P<json>.*)\);'
-        info_json = self._parse_json(self._search_regex(arkena_info_regex, arkena_info, 'json', group='json'),
-                                     display_id)
-
-        # All videos are part of a playlist, a single video is also put in a playlist
-        media_files_info = info_json.get('Playlist')
-        if not media_files_info:
-            return None
-        return media_files_info[0]
+        return self._parse_json(self._search_regex(arkena_info_regex, arkena_info, 'json', group='json'),
+                                display_id)
 
     def __get_thumbnails(self, media_files_info):
         thumbnails = []
@@ -125,7 +137,7 @@ class LcpIE(InfoExtractor):
         if not mp4_files_json:
             return None
         for video_info in mp4_files_json:
-            bitrate = int_or_none(video_info.get('Bitrate'), scale=1000) # Scale bitrate to KBit/s
+            bitrate = int_or_none(video_info.get('Bitrate'), scale=1000)  # Scale bitrate to KBit/s
             video_url = video_info.get('Url')
             if not video_url:
                 continue
