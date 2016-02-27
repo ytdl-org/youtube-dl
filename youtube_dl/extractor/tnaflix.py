@@ -175,6 +175,12 @@ class TNAFlixNetworkEmbedIE(TNAFlixNetworkBaseIE):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return [url for _, url in re.findall(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.(?:tna|emp)flix\.com/video/\d+)\1',
+            webpage)]
+
 
 class TNAFlixIE(TNAFlixNetworkBaseIE):
     _VALID_URL = r'https?://(?:www\.)?tnaflix\.com/[^/]+/(?P<display_id>[^/]+)/video(?P<id>\d+)'
