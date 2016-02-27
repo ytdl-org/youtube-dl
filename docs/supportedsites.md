@@ -77,6 +77,7 @@
  - **BleacherReportCMS**
  - **blinkx**
  - **Bloomberg**
+ - **BokeCC**
  - **Bpb**: Bundeszentrale für politische Bildung
  - **BR**: Bayerischer Rundfunk Mediathek
  - **Break**
@@ -560,7 +561,6 @@
  - **southpark.de**
  - **southpark.nl**
  - **southparkstudios.dk**
- - **Space**
  - **SpankBang**
  - **Spankwire**
  - **Spiegel**
@@ -620,6 +620,7 @@
  - **TMZ**
  - **TMZArticle**
  - **TNAFlix**
+ - **TNAFlixNetworkEmbed**
  - **toggle**
  - **tou.tv**
  - **Toypics**: Toypics user profile
@@ -670,6 +671,7 @@
  - **Urort**: NRK P3 Urørt
  - **ustream**
  - **ustream:channel**
+ - **Ustudio**
  - **Varzesh3**
  - **Vbox7**
  - **VeeHD**
@@ -685,7 +687,7 @@
  - **video.mit.edu**
  - **VideoDetective**
  - **videofy.me**
- - **VideoMega** (Currently broken)
+ - **VideoMega**
  - **videomore**
  - **videomore:season**
  - **videomore:video**
