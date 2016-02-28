@@ -88,7 +88,7 @@ class ScreenwaveMediaIE(InfoExtractor):
                     'ext': source.get('type'),
                     'height': height,
                 })
-        self._sort_formats(formats)
+        self._sort_formats(formats, field_preference=('height', 'width', 'tbr', 'format_id'))
 
         return {
             'id': video_id,
