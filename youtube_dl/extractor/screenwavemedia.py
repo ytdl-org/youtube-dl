@@ -76,9 +76,11 @@ class ScreenwaveMediaIE(InfoExtractor):
             if source.get('type') == 'hls':
                 formats.extend(self._extract_m3u8_formats(file_, video_id, ext='mp4'))
             else:
-                format_label = source.get('label')
                 format_id = self._search_regex(
                     r'_(.+?)\.[^.]+$', file_, 'format id', default=None)
+                if not self._is_valid_url(file_, video_id, format_id or 'video'):
+                    continue
+                format_label = source.get('label')
                 height = int_or_none(self._search_regex(
                     r'^(\d+)[pP]', format_label, 'height', default=None))
                 formats.append({
