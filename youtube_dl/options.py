@@ -171,6 +171,10 @@ def parseOpts(overrideArguments=None):
         default=False,
         help='Do not extract the videos of a playlist, only list them.')
     general.add_option(
+        '--mark-watched',
+        action='store_true', dest='mark_watched', default=False,
+        help='Mark videos watched (YouTube only)')
+    general.add_option(
         '--no-color', '--no-colors',
         action='store_true', dest='no_color',
         default=False,

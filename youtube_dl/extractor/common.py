@@ -1620,6 +1620,15 @@ class InfoExtractor(object):
     def _get_automatic_captions(self, *args, **kwargs):
         raise NotImplementedError('This method must be implemented by subclasses')
 
+    def mark_watched(self, *args, **kwargs):
+        if (self._downloader.params.get('mark_watched', False) and
+                (self._get_login_info()[0] is not None or
+                    self._downloader.params.get('cookiefile') is not None)):
+            self._mark_watched(*args, **kwargs)
+
+    def _mark_watched(self, *args, **kwargs):
+        raise NotImplementedError('This method must be implemented by subclasses')
+
 
 class SearchInfoExtractor(InfoExtractor):
     """
