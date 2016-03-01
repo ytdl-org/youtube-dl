@@ -552,7 +552,7 @@ class IqiyiIE(InfoExtractor):
         video_id = self._search_regex(
             r'data-player-videoid\s*=\s*[\'"]([a-f\d]+)', webpage, 'video_id')
         swf_url = self._search_regex(
-            r'(http://[^\'"]+MainPlayer[^.]+\.swf)', webpage, 'swf player URL')
+            r'(http://[^\'"]+flashplayer[^.]+\.swf)', webpage, 'swf player URL')
         _uuid = uuid.uuid4().hex
 
         enc_key = self.get_enc_key(swf_url, video_id)
