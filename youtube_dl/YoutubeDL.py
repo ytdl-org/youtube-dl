@@ -87,6 +87,7 @@ from .extractor import get_info_extractor, gen_extractors
 from .downloader import get_suitable_downloader
 from .downloader.rtmp import rtmpdump_version
 from .postprocessor import (
+    FFmpegFixupM3u8PP,
     FFmpegFixupM4aPP,
     FFmpegFixupStretchedPP,
     FFmpegMergerPP,
@@ -1666,6 +1667,22 @@ class YoutubeDL(object):
                         else:
                             self.report_warning(
                                 '%s: writing DASH m4a. Only some players support this container. Install ffmpeg or avconv to fix this automatically.' % (
+                                    info_dict['id']))
+                    else:
+                        assert fixup_policy in ('ignore', 'never')
+
+                if info_dict.get('protocol') == 'm3u8_native' or info_dict.get('protocol') == 'm3u8' and self._downloader.params.get('hls_prefer_native', False):
+                    if fixup_policy == 'warn':
+                        self.report_warning('%s: malformated aac bitstream.' % (
+                            info_dict['id']))
+                    elif fixup_policy == 'detect_or_warn':
+                        fixup_pp = FFmpegFixupM3u8PP(self)
+                        if fixup_pp.available:
+                            info_dict.setdefault('__postprocessors', [])
+                            info_dict['__postprocessors'].append(fixup_pp)
+                        else:
+                            self.report_warning(
+                                '%s: malformated aac bitstream. Install ffmpeg or avconv to fix this automatically.' % (
                                     info_dict['id']))
                     else:
                         assert fixup_policy in ('ignore', 'never')
