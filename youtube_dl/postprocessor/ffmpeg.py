@@ -85,11 +85,16 @@ class FFmpegPostProcessor(PostProcessor):
                 self._paths = dict(
                     (p, os.path.join(location, p)) for p in programs)
                 self._versions = dict(
-                    (p, get_exe_version(self._paths[p], args=['-version']))
+                    (p, get_exe_version(self._paths[p], args=['-version'],
+                                        version_re=r'%s\s+version\s+([-0-9._a-zA-Z]+)' % p,
+                                        unrecognized=False))
                     for p in programs)
         if self._versions is None:
             self._versions = dict(
-                (p, get_exe_version(p, args=['-version'])) for p in programs)
+                (p, get_exe_version(p, args=['-version'],
+                                    version_re=r'%s\s+version\s+([-0-9._a-zA-Z]+)' % p,
+                                    unrecognized=False))
+                for p in programs)
             self._paths = dict((p, p) for p in programs)
 
         if prefer_ffmpeg:
