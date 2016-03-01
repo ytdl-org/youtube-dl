@@ -355,6 +355,7 @@ def _real_main(argv=None):
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
         'encoding': opts.encoding,
         'extract_flat': opts.extract_flat,
+        'mark_watched': opts.mark_watched,
         'merge_output_format': opts.merge_output_format,
         'postprocessors': postprocessors,
         'fixup': opts.fixup,

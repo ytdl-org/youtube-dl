@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import itertools
 import json
 import os.path
+import random
 import re
 import time
 import traceback
@@ -1046,6 +1047,29 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             self._downloader.report_warning(err_msg)
             return {}
 
+    def _mark_watched(self, video_id, video_info):
+        playback_url = video_info.get('videostats_playback_base_url', [None])[0]
+        if not playback_url:
+            return
+        parsed_playback_url = compat_urlparse.urlparse(playback_url)
+        qs = compat_urlparse.parse_qs(parsed_playback_url.query)
+
+        # cpn generation algorithm is reverse engineered from base.js.
+        # In fact it works even with dummy cpn.
+        CPN_ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_'
+        cpn = ''.join((CPN_ALPHABET[random.randint(0, 256) & 63] for _ in range(0, 16)))
+
+        qs.update({
+            'ver': ['2'],
+            'cpn': [cpn],
+        })
+        playback_url = compat_urlparse.urlunparse(
+            parsed_playback_url._replace(query=compat_urllib_parse.urlencode(qs, True)))
+
+        self._download_webpage(
+            playback_url, video_id, 'Marking watched',
+            'Unable to mark watched', fatal=False)
+
     @classmethod
     def extract_id(cls, url):
         mobj = re.match(cls._VALID_URL, url, re.VERBOSE)
@@ -1554,6 +1578,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         f['stretched_ratio'] = ratio
 
         self._sort_formats(formats)
+
+        self.mark_watched(video_id, video_info)
 
         return {
             'id': video_id,
