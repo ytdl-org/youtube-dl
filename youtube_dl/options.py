@@ -175,6 +175,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='mark_watched', default=False,
         help='Mark videos watched (YouTube only)')
     general.add_option(
+        '--no-mark-watched',
+        action='store_false', dest='mark_watched', default=False,
+        help='Do not mark videos watched (YouTube only)')
+    general.add_option(
         '--no-color', '--no-colors',
         action='store_true', dest='no_color',
         default=False,
