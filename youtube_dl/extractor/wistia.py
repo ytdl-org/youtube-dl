@@ -35,7 +35,8 @@ class WistiaIE(InfoExtractor):
 
         formats = []
         thumbnails = []
-        for atype, a in data['assets'].items():
+        for a in data['assets']:
+            atype = a.get('type')
             if atype == 'still':
                 thumbnails.append({
                     'url': a['url'],
