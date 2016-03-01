@@ -498,7 +498,7 @@ class IqiyiIE(InfoExtractor):
         raw_data = self._download_json(api_url, video_id)
         return raw_data
 
-    def get_enc_key(self, swf_url, video_id):
+    def get_enc_key(self, video_id):
         # TODO: automatic key extraction
         # last update at 2016-01-22 for Zombie::bite
         enc_key = '6ab6d0280511493ba85594779759d4ed'
@@ -551,11 +551,9 @@ class IqiyiIE(InfoExtractor):
             r'data-player-tvid\s*=\s*[\'"](\d+)', webpage, 'tvid')
         video_id = self._search_regex(
             r'data-player-videoid\s*=\s*[\'"]([a-f\d]+)', webpage, 'video_id')
-        swf_url = self._search_regex(
-            r'(http://[^\'"]+MainPlayer[^.]+\.swf)', webpage, 'swf player URL')
         _uuid = uuid.uuid4().hex
 
-        enc_key = self.get_enc_key(swf_url, video_id)
+        enc_key = self.get_enc_key(video_id)
 
         raw_data = self.get_raw_data(tvid, video_id, enc_key, _uuid)
 
