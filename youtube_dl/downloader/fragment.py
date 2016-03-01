@@ -62,6 +62,7 @@ class FragmentFD(FileDownloader):
             'frag_count': total_frags,
             'filename': ctx['filename'],
             'tmpfilename': ctx['tmpfilename'],
+            'total_bytes': None,
         }
 
         start = time.time()
