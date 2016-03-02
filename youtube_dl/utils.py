@@ -1962,7 +1962,7 @@ def _match_one(filter_part, dct):
         \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?\s*
         (?:
             (?P<intval>[0-9.]+(?:[kKmMgGtTpPeEzZyY]i?[Bb]?)?)|
-            (?P<strval>(?![0-9.])[a-z0-9A-Z]*)
+            (?P<strval>(?![0-9.])[a-z0-9A-Z\s_-]*)
         )
         \s*$
         ''' % '|'.join(map(re.escape, COMPARISON_OPERATORS.keys())))

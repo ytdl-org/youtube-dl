@@ -694,6 +694,25 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
         self.assertFalse(match_str(
             'like_count > 100 & dislike_count <? 50 & description',
             {'like_count': 190, 'dislike_count': 10}))
+        self.assertTrue(match_str(
+            'playlist_title != some playlist with space',
+            {'playlist_title': 'playlist'}))
+        self.assertFalse(match_str(
+            'playlist_title != some playlist with space',
+            {'playlist_title': 'some playlist with space'}))
+        self.assertFalse(match_str(
+            'playlist_title != some_playlist_without_space',
+            {'playlist_title': 'some_playlist_without_space'}))
+        self.assertTrue(match_str(
+            'playlist_title != some playlist with space & playlist_title != some_playlist',
+            {'playlist_title': 'playlist'}))
+        self.assertFalse(match_str(
+            'playlist_title != some playlist with space & playlist_title != some_playlist',
+            {'playlist_title': 'some_playlist'}))
+        self.assertTrue(match_str(
+            'playlist_title != some-playlist_name & playlist_title != some_playlist-name',
+            {'playlist_title': 'some_playlist'}))
+
 
     def test_parse_dfxp_time_expr(self):
         self.assertEqual(parse_dfxp_time_expr(None), None)

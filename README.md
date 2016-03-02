@@ -144,7 +144,15 @@ which means you can modify it, redistribute it or use it however you like.
                                      functionality is not available at the given
                                      service), but who also have a description,
                                      use --match-filter "like_count > 100 &
-                                     dislike_count <? 50 & description" .
+                                     dislike_count <? 50 & description". If
+                                     strings containing spaces need to be
+                                     compared, there is no need to surround them
+                                     with delimiters like quotes inside the
+                                     match-filter string. The whole string will
+                                     be evaluated. For example, the youtube
+                                     playlist 'Liked videos' will not be
+                                     downloaded with the following filter :
+                                     --match-filter "playlist_title != Liked videos"
     --no-playlist                    Download only the video, if the URL refers
                                      to a video and a playlist.
     --yes-playlist                   Download the playlist, if the URL refers to
