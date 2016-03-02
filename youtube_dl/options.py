@@ -702,6 +702,10 @@ def parseOpts(overrideArguments=None):
         dest='audioquality', default='5',
         help='Specify ffmpeg/avconv audio quality, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default %default)')
     postproc.add_option(
+        '--audio-volume', metavar='VOLUME',
+        dest='audiovolume',
+        help='Specify ffmpeg/avconv audio volume, insert a value in dB to increase audio volume')
+    postproc.add_option(
         '--recode-video',
         metavar='FORMAT', dest='recodevideo', default=None,
         help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm|mkv|avi)')

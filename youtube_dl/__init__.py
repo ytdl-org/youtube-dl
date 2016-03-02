@@ -168,6 +168,9 @@ def _real_main(argv=None):
         opts.audioquality = opts.audioquality.strip('k').strip('K')
         if not opts.audioquality.isdigit():
             parser.error('invalid audio quality specified')
+    if opts.audiovolume:
+        if not opts.audioquality.isdigit():
+            parser.error('invalid audio volume specified')
     if opts.recodevideo is not None:
         if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv', 'avi']:
             parser.error('invalid video recode format specified')
@@ -221,6 +224,7 @@ def _real_main(argv=None):
             'key': 'FFmpegExtractAudio',
             'preferredcodec': opts.audioformat,
             'preferredquality': opts.audioquality,
+            'preferredvolume': opts.audiovolume,
             'nopostoverwrites': opts.nopostoverwrites,
         })
     if opts.recodevideo:
