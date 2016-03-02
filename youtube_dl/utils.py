@@ -2011,7 +2011,7 @@ def match_str(filter_str, dct):
     """ Filter a dictionary with a simple string syntax. Returns True (=passes filter) or false """
 
     return all(
-        _match_one(filter_part, dct) for filter_part in filter_str.split('&'))
+        _match_one(filter_part.strip(), dct) for filter_part in filter_str.split('&'))
 
 
 def match_filter_func(filter_str):

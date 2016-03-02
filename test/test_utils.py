@@ -712,7 +712,9 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
         self.assertTrue(match_str(
             'playlist_title != some-playlist_name & playlist_title != some_playlist-name',
             {'playlist_title': 'some_playlist'}))
-
+        self.assertFalse(match_str(
+            'playlist_title != some playlist with space & playlist_title != foobar',
+            {'playlist_title': 'some playlist with space'}))
 
     def test_parse_dfxp_time_expr(self):
         self.assertEqual(parse_dfxp_time_expr(None), None)
