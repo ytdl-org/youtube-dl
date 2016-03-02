@@ -28,9 +28,9 @@ from ..utils import (
 
 class LetvIE(InfoExtractor):
     IE_DESC = '乐视网'
-    _VALID_URL = r'http://www\.le\.com/ptv/vplay/(?P<id>\d+).html'
+    _VALID_URL = r'http://www\.le\.com/ptv/vplay/(?P<id>\d+)\.html'
 
-    _URL_TEMPLATE = r'http://www.le.com/ptv/vplay/%s.html'
+    _URL_TEMPLATE = 'http://www.le.com/ptv/vplay/%s.html'
 
     _TESTS = [{
         'url': 'http://www.le.com/ptv/vplay/22005890.html',
@@ -196,7 +196,7 @@ class LetvIE(InfoExtractor):
 
 
 class LetvTvIE(InfoExtractor):
-    _VALID_URL = r'http://www.le.com/tv/(?P<id>\d+).html'
+    _VALID_URL = r'http://www\.le\.com/tv/(?P<id>\d+)\.html'
     _TESTS = [{
         'url': 'http://www.le.com/tv/46177.html',
         'info_dict': {
@@ -213,7 +213,7 @@ class LetvTvIE(InfoExtractor):
 
         # Currently old domain names are still used in playlists
         media_ids = orderedSet(re.findall(
-            r'http://www.letv.com/ptv/vplay/(\d+).html', page))
+            r'http://www\.letv\.com/ptv/vplay/(\d+)\.html', page))
         entries = [self.url_result(LetvIE._URL_TEMPLATE % media_id, ie='Letv')
                    for media_id in media_ids]
 
@@ -226,7 +226,7 @@ class LetvTvIE(InfoExtractor):
 
 
 class LetvPlaylistIE(LetvTvIE):
-    _VALID_URL = r'http://tv.le.com/[a-z]+/(?P<id>[a-z]+)/index.s?html'
+    _VALID_URL = r'http://tv\.le\.com/[a-z]+/(?P<id>[a-z]+)/index\.s?html'
     _TESTS = [{
         'url': 'http://tv.le.com/izt/wuzetian/index.html',
         'info_dict': {
