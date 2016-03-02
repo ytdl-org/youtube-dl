@@ -310,11 +310,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '102': {'ext': 'webm', 'height': 720, 'format_note': '3D', 'acodec': 'vorbis', 'abr': 192, 'vcodec': 'vp8', 'preference': -20},
 
         # Apple HTTP Live Streaming
+        '91': {'format_note': 'HLS', 'tbr': 98.4375},
         '92': {'ext': 'mp4', 'height': 240, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 48, 'vcodec': 'h264', 'preference': -10, 'tbr': 186.625},
         '93': {'ext': 'mp4', 'height': 360, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 128, 'vcodec': 'h264', 'preference': -10, 'tbr': 951.5625},
         '94': {'ext': 'mp4', 'height': 480, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 128, 'vcodec': 'h264', 'preference': -10, 'tbr': 1312.5},
         '95': {'ext': 'mp4', 'height': 720, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 256, 'vcodec': 'h264', 'preference': -10, 'tbr': 3207.421875},
         '96': {'ext': 'mp4', 'height': 1080, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 256, 'vcodec': 'h264', 'preference': -10, 'tbr': 6349.21875},
+        '97': {'format_note': 'HLS', 'tbr': 10128},
         '132': {'ext': 'mp4', 'height': 240, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 48, 'vcodec': 'h264', 'preference': -10},
         '151': {'ext': 'mp4', 'height': 72, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 24, 'vcodec': 'h264', 'preference': -10},
 
@@ -371,6 +373,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # RTMP (unnamed)
         '_rtmp': {'protocol': 'rtmp'},
+
+        # formats extracted from com/google/youtube/model/VideoFormat.as in watch_as3.swf
+        '20': {'tbr': 24000},
+        '23': {'tbr': 62.5},
+        '24': {'tbr': 125},
+        '25': {'tbr': 312.5},
+        '33': {'tbr': 132},
+        '40': {'tbr': 40},
+        '61': {'tbr': 928},
+        '62': {'tbr': 1280},
+        '63': {'tbr': 3192},
+        '64': {'tbr': 6192},
+        '65': {'tbr': 10128},
+        '81': {'ext': 'mp4', 'tbr': 928},
+        '88': {'tbr': 7192},
+        '98': {'tbr': 320},
+        '119': {'ext': 'mp4', 'tbr': 320},
+        '304': {'format_note': 'DASH'},
+        '305': {'format_note': 'DASH'},
     }
     _SUBTITLE_FORMATS = ('ttml', 'vtt')
 
