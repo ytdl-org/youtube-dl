@@ -22,6 +22,7 @@ from ..utils import (
     unsmuggle_url,
     xpath_with_ns,
     mimetype2ext,
+    find_xpath_attr,
 )
 
 default_ns = 'http://www.w3.org/2005/SMIL21/Language'
@@ -31,15 +32,11 @@ _x = lambda p: xpath_with_ns(p, {'smil': default_ns})
 class ThePlatformBaseIE(InfoExtractor):
     def _extract_theplatform_smil(self, smil_url, video_id, note='Downloading SMIL data'):
         meta = self._download_xml(smil_url, video_id, note=note)
-        try:
-            error_msg = next(
-                n.attrib['abstract']
-                for n in meta.findall(_x('.//smil:ref'))
-                if n.attrib.get('title') == 'Geographic Restriction' or n.attrib.get('title') == 'Expired')
-        except StopIteration:
-            pass
-        else:
-            raise ExtractorError(error_msg, expected=True)
+        error_element = find_xpath_attr(
+            meta, _x('.//smil:ref'), 'src',
+            'http://link.theplatform.com/s/errorFiles/Unavailable.mp4')
+        if error_element is not None:
+            raise ExtractorError(error_element.attrib['abstract'], expected=True)
 
         formats = self._parse_smil_formats(
             meta, smil_url, video_id, namespace=default_ns,
