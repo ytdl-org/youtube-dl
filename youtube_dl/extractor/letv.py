@@ -22,6 +22,7 @@ from ..utils import (
     str_or_none,
     encode_data_uri,
     url_basename,
+    orderedSet,
 )
 
 
@@ -211,8 +212,8 @@ class LetvTvIE(InfoExtractor):
         page = self._download_webpage(url, playlist_id)
 
         # Currently old domain names are still used in playlists
-        media_ids = list(set(re.findall(
-            r'http://www.letv.com/ptv/vplay/(\d+).html', page)))
+        media_ids = orderedSet(re.findall(
+            r'http://www.letv.com/ptv/vplay/(\d+).html', page))
         entries = [self.url_result(LetvIE._URL_TEMPLATE % media_id, ie='Letv')
                    for media_id in media_ids]
 
