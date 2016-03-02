@@ -458,6 +458,7 @@ The basic usage is not to set any template arguments when downloading a single f
  - `alt_title`: A secondary title of the video
  - `display_id`: An alternative identifier for the video
  - `uploader`: Full name of the video uploader
+ - `license`: License name the video is licensed under
  - `creator`: The main artist who created the video
  - `release_date`: The date (YYYYMMDD) when the video was released
  - `timestamp`: UNIX timestamp of the moment the video became available
