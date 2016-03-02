@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..compat import (
+    compat_urlparse,
+    compat_urllib_parse_unquote,
+)
 from ..utils import (
     determine_ext,
     ExtractorError,
@@ -128,7 +131,7 @@ class NRKPlaylistIE(InfoExtractor):
 
 class NRKSkoleIE(InfoExtractor):
     IE_DESC = 'NRK Skole'
-    _VALID_URL = r'https?://(?:www\.)?nrk\.no/skole/klippdetalj?.*\btopic=nrk(?::|%3[Aa])klipp(?:/|%2[Ff])(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?nrk\.no/skole/klippdetalj?.*\btopic=(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'http://nrk.no/skole/klippdetalj?topic=nrk:klipp/616532',
@@ -143,10 +146,13 @@ class NRKSkoleIE(InfoExtractor):
     }, {
         'url': 'http://www.nrk.no/skole/klippdetalj?topic=nrk%3Aklipp%2F616532#embed',
         'only_matching': True,
+    }, {
+        'url': 'http://www.nrk.no/skole/klippdetalj?topic=urn:x-mediadb:21379',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        video_id = compat_urllib_parse_unquote(self._match_id(url))
 
         webpage = self._download_webpage(url, video_id)
 
