@@ -4,6 +4,7 @@ import io
 import os
 import subprocess
 import time
+import json
 
 
 from .common import AudioConversionError, PostProcessor
@@ -164,6 +165,28 @@ class FFmpegPostProcessor(PostProcessor):
         # ffmpeg, see https://ffmpeg.org/trac/ffmpeg/ticket/2127 for details)
         return 'file:' + fn
 
+    def probe(self, path, info_type):
+        if not self.probe_available:
+            raise PostProcessingError('ffprobe or avprobe not found. Please install one.')
+        try:
+            cmd = [
+                encodeFilename(self.probe_executable, True),
+                encodeArgument('-loglevel'),
+                encodeArgument('error'),
+                encodeArgument('-print_format'),
+                encodeArgument('json'),
+                encodeArgument('-show_%s' % info_type),
+                encodeFilename(self._ffmpeg_filename_argument(path), True)]
+            if self._downloader.params.get('verbose', False):
+                self._downloader.to_screen('[debug] %s command line: %s' % (self.basename, shell_quote(cmd)))
+            handle = subprocess.Popen(cmd, stderr=compat_subprocess_get_DEVNULL(), stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+            output = handle.communicate()[0]
+            if handle.wait() != 0:
+                return None
+            return json.loads(output)[info_type]
+        except (IOError, OSError):
+            return None
+
 
 class FFmpegExtractAudioPP(FFmpegPostProcessor):
     def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, nopostoverwrites=False):
@@ -175,28 +198,11 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         self._nopostoverwrites = nopostoverwrites
 
     def get_audio_codec(self, path):
-
-        if not self.probe_available:
-            raise PostProcessingError('ffprobe or avprobe not found. Please install one.')
-        try:
-            cmd = [
-                encodeFilename(self.probe_executable, True),
-                encodeArgument('-show_streams'),
-                encodeFilename(self._ffmpeg_filename_argument(path), True)]
-            if self._downloader.params.get('verbose', False):
-                self._downloader.to_screen('[debug] %s command line: %s' % (self.basename, shell_quote(cmd)))
-            handle = subprocess.Popen(cmd, stderr=compat_subprocess_get_DEVNULL(), stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-            output = handle.communicate()[0]
-            if handle.wait() != 0:
-                return None
-        except (IOError, OSError):
-            return None
-        audio_codec = None
-        for line in output.decode('ascii', 'ignore').split('\n'):
-            if line.startswith('codec_name='):
-                audio_codec = line.split('=')[1].strip()
-            elif line.strip() == 'codec_type=audio' and audio_codec is not None:
-                return audio_codec
+        streams = self.probe(path, 'streams')
+        if streams:
+            for stream in streams:
+                if stream.get('codec_type') == 'audio':
+                    return stream.get('codec_name')
         return None
 
     def run_ffmpeg(self, path, out_path, codec, more_opts):
