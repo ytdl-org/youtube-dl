@@ -195,8 +195,9 @@ class LetvIE(InfoExtractor):
         }
 
 
-class LetvTvIE(InfoExtractor):
-    _VALID_URL = r'http://www\.le\.com/tv/(?P<id>\d+)\.html'
+class LetvPlaylistIE(InfoExtractor):
+    _VALID_URL = r'http://[a-z]+\.le\.com/[a-z]+/(?P<id>[a-z0-9_]+)'
+
     _TESTS = [{
         'url': 'http://www.le.com/tv/46177.html',
         'info_dict': {
@@ -205,29 +206,7 @@ class LetvTvIE(InfoExtractor):
             'description': 'md5:395666ff41b44080396e59570dbac01c'
         },
         'playlist_count': 35
-    }]
-
-    def _real_extract(self, url):
-        playlist_id = self._match_id(url)
-        page = self._download_webpage(url, playlist_id)
-
-        # Currently old domain names are still used in playlists
-        media_ids = orderedSet(re.findall(
-            r'http://www\.letv\.com/ptv/vplay/(\d+)\.html', page))
-        entries = [self.url_result(LetvIE._URL_TEMPLATE % media_id, ie='Letv')
-                   for media_id in media_ids]
-
-        title = self._html_search_meta('keywords', page,
-                                       fatal=False).split('，')[0]
-        description = self._html_search_meta('description', page, fatal=False)
-
-        return self.playlist_result(entries, playlist_id, playlist_title=title,
-                                    playlist_description=description)
-
-
-class LetvPlaylistIE(LetvTvIE):
-    _VALID_URL = r'http://tv\.le\.com/[a-z]+/(?P<id>[a-z]+)/index\.s?html'
-    _TESTS = [{
+    }, {
         'url': 'http://tv.le.com/izt/wuzetian/index.html',
         'info_dict': {
             'id': 'wuzetian',
@@ -246,7 +225,34 @@ class LetvPlaylistIE(LetvTvIE):
             'description': 'md5:b1eef244f45589a7b5b1af9ff25a4489'
         },
         'playlist_mincount': 7
+    }, {
+        'url': 'http://www.le.com/comic/92063.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://list.le.com/listn/c1009_sc532002_d2_p1_o1.html',
+        'only_matching': True,
     }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if LetvIE.suitable(url) else super(LetvPlaylistIE, cls).suitable(url)
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        page = self._download_webpage(url, playlist_id)
+
+        # Currently old domain names are still used in playlists
+        media_ids = orderedSet(re.findall(
+            r'<a[^>]+href="http://www\.letv\.com/ptv/vplay/(\d+)\.html', page))
+        entries = [self.url_result(LetvIE._URL_TEMPLATE % media_id, ie='Letv')
+                   for media_id in media_ids]
+
+        title = self._html_search_meta('keywords', page,
+                                       fatal=False).split('，')[0]
+        description = self._html_search_meta('description', page, fatal=False)
+
+        return self.playlist_result(entries, playlist_id, playlist_title=title,
+                                    playlist_description=description)
 
 
 class LetvCloudIE(InfoExtractor):

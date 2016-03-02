@@ -354,7 +354,6 @@ from .lecture2go import Lecture2GoIE
 from .lemonde import LemondeIE
 from .letv import (
     LetvIE,
-    LetvTvIE,
     LetvPlaylistIE,
     LetvCloudIE,
 )
