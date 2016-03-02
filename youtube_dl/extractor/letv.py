@@ -27,10 +27,12 @@ from ..utils import (
 
 class LetvIE(InfoExtractor):
     IE_DESC = '乐视网'
-    _VALID_URL = r'http://www\.letv\.com/ptv/vplay/(?P<id>\d+).html'
+    _VALID_URL = r'http://www\.le\.com/ptv/vplay/(?P<id>\d+).html'
+
+    _URL_TEMPLATE = r'http://www.le.com/ptv/vplay/%s.html'
 
     _TESTS = [{
-        'url': 'http://www.letv.com/ptv/vplay/22005890.html',
+        'url': 'http://www.le.com/ptv/vplay/22005890.html',
         'md5': 'edadcfe5406976f42f9f266057ee5e40',
         'info_dict': {
             'id': '22005890',
@@ -42,7 +44,7 @@ class LetvIE(InfoExtractor):
             'hls_prefer_native': True,
         },
     }, {
-        'url': 'http://www.letv.com/ptv/vplay/1415246.html',
+        'url': 'http://www.le.com/ptv/vplay/1415246.html',
         'info_dict': {
             'id': '1415246',
             'ext': 'mp4',
@@ -54,7 +56,7 @@ class LetvIE(InfoExtractor):
         },
     }, {
         'note': 'This video is available only in Mainland China, thus a proxy is needed',
-        'url': 'http://www.letv.com/ptv/vplay/1118082.html',
+        'url': 'http://www.le.com/ptv/vplay/1118082.html',
         'md5': '2424c74948a62e5f31988438979c5ad1',
         'info_dict': {
             'id': '1118082',
@@ -116,10 +118,10 @@ class LetvIE(InfoExtractor):
             'splatid': 101,
             'format': 1,
             'tkey': self.calc_time_key(int(time.time())),
-            'domain': 'www.letv.com'
+            'domain': 'www.le.com'
         }
         play_json_req = sanitized_Request(
-            'http://api.letv.com/mms/out/video/playJson?' + compat_urllib_parse.urlencode(params)
+            'http://api.le.com/mms/out/video/playJson?' + compat_urllib_parse.urlencode(params)
         )
         cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
         if cn_verification_proxy:
@@ -193,9 +195,9 @@ class LetvIE(InfoExtractor):
 
 
 class LetvTvIE(InfoExtractor):
-    _VALID_URL = r'http://www.letv.com/tv/(?P<id>\d+).html'
+    _VALID_URL = r'http://www.le.com/tv/(?P<id>\d+).html'
     _TESTS = [{
-        'url': 'http://www.letv.com/tv/46177.html',
+        'url': 'http://www.le.com/tv/46177.html',
         'info_dict': {
             'id': '46177',
             'title': '美人天下',
@@ -208,10 +210,11 @@ class LetvTvIE(InfoExtractor):
         playlist_id = self._match_id(url)
         page = self._download_webpage(url, playlist_id)
 
-        media_urls = list(set(re.findall(
-            r'http://www.letv.com/ptv/vplay/\d+.html', page)))
-        entries = [self.url_result(media_url, ie='Letv')
-                   for media_url in media_urls]
+        # Currently old domain names are still used in playlists
+        media_ids = list(set(re.findall(
+            r'http://www.letv.com/ptv/vplay/(\d+).html', page)))
+        entries = [self.url_result(LetvIE._URL_TEMPLATE % media_id, ie='Letv')
+                   for media_id in media_ids]
 
         title = self._html_search_meta('keywords', page,
                                        fatal=False).split('，')[0]
@@ -222,9 +225,9 @@ class LetvTvIE(InfoExtractor):
 
 
 class LetvPlaylistIE(LetvTvIE):
-    _VALID_URL = r'http://tv.letv.com/[a-z]+/(?P<id>[a-z]+)/index.s?html'
+    _VALID_URL = r'http://tv.le.com/[a-z]+/(?P<id>[a-z]+)/index.s?html'
     _TESTS = [{
-        'url': 'http://tv.letv.com/izt/wuzetian/index.html',
+        'url': 'http://tv.le.com/izt/wuzetian/index.html',
         'info_dict': {
             'id': 'wuzetian',
             'title': '武媚娘传奇',
@@ -233,7 +236,7 @@ class LetvPlaylistIE(LetvTvIE):
         # This playlist contains some extra videos other than the drama itself
         'playlist_mincount': 96
     }, {
-        'url': 'http://tv.letv.com/pzt/lswjzzjc/index.shtml',
+        'url': 'http://tv.le.com/pzt/lswjzzjc/index.shtml',
         'info_dict': {
             'id': 'lswjzzjc',
             # The title should be "劲舞青春", but I can't find a simple way to
