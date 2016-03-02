@@ -1399,16 +1399,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts', [''])[0]
             if 'rtmpe%3Dyes' in encoded_url_map:
                 raise ExtractorError('rtmpe downloads are not supported, see https://github.com/rg3/youtube-dl/issues/343 for more information.', expected=True)
+            formats_spec = {}
             fmt_list = video_info.get('fmt_list', [''])[0]
             if fmt_list:
                 for fmt in fmt_list.split(','):
                     spec = fmt.split('/')
-                    width, height = spec[1].split('x')
-                    self._formats[spec[0]].update({
-                        'resolution': spec[1],
-                        'width': int_or_none(width),
-                        'height': int_or_none(height),
-                    })
+                    if len(spec) > 1:
+                        width_height = spec[1].split('x')
+                        if len(width_height) == 2:
+                            formats_spec[spec[0]] = {
+                                'resolution': spec[1],
+                                'width': int_or_none(width_height[0]),
+                                'height': int_or_none(width_height[1]),
+                            }
             formats = []
             for url_data_str in encoded_url_map.split(','):
                 url_data = compat_parse_qs(url_data_str)
@@ -1477,6 +1480,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 }
                 if format_id in self._formats:
                     dct.update(self._formats[format_id])
+                if format_id in formats_spec:
+                    dct.update(formats_spec[format_id])
 
                 # Some itags are not included in DASH manifest thus corresponding formats will
                 # lack metadata (see https://github.com/rg3/youtube-dl/pull/5993).
