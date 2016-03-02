@@ -303,6 +303,7 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
 
 
 class TwitchProfileIE(TwitchPlaylistBaseIE):
+    _WORKING = False
     IE_NAME = 'twitch:profile'
     _VALID_URL = r'%s/(?P<id>[^/]+)/profile/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
     _PLAYLIST_TYPE = 'profile'
@@ -318,6 +319,7 @@ class TwitchProfileIE(TwitchPlaylistBaseIE):
 
 
 class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
+    _WORKING = False
     IE_NAME = 'twitch:past_broadcasts'
     _VALID_URL = r'%s/(?P<id>[^/]+)/profile/past_broadcasts/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
     _PLAYLIST_URL = TwitchPlaylistBaseIE._PLAYLIST_URL + '&broadcasts=true'
@@ -334,6 +336,7 @@ class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
 
 
 class TwitchBookmarksIE(TwitchPlaylistBaseIE):
+    _WORKING = False
     IE_NAME = 'twitch:bookmarks'
     _VALID_URL = r'%s/(?P<id>[^/]+)/profile/bookmarks/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
     _PLAYLIST_URL = '%s/api/bookmark/?user=%%s&offset=%%d&limit=%%d' % TwitchBaseIE._API_BASE
