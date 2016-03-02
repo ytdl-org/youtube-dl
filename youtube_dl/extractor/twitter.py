@@ -14,13 +14,19 @@ from ..utils import (
 )
 
 
-class TwitterCardIE(InfoExtractor):
+class TwitterBaseIE(InfoExtractor):
+    def _get_vmap_video_url(self, vmap_url, video_id):
+        vmap_data = self._download_xml(vmap_url, video_id)
+        return xpath_text(vmap_data, './/MediaFile').strip()
+
+
+class TwitterCardIE(TwitterBaseIE):
     IE_NAME = 'twitter:card'
     _VALID_URL = r'https?://(?:www\.)?twitter\.com/i/cards/tfw/v1/(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/560070183650213889',
-            'md5': '4fa26a35f9d1bf4b646590ba8e84be19',
+            # MD5 checksums are different in different places
             'info_dict': {
                 'id': '560070183650213889',
                 'ext': 'mp4',
@@ -42,7 +48,7 @@ class TwitterCardIE(InfoExtractor):
         },
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/654001591733886977',
-            'md5': 'b6f35e8b08a0bec6c8af77a2f4b3a814',
+            'md5': 'd4724ffe6d2437886d004fa5de1043b3',
             'info_dict': {
                 'id': 'dq4Oj5quskI',
                 'ext': 'mp4',
@@ -62,8 +68,8 @@ class TwitterCardIE(InfoExtractor):
                 'ext': 'mp4',
                 'upload_date': '20151113',
                 'uploader_id': '1189339351084113920',
-                'uploader': '@ArsenalTerje',
-                'title': 'Vine by @ArsenalTerje',
+                'uploader': 'ArsenalTerje',
+                'title': 'Vine by ArsenalTerje',
             },
             'add_ie': ['Vine'],
         }
@@ -96,10 +102,8 @@ class TwitterCardIE(InfoExtractor):
                 video_id)
             if 'playlist' not in config:
                 if 'vmapUrl' in config:
-                    vmap_data = self._download_xml(config['vmapUrl'], video_id)
-                    video_url = xpath_text(vmap_data, './/MediaFile').strip()
                     formats.append({
-                        'url': video_url,
+                        'url': self._get_vmap_video_url(config['vmapUrl'], video_id),
                     })
                     break   # same video regardless of UA
                 continue
@@ -138,7 +142,7 @@ class TwitterIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'https://twitter.com/freethenipple/status/643211948184596480',
-        'md5': 'db6612ec5d03355953c3ca9250c97e5e',
+        # MD5 checksums are different in different places
         'info_dict': {
             'id': '643211948184596480',
             'ext': 'mp4',
@@ -161,6 +165,7 @@ class TwitterIE(InfoExtractor):
             'uploader': 'Gifs',
             'uploader_id': 'giphz',
         },
+        'expected_warnings': ['height', 'width'],
     }, {
         'url': 'https://twitter.com/starwars/status/665052190608723968',
         'md5': '39b7199856dee6cd4432e72c74bc69d4',
@@ -208,21 +213,82 @@ class TwitterIE(InfoExtractor):
             return info
 
         mobj = re.search(r'''(?x)
-            <video[^>]+class="animated-gif"[^>]+
-                (?:data-height="(?P<height>\d+)")?[^>]+
-                (?:data-width="(?P<width>\d+)")?[^>]+
-                (?:poster="(?P<poster>[^"]+)")?[^>]*>\s*
+            <video[^>]+class="animated-gif"(?P<more_info>[^>]+)>\s*
                 <source[^>]+video-src="(?P<url>[^"]+)"
         ''', webpage)
 
         if mobj:
+            more_info = mobj.group('more_info')
+            height = int_or_none(self._search_regex(
+                r'data-height="(\d+)"', more_info, 'height', fatal=False))
+            width = int_or_none(self._search_regex(
+                r'data-width="(\d+)"', more_info, 'width', fatal=False))
+            thumbnail = self._search_regex(
+                r'poster="([^"]+)"', more_info, 'poster', fatal=False)
             info.update({
                 'id': twid,
                 'url': mobj.group('url'),
-                'height': int_or_none(mobj.group('height')),
-                'width': int_or_none(mobj.group('width')),
-                'thumbnail': mobj.group('poster'),
+                'height': height,
+                'width': width,
+                'thumbnail': thumbnail,
             })
             return info
 
-        raise ExtractorError('There\'s not video in this tweet.')
+        raise ExtractorError('There\'s no video in this tweet.')
+
+
+class TwitterAmplifyIE(TwitterBaseIE):
+    IE_NAME = 'twitter:amplify'
+    _VALID_URL = 'https?://amp\.twimg\.com/v/(?P<id>[0-9a-f\-]{36})'
+
+    _TEST = {
+        'url': 'https://amp.twimg.com/v/0ba0c3c7-0af3-4c0a-bed5-7efd1ffa2951',
+        'md5': '7df102d0b9fd7066b86f3159f8e81bf6',
+        'info_dict': {
+            'id': '0ba0c3c7-0af3-4c0a-bed5-7efd1ffa2951',
+            'ext': 'mp4',
+            'title': 'Twitter Video',
+            'thumbnail': 're:^https?://.*',
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        vmap_url = self._html_search_meta(
+            'twitter:amplify:vmap', webpage, 'vmap url')
+        video_url = self._get_vmap_video_url(vmap_url, video_id)
+
+        thumbnails = []
+        thumbnail = self._html_search_meta(
+            'twitter:image:src', webpage, 'thumbnail', fatal=False)
+
+        def _find_dimension(target):
+            w = int_or_none(self._html_search_meta(
+                'twitter:%s:width' % target, webpage, fatal=False))
+            h = int_or_none(self._html_search_meta(
+                'twitter:%s:height' % target, webpage, fatal=False))
+            return w, h
+
+        if thumbnail:
+            thumbnail_w, thumbnail_h = _find_dimension('image')
+            thumbnails.append({
+                'url': thumbnail,
+                'width': thumbnail_w,
+                'height': thumbnail_h,
+            })
+
+        video_w, video_h = _find_dimension('player')
+        formats = [{
+            'url': video_url,
+            'width': video_w,
+            'height': video_h,
+        }]
+
+        return {
+            'id': video_id,
+            'title': 'Twitter Video',
+            'formats': formats,
+            'thumbnails': thumbnails,
+        }

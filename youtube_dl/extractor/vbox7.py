@@ -47,7 +47,7 @@ class Vbox7IE(InfoExtractor):
         title = self._html_search_regex(r'<title>(.*)</title>',
                                         webpage, 'title').split('/')[0].strip()
 
-        info_url = "http://vbox7.com/play/magare.do"
+        info_url = 'http://vbox7.com/play/magare.do'
         data = compat_urllib_parse.urlencode({'as3': '1', 'vid': video_id})
         info_request = sanitized_Request(info_url, data)
         info_request.add_header('Content-Type', 'application/x-www-form-urlencoded')

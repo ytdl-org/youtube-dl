@@ -1,6 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_parse,
+    compat_urlparse,
+)
 from ..utils import (
     float_or_none,
     int_or_none,
@@ -12,10 +16,10 @@ class ViddlerIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?viddler\.com/(?:v|embed|player)/(?P<id>[a-z0-9]+)'
     _TESTS = [{
         'url': 'http://www.viddler.com/v/43903784',
-        'md5': 'ae43ad7cb59431ce043f0ff7fa13cbf4',
+        'md5': '9eee21161d2c7f5b39690c3e325fab2f',
         'info_dict': {
             'id': '43903784',
-            'ext': 'mp4',
+            'ext': 'mov',
             'title': 'Video Made Easy',
             'description': 'md5:6a697ebd844ff3093bd2e82c37b409cd',
             'uploader': 'viddler',
@@ -29,10 +33,10 @@ class ViddlerIE(InfoExtractor):
         }
     }, {
         'url': 'http://www.viddler.com/v/4d03aad9/',
-        'md5': 'faa71fbf70c0bee7ab93076fd007f4b0',
+        'md5': 'f12c5a7fa839c47a79363bfdf69404fb',
         'info_dict': {
             'id': '4d03aad9',
-            'ext': 'mp4',
+            'ext': 'ts',
             'title': 'WALL-TO-GORTAT',
             'upload_date': '20150126',
             'uploader': 'deadspin',
@@ -42,10 +46,10 @@ class ViddlerIE(InfoExtractor):
         }
     }, {
         'url': 'http://www.viddler.com/player/221ebbbd/0/',
-        'md5': '0defa2bd0ea613d14a6e9bd1db6be326',
+        'md5': '740511f61d3d1bb71dc14a0fe01a1c10',
         'info_dict': {
             'id': '221ebbbd',
-            'ext': 'mp4',
+            'ext': 'mov',
             'title': 'LETeens-Grammar-snack-third-conditional',
             'description': ' ',
             'upload_date': '20140929',
@@ -54,16 +58,42 @@ class ViddlerIE(InfoExtractor):
             'view_count': int,
             'comment_count': int,
         }
+    }, {
+        # secret protected
+        'url': 'http://www.viddler.com/v/890c0985?secret=34051570',
+        'info_dict': {
+            'id': '890c0985',
+            'ext': 'mp4',
+            'title': 'Complete Property Training - Traineeships',
+            'description': ' ',
+            'upload_date': '20130606',
+            'uploader': 'TiffanyBowtell',
+            'timestamp': 1370496993,
+            'view_count': int,
+            'comment_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        json_url = (
-            'http://api.viddler.com/api/v2/viddler.videos.getPlaybackDetails.json?video_id=%s&key=v0vhrt7bg2xq1vyxhkct' %
-            video_id)
+        query = {
+            'video_id': video_id,
+            'key': 'v0vhrt7bg2xq1vyxhkct',
+        }
+
+        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+        secret = qs.get('secret', [None])[0]
+        if secret:
+            query['secret'] = secret
+
         headers = {'Referer': 'http://static.cdn-ec.viddler.com/js/arpeggio/v2/embed.html'}
-        request = sanitized_Request(json_url, None, headers)
+        request = sanitized_Request(
+            'http://api.viddler.com/api/v2/viddler.videos.getPlaybackDetails.json?%s'
+            % compat_urllib_parse.urlencode(query), None, headers)
         data = self._download_json(request, video_id)['video']
 
         formats = []

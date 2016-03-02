@@ -180,40 +180,40 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             return assvalue
 
         output = '[Script Info]\n'
-        output += 'Title: %s\n' % sub_root.attrib["title"]
+        output += 'Title: %s\n' % sub_root.attrib['title']
         output += 'ScriptType: v4.00+\n'
-        output += 'WrapStyle: %s\n' % sub_root.attrib["wrap_style"]
-        output += 'PlayResX: %s\n' % sub_root.attrib["play_res_x"]
-        output += 'PlayResY: %s\n' % sub_root.attrib["play_res_y"]
+        output += 'WrapStyle: %s\n' % sub_root.attrib['wrap_style']
+        output += 'PlayResX: %s\n' % sub_root.attrib['play_res_x']
+        output += 'PlayResY: %s\n' % sub_root.attrib['play_res_y']
         output += """ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 """
         for style in sub_root.findall('./styles/style'):
-            output += 'Style: ' + style.attrib["name"]
-            output += ',' + style.attrib["font_name"]
-            output += ',' + style.attrib["font_size"]
-            output += ',' + style.attrib["primary_colour"]
-            output += ',' + style.attrib["secondary_colour"]
-            output += ',' + style.attrib["outline_colour"]
-            output += ',' + style.attrib["back_colour"]
-            output += ',' + ass_bool(style.attrib["bold"])
-            output += ',' + ass_bool(style.attrib["italic"])
-            output += ',' + ass_bool(style.attrib["underline"])
-            output += ',' + ass_bool(style.attrib["strikeout"])
-            output += ',' + style.attrib["scale_x"]
-            output += ',' + style.attrib["scale_y"]
-            output += ',' + style.attrib["spacing"]
-            output += ',' + style.attrib["angle"]
-            output += ',' + style.attrib["border_style"]
-            output += ',' + style.attrib["outline"]
-            output += ',' + style.attrib["shadow"]
-            output += ',' + style.attrib["alignment"]
-            output += ',' + style.attrib["margin_l"]
-            output += ',' + style.attrib["margin_r"]
-            output += ',' + style.attrib["margin_v"]
-            output += ',' + style.attrib["encoding"]
+            output += 'Style: ' + style.attrib['name']
+            output += ',' + style.attrib['font_name']
+            output += ',' + style.attrib['font_size']
+            output += ',' + style.attrib['primary_colour']
+            output += ',' + style.attrib['secondary_colour']
+            output += ',' + style.attrib['outline_colour']
+            output += ',' + style.attrib['back_colour']
+            output += ',' + ass_bool(style.attrib['bold'])
+            output += ',' + ass_bool(style.attrib['italic'])
+            output += ',' + ass_bool(style.attrib['underline'])
+            output += ',' + ass_bool(style.attrib['strikeout'])
+            output += ',' + style.attrib['scale_x']
+            output += ',' + style.attrib['scale_y']
+            output += ',' + style.attrib['spacing']
+            output += ',' + style.attrib['angle']
+            output += ',' + style.attrib['border_style']
+            output += ',' + style.attrib['outline']
+            output += ',' + style.attrib['shadow']
+            output += ',' + style.attrib['alignment']
+            output += ',' + style.attrib['margin_l']
+            output += ',' + style.attrib['margin_r']
+            output += ',' + style.attrib['margin_v']
+            output += ',' + style.attrib['encoding']
             output += '\n'
 
         output += """
@@ -222,15 +222,15 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
         for event in sub_root.findall('./events/event'):
             output += 'Dialogue: 0'
-            output += ',' + event.attrib["start"]
-            output += ',' + event.attrib["end"]
-            output += ',' + event.attrib["style"]
-            output += ',' + event.attrib["name"]
-            output += ',' + event.attrib["margin_l"]
-            output += ',' + event.attrib["margin_r"]
-            output += ',' + event.attrib["margin_v"]
-            output += ',' + event.attrib["effect"]
-            output += ',' + event.attrib["text"]
+            output += ',' + event.attrib['start']
+            output += ',' + event.attrib['end']
+            output += ',' + event.attrib['style']
+            output += ',' + event.attrib['name']
+            output += ',' + event.attrib['margin_l']
+            output += ',' + event.attrib['margin_r']
+            output += ',' + event.attrib['margin_v']
+            output += ',' + event.attrib['effect']
+            output += ',' + event.attrib['text']
             output += '\n'
 
         return output
@@ -376,7 +376,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 
 class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
-    IE_NAME = "crunchyroll:playlist"
+    IE_NAME = 'crunchyroll:playlist'
     _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?!(?:news|anime-news|library|forum|launchcalendar|lineup|store|comics|freetrial|login))(?P<id>[\w\-]+))/?(?:\?|$)'
 
     _TESTS = [{

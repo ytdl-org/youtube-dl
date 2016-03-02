@@ -57,7 +57,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
 
     def _extract_xsrft_and_vuid(self, webpage):
         xsrft = self._search_regex(
-            r'xsrft\s*[=:]\s*(?P<q>["\'])(?P<xsrft>.+?)(?P=q)',
+            r'(?:(?P<q1>["\'])xsrft(?P=q1)\s*:|xsrft\s*[=:])\s*(?P<q>["\'])(?P<xsrft>.+?)(?P=q)',
             webpage, 'login token', group='xsrft')
         vuid = self._search_regex(
             r'["\']vuid["\']\s*:\s*(["\'])(?P<vuid>.+?)\1',
@@ -232,7 +232,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             return mobj.group(1)
 
     def _verify_video_password(self, url, video_id, webpage):
-        password = self._downloader.params.get('videopassword', None)
+        password = self._downloader.params.get('videopassword')
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option', expected=True)
         token, vuid = self._extract_xsrft_and_vuid(webpage)
@@ -252,7 +252,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'Verifying the password', 'Wrong password')
 
     def _verify_player_video_password(self, url, video_id):
-        password = self._downloader.params.get('videopassword', None)
+        password = self._downloader.params.get('videopassword')
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option')
         data = urlencode_postdata(encode_dict({'password': password}))
@@ -368,16 +368,16 @@ class VimeoIE(VimeoBaseInfoExtractor):
                     {'force_feature_id': True}), 'Vimeo')
 
         # Extract title
-        video_title = config["video"]["title"]
+        video_title = config['video']['title']
 
         # Extract uploader and uploader_id
-        video_uploader = config["video"]["owner"]["name"]
-        video_uploader_id = config["video"]["owner"]["url"].split('/')[-1] if config["video"]["owner"]["url"] else None
+        video_uploader = config['video']['owner']['name']
+        video_uploader_id = config['video']['owner']['url'].split('/')[-1] if config['video']['owner']['url'] else None
 
         # Extract video thumbnail
-        video_thumbnail = config["video"].get("thumbnail")
+        video_thumbnail = config['video'].get('thumbnail')
         if video_thumbnail is None:
-            video_thumbs = config["video"].get("thumbs")
+            video_thumbs = config['video'].get('thumbs')
             if video_thumbs and isinstance(video_thumbs, dict):
                 _, video_thumbnail = sorted((int(width if width.isdigit() else 0), t_url) for (width, t_url) in video_thumbs.items())[-1]
 
@@ -401,7 +401,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             self._downloader.report_warning('Cannot find video description')
 
         # Extract video duration
-        video_duration = int_or_none(config["video"].get("duration"))
+        video_duration = int_or_none(config['video'].get('duration'))
 
         # Extract upload date
         video_upload_date = None
@@ -430,7 +430,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 if download_url and not source_file.get('is_cold') and not source_file.get('is_defrosting'):
                     source_name = source_file.get('public_name', 'Original')
                     if self._is_valid_url(download_url, video_id, '%s video' % source_name):
-                        ext = source_file.get('extension', determine_ext(download_url)).lower(),
+                        ext = source_file.get('extension', determine_ext(download_url)).lower()
                         formats.append({
                             'url': download_url,
                             'ext': ext,
@@ -516,7 +516,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         if not login_form:
             return webpage
 
-        password = self._downloader.params.get('videopassword', None)
+        password = self._downloader.params.get('videopassword')
         if password is None:
             raise ExtractorError('This album is protected by a password, use the --video-password option', expected=True)
         fields = self._hidden_inputs(login_form)
@@ -703,10 +703,10 @@ class VimeoLikesIE(InfoExtractor):
     _TEST = {
         'url': 'https://vimeo.com/user755559/likes/',
         'playlist_mincount': 293,
-        "info_dict": {
+        'info_dict': {
             'id': 'user755559_likes',
-            "description": "See all the videos urza likes",
-            "title": 'Videos urza likes',
+            'description': 'See all the videos urza likes',
+            'title': 'Videos urza likes',
         },
     }
 

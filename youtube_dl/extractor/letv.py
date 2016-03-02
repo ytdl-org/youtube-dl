@@ -4,11 +4,14 @@ from __future__ import unicode_literals
 import datetime
 import re
 import time
+import base64
+import hashlib
 
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
     compat_ord,
+    compat_str,
 )
 from ..utils import (
     determine_ext,
@@ -16,7 +19,9 @@ from ..utils import (
     parse_iso8601,
     sanitized_Request,
     int_or_none,
+    str_or_none,
     encode_data_uri,
+    url_basename,
 )
 
 
@@ -89,17 +94,16 @@ class LetvIE(InfoExtractor):
             return encrypted_data
         encrypted_data = encrypted_data[5:]
 
-        _loc4_ = bytearray()
-        while encrypted_data:
-            b = compat_ord(encrypted_data[0])
-            _loc4_.extend([b // 16, b & 0x0f])
-            encrypted_data = encrypted_data[1:]
+        _loc4_ = bytearray(2 * len(encrypted_data))
+        for idx, val in enumerate(encrypted_data):
+            b = compat_ord(val)
+            _loc4_[2 * idx] = b // 16
+            _loc4_[2 * idx + 1] = b % 16
         idx = len(_loc4_) - 11
         _loc4_ = _loc4_[idx:] + _loc4_[:idx]
-        _loc7_ = bytearray()
-        while _loc4_:
-            _loc7_.append(_loc4_[0] * 16 + _loc4_[1])
-            _loc4_ = _loc4_[2:]
+        _loc7_ = bytearray(len(encrypted_data))
+        for i in range(len(encrypted_data)):
+            _loc7_[i] = _loc4_[2 * i] * 16 + _loc4_[2 * i + 1]
 
         return bytes(_loc7_)
 
@@ -239,3 +243,113 @@ class LetvPlaylistIE(LetvTvIE):
         },
         'playlist_mincount': 7
     }]
+
+
+class LetvCloudIE(InfoExtractor):
+    IE_DESC = '乐视云'
+    _VALID_URL = r'https?://yuntv\.letv\.com/bcloud.html\?.+'
+
+    _TESTS = [{
+        'url': 'http://yuntv.letv.com/bcloud.html?uu=p7jnfw5hw9&vu=467623dedf',
+        'md5': '26450599afd64c513bc77030ad15db44',
+        'info_dict': {
+            'id': 'p7jnfw5hw9_467623dedf',
+            'ext': 'mp4',
+            'title': 'Video p7jnfw5hw9_467623dedf',
+        },
+    }, {
+        'url': 'http://yuntv.letv.com/bcloud.html?uu=p7jnfw5hw9&vu=ec93197892&pu=2c7cd40209&auto_play=1&gpcflag=1&width=640&height=360',
+        'md5': 'e03d9cc8d9c13191e1caf277e42dbd31',
+        'info_dict': {
+            'id': 'p7jnfw5hw9_ec93197892',
+            'ext': 'mp4',
+            'title': 'Video p7jnfw5hw9_ec93197892',
+        },
+    }, {
+        'url': 'http://yuntv.letv.com/bcloud.html?uu=p7jnfw5hw9&vu=187060b6fd',
+        'md5': 'cb988699a776b22d4a41b9d43acfb3ac',
+        'info_dict': {
+            'id': 'p7jnfw5hw9_187060b6fd',
+            'ext': 'mp4',
+            'title': 'Video p7jnfw5hw9_187060b6fd',
+        },
+    }]
+
+    @staticmethod
+    def sign_data(obj):
+        if obj['cf'] == 'flash':
+            salt = '2f9d6924b33a165a6d8b5d3d42f4f987'
+            items = ['cf', 'format', 'ran', 'uu', 'ver', 'vu']
+        elif obj['cf'] == 'html5':
+            salt = 'fbeh5player12c43eccf2bec3300344'
+            items = ['cf', 'ran', 'uu', 'bver', 'vu']
+        input_data = ''.join([item + obj[item] for item in items]) + salt
+        obj['sign'] = hashlib.md5(input_data.encode('utf-8')).hexdigest()
+
+    def _get_formats(self, cf, uu, vu, media_id):
+        def get_play_json(cf, timestamp):
+            data = {
+                'cf': cf,
+                'ver': '2.2',
+                'bver': 'firefox44.0',
+                'format': 'json',
+                'uu': uu,
+                'vu': vu,
+                'ran': compat_str(timestamp),
+            }
+            self.sign_data(data)
+            return self._download_json(
+                'http://api.letvcloud.com/gpc.php?' + compat_urllib_parse.urlencode(data),
+                media_id, 'Downloading playJson data for type %s' % cf)
+
+        play_json = get_play_json(cf, time.time())
+        # The server time may be different from local time
+        if play_json.get('code') == 10071:
+            play_json = get_play_json(cf, play_json['timestamp'])
+
+        if not play_json.get('data'):
+            if play_json.get('message'):
+                raise ExtractorError('Letv cloud said: %s' % play_json['message'], expected=True)
+            elif play_json.get('code'):
+                raise ExtractorError('Letv cloud returned error %d' % play_json['code'], expected=True)
+            else:
+                raise ExtractorError('Letv cloud returned an unknwon error')
+
+        def b64decode(s):
+            return base64.b64decode(s.encode('utf-8')).decode('utf-8')
+
+        formats = []
+        for media in play_json['data']['video_info']['media'].values():
+            play_url = media['play_url']
+            url = b64decode(play_url['main_url'])
+            decoded_url = b64decode(url_basename(url))
+            formats.append({
+                'url': url,
+                'ext': determine_ext(decoded_url),
+                'format_id': int_or_none(play_url.get('vtype')),
+                'format_note': str_or_none(play_url.get('definition')),
+                'width': int_or_none(play_url.get('vwidth')),
+                'height': int_or_none(play_url.get('vheight')),
+            })
+
+        return formats
+
+    def _real_extract(self, url):
+        uu_mobj = re.search('uu=([\w]+)', url)
+        vu_mobj = re.search('vu=([\w]+)', url)
+
+        if not uu_mobj or not vu_mobj:
+            raise ExtractorError('Invalid URL: %s' % url, expected=True)
+
+        uu = uu_mobj.group(1)
+        vu = vu_mobj.group(1)
+        media_id = uu + '_' + vu
+
+        formats = self._get_formats('flash', uu, vu, media_id) + self._get_formats('html5', uu, vu, media_id)
+        self._sort_formats(formats)
+
+        return {
+            'id': media_id,
+            'title': 'Video %s' % media_id,
+            'formats': formats,
+        }

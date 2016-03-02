@@ -15,44 +15,28 @@ from .version import __version__
 
 
 def rsa_verify(message, signature, key):
-    from struct import pack
     from hashlib import sha256
-
     assert isinstance(message, bytes)
-    block_size = 0
-    n = key[0]
-    while n:
-        block_size += 1
-        n >>= 8
-    signature = pow(int(signature, 16), key[1], key[0])
-    raw_bytes = []
-    while signature:
-        raw_bytes.insert(0, pack("B", signature & 0xFF))
-        signature >>= 8
-    signature = (block_size - len(raw_bytes)) * b'\x00' + b''.join(raw_bytes)
-    if signature[0:2] != b'\x00\x01':
+    byte_size = (len(bin(key[0])) - 2 + 8 - 1) // 8
+    signature = ('%x' % pow(int(signature, 16), key[1], key[0])).encode()
+    signature = (byte_size * 2 - len(signature)) * b'0' + signature
+    asn1 = b'3031300d060960864801650304020105000420'
+    asn1 += sha256(message).hexdigest().encode()
+    if byte_size < len(asn1) // 2 + 11:
         return False
-    signature = signature[2:]
-    if b'\x00' not in signature:
-        return False
-    signature = signature[signature.index(b'\x00') + 1:]
-    if not signature.startswith(b'\x30\x31\x30\x0D\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20'):
-        return False
-    signature = signature[19:]
-    if signature != sha256(message).digest():
-        return False
-    return True
+    expected = b'0001' + (byte_size - len(asn1) // 2 - 3) * b'ff' + b'00' + asn1
+    return expected == signature
 
 
 def update_self(to_screen, verbose, opener):
     """Update the program file with the latest version from the repository"""
 
-    UPDATE_URL = "https://rg3.github.io/youtube-dl/update/"
+    UPDATE_URL = 'https://rg3.github.io/youtube-dl/update/'
     VERSION_URL = UPDATE_URL + 'LATEST_VERSION'
     JSON_URL = UPDATE_URL + 'versions.json'
     UPDATES_RSA_KEY = (0x9d60ee4d8f805312fdb15a62f87b95bd66177b91df176765d13514a0f1754bcd2057295c5b6f1d35daa6742c3ffc9a82d3e118861c207995a8031e151d863c9927e304576bc80692bc8e094896fcf11b66f3e29e04e3a71e9a11558558acea1840aec37fc396fb6b65dc81a1c4144e03bd1c011de62e3f1357b327d08426fe93, 65537)
 
-    if not isinstance(globals().get('__loader__'), zipimporter) and not hasattr(sys, "frozen"):
+    if not isinstance(globals().get('__loader__'), zipimporter) and not hasattr(sys, 'frozen'):
         to_screen('It looks like you installed youtube-dl with a package manager, pip, setup.py or a tarball. Please use that to update.')
         return
 
@@ -101,7 +85,7 @@ def update_self(to_screen, verbose, opener):
 
     filename = sys.argv[0]
     # Py2EXE: Filename could be different
-    if hasattr(sys, "frozen") and not os.path.isfile(filename):
+    if hasattr(sys, 'frozen') and not os.path.isfile(filename):
         if os.path.isfile(filename + '.exe'):
             filename += '.exe'
 
@@ -110,7 +94,7 @@ def update_self(to_screen, verbose, opener):
         return
 
     # Py2EXE
-    if hasattr(sys, "frozen"):
+    if hasattr(sys, 'frozen'):
         exe = os.path.abspath(filename)
         directory = os.path.dirname(exe)
         if not os.access(directory, os.W_OK):

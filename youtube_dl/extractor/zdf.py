@@ -137,6 +137,10 @@ class ZDFIE(InfoExtractor):
                 formats.extend(self._extract_smil_formats(
                     video_url, video_id, fatal=False))
             elif ext == 'm3u8':
+                # the certificates are misconfigured (see
+                # https://github.com/rg3/youtube-dl/issues/8665)
+                if video_url.startswith('https://'):
+                    continue
                 formats.extend(self._extract_m3u8_formats(
                     video_url, video_id, 'mp4', m3u8_id=format_id, fatal=False))
             elif ext == 'f4m':

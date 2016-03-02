@@ -86,7 +86,7 @@ class BBCCoUkIE(InfoExtractor):
                 'id': 'b00yng1d',
                 'ext': 'flv',
                 'title': 'The Voice UK: Series 3: Blind Auditions 5',
-                'description': "Emma Willis and Marvin Humes present the fifth set of blind auditions in the singing competition, as the coaches continue to build their teams based on voice alone.",
+                'description': 'Emma Willis and Marvin Humes present the fifth set of blind auditions in the singing competition, as the coaches continue to build their teams based on voice alone.',
                 'duration': 5100,
             },
             'params': {
@@ -188,6 +188,19 @@ class BBCCoUkIE(InfoExtractor):
                 'ext': 'flv',
                 'title': "Best of the Mini-Mixes 2015: Part 3, Annie Mac's Friday Night - BBC Radio 1",
                 'description': "Annie has part three in the Best of the Mini-Mixes 2015, plus the year's Most Played!",
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            },
+        }, {
+            # compact player (https://github.com/rg3/youtube-dl/issues/8147)
+            'url': 'http://www.bbc.co.uk/programmes/p028bfkf/player',
+            'info_dict': {
+                'id': 'p028bfkj',
+                'ext': 'flv',
+                'title': 'Extract from BBC documentary Look Stranger - Giant Leeks and Magic Brews',
+                'description': 'Extract from BBC documentary Look Stranger - Giant Leeks and Magic Brews',
             },
             'params': {
                 # rtmp download
@@ -482,9 +495,11 @@ class BBCCoUkIE(InfoExtractor):
         if programme_id:
             formats, subtitles = self._download_media_selector(programme_id)
             title = self._og_search_title(webpage, default=None) or self._html_search_regex(
-                r'<h2[^>]+id="parent-title"[^>]*>(.+?)</h2>', webpage, 'title')
+                (r'<h2[^>]+id="parent-title"[^>]*>(.+?)</h2>',
+                 r'<div[^>]+class="info"[^>]*>\s*<h1>(.+?)</h1>'), webpage, 'title')
             description = self._search_regex(
-                r'<p class="[^"]*medium-description[^"]*">([^<]+)</p>',
+                (r'<p class="[^"]*medium-description[^"]*">([^<]+)</p>',
+                 r'<div[^>]+class="info_+synopsis"[^>]*>([^<]+)</div>'),
                 webpage, 'description', default=None)
             if not description:
                 description = self._html_search_meta('description', webpage)
@@ -718,19 +733,10 @@ class BBCIE(BBCCoUkIE):
 
         webpage = self._download_webpage(url, playlist_id)
 
-        timestamp = None
-        playlist_title = None
-        playlist_description = None
-
-        ld = self._parse_json(
-            self._search_regex(
-                r'(?s)<script type="application/ld\+json">(.+?)</script>',
-                webpage, 'ld json', default='{}'),
-            playlist_id, fatal=False)
-        if ld:
-            timestamp = parse_iso8601(ld.get('datePublished'))
-            playlist_title = ld.get('headline')
-            playlist_description = ld.get('articleBody')
+        json_ld_info = self._search_json_ld(webpage, playlist_id, default=None)
+        timestamp = json_ld_info.get('timestamp')
+        playlist_title = json_ld_info.get('title')
+        playlist_description = json_ld_info.get('description')
 
         if not timestamp:
             timestamp = parse_iso8601(self._search_regex(

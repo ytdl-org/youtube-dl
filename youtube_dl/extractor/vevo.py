@@ -3,22 +3,20 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_etree_fromstring,
-    compat_urlparse,
-)
+from ..compat import compat_etree_fromstring
 from ..utils import (
     ExtractorError,
     int_or_none,
     sanitized_Request,
+    parse_iso8601,
 )
 
 
 class VevoIE(InfoExtractor):
-    """
+    '''
     Accepts urls from vevo.com or in the format 'vevo:{id}'
     (currently used by MTVIE and MySpaceIE)
-    """
+    '''
     _VALID_URL = r'''(?x)
         (?:https?://www\.vevo\.com/watch/(?:[^/]+/(?:[^/]+/)?)?|
            https?://cache\.vevo\.com/m/html/embed\.html\?video=|
@@ -28,19 +26,15 @@ class VevoIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.vevo.com/watch/hurts/somebody-to-die-for/GB1101300280',
-        "md5": "95ee28ee45e70130e3ab02b0f579ae23",
+        'md5': '95ee28ee45e70130e3ab02b0f579ae23',
         'info_dict': {
             'id': 'GB1101300280',
             'ext': 'mp4',
-            "upload_date": "20130624",
-            "uploader": "Hurts",
-            "title": "Somebody to Die For",
-            "duration": 230.12,
-            "width": 1920,
-            "height": 1080,
-            # timestamp and upload_date are often incorrect; seem to change randomly
-            'timestamp': int,
-        }
+            'title': 'Somebody to Die For',
+            'upload_date': '20130624',
+            'uploader': 'Hurts',
+            'timestamp': 1372057200,
+        },
     }, {
         'note': 'v3 SMIL format',
         'url': 'http://www.vevo.com/watch/cassadee-pope/i-wish-i-could-break-your-heart/USUV71302923',
@@ -48,28 +42,23 @@ class VevoIE(InfoExtractor):
         'info_dict': {
             'id': 'USUV71302923',
             'ext': 'mp4',
+            'title': 'I Wish I Could Break Your Heart',
             'upload_date': '20140219',
             'uploader': 'Cassadee Pope',
-            'title': 'I Wish I Could Break Your Heart',
-            'duration': 226.101,
-            'age_limit': 0,
-            'timestamp': int,
-        }
+            'timestamp': 1392796919,
+        },
     }, {
         'note': 'Age-limited video',
         'url': 'https://www.vevo.com/watch/justin-timberlake/tunnel-vision-explicit/USRV81300282',
         'info_dict': {
             'id': 'USRV81300282',
             'ext': 'mp4',
-            'age_limit': 18,
             'title': 'Tunnel Vision (Explicit)',
+            'upload_date': '20130703',
+            'age_limit': 18,
             'uploader': 'Justin Timberlake',
-            'upload_date': 're:2013070[34]',
-            'timestamp': int,
+            'timestamp': 1372888800,
         },
-        'params': {
-            'skip_download': 'true',
-        }
     }, {
         'note': 'No video_info',
         'url': 'http://www.vevo.com/watch/k-camp-1/Till-I-Die/USUV71503000',
@@ -77,69 +66,46 @@ class VevoIE(InfoExtractor):
         'info_dict': {
             'id': 'USUV71503000',
             'ext': 'mp4',
-            'title': 'Till I Die - K Camp ft. T.I.',
-            'duration': 193,
+            'title': 'Till I Die',
+            'upload_date': '20151207',
+            'age_limit': 18,
+            'uploader': 'K Camp',
+            'timestamp': 1449468000,
         },
-        'expected_warnings': ['Unable to download SMIL file'],
     }]
-    _SMIL_BASE_URL = 'http://smil.lvl3.vevo.com/'
+    _SMIL_BASE_URL = 'http://smil.lvl3.vevo.com'
+    _SOURCE_TYPES = {
+        0: 'youtube',
+        1: 'brightcove',
+        2: 'http',
+        3: 'hls_ios',
+        4: 'hls',
+        5: 'smil',  # http
+        7: 'f4m_cc',
+        8: 'f4m_ak',
+        9: 'f4m_l3',
+        10: 'ism',
+        13: 'smil',  # rtmp
+        18: 'dash',
+    }
+    _VERSIONS = {
+        0: 'youtube',  # only in AuthenticateVideo videoVersions
+        1: 'level3',
+        2: 'akamai',
+        3: 'level3',
+        4: 'amazon',
+    }
 
-    def _real_initialize(self):
-        req = sanitized_Request(
-            'http://www.vevo.com/auth', data=b'')
-        webpage = self._download_webpage(
-            req, None,
-            note='Retrieving oauth token',
-            errnote='Unable to retrieve oauth token',
-            fatal=False)
-        if webpage is False:
-            self._oauth_token = None
-        else:
-            if 'THIS PAGE IS CURRENTLY UNAVAILABLE IN YOUR REGION' in webpage:
-                raise ExtractorError('%s said: This page is currently unavailable in your region.' % self.IE_NAME, expected=True)
-
-            self._oauth_token = self._search_regex(
-                r'access_token":\s*"([^"]+)"',
-                webpage, 'access token', fatal=False)
-
-    def _formats_from_json(self, video_info):
-        if not video_info:
-            return []
-
-        last_version = {'version': -1}
-        for version in video_info['videoVersions']:
-            # These are the HTTP downloads, other types are for different manifests
-            if version['sourceType'] == 2:
-                if version['version'] > last_version['version']:
-                    last_version = version
-        if last_version['version'] == -1:
-            raise ExtractorError('Unable to extract last version of the video')
-
-        renditions = compat_etree_fromstring(last_version['data'])
+    def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None, transform_rtmp_url=None):
         formats = []
-        # Already sorted from worst to best quality
-        for rend in renditions.findall('rendition'):
-            attr = rend.attrib
-            format_note = '%(videoCodec)s@%(videoBitrate)4sk, %(audioCodec)s@%(audioBitrate)3sk' % attr
-            formats.append({
-                'url': attr['url'],
-                'format_id': attr['name'],
-                'format_note': format_note,
-                'height': int(attr['frameheight']),
-                'width': int(attr['frameWidth']),
-            })
-        return formats
-
-    def _formats_from_smil(self, smil_doc):
-        formats = []
-        els = smil_doc.findall('.//{http://www.w3.org/2001/SMIL20/Language}video')
+        els = smil.findall('.//{http://www.w3.org/2001/SMIL20/Language}video')
         for el in els:
             src = el.attrib['src']
             m = re.match(r'''(?xi)
                 (?P<ext>[a-z0-9]+):
                 (?P<path>
                     [/a-z0-9]+     # The directory and main part of the URL
-                    _(?P<cbr>[0-9]+)k
+                    _(?P<tbr>[0-9]+)k
                     _(?P<width>[0-9]+)x(?P<height>[0-9]+)
                     _(?P<vcodec>[a-z0-9]+)
                     _(?P<vbr>[0-9]+)
@@ -153,9 +119,10 @@ class VevoIE(InfoExtractor):
             format_url = self._SMIL_BASE_URL + m.group('path')
             formats.append({
                 'url': format_url,
-                'format_id': 'SMIL_' + m.group('cbr'),
+                'format_id': 'smil_' + m.group('tbr'),
                 'vcodec': m.group('vcodec'),
                 'acodec': m.group('acodec'),
+                'tbr': int(m.group('tbr')),
                 'vbr': int(m.group('vbr')),
                 'abr': int(m.group('abr')),
                 'ext': m.group('ext'),
@@ -164,48 +131,154 @@ class VevoIE(InfoExtractor):
             })
         return formats
 
-    def _download_api_formats(self, video_id, video_url):
-        if not self._oauth_token:
-            self._downloader.report_warning(
-                'No oauth token available, skipping API HLS download')
-            return []
+    def _initialize_api(self, video_id):
+        req = sanitized_Request(
+            'http://www.vevo.com/auth', data=b'')
+        webpage = self._download_webpage(
+            req, None,
+            note='Retrieving oauth token',
+            errnote='Unable to retrieve oauth token')
 
-        api_url = compat_urlparse.urljoin(video_url, '//apiv2.vevo.com/video/%s/streams/hls?token=%s' % (
-            video_id, self._oauth_token))
-        api_data = self._download_json(
-            api_url, video_id,
-            note='Downloading HLS formats',
-            errnote='Failed to download HLS format list', fatal=False)
-        if api_data is None:
-            return []
+        if 'THIS PAGE IS CURRENTLY UNAVAILABLE IN YOUR REGION' in webpage:
+            raise ExtractorError(
+                '%s said: This page is currently unavailable in your region.' % self.IE_NAME, expected=True)
 
-        m3u8_url = api_data[0]['url']
-        return self._extract_m3u8_formats(
-            m3u8_url, video_id, entry_protocol='m3u8_native', ext='mp4',
-            preference=0)
+        auth_info = self._parse_json(webpage, video_id)
+        self._api_url_template = self.http_scheme() + '//apiv2.vevo.com/%s?token=' + auth_info['access_token']
+
+    def _call_api(self, path, video_id, note, errnote, fatal=True):
+        return self._download_json(self._api_url_template % path, video_id, note, errnote)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = None
-
         json_url = 'http://videoplayer.vevo.com/VideoService/AuthenticateVideo?isrc=%s' % video_id
-        response = self._download_json(json_url, video_id)
-        video_info = response['video'] or {}
-
-        if not video_info and response.get('statusCode') != 909:
-            if 'statusMessage' in response:
-                raise ExtractorError('%s said: %s' % (self.IE_NAME, response['statusMessage']), expected=True)
-            raise ExtractorError('Unable to extract videos')
+        response = self._download_json(
+            json_url, video_id, 'Downloading video info', 'Unable to download info')
+        video_info = response.get('video') or {}
+        video_versions = video_info.get('videoVersions')
+        uploader = None
+        timestamp = None
+        view_count = None
+        formats = []
 
         if not video_info:
-            if url.startswith('vevo:'):
-                raise ExtractorError('Please specify full Vevo URL for downloading', expected=True)
-            webpage = self._download_webpage(url, video_id)
+            if response.get('statusCode') != 909:
+                ytid = response.get('errorInfo', {}).get('ytid')
+                if ytid:
+                    self.report_warning(
+                        'Video is geoblocked, trying with the YouTube video %s' % ytid)
+                    return self.url_result(ytid, 'Youtube', ytid)
 
-        title = video_info.get('title') or self._og_search_title(webpage)
+                if 'statusMessage' in response:
+                    raise ExtractorError('%s said: %s' % (
+                        self.IE_NAME, response['statusMessage']), expected=True)
+                raise ExtractorError('Unable to extract videos')
 
-        formats = self._formats_from_json(video_info)
+            self._initialize_api(video_id)
+            video_info = self._call_api(
+                'video/%s' % video_id, video_id, 'Downloading api video info',
+                'Failed to download video info')
+
+            video_versions = self._call_api(
+                'video/%s/streams' % video_id, video_id,
+                'Downloading video versions info',
+                'Failed to download video versions info')
+
+            timestamp = parse_iso8601(video_info.get('releaseDate'))
+            artists = video_info.get('artists')
+            if artists:
+                uploader = artists[0]['name']
+            view_count = int_or_none(video_info.get('views', {}).get('total'))
+
+            for video_version in video_versions:
+                version = self._VERSIONS.get(video_version['version'])
+                version_url = video_version.get('url')
+                if not version_url:
+                    continue
+
+                if '.ism' in version_url:
+                    continue
+                elif '.mpd' in version_url:
+                    formats.extend(self._extract_mpd_formats(
+                        version_url, video_id, mpd_id='dash-%s' % version,
+                        note='Downloading %s MPD information' % version,
+                        errnote='Failed to download %s MPD information' % version,
+                        fatal=False))
+                elif '.m3u8' in version_url:
+                    formats.extend(self._extract_m3u8_formats(
+                        version_url, video_id, 'mp4', 'm3u8_native',
+                        m3u8_id='hls-%s' % version,
+                        note='Downloading %s m3u8 information' % version,
+                        errnote='Failed to download %s m3u8 information' % version,
+                        fatal=False))
+                else:
+                    m = re.search(r'''(?xi)
+                        _(?P<width>[0-9]+)x(?P<height>[0-9]+)
+                        _(?P<vcodec>[a-z0-9]+)
+                        _(?P<vbr>[0-9]+)
+                        _(?P<acodec>[a-z0-9]+)
+                        _(?P<abr>[0-9]+)
+                        \.(?P<ext>[a-z0-9]+)''', version_url)
+                    if not m:
+                        continue
+
+                    formats.append({
+                        'url': version_url,
+                        'format_id': 'http-%s-%s' % (version, video_version['quality']),
+                        'vcodec': m.group('vcodec'),
+                        'acodec': m.group('acodec'),
+                        'vbr': int(m.group('vbr')),
+                        'abr': int(m.group('abr')),
+                        'ext': m.group('ext'),
+                        'width': int(m.group('width')),
+                        'height': int(m.group('height')),
+                    })
+        else:
+            timestamp = int_or_none(self._search_regex(
+                r'/Date\((\d+)\)/',
+                video_info['releaseDate'], 'release date', fatal=False),
+                scale=1000)
+            artists = video_info.get('mainArtists')
+            if artists:
+                uploader = artists[0]['artistName']
+
+            smil_parsed = False
+            for video_version in video_info['videoVersions']:
+                version = self._VERSIONS.get(video_version['version'])
+                if version == 'youtube':
+                    continue
+                else:
+                    source_type = self._SOURCE_TYPES.get(video_version['sourceType'])
+                    renditions = compat_etree_fromstring(video_version['data'])
+                    if source_type == 'http':
+                        for rend in renditions.findall('rendition'):
+                            attr = rend.attrib
+                            formats.append({
+                                'url': attr['url'],
+                                'format_id': 'http-%s-%s' % (version, attr['name']),
+                                'height': int_or_none(attr.get('frameheight')),
+                                'width': int_or_none(attr.get('frameWidth')),
+                                'tbr': int_or_none(attr.get('totalBitrate')),
+                                'vbr': int_or_none(attr.get('videoBitrate')),
+                                'abr': int_or_none(attr.get('audioBitrate')),
+                                'vcodec': attr.get('videoCodec'),
+                                'acodec': attr.get('audioCodec'),
+                            })
+                    elif source_type == 'hls':
+                        formats.extend(self._extract_m3u8_formats(
+                            renditions.find('rendition').attrib['url'], video_id,
+                            'mp4', 'm3u8_native', m3u8_id='hls-%s' % version,
+                            note='Downloading %s m3u8 information' % version,
+                            errnote='Failed to download %s m3u8 information' % version,
+                            fatal=False))
+                    elif source_type == 'smil' and version == 'level3' and not smil_parsed:
+                        formats.extend(self._extract_smil_formats(
+                            renditions.find('rendition').attrib['url'], video_id, False))
+                        smil_parsed = True
+        self._sort_formats(formats)
+
+        title = video_info['title']
 
         is_explicit = video_info.get('isExplicit')
         if is_explicit is True:
@@ -215,43 +288,16 @@ class VevoIE(InfoExtractor):
         else:
             age_limit = None
 
-        # Download via HLS API
-        formats.extend(self._download_api_formats(video_id, url))
-
-        # Download SMIL
-        smil_blocks = sorted((
-            f for f in video_info.get('videoVersions', [])
-            if f['sourceType'] == 13),
-            key=lambda f: f['version'])
-        smil_url = '%s/Video/V2/VFILE/%s/%sr.smil' % (
-            self._SMIL_BASE_URL, video_id, video_id.lower())
-        if smil_blocks:
-            smil_url_m = self._search_regex(
-                r'url="([^"]+)"', smil_blocks[-1]['data'], 'SMIL URL',
-                default=None)
-            if smil_url_m is not None:
-                smil_url = smil_url_m
-        if smil_url:
-            smil_doc = self._download_smil(smil_url, video_id, fatal=False)
-            if smil_doc:
-                formats.extend(self._formats_from_smil(smil_doc))
-
-        self._sort_formats(formats)
-        timestamp = int_or_none(self._search_regex(
-            r'/Date\((\d+)\)/',
-            video_info['launchDate'], 'launch date', fatal=False),
-            scale=1000) if video_info else None
-
-        duration = video_info.get('duration') or int_or_none(
-            self._html_search_meta('video:duration', webpage))
+        duration = video_info.get('duration')
 
         return {
             'id': video_id,
             'title': title,
             'formats': formats,
-            'thumbnail': video_info.get('imageUrl'),
+            'thumbnail': video_info.get('imageUrl') or video_info.get('thumbnailUrl'),
             'timestamp': timestamp,
-            'uploader': video_info['mainArtists'][0]['artistName'] if video_info else None,
+            'uploader': uploader,
             'duration': duration,
+            'view_count': view_count,
             'age_limit': age_limit,
         }

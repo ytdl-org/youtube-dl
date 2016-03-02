@@ -11,6 +11,7 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    int_or_none,
     orderedSet,
     sanitized_Request,
     str_to_int,
@@ -152,6 +153,19 @@ class VKIE(InfoExtractor):
             },
         },
         {
+            # video key is extra_data not url\d+
+            'url': 'http://vk.com/video-110305615_171782105',
+            'md5': 'e13fcda136f99764872e739d13fac1d1',
+            'info_dict': {
+                'id': '171782105',
+                'ext': 'mp4',
+                'title': 'S-Dance, репетиции к The way show',
+                'uploader': 'THE WAY SHOW | 17 апреля',
+                'upload_date': '20160207',
+                'view_count': int,
+            },
+        },
+        {
             # removed video, just testing that we match the pattern
             'url': 'http://vk.com/feed?z=video-43215063_166094326%2Fbb50cacd3177146d7a',
             'only_matching': True,
@@ -265,7 +279,7 @@ class VKIE(InfoExtractor):
             return self.url_result(pladform_url)
 
         m_rutube = re.search(
-            r'\ssrc="((?:https?:)?//rutube\.ru\\?/video\\?/embed(?:.*?))\\?"', info_page)
+            r'\ssrc="((?:https?:)?//rutube\.ru\\?/(?:video|play)\\?/embed(?:.*?))\\?"', info_page)
         if m_rutube is not None:
             rutube_url = self._proto_relative_url(
                 m_rutube.group(1).replace('\\', ''))
@@ -298,12 +312,17 @@ class VKIE(InfoExtractor):
             view_count = str_to_int(self._search_regex(
                 r'([\d,.]+)', views, 'view count', fatal=False))
 
-        formats = [{
-            'format_id': k,
-            'url': v,
-            'width': int(k[len('url'):]),
-        } for k, v in data.items()
-            if k.startswith('url')]
+        formats = []
+        for k, v in data.items():
+            if not k.startswith('url') and k != 'extra_data' or not v:
+                continue
+            height = int_or_none(self._search_regex(
+                r'^url(\d+)', k, 'height', default=None))
+            formats.append({
+                'format_id': k,
+                'url': v,
+                'height': height,
+            })
         self._sort_formats(formats)
 
         return {
@@ -321,7 +340,7 @@ class VKIE(InfoExtractor):
 class VKUserVideosIE(InfoExtractor):
     IE_NAME = 'vk:uservideos'
     IE_DESC = "VK - User's Videos"
-    _VALID_URL = r'https?://vk\.com/videos(?P<id>-?[0-9]+)$'
+    _VALID_URL = r'https?://vk\.com/videos(?P<id>-?[0-9]+)(?!\?.*\bz=video)(?:[/?#&]|$)'
     _TEMPLATE_URL = 'https://vk.com/videos'
     _TESTS = [{
         'url': 'http://vk.com/videos205387401',
@@ -332,6 +351,9 @@ class VKUserVideosIE(InfoExtractor):
         'playlist_mincount': 4,
     }, {
         'url': 'http://vk.com/videos-77521',
+        'only_matching': True,
+    }, {
+        'url': 'http://vk.com/videos-97664626?section=all',
         'only_matching': True,
     }]
 

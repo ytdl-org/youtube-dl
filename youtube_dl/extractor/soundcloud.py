@@ -222,7 +222,7 @@ class SoundcloudIE(InfoExtractor):
             full_title = track_id
             token = mobj.group('secret_token')
             if token:
-                info_json_url += "&secret_token=" + token
+                info_json_url += '&secret_token=' + token
         elif mobj.group('player'):
             query = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
             real_url = query['url'][0]

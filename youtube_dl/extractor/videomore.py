@@ -114,7 +114,7 @@ class VideomoreIE(InfoExtractor):
 
         data = self._download_json(
             'http://videomore.ru/video/tracks/%s.json' % video_id,
-            video_id, 'Downloadinng video JSON')
+            video_id, 'Downloading video JSON')
 
         title = data.get('title') or data['project_title']
         description = data.get('description') or data.get('description_raw')

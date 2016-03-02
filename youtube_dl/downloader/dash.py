@@ -1,66 +1,59 @@
 from __future__ import unicode_literals
 
+import os
 import re
 
-from .common import FileDownloader
-from ..utils import sanitized_Request
+from .fragment import FragmentFD
+from ..utils import (
+    sanitize_open,
+    encodeFilename,
+)
 
 
-class DashSegmentsFD(FileDownloader):
+class DashSegmentsFD(FragmentFD):
     """
     Download segments in a DASH manifest
     """
+
+    FD_NAME = 'dashsegments'
+
     def real_download(self, filename, info_dict):
-        self.report_destination(filename)
-        tmpfilename = self.temp_name(filename)
         base_url = info_dict['url']
-        segment_urls = info_dict['segment_urls']
+        segment_urls = [info_dict['segment_urls'][0]] if self.params.get('test', False) else info_dict['segment_urls']
+        initialization_url = info_dict.get('initialization_url')
 
-        is_test = self.params.get('test', False)
-        remaining_bytes = self._TEST_FILE_SIZE if is_test else None
-        byte_counter = 0
+        ctx = {
+            'filename': filename,
+            'total_frags': len(segment_urls) + (1 if initialization_url else 0),
+        }
 
-        def append_url_to_file(outf, target_url, target_name, remaining_bytes=None):
-            self.to_screen('[DashSegments] %s: Downloading %s' % (info_dict['id'], target_name))
-            req = sanitized_Request(target_url)
-            if remaining_bytes is not None:
-                req.add_header('Range', 'bytes=0-%d' % (remaining_bytes - 1))
-
-            data = self.ydl.urlopen(req).read()
-
-            if remaining_bytes is not None:
-                data = data[:remaining_bytes]
-
-            outf.write(data)
-            return len(data)
+        self._prepare_and_start_frag_download(ctx)
 
         def combine_url(base_url, target_url):
             if re.match(r'^https?://', target_url):
                 return target_url
             return '%s%s%s' % (base_url, '' if base_url.endswith('/') else '/', target_url)
 
-        with open(tmpfilename, 'wb') as outf:
-            append_url_to_file(
-                outf, combine_url(base_url, info_dict['initialization_url']),
-                'initialization segment')
-            for i, segment_url in enumerate(segment_urls):
-                segment_len = append_url_to_file(
-                    outf, combine_url(base_url, segment_url),
-                    'segment %d / %d' % (i + 1, len(segment_urls)),
-                    remaining_bytes)
-                byte_counter += segment_len
-                if remaining_bytes is not None:
-                    remaining_bytes -= segment_len
-                    if remaining_bytes <= 0:
-                        break
+        segments_filenames = []
 
-        self.try_rename(tmpfilename, filename)
+        def append_url_to_file(target_url, target_filename):
+            success = ctx['dl'].download(target_filename, {'url': combine_url(base_url, target_url)})
+            if not success:
+                return False
+            down, target_sanitized = sanitize_open(target_filename, 'rb')
+            ctx['dest_stream'].write(down.read())
+            down.close()
+            segments_filenames.append(target_sanitized)
 
-        self._hook_progress({
-            'downloaded_bytes': byte_counter,
-            'total_bytes': byte_counter,
-            'filename': filename,
-            'status': 'finished',
-        })
+        if initialization_url:
+            append_url_to_file(initialization_url, ctx['tmpfilename'] + '-Init')
+        for i, segment_url in enumerate(segment_urls):
+            segment_filename = '%s-Seg%d' % (ctx['tmpfilename'], i)
+            append_url_to_file(segment_url, segment_filename)
+
+        self._finish_frag_download(ctx)
+
+        for segment_file in segments_filenames:
+            os.remove(encodeFilename(segment_file))
 
         return True

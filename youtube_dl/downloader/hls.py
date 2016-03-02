@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import os
 import re
 import subprocess
+import sys
 
 from .common import FileDownloader
 from .fragment import FragmentFD
@@ -39,14 +40,29 @@ class HlsFD(FileDownloader):
                 '-headers',
                 ''.join('%s: %s\r\n' % (key, val) for key, val in headers.items())]
 
-        args += ['-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc']
+        args += ['-i', url, '-c', 'copy']
+        if self.params.get('hls_use_mpegts', False):
+            args += ['-f', 'mpegts']
+        else:
+            args += ['-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
 
         args = [encodeArgument(opt) for opt in args]
         args.append(encodeFilename(ffpp._ffmpeg_filename_argument(tmpfilename), True))
 
         self._debug_cmd(args)
 
-        retval = subprocess.call(args, stdin=subprocess.PIPE)
+        proc = subprocess.Popen(args, stdin=subprocess.PIPE)
+        try:
+            retval = proc.wait()
+        except KeyboardInterrupt:
+            # subprocces.run would send the SIGKILL signal to ffmpeg and the
+            # mp4 file couldn't be played, but if we ask ffmpeg to quit it
+            # produces a file that is playable (this is mostly useful for live
+            # streams). Note that Windows is not affected and produces playable
+            # files (see https://github.com/rg3/youtube-dl/issues/8300).
+            if sys.platform != 'win32':
+                proc.communicate(b'q')
+            raise
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen('\r[%s] %s bytes' % (args[0], fsize))

@@ -140,8 +140,8 @@ class HttpFD(FileDownloader):
 
         if data_len is not None:
             data_len = int(data_len) + resume_len
-            min_data_len = self.params.get("min_filesize", None)
-            max_data_len = self.params.get("max_filesize", None)
+            min_data_len = self.params.get('min_filesize')
+            max_data_len = self.params.get('max_filesize')
             if min_data_len is not None and data_len < min_data_len:
                 self.to_screen('\r[download] File is smaller than min-filesize (%s bytes < %s bytes). Aborting.' % (data_len, min_data_len))
                 return False

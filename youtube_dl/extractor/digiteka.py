@@ -7,9 +7,9 @@ from .common import InfoExtractor
 from ..utils import int_or_none
 
 
-class UltimediaIE(InfoExtractor):
+class DigitekaIE(InfoExtractor):
     _VALID_URL = r'''(?x)
-        https?://(?:www\.)?ultimedia\.com/
+        https?://(?:www\.)?(?:digiteka\.net|ultimedia\.com)/
         (?:
             deliver/
             (?P<embed_type>
@@ -56,6 +56,9 @@ class UltimediaIE(InfoExtractor):
             'timestamp': 1424760500,
             'uploader_id': '3rfzk',
         },
+    }, {
+        'url': 'https://www.digiteka.net/deliver/generic/iframe/mdtk/01637594/src/lqm3kl/zone/1/showtitle/1/autoplay/yes',
+        'only_matching': True,
     }]
 
     @staticmethod

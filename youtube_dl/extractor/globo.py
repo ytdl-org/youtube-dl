@@ -65,7 +65,7 @@ class GloboIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    class MD5:
+    class MD5(object):
         HEX_FORMAT_LOWERCASE = 0
         HEX_FORMAT_UPPERCASE = 1
         BASE64_PAD_CHARACTER_DEFAULT_COMPLIANCE = ''

@@ -86,10 +86,9 @@ class VGTVIE(XstreamIE):
         {
             # streamType: wasLive
             'url': 'http://www.vgtv.no/#!/live/113063/direkte-v75-fra-solvalla',
-            'md5': '458f4841239dab414343b50e5af8869c',
             'info_dict': {
                 'id': '113063',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'V75 fra Solvalla 30.05.15',
                 'description': 'md5:b3743425765355855f88e096acc93231',
                 'thumbnail': 're:^https?://.*\.jpg',
@@ -97,6 +96,10 @@ class VGTVIE(XstreamIE):
                 'timestamp': 1432975582,
                 'upload_date': '20150530',
                 'view_count': int,
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
             },
         },
         {

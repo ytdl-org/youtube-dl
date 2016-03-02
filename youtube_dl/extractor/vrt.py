@@ -73,11 +73,16 @@ class VRTIE(InfoExtractor):
         if mobj:
             formats.extend(self._extract_m3u8_formats(
                 '%s/%s' % (mobj.group('server'), mobj.group('path')),
-                video_id, 'mp4', m3u8_id='hls'))
+                video_id, 'mp4', m3u8_id='hls', fatal=False))
         mobj = re.search(r'data-video-src="(?P<src>[^"]+)"', webpage)
         if mobj:
             formats.extend(self._extract_f4m_formats(
-                '%s/manifest.f4m' % mobj.group('src'), video_id, f4m_id='hds'))
+                '%s/manifest.f4m' % mobj.group('src'),
+                video_id, f4m_id='hds', fatal=False))
+
+        if not formats and 'data-video-geoblocking="true"' in webpage:
+            self.raise_geo_restricted('This video is only available in Belgium')
+
         self._sort_formats(formats)
 
         title = self._og_search_title(webpage)

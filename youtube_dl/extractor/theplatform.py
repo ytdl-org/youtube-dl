@@ -20,8 +20,8 @@ from ..utils import (
     int_or_none,
     sanitized_Request,
     unsmuggle_url,
-    url_basename,
     xpath_with_ns,
+    mimetype2ext,
 )
 
 default_ns = 'http://www.w3.org/2005/SMIL21/Language'
@@ -69,7 +69,7 @@ class ThePlatformBaseIE(InfoExtractor):
             for caption in captions:
                 lang, src, mime = caption.get('lang', 'en'), caption.get('src'), caption.get('type')
                 subtitles[lang] = [{
-                    'ext': 'srt' if mime == 'text/srt' else 'ttml',
+                    'ext': mimetype2ext(mime),
                     'url': src,
                 }]
 
@@ -85,7 +85,7 @@ class ThePlatformBaseIE(InfoExtractor):
 class ThePlatformIE(ThePlatformBaseIE):
     _VALID_URL = r'''(?x)
         (?:https?://(?:link|player)\.theplatform\.com/[sp]/(?P<provider_id>[^/]+)/
-           (?:(?P<media>(?:[^/]+/)+select/media/)|(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/))?
+           (?:(?P<media>(?:(?:[^/]+/)+select/)?media/)|(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/))?
          |theplatform:)(?P<id>[^/\?&]+)'''
 
     _TESTS = [{
@@ -283,8 +283,8 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
         first_video_id = None
         duration = None
         for item in entry['media$content']:
-            smil_url = item['plfile$url'] + '&format=SMIL&Tracking=true&Embedded=true&formats=MPEG4,F4M'
-            cur_video_id = url_basename(smil_url)
+            smil_url = item['plfile$url'] + '&format=SMIL&mbr=true'
+            cur_video_id = ThePlatformIE._match_id(smil_url)
             if first_video_id is None:
                 first_video_id = cur_video_id
                 duration = float_or_none(item.get('plfile$duration'))

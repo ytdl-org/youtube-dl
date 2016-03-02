@@ -49,7 +49,7 @@ class TudouIE(InfoExtractor):
         info_url = 'http://v2.tudou.com/f?id=' + compat_str(video_id)
         if quality:
             info_url += '&hd' + quality
-        xml_data = self._download_xml(info_url, video_id, "Opening the info XML page")
+        xml_data = self._download_xml(info_url, video_id, 'Opening the info XML page')
         final_url = xml_data.text
         return final_url
 

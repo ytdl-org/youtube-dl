@@ -85,7 +85,7 @@ def parseOpts(overrideArguments=None):
         if option.takes_value():
             opts.append(' %s' % option.metavar)
 
-        return "".join(opts)
+        return ''.join(opts)
 
     def _comma_separated_values_options_callback(option, opt_str, value, parser):
         setattr(parser.values, option.dest, value.split(','))
@@ -170,6 +170,14 @@ def parseOpts(overrideArguments=None):
         action='store_const', dest='extract_flat', const='in_playlist',
         default=False,
         help='Do not extract the videos of a playlist, only list them.')
+    general.add_option(
+        '--mark-watched',
+        action='store_true', dest='mark_watched', default=False,
+        help='Mark videos watched (YouTube only)')
+    general.add_option(
+        '--no-mark-watched',
+        action='store_false', dest='mark_watched', default=False,
+        help='Do not mark videos watched (YouTube only)')
     general.add_option(
         '--no-color', '--no-colors',
         action='store_true', dest='no_color',
@@ -380,7 +388,7 @@ def parseOpts(overrideArguments=None):
         '--sub-lang', '--sub-langs', '--srt-lang',
         action='callback', dest='subtitleslangs', metavar='LANGS', type='str',
         default=[], callback=_comma_separated_values_options_callback,
-        help='Languages of the subtitles to download (optional) separated by commas, use IETF language tags like \'en,pt\'')
+        help='Languages of the subtitles to download (optional) separated by commas, use --list-subs for available language tags')
 
     downloader = optparse.OptionGroup(parser, 'Download Options')
     downloader.add_option(
@@ -415,6 +423,11 @@ def parseOpts(overrideArguments=None):
         '--hls-prefer-native',
         dest='hls_prefer_native', action='store_true',
         help='Use the native HLS downloader instead of ffmpeg (experimental)')
+    downloader.add_option(
+        '--hls-use-mpegts',
+        dest='hls_use_mpegts', action='store_true',
+        help='Use the mpegts container for HLS videos, allowing to play the '
+             'video while downloading (some players may not be able to play it)')
     downloader.add_option(
         '--external-downloader',
         dest='external_downloader', metavar='COMMAND',

@@ -114,15 +114,13 @@ class YouPornIE(InfoExtractor):
             formats.append(f)
         self._sort_formats(formats)
 
-        description = self._html_search_regex(
-            r'(?s)<div[^>]+class=["\']video-description["\'][^>]*>(.+?)</div>',
-            webpage, 'description', default=None)
+        description = self._og_search_description(webpage, default=None)
         thumbnail = self._search_regex(
             r'(?:imageurl\s*=|poster\s*:)\s*(["\'])(?P<thumbnail>.+?)\1',
             webpage, 'thumbnail', fatal=False, group='thumbnail')
 
         uploader = self._html_search_regex(
-            r'(?s)<div[^>]+class=["\']videoInfoBy["\'][^>]*>\s*By:\s*</div>(.+?)</(?:a|div)>',
+            r'(?s)<div[^>]+class=["\']videoInfoBy(?:\s+[^"\']+)?["\'][^>]*>\s*By:\s*</div>(.+?)</(?:a|div)>',
             webpage, 'uploader', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
             r'(?s)<div[^>]+class=["\']videoInfoTime["\'][^>]*>(.+?)</div>',

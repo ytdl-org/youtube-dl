@@ -214,10 +214,10 @@ class YoukuIE(InfoExtractor):
 
             return raw_data['data']
 
-        video_password = self._downloader.params.get('videopassword', None)
+        video_password = self._downloader.params.get('videopassword')
 
         # request basic data
-        basic_data_url = "http://play.youku.com/play/get.json?vid=%s&ct=12" % video_id
+        basic_data_url = 'http://play.youku.com/play/get.json?vid=%s&ct=12' % video_id
         if video_password:
             basic_data_url += '&pwd=%s' % video_password
 
@@ -229,6 +229,9 @@ class YoukuIE(InfoExtractor):
             if error_note is not None and '因版权原因无法观看此视频' in error_note:
                 raise ExtractorError(
                     'Youku said: Sorry, this video is available in China only', expected=True)
+            elif error_note and '该视频被设为私密' in error_note:
+                raise ExtractorError(
+                    'Youku said: Sorry, this video is private', expected=True)
             else:
                 msg = 'Youku server reported error %i' % error.get('code')
                 if error_note is not None:

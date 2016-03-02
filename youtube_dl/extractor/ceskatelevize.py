@@ -177,16 +177,16 @@ class CeskaTelevizeIE(InfoExtractor):
             for divider in [1000, 60, 60, 100]:
                 components.append(msec % divider)
                 msec //= divider
-            return "{3:02}:{2:02}:{1:02},{0:03}".format(*components)
+            return '{3:02}:{2:02}:{1:02},{0:03}'.format(*components)
 
         def _fix_subtitle(subtitle):
             for line in subtitle.splitlines():
-                m = re.match(r"^\s*([0-9]+);\s*([0-9]+)\s+([0-9]+)\s*$", line)
+                m = re.match(r'^\s*([0-9]+);\s*([0-9]+)\s+([0-9]+)\s*$', line)
                 if m:
                     yield m.group(1)
                     start, stop = (_msectotimecode(int(t)) for t in m.groups()[1:])
-                    yield "{0} --> {1}".format(start, stop)
+                    yield '{0} --> {1}'.format(start, stop)
                 else:
                     yield line
 
-        return "\r\n".join(_fix_subtitle(subtitles))
+        return '\r\n'.join(_fix_subtitle(subtitles))

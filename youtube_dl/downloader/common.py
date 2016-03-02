@@ -45,6 +45,7 @@ class FileDownloader(object):
                         (experimental)
     external_downloader_args:  A list of additional command-line arguments for the
                         external downloader.
+    hls_use_mpegts:     Use the mpegts container for HLS videos.
 
     Subclasses of this one must re-define the real_download method.
     """
@@ -156,7 +157,7 @@ class FileDownloader(object):
 
     def slow_down(self, start_time, now, byte_counter):
         """Sleep if the download speed is over the rate limit."""
-        rate_limit = self.params.get('ratelimit', None)
+        rate_limit = self.params.get('ratelimit')
         if rate_limit is None or byte_counter == 0:
             return
         if now is None:
@@ -295,7 +296,7 @@ class FileDownloader(object):
 
     def report_retry(self, count, retries):
         """Report retry in case of HTTP error 5xx"""
-        self.to_screen('[download] Got server HTTP error. Retrying (attempt %d of %d)...' % (count, retries))
+        self.to_screen('[download] Got server HTTP error. Retrying (attempt %d of %.0f)...' % (count, retries))
 
     def report_file_already_downloaded(self, file_name):
         """Report file has already been fully downloaded."""

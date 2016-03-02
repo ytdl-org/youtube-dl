@@ -159,6 +159,9 @@ class HitboxLiveIE(HitboxIE):
         cdns = player_config.get('cdns')
         servers = []
         for cdn in cdns:
+            # Subscribe URLs are not playable
+            if cdn.get('rtmpSubscribe') is True:
+                continue
             base_url = cdn.get('netConnectionUrl')
             host = re.search('.+\.([^\.]+\.[^\./]+)/.+', base_url).group(1)
             if base_url not in servers:

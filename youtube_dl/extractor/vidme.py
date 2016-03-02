@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import itertools
+
 from .common import InfoExtractor
 from ..compat import compat_HTTPError
 from ..utils import (
@@ -11,7 +13,8 @@ from ..utils import (
 
 
 class VidmeIE(InfoExtractor):
-    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]+)'
+    IE_NAME = 'vidme'
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{,5})(?:[^\da-zA-Z]|$)'
     _TESTS = [{
         'url': 'https://vid.me/QNB',
         'md5': 'f42d05e7149aeaec5c037b17e5d3dc82',
@@ -202,3 +205,69 @@ class VidmeIE(InfoExtractor):
             'comment_count': comment_count,
             'formats': formats,
         }
+
+
+class VidmeListBaseIE(InfoExtractor):
+    # Max possible limit according to https://docs.vid.me/#api-Videos-List
+    _LIMIT = 100
+
+    def _entries(self, user_id, user_name):
+        for page_num in itertools.count(1):
+            page = self._download_json(
+                'https://api.vid.me/videos/%s?user=%s&limit=%d&offset=%d'
+                % (self._API_ITEM, user_id, self._LIMIT, (page_num - 1) * self._LIMIT),
+                user_name, 'Downloading user %s page %d' % (self._API_ITEM, page_num))
+
+            videos = page.get('videos', [])
+            if not videos:
+                break
+
+            for video in videos:
+                video_url = video.get('full_url') or video.get('embed_url')
+                if video_url:
+                    yield self.url_result(video_url, VidmeIE.ie_key())
+
+            total = int_or_none(page.get('page', {}).get('total'))
+            if total and self._LIMIT * page_num >= total:
+                break
+
+    def _real_extract(self, url):
+        user_name = self._match_id(url)
+
+        user_id = self._download_json(
+            'https://api.vid.me/userByUsername?username=%s' % user_name,
+            user_name)['user']['user_id']
+
+        return self.playlist_result(
+            self._entries(user_id, user_name), user_id,
+            '%s - %s' % (user_name, self._TITLE))
+
+
+class VidmeUserIE(VidmeListBaseIE):
+    IE_NAME = 'vidme:user'
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{6,})(?!/likes)(?:[^\da-zA-Z]|$)'
+    _API_ITEM = 'list'
+    _TITLE = 'Videos'
+    _TEST = {
+        'url': 'https://vid.me/EFARCHIVE',
+        'info_dict': {
+            'id': '3834632',
+            'title': 'EFARCHIVE - %s' % _TITLE,
+        },
+        'playlist_mincount': 238,
+    }
+
+
+class VidmeUserLikesIE(VidmeListBaseIE):
+    IE_NAME = 'vidme:user:likes'
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{6,})/likes'
+    _API_ITEM = 'likes'
+    _TITLE = 'Likes'
+    _TEST = {
+        'url': 'https://vid.me/ErinAlexis/likes',
+        'info_dict': {
+            'id': '6483530',
+            'title': 'ErinAlexis - %s' % _TITLE,
+        },
+        'playlist_mincount': 415,
+    }
