@@ -384,6 +384,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'Philipp Hagemeister',
                 'uploader_id': 'phihag',
                 'upload_date': '20121002',
+                'license': 'Standard YouTube License',
                 'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
                 'categories': ['Science & Technology'],
                 'tags': ['youtube-dl'],
@@ -402,12 +403,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'upload_date': '20120506',
                 'title': 'Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]',
                 'alt_title': 'I Love It (feat. Charli XCX)',
-                'description': 'md5:782e8651347686cba06e58f71ab51773',
+                'description': 'md5:f3ceb5ef83a08d95b9d146f973157cc8',
                 'tags': ['Icona Pop i love it', 'sweden', 'pop music', 'big beat records', 'big beat', 'charli',
                          'xcx', 'charli xcx', 'girls', 'hbo', 'i love it', "i don't care", 'icona', 'pop',
                          'iconic ep', 'iconic', 'love', 'it'],
                 'uploader': 'Icona Pop',
                 'uploader_id': 'IconaPop',
+                'license': 'Standard YouTube License',
                 'creator': 'Icona Pop',
             }
         },
@@ -423,6 +425,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'md5:64249768eec3bc4276236606ea996373',
                 'uploader': 'justintimberlakeVEVO',
                 'uploader_id': 'justintimberlakeVEVO',
+                'license': 'Standard YouTube License',
                 'creator': 'Justin Timberlake',
                 'age_limit': 18,
             }
@@ -438,6 +441,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'md5:09b78bd971f1e3e289601dfba15ca4f7',
                 'uploader': 'SET India',
                 'uploader_id': 'setindia',
+                'license': 'Standard YouTube License',
                 'age_limit': 18,
             }
         },
@@ -451,6 +455,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'Philipp Hagemeister',
                 'uploader_id': 'phihag',
                 'upload_date': '20121002',
+                'license': 'Standard YouTube License',
                 'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
                 'categories': ['Science & Technology'],
                 'tags': ['youtube-dl'],
@@ -471,6 +476,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_id': '8KVIDEO',
                 'description': '',
                 'uploader': '8KVIDEO',
+                'license': 'Standard YouTube License',
                 'title': 'UHDTV TEST 8K VIDEO.mp4'
             },
             'params': {
@@ -489,6 +495,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'AfrojackVEVO',
                 'uploader_id': 'AfrojackVEVO',
                 'upload_date': '20131011',
+                'license': 'Standard YouTube License',
             },
             'params': {
                 'youtube_include_dash_manifest': True,
@@ -507,6 +514,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'TaylorSwiftVEVO',
                 'uploader_id': 'TaylorSwiftVEVO',
                 'upload_date': '20140818',
+                'license': 'Standard YouTube License',
                 'creator': 'Taylor Swift',
             },
             'params': {
@@ -523,6 +531,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'upload_date': '20100909',
                 'uploader': 'The Amazing Atheist',
                 'uploader_id': 'TheAmazingAtheist',
+                'license': 'Standard YouTube License',
                 'title': 'Burning Everyone\'s Koran',
                 'description': 'SUBSCRIBE: http://www.youtube.com/saturninefilms\n\nEven Obama has taken a stand against freedom on this issue: http://www.huffingtonpost.com/2010/09/09/obama-gma-interview-quran_n_710282.html',
             }
@@ -538,6 +547,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'The Witcher',
                 'uploader_id': 'WitcherGame',
                 'upload_date': '20140605',
+                'license': 'Standard YouTube License',
                 'age_limit': 18,
             },
         },
@@ -552,6 +562,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'LloydVEVO',
                 'uploader_id': 'LloydVEVO',
                 'upload_date': '20110629',
+                'license': 'Standard YouTube License',
                 'age_limit': 18,
             },
         },
@@ -566,6 +577,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'creator': 'deadmau5',
                 'description': 'md5:12c56784b8032162bb936a5f76d55360',
                 'uploader': 'deadmau5',
+                'license': 'Standard YouTube License',
                 'title': 'Deadmau5 - Some Chords (HD)',
                 'alt_title': 'Some Chords',
             },
@@ -581,6 +593,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'upload_date': '20150827',
                 'uploader_id': 'olympic',
+                'license': 'Standard YouTube License',
                 'description': 'HO09  - Women -  GER-AUS - Hockey - 31 July 2012 - London 2012 Olympic Games',
                 'uploader': 'Olympics',
                 'title': 'Hockey - Women -  GER-AUS - London 2012 Olympic Games',
@@ -600,6 +613,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_id': 'AllenMeow',
                 'description': 'made by Wacom from Korea | 字幕&加油添醋 by TY\'s Allen | 感謝heylisa00cavey1001同學熱情提供梗及翻譯',
                 'uploader': '孫艾倫',
+                'license': 'Standard YouTube License',
                 'title': '[A-made] 變態妍字幕版 太妍 我就是這樣的人',
             },
         },
@@ -631,6 +645,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'upload_date': '20150625',
                 'uploader_id': 'dorappi2000',
                 'uploader': 'dorappi2000',
+                'license': 'Standard YouTube License',
                 'formats': 'mincount:33',
             },
         },
@@ -645,6 +660,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'Airtek',
                 'description': 'Retransmisión en directo de la XVIII media maratón de Zaragoza.',
                 'uploader_id': 'UCzTzUmjXxxacNnL8I3m4LnQ',
+                'license': 'Standard YouTube License',
                 'title': 'Retransmisión XVIII Media maratón Zaragoza 2015',
             },
             'params': {
@@ -669,6 +685,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'upload_date': '20150721',
                     'uploader': 'Beer Games Beer',
                     'uploader_id': 'beergamesbeer',
+                    'license': 'Standard YouTube License',
                 },
             }, {
                 'info_dict': {
@@ -679,6 +696,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'upload_date': '20150721',
                     'uploader': 'Beer Games Beer',
                     'uploader_id': 'beergamesbeer',
+                    'license': 'Standard YouTube License',
                 },
             }, {
                 'info_dict': {
@@ -689,6 +707,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'upload_date': '20150721',
                     'uploader': 'Beer Games Beer',
                     'uploader_id': 'beergamesbeer',
+                    'license': 'Standard YouTube License',
                 },
             }, {
                 'info_dict': {
@@ -699,6 +718,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'upload_date': '20150721',
                     'uploader': 'Beer Games Beer',
                     'uploader_id': 'beergamesbeer',
+                    'license': 'Standard YouTube License',
                 },
             }],
             'params': {
@@ -733,6 +753,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'upload_date': '20151119',
                 'uploader_id': 'IronSoulElf',
                 'uploader': 'IronSoulElf',
+                'license': 'Standard YouTube License',
                 'creator': 'Todd Haberman, Daniel Law Heath & Aaron Kaplan',
             },
             'params': {
@@ -755,6 +776,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'upload_date': '20151107',
                 'uploader_id': 'UCCr7TALkRbo3EtFzETQF1LA',
                 'uploader': 'CH GAMER DROID',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Video licensed under Creative Commons
+            'url': 'https://www.youtube.com/watch?v=M4gD1WSo5mA',
+            'info_dict': {
+                'id': 'M4gD1WSo5mA',
+                'ext': 'mp4',
+                'title': 'md5:e41008789470fc2533a3252216f1c1d1',
+                'description': 'md5:a677553cf0840649b731a3024aeff4cc',
+                'upload_date': '20150127',
+                'uploader_id': 'BerkmanCenter',
+                'uploader': 'BerkmanCenter',
+                'license': 'Creative Commons Attribution license (reuse allowed)',
             },
             'params': {
                 'skip_download': True,
@@ -1326,6 +1364,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
         upload_date = unified_strdate(upload_date)
 
+        video_license = self._html_search_regex(
+            r'<h4[^>]+class="title"[^>]*>\s*License\s*</h4>\s*<ul[^>]*>\s*<li>(.+?)</li',
+            video_webpage, 'license', default=None)
+
         m_music = re.search(
             r'<h4[^>]+class="title"[^>]*>\s*Music\s*</h4>\s*<ul[^>]*>\s*<li>(?P<title>.+?) by (?P<creator>.+?)(?:\(.+?\))?</li',
             video_webpage)
@@ -1601,6 +1643,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'uploader': video_uploader,
             'uploader_id': video_uploader_id,
             'upload_date': upload_date,
+            'license': video_license,
             'creator': video_creator,
             'title': video_title,
             'alt_title': video_alt_title,
