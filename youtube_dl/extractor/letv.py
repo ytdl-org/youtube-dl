@@ -1,28 +1,28 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
 import datetime
+import hashlib
 import re
 import time
-import base64
-import hashlib
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
     compat_ord,
     compat_str,
+    compat_urllib_parse,
 )
 from ..utils import (
     determine_ext,
+    encode_data_uri,
     ExtractorError,
+    int_or_none,
+    orderedSet,
     parse_iso8601,
     sanitized_Request,
-    int_or_none,
     str_or_none,
-    encode_data_uri,
     url_basename,
-    orderedSet,
 )
 
 
