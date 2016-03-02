@@ -160,8 +160,6 @@ if sys.version_info >= (2, 7):
     def find_xpath_attr(node, xpath, key, val=None):
         """ Find the xpath xpath[@key=val] """
         assert re.match(r'^[a-zA-Z_-]+$', key)
-        if val:
-            assert re.match(r'^[a-zA-Z0-9@\s:._-]*$', val)
         expr = xpath + ('[@%s]' % key if val is None else "[@%s='%s']" % (key, val))
         return node.find(expr)
 else:
