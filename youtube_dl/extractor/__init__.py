@@ -352,9 +352,9 @@ from .la7 import LA7IE
 from .laola1tv import Laola1TvIE
 from .lecture2go import Lecture2GoIE
 from .lemonde import LemondeIE
-from .letv import (
-    LetvIE,
-    LetvPlaylistIE,
+from .leeco import (
+    LeIE,
+    LePlaylistIE,
     LetvCloudIE,
 )
 from .libsyn import LibsynIE

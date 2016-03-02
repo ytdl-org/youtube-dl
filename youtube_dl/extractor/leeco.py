@@ -26,7 +26,7 @@ from ..utils import (
 )
 
 
-class LetvIE(InfoExtractor):
+class LeIE(InfoExtractor):
     IE_DESC = '乐视网'
     _VALID_URL = r'http://www\.le\.com/ptv/vplay/(?P<id>\d+)\.html'
 
@@ -195,7 +195,7 @@ class LetvIE(InfoExtractor):
         }
 
 
-class LetvPlaylistIE(InfoExtractor):
+class LePlaylistIE(InfoExtractor):
     _VALID_URL = r'http://[a-z]+\.le\.com/[a-z]+/(?P<id>[a-z0-9_]+)'
 
     _TESTS = [{
@@ -235,7 +235,7 @@ class LetvPlaylistIE(InfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        return False if LetvIE.suitable(url) else super(LetvPlaylistIE, cls).suitable(url)
+        return False if LeIE.suitable(url) else super(LePlaylistIE, cls).suitable(url)
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
@@ -244,7 +244,7 @@ class LetvPlaylistIE(InfoExtractor):
         # Currently old domain names are still used in playlists
         media_ids = orderedSet(re.findall(
             r'<a[^>]+href="http://www\.letv\.com/ptv/vplay/(\d+)\.html', page))
-        entries = [self.url_result(LetvIE._URL_TEMPLATE % media_id, ie='Letv')
+        entries = [self.url_result(LeIE._URL_TEMPLATE % media_id, ie='Le')
                    for media_id in media_ids]
 
         title = self._html_search_meta('keywords', page,
@@ -256,6 +256,8 @@ class LetvPlaylistIE(InfoExtractor):
 
 
 class LetvCloudIE(InfoExtractor):
+    # Most of *.letv.com is changed to *.le.com on 2016/01/02
+    # but yuntv.letv.com is kept, so also keep the extractor name
     IE_DESC = '乐视云'
     _VALID_URL = r'https?://yuntv\.letv\.com/bcloud.html\?.+'
 
