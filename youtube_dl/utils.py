@@ -1739,6 +1739,14 @@ def urlencode_postdata(*args, **kargs):
     return compat_urllib_parse.urlencode(*args, **kargs).encode('ascii')
 
 
+def update_url_query(url, query):
+    parsed_url = compat_urlparse.urlparse(url)
+    qs = compat_parse_qs(parsed_url.query)
+    qs.update(query)
+    return compat_urlparse.urlunparse(parsed_url._replace(
+        query=compat_urllib_parse.urlencode(qs, True)))
+
+
 def encode_dict(d, encoding='utf-8'):
     def encode(v):
         return v.encode(encoding) if isinstance(v, compat_basestring) else v

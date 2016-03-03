@@ -61,6 +61,7 @@ from youtube_dl.utils import (
     lowercase_escape,
     url_basename,
     urlencode_postdata,
+    update_url_query,
     version_tuple,
     xpath_with_ns,
     xpath_element,
@@ -76,6 +77,8 @@ from youtube_dl.utils import (
 )
 from youtube_dl.compat import (
     compat_etree_fromstring,
+    compat_urlparse,
+    compat_parse_qs,
 )
 
 
@@ -453,6 +456,40 @@ class TestUtil(unittest.TestCase):
     def test_urlencode_postdata(self):
         data = urlencode_postdata({'username': 'foo@bar.com', 'password': '1234'})
         self.assertTrue(isinstance(data, bytes))
+
+    def test_update_url_query(self):
+        def query_dict(url):
+            return compat_parse_qs(compat_urlparse.urlparse(url).query)
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'quality': ['HD'], 'format': ['mp4']})),
+            query_dict('http://example.com/path?quality=HD&format=mp4'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'system': ['LINUX', 'WINDOWS']})),
+            query_dict('http://example.com/path?system=LINUX&system=WINDOWS'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'fields': 'id,formats,subtitles'})),
+            query_dict('http://example.com/path?fields=id,formats,subtitles'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'fields': ('id,formats,subtitles', 'thumbnails')})),
+            query_dict('http://example.com/path?fields=id,formats,subtitles&fields=thumbnails'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path?manifest=f4m', {'manifest': []})),
+            query_dict('http://example.com/path'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path?system=LINUX&system=WINDOWS', {'system': 'LINUX'})),
+            query_dict('http://example.com/path?system=LINUX'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'fields': b'id,formats,subtitles'})),
+            query_dict('http://example.com/path?fields=id,formats,subtitles'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'width': 1080, 'height': 720})),
+            query_dict('http://example.com/path?width=1080&height=720'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'bitrate': 5020.43})),
+            query_dict('http://example.com/path?bitrate=5020.43'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'test': '第二行тест'})),
+            query_dict('http://example.com/path?test=%E7%AC%AC%E4%BA%8C%E8%A1%8C%D1%82%D0%B5%D1%81%D1%82'))
 
     def test_dict_get(self):
         FALSE_VALUES = {
