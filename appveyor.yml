@@ -1,0 +1,15 @@
+# Python 3.2 is not installed on Appveyor
+environment:
+  matrix:
+    - PYTHON: "C:\\Python26\\python.exe"
+    - PYTHON: "C:\\Python27\\python.exe"
+    - PYTHON: "C:\\Python33\\python.exe"
+    - PYTHON: "C:\\Python34\\python.exe"
+    - PYTHON: "C:\\Python35\\python.exe"
+
+install:
+    - "%PYTHON% -m pip install --verbose -r requirements.txt"
+
+test_script:
+    - "%PYTHON% devscripts/i18n.py"
+    - "%PYTHON% -m nose --verbose test"
