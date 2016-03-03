@@ -467,6 +467,10 @@ def encodeFilename(s, for_subprocess=False):
     if not for_subprocess and sys.platform == 'win32' and sys.getwindowsversion()[0] >= 5:
         return s
 
+    # Jython assumes filenames are Unicode strings though reported as Python 2.x compatible
+    if sys.platform.startswith('java'):
+        return s
+
     return s.encode(get_subprocess_encoding(), 'ignore')
 
 
