@@ -152,7 +152,9 @@ which means you can modify it, redistribute it or use it however you like.
                                      be evaluated. For example, the youtube
                                      playlist 'Liked videos' will not be
                                      downloaded with the following filter :
-                                     --match-filter "playlist_title != Liked videos"
+                                     --match-filter "playlist_title != Liked videos".
+                                     Most valid characters for a valid youtube
+                                     playlist name in English can also be used.
     --no-playlist                    Download only the video, if the URL refers
                                      to a video and a playlist.
     --yes-playlist                   Download the playlist, if the URL refers to
