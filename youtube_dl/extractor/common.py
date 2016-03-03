@@ -20,7 +20,6 @@ from ..compat import (
     compat_urllib_error,
     compat_urllib_parse,
     compat_urlparse,
-    compat_parse_qs,
     compat_str,
     compat_etree_fromstring,
 )
@@ -517,13 +516,6 @@ class InfoExtractor(object):
                 raise ExtractorError(errmsg, cause=ve)
             else:
                 self.report_warning(errmsg + str(ve))
-
-    def update_url_params(self, url, params):
-        parsed_url = compat_urlparse.urlparse(url)
-        qs = compat_parse_qs(parsed_url.query)
-        qs.update(params)
-        return compat_urlparse.urlunparse(
-            parsed_url._replace(query=compat_urllib_parse.urlencode(qs, True)))
 
     def report_warning(self, msg, video_id=None):
         idstr = '' if video_id is None else '%s: ' % video_id
