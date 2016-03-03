@@ -6,6 +6,7 @@ import sys
 import errno
 
 from .common import PostProcessor
+from ..compat import compat_os_name
 from ..utils import (
     check_executable,
     hyphenate_date,
@@ -73,7 +74,7 @@ class XAttrMetadataPP(PostProcessor):
                     raise XAttrMetadataError(e.errno, e.strerror)
 
         except ImportError:
-            if os.name == 'nt':
+            if compat_os_name == 'nt':
                 # Write xattrs to NTFS Alternate Data Streams:
                 # http://en.wikipedia.org/wiki/NTFS#Alternate_data_streams_.28ADS.29
                 def write_xattr(path, key, value):
@@ -168,7 +169,7 @@ class XAttrMetadataPP(PostProcessor):
                     'Unable to write extended attributes due to too long values.')
             else:
                 msg = 'This filesystem doesn\'t support extended attributes. '
-                if os.name == 'nt':
+                if compat_os_name == 'nt':
                     msg += 'You need to use NTFS.'
                 else:
                     msg += '(You may have to enable them in your /etc/fstab)'

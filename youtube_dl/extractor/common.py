@@ -15,13 +15,14 @@ import math
 from ..compat import (
     compat_cookiejar,
     compat_cookies,
+    compat_etree_fromstring,
     compat_getpass,
     compat_http_client,
+    compat_os_name,
+    compat_str,
     compat_urllib_error,
     compat_urllib_parse,
     compat_urlparse,
-    compat_str,
-    compat_etree_fromstring,
 )
 from ..utils import (
     NO_DEFAULT,
@@ -427,7 +428,7 @@ class InfoExtractor(object):
             self.to_screen('Saving request to ' + filename)
             # Working around MAX_PATH limitation on Windows (see
             # http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx)
-            if os.name == 'nt':
+            if compat_os_name == 'nt':
                 absfilepath = os.path.abspath(filename)
                 if len(absfilepath) > 259:
                     filename = '\\\\?\\' + absfilepath
@@ -596,7 +597,7 @@ class InfoExtractor(object):
                 if mobj:
                     break
 
-        if not self._downloader.params.get('no_color') and os.name != 'nt' and sys.stderr.isatty():
+        if not self._downloader.params.get('no_color') and compat_os_name != 'nt' and sys.stderr.isatty():
             _name = '\033[0;34m%s\033[0m' % name
         else:
             _name = name

@@ -326,6 +326,9 @@ def compat_ord(c):
         return ord(c)
 
 
+compat_os_name = os._name if os.name == 'java' else os.name
+
+
 if sys.version_info >= (3, 0):
     compat_getenv = os.getenv
     compat_expanduser = os.path.expanduser
@@ -346,7 +349,7 @@ else:
     # The following are os.path.expanduser implementations from cpython 2.7.8 stdlib
     # for different platforms with correct environment variables decoding.
 
-    if os.name == 'posix':
+    if compat_os_name == 'posix':
         def compat_expanduser(path):
             """Expand ~ and ~user constructions.  If user or $HOME is unknown,
             do nothing."""
@@ -370,7 +373,7 @@ else:
                 userhome = pwent.pw_dir
             userhome = userhome.rstrip('/')
             return (userhome + path[i:]) or '/'
-    elif os.name == 'nt' or os.name == 'ce':
+    elif compat_os_name == 'nt' or compat_os_name == 'ce':
         def compat_expanduser(path):
             """Expand ~ and ~user constructs.
 
@@ -556,6 +559,7 @@ __all__ = [
     'compat_itertools_count',
     'compat_kwargs',
     'compat_ord',
+    'compat_os_name',
     'compat_parse_qs',
     'compat_print',
     'compat_shlex_split',
