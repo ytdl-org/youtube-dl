@@ -64,7 +64,7 @@ class LivestreamIE(InfoExtractor):
     def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None, transform_rtmp_url=None):
         base_ele = find_xpath_attr(
             smil, self._xpath_ns('.//meta', namespace), 'name', 'httpBase')
-        base = base_ele.get('content') if base_ele else 'http://livestreamvod-f.akamaihd.net/'
+        base = base_ele.get('content') if base_ele is not None else 'http://livestreamvod-f.akamaihd.net/'
 
         formats = []
         video_nodes = smil.findall(self._xpath_ns('.//video', namespace))
