@@ -124,7 +124,12 @@ class TwitterCardIE(TwitterBaseIE):
                 'url': self._get_vmap_video_url(vmap_url, video_id),
             })
 
-        media_info = config.get('status', {}).get('entities', [{}])[0].get('mediaInfo', {})
+        media_info = None
+
+        for entity in config.get('status', {}).get('entities', []):
+            if 'mediaInfo' in entity:
+                media_info = entity['mediaInfo']
+
         if media_info:
             for media_variant in media_info['variants']:
                 media_url = media_variant['url']
@@ -220,6 +225,21 @@ class TwitterIE(InfoExtractor):
             # The same video as https://twitter.com/i/videos/tweet/705235433198714880
             # Test case of TwitterCardIE
             'skip_download': True,
+        },
+    }, {
+        'url': 'https://twitter.com/jaydingeer/status/700207533655363584',
+        'md5': '',
+        'info_dict': {
+            'id': '700207533655363584',
+            'ext': 'mp4',
+            'title': 'jay - BEAT PROD: @suhmeduh #Damndaniel',
+            'description': 'jay on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'uploader': 'jay',
+            'uploader_id': 'jaydingeer',
+        },
+        'params': {
+            'skip_download': True,  # requires ffmpeg
         },
     }]
 
