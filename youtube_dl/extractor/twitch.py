@@ -17,6 +17,7 @@ from ..utils import (
     encode_dict,
     ExtractorError,
     int_or_none,
+    orderedSet,
     parse_duration,
     parse_iso8601,
     sanitized_Request,
@@ -311,7 +312,7 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
                 break
             offset += limit
         return self.playlist_result(
-            [self.url_result(entry) for entry in set(entries)],
+            [self.url_result(entry) for entry in orderedSet(entries)],
             channel_id, channel_name)
 
     def _extract_playlist_page(self, response):
