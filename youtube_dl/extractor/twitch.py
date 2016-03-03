@@ -272,7 +272,7 @@ class TwitchVodIE(TwitchItemBaseIE):
 
 class TwitchPlaylistBaseIE(TwitchBaseIE):
     _PLAYLIST_URL = '%s/kraken/channels/%%s/videos/?offset=%%d&limit=%%d' % TwitchBaseIE._API_BASE
-    _PAGE_LIMIT = 10
+    _PAGE_LIMIT = 100
 
     def _extract_playlist(self, channel_id):
         info = self._download_json(
