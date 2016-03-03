@@ -271,7 +271,7 @@ class TwitchVodIE(TwitchItemBaseIE):
 
 class TwitchPlaylistBaseIE(TwitchBaseIE):
     _PLAYLIST_URL = '%s/kraken/channels/%%s/videos/?offset=%%d&limit=%%d' % TwitchBaseIE._API_BASE
-    _PAGE_LIMIT = 100
+    _PAGE_LIMIT = 10
 
     def _extract_playlist(self, channel_id):
         info = self._download_json(
@@ -281,14 +281,34 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
         entries = []
         offset = 0
         limit = self._PAGE_LIMIT
+        broken_paging_detected = False
+        counter_override = None
         for counter in itertools.count(1):
             response = self._download_json(
                 self._PLAYLIST_URL % (channel_id, offset, limit),
-                channel_id, 'Downloading %s videos JSON page %d' % (self._PLAYLIST_TYPE, counter))
+                channel_id,
+                'Downloading %s videos JSON page %s'
+                % (self._PLAYLIST_TYPE, counter_override or counter))
             page_entries = self._extract_playlist_page(response)
             if not page_entries:
                 break
+            total = int_or_none(response.get('_total'))
+            # Since the beginning of March 2016 twitch's paging mechanism
+            # is completely broken on the twitch side. It simply ignores
+            # a limit and returns the whole offset number of videos.
+            # Working around by just requesting all videos at once.
+            if not broken_paging_detected and total and len(page_entries) > limit:
+                self.report_warning(
+                    'Twitch paging is broken on twitch side, requesting all videos at once',
+                    channel_id)
+                broken_paging_detected = True
+                limit = total
+                offset = 0
+                counter_override = '(all at once)'
+                continue
             entries.extend(page_entries)
+            if broken_paging_detected or total and len(page_entries) >= total:
+                break
             offset += limit
         return self.playlist_result(
             [self.url_result(entry) for entry in set(entries)],
@@ -303,7 +323,6 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
 
 
 class TwitchProfileIE(TwitchPlaylistBaseIE):
-    _WORKING = False
     IE_NAME = 'twitch:profile'
     _VALID_URL = r'%s/(?P<id>[^/]+)/profile/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
     _PLAYLIST_TYPE = 'profile'
@@ -319,7 +338,6 @@ class TwitchProfileIE(TwitchPlaylistBaseIE):
 
 
 class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
-    _WORKING = False
     IE_NAME = 'twitch:past_broadcasts'
     _VALID_URL = r'%s/(?P<id>[^/]+)/profile/past_broadcasts/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
     _PLAYLIST_URL = TwitchPlaylistBaseIE._PLAYLIST_URL + '&broadcasts=true'
@@ -336,7 +354,6 @@ class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
 
 
 class TwitchBookmarksIE(TwitchPlaylistBaseIE):
-    _WORKING = False
     IE_NAME = 'twitch:bookmarks'
     _VALID_URL = r'%s/(?P<id>[^/]+)/profile/bookmarks/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
     _PLAYLIST_URL = '%s/api/bookmark/?user=%%s&offset=%%d&limit=%%d' % TwitchBaseIE._API_BASE
