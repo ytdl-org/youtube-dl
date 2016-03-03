@@ -481,6 +481,15 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(query_dict(update_url_query(
             'http://example.com/path', {'fields': b'id,formats,subtitles'})),
             query_dict('http://example.com/path?fields=id,formats,subtitles'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'width': 1080, 'height': 720})),
+            query_dict('http://example.com/path?width=1080&height=720'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'bitrate': 5020.43})),
+            query_dict('http://example.com/path?bitrate=5020.43'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'test': '第二行тест'})),
+            query_dict('http://example.com/path?test=%E7%AC%AC%E4%BA%8C%E8%A1%8C%D1%82%D0%B5%D1%81%D1%82'))
 
     def test_dict_get(self):
         FALSE_VALUES = {
