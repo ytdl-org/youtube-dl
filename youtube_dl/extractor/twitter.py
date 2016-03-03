@@ -95,6 +95,8 @@ class TwitterCardIE(TwitterBaseIE):
 
         config = None
         formats = []
+        duration = None
+
         for user_agent in USER_AGENTS:
             request = sanitized_Request(url)
             request.add_header('User-Agent', user_agent)
@@ -109,33 +111,60 @@ class TwitterCardIE(TwitterBaseIE):
             config = self._parse_json(self._html_search_regex(
                 r'data-(?:player-)?config="([^"]+)"', webpage, 'data player config'),
                 video_id)
-            if 'playlist' not in config:
-                vmap_url = config.get('vmapUrl') or config.get('vmap_url')
-                if vmap_url:
-                    formats.append({
-                        'url': self._get_vmap_video_url(vmap_url, video_id),
+
+            playlist = config.get('playlist')
+            if playlist:
+                video_url = playlist[0]['source']
+
+                f = {
+                    'url': video_url,
+                }
+
+                m = re.search(r'/(?P<width>\d+)x(?P<height>\d+)/', video_url)
+                if m:
+                    f.update({
+                        'width': int(m.group('width')),
+                        'height': int(m.group('height')),
                     })
-                    break   # same video regardless of UA
+                formats.append(f)
                 continue
 
-            video_url = config['playlist'][0]['source']
-
-            f = {
-                'url': video_url,
-            }
-
-            m = re.search(r'/(?P<width>\d+)x(?P<height>\d+)/', video_url)
-            if m:
-                f.update({
-                    'width': int(m.group('width')),
-                    'height': int(m.group('height')),
+            vmap_url = config.get('vmapUrl') or config.get('vmap_url')
+            if vmap_url:
+                formats.append({
+                    'url': self._get_vmap_video_url(vmap_url, video_id),
                 })
-            formats.append(f)
+                break   # same video regardless of UA
+
+            media_info = config.get('status', {}).get('entities', [{}])[0].get('mediaInfo', {})
+            if media_info:
+                for media_variant in media_info['variants']:
+                    media_url = media_variant['url']
+                    if media_url.endswith('.m3u8'):
+                        formats.extend(self._extract_m3u8_formats(media_url, video_id, ext='mp4', m3u8_id='hls'))
+                    elif media_url.endswith('.mpd'):
+                        formats.extend(self._extract_mpd_formats(media_url, video_id, mpd_id='dash'))
+                    else:
+                        vbr = int_or_none(media_variant.get('bitRate'), scale=1000)
+                        a_format = {
+                            'url': media_url,
+                            'format_id': 'http-%d' % vbr if vbr else 'http',
+                            'vbr': vbr,
+                        }
+                        # Reported bitRate may be zero
+                        if not a_format['vbr']:
+                            del a_format['vbr']
+
+                        formats.append(a_format)
+
+                duration = float_or_none(media_info.get('duration', {}).get('nanos'), scale=1e9)
+                break   # same video regardless of UA
+
         self._sort_formats(formats)
 
         title = self._search_regex(r'<title>([^<]+)</title>', webpage, 'title')
         thumbnail = config.get('posterImageUrl') or config.get('image_src')
-        duration = float_or_none(config.get('duration'))
+        duration = float_or_none(config.get('duration')) or duration
 
         return {
             'id': video_id,
@@ -153,7 +182,6 @@ class TwitterIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'https://twitter.com/freethenipple/status/643211948184596480',
-        # MD5 checksums are different in different places
         'info_dict': {
             'id': '643211948184596480',
             'ext': 'mp4',
@@ -163,6 +191,9 @@ class TwitterIE(InfoExtractor):
             'description': 'FREE THE NIPPLE on Twitter: "FTN supporters on Hollywood Blvd today! http://t.co/c7jHH749xJ"',
             'uploader': 'FREE THE NIPPLE',
             'uploader_id': 'freethenipple',
+        },
+        'params': {
+            'skip_download': True,  # requires ffmpeg
         },
     }, {
         'url': 'https://twitter.com/giphz/status/657991469417025536/photo/1',
