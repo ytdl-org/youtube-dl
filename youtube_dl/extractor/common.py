@@ -20,6 +20,7 @@ from ..compat import (
     compat_urllib_error,
     compat_urllib_parse,
     compat_urlparse,
+    compat_parse_qs,
     compat_str,
     compat_etree_fromstring,
 )
@@ -519,7 +520,7 @@ class InfoExtractor(object):
 
     def update_url_params(self, url, params):
         parsed_url = compat_urlparse.urlparse(url)
-        qs = compat_urlparse.parse_qs(parsed_url.query)
+        qs = compat_parse_qs(parsed_url.query)
         qs.update(params)
         return compat_urlparse.urlunparse(
             parsed_url._replace(query=compat_urllib_parse.urlencode(qs, True)))
