@@ -303,8 +303,7 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
                     'Twitch paging is broken on twitch side, requesting all videos at once',
                     channel_id)
                 broken_paging_detected = True
-                limit = total
-                offset = 0
+                offset = total
                 counter_override = '(all at once)'
                 continue
             entries.extend(page_entries)
