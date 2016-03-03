@@ -22,7 +22,7 @@ class TwitterBaseIE(InfoExtractor):
 
 class TwitterCardIE(TwitterBaseIE):
     IE_NAME = 'twitter:card'
-    _VALID_URL = r'https?://(?:www\.)?twitter\.com/i/cards/tfw/v1/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?twitter\.com/i/(?:cards/tfw/v1|videos/tweet)/(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/560070183650213889',
@@ -30,7 +30,7 @@ class TwitterCardIE(TwitterBaseIE):
             'info_dict': {
                 'id': '560070183650213889',
                 'ext': 'mp4',
-                'title': 'TwitterCard',
+                'title': 'Twitter Card',
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'duration': 30.033,
             }
@@ -41,7 +41,7 @@ class TwitterCardIE(TwitterBaseIE):
             'info_dict': {
                 'id': '623160978427936768',
                 'ext': 'mp4',
-                'title': 'TwitterCard',
+                'title': 'Twitter Card',
                 'thumbnail': 're:^https?://.*\.jpg',
                 'duration': 80.155,
             },
@@ -72,7 +72,16 @@ class TwitterCardIE(TwitterBaseIE):
                 'title': 'Vine by ArsenalTerje',
             },
             'add_ie': ['Vine'],
-        }
+        }, {
+            'url': 'https://twitter.com/i/videos/tweet/705235433198714880',
+            'md5': '3846d0a07109b5ab622425449b59049d',
+            'info_dict': {
+                'id': '705235433198714880',
+                'ext': 'mp4',
+                'title': 'Twitter web player',
+                'thumbnail': 're:^https?://.*\.jpg',
+            },
+        },
     ]
 
     def _real_extract(self, url):
@@ -98,12 +107,13 @@ class TwitterCardIE(TwitterBaseIE):
                 return self.url_result(iframe_url)
 
             config = self._parse_json(self._html_search_regex(
-                r'data-player-config="([^"]+)"', webpage, 'data player config'),
+                r'data-(?:player-)?config="([^"]+)"', webpage, 'data player config'),
                 video_id)
             if 'playlist' not in config:
-                if 'vmapUrl' in config:
+                vmap_url = config.get('vmapUrl') or config.get('vmap_url')
+                if vmap_url:
                     formats.append({
-                        'url': self._get_vmap_video_url(config['vmapUrl'], video_id),
+                        'url': self._get_vmap_video_url(vmap_url, video_id),
                     })
                     break   # same video regardless of UA
                 continue
@@ -123,12 +133,13 @@ class TwitterCardIE(TwitterBaseIE):
             formats.append(f)
         self._sort_formats(formats)
 
-        thumbnail = config.get('posterImageUrl')
+        title = self._search_regex(r'<title>([^<]+)</title>', webpage, 'title')
+        thumbnail = config.get('posterImageUrl') or config.get('image_src')
         duration = float_or_none(config.get('duration'))
 
         return {
             'id': video_id,
-            'title': 'TwitterCard',
+            'title': title,
             'thumbnail': thumbnail,
             'duration': duration,
             'formats': formats,
@@ -176,6 +187,21 @@ class TwitterIE(InfoExtractor):
             'description': 'Star Wars on Twitter: "A new beginning is coming December 18. Watch the official 60 second #TV spot for #StarWars: #TheForceAwakens."',
             'uploader_id': 'starwars',
             'uploader': 'Star Wars',
+        },
+    }, {
+        'url': 'https://twitter.com/BTNBrentYarina/status/705235433198714880',
+        'info_dict': {
+            'id': '705235433198714880',
+            'ext': 'mp4',
+            'title': 'Brent Yarina - Khalil Iverson\'s missed highlight dunk. And made highlight dunk. In one highlight.',
+            'description': 'Brent Yarina on Twitter: "Khalil Iverson\'s missed highlight dunk. And made highlight dunk. In one highlight."',
+            'uploader_id': 'BTNBrentYarina',
+            'uploader': 'Brent Yarina',
+        },
+        'params': {
+            # The same video as https://twitter.com/i/videos/tweet/705235433198714880
+            # Test case of TwitterCardIE
+            'skip_download': True,
         },
     }]
 
@@ -232,6 +258,15 @@ class TwitterIE(InfoExtractor):
                 'width': width,
                 'thumbnail': thumbnail,
             })
+            return info
+
+        if 'class="PlayableMedia' in webpage:
+            info.update({
+                '_type': 'url_transparent',
+                'ie_key': 'TwitterCard',
+                'url': '%s//twitter.com/i/videos/tweet/%s' % (self.http_scheme(), twid),
+            })
+
             return info
 
         raise ExtractorError('There\'s no video in this tweet.')
