@@ -10,7 +10,6 @@ from ..utils import (
     remove_end,
     int_or_none,
     ExtractorError,
-    sanitized_Request,
 )
 
 
@@ -87,78 +86,66 @@ class TwitterCardIE(TwitterBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        # Different formats served for different User-Agents
-        USER_AGENTS = [
-            'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20150101 Firefox/20.0 (Chrome)',  # mp4
-            'Mozilla/5.0 (Windows NT 5.2; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0',  # webm
-        ]
-
         config = None
         formats = []
         duration = None
 
-        for user_agent in USER_AGENTS:
-            request = sanitized_Request(url)
-            request.add_header('User-Agent', user_agent)
-            webpage = self._download_webpage(request, video_id)
+        webpage = self._download_webpage(url, video_id)
 
-            iframe_url = self._html_search_regex(
-                r'<iframe[^>]+src="((?:https?:)?//(?:www.youtube.com/embed/[^"]+|(?:www\.)?vine\.co/v/\w+/card))"',
-                webpage, 'video iframe', default=None)
-            if iframe_url:
-                return self.url_result(iframe_url)
+        iframe_url = self._html_search_regex(
+            r'<iframe[^>]+src="((?:https?:)?//(?:www.youtube.com/embed/[^"]+|(?:www\.)?vine\.co/v/\w+/card))"',
+            webpage, 'video iframe', default=None)
+        if iframe_url:
+            return self.url_result(iframe_url)
 
-            config = self._parse_json(self._html_search_regex(
-                r'data-(?:player-)?config="([^"]+)"', webpage, 'data player config'),
-                video_id)
+        config = self._parse_json(self._html_search_regex(
+            r'data-(?:player-)?config="([^"]+)"', webpage, 'data player config'),
+            video_id)
 
-            playlist = config.get('playlist')
-            if playlist:
-                video_url = playlist[0]['source']
+        playlist = config.get('playlist')
+        if playlist:
+            video_url = playlist[0]['source']
 
-                f = {
-                    'url': video_url,
-                }
+            f = {
+                'url': video_url,
+            }
 
-                m = re.search(r'/(?P<width>\d+)x(?P<height>\d+)/', video_url)
-                if m:
-                    f.update({
-                        'width': int(m.group('width')),
-                        'height': int(m.group('height')),
-                    })
-                formats.append(f)
-                continue
-
-            vmap_url = config.get('vmapUrl') or config.get('vmap_url')
-            if vmap_url:
-                formats.append({
-                    'url': self._get_vmap_video_url(vmap_url, video_id),
+            m = re.search(r'/(?P<width>\d+)x(?P<height>\d+)/', video_url)
+            if m:
+                f.update({
+                    'width': int(m.group('width')),
+                    'height': int(m.group('height')),
                 })
-                break   # same video regardless of UA
+            formats.append(f)
 
-            media_info = config.get('status', {}).get('entities', [{}])[0].get('mediaInfo', {})
-            if media_info:
-                for media_variant in media_info['variants']:
-                    media_url = media_variant['url']
-                    if media_url.endswith('.m3u8'):
-                        formats.extend(self._extract_m3u8_formats(media_url, video_id, ext='mp4', m3u8_id='hls'))
-                    elif media_url.endswith('.mpd'):
-                        formats.extend(self._extract_mpd_formats(media_url, video_id, mpd_id='dash'))
-                    else:
-                        vbr = int_or_none(media_variant.get('bitRate'), scale=1000)
-                        a_format = {
-                            'url': media_url,
-                            'format_id': 'http-%d' % vbr if vbr else 'http',
-                            'vbr': vbr,
-                        }
-                        # Reported bitRate may be zero
-                        if not a_format['vbr']:
-                            del a_format['vbr']
+        vmap_url = config.get('vmapUrl') or config.get('vmap_url')
+        if vmap_url:
+            formats.append({
+                'url': self._get_vmap_video_url(vmap_url, video_id),
+            })
 
-                        formats.append(a_format)
+        media_info = config.get('status', {}).get('entities', [{}])[0].get('mediaInfo', {})
+        if media_info:
+            for media_variant in media_info['variants']:
+                media_url = media_variant['url']
+                if media_url.endswith('.m3u8'):
+                    formats.extend(self._extract_m3u8_formats(media_url, video_id, ext='mp4', m3u8_id='hls'))
+                elif media_url.endswith('.mpd'):
+                    formats.extend(self._extract_mpd_formats(media_url, video_id, mpd_id='dash'))
+                else:
+                    vbr = int_or_none(media_variant.get('bitRate'), scale=1000)
+                    a_format = {
+                        'url': media_url,
+                        'format_id': 'http-%d' % vbr if vbr else 'http',
+                        'vbr': vbr,
+                    }
+                    # Reported bitRate may be zero
+                    if not a_format['vbr']:
+                        del a_format['vbr']
 
-                duration = float_or_none(media_info.get('duration', {}).get('nanos'), scale=1e9)
-                break   # same video regardless of UA
+                    formats.append(a_format)
+
+            duration = float_or_none(media_info.get('duration', {}).get('nanos'), scale=1e9)
 
         self._sort_formats(formats)
 
