@@ -338,7 +338,7 @@ class LetvCloudIE(InfoExtractor):
             formats.append({
                 'url': url,
                 'ext': determine_ext(decoded_url),
-                'format_id': int_or_none(play_url.get('vtype')),
+                'format_id': str_or_none(play_url.get('vtype')),
                 'format_note': str_or_none(play_url.get('definition')),
                 'width': int_or_none(play_url.get('vwidth')),
                 'height': int_or_none(play_url.get('vheight')),
