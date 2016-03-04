@@ -217,14 +217,8 @@ class LePlaylistIE(InfoExtractor):
         'playlist_mincount': 96
     }, {
         'url': 'http://tv.le.com/pzt/lswjzzjc/index.shtml',
-        'info_dict': {
-            'id': 'lswjzzjc',
-            # The title should be "劲舞青春", but I can't find a simple way to
-            # determine the playlist title
-            'title': '乐视午间自制剧场',
-            'description': 'md5:b1eef244f45589a7b5b1af9ff25a4489'
-        },
-        'playlist_mincount': 7
+        # This series is moved to http://www.le.com/tv/10005297.html
+        'only_matching': True,
     }, {
         'url': 'http://www.le.com/comic/92063.html',
         'only_matching': True,
