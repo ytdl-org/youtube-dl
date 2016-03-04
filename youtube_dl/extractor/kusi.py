@@ -68,13 +68,11 @@ class KUSIIE(InfoExtractor):
 
         doc = self._download_xml(xml_url, video_id)
 
-        video_title = xpath_text(doc, 'HEADLINE')
-        duration = float_or_none(
-            xpath_text(doc, 'DURATION', fatal=False), scale=1000)
-        description = xpath_text(doc, 'ABSTRACT', fatal=False)
-        thumbnail = xpath_text(doc, './THUMBNAILIMAGE/FILENAME', fatal=False)
-        createtion_time = timeconvert(
-            xpath_text(doc, 'rfc822creationdate', fatal=False))
+        video_title = xpath_text(doc, 'HEADLINE', fatal=True)
+        duration = float_or_none(xpath_text(doc, 'DURATION'), scale=1000)
+        description = xpath_text(doc, 'ABSTRACT')
+        thumbnail = xpath_text(doc, './THUMBNAILIMAGE/FILENAME')
+        createtion_time = timeconvert(xpath_text(doc, 'rfc822creationdate'))
 
         quality_options = doc.find('{http://search.yahoo.com/mrss/}group').findall('{http://search.yahoo.com/mrss/}content')
         formats = []
@@ -83,7 +81,7 @@ class KUSIIE(InfoExtractor):
                 'url': compat_urllib_parse_unquote_plus(quality.attrib['url']),
                 'height': int_or_none(quality.attrib.get('height')),
                 'width': int_or_none(quality.attrib.get('width')),
-                'vbr': float_or_none(quality.attrib.get('bitratebits'), scale=1024),
+                'vbr': float_or_none(quality.attrib.get('bitratebits'), scale=1000),
             })
         self._sort_formats(formats)
 
