@@ -24,7 +24,10 @@ class KUSIIE(InfoExtractor):
             'id': '12203019',
             'ext': 'mp4',
             'title': 'Turko Files: Case Closed! & Put On Hold!',
-            'duration': 231,
+            'duration': 231.0,
+            'upload_date': '20160210',
+            'timestamp': 1455087571,
+            'thumbnail': 're:^https?://.*\.jpg$'
         },
     }, {
         'url': 'http://kusi.com/video?clipId=12203019',
