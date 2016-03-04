@@ -10,7 +10,7 @@ from ..utils import int_or_none
 
 class KUSIIE(InfoExtractor):
     _VALID_URL = r'http://(?:www\.)?kusi\.com/(?P<path>story/.+|video\?clipId=(?P<clipId>\d+))'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.kusi.com/story/31183873/turko-files-case-closed-put-on-hold',
         'md5': 'f926e7684294cf8cb7bdf8858e1b3988',
         'info_dict': {
@@ -18,8 +18,19 @@ class KUSIIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Turko Files: Case Closed! & Put On Hold!',
             'duration': 231000,
-        }
-    }
+        },
+    }, {
+        'url': 'http://kusi.com/video?clipId=12203019',
+        'info_dict': {
+            'id': '12203019',
+            'ext': 'mp4',
+            'title': 'Turko Files: Case Closed! & Put On Hold!',
+            'duration': 231000,
+        },
+        'params': {
+            'skip_download': True,  # Same as previous one
+        },
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
