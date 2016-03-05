@@ -23,7 +23,10 @@ from .alphaporno import AlphaPornoIE
 from .animeondemand import AnimeOnDemandIE
 from .anitube import AnitubeIE
 from .anysex import AnySexIE
-from .aol import AolIE
+from .aol import (
+    AolIE,
+    AolFeaturesIE,
+)
 from .allocine import AllocineIE
 from .aparat import AparatIE
 from .appleconnect import AppleConnectIE
