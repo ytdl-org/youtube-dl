@@ -31,6 +31,7 @@ class Revision3IE(InfoExtractor):
             'uploader_id': 'technobuffalo',
         }
     }, {
+        # Show
         'url': 'http://testtube.com/brainstuff',
         'info_dict': {
             'id': '251',
@@ -66,6 +67,14 @@ class Revision3IE(InfoExtractor):
             'upload_date': '20160120',
         },
         'add_ie': ['Youtube'],
+    }, {
+        # Tag
+        'url': 'http://testtube.com/tech-news',
+        'info_dict': {
+            'id': '21018',
+            'title': 'tech news',
+        },
+        'playlist_mincount': 9,
     }]
     _PAGE_DATA_TEMPLATE = 'http://www.%s/apiProxy/ddn/%s?domain=%s'
     _API_KEY = 'ba9c741bce1b9d8e3defcc22193f3651b8867e62'
@@ -77,7 +86,7 @@ class Revision3IE(InfoExtractor):
 
         page_data = page_info['data']
         page_type = page_data['type']
-        if page_type == 'episode' or page_type == 'embed':
+        if page_type in ('episode', 'embed'):
             show_data = page_data['show']['data']
             video_id = compat_str(page_data['video']['data']['id'])
 
@@ -137,7 +146,7 @@ class Revision3IE(InfoExtractor):
             })
             return info
         else:
-            show_data = page_info['show']['data']
+            list_data = page_info[page_type]['data']
             episodes_data = page_info['episodes']['data']
             num_episodes = page_info['meta']['totalEpisodes']
             processed_episodes = 0
@@ -145,7 +154,7 @@ class Revision3IE(InfoExtractor):
             page_num = 1
             while True:
                 entries.extend([self.url_result(
-                    'http://%s/%s/%s' % (domain, display_id, episode['slug'])) for episode in episodes_data])
+                    'http://%s%s' % (domain, episode['path'])) for episode in episodes_data])
                 processed_episodes += len(episodes_data)
                 if processed_episodes == num_episodes:
                     break
@@ -155,5 +164,5 @@ class Revision3IE(InfoExtractor):
                     display_id)['episodes']['data']
 
             return self.playlist_result(
-                entries, compat_str(show_data['id']),
-                show_data.get('name'), show_data.get('summary'))
+                entries, compat_str(list_data['id']),
+                list_data.get('name'), list_data.get('summary'))
