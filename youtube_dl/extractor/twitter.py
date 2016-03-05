@@ -102,6 +102,14 @@ class TwitterCardIE(TwitterBaseIE):
             r'data-(?:player-)?config="([^"]+)"', webpage, 'data player config'),
             video_id)
 
+        def _search_dimensions_in_video_url(a_format, video_url):
+            m = re.search(r'/(?P<width>\d+)x(?P<height>\d+)/', video_url)
+            if m:
+                a_format.update({
+                    'width': int(m.group('width')),
+                    'height': int(m.group('height')),
+                })
+
         playlist = config.get('playlist')
         if playlist:
             video_url = playlist[0]['source']
@@ -110,12 +118,8 @@ class TwitterCardIE(TwitterBaseIE):
                 'url': video_url,
             }
 
-            m = re.search(r'/(?P<width>\d+)x(?P<height>\d+)/', video_url)
-            if m:
-                f.update({
-                    'width': int(m.group('width')),
-                    'height': int(m.group('height')),
-                })
+            _search_dimensions_in_video_url(f, video_url)
+
             formats.append(f)
 
         vmap_url = config.get('vmapUrl') or config.get('vmap_url')
@@ -147,6 +151,8 @@ class TwitterCardIE(TwitterBaseIE):
                     # Reported bitRate may be zero
                     if not a_format['vbr']:
                         del a_format['vbr']
+
+                    _search_dimensions_in_video_url(a_format, media_url)
 
                     formats.append(a_format)
 
