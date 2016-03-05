@@ -33,6 +33,7 @@ from .compat import (
     compat_get_terminal_size,
     compat_http_client,
     compat_kwargs,
+    compat_numeric_types,
     compat_os_name,
     compat_str,
     compat_tokenize_tokenize,
@@ -609,12 +610,45 @@ class YoutubeDL(object):
                 compat_str(v),
                 restricted=self.params.get('restrictfilenames'),
                 is_id=(k == 'id'))
-            template_dict = dict((k, sanitize(k, v))
+            template_dict = dict((k, v if isinstance(v, compat_numeric_types) else sanitize(k, v))
                                  for k, v in template_dict.items()
                                  if v is not None and not isinstance(v, (list, tuple, dict)))
             template_dict = collections.defaultdict(lambda: 'NA', template_dict)
 
             outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
+
+            NUMERIC_FIELDS = set((
+                'width', 'height', 'tbr', 'abr', 'asr', 'vbr', 'fps', 'filesize', 'filesize_approx',
+                'upload_year', 'upload_month', 'upload_day',
+                'duration', 'view_count', 'like_count', 'dislike_count', 'repost_count',
+                'average_rating', 'comment_count', 'age_limit',
+                'start_time', 'end_time',
+                'chapter_number', 'season_number', 'episode_number',
+            ))
+
+            # Missing numeric fields used together with integer presentation types
+            # in format specification will break the argument substitution since
+            # string 'NA' is returned for missing fields. We will patch output
+            # template for missing fields to meet string presentation type.
+            for numeric_field in NUMERIC_FIELDS:
+                if numeric_field not in template_dict:
+                    # As of [1] format syntax is:
+                    #  %[mapping_key][conversion_flags][minimum_width][.precision][length_modifier]type
+                    # 1. https://docs.python.org/2/library/stdtypes.html#string-formatting
+                    FORMAT_RE = r'''(?x)
+                        (?<!%)
+                        %
+                        \({0}\)  # mapping key
+                        (?:[#0\-+ ]+)?  # conversion flags (optional)
+                        (?:\d+)?  # minimum field width (optional)
+                        (?:\.\d+)?  # precision (optional)
+                        [hlL]?  # length modifier (optional)
+                        [diouxXeEfFgGcrs%]  # conversion type
+                    '''
+                    outtmpl = re.sub(
+                        FORMAT_RE.format(numeric_field),
+                        r'%({0})s'.format(numeric_field), outtmpl)
+
             tmpl = compat_expanduser(outtmpl)
             filename = tmpl % template_dict
             # Temporary fix for #4787

@@ -526,6 +526,7 @@ class TestYoutubeDL(unittest.TestCase):
             'id': '1234',
             'ext': 'mp4',
             'width': None,
+            'height': 1080,
         }
 
         def fname(templ):
@@ -535,6 +536,19 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(fname('%(id)s-%(width)s.%(ext)s'), '1234-NA.mp4')
         # Replace missing fields with 'NA'
         self.assertEqual(fname('%(uploader_date)s-%(id)s.%(ext)s'), 'NA-1234.mp4')
+        self.assertEqual(fname('%(height)d.%(ext)s'), '1080.mp4')
+        self.assertEqual(fname('%(height)6d.%(ext)s'), '  1080.mp4')
+        self.assertEqual(fname('%(height)-6d.%(ext)s'), '1080  .mp4')
+        self.assertEqual(fname('%(height)06d.%(ext)s'), '001080.mp4')
+        self.assertEqual(fname('%(height) 06d.%(ext)s'), ' 01080.mp4')
+        self.assertEqual(fname('%(height)   06d.%(ext)s'), ' 01080.mp4')
+        self.assertEqual(fname('%(height)0 6d.%(ext)s'), ' 01080.mp4')
+        self.assertEqual(fname('%(height)0   6d.%(ext)s'), ' 01080.mp4')
+        self.assertEqual(fname('%(height)   0   6d.%(ext)s'), ' 01080.mp4')
+        self.assertEqual(fname('%%(height)06d.%(ext)s'), '%(height)06d.mp4')
+        self.assertEqual(fname('%(width)06d.%(ext)s'), 'NA.mp4')
+        self.assertEqual(fname('%(width)06d.%%(ext)s'), 'NA.%(ext)s')
+        self.assertEqual(fname('%%(width)06d.%(ext)s'), '%(width)06d.mp4')
 
     def test_format_note(self):
         ydl = YoutubeDL()
