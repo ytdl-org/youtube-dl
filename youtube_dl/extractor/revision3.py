@@ -52,6 +52,20 @@ class Revision3IE(InfoExtractor):
             'uploader': 'DNews',
             'uploader_id': 'dnews',
         },
+    }, {
+        'url': 'http://testtube.com/tt-editors-picks/the-israel-palestine-conflict-explained-in-ten-min',
+        'info_dict': {
+            'id': '73573',
+            'ext': 'mp4',
+            'display_id': 'tt-editors-picks/the-israel-palestine-conflict-explained-in-ten-min',
+            'title': 'The Israel-Palestine Conflict Explained in Ten Minutes',
+            'description': 'If you\'d like to learn about the struggle between Israelis and Palestinians, this video is a great place to start',
+            'uploader': 'Editors\' Picks',
+            'uploader_id': 'tt-editors-picks',
+            'timestamp': 1453309200,
+            'upload_date': '20160120',
+        },
+        'add_ie': ['Youtube'],
     }]
     _PAGE_DATA_TEMPLATE = 'http://www.%s/apiProxy/ddn/%s?domain=%s'
     _API_KEY = 'ba9c741bce1b9d8e3defcc22193f3651b8867e62'
@@ -61,9 +75,38 @@ class Revision3IE(InfoExtractor):
         page_info = self._download_json(
             self._PAGE_DATA_TEMPLATE % (domain, display_id, domain), display_id)
 
-        if page_info['data']['type'] == 'episode':
-            episode_data = page_info['data']
-            video_id = compat_str(episode_data['video']['data']['id'])
+        page_data = page_info['data']
+        page_type = page_data['type']
+        if page_type == 'episode' or page_type == 'embed':
+            show_data = page_data['show']['data']
+            video_id = compat_str(page_data['video']['data']['id'])
+
+            preference = qualities(['mini', 'small', 'medium', 'large'])
+            thumbnails = [{
+                'url': image_url,
+                'id': image_id,
+                'preference': preference(image_id)
+            } for image_id, image_url in page_data.get('images', {}).items()]
+
+            info = {
+                'id': video_id,
+                'display_id': display_id,
+                'title': unescapeHTML(page_data['name']),
+                'description': unescapeHTML(page_data.get('summary')),
+                'timestamp': parse_iso8601(page_data.get('publishTime'), ' '),
+                'author': page_data.get('author'),
+                'uploader': show_data.get('name'),
+                'uploader_id': show_data.get('slug'),
+                'thumbnails': thumbnails,
+            }
+
+            if page_type == 'embed':
+                info.update({
+                    '_type': 'url_transparent',
+                    'url': page_data['video']['data']['embed'],
+                })
+                return info
+
             video_data = self._download_json(
                 'http://revision3.com/api/getPlaylist.json?api_key=%s&codecs=h264,vp8,theora&video_id=%s' % (self._API_KEY, video_id),
                 video_id)['items'][0]
@@ -84,26 +127,15 @@ class Revision3IE(InfoExtractor):
                         })
             self._sort_formats(formats)
 
-            preference = qualities(['mini', 'small', 'medium', 'large'])
-            thumbnails = [{
-                'url': image_url,
-                'id': image_id,
-                'preference': preference(image_id)
-            } for image_id, image_url in video_data.get('images', {}).items()]
-
-            return {
-                'id': video_id,
-                'display_id': display_id,
+            info.update({
                 'title': unescapeHTML(video_data['title']),
                 'description': unescapeHTML(video_data.get('summary')),
-                'timestamp': parse_iso8601(episode_data.get('publishTime'), ' '),
-                'author': episode_data.get('author'),
                 'uploader': video_data.get('show', {}).get('name'),
                 'uploader_id': video_data.get('show', {}).get('slug'),
                 'duration': int_or_none(video_data.get('duration')),
-                'thumbnails': thumbnails,
                 'formats': formats,
-            }
+            })
+            return info
         else:
             show_data = page_info['show']['data']
             episodes_data = page_info['episodes']['data']
