@@ -2760,6 +2760,10 @@ else:
     compat_kwargs = lambda kwargs: kwargs
 
 
+compat_numeric_types = ((int, float, long, complex) if sys.version_info[0] < 3
+                        else (int, float, complex))
+
+
 if sys.version_info < (2, 7):
     def compat_socket_create_connection(address, timeout, source_address=None):
         host, port = address
@@ -2895,6 +2899,7 @@ __all__ = [
     'compat_input',
     'compat_itertools_count',
     'compat_kwargs',
+    'compat_numeric_types',
     'compat_ord',
     'compat_os_name',
     'compat_parse_qs',
