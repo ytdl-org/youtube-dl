@@ -567,7 +567,7 @@ class YoutubeDL(object):
                 elif template_dict.get('height'):
                     template_dict['resolution'] = '%sp' % template_dict['height']
                 elif template_dict.get('width'):
-                    template_dict['resolution'] = '?x%d' % template_dict['width']
+                    template_dict['resolution'] = '%dx?' % template_dict['width']
 
             sanitize = lambda k, v: sanitize_filename(
                 compat_str(v),
