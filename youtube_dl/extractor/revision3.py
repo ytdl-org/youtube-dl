@@ -19,7 +19,7 @@ class Revision3IE(InfoExtractor):
         'url': 'http://www.revision3.com/technobuffalo/5-google-predictions-for-2016',
         'md5': 'd94a72d85d0a829766de4deb8daaf7df',
         'info_dict': {
-            'id': '73034',
+            'id': '71089',
             'display_id': 'technobuffalo/5-google-predictions-for-2016',
             'ext': 'webm',
             'title': '5 Google Predictions for 2016',
@@ -42,7 +42,7 @@ class Revision3IE(InfoExtractor):
     }, {
         'url': 'https://testtube.com/dnews/5-weird-ways-plants-can-eat-animals?utm_source=FB&utm_medium=DNews&utm_campaign=DNewsSocial',
         'info_dict': {
-            'id': '60163',
+            'id': '58227',
             'display_id': 'dnews/5-weird-ways-plants-can-eat-animals',
             'duration': 275,
             'ext': 'webm',
@@ -56,7 +56,7 @@ class Revision3IE(InfoExtractor):
     }, {
         'url': 'http://testtube.com/tt-editors-picks/the-israel-palestine-conflict-explained-in-ten-min',
         'info_dict': {
-            'id': '73573',
+            'id': '71618',
             'ext': 'mp4',
             'display_id': 'tt-editors-picks/the-israel-palestine-conflict-explained-in-ten-min',
             'title': 'The Israel-Palestine Conflict Explained in Ten Minutes',
@@ -81,6 +81,7 @@ class Revision3IE(InfoExtractor):
 
     def _real_extract(self, url):
         domain, display_id = re.match(self._VALID_URL, url).groups()
+        site = domain.split('.')[0]
         page_info = self._download_json(
             self._PAGE_DATA_TEMPLATE % (domain, display_id, domain), display_id)
 
@@ -88,6 +89,7 @@ class Revision3IE(InfoExtractor):
         page_type = page_data['type']
         if page_type in ('episode', 'embed'):
             show_data = page_data['show']['data']
+            page_id = compat_str(page_data['id'])
             video_id = compat_str(page_data['video']['data']['id'])
 
             preference = qualities(['mini', 'small', 'medium', 'large'])
@@ -98,7 +100,7 @@ class Revision3IE(InfoExtractor):
             } for image_id, image_url in page_data.get('images', {}).items()]
 
             info = {
-                'id': video_id,
+                'id': page_id,
                 'display_id': display_id,
                 'title': unescapeHTML(page_data['name']),
                 'description': unescapeHTML(page_data.get('summary')),
@@ -107,6 +109,7 @@ class Revision3IE(InfoExtractor):
                 'uploader': show_data.get('name'),
                 'uploader_id': show_data.get('slug'),
                 'thumbnails': thumbnails,
+                'extractor_key': site,
             }
 
             if page_type == 'embed':
@@ -153,8 +156,13 @@ class Revision3IE(InfoExtractor):
             entries = []
             page_num = 1
             while True:
-                entries.extend([self.url_result(
-                    'http://%s%s' % (domain, episode['path'])) for episode in episodes_data])
+                entries.extend([{
+                    '_type': 'url',
+                    'url': 'http://%s%s' % (domain, episode['path']),
+                    'id': compat_str(episode['id']),
+                    'ie_key': 'Revision3',
+                    'extractor_key': site,
+                } for episode in episodes_data])
                 processed_episodes += len(episodes_data)
                 if processed_episodes == num_episodes:
                     break
