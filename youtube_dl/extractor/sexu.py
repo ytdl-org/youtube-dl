@@ -14,7 +14,7 @@ class SexuIE(InfoExtractor):
             'id': '961791',
             'ext': 'mp4',
             'title': 'md5:4d05a19a5fc049a63dbbaf05fb71d91b',
-            'description': 'md5:c5ed8625eb386855d5a7967bd7b77a54',
+            'description': 'md5:2b75327061310a3afb3fbd7d09e2e403',
             'categories': list,  # NSFW
             'thumbnail': 're:https?://.*\.jpg$',
             'age_limit': 18,
@@ -26,7 +26,7 @@ class SexuIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         quality_arr = self._search_regex(
-            r'sources:\s*\[([^\]]+)\]', webpage, 'forrmat string')
+            r'"sources":\s*\[([^\]]+)\]', webpage, 'format string')
         formats = [{
             'url': fmt[0].replace('\\', ''),
             'format_id': fmt[1],
@@ -41,7 +41,7 @@ class SexuIE(InfoExtractor):
             'description', webpage, 'description')
 
         thumbnail = self._html_search_regex(
-            r'image:\s*"([^"]+)"',
+            r'"image":\s*"([^"]+)"',
             webpage, 'thumbnail', fatal=False)
 
         categories_str = self._html_search_meta(
