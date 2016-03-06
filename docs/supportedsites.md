@@ -194,6 +194,7 @@
  - **faz.net**
  - **fc2**
  - **Fczenit**
+ - **features.aol.com**
  - **fernsehkritik.tv**
  - **Firstpost**
  - **FiveTV**
@@ -293,6 +294,7 @@
  - **kontrtube**: KontrTube.ru - Труба зовёт
  - **KrasView**: Красвью
  - **Ku6**
+ - **KUSI**
  - **kuwo:album**: 酷我音乐 - 专辑
  - **kuwo:category**: 酷我音乐 - 分类
  - **kuwo:chart**: 酷我音乐 - 排行榜
@@ -301,12 +303,11 @@
  - **kuwo:song**: 酷我音乐
  - **la7.tv**
  - **Laola1Tv**
+ - **Le**: 乐视网
  - **Lecture2Go**
  - **Lemonde**
- - **Letv**: 乐视网
+ - **LePlaylist**
  - **LetvCloud**: 乐视云
- - **LetvPlaylist**
- - **LetvTv**
  - **Libsyn**
  - **life:embed**
  - **lifenews**: LIFE | NEWS
@@ -421,6 +422,7 @@
  - **Npr**
  - **NRK**
  - **NRKPlaylist**
+ - **NRKSkole**: NRK Skole
  - **NRKTV**: NRK TV and NRK Radio
  - **ntv.ru**
  - **Nuvid**
