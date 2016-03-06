@@ -277,9 +277,8 @@ class VimeoIE(VimeoBaseInfoExtractor):
 
     def _real_extract(self, url):
         url, data = unsmuggle_url(url, {})
-        headers = std_headers
+        headers = std_headers.copy()
         if 'http_headers' in data:
-            headers = headers.copy()
             headers.update(data['http_headers'])
         if 'Referer' not in headers:
             headers['Referer'] = url
@@ -294,7 +293,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
-        request = sanitized_Request(url, None, headers)
+        request = sanitized_Request(url, headers=headers)
         try:
             webpage = self._download_webpage(request, video_id)
         except ExtractorError as ee:
