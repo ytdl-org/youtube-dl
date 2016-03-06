@@ -36,12 +36,13 @@ class SafariBaseIE(InfoExtractor):
         if username is None:
             self.raise_login_required('safaribooksonline.com account is required')
 
-        headers = std_headers
+        headers = std_headers.copy()
         if 'Referer' not in headers:
             headers['Referer'] = self._LOGIN_URL
+        login_page_request = sanitized_Request(self._LOGIN_URL, headers=headers)
 
         login_page = self._download_webpage(
-            self._LOGIN_URL, None,
+            login_page_request, None,
             'Downloading login form')
 
         csrf = self._html_search_regex(
