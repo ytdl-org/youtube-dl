@@ -1900,6 +1900,9 @@ def codec2ext(codec):
     # is not a good fallback for file extensions
     return {
         'avc1': 'mp4',
+        'avc2': 'mp4',
+        'avc3': 'mp4',
+        'avc4': 'mp4',
         'mp4a': 'm4a',
         'vorbis': 'webm',
         'vp9': 'webm',
