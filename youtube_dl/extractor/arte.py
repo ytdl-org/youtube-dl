@@ -122,7 +122,7 @@ class ArteTVPlus7IE(InfoExtractor):
                     compat_urllib_parse_urlparse(iframe_url).query)['json_url'][0]
         if json_url:
             return self._extract_from_json_url(json_url, video_id, lang)
-        # Differend kind of embed URL (e.g.
+        # Different kind of embed URL (e.g.
         # http://www.arte.tv/magazine/trepalium/fr/episode-0406-replay-trepalium)
         embed_url = self._search_regex(
             r'<iframe[^>]+src=(["\'])(?P<url>.+?)\1',
