@@ -121,7 +121,10 @@ class ArteTVPlus7IE(InfoExtractor):
                 json_url = compat_parse_qs(
                     compat_urllib_parse_urlparse(iframe_url).query)['json_url'][0]
         if json_url:
-            return self._extract_from_json_url(json_url, video_id, lang)
+            title = self._search_regex(
+                r'<h3[^>]+title=(["\'])(?P<title>.+?)\1',
+                webpage, 'title', default=None, group='title')
+            return self._extract_from_json_url(json_url, video_id, lang, title=title)
         # Different kind of embed URL (e.g.
         # http://www.arte.tv/magazine/trepalium/fr/episode-0406-replay-trepalium)
         embed_url = self._search_regex(
@@ -129,7 +132,7 @@ class ArteTVPlus7IE(InfoExtractor):
             webpage, 'embed url', group='url')
         return self.url_result(embed_url)
 
-    def _extract_from_json_url(self, json_url, video_id, lang):
+    def _extract_from_json_url(self, json_url, video_id, lang, title=None):
         info = self._download_json(json_url, video_id)
         player_info = info['videoJsonPlayer']
 
@@ -137,7 +140,7 @@ class ArteTVPlus7IE(InfoExtractor):
         if not upload_date_str:
             upload_date_str = (player_info.get('VRA') or player_info.get('VDA') or '').split(' ')[0]
 
-        title = player_info['VTI'].strip()
+        title = (player_info.get('VTI') or title or player_info['VID']).strip()
         subtitle = player_info.get('VSU', '').strip()
         if subtitle:
             title += ' - %s' % subtitle
