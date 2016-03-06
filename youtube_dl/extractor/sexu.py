@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 
 
@@ -25,13 +23,18 @@ class SexuIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        quality_arr = self._search_regex(
-            r'"sources":\s*\[([^\]]+)\]', webpage, 'format string')
+        jwvideo = self._parse_json(
+            self._search_regex(r'\.setup\(\s*({.+?})\s*\);', webpage, 'jwvideo'),
+            video_id)
+
+        sources = jwvideo['sources']
+
         formats = [{
-            'url': fmt[0].replace('\\', ''),
-            'format_id': fmt[1],
-            'height': int(fmt[1][:3]),
-        } for fmt in re.findall(r'"file":"([^"]+)","label":"([^"]+)"', quality_arr)]
+            'url': source['file'].replace('\\', ''),
+            'format_id': source.get('label'),
+            'height': self._search_regex(
+                r'^(\d+)[pP]', source.get('label', ''), 'height', default=None),
+        } for source in sources if source.get('file')]
         self._sort_formats(formats)
 
         title = self._html_search_regex(
@@ -40,9 +43,7 @@ class SexuIE(InfoExtractor):
         description = self._html_search_meta(
             'description', webpage, 'description')
 
-        thumbnail = self._html_search_regex(
-            r'"image":\s*"([^"]+)"',
-            webpage, 'thumbnail', fatal=False)
+        thumbnail = jwvideo.get('image')
 
         categories_str = self._html_search_meta(
             'keywords', webpage, 'categories')
