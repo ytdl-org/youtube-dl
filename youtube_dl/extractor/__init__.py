@@ -37,6 +37,7 @@ from .ard import (
     ARDMediathekIE,
     SportschauIE,
 )
+from .arkenaplay import ArkenaPlayIE
 from .arte import (
     ArteTvIE,
     ArteTVPlus7IE,
