@@ -4,6 +4,9 @@
 - [ ] Bug report (encountered problems with youtube-dl)
 - [ ] Other, namely ...
 
+**Run `youtube-dl --version` to check whether you have the latest version**
+- [ ] I've verified that I'm running the latest version available (2016.03.06)
+
 **Brief description of the problem/request**
 
 *I am having a problem with ... I have tried to do ... and ... I expected that ... would happen, but instead ... happened. Example: I tried to download a file but the site was not supported. Please add support for site xyz. Another example: I encountered a bug when downloading a video from xyz. I have tried to do a and b.*
@@ -19,10 +22,4 @@
 **Output of running youtube-dl with `--verbose` or `-v`**
 ```
 Replace the contents between the backticks (`) with the output of youtube-dl when running with the --verbose or -v flag.
-```
-
-**Output of running `youtube-dl --version`**
-```
-Replace the contents between the backticks (`) with the output of 'youtube-dl --version'.
-Make sure you are using the latest version by running 'youtube-dl --update'
 ```
