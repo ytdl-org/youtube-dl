@@ -252,6 +252,7 @@ class TwitchVodIE(TwitchItemBaseIE):
                 self._USHER_BASE, item_id,
                 compat_urllib_parse.urlencode({
                     'allow_source': 'true',
+                    'allow_audio_only': 'true',
                     'allow_spectre': 'true',
                     'player': 'twitchweb',
                     'nauth': access_token['token'],
@@ -431,6 +432,7 @@ class TwitchStreamIE(TwitchBaseIE):
 
         query = {
             'allow_source': 'true',
+            'allow_audio_only': 'true',
             'p': random.randint(1000000, 10000000),
             'player': 'twitchweb',
             'segment_preference': '4',
