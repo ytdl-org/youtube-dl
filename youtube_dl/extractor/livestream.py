@@ -14,6 +14,7 @@ from ..utils import (
     xpath_with_ns,
     xpath_text,
     orderedSet,
+    update_url_query,
     int_or_none,
     float_or_none,
     parse_iso8601,
@@ -72,7 +73,10 @@ class LivestreamIE(InfoExtractor):
         for vn in video_nodes:
             tbr = int_or_none(vn.attrib.get('system-bitrate'), 1000)
             furl = (
-                '%s%s?v=3.0.3&fp=WIN%%2014,0,0,145' % (base, vn.attrib['src']))
+                update_url_query(compat_urlparse.urljoin(base, vn.attrib['src']), {
+                    'v': '3.0.3',
+                    'fp': 'WIN% 14,0,0,145',
+                }))
             if 'clipBegin' in vn.attrib:
                 furl += '&ssek=' + vn.attrib['clipBegin']
             formats.append({
