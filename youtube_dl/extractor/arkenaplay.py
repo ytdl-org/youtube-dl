@@ -70,14 +70,15 @@ class ArkenaPlayIE(InfoExtractor):
             }
 
     def __extract_from_playlistentry(self, arkena_playlistentry_info):
-        formats = self.__get_video_formats(arkena_playlistentry_info)
         media_info = arkena_playlistentry_info.get('MediaInfo', {})
         thumbnails = self.__get_thumbnails(media_info)
         title = media_info.get('Title')
         description = media_info.get('Description')
+        video_id = media_info.get('VideoId')
         timestamp = parse_iso8601(media_info.get('PublishDate'))
+        formats = self.__get_video_formats(arkena_playlistentry_info, video_id)
         return {
-            'id': arkena_playlistentry_info.get('EntryName'),
+            'id': video_id,
             'title': title,
             'formats': formats,
             'thumbnails': thumbnails,
@@ -100,13 +101,15 @@ class ArkenaPlayIE(InfoExtractor):
             })
         return thumbnails
 
-    def __get_video_formats(self, media_files_info):
+    def __get_video_formats(self, media_files_info, video_id):
         formats = []
         media_files = media_files_info.get('MediaFiles')
         if not media_files:
             return None
 
         formats.extend(self.__get_mp4_video_formats(media_files))
+        formats.extend(self.__get_m3u8_video_formats(media_files, video_id))
+        formats.extend(self.__get_f4m_video_formats(media_files, video_id))
         # TODO <Other video formats>
         self._sort_formats(formats)
         return formats
@@ -126,4 +129,28 @@ class ArkenaPlayIE(InfoExtractor):
                 'ext': 'mp4',
                 'tbr': bitrate
             })
+        return formats
+
+    def __get_m3u8_video_formats(self, media_files_json, video_id):
+        formats = []
+        m3u8_files_json = media_files_json.get("M3u8")
+        if not m3u8_files_json:
+            return None
+        for video_info in m3u8_files_json:
+            video_url = video_info.get('Url')
+            if not video_url:
+                continue
+            formats = self._extract_m3u8_formats(video_url, video_id, 'mp4', m3u8_id='hls', fatal=False)
+        return formats
+
+    def __get_f4m_video_formats(self, media_files_json, video_id):
+        formats = []
+        f4m_files_json = media_files_json.get("Flash")
+        if not f4m_files_json:
+            return None
+        for video_info in f4m_files_json:
+            video_url = video_info.get("Url")
+            if not video_url:
+                continue
+            formats = self._extract_f4m_formats(video_url, video_id, 'f4m', f4m_id='hds', fatal=False)
         return formats
