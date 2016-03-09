@@ -509,6 +509,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
 
 
 class VimeoOndemandIE(VimeoBaseInfoExtractor):
+    IE_NAME = 'vimeo:ondemand'
     _VALID_URL = r'https?://(?:www\.)?vimeo\.com/ondemand/(?P<id>[^/?#&]+)'
     _TESTS = [{
         # ondemand video not available via https://vimeo.com/id
