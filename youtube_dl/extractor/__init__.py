@@ -859,6 +859,7 @@ from .vimeo import (
     VimeoChannelIE,
     VimeoGroupsIE,
     VimeoLikesIE,
+    VimeoOndemandIE,
     VimeoReviewIE,
     VimeoUserIE,
     VimeoWatchLaterIE,
