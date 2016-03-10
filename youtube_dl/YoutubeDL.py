@@ -1234,6 +1234,10 @@ class YoutubeDL(object):
                 if t.get('id') is None:
                     t['id'] = '%d' % i
 
+        if self.params.get('list_thumbnails'):
+            self.list_thumbnails(info_dict)
+            return
+
         if thumbnails and 'thumbnail' not in info_dict:
             info_dict['thumbnail'] = thumbnails[-1]['url']
 
@@ -1334,9 +1338,6 @@ class YoutubeDL(object):
             info_dict['formats'] = formats
         if self.params.get('listformats'):
             self.list_formats(info_dict)
-            return
-        if self.params.get('list_thumbnails'):
-            self.list_thumbnails(info_dict)
             return
 
         req_format = self.params.get('format')
@@ -1901,13 +1902,8 @@ class YoutubeDL(object):
     def list_thumbnails(self, info_dict):
         thumbnails = info_dict.get('thumbnails')
         if not thumbnails:
-            tn_url = info_dict.get('thumbnail')
-            if tn_url:
-                thumbnails = [{'id': '0', 'url': tn_url}]
-            else:
-                self.to_screen(
-                    '[info] No thumbnails present for %s' % info_dict['id'])
-                return
+            self.to_screen('[info] No thumbnails present for %s' % info_dict['id'])
+            return
 
         self.to_screen(
             '[info] Thumbnails for %s:' % info_dict['id'])
