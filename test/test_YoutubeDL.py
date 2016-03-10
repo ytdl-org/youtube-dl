@@ -506,7 +506,6 @@ class TestYoutubeDL(unittest.TestCase):
             'fps': 30,
         }), '^30fps$')
 
-
     def test_postprocessors(self):
         filename = 'post-processor-testfile.mp4'
         audiofile = filename + '.mp3'
