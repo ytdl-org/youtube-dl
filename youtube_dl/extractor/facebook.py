@@ -37,7 +37,8 @@ class FacebookIE(InfoExtractor):
                                 video/embed|
                                 story\.php
                             )\?(?:.*?)(?:v|video_id|story_fbid)=|
-                            [^/]+/videos/(?:[^/]+/)?
+                            [^/]+/videos/(?:[^/]+/)?|
+                            [^/]+/posts/
                         )|
                     facebook:
                 )
@@ -49,6 +50,8 @@ class FacebookIE(InfoExtractor):
     IE_NAME = 'facebook'
 
     _CHROME_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36'
+
+    _VIDEO_PAGE_TEMPLATE = 'https://www.facebook.com/video/video.php?v=%s'
 
     _TESTS = [{
         'url': 'https://www.facebook.com/video.php?v=637842556329505&fref=nf',
@@ -81,6 +84,15 @@ class FacebookIE(InfoExtractor):
             'title': 'When you post epic content on instagram.com/433 8 million followers, this is ...',
             'uploader': 'Demy de Zeeuw',
         },
+    }, {
+        'url': 'https://www.facebook.com/maxlayn/posts/10153807558977570',
+        'md5': '037b1fa7f3c2d02b7a0d7bc16031ecc6',
+        'info_dict': {
+            'id': '544765982287235',
+            'ext': 'mp4',
+            'title': '"What are you doing running in the snow?"',
+            'uploader': 'FailArmy',
+        }
     }, {
         'url': 'https://www.facebook.com/video.php?v=10204634152394104',
         'only_matching': True,
@@ -164,9 +176,8 @@ class FacebookIE(InfoExtractor):
     def _real_initialize(self):
         self._login()
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        req = sanitized_Request('https://www.facebook.com/video/video.php?v=%s' % video_id)
+    def _extract_from_url(self, url, video_id, fatal_if_no_video=True):
+        req = sanitized_Request(url)
         req.add_header('User-Agent', self._CHROME_USER_AGENT)
         webpage = self._download_webpage(req, video_id)
 
@@ -196,6 +207,8 @@ class FacebookIE(InfoExtractor):
                     break
 
         if not video_data:
+            if not fatal_if_no_video:
+                return webpage, False
             m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
             if m_msg is not None:
                 raise ExtractorError(
@@ -241,39 +254,36 @@ class FacebookIE(InfoExtractor):
             video_title = 'Facebook video #%s' % video_id
         uploader = clean_html(get_element_by_id('fbPhotoPageAuthorName', webpage))
 
-        return {
+        info_dict = {
             'id': video_id,
             'title': video_title,
             'formats': formats,
             'uploader': uploader,
         }
 
-
-class FacebookPostIE(InfoExtractor):
-    IE_NAME = 'facebook:post'
-    _VALID_URL = r'https?://(?:\w+\.)?facebook\.com/[^/]+/posts/(?P<id>\d+)'
-    _TEST = {
-        'url': 'https://www.facebook.com/maxlayn/posts/10153807558977570',
-        'md5': '037b1fa7f3c2d02b7a0d7bc16031ecc6',
-        'info_dict': {
-            'id': '544765982287235',
-            'ext': 'mp4',
-            'title': '"What are you doing running in the snow?"',
-            'uploader': 'FailArmy',
-        }
-    }
+        return webpage, info_dict
 
     def _real_extract(self, url):
-        post_id = self._match_id(url)
+        video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, post_id)
+        real_url = self._VIDEO_PAGE_TEMPLATE % video_id if url.startswith('facebook:') else url
+        webpage, info_dict = self._extract_from_url(real_url, video_id, fatal_if_no_video=False)
 
-        entries = [
-            self.url_result('facebook:%s' % video_id, FacebookIE.ie_key())
-            for video_id in self._parse_json(
-                self._search_regex(
-                    r'(["\'])video_ids\1\s*:\s*(?P<ids>\[.+?\])',
-                    webpage, 'video ids', group='ids'),
-                post_id)]
+        if info_dict:
+            return info_dict
 
-        return self.playlist_result(entries, post_id)
+        if '/posts/' in url:
+            entries = [
+                self.url_result('facebook:%s' % video_id, FacebookIE.ie_key())
+                for video_id in self._parse_json(
+                    self._search_regex(
+                        r'(["\'])video_ids\1\s*:\s*(?P<ids>\[.+?\])',
+                        webpage, 'video ids', group='ids'),
+                    video_id)]
+
+            return self.playlist_result(entries, video_id)
+        else:
+            _, info_dict = self._extract_from_url(
+                self._VIDEO_PAGE_TEMPLATE % video_id,
+                video_id, fatal_if_no_video=True)
+            return info_dict
