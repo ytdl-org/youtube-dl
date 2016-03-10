@@ -103,6 +103,15 @@ class FacebookIE(InfoExtractor):
             'uploader': 'S. Saint',
         },
     }, {
+        'note': 'swf params escaped',
+        'url': 'https://www.facebook.com/barackobama/posts/10153664894881749',
+        'md5': '97ba073838964d12c70566e0085c2b91',
+        'info_dict': {
+            'id': '10153664894881749',
+            'ext': 'mp4',
+            'title': 'Facebook video #10153664894881749',
+        },
+    }, {
         'url': 'https://www.facebook.com/video.php?v=10204634152394104',
         'only_matching': True,
     }, {
@@ -189,11 +198,12 @@ class FacebookIE(InfoExtractor):
 
         video_data = None
 
-        BEFORE = '{swf.addParam(param[0], param[1]);});\n'
+        BEFORE = '{swf.addParam(param[0], param[1]);});'
         AFTER = '.forEach(function(variable) {swf.addVariable(variable[0], variable[1]);});'
-        m = re.search(re.escape(BEFORE) + '(.*?)' + re.escape(AFTER), webpage)
+        m = re.search(re.escape(BEFORE) + '(?:\n|\\\\n)(.*?)' + re.escape(AFTER), webpage)
         if m:
-            data = dict(json.loads(m.group(1)))
+            swf_params = m.group(1).replace('\\\\', '\\').replace('\\"', '"')
+            data = dict(json.loads(swf_params))
             params_raw = compat_urllib_parse_unquote(data['params'])
             video_data = json.loads(params_raw)['video_data']
 
