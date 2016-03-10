@@ -501,7 +501,7 @@ class IqiyiIE(InfoExtractor):
     def get_enc_key(self, video_id):
         # TODO: automatic key extraction
         # last update at 2016-01-22 for Zombie::bite
-        enc_key = '6ab6d0280511493ba85594779759d4ed'
+        enc_key = '8ed797d224d043e7ac23d95b70227d32'
         return enc_key
 
     def _extract_playlist(self, webpage):
