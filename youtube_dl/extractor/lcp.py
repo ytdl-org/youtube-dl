@@ -8,25 +8,14 @@ class LcpIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.lcp.fr/la-politique-en-video/schwartzenberg-prg-preconise-francois-hollande-de-participer-une-primaire',
-        'md5': 'aecf5a330cfc1061445a9af5b2df392d',
+        'md5': 'ab96c4dae94322ece1e98d97c8dc7807',
         'info_dict': {
             'id': 'd56d03e9',
-            'url': 're:http://httpod.scdn.arkena.com/11970/d56d03e9_[0-9]+.mp4',
+            'url': 're:http://httpod.scdn.arkena.com/11970/d56d03e9_.*',
             'ext': 'mp4',
             'title': 'd56d03e9',
             'upload_date': '20160226',
             'timestamp': 1456488895
-        }
-    }, {
-        'url': 'http://www.lcp.fr/emissions/parlementair',
-        'md5': '9b63769445cbe5f26952bef71f281e8c',
-        'info_dict': {
-            'id': '327499',
-            'url': 're:http://httpod.scdn.arkena.com/11970/327499_[0-9]+.mp4',
-            'ext': 'mp4',
-            'title': '327499',
-            'upload_date': '20160304',
-            'timestamp': 1457098658
         }
     }, {
         'url': 'http://www.lcp.fr/le-direct',
