@@ -94,6 +94,15 @@ class FacebookIE(InfoExtractor):
             'uploader': 'FailArmy',
         }
     }, {
+        'url': 'https://m.facebook.com/story.php?story_fbid=1035862816472149&id=116132035111903',
+        'md5': '1deb90b6ac27f7efcf6d747c8a27f5e3',
+        'info_dict': {
+            'id': '1035862816472149',
+            'ext': 'mp4',
+            'title': 'What the Flock Is Going On In New Zealand  Credit: ViralHog',
+            'uploader': 'S. Saint',
+        },
+    }, {
         'url': 'https://www.facebook.com/video.php?v=10204634152394104',
         'only_matching': True,
     }, {
@@ -104,9 +113,6 @@ class FacebookIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'facebook:544765982287235',
-        'only_matching': True,
-    }, {
-        'url': 'https://m.facebook.com/story.php?story_fbid=1035862816472149&id=116132035111903',
         'only_matching': True,
     }]
 
@@ -200,7 +206,7 @@ class FacebookIE(InfoExtractor):
 
         if not video_data:
             server_js_data = self._parse_json(self._search_regex(
-                r'handleServerJS\(({.+})\);', webpage, 'server js data'), video_id)
+                r'handleServerJS\(({.+})\);', webpage, 'server js data', default='{}'), video_id)
             for item in server_js_data.get('instances', []):
                 if item[1][0] == 'VideoConfig':
                     video_data = video_data_list2dict(item[2][0]['videoData'])
