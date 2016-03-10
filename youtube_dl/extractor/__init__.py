@@ -54,6 +54,7 @@ from .arte import (
 from .atresplayer import AtresPlayerIE
 from .atttechchannel import ATTTechChannelIE
 from .audimedia import AudiMediaIE
+from .audioboom import AudioBoomIE
 from .audiomack import AudiomackIE, AudiomackAlbumIE
 from .azubu import AzubuIE, AzubuLiveIE
 from .baidu import BaiduVideoIE
