@@ -290,8 +290,8 @@ class FacebookIE(InfoExtractor):
 
         if '/posts/' in url:
             entries = [
-                self.url_result('facebook:%s' % video_id, FacebookIE.ie_key())
-                for video_id in self._parse_json(
+                self.url_result('facebook:%s' % vid, FacebookIE.ie_key())
+                for vid in self._parse_json(
                     self._search_regex(
                         r'(["\'])video_ids\1\s*:\s*(?P<ids>\[.+?\])',
                         webpage, 'video ids', group='ids'),
