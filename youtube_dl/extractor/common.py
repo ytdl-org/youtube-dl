@@ -48,6 +48,7 @@ from ..utils import (
     determine_protocol,
     parse_duration,
     mimetype2ext,
+    update_url_query,
 )
 
 
@@ -345,7 +346,7 @@ class InfoExtractor(object):
     def IE_NAME(self):
         return compat_str(type(self).__name__[:-2])
 
-    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True):
+    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, data=None, headers=None, query=None):
         """ Returns the response handle """
         if note is None:
             self.report_download_webpage(video_id)
@@ -354,6 +355,12 @@ class InfoExtractor(object):
                 self.to_screen('%s' % (note,))
             else:
                 self.to_screen('%s: %s' % (video_id, note))
+        # data, headers and query params will be ignored for `Request` objects
+        if isinstance(url_or_request, compat_str):
+            if query:
+                url_or_request = update_url_query(url_or_request, query)
+            if data or headers:
+                url_or_request = sanitized_Request(url_or_request, data, headers or {})
         try:
             return self._downloader.urlopen(url_or_request)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -369,13 +376,13 @@ class InfoExtractor(object):
                 self._downloader.report_warning(errmsg)
                 return False
 
-    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True, encoding=None):
+    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True, encoding=None, data=None, headers=None, query=None):
         """ Returns a tuple (page content as string, URL handle) """
         # Strip hashes from the URL (#1038)
         if isinstance(url_or_request, (compat_str, str)):
             url_or_request = url_or_request.partition('#')[0]
 
-        urlh = self._request_webpage(url_or_request, video_id, note, errnote, fatal)
+        urlh = self._request_webpage(url_or_request, video_id, note, errnote, fatal, data=data, headers=headers, query=query)
         if urlh is False:
             assert not fatal
             return False
@@ -462,13 +469,13 @@ class InfoExtractor(object):
 
         return content
 
-    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None):
+    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None, data=None, headers=None, query=None):
         """ Returns the data of the page as a string """
         success = False
         try_count = 0
         while success is False:
             try:
-                res = self._download_webpage_handle(url_or_request, video_id, note, errnote, fatal, encoding=encoding)
+                res = self._download_webpage_handle(url_or_request, video_id, note, errnote, fatal, encoding=encoding, data=data, headers=headers, query=query)
                 success = True
             except compat_http_client.IncompleteRead as e:
                 try_count += 1
@@ -483,10 +490,10 @@ class InfoExtractor(object):
 
     def _download_xml(self, url_or_request, video_id,
                       note='Downloading XML', errnote='Unable to download XML',
-                      transform_source=None, fatal=True, encoding=None):
+                      transform_source=None, fatal=True, encoding=None, data=None, headers=None, query=None):
         """Return the xml as an xml.etree.ElementTree.Element"""
         xml_string = self._download_webpage(
-            url_or_request, video_id, note, errnote, fatal=fatal, encoding=encoding)
+            url_or_request, video_id, note, errnote, fatal=fatal, encoding=encoding, data=data, headers=headers, query=query)
         if xml_string is False:
             return xml_string
         if transform_source:
@@ -497,10 +504,10 @@ class InfoExtractor(object):
                        note='Downloading JSON metadata',
                        errnote='Unable to download JSON metadata',
                        transform_source=None,
-                       fatal=True, encoding=None):
+                       fatal=True, encoding=None, data=None, headers=None, query=None):
         json_string = self._download_webpage(
             url_or_request, video_id, note, errnote, fatal=fatal,
-            encoding=encoding)
+            encoding=encoding, data=data, headers=headers, query=query)
         if (not fatal) and json_string is False:
             return None
         return self._parse_json(
