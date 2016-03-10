@@ -1007,25 +1007,55 @@ class InfoExtractor(object):
 
         return formats
 
+    def _extract_m3u8_info(self, m3u8_url, video_id, ext=None,
+                              entry_protocol='m3u8', preference=None,
+                              m3u8_id=None, note=None, errnote=None,
+                              fatal=True):
+        res = self._download_webpage_handle(
+            m3u8_url, video_id,
+            note=note or 'Downloading m3u8 information',
+            errnote=errnote or 'Failed to download m3u8 information',
+            fatal=fatal)
+        if res is False:
+            return []
+        m3u8_doc, urlh = res
+        m3u8_url = urlh.geturl()
+
+        return self._parse_m3u8(m3u8_doc, m3u8_url, ext, entry_protocol, preference, m3u8_id)
+
+    def _parse_m3u8(self, m3u8_doc, m3u8_url, ext=None, entry_protocol='m3u8', preference=None, m3u8_id=None):
+        return {
+            'formats': self._parse_m3u8_formats(m3u8_doc, m3u8_url, ext, entry_protocol, preference, m3u8_id),
+            'subtitles': self._parse_m3u8_subtitles(m3u8_doc, m3u8_url),
+        }
+
+    def _parse_m3u8_attributes(self, attrib):
+        info = {}
+        for (key, val) in re.findall(r'(?P<key>[A-Z0-9-]+)=(?P<val>"[^"]+"|[^",]+)(?:,|$)', attrib):
+            if val.startswith('"'):
+                val = val[1:-1]
+            info[key] = val
+        return info
+
+    def _parse_m3u8_subtitles(self, m3u8_doc, m3u8_url):
+        subtitle_url = lambda u: (
+            u
+            if re.match(r'^https?://', u)
+            else compat_urlparse.urljoin(m3u8_url, u))
+
+        subtitles = {}
+        for (attrib) in re.findall(r'#EXT-X-MEDIA:(?P<attrib>.*TYPE=SUBTITLES.*)', m3u8_doc):
+            subtitle_info = self._parse_m3u8_attributes(attrib)
+            subtitles.setdefault(subtitle_info['LANGUAGE'], []).append({
+                'url': subtitle_url(subtitle_info['URI']),
+                'ext': 'm3u8'
+            })
+        return subtitles
+
     def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
                               entry_protocol='m3u8', preference=None,
                               m3u8_id=None, note=None, errnote=None,
                               fatal=True):
-
-        formats = [{
-            'format_id': '-'.join(filter(None, [m3u8_id, 'meta'])),
-            'url': m3u8_url,
-            'ext': ext,
-            'protocol': 'm3u8',
-            'preference': preference - 1 if preference else -1,
-            'resolution': 'multiple',
-            'format_note': 'Quality selection URL',
-        }]
-
-        format_url = lambda u: (
-            u
-            if re.match(r'^https?://', u)
-            else compat_urlparse.urljoin(m3u8_url, u))
 
         res = self._download_webpage_handle(
             m3u8_url, video_id,
@@ -1036,6 +1066,12 @@ class InfoExtractor(object):
             return []
         m3u8_doc, urlh = res
         m3u8_url = urlh.geturl()
+
+        return self._parse_m3u8_formats(m3u8_doc, m3u8_url, ext, entry_protocol, preference, m3u8_id)
+
+    def _parse_m3u8_formats(self, m3u8_doc, m3u8_url, ext=None,
+                              entry_protocol='m3u8', preference=None,
+                              m3u8_id=None):
 
         # We should try extracting formats only from master playlists [1], i.e.
         # playlists that describe available qualities. On the other hand media
@@ -1058,73 +1094,95 @@ class InfoExtractor(object):
                 'protocol': entry_protocol,
                 'preference': preference,
             }]
-        last_info = None
-        last_media = None
-        kv_rex = re.compile(
-            r'(?P<key>[a-zA-Z_-]+)=(?P<val>"[^"]+"|[^",]+)(?:,|$)')
-        for line in m3u8_doc.splitlines():
-            if line.startswith('#EXT-X-STREAM-INF:'):
-                last_info = {}
-                for m in kv_rex.finditer(line):
-                    v = m.group('val')
-                    if v.startswith('"'):
-                        v = v[1:-1]
-                    last_info[m.group('key')] = v
-            elif line.startswith('#EXT-X-MEDIA:'):
-                last_media = {}
-                for m in kv_rex.finditer(line):
-                    v = m.group('val')
-                    if v.startswith('"'):
-                        v = v[1:-1]
-                    last_media[m.group('key')] = v
-            elif line.startswith('#') or not line.strip():
-                continue
+
+        formats = [{
+            'format_id': '-'.join(filter(None, [m3u8_id, 'meta'])),
+            'url': m3u8_url,
+            'ext': ext,
+            'protocol': 'm3u8',
+            'preference': preference - 1 if preference else -1,
+            'resolution': 'multiple',
+            'format_note': 'Quality selection URL',
+        }]
+
+        format_url = lambda u: (
+            u
+            if re.match(r'^https?://', u)
+            else compat_urlparse.urljoin(m3u8_url, u))
+
+        def parse_media_info(media_info):
+            return {
+                'format_id': '%s-%s' % (media_info['GROUP-ID'], media_info['NAME']),
+                'url': format_url(url),
+                'language': media_info.get('LANGUAGE'),
+                'vcodec': 'none' if media_info['TYPE'] == 'AUDIO' else None
+            }
+
+        lang = None
+        groups = {}
+        for (attrib) in re.findall(r'#EXT-X-MEDIA:(?P<attrib>.*TYPE=AUDIO.*)', m3u8_doc):
+            media_info = self._parse_m3u8_attributes(attrib)
+            url = media_info.get('URI')
+            if url:
+                formats.append(parse_media_info(media_info))
             else:
-                if last_info is None:
-                    formats.append({'url': format_url(line)})
-                    continue
-                tbr = int_or_none(last_info.get('BANDWIDTH'), scale=1000)
-                format_id = []
-                if m3u8_id:
-                    format_id.append(m3u8_id)
-                last_media_name = last_media.get('NAME') if last_media and last_media.get('TYPE') != 'SUBTITLES' else None
-                format_id.append(last_media_name if last_media_name else '%d' % (tbr if tbr else len(formats)))
-                f = {
-                    'format_id': '-'.join(format_id),
-                    'url': format_url(line.strip()),
-                    'tbr': tbr,
-                    'ext': ext,
-                    'protocol': entry_protocol,
-                    'preference': preference,
+                lang = media_info.get('LANGUAGE')
+        for (attrib, url) in re.findall(r'#EXT-X-STREAM-INF:(?P<attrib>.*)\r?\n(?P<url>.+)', m3u8_doc):
+            stream_info = self._parse_m3u8_attributes(attrib)
+            tbr = int_or_none(stream_info.get('AVERAGE-BANDWIDTH') or stream_info.get('BANDWIDTH'), scale=1000)
+            format_id = []
+            if m3u8_id:
+                format_id.append(m3u8_id)
+            format_id.append('%d' % (tbr if tbr else len(formats)))
+            f = {
+                'format_id': '-'.join(format_id),
+                'url': format_url(url),
+                'tbr': tbr,
+                'fps': float_or_none(stream_info.get('FRAME-RATE')),
+                'language': lang,
+                'ext': ext,
+                'protocol': entry_protocol,
+                'preference': preference,
+            }
+            resolution = stream_info.get('RESOLUTION')
+            if resolution:
+                width_str, height_str = resolution.split('x')
+                r = {
+                    'width': int(width_str),
+                    'height': int(height_str),
                 }
-                resolution = last_info.get('RESOLUTION')
-                if resolution:
-                    width_str, height_str = resolution.split('x')
-                    f['width'] = int(width_str)
-                    f['height'] = int(height_str)
-                codecs = last_info.get('CODECS')
-                if codecs:
-                    vcodec, acodec = [None] * 2
-                    va_codecs = codecs.split(',')
-                    if len(va_codecs) == 1:
-                        # Audio only entries usually come with single codec and
-                        # no resolution. For more robustness we also check it to
-                        # be mp4 audio.
-                        if not resolution and va_codecs[0].startswith('mp4a'):
-                            vcodec, acodec = 'none', va_codecs[0]
-                        else:
-                            vcodec = va_codecs[0]
+                f.update(r)
+                group = stream_info.get('VIDEO')
+                if group:
+                    groups[group] = r
+            codecs = stream_info.get('CODECS')
+            if codecs:
+                vcodec, acodec = [None] * 2
+                va_codecs = codecs.split(',')
+                if len(va_codecs) == 1:
+                    # Audio only entries usually come with single codec and
+                    # no resolution. For more robustness we also check it to
+                    # be mp4 audio.
+                    if not resolution and va_codecs[0].startswith('mp4a'):
+                        vcodec, acodec = 'none', va_codecs[0]
                     else:
-                        vcodec, acodec = va_codecs[:2]
-                    f.update({
-                        'acodec': acodec,
-                        'vcodec': vcodec,
-                    })
-                if last_media is not None:
-                    f['m3u8_media'] = last_media
-                    last_media = None
-                formats.append(f)
-                last_info = {}
+                        vcodec = va_codecs[0]
+                else:
+                    vcodec, acodec = va_codecs[:2]
+                f.update({
+                    'acodec': acodec,
+                    'vcodec': vcodec,
+                })
+            formats.append(f)
+        for (attrib) in re.findall(r'#EXT-X-MEDIA:(?P<attrib>.*TYPE=VIDEO.*)', m3u8_doc):
+            media_info = self._parse_m3u8_attributes(attrib)
+            url = media_info.get('URI')
+            if url:
+                v = parse_media_info(media_info)
+                group = groups.get(media_info['GROUP-ID'])
+                if group:
+                    v.update(group)
+                formats.append(v)
         self._sort_formats(formats)
         return formats
 
