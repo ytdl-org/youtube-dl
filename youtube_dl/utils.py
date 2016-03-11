@@ -1893,6 +1893,22 @@ def mimetype2ext(mt):
     }.get(res, res)
 
 
+def codec2ext(codec):
+    codec_type = codec.split('.')[0]
+
+    # Leave the return value None for unknown values as codec_type
+    # is not a good fallback for file extensions
+    return {
+        'avc1': 'mp4',
+        'avc2': 'mp4',
+        'avc3': 'mp4',
+        'avc4': 'mp4',
+        'mp4a': 'm4a',
+        'vorbis': 'webm',
+        'vp9': 'webm',
+    }.get(codec_type)
+
+
 def urlhandle_detect_ext(url_handle):
     try:
         url_handle.headers
