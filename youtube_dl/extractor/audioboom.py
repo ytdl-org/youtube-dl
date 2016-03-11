@@ -15,25 +15,52 @@ class AudioBoomIE(InfoExtractor):
             'ext': 'mp3',
             'title': '3/09/2016 Czaban Hour 3',
             'description': 'Guest:   Nate Davis - NFL free agency,   Guest:   Stan Gans',
-            'duration': 2245.72
+            'duration': 2245.72,
+            'uploader': 'Steve Czaban',
+            'uploader_url': 're:https?://(?:www\.)?audioboom\.com/channel/steveczabanyahoosportsradio',
         }
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+
         webpage = self._download_webpage(url, video_id)
 
-        title = self._og_search_title(webpage)
+        clip = None
 
-        download_url = self._og_search_property('audio', webpage, 'url')
+        clip_store = self._parse_json(
+            self._search_regex(
+                r'data-new-clip-store=(["\'])(?P<json>{.*?"clipId"\s*:\s*%s.*?})\1' % video_id,
+                webpage, 'clip store', default='{}', group='json'),
+            video_id, fatal=False)
+        if clip_store:
+            clips = clip_store.get('clips')
+            if clips and isinstance(clips, list) and isinstance(clips[0], dict):
+                clip = clips[0]
 
-        duration = float_or_none(self._html_search_meta(
-            'weibo:audio:duration', webpage, fatal=False))
+        def from_clip(field):
+            if clip:
+                clip.get(field)
+
+        audio_url = from_clip('clipURLPriorToLoading') or self._og_search_property(
+            'audio', webpage, 'audio url')
+        title = from_clip('title') or self._og_search_title(webpage)
+        description = from_clip('description') or self._og_search_description(webpage)
+
+        duration = float_or_none(from_clip('duration') or self._html_search_meta(
+            'weibo:audio:duration', webpage))
+
+        uploader = from_clip('author') or self._og_search_property(
+            'audio:artist', webpage, 'uploader', fatal=False)
+        uploader_url = from_clip('author_url') or self._html_search_meta(
+            'audioboo:channel', webpage, 'uploader url')
 
         return {
             'id': video_id,
+            'url': audio_url,
             'title': title,
-            'url': download_url,
-            'description': self._og_search_description(webpage),
+            'description': description,
             'duration': duration,
+            'uploader': uploader,
+            'uploader_url': uploader_url,
         }
