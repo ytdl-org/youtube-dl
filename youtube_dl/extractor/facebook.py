@@ -38,7 +38,8 @@ class FacebookIE(InfoExtractor):
                                 story\.php
                             )\?(?:.*?)(?:v|video_id|story_fbid)=|
                             [^/]+/videos/(?:[^/]+/)?|
-                            [^/]+/posts/
+                            [^/]+/posts/|
+                            groups/[^/]+/permalink/
                         )|
                     facebook:
                 )
@@ -122,6 +123,9 @@ class FacebookIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'facebook:544765982287235',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.facebook.com/groups/164828000315060/permalink/764967300301124/',
         'only_matching': True,
     }]
 
