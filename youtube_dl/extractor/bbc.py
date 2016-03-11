@@ -10,7 +10,6 @@ from ..utils import (
     int_or_none,
     parse_duration,
     parse_iso8601,
-    remove_end,
     unescapeHTML,
 )
 from ..compat import (
@@ -796,9 +795,15 @@ class BBCIE(BBCCoUkIE):
                             entries.append(self._extract_from_playlist_sxml(
                                 playlist.get('progressiveDownloadUrl'), playlist_id, timestamp))
 
+        playlist_title = self._og_search_title(webpage, default=None)
+        playlist_title = playlist_title or self._html_search_regex(
+            r'<title>(.*?)</title>', webpage, 'playlist title')
+
+        playlist_title = self._search_regex(r'(.+)\s*-\s*BBC', playlist_title, 'title', default=playlist_title)
+
+        playlist_description = self._og_search_description(webpage, default=None)
+
         if entries:
-            playlist_title = playlist_title or remove_end(self._og_search_title(webpage), ' - BBC News')
-            playlist_description = playlist_description or self._og_search_description(webpage, default=None)
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
 
         # single video story (e.g. http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
@@ -828,10 +833,6 @@ class BBCIE(BBCCoUkIE):
                 'formats': formats,
                 'subtitles': subtitles,
             }
-
-        playlist_title = self._html_search_regex(
-            r'<title>(.*?)(?:\s*-\s*BBC [^ ]+)?</title>', webpage, 'playlist title')
-        playlist_description = self._og_search_description(webpage, default=None)
 
         def extract_all(pattern):
             return list(filter(None, map(
