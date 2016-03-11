@@ -5,15 +5,16 @@ from ..utils import (
     int_or_none,
     parse_iso8601
 )
+import re
 
 
 class ArkenaPlayIE(InfoExtractor):
     IE_NAME = 'ArkenaPlay'
-    _VALID_URL = r'(?P<host>https?://(?:www\.)?play\..*\..*)/embed/.*(?P<id>\d+)?/.*'
+    _VALID_URL = r'(?P<shortcut>arkena:(?P<version>[0-9]+):(?P<mediatype>[A-Za-z0-9]+):(?P<mediaId>[^:]+):(?P<widgetsettingId>[A-Za-z0-9]+):(?P<accountId>[A-Za-z0-9]+))|(?:(?P<host>https?://(?:www\.)?play\..*\..*)/embed/(?:avp/v[0-9]+/player/[A-Za-z0-9]+/)?(?P<id>.*)?)'
 
     _TESTS = [{
         'url': 'http://play.lcp.fr/embed/327336/131064/darkmatter/0',
-        'md5': '7d857b1af491ec0f6c2610e52df1ff82',
+        'md5': '6cea4f7d13810464ef8485a924fc3333',
         'info_dict': {
             'id': '327336',
             'url': 're:http://httpod.scdn.arkena.com/11970/327336.*',
@@ -23,7 +24,8 @@ class ArkenaPlayIE(InfoExtractor):
             'timestamp': 1456391602
         }
     }, {
-        'url': 'https://play.arkena.com/embed/avp/v2/player/media/b41dda37-d8e7-4d3f-b1b5-9a9db578bdfe/1/129411',
+        # Shortcut for: https://play.arkena.com/embed/avp/v2/player/media/b41dda37-d8e7-4d3f-b1b5-9a9db578bdfe/1/129411
+        'url': 'arkena:2:media:b41dda37-d8e7-4d3f-b1b5-9a9db578bdfe:1:129411',
         'md5': 'b96f2f71b359a8ecd05ce4e1daa72365',
         'info_dict': {
             'id': 'b41dda37-d8e7-4d3f-b1b5-9a9db578bdfe',
@@ -37,15 +39,26 @@ class ArkenaPlayIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        display_id = self._search_regex(self._VALID_URL, url, 'host_name', group='id')
-        webpage = self._download_webpage(url, display_id)
+        mobj = re.match(self._VALID_URL, url)
+        if mobj.group('shortcut'):
+            version = mobj.group('version')
+            mediatype = mobj.group('mediatype')
+            mediaid = mobj.group('mediaId')
+            widgetsettingid = mobj.group('widgetsettingId')
+            accountid = mobj.group('accountId')
+            display_id = '{0}:{1}:{2}:{3}'.format(mediatype, mediaid, widgetsettingid, accountid)
+            media_url = 'https://play.arkena.com/config/avp/v{0}/player/{1}/{2}/{3}/{4}/?callbackMethod=?'.format(
+                version, mediatype, mediaid, widgetsettingid, accountid)
+        else:
+            display_id = self._search_regex(self._VALID_URL, url, 'host_name', group='id')
+            webpage = self._download_webpage(url, display_id)
 
-        media_url_regex = '"(?P<mediainfo>(?P<host>.*)/(c|C)onfig/.*\?callbackMethod=\?)"'
-        media_url = self._html_search_regex(media_url_regex, webpage, 'arkena_media_info_url')
-        hostname = self._html_search_regex(media_url_regex, webpage, 'arkena_media_host', group='host')
-        if not hostname:
-            hostname = self._search_regex(self._VALID_URL, url, 'host_name', group='host')
-            media_url = hostname + media_url
+            media_url_regex = '"(?P<mediainfo>(?P<host>.*)/(c|C)onfig/.*\?callbackMethod=\?)"'
+            media_url = self._html_search_regex(media_url_regex, webpage, 'arkena_media_info_url')
+            hostname = self._html_search_regex(media_url_regex, webpage, 'arkena_media_host', group='host')
+            if not hostname:
+                hostname = self._search_regex(self._VALID_URL, url, 'host_name', group='host')
+                media_url = hostname + media_url
 
         # Extract the required info of the media files gathered in a dictionary
         arkena_info = self._download_webpage(media_url, 'arkena_info_')
@@ -107,57 +120,32 @@ class ArkenaPlayIE(InfoExtractor):
         if not media_files:
             return None
 
-        formats.extend(self.__get_mp4_video_formats(media_files))
-        formats.extend(self.__get_m3u8_video_formats(media_files, video_id))
-        formats.extend(self.__get_flash_video_formats(media_files, video_id))
-        # TODO <DASH (mpd) formats>
+        for type_name, video_files_json in media_files.iteritems():
+            for video_info in video_files_json:
+                video_url = video_info.get('Url')
+                if not video_url:
+                    continue
+                type = video_info.get('Type')
+                if type_name in ['Mp4', 'WebM', 'Flash']:
+                    bitrate = int_or_none(video_info.get('Bitrate'), scale=1000)
+                    ext = None
+                    if type == 'video/mp4':
+                        ext = 'mp4'
+                    elif type == 'video/webm':
+                        ext = 'webm'
+                    elif type == 'video/x-flv':
+                        ext = 'flv'
+                    formats.append({
+                        'url': video_url,
+                        'ext': ext,
+                        'tbr': bitrate
+                    })
+                elif type_name == 'M3u8' and type == 'application/x-mpegURL':
+                    formats.extend(self._extract_m3u8_formats(video_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
+                elif type_name == 'Flash' and type == 'application/hds+xml':
+                    formats.extend(self._extract_f4m_formats(video_url, video_id, f4m_id='hds', fatal=False))
+                elif type_name == 'Dash' and type == 'application/dash+xml':
+                    formats.extend(self._extract_mpd_formats(video_url, video_id, mpd_id='dash', fatal=False))
+
         self._sort_formats(formats)
-        return formats
-
-    def __get_mp4_video_formats(self, media_files_json):
-        formats = []
-        mp4_files_json = media_files_json.get('Mp4')
-        if not mp4_files_json:
-            return None
-        for video_info in mp4_files_json:
-            bitrate = int_or_none(video_info.get('Bitrate'), scale=1000)  # Scale bitrate to KBit/s
-            video_url = video_info.get('Url')
-            if not video_url:
-                continue
-            formats.append({
-                'url': video_url,
-                'ext': 'mp4',
-                'tbr': bitrate
-            })
-        return formats
-
-    def __get_m3u8_video_formats(self, media_files_json, video_id):
-        formats = []
-        m3u8_files_json = media_files_json.get('M3u8')
-        if not m3u8_files_json:
-            return None
-        for video_info in m3u8_files_json:
-            video_url = video_info.get('Url')
-            if not video_url:
-                continue
-            formats.extend(self._extract_m3u8_formats(video_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
-        return formats
-
-    def __get_flash_video_formats(self, media_files_json, video_id):
-        formats = []
-        flash_files_json = media_files_json.get('Flash')
-        if not flash_files_json:
-            return None
-        for video_info in flash_files_json:
-            video_url = video_info.get('Url')
-            if not video_url:
-                continue
-            video_type = video_info.get('Type')
-            if video_type == 'application/hds+xml':
-                formats.extend(self._extract_f4m_formats(video_url, video_id, f4m_id='hds', fatal=False))
-            elif video_type == 'video/x-flv':
-                formats.append({
-                    'url': video_url,
-                    'ext': 'flv'
-                })
         return formats
