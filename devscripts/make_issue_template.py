@@ -20,7 +20,7 @@ def main():
          'youtube_dl/version.py', 'exec'))
 
     issue_template_text = re.sub(
-        r'(?<=available \()(?P<version>[0-9\.]+)(?=\))',
+        r'(?<=\*\*)(?P<version>[0-9\.]+)(?=\*\*)',
         __version__,
         issue_template_text
     )
