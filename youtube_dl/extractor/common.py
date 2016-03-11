@@ -29,7 +29,6 @@ from ..utils import (
     age_restricted,
     bug_reports_message,
     clean_html,
-    codec2ext,
     compiled_regex_type,
     determine_ext,
     error_to_compat_str,
@@ -1448,8 +1447,9 @@ class InfoExtractor(object):
                         continue
                     representation_attrib = adaptation_set.attrib.copy()
                     representation_attrib.update(representation.attrib)
-                    mime_type = representation_attrib.get('mimeType')
-                    content_type = mime_type.split('/')[0] if mime_type else representation_attrib.get('contentType')
+                    # According to page 41 of ISO/IEC 29001-1:2014, @mimeType is mandatory
+                    mime_type = representation_attrib['mimeType']
+                    content_type = mime_type.split('/')[0]
                     if content_type == 'text':
                         # TODO implement WebVTT downloading
                         pass
@@ -1472,7 +1472,7 @@ class InfoExtractor(object):
                         f = {
                             'format_id': '%s-%s' % (mpd_id, representation_id) if mpd_id else representation_id,
                             'url': base_url,
-                            'ext': codec2ext(representation_attrib.get('codecs')),
+                            'ext': mimetype2ext(mime_type),
                             'width': int_or_none(representation_attrib.get('width')),
                             'height': int_or_none(representation_attrib.get('height')),
                             'tbr': int_or_none(representation_attrib.get('bandwidth'), 1000),
