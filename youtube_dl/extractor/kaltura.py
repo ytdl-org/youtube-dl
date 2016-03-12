@@ -137,10 +137,7 @@ class KalturaIE(InfoExtractor):
                 params = compat_parse_qs(query)
             if path:
                 splitted_path = path.split('/')
-                if not splitted_path[-1]:
-                    splitted_path = splitted_path[:-1]
-                for i in range(0, len(splitted_path), 2):
-                    params[splitted_path[i]] = [splitted_path[i + 1]]
+                params.update(dict((zip(splitted_path[::2], [[v] for v in splitted_path[1::2]]))))
             if 'wid' in params:
                 partner_id = params['wid'][0][1:]
             elif 'p' in params:
