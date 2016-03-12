@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import itertools
 import re
 
 from .common import InfoExtractor
@@ -11,204 +10,156 @@ from ..compat import (
 )
 from ..utils import (
     unified_strdate,
-    qualities,
+    ExtractorError,
 )
 
 
 class WDRIE(InfoExtractor):
-    _PLAYER_REGEX = '-(?:video|audio)player(?:_size-[LMS])?'
-    _VALID_URL = r'(?P<url>https?://www\d?\.(?:wdr\d?|funkhauseuropa)\.de/)(?P<id>.+?)(?P<player>%s)?\.html' % _PLAYER_REGEX
+    _PAGE_REGEX = r'/mediathek/(?P<media_type>[^/]+)/(?P<type>[^/]+)/(?P<display_id>.+)\.html'
+    _VALID_URL = r'(?P<page_url>https?://(?:www\d\.)?wdr\d?\.de)' + _PAGE_REGEX
+
+    _JS_URL_REGEX = r'(https?://deviceids-medp.wdr.de/ondemand/\d+/\d+\.js)'
 
     _TESTS = [
         {
-            'url': 'http://www1.wdr.de/mediathek/video/sendungen/servicezeit/videoservicezeit560-videoplayer_size-L.html',
+            'url': 'http://www1.wdr.de/mediathek/video/sendungen/doku-am-freitag/video-geheimnis-aachener-dom-100.html',
+            'md5': 'e58c39c3e30077141d258bf588700a7b',
             'info_dict': {
-                'id': 'mdb-362427',
+                'id': 'mdb-1058683',
                 'ext': 'flv',
-                'title': 'Servicezeit',
-                'description': 'md5:c8f43e5e815eeb54d0b96df2fba906cb',
-                'upload_date': '20140310',
-                'is_live': False
-            },
-            'params': {
-                'skip_download': True,
+                'display_id': 'doku-am-freitag/video-geheimnis-aachener-dom-100',
+                'title': 'Geheimnis Aachener Dom',
+                'alt_title': 'Doku am Freitag',
+                'upload_date': '20160304',
+                'description': 'md5:87be8ff14d8dfd7a7ee46f0299b52318',
+                'is_live': False,
+                'subtitles': {'de': [{
+                    'url': 'http://ondemand-ww.wdr.de/medp/fsk0/105/1058683/1058683_12220974.xml'
+                }]},
             },
             'skip': 'Page Not Found',
         },
         {
-            'url': 'http://www1.wdr.de/themen/av/videomargaspiegelisttot101-videoplayer.html',
+            'url': 'http://www1.wdr.de/mediathek/audio/wdr3/wdr3-gespraech-am-samstag/audio-schriftstellerin-juli-zeh-100.html',
+            'md5': 'f4c1f96d01cf285240f53ea4309663d8',
             'info_dict': {
-                'id': 'mdb-363194',
+                'id': 'mdb-1072000',
+                'ext': 'mp3',
+                'display_id': 'wdr3-gespraech-am-samstag/audio-schriftstellerin-juli-zeh-100',
+                'title': 'Schriftstellerin Juli Zeh',
+                'alt_title': 'WDR 3 Gespräch am Samstag',
+                'upload_date': '20160312',
+                'description': 'md5:e127d320bc2b1f149be697ce044a3dd7',
+                'is_live': False,
+                'subtitles': {}
+            },
+            'skip': 'Page Not Found',
+        },
+        {
+            'url': 'http://www1.wdr.de/mediathek/video/live/index.html',
+            'info_dict': {
+                'id': 'mdb-103364',
                 'ext': 'flv',
-                'title': 'Marga Spiegel ist tot',
-                'description': 'md5:2309992a6716c347891c045be50992e4',
-                'upload_date': '20140311',
-                'is_live': False
-            },
-            'params': {
-                'skip_download': True,
-            },
-            'skip': 'Page Not Found',
-        },
-        {
-            'url': 'http://www1.wdr.de/themen/kultur/audioerlebtegeschichtenmargaspiegel100-audioplayer.html',
-            'md5': '83e9e8fefad36f357278759870805898',
-            'info_dict': {
-                'id': 'mdb-194332',
-                'ext': 'mp3',
-                'title': 'Erlebte Geschichten: Marga Spiegel (29.11.2009)',
-                'description': 'md5:2309992a6716c347891c045be50992e4',
-                'upload_date': '20091129',
-                'is_live': False
-            },
-        },
-        {
-            'url': 'http://www.funkhauseuropa.de/av/audioflaviacoelhoamaramar100-audioplayer.html',
-            'md5': '99a1443ff29af19f6c52cf6f4dc1f4aa',
-            'info_dict': {
-                'id': 'mdb-478135',
-                'ext': 'mp3',
-                'title': 'Flavia Coelho: Amar é Amar',
-                'description': 'md5:7b29e97e10dfb6e265238b32fa35b23a',
-                'upload_date': '20140717',
-                'is_live': False
-            },
-            'skip': 'Page Not Found',
-        },
-        {
-            'url': 'http://www1.wdr.de/mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100.html',
-            'playlist_mincount': 146,
-            'info_dict': {
-                'id': 'mediathek/video/sendungen/quarks_und_co/filterseite-quarks-und-co100',
+                'display_id': 'index',
+                'title': r're:^WDR Fernsehen im Livestream [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+                'alt_title': 'WDR Fernsehen Live',
+                'upload_date': None,
+                'description': 'md5:ae2ff888510623bf8d4b115f95a9b7c9',
+                'is_live': True,
+                'subtitles': {}
             }
         },
         {
-            'url': 'http://www1.wdr.de/mediathek/video/livestream/index.html',
+            'url': 'http://www1.wdr.de/mediathek/video/sendungen/aktuelle-stunde/aktuelle-stunde-120.html',
+            'playlist_mincount': 10,
             'info_dict': {
-                'id': 'mdb-103364',
-                'title': 're:^WDR Fernsehen Live [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
-                'description': 'md5:ae2ff888510623bf8d4b115f95a9b7c9',
-                'ext': 'flv',
-                'upload_date': '20150101',
-                'is_live': True
-            },
-            'params': {
-                'skip_download': True,
+                'id': 'aktuelle-stunde/aktuelle-stunde-120',
             },
         }
     ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        page_url = mobj.group('url')
-        page_id = mobj.group('id')
+        url_type = mobj.group('type')
+        page_url = mobj.group('page_url')
+        display_id = mobj.group('display_id')
+        webpage = self._download_webpage(url, display_id)
 
-        webpage = self._download_webpage(url, page_id)
+        js_url = self._search_regex(self._JS_URL_REGEX, webpage, 'js_url', default=None)
 
-        if mobj.group('player') is None:
+        if not js_url:
             entries = [
-                self.url_result(page_url + href, 'WDR')
+                self.url_result(page_url + href[0], 'WDR')
                 for href in re.findall(
-                    r'<a href="/?(.+?%s\.html)" rel="nofollow"' % self._PLAYER_REGEX,
+                    r'<a href="(%s)"' % self._PAGE_REGEX,
                     webpage)
             ]
 
             if entries:  # Playlist page
-                return self.playlist_result(entries, page_id)
+                return self.playlist_result(entries, playlist_id=display_id)
 
-            # Overview page
-            entries = []
-            for page_num in itertools.count(2):
-                hrefs = re.findall(
-                    r'<li class="mediathekvideo"\s*>\s*<img[^>]*>\s*<a href="(/mediathek/video/[^"]+)"',
-                    webpage)
-                entries.extend(
-                    self.url_result(page_url + href, 'WDR')
-                    for href in hrefs)
-                next_url_m = re.search(
-                    r'<li class="nextToLast">\s*<a href="([^"]+)"', webpage)
-                if not next_url_m:
-                    break
-                next_url = page_url + next_url_m.group(1)
-                webpage = self._download_webpage(
-                    next_url, page_id,
-                    note='Downloading playlist page %d' % page_num)
-            return self.playlist_result(entries, page_id)
+            raise ExtractorError('No downloadable streams found', expected=True)
 
-        flashvars = compat_parse_qs(self._html_search_regex(
-            r'<param name="flashvars" value="([^"]+)"', webpage, 'flashvars'))
+        js_data = self._download_webpage(js_url, 'metadata')
+        json_data = self._search_regex(r'\(({.*})\)', js_data, 'json')
+        metadata = self._parse_json(json_data, display_id)
 
-        page_id = flashvars['trackerClipId'][0]
-        video_url = flashvars['dslSrc'][0]
-        title = flashvars['trackerClipTitle'][0]
-        thumbnail = flashvars['startPicture'][0] if 'startPicture' in flashvars else None
-        is_live = flashvars.get('isLive', ['0'])[0] == '1'
+        metadata_tracker_data = metadata["trackerData"]
+        metadata_media_resource = metadata["mediaResource"]
+
+        formats = []
+
+        # check if the metadata contains a direct URL to a file
+        metadata_media_alt = metadata_media_resource.get("alt")
+        if metadata_media_alt:
+            for tag_name in ["videoURL", 'audioURL']:
+                if tag_name in metadata_media_alt:
+                    formats.append({
+                        'url': metadata_media_alt[tag_name]
+                    })
+
+        # check if there are flash-streams for this video
+        if "dflt" in metadata_media_resource and "videoURL" in metadata_media_resource["dflt"]:
+            video_url = metadata_media_resource["dflt"]["videoURL"]
+            if video_url.endswith('.f4m'):
+                full_video_url = video_url + '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18'
+                formats.extend(self._extract_f4m_formats(full_video_url, display_id, f4m_id='hds', fatal=False))
+            elif video_url.endswith('.smil'):
+                formats.extend(self._extract_smil_formats(video_url, 'stream', fatal=False))
+
+        subtitles = {}
+        caption_url = metadata_media_resource.get("captionURL")
+        if caption_url:
+            subtitles['de'] = [{
+                'url': caption_url
+            }]
+
+        title = metadata_tracker_data.get("trackerClipTitle")
+        is_live = url_type == 'live'
 
         if is_live:
             title = self._live_title(title)
-
-        if 'trackerClipAirTime' in flashvars:
-            upload_date = flashvars['trackerClipAirTime'][0]
+            upload_date = None
+        elif 'trackerClipAirTime' in metadata_tracker_data:
+            upload_date = metadata_tracker_data['trackerClipAirTime']
         else:
-            upload_date = self._html_search_meta(
-                'DC.Date', webpage, 'upload date')
+            upload_date = self._html_search_meta('DC.Date', webpage, 'upload date')
 
         if upload_date:
             upload_date = unified_strdate(upload_date)
 
-        formats = []
-        preference = qualities(['S', 'M', 'L', 'XL'])
-
-        if video_url.endswith('.f4m'):
-            formats.extend(self._extract_f4m_formats(
-                video_url + '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18', page_id,
-                f4m_id='hds', fatal=False))
-        elif video_url.endswith('.smil'):
-            formats.extend(self._extract_smil_formats(
-                video_url, page_id, False, {
-                    'hdcore': '3.3.0',
-                    'plugin': 'aasp-3.3.0.99.43',
-                }))
-        else:
-            formats.append({
-                'url': video_url,
-                'http_headers': {
-                    'User-Agent': 'mobile',
-                },
-            })
-
-        m3u8_url = self._search_regex(
-            r'rel="adaptiv"[^>]+href="([^"]+)"',
-            webpage, 'm3u8 url', default=None)
-        if m3u8_url:
-            formats.extend(self._extract_m3u8_formats(
-                m3u8_url, page_id, 'mp4', 'm3u8_native',
-                m3u8_id='hls', fatal=False))
-
-        direct_urls = re.findall(
-            r'rel="web(S|M|L|XL)"[^>]+href="([^"]+)"', webpage)
-        if direct_urls:
-            for quality, video_url in direct_urls:
-                formats.append({
-                    'url': video_url,
-                    'preference': preference(quality),
-                    'http_headers': {
-                        'User-Agent': 'mobile',
-                    },
-                })
-
         self._sort_formats(formats)
 
-        description = self._html_search_meta('Description', webpage, 'description')
-
         return {
-            'id': page_id,
-            'formats': formats,
+            'id': metadata_tracker_data.get("trackerClipId", display_id),
+            'display_id': display_id,
             'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
+            'alt_title': metadata_tracker_data.get("trackerClipSubcategory"),
+            'formats': formats,
             'upload_date': upload_date,
-            'is_live': is_live
+            'description': self._html_search_meta("Description", webpage),
+            'is_live': is_live,
+            'subtitles': subtitles,
         }
 
 
