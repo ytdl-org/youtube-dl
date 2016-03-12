@@ -1242,28 +1242,34 @@ class GenericIE(InfoExtractor):
             full_response = self._request_webpage(request, video_id)
             head_response = full_response
 
+        info_dict = {
+            'id': video_id,
+            'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
+        }
+
         # Check for direct link to a video
         content_type = head_response.headers.get('Content-Type', '')
         m = re.match(r'^(?P<type>audio|video|application(?=/(?:ogg$|(?:vnd\.apple\.|x-)?mpegurl)))/(?P<format_id>.+)$', content_type)
         if m:
             upload_date = unified_strdate(
                 head_response.headers.get('Last-Modified'))
-            formats = []
-            if m.group('format_id').endswith('mpegurl'):
+            format_id = m.group('format_id')
+            if format_id.endswith('mpegurl'):
                 formats = self._extract_m3u8_formats(url, video_id, 'mp4')
+            elif format_id == 'f4m':
+                formats = self._extract_f4m_formats(url, video_id)
             else:
                 formats = [{
                     'format_id': m.group('format_id'),
                     'url': url,
                     'vcodec': 'none' if m.group('type') == 'audio' else None
                 }]
-            return {
-                'id': video_id,
-                'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
+            info_dict.update({
                 'direct': True,
                 'formats': formats,
                 'upload_date': upload_date,
-            }
+            })
+            return info_dict
 
         if not self._downloader.params.get('test', False) and not is_intentional:
             force = self._downloader.params.get('force_generic_extractor', False)
@@ -1291,13 +1297,12 @@ class GenericIE(InfoExtractor):
                 'URL could be a direct video link, returning it as such.')
             upload_date = unified_strdate(
                 head_response.headers.get('Last-Modified'))
-            return {
-                'id': video_id,
-                'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
+            info_dict.update({
                 'direct': True,
                 'url': url,
                 'upload_date': upload_date,
-            }
+            })
+            return info_dict
 
         webpage = self._webpage_read_content(
             full_response, url, video_id, prefix=first_bytes)
@@ -1314,12 +1319,12 @@ class GenericIE(InfoExtractor):
             elif doc.tag == '{http://xspf.org/ns/0/}playlist':
                 return self.playlist_result(self._parse_xspf(doc, video_id), video_id)
             elif re.match(r'(?i)^(?:{[^}]+})?MPD$', doc.tag):
-                return {
-                    'id': video_id,
-                    'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
-                    'formats': self._parse_mpd_formats(
-                        doc, video_id, mpd_base_url=url.rpartition('/')[0]),
-                }
+                info_dict['formats'] = self._parse_mpd_formats(
+                    doc, video_id, mpd_base_url=url.rpartition('/')[0])
+                return info_dict
+            elif re.match(r'^{http://ns\.adobe\.com/f4m/[12]\.0}manifest$', doc.tag):
+                info_dict['formats'] = self._parse_f4m_formats(doc, url, video_id)
+                return info_dict
         except compat_xml_parse_error:
             pass
 
