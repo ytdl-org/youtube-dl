@@ -4,12 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .brightcove import BrightcoveLegacyIE
 
 from ..utils import (
     ExtractorError,
     sanitized_Request,
-    smuggle_url,
     std_headers,
     urlencode_postdata,
     update_url_query,
