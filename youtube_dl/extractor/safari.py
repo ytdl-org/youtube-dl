@@ -27,12 +27,13 @@ class SafariBaseIE(InfoExtractor):
     LOGGED_IN = False
 
     def _real_initialize(self):
-        # We only need to log in once for courses or individual videos
-        if not self.LOGGED_IN:
-            self._login()
-            SafariBaseIE.LOGGED_IN = True
+        self._login()
 
     def _login(self):
+        # We only need to log in once for courses or individual videos
+        if self.LOGGED_IN:
+            return
+
         (username, password) = self._get_login_info()
         if username is None:
             return
@@ -67,6 +68,8 @@ class SafariBaseIE(InfoExtractor):
             raise ExtractorError(
                 'Login failed; make sure your credentials are correct and try again.',
                 expected=True)
+
+        SafariBaseIE.LOGGED_IN = True
 
         self.to_screen('Login successful')
 
