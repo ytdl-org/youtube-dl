@@ -15,8 +15,9 @@ from ..utils import (
 
 
 class WDRIE(InfoExtractor):
+    _CURRENT_MAUS_URL = r'https?://www.wdrmaus.de/aktuelle-sendung/(wdr|index).php5'
     _PAGE_REGEX = r'/mediathek/(?P<media_type>[^/]+)/(?P<type>[^/]+)/(?P<display_id>.+)\.html'
-    _VALID_URL = r'(?P<page_url>https?://(?:www\d\.)?wdr\d?\.de)' + _PAGE_REGEX
+    _VALID_URL = r'(?P<page_url>https?://(?:www\d\.)?wdr\d?\.de)' + _PAGE_REGEX + "|" + _CURRENT_MAUS_URL
 
     _JS_URL_REGEX = r'(https?://deviceids-medp.wdr.de/ondemand/\d+/\d+\.js)'
 
@@ -75,7 +76,18 @@ class WDRIE(InfoExtractor):
             'info_dict': {
                 'id': 'aktuelle-stunde/aktuelle-stunde-120',
             },
-        }
+        },
+        {
+            'url': 'http://www.wdrmaus.de/aktuelle-sendung/index.php5',
+            'info_dict': {
+                'id': 'mdb-1096487',
+                'ext': 'flv',
+                'upload_date': 're:^[0-9]{8}$',
+                'title': 're:^Die Sendung mit der Maus vom [0-9.]{10}$',
+                'description': '- Die Sendung mit der Maus -',
+            },
+            'skip': 'The id changes from week to week because of the new episode'
+        },
     ]
 
     def _real_extract(self, url):
@@ -195,26 +207,17 @@ class WDRMobileIE(InfoExtractor):
 
 
 class WDRMausIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?wdrmaus\.de/(?:[^/]+/){,2}(?P<id>[^/?#]+)(?:/index\.php5|(?<!index)\.php5|/(?:$|[?#]))'
+    _VALID_URL = 'https?://(?:www\.)?wdrmaus\.de/(?:[^/]+/){,2}(?P<id>[^/?#]+)((?<!index)\.php5|/(?:$|[?#]))'
     IE_DESC = 'Sendung mit der Maus'
     _TESTS = [{
-        'url': 'http://www.wdrmaus.de/aktuelle-sendung/index.php5',
+        'url': 'http://www.wdrmaus.de/sachgeschichten/sachgeschichten/achterbahn.php5',
+        'md5': '178b432d002162a14ccb3e0876741095',
         'info_dict': {
-            'id': 'aktuelle-sendung',
+            'id': 'achterbahn',
             'ext': 'mp4',
             'thumbnail': 're:^http://.+\.jpg',
-            'upload_date': 're:^[0-9]{8}$',
-            'title': 're:^[0-9.]{10} - Aktuelle Sendung$',
-        }
-    }, {
-        'url': 'http://www.wdrmaus.de/sachgeschichten/sachgeschichten/40_jahre_maus.php5',
-        'md5': '3b1227ca3ed28d73ec5737c65743b2a3',
-        'info_dict': {
-            'id': '40_jahre_maus',
-            'ext': 'mp4',
-            'thumbnail': 're:^http://.+\.jpg',
-            'upload_date': '20131007',
-            'title': '12.03.2011 - 40 Jahre Maus',
+            'upload_date': '20131001',
+            'title': '19.09.2013 - Achterbahn',
         }
     }]
 
