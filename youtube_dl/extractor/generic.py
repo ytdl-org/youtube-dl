@@ -1990,6 +1990,8 @@ class GenericIE(InfoExtractor):
                 entry_info_dict['formats'] = self._extract_m3u8_formats(video_url, video_id, ext='mp4')
             elif ext == 'mpd':
                 entry_info_dict['formats'] = self._extract_mpd_formats(video_url, video_id)
+            elif ext == 'f4m':
+                entry_info_dict['formats'] = self._extract_f4m_formats(video_url, video_id)
             else:
                 entry_info_dict['url'] = video_url
 
