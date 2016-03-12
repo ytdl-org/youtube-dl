@@ -2,12 +2,16 @@ Make sure you are using the **latest** version of youtube-dl. Latest youtube-dl 
 - [ ] I've verified that I'm running youtube-dl version **2016.03.06**
 
 **What is the purpose of this issue? Put an `x` to the relevant box**
-- [ ] Site request (add support for a new website)
+- [ ] Site support request (add support for a new website)
 - [ ] Feature request (request new functionality)
 - [ ] Bug report (encountered problems with youtube-dl)
 - [ ] Other, namely ...
 
-*If the purpose of this issue is a site request, bug report or you are unsure about its relevance please include a log as described below.*
+**If the purpose of this issues is a site support request please provide _at least_ one example URL of a video or a playlist you are trying to download.**
+
+- http://some.example.url/to-video
+
+*If the purpose of this issue is a bug report or you are unsure about its relevance please include a log as described below.*
 
 **Please include the full output of youtube-dl when run with `-v`**, i.e. **add** `-v` flag to **your command line**, copy the **whole** output and post it below wrapped in ``` for better formatting. It should look similar to this:
 ```
@@ -31,7 +35,3 @@ $ youtube-dl -v <your command line>
 **Suggested solution or other information**
 
 *In case you have suggestions for a solution or any other relevant information you can write it here*
-
-**Example URL**
-
-*Provide the url of the file that you were trying to download.*
