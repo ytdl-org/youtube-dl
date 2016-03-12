@@ -1,7 +1,13 @@
 Make sure you are using the **latest** version of youtube-dl. Latest youtube-dl version at this moment is **2016.03.06**. Read [our FAQ](https://github.com/rg3/youtube-dl/blob/master/README.md#how-do-i-update-youtube-dl) if you have troubles updating.
 - [ ] I've verified that I'm running youtube-dl version **2016.03.06**
 
-*The log (next question) is not required when asking a question or when the purpose of this issue does not imply the need of a log*
+**What is the purpose of this issue? Put an `x` to the relevant box**
+- [ ] Site request (add support for a new website)
+- [ ] Feature request (request new functionality)
+- [ ] Bug report (encountered problems with youtube-dl)
+- [ ] Other, namely ...
+
+*If the purpose of this issue is a site request, bug report or you are unsure about its relevance please include a log as described below.*
 
 **Please include the full output of youtube-dl when run with `-v`**, i.e. **add** `-v` flag to **your command line**, copy the **whole** output and post it below wrapped in ``` for better formatting. It should look similar to this:
 ```
@@ -17,12 +23,6 @@ $ youtube-dl -v <your command line>
 [debug] Proxy map: {}
 ...
 ```
-
-**Kind of issue**
-- [ ] Site request (add support for a new website)
-- [ ] Feature request (request new functionality)
-- [ ] Bug report (encountered problems with youtube-dl)
-- [ ] Other, namely ...
 
 **Brief description of the problem/request**
 
