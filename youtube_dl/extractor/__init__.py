@@ -389,6 +389,7 @@ from .lynda import (
 from .m6 import M6IE
 from .macgamestore import MacGameStoreIE
 from .mailru import MailRuIE
+from .makerschannel import MakersChannelIE
 from .makertv import MakerTVIE
 from .malemotion import MalemotionIE
 from .matchtv import MatchTVIE
