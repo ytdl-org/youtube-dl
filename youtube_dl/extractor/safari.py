@@ -21,13 +21,12 @@ class SafariBaseIE(InfoExtractor):
     _SUCCESSFUL_LOGIN_REGEX = r'<a href="/accounts/logout/"[^>]*>Sign Out</a>'
     _NETRC_MACHINE = 'safari'
 
-    _API_BASE = 'https://www.safaribooksonline.com/api/v1/book'
+    _API_BASE = 'https://www.safaribooksonline.com/api/v1'
     _API_FORMAT = 'json'
 
     LOGGED_IN = False
 
     def _real_initialize(self):
-        return
         # We only need to log in once for courses or individual videos
         if not self.LOGGED_IN:
             self._login()
@@ -36,7 +35,7 @@ class SafariBaseIE(InfoExtractor):
     def _login(self):
         (username, password) = self._get_login_info()
         if username is None:
-            self.raise_login_required('safaribooksonline.com account is required')
+            return
 
         headers = std_headers.copy()
         if 'Referer' not in headers:
@@ -116,11 +115,25 @@ class SafariIE(SafariBaseIE):
         partner_id = self._search_regex(r'data-partner-id="([^"]+)"', webpage, 'kaltura widget id')
         ui_id = self._search_regex(r'data-ui-id="([^"]+)"', webpage, 'kaltura uiconf id')
 
-        return self.url_result(update_url_query('https://cdnapisec.kaltura.com/html5/html5lib/v2.37.1/mwEmbedFrame.php', {
+        query = {
             'wid': '_%s' % partner_id,
             'uiconf_id': ui_id,
             'flashvars[referenceId]': reference_id,
-        }), 'Kaltura')
+        }
+
+        if self.LOGGED_IN:
+            kaltura_session = self._download_json(
+                '%s/player/kaltura_session/?reference_id=%s' % (self._API_BASE, reference_id),
+                course_id, 'Downloading kaltura session JSON',
+                'Unable to download kaltura session JSON', fatal=False)
+            if kaltura_session:
+                session = kaltura_session.get('session')
+                if session:
+                    query['flashvars[ks]'] = session
+
+        return self.url_result(update_url_query(
+            'https://cdnapisec.kaltura.com/html5/html5lib/v2.37.1/mwEmbedFrame.php', query),
+            'Kaltura')
 
 
 class SafariCourseIE(SafariBaseIE):
@@ -146,7 +159,7 @@ class SafariCourseIE(SafariBaseIE):
         course_id = self._match_id(url)
 
         course_json = self._download_json(
-            '%s/%s/?override_format=%s' % (self._API_BASE, course_id, self._API_FORMAT),
+            '%s/book/%s/?override_format=%s' % (self._API_BASE, course_id, self._API_FORMAT),
             course_id, 'Downloading course JSON')
 
         if 'chapters' not in course_json:
