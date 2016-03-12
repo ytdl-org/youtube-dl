@@ -3,9 +3,11 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import int_or_none
+from ..compat import compat_urlparse
 
 
 class DWIE(InfoExtractor):
+    IE_NAME = 'dw'
     _VALID_URL = r'https?://(?:www\.)?dw\.com/(?:[^/]+/)+av-(?P<id>\d+)'
     _TESTS = [{
         # video
@@ -32,16 +34,15 @@ class DWIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, video_id)
+        media_id = self._match_id(url)
+        webpage = self._download_webpage(url, media_id)
         hidden_inputs = self._hidden_inputs(webpage)
         title = hidden_inputs['media_title']
 
         formats = []
         if hidden_inputs.get('player_type') == 'video' and hidden_inputs.get('stream_file') == '1':
             formats = self._extract_smil_formats(
-                'http://www.dw.com/smil/v-%s' % video_id, video_id,
+                'http://www.dw.com/smil/v-%s' % media_id, media_id,
                 transform_source=lambda s: s.replace(
                     'rtmp://tv-od.dw.de/flash/',
                     'http://tv-download.dw.de/dwtv_video/flv/'))
@@ -49,7 +50,7 @@ class DWIE(InfoExtractor):
             formats = [{'url': hidden_inputs['file_name']}]
 
         return {
-            'id': video_id,
+            'id': media_id,
             'title': title,
             'description': self._og_search_description(webpage),
             'thumbnail': hidden_inputs.get('preview_image'),
@@ -57,3 +58,28 @@ class DWIE(InfoExtractor):
             'upload_date': hidden_inputs.get('display_date'),
             'formats': formats,
         }
+
+
+class DWArticleIE(InfoExtractor):
+    IE_NAME = 'dw:article'
+    _VALID_URL = r'https?://(?:www\.)?dw\.com/(?:[^/]+/)+a-(?P<id>\d+)'
+    _TEST = {
+        'url': 'http://www.dw.com/en/no-hope-limited-options-for-refugees-in-idomeni/a-19111009',
+        'md5': '8ca657f9d068bbef74d6fc38b97fc869',
+        'info_dict': {
+            'id': '19105868',
+            'ext': 'mp4',
+            'title': 'The harsh life of refugees in Idomeni',
+            'description': 'md5:196015cc7e48ebf474db9399420043c7',
+            'upload_date': '20160310',
+        }
+    }
+
+    def _real_extract(self, url):
+        article_id = self._match_id(url)
+        webpage = self._download_webpage(url, article_id)
+        hidden_inputs = self._hidden_inputs(webpage)
+        media_id = hidden_inputs['media_id']
+        media_path = self._search_regex(r'href="([^"]+av-%s)"\s+class="overlayLink"' % media_id, webpage, 'media url')
+        media_url = compat_urlparse.urljoin(url, media_path)
+        return self.url_result(media_url, 'DW', media_id)
