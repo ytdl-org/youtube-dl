@@ -125,7 +125,7 @@ class KalturaIE(InfoExtractor):
 
         mobj = re.match(self._VALID_URL, url)
         partner_id, entry_id = mobj.group('partner_id', 'id')
-        info, flavor_assets = None, None
+        ks = None
         if partner_id and entry_id:
             info, flavor_assets = self._get_video_info(entry_id, partner_id)
         else:
@@ -158,6 +158,7 @@ class KalturaIE(InfoExtractor):
                 entry_id = info['id']
             else:
                 raise ExtractorError('Invalid URL', expected=True)
+            ks = params.get('flashvars[ks]', [None])[0]
 
         source_url = smuggled_data.get('source_url')
         if source_url:
@@ -167,14 +168,19 @@ class KalturaIE(InfoExtractor):
         else:
             referrer = None
 
+        def sign_url(unsigned_url):
+            if ks:
+                unsigned_url += '/ks/%s' % ks
+            if referrer:
+                unsigned_url += '?referrer=%s' % referrer
+            return unsigned_url
+
         formats = []
         for f in flavor_assets:
             # Continue if asset is not ready
             if f['status'] != 2:
                 continue
-            video_url = '%s/flavorId/%s' % (info['dataUrl'], f['id'])
-            if referrer:
-                video_url += '?referrer=%s' % referrer
+            video_url = sign_url('%s/flavorId/%s' % (info['dataUrl'], f['id']))
             formats.append({
                 'format_id': '%(fileExt)s-%(bitrate)s' % f,
                 'ext': f.get('fileExt'),
@@ -187,9 +193,7 @@ class KalturaIE(InfoExtractor):
                 'width': int_or_none(f.get('width')),
                 'url': video_url,
             })
-        m3u8_url = info['dataUrl'].replace('format/url', 'format/applehttp')
-        if referrer:
-            m3u8_url += '?referrer=%s' % referrer
+        m3u8_url = sign_url(info['dataUrl'].replace('format/url', 'format/applehttp'))
         formats.extend(self._extract_m3u8_formats(
             m3u8_url, entry_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
 
