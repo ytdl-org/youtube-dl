@@ -12,6 +12,7 @@ from ..utils import (
     smuggle_url,
     std_headers,
     urlencode_postdata,
+    update_url_query,
 )
 
 
@@ -26,6 +27,7 @@ class SafariBaseIE(InfoExtractor):
     LOGGED_IN = False
 
     def _real_initialize(self):
+        return
         # We only need to log in once for courses or individual videos
         if not self.LOGGED_IN:
             self._login()
@@ -86,13 +88,15 @@ class SafariIE(SafariBaseIE):
 
     _TESTS = [{
         'url': 'https://www.safaribooksonline.com/library/view/hadoop-fundamentals-livelessons/9780133392838/part00.html',
-        'md5': '5b0c4cc1b3c1ba15dda7344085aa5592',
+        'md5': 'dcc5a425e79f2564148652616af1f2a3',
         'info_dict': {
-            'id': '2842601850001',
+            'id': '0_qbqx90ic',
             'ext': 'mp4',
-            'title': 'Introduction',
+            'title': 'Introduction to Hadoop Fundamentals LiveLessons',
+            'timestamp': 1437758058,
+            'upload_date': '20150724',
+            'uploader_id': 'stork',
         },
-        'skip': 'Requires safaribooksonline account credentials',
     }, {
         'url': 'https://www.safaribooksonline.com/api/v1/book/9780133392838/chapter/part00.html',
         'only_matching': True,
@@ -107,15 +111,16 @@ class SafariIE(SafariBaseIE):
         course_id = mobj.group('course_id')
         part = mobj.group('part')
 
-        webpage = self._download_webpage(
-            '%s/%s/chapter-content/%s.html' % (self._API_BASE, course_id, part),
-            part)
+        webpage = self._download_webpage(url, '%s/%s' % (course_id, part))
+        reference_id = self._search_regex(r'data-reference-id="([^"]+)"', webpage, 'kaltura reference id')
+        partner_id = self._search_regex(r'data-partner-id="([^"]+)"', webpage, 'kaltura widget id')
+        ui_id = self._search_regex(r'data-ui-id="([^"]+)"', webpage, 'kaltura uiconf id')
 
-        bc_url = BrightcoveLegacyIE._extract_brightcove_url(webpage)
-        if not bc_url:
-            raise ExtractorError('Could not extract Brightcove URL from %s' % url, expected=True)
-
-        return self.url_result(smuggle_url(bc_url, {'Referer': url}), 'BrightcoveLegacy')
+        return self.url_result(update_url_query('https://cdnapisec.kaltura.com/html5/html5lib/v2.37.1/mwEmbedFrame.php', {
+            'wid': '_%s' % partner_id,
+            'uiconf_id': ui_id,
+            'flashvars[referenceId]': reference_id,
+        }), 'Kaltura')
 
 
 class SafariCourseIE(SafariBaseIE):

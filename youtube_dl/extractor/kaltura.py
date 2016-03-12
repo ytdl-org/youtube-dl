@@ -8,6 +8,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse,
     compat_urlparse,
+    compat_parse_qs,
 )
 from ..utils import (
     clean_html,
@@ -20,21 +21,17 @@ from ..utils import (
 class KalturaIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                 (?:
-                    kaltura:(?P<partner_id_s>\d+):(?P<id_s>[0-9a-z_]+)|
+                    kaltura:(?P<partner_id>\d+):(?P<id>[0-9a-z_]+)|
                     https?://
                         (:?(?:www|cdnapi(?:sec)?)\.)?kaltura\.com/
                         (?:
                             (?:
                                 # flash player
-                                index\.php/kwidget/
-                                (?:[^/]+/)*?wid/_(?P<partner_id>\d+)/
-                                (?:[^/]+/)*?entry_id/(?P<id>[0-9a-z_]+)|
+                                index\.php/kwidget|
                                 # html5 player
-                                html5/html5lib/
-                                (?:[^/]+/)*?entry_id/(?P<id_html5>[0-9a-z_]+)
-                                .*\?.*\bwid=_(?P<partner_id_html5>\d+)
+                                html5/html5lib/[^/]+/mwEmbedFrame\.php
                             )
-                        )
+                        )(?:/(?P<path>[^?]+))?(?:\?(?P<query>.*))?
                 )
                 '''
     _API_BASE = 'http://cdnapi.kaltura.com/api_v3/index.php?'
@@ -127,10 +124,43 @@ class KalturaIE(InfoExtractor):
         url, smuggled_data = unsmuggle_url(url, {})
 
         mobj = re.match(self._VALID_URL, url)
-        partner_id = mobj.group('partner_id_s') or mobj.group('partner_id') or mobj.group('partner_id_html5')
-        entry_id = mobj.group('id_s') or mobj.group('id') or mobj.group('id_html5')
-
-        info, flavor_assets = self._get_video_info(entry_id, partner_id)
+        partner_id, entry_id = mobj.group('partner_id', 'id')
+        info, flavor_assets = None, None
+        if partner_id and entry_id:
+            info, flavor_assets = self._get_video_info(entry_id, partner_id)
+        else:
+            path, query = mobj.group('path', 'query')
+            if not path and not query:
+                raise ExtractorError('Invalid URL', expected=True)
+            params = {}
+            if query:
+                params = compat_parse_qs(query)
+            if path:
+                splitted_path = path.split('/')
+                if not splitted_path[-1]:
+                    splitted_path = splitted_path[:-1]
+                for i in range(0, len(splitted_path), 2):
+                    params[splitted_path[i]] = [splitted_path[i + 1]]
+            if 'wid' in params:
+                partner_id = params['wid'][0][1:]
+            elif 'p' in params:
+                partner_id = params['p'][0]
+            else:
+                raise ExtractorError('Invalid URL', expected=True)
+            if 'entry_id' in params:
+                entry_id = params['entry_id'][0]
+                info, flavor_assets = self._get_video_info(entry_id, partner_id)
+            elif 'uiconf_id' in params and 'flashvars[referenceId]' in params:
+                reference_id = params['flashvars[referenceId]'][0]
+                webpage = self._download_webpage(url, reference_id)
+                entry_data = self._parse_json(self._search_regex(
+                    r'window\.kalturaIframePackageData\s*=\s*({.*});',
+                    webpage, 'kalturaIframePackageData'),
+                    reference_id)['entryResult']
+                info, flavor_assets = entry_data['meta'], entry_data['contextData']['flavorAssets']
+                entry_id = info['id']
+            else:
+                raise ExtractorError('Invalid URL', expected=True)
 
         source_url = smuggled_data.get('source_url')
         if source_url:
