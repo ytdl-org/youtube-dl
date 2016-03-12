@@ -973,6 +973,13 @@ class InfoExtractor(object):
         if manifest is False:
             return []
 
+        return self._parse_f4m_formats(
+            manifest, manifest_url, video_id, preference=preference, f4m_id=f4m_id,
+            transform_source=transform_source, fatal=fatal)
+
+    def _parse_f4m_formats(self, manifest, manifest_url, video_id, preference=None, f4m_id=None,
+                           transform_source=lambda s: fix_xml_ampersands(s).strip(),
+                           fatal=True):
         formats = []
         manifest_version = '1.0'
         media_nodes = manifest.findall('{http://ns.adobe.com/f4m/1.0}media')
@@ -998,7 +1005,8 @@ class InfoExtractor(object):
                 # bitrate in f4m downloader
                 if determine_ext(manifest_url) == 'f4m':
                     formats.extend(self._extract_f4m_formats(
-                        manifest_url, video_id, preference, f4m_id, fatal=fatal))
+                        manifest_url, video_id, preference=preference, f4m_id=f4m_id,
+                        transform_source=transform_source, fatal=fatal))
                     continue
             tbr = int_or_none(media_el.attrib.get('bitrate'))
             formats.append({
