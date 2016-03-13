@@ -564,14 +564,6 @@ class BBCIE(BBCCoUkIE):
         },
         'playlist_count': 18,
     }, {
-        # school report playlist with single video
-        'url': 'http://www.bbc.co.uk/schoolreport/35744779',
-        'info_dict': {
-            'id': '35744779',
-            'title': 'School which breaks down barriers in Jerusalem',
-        },
-        'playlist_count': 1,
-    }, {
         # single video embedded with data-playable containing vpid
         'url': 'http://www.bbc.com/news/world-europe-32041533',
         'info_dict': {
@@ -677,9 +669,17 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/sport/0/football/34475836',
         'info_dict': {
             'id': '34475836',
-            'title': 'What Liverpool can expect from Klopp',
+            'title': 'Jurgen Klopp: Furious football from a witty and winning coach',
         },
         'playlist_count': 3,
+    }, {
+        # school report article with single video
+        'url': 'http://www.bbc.co.uk/schoolreport/35744779',
+        'info_dict': {
+            'id': '35744779',
+            'title': 'School which breaks down barriers in Jerusalem',
+        },
+        'playlist_count': 1,
     }, {
         # single video with playlist URL from weather section
         'url': 'http://www.bbc.com/weather/features/33601775',
