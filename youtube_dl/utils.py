@@ -1914,24 +1914,26 @@ def js_to_json(code):
         v = m.group(0)
         if v in ('true', 'false', 'null'):
             return v
-        if v.startswith('"'):
-            v = re.sub(r"\\'", "'", v[1:-1])
-        elif v.startswith("'"):
-            v = v[1:-1]
-            v = re.sub(r"\\\\|\\'|\"", lambda m: {
-                '\\\\': '\\\\',
-                "\\'": "'",
+        elif v.startswith('/*') or v == ',':
+            return ""
+
+        if v[0] in ("'", '"'):
+            v = re.sub(r'(?s)\\.|"', lambda m: {
                 '"': '\\"',
-            }[m.group(0)], v)
+                "\\'": "'",
+                '\\\n': '',
+                '\\x': '\\u00',
+            }.get(m.group(0), m.group(0)), v[1:-1])
+
         return '"%s"' % v
 
-    res = re.sub(r'''(?x)
-        "(?:[^"\\]*(?:\\\\|\\['"nu]))*[^"\\]*"|
-        '(?:[^'\\]*(?:\\\\|\\['"nu]))*[^'\\]*'|
-        [a-zA-Z_][.a-zA-Z_0-9]*
+    return re.sub(r'''(?sx)
+        "(?:[^"\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^"\\]*"|
+        '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^'\\]*'|
+        /\*.*?\*/|,(?=\s*[\]}])|
+        [a-zA-Z_][.a-zA-Z_0-9]*|
+        [0-9]+(?=\s*:)
         ''', fix_kv, code)
-    res = re.sub(r',(\s*[\]}])', lambda m: m.group(1), res)
-    return res
 
 
 def qualities(quality_ids):
