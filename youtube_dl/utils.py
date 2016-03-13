@@ -1393,6 +1393,7 @@ def parse_count(s):
 
     return lookup_unit_table(_UNIT_TABLE, s)
 
+
 def month_by_name(name):
     """ Return the number of a month by (locale-independently) English name """
 
