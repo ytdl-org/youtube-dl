@@ -32,7 +32,7 @@ def get_suitable_downloader(info_dict, params={}):
     protocol = determine_protocol(info_dict)
     info_dict['protocol'] = protocol
 
-    # if (info_dict.get('start_time') or info_dict.get('end_time')) and FFmpegFD.can_download(info_dict):
+    # if (info_dict.get('start_time') or info_dict.get('end_time')) and not info_dict.get('requested_formats') and FFmpegFD.can_download(info_dict):
     #     return FFmpegFD
 
     external_downloader = params.get('external_downloader')
