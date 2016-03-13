@@ -53,7 +53,7 @@ class ExternalFD(FileDownloader):
 
     @classmethod
     def available(cls):
-        return check_executable(cls.get_basename(), cls.available_opt)
+        return check_executable(cls.get_basename(), [cls.AVAILABLE_OPT])
 
     @classmethod
     def supports(cls, info_dict):
@@ -86,7 +86,7 @@ class ExternalFD(FileDownloader):
 
 
 class CurlFD(ExternalFD):
-    available_opt = ['-V']
+    AVAILABLE_OPT = '-V'
 
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '--location', '-o', tmpfilename]
@@ -101,7 +101,7 @@ class CurlFD(ExternalFD):
 
 
 class AxelFD(ExternalFD):
-    available_opt = ['-V']
+    AVAILABLE_OPT = '-V'
 
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-o', tmpfilename]
@@ -113,7 +113,7 @@ class AxelFD(ExternalFD):
 
 
 class WgetFD(ExternalFD):
-    available_opt = ['--version']
+    AVAILABLE_OPT = '--version'
 
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-O', tmpfilename, '-nv', '--no-cookies']
@@ -128,7 +128,7 @@ class WgetFD(ExternalFD):
 
 
 class Aria2cFD(ExternalFD):
-    available_opt = ['-v']
+    AVAILABLE_OPT = '-v'
 
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-c']
