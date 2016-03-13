@@ -7,7 +7,6 @@ import re
 
 from .common import FileDownloader
 from ..postprocessor.ffmpeg import FFmpegPostProcessor, EXT_TO_OUT_FORMATS
-from ..compat import compat_str
 from ..utils import (
     cli_option,
     cli_valueless_option,
@@ -182,12 +181,12 @@ class FFmpegFD(ExternalFD):
 
         args = [ffpp.executable, '-y']
 
-        start_time = info_dict.get('start_time') or 0
-        if start_time:
-            args += ['-ss', compat_str(start_time)]
-        end_time = info_dict.get('end_time')
-        if end_time:
-            args += ['-t', compat_str(end_time - start_time)]
+        # start_time = info_dict.get('start_time') or 0
+        # if start_time:
+        #     args += ['-ss', compat_str(start_time)]
+        # end_time = info_dict.get('end_time')
+        # if end_time:
+        #     args += ['-t', compat_str(end_time - start_time)]
 
         if info_dict['http_headers'] and re.match(r'^https?://', url):
             # Trailing \r\n after each HTTP header is important to prevent warning from ffmpeg/avconv:
