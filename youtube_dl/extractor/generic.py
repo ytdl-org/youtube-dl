@@ -1320,7 +1320,7 @@ class GenericIE(InfoExtractor):
                 return self.playlist_result(self._parse_xspf(doc, video_id), video_id)
             elif re.match(r'(?i)^(?:{[^}]+})?MPD$', doc.tag):
                 info_dict['formats'] = self._parse_mpd_formats(
-                    doc, video_id, mpd_base_url=url.rpartition('/')[0])
+                    doc, video_id, mpd_url=url)
                 return info_dict
             elif re.match(r'^{http://ns\.adobe\.com/f4m/[12]\.0}manifest$', doc.tag):
                 info_dict['formats'] = self._parse_f4m_formats(doc, url, video_id)

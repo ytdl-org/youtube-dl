@@ -23,6 +23,7 @@ from ..compat import (
     compat_urllib_error,
     compat_urllib_parse,
     compat_urlparse,
+    compat_urllib_parse_urlparse,
 )
 from ..utils import (
     NO_DEFAULT,
@@ -1386,12 +1387,11 @@ class InfoExtractor(object):
         if res is False:
             return []
         mpd, urlh = res
-        mpd_base_url = re.match(r'https?://.+/', urlh.geturl()).group()
 
         return self._parse_mpd_formats(
-            compat_etree_fromstring(mpd.encode('utf-8')), mpd_id, mpd_base_url, formats_dict=formats_dict)
+            compat_etree_fromstring(mpd.encode('utf-8')), mpd_id, urlh.geturl(), formats_dict=formats_dict)
 
-    def _parse_mpd_formats(self, mpd_doc, mpd_id=None, mpd_base_url='', formats_dict={}):
+    def _parse_mpd_formats(self, mpd_doc, mpd_id=None, mpd_url='', formats_dict={}):
         if mpd_doc.get('type') == 'dynamic':
             return []
 
@@ -1445,6 +1445,10 @@ class InfoExtractor(object):
                             ms_info['initialization_url'] = initialization.attrib['sourceURL']
             return ms_info
 
+        mpd_base_url = mpd_url.rpartition('/')[0]
+        parsed_mpd_url = None
+        if mpd_base_url:
+            parsed_mpd_url = compat_urllib_parse_urlparse(mpd_url)
         mpd_duration = parse_duration(mpd_doc.get('mediaPresentationDuration'))
         formats = []
         for period in mpd_doc.findall(_add_ns('Period')):
@@ -1509,18 +1513,31 @@ class InfoExtractor(object):
                             media_template = re.sub(r'\$(Number|Bandwidth)(?:%(0\d+)d)?\$', r'%(\1)\2d', media_template)
                             media_template.replace('$$', '$')
                             representation_ms_info['segment_urls'] = [media_template % {'Number': segment_number, 'Bandwidth': representation_attrib.get('bandwidth')} for segment_number in range(representation_ms_info['start_number'], representation_ms_info['total_number'] + representation_ms_info['start_number'])]
-                        if 'segment_urls' in representation_ms_info:
+                        segment_urls = representation_ms_info.get('segment_urls')
+                        if segment_urls:
+                            fragment_mpd_url = segment_urls[0]
+                            if parsed_mpd_url:
+                                fragment_parts = ((period, 'id', 'period'), (adaptation_set, 'id', 'as'), (adaptation_set, 'group', 'track'))
+                                params = {}
+                                for ele, attr, frag_attr in fragment_parts:
+                                    frag_val = ele.attrib.get(attr)
+                                    if frag_val:
+                                        params[frag_attr] = frag_val
+                                fragment = compat_urllib_parse.urlencode(params)
+                                fragment_mpd_url = parsed_mpd_url._replace(fragment=fragment).geturl()
                             f.update({
-                                'segment_urls': representation_ms_info['segment_urls'],
+                                'url': fragment_mpd_url,
+                                '_downloader_params': {
+                                    'segment_urls': segment_urls,
+                                    'base_url': base_url,
+                                },
                                 'protocol': 'http_dash_segments',
                             })
                             if 'initialization_url' in representation_ms_info:
                                 initialization_url = representation_ms_info['initialization_url'].replace('$RepresentationID$', representation_id)
-                                f.update({
+                                f['_downloader_params'].update({
                                     'initialization_url': initialization_url,
                                 })
-                                if not f.get('url'):
-                                    f['url'] = initialization_url
                         try:
                             existing_format = next(
                                 fo for fo in formats

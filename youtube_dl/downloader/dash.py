@@ -18,9 +18,10 @@ class DashSegmentsFD(FragmentFD):
     FD_NAME = 'dashsegments'
 
     def real_download(self, filename, info_dict):
-        base_url = info_dict['url']
-        segment_urls = [info_dict['segment_urls'][0]] if self.params.get('test', False) else info_dict['segment_urls']
-        initialization_url = info_dict.get('initialization_url')
+        params = info_dict['_downloader_params']
+        base_url = params['base_url']
+        segment_urls = [params['segment_urls'][0]] if self.params.get('test', False) else params['segment_urls']
+        initialization_url = params.get('initialization_url')
 
         ctx = {
             'filename': filename,
