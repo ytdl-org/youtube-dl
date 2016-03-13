@@ -1316,6 +1316,17 @@ def format_bytes(bytes):
     return '%.2f%s' % (converted, suffix)
 
 
+def lookup_unit_table(unit_table, s):
+    units_re = '|'.join(re.escape(u) for u in unit_table)
+    m = re.match(
+        r'(?P<num>[0-9]+(?:[,.][0-9]*)?)\s*(?P<unit>%s)' % units_re, s)
+    if not m:
+        return None
+    num_str = m.group('num').replace(',', '.')
+    mult = unit_table[m.group('unit')]
+    return int(float(num_str) * mult)
+
+
 def parse_filesize(s):
     if s is None:
         return None
@@ -1359,16 +1370,28 @@ def parse_filesize(s):
         'Yb': 1000 ** 8,
     }
 
-    units_re = '|'.join(re.escape(u) for u in _UNIT_TABLE)
-    m = re.match(
-        r'(?P<num>[0-9]+(?:[,.][0-9]*)?)\s*(?P<unit>%s)' % units_re, s)
-    if not m:
+    return lookup_unit_table(_UNIT_TABLE, s)
+
+
+def parse_count(s):
+    if s is None:
         return None
 
-    num_str = m.group('num').replace(',', '.')
-    mult = _UNIT_TABLE[m.group('unit')]
-    return int(float(num_str) * mult)
+    s = s.strip()
 
+    if re.match(r'^[\d,.]+$', s):
+        return str_to_int(s)
+
+    _UNIT_TABLE = {
+        'k': 1000,
+        'K': 1000,
+        'm': 1000 ** 2,
+        'M': 1000 ** 2,
+        'kk': 1000 ** 2,
+        'KK': 1000 ** 2,
+    }
+
+    return lookup_unit_table(_UNIT_TABLE, s)
 
 def month_by_name(name):
     """ Return the number of a month by (locale-independently) English name """

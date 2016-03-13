@@ -41,6 +41,7 @@ from youtube_dl.utils import (
     orderedSet,
     parse_duration,
     parse_filesize,
+    parse_count,
     parse_iso8601,
     read_batch_urls,
     sanitize_filename,
@@ -652,6 +653,15 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_filesize('5 GB'), 5000000000)
         self.assertEqual(parse_filesize('1.2Tb'), 1200000000000)
         self.assertEqual(parse_filesize('1,24 KB'), 1240)
+
+    def test_parse_count(self):
+        self.assertEqual(parse_count(None), None)
+        self.assertEqual(parse_count(''), None)
+        self.assertEqual(parse_count('0'), 0)
+        self.assertEqual(parse_count('1000'), 1000)
+        self.assertEqual(parse_count('1.000'), 1000)
+        self.assertEqual(parse_count('1.1k'), 1100)
+        self.assertEqual(parse_count('1.1kk'), 1100000)
 
     def test_version_tuple(self):
         self.assertEqual(version_tuple('1'), (1,))
