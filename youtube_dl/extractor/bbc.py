@@ -560,7 +560,7 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.co.uk/blogs/adamcurtis/entries/3662a707-0af9-3149-963f-47bea720b460',
         'info_dict': {
             'id': '3662a707-0af9-3149-963f-47bea720b460',
-            'title': 'BBC Blogs - Adam Curtis - BUGGER',
+            'title': 'BUGGER',
         },
         'playlist_count': 18,
     }, {
