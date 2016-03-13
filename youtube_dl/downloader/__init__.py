@@ -6,6 +6,7 @@ from .hls import HlsFD
 from .http import HttpFD
 from .rtmp import RtmpFD
 from .dash import DashSegmentsFD
+from .rtsp import RtspFD
 from .external import (
     get_external_downloader,
     FFmpegFD,
@@ -19,8 +20,8 @@ PROTOCOL_MAP = {
     'rtmp': RtmpFD,
     'm3u8_native': HlsFD,
     'm3u8': FFmpegFD,
-    'mms': FFmpegFD,
-    'rtsp': FFmpegFD,
+    'mms': RtspFD,
+    'rtsp': RtspFD,
     'f4m': F4mFD,
     'http_dash_segments': DashSegmentsFD,
 }
