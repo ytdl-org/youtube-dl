@@ -7,6 +7,7 @@ from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     ExtractorError,
     HEADRequest,
+    parse_count,
     str_to_int,
 )
 
@@ -85,8 +86,8 @@ class MixcloudIE(InfoExtractor):
         uploader_id = self._search_regex(
             r'\s+"profile": "([^"]+)",', webpage, 'uploader id', fatal=False)
         description = self._og_search_description(webpage)
-        like_count = str_to_int(self._search_regex(
-            r'\bbutton-favorite\b[^>]+m-ajax-toggle-count="([^"]+)"',
+        like_count = parse_count(self._search_regex(
+            r'\bbutton-favorite[^>]+>.*?<span[^>]+class=["\']toggle-number[^>]+>\s*([^<]+)',
             webpage, 'like count', fatal=False))
         view_count = str_to_int(self._search_regex(
             [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
