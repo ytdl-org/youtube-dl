@@ -564,6 +564,14 @@ class BBCIE(BBCCoUkIE):
         },
         'playlist_count': 18,
     }, {
+        # school report playlist with single video
+        'url': 'http://www.bbc.co.uk/schoolreport/35744779',
+        'info_dict': {
+            'id': '35744779',
+            'title': 'School which breaks down barriers in Jerusalem',
+        },
+        'playlist_count': 1,
+    }, {
         # single video embedded with data-playable containing vpid
         'url': 'http://www.bbc.com/news/world-europe-32041533',
         'info_dict': {
@@ -734,8 +742,17 @@ class BBCIE(BBCCoUkIE):
 
         json_ld_info = self._search_json_ld(webpage, playlist_id, default=None)
         timestamp = json_ld_info.get('timestamp')
+
         playlist_title = json_ld_info.get('title')
-        playlist_description = json_ld_info.get('description')
+        if not playlist_title:
+            playlist_title = self._og_search_title(
+                webpage, default=None) or self._html_search_regex(
+                r'<title>(.+?)</title>', webpage, 'playlist title', default=None)
+            if playlist_title:
+                playlist_title = re.sub(r'(.+)\s*-\s*BBC.*?$', r'\1', playlist_title).strip()
+
+        playlist_description = json_ld_info.get(
+            'description') or self._og_search_description(webpage, default=None)
 
         if not timestamp:
             timestamp = parse_iso8601(self._search_regex(
@@ -794,14 +811,6 @@ class BBCIE(BBCCoUkIE):
                         if playlist:
                             entries.append(self._extract_from_playlist_sxml(
                                 playlist.get('progressiveDownloadUrl'), playlist_id, timestamp))
-
-        playlist_title = self._og_search_title(webpage, default=None)
-        playlist_title = playlist_title or self._html_search_regex(
-            r'<title>(.*?)</title>', webpage, 'playlist title')
-
-        playlist_title = self._search_regex(r'(.+)\s*-\s*BBC', playlist_title, 'title', default=playlist_title)
-
-        playlist_description = self._og_search_description(webpage, default=None)
 
         if entries:
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
