@@ -836,7 +836,10 @@ from .vgtv import (
     VGTVIE,
 )
 from .vh1 import VH1IE
-from .vice import ViceIE
+from .vice import (
+    ViceIE,
+    ViceShowIE,
+)
 from .viddler import ViddlerIE
 from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
