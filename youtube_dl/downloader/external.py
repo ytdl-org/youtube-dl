@@ -181,6 +181,8 @@ class FFmpegFD(ExternalFD):
 
         args = [ffpp.executable, '-y']
 
+        args += self._configuration_args()
+
         # start_time = info_dict.get('start_time') or 0
         # if start_time:
         #     args += ['-ss', compat_str(start_time)]
