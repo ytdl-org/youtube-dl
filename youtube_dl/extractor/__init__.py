@@ -266,7 +266,10 @@ from .gdcvault import GDCVaultIE
 from .generic import GenericIE
 from .gfycat import GfycatIE
 from .giantbomb import GiantBombIE
-from .giga import GigaIE
+from .giga import (
+    GigaIE,
+    GigaPostIE,
+)
 from .glide import GlideIE
 from .globo import (
     GloboIE,
