@@ -6,7 +6,7 @@ import sys
 import re
 
 from .common import FileDownloader
-from ..postprocessor.ffmpeg import FFmpegPostProcessor
+from ..postprocessor.ffmpeg import FFmpegPostProcessor, EXT_TO_OUT_FORMATS
 from ..compat import compat_str
 from ..utils import (
     cli_option,
@@ -197,7 +197,7 @@ class FFmpegFD(ExternalFD):
             else:
                 args += ['-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
         else:
-            args += ['-f', info_dict['ext']]
+            args += ['-f', EXT_TO_OUT_FORMATS.get(info_dict['ext'], info_dict['ext'])]
 
         args = [encodeArgument(opt) for opt in args]
         args.append(encodeFilename(ffpp._ffmpeg_filename_argument(tmpfilename), True))

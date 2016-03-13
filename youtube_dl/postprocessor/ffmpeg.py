@@ -25,6 +25,19 @@ from ..utils import (
 )
 
 
+EXT_TO_OUT_FORMATS = {
+    "aac": "adts",
+    "m4a": "ipod",
+    "mka": "matroska",
+    "mkv": "matroska",
+    "mpg": "mpeg",
+    "ogv": "ogg",
+    "ts": "mpegts",
+    "wma": "asf",
+    "wmv": "asf",
+}
+
+
 class FFmpegPostProcessorError(PostProcessingError):
     pass
 
