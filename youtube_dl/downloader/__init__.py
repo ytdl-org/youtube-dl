@@ -31,13 +31,13 @@ def get_suitable_downloader(info_dict, params={}):
     protocol = determine_protocol(info_dict)
     info_dict['protocol'] = protocol
 
-    if (info_dict.get('start_time') or info_dict.get('end_time')) and FFmpegFD.available() and FFmpegFD.supports(info_dict):
+    if (info_dict.get('start_time') or info_dict.get('end_time')) and FFmpegFD.can_download(info_dict):
         return FFmpegFD
 
     external_downloader = params.get('external_downloader')
     if external_downloader is not None:
         ed = get_external_downloader(external_downloader)
-        if ed.available() and ed.supports(info_dict):
+        if ed.can_download(info_dict):
             return ed
 
     if protocol == 'm3u8' and params.get('hls_prefer_native'):

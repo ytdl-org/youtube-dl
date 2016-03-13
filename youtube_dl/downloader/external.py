@@ -59,6 +59,10 @@ class ExternalFD(FileDownloader):
     def supports(cls, info_dict):
         return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps')
 
+    @classmethod
+    def can_download(cls, info_dict):
+        return cls.available() and cls.supports(info_dict)
+
     def _option(self, command_option, param):
         return cli_option(self.params, command_option, param)
 
