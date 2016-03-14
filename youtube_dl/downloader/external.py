@@ -198,12 +198,39 @@ class FFmpegFD(ExternalFD):
                 '-headers',
                 ''.join('%s: %s\r\n' % (key, val) for key, val in headers.items())]
 
+        protocol = info_dict.get('protocol')
+
+        if protocol == 'rtmp':
+            player_url = info_dict.get('player_url')
+            page_url = info_dict.get('page_url')
+            app = info_dict.get('app')
+            play_path = info_dict.get('play_path')
+            tc_url = info_dict.get('tc_url')
+            flash_version = info_dict.get('flash_version')
+            live = info_dict.get('rtmp_live', False)
+            if player_url is not None:
+                args += ['-rtmp_swfverify', player_url]
+            if page_url is not None:
+                args += ['-rtmp_pageurl', page_url]
+            if app is not None:
+                args += ['-rtmp_app', app]
+            if play_path is not None:
+                args += ['-rtmp_playpath', play_path]
+            if tc_url is not None:
+                args += ['-rtmp_tcurl', tc_url]
+            if flash_version is not None:
+                args += ['-rtmp_flashver', flash_version]
+            if live:
+                args += ['-rtmp_live', 'live']
+
         args += ['-i', url, '-c', 'copy']
-        if info_dict.get('protocol') == 'm3u8':
+        if protocol == 'm3u8':
             if self.params.get('hls_use_mpegts', False):
                 args += ['-f', 'mpegts']
             else:
                 args += ['-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
+        elif protocol == 'rtmp':
+            args += ['-f', 'flv']
         else:
             args += ['-f', EXT_TO_OUT_FORMATS.get(info_dict['ext'], info_dict['ext'])]
 
