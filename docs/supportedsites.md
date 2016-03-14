@@ -54,6 +54,7 @@
  - **AtresPlayer**
  - **ATTTechChannel**
  - **AudiMedia**
+ - **AudioBoom**
  - **audiomack**
  - **audiomack:album**
  - **Azubu**
@@ -167,6 +168,8 @@
  - **Dump**
  - **Dumpert**
  - **dvtv**: http://video.aktualne.cz/
+ - **dw**
+ - **dw:article**
  - **EaglePlatform**
  - **EbaumsWorld**
  - **EchoMsk**
@@ -190,7 +193,6 @@
  - **ExpoTV**
  - **ExtremeTube**
  - **facebook**
- - **facebook:post**
  - **faz.net**
  - **fc2**
  - **Fczenit**
@@ -325,6 +327,7 @@
  - **m6**
  - **macgamestore**: MacGameStore trailers
  - **mailru**: Видео@Mail.Ru
+ - **MakersChannel**
  - **MakerTV**
  - **Malemotion**
  - **MatchTV**
@@ -335,6 +338,7 @@
  - **Mgoon**
  - **Minhateca**
  - **MinistryGrid**
+ - **Minoto**
  - **miomio.tv**
  - **MiTele**: mitele.es
  - **mixcloud**
@@ -671,6 +675,7 @@
  - **UDNEmbed**: 聯合影音
  - **Unistra**
  - **Urort**: NRK P3 Urørt
+ - **USAToday**
  - **ustream**
  - **ustream:channel**
  - **Ustudio**
@@ -684,6 +689,7 @@
  - **VGTV**: VGTV, BTTV, FTV, Aftenposten and Aftonbladet
  - **vh1.com**
  - **Vice**
+ - **ViceShow**
  - **Viddler**
  - **video.google:search**: Google Video search
  - **video.mit.edu**
@@ -711,6 +717,7 @@
  - **vimeo:channel**
  - **vimeo:group**
  - **vimeo:likes**: Vimeo user likes
+ - **vimeo:ondemand**
  - **vimeo:review**: Review pages on vimeo
  - **vimeo:user**
  - **vimeo:watchlater**: Vimeo watch later list, "vimeowatchlater" keyword (requires authentication)

@@ -181,7 +181,7 @@ which means you can modify it, redistribute it or use it however you like.
                                      to play it)
     --external-downloader COMMAND    Use the specified external downloader.
                                      Currently supports
-                                     aria2c,axel,curl,httpie,wget
+                                     aria2c,avconv,axel,curl,ffmpeg,httpie,wget
     --external-downloader-args ARGS  Give these arguments to the external
                                      downloader
 
