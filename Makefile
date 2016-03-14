@@ -67,8 +67,8 @@ README.md: youtube_dl/*.py youtube_dl/*/*.py
 CONTRIBUTING.md: README.md
 	$(PYTHON) devscripts/make_contributing.py README.md CONTRIBUTING.md
 
-issue_template: ISSUE_TEMPLATE.md youtube_dl/version.py
-	$(PYTHON) devscripts/make_issue_template.py ISSUE_TEMPLATE.md
+issue_template: .github/ISSUE_TEMPLATE.md youtube_dl/version.py
+	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE.md
 
 supportedsites:
 	$(PYTHON) devscripts/make_supportedsites.py docs/supportedsites.md
