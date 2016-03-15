@@ -484,6 +484,10 @@ class BrightcoveNewIE(InfoExtractor):
                 formats.extend(self._extract_m3u8_formats(
                     src, video_id, 'mp4', entry_protocol='m3u8_native',
                     m3u8_id='hls', fatal=False))
+            elif source_type == 'application/dash+xml':
+                if not src:
+                    continue
+                formats.extend(self._extract_mpd_formats(src, video_id, 'dash', fatal=False))
             else:
                 streaming_src = source.get('streaming_src')
                 stream_name, app_name = source.get('stream_name'), source.get('app_name')
@@ -491,15 +495,23 @@ class BrightcoveNewIE(InfoExtractor):
                     continue
                 tbr = float_or_none(source.get('avg_bitrate'), 1000)
                 height = int_or_none(source.get('height'))
+                width = int_or_none(source.get('width'))
                 f = {
                     'tbr': tbr,
-                    'width': int_or_none(source.get('width')),
-                    'height': height,
                     'filesize': int_or_none(source.get('size')),
                     'container': container,
-                    'vcodec': source.get('codec'),
-                    'ext': source.get('container').lower(),
+                    'ext': container.lower(),
                 }
+                if width == 0 and height == 0:
+                    f.update({
+                        'vcodec': 'none',
+                    })
+                else:
+                    f.update({
+                        'width': width,
+                        'height': height,
+                        'vcodec': source.get('codec'),
+                    })
 
                 def build_format_id(kind):
                     format_id = kind
