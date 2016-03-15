@@ -13,24 +13,18 @@ class AlJazeeraIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'The Slum - Episode 1: Deliverance',
             'description': 'As a birth attendant advocating for family planning, Remy is on the frontline of Tondo\'s battle with overcrowding.',
-            'uploader': 'Al Jazeera English',
+            'uploader_id': '665003303001',
+            'timestamp': 1411116829,
+            'upload_date': '20140919',
         },
-        'add_ie': ['BrightcoveLegacy'],
+        'add_ie': ['BrightcoveNew'],
         'skip': 'Not accessible from Travis CI server',
     }
+    BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/665003303001/default_default/index.html?videoId=%s'
 
     def _real_extract(self, url):
         program_name = self._match_id(url)
         webpage = self._download_webpage(url, program_name)
         brightcove_id = self._search_regex(
             r'RenderPagesVideo\(\'(.+?)\'', webpage, 'brightcove id')
-
-        return {
-            '_type': 'url',
-            'url': (
-                'brightcove:'
-                'playerKey=AQ~~%2CAAAAmtVJIFk~%2CTVGOQ5ZTwJbeMWnq5d_H4MOM57xfzApc'
-                '&%40videoPlayer={0}'.format(brightcove_id)
-            ),
-            'ie_key': 'BrightcoveLegacy',
-        }
+        return self.url_result(self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, 'BrightcoveNew', brightcove_id)
