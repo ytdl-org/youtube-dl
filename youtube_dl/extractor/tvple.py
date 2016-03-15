@@ -135,8 +135,8 @@ class TvpleIE(InfoExtractor):
                 'url': playpage['stream']['sources'][formatid]['urls']['mp4_avc'],
                 'ext': 'mp4',  # tvple using mp4 for main format
                 'format_id': formatid,
-                'width': playpage['stream']['width'],
-                'height': playpage['stream']['height']
+                'width': int(playpage['stream']['width']),
+                'height': int(playpage['stream']['height'])
             })
 
         subtitles = self.extract_subtitles(playpage, title, video_id, duration, playpage['stream']['width'], playpage['stream']['height'])
