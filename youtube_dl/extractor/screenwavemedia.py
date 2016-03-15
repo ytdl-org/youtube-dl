@@ -70,25 +70,27 @@ class ScreenwaveMediaIE(InfoExtractor):
 
         formats = []
         for source in sources:
-            if source['type'] == 'hls':
-                formats.extend(self._extract_m3u8_formats(source['file'], video_id, ext='mp4'))
+            file_ = source.get('file')
+            if not file_:
+                continue
+            if source.get('type') == 'hls':
+                formats.extend(self._extract_m3u8_formats(file_, video_id, ext='mp4'))
             else:
-                file_ = source.get('file')
-                if not file_:
-                    continue
-                format_label = source.get('label')
                 format_id = self._search_regex(
                     r'_(.+?)\.[^.]+$', file_, 'format id', default=None)
+                if not self._is_valid_url(file_, video_id, format_id or 'video'):
+                    continue
+                format_label = source.get('label')
                 height = int_or_none(self._search_regex(
                     r'^(\d+)[pP]', format_label, 'height', default=None))
                 formats.append({
-                    'url': source['file'],
+                    'url': file_,
                     'format_id': format_id,
                     'format': format_label,
                     'ext': source.get('type'),
                     'height': height,
                 })
-        self._sort_formats(formats)
+        self._sort_formats(formats, field_preference=('height', 'width', 'tbr', 'format_id'))
 
         return {
             'id': video_id,

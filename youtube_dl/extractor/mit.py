@@ -99,7 +99,7 @@ class OCWMITIE(InfoExtractor):
             'url': 'http://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-041-probabilistic-systems-analysis-and-applied-probability-fall-2010/video-lectures/lecture-7-multiple-variables-expectations-independence/',
             'info_dict': {
                 'id': 'EObHWIEKGjA',
-                'ext': 'mp4',
+                'ext': 'webm',
                 'title': 'Lecture 7: Multiple Discrete Random Variables: Expectations, Conditioning, Independence',
                 'description': 'In this lecture, the professor discussed multiple random variables, expectations, and binomial distribution.',
                 'upload_date': '20121109',

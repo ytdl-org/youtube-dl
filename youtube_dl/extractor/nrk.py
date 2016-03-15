@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..compat import (
+    compat_urlparse,
+    compat_urllib_parse_unquote,
+)
 from ..utils import (
     determine_ext,
     ExtractorError,
@@ -87,7 +90,7 @@ class NRKIE(InfoExtractor):
 
 
 class NRKPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nrk\.no/(?!video)(?:[^/]+/)+(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?nrk\.no/(?!video|skole)(?:[^/]+/)+(?P<id>[^/]+)'
 
     _TESTS = [{
         'url': 'http://www.nrk.no/troms/gjenopplev-den-historiske-solformorkelsen-1.12270763',
@@ -124,6 +127,37 @@ class NRKPlaylistIE(InfoExtractor):
 
         return self.playlist_result(
             entries, playlist_id, playlist_title, playlist_description)
+
+
+class NRKSkoleIE(InfoExtractor):
+    IE_DESC = 'NRK Skole'
+    _VALID_URL = r'https?://(?:www\.)?nrk\.no/skole/klippdetalj?.*\btopic=(?P<id>[^/?#&]+)'
+
+    _TESTS = [{
+        'url': 'http://nrk.no/skole/klippdetalj?topic=nrk:klipp/616532',
+        'md5': '04cd85877cc1913bce73c5d28a47e00f',
+        'info_dict': {
+            'id': '6021',
+            'ext': 'flv',
+            'title': 'Genetikk og eneggede tvillinger',
+            'description': 'md5:3aca25dcf38ec30f0363428d2b265f8d',
+            'duration': 399,
+        },
+    }, {
+        'url': 'http://www.nrk.no/skole/klippdetalj?topic=nrk%3Aklipp%2F616532#embed',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nrk.no/skole/klippdetalj?topic=urn:x-mediadb:21379',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        video_id = compat_urllib_parse_unquote(self._match_id(url))
+
+        webpage = self._download_webpage(url, video_id)
+
+        nrk_id = self._search_regex(r'data-nrk-id=["\'](\d+)', webpage, 'nrk id')
+        return self.url_result('nrk:%s' % nrk_id)
 
 
 class NRKTVIE(InfoExtractor):

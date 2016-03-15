@@ -20,7 +20,7 @@ class WimpIE(InfoExtractor):
         'md5': '4e2986c793694b55b37cf92521d12bb4',
         'info_dict': {
             'id': 'clowncar',
-            'ext': 'mp4',
+            'ext': 'webm',
             'title': 'It\'s like a clown car.',
             'description': 'md5:0e56db1370a6e49c5c1d19124c0d2fb2',
         },

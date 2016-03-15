@@ -18,6 +18,7 @@ import xml.etree.ElementTree
 from youtube_dl.utils import (
     age_restricted,
     args_to_str,
+    encode_base_n,
     clean_html,
     DateRange,
     detect_exe_version,
@@ -40,6 +41,7 @@ from youtube_dl.utils import (
     orderedSet,
     parse_duration,
     parse_filesize,
+    parse_count,
     parse_iso8601,
     read_batch_urls,
     sanitize_filename,
@@ -60,6 +62,7 @@ from youtube_dl.utils import (
     lowercase_escape,
     url_basename,
     urlencode_postdata,
+    update_url_query,
     version_tuple,
     xpath_with_ns,
     xpath_element,
@@ -75,6 +78,8 @@ from youtube_dl.utils import (
 )
 from youtube_dl.compat import (
     compat_etree_fromstring,
+    compat_urlparse,
+    compat_parse_qs,
 )
 
 
@@ -453,6 +458,40 @@ class TestUtil(unittest.TestCase):
         data = urlencode_postdata({'username': 'foo@bar.com', 'password': '1234'})
         self.assertTrue(isinstance(data, bytes))
 
+    def test_update_url_query(self):
+        def query_dict(url):
+            return compat_parse_qs(compat_urlparse.urlparse(url).query)
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'quality': ['HD'], 'format': ['mp4']})),
+            query_dict('http://example.com/path?quality=HD&format=mp4'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'system': ['LINUX', 'WINDOWS']})),
+            query_dict('http://example.com/path?system=LINUX&system=WINDOWS'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'fields': 'id,formats,subtitles'})),
+            query_dict('http://example.com/path?fields=id,formats,subtitles'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'fields': ('id,formats,subtitles', 'thumbnails')})),
+            query_dict('http://example.com/path?fields=id,formats,subtitles&fields=thumbnails'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path?manifest=f4m', {'manifest': []})),
+            query_dict('http://example.com/path'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path?system=LINUX&system=WINDOWS', {'system': 'LINUX'})),
+            query_dict('http://example.com/path?system=LINUX'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'fields': b'id,formats,subtitles'})),
+            query_dict('http://example.com/path?fields=id,formats,subtitles'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'width': 1080, 'height': 720})),
+            query_dict('http://example.com/path?width=1080&height=720'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'bitrate': 5020.43})),
+            query_dict('http://example.com/path?bitrate=5020.43'))
+        self.assertEqual(query_dict(update_url_query(
+            'http://example.com/path', {'test': '第二行тест'})),
+            query_dict('http://example.com/path?test=%E7%AC%AC%E4%BA%8C%E8%A1%8C%D1%82%D0%B5%D1%81%D1%82'))
+
     def test_dict_get(self):
         FALSE_VALUES = {
             'none': None,
@@ -614,6 +653,15 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_filesize('5 GB'), 5000000000)
         self.assertEqual(parse_filesize('1.2Tb'), 1200000000000)
         self.assertEqual(parse_filesize('1,24 KB'), 1240)
+
+    def test_parse_count(self):
+        self.assertEqual(parse_count(None), None)
+        self.assertEqual(parse_count(''), None)
+        self.assertEqual(parse_count('0'), 0)
+        self.assertEqual(parse_count('1000'), 1000)
+        self.assertEqual(parse_count('1.000'), 1000)
+        self.assertEqual(parse_count('1.1k'), 1100)
+        self.assertEqual(parse_count('1.1kk'), 1100000)
 
     def test_version_tuple(self):
         self.assertEqual(version_tuple('1'), (1,))
@@ -801,6 +849,17 @@ The first line
         self.assertEqual(
             ohdave_rsa_encrypt(b'aa111222', e, N),
             '726664bd9a23fd0c70f9f1b84aab5e3905ce1e45a584e9cbcf9bcc7510338fc1986d6c599ff990d923aa43c51c0d9013cd572e13bc58f4ae48f2ed8c0b0ba881')
+
+    def test_encode_base_n(self):
+        self.assertEqual(encode_base_n(0, 30), '0')
+        self.assertEqual(encode_base_n(80, 30), '2k')
+
+        custom_table = '9876543210ZYXWVUTSRQPONMLKJIHGFEDCBA'
+        self.assertEqual(encode_base_n(0, 30, custom_table), '9')
+        self.assertEqual(encode_base_n(80, 30, custom_table), '7P')
+
+        self.assertRaises(ValueError, encode_base_n, 0, 70)
+        self.assertRaises(ValueError, encode_base_n, 0, 60, custom_table)
 
 if __name__ == '__main__':
     unittest.main()

@@ -99,7 +99,8 @@ class FragmentFD(FileDownloader):
                     state['eta'] = self.calc_eta(
                         start, time_now, estimated_size,
                         state['downloaded_bytes'])
-                state['speed'] = s.get('speed')
+                state['speed'] = s.get('speed') or ctx.get('speed')
+                ctx['speed'] = state['speed']
                 ctx['prev_frag_downloaded_bytes'] = frag_downloaded_bytes
             self._hook_progress(state)
 

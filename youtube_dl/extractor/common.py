@@ -15,13 +15,14 @@ import math
 from ..compat import (
     compat_cookiejar,
     compat_cookies,
+    compat_etree_fromstring,
     compat_getpass,
     compat_http_client,
+    compat_os_name,
+    compat_str,
     compat_urllib_error,
     compat_urllib_parse,
     compat_urlparse,
-    compat_str,
-    compat_etree_fromstring,
 )
 from ..utils import (
     NO_DEFAULT,
@@ -47,6 +48,7 @@ from ..utils import (
     determine_protocol,
     parse_duration,
     mimetype2ext,
+    update_url_query,
 )
 
 
@@ -104,7 +106,7 @@ class InfoExtractor(object):
                     * protocol   The protocol that will be used for the actual
                                  download, lower-case.
                                  "http", "https", "rtsp", "rtmp", "rtmpe",
-                                 "m3u8", or "m3u8_native".
+                                 "m3u8", "m3u8_native" or "http_dash_segments".
                     * preference Order number of this format. If this field is
                                  present and not None, the formats get sorted
                                  by this field, regardless of all other values.
@@ -157,12 +159,14 @@ class InfoExtractor(object):
     thumbnail:      Full URL to a video thumbnail image.
     description:    Full video description.
     uploader:       Full name of the video uploader.
+    license:        License name the video is licensed under.
     creator:        The main artist who created the video.
     release_date:   The date (YYYYMMDD) when the video was released.
     timestamp:      UNIX timestamp of the moment the video became available.
     upload_date:    Video upload date (YYYYMMDD).
                     If not explicitly set, calculated from timestamp.
     uploader_id:    Nickname or id of the video uploader.
+    uploader_url:   Full URL to a personal webpage of the video uploader.
     location:       Physical location where the video was filmed.
     subtitles:      The available subtitles as a dictionary in the format
                     {language: subformats}. "subformats" is a list sorted from
@@ -342,7 +346,7 @@ class InfoExtractor(object):
     def IE_NAME(self):
         return compat_str(type(self).__name__[:-2])
 
-    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True):
+    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, data=None, headers=None, query=None):
         """ Returns the response handle """
         if note is None:
             self.report_download_webpage(video_id)
@@ -351,6 +355,12 @@ class InfoExtractor(object):
                 self.to_screen('%s' % (note,))
             else:
                 self.to_screen('%s: %s' % (video_id, note))
+        # data, headers and query params will be ignored for `Request` objects
+        if isinstance(url_or_request, compat_str):
+            if query:
+                url_or_request = update_url_query(url_or_request, query)
+            if data or headers:
+                url_or_request = sanitized_Request(url_or_request, data, headers or {})
         try:
             return self._downloader.urlopen(url_or_request)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -366,13 +376,13 @@ class InfoExtractor(object):
                 self._downloader.report_warning(errmsg)
                 return False
 
-    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True, encoding=None):
+    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True, encoding=None, data=None, headers=None, query=None):
         """ Returns a tuple (page content as string, URL handle) """
         # Strip hashes from the URL (#1038)
         if isinstance(url_or_request, (compat_str, str)):
             url_or_request = url_or_request.partition('#')[0]
 
-        urlh = self._request_webpage(url_or_request, video_id, note, errnote, fatal)
+        urlh = self._request_webpage(url_or_request, video_id, note, errnote, fatal, data=data, headers=headers, query=query)
         if urlh is False:
             assert not fatal
             return False
@@ -425,7 +435,7 @@ class InfoExtractor(object):
             self.to_screen('Saving request to ' + filename)
             # Working around MAX_PATH limitation on Windows (see
             # http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx)
-            if os.name == 'nt':
+            if compat_os_name == 'nt':
                 absfilepath = os.path.abspath(filename)
                 if len(absfilepath) > 259:
                     filename = '\\\\?\\' + absfilepath
@@ -459,13 +469,13 @@ class InfoExtractor(object):
 
         return content
 
-    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None):
+    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None, data=None, headers=None, query=None):
         """ Returns the data of the page as a string """
         success = False
         try_count = 0
         while success is False:
             try:
-                res = self._download_webpage_handle(url_or_request, video_id, note, errnote, fatal, encoding=encoding)
+                res = self._download_webpage_handle(url_or_request, video_id, note, errnote, fatal, encoding=encoding, data=data, headers=headers, query=query)
                 success = True
             except compat_http_client.IncompleteRead as e:
                 try_count += 1
@@ -480,10 +490,10 @@ class InfoExtractor(object):
 
     def _download_xml(self, url_or_request, video_id,
                       note='Downloading XML', errnote='Unable to download XML',
-                      transform_source=None, fatal=True, encoding=None):
+                      transform_source=None, fatal=True, encoding=None, data=None, headers=None, query=None):
         """Return the xml as an xml.etree.ElementTree.Element"""
         xml_string = self._download_webpage(
-            url_or_request, video_id, note, errnote, fatal=fatal, encoding=encoding)
+            url_or_request, video_id, note, errnote, fatal=fatal, encoding=encoding, data=data, headers=headers, query=query)
         if xml_string is False:
             return xml_string
         if transform_source:
@@ -494,10 +504,10 @@ class InfoExtractor(object):
                        note='Downloading JSON metadata',
                        errnote='Unable to download JSON metadata',
                        transform_source=None,
-                       fatal=True, encoding=None):
+                       fatal=True, encoding=None, data=None, headers=None, query=None):
         json_string = self._download_webpage(
             url_or_request, video_id, note, errnote, fatal=fatal,
-            encoding=encoding)
+            encoding=encoding, data=data, headers=headers, query=query)
         if (not fatal) and json_string is False:
             return None
         return self._parse_json(
@@ -594,7 +604,7 @@ class InfoExtractor(object):
                 if mobj:
                     break
 
-        if not self._downloader.params.get('no_color') and os.name != 'nt' and sys.stderr.isatty():
+        if not self._downloader.params.get('no_color') and compat_os_name != 'nt' and sys.stderr.isatty():
             _name = '\033[0;34m%s\033[0m' % name
         else:
             _name = name
@@ -963,6 +973,13 @@ class InfoExtractor(object):
         if manifest is False:
             return []
 
+        return self._parse_f4m_formats(
+            manifest, manifest_url, video_id, preference=preference, f4m_id=f4m_id,
+            transform_source=transform_source, fatal=fatal)
+
+    def _parse_f4m_formats(self, manifest, manifest_url, video_id, preference=None, f4m_id=None,
+                           transform_source=lambda s: fix_xml_ampersands(s).strip(),
+                           fatal=True):
         formats = []
         manifest_version = '1.0'
         media_nodes = manifest.findall('{http://ns.adobe.com/f4m/1.0}media')
@@ -988,7 +1005,8 @@ class InfoExtractor(object):
                 # bitrate in f4m downloader
                 if determine_ext(manifest_url) == 'f4m':
                     formats.extend(self._extract_f4m_formats(
-                        manifest_url, video_id, preference, f4m_id, fatal=fatal))
+                        manifest_url, video_id, preference=preference, f4m_id=f4m_id,
+                        transform_source=transform_source, fatal=fatal))
                     continue
             tbr = int_or_none(media_el.attrib.get('bitrate'))
             formats.append({
@@ -1033,11 +1051,21 @@ class InfoExtractor(object):
             return []
         m3u8_doc, urlh = res
         m3u8_url = urlh.geturl()
-        # A Media Playlist Tag MUST NOT appear in a Master Playlist
-        # https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3
-        # The EXT-X-TARGETDURATION tag is REQUIRED for every M3U8 Media Playlists
-        # https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3.1
-        if '#EXT-X-TARGETDURATION' in m3u8_doc:
+
+        # We should try extracting formats only from master playlists [1], i.e.
+        # playlists that describe available qualities. On the other hand media
+        # playlists [2] should be returned as is since they contain just the media
+        # without qualities renditions.
+        # Fortunately, master playlist can be easily distinguished from media
+        # playlist based on particular tags availability. As of [1, 2] master
+        # playlist tags MUST NOT appear in a media playist and vice versa.
+        # As of [3] #EXT-X-TARGETDURATION tag is REQUIRED for every media playlist
+        # and MUST NOT appear in master playlist thus we can clearly detect media
+        # playlist with this criterion.
+        # 1. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.4
+        # 2. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3
+        # 3. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3.1
+        if '#EXT-X-TARGETDURATION' in m3u8_doc:  # media playlist, return as is
             return [{
                 'url': m3u8_url,
                 'format_id': m3u8_id,
@@ -1084,19 +1112,29 @@ class InfoExtractor(object):
                     'protocol': entry_protocol,
                     'preference': preference,
                 }
-                codecs = last_info.get('CODECS')
-                if codecs:
-                    # TODO: looks like video codec is not always necessarily goes first
-                    va_codecs = codecs.split(',')
-                    if va_codecs[0]:
-                        f['vcodec'] = va_codecs[0]
-                    if len(va_codecs) > 1 and va_codecs[1]:
-                        f['acodec'] = va_codecs[1]
                 resolution = last_info.get('RESOLUTION')
                 if resolution:
                     width_str, height_str = resolution.split('x')
                     f['width'] = int(width_str)
                     f['height'] = int(height_str)
+                codecs = last_info.get('CODECS')
+                if codecs:
+                    vcodec, acodec = [None] * 2
+                    va_codecs = codecs.split(',')
+                    if len(va_codecs) == 1:
+                        # Audio only entries usually come with single codec and
+                        # no resolution. For more robustness we also check it to
+                        # be mp4 audio.
+                        if not resolution and va_codecs[0].startswith('mp4a'):
+                            vcodec, acodec = 'none', va_codecs[0]
+                        else:
+                            vcodec = va_codecs[0]
+                    else:
+                        vcodec, acodec = va_codecs[:2]
+                    f.update({
+                        'acodec': acodec,
+                        'vcodec': vcodec,
+                    })
                 if last_media is not None:
                     f['m3u8_media'] = last_media
                     last_media = None
@@ -1117,8 +1155,8 @@ class InfoExtractor(object):
                 out.append('{%s}%s' % (namespace, c))
         return '/'.join(out)
 
-    def _extract_smil_formats(self, smil_url, video_id, fatal=True, f4m_params=None):
-        smil = self._download_smil(smil_url, video_id, fatal=fatal)
+    def _extract_smil_formats(self, smil_url, video_id, fatal=True, f4m_params=None, transform_source=None):
+        smil = self._download_smil(smil_url, video_id, fatal=fatal, transform_source=transform_source)
 
         if smil is False:
             assert not fatal
@@ -1135,10 +1173,10 @@ class InfoExtractor(object):
             return {}
         return self._parse_smil(smil, smil_url, video_id, f4m_params=f4m_params)
 
-    def _download_smil(self, smil_url, video_id, fatal=True):
+    def _download_smil(self, smil_url, video_id, fatal=True, transform_source=None):
         return self._download_xml(
             smil_url, video_id, 'Downloading SMIL file',
-            'Unable to download SMIL file', fatal=fatal)
+            'Unable to download SMIL file', fatal=fatal, transform_source=transform_source)
 
     def _parse_smil(self, smil, smil_url, video_id, f4m_params=None):
         namespace = self._parse_smil_namespace(smil)
@@ -1424,8 +1462,9 @@ class InfoExtractor(object):
                         continue
                     representation_attrib = adaptation_set.attrib.copy()
                     representation_attrib.update(representation.attrib)
-                    mime_type = representation_attrib.get('mimeType')
-                    content_type = mime_type.split('/')[0] if mime_type else representation_attrib.get('contentType')
+                    # According to page 41 of ISO/IEC 29001-1:2014, @mimeType is mandatory
+                    mime_type = representation_attrib['mimeType']
+                    content_type = mime_type.split('/')[0]
                     if content_type == 'text':
                         # TODO implement WebVTT downloading
                         pass
@@ -1448,6 +1487,7 @@ class InfoExtractor(object):
                         f = {
                             'format_id': '%s-%s' % (mpd_id, representation_id) if mpd_id else representation_id,
                             'url': base_url,
+                            'ext': mimetype2ext(mime_type),
                             'width': int_or_none(representation_attrib.get('width')),
                             'height': int_or_none(representation_attrib.get('height')),
                             'tbr': int_or_none(representation_attrib.get('bandwidth'), 1000),
@@ -1598,6 +1638,15 @@ class InfoExtractor(object):
         return {}
 
     def _get_automatic_captions(self, *args, **kwargs):
+        raise NotImplementedError('This method must be implemented by subclasses')
+
+    def mark_watched(self, *args, **kwargs):
+        if (self._downloader.params.get('mark_watched', False) and
+                (self._get_login_info()[0] is not None or
+                    self._downloader.params.get('cookiefile') is not None)):
+            self._mark_watched(*args, **kwargs)
+
+    def _mark_watched(self, *args, **kwargs):
         raise NotImplementedError('This method must be implemented by subclasses')
 
 

@@ -28,10 +28,10 @@ class BleacherReportIE(InfoExtractor):
         'add_ie': ['Ooyala'],
     }, {
         'url': 'http://bleacherreport.com/articles/2586817-aussie-golfers-get-fright-of-their-lives-after-being-chased-by-angry-kangaroo',
-        'md5': 'af5f90dc9c7ba1c19d0a3eac806bbf50',
+        'md5': '6a5cd403418c7b01719248ca97fb0692',
         'info_dict': {
             'id': '2586817',
-            'ext': 'mp4',
+            'ext': 'webm',
             'title': 'Aussie Golfers Get Fright of Their Lives After Being Chased by Angry Kangaroo',
             'timestamp': 1446839961,
             'uploader': 'Sean Fay',
@@ -93,9 +93,13 @@ class BleacherReportCMSIE(AMPIE):
         'md5': '8c2c12e3af7805152675446c905d159b',
         'info_dict': {
             'id': '8fd44c2f-3dc5-4821-9118-2c825a98c0e1',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Cena vs. Rollins Would Expose the Heavyweight Division',
             'description': 'md5:984afb4ade2f9c0db35f3267ed88b36e',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
     }]
 

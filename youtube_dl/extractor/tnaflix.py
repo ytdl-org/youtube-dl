@@ -71,7 +71,7 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        display_id = mobj.group('display_id')
+        display_id = mobj.group('display_id') if 'display_id' in mobj.groupdict() else video_id
 
         webpage = self._download_webpage(url, display_id)
 
@@ -117,7 +117,7 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
         title = self._html_search_regex(
             self._TITLE_REGEX, webpage, 'title') if self._TITLE_REGEX else self._og_search_title(webpage)
 
-        age_limit = self._rta_search(webpage)
+        age_limit = self._rta_search(webpage) or 18
 
         duration = parse_duration(self._html_search_meta(
             'duration', webpage, 'duration', default=None))
@@ -150,6 +150,36 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
             'categories': categories,
             'formats': formats,
         }
+
+
+class TNAFlixNetworkEmbedIE(TNAFlixNetworkBaseIE):
+    _VALID_URL = r'https?://player\.(?:tna|emp)flix\.com/video/(?P<id>\d+)'
+
+    _TITLE_REGEX = r'<title>([^<]+)</title>'
+
+    _TESTS = [{
+        'url': 'https://player.tnaflix.com/video/6538',
+        'info_dict': {
+            'id': '6538',
+            'display_id': '6538',
+            'ext': 'mp4',
+            'title': 'Educational xxx video',
+            'thumbnail': 're:https?://.*\.jpg$',
+            'age_limit': 18,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://player.empflix.com/video/33051',
+        'only_matching': True,
+    }]
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return [url for _, url in re.findall(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.(?:tna|emp)flix\.com/video/\d+)\1',
+            webpage)]
 
 
 class TNAFlixIE(TNAFlixNetworkBaseIE):

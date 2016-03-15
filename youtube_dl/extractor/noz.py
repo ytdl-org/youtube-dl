@@ -6,6 +6,7 @@ from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     int_or_none,
     xpath_text,
+    update_url_query,
 )
 
 
@@ -46,17 +47,29 @@ class NozIE(InfoExtractor):
             doc, './/article/movie/file/duration'))
         formats = []
         for qnode in doc.findall('.//article/movie/file/qualities/qual'):
-            video_node = qnode.find('./html_urls/video_url[@format="video/mp4"]')
-            if video_node is None:
-                continue  # auto
-            formats.append({
-                'url': video_node.text,
-                'format_name': xpath_text(qnode, './name'),
-                'format_id': xpath_text(qnode, './id'),
-                'height': int_or_none(xpath_text(qnode, './height')),
-                'width': int_or_none(xpath_text(qnode, './width')),
-                'tbr': int_or_none(xpath_text(qnode, './bitrate'), scale=1000),
-            })
+            http_url = xpath_text(
+                qnode, './html_urls/video_url[@format="video/mp4"]')
+            if http_url:
+                formats.append({
+                    'url': http_url,
+                    'format_name': xpath_text(qnode, './name'),
+                    'format_id': '%s-%s' % ('http', xpath_text(qnode, './id')),
+                    'height': int_or_none(xpath_text(qnode, './height')),
+                    'width': int_or_none(xpath_text(qnode, './width')),
+                    'tbr': int_or_none(xpath_text(qnode, './bitrate'), scale=1000),
+                })
+            else:
+                f4m_url = xpath_text(qnode, 'url_hd2')
+                if f4m_url:
+                    formats.extend(self._extract_f4m_formats(
+                        update_url_query(f4m_url, {'hdcore': '3.4.0'}),
+                        video_id, f4m_id='hds', fatal=False))
+                m3u8_url = xpath_text(
+                    qnode, './html_urls/video_url[@format="application/vnd.apple.mpegurl"]')
+                if m3u8_url:
+                    formats.extend(self._extract_m3u8_formats(
+                        m3u8_url, video_id, 'mp4', 'm3u8_native',
+                        m3u8_id='hls', fatal=False))
         self._sort_formats(formats)
 
         return {

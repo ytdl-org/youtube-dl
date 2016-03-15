@@ -18,6 +18,7 @@ from ..compat import (
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
+    decode_packed_codes,
     ExtractorError,
     ohdave_rsa_encrypt,
     remove_start,
@@ -126,43 +127,11 @@ class IqiyiSDK(object):
 
 
 class IqiyiSDKInterpreter(object):
-    BASE62_TABLE = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-
     def __init__(self, sdk_code):
         self.sdk_code = sdk_code
 
-    @classmethod
-    def base62(cls, num):
-        if num == 0:
-            return '0'
-        ret = ''
-        while num:
-            ret = cls.BASE62_TABLE[num % 62] + ret
-            num = num // 62
-        return ret
-
-    def decode_eval_codes(self):
-        self.sdk_code = self.sdk_code[5:-3]
-
-        mobj = re.search(
-            r"'([^']+)',62,(\d+),'([^']+)'\.split\('\|'\),[^,]+,{}",
-            self.sdk_code)
-        obfucasted_code, count, symbols = mobj.groups()
-        count = int(count)
-        symbols = symbols.split('|')
-        symbol_table = {}
-
-        while count:
-            count -= 1
-            b62count = self.base62(count)
-            symbol_table[b62count] = symbols[count] or b62count
-
-        self.sdk_code = re.sub(
-            r'\b(\w+)\b', lambda mobj: symbol_table[mobj.group(0)],
-            obfucasted_code)
-
     def run(self, target, ip, timestamp):
-        self.decode_eval_codes()
+        self.sdk_code = decode_packed_codes(self.sdk_code)
 
         functions = re.findall(r'input=([a-zA-Z0-9]+)\(input', self.sdk_code)
 
@@ -529,10 +498,10 @@ class IqiyiIE(InfoExtractor):
         raw_data = self._download_json(api_url, video_id)
         return raw_data
 
-    def get_enc_key(self, swf_url, video_id):
+    def get_enc_key(self, video_id):
         # TODO: automatic key extraction
         # last update at 2016-01-22 for Zombie::bite
-        enc_key = '6ab6d0280511493ba85594779759d4ed'
+        enc_key = '8ed797d224d043e7ac23d95b70227d32'
         return enc_key
 
     def _extract_playlist(self, webpage):
@@ -582,11 +551,9 @@ class IqiyiIE(InfoExtractor):
             r'data-player-tvid\s*=\s*[\'"](\d+)', webpage, 'tvid')
         video_id = self._search_regex(
             r'data-player-videoid\s*=\s*[\'"]([a-f\d]+)', webpage, 'video_id')
-        swf_url = self._search_regex(
-            r'(http://[^\'"]+MainPlayer[^.]+\.swf)', webpage, 'swf player URL')
         _uuid = uuid.uuid4().hex
 
-        enc_key = self.get_enc_key(swf_url, video_id)
+        enc_key = self.get_enc_key(video_id)
 
         raw_data = self.get_raw_data(tvid, video_id, enc_key, _uuid)
 

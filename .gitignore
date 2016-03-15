@@ -1,5 +1,6 @@
 *.pyc
 *.pyo
+*.class
 *~
 *.DS_Store
 wine-py2exe/

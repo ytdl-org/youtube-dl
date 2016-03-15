@@ -142,10 +142,10 @@ class VKIE(InfoExtractor):
             'url': 'https://vk.com/video276849682_170681728',
             'info_dict': {
                 'id': 'V3K4mi0SYkc',
-                'ext': 'mp4',
+                'ext': 'webm',
                 'title': "DSWD Awards 'Children's Joy Foundation, Inc.' Certificate of Registration and License to Operate",
                 'description': 'md5:bf9c26cfa4acdfb146362682edd3827a',
-                'duration': 179,
+                'duration': 178,
                 'upload_date': '20130116',
                 'uploader': "Children's Joy Foundation",
                 'uploader_id': 'thecjf',

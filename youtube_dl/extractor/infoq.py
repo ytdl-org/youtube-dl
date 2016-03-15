@@ -4,15 +4,12 @@ from __future__ import unicode_literals
 
 import base64
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_unquote,
-    compat_parse_qs,
-)
+from ..compat import compat_urllib_parse_unquote
 from ..utils import determine_ext
+from .bokecc import BokeCCBaseIE
 
 
-class InfoQIE(InfoExtractor):
+class InfoQIE(BokeCCBaseIE):
     _VALID_URL = r'https?://(?:www\.)?infoq\.com/(?:[^/]+/)+(?P<id>[^/]+)'
 
     _TESTS = [{
@@ -37,26 +34,6 @@ class InfoQIE(InfoExtractor):
             'description': 'md5:308d981fb28fa42f49f9568322c683ff',
         },
     }]
-
-    def _extract_bokecc_videos(self, webpage, video_id):
-        # TODO: bokecc.com is a Chinese video cloud platform
-        # It should have an independent extractor but I don't have other
-        # examples using bokecc
-        player_params_str = self._html_search_regex(
-            r'<script[^>]+src="http://p\.bokecc\.com/player\?([^"]+)',
-            webpage, 'player params', default=None)
-
-        player_params = compat_parse_qs(player_params_str)
-
-        info_xml = self._download_xml(
-            'http://p.bokecc.com/servlet/playinfo?uid=%s&vid=%s&m=1' % (
-                player_params['siteid'][0], player_params['vid'][0]), video_id)
-
-        return [{
-            'format_id': 'bokecc',
-            'url': quality.find('./copy').attrib['playurl'],
-            'preference': int(quality.attrib['value']),
-        } for quality in info_xml.findall('./video/quality')]
 
     def _extract_rtmp_videos(self, webpage):
         # The server URL is hardcoded
@@ -101,7 +78,7 @@ class InfoQIE(InfoExtractor):
 
         if '/cn/' in url:
             # for China videos, HTTP video URL exists but always fails with 403
-            formats = self._extract_bokecc_videos(webpage, video_id)
+            formats = self._extract_bokecc_formats(webpage, video_id)
         else:
             formats = self._extract_rtmp_videos(webpage) + self._extract_http_videos(webpage)
 

@@ -160,8 +160,6 @@ if sys.version_info >= (2, 7):
     def find_xpath_attr(node, xpath, key, val=None):
         """ Find the xpath xpath[@key=val] """
         assert re.match(r'^[a-zA-Z_-]+$', key)
-        if val:
-            assert re.match(r'^[a-zA-Z0-9@\s:._-]*$', val)
         expr = xpath + ('[@%s]' % key if val is None else "[@%s='%s']" % (key, val))
         return node.find(expr)
 else:
@@ -465,6 +463,10 @@ def encodeFilename(s, for_subprocess=False):
     # (Detecting Windows NT 4 is tricky because 'major >= 4' would
     # match Windows 9x series as well. Besides, NT 4 is obsolete.)
     if not for_subprocess and sys.platform == 'win32' and sys.getwindowsversion()[0] >= 5:
+        return s
+
+    # Jython assumes filenames are Unicode strings though reported as Python 2.x compatible
+    if sys.platform.startswith('java'):
         return s
 
     return s.encode(get_subprocess_encoding(), 'ignore')
@@ -1217,13 +1219,23 @@ if sys.platform == 'win32':
             raise OSError('Unlocking file failed: %r' % ctypes.FormatError())
 
 else:
-    import fcntl
+    # Some platforms, such as Jython, is missing fcntl
+    try:
+        import fcntl
 
-    def _lock_file(f, exclusive):
-        fcntl.flock(f, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
+        def _lock_file(f, exclusive):
+            fcntl.flock(f, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
 
-    def _unlock_file(f):
-        fcntl.flock(f, fcntl.LOCK_UN)
+        def _unlock_file(f):
+            fcntl.flock(f, fcntl.LOCK_UN)
+    except ImportError:
+        UNSUPPORTED_MSG = 'file locking is not supported on this platform'
+
+        def _lock_file(f, exclusive):
+            raise IOError(UNSUPPORTED_MSG)
+
+        def _unlock_file(f):
+            raise IOError(UNSUPPORTED_MSG)
 
 
 class locked_file(object):
@@ -1304,6 +1316,17 @@ def format_bytes(bytes):
     return '%.2f%s' % (converted, suffix)
 
 
+def lookup_unit_table(unit_table, s):
+    units_re = '|'.join(re.escape(u) for u in unit_table)
+    m = re.match(
+        r'(?P<num>[0-9]+(?:[,.][0-9]*)?)\s*(?P<unit>%s)' % units_re, s)
+    if not m:
+        return None
+    num_str = m.group('num').replace(',', '.')
+    mult = unit_table[m.group('unit')]
+    return int(float(num_str) * mult)
+
+
 def parse_filesize(s):
     if s is None:
         return None
@@ -1347,15 +1370,28 @@ def parse_filesize(s):
         'Yb': 1000 ** 8,
     }
 
-    units_re = '|'.join(re.escape(u) for u in _UNIT_TABLE)
-    m = re.match(
-        r'(?P<num>[0-9]+(?:[,.][0-9]*)?)\s*(?P<unit>%s)' % units_re, s)
-    if not m:
+    return lookup_unit_table(_UNIT_TABLE, s)
+
+
+def parse_count(s):
+    if s is None:
         return None
 
-    num_str = m.group('num').replace(',', '.')
-    mult = _UNIT_TABLE[m.group('unit')]
-    return int(float(num_str) * mult)
+    s = s.strip()
+
+    if re.match(r'^[\d,.]+$', s):
+        return str_to_int(s)
+
+    _UNIT_TABLE = {
+        'k': 1000,
+        'K': 1000,
+        'm': 1000 ** 2,
+        'M': 1000 ** 2,
+        'kk': 1000 ** 2,
+        'KK': 1000 ** 2,
+    }
+
+    return lookup_unit_table(_UNIT_TABLE, s)
 
 
 def month_by_name(name):
@@ -1387,6 +1423,12 @@ def fix_xml_ampersands(xml_str):
 
 def setproctitle(title):
     assert isinstance(title, compat_str)
+
+    # ctypes in Jython is not complete
+    # http://bugs.jython.org/issue2148
+    if sys.platform.startswith('java'):
+        return
+
     try:
         libc = ctypes.cdll.LoadLibrary('libc.so.6')
     except OSError:
@@ -1719,6 +1761,15 @@ def read_batch_urls(batch_fd):
 
 def urlencode_postdata(*args, **kargs):
     return compat_urllib_parse.urlencode(*args, **kargs).encode('ascii')
+
+
+def update_url_query(url, query):
+    parsed_url = compat_urlparse.urlparse(url)
+    qs = compat_parse_qs(parsed_url.query)
+    qs.update(query)
+    qs = encode_dict(qs)
+    return compat_urlparse.urlunparse(parsed_url._replace(
+        query=compat_urllib_parse.urlencode(qs, True)))
 
 
 def encode_dict(d, encoding='utf-8'):
@@ -2619,3 +2670,41 @@ def ohdave_rsa_encrypt(data, exponent, modulus):
     payload = int(binascii.hexlify(data[::-1]), 16)
     encrypted = pow(payload, exponent, modulus)
     return '%x' % encrypted
+
+
+def encode_base_n(num, n, table=None):
+    FULL_TABLE = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    if not table:
+        table = FULL_TABLE[:n]
+
+    if n > len(table):
+        raise ValueError('base %d exceeds table length %d' % (n, len(table)))
+
+    if num == 0:
+        return table[0]
+
+    ret = ''
+    while num:
+        ret = table[num % n] + ret
+        num = num // n
+    return ret
+
+
+def decode_packed_codes(code):
+    mobj = re.search(
+        r"}\('(.+)',(\d+),(\d+),'([^']+)'\.split\('\|'\)",
+        code)
+    obfucasted_code, base, count, symbols = mobj.groups()
+    base = int(base)
+    count = int(count)
+    symbols = symbols.split('|')
+    symbol_table = {}
+
+    while count:
+        count -= 1
+        base_n_count = encode_base_n(count, base)
+        symbol_table[base_n_count] = symbols[count] or base_n_count
+
+    return re.sub(
+        r'\b(\w+)\b', lambda mobj: symbol_table[mobj.group(0)],
+        obfucasted_code)

@@ -73,7 +73,7 @@ class TEDIE(InfoExtractor):
         'add_ie': ['Youtube'],
         'info_dict': {
             'id': '_ZG8HBuDjgc',
-            'ext': 'mp4',
+            'ext': 'webm',
             'title': 'Douglas Adams: Parrots the Universe and Everything',
             'description': 'md5:01ad1e199c49ac640cb1196c0e9016af',
             'uploader': 'University of California Television (UCTV)',

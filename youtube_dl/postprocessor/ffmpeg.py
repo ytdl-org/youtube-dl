@@ -25,6 +25,19 @@ from ..utils import (
 )
 
 
+EXT_TO_OUT_FORMATS = {
+    "aac": "adts",
+    "m4a": "ipod",
+    "mka": "matroska",
+    "mkv": "matroska",
+    "mpg": "mpeg",
+    "ogv": "ogg",
+    "ts": "mpegts",
+    "wma": "asf",
+    "wmv": "asf",
+}
+
+
 class FFmpegPostProcessorError(PostProcessingError):
     pass
 
@@ -391,10 +404,6 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         for (name, value) in metadata.items():
             options.extend(['-metadata', '%s=%s' % (name, value)])
 
-        # https://github.com/rg3/youtube-dl/issues/8350
-        if info.get('protocol') == 'm3u8_native' or info.get('protocol') == 'm3u8' and self._downloader.params.get('hls_prefer_native', False):
-            options.extend(['-bsf:a', 'aac_adtstoasc'])
-
         self._downloader.to_screen('[ffmpeg] Adding metadata to \'%s\'' % filename)
         self.run_ffmpeg(filename, temp_filename, options)
         os.remove(encodeFilename(filename))
@@ -459,6 +468,21 @@ class FFmpegFixupM4aPP(FFmpegPostProcessor):
 
         options = ['-c', 'copy', '-f', 'mp4']
         self._downloader.to_screen('[ffmpeg] Correcting container in "%s"' % filename)
+        self.run_ffmpeg(filename, temp_filename, options)
+
+        os.remove(encodeFilename(filename))
+        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+
+        return [], info
+
+
+class FFmpegFixupM3u8PP(FFmpegPostProcessor):
+    def run(self, info):
+        filename = info['filepath']
+        temp_filename = prepend_extension(filename, 'temp')
+
+        options = ['-c', 'copy', '-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
+        self._downloader.to_screen('[ffmpeg] Fixing malformated aac bitstream in "%s"' % filename)
         self.run_ffmpeg(filename, temp_filename, options)
 
         os.remove(encodeFilename(filename))

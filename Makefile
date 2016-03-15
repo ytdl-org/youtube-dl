@@ -3,6 +3,7 @@ all: youtube-dl README.md CONTRIBUTING.md README.txt youtube-dl.1 youtube-dl.bas
 clean:
 	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish *.dump *.part *.info.json *.mp4 *.flv *.mp3 *.avi CONTRIBUTING.md.tmp youtube-dl youtube-dl.exe
 	find . -name "*.pyc" -delete
+	find . -name "*.class" -delete
 
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
@@ -44,7 +45,7 @@ test:
 ot: offlinetest
 
 offlinetest: codetest
-	nosetests --verbose test --exclude test_download.py --exclude test_age_restriction.py --exclude test_subtitles.py --exclude test_write_annotations.py --exclude test_youtube_lists.py --exclude test_iqiyi_sdk_interpreter.py
+	$(PYTHON) -m nose --verbose test --exclude test_download.py --exclude test_age_restriction.py --exclude test_subtitles.py --exclude test_write_annotations.py --exclude test_youtube_lists.py --exclude test_iqiyi_sdk_interpreter.py
 
 tar: youtube-dl.tar.gz
 

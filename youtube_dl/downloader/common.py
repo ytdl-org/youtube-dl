@@ -5,6 +5,7 @@ import re
 import sys
 import time
 
+from ..compat import compat_os_name
 from ..utils import (
     encodeFilename,
     error_to_compat_str,
@@ -219,7 +220,7 @@ class FileDownloader(object):
         if self.params.get('progress_with_newline', False):
             self.to_screen(fullmsg)
         else:
-            if os.name == 'nt':
+            if compat_os_name == 'nt':
                 prev_len = getattr(self, '_report_progress_prev_line_length',
                                    0)
                 if prev_len > len(fullmsg):

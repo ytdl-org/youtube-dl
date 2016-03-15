@@ -23,7 +23,10 @@ from .alphaporno import AlphaPornoIE
 from .animeondemand import AnimeOnDemandIE
 from .anitube import AnitubeIE
 from .anysex import AnySexIE
-from .aol import AolIE
+from .aol import (
+    AolIE,
+    AolFeaturesIE,
+)
 from .allocine import AllocineIE
 from .aparat import AparatIE
 from .appleconnect import AppleConnectIE
@@ -51,6 +54,7 @@ from .arte import (
 from .atresplayer import AtresPlayerIE
 from .atttechchannel import ATTTechChannelIE
 from .audimedia import AudiMediaIE
+from .audioboom import AudioBoomIE
 from .audiomack import AudiomackIE, AudiomackAlbumIE
 from .azubu import AzubuIE, AzubuLiveIE
 from .baidu import BaiduVideoIE
@@ -74,6 +78,7 @@ from .bleacherreport import (
 )
 from .blinkx import BlinkxIE
 from .bloomberg import BloombergIE
+from .bokecc import BokeCCIE
 from .bpb import BpbIE
 from .br import BRIE
 from .breakcom import BreakIE
@@ -184,6 +189,10 @@ from .dumpert import DumpertIE
 from .defense import DefenseGouvFrIE
 from .discovery import DiscoveryIE
 from .dropbox import DropboxIE
+from .dw import (
+    DWIE,
+    DWArticleIE,
+)
 from .eagleplatform import EaglePlatformIE
 from .ebaumsworld import EbaumsWorldIE
 from .echomsk import EchoMskIE
@@ -208,10 +217,7 @@ from .everyonesmixtape import EveryonesMixtapeIE
 from .exfm import ExfmIE
 from .expotv import ExpoTVIE
 from .extremetube import ExtremeTubeIE
-from .facebook import (
-    FacebookIE,
-    FacebookPostIE,
-)
+from .facebook import FacebookIE
 from .faz import FazIE
 from .fc2 import FC2IE
 from .fczenit import FczenitIE
@@ -339,6 +345,7 @@ from .konserthusetplay import KonserthusetPlayIE
 from .kontrtube import KontrTubeIE
 from .krasview import KrasViewIE
 from .ku6 import Ku6IE
+from .kusi import KUSIIE
 from .kuwo import (
     KuwoIE,
     KuwoAlbumIE,
@@ -351,10 +358,9 @@ from .la7 import LA7IE
 from .laola1tv import Laola1TvIE
 from .lecture2go import Lecture2GoIE
 from .lemonde import LemondeIE
-from .letv import (
-    LetvIE,
-    LetvTvIE,
-    LetvPlaylistIE,
+from .leeco import (
+    LeIE,
+    LePlaylistIE,
     LetvCloudIE,
 )
 from .libsyn import LibsynIE
@@ -383,6 +389,7 @@ from .lynda import (
 from .m6 import M6IE
 from .macgamestore import MacGameStoreIE
 from .mailru import MailRuIE
+from .makerschannel import MakersChannelIE
 from .makertv import MakerTVIE
 from .malemotion import MalemotionIE
 from .matchtv import MatchTVIE
@@ -392,6 +399,7 @@ from .metacritic import MetacriticIE
 from .mgoon import MgoonIE
 from .minhateca import MinhatecaIE
 from .ministrygrid import MinistryGridIE
+from .minoto import MinotoIE
 from .miomio import MioMioIE
 from .mit import TechTVMITIE, MITIE, OCWMITIE
 from .mitele import MiTeleIE
@@ -505,6 +513,7 @@ from .npr import NprIE
 from .nrk import (
     NRKIE,
     NRKPlaylistIE,
+    NRKSkoleIE,
     NRKTVIE,
 )
 from .ntvde import NTVDeIE
@@ -589,6 +598,7 @@ from .regiotv import RegioTVIE
 from .restudy import RestudyIE
 from .reverbnation import ReverbNationIE
 from .revision3 import Revision3IE
+from .rice import RICEIE
 from .ringtv import RingTVIE
 from .ro220 import Ro220IE
 from .rottentomatoes import RottenTomatoesIE
@@ -669,7 +679,6 @@ from .southpark import (
     SouthParkEsIE,
     SouthParkNlIE
 )
-from .space import SpaceIE
 from .spankbang import SpankBangIE
 from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE, SpiegelArticleIE
@@ -737,6 +746,7 @@ from .tmz import (
     TMZArticleIE,
 )
 from .tnaflix import (
+    TNAFlixNetworkEmbedIE,
     TNAFlixIE,
     EMPFlixIE,
     MovieFapIE,
@@ -813,7 +823,9 @@ from .udn import UDNEmbedIE
 from .digiteka import DigitekaIE
 from .unistra import UnistraIE
 from .urort import UrortIE
+from .usatoday import USATodayIE
 from .ustream import UstreamIE, UstreamChannelIE
+from .ustudio import UstudioIE
 from .varzesh3 import Varzesh3IE
 from .vbox7 import Vbox7IE
 from .veehd import VeeHDIE
@@ -827,7 +839,10 @@ from .vgtv import (
     VGTVIE,
 )
 from .vh1 import VH1IE
-from .vice import ViceIE
+from .vice import (
+    ViceIE,
+    ViceShowIE,
+)
 from .viddler import ViddlerIE
 from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
@@ -854,6 +869,7 @@ from .vimeo import (
     VimeoChannelIE,
     VimeoGroupsIE,
     VimeoLikesIE,
+    VimeoOndemandIE,
     VimeoReviewIE,
     VimeoUserIE,
     VimeoWatchLaterIE,
