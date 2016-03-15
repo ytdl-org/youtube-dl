@@ -27,9 +27,7 @@ class CriterionIE(InfoExtractor):
         final_url = self._search_regex(
             r'so.addVariable\("videoURL", "(.+?)"\)\;', webpage, 'video url')
         title = self._og_search_title(webpage)
-        description = self._html_search_regex(
-            r'<meta name="description" content="(.+?)" />',
-            webpage, 'video description')
+        description = self._html_search_meta('description', webpage)
         thumbnail = self._search_regex(
             r'so.addVariable\("thumbnailURL", "(.+?)"\)\;',
             webpage, 'thumbnail url')

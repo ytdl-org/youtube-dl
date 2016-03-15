@@ -10,10 +10,10 @@ class TutvIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tu\.tv/videos/(?P<id>[^/?]+)'
     _TEST = {
         'url': 'http://tu.tv/videos/robots-futbolistas',
-        'md5': '627c7c124ac2a9b5ab6addb94e0e65f7',
+        'md5': '0cd9e28ad270488911b0d2a72323395d',
         'info_dict': {
             'id': '2973058',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Robots futbolistas',
         },
     }

@@ -1,15 +1,20 @@
 from __future__ import unicode_literals
 
+import itertools
+
 from .common import InfoExtractor
+from ..compat import compat_HTTPError
 from ..utils import (
+    ExtractorError,
     int_or_none,
     float_or_none,
-    str_to_int,
+    parse_iso8601,
 )
 
 
 class VidmeIE(InfoExtractor):
-    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]+)'
+    IE_NAME = 'vidme'
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{,5})(?:[^\da-zA-Z]|$)'
     _TESTS = [{
         'url': 'https://vid.me/QNB',
         'md5': 'f42d05e7149aeaec5c037b17e5d3dc82',
@@ -18,12 +23,35 @@ class VidmeIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Fishing for piranha - the easy way',
             'description': 'source: https://www.facebook.com/photo.php?v=312276045600871',
-            'duration': 119.92,
+            'thumbnail': 're:^https?://.*\.jpg',
             'timestamp': 1406313244,
             'upload_date': '20140725',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'age_limit': 0,
+            'duration': 119.92,
             'view_count': int,
             'like_count': int,
+            'comment_count': int,
+        },
+    }, {
+        'url': 'https://vid.me/Gc6M',
+        'md5': 'f42d05e7149aeaec5c037b17e5d3dc82',
+        'info_dict': {
+            'id': 'Gc6M',
+            'ext': 'mp4',
+            'title': 'O Mere Dil ke chain - Arnav and Khushi VM',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'timestamp': 1441211642,
+            'upload_date': '20150902',
+            'uploader': 'SunshineM',
+            'uploader_id': '3552827',
+            'age_limit': 0,
+            'duration': 223.72,
+            'view_count': int,
+            'like_count': int,
+            'comment_count': int,
+        },
+        'params': {
+            'skip_download': True,
         },
     }, {
         # tests uploader field
@@ -33,63 +61,213 @@ class VidmeIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'The Carver',
             'description': 'md5:e9c24870018ae8113be936645b93ba3c',
-            'duration': 97.859999999999999,
+            'thumbnail': 're:^https?://.*\.jpg',
             'timestamp': 1433203629,
             'upload_date': '20150602',
             'uploader': 'Thomas',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'uploader_id': '109747',
+            'age_limit': 0,
+            'duration': 97.859999999999999,
             'view_count': int,
             'like_count': int,
+            'comment_count': int,
         },
         'params': {
             'skip_download': True,
         },
     }, {
-        # From http://naked-yogi.tumblr.com/post/118312946248/naked-smoking-stretching
+        # nsfw test from http://naked-yogi.tumblr.com/post/118312946248/naked-smoking-stretching
         'url': 'https://vid.me/e/Wmur',
+        'info_dict': {
+            'id': 'Wmur',
+            'ext': 'mp4',
+            'title': 'naked smoking & stretching',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'timestamp': 1430931613,
+            'upload_date': '20150506',
+            'uploader': 'naked-yogi',
+            'uploader_id': '1638622',
+            'age_limit': 18,
+            'duration': 653.26999999999998,
+            'view_count': int,
+            'like_count': int,
+            'comment_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        # nsfw, user-disabled
+        'url': 'https://vid.me/dzGJ',
         'only_matching': True,
+    }, {
+        # suspended
+        'url': 'https://vid.me/Ox3G',
+        'only_matching': True,
+    }, {
+        # deleted
+        'url': 'https://vid.me/KTPm',
+        'only_matching': True,
+    }, {
+        # no formats in the API response
+        'url': 'https://vid.me/e5g',
+        'info_dict': {
+            'id': 'e5g',
+            'ext': 'mp4',
+            'title': 'Video upload (e5g)',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'timestamp': 1401480195,
+            'upload_date': '20140530',
+            'uploader': None,
+            'uploader_id': None,
+            'age_limit': 0,
+            'duration': 483,
+            'view_count': int,
+            'like_count': int,
+            'comment_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
-        url = url.replace('vid.me/e/', 'vid.me/')
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
 
-        video_url = self._html_search_regex(
-            r'<source src="([^"]+)"', webpage, 'video URL')
+        try:
+            response = self._download_json(
+                'https://api.vid.me/videoByUrl/%s' % video_id, video_id)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
+                response = self._parse_json(e.cause.read(), video_id)
+            else:
+                raise
 
-        title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage, default='')
-        thumbnail = self._og_search_thumbnail(webpage)
-        timestamp = int_or_none(self._og_search_property(
-            'updated_time', webpage, fatal=False))
-        width = int_or_none(self._og_search_property(
-            'video:width', webpage, fatal=False))
-        height = int_or_none(self._og_search_property(
-            'video:height', webpage, fatal=False))
-        duration = float_or_none(self._html_search_regex(
-            r'data-duration="([^"]+)"', webpage, 'duration', fatal=False))
-        view_count = str_to_int(self._html_search_regex(
-            r'<(?:li|span) class="video_views">\s*([\d,\.]+)\s*plays?',
-            webpage, 'view count', fatal=False))
-        like_count = str_to_int(self._html_search_regex(
-            r'class="score js-video-vote-score"[^>]+data-score="([\d,\.\s]+)">',
-            webpage, 'like count', fatal=False))
-        uploader = self._html_search_regex(
-            'class="video_author_username"[^>]*>([^<]+)',
-            webpage, 'uploader', default=None)
+        error = response.get('error')
+        if error:
+            raise ExtractorError(
+                '%s returned error: %s' % (self.IE_NAME, error), expected=True)
+
+        video = response['video']
+
+        if video.get('state') == 'deleted':
+            raise ExtractorError(
+                'Vidme said: Sorry, this video has been deleted.',
+                expected=True)
+
+        if video.get('state') in ('user-disabled', 'suspended'):
+            raise ExtractorError(
+                'Vidme said: This video has been suspended either due to a copyright claim, '
+                'or for violating the terms of use.',
+                expected=True)
+
+        formats = [{
+            'format_id': f.get('type'),
+            'url': f['uri'],
+            'width': int_or_none(f.get('width')),
+            'height': int_or_none(f.get('height')),
+            'preference': 0 if f.get('type', '').endswith('clip') else 1,
+        } for f in video.get('formats', []) if f.get('uri')]
+
+        if not formats and video.get('complete_url'):
+            formats.append({
+                'url': video.get('complete_url'),
+                'width': int_or_none(video.get('width')),
+                'height': int_or_none(video.get('height')),
+            })
+
+        self._sort_formats(formats)
+
+        title = video['title']
+        description = video.get('description')
+        thumbnail = video.get('thumbnail_url')
+        timestamp = parse_iso8601(video.get('date_created'), ' ')
+        uploader = video.get('user', {}).get('username')
+        uploader_id = video.get('user', {}).get('user_id')
+        age_limit = 18 if video.get('nsfw') is True else 0
+        duration = float_or_none(video.get('duration'))
+        view_count = int_or_none(video.get('view_count'))
+        like_count = int_or_none(video.get('likes_count'))
+        comment_count = int_or_none(video.get('comment_count'))
 
         return {
             'id': video_id,
-            'url': video_url,
-            'title': title,
+            'title': title or 'Video upload (%s)' % video_id,
             'description': description,
             'thumbnail': thumbnail,
+            'uploader': uploader,
+            'uploader_id': uploader_id,
+            'age_limit': age_limit,
             'timestamp': timestamp,
-            'width': width,
-            'height': height,
             'duration': duration,
             'view_count': view_count,
             'like_count': like_count,
-            'uploader': uploader,
+            'comment_count': comment_count,
+            'formats': formats,
         }
+
+
+class VidmeListBaseIE(InfoExtractor):
+    # Max possible limit according to https://docs.vid.me/#api-Videos-List
+    _LIMIT = 100
+
+    def _entries(self, user_id, user_name):
+        for page_num in itertools.count(1):
+            page = self._download_json(
+                'https://api.vid.me/videos/%s?user=%s&limit=%d&offset=%d'
+                % (self._API_ITEM, user_id, self._LIMIT, (page_num - 1) * self._LIMIT),
+                user_name, 'Downloading user %s page %d' % (self._API_ITEM, page_num))
+
+            videos = page.get('videos', [])
+            if not videos:
+                break
+
+            for video in videos:
+                video_url = video.get('full_url') or video.get('embed_url')
+                if video_url:
+                    yield self.url_result(video_url, VidmeIE.ie_key())
+
+            total = int_or_none(page.get('page', {}).get('total'))
+            if total and self._LIMIT * page_num >= total:
+                break
+
+    def _real_extract(self, url):
+        user_name = self._match_id(url)
+
+        user_id = self._download_json(
+            'https://api.vid.me/userByUsername?username=%s' % user_name,
+            user_name)['user']['user_id']
+
+        return self.playlist_result(
+            self._entries(user_id, user_name), user_id,
+            '%s - %s' % (user_name, self._TITLE))
+
+
+class VidmeUserIE(VidmeListBaseIE):
+    IE_NAME = 'vidme:user'
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{6,})(?!/likes)(?:[^\da-zA-Z]|$)'
+    _API_ITEM = 'list'
+    _TITLE = 'Videos'
+    _TEST = {
+        'url': 'https://vid.me/EFARCHIVE',
+        'info_dict': {
+            'id': '3834632',
+            'title': 'EFARCHIVE - %s' % _TITLE,
+        },
+        'playlist_mincount': 238,
+    }
+
+
+class VidmeUserLikesIE(VidmeListBaseIE):
+    IE_NAME = 'vidme:user:likes'
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{6,})/likes'
+    _API_ITEM = 'likes'
+    _TITLE = 'Likes'
+    _TEST = {
+        'url': 'https://vid.me/ErinAlexis/likes',
+        'info_dict': {
+            'id': '6483530',
+            'title': 'ErinAlexis - %s' % _TITLE,
+        },
+        'playlist_mincount': 415,
+    }

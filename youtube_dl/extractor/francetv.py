@@ -78,28 +78,48 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                 })
         self._sort_formats(formats)
 
+        title = info['titre']
+        subtitle = info.get('sous_titre')
+        if subtitle:
+            title += ' - %s' % subtitle
+
+        subtitles = {}
+        subtitles_list = [{
+            'url': subformat['url'],
+            'ext': subformat.get('format'),
+        } for subformat in info.get('subtitles', []) if subformat.get('url')]
+        if subtitles_list:
+            subtitles['fr'] = subtitles_list
+
         return {
             'id': video_id,
-            'title': info['titre'],
+            'title': title,
             'description': clean_html(info['synopsis']),
             'thumbnail': compat_urlparse.urljoin('http://pluzz.francetv.fr', info['image']),
             'duration': int_or_none(info.get('real_duration')) or parse_duration(info['duree']),
             'timestamp': int_or_none(info['diffusion']['timestamp']),
             'formats': formats,
+            'subtitles': subtitles,
         }
 
 
 class PluzzIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'pluzz.francetv.fr'
-    _VALID_URL = r'https?://pluzz\.francetv\.fr/videos/(.*?)\.html'
+    _VALID_URL = r'https?://(?:m\.)?pluzz\.francetv\.fr/videos/(?P<id>.+?)\.html'
 
     # Can't use tests, videos expire in 7 days
 
     def _real_extract(self, url):
-        title = re.match(self._VALID_URL, url).group(1)
-        webpage = self._download_webpage(url, title)
-        video_id = self._search_regex(
-            r'data-diffusion="(\d+)"', webpage, 'ID')
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+
+        video_id = self._html_search_meta(
+            'id_video', webpage, 'video id', default=None)
+        if not video_id:
+            video_id = self._search_regex(
+                r'data-diffusion=["\'](\d+)', webpage, 'video id')
+
         return self._extract_video(video_id, 'Pluzz')
 
 
@@ -115,6 +135,9 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
             'title': 'Soir 3',
             'upload_date': '20130826',
             'timestamp': 1377548400,
+            'subtitles': {
+                'fr': 'mincount:2',
+            },
         },
     }, {
         'url': 'http://www.francetvinfo.fr/elections/europeennes/direct-europeennes-regardez-le-debat-entre-les-candidats-a-la-presidence-de-la-commission_600639.html',
@@ -214,15 +237,15 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
         },
         # france5
         {
-            'url': 'http://www.france5.fr/emissions/c-a-dire/videos/92837968',
-            'md5': '78f0f4064f9074438e660785bbf2c5d9',
+            'url': 'http://www.france5.fr/emissions/c-a-dire/videos/quels_sont_les_enjeux_de_cette_rentree_politique__31-08-2015_908948?onglet=tous&page=1',
+            'md5': 'f6c577df3806e26471b3d21631241fd0',
             'info_dict': {
-                'id': '108961659',
+                'id': '123327454',
                 'ext': 'flv',
-                'title': 'C à dire ?!',
-                'description': 'md5:1a4aeab476eb657bf57c4ff122129f81',
-                'upload_date': '20140915',
-                'timestamp': 1410795000,
+                'title': 'C à dire ?! - Quels sont les enjeux de cette rentrée politique ?',
+                'description': 'md5:4a0d5cb5dce89d353522a84462bae5a4',
+                'upload_date': '20150831',
+                'timestamp': 1441035120,
             },
         },
         # franceo
@@ -266,7 +289,7 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         video_id, catalogue = self._html_search_regex(
-            r'href="http://videos?\.francetv\.fr/video/([^@]+@[^"]+)"',
+            r'(?:href=|player\.setVideo\(\s*)"http://videos?\.francetv\.fr/video/([^@]+@[^"]+)"',
             webpage, 'video ID').split('@')
         return self._extract_video(video_id, catalogue)
 

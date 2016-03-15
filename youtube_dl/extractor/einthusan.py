@@ -1,9 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
+from ..compat import compat_urlparse
+from ..utils import (
+    remove_start,
+    sanitized_Request,
+)
 
 
 class EinthusanIE(InfoExtractor):
@@ -34,27 +37,33 @@ class EinthusanIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        webpage = self._download_webpage(url, video_id)
+        video_id = self._match_id(url)
 
-        video_title = self._html_search_regex(
-            r'<h1><a class="movie-title".*?>(.*?)</a></h1>', webpage, 'title')
+        request = sanitized_Request(url)
+        request.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 5.2; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0')
+        webpage = self._download_webpage(request, video_id)
 
-        video_url = self._html_search_regex(
-            r'''(?s)jwplayer\("mediaplayer"\)\.setup\({.*?'file': '([^']+)'.*?}\);''',
-            webpage, 'video url')
+        title = self._html_search_regex(
+            r'<h1><a[^>]+class=["\']movie-title["\'][^>]*>(.+?)</a></h1>',
+            webpage, 'title')
+
+        video_id = self._search_regex(
+            r'data-movieid=["\'](\d+)', webpage, 'video id', default=video_id)
+
+        video_url = self._download_webpage(
+            'http://cdn.einthusan.com/geturl/%s/hd/London,Washington,Toronto,Dallas,San,Sydney/'
+            % video_id, video_id)
 
         description = self._html_search_meta('description', webpage)
         thumbnail = self._html_search_regex(
             r'''<a class="movie-cover-wrapper".*?><img src=["'](.*?)["'].*?/></a>''',
             webpage, "thumbnail url", fatal=False)
         if thumbnail is not None:
-            thumbnail = thumbnail.replace('..', 'http://www.einthusan.com')
+            thumbnail = compat_urlparse.urljoin(url, remove_start(thumbnail, '..'))
 
         return {
             'id': video_id,
-            'title': video_title,
+            'title': title,
             'url': video_url,
             'thumbnail': thumbnail,
             'description': description,

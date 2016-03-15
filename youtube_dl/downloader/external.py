@@ -2,11 +2,20 @@ from __future__ import unicode_literals
 
 import os.path
 import subprocess
+import sys
+import re
 
 from .common import FileDownloader
+from ..postprocessor.ffmpeg import FFmpegPostProcessor, EXT_TO_OUT_FORMATS
 from ..utils import (
+    cli_option,
+    cli_valueless_option,
+    cli_bool_option,
+    cli_configuration_args,
     encodeFilename,
     encodeArgument,
+    handle_youtubedl_headers,
+    check_executable,
 )
 
 
@@ -42,24 +51,28 @@ class ExternalFD(FileDownloader):
         return self.params.get('external_downloader')
 
     @classmethod
+    def available(cls):
+        return check_executable(cls.get_basename(), [cls.AVAILABLE_OPT])
+
+    @classmethod
     def supports(cls, info_dict):
         return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps')
 
-    def _source_address(self, command_option):
-        source_address = self.params.get('source_address')
-        if source_address is None:
-            return []
-        return [command_option, source_address]
+    @classmethod
+    def can_download(cls, info_dict):
+        return cls.available() and cls.supports(info_dict)
 
-    def _no_check_certificate(self, command_option):
-        return [command_option] if self.params.get('nocheckcertificate', False) else []
+    def _option(self, command_option, param):
+        return cli_option(self.params, command_option, param)
+
+    def _bool_option(self, command_option, param, true_value='true', false_value='false', separator=None):
+        return cli_bool_option(self.params, command_option, param, true_value, false_value, separator)
+
+    def _valueless_option(self, command_option, param, expected_value=True):
+        return cli_valueless_option(self.params, command_option, param, expected_value)
 
     def _configuration_args(self, default=[]):
-        ex_args = self.params.get('external_downloader_args')
-        if ex_args is None:
-            return default
-        assert isinstance(ex_args, list)
-        return ex_args
+        return cli_configuration_args(self.params, 'external_downloader_args', default)
 
     def _call_downloader(self, tmpfilename, info_dict):
         """ Either overwrite this or implement _make_cmd """
@@ -76,17 +89,23 @@ class ExternalFD(FileDownloader):
 
 
 class CurlFD(ExternalFD):
+    AVAILABLE_OPT = '-V'
+
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '--location', '-o', tmpfilename]
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
-        cmd += self._source_address('--interface')
+        cmd += self._option('--interface', 'source_address')
+        cmd += self._option('--proxy', 'proxy')
+        cmd += self._valueless_option('--insecure', 'nocheckcertificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
 
 
 class AxelFD(ExternalFD):
+    AVAILABLE_OPT = '-V'
+
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-o', tmpfilename]
         for key, val in info_dict['http_headers'].items():
@@ -97,18 +116,23 @@ class AxelFD(ExternalFD):
 
 
 class WgetFD(ExternalFD):
+    AVAILABLE_OPT = '--version'
+
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-O', tmpfilename, '-nv', '--no-cookies']
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
-        cmd += self._source_address('--bind-address')
-        cmd += self._no_check_certificate('--no-check-certificate')
+        cmd += self._option('--bind-address', 'source_address')
+        cmd += self._option('--proxy', 'proxy')
+        cmd += self._valueless_option('--no-check-certificate', 'nocheckcertificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
 
 
 class Aria2cFD(ExternalFD):
+    AVAILABLE_OPT = '-v'
+
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-c']
         cmd += self._configuration_args([
@@ -119,17 +143,119 @@ class Aria2cFD(ExternalFD):
         cmd += ['--out', os.path.basename(tmpfilename)]
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
-        cmd += self._source_address('--interface')
+        cmd += self._option('--interface', 'source_address')
+        cmd += self._option('--all-proxy', 'proxy')
+        cmd += self._bool_option('--check-certificate', 'nocheckcertificate', 'false', 'true', '=')
         cmd += ['--', info_dict['url']]
         return cmd
 
 
 class HttpieFD(ExternalFD):
+    @classmethod
+    def available(cls):
+        return check_executable('http', ['--version'])
+
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = ['http', '--download', '--output', tmpfilename, info_dict['url']]
         for key, val in info_dict['http_headers'].items():
             cmd += ['%s:%s' % (key, val)]
         return cmd
+
+
+class FFmpegFD(ExternalFD):
+    @classmethod
+    def supports(cls, info_dict):
+        return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps', 'm3u8', 'rtsp', 'rtmp', 'mms')
+
+    @classmethod
+    def available(cls):
+        return FFmpegPostProcessor().available
+
+    def _call_downloader(self, tmpfilename, info_dict):
+        url = info_dict['url']
+        ffpp = FFmpegPostProcessor(downloader=self)
+        if not ffpp.available:
+            self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
+            return False
+        ffpp.check_version()
+
+        args = [ffpp.executable, '-y']
+
+        args += self._configuration_args()
+
+        # start_time = info_dict.get('start_time') or 0
+        # if start_time:
+        #     args += ['-ss', compat_str(start_time)]
+        # end_time = info_dict.get('end_time')
+        # if end_time:
+        #     args += ['-t', compat_str(end_time - start_time)]
+
+        if info_dict['http_headers'] and re.match(r'^https?://', url):
+            # Trailing \r\n after each HTTP header is important to prevent warning from ffmpeg/avconv:
+            # [http @ 00000000003d2fa0] No trailing CRLF found in HTTP header.
+            headers = handle_youtubedl_headers(info_dict['http_headers'])
+            args += [
+                '-headers',
+                ''.join('%s: %s\r\n' % (key, val) for key, val in headers.items())]
+
+        protocol = info_dict.get('protocol')
+
+        if protocol == 'rtmp':
+            player_url = info_dict.get('player_url')
+            page_url = info_dict.get('page_url')
+            app = info_dict.get('app')
+            play_path = info_dict.get('play_path')
+            tc_url = info_dict.get('tc_url')
+            flash_version = info_dict.get('flash_version')
+            live = info_dict.get('rtmp_live', False)
+            if player_url is not None:
+                args += ['-rtmp_swfverify', player_url]
+            if page_url is not None:
+                args += ['-rtmp_pageurl', page_url]
+            if app is not None:
+                args += ['-rtmp_app', app]
+            if play_path is not None:
+                args += ['-rtmp_playpath', play_path]
+            if tc_url is not None:
+                args += ['-rtmp_tcurl', tc_url]
+            if flash_version is not None:
+                args += ['-rtmp_flashver', flash_version]
+            if live:
+                args += ['-rtmp_live', 'live']
+
+        args += ['-i', url, '-c', 'copy']
+        if protocol == 'm3u8':
+            if self.params.get('hls_use_mpegts', False):
+                args += ['-f', 'mpegts']
+            else:
+                args += ['-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
+        elif protocol == 'rtmp':
+            args += ['-f', 'flv']
+        else:
+            args += ['-f', EXT_TO_OUT_FORMATS.get(info_dict['ext'], info_dict['ext'])]
+
+        args = [encodeArgument(opt) for opt in args]
+        args.append(encodeFilename(ffpp._ffmpeg_filename_argument(tmpfilename), True))
+
+        self._debug_cmd(args)
+
+        proc = subprocess.Popen(args, stdin=subprocess.PIPE)
+        try:
+            retval = proc.wait()
+        except KeyboardInterrupt:
+            # subprocces.run would send the SIGKILL signal to ffmpeg and the
+            # mp4 file couldn't be played, but if we ask ffmpeg to quit it
+            # produces a file that is playable (this is mostly useful for live
+            # streams). Note that Windows is not affected and produces playable
+            # files (see https://github.com/rg3/youtube-dl/issues/8300).
+            if sys.platform != 'win32':
+                proc.communicate(b'q')
+            raise
+        return retval
+
+
+class AVconvFD(FFmpegFD):
+    pass
 
 _BY_NAME = dict(
     (klass.get_basename(), klass)

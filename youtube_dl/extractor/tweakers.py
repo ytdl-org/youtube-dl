@@ -1,12 +1,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    xpath_text,
-    xpath_with_ns,
-    int_or_none,
-    float_or_none,
-)
 
 
 class TweakersIE(InfoExtractor):

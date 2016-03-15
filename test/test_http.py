@@ -52,7 +52,12 @@ class TestHTTP(unittest.TestCase):
             ('localhost', 0), HTTPTestRequestHandler)
         self.httpd.socket = ssl.wrap_socket(
             self.httpd.socket, certfile=certfn, server_side=True)
-        self.port = self.httpd.socket.getsockname()[1]
+        if os.name == 'java':
+            # In Jython SSLSocket is not a subclass of socket.socket
+            sock = self.httpd.socket.sock
+        else:
+            sock = self.httpd.socket
+        self.port = sock.getsockname()[1]
         self.server_thread = threading.Thread(target=self.httpd.serve_forever)
         self.server_thread.daemon = True
         self.server_thread.start()

@@ -15,7 +15,7 @@ class AcademicEarthCourseIE(InfoExtractor):
             'title': 'Laws of Nature',
             'description': 'Introduce yourself to the laws of nature with these free online college lectures from Yale, Harvard, and MIT.',
         },
-        'playlist_count': 4,
+        'playlist_count': 3,
     }
 
     def _real_extract(self, url):

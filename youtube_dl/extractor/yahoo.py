@@ -101,7 +101,7 @@ class YahooIE(InfoExtractor):
             }
         }, {
             'url': 'http://news.yahoo.com/video/china-moses-crazy-blues-104538833.html',
-            'md5': '67010fdf3a08d290e060a4dd96baa07b',
+            'md5': '88e209b417f173d86186bef6e4d1f160',
             'info_dict': {
                 'id': 'f885cf7f-43d4-3450-9fac-46ac30ece521',
                 'ext': 'mp4',
@@ -144,7 +144,27 @@ class YahooIE(InfoExtractor):
         }, {
             'url': 'https://tw.news.yahoo.com/-100120367.html',
             'only_matching': True,
-        }
+        }, {
+            # Query result is embedded in webpage, but explicit request to video API fails with geo restriction
+            'url': 'https://screen.yahoo.com/community/communitary-community-episode-1-ladders-154501237.html',
+            'md5': '4fbafb9c9b6f07aa8f870629f6671b35',
+            'info_dict': {
+                'id': '1f32853c-a271-3eef-8cb6-f6d6872cb504',
+                'ext': 'mp4',
+                'title': 'Communitary - Community Episode 1: Ladders',
+                'description': 'md5:8fc39608213295748e1e289807838c97',
+                'duration': 1646,
+            },
+        }, {
+            # it uses an alias to get the video_id
+            'url': 'https://www.yahoo.com/movies/the-stars-of-daddys-home-have-very-different-212843197.html',
+            'info_dict': {
+                'id': '40eda9c8-8e5f-3552-8745-830f67d0c737',
+                'ext': 'mp4',
+                'title': 'Will Ferrell & Mark Wahlberg Are Pro-Spanking',
+                'description': 'While they play feuding fathers in \'Daddy\'s Home,\' star Will Ferrell & Mark Wahlberg share their true feelings on parenthood.',
+            },
+        },
     ]
 
     def _real_extract(self, url):
@@ -171,17 +191,41 @@ class YahooIE(InfoExtractor):
         if nbc_sports_url:
             return self.url_result(nbc_sports_url, 'NBCSportsVPlayer')
 
+        # Query result is often embedded in webpage as JSON. Sometimes explicit requests
+        # to video API results in a failure with geo restriction reason therefore using
+        # embedded query result when present sounds reasonable.
+        config_json = self._search_regex(
+            r'window\.Af\.bootstrap\[[^\]]+\]\s*=\s*({.*?"applet_type"\s*:\s*"td-applet-videoplayer".*?});(?:</script>|$)',
+            webpage, 'videoplayer applet', default=None)
+        if config_json:
+            config = self._parse_json(config_json, display_id, fatal=False)
+            if config:
+                sapi = config.get('models', {}).get('applet_model', {}).get('data', {}).get('sapi')
+                if sapi:
+                    return self._extract_info(display_id, sapi, webpage)
+
         items_json = self._search_regex(
             r'mediaItems: ({.*?})$', webpage, 'items', flags=re.MULTILINE,
             default=None)
         if items_json is None:
-            CONTENT_ID_REGEXES = [
-                r'YUI\.namespace\("Media"\)\.CONTENT_ID\s*=\s*"([^"]+)"',
-                r'root\.App\.Cache\.context\.videoCache\.curVideo = \{"([^"]+)"',
-                r'"first_videoid"\s*:\s*"([^"]+)"',
-                r'%s[^}]*"ccm_id"\s*:\s*"([^"]+)"' % re.escape(page_id),
-            ]
-            video_id = self._search_regex(CONTENT_ID_REGEXES, webpage, 'content ID')
+            alias = self._search_regex(
+                r'"aliases":{"video":"(.*?)"', webpage, 'alias', default=None)
+            if alias is not None:
+                alias_info = self._download_json(
+                    'https://www.yahoo.com/_td/api/resource/VideoService.videos;video_aliases=["%s"]' % alias,
+                    display_id, 'Downloading alias info')
+                video_id = alias_info[0]['id']
+            else:
+                CONTENT_ID_REGEXES = [
+                    r'YUI\.namespace\("Media"\)\.CONTENT_ID\s*=\s*"([^"]+)"',
+                    r'root\.App\.Cache\.context\.videoCache\.curVideo = \{"([^"]+)"',
+                    r'"first_videoid"\s*:\s*"([^"]+)"',
+                    r'%s[^}]*"ccm_id"\s*:\s*"([^"]+)"' % re.escape(page_id),
+                    r'<article[^>]data-uuid=["\']([^"\']+)',
+                    r'yahoo://article/view\?.*\buuid=([^&"\']+)',
+                ]
+                video_id = self._search_regex(
+                    CONTENT_ID_REGEXES, webpage, 'content ID')
         else:
             items = json.loads(items_json)
             info = items['mediaItems']['query']['results']['mediaObj'][0]
@@ -190,22 +234,10 @@ class YahooIE(InfoExtractor):
             video_id = info['id']
         return self._get_info(video_id, display_id, webpage)
 
-    def _get_info(self, video_id, display_id, webpage):
-        region = self._search_regex(
-            r'\\?"region\\?"\s*:\s*\\?"([^"]+?)\\?"',
-            webpage, 'region', fatal=False, default='US')
-        data = compat_urllib_parse.urlencode({
-            'protocol': 'http',
-            'region': region,
-        })
-        query_url = (
-            'https://video.media.yql.yahoo.com/v1/video/sapi/streams/'
-            '{id}?{data}'.format(id=video_id, data=data))
-        query_result = self._download_json(
-            query_url, display_id, 'Downloading video info')
-
-        info = query_result['query']['results']['mediaObj'][0]
+    def _extract_info(self, display_id, query, webpage):
+        info = query['query']['results']['mediaObj'][0]
         meta = info.get('meta')
+        video_id = info.get('id')
 
         if not meta:
             msg = info['status'].get('msg')
@@ -231,6 +263,9 @@ class YahooIE(InfoExtractor):
                     'ext': 'flv',
                 })
             else:
+                if s.get('format') == 'm3u8_playlist':
+                    format_info['protocol'] = 'm3u8_native'
+                    format_info['ext'] = 'mp4'
                 format_url = compat_urlparse.urljoin(host, path)
                 format_info['url'] = format_url
             formats.append(format_info)
@@ -263,6 +298,21 @@ class YahooIE(InfoExtractor):
             'duration': int_or_none(meta.get('duration')),
             'subtitles': subtitles,
         }
+
+    def _get_info(self, video_id, display_id, webpage):
+        region = self._search_regex(
+            r'\\?"region\\?"\s*:\s*\\?"([^"]+?)\\?"',
+            webpage, 'region', fatal=False, default='US')
+        data = compat_urllib_parse.urlencode({
+            'protocol': 'http',
+            'region': region,
+        })
+        query_url = (
+            'https://video.media.yql.yahoo.com/v1/video/sapi/streams/'
+            '{id}?{data}'.format(id=video_id, data=data))
+        query_result = self._download_json(
+            query_url, display_id, 'Downloading video info')
+        return self._extract_info(display_id, query_result, webpage)
 
 
 class YahooSearchIE(SearchInfoExtractor):

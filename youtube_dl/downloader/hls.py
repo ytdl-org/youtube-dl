@@ -1,57 +1,19 @@
 from __future__ import unicode_literals
 
-import os
+import os.path
 import re
-import subprocess
 
-from .common import FileDownloader
 from .fragment import FragmentFD
 
 from ..compat import compat_urlparse
-from ..postprocessor.ffmpeg import FFmpegPostProcessor
 from ..utils import (
-    encodeArgument,
     encodeFilename,
+    sanitize_open,
 )
 
 
-class HlsFD(FileDownloader):
-    def real_download(self, filename, info_dict):
-        url = info_dict['url']
-        self.report_destination(filename)
-        tmpfilename = self.temp_name(filename)
-
-        ffpp = FFmpegPostProcessor(downloader=self)
-        if not ffpp.available:
-            self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
-            return False
-        ffpp.check_version()
-
-        args = [
-            encodeArgument(opt)
-            for opt in (ffpp.executable, '-y', '-i', url, '-f', 'mp4', '-c', 'copy', '-bsf:a', 'aac_adtstoasc')]
-        args.append(encodeFilename(tmpfilename, True))
-
-        retval = subprocess.call(args)
-        if retval == 0:
-            fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen('\r[%s] %s bytes' % (args[0], fsize))
-            self.try_rename(tmpfilename, filename)
-            self._hook_progress({
-                'downloaded_bytes': fsize,
-                'total_bytes': fsize,
-                'filename': filename,
-                'status': 'finished',
-            })
-            return True
-        else:
-            self.to_stderr('\n')
-            self.report_error('%s exited with code %d' % (ffpp.basename, retval))
-            return False
-
-
-class NativeHlsFD(FragmentFD):
-    """ A more limited implementation that does not require ffmpeg """
+class HlsFD(FragmentFD):
+    """ A limited implementation that does not require ffmpeg """
 
     FD_NAME = 'hlsnative'
 
@@ -87,13 +49,14 @@ class NativeHlsFD(FragmentFD):
             success = ctx['dl'].download(frag_filename, {'url': frag_url})
             if not success:
                 return False
-            with open(frag_filename, 'rb') as down:
-                ctx['dest_stream'].write(down.read())
-            frags_filenames.append(frag_filename)
+            down, frag_sanitized = sanitize_open(frag_filename, 'rb')
+            ctx['dest_stream'].write(down.read())
+            down.close()
+            frags_filenames.append(frag_sanitized)
 
         self._finish_frag_download(ctx)
 
         for frag_file in frags_filenames:
-            os.remove(frag_file)
+            os.remove(encodeFilename(frag_file))
 
         return True

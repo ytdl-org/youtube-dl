@@ -1,18 +1,21 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
     parse_duration,
+    xpath_element,
+    xpath_text,
 )
 
 
 class BRIE(InfoExtractor):
     IE_DESC = 'Bayerischer Rundfunk Mediathek'
-    _VALID_URL = r'https?://(?:www\.)?br\.de/(?:[a-z0-9\-_]+/)+(?P<id>[a-z0-9\-_]+)\.html'
-    _BASE_URL = 'http://www.br.de'
+    _VALID_URL = r'(?P<base_url>https?://(?:www\.)?br(?:-klassik)?\.de)/(?:[a-z0-9\-_]+/)+(?P<id>[a-z0-9\-_]+)\.html'
 
     _TESTS = [
         {
@@ -22,7 +25,7 @@ class BRIE(InfoExtractor):
                 'id': '48f656ef-287e-486f-be86-459122db22cc',
                 'ext': 'mp4',
                 'title': 'Die böse Überraschung',
-                'description': 'Betriebliche Altersvorsorge: Die böse Überraschung',
+                'description': 'md5:ce9ac81b466ce775b8018f6801b48ac9',
                 'duration': 180,
                 'uploader': 'Reinhard Weber',
                 'upload_date': '20150422',
@@ -30,23 +33,23 @@ class BRIE(InfoExtractor):
         },
         {
             'url': 'http://www.br.de/nachrichten/oberbayern/inhalt/muenchner-polizeipraesident-schreiber-gestorben-100.html',
-            'md5': 'a44396d73ab6a68a69a568fae10705bb',
+            'md5': 'af3a3a4aa43ff0ce6a89504c67f427ef',
             'info_dict': {
                 'id': 'a4b83e34-123d-4b81-9f4e-c0d3121a4e05',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'Manfred Schreiber ist tot',
-                'description': 'Abendschau kompakt: Manfred Schreiber ist tot',
+                'description': 'md5:b454d867f2a9fc524ebe88c3f5092d97',
                 'duration': 26,
             }
         },
         {
-            'url': 'http://www.br.de/radio/br-klassik/sendungen/allegro/premiere-urauffuehrung-the-land-2015-dance-festival-muenchen-100.html',
+            'url': 'https://www.br-klassik.de/audio/peeping-tom-premierenkritik-dance-festival-muenchen-100.html',
             'md5': '8b5b27c0b090f3b35eac4ab3f7a73d3d',
             'info_dict': {
                 'id': '74c603c9-26d3-48bb-b85b-079aeed66e0b',
                 'ext': 'aac',
                 'title': 'Kurzweilig und sehr bewegend',
-                'description': '"The Land" von Peeping Tom: Kurzweilig und sehr bewegend',
+                'description': 'md5:0351996e3283d64adeb38ede91fac54e',
                 'duration': 296,
             }
         },
@@ -57,7 +60,7 @@ class BRIE(InfoExtractor):
                 'id': '6ba73750-d405-45d3-861d-1ce8c524e059',
                 'ext': 'mp4',
                 'title': 'Umweltbewusster Häuslebauer',
-                'description': 'Uwe Erdelt: Umweltbewusster Häuslebauer',
+                'description': 'md5:d52dae9792d00226348c1dbb13c9bae2',
                 'duration': 116,
             }
         },
@@ -68,7 +71,7 @@ class BRIE(InfoExtractor):
                 'id': 'd982c9ce-8648-4753-b358-98abb8aec43d',
                 'ext': 'mp4',
                 'title': 'Folge 1 - Metaphysik',
-                'description': 'Kant für Anfänger: Folge 1 - Metaphysik',
+                'description': 'md5:bb659990e9e59905c3d41e369db1fbe3',
                 'duration': 893,
                 'uploader': 'Eva Maria Steimle',
                 'upload_date': '20140117',
@@ -77,28 +80,31 @@ class BRIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        base_url, display_id = re.search(self._VALID_URL, url).groups()
         page = self._download_webpage(url, display_id)
         xml_url = self._search_regex(
             r"return BRavFramework\.register\(BRavFramework\('avPlayer_(?:[a-f0-9-]{36})'\)\.setup\({dataURL:'(/(?:[a-z0-9\-]+/)+[a-z0-9/~_.-]+)'}\)\);", page, 'XMLURL')
-        xml = self._download_xml(self._BASE_URL + xml_url, None)
+        xml = self._download_xml(base_url + xml_url, display_id)
 
         medias = []
 
         for xml_media in xml.findall('video') + xml.findall('audio'):
+            media_id = xml_media.get('externalId')
             media = {
-                'id': xml_media.get('externalId'),
-                'title': xml_media.find('title').text,
-                'duration': parse_duration(xml_media.find('duration').text),
-                'formats': self._extract_formats(xml_media.find('assets')),
-                'thumbnails': self._extract_thumbnails(xml_media.find('teaserImage/variants')),
-                'description': ' '.join(xml_media.find('shareTitle').text.splitlines()),
-                'webpage_url': xml_media.find('permalink').text
+                'id': media_id,
+                'title': xpath_text(xml_media, 'title', 'title', True),
+                'duration': parse_duration(xpath_text(xml_media, 'duration')),
+                'formats': self._extract_formats(xpath_element(
+                    xml_media, 'assets'), media_id),
+                'thumbnails': self._extract_thumbnails(xpath_element(
+                    xml_media, 'teaserImage/variants'), base_url),
+                'description': xpath_text(xml_media, 'desc'),
+                'webpage_url': xpath_text(xml_media, 'permalink'),
+                'uploader': xpath_text(xml_media, 'author'),
             }
-            if xml_media.find('author').text:
-                media['uploader'] = xml_media.find('author').text
-            if xml_media.find('broadcastDate').text:
-                media['upload_date'] = ''.join(reversed(xml_media.find('broadcastDate').text.split('.')))
+            broadcast_date = xpath_text(xml_media, 'broadcastDate')
+            if broadcast_date:
+                media['upload_date'] = ''.join(reversed(broadcast_date.split('.')))
             medias.append(media)
 
         if len(medias) > 1:
@@ -109,35 +115,54 @@ class BRIE(InfoExtractor):
             raise ExtractorError('No media entries found')
         return medias[0]
 
-    def _extract_formats(self, assets):
-
-        def text_or_none(asset, tag):
-            elem = asset.find(tag)
-            return None if elem is None else elem.text
-
-        formats = [{
-            'url': text_or_none(asset, 'downloadUrl'),
-            'ext': text_or_none(asset, 'mediaType'),
-            'format_id': asset.get('type'),
-            'width': int_or_none(text_or_none(asset, 'frameWidth')),
-            'height': int_or_none(text_or_none(asset, 'frameHeight')),
-            'tbr': int_or_none(text_or_none(asset, 'bitrateVideo')),
-            'abr': int_or_none(text_or_none(asset, 'bitrateAudio')),
-            'vcodec': text_or_none(asset, 'codecVideo'),
-            'acodec': text_or_none(asset, 'codecAudio'),
-            'container': text_or_none(asset, 'mediaType'),
-            'filesize': int_or_none(text_or_none(asset, 'size')),
-        } for asset in assets.findall('asset')
-            if asset.find('downloadUrl') is not None]
-
+    def _extract_formats(self, assets, media_id):
+        formats = []
+        for asset in assets.findall('asset'):
+            format_url = xpath_text(asset, ['downloadUrl', 'url'])
+            asset_type = asset.get('type')
+            if asset_type == 'HDS':
+                formats.extend(self._extract_f4m_formats(
+                    format_url + '?hdcore=3.2.0', media_id, f4m_id='hds', fatal=False))
+            elif asset_type == 'HLS':
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, media_id, 'mp4', 'm3u8_native', m3u8_id='hds', fatal=False))
+            else:
+                format_info = {
+                    'ext': xpath_text(asset, 'mediaType'),
+                    'width': int_or_none(xpath_text(asset, 'frameWidth')),
+                    'height': int_or_none(xpath_text(asset, 'frameHeight')),
+                    'tbr': int_or_none(xpath_text(asset, 'bitrateVideo')),
+                    'abr': int_or_none(xpath_text(asset, 'bitrateAudio')),
+                    'vcodec': xpath_text(asset, 'codecVideo'),
+                    'acodec': xpath_text(asset, 'codecAudio'),
+                    'container': xpath_text(asset, 'mediaType'),
+                    'filesize': int_or_none(xpath_text(asset, 'size')),
+                }
+                format_url = self._proto_relative_url(format_url)
+                if format_url:
+                    http_format_info = format_info.copy()
+                    http_format_info.update({
+                        'url': format_url,
+                        'format_id': 'http-%s' % asset_type,
+                    })
+                    formats.append(http_format_info)
+                server_prefix = xpath_text(asset, 'serverPrefix')
+                if server_prefix:
+                    rtmp_format_info = format_info.copy()
+                    rtmp_format_info.update({
+                        'url': server_prefix,
+                        'play_path': xpath_text(asset, 'fileName'),
+                        'format_id': 'rtmp-%s' % asset_type,
+                    })
+                    formats.append(rtmp_format_info)
         self._sort_formats(formats)
         return formats
 
-    def _extract_thumbnails(self, variants):
+    def _extract_thumbnails(self, variants, base_url):
         thumbnails = [{
-            'url': self._BASE_URL + variant.find('url').text,
-            'width': int_or_none(variant.find('width').text),
-            'height': int_or_none(variant.find('height').text),
-        } for variant in variants.findall('variant')]
+            'url': base_url + xpath_text(variant, 'url'),
+            'width': int_or_none(xpath_text(variant, 'width')),
+            'height': int_or_none(xpath_text(variant, 'height')),
+        } for variant in variants.findall('variant') if xpath_text(variant, 'url')]
         thumbnails.sort(key=lambda x: x['width'] * x['height'], reverse=True)
         return thumbnails

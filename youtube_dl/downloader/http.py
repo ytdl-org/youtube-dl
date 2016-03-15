@@ -7,14 +7,12 @@ import time
 import re
 
 from .common import FileDownloader
-from ..compat import (
-    compat_urllib_request,
-    compat_urllib_error,
-)
+from ..compat import compat_urllib_error
 from ..utils import (
     ContentTooShortError,
     encodeFilename,
     sanitize_open,
+    sanitized_Request,
 )
 
 
@@ -29,8 +27,8 @@ class HttpFD(FileDownloader):
         add_headers = info_dict.get('http_headers')
         if add_headers:
             headers.update(add_headers)
-        basic_request = compat_urllib_request.Request(url, None, headers)
-        request = compat_urllib_request.Request(url, None, headers)
+        basic_request = sanitized_Request(url, None, headers)
+        request = sanitized_Request(url, None, headers)
 
         is_test = self.params.get('test', False)
 
@@ -142,8 +140,8 @@ class HttpFD(FileDownloader):
 
         if data_len is not None:
             data_len = int(data_len) + resume_len
-            min_data_len = self.params.get("min_filesize", None)
-            max_data_len = self.params.get("max_filesize", None)
+            min_data_len = self.params.get('min_filesize')
+            max_data_len = self.params.get('max_filesize')
             if min_data_len is not None and data_len < min_data_len:
                 self.to_screen('\r[download] File is smaller than min-filesize (%s bytes < %s bytes). Aborting.' % (data_len, min_data_len))
                 return False

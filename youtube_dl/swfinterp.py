@@ -689,7 +689,7 @@ class SWFInterpreter(object):
                     elif mname in _builtin_classes:
                         res = _builtin_classes[mname]
                     else:
-                        # Assume unitialized
+                        # Assume uninitialized
                         # TODO warn here
                         res = undefined
                     stack.append(res)

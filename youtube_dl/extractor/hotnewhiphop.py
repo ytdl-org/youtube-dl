@@ -3,13 +3,11 @@ from __future__ import unicode_literals
 import base64
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
     HEADRequest,
+    sanitized_Request,
 )
 
 
@@ -41,7 +39,7 @@ class HotNewHipHopIE(InfoExtractor):
             ('mediaType', 's'),
             ('mediaId', video_id),
         ])
-        r = compat_urllib_request.Request(
+        r = sanitized_Request(
             'http://www.hotnewhiphop.com/ajax/media/getActions/', data=reqdata)
         r.add_header('Content-Type', 'application/x-www-form-urlencoded')
         mkd = self._download_json(

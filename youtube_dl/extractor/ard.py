@@ -14,8 +14,8 @@ from ..utils import (
     parse_duration,
     unified_strdate,
     xpath_text,
-    parse_xml,
 )
+from ..compat import compat_etree_fromstring
 
 
 class ARDMediathekIE(InfoExtractor):
@@ -110,13 +110,15 @@ class ARDMediathekIE(InfoExtractor):
                 server = stream.get('_server')
                 for stream_url in stream_urls:
                     ext = determine_ext(stream_url)
+                    if quality != 'auto' and ext in ('f4m', 'm3u8'):
+                        continue
                     if ext == 'f4m':
                         formats.extend(self._extract_f4m_formats(
                             stream_url + '?hdcore=3.1.1&plugin=aasp-3.1.1.69.124',
-                            video_id, preference=-1, f4m_id='hds'))
+                            video_id, preference=-1, f4m_id='hds', fatal=False))
                     elif ext == 'm3u8':
                         formats.extend(self._extract_m3u8_formats(
-                            stream_url, video_id, 'mp4', preference=1, m3u8_id='hls'))
+                            stream_url, video_id, 'mp4', preference=1, m3u8_id='hls', fatal=False))
                     else:
                         if server and server.startswith('rtmp'):
                             f = {
@@ -161,7 +163,7 @@ class ARDMediathekIE(InfoExtractor):
             raise ExtractorError('This program is only suitable for those aged 12 and older. Video %s is therefore only available between 20 pm and 6 am.' % video_id, expected=True)
 
         if re.search(r'[\?&]rss($|[=&])', url):
-            doc = parse_xml(webpage)
+            doc = compat_etree_fromstring(webpage.encode('utf-8'))
             if doc.tag == 'rss':
                 return GenericIE()._extract_rss(url, video_id, doc)
 

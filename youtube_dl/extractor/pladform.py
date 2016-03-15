@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
@@ -43,6 +45,13 @@ class PladformIE(InfoExtractor):
         'url': 'http://video.pladform.ru/catalog/video/videoid/100183293/vkcid/0',
         'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+src="(?P<url>(?:https?:)?//out\.pladform\.ru/player\?.+?)"', webpage)
+        if mobj:
+            return mobj.group('url')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

@@ -12,9 +12,9 @@ from ..utils import (
 
 
 class ClubicIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?clubic\.com/video/[^/]+/video.*-(?P<id>[0-9]+)\.html'
+    _VALID_URL = r'http://(?:www\.)?clubic\.com/video/(?:[^/]+/)*video.*-(?P<id>[0-9]+)\.html'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.clubic.com/video/clubic-week/video-clubic-week-2-0-le-fbi-se-lance-dans-la-photo-d-identite-448474.html',
         'md5': '1592b694ba586036efac1776b0b43cd3',
         'info_dict': {
@@ -24,7 +24,10 @@ class ClubicIE(InfoExtractor):
             'description': 're:Gueule de bois chez Nokia. Le constructeur a indiqué cette.*',
             'thumbnail': 're:^http://img\.clubic\.com/.*\.jpg$',
         }
-    }
+    }, {
+        'url': 'http://www.clubic.com/video/video-clubic-week-2-0-apple-iphone-6s-et-plus-mais-surtout-le-pencil-469792.html',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

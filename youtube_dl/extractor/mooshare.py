@@ -3,12 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-    compat_urllib_parse,
-)
+from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -59,7 +57,7 @@ class MooshareIE(InfoExtractor):
             'hash': hash_key,
         }
 
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             'http://mooshare.biz/%s' % video_id, compat_urllib_parse.urlencode(download_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
 

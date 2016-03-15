@@ -7,6 +7,7 @@ from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     ExtractorError,
     HEADRequest,
+    parse_count,
     str_to_int,
 )
 
@@ -64,7 +65,8 @@ class MixcloudIE(InfoExtractor):
 
         preview_url = self._search_regex(
             r'\s(?:data-preview-url|m-preview)="([^"]+)"', webpage, 'preview url')
-        song_url = preview_url.replace('/previews/', '/c/originals/')
+        song_url = re.sub(r'audiocdn(\d+)', r'stream\1', preview_url)
+        song_url = song_url.replace('/previews/', '/c/originals/')
         if not self._check_url(song_url, track_id, 'mp3'):
             song_url = song_url.replace('.mp3', '.m4a').replace('originals/', 'm4a/64/')
             if not self._check_url(song_url, track_id, 'm4a'):
@@ -84,8 +86,8 @@ class MixcloudIE(InfoExtractor):
         uploader_id = self._search_regex(
             r'\s+"profile": "([^"]+)",', webpage, 'uploader id', fatal=False)
         description = self._og_search_description(webpage)
-        like_count = str_to_int(self._search_regex(
-            r'\bbutton-favorite\b[^>]+m-ajax-toggle-count="([^"]+)"',
+        like_count = parse_count(self._search_regex(
+            r'\bbutton-favorite[^>]+>.*?<span[^>]+class=["\']toggle-number[^>]+>\s*([^<]+)',
             webpage, 'like count', fatal=False))
         view_count = str_to_int(self._search_regex(
             [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',

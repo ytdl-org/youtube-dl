@@ -8,15 +8,18 @@ from .common import InfoExtractor
 from ..compat import (
     compat_str,
     compat_urllib_parse,
-    compat_urllib_request,
 )
 from ..utils import (
     ExtractorError,
+    int_or_none,
     orderedSet,
+    sanitized_Request,
     str_to_int,
     unescapeHTML,
     unified_strdate,
 )
+from .vimeo import VimeoIE
+from .pladform import PladformIE
 
 
 class VKIE(InfoExtractor):
@@ -139,13 +142,26 @@ class VKIE(InfoExtractor):
             'url': 'https://vk.com/video276849682_170681728',
             'info_dict': {
                 'id': 'V3K4mi0SYkc',
-                'ext': 'mp4',
+                'ext': 'webm',
                 'title': "DSWD Awards 'Children's Joy Foundation, Inc.' Certificate of Registration and License to Operate",
                 'description': 'md5:bf9c26cfa4acdfb146362682edd3827a',
-                'duration': 179,
+                'duration': 178,
                 'upload_date': '20130116',
                 'uploader': "Children's Joy Foundation",
                 'uploader_id': 'thecjf',
+                'view_count': int,
+            },
+        },
+        {
+            # video key is extra_data not url\d+
+            'url': 'http://vk.com/video-110305615_171782105',
+            'md5': 'e13fcda136f99764872e739d13fac1d1',
+            'info_dict': {
+                'id': '171782105',
+                'ext': 'mp4',
+                'title': 'S-Dance, репетиции к The way show',
+                'uploader': 'THE WAY SHOW | 17 апреля',
+                'upload_date': '20160207',
                 'view_count': int,
             },
         },
@@ -162,6 +178,11 @@ class VKIE(InfoExtractor):
         {
             # vk wrapper
             'url': 'http://www.biqle.ru/watch/847655_160197695',
+            'only_matching': True,
+        },
+        {
+            # pladform embed
+            'url': 'https://vk.com/video-76116461_171554880',
             'only_matching': True,
         }
     ]
@@ -181,7 +202,7 @@ class VKIE(InfoExtractor):
             'pass': password.encode('cp1251'),
         })
 
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             'https://login.vk.com/?act=login',
             compat_urllib_parse.urlencode(login_form).encode('utf-8'))
         login_page = self._download_webpage(
@@ -249,10 +270,17 @@ class VKIE(InfoExtractor):
         if youtube_url:
             return self.url_result(youtube_url, 'Youtube')
 
+        vimeo_url = VimeoIE._extract_vimeo_url(url, info_page)
+        if vimeo_url is not None:
+            return self.url_result(vimeo_url)
+
+        pladform_url = PladformIE._extract_url(info_page)
+        if pladform_url:
+            return self.url_result(pladform_url)
+
         m_rutube = re.search(
-            r'\ssrc="((?:https?:)?//rutube\.ru\\?/video\\?/embed(?:.*?))\\?"', info_page)
+            r'\ssrc="((?:https?:)?//rutube\.ru\\?/(?:video|play)\\?/embed(?:.*?))\\?"', info_page)
         if m_rutube is not None:
-            self.to_screen('rutube video detected')
             rutube_url = self._proto_relative_url(
                 m_rutube.group(1).replace('\\', ''))
             return self.url_result(rutube_url)
@@ -276,16 +304,25 @@ class VKIE(InfoExtractor):
             mobj.group(1) + ' ' + mobj.group(2)
             upload_date = unified_strdate(mobj.group(1) + ' ' + mobj.group(2))
 
-        view_count = str_to_int(self._search_regex(
-            r'"mv_views_count_number"[^>]*>([\d,.]+) views<',
-            info_page, 'view count', fatal=False))
+        view_count = None
+        views = self._html_search_regex(
+            r'"mv_views_count_number"[^>]*>(.+?\bviews?)<',
+            info_page, 'view count', fatal=False)
+        if views:
+            view_count = str_to_int(self._search_regex(
+                r'([\d,.]+)', views, 'view count', fatal=False))
 
-        formats = [{
-            'format_id': k,
-            'url': v,
-            'width': int(k[len('url'):]),
-        } for k, v in data.items()
-            if k.startswith('url')]
+        formats = []
+        for k, v in data.items():
+            if not k.startswith('url') and k != 'extra_data' or not v:
+                continue
+            height = int_or_none(self._search_regex(
+                r'^url(\d+)', k, 'height', default=None))
+            formats.append({
+                'format_id': k,
+                'url': v,
+                'height': height,
+            })
         self._sort_formats(formats)
 
         return {
@@ -303,7 +340,7 @@ class VKIE(InfoExtractor):
 class VKUserVideosIE(InfoExtractor):
     IE_NAME = 'vk:uservideos'
     IE_DESC = "VK - User's Videos"
-    _VALID_URL = r'https?://vk\.com/videos(?P<id>-?[0-9]+)$'
+    _VALID_URL = r'https?://vk\.com/videos(?P<id>-?[0-9]+)(?!\?.*\bz=video)(?:[/?#&]|$)'
     _TEMPLATE_URL = 'https://vk.com/videos'
     _TESTS = [{
         'url': 'http://vk.com/videos205387401',
@@ -314,6 +351,9 @@ class VKUserVideosIE(InfoExtractor):
         'playlist_mincount': 4,
     }, {
         'url': 'http://vk.com/videos-77521',
+        'only_matching': True,
+    }, {
+        'url': 'http://vk.com/videos-97664626?section=all',
         'only_matching': True,
     }]
 

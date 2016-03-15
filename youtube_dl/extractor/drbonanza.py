@@ -87,7 +87,7 @@ class DRBonanzaIE(InfoExtractor):
 
         formats = []
         for file in info['Files']:
-            if info['Type'] == "Video":
+            if info['Type'] == 'Video':
                 if file['Type'] in video_types:
                     format = parse_filename_info(file['Location'])
                     format.update({
@@ -101,10 +101,10 @@ class DRBonanzaIE(InfoExtractor):
                         if '/bonanza/' in rtmp_url:
                             format['play_path'] = rtmp_url.split('/bonanza/')[1]
                     formats.append(format)
-                elif file['Type'] == "Thumb":
+                elif file['Type'] == 'Thumb':
                     thumbnail = file['Location']
-            elif info['Type'] == "Audio":
-                if file['Type'] == "Audio":
+            elif info['Type'] == 'Audio':
+                if file['Type'] == 'Audio':
                     format = parse_filename_info(file['Location'])
                     format.update({
                         'url': file['Location'],
@@ -112,7 +112,7 @@ class DRBonanzaIE(InfoExtractor):
                         'vcodec': 'none',
                     })
                     formats.append(format)
-                elif file['Type'] == "Thumb":
+                elif file['Type'] == 'Thumb':
                     thumbnail = file['Location']
 
         description = '%s\n%s\n%s\n' % (

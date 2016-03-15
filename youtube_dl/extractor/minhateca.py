@@ -2,14 +2,12 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
+from ..compat import compat_urllib_parse
 from ..utils import (
     int_or_none,
     parse_duration,
     parse_filesize,
+    sanitized_Request,
 )
 
 
@@ -39,7 +37,7 @@ class MinhatecaIE(InfoExtractor):
             ('fileId', video_id),
             ('__RequestVerificationToken', token),
         ]
-        req = compat_urllib_request.Request(
+        req = sanitized_Request(
             'http://minhateca.com.br/action/License/Download',
             data=compat_urllib_parse.urlencode(token_data))
         req.add_header('Content-Type', 'application/x-www-form-urlencoded')

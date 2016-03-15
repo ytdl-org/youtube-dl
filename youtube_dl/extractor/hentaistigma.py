@@ -11,8 +11,8 @@ class HentaiStigmaIE(InfoExtractor):
         'info_dict': {
             'id': 'inyouchuu-etsu-bonus',
             'ext': 'mp4',
-            "title": "Inyouchuu Etsu Bonus",
-            "age_limit": 18,
+            'title': 'Inyouchuu Etsu Bonus',
+            'age_limit': 18,
         }
     }
 

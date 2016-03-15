@@ -28,7 +28,7 @@ class KankanIE(InfoExtractor):
 
         title = self._search_regex(r'(?:G_TITLE=|G_MOVIE_TITLE = )[\'"](.+?)[\'"]', webpage, 'video title')
         surls = re.search(r'surls:\[\'.+?\'\]|lurl:\'.+?\.flv\'', webpage).group(0)
-        gcids = re.findall(r"http://.+?/.+?/(.+?)/", surls)
+        gcids = re.findall(r'http://.+?/.+?/(.+?)/', surls)
         gcid = gcids[-1]
 
         info_url = 'http://p2s.cl.kankan.com/getCdnresource_flv?gcid=%s' % gcid

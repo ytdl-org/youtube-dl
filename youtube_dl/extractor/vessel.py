@@ -4,10 +4,10 @@ from __future__ import unicode_literals
 import json
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
 from ..utils import (
     ExtractorError,
     parse_iso8601,
+    sanitized_Request,
 )
 
 
@@ -33,7 +33,7 @@ class VesselIE(InfoExtractor):
     @staticmethod
     def make_json_request(url, data):
         payload = json.dumps(data).encode('utf-8')
-        req = compat_urllib_request.Request(url, payload)
+        req = sanitized_Request(url, payload)
         req.add_header('Content-Type', 'application/json; charset=utf-8')
         return req
 

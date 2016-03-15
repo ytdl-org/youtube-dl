@@ -36,7 +36,8 @@ class PornHdIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id or video_id)
 
         title = self._html_search_regex(
-            r'<title>(.+) porn HD.+?</title>', webpage, 'title')
+            [r'<span[^>]+class=["\']video-name["\'][^>]*>([^<]+)',
+             r'<title>(.+?) - .*?[Pp]ornHD.*?</title>'], webpage, 'title')
         description = self._html_search_regex(
             r'<div class="description">([^<]+)</div>', webpage, 'description', fatal=False)
         view_count = int_or_none(self._html_search_regex(

@@ -4,49 +4,45 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .brightcove import BrightcoveIE
 
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
 from ..utils import (
     ExtractorError,
-    smuggle_url,
+    sanitized_Request,
     std_headers,
+    urlencode_postdata,
+    update_url_query,
 )
 
 
 class SafariBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://www.safaribooksonline.com/accounts/login/'
     _SUCCESSFUL_LOGIN_REGEX = r'<a href="/accounts/logout/"[^>]*>Sign Out</a>'
-    _ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to supply credentials for safaribooksonline.com'
     _NETRC_MACHINE = 'safari'
 
-    _API_BASE = 'https://www.safaribooksonline.com/api/v1/book'
+    _API_BASE = 'https://www.safaribooksonline.com/api/v1'
     _API_FORMAT = 'json'
 
     LOGGED_IN = False
 
     def _real_initialize(self):
-        # We only need to log in once for courses or individual videos
-        if not self.LOGGED_IN:
-            self._login()
-            SafariBaseIE.LOGGED_IN = True
+        self._login()
 
     def _login(self):
+        # We only need to log in once for courses or individual videos
+        if self.LOGGED_IN:
+            return
+
         (username, password) = self._get_login_info()
         if username is None:
-            raise ExtractorError(
-                self._ACCOUNT_CREDENTIALS_HINT,
-                expected=True)
+            return
 
-        headers = std_headers
+        headers = std_headers.copy()
         if 'Referer' not in headers:
             headers['Referer'] = self._LOGIN_URL
+        login_page_request = sanitized_Request(self._LOGIN_URL, headers=headers)
 
         login_page = self._download_webpage(
-            self._LOGIN_URL, None,
+            login_page_request, None,
             'Downloading login form')
 
         csrf = self._html_search_regex(
@@ -61,8 +57,8 @@ class SafariBaseIE(InfoExtractor):
             'next': '',
         }
 
-        request = compat_urllib_request.Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form), headers=headers)
+        request = sanitized_Request(
+            self._LOGIN_URL, urlencode_postdata(login_form), headers=headers)
         login_page = self._download_webpage(
             request, None, 'Logging in as %s' % username)
 
@@ -70,6 +66,8 @@ class SafariBaseIE(InfoExtractor):
             raise ExtractorError(
                 'Login failed; make sure your credentials are correct and try again.',
                 expected=True)
+
+        SafariBaseIE.LOGGED_IN = True
 
         self.to_screen('Login successful')
 
@@ -90,13 +88,15 @@ class SafariIE(SafariBaseIE):
 
     _TESTS = [{
         'url': 'https://www.safaribooksonline.com/library/view/hadoop-fundamentals-livelessons/9780133392838/part00.html',
-        'md5': '5b0c4cc1b3c1ba15dda7344085aa5592',
+        'md5': 'dcc5a425e79f2564148652616af1f2a3',
         'info_dict': {
-            'id': '2842601850001',
+            'id': '0_qbqx90ic',
             'ext': 'mp4',
-            'title': 'Introduction',
+            'title': 'Introduction to Hadoop Fundamentals LiveLessons',
+            'timestamp': 1437758058,
+            'upload_date': '20150724',
+            'uploader_id': 'stork',
         },
-        'skip': 'Requires safaribooksonline account credentials',
     }, {
         'url': 'https://www.safaribooksonline.com/api/v1/book/9780133392838/chapter/part00.html',
         'only_matching': True,
@@ -111,15 +111,30 @@ class SafariIE(SafariBaseIE):
         course_id = mobj.group('course_id')
         part = mobj.group('part')
 
-        webpage = self._download_webpage(
-            '%s/%s/chapter-content/%s.html' % (self._API_BASE, course_id, part),
-            part)
+        webpage = self._download_webpage(url, '%s/%s' % (course_id, part))
+        reference_id = self._search_regex(r'data-reference-id="([^"]+)"', webpage, 'kaltura reference id')
+        partner_id = self._search_regex(r'data-partner-id="([^"]+)"', webpage, 'kaltura widget id')
+        ui_id = self._search_regex(r'data-ui-id="([^"]+)"', webpage, 'kaltura uiconf id')
 
-        bc_url = BrightcoveIE._extract_brightcove_url(webpage)
-        if not bc_url:
-            raise ExtractorError('Could not extract Brightcove URL from %s' % url, expected=True)
+        query = {
+            'wid': '_%s' % partner_id,
+            'uiconf_id': ui_id,
+            'flashvars[referenceId]': reference_id,
+        }
 
-        return self.url_result(smuggle_url(bc_url, {'Referer': url}), 'Brightcove')
+        if self.LOGGED_IN:
+            kaltura_session = self._download_json(
+                '%s/player/kaltura_session/?reference_id=%s' % (self._API_BASE, reference_id),
+                course_id, 'Downloading kaltura session JSON',
+                'Unable to download kaltura session JSON', fatal=False)
+            if kaltura_session:
+                session = kaltura_session.get('session')
+                if session:
+                    query['flashvars[ks]'] = session
+
+        return self.url_result(update_url_query(
+            'https://cdnapisec.kaltura.com/html5/html5lib/v2.37.1/mwEmbedFrame.php', query),
+            'Kaltura')
 
 
 class SafariCourseIE(SafariBaseIE):
@@ -145,7 +160,7 @@ class SafariCourseIE(SafariBaseIE):
         course_id = self._match_id(url)
 
         course_json = self._download_json(
-            '%s/%s/?override_format=%s' % (self._API_BASE, course_id, self._API_FORMAT),
+            '%s/book/%s/?override_format=%s' % (self._API_BASE, course_id, self._API_FORMAT),
             course_id, 'Downloading course JSON')
 
         if 'chapters' not in course_json:

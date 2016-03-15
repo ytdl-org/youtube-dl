@@ -5,7 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import ExtractorError
-from .bliptv import BlipTVIE
+from .screenwavemedia import ScreenwaveMediaIE
 
 
 class CinemassacreIE(InfoExtractor):
@@ -21,6 +21,10 @@ class CinemassacreIE(InfoExtractor):
                 'title': '“Angry Video Game Nerd: The Movie” – Trailer',
                 'description': 'md5:fb87405fcb42a331742a0dce2708560b',
             },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
         },
         {
             'url': 'http://cinemassacre.com/2013/10/02/the-mummys-hand-1940',
@@ -31,31 +35,34 @@ class CinemassacreIE(InfoExtractor):
                 'upload_date': '20131002',
                 'title': 'The Mummy’s Hand (1940)',
             },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
         },
         {
-            # blip.tv embedded video
+            # Youtube embedded video
             'url': 'http://cinemassacre.com/2006/12/07/chronologically-confused-about-bad-movie-and-video-game-sequel-titles/',
-            'md5': 'ca9b3c8dd5a66f9375daeb5135f5a3de',
+            'md5': 'ec9838a5520ef5409b3e4e42fcb0a3b9',
             'info_dict': {
-                'id': '4065369',
-                'ext': 'flv',
+                'id': 'OEVzPCY2T-g',
+                'ext': 'webm',
                 'title': 'AVGN: Chronologically Confused about Bad Movie and Video Game Sequel Titles',
                 'upload_date': '20061207',
-                'uploader': 'cinemassacre',
-                'uploader_id': '250778',
-                'timestamp': 1283233867,
-                'description': 'md5:0a108c78d130676b207d0f6d029ecffd',
+                'uploader': 'Cinemassacre',
+                'uploader_id': 'JamesNintendoNerd',
+                'description': 'md5:784734696c2b8b7f4b8625cc799e07f6',
             }
         },
         {
             # Youtube embedded video
             'url': 'http://cinemassacre.com/2006/09/01/mckids/',
-            'md5': '6eb30961fa795fedc750eac4881ad2e1',
+            'md5': '7393c4e0f54602ad110c793eb7a6513a',
             'info_dict': {
                 'id': 'FnxsNhuikpo',
-                'ext': 'mp4',
+                'ext': 'webm',
                 'upload_date': '20060901',
-                'uploader': 'Cinemassacre Extras',
+                'uploader': 'Cinemassacre Extra',
                 'description': 'md5:de9b751efa9e45fbaafd9c8a1123ed53',
                 'uploader_id': 'Cinemassacre',
                 'title': 'AVGN: McKids',
@@ -70,7 +77,11 @@ class CinemassacreIE(InfoExtractor):
                 'description': 'Let’s Play Mario Kart 64 !! Mario Kart 64 is a classic go-kart racing game released for the Nintendo 64 (N64). Today James & Mike do 4 player Battle Mode with Kyle and Bootsy!',
                 'title': 'Mario Kart 64 (Nintendo 64) James & Mike Mondays',
                 'upload_date': '20150525',
-            }
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
         }
     ]
 
@@ -83,12 +94,10 @@ class CinemassacreIE(InfoExtractor):
 
         playerdata_url = self._search_regex(
             [
-                r'src="(http://(?:player2\.screenwavemedia\.com|player\.screenwavemedia\.com/play)/[a-zA-Z]+\.php\?[^"]*\bid=.+?)"',
-                r'<iframe[^>]+src="((?:https?:)?//(?:[^.]+\.)?youtube\.com/.+?)"',
+                ScreenwaveMediaIE.EMBED_PATTERN,
+                r'<iframe[^>]+src="(?P<url>(?:https?:)?//(?:[^.]+\.)?youtube\.com/.+?)"',
             ],
-            webpage, 'player data URL', default=None)
-        if not playerdata_url:
-            playerdata_url = BlipTVIE._extract_url(webpage)
+            webpage, 'player data URL', default=None, group='url')
         if not playerdata_url:
             raise ExtractorError('Unable to find player data')
 

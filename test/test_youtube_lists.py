@@ -34,7 +34,7 @@ class TestYoutubeLists(unittest.TestCase):
         ie = YoutubePlaylistIE(dl)
         # TODO find a > 100 (paginating?) videos course
         result = ie.extract('https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
-        entries = result['entries']
+        entries = list(result['entries'])
         self.assertEqual(YoutubeIE().extract_id(entries[0]['url']), 'j9WZyLZCBzs')
         self.assertEqual(len(entries), 25)
         self.assertEqual(YoutubeIE().extract_id(entries[-1]['url']), 'rYefUsYuEp0')
@@ -56,6 +56,15 @@ class TestYoutubeLists(unittest.TestCase):
         result = ie.extract('https://www.youtube.com/playlist?list=MCUS')
         entries = result['entries']
         self.assertEqual(len(entries), 100)
+
+    def test_youtube_flat_playlist_titles(self):
+        dl = FakeYDL()
+        dl.params['extract_flat'] = True
+        ie = YoutubePlaylistIE(dl)
+        result = ie.extract('https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re')
+        self.assertIsPlaylist(result)
+        for entry in result['entries']:
+            self.assertTrue(entry.get('title'))
 
 if __name__ == '__main__':
     unittest.main()

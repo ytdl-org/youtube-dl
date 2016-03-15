@@ -5,13 +5,11 @@ import codecs
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request
-)
+from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
     int_or_none,
+    sanitized_Request,
 )
 
 
@@ -44,7 +42,7 @@ class TubiTvIE(InfoExtractor):
             'password': password,
         }
         payload = compat_urllib_parse.urlencode(form_data).encode('utf-8')
-        request = compat_urllib_request.Request(self._LOGIN_URL, payload)
+        request = sanitized_Request(self._LOGIN_URL, payload)
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         login_page = self._download_webpage(
             request, None, False, 'Wrong login info')
@@ -60,9 +58,7 @@ class TubiTvIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
         if re.search(r"<(?:DIV|div) class='login-required-screen'>", webpage):
-            raise ExtractorError(
-                'This video requires login, use --username and --password '
-                'options to provide account credentials.', expected=True)
+            self.raise_login_required('This video requires login')
 
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)

@@ -102,7 +102,7 @@ def generator(test_case):
 
         params = get_params(test_case.get('params', {}))
         if is_playlist and 'playlist' not in test_case:
-            params.setdefault('extract_flat', True)
+            params.setdefault('extract_flat', 'in_playlist')
             params.setdefault('skip_download', True)
 
         ydl = YoutubeDL(params, auto_init=False)

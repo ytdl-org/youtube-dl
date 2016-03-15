@@ -71,8 +71,7 @@ class EroProfileIE(InfoExtractor):
 
         m = re.search(r'You must be logged in to view this video\.', webpage)
         if m:
-            raise ExtractorError(
-                'This video requires login. Please specify a username and password and try again.', expected=True)
+            self.raise_login_required('This video requires login')
 
         video_id = self._search_regex(
             [r"glbUpdViews\s*\('\d*','(\d+)'", r'p/report/video/(\d+)'],

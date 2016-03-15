@@ -15,37 +15,37 @@ from ..compat import (
 
 class SenateISVPIE(InfoExtractor):
     _COMM_MAP = [
-        ["ag", "76440", "http://ag-f.akamaihd.net"],
-        ["aging", "76442", "http://aging-f.akamaihd.net"],
-        ["approps", "76441", "http://approps-f.akamaihd.net"],
-        ["armed", "76445", "http://armed-f.akamaihd.net"],
-        ["banking", "76446", "http://banking-f.akamaihd.net"],
-        ["budget", "76447", "http://budget-f.akamaihd.net"],
-        ["cecc", "76486", "http://srs-f.akamaihd.net"],
-        ["commerce", "80177", "http://commerce1-f.akamaihd.net"],
-        ["csce", "75229", "http://srs-f.akamaihd.net"],
-        ["dpc", "76590", "http://dpc-f.akamaihd.net"],
-        ["energy", "76448", "http://energy-f.akamaihd.net"],
-        ["epw", "76478", "http://epw-f.akamaihd.net"],
-        ["ethics", "76449", "http://ethics-f.akamaihd.net"],
-        ["finance", "76450", "http://finance-f.akamaihd.net"],
-        ["foreign", "76451", "http://foreign-f.akamaihd.net"],
-        ["govtaff", "76453", "http://govtaff-f.akamaihd.net"],
-        ["help", "76452", "http://help-f.akamaihd.net"],
-        ["indian", "76455", "http://indian-f.akamaihd.net"],
-        ["intel", "76456", "http://intel-f.akamaihd.net"],
-        ["intlnarc", "76457", "http://intlnarc-f.akamaihd.net"],
-        ["jccic", "85180", "http://jccic-f.akamaihd.net"],
-        ["jec", "76458", "http://jec-f.akamaihd.net"],
-        ["judiciary", "76459", "http://judiciary-f.akamaihd.net"],
-        ["rpc", "76591", "http://rpc-f.akamaihd.net"],
-        ["rules", "76460", "http://rules-f.akamaihd.net"],
-        ["saa", "76489", "http://srs-f.akamaihd.net"],
-        ["smbiz", "76461", "http://smbiz-f.akamaihd.net"],
-        ["srs", "75229", "http://srs-f.akamaihd.net"],
-        ["uscc", "76487", "http://srs-f.akamaihd.net"],
-        ["vetaff", "76462", "http://vetaff-f.akamaihd.net"],
-        ["arch", "", "http://ussenate-f.akamaihd.net/"]
+        ['ag', '76440', 'http://ag-f.akamaihd.net'],
+        ['aging', '76442', 'http://aging-f.akamaihd.net'],
+        ['approps', '76441', 'http://approps-f.akamaihd.net'],
+        ['armed', '76445', 'http://armed-f.akamaihd.net'],
+        ['banking', '76446', 'http://banking-f.akamaihd.net'],
+        ['budget', '76447', 'http://budget-f.akamaihd.net'],
+        ['cecc', '76486', 'http://srs-f.akamaihd.net'],
+        ['commerce', '80177', 'http://commerce1-f.akamaihd.net'],
+        ['csce', '75229', 'http://srs-f.akamaihd.net'],
+        ['dpc', '76590', 'http://dpc-f.akamaihd.net'],
+        ['energy', '76448', 'http://energy-f.akamaihd.net'],
+        ['epw', '76478', 'http://epw-f.akamaihd.net'],
+        ['ethics', '76449', 'http://ethics-f.akamaihd.net'],
+        ['finance', '76450', 'http://finance-f.akamaihd.net'],
+        ['foreign', '76451', 'http://foreign-f.akamaihd.net'],
+        ['govtaff', '76453', 'http://govtaff-f.akamaihd.net'],
+        ['help', '76452', 'http://help-f.akamaihd.net'],
+        ['indian', '76455', 'http://indian-f.akamaihd.net'],
+        ['intel', '76456', 'http://intel-f.akamaihd.net'],
+        ['intlnarc', '76457', 'http://intlnarc-f.akamaihd.net'],
+        ['jccic', '85180', 'http://jccic-f.akamaihd.net'],
+        ['jec', '76458', 'http://jec-f.akamaihd.net'],
+        ['judiciary', '76459', 'http://judiciary-f.akamaihd.net'],
+        ['rpc', '76591', 'http://rpc-f.akamaihd.net'],
+        ['rules', '76460', 'http://rules-f.akamaihd.net'],
+        ['saa', '76489', 'http://srs-f.akamaihd.net'],
+        ['smbiz', '76461', 'http://smbiz-f.akamaihd.net'],
+        ['srs', '75229', 'http://srs-f.akamaihd.net'],
+        ['uscc', '76487', 'http://srs-f.akamaihd.net'],
+        ['vetaff', '76462', 'http://vetaff-f.akamaihd.net'],
+        ['arch', '', 'http://ussenate-f.akamaihd.net/']
     ]
     _IE_NAME = 'senate.gov'
     _VALID_URL = r'http://www\.senate\.gov/isvp/?\?(?P<qs>.+)'
@@ -53,17 +53,25 @@ class SenateISVPIE(InfoExtractor):
         'url': 'http://www.senate.gov/isvp/?comm=judiciary&type=live&stt=&filename=judiciary031715&auto_play=false&wmode=transparent&poster=http%3A%2F%2Fwww.judiciary.senate.gov%2Fthemes%2Fjudiciary%2Fimages%2Fvideo-poster-flash-fit.png',
         'info_dict': {
             'id': 'judiciary031715',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Integrated Senate Video Player',
             'thumbnail': 're:^https?://.*\.(?:jpg|png)$',
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         'url': 'http://www.senate.gov/isvp/?type=live&comm=commerce&filename=commerce011514.mp4&auto_play=false',
         'info_dict': {
             'id': 'commerce011514',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Integrated Senate Video Player'
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         'url': 'http://www.senate.gov/isvp/?type=arch&comm=intel&filename=intel090613&hc_location=ufi',
         # checksum differs each time
@@ -121,9 +129,9 @@ class SenateISVPIE(InfoExtractor):
                 'url': compat_urlparse.urljoin(domain, filename) + '?v=3.1.0&fp=&r=&g=',
             }]
         else:
-            hdcore_sign = '?hdcore=3.1.0'
+            hdcore_sign = 'hdcore=3.1.0'
             url_params = (domain, video_id, stream_num)
-            f4m_url = '%s/z/%s_1@%s/manifest.f4m' % url_params + hdcore_sign
+            f4m_url = '%s/z/%s_1@%s/manifest.f4m?' % url_params + hdcore_sign
             m3u8_url = '%s/i/%s_1@%s/master.m3u8' % url_params
             for entry in self._extract_f4m_formats(f4m_url, video_id, f4m_id='f4m'):
                 # URLs without the extra param induce an 404 error

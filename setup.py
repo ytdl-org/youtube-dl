@@ -28,7 +28,7 @@ py2exe_options = {
     "compressed": 1,
     "optimize": 2,
     "dist_dir": '.',
-    "dll_excludes": ['w9xpopen.exe'],
+    "dll_excludes": ['w9xpopen.exe', 'crypt32.dll'],
 }
 
 py2exe_console = [{

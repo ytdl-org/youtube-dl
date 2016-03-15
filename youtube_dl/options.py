@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import os.path
 import optparse
-import shlex
 import sys
 
 from .downloader.external import list_external_downloaders
@@ -11,6 +10,7 @@ from .compat import (
     compat_get_terminal_size,
     compat_getenv,
     compat_kwargs,
+    compat_shlex_split,
 )
 from .utils import (
     preferredencoding,
@@ -28,7 +28,7 @@ def parseOpts(overrideArguments=None):
         try:
             res = []
             for l in optionf:
-                res += shlex.split(l, comments=True)
+                res += compat_shlex_split(l, comments=True)
         finally:
             optionf.close()
         return res
@@ -85,7 +85,7 @@ def parseOpts(overrideArguments=None):
         if option.takes_value():
             opts.append(' %s' % option.metavar)
 
-        return "".join(opts)
+        return ''.join(opts)
 
     def _comma_separated_values_options_callback(option, opt_str, value, parser):
         setattr(parser.values, option.dest, value.split(','))
@@ -170,6 +170,14 @@ def parseOpts(overrideArguments=None):
         action='store_const', dest='extract_flat', const='in_playlist',
         default=False,
         help='Do not extract the videos of a playlist, only list them.')
+    general.add_option(
+        '--mark-watched',
+        action='store_true', dest='mark_watched', default=False,
+        help='Mark videos watched (YouTube only)')
+    general.add_option(
+        '--no-mark-watched',
+        action='store_false', dest='mark_watched', default=False,
+        help='Do not mark videos watched (YouTube only)')
     general.add_option(
         '--no-color', '--no-colors',
         action='store_true', dest='no_color',
@@ -276,7 +284,7 @@ def parseOpts(overrideArguments=None):
             'For example, to only match videos that have been liked more than '
             '100 times and disliked less than 50 times (or the dislike '
             'functionality is not available at the given service), but who '
-            'also have a description, use  --match-filter '
+            'also have a description, use --match-filter '
             '"like_count > 100 & dislike_count <? 50 & description" .'
         ))
     selection.add_option(
@@ -320,7 +328,7 @@ def parseOpts(overrideArguments=None):
     authentication.add_option(
         '--video-password',
         dest='videopassword', metavar='PASSWORD',
-        help='Video password (vimeo, smotri)')
+        help='Video password (vimeo, smotri, youku)')
 
     video_format = optparse.OptionGroup(parser, 'Video Format Options')
     video_format.add_option(
@@ -338,7 +346,7 @@ def parseOpts(overrideArguments=None):
     video_format.add_option(
         '-F', '--list-formats',
         action='store_true', dest='listformats',
-        help='List all available formats')
+        help='List all available formats of requested videos')
     video_format.add_option(
         '--youtube-include-dash-manifest',
         action='store_true', dest='youtube_include_dash_manifest', default=True,
@@ -363,7 +371,7 @@ def parseOpts(overrideArguments=None):
     subtitles.add_option(
         '--write-auto-sub', '--write-automatic-sub',
         action='store_true', dest='writeautomaticsub', default=False,
-        help='Write automatic subtitle file (YouTube only)')
+        help='Write automatically generated subtitle file (YouTube only)')
     subtitles.add_option(
         '--all-subs',
         action='store_true', dest='allsubtitles', default=False,
@@ -380,7 +388,7 @@ def parseOpts(overrideArguments=None):
         '--sub-lang', '--sub-langs', '--srt-lang',
         action='callback', dest='subtitleslangs', metavar='LANGS', type='str',
         default=[], callback=_comma_separated_values_options_callback,
-        help='Languages of the subtitles to download (optional) separated by commas, use IETF language tags like \'en,pt\'')
+        help='Languages of the subtitles to download (optional) separated by commas, use --list-subs for available language tags')
 
     downloader = optparse.OptionGroup(parser, 'Download Options')
     downloader.add_option(
@@ -415,6 +423,11 @@ def parseOpts(overrideArguments=None):
         '--hls-prefer-native',
         dest='hls_prefer_native', action='store_true',
         help='Use the native HLS downloader instead of ffmpeg (experimental)')
+    downloader.add_option(
+        '--hls-use-mpegts',
+        dest='hls_use_mpegts', action='store_true',
+        help='Use the mpegts container for HLS videos, allowing to play the '
+             'video while downloading (some players may not be able to play it)')
     downloader.add_option(
         '--external-downloader',
         dest='external_downloader', metavar='COMMAND',
@@ -602,7 +615,7 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '-A', '--auto-number',
         action='store_true', dest='autonumber', default=False,
-        help='[deprecated; use  -o "%(autonumber)s-%(title)s.%(ext)s" ] Number downloaded files starting from 00000')
+        help='[deprecated; use -o "%(autonumber)s-%(title)s.%(ext)s" ] Number downloaded files starting from 00000')
     filesystem.add_option(
         '-t', '--title',
         action='store_true', dest='usetitle', default=False,
@@ -756,7 +769,7 @@ def parseOpts(overrideArguments=None):
         metavar='CMD', dest='exec_cmd',
         help='Execute a command on the file after downloading, similar to find\'s -exec syntax. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'')
     postproc.add_option(
-        '--convert-subtitles', '--convert-subs',
+        '--convert-subs', '--convert-subtitles',
         metavar='FORMAT', dest='convertsubtitles', default=None,
         help='Convert the subtitles to other format (currently supported: srt|ass|vtt)')
 

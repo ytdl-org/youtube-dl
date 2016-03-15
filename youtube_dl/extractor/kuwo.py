@@ -31,6 +31,10 @@ class KuwoBaseIE(InfoExtractor):
                 (file_format['ext'], file_format.get('br', ''), song_id),
                 song_id, note='Download %s url info' % file_format['format'],
             )
+
+            if song_url == 'IPDeny':
+                raise ExtractorError('This song is blocked in this region', expected=True)
+
             if song_url.startswith('http://') or song_url.startswith('https://'):
                 formats.append({
                     'url': song_url,
@@ -57,12 +61,14 @@ class KuwoIE(KuwoBaseIE):
             'upload_date': '20080122',
             'description': 'md5:ed13f58e3c3bf3f7fd9fbc4e5a7aa75c'
         },
+        'skip': 'this song has been offline because of copyright issues',
     }, {
         'url': 'http://www.kuwo.cn/yinyue/6446136/',
         'info_dict': {
             'id': '6446136',
             'ext': 'mp3',
             'title': '心',
+            'description': 'md5:b2ab6295d014005bfc607525bfc1e38a',
             'creator': 'IU',
             'upload_date': '20150518',
         },
@@ -76,9 +82,11 @@ class KuwoIE(KuwoBaseIE):
         webpage = self._download_webpage(
             url, song_id, note='Download song detail info',
             errnote='Unable to get song detail info')
+        if '对不起，该歌曲由于版权问题已被下线，将返回网站首页' in webpage:
+            raise ExtractorError('this song has been offline because of copyright issues', expected=True)
 
         song_name = self._html_search_regex(
-            r'<h1[^>]+title="([^"]+)">', webpage, 'song name')
+            r'(?s)class="(?:[^"\s]+\s+)*title(?:\s+[^"\s]+)*".*?<h1[^>]+title="([^"]+)"', webpage, 'song name')
         singer_name = self._html_search_regex(
             r'<div[^>]+class="s_img">\s*<a[^>]+title="([^>]+)"',
             webpage, 'singer name', fatal=False)
@@ -202,6 +210,7 @@ class KuwoSingerIE(InfoExtractor):
             'title': 'Ali',
         },
         'playlist_mincount': 95,
+        'skip': 'Regularly stalls travis build',  # See https://travis-ci.org/rg3/youtube-dl/jobs/78878540
     }]
 
     def _real_extract(self, url):

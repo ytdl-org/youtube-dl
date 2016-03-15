@@ -1,7 +1,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    get_element_by_id,
+    remove_end,
+)
 
 
 class IconosquareIE(InfoExtractor):
@@ -12,7 +16,7 @@ class IconosquareIE(InfoExtractor):
         'info_dict': {
             'id': '522207370455279102_24101272',
             'ext': 'mp4',
-            'title': 'Instagram media by @aguynamedpatrick (Patrick Janelle)',
+            'title': 'Instagram photo by @aguynamedpatrick (Patrick Janelle)',
             'description': 'md5:644406a9ec27457ed7aa7a9ebcd4ce3d',
             'timestamp': 1376471991,
             'upload_date': '20130814',
@@ -29,8 +33,7 @@ class IconosquareIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         media = self._parse_json(
-            self._search_regex(
-                r'window\.media\s*=\s*({.+?});\n', webpage, 'media'),
+            get_element_by_id('mediaJson', webpage),
             video_id)
 
         formats = [{
@@ -41,9 +44,7 @@ class IconosquareIE(InfoExtractor):
         } for format_id, f in media['videos'].items()]
         self._sort_formats(formats)
 
-        title = self._html_search_regex(
-            r'<title>(.+?)(?: *\(Videos?\))? \| (?:Iconosquare|Statigram)</title>',
-            webpage, 'title')
+        title = remove_end(self._og_search_title(webpage), ' - via Iconosquare')
 
         timestamp = int_or_none(media.get('created_time') or media.get('caption', {}).get('created_time'))
         description = media.get('caption', {}).get('text')
@@ -61,6 +62,14 @@ class IconosquareIE(InfoExtractor):
             'height': int_or_none(t.get('height'))
         } for thumbnail_id, t in media.get('images', {}).items()]
 
+        comments = [{
+            'id': comment.get('id'),
+            'text': comment['text'],
+            'timestamp': int_or_none(comment.get('created_time')),
+            'author': comment.get('from', {}).get('full_name'),
+            'author_id': comment.get('from', {}).get('username'),
+        } for comment in media.get('comments', {}).get('data', []) if 'text' in comment]
+
         return {
             'id': video_id,
             'title': title,
@@ -72,4 +81,5 @@ class IconosquareIE(InfoExtractor):
             'comment_count': comment_count,
             'like_count': like_count,
             'formats': formats,
+            'comments': comments,
         }

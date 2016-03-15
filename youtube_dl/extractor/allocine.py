@@ -8,6 +8,8 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     qualities,
+    unescapeHTML,
+    xpath_element,
 )
 
 
@@ -31,7 +33,7 @@ class AllocineIE(InfoExtractor):
             'id': '19540403',
             'ext': 'mp4',
             'title': 'Planes 2 Bande-annonce VF',
-            'description': 'md5:eeaffe7c2d634525e21159b93acf3b1e',
+            'description': 'Regardez la bande annonce du film Planes 2 (Planes 2 Bande-annonce VF). Planes 2, un film de Roberts Gannaway',
             'thumbnail': 're:http://.*\.jpg',
         },
     }, {
@@ -41,7 +43,7 @@ class AllocineIE(InfoExtractor):
             'id': '19544709',
             'ext': 'mp4',
             'title': 'Dragons 2 - Bande annonce finale VF',
-            'description': 'md5:71742e3a74b0d692c7fce0dd2017a4ac',
+            'description': 'md5:601d15393ac40f249648ef000720e7e3',
             'thumbnail': 're:http://.*\.jpg',
         },
     }, {
@@ -59,14 +61,18 @@ class AllocineIE(InfoExtractor):
         if typ == 'film':
             video_id = self._search_regex(r'href="/video/player_gen_cmedia=([0-9]+).+"', webpage, 'video id')
         else:
-            player = self._search_regex(r'data-player=\'([^\']+)\'>', webpage, 'data player')
-
-            player_data = json.loads(player)
-            video_id = compat_str(player_data['refMedia'])
+            player = self._search_regex(r'data-player=\'([^\']+)\'>', webpage, 'data player', default=None)
+            if player:
+                player_data = json.loads(player)
+                video_id = compat_str(player_data['refMedia'])
+            else:
+                model = self._search_regex(r'data-model="([^"]+)">', webpage, 'data model')
+                model_data = self._parse_json(unescapeHTML(model), display_id)
+                video_id = compat_str(model_data['id'])
 
         xml = self._download_xml('http://www.allocine.fr/ws/AcVisiondataV4.ashx?media=%s' % video_id, display_id)
 
-        video = xml.find('.//AcVisionVideo').attrib
+        video = xpath_element(xml, './/AcVisionVideo').attrib
         quality = qualities(['ld', 'md', 'hd'])
 
         formats = []

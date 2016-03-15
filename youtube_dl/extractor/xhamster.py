@@ -4,10 +4,9 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    unified_strdate,
-    str_to_int,
+    float_or_none,
     int_or_none,
-    parse_duration,
+    unified_strdate,
 )
 
 
@@ -22,7 +21,7 @@ class XHamsterIE(InfoExtractor):
                 'title': 'FemaleAgent Shy beauty takes the bait',
                 'upload_date': '20121014',
                 'uploader': 'Ruseful2011',
-                'duration': 893,
+                'duration': 893.52,
                 'age_limit': 18,
             }
         },
@@ -34,7 +33,7 @@ class XHamsterIE(InfoExtractor):
                 'title': 'Britney Spears  Sexy Booty',
                 'upload_date': '20130914',
                 'uploader': 'jojo747400',
-                'duration': 200,
+                'duration': 200.48,
                 'age_limit': 18,
             }
         },
@@ -63,19 +62,22 @@ class XHamsterIE(InfoExtractor):
         mrss_url = '%s://xhamster.com/movies/%s/%s.html' % (proto, video_id, seo)
         webpage = self._download_webpage(mrss_url, video_id)
 
-        title = self._html_search_regex(r'<title>(?P<title>.+?) - xHamster\.com</title>', webpage, 'title')
+        title = self._html_search_regex(
+            [r'<h1[^>]*>([^<]+)</h1>',
+             r'<meta[^>]+itemprop=".*?caption.*?"[^>]+content="(.+?)"',
+             r'<title[^>]*>(.+?)(?:,\s*[^,]*?\s*Porn\s*[^,]*?:\s*xHamster[^<]*| - xHamster\.com)</title>'],
+            webpage, 'title')
 
         # Only a few videos have an description
         mobj = re.search(r'<span>Description: </span>([^<]+)', webpage)
         description = mobj.group(1) if mobj else None
 
-        upload_date = self._html_search_regex(r'hint=\'(\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2} [A-Z]{3,4}\'',
-                                              webpage, 'upload date', fatal=False)
-        if upload_date:
-            upload_date = unified_strdate(upload_date)
+        upload_date = unified_strdate(self._search_regex(
+            r'hint=["\'](\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2} [A-Z]{3,4}',
+            webpage, 'upload date', fatal=False))
 
         uploader = self._html_search_regex(
-            r"<a href='[^']+xhamster\.com/user/[^>]+>(?P<uploader>[^<]+)",
+            r'<span[^>]+itemprop=["\']author[^>]+><a[^>]+href=["\'].+?xhamster\.com/user/[^>]+>(?P<uploader>.+?)</a>',
             webpage, 'uploader', default='anonymous')
 
         thumbnail = self._search_regex(
@@ -83,12 +85,13 @@ class XHamsterIE(InfoExtractor):
              r'''<video[^>]+poster=(?P<q>["'])(?P<thumbnail>.+?)(?P=q)[^>]*>'''],
             webpage, 'thumbnail', fatal=False, group='thumbnail')
 
-        duration = parse_duration(self._html_search_regex(r'<span>Runtime:</span> (\d+:\d+)</div>',
-                                                          webpage, 'duration', fatal=False))
+        duration = float_or_none(self._search_regex(
+            r'(["\'])duration\1\s*:\s*(["\'])(?P<duration>.+?)\2',
+            webpage, 'duration', fatal=False, group='duration'))
 
-        view_count = self._html_search_regex(r'<span>Views:</span> ([^<]+)</div>', webpage, 'view count', fatal=False)
-        if view_count:
-            view_count = str_to_int(view_count)
+        view_count = int_or_none(self._search_regex(
+            r'content=["\']User(?:View|Play)s:(\d+)',
+            webpage, 'view count', fatal=False))
 
         mobj = re.search(r"hint='(?P<likecount>\d+) Likes / (?P<dislikecount>\d+) Dislikes'", webpage)
         (like_count, dislike_count) = (mobj.group('likecount'), mobj.group('dislikecount')) if mobj else (None, None)

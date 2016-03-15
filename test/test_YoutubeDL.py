@@ -12,8 +12,9 @@ import copy
 
 from test.helper import FakeYDL, assertRegexpMatches
 from youtube_dl import YoutubeDL
-from youtube_dl.compat import compat_str
+from youtube_dl.compat import compat_str, compat_urllib_error
 from youtube_dl.extractor import YoutubeIE
+from youtube_dl.extractor.common import InfoExtractor
 from youtube_dl.postprocessor.common import PostProcessor
 from youtube_dl.utils import ExtractorError, match_filter_func
 
@@ -221,9 +222,19 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], 'dash-video-low')
 
+        formats = [
+            {'format_id': 'vid-vcodec-dot', 'ext': 'mp4', 'preference': 1, 'vcodec': 'avc1.123456', 'acodec': 'none', 'url': TEST_URL},
+        ]
+        info_dict = _make_result(formats)
+
+        ydl = YDL({'format': 'bestvideo[vcodec=avc1.123456]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'vid-vcodec-dot')
+
     def test_youtube_format_selection(self):
         order = [
-            '38', '37', '46', '22', '45', '35', '44', '18', '34', '43', '6', '5', '36', '17', '13',
+            '38', '37', '46', '22', '45', '35', '44', '18', '34', '43', '6', '5', '17', '36', '13',
             # Apple HTTP Live Streaming
             '96', '95', '94', '93', '92', '132', '151',
             # 3D
@@ -237,6 +248,17 @@ class TestFormatSelection(unittest.TestCase):
 
         def format_info(f_id):
             info = YoutubeIE._formats[f_id].copy()
+
+            # XXX: In real cases InfoExtractor._parse_mpd_formats() fills up 'acodec'
+            # and 'vcodec', while in tests such information is incomplete since
+            # commit a6c2c24479e5f4827ceb06f64d855329c0a6f593
+            # test_YoutubeDL.test_youtube_format_selection is broken without
+            # this fix
+            if 'acodec' in info and 'vcodec' not in info:
+                info['vcodec'] = 'none'
+            elif 'vcodec' in info and 'acodec' not in info:
+                info['acodec'] = 'none'
+
             info['format_id'] = f_id
             info['url'] = 'url:' + f_id
             return info
@@ -480,6 +502,9 @@ class TestYoutubeDL(unittest.TestCase):
         assertRegexpMatches(self, ydl._format_note({
             'vbr': 10,
         }), '^\s*10k$')
+        assertRegexpMatches(self, ydl._format_note({
+            'fps': 30,
+        }), '^30fps$')
 
     def test_postprocessors(self):
         filename = 'post-processor-testfile.mp4'
@@ -630,6 +655,47 @@ class TestYoutubeDL(unittest.TestCase):
 
         result = get_ids({'playlist_items': '10'})
         self.assertEqual(result, [])
+
+    def test_urlopen_no_file_protocol(self):
+        # see https://github.com/rg3/youtube-dl/issues/8227
+        ydl = YDL()
+        self.assertRaises(compat_urllib_error.URLError, ydl.urlopen, 'file:///etc/passwd')
+
+    def test_do_not_override_ie_key_in_url_transparent(self):
+        ydl = YDL()
+
+        class Foo1IE(InfoExtractor):
+            _VALID_URL = r'foo1:'
+
+            def _real_extract(self, url):
+                return {
+                    '_type': 'url_transparent',
+                    'url': 'foo2:',
+                    'ie_key': 'Foo2',
+                }
+
+        class Foo2IE(InfoExtractor):
+            _VALID_URL = r'foo2:'
+
+            def _real_extract(self, url):
+                return {
+                    '_type': 'url',
+                    'url': 'foo3:',
+                    'ie_key': 'Foo3',
+                }
+
+        class Foo3IE(InfoExtractor):
+            _VALID_URL = r'foo3:'
+
+            def _real_extract(self, url):
+                return _make_result([{'url': TEST_URL}])
+
+        ydl.add_info_extractor(Foo1IE(ydl))
+        ydl.add_info_extractor(Foo2IE(ydl))
+        ydl.add_info_extractor(Foo3IE(ydl))
+        ydl.extract_info('foo1:')
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['url'], TEST_URL)
 
 
 if __name__ == '__main__':
