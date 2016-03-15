@@ -425,7 +425,7 @@ class BrightcoveNewIE(InfoExtractor):
                 # According to [4] data-video-id may be prefixed with ref:
                 r'''(?sx)
                     <video[^>]+
-                        data-video-id=["\']((?:ref:)?\d+)["\'][^>]*>.*?
+                        data-video-id=["\'](\d+|ref:[^"\']+)["\'][^>]*>.*?
                     </video>.*?
                     <script[^>]+
                         src=["\'](?:https?:)?//players\.brightcove\.net/
