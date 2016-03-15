@@ -863,7 +863,7 @@ class InfoExtractor(object):
                 if f.get('ext') in ['f4f', 'f4m']:  # Not yet supported
                     preference -= 0.5
 
-            proto_preference = 0 if determine_protocol(f) in ['http', 'https'] else -0.1
+            proto_preference = 0 if 'url' in f and determine_protocol(f) in ['http', 'https'] else -0.1
 
             if f.get('vcodec') == 'none':  # audio only
                 if self._downloader.params.get('prefer_free_formats'):

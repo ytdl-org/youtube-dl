@@ -1327,11 +1327,11 @@ class YoutubeDL(object):
             # Automatically determine file extension if missing
             if 'ext' not in format:
                 format['ext'] = determine_ext(format['url']).lower()
-            # Automatically determine protocol if missing (useful for format
-            # selection purposes)
-            if 'protocol' not in format:
-                format['protocol'] = determine_protocol(format)
             if 'parts' not in format:
+                # Automatically determine protocol if missing (useful for format
+                # selection purposes)
+                if 'protocol' not in format:
+                    format['protocol'] = determine_protocol(format)
                 # Add HTTP headers, so that external programs can use them from the
                 # json output
                 full_format_info = info_dict.copy()
