@@ -475,9 +475,10 @@ class BrightcoveNewIE(InfoExtractor):
 
         formats = []
         for source in json_data.get('sources', []):
+            container = source.get('container')
             source_type = source.get('type')
             src = source.get('src')
-            if source_type == 'application/x-mpegURL':
+            if source_type == 'application/x-mpegURL' or container == 'M2TS':
                 if not src:
                     continue
                 formats.extend(self._extract_m3u8_formats(
@@ -495,7 +496,7 @@ class BrightcoveNewIE(InfoExtractor):
                     'width': int_or_none(source.get('width')),
                     'height': height,
                     'filesize': int_or_none(source.get('size')),
-                    'container': source.get('container'),
+                    'container': container,
                     'vcodec': source.get('codec'),
                     'ext': source.get('container').lower(),
                 }
