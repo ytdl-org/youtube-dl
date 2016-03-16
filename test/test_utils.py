@@ -78,6 +78,7 @@ from youtube_dl.utils import (
     cli_option,
     cli_valueless_option,
     cli_bool_option,
+    parse_codecs,
 )
 from youtube_dl.compat import (
     compat_chr,
@@ -578,6 +579,29 @@ class TestUtil(unittest.TestCase):
         self.assertTrue(
             limit_length('foo bar baz asd', 12).startswith('foo bar'))
         self.assertTrue('...' in limit_length('foo bar baz asd', 12))
+
+    def test_parse_codecs(self):
+        self.assertEqual(parse_codecs(''), {})
+        self.assertEqual(parse_codecs('avc1.77.30, mp4a.40.2'), {
+            'vcodec': 'avc1.77.30',
+            'acodec': 'mp4a.40.2',
+        })
+        self.assertEqual(parse_codecs('mp4a.40.2'), {
+            'vcodec': 'none',
+            'acodec': 'mp4a.40.2',
+        })
+        self.assertEqual(parse_codecs('mp4a.40.5,avc1.42001e'), {
+            'vcodec': 'avc1.42001e',
+            'acodec': 'mp4a.40.5',
+        })
+        self.assertEqual(parse_codecs('avc3.640028'), {
+            'vcodec': 'avc3.640028',
+            'acodec': 'none',
+        })
+        self.assertEqual(parse_codecs(', h264,,newcodec,aac'), {
+            'vcodec': 'h264',
+            'acodec': 'aac',
+        })
 
     def test_escape_rfc3986(self):
         reserved = "!*'();:@&=+$,/?#[]"

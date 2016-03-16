@@ -2060,6 +2060,42 @@ def mimetype2ext(mt):
     }.get(res, res)
 
 
+def parse_codecs(codecs_str):
+    # http://tools.ietf.org/html/rfc6381
+    if not codecs_str:
+        return {}
+    splited_codecs = list(filter(None, map(
+        lambda str: str.strip(), codecs_str.strip().strip(',').split(','))))
+    vcodec, acodec = None, None
+    for full_codec in splited_codecs:
+        codec = full_codec.split('.')[0]
+        if codec in ('avc1', 'avc2', 'avc3', 'avc4', 'vp9', 'vp8', 'hev1', 'hev2', 'h263', 'h264', 'mp4v'):
+            if not vcodec:
+                vcodec = full_codec
+        elif codec in ('mp4a', 'opus', 'vorbis', 'mp3', 'aac'):
+            if not acodec:
+                acodec = full_codec
+        else:
+            write_string('WARNING: Unknown codec %s' % full_codec, sys.stderr)
+    if not vcodec and not acodec:
+        if len(splited_codecs) == 2:
+            return {
+                'vcodec': vcodec,
+                'acodec': acodec,
+            }
+        elif len(splited_codecs) == 1:
+            return {
+                'vcodec': 'none',
+                'acodec': vcodec,
+            }
+    else:
+        return {
+            'vcodec': vcodec or 'none',
+            'acodec': acodec or 'none',
+        }
+    return {}
+
+
 def urlhandle_detect_ext(url_handle):
     getheader = url_handle.headers.get
 
