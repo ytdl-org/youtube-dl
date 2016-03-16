@@ -77,6 +77,11 @@ try:
 except ImportError:  # Python 2
     from urllib import urlretrieve as compat_urlretrieve
 
+try:
+    from html.parser import HTMLParser as compat_HTMLParser
+except ImportError:  # Python 2
+    from HTMLParser import HTMLParser as compat_HTMLParser
+
 
 try:
     from subprocess import DEVNULL
@@ -543,6 +548,7 @@ else:
     from tokenize import generate_tokens as compat_tokenize_tokenize
 
 __all__ = [
+    'compat_HTMLParser',
     'compat_HTTPError',
     'compat_basestring',
     'compat_chr',
