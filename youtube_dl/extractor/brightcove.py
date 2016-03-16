@@ -413,8 +413,8 @@ class BrightcoveNewIE(InfoExtractor):
 
         # Look for iframe embeds [1]
         for _, url in re.findall(
-                r'<iframe[^>]+src=(["\'])((?:https?:)//players\.brightcove\.net/\d+/[^/]+/index\.html.+?)\1', webpage):
-            entries.append(url)
+                r'<iframe[^>]+src=(["\'])((?:https?:)?//players\.brightcove\.net/\d+/[^/]+/index\.html.+?)\1', webpage):
+            entries.append(url if url.startswith('http') else 'http:' + url)
 
         # Look for embed_in_page embeds [2]
         for video_id, account_id, player_id, embed in re.findall(
