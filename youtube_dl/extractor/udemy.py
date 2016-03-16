@@ -142,9 +142,10 @@ class UdemyIE(InfoExtractor):
         lecture_id = self._match_id(url)
 
         webpage = self._download_webpage(url, lecture_id)
-
+        
         course_id = self._search_regex(
-            r'data-course-id=["\'](\d+)', webpage, 'course id')
+            (r'data-course-id=["\'](\d+)', r'&quot;id&quot;: (\d+)'),
+            webpage, 'course id')
 
         try:
             lecture = self._download_lecture(course_id, lecture_id)
