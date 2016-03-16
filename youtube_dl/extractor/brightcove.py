@@ -9,7 +9,6 @@ from ..compat import (
     compat_etree_fromstring,
     compat_parse_qs,
     compat_str,
-    compat_urllib_parse,
     compat_urllib_parse_urlparse,
     compat_urlparse,
     compat_xml_parse_error,
