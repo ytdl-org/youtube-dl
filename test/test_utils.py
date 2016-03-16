@@ -641,8 +641,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(extract_attributes('<e x="&#x79;">'), {'x': 'y'})
         self.assertEqual(extract_attributes('<e x="&amp;">'), {'x': '&'})  # XML
         self.assertEqual(extract_attributes('<e x="&quot;">'), {'x': '"'})
-        self.assertEqual(extract_attributes('<e x="&pound;">'), {'x': '£'}) # HTML 3.2
-        self.assertEqual(extract_attributes('<e x="&lambda;">'), {'x': 'λ'}) # HTML 4.0
+        self.assertEqual(extract_attributes('<e x="&pound;">'), {'x': '£'})  # HTML 3.2
+        self.assertEqual(extract_attributes('<e x="&lambda;">'), {'x': 'λ'})  # HTML 4.0
         self.assertEqual(extract_attributes('<e x="&foo">'), {'x': '&foo'})
         self.assertEqual(extract_attributes('<e x="\'">'), {'x': "'"})
         self.assertEqual(extract_attributes('<e x=\'"\'>'), {'x': '"'})
@@ -654,7 +654,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(extract_attributes('<e \nx=\n"y"\n>'), {'x': 'y'})
         self.assertEqual(extract_attributes("<e \nx=\n'y'\n>"), {'x': 'y'})
         self.assertEqual(extract_attributes('<e \nx="\ny\n">'), {'x': '\ny\n'})
-        self.assertEqual(extract_attributes('<e CAPS=x>'), {'caps': 'x'}) # Names lowercased
+        self.assertEqual(extract_attributes('<e CAPS=x>'), {'caps': 'x'})  # Names lowercased
         self.assertEqual(extract_attributes('<e x=1 X=2>'), {'x': '2'})
         self.assertEqual(extract_attributes('<e X=1 x=2>'), {'x': '2'})
         self.assertEqual(extract_attributes('<e _:funny-name1=1>'), {'_:funny-name1': '1'})

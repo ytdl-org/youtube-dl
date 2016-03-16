@@ -273,14 +273,16 @@ def get_element_by_attribute(attribute, value, html):
 
     return unescapeHTML(res)
 
+
 class HTMLAttributeParser(compat_HTMLParser):
     """Trivial HTML parser to gather the attributes for a single element"""
     def __init__(self):
-        self.attrs = { }
+        self.attrs = {}
         compat_HTMLParser.__init__(self)
 
     def handle_starttag(self, tag, attrs):
         self.attrs = dict(attrs)
+
 
 def extract_attributes(html_element):
     """Given a string for an HTML element such as
@@ -302,6 +304,7 @@ def extract_attributes(html_element):
     parser.feed(html_element)
     parser.close()
     return parser.attrs
+
 
 def clean_html(html):
     """Clean an HTML snippet into a readable string"""
