@@ -6,9 +6,9 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
-    compat_urllib_request,
 )
 from ..utils import (
+    sanitized_Request,
     str_to_int,
     unified_strdate,
 )
@@ -51,7 +51,7 @@ class SpankwireIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        req = compat_urllib_request.Request('http://www.' + mobj.group('url'))
+        req = sanitized_Request('http://www.' + mobj.group('url'))
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 

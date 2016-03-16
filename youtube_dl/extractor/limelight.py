@@ -40,7 +40,8 @@ class LimelightBaseIE(InfoExtractor):
             if not stream_url:
                 continue
             if '.f4m' in stream_url:
-                formats.extend(self._extract_f4m_formats(stream_url, video_id))
+                formats.extend(self._extract_f4m_formats(
+                    stream_url, video_id, fatal=False))
             else:
                 fmt = {
                     'url': stream_url,
@@ -72,8 +73,8 @@ class LimelightBaseIE(InfoExtractor):
             format_id = mobile_url.get('targetMediaPlatform')
             if determine_ext(media_url) == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
-                    media_url, video_id, 'mp4', entry_protocol='m3u8_native',
-                    preference=-1, m3u8_id=format_id))
+                    media_url, video_id, 'mp4', 'm3u8_native',
+                    m3u8_id=format_id, fatal=False))
             else:
                 formats.append({
                     'url': media_url,

@@ -11,15 +11,16 @@ from ..compat import (
     compat_str,
     compat_urllib_parse,
     compat_urllib_parse_urlparse,
-    compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
     encode_dict,
     ExtractorError,
     int_or_none,
+    orderedSet,
     parse_duration,
     parse_iso8601,
+    sanitized_Request,
 )
 
 
@@ -48,7 +49,7 @@ class TwitchBaseIE(InfoExtractor):
         for cookie in self._downloader.cookiejar:
             if cookie.name == 'api_token':
                 headers['Twitch-Api-Token'] = cookie.value
-        request = compat_urllib_request.Request(url, headers=headers)
+        request = sanitized_Request(url, headers=headers)
         response = super(TwitchBaseIE, self)._download_json(request, video_id, note)
         self._handle_error(response)
         return response
@@ -80,7 +81,7 @@ class TwitchBaseIE(InfoExtractor):
         if not post_url.startswith('http'):
             post_url = compat_urlparse.urljoin(redirect_url, post_url)
 
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             post_url, compat_urllib_parse.urlencode(encode_dict(login_form)).encode('utf-8'))
         request.add_header('Referer', redirect_url)
         response = self._download_webpage(
@@ -251,6 +252,7 @@ class TwitchVodIE(TwitchItemBaseIE):
                 self._USHER_BASE, item_id,
                 compat_urllib_parse.urlencode({
                     'allow_source': 'true',
+                    'allow_audio_only': 'true',
                     'allow_spectre': 'true',
                     'player': 'twitchweb',
                     'nauth': access_token['token'],
@@ -281,17 +283,37 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
         entries = []
         offset = 0
         limit = self._PAGE_LIMIT
+        broken_paging_detected = False
+        counter_override = None
         for counter in itertools.count(1):
             response = self._download_json(
                 self._PLAYLIST_URL % (channel_id, offset, limit),
-                channel_id, 'Downloading %s videos JSON page %d' % (self._PLAYLIST_TYPE, counter))
+                channel_id,
+                'Downloading %s videos JSON page %s'
+                % (self._PLAYLIST_TYPE, counter_override or counter))
             page_entries = self._extract_playlist_page(response)
             if not page_entries:
                 break
+            total = int_or_none(response.get('_total'))
+            # Since the beginning of March 2016 twitch's paging mechanism
+            # is completely broken on the twitch side. It simply ignores
+            # a limit and returns the whole offset number of videos.
+            # Working around by just requesting all videos at once.
+            # Upd: pagination bug was fixed by twitch on 15.03.2016.
+            if not broken_paging_detected and total and len(page_entries) > limit:
+                self.report_warning(
+                    'Twitch pagination is broken on twitch side, requesting all videos at once',
+                    channel_id)
+                broken_paging_detected = True
+                offset = total
+                counter_override = '(all at once)'
+                continue
             entries.extend(page_entries)
+            if broken_paging_detected or total and len(page_entries) >= total:
+                break
             offset += limit
         return self.playlist_result(
-            [self.url_result(entry) for entry in set(entries)],
+            [self.url_result(entry) for entry in orderedSet(entries)],
             channel_id, channel_name)
 
     def _extract_playlist_page(self, response):
@@ -411,6 +433,7 @@ class TwitchStreamIE(TwitchBaseIE):
 
         query = {
             'allow_source': 'true',
+            'allow_audio_only': 'true',
             'p': random.randint(1000000, 10000000),
             'player': 'twitchweb',
             'segment_preference': '4',

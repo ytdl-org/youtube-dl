@@ -223,7 +223,7 @@ class NHLVideocenterIE(NHLBaseInfoExtractor):
         response = self._download_webpage(request_url, playlist_title)
         response = self._fix_json(response)
         if not response.strip():
-            self._downloader.report_warning('Got an empty reponse, trying '
+            self._downloader.report_warning('Got an empty response, trying '
                                             'adding the "newvideos" parameter')
             response = self._download_webpage(request_url + '&newvideos=true',
                                               playlist_title)

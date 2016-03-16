@@ -11,9 +11,9 @@ from ..compat import (
     compat_str,
     compat_urllib_parse,
     compat_urllib_parse_urlparse,
-    compat_urllib_request,
     compat_urlparse,
     compat_xml_parse_error,
+    compat_HTTPError,
 )
 from ..utils import (
     determine_ext,
@@ -24,6 +24,7 @@ from ..utils import (
     js_to_json,
     int_or_none,
     parse_iso8601,
+    sanitized_Request,
     unescapeHTML,
     unsmuggle_url,
 )
@@ -156,7 +157,7 @@ class BrightcoveLegacyIE(InfoExtractor):
         if playerKey is not None:
             params['playerKey'] = playerKey
         # The three fields hold the id of the video
-        videoPlayer = find_param('@videoPlayer') or find_param('videoId') or find_param('videoID')
+        videoPlayer = find_param('@videoPlayer') or find_param('videoId') or find_param('videoID') or find_param('@videoList')
         if videoPlayer is not None:
             params['@videoPlayer'] = videoPlayer
         linkBase = find_param('linkBaseURL')
@@ -250,7 +251,7 @@ class BrightcoveLegacyIE(InfoExtractor):
 
     def _get_video_info(self, video_id, query_str, query, referer=None):
         request_url = self._FEDERATED_URL_TEMPLATE % query_str
-        req = compat_urllib_request.Request(request_url)
+        req = sanitized_Request(request_url)
         linkBase = query.get('linkBaseURL')
         if linkBase is not None:
             referer = linkBase[0]
@@ -355,7 +356,7 @@ class BrightcoveLegacyIE(InfoExtractor):
 
 class BrightcoveNewIE(InfoExtractor):
     IE_NAME = 'brightcove:new'
-    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*videoId=(?P<video_id>\d+)'
+    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*videoId=(?P<video_id>\d+|ref:[^&]+)'
     _TESTS = [{
         'url': 'http://players.brightcove.net/929656772001/e41d32dc-ec74-459e-a845-6c69f7b724ea_default/index.html?videoId=4463358922001',
         'md5': 'c8100925723840d4b0d243f7025703be',
@@ -387,14 +388,28 @@ class BrightcoveNewIE(InfoExtractor):
         'params': {
             'skip_download': True,
         }
+    }, {
+        # ref: prefixed video id
+        'url': 'http://players.brightcove.net/3910869709001/21519b5c-4b3b-4363-accb-bdc8f358f823_default/index.html?videoId=ref:7069442',
+        'only_matching': True,
+    }, {
+        # non numeric ref: prefixed video id
+        'url': 'http://players.brightcove.net/710858724001/default_default/index.html?videoId=ref:event-stream-356',
+        'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_url(webpage):
+        urls = BrightcoveNewIE._extract_urls(webpage)
+        return urls[0] if urls else None
 
     @staticmethod
     def _extract_urls(webpage):
         # Reference:
         # 1. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideoiniframe
-        # 2. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideousingjavascript)
+        # 2. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideousingjavascript
         # 3. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/embed-in-page.html
+        # 4. https://support.brightcove.com/en/video-cloud/docs/dynamically-assigning-videos-player
 
         entries = []
 
@@ -407,13 +422,14 @@ class BrightcoveNewIE(InfoExtractor):
         for video_id, account_id, player_id, embed in re.findall(
                 # According to examples from [3] it's unclear whether video id
                 # may be optional and what to do when it is
+                # According to [4] data-video-id may be prefixed with ref:
                 r'''(?sx)
                     <video[^>]+
-                        data-video-id=["\'](\d+)["\'][^>]*>.*?
+                        data-video-id=["\'](\d+|ref:[^"\']+)["\'][^>]*>.*?
                     </video>.*?
                     <script[^>]+
                         src=["\'](?:https?:)?//players\.brightcove\.net/
-                        (\d+)/([\da-f-]+)_([^/]+)/index\.min\.js
+                        (\d+)/([\da-f-]+)_([^/]+)/index(?:\.min)?\.js
                 ''', webpage):
             entries.append(
                 'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'
@@ -443,26 +459,35 @@ class BrightcoveNewIE(InfoExtractor):
                 r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
                 webpage, 'policy key', group='pk')
 
-        req = compat_urllib_request.Request(
+        req = sanitized_Request(
             'https://edge.api.brightcove.com/playback/v1/accounts/%s/videos/%s'
             % (account_id, video_id),
             headers={'Accept': 'application/json;pk=%s' % policy_key})
-        json_data = self._download_json(req, video_id)
+        try:
+            json_data = self._download_json(req, video_id)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                json_data = self._parse_json(e.cause.read().decode(), video_id)
+                raise ExtractorError(json_data[0]['message'], expected=True)
+            raise
 
         title = json_data['name']
 
         formats = []
         for source in json_data.get('sources', []):
+            container = source.get('container')
             source_type = source.get('type')
             src = source.get('src')
-            if source_type == 'application/x-mpegURL':
+            if source_type == 'application/x-mpegURL' or container == 'M2TS':
                 if not src:
                     continue
-                m3u8_formats = self._extract_m3u8_formats(
+                formats.extend(self._extract_m3u8_formats(
                     src, video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                    m3u8_id='hls', fatal=False))
+            elif source_type == 'application/dash+xml':
+                if not src:
+                    continue
+                formats.extend(self._extract_mpd_formats(src, video_id, 'dash', fatal=False))
             else:
                 streaming_src = source.get('streaming_src')
                 stream_name, app_name = source.get('stream_name'), source.get('app_name')
@@ -470,15 +495,23 @@ class BrightcoveNewIE(InfoExtractor):
                     continue
                 tbr = float_or_none(source.get('avg_bitrate'), 1000)
                 height = int_or_none(source.get('height'))
+                width = int_or_none(source.get('width'))
                 f = {
                     'tbr': tbr,
-                    'width': int_or_none(source.get('width')),
-                    'height': height,
                     'filesize': int_or_none(source.get('size')),
-                    'container': source.get('container'),
-                    'vcodec': source.get('codec'),
-                    'ext': source.get('container').lower(),
+                    'container': container,
+                    'ext': container.lower(),
                 }
+                if width == 0 and height == 0:
+                    f.update({
+                        'vcodec': 'none',
+                    })
+                else:
+                    f.update({
+                        'width': width,
+                        'height': height,
+                        'vcodec': source.get('codec'),
+                    })
 
                 def build_format_id(kind):
                     format_id = kind

@@ -34,19 +34,20 @@ class XuiteIE(InfoExtractor):
         },
     }, {
         # Video with only one format
-        'url': 'http://vlog.xuite.net/play/TkRZNjhULTM0NDE2MjkuZmx2',
-        'md5': 'c45737fc8ac5dc8ac2f92ecbcecf505e',
+        'url': 'http://vlog.xuite.net/play/WUxxR2xCLTI1OTI1MDk5LmZsdg==',
+        'md5': '21f7b39c009b5a4615b4463df6eb7a46',
         'info_dict': {
-            'id': '3441629',
+            'id': '25925099',
             'ext': 'mp4',
-            'title': '孫燕姿 - 眼淚成詩',
+            'title': 'BigBuckBunny_320x180',
             'thumbnail': 're:^https?://.*\.jpg$',
-            'duration': 217.399,
-            'timestamp': 1299383640,
-            'upload_date': '20110306',
-            'uploader': 'Valen',
-            'uploader_id': '10400126',
-            'categories': ['影視娛樂'],
+            'duration': 596.458,
+            'timestamp': 1454242500,
+            'upload_date': '20160131',
+            'uploader': 'yan12125',
+            'uploader_id': '12158353',
+            'categories': ['個人短片'],
+            'description': 'http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4',
         },
     }, {
         # Video with two formats

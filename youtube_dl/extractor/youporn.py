@@ -3,9 +3,9 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
 from ..utils import (
     int_or_none,
+    sanitized_Request,
     str_to_int,
     unescapeHTML,
     unified_strdate,
@@ -63,7 +63,7 @@ class YouPornIE(InfoExtractor):
         video_id = mobj.group('id')
         display_id = mobj.group('display_id')
 
-        request = compat_urllib_request.Request(url)
+        request = sanitized_Request(url)
         request.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(request, display_id)
 
@@ -75,7 +75,7 @@ class YouPornIE(InfoExtractor):
         links = []
 
         sources = self._search_regex(
-            r'sources\s*:\s*({.+?})', webpage, 'sources', default=None)
+            r'(?s)sources\s*:\s*({.+?})', webpage, 'sources', default=None)
         if sources:
             for _, link in re.findall(r'[^:]+\s*:\s*(["\'])(http.+?)\1', sources):
                 links.append(link)
@@ -101,8 +101,9 @@ class YouPornIE(InfoExtractor):
             }
             # Video URL's path looks like this:
             #  /201012/17/505835/720p_1500k_505835/YouPorn%20-%20Sex%20Ed%20Is%20It%20Safe%20To%20Masturbate%20Daily.mp4
+            #  /201012/17/505835/vl_240p_240k_505835/YouPorn%20-%20Sex%20Ed%20Is%20It%20Safe%20To%20Masturbate%20Daily.mp4
             # We will benefit from it by extracting some metadata
-            mobj = re.search(r'/(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+/', video_url)
+            mobj = re.search(r'(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+/', video_url)
             if mobj:
                 height = int(mobj.group('height'))
                 bitrate = int(mobj.group('bitrate'))
@@ -114,15 +115,13 @@ class YouPornIE(InfoExtractor):
             formats.append(f)
         self._sort_formats(formats)
 
-        description = self._html_search_regex(
-            r'(?s)<div[^>]+class=["\']video-description["\'][^>]*>(.+?)</div>',
-            webpage, 'description', default=None)
+        description = self._og_search_description(webpage, default=None)
         thumbnail = self._search_regex(
             r'(?:imageurl\s*=|poster\s*:)\s*(["\'])(?P<thumbnail>.+?)\1',
             webpage, 'thumbnail', fatal=False, group='thumbnail')
 
         uploader = self._html_search_regex(
-            r'(?s)<div[^>]+class=["\']videoInfoBy["\'][^>]*>\s*By:\s*</div>(.+?)</(?:a|div)>',
+            r'(?s)<div[^>]+class=["\']videoInfoBy(?:\s+[^"\']+)?["\'][^>]*>\s*By:\s*</div>(.+?)</(?:a|div)>',
             webpage, 'uploader', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
             r'(?s)<div[^>]+class=["\']videoInfoTime["\'][^>]*>(.+?)</div>',

@@ -4,14 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-)
 from ..utils import (
     clean_html,
     ExtractorError,
     float_or_none,
     parse_iso8601,
+    sanitized_Request,
 )
 
 
@@ -53,7 +51,7 @@ class TapelyIE(InfoExtractor):
         display_id = mobj.group('id')
 
         playlist_url = self._API_URL.format(display_id)
-        request = compat_urllib_request.Request(playlist_url)
+        request = sanitized_Request(playlist_url)
         request.add_header('X-Requested-With', 'XMLHttpRequest')
         request.add_header('Accept', 'application/json')
         request.add_header('Referer', url)

@@ -34,7 +34,7 @@ class TestYoutubeLists(unittest.TestCase):
         ie = YoutubePlaylistIE(dl)
         # TODO find a > 100 (paginating?) videos course
         result = ie.extract('https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
-        entries = result['entries']
+        entries = list(result['entries'])
         self.assertEqual(YoutubeIE().extract_id(entries[0]['url']), 'j9WZyLZCBzs')
         self.assertEqual(len(entries), 25)
         self.assertEqual(YoutubeIE().extract_id(entries[-1]['url']), 'rYefUsYuEp0')

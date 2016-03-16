@@ -23,6 +23,7 @@ from ..utils import (
     int_or_none,
     lowercase_escape,
     remove_end,
+    sanitized_Request,
     unified_strdate,
     urlencode_postdata,
     xpath_text,
@@ -46,7 +47,7 @@ class CrunchyrollBaseIE(InfoExtractor):
             'name': username,
             'password': password,
         })
-        login_request = compat_urllib_request.Request(login_url, data)
+        login_request = sanitized_Request(login_url, data)
         login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         self._download_webpage(login_request, None, False, 'Wrong login info')
 
@@ -55,7 +56,7 @@ class CrunchyrollBaseIE(InfoExtractor):
 
     def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None):
         request = (url_or_request if isinstance(url_or_request, compat_urllib_request.Request)
-                   else compat_urllib_request.Request(url_or_request))
+                   else sanitized_Request(url_or_request))
         # Accept-Language must be set explicitly to accept any language to avoid issues
         # similar to https://github.com/rg3/youtube-dl/issues/6797.
         # Along with IP address Crunchyroll uses Accept-Language to guess whether georestriction
@@ -179,40 +180,40 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             return assvalue
 
         output = '[Script Info]\n'
-        output += 'Title: %s\n' % sub_root.attrib["title"]
+        output += 'Title: %s\n' % sub_root.attrib['title']
         output += 'ScriptType: v4.00+\n'
-        output += 'WrapStyle: %s\n' % sub_root.attrib["wrap_style"]
-        output += 'PlayResX: %s\n' % sub_root.attrib["play_res_x"]
-        output += 'PlayResY: %s\n' % sub_root.attrib["play_res_y"]
+        output += 'WrapStyle: %s\n' % sub_root.attrib['wrap_style']
+        output += 'PlayResX: %s\n' % sub_root.attrib['play_res_x']
+        output += 'PlayResY: %s\n' % sub_root.attrib['play_res_y']
         output += """ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 """
         for style in sub_root.findall('./styles/style'):
-            output += 'Style: ' + style.attrib["name"]
-            output += ',' + style.attrib["font_name"]
-            output += ',' + style.attrib["font_size"]
-            output += ',' + style.attrib["primary_colour"]
-            output += ',' + style.attrib["secondary_colour"]
-            output += ',' + style.attrib["outline_colour"]
-            output += ',' + style.attrib["back_colour"]
-            output += ',' + ass_bool(style.attrib["bold"])
-            output += ',' + ass_bool(style.attrib["italic"])
-            output += ',' + ass_bool(style.attrib["underline"])
-            output += ',' + ass_bool(style.attrib["strikeout"])
-            output += ',' + style.attrib["scale_x"]
-            output += ',' + style.attrib["scale_y"]
-            output += ',' + style.attrib["spacing"]
-            output += ',' + style.attrib["angle"]
-            output += ',' + style.attrib["border_style"]
-            output += ',' + style.attrib["outline"]
-            output += ',' + style.attrib["shadow"]
-            output += ',' + style.attrib["alignment"]
-            output += ',' + style.attrib["margin_l"]
-            output += ',' + style.attrib["margin_r"]
-            output += ',' + style.attrib["margin_v"]
-            output += ',' + style.attrib["encoding"]
+            output += 'Style: ' + style.attrib['name']
+            output += ',' + style.attrib['font_name']
+            output += ',' + style.attrib['font_size']
+            output += ',' + style.attrib['primary_colour']
+            output += ',' + style.attrib['secondary_colour']
+            output += ',' + style.attrib['outline_colour']
+            output += ',' + style.attrib['back_colour']
+            output += ',' + ass_bool(style.attrib['bold'])
+            output += ',' + ass_bool(style.attrib['italic'])
+            output += ',' + ass_bool(style.attrib['underline'])
+            output += ',' + ass_bool(style.attrib['strikeout'])
+            output += ',' + style.attrib['scale_x']
+            output += ',' + style.attrib['scale_y']
+            output += ',' + style.attrib['spacing']
+            output += ',' + style.attrib['angle']
+            output += ',' + style.attrib['border_style']
+            output += ',' + style.attrib['outline']
+            output += ',' + style.attrib['shadow']
+            output += ',' + style.attrib['alignment']
+            output += ',' + style.attrib['margin_l']
+            output += ',' + style.attrib['margin_r']
+            output += ',' + style.attrib['margin_v']
+            output += ',' + style.attrib['encoding']
             output += '\n'
 
         output += """
@@ -221,15 +222,15 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
         for event in sub_root.findall('./events/event'):
             output += 'Dialogue: 0'
-            output += ',' + event.attrib["start"]
-            output += ',' + event.attrib["end"]
-            output += ',' + event.attrib["style"]
-            output += ',' + event.attrib["name"]
-            output += ',' + event.attrib["margin_l"]
-            output += ',' + event.attrib["margin_r"]
-            output += ',' + event.attrib["margin_v"]
-            output += ',' + event.attrib["effect"]
-            output += ',' + event.attrib["text"]
+            output += ',' + event.attrib['start']
+            output += ',' + event.attrib['end']
+            output += ',' + event.attrib['style']
+            output += ',' + event.attrib['name']
+            output += ',' + event.attrib['margin_l']
+            output += ',' + event.attrib['margin_r']
+            output += ',' + event.attrib['margin_v']
+            output += ',' + event.attrib['effect']
+            output += ',' + event.attrib['text']
             output += '\n'
 
         return output
@@ -307,7 +308,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             'video_uploader', fatal=False)
 
         playerdata_url = compat_urllib_parse_unquote(self._html_search_regex(r'"config_url":"([^"]+)', webpage, 'playerdata_url'))
-        playerdata_req = compat_urllib_request.Request(playerdata_url)
+        playerdata_req = sanitized_Request(playerdata_url)
         playerdata_req.data = compat_urllib_parse.urlencode({'current_page': webpage_url})
         playerdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         playerdata = self._download_webpage(playerdata_req, video_id, note='Downloading media info')
@@ -319,7 +320,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         for fmt in re.findall(r'showmedia\.([0-9]{3,4})p', webpage):
             stream_quality, stream_format = self._FORMAT_IDS[fmt]
             video_format = fmt + 'p'
-            streamdata_req = compat_urllib_request.Request(
+            streamdata_req = sanitized_Request(
                 'http://www.crunchyroll.com/xml/?req=RpcApiVideoPlayer_GetStandardConfig&media_id=%s&video_format=%s&video_quality=%s'
                 % (stream_id, stream_format, stream_quality),
                 compat_urllib_parse.urlencode({'current_page': url}).encode('utf-8'))
@@ -328,8 +329,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 streamdata_req, video_id,
                 note='Downloading media info for %s' % video_format)
             stream_info = streamdata.find('./{default}preload/stream_info')
-            video_url = stream_info.find('./host').text
-            video_play_path = stream_info.find('./file').text
+            video_url = xpath_text(stream_info, './host')
+            video_play_path = xpath_text(stream_info, './file')
+            if not video_url or not video_play_path:
+                continue
             metadata = stream_info.find('./metadata')
             format_info = {
                 'format': video_format,
@@ -373,7 +376,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 
 class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
-    IE_NAME = "crunchyroll:playlist"
+    IE_NAME = 'crunchyroll:playlist'
     _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?!(?:news|anime-news|library|forum|launchcalendar|lineup|store|comics|freetrial|login))(?P<id>[\w\-]+))/?(?:\?|$)'
 
     _TESTS = [{

@@ -14,10 +14,10 @@ from ..utils import (
 
 class MDRIE(InfoExtractor):
     IE_DESC = 'MDR.DE and KiKA'
-    _VALID_URL = r'https?://(?:www\.)?(?:mdr|kika)\.de/(?:.*)/[a-z]+(?P<id>\d+)(?:_.+?)?\.html'
+    _VALID_URL = r'https?://(?:www\.)?(?:mdr|kika)\.de/(?:.*)/[a-z]+-?(?P<id>\d+)(?:_.+?)?\.html'
 
     _TESTS = [{
-        # MDR regularily deletes its videos
+        # MDR regularly deletes its videos
         'url': 'http://www.mdr.de/fakt/video189002.html',
         'only_matching': True,
     }, {
@@ -60,6 +60,9 @@ class MDRIE(InfoExtractor):
     }, {
         'url': 'http://www.kika.de/sendungen/einzelsendungen/weihnachtsprogramm/einzelsendung2534.html',
         'only_matching': True,
+    }, {
+        'url': 'http://www.mdr.de/mediathek/mdr-videos/a/video-1334.html',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -68,8 +71,8 @@ class MDRIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         data_url = self._search_regex(
-            r'dataURL\s*:\s*(["\'])(?P<url>/.+/(?:video|audio)[0-9]+-avCustom\.xml)\1',
-            webpage, 'data url', group='url')
+            r'(?:dataURL|playerXml(?:["\'])?)\s*:\s*(["\'])(?P<url>\\?/.+/(?:video|audio)-?[0-9]+-avCustom\.xml)\1',
+            webpage, 'data url', default=None, group='url').replace('\/', '/')
 
         doc = self._download_xml(
             compat_urlparse.urljoin(url, data_url), video_id)

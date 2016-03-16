@@ -181,20 +181,20 @@ except ImportError:  # Python < 3.4
             # parameter := attribute "=" value
             url = req.get_full_url()
 
-            scheme, data = url.split(":", 1)
-            mediatype, data = data.split(",", 1)
+            scheme, data = url.split(':', 1)
+            mediatype, data = data.split(',', 1)
 
             # even base64 encoded data URLs might be quoted so unquote in any case:
             data = compat_urllib_parse_unquote_to_bytes(data)
-            if mediatype.endswith(";base64"):
+            if mediatype.endswith(';base64'):
                 data = binascii.a2b_base64(data)
                 mediatype = mediatype[:-7]
 
             if not mediatype:
-                mediatype = "text/plain;charset=US-ASCII"
+                mediatype = 'text/plain;charset=US-ASCII'
 
             headers = email.message_from_string(
-                "Content-type: %s\nContent-length: %d\n" % (mediatype, len(data)))
+                'Content-type: %s\nContent-length: %d\n' % (mediatype, len(data)))
 
             return compat_urllib_response.addinfourl(io.BytesIO(data), headers, url)
 
@@ -268,7 +268,7 @@ except ImportError:  # Python 2
             nv = name_value.split('=', 1)
             if len(nv) != 2:
                 if strict_parsing:
-                    raise ValueError("bad query field: %r" % (name_value,))
+                    raise ValueError('bad query field: %r' % (name_value,))
                 # Handle case of a control-name with no equal sign
                 if keep_blank_values:
                     nv.append('')
@@ -326,6 +326,9 @@ def compat_ord(c):
         return ord(c)
 
 
+compat_os_name = os._name if os.name == 'java' else os.name
+
+
 if sys.version_info >= (3, 0):
     compat_getenv = os.getenv
     compat_expanduser = os.path.expanduser
@@ -346,7 +349,7 @@ else:
     # The following are os.path.expanduser implementations from cpython 2.7.8 stdlib
     # for different platforms with correct environment variables decoding.
 
-    if os.name == 'posix':
+    if compat_os_name == 'posix':
         def compat_expanduser(path):
             """Expand ~ and ~user constructions.  If user or $HOME is unknown,
             do nothing."""
@@ -370,7 +373,7 @@ else:
                 userhome = pwent.pw_dir
             userhome = userhome.rstrip('/')
             return (userhome + path[i:]) or '/'
-    elif os.name == 'nt' or os.name == 'ce':
+    elif compat_os_name == 'nt' or compat_os_name == 'ce':
         def compat_expanduser(path):
             """Expand ~ and ~user constructs.
 
@@ -433,7 +436,7 @@ if sys.version_info < (3, 0) and sys.platform == 'win32':
 else:
     compat_getpass = getpass.getpass
 
-# Old 2.6 and 2.7 releases require kwargs to be bytes
+# Python < 2.6.5 require kwargs to be bytes
 try:
     def _testfunc(x):
         pass
@@ -466,7 +469,7 @@ if sys.version_info < (2, 7):
         if err is not None:
             raise err
         else:
-            raise socket.error("getaddrinfo returns an empty list")
+            raise socket.error('getaddrinfo returns an empty list')
 else:
     compat_socket_create_connection = socket.create_connection
 
@@ -556,6 +559,7 @@ __all__ = [
     'compat_itertools_count',
     'compat_kwargs',
     'compat_ord',
+    'compat_os_name',
     'compat_parse_qs',
     'compat_print',
     'compat_shlex_split',

@@ -44,7 +44,6 @@ class Abc7NewsIE(InfoExtractor):
             'contentURL', webpage, 'm3u8 url', fatal=True)
 
         formats = self._extract_m3u8_formats(m3u8, display_id, 'mp4')
-        self._sort_formats(formats)
 
         title = self._og_search_title(webpage).strip()
         description = self._og_search_description(webpage).strip()

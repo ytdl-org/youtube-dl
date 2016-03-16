@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import base64
+import binascii
 import calendar
 import codecs
 import contextlib
@@ -56,7 +57,7 @@ from .compat import (
 compiled_regex_type = type(re.compile(''))
 
 std_headers = {
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20150101 Firefox/20.0 (Chrome)',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20150101 Firefox/44.0 (Chrome)',
     'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate',
@@ -69,6 +70,21 @@ NO_DEFAULT = object()
 ENGLISH_MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December']
+
+KNOWN_EXTENSIONS = (
+    'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v', 'aac',
+    'flv', 'f4v', 'f4a', 'f4b',
+    'webm', 'ogg', 'ogv', 'oga', 'ogx', 'spx', 'opus',
+    'mkv', 'mka', 'mk3d',
+    'avi', 'divx',
+    'mov',
+    'asf', 'wmv', 'wma',
+    '3gp', '3g2',
+    'mp3',
+    'flac',
+    'ape',
+    'wav',
+    'f4f', 'f4m', 'm3u8', 'smil')
 
 
 def preferredencoding():
@@ -144,8 +160,6 @@ if sys.version_info >= (2, 7):
     def find_xpath_attr(node, xpath, key, val=None):
         """ Find the xpath xpath[@key=val] """
         assert re.match(r'^[a-zA-Z_-]+$', key)
-        if val:
-            assert re.match(r'^[a-zA-Z0-9@\s:._-]*$', val)
         expr = xpath + ('[@%s]' % key if val is None else "[@%s='%s']" % (key, val))
         return node.find(expr)
 else:
@@ -233,7 +247,7 @@ def xpath_attr(node, xpath, key, name=None, fatal=False, default=NO_DEFAULT):
 
 def get_element_by_id(id, html):
     """Return the content of the tag with the specified ID in the passed HTML document"""
-    return get_element_by_attribute("id", id, html)
+    return get_element_by_attribute('id', id, html)
 
 
 def get_element_by_attribute(attribute, value, html):
@@ -373,6 +387,13 @@ def sanitize_path(s):
     return os.path.join(*sanitized_path)
 
 
+# Prepend protocol-less URLs with `http:` scheme in order to mitigate the number of
+# unwanted failures due to missing protocol
+def sanitized_Request(url, *args, **kwargs):
+    return compat_urllib_request.Request(
+        'http:%s' % url if url.startswith('//') else url, *args, **kwargs)
+
+
 def orderedSet(iterable):
     """ Remove all duplicates from the input iterable """
     res = []
@@ -442,6 +463,10 @@ def encodeFilename(s, for_subprocess=False):
     # (Detecting Windows NT 4 is tricky because 'major >= 4' would
     # match Windows 9x series as well. Besides, NT 4 is obsolete.)
     if not for_subprocess and sys.platform == 'win32' and sys.getwindowsversion()[0] >= 5:
+        return s
+
+    # Jython assumes filenames are Unicode strings though reported as Python 2.x compatible
+    if sys.platform.startswith('java'):
         return s
 
     return s.encode(get_subprocess_encoding(), 'ignore')
@@ -656,6 +681,16 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
     return hc
 
 
+def handle_youtubedl_headers(headers):
+    filtered_headers = headers
+
+    if 'Youtubedl-no-compression' in filtered_headers:
+        filtered_headers = dict((k, v) for k, v in filtered_headers.items() if k.lower() != 'accept-encoding')
+        del filtered_headers['Youtubedl-no-compression']
+
+    return filtered_headers
+
+
 class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     """Handler for HTTP requests and responses.
 
@@ -663,7 +698,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     the standard headers to every HTTP request and handles gzipped and
     deflated responses from web servers. If compression is to be avoided in
     a particular request, the original request in the program code only has
-    to include the HTTP header "Youtubedl-No-Compression", which will be
+    to include the HTTP header "Youtubedl-no-compression", which will be
     removed before making the real request.
 
     Part of this code was copied from:
@@ -724,10 +759,8 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             # The dict keys are capitalized because of this bug by urllib
             if h.capitalize() not in req.headers:
                 req.add_header(h, v)
-        if 'Youtubedl-no-compression' in req.headers:
-            if 'Accept-encoding' in req.headers:
-                del req.headers['Accept-encoding']
-            del req.headers['Youtubedl-no-compression']
+
+        req.headers = handle_youtubedl_headers(req.headers)
 
         if sys.version_info < (2, 7) and '#' in req.get_full_url():
             # Python 2.6 is brain-dead when it comes to fragments
@@ -758,11 +791,13 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
                     raise original_ioerror
             resp = self.addinfourl_wrapper(uncompressed, old_resp.headers, old_resp.url, old_resp.code)
             resp.msg = old_resp.msg
+            del resp.headers['Content-encoding']
         # deflate
         if resp.headers.get('Content-encoding', '') == 'deflate':
             gz = io.BytesIO(self.deflate(resp.read()))
             resp = self.addinfourl_wrapper(gz, old_resp.headers, old_resp.url, old_resp.code)
             resp.msg = old_resp.msg
+            del resp.headers['Content-encoding']
         # Percent-encode redirect URL of Location HTTP header to satisfy RFC 3986 (see
         # https://github.com/rg3/youtube-dl/issues/6457).
         if 300 <= resp.code < 400:
@@ -872,9 +907,9 @@ def unified_strdate(date_str, day_first=True):
         '%d %b %Y',
         '%B %d %Y',
         '%b %d %Y',
-        '%b %dst %Y %I:%M%p',
-        '%b %dnd %Y %I:%M%p',
-        '%b %dth %Y %I:%M%p',
+        '%b %dst %Y %I:%M',
+        '%b %dnd %Y %I:%M',
+        '%b %dth %Y %I:%M',
         '%Y %m %d',
         '%Y-%m-%d',
         '%Y/%m/%d',
@@ -925,6 +960,9 @@ def determine_ext(url, default_ext='unknown_video'):
     guess = url.partition('?')[0].rpartition('.')[2]
     if re.match(r'^[A-Za-z0-9]+$', guess):
         return guess
+    # Try extract ext from URLs like http://example.com/foo/bar.mp4/?download
+    elif guess.rstrip('/') in KNOWN_EXTENSIONS:
+        return guess.rstrip('/')
     else:
         return default_ext
 
@@ -949,7 +987,7 @@ def date_from_str(date_str):
         if sign == '-':
             time = -time
         unit = match.group('unit')
-        # A bad aproximation?
+        # A bad approximation?
         if unit == 'month':
             unit = 'day'
             time *= 30
@@ -959,7 +997,7 @@ def date_from_str(date_str):
         unit += 's'
         delta = datetime.timedelta(**{unit: time})
         return today + delta
-    return datetime.datetime.strptime(date_str, "%Y%m%d").date()
+    return datetime.datetime.strptime(date_str, '%Y%m%d').date()
 
 
 def hyphenate_date(date_str):
@@ -1039,22 +1077,22 @@ def _windows_write_string(s, out):
 
     GetStdHandle = ctypes.WINFUNCTYPE(
         ctypes.wintypes.HANDLE, ctypes.wintypes.DWORD)(
-        (b"GetStdHandle", ctypes.windll.kernel32))
+        (b'GetStdHandle', ctypes.windll.kernel32))
     h = GetStdHandle(WIN_OUTPUT_IDS[fileno])
 
     WriteConsoleW = ctypes.WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE, ctypes.wintypes.LPWSTR,
         ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD),
-        ctypes.wintypes.LPVOID)((b"WriteConsoleW", ctypes.windll.kernel32))
+        ctypes.wintypes.LPVOID)((b'WriteConsoleW', ctypes.windll.kernel32))
     written = ctypes.wintypes.DWORD(0)
 
-    GetFileType = ctypes.WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)((b"GetFileType", ctypes.windll.kernel32))
+    GetFileType = ctypes.WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)((b'GetFileType', ctypes.windll.kernel32))
     FILE_TYPE_CHAR = 0x0002
     FILE_TYPE_REMOTE = 0x8000
     GetConsoleMode = ctypes.WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE,
         ctypes.POINTER(ctypes.wintypes.DWORD))(
-        (b"GetConsoleMode", ctypes.windll.kernel32))
+        (b'GetConsoleMode', ctypes.windll.kernel32))
     INVALID_HANDLE_VALUE = ctypes.wintypes.DWORD(-1).value
 
     def not_a_console(handle):
@@ -1181,13 +1219,23 @@ if sys.platform == 'win32':
             raise OSError('Unlocking file failed: %r' % ctypes.FormatError())
 
 else:
-    import fcntl
+    # Some platforms, such as Jython, is missing fcntl
+    try:
+        import fcntl
 
-    def _lock_file(f, exclusive):
-        fcntl.flock(f, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
+        def _lock_file(f, exclusive):
+            fcntl.flock(f, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
 
-    def _unlock_file(f):
-        fcntl.flock(f, fcntl.LOCK_UN)
+        def _unlock_file(f):
+            fcntl.flock(f, fcntl.LOCK_UN)
+    except ImportError:
+        UNSUPPORTED_MSG = 'file locking is not supported on this platform'
+
+        def _lock_file(f, exclusive):
+            raise IOError(UNSUPPORTED_MSG)
+
+        def _unlock_file(f):
+            raise IOError(UNSUPPORTED_MSG)
 
 
 class locked_file(object):
@@ -1268,11 +1316,22 @@ def format_bytes(bytes):
     return '%.2f%s' % (converted, suffix)
 
 
+def lookup_unit_table(unit_table, s):
+    units_re = '|'.join(re.escape(u) for u in unit_table)
+    m = re.match(
+        r'(?P<num>[0-9]+(?:[,.][0-9]*)?)\s*(?P<unit>%s)' % units_re, s)
+    if not m:
+        return None
+    num_str = m.group('num').replace(',', '.')
+    mult = unit_table[m.group('unit')]
+    return int(float(num_str) * mult)
+
+
 def parse_filesize(s):
     if s is None:
         return None
 
-    # The lower-case forms are of course incorrect and inofficial,
+    # The lower-case forms are of course incorrect and unofficial,
     # but we support those too
     _UNIT_TABLE = {
         'B': 1,
@@ -1311,15 +1370,28 @@ def parse_filesize(s):
         'Yb': 1000 ** 8,
     }
 
-    units_re = '|'.join(re.escape(u) for u in _UNIT_TABLE)
-    m = re.match(
-        r'(?P<num>[0-9]+(?:[,.][0-9]*)?)\s*(?P<unit>%s)' % units_re, s)
-    if not m:
+    return lookup_unit_table(_UNIT_TABLE, s)
+
+
+def parse_count(s):
+    if s is None:
         return None
 
-    num_str = m.group('num').replace(',', '.')
-    mult = _UNIT_TABLE[m.group('unit')]
-    return int(float(num_str) * mult)
+    s = s.strip()
+
+    if re.match(r'^[\d,.]+$', s):
+        return str_to_int(s)
+
+    _UNIT_TABLE = {
+        'k': 1000,
+        'K': 1000,
+        'm': 1000 ** 2,
+        'M': 1000 ** 2,
+        'kk': 1000 ** 2,
+        'KK': 1000 ** 2,
+    }
+
+    return lookup_unit_table(_UNIT_TABLE, s)
 
 
 def month_by_name(name):
@@ -1351,8 +1423,14 @@ def fix_xml_ampersands(xml_str):
 
 def setproctitle(title):
     assert isinstance(title, compat_str)
+
+    # ctypes in Jython is not complete
+    # http://bugs.jython.org/issue2148
+    if sys.platform.startswith('java'):
+        return
+
     try:
-        libc = ctypes.cdll.LoadLibrary("libc.so.6")
+        libc = ctypes.cdll.LoadLibrary('libc.so.6')
     except OSError:
         return
     title_bytes = title.encode('utf-8')
@@ -1376,6 +1454,15 @@ def remove_end(s, end):
     return s
 
 
+def remove_quotes(s):
+    if s is None or len(s) < 2:
+        return s
+    for quote in ('"', "'", ):
+        if s[0] == quote and s[-1] == quote:
+            return s[1:-1]
+    return s
+
+
 def url_basename(url):
     path = compat_urlparse.urlparse(url).path
     return path.strip('/').split('/')[-1]
@@ -1383,7 +1470,7 @@ def url_basename(url):
 
 class HEADRequest(compat_urllib_request.Request):
     def get_method(self):
-        return "HEAD"
+        return 'HEAD'
 
 
 def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1):
@@ -1525,9 +1612,12 @@ class PagedList(object):
 
 
 class OnDemandPagedList(PagedList):
-    def __init__(self, pagefunc, pagesize):
+    def __init__(self, pagefunc, pagesize, use_cache=False):
         self._pagefunc = pagefunc
         self._pagesize = pagesize
+        self._use_cache = use_cache
+        if use_cache:
+            self._cache = {}
 
     def getslice(self, start=0, end=None):
         res = []
@@ -1537,7 +1627,13 @@ class OnDemandPagedList(PagedList):
             if start >= nextfirstid:
                 continue
 
-            page_results = list(self._pagefunc(pagenum))
+            page_results = None
+            if self._use_cache:
+                page_results = self._cache.get(pagenum)
+            if page_results is None:
+                page_results = list(self._pagefunc(pagenum))
+            if self._use_cache:
+                self._cache[pagenum] = page_results
 
             startv = (
                 start % self._pagesize
@@ -1667,8 +1763,33 @@ def urlencode_postdata(*args, **kargs):
     return compat_urllib_parse.urlencode(*args, **kargs).encode('ascii')
 
 
+def update_url_query(url, query):
+    parsed_url = compat_urlparse.urlparse(url)
+    qs = compat_parse_qs(parsed_url.query)
+    qs.update(query)
+    qs = encode_dict(qs)
+    return compat_urlparse.urlunparse(parsed_url._replace(
+        query=compat_urllib_parse.urlencode(qs, True)))
+
+
 def encode_dict(d, encoding='utf-8'):
-    return dict((k.encode(encoding), v.encode(encoding)) for k, v in d.items())
+    def encode(v):
+        return v.encode(encoding) if isinstance(v, compat_basestring) else v
+    return dict((encode(k), encode(v)) for k, v in d.items())
+
+
+def dict_get(d, key_or_keys, default=None, skip_false_values=True):
+    if isinstance(key_or_keys, (list, tuple)):
+        for key in key_or_keys:
+            if key not in d or d[key] is None or skip_false_values and not d[key]:
+                continue
+            return d[key]
+        return default
+    return d.get(key_or_keys, default)
+
+
+def encode_compat_str(string, encoding=preferredencoding(), errors='strict'):
+    return string if isinstance(string, compat_str) else compat_str(string, encoding, errors)
 
 
 US_RATINGS = {
@@ -1684,12 +1805,12 @@ def parse_age_limit(s):
     if s is None:
         return None
     m = re.match(r'^(?P<age>\d{1,2})\+?$', s)
-    return int(m.group('age')) if m else US_RATINGS.get(s, None)
+    return int(m.group('age')) if m else US_RATINGS.get(s)
 
 
 def strip_jsonp(code):
     return re.sub(
-        r'(?s)^[a-zA-Z0-9_]+\s*\(\s*(.*)\);?\s*?(?://[^\n]*)*$', r'\1', code)
+        r'(?s)^[a-zA-Z0-9_.]+\s*\(\s*(.*)\);?\s*?(?://[^\n]*)*$', r'\1', code)
 
 
 def js_to_json(code):
@@ -1765,13 +1886,34 @@ def args_to_str(args):
     return ' '.join(shlex_quote(a) for a in args)
 
 
+def error_to_compat_str(err):
+    err_str = str(err)
+    # On python 2 error byte string must be decoded with proper
+    # encoding rather than ascii
+    if sys.version_info[0] < 3:
+        err_str = err_str.decode(preferredencoding())
+    return err_str
+
+
 def mimetype2ext(mt):
+    ext = {
+        'audio/mp4': 'm4a',
+    }.get(mt)
+    if ext is not None:
+        return ext
+
     _, _, res = mt.rpartition('/')
 
     return {
-        'x-ms-wmv': 'wmv',
-        'x-mp4-fragmented': 'mp4',
+        '3gpp': '3gp',
+        'smptett+xml': 'tt',
+        'srt': 'srt',
+        'ttaf+xml': 'dfxp',
         'ttml+xml': 'ttml',
+        'vtt': 'vtt',
+        'x-flv': 'flv',
+        'x-mp4-fragmented': 'mp4',
+        'x-ms-wmv': 'wmv',
     }.get(res, res)
 
 
@@ -1935,15 +2077,15 @@ def match_filter_func(filter_str):
 
 def parse_dfxp_time_expr(time_expr):
     if not time_expr:
-        return 0.0
+        return
 
     mobj = re.match(r'^(?P<time_offset>\d+(?:\.\d+)?)s?$', time_expr)
     if mobj:
         return float(mobj.group('time_offset'))
 
-    mobj = re.match(r'^(\d+):(\d\d):(\d\d(?:\.\d+)?)$', time_expr)
+    mobj = re.match(r'^(\d+):(\d\d):(\d\d(?:(?:\.|:)\d+)?)$', time_expr)
     if mobj:
-        return 3600 * int(mobj.group(1)) + 60 * int(mobj.group(2)) + float(mobj.group(3))
+        return 3600 * int(mobj.group(1)) + 60 * int(mobj.group(2)) + float(mobj.group(3).replace(':', '.'))
 
 
 def srt_subtitles_timecode(seconds):
@@ -1956,20 +2098,27 @@ def dfxp2srt(dfxp_data):
         'ttaf1': 'http://www.w3.org/2006/10/ttaf1',
     })
 
+    class TTMLPElementParser(object):
+        out = ''
+
+        def start(self, tag, attrib):
+            if tag in (_x('ttml:br'), _x('ttaf1:br'), 'br'):
+                self.out += '\n'
+
+        def end(self, tag):
+            pass
+
+        def data(self, data):
+            self.out += data
+
+        def close(self):
+            return self.out.strip()
+
     def parse_node(node):
-        str_or_empty = functools.partial(str_or_none, default='')
-
-        out = str_or_empty(node.text)
-
-        for child in node:
-            if child.tag in (_x('ttml:br'), _x('ttaf1:br'), 'br'):
-                out += '\n' + str_or_empty(child.tail)
-            elif child.tag in (_x('ttml:span'), _x('ttaf1:span'), 'span'):
-                out += str_or_empty(parse_node(child))
-            else:
-                out += str_or_empty(xml.etree.ElementTree.tostring(child))
-
-        return out
+        target = TTMLPElementParser()
+        parser = xml.etree.ElementTree.XMLParser(target=target)
+        parser.feed(xml.etree.ElementTree.tostring(node))
+        return parser.close()
 
     dfxp = compat_etree_fromstring(dfxp_data.encode('utf-8'))
     out = []
@@ -1979,10 +2128,15 @@ def dfxp2srt(dfxp_data):
         raise ValueError('Invalid dfxp/TTML subtitle')
 
     for para, index in zip(paras, itertools.count(1)):
-        begin_time = parse_dfxp_time_expr(para.attrib['begin'])
+        begin_time = parse_dfxp_time_expr(para.attrib.get('begin'))
         end_time = parse_dfxp_time_expr(para.attrib.get('end'))
+        dur = parse_dfxp_time_expr(para.attrib.get('dur'))
+        if begin_time is None:
+            continue
         if not end_time:
-            end_time = begin_time + parse_dfxp_time_expr(para.attrib['dur'])
+            if not dur:
+                continue
+            end_time = begin_time + dur
         out.append('%d\n%s --> %s\n%s\n\n' % (
             index,
             srt_subtitles_timecode(begin_time),
@@ -2499,3 +2653,58 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
             return None  # No Proxy
         return compat_urllib_request.ProxyHandler.proxy_open(
             self, req, proxy, type)
+
+
+def ohdave_rsa_encrypt(data, exponent, modulus):
+    '''
+    Implement OHDave's RSA algorithm. See http://www.ohdave.com/rsa/
+
+    Input:
+        data: data to encrypt, bytes-like object
+        exponent, modulus: parameter e and N of RSA algorithm, both integer
+    Output: hex string of encrypted data
+
+    Limitation: supports one block encryption only
+    '''
+
+    payload = int(binascii.hexlify(data[::-1]), 16)
+    encrypted = pow(payload, exponent, modulus)
+    return '%x' % encrypted
+
+
+def encode_base_n(num, n, table=None):
+    FULL_TABLE = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    if not table:
+        table = FULL_TABLE[:n]
+
+    if n > len(table):
+        raise ValueError('base %d exceeds table length %d' % (n, len(table)))
+
+    if num == 0:
+        return table[0]
+
+    ret = ''
+    while num:
+        ret = table[num % n] + ret
+        num = num // n
+    return ret
+
+
+def decode_packed_codes(code):
+    mobj = re.search(
+        r"}\('(.+)',(\d+),(\d+),'([^']+)'\.split\('\|'\)",
+        code)
+    obfucasted_code, base, count, symbols = mobj.groups()
+    base = int(base)
+    count = int(count)
+    symbols = symbols.split('|')
+    symbol_table = {}
+
+    while count:
+        count -= 1
+        base_n_count = encode_base_n(count, base)
+        symbol_table[base_n_count] = symbols[count] or base_n_count
+
+    return re.sub(
+        r'\b(\w+)\b', lambda mobj: symbol_table[mobj.group(0)],
+        obfucasted_code)

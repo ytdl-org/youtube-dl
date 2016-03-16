@@ -13,8 +13,8 @@ from ..utils import (
 
 
 class DBTVIE(InfoExtractor):
-    _VALID_URL = r'http://dbtv\.no/(?P<id>[0-9]+)#(?P<display_id>.+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?dbtv\.no/(?:(?:lazyplayer|player)/)?(?P<id>[0-9]+)(?:#(?P<display_id>.+))?'
+    _TESTS = [{
         'url': 'http://dbtv.no/3649835190001#Skulle_teste_ut_fornøyelsespark,_men_kollegaen_var_bare_opptatt_av_bikinikroppen',
         'md5': 'b89953ed25dacb6edb3ef6c6f430f8bc',
         'info_dict': {
@@ -30,12 +30,18 @@ class DBTVIE(InfoExtractor):
             'view_count': int,
             'categories': list,
         }
-    }
+    }, {
+        'url': 'http://dbtv.no/3649835190001',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.dbtv.no/lazyplayer/4631135248001',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        display_id = mobj.group('display_id')
+        display_id = mobj.group('display_id') or video_id
 
         data = self._download_json(
             'http://api.dbtv.no/discovery/%s' % video_id, display_id)

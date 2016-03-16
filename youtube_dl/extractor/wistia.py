@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    sanitized_Request,
+)
 
 
 class WistiaIE(InfoExtractor):
@@ -23,7 +25,7 @@ class WistiaIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        request = compat_urllib_request.Request(self._API_URL.format(video_id))
+        request = sanitized_Request(self._API_URL.format(video_id))
         request.add_header('Referer', url)  # Some videos require this.
         data_json = self._download_json(request, video_id)
         if data_json.get('error'):
@@ -33,7 +35,8 @@ class WistiaIE(InfoExtractor):
 
         formats = []
         thumbnails = []
-        for atype, a in data['assets'].items():
+        for a in data['assets']:
+            atype = a.get('type')
             if atype == 'still':
                 thumbnails.append({
                     'url': a['url'],

@@ -42,7 +42,7 @@ class ImdbIE(InfoExtractor):
             for f_url, f_name in extra_formats]
         format_pages.append(player_page)
 
-        quality = qualities(['SD', '480p', '720p'])
+        quality = qualities(('SD', '480p', '720p', '1080p'))
         formats = []
         for format_page in format_pages:
             json_data = self._search_regex(

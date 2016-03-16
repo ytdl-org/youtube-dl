@@ -73,6 +73,9 @@ class ShahidIE(InfoExtractor):
             'https://shahid.mbc.net/arContent/getPlayerContent-param-.id-%s.type-%s.html'
             % (video_id, api_vars['type']), video_id, 'Downloading player JSON')
 
+        if player.get('drm'):
+            raise ExtractorError('This video is DRM protected.', expected=True)
+
         formats = self._extract_m3u8_formats(player['url'], video_id, 'mp4')
 
         video = self._download_json(

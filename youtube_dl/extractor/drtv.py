@@ -91,7 +91,7 @@ class DRTVIE(InfoExtractor):
                 subtitles_list = asset.get('SubtitlesList')
                 if isinstance(subtitles_list, list):
                     LANGS = {
-                        'Danish': 'dk',
+                        'Danish': 'da',
                     }
                     for subs in subtitles_list:
                         lang = subs['Language']

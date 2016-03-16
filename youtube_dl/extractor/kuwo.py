@@ -23,7 +23,7 @@ class KuwoBaseIE(InfoExtractor):
         {'format': 'aac', 'ext': 'aac', 'abr': 48, 'preference': 10}
     ]
 
-    def _get_formats(self, song_id):
+    def _get_formats(self, song_id, tolerate_ip_deny=False):
         formats = []
         for file_format in self._FORMATS:
             song_url = self._download_webpage(
@@ -31,6 +31,10 @@ class KuwoBaseIE(InfoExtractor):
                 (file_format['ext'], file_format.get('br', ''), song_id),
                 song_id, note='Download %s url info' % file_format['format'],
             )
+
+            if song_url == 'IPDeny' and not tolerate_ip_deny:
+                raise ExtractorError('This song is blocked in this region', expected=True)
+
             if song_url.startswith('http://') or song_url.startswith('https://'):
                 formats.append({
                     'url': song_url,
@@ -39,7 +43,12 @@ class KuwoBaseIE(InfoExtractor):
                     'preference': file_format['preference'],
                     'abr': file_format.get('abr'),
                 })
-        self._sort_formats(formats)
+
+        # XXX _sort_formats fails if there are not formats, while it's not the
+        # desired behavior if 'IPDeny' is ignored
+        # This check can be removed if https://github.com/rg3/youtube-dl/pull/8051 is merged
+        if not tolerate_ip_deny:
+            self._sort_formats(formats)
         return formats
 
 
@@ -64,6 +73,7 @@ class KuwoIE(KuwoBaseIE):
             'id': '6446136',
             'ext': 'mp3',
             'title': '心',
+            'description': 'md5:b2ab6295d014005bfc607525bfc1e38a',
             'creator': 'IU',
             'upload_date': '20150518',
         },
@@ -283,9 +293,15 @@ class KuwoMvIE(KuwoBaseIE):
         'url': 'http://www.kuwo.cn/mv/6480076/',
         'info_dict': {
             'id': '6480076',
-            'ext': 'mkv',
-            'title': '我们家MV',
+            'ext': 'mp4',
+            'title': 'My HouseMV',
             'creator': '2PM',
+        },
+        # In this video, music URLs (anti.s) are blocked outside China and
+        # USA, while the MV URL (mvurl) is available globally, so force the MV
+        # URL for consistent results in different countries
+        'params': {
+            'format': 'mv',
         },
     }
     _FORMATS = KuwoBaseIE._FORMATS + [
@@ -308,7 +324,17 @@ class KuwoMvIE(KuwoBaseIE):
         else:
             raise ExtractorError('Unable to find song or singer names')
 
-        formats = self._get_formats(song_id)
+        formats = self._get_formats(song_id, tolerate_ip_deny=True)
+
+        mv_url = self._download_webpage(
+            'http://www.kuwo.cn/yy/st/mvurl?rid=MUSIC_%s' % song_id,
+            song_id, note='Download %s MV URL' % song_id)
+        formats.append({
+            'url': mv_url,
+            'format_id': 'mv',
+        })
+
+        self._sort_formats(formats)
 
         return {
             'id': song_id,

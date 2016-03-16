@@ -6,6 +6,7 @@ import sys
 import errno
 
 from .common import PostProcessor
+from ..compat import compat_os_name
 from ..utils import (
     check_executable,
     hyphenate_date,
@@ -73,22 +74,22 @@ class XAttrMetadataPP(PostProcessor):
                     raise XAttrMetadataError(e.errno, e.strerror)
 
         except ImportError:
-            if os.name == 'nt':
+            if compat_os_name == 'nt':
                 # Write xattrs to NTFS Alternate Data Streams:
                 # http://en.wikipedia.org/wiki/NTFS#Alternate_data_streams_.28ADS.29
                 def write_xattr(path, key, value):
                     assert ':' not in key
                     assert os.path.exists(path)
 
-                    ads_fn = path + ":" + key
+                    ads_fn = path + ':' + key
                     try:
-                        with open(ads_fn, "wb") as f:
+                        with open(ads_fn, 'wb') as f:
                             f.write(value)
                     except EnvironmentError as e:
                         raise XAttrMetadataError(e.errno, e.strerror)
             else:
-                user_has_setfattr = check_executable("setfattr", ['--version'])
-                user_has_xattr = check_executable("xattr", ['-h'])
+                user_has_setfattr = check_executable('setfattr', ['--version'])
+                user_has_xattr = check_executable('xattr', ['-h'])
 
                 if user_has_setfattr or user_has_xattr:
 
@@ -150,7 +151,7 @@ class XAttrMetadataPP(PostProcessor):
                 value = info.get(infoname)
 
                 if value:
-                    if infoname == "upload_date":
+                    if infoname == 'upload_date':
                         value = hyphenate_date(value)
 
                     byte_value = value.encode('utf-8')
@@ -168,7 +169,7 @@ class XAttrMetadataPP(PostProcessor):
                     'Unable to write extended attributes due to too long values.')
             else:
                 msg = 'This filesystem doesn\'t support extended attributes. '
-                if os.name == 'nt':
+                if compat_os_name == 'nt':
                     msg += 'You need to use NTFS.'
                 else:
                     msg += '(You may have to enable them in your /etc/fstab)'

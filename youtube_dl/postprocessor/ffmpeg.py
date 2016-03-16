@@ -25,6 +25,19 @@ from ..utils import (
 )
 
 
+EXT_TO_OUT_FORMATS = {
+    "aac": "adts",
+    "m4a": "ipod",
+    "mka": "matroska",
+    "mkv": "matroska",
+    "mpg": "mpeg",
+    "ogv": "ogg",
+    "ts": "mpegts",
+    "wma": "asf",
+    "wmv": "asf",
+}
+
+
 class FFmpegPostProcessorError(PostProcessingError):
     pass
 
@@ -52,7 +65,7 @@ class FFmpegPostProcessor(PostProcessor):
 
     def _determine_executables(self):
         programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
-        prefer_ffmpeg = self._downloader.params.get('prefer_ffmpeg', False)
+        prefer_ffmpeg = False
 
         self.basename = None
         self.probe_basename = None
@@ -60,6 +73,7 @@ class FFmpegPostProcessor(PostProcessor):
         self._paths = None
         self._versions = None
         if self._downloader:
+            prefer_ffmpeg = self._downloader.params.get('prefer_ffmpeg', False)
             location = self._downloader.params.get('ffmpeg_location')
             if location is not None:
                 if not os.path.exists(location):
@@ -462,6 +476,21 @@ class FFmpegFixupM4aPP(FFmpegPostProcessor):
         return [], info
 
 
+class FFmpegFixupM3u8PP(FFmpegPostProcessor):
+    def run(self, info):
+        filename = info['filepath']
+        temp_filename = prepend_extension(filename, 'temp')
+
+        options = ['-c', 'copy', '-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
+        self._downloader.to_screen('[ffmpeg] Fixing malformated aac bitstream in "%s"' % filename)
+        self.run_ffmpeg(filename, temp_filename, options)
+
+        os.remove(encodeFilename(filename))
+        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+
+        return [], info
+
+
 class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
     def __init__(self, downloader=None, format=None):
         super(FFmpegSubtitlesConvertorPP, self).__init__(downloader)
@@ -478,6 +507,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
             self._downloader.to_screen('[ffmpeg] There aren\'t any subtitles to convert')
             return [], info
         self._downloader.to_screen('[ffmpeg] Converting subtitles')
+        sub_filenames = []
         for lang, sub in subs.items():
             ext = sub['ext']
             if ext == new_ext:
@@ -485,6 +515,8 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                     '[ffmpeg] Subtitle file for %s is already in the requested'
                     'format' % new_ext)
                 continue
+            old_file = subtitles_filename(filename, lang, ext)
+            sub_filenames.append(old_file)
             new_file = subtitles_filename(filename, lang, new_ext)
 
             if ext == 'dfxp' or ext == 'ttml':
@@ -492,7 +524,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                     'You have requested to convert dfxp (TTML) subtitles into another format, '
                     'which results in style information loss')
 
-                dfxp_file = subtitles_filename(filename, lang, ext)
+                dfxp_file = old_file
                 srt_file = subtitles_filename(filename, lang, 'srt')
 
                 with io.open(dfxp_file, 'rt', encoding='utf-8') as f:
@@ -500,8 +532,8 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
 
                 with io.open(srt_file, 'wt', encoding='utf-8') as f:
                     f.write(srt_data)
+                old_file = srt_file
 
-                ext = 'srt'
                 subs[lang] = {
                     'ext': 'srt',
                     'data': srt_data
@@ -509,15 +541,15 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
 
                 if new_ext == 'srt':
                     continue
+                else:
+                    sub_filenames.append(srt_file)
 
-            self.run_ffmpeg(
-                subtitles_filename(filename, lang, ext),
-                new_file, ['-f', new_format])
+            self.run_ffmpeg(old_file, new_file, ['-f', new_format])
 
             with io.open(new_file, 'rt', encoding='utf-8') as f:
                 subs[lang] = {
-                    'ext': ext,
+                    'ext': new_ext,
                     'data': f.read(),
                 }
 
-        return [], info
+        return sub_filenames, info

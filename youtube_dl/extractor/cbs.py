@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
-from ..utils import smuggle_url
+from ..utils import (
+    sanitized_Request,
+    smuggle_url,
+)
 
 
 class CBSIE(InfoExtractor):
@@ -48,7 +50,7 @@ class CBSIE(InfoExtractor):
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
-        request = compat_urllib_request.Request(url)
+        request = sanitized_Request(url)
         # Android UA is served with higher quality (720p) streams (see
         # https://github.com/rg3/youtube-dl/issues/7490)
         request.add_header('User-Agent', 'Mozilla/5.0 (Linux; Android 4.4; Nexus 5)')

@@ -9,7 +9,7 @@ from ..compat import (
     compat_str,
 )
 from ..utils import (
-    ExtractorError,
+    determine_ext,
     unified_strdate,
 )
 
@@ -17,9 +17,9 @@ from ..utils import (
 class RutubeIE(InfoExtractor):
     IE_NAME = 'rutube'
     IE_DESC = 'Rutube videos'
-    _VALID_URL = r'https?://rutube\.ru/video/(?P<id>[\da-z]{32})'
+    _VALID_URL = r'https?://rutube\.ru/(?:video|play/embed)/(?P<id>[\da-z]{32})'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://rutube.ru/video/3eac3b4561676c17df9132a9a1e62e3e/',
         'info_dict': {
             'id': '3eac3b4561676c17df9132a9a1e62e3e',
@@ -36,7 +36,10 @@ class RutubeIE(InfoExtractor):
             # It requires ffmpeg (m3u8 download)
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'http://rutube.ru/play/embed/a10e53b86e8f349080f718582ce4c661',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -51,10 +54,21 @@ class RutubeIE(InfoExtractor):
             'http://rutube.ru/api/play/options/%s/?format=json' % video_id,
             video_id, 'Downloading options JSON')
 
-        m3u8_url = options['video_balancer'].get('m3u8')
-        if m3u8_url is None:
-            raise ExtractorError('Couldn\'t find m3u8 manifest url')
-        formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
+        formats = []
+        for format_id, format_url in options['video_balancer'].items():
+            ext = determine_ext(format_url)
+            if ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', m3u8_id=format_id, fatal=False))
+            elif ext == 'f4m':
+                formats.extend(self._extract_f4m_formats(
+                    format_url, video_id, f4m_id=format_id, fatal=False))
+            else:
+                formats.append({
+                    'url': format_url,
+                    'format_id': format_id,
+                })
+        self._sort_formats(formats)
 
         return {
             'id': video['id'],
@@ -74,9 +88,9 @@ class RutubeIE(InfoExtractor):
 class RutubeEmbedIE(InfoExtractor):
     IE_NAME = 'rutube:embed'
     IE_DESC = 'Rutube embedded videos'
-    _VALID_URL = 'https?://rutube\.ru/video/embed/(?P<id>[0-9]+)'
+    _VALID_URL = 'https?://rutube\.ru/(?:video|play)/embed/(?P<id>[0-9]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://rutube.ru/video/embed/6722881?vk_puid37=&vk_puid38=',
         'info_dict': {
             'id': 'a10e53b86e8f349080f718582ce4c661',
@@ -90,7 +104,10 @@ class RutubeEmbedIE(InfoExtractor):
         'params': {
             'skip_download': 'Requires ffmpeg',
         },
-    }
+    }, {
+        'url': 'http://rutube.ru/play/embed/8083783',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         embed_id = self._match_id(url)

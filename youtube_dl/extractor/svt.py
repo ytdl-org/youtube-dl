@@ -19,23 +19,36 @@ class SVTBaseIE(InfoExtractor):
         video_info = info['video']
         formats = []
         for vr in video_info['videoReferences']:
+            player_type = vr.get('playerType')
             vurl = vr['url']
             ext = determine_ext(vurl)
             if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     vurl, video_id,
                     ext='mp4', entry_protocol='m3u8_native',
-                    m3u8_id=vr.get('playerType')))
+                    m3u8_id=player_type, fatal=False))
             elif ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
                     vurl + '?hdcore=3.3.0', video_id,
-                    f4m_id=vr.get('playerType')))
+                    f4m_id=player_type, fatal=False))
+            elif ext == 'mpd':
+                if player_type == 'dashhbbtv':
+                    formats.extend(self._extract_mpd_formats(
+                        vurl, video_id, mpd_id=player_type, fatal=False))
             else:
                 formats.append({
-                    'format_id': vr.get('playerType'),
+                    'format_id': player_type,
                     'url': vurl,
                 })
         self._sort_formats(formats)
+
+        subtitles = {}
+        subtitle_references = video_info.get('subtitleReferences')
+        if isinstance(subtitle_references, list):
+            for sr in subtitle_references:
+                subtitle_url = sr.get('url')
+                if subtitle_url:
+                    subtitles.setdefault('sv', []).append({'url': subtitle_url})
 
         duration = video_info.get('materialLength')
         age_limit = 18 if video_info.get('inappropriateForChildren') else 0
@@ -44,6 +57,7 @@ class SVTBaseIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'formats': formats,
+            'subtitles': subtitles,
             'thumbnail': thumbnail,
             'duration': duration,
             'age_limit': age_limit,
@@ -83,30 +97,23 @@ class SVTIE(SVTBaseIE):
 class SVTPlayIE(SVTBaseIE):
     IE_DESC = 'SVT Play and Öppet arkiv'
     _VALID_URL = r'https?://(?:www\.)?(?P<host>svtplay|oppetarkiv)\.se/video/(?P<id>[0-9]+)'
-    _TESTS = [{
-        'url': 'http://www.svtplay.se/video/2609989/sm-veckan/sm-veckan-rally-final-sasong-1-sm-veckan-rally-final',
-        'md5': 'ade3def0643fa1c40587a422f98edfd9',
+    _TEST = {
+        'url': 'http://www.svtplay.se/video/5996901/flygplan-till-haile-selassie/flygplan-till-haile-selassie-2',
+        'md5': '2b6704fe4a28801e1a098bbf3c5ac611',
         'info_dict': {
-            'id': '2609989',
-            'ext': 'flv',
-            'title': 'SM veckan vinter, Örebro - Rally, final',
-            'duration': 4500,
+            'id': '5996901',
+            'ext': 'mp4',
+            'title': 'Flygplan till Haile Selassie',
+            'duration': 3527,
             'thumbnail': 're:^https?://.*[\.-]jpg$',
             'age_limit': 0,
+            'subtitles': {
+                'sv': [{
+                    'ext': 'wsrt',
+                }]
+            },
         },
-    }, {
-        'url': 'http://www.oppetarkiv.se/video/1058509/rederiet-sasong-1-avsnitt-1-av-318',
-        'md5': 'c3101a17ce9634f4c1f9800f0746c187',
-        'info_dict': {
-            'id': '1058509',
-            'ext': 'flv',
-            'title': 'Farlig kryssning',
-            'duration': 2566,
-            'thumbnail': 're:^https?://.*[\.-]jpg$',
-            'age_limit': 0,
-        },
-        'skip': 'Only works from Sweden',
-    }]
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

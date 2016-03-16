@@ -8,15 +8,29 @@ from .common import InfoExtractor
 from ..compat import (
     compat_str,
     compat_urllib_parse,
-    compat_urllib_request,
 )
 from ..utils import (
+    ExtractorError,
     int_or_none,
     float_or_none,
+    sanitized_Request,
 )
 
 
-class YandexMusicTrackIE(InfoExtractor):
+class YandexMusicBaseIE(InfoExtractor):
+    @staticmethod
+    def _handle_error(response):
+        error = response.get('error')
+        if error:
+            raise ExtractorError(error, expected=True)
+
+    def _download_json(self, *args, **kwargs):
+        response = super(YandexMusicBaseIE, self)._download_json(*args, **kwargs)
+        self._handle_error(response)
+        return response
+
+
+class YandexMusicTrackIE(YandexMusicBaseIE):
     IE_NAME = 'yandexmusic:track'
     IE_DESC = 'Яндекс.Музыка - Трек'
     _VALID_URL = r'https?://music\.yandex\.(?:ru|kz|ua|by)/album/(?P<album_id>\d+)/track/(?P<id>\d+)'
@@ -73,7 +87,7 @@ class YandexMusicTrackIE(InfoExtractor):
         return self._get_track_info(track)
 
 
-class YandexMusicPlaylistBaseIE(InfoExtractor):
+class YandexMusicPlaylistBaseIE(YandexMusicBaseIE):
     def _build_playlist(self, tracks):
         return [
             self.url_result(
@@ -154,7 +168,7 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
         if len(tracks) < len(track_ids):
             present_track_ids = set([compat_str(track['id']) for track in tracks if track.get('id')])
             missing_track_ids = set(map(compat_str, track_ids)) - set(present_track_ids)
-            request = compat_urllib_request.Request(
+            request = sanitized_Request(
                 'https://music.yandex.ru/handlers/track-entries.jsx',
                 compat_urllib_parse.urlencode({
                     'entries': ','.join(missing_track_ids),

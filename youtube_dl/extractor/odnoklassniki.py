@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class OdnoklassnikiIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:odnoklassniki|ok)\.ru/(?:video(?:embed)?|web-api/video/moviePlayer)/(?P<id>[\d-]+)'
+    _VALID_URL = r'https?://(?:(?:www|m|mobile)\.)?(?:odnoklassniki|ok)\.ru/(?:video(?:embed)?|web-api/video/moviePlayer)/(?P<id>[\d-]+)'
     _TESTS = [{
         # metadata in JSON
         'url': 'http://ok.ru/video/20079905452',
@@ -68,6 +68,12 @@ class OdnoklassnikiIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.ok.ru/videoembed/20648036891',
+        'only_matching': True,
+    }, {
+        'url': 'http://m.ok.ru/video/20079905452',
+        'only_matching': True,
+    }, {
+        'url': 'http://mobile.ok.ru/video/20079905452',
         'only_matching': True,
     }]
 

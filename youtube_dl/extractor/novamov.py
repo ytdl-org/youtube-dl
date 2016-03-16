@@ -3,14 +3,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-    compat_urlparse,
-)
+from ..compat import compat_urlparse
 from ..utils import (
     ExtractorError,
     NO_DEFAULT,
     encode_dict,
+    sanitized_Request,
     urlencode_postdata,
 )
 
@@ -19,15 +17,16 @@ class NovaMovIE(InfoExtractor):
     IE_NAME = 'novamov'
     IE_DESC = 'NovaMov'
 
-    _VALID_URL_TEMPLATE = r'http://(?:(?:www\.)?%(host)s/(?:file|video)/|(?:(?:embed|www)\.)%(host)s/embed\.php\?(?:.*?&)?v=)(?P<id>[a-z\d]{13})'
+    _VALID_URL_TEMPLATE = r'http://(?:(?:www\.)?%(host)s/(?:file|video|mobile/#/videos)/|(?:(?:embed|www)\.)%(host)s/embed\.php\?(?:.*?&)?v=)(?P<id>[a-z\d]{13})'
     _VALID_URL = _VALID_URL_TEMPLATE % {'host': 'novamov\.com'}
 
     _HOST = 'www.novamov.com'
 
     _FILE_DELETED_REGEX = r'This file no longer exists on our servers!</h2>'
-    _FILEKEY_REGEX = r'flashvars\.filekey="(?P<filekey>[^"]+)";'
+    _FILEKEY_REGEX = r'flashvars\.filekey=(?P<filekey>"?[^"]+"?);'
     _TITLE_REGEX = r'(?s)<div class="v_tab blockborder rounded5" id="v_tab1">\s*<h3>([^<]+)</h3>'
     _DESCRIPTION_REGEX = r'(?s)<div class="v_tab blockborder rounded5" id="v_tab1">\s*<h3>[^<]+</h3><p>([^<]+)</p>'
+    _URL_TEMPLATE = 'http://%s/video/%s'
 
     _TEST = {
         'url': 'http://www.novamov.com/video/4rurhn9x446jj',
@@ -41,20 +40,28 @@ class NovaMovIE(InfoExtractor):
         'skip': '"Invalid token" errors abound (in web interface as well as youtube-dl, there is nothing we can do about it.)'
     }
 
+    def _check_existence(self, webpage, video_id):
+        if re.search(self._FILE_DELETED_REGEX, webpage) is not None:
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        url = 'http://%s/video/%s' % (self._HOST, video_id)
+        url = self._URL_TEMPLATE % (self._HOST, video_id)
 
         webpage = self._download_webpage(
             url, video_id, 'Downloading video page')
 
-        if re.search(self._FILE_DELETED_REGEX, webpage) is not None:
-            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+        self._check_existence(webpage, video_id)
 
         def extract_filekey(default=NO_DEFAULT):
-            return self._search_regex(
+            filekey = self._search_regex(
                 self._FILEKEY_REGEX, webpage, 'filekey', default=default)
+            if filekey is not default and (filekey[0] != '"' or filekey[-1] != '"'):
+                return self._search_regex(
+                    r'var\s+%s\s*=\s*"([^"]+)"' % re.escape(filekey), webpage, 'filekey', default=default)
+            else:
+                return filekey
 
         filekey = extract_filekey(default=None)
 
@@ -65,12 +72,13 @@ class NovaMovIE(InfoExtractor):
                 'post url', default=url, group='url')
             if not post_url.startswith('http'):
                 post_url = compat_urlparse.urljoin(url, post_url)
-            request = compat_urllib_request.Request(
+            request = sanitized_Request(
                 post_url, urlencode_postdata(encode_dict(fields)))
             request.add_header('Content-Type', 'application/x-www-form-urlencoded')
             request.add_header('Referer', post_url)
             webpage = self._download_webpage(
                 request, video_id, 'Downloading continue to the video page')
+            self._check_existence(webpage, video_id)
 
         filekey = extract_filekey()
 
@@ -94,3 +102,89 @@ class NovaMovIE(InfoExtractor):
             'title': title,
             'description': description
         }
+
+
+class WholeCloudIE(NovaMovIE):
+    IE_NAME = 'wholecloud'
+    IE_DESC = 'WholeCloud'
+
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': '(?:wholecloud\.net|movshare\.(?:net|sx|ag))'}
+
+    _HOST = 'www.wholecloud.net'
+
+    _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
+    _TITLE_REGEX = r'<strong>Title:</strong> ([^<]+)</p>'
+    _DESCRIPTION_REGEX = r'<strong>Description:</strong> ([^<]+)</p>'
+
+    _TEST = {
+        'url': 'http://www.wholecloud.net/video/559e28be54d96',
+        'md5': 'abd31a2132947262c50429e1d16c1bfd',
+        'info_dict': {
+            'id': '559e28be54d96',
+            'ext': 'flv',
+            'title': 'dissapeared image',
+            'description': 'optical illusion  dissapeared image  magic illusion',
+        }
+    }
+
+
+class NowVideoIE(NovaMovIE):
+    IE_NAME = 'nowvideo'
+    IE_DESC = 'NowVideo'
+
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'nowvideo\.(?:to|ch|ec|sx|eu|at|ag|co|li)'}
+
+    _HOST = 'www.nowvideo.to'
+
+    _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
+    _TITLE_REGEX = r'<h4>([^<]+)</h4>'
+    _DESCRIPTION_REGEX = r'</h4>\s*<p>([^<]+)</p>'
+
+    _TEST = {
+        'url': 'http://www.nowvideo.sx/video/f1d6fce9a968b',
+        'md5': '12c82cad4f2084881d8bc60ee29df092',
+        'info_dict': {
+            'id': 'f1d6fce9a968b',
+            'ext': 'flv',
+            'title': 'youtubedl test video BaWjenozKc',
+            'description': 'Description',
+        },
+    }
+
+
+class VideoWeedIE(NovaMovIE):
+    IE_NAME = 'videoweed'
+    IE_DESC = 'VideoWeed'
+
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'videoweed\.(?:es|com)'}
+
+    _HOST = 'www.videoweed.es'
+
+    _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
+    _TITLE_REGEX = r'<h1 class="text_shadow">([^<]+)</h1>'
+    _URL_TEMPLATE = 'http://%s/file/%s'
+
+    _TEST = {
+        'url': 'http://www.videoweed.es/file/b42178afbea14',
+        'md5': 'abd31a2132947262c50429e1d16c1bfd',
+        'info_dict': {
+            'id': 'b42178afbea14',
+            'ext': 'flv',
+            'title': 'optical illusion  dissapeared image magic illusion',
+            'description': ''
+        },
+    }
+
+
+class CloudTimeIE(NovaMovIE):
+    IE_NAME = 'cloudtime'
+    IE_DESC = 'CloudTime'
+
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'cloudtime\.to'}
+
+    _HOST = 'www.cloudtime.to'
+
+    _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
+    _TITLE_REGEX = r'<div[^>]+class=["\']video_det["\'][^>]*>\s*<strong>([^<]+)</strong>'
+
+    _TEST = None

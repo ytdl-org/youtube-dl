@@ -13,6 +13,7 @@ class FootyRoomIE(InfoExtractor):
             'title': 'Schalke 04 0 – 2 Real Madrid',
         },
         'playlist_count': 3,
+        'skip': 'Video for this match is not available',
     }, {
         'url': 'http://footyroom.com/georgia-0-2-germany-2015-03/',
         'info_dict': {

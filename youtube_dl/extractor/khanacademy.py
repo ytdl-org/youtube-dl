@@ -14,10 +14,10 @@ class KhanAcademyIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.khanacademy.org/video/one-time-pad',
-        'md5': '7021db7f2d47d4fff89b13177cb1e8f4',
+        'md5': '7b391cce85e758fb94f763ddc1bbb979',
         'info_dict': {
             'id': 'one-time-pad',
-            'ext': 'mp4',
+            'ext': 'webm',
             'title': 'The one-time pad',
             'description': 'The perfect cipher',
             'duration': 176,

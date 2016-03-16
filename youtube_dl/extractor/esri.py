@@ -61,7 +61,7 @@ class EsriVideoIE(InfoExtractor):
             webpage, 'duration', fatal=False))
 
         upload_date = unified_strdate(self._html_search_meta(
-            'last-modified', webpage, 'upload date', fatal=None))
+            'last-modified', webpage, 'upload date', fatal=False))
 
         return {
             'id': video_id,

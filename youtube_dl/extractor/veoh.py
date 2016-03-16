@@ -4,12 +4,10 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-)
 from ..utils import (
     int_or_none,
     ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -110,7 +108,7 @@ class VeohIE(InfoExtractor):
         if 'class="adultwarning-container"' in webpage:
             self.report_age_confirmation()
             age_limit = 18
-            request = compat_urllib_request.Request(url)
+            request = sanitized_Request(url)
             request.add_header('Cookie', 'confirmedAdult=true')
             webpage = self._download_webpage(request, video_id)
 

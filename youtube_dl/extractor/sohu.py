@@ -6,11 +6,11 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
-    compat_urllib_request,
     compat_urllib_parse,
 )
 from ..utils import (
     ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -96,7 +96,7 @@ class SohuIE(InfoExtractor):
             else:
                 base_data_url = 'http://hot.vrs.sohu.com/vrs_flash.action?vid='
 
-            req = compat_urllib_request.Request(base_data_url + vid_id)
+            req = sanitized_Request(base_data_url + vid_id)
 
             cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
             if cn_verification_proxy:
@@ -158,6 +158,7 @@ class SohuIE(InfoExtractor):
                         'file': clips_url[i],
                         'new': su[i],
                         'prod': 'flash',
+                        'rb': 1,
                     }
 
                     if cdnId is not None:
