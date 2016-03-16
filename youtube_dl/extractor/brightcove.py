@@ -24,16 +24,16 @@ from ..utils import (
     js_to_json,
     int_or_none,
     parse_iso8601,
-    sanitized_Request,
     unescapeHTML,
     unsmuggle_url,
+    update_url_query,
 )
 
 
 class BrightcoveLegacyIE(InfoExtractor):
     IE_NAME = 'brightcove:legacy'
     _VALID_URL = r'(?:https?://.*brightcove\.com/(services|viewer).*?\?|brightcove:)(?P<query>.*)'
-    _FEDERATED_URL_TEMPLATE = 'http://c.brightcove.com/services/viewer/htmlFederated?%s'
+    _FEDERATED_URL = 'http://c.brightcove.com/services/viewer/htmlFederated'
 
     _TESTS = [
         {
@@ -156,7 +156,7 @@ class BrightcoveLegacyIE(InfoExtractor):
         # Not all pages define this value
         if playerKey is not None:
             params['playerKey'] = playerKey
-        # The three fields hold the id of the video
+        # These fields hold the id of the video
         videoPlayer = find_param('@videoPlayer') or find_param('videoId') or find_param('videoID') or find_param('@videoList')
         if videoPlayer is not None:
             params['@videoPlayer'] = videoPlayer
@@ -185,8 +185,7 @@ class BrightcoveLegacyIE(InfoExtractor):
 
     @classmethod
     def _make_brightcove_url(cls, params):
-        data = compat_urllib_parse.urlencode(params)
-        return cls._FEDERATED_URL_TEMPLATE % data
+        return update_url_query(cls._FEDERATED_URL, params)
 
     @classmethod
     def _extract_brightcove_url(cls, webpage):
@@ -240,7 +239,7 @@ class BrightcoveLegacyIE(InfoExtractor):
             # We set the original url as the default 'Referer' header
             referer = smuggled_data.get('Referer', url)
             return self._get_video_info(
-                videoPlayer[0], query_str, query, referer=referer)
+                videoPlayer[0], query, referer=referer)
         elif 'playerKey' in query:
             player_key = query['playerKey']
             return self._get_playlist_info(player_key[0])
@@ -249,15 +248,14 @@ class BrightcoveLegacyIE(InfoExtractor):
                 'Cannot find playerKey= variable. Did you forget quotes in a shell invocation?',
                 expected=True)
 
-    def _get_video_info(self, video_id, query_str, query, referer=None):
-        request_url = self._FEDERATED_URL_TEMPLATE % query_str
-        req = sanitized_Request(request_url)
+    def _get_video_info(self, video_id, query, referer=None):
+        headers = {}
         linkBase = query.get('linkBaseURL')
         if linkBase is not None:
             referer = linkBase[0]
         if referer is not None:
-            req.add_header('Referer', referer)
-        webpage = self._download_webpage(req, video_id)
+            headers['Referer'] = referer
+        webpage = self._download_webpage(self._FEDERATED_URL, video_id, headers=headers, query=query)
 
         error_msg = self._html_search_regex(
             r"<h1>We're sorry.</h1>([\s\n]*<p>.*?</p>)+", webpage,
@@ -459,12 +457,11 @@ class BrightcoveNewIE(InfoExtractor):
                 r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
                 webpage, 'policy key', group='pk')
 
-        req = sanitized_Request(
-            'https://edge.api.brightcove.com/playback/v1/accounts/%s/videos/%s'
-            % (account_id, video_id),
-            headers={'Accept': 'application/json;pk=%s' % policy_key})
+        api_url = 'https://edge.api.brightcove.com/playback/v1/accounts/%s/videos/%s' % (account_id, video_id)
         try:
-            json_data = self._download_json(req, video_id)
+            json_data = self._download_json(api_url, video_id, headers={
+                'Accept': 'application/json;pk=%s' % policy_key
+            })
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                 json_data = self._parse_json(e.cause.read().decode(), video_id)
@@ -482,8 +479,7 @@ class BrightcoveNewIE(InfoExtractor):
                 if not src:
                     continue
                 formats.extend(self._extract_m3u8_formats(
-                    src, video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False))
+                    src, video_id, 'mp4', m3u8_id='hls', fatal=False))
             elif source_type == 'application/dash+xml':
                 if not src:
                     continue
