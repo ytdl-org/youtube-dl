@@ -81,6 +81,7 @@ from .bloomberg import BloombergIE
 from .bokecc import BokeCCIE
 from .bpb import BpbIE
 from .br import BRIE
+from .bravotv import BravoTVIE
 from .breakcom import BreakIE
 from .brightcove import (
     BrightcoveLegacyIE,
