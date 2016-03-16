@@ -784,6 +784,7 @@ from .tv2 import (
     TV2IE,
     TV2ArticleIE,
 )
+from .tv3 import TV3IE
 from .tv4 import TV4IE
 from .tvc import (
     TVCIE,
