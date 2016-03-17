@@ -18,7 +18,7 @@ class AnimeOnDemandIE(InfoExtractor):
     _LOGIN_URL = 'https://www.anime-on-demand.de/users/sign_in'
     _APPLY_HTML5_URL = 'https://www.anime-on-demand.de/html5apply'
     _NETRC_MACHINE = 'animeondemand'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.anime-on-demand.de/anime/161',
         'info_dict': {
             'id': '161',
@@ -26,7 +26,11 @@ class AnimeOnDemandIE(InfoExtractor):
             'description': 'md5:6681ce3c07c7189d255ac6ab23812d31',
         },
         'playlist_mincount': 4,
-    }
+    }, {
+        # Film wording is used instead of Episode
+        'url': 'https://www.anime-on-demand.de/anime/39',
+        'only_matching': True,
+    }]
 
     def _login(self):
         (username, password) = self._get_login_info()
