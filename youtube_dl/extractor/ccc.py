@@ -37,7 +37,7 @@ class CCCIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        if self._downloader.params.get('prefer_free_formats'):
+        if self.params.get('prefer_free_formats'):
             preference = qualities(['mp3', 'opus', 'mp4-lq', 'webm-lq', 'h264-sd', 'mp4-sd', 'webm-sd', 'mp4', 'webm', 'mp4-hd', 'h264-hd', 'webm-hd'])
         else:
             preference = qualities(['opus', 'mp3', 'webm-lq', 'mp4-lq', 'webm-sd', 'h264-sd', 'mp4-sd', 'webm', 'mp4', 'webm-hd', 'mp4-hd', 'h264-hd'])

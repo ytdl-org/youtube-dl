@@ -888,7 +888,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         download_note = (
             'Downloading player %s' % player_url
-            if self._downloader.params.get('verbose') else
+            if self.params.get('verbose') else
             'Downloading %s player %s' % (player_type, player_id)
         )
         if player_type == 'js':
@@ -985,7 +985,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 )
                 self._player_cache[player_id] = func
             func = self._player_cache[player_id]
-            if self._downloader.params.get('youtube_print_sig_code'):
+            if self.params.get('youtube_print_sig_code'):
                 self._print_sig_code(func, s)
             return func(s)
         except Exception as e:
@@ -1179,7 +1179,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         url, smuggled_data = unsmuggle_url(url, {})
 
         proto = (
-            'http' if self._downloader.params.get('prefer_insecure', False)
+            'http' if self.params.get('prefer_insecure', False)
             else 'https')
 
         start_time = None
@@ -1253,7 +1253,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     add_dash_mpd(video_info)
                 if args.get('livestream') == '1' or args.get('live_playback') == 1:
                     is_live = True
-            if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
+            if not video_info or self.params.get('youtube_include_dash_manifest', True):
                 # We also try looking in get_video_info since it may contain different dashmpd
                 # URL that points to a DASH manifest with possibly different itag set (some itags
                 # are missing from DASH manifest pointed by webpage's dashmpd, some - from DASH
@@ -1331,7 +1331,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 video_description = ''
 
         if 'multifeed_metadata_list' in video_info and not smuggled_data.get('force_singlefeed', False):
-            if not self._downloader.params.get('noplaylist'):
+            if not self.params.get('noplaylist'):
                 entries = []
                 feed_ids = []
                 multifeed_metadata_list = video_info['multifeed_metadata_list'][0]
@@ -1457,7 +1457,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # annotations
         video_annotations = None
-        if self._downloader.params.get('writeannotations', False):
+        if self.params.get('writeannotations', False):
             video_annotations = self._extract_annotations(video_id)
 
         def _map_to_format_list(urlmap):
@@ -1532,7 +1532,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             video_webpage, 'age gate player URL')
                         player_url = json.loads(player_url_json)
 
-                    if self._downloader.params.get('verbose'):
+                    if self.params.get('verbose'):
                         if player_url is None:
                             player_version = 'unknown'
                             player_desc = 'unknown'
@@ -1627,7 +1627,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
         # Look for the DASH manifest
-        if self._downloader.params.get('youtube_include_dash_manifest', True):
+        if self.params.get('youtube_include_dash_manifest', True):
             dash_mpd_fatal = True
             for mpd_url in dash_mpds:
                 dash_formats = {}
@@ -1862,7 +1862,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         query_dict = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
         if 'v' in query_dict:
             video_id = query_dict['v'][0]
-            if self._downloader.params.get('noplaylist'):
+            if self.params.get('noplaylist'):
                 self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
                 return self.url_result(video_id, 'Youtube', video_id=video_id)
             else:

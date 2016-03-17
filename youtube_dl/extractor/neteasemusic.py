@@ -392,7 +392,7 @@ class NetEaseMusicProgramIE(NetEaseMusicBaseIE):
         name = info['name']
         description = info['description']
 
-        if not info['songs'] or self._downloader.params.get('noplaylist'):
+        if not info['songs'] or self.params.get('noplaylist'):
             if info['songs']:
                 self.to_screen(
                     'Downloading just the main audio %s because of --no-playlist'

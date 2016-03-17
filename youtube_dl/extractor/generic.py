@@ -1212,7 +1212,7 @@ class GenericIE(InfoExtractor):
 
         parsed_url = compat_urlparse.urlparse(url)
         if not parsed_url.scheme:
-            default_search = self._downloader.params.get('default_search')
+            default_search = self.params.get('default_search')
             if default_search is None:
                 default_search = 'fixup_error'
 
@@ -1301,8 +1301,8 @@ class GenericIE(InfoExtractor):
             info_dict['formats'] = formats
             return info_dict
 
-        if not self._downloader.params.get('test', False) and not is_intentional:
-            force = self._downloader.params.get('force_generic_extractor', False)
+        if not self.params.get('test', False) and not is_intentional:
+            force = self.params.get('force_generic_extractor', False)
             self._downloader.report_warning(
                 '%s on generic information extractor.' % ('Forcing' if force else 'Falling back'))
 

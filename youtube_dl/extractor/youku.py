@@ -206,7 +206,7 @@ class YoukuIE(InfoExtractor):
             self._set_cookie('youku.com', 'xreferrer', 'http://www.youku.com')
             req = sanitized_Request(req_url, headers=headers)
 
-            cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
+            cn_verification_proxy = self.params.get('cn_verification_proxy')
             if cn_verification_proxy:
                 req.add_header('Ytdl-request-proxy', cn_verification_proxy)
 
@@ -214,7 +214,7 @@ class YoukuIE(InfoExtractor):
 
             return raw_data['data']
 
-        video_password = self._downloader.params.get('videopassword')
+        video_password = self.params.get('videopassword')
 
         # request basic data
         basic_data_url = 'http://play.youku.com/play/get.json?vid=%s&ct=12' % video_id

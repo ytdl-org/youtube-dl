@@ -343,7 +343,7 @@ class BrightcoveLegacyIE(InfoExtractor):
                 'url': video_info['FLVFullLengthURL'],
             })
 
-        if self._downloader.params.get('include_ads', False):
+        if self.params.get('include_ads', False):
             adServerURL = video_info.get('_youtubedl_adServerURL')
             if adServerURL:
                 ad_info = {

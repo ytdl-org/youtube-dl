@@ -98,7 +98,7 @@ class SohuIE(InfoExtractor):
 
             req = sanitized_Request(base_data_url + vid_id)
 
-            cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
+            cn_verification_proxy = self.params.get('cn_verification_proxy')
             if cn_verification_proxy:
                 req.add_header('Ytdl-request-proxy', cn_verification_proxy)
 

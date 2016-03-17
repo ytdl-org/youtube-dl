@@ -113,7 +113,7 @@ class NBAIE(InfoExtractor):
     def _extract_playlist(self, orig_path, video_id, webpage):
         team = orig_path.split('/')[0]
 
-        if self._downloader.params.get('noplaylist'):
+        if self.params.get('noplaylist'):
             self.to_screen('Downloading just video because of --no-playlist')
             video_path = self._search_regex(
                 r'nbaVideoCore\.firstVideo\s*=\s*\'([^\']+)\';', webpage, 'video path')

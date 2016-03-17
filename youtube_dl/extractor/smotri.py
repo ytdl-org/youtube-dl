@@ -170,7 +170,7 @@ class SmotriIE(InfoExtractor):
             'getvideoinfo': '1',
         }
 
-        video_password = self._downloader.params.get('videopassword')
+        video_password = self.params.get('videopassword')
         if video_password:
             video_form['pass'] = hashlib.md5(video_password.encode('utf-8')).hexdigest()
 
@@ -356,7 +356,7 @@ class SmotriBroadcastIE(InfoExtractor):
 
         url = 'http://smotri.com/broadcast/view/url/?ticket=%s' % ticket
 
-        broadcast_password = self._downloader.params.get('videopassword')
+        broadcast_password = self.params.get('videopassword')
         if broadcast_password:
             url += '&pass=%s' % hashlib.md5(broadcast_password.encode('utf-8')).hexdigest()
 

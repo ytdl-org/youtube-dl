@@ -124,7 +124,7 @@ class LeIE(InfoExtractor):
         play_json_req = sanitized_Request(
             'http://api.le.com/mms/out/video/playJson?' + compat_urllib_parse_urlencode(params)
         )
-        cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
+        cn_verification_proxy = self.params.get('cn_verification_proxy')
         if cn_verification_proxy:
             play_json_req.add_header('Ytdl-request-proxy', cn_verification_proxy)
 

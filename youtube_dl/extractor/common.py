@@ -331,6 +331,7 @@ class InfoExtractor(object):
     def set_downloader(self, downloader):
         """Sets the downloader for this IE."""
         self._downloader = downloader
+        self.params = downloader.params if downloader else {}
 
     def _real_initialize(self):
         """Real initialization process. Redefine in subclasses."""
@@ -419,7 +420,7 @@ class InfoExtractor(object):
             webpage_bytes = prefix + webpage_bytes
         if not encoding:
             encoding = self._guess_encoding_from_content(content_type, webpage_bytes)
-        if self._downloader.params.get('dump_intermediate_pages', False):
+        if self.params.get('dump_intermediate_pages', False):
             try:
                 url = url_or_request.get_full_url()
             except AttributeError:
@@ -427,7 +428,7 @@ class InfoExtractor(object):
             self.to_screen('Dumping request to ' + url)
             dump = base64.b64encode(webpage_bytes).decode('ascii')
             self._downloader.to_screen(dump)
-        if self._downloader.params.get('write_pages', False):
+        if self.params.get('write_pages', False):
             try:
                 url = url_or_request.get_full_url()
             except AttributeError:
@@ -610,7 +611,7 @@ class InfoExtractor(object):
                 if mobj:
                     break
 
-        if not self._downloader.params.get('no_color') and compat_os_name != 'nt' and sys.stderr.isatty():
+        if not self.params.get('no_color') and compat_os_name != 'nt' and sys.stderr.isatty():
             _name = '\033[0;34m%s\033[0m' % name
         else:
             _name = name
@@ -650,7 +651,7 @@ class InfoExtractor(object):
 
         username = None
         password = None
-        downloader_params = self._downloader.params
+        downloader_params = self.params
 
         # Attempt to use provided username and password or .netrc data
         if downloader_params.get('username') is not None:
@@ -678,7 +679,7 @@ class InfoExtractor(object):
         """
         if self._downloader is None:
             return None
-        downloader_params = self._downloader.params
+        downloader_params = self.params
 
         if downloader_params.get('twofactor') is not None:
             return downloader_params['twofactor']
@@ -869,7 +870,7 @@ class InfoExtractor(object):
 
             if f.get('vcodec') == 'none':  # audio only
                 preference -= 50
-                if self._downloader.params.get('prefer_free_formats'):
+                if self.params.get('prefer_free_formats'):
                     ORDER = ['aac', 'mp3', 'm4a', 'webm', 'ogg', 'opus']
                 else:
                     ORDER = ['webm', 'opus', 'ogg', 'mp3', 'aac', 'm4a']
@@ -881,7 +882,7 @@ class InfoExtractor(object):
             else:
                 if f.get('acodec') == 'none':  # video only
                     preference -= 40
-                if self._downloader.params.get('prefer_free_formats'):
+                if self.params.get('prefer_free_formats'):
                     ORDER = ['flv', 'mp4', 'webm']
                 else:
                     ORDER = ['webm', 'flv', 'mp4']
@@ -948,7 +949,7 @@ class InfoExtractor(object):
         """ Either "http:" or "https:", depending on the user's preferences """
         return (
             'http:'
-            if self._downloader.params.get('prefer_insecure', False)
+            if self.params.get('prefer_insecure', False)
             else 'https:')
 
     def _proto_relative_url(self, url, scheme=None):
@@ -1614,8 +1615,8 @@ class InfoExtractor(object):
         return not any_restricted
 
     def extract_subtitles(self, *args, **kwargs):
-        if (self._downloader.params.get('writesubtitles', False) or
-                self._downloader.params.get('listsubtitles')):
+        if (self.params.get('writesubtitles', False) or
+                self.params.get('listsubtitles')):
             return self._get_subtitles(*args, **kwargs)
         return {}
 
@@ -1640,8 +1641,8 @@ class InfoExtractor(object):
         return ret
 
     def extract_automatic_captions(self, *args, **kwargs):
-        if (self._downloader.params.get('writeautomaticsub', False) or
-                self._downloader.params.get('listsubtitles')):
+        if (self.params.get('writeautomaticsub', False) or
+                self.params.get('listsubtitles')):
             return self._get_automatic_captions(*args, **kwargs)
         return {}
 
@@ -1649,9 +1650,9 @@ class InfoExtractor(object):
         raise NotImplementedError('This method must be implemented by subclasses')
 
     def mark_watched(self, *args, **kwargs):
-        if (self._downloader.params.get('mark_watched', False) and
+        if (self.params.get('mark_watched', False) and
                 (self._get_login_info()[0] is not None or
-                    self._downloader.params.get('cookiefile') is not None)):
+                    self.params.get('cookiefile') is not None)):
             self._mark_watched(*args, **kwargs)
 
     def _mark_watched(self, *args, **kwargs):

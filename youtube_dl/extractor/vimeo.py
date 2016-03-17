@@ -250,7 +250,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             return mobj.group(1)
 
     def _verify_video_password(self, url, video_id, webpage):
-        password = self._downloader.params.get('videopassword')
+        password = self.params.get('videopassword')
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option', expected=True)
         token, vuid = self._extract_xsrft_and_vuid(webpage)
@@ -270,7 +270,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'Verifying the password', 'Wrong password')
 
     def _verify_player_video_password(self, url, video_id):
-        password = self._downloader.params.get('videopassword')
+        password = self.params.get('videopassword')
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option')
         data = urlencode_postdata({'password': password})
@@ -567,7 +567,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         if not login_form:
             return webpage
 
-        password = self._downloader.params.get('videopassword')
+        password = self.params.get('videopassword')
         if password is None:
             raise ExtractorError('This album is protected by a password, use the --video-password option', expected=True)
         fields = self._hidden_inputs(login_form)
