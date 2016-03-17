@@ -30,6 +30,10 @@ class AnimeOnDemandIE(InfoExtractor):
         # Film wording is used instead of Episode
         'url': 'https://www.anime-on-demand.de/anime/39',
         'only_matching': True,
+    }, {
+        # Episodes without titles
+        'url': 'https://www.anime-on-demand.de/anime/162',
+        'only_matching': True,
     }]
 
     def _login(self):
@@ -95,14 +99,22 @@ class AnimeOnDemandIE(InfoExtractor):
 
         entries = []
 
-        for episode_html in re.findall(r'(?s)<h3[^>]+class="episodebox-title".+?>Episodeninhalt<', webpage):
-            m = re.search(
-                r'class="episodebox-title"[^>]+title="(?:Episode|Film)\s*(?P<number>\d+)\s*-\s*(?P<title>.+?)"', episode_html)
-            if not m:
+        for num, episode_html in enumerate(re.findall(
+                r'(?s)<h3[^>]+class="episodebox-title".+?>Episodeninhalt<', webpage)):
+            episodebox_title = self._search_regex(
+                (r'class="episodebox-title"[^>]+title="(.+?)"',
+                 r'class="episodebox-title"[^>]+>(.+?)<'),
+                webpage, 'episodebox title', default=None)
+            if not episodebox_title:
                 continue
 
-            episode_number = int(m.group('number'))
-            episode_title = m.group('title')
+            episode_number = int(self._search_regex(
+                r'^(?:Episode|Film)\s*(\d+)',
+                episodebox_title, 'episode number', default=num))
+            episode_title = self._search_regex(
+                r'(?:Episode|Film)\s*\d+\s*-\s*(?P<title>.+?)',
+                episodebox_title, 'episode title', default=None)
+
             video_id = 'episode-%d' % episode_number
 
             common_info = {
