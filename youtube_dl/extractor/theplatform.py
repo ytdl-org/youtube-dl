@@ -8,13 +8,12 @@ import binascii
 import hashlib
 
 
-from .common import InfoExtractor
+from .once import OnceIE
 from ..compat import (
     compat_parse_qs,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
-    determine_ext,
     ExtractorError,
     float_or_none,
     int_or_none,
@@ -29,7 +28,7 @@ default_ns = 'http://www.w3.org/2005/SMIL21/Language'
 _x = lambda p: xpath_with_ns(p, {'smil': default_ns})
 
 
-class ThePlatformBaseIE(InfoExtractor):
+class ThePlatformBaseIE(OnceIE):
     def _extract_theplatform_smil(self, smil_url, video_id, note='Downloading SMIL data'):
         meta = self._download_xml(smil_url, video_id, note=note)
         error_element = find_xpath_attr(
@@ -38,17 +37,19 @@ class ThePlatformBaseIE(InfoExtractor):
         if error_element is not None:
             raise ExtractorError(error_element.attrib['abstract'], expected=True)
 
-        formats = self._parse_smil_formats(
+        smil_formats = self._parse_smil_formats(
             meta, smil_url, video_id, namespace=default_ns,
             # the parameters are from syfy.com, other sites may use others,
             # they also work for nbc.com
             f4m_params={'g': 'UXWGVKRWHFSP', 'hdcore': '3.0.3'},
             transform_rtmp_url=lambda streamer, src: (streamer, 'mp4:' + src))
 
-        for _format in formats:
-            ext = determine_ext(_format['url'])
-            if ext == 'once':
-                _format['ext'] = 'mp4'
+        formats = []
+        for _format in smil_formats:
+            if OnceIE.suitable(_format['url']):
+                formats.extend(self._extract_once_formats(_format['url']))
+            else:
+                formats.append(_format)
 
         self._sort_formats(formats)
 
@@ -125,7 +126,7 @@ class ThePlatformIE(ThePlatformBaseIE):
         'only_matching': True,
     }, {
         'url': 'http://player.theplatform.com/p/2E2eJC/nbcNewsOffsite?guid=tdy_or_siri_150701',
-        'md5': '734f3790fb5fc4903da391beeebc4836',
+        'md5': 'fb96bb3d85118930a5b055783a3bd992',
         'info_dict': {
             'id': 'tdy_or_siri_150701',
             'ext': 'mp4',
@@ -135,7 +136,6 @@ class ThePlatformIE(ThePlatformBaseIE):
             'thumbnail': 're:^https?://.*\.jpg$',
             'timestamp': 1435752600,
             'upload_date': '20150701',
-            'categories': ['Today/Shows/Orange Room', 'Today/Sections/Money', 'Today/Topics/Tech', "Today/Topics/Editor's picks"],
         },
     }, {
         # From http://www.nbc.com/the-blacklist/video/sir-crispin-crandall/2928790?onid=137781#vc137781=1
@@ -250,7 +250,7 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
     _TEST = {
         # From http://player.theplatform.com/p/7wvmTC/MSNBCEmbeddedOffSite?guid=n_hardball_5biden_140207
         'url': 'http://feed.theplatform.com/f/7wvmTC/msnbc_video-p-test?form=json&pretty=true&range=-40&byGuid=n_hardball_5biden_140207',
-        'md5': '22d2b84f058d3586efcd99e57d59d314',
+        'md5': '6e32495b5073ab414471b615c5ded394',
         'info_dict': {
             'id': 'n_hardball_5biden_140207',
             'ext': 'mp4',
