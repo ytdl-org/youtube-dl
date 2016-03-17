@@ -93,7 +93,7 @@ class AnimeOnDemandIE(InfoExtractor):
 
         for episode_html in re.findall(r'(?s)<h3[^>]+class="episodebox-title".+?>Episodeninhalt<', webpage):
             m = re.search(
-                r'class="episodebox-title"[^>]+title="Episode (?P<number>\d+) - (?P<title>.+?)"', episode_html)
+                r'class="episodebox-title"[^>]+title="(?:Episode|Film)\s*(?P<number>\d+)\s*-\s*(?P<title>.+?)"', episode_html)
             if not m:
                 continue
 
