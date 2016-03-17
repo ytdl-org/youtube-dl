@@ -100,19 +100,19 @@ class AnimeOnDemandIE(InfoExtractor):
         entries = []
 
         for num, episode_html in enumerate(re.findall(
-                r'(?s)<h3[^>]+class="episodebox-title".+?>Episodeninhalt<', webpage)):
+                r'(?s)<h3[^>]+class="episodebox-title".+?>Episodeninhalt<', webpage), 1):
             episodebox_title = self._search_regex(
-                (r'class="episodebox-title"[^>]+title="(.+?)"',
-                 r'class="episodebox-title"[^>]+>(.+?)<'),
-                webpage, 'episodebox title', default=None)
+                (r'class="episodebox-title"[^>]+title=(["\'])(?P<title>.+?)\1',
+                 r'class="episodebox-title"[^>]+>(?P<title>.+?)<'),
+                episode_html, 'episodebox title', default=None, group='title')
             if not episodebox_title:
                 continue
 
             episode_number = int(self._search_regex(
-                r'^(?:Episode|Film)\s*(\d+)',
+                r'(?:Episode|Film)\s*(\d+)',
                 episodebox_title, 'episode number', default=num))
             episode_title = self._search_regex(
-                r'(?:Episode|Film)\s*\d+\s*-\s*(?P<title>.+?)',
+                r'(?:Episode|Film)\s*\d+\s*-\s*(.+)',
                 episodebox_title, 'episode title', default=None)
 
             video_id = 'episode-%d' % episode_number
