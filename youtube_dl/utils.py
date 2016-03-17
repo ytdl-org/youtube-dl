@@ -50,6 +50,7 @@ from .compat import (
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urlparse,
+    compat_xpath,
     shlex_quote,
 )
 
@@ -165,12 +166,7 @@ if sys.version_info >= (2, 7):
         return node.find(expr)
 else:
     def find_xpath_attr(node, xpath, key, val=None):
-        # Here comes the crazy part: In 2.6, if the xpath is a unicode,
-        # .//node does not match if a node is a direct child of . !
-        if isinstance(xpath, compat_str):
-            xpath = xpath.encode('ascii')
-
-        for f in node.findall(xpath):
+        for f in node.findall(compat_xpath(xpath)):
             if key not in f.attrib:
                 continue
             if val is None or f.attrib.get(key) == val:
@@ -195,9 +191,7 @@ def xpath_with_ns(path, ns_map):
 
 def xpath_element(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
     def _find_xpath(xpath):
-        if sys.version_info < (2, 7):  # Crazy 2.6
-            xpath = xpath.encode('ascii')
-        return node.find(xpath)
+        return node.find(compat_xpath(xpath))
 
     if isinstance(xpath, (str, compat_str)):
         n = _find_xpath(xpath)
