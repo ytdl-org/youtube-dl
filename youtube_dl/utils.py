@@ -1346,7 +1346,7 @@ def format_bytes(bytes):
 def lookup_unit_table(unit_table, s):
     units_re = '|'.join(re.escape(u) for u in unit_table)
     m = re.match(
-        r'(?P<num>[0-9]+(?:[,.][0-9]*)?)\s*(?P<unit>%s)' % units_re, s)
+        r'(?P<num>[0-9]+(?:[,.][0-9]*)?)\s*(?P<unit>%s)$' % units_re, s)
     if not m:
         return None
     num_str = m.group('num').replace(',', '.')
