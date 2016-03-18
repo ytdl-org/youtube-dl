@@ -136,6 +136,7 @@ from .collegerama import CollegeRamaIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
 from .comcarcoff import ComCarCoffIE
 from .commonmistakes import CommonMistakesIE, UnicodeBOMIE
+from .commonprotocols import RtmpIE
 from .condenast import CondeNastIE
 from .cracked import CrackedIE
 from .crackle import CrackleIE
