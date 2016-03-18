@@ -94,6 +94,7 @@ from .postprocessor import (
     get_postprocessor,
 )
 from .version import __version__
+from .params import Params
 
 if compat_os_name == 'nt':
     import ctypes
@@ -122,7 +123,9 @@ class YoutubeDL(object):
     options instead. These options are available through the params
     attribute for the InfoExtractors to use. The YoutubeDL also
     registers itself as the downloader in charge for the InfoExtractors
-    that are added to it, so this is a "mutual registration".
+    that are added to it, so this is a "mutual registration". To use different
+    parameters in an extractor, the youtube_dl.params.Params class must be
+    used.
 
     Available options:
 
@@ -294,11 +297,14 @@ class YoutubeDL(object):
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
-        self.params = {
+        if not isinstance(params, Params):
+            params = Params(params)
+        self.params = params
+        default_params = {
             # Default parameters
             'nocheckcertificate': False,
         }
-        self.params.update(params)
+        self.add_extra_info(self.params, default_params)
         self.cache = Cache(self)
 
         if params.get('bidi_workaround', False):

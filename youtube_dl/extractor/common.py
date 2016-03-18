@@ -53,6 +53,7 @@ from ..utils import (
     update_Request,
     update_url_query,
 )
+from ..params import ParamsSection
 
 
 class InfoExtractor(object):
@@ -331,7 +332,7 @@ class InfoExtractor(object):
     def set_downloader(self, downloader):
         """Sets the downloader for this IE."""
         self._downloader = downloader
-        self.params = downloader.params if downloader else {}
+        self.params = downloader.params.section(self.IE_NAME) if downloader else ParamsSection()
 
     def _real_initialize(self):
         """Real initialization process. Redefine in subclasses."""

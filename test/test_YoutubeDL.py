@@ -17,6 +17,7 @@ from youtube_dl.extractor import YoutubeIE
 from youtube_dl.extractor.common import InfoExtractor
 from youtube_dl.postprocessor.common import PostProcessor
 from youtube_dl.utils import ExtractorError, match_filter_func
+from youtube_dl.params import Params
 
 TEST_URL = 'http://localhost/sample.mp4'
 
@@ -701,6 +702,22 @@ class TestYoutubeDL(unittest.TestCase):
         ydl.extract_info('foo1:')
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['url'], TEST_URL)
+
+    def test_subparams(self):
+        example_params = {'foo': 'example'}
+        params = Params({'foo': 'base', 'blah': 'base'}, {'example.com': example_params})
+        ydl = YoutubeDL(params)
+
+        class ExampleIE(InfoExtractor):
+            IE_NAME = 'example.com'
+
+        ie = ExampleIE()
+        ydl.add_info_extractor(ie)
+        pars = ie.params
+        self.assertEqual(pars['foo'], 'example')
+        self.assertEqual(pars['blah'], 'base')
+        self.assertEqual(pars.get('blah'), 'base')
+        self.assertEqual(pars.get('nonexistant'), None)
 
 
 if __name__ == '__main__':
