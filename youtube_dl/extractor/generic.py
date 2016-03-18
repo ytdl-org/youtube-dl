@@ -253,6 +253,21 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             }
         },
+        # m3u8 served with Content-Type: text/plain
+        {
+            'url': 'http://www.nacentapps.com/m3u8/index.m3u8',
+            'info_dict': {
+                'id': 'index',
+                'ext': 'mp4',
+                'title': 'index',
+                'upload_date': '20140720',
+                'formats': 'mincount:11',
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            }
+        },
         # google redirect
         {
             'url': 'http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&ved=0CCUQtwIwAA&url=http%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DcmQHVoWB5FY&ei=F-sNU-LLCaXk4QT52ICQBQ&usg=AFQjCNEw4hL29zgOohLXvpJ-Bdh2bils1Q&bvm=bv.61965928,d.bGE',
