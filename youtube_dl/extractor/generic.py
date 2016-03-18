@@ -1299,9 +1299,15 @@ class GenericIE(InfoExtractor):
             request.add_header('Accept-Encoding', '*')
             full_response = self._request_webpage(request, video_id)
 
+        first_bytes = full_response.read(512)
+
+        # Is it an M3U playlist?
+        if first_bytes.startswith('#EXTM3U'):
+            info_dict['formats'] = self._extract_m3u8_formats(url, video_id, 'mp4')
+            return info_dict
+
         # Maybe it's a direct link to a video?
         # Be careful not to download the whole thing!
-        first_bytes = full_response.read(512)
         if not is_html(first_bytes):
             self._downloader.report_warning(
                 'URL could be a direct video link, returning it as such.')
