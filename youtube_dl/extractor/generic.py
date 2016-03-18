@@ -1259,14 +1259,13 @@ class GenericIE(InfoExtractor):
         info_dict = {
             'id': video_id,
             'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
+            'upload_date': unified_strdate(head_response.headers.get('Last-Modified'))
         }
 
         # Check for direct link to a video
         content_type = head_response.headers.get('Content-Type', '').lower()
         m = re.match(r'^(?P<type>audio|video|application(?=/(?:ogg$|(?:vnd\.apple\.|x-)?mpegurl)))/(?P<format_id>[^;\s]+)', content_type)
         if m:
-            upload_date = unified_strdate(
-                head_response.headers.get('Last-Modified'))
             format_id = m.group('format_id')
             if format_id.endswith('mpegurl'):
                 formats = self._extract_m3u8_formats(url, video_id, 'mp4')
@@ -1281,7 +1280,6 @@ class GenericIE(InfoExtractor):
             info_dict.update({
                 'direct': True,
                 'formats': formats,
-                'upload_date': upload_date,
             })
             return info_dict
 
@@ -1309,12 +1307,9 @@ class GenericIE(InfoExtractor):
         if not is_html(first_bytes):
             self._downloader.report_warning(
                 'URL could be a direct video link, returning it as such.')
-            upload_date = unified_strdate(
-                head_response.headers.get('Last-Modified'))
             info_dict.update({
                 'direct': True,
                 'url': url,
-                'upload_date': upload_date,
             })
             return info_dict
 
