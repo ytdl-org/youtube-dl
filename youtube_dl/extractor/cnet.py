@@ -60,7 +60,7 @@ class CNETIE(ThePlatformIE):
         for (fkey, vid) in vdata['files'].items():
             if fkey == 'hls_phone' and 'hls_tablet' in vdata['files']:
                 continue
-            release_url = 'http://link.theplatform.com/s/kYEXFC/%s?format=SMIL&mbr=true' % vid
+            release_url = 'http://link.theplatform.com/s/kYEXFC/%s?mbr=true' % vid
             if fkey == 'hds':
                 release_url += '&manifest=f4m'
             tp_formats, tp_subtitles = self._extract_theplatform_smil(release_url, video_id, 'Downloading %s SMIL data' % fkey)

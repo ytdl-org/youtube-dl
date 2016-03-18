@@ -24,5 +24,5 @@ class BravoTVIE(InfoExtractor):
         account_pid = self._search_regex(r'"account_pid"\s*:\s*"([^"]+)"', webpage, 'account pid')
         release_pid = self._search_regex(r'"release_pid"\s*:\s*"([^"]+)"', webpage, 'release pid')
         return self.url_result(smuggle_url(
-            'http://link.theplatform.com/s/%s/%s?format=SMIL&mbr=true&switch=progressive' % (account_pid, release_pid),
+            'http://link.theplatform.com/s/%s/%s?mbr=true&switch=progressive' % (account_pid, release_pid),
             {'force_smil_url': True}), 'ThePlatform', release_pid)

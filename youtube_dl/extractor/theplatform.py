@@ -22,6 +22,7 @@ from ..utils import (
     xpath_with_ns,
     mimetype2ext,
     find_xpath_attr,
+    update_url_query,
 )
 
 default_ns = 'http://www.w3.org/2005/SMIL21/Language'
@@ -30,6 +31,7 @@ _x = lambda p: xpath_with_ns(p, {'smil': default_ns})
 
 class ThePlatformBaseIE(OnceIE):
     def _extract_theplatform_smil(self, smil_url, video_id, note='Downloading SMIL data'):
+        smil_url = update_url_query(smil_url, {'format': 'SMIL'})
         meta = self._download_xml(smil_url, video_id, note=note)
         error_element = find_xpath_attr(
             meta, _x('.//smil:ref'), 'src',
@@ -213,7 +215,7 @@ class ThePlatformIE(ThePlatformBaseIE):
                 webpage, 'smil url', group='url')
             path = self._search_regex(
                 r'link\.theplatform\.com/s/((?:[^/?#&]+/)+[^/?#&]+)', smil_url, 'path')
-            smil_url += '?' if '?' not in smil_url else '&' + 'formats=m3u,mpeg4&format=SMIL'
+            smil_url += '?' if '?' not in smil_url else '&' + 'formats=m3u,mpeg4'
         elif mobj.group('config'):
             config_url = url + '&form=json'
             config_url = config_url.replace('swf/', 'config/')
@@ -223,9 +225,9 @@ class ThePlatformIE(ThePlatformBaseIE):
                 release_url = config['releaseUrl']
             else:
                 release_url = 'http://link.theplatform.com/s/%s?mbr=true' % path
-            smil_url = release_url + '&format=SMIL&formats=MPEG4&manifest=f4m'
+            smil_url = release_url + '&formats=MPEG4&manifest=f4m'
         else:
-            smil_url = 'http://link.theplatform.com/s/%s/meta.smil?format=smil&mbr=true' % path
+            smil_url = 'http://link.theplatform.com/s/%s?mbr=true' % path
 
         sig = smuggled_data.get('sig')
         if sig:
@@ -280,7 +282,7 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
         first_video_id = None
         duration = None
         for item in entry['media$content']:
-            smil_url = item['plfile$url'] + '&format=SMIL&mbr=true'
+            smil_url = item['plfile$url'] + '&mbr=true'
             cur_video_id = ThePlatformIE._match_id(smil_url)
             if first_video_id is None:
                 first_video_id = cur_video_id
