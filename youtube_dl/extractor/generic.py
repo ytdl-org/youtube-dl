@@ -1277,10 +1277,8 @@ class GenericIE(InfoExtractor):
                     'url': url,
                     'vcodec': 'none' if m.group('type') == 'audio' else None
                 }]
-            info_dict.update({
-                'direct': True,
-                'formats': formats,
-            })
+                info_dict['direct'] = True
+            info_dict['formats'] = formats
             return info_dict
 
         if not self._downloader.params.get('test', False) and not is_intentional:
