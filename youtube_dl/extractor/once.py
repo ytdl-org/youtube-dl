@@ -14,13 +14,12 @@ class OnceIE(InfoExtractor):
     def _extract_once_formats(self, url):
         domain_id, application_id, media_item_id = re.match(
             OnceIE._VALID_URL, url).groups()
-        adaptive_formats = self._extract_m3u8_formats(
+        formats = self._extract_m3u8_formats(
             self.ADAPTIVE_URL_TEMPLATE % (
                 domain_id, application_id, media_item_id),
             media_item_id, 'mp4', m3u8_id='hls', fatal=False)
-        formats = []
-        formats.extend(adaptive_formats)
-        for adaptive_format in adaptive_formats:
+        progressive_formats = []
+        for adaptive_format in formats:
             rendition_id = self._search_regex(
                 r'/now/media/playlist/[^/]+/[^/]+/([^/]+)',
                 adaptive_format['url'], 'redition id', default=None)
@@ -33,5 +32,7 @@ class OnceIE(InfoExtractor):
                         'hls', 'http'),
                     'protocol': 'http',
                 })
-                formats.append(progressive_format)
+                progressive_formats.append(progressive_format)
+        self._check_formats(progressive_formats, media_item_id)
+        formats.extend(progressive_formats)
         return formats
