@@ -239,6 +239,20 @@ class GenericIE(InfoExtractor):
                 'format': 'bestvideo',
             },
         },
+        # m3u8 served with Content-Type: audio/x-mpegURL; charset=utf-8
+        {
+            'url': 'http://once.unicornmedia.com/now/master/playlist/bb0b18ba-64f5-4b1b-a29f-0ac252f06b68/77a785f3-5188-4806-b788-0893a61634ed/93677179-2d99-4ef4-9e17-fe70d49abfbf/content.m3u8',
+            'info_dict': {
+                'id': 'content',
+                'ext': 'mp4',
+                'title': 'content',
+                'formats': 'mincount:8',
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            }
+        },
         # google redirect
         {
             'url': 'http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&ved=0CCUQtwIwAA&url=http%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DcmQHVoWB5FY&ei=F-sNU-LLCaXk4QT52ICQBQ&usg=AFQjCNEw4hL29zgOohLXvpJ-Bdh2bils1Q&bvm=bv.61965928,d.bGE',
