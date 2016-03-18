@@ -1248,7 +1248,7 @@ class GenericIE(InfoExtractor):
         }
 
         # Check for direct link to a video
-        content_type = head_response.headers.get('Content-Type', '')
+        content_type = head_response.headers.get('Content-Type', '').lower()
         m = re.match(r'^(?P<type>audio|video|application(?=/(?:ogg$|(?:vnd\.apple\.|x-)?mpegurl)))/(?P<format_id>[^;\s]+)', content_type)
         if m:
             upload_date = unified_strdate(
