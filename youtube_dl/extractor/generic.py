@@ -1317,7 +1317,7 @@ class GenericIE(InfoExtractor):
         first_bytes = full_response.read(512)
 
         # Is it an M3U playlist?
-        if first_bytes.startswith('#EXTM3U'):
+        if first_bytes.startswith(b'#EXTM3U'):
             info_dict['formats'] = self._extract_m3u8_formats(url, video_id, 'mp4')
             return info_dict
 
