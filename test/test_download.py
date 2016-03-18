@@ -51,9 +51,9 @@ class YoutubeDL(youtube_dl.YoutubeDL):
         # Don't accept warnings during tests
         raise ExtractorError(message)
 
-    def process_info(self, info_dict):
+    def process_info(self, info_dict, params):
         self.processed_info_dicts.append(info_dict)
-        return super(YoutubeDL, self).process_info(info_dict)
+        return super(YoutubeDL, self).process_info(info_dict, params)
 
 
 def _file_md5(fn):

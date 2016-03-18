@@ -28,7 +28,7 @@ class YDL(FakeYDL):
         self.downloaded_info_dicts = []
         self.msgs = []
 
-    def process_info(self, info_dict):
+    def process_info(self, info_dict, params):
         self.downloaded_info_dicts.append(info_dict)
 
     def to_screen(self, msg):
@@ -438,7 +438,7 @@ class TestYoutubeDL(unittest.TestCase):
             params.setdefault('simulate', True)
             ydl = YDL(params)
             ydl.report_warning = lambda *args, **kargs: None
-            return ydl.process_video_result(info_dict, download=False)
+            return ydl.process_video_result(info_dict, params, download=False)
 
         result = get_info()
         self.assertFalse(result.get('requested_subtitles'))
@@ -527,7 +527,7 @@ class TestYoutubeDL(unittest.TestCase):
                 f.write('EXAMPLE')
             ydl = YoutubeDL(params)
             ydl.add_post_processor(PP())
-            ydl.post_process(filename, {'filepath': filename})
+            ydl.post_process(filename, {'filepath': filename}, params)
 
         run_pp({'keepvideo': True}, SimplePP)
         self.assertTrue(os.path.exists(filename), '%s doesn\'t exist' % filename)
@@ -556,8 +556,8 @@ class TestYoutubeDL(unittest.TestCase):
                 super(FilterYDL, self).__init__(*args, **kwargs)
                 self.params['simulate'] = True
 
-            def process_info(self, info_dict):
-                super(YDL, self).process_info(info_dict)
+            def process_info(self, info_dict, params):
+                super(YDL, self).process_info(info_dict, params)
 
             def _match_entry(self, info_dict, incomplete):
                 res = super(FilterYDL, self)._match_entry(info_dict, incomplete)
@@ -704,12 +704,30 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(downloaded['url'], TEST_URL)
 
     def test_subparams(self):
-        example_params = {'foo': 'example'}
-        params = Params({'foo': 'base', 'blah': 'base'}, {'example.com': example_params})
-        ydl = YoutubeDL(params)
+        example_params = {'foo': 'example', 'outtmpl': 'foo.mp4'}
+        params = Params(
+            {'foo': 'base', 'blah': 'base', 'skip_download': True}, {'example.com': example_params})
+        ydl = YoutubeDL(params, auto_init=False)
+        ydl.downloads = []
+        real_process_info = ydl.process_info
+        def process_info(info_dict, params):
+            r = real_process_info(info_dict, params)
+            ydl.downloads.append(info_dict)
+            return r
+        ydl.process_info = process_info
 
         class ExampleIE(InfoExtractor):
             IE_NAME = 'example.com'
+            _VALID_URL = r'example$'
+
+            def _real_extract(self, url):
+                return {
+                    'id': '1',
+                    'ext': 'mp4',
+                    'title': 'example',
+                    'url': 'http://example.com',
+                }
+
 
         ie = ExampleIE()
         ydl.add_info_extractor(ie)
@@ -718,6 +736,9 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(pars['blah'], 'base')
         self.assertEqual(pars.get('blah'), 'base')
         self.assertEqual(pars.get('nonexistant'), None)
+
+        ydl.extract_info('example')
+        self.assertEqual(ydl.downloads[-1]['_filename'], 'foo.mp4')
 
 
 if __name__ == '__main__':
