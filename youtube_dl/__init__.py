@@ -144,14 +144,20 @@ def _real_main(argv=None):
         if numeric_limit is None:
             parser.error('invalid max_filesize specified')
         opts.max_filesize = numeric_limit
-    if opts.retries is not None:
-        if opts.retries in ('inf', 'infinite'):
-            opts_retries = float('inf')
+
+    def parse_retries(retries):
+        if retries in ('inf', 'infinite'):
+            parsed_retries = float('inf')
         else:
             try:
-                opts_retries = int(opts.retries)
+                parsed_retries = int(retries)
             except (TypeError, ValueError):
                 parser.error('invalid retry count specified')
+        return parsed_retries
+    if opts.retries is not None:
+        opts.retries = parse_retries(opts.retries)
+    if opts.fragment_retries is not None:
+        opts.fragment_retries = parse_retries(opts.fragment_retries)
     if opts.buffersize is not None:
         numeric_buffersize = FileDownloader.parse_bytes(opts.buffersize)
         if numeric_buffersize is None:
@@ -299,7 +305,8 @@ def _real_main(argv=None):
         'force_generic_extractor': opts.force_generic_extractor,
         'ratelimit': opts.ratelimit,
         'nooverwrites': opts.nooverwrites,
-        'retries': opts_retries,
+        'retries': opts.retries,
+        'fragment_retries': opts.fragment_retries,
         'buffersize': opts.buffersize,
         'noresizebuffer': opts.noresizebuffer,
         'continuedl': opts.continue_dl,
