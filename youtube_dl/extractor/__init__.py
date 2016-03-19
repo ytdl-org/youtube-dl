@@ -570,6 +570,7 @@ from .pornhub import (
     PornHubPlaylistIE,
     PornHubUserVideosIE,
 )
+from .pornorama import PornoramaIE
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
 from .pornoxo import PornoXOIE
