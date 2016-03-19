@@ -19,6 +19,10 @@ class HttpQuietDownloader(HttpFD):
 class FragmentFD(FileDownloader):
     """
     A base file downloader class for fragmented media (e.g. f4m/m3u8 manifests).
+
+    Available options:
+
+    fragment_retries:   Number of times to retry a fragment for HTTP error (DASH only)
     """
 
     def report_retry_fragment(self, fragment_name, count, retries):
