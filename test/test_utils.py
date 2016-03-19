@@ -702,6 +702,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_count('1.000'), 1000)
         self.assertEqual(parse_count('1.1k'), 1100)
         self.assertEqual(parse_count('1.1kk'), 1100000)
+        self.assertEqual(parse_count('1.1kk '), 1100000)
+        self.assertEqual(parse_count('1.1kk views'), 1100000)
 
     def test_version_tuple(self):
         self.assertEqual(version_tuple('1'), (1,))
