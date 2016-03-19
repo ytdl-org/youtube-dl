@@ -31,9 +31,10 @@ class Porn91IE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        url = 'http://91porn.com/view_video.php?viewkey=%s' % video_id
         self._set_cookie('91porn.com', 'language', 'cn_CN')
-        webpage = self._download_webpage(url, video_id, 'get HTML content')
+
+        webpage = self._download_webpage(
+            'http://91porn.com/view_video.php?viewkey=%s' % video_id, video_id)
 
         if '作为游客，你每天只可观看10个视频' in webpage:
             raise ExtractorError('91 Porn says: Daily limit 10 videos exceeded', expected=True)
@@ -57,7 +58,7 @@ class Porn91IE(InfoExtractor):
         })
         info_cn = self._download_webpage(
             'http://91porn.com/getfile.php?' + url_params, video_id,
-            'get real video url')
+            'Downloading real video url')
         video_url = compat_urllib_parse_unquote(self._search_regex(
             r'file=([^&]+)&', info_cn, 'url'))
 
