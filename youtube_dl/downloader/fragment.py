@@ -23,8 +23,8 @@ class FragmentFD(FileDownloader):
 
     def report_retry_fragment(self, fragment_name, count, retries):
         self.to_screen(
-            '[download] Got server HTTP error. Retrying fragment %s (attempt %d of %.0f)...'
-            % (fragment_name, count, retries))
+            '[download] Got server HTTP error. Retrying fragment %s (attempt %d of %s)...'
+            % (fragment_name, count, self.format_retries(retries)))
 
     def _prepare_and_start_frag_download(self, ctx):
         self._prepare_frag_download(ctx)
