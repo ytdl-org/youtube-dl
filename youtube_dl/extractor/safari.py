@@ -75,16 +75,7 @@ class SafariBaseIE(InfoExtractor):
 class SafariIE(SafariBaseIE):
     IE_NAME = 'safari'
     IE_DESC = 'safaribooksonline.com online video'
-    _VALID_URL = r'''(?x)https?://
-                            (?:www\.)?safaribooksonline\.com/
-                                (?:
-                                    library/view/[^/]+|
-                                    api/v1/book
-                                )/
-                                (?P<course_id>[^/]+)/
-                                    (?:chapter(?:-content)?/)?
-                                (?P<part>part\d+)\.html
-    '''
+    _VALID_URL = r'https?://(?:www\.)?safaribooksonline\.com/library/view/[^/]+/(?P<course_id>[^/]+)/(?P<part>part\d+)\.html'
 
     _TESTS = [{
         'url': 'https://www.safaribooksonline.com/library/view/hadoop-fundamentals-livelessons/9780133392838/part00.html',
@@ -98,9 +89,6 @@ class SafariIE(SafariBaseIE):
             'uploader_id': 'stork',
         },
     }, {
-        'url': 'https://www.safaribooksonline.com/api/v1/book/9780133392838/chapter/part00.html',
-        'only_matching': True,
-    }, {
         # non-digits in course id
         'url': 'https://www.safaribooksonline.com/library/view/create-a-nodejs/100000006A0210/part00.html',
         'only_matching': True,
@@ -108,13 +96,18 @@ class SafariIE(SafariBaseIE):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        course_id = mobj.group('course_id')
-        part = mobj.group('part')
+        video_id = '%s/%s' % (mobj.group('course_id'), mobj.group('part'))
 
-        webpage = self._download_webpage(url, '%s/%s' % (course_id, part))
-        reference_id = self._search_regex(r'data-reference-id="([^"]+)"', webpage, 'kaltura reference id')
-        partner_id = self._search_regex(r'data-partner-id="([^"]+)"', webpage, 'kaltura widget id')
-        ui_id = self._search_regex(r'data-ui-id="([^"]+)"', webpage, 'kaltura uiconf id')
+        webpage = self._download_webpage(url, video_id)
+        reference_id = self._search_regex(
+            r'data-reference-id=(["\'])(?P<id>.+?)\1',
+            webpage, 'kaltura reference id', group='id')
+        partner_id = self._search_regex(
+            r'data-partner-id=(["\'])(?P<id>.+?)\1',
+            webpage, 'kaltura widget id', group='id')
+        ui_id = self._search_regex(
+            r'data-ui-id=(["\'])(?P<id>.+?)\1',
+            webpage, 'kaltura uiconf id', group='id')
 
         query = {
             'wid': '_%s' % partner_id,
@@ -125,7 +118,7 @@ class SafariIE(SafariBaseIE):
         if self.LOGGED_IN:
             kaltura_session = self._download_json(
                 '%s/player/kaltura_session/?reference_id=%s' % (self._API_BASE, reference_id),
-                course_id, 'Downloading kaltura session JSON',
+                video_id, 'Downloading kaltura session JSON',
                 'Unable to download kaltura session JSON', fatal=False)
             if kaltura_session:
                 session = kaltura_session.get('session')
@@ -135,6 +128,23 @@ class SafariIE(SafariBaseIE):
         return self.url_result(update_url_query(
             'https://cdnapisec.kaltura.com/html5/html5lib/v2.37.1/mwEmbedFrame.php', query),
             'Kaltura')
+
+
+class SafariApiIE(SafariBaseIE):
+    IE_NAME = 'safari:api'
+    _VALID_URL = r'https?://(?:www\.)?safaribooksonline\.com/api/v1/book/(?P<course_id>[^/]+)/chapter(?:-content)?/(?P<part>part\d+)\.html'
+
+    _TEST = {
+        'url': 'https://www.safaribooksonline.com/api/v1/book/9780133392838/chapter/part00.html',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        part = self._download_json(
+            url, '%s/%s' % (mobj.group('course_id'), mobj.group('part')),
+            'Downloading part JSON')
+        return self.url_result(part['web_url'], SafariIE.ie_key())
 
 
 class SafariCourseIE(SafariBaseIE):
@@ -168,7 +178,7 @@ class SafariCourseIE(SafariBaseIE):
                 'No chapters found for course %s' % course_id, expected=True)
 
         entries = [
-            self.url_result(chapter, 'Safari')
+            self.url_result(chapter, SafariApiIE.ie_key())
             for chapter in course_json['chapters']]
 
         course_title = course_json['title']

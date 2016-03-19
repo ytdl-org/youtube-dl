@@ -628,6 +628,7 @@ from .ruutu import RuutuIE
 from .sandia import SandiaIE
 from .safari import (
     SafariIE,
+    SafariApiIE,
     SafariCourseIE,
 )
 from .sapo import SapoIE
