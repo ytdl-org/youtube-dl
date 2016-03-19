@@ -582,11 +582,17 @@ if sys.version_info >= (3, 0):
 else:
     from tokenize import generate_tokens as compat_tokenize_tokenize
 
+try:
+    import configparser as compat_configparser
+except ImportError:
+    import ConfigParser as compat_configparser
+
 __all__ = [
     'compat_HTMLParser',
     'compat_HTTPError',
     'compat_basestring',
     'compat_chr',
+    'compat_configparser',
     'compat_cookiejar',
     'compat_cookies',
     'compat_etree_fromstring',

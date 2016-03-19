@@ -42,6 +42,7 @@ from .downloader import (
 )
 from .extractor import gen_extractors, list_extractors
 from .YoutubeDL import YoutubeDL
+from .params import Params, ParamsSection
 
 
 def _build_ydl_opts(opts, parser):
@@ -311,6 +312,30 @@ def _build_ydl_opts(opts, parser):
     }
 
 
+class CLIParams(Params):
+    def __init__(self, opts, build_section_args, parser):
+        super(CLIParams, self).__init__(_build_ydl_opts(opts, parser))
+        self.build_section_args = build_section_args
+        self.parser = parser
+
+    def section(self, section):
+        return CLIParamsSection([section], self.build_section_args, self.parser)
+
+
+# TODO: investigate if it's worth to cache this
+class CLIParamsSection(ParamsSection):
+    def __init__(self, sections, build_section_args, parser):
+        section_args = build_section_args(*sections)
+        section_opts = parser.parse_args(section_args)[0]
+        super(CLIParamsSection, self).__init__(_build_ydl_opts(section_opts, parser), {})
+        self.section_names = sections
+        self.build_section_args = build_section_args
+        self.parser = parser
+
+    def section(self, section):
+        return CLIParamsSection(self.section_names + [section], self.build_section_args, self.parser)
+
+
 def _real_main(argv=None):
     # Compatibility fixes for Windows
     if sys.platform == 'win32':
@@ -321,7 +346,7 @@ def _real_main(argv=None):
 
     setproctitle('youtube-dl')
 
-    parser, opts, args = parseOpts(argv)
+    parser, opts, build_section_args, args = parseOpts(argv)
 
     # Set user agent
     if opts.user_agent is not None:
@@ -385,7 +410,7 @@ def _real_main(argv=None):
             compat_print(desc)
         sys.exit(0)
 
-    ydl_opts = _build_ydl_opts(opts, parser)
+    ydl_opts = CLIParams(opts, build_section_args, parser)
 
     with YoutubeDL(ydl_opts) as ydl:
         # Update version

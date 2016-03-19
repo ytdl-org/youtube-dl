@@ -1,11 +1,13 @@
 from __future__ import unicode_literals
 
+import io
 import os.path
 import optparse
 import sys
 
 from .downloader.external import list_external_downloaders
 from .compat import (
+    compat_configparser,
     compat_expanduser,
     compat_get_terminal_size,
     compat_getenv,
@@ -743,17 +745,41 @@ def parseOpts(overrideArguments=None):
             optionf.close()
         return res
 
+    def _readIni(filename_bytes, default=([], {})):
+        try:
+            ini = open(filename_bytes)
+        except IOError:
+            return default  # silently skip if file is not present
+        parser = compat_configparser.RawConfigParser()
+        ini = io.StringIO('[@GLOBAL@]\n' + ini.read())
+        parser.readfp(ini)
+
+        def convert_opts(opts):
+            return [
+                '--' + opt + ('' if not arg else ('=' + arg))
+                for opt, arg in opts]
+        global_opts = convert_opts(parser.items('@GLOBAL@'))
+        section_opts = dict((section, convert_opts(parser.items(section))) for section in parser.sections() if section != '@GLOBAL@')
+        return global_opts, section_opts
+
     def _readUserConf():
         xdg_config_home = compat_getenv('XDG_CONFIG_HOME')
         if xdg_config_home:
             userConfFile = os.path.join(xdg_config_home, 'youtube-dl', 'config')
+            userIniFile = os.path.join(xdg_config_home, 'youtube-dl', 'config.ini')
             if not os.path.isfile(userConfFile):
                 userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
+            if not os.path.isfile(userIniFile):
+                userIniFile = os.path.join(xdg_config_home, 'youtube-dl.ini')
         else:
             userConfFile = os.path.join(compat_expanduser('~'), '.config', 'youtube-dl', 'config')
+            userIniFile = os.path.join(compat_expanduser('~'), '.config', 'youtube-dl', 'config.ini')
             if not os.path.isfile(userConfFile):
                 userConfFile = os.path.join(compat_expanduser('~'), '.config', 'youtube-dl.conf')
+            if not os.path.isfile(userIniFile):
+                userIniFile = os.path.join(compat_expanduser('~'), '.config', 'youtube-dl.ini')
         userConf = _readOptions(userConfFile, None)
+        userIni = _readIni(userIniFile, None)
 
         if userConf is None:
             appdata_dir = compat_getenv('appdata')
@@ -778,7 +804,11 @@ def parseOpts(overrideArguments=None):
         if userConf is None:
             userConf = []
 
-        return userConf
+        if userIni is None:
+            userIni = [], {}
+        iniGlobal, iniSections = userIni
+
+        return userConf + iniGlobal, iniSections
 
     def _hide_login_info(opts):
         opts = list(opts)
@@ -807,18 +837,30 @@ def parseOpts(overrideArguments=None):
         if '--ignore-config' in command_line_conf:
             system_conf = []
             user_conf = []
+            user_sections = {}
         else:
             system_conf = compat_conf(_readOptions('/etc/youtube-dl.conf'))
             if '--ignore-config' in system_conf:
                 user_conf = []
+                user_sections = {}
             else:
-                user_conf = compat_conf(_readUserConf())
+                user_conf, user_sections = _readUserConf()
+                user_conf = compat_conf(user_conf)
         argv = system_conf + user_conf + command_line_conf
 
         opts, args = parser.parse_args(argv)
         if opts.verbose:
             write_string('[debug] System config: ' + repr(_hide_login_info(system_conf)) + '\n')
             write_string('[debug] User config: ' + repr(_hide_login_info(user_conf)) + '\n')
+            for section, section_args in user_sections.items():
+                write_string('[debug] User config for "' + section + '": ' + repr(_hide_login_info(section_args)) + '\n')
             write_string('[debug] Command-line args: ' + repr(_hide_login_info(command_line_conf)) + '\n')
 
-    return parser, opts, args
+        def build_section_args(*sections):
+            res = system_conf + user_conf
+            for section in sections:
+                res.extend(user_sections.get(section, []))
+            res.extend(command_line_conf)
+            return res
+
+    return parser, opts, build_section_args, args
