@@ -72,6 +72,7 @@ from .bet import BetIE
 from .bigflix import BigflixIE
 from .bild import BildIE
 from .bilibili import BiliBiliIE
+from .biobiochiletv import BioBioChileTVIE
 from .bleacherreport import (
     BleacherReportIE,
     BleacherReportCMSIE,
