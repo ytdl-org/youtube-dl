@@ -21,6 +21,11 @@ class FragmentFD(FileDownloader):
     A base file downloader class for fragmented media (e.g. f4m/m3u8 manifests).
     """
 
+    def report_retry_fragment(self, fragment_name, count, retries):
+        self.to_screen(
+            '[download] Got server HTTP error. Retrying fragment %s (attempt %d of %.0f)...'
+            % (fragment_name, count, retries))
+
     def _prepare_and_start_frag_download(self, ctx):
         self._prepare_frag_download(ctx)
         self._start_frag_download(ctx)
