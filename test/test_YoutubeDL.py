@@ -710,6 +710,7 @@ class TestYoutubeDL(unittest.TestCase):
         ydl = YoutubeDL(params, auto_init=False)
         ydl.downloads = []
         real_process_info = ydl.process_info
+
         def process_info(info_dict, params):
             r = real_process_info(info_dict, params)
             ydl.downloads.append(info_dict)
@@ -728,7 +729,6 @@ class TestYoutubeDL(unittest.TestCase):
                     'url': 'http://example.com',
                 }
 
-
         ie = ExampleIE()
         ydl.add_info_extractor(ie)
         pars = ie.params
@@ -739,6 +739,23 @@ class TestYoutubeDL(unittest.TestCase):
 
         ydl.extract_info('example')
         self.assertEqual(ydl.downloads[-1]['_filename'], 'foo.mp4')
+
+        class ExamplePlaylistIE(InfoExtractor):
+            IE_NAME = 'example.com:playlist'
+            _VALID_URL = r'example:playlist'
+
+            def _real_extract(self, url):
+                return {
+                    '_type': 'playlist',
+                    'title': 'example playlist',
+                    'entries': [self.url_result('example')],
+                }
+        playlist_params = {'outtmpl': '%(playlist)s/%(title)s.%(ext)s'}
+        ydl.params = Params(
+            {'skip_download': True}, {'example.com:playlist': playlist_params})
+        ydl.add_info_extractor(ExamplePlaylistIE())
+        ydl.extract_info('example:playlist')
+        self.assertEqual(ydl.downloads[-1]['_filename'], 'example playlist/example.mp4')
 
 
 if __name__ == '__main__':

@@ -650,12 +650,15 @@ class YoutubeDL(object):
             info_dict.setdefault(key, value)
 
     def extract_info(self, url, download=True, ie_key=None, extra_info={},
-                     process=True, force_generic_extractor=False):
+                     process=True, force_generic_extractor=False, params=None):
         '''
         Returns a list with a dictionary for each video we find.
         If 'download', also downloads the videos.
         extra_info is a dict containing the extra values to add to each result
         '''
+
+        if params is None:
+            params = self.params
 
         if not ie_key and force_generic_extractor:
             ie_key = 'Generic'
@@ -687,7 +690,7 @@ class YoutubeDL(object):
                 if process:
                     return self.process_ie_result(
                         ie_result, download, extra_info,
-                        params=self.params.section(ie.IE_NAME))
+                        params=params.section(ie.IE_NAME))
                 else:
                     return ie_result
             except ExtractorError as e:  # An error we somewhat expected
@@ -741,12 +744,14 @@ class YoutubeDL(object):
             return self.extract_info(ie_result['url'],
                                      download,
                                      ie_key=ie_result.get('ie_key'),
-                                     extra_info=extra_info)
+                                     extra_info=extra_info,
+                                     params=params)
         elif result_type == 'url_transparent':
             # Use the information from the embedding page
             info = self.extract_info(
                 ie_result['url'], ie_key=ie_result.get('ie_key'),
-                extra_info=extra_info, download=False, process=False)
+                extra_info=extra_info, download=False, process=False,
+                params=params)
 
             force_properties = dict(
                 (k, v) for k, v in ie_result.items() if v is not None)

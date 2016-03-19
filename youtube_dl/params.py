@@ -41,3 +41,10 @@ class ParamsSection(object):
             return self[key]
         except KeyError:
             return default
+
+    @property
+    def sections(self):
+        return self.parent.sections
+
+    def section(self, section):
+        return ParamsSection(self.parent.sections.get(section, {}), self)
