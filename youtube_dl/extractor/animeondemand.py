@@ -18,7 +18,7 @@ class AnimeOnDemandIE(InfoExtractor):
     _LOGIN_URL = 'https://www.anime-on-demand.de/users/sign_in'
     _APPLY_HTML5_URL = 'https://www.anime-on-demand.de/html5apply'
     _NETRC_MACHINE = 'animeondemand'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.anime-on-demand.de/anime/161',
         'info_dict': {
             'id': '161',
@@ -26,7 +26,15 @@ class AnimeOnDemandIE(InfoExtractor):
             'description': 'md5:6681ce3c07c7189d255ac6ab23812d31',
         },
         'playlist_mincount': 4,
-    }
+    }, {
+        # Film wording is used instead of Episode
+        'url': 'https://www.anime-on-demand.de/anime/39',
+        'only_matching': True,
+    }, {
+        # Episodes without titles
+        'url': 'https://www.anime-on-demand.de/anime/162',
+        'only_matching': True,
+    }]
 
     def _login(self):
         (username, password) = self._get_login_info()
@@ -91,14 +99,22 @@ class AnimeOnDemandIE(InfoExtractor):
 
         entries = []
 
-        for episode_html in re.findall(r'(?s)<h3[^>]+class="episodebox-title".+?>Episodeninhalt<', webpage):
-            m = re.search(
-                r'class="episodebox-title"[^>]+title="Episode (?P<number>\d+) - (?P<title>.+?)"', episode_html)
-            if not m:
+        for num, episode_html in enumerate(re.findall(
+                r'(?s)<h3[^>]+class="episodebox-title".+?>Episodeninhalt<', webpage), 1):
+            episodebox_title = self._search_regex(
+                (r'class="episodebox-title"[^>]+title=(["\'])(?P<title>.+?)\1',
+                 r'class="episodebox-title"[^>]+>(?P<title>.+?)<'),
+                episode_html, 'episodebox title', default=None, group='title')
+            if not episodebox_title:
                 continue
 
-            episode_number = int(m.group('number'))
-            episode_title = m.group('title')
+            episode_number = int(self._search_regex(
+                r'(?:Episode|Film)\s*(\d+)',
+                episodebox_title, 'episode number', default=num))
+            episode_title = self._search_regex(
+                r'(?:Episode|Film)\s*\d+\s*-\s*(.+)',
+                episodebox_title, 'episode title', default=None)
+
             video_id = 'episode-%d' % episode_number
 
             common_info = {

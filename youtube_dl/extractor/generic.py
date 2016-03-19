@@ -239,6 +239,35 @@ class GenericIE(InfoExtractor):
                 'format': 'bestvideo',
             },
         },
+        # m3u8 served with Content-Type: audio/x-mpegURL; charset=utf-8
+        {
+            'url': 'http://once.unicornmedia.com/now/master/playlist/bb0b18ba-64f5-4b1b-a29f-0ac252f06b68/77a785f3-5188-4806-b788-0893a61634ed/93677179-2d99-4ef4-9e17-fe70d49abfbf/content.m3u8',
+            'info_dict': {
+                'id': 'content',
+                'ext': 'mp4',
+                'title': 'content',
+                'formats': 'mincount:8',
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            }
+        },
+        # m3u8 served with Content-Type: text/plain
+        {
+            'url': 'http://www.nacentapps.com/m3u8/index.m3u8',
+            'info_dict': {
+                'id': 'index',
+                'ext': 'mp4',
+                'title': 'index',
+                'upload_date': '20140720',
+                'formats': 'mincount:11',
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            }
+        },
         # google redirect
         {
             'url': 'http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&ved=0CCUQtwIwAA&url=http%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DcmQHVoWB5FY&ei=F-sNU-LLCaXk4QT52ICQBQ&usg=AFQjCNEw4hL29zgOohLXvpJ-Bdh2bils1Q&bvm=bv.61965928,d.bGE',
@@ -1245,14 +1274,13 @@ class GenericIE(InfoExtractor):
         info_dict = {
             'id': video_id,
             'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
+            'upload_date': unified_strdate(head_response.headers.get('Last-Modified'))
         }
 
         # Check for direct link to a video
-        content_type = head_response.headers.get('Content-Type', '')
-        m = re.match(r'^(?P<type>audio|video|application(?=/(?:ogg$|(?:vnd\.apple\.|x-)?mpegurl)))/(?P<format_id>.+)$', content_type)
+        content_type = head_response.headers.get('Content-Type', '').lower()
+        m = re.match(r'^(?P<type>audio|video|application(?=/(?:ogg$|(?:vnd\.apple\.|x-)?mpegurl)))/(?P<format_id>[^;\s]+)', content_type)
         if m:
-            upload_date = unified_strdate(
-                head_response.headers.get('Last-Modified'))
             format_id = m.group('format_id')
             if format_id.endswith('mpegurl'):
                 formats = self._extract_m3u8_formats(url, video_id, 'mp4')
@@ -1264,11 +1292,8 @@ class GenericIE(InfoExtractor):
                     'url': url,
                     'vcodec': 'none' if m.group('type') == 'audio' else None
                 }]
-            info_dict.update({
-                'direct': True,
-                'formats': formats,
-                'upload_date': upload_date,
-            })
+                info_dict['direct'] = True
+            info_dict['formats'] = formats
             return info_dict
 
         if not self._downloader.params.get('test', False) and not is_intentional:
@@ -1289,18 +1314,21 @@ class GenericIE(InfoExtractor):
             request.add_header('Accept-Encoding', '*')
             full_response = self._request_webpage(request, video_id)
 
+        first_bytes = full_response.read(512)
+
+        # Is it an M3U playlist?
+        if first_bytes.startswith(b'#EXTM3U'):
+            info_dict['formats'] = self._extract_m3u8_formats(url, video_id, 'mp4')
+            return info_dict
+
         # Maybe it's a direct link to a video?
         # Be careful not to download the whole thing!
-        first_bytes = full_response.read(512)
         if not is_html(first_bytes):
             self._downloader.report_warning(
                 'URL could be a direct video link, returning it as such.')
-            upload_date = unified_strdate(
-                head_response.headers.get('Last-Modified'))
             info_dict.update({
                 'direct': True,
                 'url': url,
-                'upload_date': upload_date,
             })
             return info_dict
 

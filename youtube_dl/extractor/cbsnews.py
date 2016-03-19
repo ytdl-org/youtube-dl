@@ -78,7 +78,7 @@ class CBSNewsIE(ThePlatformIE):
             pid = item.get('media' + format_id)
             if not pid:
                 continue
-            release_url = 'http://link.theplatform.com/s/dJ5BDC/%s?format=SMIL&mbr=true' % pid
+            release_url = 'http://link.theplatform.com/s/dJ5BDC/%s?mbr=true' % pid
             tp_formats, tp_subtitles = self._extract_theplatform_smil(release_url, video_id, 'Downloading %s SMIL data' % pid)
             formats.extend(tp_formats)
             subtitles = self._merge_subtitles(subtitles, tp_subtitles)

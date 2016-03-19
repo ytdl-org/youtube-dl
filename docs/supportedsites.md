@@ -81,6 +81,7 @@
  - **BokeCC**
  - **Bpb**: Bundeszentrale für politische Bildung
  - **BR**: Bayerischer Rundfunk Mediathek
+ - **BravoTV**
  - **Break**
  - **brightcove:legacy**
  - **brightcove:new**
@@ -499,6 +500,7 @@
  - **Restudy**
  - **ReverbNation**
  - **Revision3**
+ - **RICE**
  - **RingTV**
  - **RottenTomatoes**
  - **Roxwel**
@@ -617,6 +619,7 @@
  - **ThePlatform**
  - **ThePlatformFeed**
  - **TheSixtyOne**
+ - **TheStar**
  - **ThisAmericanLife**
  - **ThisAV**
  - **THVideo**
@@ -650,6 +653,7 @@
  - **tv.dfb.de**
  - **TV2**
  - **TV2Article**
+ - **TV3**
  - **TV4**: tv4.se and tv4play.se
  - **TVC**
  - **TVCArticle**

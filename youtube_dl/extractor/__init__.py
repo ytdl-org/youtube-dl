@@ -81,6 +81,7 @@ from .bloomberg import BloombergIE
 from .bokecc import BokeCCIE
 from .bpb import BpbIE
 from .br import BRIE
+from .bravotv import BravoTVIE
 from .breakcom import BreakIE
 from .brightcove import (
     BrightcoveLegacyIE,
@@ -135,6 +136,7 @@ from .collegerama import CollegeRamaIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
 from .comcarcoff import ComCarCoffIE
 from .commonmistakes import CommonMistakesIE, UnicodeBOMIE
+from .commonprotocols import RtmpIE
 from .condenast import CondeNastIE
 from .cracked import CrackedIE
 from .crackle import CrackleIE
@@ -282,6 +284,7 @@ from .goshgay import GoshgayIE
 from .gputechconf import GPUTechConfIE
 from .groupon import GrouponIE
 from .hark import HarkIE
+from .hbo import HBOIE
 from .hearthisat import HearThisAtIE
 from .heise import HeiseIE
 from .hellporno import HellPornoIE
@@ -784,6 +787,7 @@ from .tv2 import (
     TV2IE,
     TV2ArticleIE,
 )
+from .tv3 import TV3IE
 from .tv4 import TV4IE
 from .tvc import (
     TVCIE,
