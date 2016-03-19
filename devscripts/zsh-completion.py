@@ -6,7 +6,7 @@ from os.path import dirname as dirn
 import sys
 
 sys.path.insert(0, dirn(dirn((os.path.abspath(__file__)))))
-import youtube_dl
+from youtube_dl.options import build_option_parser
 
 ZSH_COMPLETION_FILE = "youtube-dl.zsh"
 ZSH_COMPLETION_TEMPLATE = "devscripts/zsh-completion.in"
@@ -44,5 +44,5 @@ def build_completion(opt_parser):
     with open(ZSH_COMPLETION_FILE, "w") as f:
         f.write(template)
 
-parser = youtube_dl.parseOpts()[0]
+parser = build_option_parser()
 build_completion(parser)

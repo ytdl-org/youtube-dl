@@ -7,7 +7,7 @@ from os.path import dirname as dirn
 import sys
 
 sys.path.insert(0, dirn(dirn((os.path.abspath(__file__)))))
-import youtube_dl
+from youtube_dl.options import build_option_parser
 from youtube_dl.utils import shell_quote
 
 FISH_COMPLETION_FILE = 'youtube-dl.fish'
@@ -44,5 +44,5 @@ def build_completion(opt_parser):
     with open(FISH_COMPLETION_FILE, 'w') as f:
         f.write(filled_template)
 
-parser = youtube_dl.parseOpts()[0]
+parser = build_option_parser()
 build_completion(parser)

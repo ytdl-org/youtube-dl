@@ -19,57 +19,7 @@ from .utils import (
 from .version import __version__
 
 
-def parseOpts(overrideArguments=None):
-    def _readOptions(filename_bytes, default=[]):
-        try:
-            optionf = open(filename_bytes)
-        except IOError:
-            return default  # silently skip if file is not present
-        try:
-            res = []
-            for l in optionf:
-                res += compat_shlex_split(l, comments=True)
-        finally:
-            optionf.close()
-        return res
-
-    def _readUserConf():
-        xdg_config_home = compat_getenv('XDG_CONFIG_HOME')
-        if xdg_config_home:
-            userConfFile = os.path.join(xdg_config_home, 'youtube-dl', 'config')
-            if not os.path.isfile(userConfFile):
-                userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
-        else:
-            userConfFile = os.path.join(compat_expanduser('~'), '.config', 'youtube-dl', 'config')
-            if not os.path.isfile(userConfFile):
-                userConfFile = os.path.join(compat_expanduser('~'), '.config', 'youtube-dl.conf')
-        userConf = _readOptions(userConfFile, None)
-
-        if userConf is None:
-            appdata_dir = compat_getenv('appdata')
-            if appdata_dir:
-                userConf = _readOptions(
-                    os.path.join(appdata_dir, 'youtube-dl', 'config'),
-                    default=None)
-                if userConf is None:
-                    userConf = _readOptions(
-                        os.path.join(appdata_dir, 'youtube-dl', 'config.txt'),
-                        default=None)
-
-        if userConf is None:
-            userConf = _readOptions(
-                os.path.join(compat_expanduser('~'), 'youtube-dl.conf'),
-                default=None)
-        if userConf is None:
-            userConf = _readOptions(
-                os.path.join(compat_expanduser('~'), 'youtube-dl.conf.txt'),
-                default=None)
-
-        if userConf is None:
-            userConf = []
-
-        return userConf
-
+def build_option_parser():
     def _format_option_string(option):
         ''' ('-o', '--option') -> -o, --format METAVAR'''
 
@@ -89,16 +39,6 @@ def parseOpts(overrideArguments=None):
 
     def _comma_separated_values_options_callback(option, opt_str, value, parser):
         setattr(parser.values, option.dest, value.split(','))
-
-    def _hide_login_info(opts):
-        opts = list(opts)
-        for private_opt in ['-p', '--password', '-u', '--username', '--video-password']:
-            try:
-                i = opts.index(private_opt)
-                opts[i + 1] = 'PRIVATE'
-            except ValueError:
-                pass
-        return opts
 
     # No need to wrap help messages if we're on a wide console
     columns = compat_get_terminal_size().columns
@@ -785,6 +725,72 @@ def parseOpts(overrideArguments=None):
     parser.add_option_group(subtitles)
     parser.add_option_group(authentication)
     parser.add_option_group(postproc)
+
+    return parser
+
+
+def parseOpts(overrideArguments=None):
+    def _readOptions(filename_bytes, default=[]):
+        try:
+            optionf = open(filename_bytes)
+        except IOError:
+            return default  # silently skip if file is not present
+        try:
+            res = []
+            for l in optionf:
+                res += compat_shlex_split(l, comments=True)
+        finally:
+            optionf.close()
+        return res
+
+    def _readUserConf():
+        xdg_config_home = compat_getenv('XDG_CONFIG_HOME')
+        if xdg_config_home:
+            userConfFile = os.path.join(xdg_config_home, 'youtube-dl', 'config')
+            if not os.path.isfile(userConfFile):
+                userConfFile = os.path.join(xdg_config_home, 'youtube-dl.conf')
+        else:
+            userConfFile = os.path.join(compat_expanduser('~'), '.config', 'youtube-dl', 'config')
+            if not os.path.isfile(userConfFile):
+                userConfFile = os.path.join(compat_expanduser('~'), '.config', 'youtube-dl.conf')
+        userConf = _readOptions(userConfFile, None)
+
+        if userConf is None:
+            appdata_dir = compat_getenv('appdata')
+            if appdata_dir:
+                userConf = _readOptions(
+                    os.path.join(appdata_dir, 'youtube-dl', 'config'),
+                    default=None)
+                if userConf is None:
+                    userConf = _readOptions(
+                        os.path.join(appdata_dir, 'youtube-dl', 'config.txt'),
+                        default=None)
+
+        if userConf is None:
+            userConf = _readOptions(
+                os.path.join(compat_expanduser('~'), 'youtube-dl.conf'),
+                default=None)
+        if userConf is None:
+            userConf = _readOptions(
+                os.path.join(compat_expanduser('~'), 'youtube-dl.conf.txt'),
+                default=None)
+
+        if userConf is None:
+            userConf = []
+
+        return userConf
+
+    def _hide_login_info(opts):
+        opts = list(opts)
+        for private_opt in ['-p', '--password', '-u', '--username', '--video-password']:
+            try:
+                i = opts.index(private_opt)
+                opts[i + 1] = 'PRIVATE'
+            except ValueError:
+                pass
+        return opts
+
+    parser = build_option_parser()
 
     if overrideArguments is not None:
         opts, args = parser.parse_args(overrideArguments)

@@ -44,80 +44,7 @@ from .extractor import gen_extractors, list_extractors
 from .YoutubeDL import YoutubeDL
 
 
-def _real_main(argv=None):
-    # Compatibility fixes for Windows
-    if sys.platform == 'win32':
-        # https://github.com/rg3/youtube-dl/issues/820
-        codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
-
-    workaround_optparse_bug9161()
-
-    setproctitle('youtube-dl')
-
-    parser, opts, args = parseOpts(argv)
-
-    # Set user agent
-    if opts.user_agent is not None:
-        std_headers['User-Agent'] = opts.user_agent
-
-    # Set referer
-    if opts.referer is not None:
-        std_headers['Referer'] = opts.referer
-
-    # Custom HTTP headers
-    if opts.headers is not None:
-        for h in opts.headers:
-            if h.find(':', 1) < 0:
-                parser.error('wrong header formatting, it should be key:value, not "%s"' % h)
-            key, value = h.split(':', 2)
-            if opts.verbose:
-                write_string('[debug] Adding header from command line option %s:%s\n' % (key, value))
-            std_headers[key] = value
-
-    # Dump user agent
-    if opts.dump_user_agent:
-        compat_print(std_headers['User-Agent'])
-        sys.exit(0)
-
-    # Batch file verification
-    batch_urls = []
-    if opts.batchfile is not None:
-        try:
-            if opts.batchfile == '-':
-                batchfd = sys.stdin
-            else:
-                batchfd = io.open(opts.batchfile, 'r', encoding='utf-8', errors='ignore')
-            batch_urls = read_batch_urls(batchfd)
-            if opts.verbose:
-                write_string('[debug] Batch file urls: ' + repr(batch_urls) + '\n')
-        except IOError:
-            sys.exit('ERROR: batch file could not be read')
-    all_urls = batch_urls + args
-    all_urls = [url.strip() for url in all_urls]
-    _enc = preferredencoding()
-    all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url for url in all_urls]
-
-    if opts.list_extractors:
-        for ie in list_extractors(opts.age_limit):
-            compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
-            matchedUrls = [url for url in all_urls if ie.suitable(url)]
-            for mu in matchedUrls:
-                compat_print('  ' + mu)
-        sys.exit(0)
-    if opts.list_extractor_descriptions:
-        for ie in list_extractors(opts.age_limit):
-            if not ie._WORKING:
-                continue
-            desc = getattr(ie, 'IE_DESC', ie.IE_NAME)
-            if desc is False:
-                continue
-            if hasattr(ie, 'SEARCH_KEY'):
-                _SEARCHES = ('cute kittens', 'slithering pythons', 'falling cat', 'angry poodle', 'purple fish', 'running tortoise', 'sleeping bunny', 'burping cow')
-                _COUNTS = ('', '5', '10', 'all')
-                desc += ' (Example: "%s%s:%s" )' % (ie.SEARCH_KEY, random.choice(_COUNTS), random.choice(_SEARCHES))
-            compat_print(desc)
-        sys.exit(0)
-
+def _build_ydl_opts(opts, parser):
     # Conflicting, missing and erroneous options
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
         parser.error('using .netrc conflicts with giving username/password')
@@ -276,7 +203,7 @@ def _real_main(argv=None):
         None if opts.match_filter is None
         else match_filter_func(opts.match_filter))
 
-    ydl_opts = {
+    return {
         'usenetrc': opts.usenetrc,
         'username': opts.username,
         'password': opts.password,
@@ -382,6 +309,83 @@ def _real_main(argv=None):
         'postprocessor_args': postprocessor_args,
         'cn_verification_proxy': opts.cn_verification_proxy,
     }
+
+
+def _real_main(argv=None):
+    # Compatibility fixes for Windows
+    if sys.platform == 'win32':
+        # https://github.com/rg3/youtube-dl/issues/820
+        codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
+
+    workaround_optparse_bug9161()
+
+    setproctitle('youtube-dl')
+
+    parser, opts, args = parseOpts(argv)
+
+    # Set user agent
+    if opts.user_agent is not None:
+        std_headers['User-Agent'] = opts.user_agent
+
+    # Set referer
+    if opts.referer is not None:
+        std_headers['Referer'] = opts.referer
+
+    # Custom HTTP headers
+    if opts.headers is not None:
+        for h in opts.headers:
+            if h.find(':', 1) < 0:
+                parser.error('wrong header formatting, it should be key:value, not "%s"' % h)
+            key, value = h.split(':', 2)
+            if opts.verbose:
+                write_string('[debug] Adding header from command line option %s:%s\n' % (key, value))
+            std_headers[key] = value
+
+    # Dump user agent
+    if opts.dump_user_agent:
+        compat_print(std_headers['User-Agent'])
+        sys.exit(0)
+
+    # Batch file verification
+    batch_urls = []
+    if opts.batchfile is not None:
+        try:
+            if opts.batchfile == '-':
+                batchfd = sys.stdin
+            else:
+                batchfd = io.open(opts.batchfile, 'r', encoding='utf-8', errors='ignore')
+            batch_urls = read_batch_urls(batchfd)
+            if opts.verbose:
+                write_string('[debug] Batch file urls: ' + repr(batch_urls) + '\n')
+        except IOError:
+            sys.exit('ERROR: batch file could not be read')
+    all_urls = batch_urls + args
+    all_urls = [url.strip() for url in all_urls]
+    _enc = preferredencoding()
+    all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url for url in all_urls]
+
+    if opts.list_extractors:
+        for ie in list_extractors(opts.age_limit):
+            compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
+            matchedUrls = [url for url in all_urls if ie.suitable(url)]
+            for mu in matchedUrls:
+                compat_print('  ' + mu)
+        sys.exit(0)
+    if opts.list_extractor_descriptions:
+        for ie in list_extractors(opts.age_limit):
+            if not ie._WORKING:
+                continue
+            desc = getattr(ie, 'IE_DESC', ie.IE_NAME)
+            if desc is False:
+                continue
+            if hasattr(ie, 'SEARCH_KEY'):
+                _SEARCHES = ('cute kittens', 'slithering pythons', 'falling cat', 'angry poodle', 'purple fish', 'running tortoise', 'sleeping bunny', 'burping cow')
+                _COUNTS = ('', '5', '10', 'all')
+                desc += ' (Example: "%s%s:%s" )' % (ie.SEARCH_KEY, random.choice(_COUNTS), random.choice(_SEARCHES))
+            compat_print(desc)
+        sys.exit(0)
+
+    ydl_opts = _build_ydl_opts(opts, parser)
 
     with YoutubeDL(ydl_opts) as ydl:
         # Update version
