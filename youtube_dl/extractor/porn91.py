@@ -1,7 +1,10 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-from ..compat import compat_urllib_parse
+from ..compat import (
+    compat_urllib_parse,
+    compat_urllib_parse_unquote,
+)
 from .common import InfoExtractor
 from ..utils import (
     parse_duration,
@@ -55,7 +58,8 @@ class Porn91IE(InfoExtractor):
         info_cn = self._download_webpage(
             'http://91porn.com/getfile.php?' + url_params, video_id,
             'get real video url')
-        video_url = self._search_regex(r'file=([^&]+)&', info_cn, 'url')
+        video_url = compat_urllib_parse_unquote(self._search_regex(
+            r'file=([^&]+)&', info_cn, 'url'))
 
         duration = parse_duration(self._search_regex(
             r'时长:\s*</span>\s*(\d+:\d+)', webpage, 'duration', fatal=False))
