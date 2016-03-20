@@ -125,7 +125,7 @@ class PluzzIE(FranceTVBaseInfoExtractor):
 
 class FranceTvInfoIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'francetvinfo.fr'
-    _VALID_URL = r'https?://(?:www|mobile)\.francetvinfo\.fr/.*/(?P<title>.+)\.html'
+    _VALID_URL = r'https?://(?:www|mobile|france3-regions)\.francetvinfo\.fr/.*/(?P<title>.+)\.html'
 
     _TESTS = [{
         'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
@@ -172,7 +172,7 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
             return self.url_result(dmcloud_url, 'DailymotionCloud')
 
         video_id, catalogue = self._search_regex(
-            r'id-video=([^@]+@[^"]+)', webpage, 'video id').split('@')
+            r'(?:id-video=|video/)([^@]+@[^"]+)', webpage, 'video id').split('@')
         return self._extract_video(video_id, catalogue)
 
 
