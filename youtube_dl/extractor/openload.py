@@ -5,21 +5,31 @@ import re
 
 from .common import InfoExtractor
 from ..compat import compat_chr
-from ..utils import encode_base_n
+from ..utils import (
+    encode_base_n,
+    ExtractorError,
+)
 
 
 class OpenloadIE(InfoExtractor):
-    _VALID_URL = r'https://openload.co/f/(?P<id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https://openload.(?:co|io)/(?:f|embed)/(?P<id>[a-zA-Z0-9-]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
         'md5': 'bf1c059b004ebc7a256f89408e65c36e',
         'info_dict': {
             'id': 'kUEfGclsU9o',
             'ext': 'mp4',
             'title': 'skyrim_no-audio_1080.mp4',
+            'thumbnail': 're:^https?://.*\.jpg$',
         },
-    }
+    }, {
+        'url': 'https://openload.co/embed/kUEfGclsU9o/skyrim_no-audio_1080.mp4',
+        'only_matching': True,
+    }, {
+        'url': 'https://openload.io/f/ZAn6oz-VZGE/',
+        'only_matching': True,
+    }]
 
     @staticmethod
     def openload_level2_debase(m):
@@ -78,6 +88,10 @@ class OpenloadIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
+        if 'File not found' in webpage:
+            raise ExtractorError('File not found', expected=True)
+
         code = self._search_regex(
             r'<video[^>]+>\s*<script[^>]+>([^<]+)</script>',
             webpage, 'JS code')
@@ -88,5 +102,6 @@ class OpenloadIE(InfoExtractor):
         return {
             'id': video_id,
             'title': self._og_search_title(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage),
             'url': video_url,
         }
