@@ -1836,7 +1836,7 @@ class YoutubeDL(object):
         if fdict.get('language'):
             if res:
                 res += ' '
-            res += '[%s]' % fdict['language']
+            res += '[%s] ' % fdict['language']
         if fdict.get('format_note') is not None:
             res += fdict['format_note'] + ' '
         if fdict.get('tbr') is not None:
