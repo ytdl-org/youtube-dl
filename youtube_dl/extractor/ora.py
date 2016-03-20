@@ -6,13 +6,14 @@ from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
     get_element_by_attribute,
+    js_to_json,
     qualities,
     unescapeHTML,
 )
 
 
 class OraTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ora\.tv/([^/]+/)*(?P<id>[^/\?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?(ora\.tv|unsafespeech\.com)/([^/]+/)*(?P<id>[^/\?#]+)'
     _TEST = {
         'url': 'https://www.ora.tv/larrykingnow/2015/12/16/vine-youtube-stars-zach-king-king-bach-on-their-viral-videos-0_36jupg6090pq',
         'md5': 'fa33717591c631ec93b04b0e330df786',
@@ -28,10 +29,13 @@ class OraTVIE(InfoExtractor):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
 
-        video_data = self._search_regex(
-            r'"(?:video|current)"\s*:\s*({[^}]+?})', webpage, 'current video')
-        m3u8_url = self._search_regex(
-            r'hls_stream"?\s*:\s*"([^"]+)', video_data, 'm3u8 url', None)
+        ora_meta = self._parse_json(self._search_regex(
+            r'(?s);\s*ora_meta = ({.*?});</script>', webpage, 'ora_meta'), display_id,
+            transform_source=lambda data: js_to_json(re.sub('":(document|\().*?(:false|\(\)),', '":null,', data)))
+
+        video_data = ora_meta.get('video', ora_meta.get('current'))
+        m3u8_url = video_data['hls_stream']
+
         if m3u8_url:
             formats = self._extract_m3u8_formats(
                 m3u8_url, display_id, 'mp4', 'm3u8_native',
@@ -60,13 +64,11 @@ class OraTVIE(InfoExtractor):
                 r'"youtube_id"\s*:\s*"([^"]+)', webpage, 'youtube id'), 'Youtube')
 
         return {
-            'id': self._search_regex(
-                r'"id"\s*:\s*(\d+)', video_data, 'video id', default=display_id),
+            'id': video_data.get('id', display_id),
             'display_id': display_id,
             'title': unescapeHTML(self._og_search_title(webpage)),
             'description': get_element_by_attribute(
                 'class', 'video_txt_decription', webpage),
-            'thumbnail': self._proto_relative_url(self._search_regex(
-                r'"thumb"\s*:\s*"([^"]+)', video_data, 'thumbnail', None)),
+            'thumbnail': self._proto_relative_url(video_data.get('thumb')),
             'formats': formats,
         }
