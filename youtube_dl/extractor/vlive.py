@@ -64,7 +64,7 @@ class VLiveIE(InfoExtractor):
 
         thumbnail = self._og_search_thumbnail(webpage)
         creator = self._html_search_regex(
-            r'<div[^>]+class="info_area"[^>]*>\s*<strong[^>]+class="name"[^>]*>([^<]+)</strong>',
+            r'<div[^>]+class="info_area"[^>]*>\s*<a\s+[^>]*>([^<]+)',
             webpage, 'creator', fatal=False)
 
         view_count = int_or_none(playinfo.get('meta', {}).get('count'))
