@@ -2,13 +2,13 @@
 from __future__ import unicode_literals
 
 import re
-import itertools
 
 from .common import InfoExtractor
 from ..utils import (
     get_element_by_id,
     clean_html,
     ExtractorError,
+    InAdvancePagedList,
     remove_start,
 )
 
@@ -55,7 +55,7 @@ class KuwoBaseIE(InfoExtractor):
 class KuwoIE(KuwoBaseIE):
     IE_NAME = 'kuwo:song'
     IE_DESC = '酷我音乐'
-    _VALID_URL = r'http://www\.kuwo\.cn/yinyue/(?P<id>\d+?)/'
+    _VALID_URL = r'http://www\.kuwo\.cn/yinyue/(?P<id>\d+?)'
     _TESTS = [{
         'url': 'http://www.kuwo.cn/yinyue/635632/',
         'info_dict': {
@@ -80,6 +80,9 @@ class KuwoIE(KuwoBaseIE):
         'params': {
             'format': 'mp3-320'
         },
+    }, {
+        'url': 'http://www.kuwo.cn/yinyue/3197154?catalog=yueku2016',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -172,8 +175,6 @@ class KuwoChartIE(InfoExtractor):
         'url': 'http://yinyue.kuwo.cn/billboard_香港中文龙虎榜.htm',
         'info_dict': {
             'id': '香港中文龙虎榜',
-            'title': '香港中文龙虎榜',
-            'description': 're:\d{4}第\d{2}期',
         },
         'playlist_mincount': 10,
     }
@@ -184,17 +185,11 @@ class KuwoChartIE(InfoExtractor):
             url, chart_id, note='Download chart info',
             errnote='Unable to get chart info')
 
-        chart_name = self._html_search_regex(
-            r'<h1[^>]+class="unDis">([^<]+)</h1>', webpage, 'chart name')
-
-        chart_desc = self._html_search_regex(
-            r'<p[^>]+class="tabDef">(\d{4}第\d{2}期)</p>', webpage, 'chart desc')
-
         entries = [
             self.url_result(song_url, 'Kuwo') for song_url in re.findall(
-                r'<a[^>]+href="(http://www\.kuwo\.cn/yinyue/\d+)/"', webpage)
+                r'<a[^>]+href="(http://www\.kuwo\.cn/yinyue/\d+)', webpage)
         ]
-        return self.playlist_result(entries, chart_id, chart_name, chart_desc)
+        return self.playlist_result(entries, chart_id)
 
 
 class KuwoSingerIE(InfoExtractor):
@@ -207,7 +202,7 @@ class KuwoSingerIE(InfoExtractor):
             'id': 'bruno+mars',
             'title': 'Bruno Mars',
         },
-        'playlist_count': 10,
+        'playlist_mincount': 329,
     }, {
         'url': 'http://www.kuwo.cn/mingxing/Ali/music.htm',
         'info_dict': {
@@ -218,6 +213,8 @@ class KuwoSingerIE(InfoExtractor):
         'skip': 'Regularly stalls travis build',  # See https://travis-ci.org/rg3/youtube-dl/jobs/78878540
     }]
 
+    PAGE_SIZE = 15
+
     def _real_extract(self, url):
         singer_id = self._match_id(url)
         webpage = self._download_webpage(
@@ -225,25 +222,28 @@ class KuwoSingerIE(InfoExtractor):
             errnote='Unable to get singer info')
 
         singer_name = self._html_search_regex(
-            r'<div class="title clearfix">\s*<h1>([^<]+)<span', webpage, 'singer name'
-        )
+            r'<h1>([^<]+)</h1>', webpage, 'singer name')
 
-        entries = []
-        first_page_only = False if re.search(r'/music(?:_\d+)?\.htm', url) else True
-        for page_num in itertools.count(1):
+        artist_id = self._html_search_regex(
+            r'data-artistid="(\d+)"', webpage, 'artist id')
+
+        page_count = int(self._html_search_regex(
+            r'data-page="(\d+)"', webpage, 'page count'))
+
+        def page_func(page_num):
             webpage = self._download_webpage(
-                'http://www.kuwo.cn/mingxing/%s/music_%d.htm' % (singer_id, page_num),
-                singer_id, note='Download song list page #%d' % page_num,
-                errnote='Unable to get song list page #%d' % page_num)
+                'http://www.kuwo.cn/artist/contentMusicsAjax',
+                singer_id, note='Download song list page #%d' % (page_num + 1),
+                errnote='Unable to get song list page #%d' % (page_num + 1),
+                query={'artistId': artist_id, 'pn': page_num, 'rn': self.PAGE_SIZE})
 
-            entries.extend([
+            return [
                 self.url_result(song_url, 'Kuwo') for song_url in re.findall(
-                    r'<p[^>]+class="m_name"><a[^>]+href="(http://www\.kuwo\.cn/yinyue/\d+)/',
+                    r'<div[^>]+class="name"><a[^>]+href="(http://www\.kuwo\.cn/yinyue/\d+)',
                     webpage)
-            ][:10 if first_page_only else None])
+            ]
 
-            if first_page_only or not re.search(r'<a[^>]+href="[^"]+">下一页</a>', webpage):
-                break
+        entries = InAdvancePagedList(page_func, page_count, self.PAGE_SIZE)
 
         return self.playlist_result(entries, singer_id, singer_name)
 
