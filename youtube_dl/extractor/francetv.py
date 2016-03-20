@@ -82,6 +82,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
         subtitle = info.get('sous_titre')
         if subtitle:
             title += ' - %s' % subtitle
+        title = title.strip()
 
         subtitles = {}
         subtitles_list = [{
@@ -125,7 +126,7 @@ class PluzzIE(FranceTVBaseInfoExtractor):
 
 class FranceTvInfoIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'francetvinfo.fr'
-    _VALID_URL = r'https?://(?:www|mobile)\.francetvinfo\.fr/.*/(?P<title>.+)\.html'
+    _VALID_URL = r'https?://(?:www|mobile|france3-regions)\.francetvinfo\.fr/.*/(?P<title>.+)\.html'
 
     _TESTS = [{
         'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
@@ -160,6 +161,21 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
             'title': 'Les entreprises familiales : le secret de la réussite',
             'thumbnail': 're:^https?://.*\.jpe?g$',
         }
+    }, {
+        'url': 'http://france3-regions.francetvinfo.fr/bretagne/cotes-d-armor/thalassa-echappee-breizh-ce-venredi-dans-les-cotes-d-armor-954961.html',
+        'md5': 'f485bda6e185e7d15dbc69b72bae993e',
+        'info_dict': {
+            'id': 'NI_657393',
+            'ext': 'flv',
+            'title': 'Olivier Monthus, réalisateur de "Bretagne, le choix de l’Armor"',
+            'description': 'md5:a3264114c9d29aeca11ced113c37b16c',
+            'thumbnail': 're:^https?://.*\.jpe?g$',
+            'timestamp': 1458300695,
+            'upload_date': '20160318',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
@@ -172,7 +188,9 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
             return self.url_result(dmcloud_url, 'DailymotionCloud')
 
         video_id, catalogue = self._search_regex(
-            r'id-video=([^@]+@[^"]+)', webpage, 'video id').split('@')
+            (r'id-video=([^@]+@[^"]+)',
+             r'<a[^>]+href="(?:https?:)?//videos\.francetv\.fr/video/([^@]+@[^"]+)"'),
+            webpage, 'video id').split('@')
         return self._extract_video(video_id, catalogue)
 
 
