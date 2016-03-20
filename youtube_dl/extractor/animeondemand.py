@@ -44,6 +44,10 @@ class AnimeOnDemandIE(InfoExtractor):
         login_page = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login page')
 
+        if '>Our licensing terms allow the distribution of animes only to German-speaking countries of Europe' in login_page:
+            self.raise_geo_restricted(
+                '%s is only available in German-speaking countries of Europe' % self.IE_NAME)
+
         login_form = self._form_hidden_inputs('new_user', login_page)
 
         login_form.update({
