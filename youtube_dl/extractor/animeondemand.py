@@ -3,10 +3,14 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..compat import (
+    compat_urlparse,
+    compat_str,
+)
 from ..utils import (
     determine_ext,
     encode_dict,
+    extract_attributes,
     ExtractorError,
     sanitized_Request,
     urlencode_postdata,
@@ -33,6 +37,10 @@ class AnimeOnDemandIE(InfoExtractor):
     }, {
         # Episodes without titles
         'url': 'https://www.anime-on-demand.de/anime/162',
+        'only_matching': True,
+    }, {
+        # ger/jap, Dub/OmU, account required
+        'url': 'https://www.anime-on-demand.de/anime/169',
         'only_matching': True,
     }]
 
@@ -130,33 +138,70 @@ class AnimeOnDemandIE(InfoExtractor):
 
             formats = []
 
-            playlist_url = self._search_regex(
-                r'data-playlist=(["\'])(?P<url>.+?)\1',
-                episode_html, 'data playlist', default=None, group='url')
-            if playlist_url:
-                request = sanitized_Request(
-                    compat_urlparse.urljoin(url, playlist_url),
-                    headers={
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-Token': csrf_token,
-                        'Referer': url,
-                        'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    })
+            for input_ in re.findall(
+                    r'<input[^>]+class=["\'].*?streamstarter_html5[^>]+>', episode_html):
+                attributes = extract_attributes(input_)
+                playlist_urls = []
+                for playlist_key in ('data-playlist', 'data-otherplaylist'):
+                    playlist_url = attributes.get(playlist_key)
+                    if isinstance(playlist_url, compat_str) and re.match(
+                            r'/?[\da-zA-Z]+', playlist_url):
+                        playlist_urls.append(attributes[playlist_key])
+                if not playlist_urls:
+                    continue
 
-                playlist = self._download_json(
-                    request, video_id, 'Downloading playlist JSON', fatal=False)
-                if playlist:
-                    playlist = playlist['playlist'][0]
-                    title = playlist['title']
+                lang = attributes.get('data-lang')
+                lang_note = attributes.get('value')
+
+                for playlist_url in playlist_urls:
+                    kind = self._search_regex(
+                        r'videomaterialurl/\d+/([^/]+)/',
+                        playlist_url, 'media kind', default=None)
+                    format_id_list = []
+                    if lang:
+                        format_id_list.append(lang)
+                    if kind:
+                        format_id_list.append(kind)
+                    if not format_id_list:
+                        format_id_list.append('hls')
+                    format_id = '-'.join(format_id_list)
+                    format_note = ', '.join(filter(None, (kind, lang_note)))
+                    request = sanitized_Request(
+                        compat_urlparse.urljoin(url, playlist_url),
+                        headers={
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-Token': csrf_token,
+                            'Referer': url,
+                            'Accept': 'application/json, text/javascript, */*; q=0.01',
+                        })
+                    playlist = self._download_json(
+                        request, video_id, 'Downloading %s playlist JSON' % format_id,
+                        fatal=False)
+                    if not playlist:
+                        continue
+                    playlist = playlist.get('playlist')
+                    if not playlist or not isinstance(playlist, list):
+                        continue
+                    playlist = playlist[0]
+                    title = playlist.get('title')
+                    if not title:
+                        continue
                     description = playlist.get('description')
                     for source in playlist.get('sources', []):
                         file_ = source.get('file')
                         if file_ and determine_ext(file_) == 'm3u8':
-                            formats = self._extract_m3u8_formats(
+                            m3u8_formats = self._extract_m3u8_formats(
                                 file_, video_id, 'mp4',
-                                entry_protocol='m3u8_native', m3u8_id='hls')
+                                entry_protocol='m3u8_native', m3u8_id=format_id)
+                            for f in m3u8_formats:
+                                f.update({
+                                    'language': lang,
+                                    'format_note': format_note,
+                                })
+                            formats.extend(m3u8_formats)
 
             if formats:
+                self._sort_formats(formats)
                 f = common_info.copy()
                 f.update({
                     'title': title,
