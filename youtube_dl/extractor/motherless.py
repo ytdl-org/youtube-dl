@@ -69,6 +69,9 @@ class MotherlessIE(InfoExtractor):
                 ">The page you're looking for cannot be found.<")):
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
+        if '>The content you are trying to view is for friends only.' in webpage:
+            raise ExtractorError('Video %s is for friends only' % video_id, expected=True)
+
         title = self._html_search_regex(
             r'id="view-upload-title">\s+([^<]+)<', webpage, 'title')
         video_url = self._html_search_regex(
