@@ -7,7 +7,20 @@ python:
   - "3.4"
   - "3.5"
 sudo: false
-script: nosetests test --verbose
+env:
+  - TESTS=complete
+  - TESTS=regression_1-of-7
+  - TESTS=regression_2-of-7
+  - TESTS=regression_3-of-7
+  - TESTS=regression_4-of-7
+  - TESTS=regression_5-of-7
+  - TESTS=regression_6-of-7
+  - TESTS=regression_7-of-7
+matrix:
+  allow_failures:
+    - env: TESTS=complete
+
+script: devscripts/travis.sh
 notifications:
   email:
     - filippo.valsorda@gmail.com
