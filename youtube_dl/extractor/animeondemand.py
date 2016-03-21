@@ -204,6 +204,7 @@ class AnimeOnDemandIE(InfoExtractor):
                                 file_, video_id, 'mp4',
                                 entry_protocol='m3u8_native', m3u8_id=format_id, fatal=False)
                         elif source.get('type') == 'video/dash' or ext == 'mpd':
+                            continue
                             file_formats = self._extract_mpd_formats(
                                 file_, video_id, mpd_id=format_id, fatal=False)
                         else:
