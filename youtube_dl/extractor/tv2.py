@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class TV2IE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?tv2\.no/v/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?tv2\.no/v/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.tv2.no/v/916509/',
         'info_dict': {
@@ -100,7 +100,7 @@ class TV2IE(InfoExtractor):
 
 
 class TV2ArticleIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?tv2\.no/(?:a|\d{4}/\d{2}/\d{2}(/[^/]+)+)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?tv2\.no/(?:a|\d{4}/\d{2}/\d{2}(/[^/]+)+)/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.tv2.no/2015/05/16/nyheter/alesund/krim/pingvin/6930542',
         'info_dict': {

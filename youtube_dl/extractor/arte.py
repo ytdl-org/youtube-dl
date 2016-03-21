@@ -23,7 +23,7 @@ from ..utils import (
 
 
 class ArteTvIE(InfoExtractor):
-    _VALID_URL = r'http://videos\.arte\.tv/(?P<lang>fr|de|en|es)/.*-(?P<id>.*?)\.html'
+    _VALID_URL = r'https?://videos\.arte\.tv/(?P<lang>fr|de|en|es)/.*-(?P<id>.*?)\.html'
     IE_NAME = 'arte.tv'
 
     def _real_extract(self, url):

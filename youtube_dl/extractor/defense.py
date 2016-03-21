@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 class DefenseGouvFrIE(InfoExtractor):
     IE_NAME = 'defense.gouv.fr'
-    _VALID_URL = r'http://.*?\.defense\.gouv\.fr/layout/set/ligthboxvideo/base-de-medias/webtv/(?P<id>[^/?#]*)'
+    _VALID_URL = r'https?://.*?\.defense\.gouv\.fr/layout/set/ligthboxvideo/base-de-medias/webtv/(?P<id>[^/?#]*)'
 
     _TEST = {
         'url': 'http://www.defense.gouv.fr/layout/set/ligthboxvideo/base-de-medias/webtv/attaque-chimique-syrienne-du-21-aout-2013-1',

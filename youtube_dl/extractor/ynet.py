@@ -9,7 +9,7 @@ from ..compat import compat_urllib_parse_unquote_plus
 
 
 class YnetIE(InfoExtractor):
-    _VALID_URL = r'http://(?:.+?\.)?ynet\.co\.il/(?:.+?/)?0,7340,(?P<id>L(?:-[0-9]+)+),00\.html'
+    _VALID_URL = r'https?://(?:.+?\.)?ynet\.co\.il/(?:.+?/)?0,7340,(?P<id>L(?:-[0-9]+)+),00\.html'
     _TESTS = [
         {
             'url': 'http://hot.ynet.co.il/home/0,7340,L-11659-99244,00.html',

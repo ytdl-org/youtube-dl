@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class HypemIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?hypem\.com/track/(?P<id>[^/]+)/'
+    _VALID_URL = r'https?://(?:www\.)?hypem\.com/track/(?P<id>[^/]+)/'
     _TEST = {
         'url': 'http://hypem.com/track/1v6ga/BODYWORK+-+TAME',
         'md5': 'b9cc91b5af8995e9f0c1cee04c575828',

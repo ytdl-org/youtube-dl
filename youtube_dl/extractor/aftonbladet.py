@@ -6,7 +6,7 @@ from ..utils import int_or_none
 
 
 class AftonbladetIE(InfoExtractor):
-    _VALID_URL = r'http://tv\.aftonbladet\.se/abtv/articles/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://tv\.aftonbladet\.se/abtv/articles/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://tv.aftonbladet.se/abtv/articles/36015',
         'info_dict': {

@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class Vbox7IE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?vbox7\.com/play:(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?vbox7\.com/play:(?P<id>[^/]+)'
     _TEST = {
         'url': 'http://vbox7.com/play:249bb972c2',
         'md5': '99f65c0c9ef9b682b97313e052734c3f',

@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class Ku6IE(InfoExtractor):
-    _VALID_URL = r'http://v\.ku6\.com/show/(?P<id>[a-zA-Z0-9\-\_]+)(?:\.)*html'
+    _VALID_URL = r'https?://v\.ku6\.com/show/(?P<id>[a-zA-Z0-9\-\_]+)(?:\.)*html'
     _TEST = {
         'url': 'http://v.ku6.com/show/JG-8yS14xzBr4bCn1pu0xw...html',
         'md5': '01203549b9efbb45f4b87d55bdea1ed1',

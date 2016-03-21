@@ -115,7 +115,7 @@ class NBCSportsVPlayerIE(InfoExtractor):
 
 class NBCSportsIE(InfoExtractor):
     # Does not include https because its certificate is invalid
-    _VALID_URL = r'http://www\.nbcsports\.com//?(?:[^/]+/)+(?P<id>[0-9a-z-]+)'
+    _VALID_URL = r'https?://www\.nbcsports\.com//?(?:[^/]+/)+(?P<id>[0-9a-z-]+)'
 
     _TEST = {
         'url': 'http://www.nbcsports.com//college-basketball/ncaab/tom-izzo-michigan-st-has-so-much-respect-duke',
@@ -295,7 +295,7 @@ class NBCNewsIE(ThePlatformIE):
 
 class MSNBCIE(InfoExtractor):
     # https URLs redirect to corresponding http ones
-    _VALID_URL = r'http://www\.msnbc\.com/[^/]+/watch/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://www\.msnbc\.com/[^/]+/watch/(?P<id>[^/]+)'
     _TEST = {
         'url': 'http://www.msnbc.com/all-in-with-chris-hayes/watch/the-chaotic-gop-immigration-vote-314487875924',
         'md5': '6d236bf4f3dddc226633ce6e2c3f814d',

@@ -33,7 +33,7 @@ class BokeCCBaseIE(InfoExtractor):
 
 class BokeCCIE(BokeCCBaseIE):
     _IE_DESC = 'CC视频'
-    _VALID_URL = r'http://union\.bokecc\.com/playvideo\.bo\?(?P<query>.*)'
+    _VALID_URL = r'https?://union\.bokecc\.com/playvideo\.bo\?(?P<query>.*)'
 
     _TESTS = [{
         'url': 'http://union.bokecc.com/playvideo.bo?vid=E44D40C15E65EA30&uid=CD0C5D3C8614B28B',

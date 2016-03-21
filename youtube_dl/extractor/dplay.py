@@ -10,7 +10,7 @@ from ..utils import int_or_none
 
 
 class DPlayIE(InfoExtractor):
-    _VALID_URL = r'http://(?P<domain>it\.dplay\.com|www\.dplay\.(?:dk|se|no))/[^/]+/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?P<domain>it\.dplay\.com|www\.dplay\.(?:dk|se|no))/[^/]+/(?P<id>[^/?#]+)'
 
     _TESTS = [{
         'url': 'http://it.dplay.com/take-me-out/stagione-1-episodio-25/',

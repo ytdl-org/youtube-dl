@@ -11,7 +11,7 @@ from ..utils import (
 
 class CBSNewsIE(ThePlatformIE):
     IE_DESC = 'CBS News'
-    _VALID_URL = r'http://(?:www\.)?cbsnews\.com/(?:news|videos)/(?P<id>[\da-z_-]+)'
+    _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/(?:news|videos)/(?P<id>[\da-z_-]+)'
 
     _TESTS = [
         {
@@ -96,7 +96,7 @@ class CBSNewsIE(ThePlatformIE):
 
 class CBSNewsLiveVideoIE(InfoExtractor):
     IE_DESC = 'CBS News Live Videos'
-    _VALID_URL = r'http://(?:www\.)?cbsnews\.com/live/video/(?P<id>[\da-z_-]+)'
+    _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/live/video/(?P<id>[\da-z_-]+)'
 
     _TEST = {
         'url': 'http://www.cbsnews.com/live/video/clinton-sanders-prepare-to-face-off-in-nh/',

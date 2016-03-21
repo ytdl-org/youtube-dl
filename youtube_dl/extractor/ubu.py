@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class UbuIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?ubu\.com/film/(?P<id>[\da-z_-]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?ubu\.com/film/(?P<id>[\da-z_-]+)\.html'
     _TEST = {
         'url': 'http://ubu.com/film/her_noise.html',
         'md5': '138d5652618bf0f03878978db9bef1ee',

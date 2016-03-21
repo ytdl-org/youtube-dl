@@ -8,7 +8,7 @@ from .common import InfoExtractor
 
 class M6IE(InfoExtractor):
     IE_NAME = 'm6'
-    _VALID_URL = r'http://(?:www\.)?m6\.fr/[^/]+/videos/(?P<id>\d+)-[^\.]+\.html'
+    _VALID_URL = r'https?://(?:www\.)?m6\.fr/[^/]+/videos/(?P<id>\d+)-[^\.]+\.html'
 
     _TEST = {
         'url': 'http://www.m6.fr/emission-les_reines_du_shopping/videos/11323908-emeline_est_la_reine_du_shopping_sur_le_theme_ma_fete_d_8217_anniversaire.html',

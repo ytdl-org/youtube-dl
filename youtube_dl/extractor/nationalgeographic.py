@@ -8,7 +8,7 @@ from ..utils import (
 
 
 class NationalGeographicIE(InfoExtractor):
-    _VALID_URL = r'http://video\.nationalgeographic\.com/.*?'
+    _VALID_URL = r'https?://video\.nationalgeographic\.com/.*?'
 
     _TESTS = [
         {
