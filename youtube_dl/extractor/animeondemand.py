@@ -225,16 +225,18 @@ class AnimeOnDemandIE(InfoExtractor):
                 })
                 entries.append(f)
 
-            m = re.search(
-                r'data-dialog-header=(["\'])(?P<title>.+?)\1[^>]+href=(["\'])(?P<href>.+?)\3[^>]*>Teaser<',
-                episode_html)
-            if m:
-                f = common_info.copy()
-                f.update({
-                    'id': '%s-teaser' % f['id'],
-                    'title': m.group('title'),
-                    'url': compat_urlparse.urljoin(url, m.group('href')),
-                })
-                entries.append(f)
+            # Extract teaser only when full episode is not available
+            if not formats:
+                m = re.search(
+                    r'data-dialog-header=(["\'])(?P<title>.+?)\1[^>]+href=(["\'])(?P<href>.+?)\3[^>]*>Teaser<',
+                    episode_html)
+                if m:
+                    f = common_info.copy()
+                    f.update({
+                        'id': '%s-teaser' % f['id'],
+                        'title': m.group('title'),
+                        'url': compat_urlparse.urljoin(url, m.group('href')),
+                    })
+                    entries.append(f)
 
         return self.playlist_result(entries, anime_id, anime_title, anime_description)
