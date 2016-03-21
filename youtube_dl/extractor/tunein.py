@@ -29,9 +29,9 @@ class TuneInBaseIE(InfoExtractor):
 
         stream_data = self._download_webpage(
             streams_url, content_id, note='Downloading stream data')
-        streams = json.loads(self._search_regex(
-            r'\((.*)\);', stream_data, 'stream info'))['Streams']
-
+        
+        streams = json.loads(stream_data).get('Streams')
+        
         is_live = None
         formats = []
         for stream in streams:
