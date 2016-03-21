@@ -163,7 +163,7 @@ class AnimeOnDemandIE(InfoExtractor):
                     if kind:
                         format_id_list.append(kind)
                     if not format_id_list:
-                        format_id_list.append('hls')
+                        format_id_list.append(compat_str(num))
                     format_id = '-'.join(format_id_list)
                     format_note = ', '.join(filter(None, (kind, lang_note)))
                     request = sanitized_Request(
@@ -179,26 +179,41 @@ class AnimeOnDemandIE(InfoExtractor):
                         fatal=False)
                     if not playlist:
                         continue
+                    start_video = playlist.get('startvideo', 0)
                     playlist = playlist.get('playlist')
                     if not playlist or not isinstance(playlist, list):
                         continue
-                    playlist = playlist[0]
+                    playlist = playlist[start_video]
                     title = playlist.get('title')
                     if not title:
                         continue
                     description = playlist.get('description')
                     for source in playlist.get('sources', []):
                         file_ = source.get('file')
-                        if file_ and determine_ext(file_) == 'm3u8':
-                            m3u8_formats = self._extract_m3u8_formats(
+                        if not file_:
+                            continue
+                        ext = determine_ext(file_)
+                        format_id_list = [lang, kind]
+                        if ext == 'm3u8':
+                            format_id_list.append('hls')
+                        elif source.get('type') == 'video/dash' or ext == 'mpd':
+                            format_id_list.append('dash')
+                        format_id = '-'.join(filter(None, format_id_list))
+                        if ext == 'm3u8':
+                            file_formats = self._extract_m3u8_formats(
                                 file_, video_id, 'mp4',
-                                entry_protocol='m3u8_native', m3u8_id=format_id)
-                            for f in m3u8_formats:
-                                f.update({
-                                    'language': lang,
-                                    'format_note': format_note,
-                                })
-                            formats.extend(m3u8_formats)
+                                entry_protocol='m3u8_native', m3u8_id=format_id, fatal=False)
+                        elif source.get('type') == 'video/dash' or ext == 'mpd':
+                            file_formats = self._extract_mpd_formats(
+                                file_, video_id, mpd_id=format_id, fatal=False)
+                        else:
+                            continue
+                        for f in file_formats:
+                            f.update({
+                                'language': lang,
+                                'format_note': format_note,
+                            })
+                        formats.extend(file_formats)
 
             if formats:
                 self._sort_formats(formats)
