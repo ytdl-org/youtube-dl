@@ -355,13 +355,6 @@ class YoutubeDL(object):
             self.print_debug_header()
             self.add_default_info_extractors()
 
-        for pp_def_raw in self.params.get('postprocessors', []):
-            pp_class = get_postprocessor(pp_def_raw['key'])
-            pp_def = dict(pp_def_raw)
-            del pp_def['key']
-            pp = pp_class(self, **compat_kwargs(pp_def))
-            self.add_post_processor(pp)
-
         for ph in self.params.get('progress_hooks', []):
             self.add_progress_hook(ph)
 
@@ -1786,6 +1779,13 @@ class YoutubeDL(object):
         pps_chain = []
         if ie_info.get('__postprocessors') is not None:
             pps_chain.extend(ie_info['__postprocessors'])
+        for pp_def_raw in params.get('postprocessors', []):
+            pp_class = get_postprocessor(pp_def_raw['key'])
+            pp_def = dict(pp_def_raw)
+            del pp_def['key']
+            pp = pp_class(self, **compat_kwargs(pp_def))
+            pp.set_downloader(self)
+            pps_chain.append(pp)
         pps_chain.extend(self._pps)
         for pp in pps_chain:
             files_to_delete = []
