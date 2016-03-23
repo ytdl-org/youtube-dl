@@ -1909,6 +1909,14 @@ class GenericIE(InfoExtractor):
                 self._proto_relative_url(unescapeHTML(mobj.group(1))),
                 'AdobeTVVideo')
 
+        # Look for Vine embeds
+        mobj = re.search(
+            r'<iframe[^>]+src=[\'"]((?:https?:)?//(?:www\.)?vine\.co/v/[^/]+/embed/(?:simple|postcard))',
+            webpage)
+        if mobj is not None:
+            return self.url_result(
+                self._proto_relative_url(unescapeHTML(mobj.group(1))), 'Vine')
+
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
                 return True
