@@ -67,6 +67,22 @@ class TumblrIE(InfoExtractor):
             'uploader_id': 'user32021558',
         },
         'add_ie': ['Vimeo'],
+    }, {
+        'url': 'http://sutiblr.tumblr.com/post/139638707273',
+        'md5': '2dd184b3669e049ba40563a7d423f95c',
+        'info_dict': {
+            'id': 'ir7qBEIKqvq',
+            'ext': 'mp4',
+            'title': 'Vine by sutiblr',
+            'alt_title': 'Vine by sutiblr',
+            'uploader': 'sutiblr',
+            'uploader_id': '1198993975374495744',
+            'upload_date': '20160220',
+            'like_count': int,
+            'comment_count': int,
+            'repost_count': int,
+        },
+        'add_ie': ['Vine'],
     }]
 
     def _real_extract(self, url):
