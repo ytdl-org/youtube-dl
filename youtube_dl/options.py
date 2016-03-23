@@ -781,15 +781,20 @@ def parseOpts(overrideArguments=None):
         userConf = _readOptions(userConfFile, None)
         userIni = _readIni(userIniFile, None)
 
-        if userConf is None:
+        if userConf is None or userIni is None:
             appdata_dir = compat_getenv('appdata')
             if appdata_dir:
-                userConf = _readOptions(
-                    os.path.join(appdata_dir, 'youtube-dl', 'config'),
-                    default=None)
+                if userConf is None:
+                    userConf = _readOptions(
+                        os.path.join(appdata_dir, 'youtube-dl', 'config'),
+                        default=None)
                 if userConf is None:
                     userConf = _readOptions(
                         os.path.join(appdata_dir, 'youtube-dl', 'config.txt'),
+                        default=None)
+                if userIni is None:
+                    userIni = _readIni(
+                        os.path.join(appdata_dir, 'youtube-dl', 'config.ini'),
                         default=None)
 
         if userConf is None:
@@ -799,6 +804,15 @@ def parseOpts(overrideArguments=None):
         if userConf is None:
             userConf = _readOptions(
                 os.path.join(compat_expanduser('~'), 'youtube-dl.conf.txt'),
+                default=None)
+
+        if userIni is None:
+            userIni = _readIni(
+                os.path.join(compat_expanduser('~'), 'youtube-dl.ini'),
+                default=None)
+        if userIni is None:
+            userIni = _readIni(
+                os.path.join(compat_expanduser('~'), 'youtube-dl.ini.txt'),
                 default=None)
 
         if userConf is None:
