@@ -43,7 +43,7 @@ class IPrimaIE(InfoExtractor):
         req.add_header('Referer', url)
         playerpage = self._download_webpage(req, video_id, note='Downloading player')
 
-        m3u8_url = self._search_regex(r"'src': '([^']+\.m3u8)'", playerpage, 'm3u8 url')
+        m3u8_url = self._search_regex(r"'src': '([^']+\.m3u8[^']+)'", playerpage, 'm3u8 url')
 
         formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
 
