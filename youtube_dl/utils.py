@@ -1756,7 +1756,8 @@ def escape_url(url):
 try:
     struct.pack('!I', 0)
 except TypeError:
-    # In Python 2.6 (and some 2.7 versions), struct requires a bytes argument
+    # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
+    # See https://bugs.python.org/issue19099
     def struct_pack(spec, *args):
         if isinstance(spec, compat_str):
             spec = spec.encode('ascii')
