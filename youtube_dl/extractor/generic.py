@@ -59,6 +59,7 @@ from .videomore import VideomoreIE
 from .googledrive import GoogleDriveIE
 from .jwplatform import JWPlatformIE
 from .digiteka import DigitekaIE
+from .instagram import InstagramIE
 
 
 class GenericIE(InfoExtractor):
@@ -1916,6 +1917,11 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(
                 self._proto_relative_url(unescapeHTML(mobj.group(1))), 'Vine')
+
+        # Look for Instagram embeds
+        instagram_embed_url = InstagramIE._extract_embed_url(webpage)
+        if instagram_embed_url is not None:
+            return self.url_result(instagram_embed_url, InstagramIE.ie_key())
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
