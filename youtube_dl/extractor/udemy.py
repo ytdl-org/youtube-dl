@@ -180,39 +180,57 @@ class UdemyIE(InfoExtractor):
         video_id = asset['id']
         thumbnail = asset.get('thumbnailUrl') or asset.get('thumbnail_url')
         duration = float_or_none(asset.get('data', {}).get('duration'))
-        outputs = asset.get('data', {}).get('outputs', {})
 
         formats = []
-        for format_ in asset.get('download_urls', {}).get('Video', []):
-            video_url = format_.get('file')
-            if not video_url:
-                continue
-            format_id = format_.get('label')
-            f = {
-                'url': format_['file'],
-                'height': int_or_none(format_id),
+
+        def extract_output_format(src):
+            return {
+                'url': src['url'],
+                'format_id': '%sp' % (src.get('label') or format_id),
+                'width': int_or_none(src.get('width')),
+                'height': int_or_none(src.get('height')),
+                'vbr': int_or_none(src.get('video_bitrate_in_kbps')),
+                'vcodec': src.get('video_codec'),
+                'fps': int_or_none(src.get('frame_rate')),
+                'abr': int_or_none(src.get('audio_bitrate_in_kbps')),
+                'acodec': src.get('audio_codec'),
+                'asr': int_or_none(src.get('audio_sample_rate')),
+                'tbr': int_or_none(src.get('total_bitrate_in_kbps')),
+                'filesize': int_or_none(src.get('file_size_in_bytes')),
             }
-            if format_id:
-                # Some videos contain additional metadata (e.g.
-                # https://www.udemy.com/ios9-swift/learn/#/lecture/3383208)
-                output = outputs.get(format_id)
-                if isinstance(output, dict):
-                    f.update({
-                        'format_id': '%sp' % (output.get('label') or format_id),
-                        'width': int_or_none(output.get('width')),
-                        'height': int_or_none(output.get('height')),
-                        'vbr': int_or_none(output.get('video_bitrate_in_kbps')),
-                        'vcodec': output.get('video_codec'),
-                        'fps': int_or_none(output.get('frame_rate')),
-                        'abr': int_or_none(output.get('audio_bitrate_in_kbps')),
-                        'acodec': output.get('audio_codec'),
-                        'asr': int_or_none(output.get('audio_sample_rate')),
-                        'tbr': int_or_none(output.get('total_bitrate_in_kbps')),
-                        'filesize': int_or_none(output.get('file_size_in_bytes')),
-                    })
-                else:
-                    f['format_id'] = '%sp' % format_id
-            formats.append(f)
+
+        outputs = asset.get('data', {}).get('outputs')
+        if not isinstance(outputs, dict):
+            outputs = {}
+
+        for format_id, output in outputs.items():
+            if isinstance(output, dict) and output.get('url'):
+                formats.append(extract_output_format(output))
+
+        download_urls = asset.get('download_urls')
+        if isinstance(download_urls, dict):
+            video = download_urls.get('Video')
+            if isinstance(video, list):
+                for format_ in video:
+                    video_url = format_.get('file')
+                    if not video_url:
+                        continue
+                    format_id = format_.get('label')
+                    f = {
+                        'url': format_['file'],
+                        'height': int_or_none(format_id),
+                    }
+                    if format_id:
+                        # Some videos contain additional metadata (e.g.
+                        # https://www.udemy.com/ios9-swift/learn/#/lecture/3383208)
+                        output = outputs.get(format_id)
+                        if isinstance(output, dict):
+                            output_format = extract_output_format(output)
+                            output_format.update(f)
+                            f = output_format
+                        else:
+                            f['format_id'] = '%sp' % format_id
+                    formats.append(f)
 
         self._sort_formats(formats)
 
