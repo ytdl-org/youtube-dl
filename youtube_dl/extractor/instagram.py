@@ -4,6 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    get_element_by_attribute,
     int_or_none,
     limit_length,
 )
@@ -37,6 +38,18 @@ class InstagramIE(InfoExtractor):
         'url': 'https://instagram.com/p/-Cmh1cukG2/',
         'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_embed_url(webpage):
+        blockquote_el = get_element_by_attribute(
+            'class', 'instagram-media', webpage)
+        if blockquote_el is None:
+            return
+
+        mobj = re.search(
+            r'<a[^>]+href=([\'"])(?P<link>[^\'"]+)\1', blockquote_el)
+        if mobj:
+            return mobj.group('link')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
