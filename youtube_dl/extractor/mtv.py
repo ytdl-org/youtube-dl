@@ -17,6 +17,7 @@ from ..utils import (
     unescapeHTML,
     url_basename,
     RegexNotFoundError,
+    xpath_text,
 )
 
 
@@ -130,11 +131,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
             message += item.text
             raise ExtractorError(message, expected=True)
 
-        description_node = itemdoc.find('description')
-        if description_node is not None:
-            description = description_node.text.strip()
-        else:
-            description = None
+        description = xpath_text(itemdoc, 'description')
 
         title_el = None
         if title_el is None:
