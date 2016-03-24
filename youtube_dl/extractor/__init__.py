@@ -410,6 +410,7 @@ from .mit import TechTVMITIE, MITIE, OCWMITIE
 from .mitele import MiTeleIE
 from .mixcloud import MixcloudIE
 from .mlb import MLBIE
+from .mnet import MnetIE
 from .mpora import MporaIE
 from .moevideo import MoeVideoIE
 from .mofosex import MofosexIE
