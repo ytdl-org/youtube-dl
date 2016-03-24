@@ -83,6 +83,18 @@ class TumblrIE(InfoExtractor):
             'repost_count': int,
         },
         'add_ie': ['Vine'],
+    }, {
+        'url': 'http://vitasidorkina.tumblr.com/post/134652425014/joskriver-victoriassecret-invisibility-or',
+        'md5': '01c12ceb82cbf6b2fe0703aa56b3ad72',
+        'info_dict': {
+            'id': '-7LnUPGlSo',
+            'ext': 'mp4',
+            'title': 'Video by victoriassecret',
+            'description': 'Invisibility or flight…which superpower would YOU choose? #VSFashionShow #ThisOrThat',
+            'uploader_id': 'victoriassecret',
+            'thumbnail': 're:^https?://.*\.jpg'
+        },
+        'add_ie': ['Instagram'],
     }]
 
     def _real_extract(self, url):
