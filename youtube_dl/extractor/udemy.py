@@ -5,6 +5,7 @@ from ..compat import (
     compat_HTTPError,
     compat_urllib_parse,
     compat_urllib_request,
+    compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
@@ -35,7 +36,7 @@ class UdemyIE(InfoExtractor):
         'skip': 'Requires udemy account credentials',
     }]
 
-    def _enroll_course(self, webpage, course_id):
+    def _enroll_course(self, base_url, webpage, course_id):
         checkout_url = unescapeHTML(self._search_regex(
             r'href=(["\'])(?P<url>https?://(?:www\.)?udemy\.com/payment/checkout/.+?)\1',
             webpage, 'checkout url', group='url', default=None))
@@ -45,9 +46,11 @@ class UdemyIE(InfoExtractor):
                 'Use this URL to confirm purchase: %s' % (course_id, checkout_url), expected=True)
 
         enroll_url = unescapeHTML(self._search_regex(
-            r'href=(["\'])(?P<url>https?://(?:www\.)?udemy\.com/course/subscribe/.+?)\1',
+            r'href=(["\'])(?P<url>(?:https?://(?:www\.)?udemy\.com)?/course/subscribe/.+?)\1',
             webpage, 'enroll url', group='url', default=None))
         if enroll_url:
+            if not enroll_url.startswith('http'):
+                enroll_url = compat_urlparse.urljoin(base_url, enroll_url)
             webpage = self._download_webpage(enroll_url, course_id, 'Enrolling in the course')
             if '>You have enrolled in' in webpage:
                 self.to_screen('%s: Successfully enrolled in the course' % course_id)
@@ -152,7 +155,7 @@ class UdemyIE(InfoExtractor):
         except ExtractorError as e:
             # Error could possibly mean we are not enrolled in the course
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
-                self._enroll_course(webpage, course_id)
+                self._enroll_course(url, webpage, course_id)
                 lecture = self._download_lecture(course_id, lecture_id)
             else:
                 raise
@@ -244,7 +247,7 @@ class UdemyCourseIE(UdemyIE):
         course_id = response['id']
         course_title = response.get('title')
 
-        self._enroll_course(webpage, course_id)
+        self._enroll_course(url, webpage, course_id)
 
         response = self._download_json(
             'https://www.udemy.com/api-1.1/courses/%s/curriculum' % course_id,
