@@ -18,7 +18,16 @@ from ..utils import (
 
 class UdemyIE(InfoExtractor):
     IE_NAME = 'udemy'
-    _VALID_URL = r'https?://www\.udemy\.com/(?:[^#]+#/lecture/|lecture/view/?\?lectureId=)(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        www\.udemy\.com/
+                        (?:
+                            [^#]+\#/lecture/|
+                            lecture/view/?\?lectureId=|
+                            [^/]+/learn/v4/t/lecture/
+                        )
+                        (?P<id>\d+)
+                    '''
     _LOGIN_URL = 'https://www.udemy.com/join/login-popup/?displayType=ajax&showSkipButton=1'
     _ORIGIN_URL = 'https://www.udemy.com'
     _NETRC_MACHINE = 'udemy'
@@ -34,6 +43,10 @@ class UdemyIE(InfoExtractor):
             'duration': 579.29,
         },
         'skip': 'Requires udemy account credentials',
+    }, {
+        # new URL schema
+        'url': 'https://www.udemy.com/electric-bass-right-from-the-start/learn/v4/t/lecture/4580906',
+        'only_matching': True,
     }]
 
     def _enroll_course(self, base_url, webpage, course_id):
