@@ -7,6 +7,7 @@ from ..utils import (
     get_element_by_attribute,
     int_or_none,
     limit_length,
+    lowercase_escape,
 )
 
 
@@ -59,6 +60,8 @@ class InstagramIE(InfoExtractor):
                                          webpage, 'uploader id', fatal=False)
         desc = self._search_regex(
             r'"caption":"(.+?)"', webpage, 'description', default=None)
+        if desc is not None:
+            desc = lowercase_escape(desc)
 
         return {
             'id': video_id,
