@@ -20,6 +20,7 @@ from ..utils import (
     parse_duration,
     parse_iso8601,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -81,7 +82,7 @@ class TwitchBaseIE(InfoExtractor):
             post_url = compat_urlparse.urljoin(redirect_url, post_url)
 
         request = sanitized_Request(
-            post_url, compat_urllib_parse_urlencode(login_form).encode('utf-8'))
+            post_url, urlencode_postdata(login_form))
         request.add_header('Referer', redirect_url)
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)

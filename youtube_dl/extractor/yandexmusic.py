@@ -5,15 +5,13 @@ import re
 import hashlib
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse_urlencode,
-)
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
     float_or_none,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -170,14 +168,14 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
             missing_track_ids = set(map(compat_str, track_ids)) - set(present_track_ids)
             request = sanitized_Request(
                 'https://music.yandex.ru/handlers/track-entries.jsx',
-                compat_urllib_parse_urlencode({
+                urlencode_postdata({
                     'entries': ','.join(missing_track_ids),
                     'lang': mu.get('settings', {}).get('lang', 'en'),
                     'external-domain': 'music.yandex.ru',
                     'overembed': 'false',
                     'sign': mu.get('authData', {}).get('user', {}).get('sign'),
                     'strict': 'true',
-                }).encode('utf-8'))
+                }))
             request.add_header('Referer', url)
             request.add_header('X-Requested-With', 'XMLHttpRequest')
 

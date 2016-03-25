@@ -8,7 +8,6 @@ import collections
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
-    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
@@ -17,6 +16,7 @@ from ..utils import (
     parse_duration,
     qualities,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -76,7 +76,7 @@ class PluralsightIE(PluralsightBaseIE):
             post_url = compat_urlparse.urljoin(self._LOGIN_URL, post_url)
 
         request = sanitized_Request(
-            post_url, compat_urllib_parse_urlencode(login_form).encode('utf-8'))
+            post_url, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
 
         response = self._download_webpage(

@@ -15,6 +15,7 @@ from ..utils import (
     sanitized_Request,
     smuggle_url,
     unsmuggle_url,
+    urlencode_postdata,
 )
 
 
@@ -174,7 +175,7 @@ class DCNSeasonIE(InfoExtractor):
         data['show_id'] = show_id
         request = sanitized_Request(
             'http://admin.mangomolo.com/analytics/index.php/plus/show',
-            compat_urllib_parse_urlencode(data),
+            urlencode_postdata(data),
             {
                 'Origin': 'http://www.dcndigital.ae',
                 'Content-Type': 'application/x-www-form-urlencoded'

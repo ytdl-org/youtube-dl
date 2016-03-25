@@ -44,6 +44,7 @@ from ..utils import (
     unified_strdate,
     unsmuggle_url,
     uppercase_escape,
+    urlencode_postdata,
     ISO3166Utils,
 )
 
@@ -115,7 +116,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'hl': 'en_US',
         }
 
-        login_data = compat_urllib_parse_urlencode(login_form_strs).encode('ascii')
+        login_data = urlencode_postdata(login_form_strs)
 
         req = sanitized_Request(self._LOGIN_URL, login_data)
         login_results = self._download_webpage(
@@ -148,7 +149,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 'TrustDevice': 'on',
             })
 
-            tfa_data = compat_urllib_parse_urlencode(tfa_form_strs).encode('ascii')
+            tfa_data = urlencode_postdata(tfa_form_strs)
 
             tfa_req = sanitized_Request(self._TWOFACTOR_URL, tfa_data)
             tfa_results = self._download_webpage(

@@ -18,6 +18,7 @@ from ..utils import (
     sanitized_Request,
     xpath_text,
     determine_ext,
+    urlencode_postdata,
 )
 
 
@@ -100,7 +101,7 @@ class NiconicoIE(InfoExtractor):
             'mail': username,
             'password': password,
         }
-        login_data = compat_urllib_parse_urlencode(login_form_strs).encode('utf-8')
+        login_data = urlencode_postdata(login_form_strs)
         request = sanitized_Request(
             'https://secure.nicovideo.jp/secure/login', login_data)
         login_results = self._download_webpage(

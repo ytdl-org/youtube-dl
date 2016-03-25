@@ -13,6 +13,7 @@ from ..utils import (
     int_or_none,
     sanitized_Request,
     unescapeHTML,
+    urlencode_postdata,
 )
 
 
@@ -139,7 +140,7 @@ class UdemyIE(InfoExtractor):
         })
 
         request = sanitized_Request(
-            self._LOGIN_URL, compat_urllib_parse_urlencode(login_form).encode('utf-8'))
+            self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Referer', self._ORIGIN_URL)
         request.add_header('Origin', self._ORIGIN_URL)
 

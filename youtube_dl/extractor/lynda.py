@@ -4,15 +4,13 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse_urlencode,
-)
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     clean_html,
     int_or_none,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -36,7 +34,7 @@ class LyndaBaseIE(InfoExtractor):
             'stayPut': 'false'
         }
         request = sanitized_Request(
-            self._LOGIN_URL, compat_urllib_parse_urlencode(login_form).encode('utf-8'))
+            self._LOGIN_URL, urlencode_postdata(login_form))
         login_page = self._download_webpage(
             request, None, 'Logging in as %s' % username)
 
@@ -65,7 +63,7 @@ class LyndaBaseIE(InfoExtractor):
                     'stayPut': 'false',
                 }
                 request = sanitized_Request(
-                    self._LOGIN_URL, compat_urllib_parse_urlencode(confirm_form).encode('utf-8'))
+                    self._LOGIN_URL, urlencode_postdata(confirm_form))
                 login_page = self._download_webpage(
                     request, None,
                     'Confirming log in and log out from another device')

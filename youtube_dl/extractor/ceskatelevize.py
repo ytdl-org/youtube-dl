@@ -6,13 +6,13 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse_unquote,
-    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
     ExtractorError,
     float_or_none,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -102,7 +102,7 @@ class CeskaTelevizeIE(InfoExtractor):
 
         req = sanitized_Request(
             'http://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
-            data=compat_urllib_parse_urlencode(data))
+            data=urlencode_postdata(data))
 
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
         req.add_header('x-addr', '127.0.0.1')

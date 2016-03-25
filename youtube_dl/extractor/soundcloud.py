@@ -500,7 +500,6 @@ class SoundcloudSearchIE(SearchInfoExtractor, SoundcloudIE):
         query['linked_partitioning'] = '1'
         query['offset'] = 0
         data = compat_urllib_parse_urlencode(query)
-        data = compat_urllib_parse_urlencode(query)
         next_url = '{0}{1}?{2}'.format(self._API_V2_BASE, endpoint, data)
 
         collected_results = 0

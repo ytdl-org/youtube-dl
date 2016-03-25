@@ -308,7 +308,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         playerdata_url = compat_urllib_parse_unquote(self._html_search_regex(r'"config_url":"([^"]+)', webpage, 'playerdata_url'))
         playerdata_req = sanitized_Request(playerdata_url)
-        playerdata_req.data = compat_urllib_parse_urlencode({'current_page': webpage_url})
+        playerdata_req.data = urlencode_postdata({'current_page': webpage_url})
         playerdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         playerdata = self._download_webpage(playerdata_req, video_id, note='Downloading media info')
 

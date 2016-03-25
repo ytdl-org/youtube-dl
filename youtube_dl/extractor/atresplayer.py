@@ -6,16 +6,14 @@ import hashlib
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse_urlencode,
-)
+from ..compat import compat_str
 from ..utils import (
-    int_or_none,
-    float_or_none,
-    sanitized_Request,
-    xpath_text,
     ExtractorError,
+    float_or_none,
+    int_or_none,
+    sanitized_Request,
+    urlencode_postdata,
+    xpath_text,
 )
 
 
@@ -86,7 +84,7 @@ class AtresPlayerIE(InfoExtractor):
         }
 
         request = sanitized_Request(
-            self._LOGIN_URL, compat_urllib_parse_urlencode(login_form).encode('utf-8'))
+            self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)
