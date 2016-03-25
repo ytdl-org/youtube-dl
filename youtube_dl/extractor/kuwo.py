@@ -2,13 +2,13 @@
 from __future__ import unicode_literals
 
 import re
-import itertools
 
 from .common import InfoExtractor
 from ..utils import (
     get_element_by_id,
     clean_html,
     ExtractorError,
+    InAdvancePagedList,
     remove_start,
 )
 
@@ -23,7 +23,7 @@ class KuwoBaseIE(InfoExtractor):
         {'format': 'aac', 'ext': 'aac', 'abr': 48, 'preference': 10}
     ]
 
-    def _get_formats(self, song_id):
+    def _get_formats(self, song_id, tolerate_ip_deny=False):
         formats = []
         for file_format in self._FORMATS:
             song_url = self._download_webpage(
@@ -32,7 +32,7 @@ class KuwoBaseIE(InfoExtractor):
                 song_id, note='Download %s url info' % file_format['format'],
             )
 
-            if song_url == 'IPDeny':
+            if song_url == 'IPDeny' and not tolerate_ip_deny:
                 raise ExtractorError('This song is blocked in this region', expected=True)
 
             if song_url.startswith('http://') or song_url.startswith('https://'):
@@ -43,14 +43,19 @@ class KuwoBaseIE(InfoExtractor):
                     'preference': file_format['preference'],
                     'abr': file_format.get('abr'),
                 })
-        self._sort_formats(formats)
+
+        # XXX _sort_formats fails if there are not formats, while it's not the
+        # desired behavior if 'IPDeny' is ignored
+        # This check can be removed if https://github.com/rg3/youtube-dl/pull/8051 is merged
+        if not tolerate_ip_deny:
+            self._sort_formats(formats)
         return formats
 
 
 class KuwoIE(KuwoBaseIE):
     IE_NAME = 'kuwo:song'
     IE_DESC = '酷我音乐'
-    _VALID_URL = r'http://www\.kuwo\.cn/yinyue/(?P<id>\d+?)/'
+    _VALID_URL = r'https?://www\.kuwo\.cn/yinyue/(?P<id>\d+?)'
     _TESTS = [{
         'url': 'http://www.kuwo.cn/yinyue/635632/',
         'info_dict': {
@@ -75,6 +80,9 @@ class KuwoIE(KuwoBaseIE):
         'params': {
             'format': 'mp3-320'
         },
+    }, {
+        'url': 'http://www.kuwo.cn/yinyue/3197154?catalog=yueku2016',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -126,7 +134,7 @@ class KuwoIE(KuwoBaseIE):
 class KuwoAlbumIE(InfoExtractor):
     IE_NAME = 'kuwo:album'
     IE_DESC = '酷我音乐 - 专辑'
-    _VALID_URL = r'http://www\.kuwo\.cn/album/(?P<id>\d+?)/'
+    _VALID_URL = r'https?://www\.kuwo\.cn/album/(?P<id>\d+?)/'
     _TEST = {
         'url': 'http://www.kuwo.cn/album/502294/',
         'info_dict': {
@@ -162,13 +170,11 @@ class KuwoAlbumIE(InfoExtractor):
 class KuwoChartIE(InfoExtractor):
     IE_NAME = 'kuwo:chart'
     IE_DESC = '酷我音乐 - 排行榜'
-    _VALID_URL = r'http://yinyue\.kuwo\.cn/billboard_(?P<id>[^.]+).htm'
+    _VALID_URL = r'https?://yinyue\.kuwo\.cn/billboard_(?P<id>[^.]+).htm'
     _TEST = {
         'url': 'http://yinyue.kuwo.cn/billboard_香港中文龙虎榜.htm',
         'info_dict': {
             'id': '香港中文龙虎榜',
-            'title': '香港中文龙虎榜',
-            'description': 're:\d{4}第\d{2}期',
         },
         'playlist_mincount': 10,
     }
@@ -179,30 +185,24 @@ class KuwoChartIE(InfoExtractor):
             url, chart_id, note='Download chart info',
             errnote='Unable to get chart info')
 
-        chart_name = self._html_search_regex(
-            r'<h1[^>]+class="unDis">([^<]+)</h1>', webpage, 'chart name')
-
-        chart_desc = self._html_search_regex(
-            r'<p[^>]+class="tabDef">(\d{4}第\d{2}期)</p>', webpage, 'chart desc')
-
         entries = [
             self.url_result(song_url, 'Kuwo') for song_url in re.findall(
-                r'<a[^>]+href="(http://www\.kuwo\.cn/yinyue/\d+)/"', webpage)
+                r'<a[^>]+href="(http://www\.kuwo\.cn/yinyue/\d+)', webpage)
         ]
-        return self.playlist_result(entries, chart_id, chart_name, chart_desc)
+        return self.playlist_result(entries, chart_id)
 
 
 class KuwoSingerIE(InfoExtractor):
     IE_NAME = 'kuwo:singer'
     IE_DESC = '酷我音乐 - 歌手'
-    _VALID_URL = r'http://www\.kuwo\.cn/mingxing/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://www\.kuwo\.cn/mingxing/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://www.kuwo.cn/mingxing/bruno+mars/',
         'info_dict': {
             'id': 'bruno+mars',
             'title': 'Bruno Mars',
         },
-        'playlist_count': 10,
+        'playlist_mincount': 329,
     }, {
         'url': 'http://www.kuwo.cn/mingxing/Ali/music.htm',
         'info_dict': {
@@ -213,6 +213,8 @@ class KuwoSingerIE(InfoExtractor):
         'skip': 'Regularly stalls travis build',  # See https://travis-ci.org/rg3/youtube-dl/jobs/78878540
     }]
 
+    PAGE_SIZE = 15
+
     def _real_extract(self, url):
         singer_id = self._match_id(url)
         webpage = self._download_webpage(
@@ -220,25 +222,28 @@ class KuwoSingerIE(InfoExtractor):
             errnote='Unable to get singer info')
 
         singer_name = self._html_search_regex(
-            r'<div class="title clearfix">\s*<h1>([^<]+)<span', webpage, 'singer name'
-        )
+            r'<h1>([^<]+)</h1>', webpage, 'singer name')
 
-        entries = []
-        first_page_only = False if re.search(r'/music(?:_\d+)?\.htm', url) else True
-        for page_num in itertools.count(1):
+        artist_id = self._html_search_regex(
+            r'data-artistid="(\d+)"', webpage, 'artist id')
+
+        page_count = int(self._html_search_regex(
+            r'data-page="(\d+)"', webpage, 'page count'))
+
+        def page_func(page_num):
             webpage = self._download_webpage(
-                'http://www.kuwo.cn/mingxing/%s/music_%d.htm' % (singer_id, page_num),
-                singer_id, note='Download song list page #%d' % page_num,
-                errnote='Unable to get song list page #%d' % page_num)
+                'http://www.kuwo.cn/artist/contentMusicsAjax',
+                singer_id, note='Download song list page #%d' % (page_num + 1),
+                errnote='Unable to get song list page #%d' % (page_num + 1),
+                query={'artistId': artist_id, 'pn': page_num, 'rn': self.PAGE_SIZE})
 
-            entries.extend([
+            return [
                 self.url_result(song_url, 'Kuwo') for song_url in re.findall(
-                    r'<p[^>]+class="m_name"><a[^>]+href="(http://www\.kuwo\.cn/yinyue/\d+)/',
+                    r'<div[^>]+class="name"><a[^>]+href="(http://www\.kuwo\.cn/yinyue/\d+)',
                     webpage)
-            ][:10 if first_page_only else None])
+            ]
 
-            if first_page_only or not re.search(r'<a[^>]+href="[^"]+">下一页</a>', webpage):
-                break
+        entries = InAdvancePagedList(page_func, page_count, self.PAGE_SIZE)
 
         return self.playlist_result(entries, singer_id, singer_name)
 
@@ -246,7 +251,7 @@ class KuwoSingerIE(InfoExtractor):
 class KuwoCategoryIE(InfoExtractor):
     IE_NAME = 'kuwo:category'
     IE_DESC = '酷我音乐 - 分类'
-    _VALID_URL = r'http://yinyue\.kuwo\.cn/yy/cinfo_(?P<id>\d+?).htm'
+    _VALID_URL = r'https?://yinyue\.kuwo\.cn/yy/cinfo_(?P<id>\d+?).htm'
     _TEST = {
         'url': 'http://yinyue.kuwo.cn/yy/cinfo_86375.htm',
         'info_dict': {
@@ -283,14 +288,20 @@ class KuwoCategoryIE(InfoExtractor):
 class KuwoMvIE(KuwoBaseIE):
     IE_NAME = 'kuwo:mv'
     IE_DESC = '酷我音乐 - MV'
-    _VALID_URL = r'http://www\.kuwo\.cn/mv/(?P<id>\d+?)/'
+    _VALID_URL = r'https?://www\.kuwo\.cn/mv/(?P<id>\d+?)/'
     _TEST = {
         'url': 'http://www.kuwo.cn/mv/6480076/',
         'info_dict': {
             'id': '6480076',
-            'ext': 'mkv',
-            'title': '我们家MV',
+            'ext': 'mp4',
+            'title': 'My HouseMV',
             'creator': '2PM',
+        },
+        # In this video, music URLs (anti.s) are blocked outside China and
+        # USA, while the MV URL (mvurl) is available globally, so force the MV
+        # URL for consistent results in different countries
+        'params': {
+            'format': 'mv',
         },
     }
     _FORMATS = KuwoBaseIE._FORMATS + [
@@ -313,7 +324,17 @@ class KuwoMvIE(KuwoBaseIE):
         else:
             raise ExtractorError('Unable to find song or singer names')
 
-        formats = self._get_formats(song_id)
+        formats = self._get_formats(song_id, tolerate_ip_deny=True)
+
+        mv_url = self._download_webpage(
+            'http://www.kuwo.cn/yy/st/mvurl?rid=MUSIC_%s' % song_id,
+            song_id, note='Download %s MV URL' % song_id)
+        formats.append({
+            'url': mv_url,
+            'format_id': 'mv',
+        })
+
+        self._sort_formats(formats)
 
         return {
             'id': song_id,

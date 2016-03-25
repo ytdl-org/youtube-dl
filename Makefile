@@ -12,15 +12,7 @@ SHAREDIR ?= $(PREFIX)/share
 PYTHON ?= /usr/bin/env python
 
 # set SYSCONFDIR to /etc if PREFIX=/usr or PREFIX=/usr/local
-ifeq ($(PREFIX),/usr)
-	SYSCONFDIR=/etc
-else
-	ifeq ($(PREFIX),/usr/local)
-		SYSCONFDIR=/etc
-	else
-		SYSCONFDIR=$(PREFIX)/etc
-	endif
-endif
+SYSCONFDIR != if [ $(PREFIX) = /usr -o $(PREFIX) = /usr/local ]; then echo /etc; else echo $(PREFIX)/etc; fi
 
 install: youtube-dl youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
 	install -d $(DESTDIR)$(BINDIR)

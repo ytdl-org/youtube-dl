@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 
 class PyvideoIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?pyvideo\.org/video/(?P<id>\d+)/(.*)'
+    _VALID_URL = r'https?://(?:www\.)?pyvideo\.org/video/(?P<id>\d+)/(.*)'
 
     _TESTS = [
         {

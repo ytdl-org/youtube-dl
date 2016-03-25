@@ -11,7 +11,7 @@ from ..utils import (
 
 class CBSNewsIE(ThePlatformIE):
     IE_DESC = 'CBS News'
-    _VALID_URL = r'http://(?:www\.)?cbsnews\.com/(?:news|videos)/(?P<id>[\da-z_-]+)'
+    _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/(?:news|videos)/(?P<id>[\da-z_-]+)'
 
     _TESTS = [
         {
@@ -78,7 +78,7 @@ class CBSNewsIE(ThePlatformIE):
             pid = item.get('media' + format_id)
             if not pid:
                 continue
-            release_url = 'http://link.theplatform.com/s/dJ5BDC/%s?format=SMIL&mbr=true' % pid
+            release_url = 'http://link.theplatform.com/s/dJ5BDC/%s?mbr=true' % pid
             tp_formats, tp_subtitles = self._extract_theplatform_smil(release_url, video_id, 'Downloading %s SMIL data' % pid)
             formats.extend(tp_formats)
             subtitles = self._merge_subtitles(subtitles, tp_subtitles)
@@ -96,7 +96,7 @@ class CBSNewsIE(ThePlatformIE):
 
 class CBSNewsLiveVideoIE(InfoExtractor):
     IE_DESC = 'CBS News Live Videos'
-    _VALID_URL = r'http://(?:www\.)?cbsnews\.com/live/video/(?P<id>[\da-z_-]+)'
+    _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/live/video/(?P<id>[\da-z_-]+)'
 
     _TEST = {
         'url': 'http://www.cbsnews.com/live/video/clinton-sanders-prepare-to-face-off-in-nh/',

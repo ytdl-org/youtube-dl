@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class KUSIIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?kusi\.com/(?P<path>story/.+|video\?clipId=(?P<clipId>\d+))'
+    _VALID_URL = r'https?://(?:www\.)?kusi\.com/(?P<path>story/.+|video\?clipId=(?P<clipId>\d+))'
     _TESTS = [{
         'url': 'http://www.kusi.com/story/31183873/turko-files-case-closed-put-on-hold',
         'md5': 'f926e7684294cf8cb7bdf8858e1b3988',

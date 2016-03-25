@@ -10,7 +10,7 @@ from ..compat import (compat_str, compat_basestring)
 
 class DouyuTVIE(InfoExtractor):
     IE_DESC = '斗鱼'
-    _VALID_URL = r'http://(?:www\.)?douyutv\.com/(?P<id>[A-Za-z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?douyutv\.com/(?P<id>[A-Za-z0-9]+)'
     _TESTS = [{
         'url': 'http://www.douyutv.com/iseven',
         'info_dict': {

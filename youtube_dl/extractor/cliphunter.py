@@ -19,7 +19,7 @@ def _decode(s):
 class CliphunterIE(InfoExtractor):
     IE_NAME = 'cliphunter'
 
-    _VALID_URL = r'''(?x)http://(?:www\.)?cliphunter\.com/w/
+    _VALID_URL = r'''(?x)https?://(?:www\.)?cliphunter\.com/w/
         (?P<id>[0-9]+)/
         (?P<seo>.+?)(?:$|[#\?])
     '''

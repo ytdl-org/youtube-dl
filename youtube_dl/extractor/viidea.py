@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class ViideaIE(InfoExtractor):
-    _VALID_URL = r'''(?x)http://(?:www\.)?(?:
+    _VALID_URL = r'''(?x)https?://(?:www\.)?(?:
             videolectures\.net|
             flexilearn\.viidea\.net|
             presentations\.ocwconsortium\.org|

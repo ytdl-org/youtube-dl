@@ -8,7 +8,7 @@ from ..utils import (
 
 
 class ClipsyndicateIE(InfoExtractor):
-    _VALID_URL = r'http://(?:chic|www)\.clipsyndicate\.com/video/play(list/\d+)?/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:chic|www)\.clipsyndicate\.com/video/play(list/\d+)?/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.clipsyndicate.com/video/play/4629301/brick_briscoe',

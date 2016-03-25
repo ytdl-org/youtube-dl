@@ -8,7 +8,7 @@ from .common import InfoExtractor
 
 
 class JeuxVideoIE(InfoExtractor):
-    _VALID_URL = r'http://.*?\.jeuxvideo\.com/.*/(.*?)\.htm'
+    _VALID_URL = r'https?://.*?\.jeuxvideo\.com/.*/(.*?)\.htm'
 
     _TESTS = [{
         'url': 'http://www.jeuxvideo.com/reportages-videos-jeux/0004/00046170/tearaway-playstation-vita-gc-2013-tearaway-nous-presente-ses-papiers-d-identite-00115182.htm',

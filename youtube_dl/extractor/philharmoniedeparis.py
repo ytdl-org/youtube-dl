@@ -12,7 +12,7 @@ from ..utils import (
 
 class PhilharmonieDeParisIE(InfoExtractor):
     IE_DESC = 'Philharmonie de Paris'
-    _VALID_URL = r'http://live\.philharmoniedeparis\.fr/(?:[Cc]oncert/|misc/Playlist\.ashx\?id=)(?P<id>\d+)'
+    _VALID_URL = r'https?://live\.philharmoniedeparis\.fr/(?:[Cc]oncert/|misc/Playlist\.ashx\?id=)(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://live.philharmoniedeparis.fr/concert/1032066.html',
         'info_dict': {

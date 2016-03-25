@@ -5,6 +5,7 @@ from ..compat import (
     compat_HTTPError,
     compat_urllib_parse,
     compat_urllib_request,
+    compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
@@ -17,7 +18,16 @@ from ..utils import (
 
 class UdemyIE(InfoExtractor):
     IE_NAME = 'udemy'
-    _VALID_URL = r'https?://www\.udemy\.com/(?:[^#]+#/lecture/|lecture/view/?\?lectureId=)(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        www\.udemy\.com/
+                        (?:
+                            [^#]+\#/lecture/|
+                            lecture/view/?\?lectureId=|
+                            [^/]+/learn/v4/t/lecture/
+                        )
+                        (?P<id>\d+)
+                    '''
     _LOGIN_URL = 'https://www.udemy.com/join/login-popup/?displayType=ajax&showSkipButton=1'
     _ORIGIN_URL = 'https://www.udemy.com'
     _NETRC_MACHINE = 'udemy'
@@ -33,9 +43,13 @@ class UdemyIE(InfoExtractor):
             'duration': 579.29,
         },
         'skip': 'Requires udemy account credentials',
+    }, {
+        # new URL schema
+        'url': 'https://www.udemy.com/electric-bass-right-from-the-start/learn/v4/t/lecture/4580906',
+        'only_matching': True,
     }]
 
-    def _enroll_course(self, webpage, course_id):
+    def _enroll_course(self, base_url, webpage, course_id):
         checkout_url = unescapeHTML(self._search_regex(
             r'href=(["\'])(?P<url>https?://(?:www\.)?udemy\.com/payment/checkout/.+?)\1',
             webpage, 'checkout url', group='url', default=None))
@@ -45,9 +59,11 @@ class UdemyIE(InfoExtractor):
                 'Use this URL to confirm purchase: %s' % (course_id, checkout_url), expected=True)
 
         enroll_url = unescapeHTML(self._search_regex(
-            r'href=(["\'])(?P<url>https?://(?:www\.)?udemy\.com/course/subscribe/.+?)\1',
+            r'href=(["\'])(?P<url>(?:https?://(?:www\.)?udemy\.com)?/course/subscribe/.+?)\1',
             webpage, 'enroll url', group='url', default=None))
         if enroll_url:
+            if not enroll_url.startswith('http'):
+                enroll_url = compat_urlparse.urljoin(base_url, enroll_url)
             webpage = self._download_webpage(enroll_url, course_id, 'Enrolling in the course')
             if '>You have enrolled in' in webpage:
                 self.to_screen('%s: Successfully enrolled in the course' % course_id)
@@ -144,14 +160,15 @@ class UdemyIE(InfoExtractor):
         webpage = self._download_webpage(url, lecture_id)
 
         course_id = self._search_regex(
-            r'data-course-id=["\'](\d+)', webpage, 'course id')
+            (r'data-course-id=["\'](\d+)', r'&quot;id&quot;\s*:\s*(\d+)'),
+            webpage, 'course id')
 
         try:
             lecture = self._download_lecture(course_id, lecture_id)
         except ExtractorError as e:
             # Error could possibly mean we are not enrolled in the course
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
-                self._enroll_course(webpage, course_id)
+                self._enroll_course(url, webpage, course_id)
                 lecture = self._download_lecture(course_id, lecture_id)
             else:
                 raise
@@ -176,39 +193,57 @@ class UdemyIE(InfoExtractor):
         video_id = asset['id']
         thumbnail = asset.get('thumbnailUrl') or asset.get('thumbnail_url')
         duration = float_or_none(asset.get('data', {}).get('duration'))
-        outputs = asset.get('data', {}).get('outputs', {})
 
         formats = []
-        for format_ in asset.get('download_urls', {}).get('Video', []):
-            video_url = format_.get('file')
-            if not video_url:
-                continue
-            format_id = format_.get('label')
-            f = {
-                'url': format_['file'],
-                'height': int_or_none(format_id),
+
+        def extract_output_format(src):
+            return {
+                'url': src['url'],
+                'format_id': '%sp' % (src.get('label') or format_id),
+                'width': int_or_none(src.get('width')),
+                'height': int_or_none(src.get('height')),
+                'vbr': int_or_none(src.get('video_bitrate_in_kbps')),
+                'vcodec': src.get('video_codec'),
+                'fps': int_or_none(src.get('frame_rate')),
+                'abr': int_or_none(src.get('audio_bitrate_in_kbps')),
+                'acodec': src.get('audio_codec'),
+                'asr': int_or_none(src.get('audio_sample_rate')),
+                'tbr': int_or_none(src.get('total_bitrate_in_kbps')),
+                'filesize': int_or_none(src.get('file_size_in_bytes')),
             }
-            if format_id:
-                # Some videos contain additional metadata (e.g.
-                # https://www.udemy.com/ios9-swift/learn/#/lecture/3383208)
-                output = outputs.get(format_id)
-                if isinstance(output, dict):
-                    f.update({
-                        'format_id': '%sp' % (output.get('label') or format_id),
-                        'width': int_or_none(output.get('width')),
-                        'height': int_or_none(output.get('height')),
-                        'vbr': int_or_none(output.get('video_bitrate_in_kbps')),
-                        'vcodec': output.get('video_codec'),
-                        'fps': int_or_none(output.get('frame_rate')),
-                        'abr': int_or_none(output.get('audio_bitrate_in_kbps')),
-                        'acodec': output.get('audio_codec'),
-                        'asr': int_or_none(output.get('audio_sample_rate')),
-                        'tbr': int_or_none(output.get('total_bitrate_in_kbps')),
-                        'filesize': int_or_none(output.get('file_size_in_bytes')),
-                    })
-                else:
-                    f['format_id'] = '%sp' % format_id
-            formats.append(f)
+
+        outputs = asset.get('data', {}).get('outputs')
+        if not isinstance(outputs, dict):
+            outputs = {}
+
+        for format_id, output in outputs.items():
+            if isinstance(output, dict) and output.get('url'):
+                formats.append(extract_output_format(output))
+
+        download_urls = asset.get('download_urls')
+        if isinstance(download_urls, dict):
+            video = download_urls.get('Video')
+            if isinstance(video, list):
+                for format_ in video:
+                    video_url = format_.get('file')
+                    if not video_url:
+                        continue
+                    format_id = format_.get('label')
+                    f = {
+                        'url': format_['file'],
+                        'height': int_or_none(format_id),
+                    }
+                    if format_id:
+                        # Some videos contain additional metadata (e.g.
+                        # https://www.udemy.com/ios9-swift/learn/#/lecture/3383208)
+                        output = outputs.get(format_id)
+                        if isinstance(output, dict):
+                            output_format = extract_output_format(output)
+                            output_format.update(f)
+                            f = output_format
+                        else:
+                            f['format_id'] = '%sp' % format_id
+                    formats.append(f)
 
         self._sort_formats(formats)
 
@@ -243,7 +278,7 @@ class UdemyCourseIE(UdemyIE):
         course_id = response['id']
         course_title = response.get('title')
 
-        self._enroll_course(webpage, course_id)
+        self._enroll_course(url, webpage, course_id)
 
         response = self._download_json(
             'https://www.udemy.com/api-1.1/courses/%s/curriculum' % course_id,

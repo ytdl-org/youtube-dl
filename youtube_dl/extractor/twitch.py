@@ -299,9 +299,10 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
             # is completely broken on the twitch side. It simply ignores
             # a limit and returns the whole offset number of videos.
             # Working around by just requesting all videos at once.
+            # Upd: pagination bug was fixed by twitch on 15.03.2016.
             if not broken_paging_detected and total and len(page_entries) > limit:
                 self.report_warning(
-                    'Twitch paging is broken on twitch side, requesting all videos at once',
+                    'Twitch pagination is broken on twitch side, requesting all videos at once',
                     channel_id)
                 broken_paging_detected = True
                 offset = total

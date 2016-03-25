@@ -8,7 +8,7 @@ from ..utils import ExtractorError
 
 
 class Sport5IE(InfoExtractor):
-    _VALID_URL = r'http://(?:www|vod)?\.sport5\.co\.il/.*\b(?:Vi|docID)=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www|vod)?\.sport5\.co\.il/.*\b(?:Vi|docID)=(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'http://vod.sport5.co.il/?Vc=147&Vi=176331&Page=1',

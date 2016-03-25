@@ -14,7 +14,7 @@ class RUTVIE(InfoExtractor):
     IE_DESC = 'RUTV.RU'
     _VALID_URL = r'''(?x)
         https?://player\.(?:rutv\.ru|vgtrk\.com)/
-            (?P<path>flash2v/container\.swf\?id=
+            (?P<path>flash\d+v/container\.swf\?id=
             |iframe/(?P<type>swf|video|live)/id/
             |index/iframe/cast_id/)
             (?P<id>\d+)'''
@@ -109,7 +109,7 @@ class RUTVIE(InfoExtractor):
             return mobj.group('url')
 
         mobj = re.search(
-            r'<meta[^>]+?property=(["\'])og:video\1[^>]+?content=(["\'])(?P<url>https?://player\.(?:rutv\.ru|vgtrk\.com)/flash2v/container\.swf\?id=.+?\2)',
+            r'<meta[^>]+?property=(["\'])og:video\1[^>]+?content=(["\'])(?P<url>https?://player\.(?:rutv\.ru|vgtrk\.com)/flash\d+v/container\.swf\?id=.+?\2)',
             webpage)
         if mobj:
             return mobj.group('url')
@@ -119,7 +119,7 @@ class RUTVIE(InfoExtractor):
         video_id = mobj.group('id')
         video_path = mobj.group('path')
 
-        if video_path.startswith('flash2v'):
+        if re.match(r'flash\d+v', video_path):
             video_type = 'video'
         elif video_path.startswith('iframe'):
             video_type = mobj.group('type')
@@ -168,7 +168,7 @@ class RUTVIE(InfoExtractor):
                         'play_path': mobj.group('playpath'),
                         'app': mobj.group('app'),
                         'page_url': 'http://player.rutv.ru',
-                        'player_url': 'http://player.rutv.ru/flash2v/osmf.swf?i=22',
+                        'player_url': 'http://player.rutv.ru/flash3v/osmf.swf?i=22',
                         'rtmp_live': True,
                         'ext': 'flv',
                         'vbr': int(quality),

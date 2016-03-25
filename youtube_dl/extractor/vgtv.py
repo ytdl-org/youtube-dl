@@ -214,7 +214,7 @@ class VGTVIE(XstreamIE):
 class BTArticleIE(InfoExtractor):
     IE_NAME = 'bt:article'
     IE_DESC = 'Bergens Tidende Articles'
-    _VALID_URL = 'http://(?:www\.)?bt\.no/(?:[^/]+/)+(?P<id>[^/]+)-\d+\.html'
+    _VALID_URL = r'https?://(?:www\.)?bt\.no/(?:[^/]+/)+(?P<id>[^/]+)-\d+\.html'
     _TEST = {
         'url': 'http://www.bt.no/nyheter/lokalt/Kjemper-for-internatet-1788214.html',
         'md5': '2acbe8ad129b3469d5ae51b1158878df',
@@ -241,7 +241,7 @@ class BTArticleIE(InfoExtractor):
 class BTVestlendingenIE(InfoExtractor):
     IE_NAME = 'bt:vestlendingen'
     IE_DESC = 'Bergens Tidende - Vestlendingen'
-    _VALID_URL = 'http://(?:www\.)?bt\.no/spesial/vestlendingen/#!/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?bt\.no/spesial/vestlendingen/#!/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.bt.no/spesial/vestlendingen/#!/86588',
         'md5': 'd7d17e3337dc80de6d3a540aefbe441b',

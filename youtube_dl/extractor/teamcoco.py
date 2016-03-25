@@ -16,7 +16,7 @@ from ..compat import compat_ord
 
 
 class TeamcocoIE(InfoExtractor):
-    _VALID_URL = r'http://teamcoco\.com/video/(?P<video_id>[0-9]+)?/?(?P<display_id>.*)'
+    _VALID_URL = r'https?://teamcoco\.com/video/(?P<video_id>[0-9]+)?/?(?P<display_id>.*)'
     _TESTS = [
         {
             'url': 'http://teamcoco.com/video/80187/conan-becomes-a-mary-kay-beauty-consultant',

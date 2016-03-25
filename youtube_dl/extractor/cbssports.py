@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 
 class CBSSportsIE(InfoExtractor):
-    _VALID_URL = r'http://www\.cbssports\.com/video/player/(?P<section>[^/]+)/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://www\.cbssports\.com/video/player/(?P<section>[^/]+)/(?P<id>[^/]+)'
 
     _TEST = {
         'url': 'http://www.cbssports.com/video/player/tennis/318462531970/0/us-open-flashbacks-1990s',

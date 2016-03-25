@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class FoxgayIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?foxgay\.com/videos/(?:\S+-)?(?P<id>\d+)\.shtml'
+    _VALID_URL = r'https?://(?:www\.)?foxgay\.com/videos/(?:\S+-)?(?P<id>\d+)\.shtml'
     _TEST = {
         'url': 'http://foxgay.com/videos/fuck-turkish-style-2582.shtml',
         'md5': '80d72beab5d04e1655a56ad37afe6841',

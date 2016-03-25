@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class VeohIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?veoh\.com/(?:watch|iphone/#_Watch)/(?P<id>(?:v|yapi-)[\da-zA-Z]+)'
+    _VALID_URL = r'https?://(?:www\.)?veoh\.com/(?:watch|iphone/#_Watch)/(?P<id>(?:v|yapi-)[\da-zA-Z]+)'
 
     _TESTS = [
         {
