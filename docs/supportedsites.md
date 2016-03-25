@@ -74,6 +74,7 @@
  - **Bigflix**
  - **Bild**: Bild.de
  - **BiliBili**
+ - **BioBioChileTV**
  - **BleacherReport**
  - **BleacherReportCMS**
  - **blinkx**
@@ -100,6 +101,7 @@
  - **CBSNews**: CBS News
  - **CBSNewsLiveVideo**: CBS News Live Videos
  - **CBSSports**
+ - **CDA**
  - **CeskaTelevize**
  - **channel9**: Channel 9
  - **Chaturbate**
@@ -244,6 +246,7 @@
  - **GPUTechConf**
  - **Groupon**
  - **Hark**
+ - **HBO**
  - **HearThisAt**
  - **Heise**
  - **HellPorno**
@@ -344,6 +347,7 @@
  - **MiTele**: mitele.es
  - **mixcloud**
  - **MLB**
+ - **Mnet**
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
  - **Mofosex**
  - **Mojvideo**
@@ -440,6 +444,7 @@
  - **OnionStudios**
  - **Ooyala**
  - **OoyalaExternal**
+ - **Openload**
  - **OraTV**
  - **orf:fm4**: radio FM4
  - **orf:iptv**: iptv.ORF.at
@@ -525,6 +530,7 @@
  - **RUTV**: RUTV.RU
  - **Ruutu**
  - **safari**: safaribooksonline.com online video
+ - **safari:api**
  - **safari:course**: safaribooksonline.com online courses
  - **Sandia**: Sandia National Laboratories
  - **Sapo**: SAPO Vídeos
@@ -618,6 +624,7 @@
  - **TheOnion**
  - **ThePlatform**
  - **ThePlatformFeed**
+ - **TheScene**
  - **TheSixtyOne**
  - **TheStar**
  - **ThisAmericanLife**
@@ -786,6 +793,7 @@
  - **youtube:channel**: YouTube.com channels
  - **youtube:favorites**: YouTube.com favourite videos, ":ytfav" for short (requires authentication)
  - **youtube:history**: Youtube watch history, ":ythistory" for short (requires authentication)
+ - **youtube:live**: YouTube.com live streams
  - **youtube:playlist**: YouTube.com playlists
  - **youtube:playlists**: YouTube.com user/channel playlists
  - **youtube:recommended**: YouTube.com recommended videos, ":ytrec" for short (requires authentication)
