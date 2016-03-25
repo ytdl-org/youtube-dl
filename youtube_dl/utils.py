@@ -47,6 +47,7 @@ from .compat import (
     compat_str,
     compat_urllib_error,
     compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urlparse,
@@ -1315,7 +1316,7 @@ def shell_quote(args):
 def smuggle_url(url, data):
     """ Pass additional data in a URL for internal use. """
 
-    sdata = compat_urllib_parse.urlencode(
+    sdata = compat_urllib_parse_urlencode(
         {'__youtubedl_smuggle': json.dumps(data)})
     return url + '#' + sdata
 
@@ -1789,22 +1790,15 @@ def read_batch_urls(batch_fd):
 
 
 def urlencode_postdata(*args, **kargs):
-    return compat_urllib_parse.urlencode(*args, **kargs).encode('ascii')
+    return compat_urllib_parse_urlencode(*args, **kargs).encode('ascii')
 
 
 def update_url_query(url, query):
     parsed_url = compat_urlparse.urlparse(url)
     qs = compat_parse_qs(parsed_url.query)
     qs.update(query)
-    qs = encode_dict(qs)
     return compat_urlparse.urlunparse(parsed_url._replace(
-        query=compat_urllib_parse.urlencode(qs, True)))
-
-
-def encode_dict(d, encoding='utf-8'):
-    def encode(v):
-        return v.encode(encoding) if isinstance(v, compat_basestring) else v
-    return dict((encode(k), encode(v)) for k, v in d.items())
+        query=compat_urllib_parse_urlencode(qs, True)))
 
 
 def dict_get(d, key_or_keys, default=None, skip_false_values=True):

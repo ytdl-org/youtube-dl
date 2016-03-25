@@ -5,7 +5,7 @@ import itertools
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_str,
 )
 from ..utils import (
@@ -58,7 +58,7 @@ class BambuserIE(InfoExtractor):
         }
 
         request = sanitized_Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+            self._LOGIN_URL, compat_urllib_parse_urlencode(login_form).encode('utf-8'))
         request.add_header('Referer', self._LOGIN_URL)
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)

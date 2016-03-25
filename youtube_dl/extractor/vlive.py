@@ -7,7 +7,7 @@ from ..utils import (
     float_or_none,
     int_or_none,
 )
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 
 
 class VLiveIE(InfoExtractor):
@@ -43,7 +43,7 @@ class VLiveIE(InfoExtractor):
 
         playinfo = self._download_json(
             'http://global.apis.naver.com/rmcnmv/rmcnmv/vod_play_videoInfo.json?%s'
-            % compat_urllib_parse.urlencode({
+            % compat_urllib_parse_urlencode({
                 'videoId': long_video_id,
                 'key': key,
                 'ptc': 'http',

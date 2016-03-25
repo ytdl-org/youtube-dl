@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     int_or_none,
     qualities,
@@ -38,7 +38,7 @@ class NprIE(InfoExtractor):
         playlist_id = self._match_id(url)
 
         config = self._download_json(
-            'http://api.npr.org/query?%s' % compat_urllib_parse.urlencode({
+            'http://api.npr.org/query?%s' % compat_urllib_parse_urlencode({
                 'id': playlist_id,
                 'fields': 'titles,audio,show',
                 'format': 'json',

@@ -8,7 +8,7 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     int_or_none,
@@ -86,7 +86,7 @@ class AtresPlayerIE(InfoExtractor):
         }
 
         request = sanitized_Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+            self._LOGIN_URL, compat_urllib_parse_urlencode(login_form).encode('utf-8'))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)

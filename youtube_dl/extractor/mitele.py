@@ -2,11 +2,10 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
-    encode_dict,
     get_element_by_attribute,
     int_or_none,
 )
@@ -60,7 +59,7 @@ class MiTeleIE(InfoExtractor):
                 'sta': '0',
             }
             media = self._download_json(
-                '%s/?%s' % (gat, compat_urllib_parse.urlencode(encode_dict(token_data))),
+                '%s/?%s' % (gat, compat_urllib_parse_urlencode(token_data)),
                 display_id, 'Downloading %s JSON' % location['loc'])
             file_ = media.get('file')
             if not file_:

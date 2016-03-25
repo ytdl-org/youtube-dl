@@ -14,7 +14,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
@@ -322,7 +322,7 @@ class IqiyiIE(InfoExtractor):
             'bird_t': timestamp,
         }
         validation_result = self._download_json(
-            'http://kylin.iqiyi.com/validate?' + compat_urllib_parse.urlencode(validation_params), None,
+            'http://kylin.iqiyi.com/validate?' + compat_urllib_parse_urlencode(validation_params), None,
             note='Validate credentials', errnote='Unable to validate credentials')
 
         MSG_MAP = {
@@ -456,7 +456,7 @@ class IqiyiIE(InfoExtractor):
                         'QY00001': auth_result['data']['u'],
                     })
                 api_video_url += '?' if '?' not in api_video_url else '&'
-                api_video_url += compat_urllib_parse.urlencode(param)
+                api_video_url += compat_urllib_parse_urlencode(param)
                 js = self._download_json(
                     api_video_url, video_id,
                     note='Download video info of segment %d for format %s' % (segment_index + 1, format_id))
@@ -494,7 +494,7 @@ class IqiyiIE(InfoExtractor):
         }
 
         api_url = 'http://cache.video.qiyi.com/vms' + '?' + \
-            compat_urllib_parse.urlencode(param)
+            compat_urllib_parse_urlencode(param)
         raw_data = self._download_json(api_url, video_id)
         return raw_data
 

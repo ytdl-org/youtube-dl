@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -81,7 +81,7 @@ class ShahidIE(InfoExtractor):
         video = self._download_json(
             '%s/%s/%s?%s' % (
                 api_vars['url'], api_vars['playerType'], api_vars['id'],
-                compat_urllib_parse.urlencode({
+                compat_urllib_parse_urlencode({
                     'apiKey': 'sh@hid0nlin3',
                     'hash': 'b2wMCTHpSmyxGqQjJFOycRmLSex+BpTK/ooxy6vHaqs=',
                 })),

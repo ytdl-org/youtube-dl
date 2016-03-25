@@ -9,7 +9,6 @@ from ..compat import (
 )
 from ..utils import (
     determine_ext,
-    encode_dict,
     extract_attributes,
     ExtractorError,
     sanitized_Request,
@@ -71,7 +70,7 @@ class AnimeOnDemandIE(InfoExtractor):
             post_url = compat_urlparse.urljoin(self._LOGIN_URL, post_url)
 
         request = sanitized_Request(
-            post_url, urlencode_postdata(encode_dict(login_form)))
+            post_url, urlencode_postdata(login_form))
         request.add_header('Referer', self._LOGIN_URL)
 
         response = self._download_webpage(

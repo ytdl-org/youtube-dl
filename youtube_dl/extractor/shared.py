@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import base64
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -45,7 +45,7 @@ class SharedIE(InfoExtractor):
 
         download_form = self._hidden_inputs(webpage)
         request = sanitized_Request(
-            url, compat_urllib_parse.urlencode(download_form))
+            url, compat_urllib_parse_urlencode(download_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
 
         video_page = self._download_webpage(

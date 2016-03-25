@@ -5,12 +5,11 @@ import hashlib
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
-    encode_dict,
     ExtractorError,
     sanitized_Request,
 )
@@ -57,7 +56,7 @@ class FC2IE(InfoExtractor):
             'Submit': ' Login ',
         }
 
-        login_data = compat_urllib_parse.urlencode(encode_dict(login_form_strs)).encode('utf-8')
+        login_data = compat_urllib_parse_urlencode(login_form_strs).encode('utf-8')
         request = sanitized_Request(
             'https://secure.id.fc2.com/index.php?mode=login&switch_language=en', login_data)
 

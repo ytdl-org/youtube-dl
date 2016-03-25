@@ -5,8 +5,8 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
@@ -102,7 +102,7 @@ class CeskaTelevizeIE(InfoExtractor):
 
         req = sanitized_Request(
             'http://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
-            data=compat_urllib_parse.urlencode(data))
+            data=compat_urllib_parse_urlencode(data))
 
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
         req.add_header('x-addr', '127.0.0.1')

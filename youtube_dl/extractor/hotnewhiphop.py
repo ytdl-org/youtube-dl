@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import base64
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     ExtractorError,
     HEADRequest,
@@ -35,7 +35,7 @@ class HotNewHipHopIE(InfoExtractor):
                 r'"contentUrl" content="(.*?)"', webpage, 'content URL')
             return self.url_result(video_url, ie='Youtube')
 
-        reqdata = compat_urllib_parse.urlencode([
+        reqdata = compat_urllib_parse_urlencode([
             ('mediaType', 's'),
             ('mediaId', video_id),
         ])

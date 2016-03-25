@@ -2,8 +2,8 @@
 from __future__ import unicode_literals
 
 from ..compat import (
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
+    compat_urllib_parse_urlencode,
 )
 from .common import InfoExtractor
 from ..utils import (
@@ -50,7 +50,7 @@ class Porn91IE(InfoExtractor):
             r'so.addVariable\(\'seccode\',\'([^\']+)\'', webpage, 'sec code')
         max_vid = self._search_regex(
             r'so.addVariable\(\'max_vid\',\'(\d+)\'', webpage, 'max vid')
-        url_params = compat_urllib_parse.urlencode({
+        url_params = compat_urllib_parse_urlencode({
             'VID': file_id,
             'mp4': '1',
             'seccode': sec_code,

@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     int_or_none,
     parse_duration,
@@ -39,7 +39,7 @@ class MinhatecaIE(InfoExtractor):
         ]
         req = sanitized_Request(
             'http://minhateca.com.br/action/License/Download',
-            data=compat_urllib_parse.urlencode(token_data))
+            data=compat_urllib_parse_urlencode(token_data))
         req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         data = self._download_json(
             req, video_id, note='Downloading metadata')

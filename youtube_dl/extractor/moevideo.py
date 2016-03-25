@@ -5,7 +5,7 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -77,7 +77,7 @@ class MoeVideoIE(InfoExtractor):
             ],
         ]
         r_json = json.dumps(r)
-        post = compat_urllib_parse.urlencode({'r': r_json})
+        post = compat_urllib_parse_urlencode({'r': r_json})
         req = sanitized_Request(self._API_URL, post)
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
 

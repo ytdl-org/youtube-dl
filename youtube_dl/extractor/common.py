@@ -21,7 +21,7 @@ from ..compat import (
     compat_os_name,
     compat_str,
     compat_urllib_error,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
@@ -1300,7 +1300,7 @@ class InfoExtractor(object):
                         'plugin': 'flowplayer-3.2.0.1',
                     }
                 f4m_url += '&' if '?' in f4m_url else '?'
-                f4m_url += compat_urllib_parse.urlencode(f4m_params)
+                f4m_url += compat_urllib_parse_urlencode(f4m_params)
                 formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False))
                 continue
 

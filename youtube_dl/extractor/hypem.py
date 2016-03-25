@@ -4,7 +4,7 @@ import json
 import time
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     ExtractorError,
     sanitized_Request,
@@ -28,7 +28,7 @@ class HypemIE(InfoExtractor):
         track_id = self._match_id(url)
 
         data = {'ax': 1, 'ts': time.time()}
-        request = sanitized_Request(url + '?' + compat_urllib_parse.urlencode(data))
+        request = sanitized_Request(url + '?' + compat_urllib_parse_urlencode(data))
         response, urlh = self._download_webpage_handle(
             request, track_id, 'Downloading webpage with the url')
 

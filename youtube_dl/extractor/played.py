@@ -5,7 +5,7 @@ import re
 import os.path
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     ExtractorError,
     sanitized_Request,
@@ -40,7 +40,7 @@ class PlayedIE(InfoExtractor):
 
         self._sleep(2, video_id)
 
-        post = compat_urllib_parse.urlencode(data)
+        post = compat_urllib_parse_urlencode(data)
         headers = {
             b'Content-Type': b'application/x-www-form-urlencoded',
         }

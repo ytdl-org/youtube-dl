@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import random
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     sanitized_Request,
     xpath_text,
@@ -29,7 +29,7 @@ class MatchTVIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = 'matchtv-live'
         request = sanitized_Request(
-            'http://player.matchtv.ntvplus.tv/player/smil?%s' % compat_urllib_parse.urlencode({
+            'http://player.matchtv.ntvplus.tv/player/smil?%s' % compat_urllib_parse_urlencode({
                 'ts': '',
                 'quality': 'SD',
                 'contentId': '561d2c0df7159b37178b4567',

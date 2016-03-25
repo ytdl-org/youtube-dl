@@ -7,7 +7,7 @@ import json
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     ExtractorError,
@@ -204,7 +204,7 @@ class VKIE(InfoExtractor):
 
         request = sanitized_Request(
             'https://login.vk.com/?act=login',
-            compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+            compat_urllib_parse_urlencode(login_form).encode('utf-8'))
         login_page = self._download_webpage(
             request, None, note='Logging in as %s' % username)
 

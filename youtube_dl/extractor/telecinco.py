@@ -5,8 +5,8 @@ import json
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
+    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
@@ -74,7 +74,7 @@ class TelecincoIE(InfoExtractor):
         info_el = self._download_xml(info_url, episode).find('./video/info')
 
         video_link = info_el.find('videoUrl/link').text
-        token_query = compat_urllib_parse.urlencode({'id': video_link})
+        token_query = compat_urllib_parse_urlencode({'id': video_link})
         token_info = self._download_json(
             embed_data['flashvars']['ov_tk'] + '?' + token_query,
             episode,

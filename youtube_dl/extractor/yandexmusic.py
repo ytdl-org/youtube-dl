@@ -7,7 +7,7 @@ import hashlib
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     ExtractorError,
@@ -170,7 +170,7 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
             missing_track_ids = set(map(compat_str, track_ids)) - set(present_track_ids)
             request = sanitized_Request(
                 'https://music.yandex.ru/handlers/track-entries.jsx',
-                compat_urllib_parse.urlencode({
+                compat_urllib_parse_urlencode({
                     'entries': ','.join(missing_track_ids),
                     'lang': mu.get('settings', {}).get('lang', 'en'),
                     'external-domain': 'music.yandex.ru',

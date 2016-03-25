@@ -5,7 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
@@ -90,7 +90,7 @@ class Laola1TvIE(InfoExtractor):
 
         hd_doc = self._download_xml(
             'http://www.laola1.tv/server/hd_video.php?%s'
-            % compat_urllib_parse.urlencode({
+            % compat_urllib_parse_urlencode({
                 'play': video_id,
                 'partner': partner_id,
                 'portal': portal,
@@ -108,7 +108,7 @@ class Laola1TvIE(InfoExtractor):
 
         req = sanitized_Request(
             'https://club.laola1.tv/sp/laola1/api/v3/user/session/premium/player/stream-access?%s' %
-            compat_urllib_parse.urlencode({
+            compat_urllib_parse_urlencode({
                 'videoId': video_id,
                 'target': VS_TARGETS.get(kind, '2'),
                 'label': _v('label'),

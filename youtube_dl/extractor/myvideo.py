@@ -9,8 +9,8 @@ import json
 from .common import InfoExtractor
 from ..compat import (
     compat_ord,
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     ExtractorError,
@@ -112,7 +112,7 @@ class MyVideoIE(InfoExtractor):
                 encxml = compat_urllib_parse_unquote(b)
         if not params.get('domain'):
             params['domain'] = 'www.myvideo.de'
-        xmldata_url = '%s?%s' % (encxml, compat_urllib_parse.urlencode(params))
+        xmldata_url = '%s?%s' % (encxml, compat_urllib_parse_urlencode(params))
         if 'flash_playertype=MTV' in xmldata_url:
             self._downloader.report_warning('avoiding MTV player')
             xmldata_url = (

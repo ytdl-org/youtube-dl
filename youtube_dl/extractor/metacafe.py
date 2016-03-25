@@ -5,8 +5,8 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     determine_ext,
@@ -117,7 +117,7 @@ class MetacafeIE(InfoExtractor):
             'filters': '0',
             'submit': "Continue - I'm over 18",
         }
-        request = sanitized_Request(self._FILTER_POST, compat_urllib_parse.urlencode(disclaimer_form))
+        request = sanitized_Request(self._FILTER_POST, compat_urllib_parse_urlencode(disclaimer_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         self.report_age_confirmation()
         self._download_webpage(request, None, False, 'Unable to confirm age')

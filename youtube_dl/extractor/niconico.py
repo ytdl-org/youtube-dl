@@ -7,11 +7,10 @@ import datetime
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
-    encode_dict,
     ExtractorError,
     int_or_none,
     parse_duration,
@@ -101,7 +100,7 @@ class NiconicoIE(InfoExtractor):
             'mail': username,
             'password': password,
         }
-        login_data = compat_urllib_parse.urlencode(encode_dict(login_form_strs)).encode('utf-8')
+        login_data = compat_urllib_parse_urlencode(login_form_strs).encode('utf-8')
         request = sanitized_Request(
             'https://secure.nicovideo.jp/secure/login', login_data)
         login_results = self._download_webpage(
@@ -141,7 +140,7 @@ class NiconicoIE(InfoExtractor):
                 r'\'thumbPlayKey\'\s*:\s*\'(.*?)\'', ext_player_info, 'thumbPlayKey')
 
             # Get flv info
-            flv_info_data = compat_urllib_parse.urlencode({
+            flv_info_data = compat_urllib_parse_urlencode({
                 'k': thumb_play_key,
                 'v': video_id
             })

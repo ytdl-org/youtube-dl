@@ -4,10 +4,9 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     ExtractorError,
-    encode_dict,
     int_or_none,
     sanitized_Request,
 )
@@ -109,7 +108,7 @@ class XFileShareIE(InfoExtractor):
             if countdown:
                 self._sleep(countdown, video_id)
 
-            post = compat_urllib_parse.urlencode(encode_dict(fields))
+            post = compat_urllib_parse_urlencode(fields)
 
             req = sanitized_Request(url, post)
             req.add_header('Content-type', 'application/x-www-form-urlencoded')

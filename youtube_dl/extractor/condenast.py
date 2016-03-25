@@ -5,7 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
     compat_urlparse,
 )
@@ -97,7 +97,7 @@ class CondeNastIE(InfoExtractor):
         video_id = self._search_regex(r'videoId: [\'"](.+?)[\'"]', params, 'video id')
         player_id = self._search_regex(r'playerId: [\'"](.+?)[\'"]', params, 'player id')
         target = self._search_regex(r'target: [\'"](.+?)[\'"]', params, 'target')
-        data = compat_urllib_parse.urlencode({'videoId': video_id,
+        data = compat_urllib_parse_urlencode({'videoId': video_id,
                                               'playerId': player_id,
                                               'target': target,
                                               })

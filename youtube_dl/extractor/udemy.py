@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_request,
     compat_urlparse,
 )
@@ -71,7 +71,7 @@ class UdemyIE(InfoExtractor):
     def _download_lecture(self, course_id, lecture_id):
         return self._download_json(
             'https://www.udemy.com/api-2.0/users/me/subscribed-courses/%s/lectures/%s?%s' % (
-                course_id, lecture_id, compat_urllib_parse.urlencode({
+                course_id, lecture_id, compat_urllib_parse_urlencode({
                     'video_only': '',
                     'auto_play': '',
                     'fields[lecture]': 'title,description,asset',
@@ -139,7 +139,7 @@ class UdemyIE(InfoExtractor):
         })
 
         request = sanitized_Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+            self._LOGIN_URL, compat_urllib_parse_urlencode(login_form).encode('utf-8'))
         request.add_header('Referer', self._ORIGIN_URL)
         request.add_header('Origin', self._ORIGIN_URL)
 

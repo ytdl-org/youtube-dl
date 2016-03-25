@@ -11,8 +11,8 @@ from math import pow, sqrt, floor
 from .common import InfoExtractor
 from ..compat import (
     compat_etree_fromstring,
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
+    compat_urllib_parse_urlencode,
     compat_urllib_request,
     compat_urlparse,
 )
@@ -78,7 +78,7 @@ class CrunchyrollBaseIE(InfoExtractor):
         # See https://github.com/rg3/youtube-dl/issues/7202.
         qs['skip_wall'] = ['1']
         return compat_urlparse.urlunparse(
-            parsed_url._replace(query=compat_urllib_parse.urlencode(qs, True)))
+            parsed_url._replace(query=compat_urllib_parse_urlencode(qs, True)))
 
 
 class CrunchyrollIE(CrunchyrollBaseIE):
@@ -308,7 +308,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         playerdata_url = compat_urllib_parse_unquote(self._html_search_regex(r'"config_url":"([^"]+)', webpage, 'playerdata_url'))
         playerdata_req = sanitized_Request(playerdata_url)
-        playerdata_req.data = compat_urllib_parse.urlencode({'current_page': webpage_url})
+        playerdata_req.data = compat_urllib_parse_urlencode({'current_page': webpage_url})
         playerdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         playerdata = self._download_webpage(playerdata_req, video_id, note='Downloading media info')
 
@@ -322,7 +322,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             streamdata_req = sanitized_Request(
                 'http://www.crunchyroll.com/xml/?req=RpcApiVideoPlayer_GetStandardConfig&media_id=%s&video_format=%s&video_quality=%s'
                 % (stream_id, stream_format, stream_quality),
-                compat_urllib_parse.urlencode({'current_page': url}).encode('utf-8'))
+                compat_urllib_parse_urlencode({'current_page': url}).encode('utf-8'))
             streamdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
             streamdata = self._download_xml(
                 streamdata_req, video_id,
