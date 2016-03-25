@@ -136,13 +136,16 @@ class BrightcoveLegacyIE(InfoExtractor):
         else:
             flashvars = {}
 
+        data_url = object_doc.attrib.get('data', '')
+        data_url_params = compat_parse_qs(compat_urllib_parse_urlparse(data_url).query)
+
         def find_param(name):
             if name in flashvars:
                 return flashvars[name]
             node = find_xpath_attr(object_doc, './param', 'name', name)
             if node is not None:
                 return node.attrib['value']
-            return None
+            return data_url_params.get(name)
 
         params = {}
 
