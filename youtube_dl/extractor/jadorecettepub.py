@@ -9,7 +9,7 @@ from .youtube import YoutubeIE
 
 
 class JadoreCettePubIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?jadorecettepub\.com/[0-9]{4}/[0-9]{2}/(?P<id>.*?)\.html'
+    _VALID_URL = r'https?://(?:www\.)?jadorecettepub\.com/[0-9]{4}/[0-9]{2}/(?P<id>.*?)\.html'
 
     _TEST = {
         'url': 'http://www.jadorecettepub.com/2010/12/star-wars-massacre-par-les-japonais.html',

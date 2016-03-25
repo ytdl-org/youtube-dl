@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class NormalbootsIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?normalboots\.com/video/(?P<id>[0-9a-z-]*)/?$'
+    _VALID_URL = r'https?://(?:www\.)?normalboots\.com/video/(?P<id>[0-9a-z-]*)/?$'
     _TEST = {
         'url': 'http://normalboots.com/video/home-alone-games-jontron/',
         'md5': '8bf6de238915dd501105b44ef5f1e0f6',

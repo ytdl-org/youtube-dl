@@ -1,7 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
+import re
 
 from .common import InfoExtractor
 from ..utils import ExtractorError
@@ -27,10 +27,9 @@ class TuneInBaseIE(InfoExtractor):
         if not streams_url.startswith('http://'):
             streams_url = compat_urlparse.urljoin(url, streams_url)
 
-        stream_data = self._download_webpage(
-            streams_url, content_id, note='Downloading stream data')
-        streams = json.loads(self._search_regex(
-            r'\((.*)\);', stream_data, 'stream info'))['Streams']
+        streams = self._download_json(
+            streams_url, content_id, note='Downloading stream data',
+            transform_source=lambda s: re.sub(r'^\s*\((.*)\);\s*$', r'\1', s))['Streams']
 
         is_live = None
         formats = []

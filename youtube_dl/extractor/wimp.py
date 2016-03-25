@@ -5,7 +5,7 @@ from .youtube import YoutubeIE
 
 
 class WimpIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?wimp\.com/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?wimp\.com/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://www.wimp.com/maruexhausted/',
         'md5': 'ee21217ffd66d058e8b16be340b74883',
@@ -20,7 +20,7 @@ class WimpIE(InfoExtractor):
         'md5': '4e2986c793694b55b37cf92521d12bb4',
         'info_dict': {
             'id': 'clowncar',
-            'ext': 'mp4',
+            'ext': 'webm',
             'title': 'It\'s like a clown car.',
             'description': 'md5:0e56db1370a6e49c5c1d19124c0d2fb2',
         },

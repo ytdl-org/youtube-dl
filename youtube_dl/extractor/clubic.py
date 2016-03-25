@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class ClubicIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?clubic\.com/video/(?:[^/]+/)*video.*-(?P<id>[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?clubic\.com/video/(?:[^/]+/)*video.*-(?P<id>[0-9]+)\.html'
 
     _TESTS = [{
         'url': 'http://www.clubic.com/video/clubic-week/video-clubic-week-2-0-le-fbi-se-lance-dans-la-photo-d-identite-448474.html',

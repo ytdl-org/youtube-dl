@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class NprIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?npr\.org/player/v2/mediaPlayer\.html\?.*\bid=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?npr\.org/player/v2/mediaPlayer\.html\?.*\bid=(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.npr.org/player/v2/mediaPlayer.html?id=449974205',
         'info_dict': {

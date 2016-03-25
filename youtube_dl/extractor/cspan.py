@@ -15,7 +15,7 @@ from .senateisvp import SenateISVPIE
 
 
 class CSpanIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?c-span\.org/video/\?(?P<id>[0-9a-f]+)'
+    _VALID_URL = r'https?://(?:www\.)?c-span\.org/video/\?(?P<id>[0-9a-f]+)'
     IE_DESC = 'C-SPAN'
     _TESTS = [{
         'url': 'http://www.c-span.org/video/?313572-1/HolderonV',

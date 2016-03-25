@@ -19,7 +19,7 @@ from ..utils import (
 
 
 class Laola1TvIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?laola1\.tv/(?P<lang>[a-z]+)-(?P<portal>[a-z]+)/[^/]+/(?P<slug>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?laola1\.tv/(?P<lang>[a-z]+)-(?P<portal>[a-z]+)/(?P<kind>[^/]+)/(?P<slug>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.laola1.tv/de-de/video/straubing-tigers-koelner-haie/227883.html',
         'info_dict': {
@@ -33,7 +33,7 @@ class Laola1TvIE(InfoExtractor):
         },
         'params': {
             'skip_download': True,
-        }
+        },
     }, {
         'url': 'http://www.laola1.tv/de-de/video/straubing-tigers-koelner-haie',
         'info_dict': {
@@ -47,12 +47,28 @@ class Laola1TvIE(InfoExtractor):
         },
         'params': {
             'skip_download': True,
-        }
+        },
+    }, {
+        'url': 'http://www.laola1.tv/de-de/livestream/2016-03-22-belogorie-belgorod-trentino-diatec-lde',
+        'info_dict': {
+            'id': '487850',
+            'display_id': '2016-03-22-belogorie-belgorod-trentino-diatec-lde',
+            'ext': 'flv',
+            'title': 'Belogorie BELGOROD - TRENTINO Diatec',
+            'upload_date': '20160322',
+            'uploader': 'CEV - Europäischer Volleyball Verband',
+            'is_live': True,
+            'categories': ['Volleyball'],
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         display_id = mobj.group('slug')
+        kind = mobj.group('kind')
         lang = mobj.group('lang')
         portal = mobj.group('portal')
 
@@ -85,12 +101,17 @@ class Laola1TvIE(InfoExtractor):
         _v = lambda x, **k: xpath_text(hd_doc, './/video/' + x, **k)
         title = _v('title', fatal=True)
 
+        VS_TARGETS = {
+            'video': '2',
+            'livestream': '17',
+        }
+
         req = sanitized_Request(
             'https://club.laola1.tv/sp/laola1/api/v3/user/session/premium/player/stream-access?%s' %
             compat_urllib_parse.urlencode({
                 'videoId': video_id,
-                'target': '2',
-                'label': 'laola1tv',
+                'target': VS_TARGETS.get(kind, '2'),
+                'label': _v('label'),
                 'area': _v('area'),
             }),
             urlencode_postdata(

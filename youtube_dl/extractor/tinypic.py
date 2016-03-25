@@ -9,7 +9,7 @@ from ..utils import ExtractorError
 class TinyPicIE(InfoExtractor):
     IE_NAME = 'tinypic'
     IE_DESC = 'tinypic.com videos'
-    _VALID_URL = r'http://(?:.+?\.)?tinypic\.com/player\.php\?v=(?P<id>[^&]+)&s=\d+'
+    _VALID_URL = r'https?://(?:.+?\.)?tinypic\.com/player\.php\?v=(?P<id>[^&]+)&s=\d+'
 
     _TESTS = [
         {

@@ -51,9 +51,7 @@ class CNETIE(ThePlatformIE):
             uploader = None
             uploader_id = None
 
-        mpx_account = data['config']['uvpConfig']['default']['mpx_account']
-
-        metadata = self.get_metadata('%s/%s' % (mpx_account, list(vdata['files'].values())[0]), video_id)
+        metadata = self.get_metadata('kYEXFC/%s' % list(vdata['files'].values())[0], video_id)
         description = vdata.get('description') or metadata.get('description')
         duration = int_or_none(vdata.get('duration')) or metadata.get('duration')
 
@@ -62,7 +60,7 @@ class CNETIE(ThePlatformIE):
         for (fkey, vid) in vdata['files'].items():
             if fkey == 'hls_phone' and 'hls_tablet' in vdata['files']:
                 continue
-            release_url = 'http://link.theplatform.com/s/%s/%s?format=SMIL&mbr=true' % (mpx_account, vid)
+            release_url = 'http://link.theplatform.com/s/kYEXFC/%s?mbr=true' % vid
             if fkey == 'hds':
                 release_url += '&manifest=f4m'
             tp_formats, tp_subtitles = self._extract_theplatform_smil(release_url, video_id, 'Downloading %s SMIL data' % fkey)

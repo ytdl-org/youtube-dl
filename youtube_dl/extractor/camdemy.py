@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class CamdemyIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?camdemy\.com/media/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?camdemy\.com/media/(?P<id>\d+)'
     _TESTS = [{
         # single file
         'url': 'http://www.camdemy.com/media/5181/',
@@ -104,7 +104,7 @@ class CamdemyIE(InfoExtractor):
 
 
 class CamdemyFolderIE(InfoExtractor):
-    _VALID_URL = r'http://www.camdemy.com/folder/(?P<id>\d+)'
+    _VALID_URL = r'https?://www.camdemy.com/folder/(?P<id>\d+)'
     _TESTS = [{
         # links with trailing slash
         'url': 'http://www.camdemy.com/folder/450',

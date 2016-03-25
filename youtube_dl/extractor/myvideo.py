@@ -20,7 +20,7 @@ from ..utils import (
 
 class MyVideoIE(InfoExtractor):
     _WORKING = False
-    _VALID_URL = r'http://(?:www\.)?myvideo\.de/(?:[^/]+/)?watch/(?P<id>[0-9]+)/[^?/]+.*'
+    _VALID_URL = r'https?://(?:www\.)?myvideo\.de/(?:[^/]+/)?watch/(?P<id>[0-9]+)/[^?/]+.*'
     IE_NAME = 'myvideo'
     _TEST = {
         'url': 'http://www.myvideo.de/watch/8229274/bowling_fail_or_win',

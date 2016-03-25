@@ -13,7 +13,7 @@ from ..utils import (
 class MailRuIE(InfoExtractor):
     IE_NAME = 'mailru'
     IE_DESC = 'Видео@Mail.Ru'
-    _VALID_URL = r'http://(?:www\.)?my\.mail\.ru/(?:video/.*#video=/?(?P<idv1>(?:[^/]+/){3}\d+)|(?:(?P<idv2prefix>(?:[^/]+/){2})video/(?P<idv2suffix>[^/]+/\d+))\.html)'
+    _VALID_URL = r'https?://(?:www\.)?my\.mail\.ru/(?:video/.*#video=/?(?P<idv1>(?:[^/]+/){3}\d+)|(?:(?P<idv2prefix>(?:[^/]+/){2})video/(?P<idv2suffix>[^/]+/\d+))\.html)'
 
     _TESTS = [
         {

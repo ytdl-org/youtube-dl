@@ -129,7 +129,8 @@ class CeskaTelevizeIE(InfoExtractor):
             formats = []
             for format_id, stream_url in item['streamUrls'].items():
                 formats.extend(self._extract_m3u8_formats(
-                    stream_url, playlist_id, 'mp4', entry_protocol='m3u8_native'))
+                    stream_url, playlist_id, 'mp4',
+                    entry_protocol='m3u8_native', fatal=False))
             self._sort_formats(formats)
 
             item_id = item.get('id') or item['assetId']

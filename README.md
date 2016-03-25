@@ -80,6 +80,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      on Windows)
     --flat-playlist                  Do not extract the videos of a playlist,
                                      only list them.
+    --mark-watched                   Mark videos watched (YouTube only)
+    --no-mark-watched                Do not mark videos watched (YouTube only)
     --no-color                       Do not emit color codes in output
 
 ## Network Options:
@@ -172,6 +174,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      (e.g. 50K or 4.2M)
     -R, --retries RETRIES            Number of retries (default is 10), or
                                      "infinite".
+    --fragment-retries RETRIES       Number of retries for a fragment (default
+                                     is 10), or "infinite" (DASH only)
     --buffer-size SIZE               Size of download buffer (e.g. 1024 or 16K)
                                      (default is 1024)
     --no-resize-buffer               Do not automatically adjust the buffer
@@ -189,7 +193,7 @@ which means you can modify it, redistribute it or use it however you like.
                                      to play it)
     --external-downloader COMMAND    Use the specified external downloader.
                                      Currently supports
-                                     aria2c,axel,curl,httpie,wget
+                                     aria2c,avconv,axel,curl,ffmpeg,httpie,wget
     --external-downloader-args ARGS  Give these arguments to the external
                                      downloader
 
@@ -384,8 +388,8 @@ which means you can modify it, redistribute it or use it however you like.
     --no-post-overwrites             Do not overwrite post-processed files; the
                                      post-processed files are overwritten by
                                      default
-    --embed-subs                     Embed subtitles in the video (only for mkv
-                                     and mp4 videos)
+    --embed-subs                     Embed subtitles in the video (only for mp4,
+                                     webm and mkv videos)
     --embed-thumbnail                Embed thumbnail in the audio as cover art
     --add-metadata                   Write metadata to the video file
     --metadata-from-title FORMAT     Parse additional metadata like song title /
@@ -839,7 +843,7 @@ To run the test, simply invoke your favorite test runner, or execute a test file
 If you want to create a build of youtube-dl yourself, you'll need
 
 * python
-* make
+* make (both GNU make and BSD make are supported)
 * pandoc
 * zip
 * nosetests

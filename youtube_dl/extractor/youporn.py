@@ -75,7 +75,7 @@ class YouPornIE(InfoExtractor):
         links = []
 
         sources = self._search_regex(
-            r'sources\s*:\s*({.+?})', webpage, 'sources', default=None)
+            r'(?s)sources\s*:\s*({.+?})', webpage, 'sources', default=None)
         if sources:
             for _, link in re.findall(r'[^:]+\s*:\s*(["\'])(http.+?)\1', sources):
                 links.append(link)
@@ -101,8 +101,9 @@ class YouPornIE(InfoExtractor):
             }
             # Video URL's path looks like this:
             #  /201012/17/505835/720p_1500k_505835/YouPorn%20-%20Sex%20Ed%20Is%20It%20Safe%20To%20Masturbate%20Daily.mp4
+            #  /201012/17/505835/vl_240p_240k_505835/YouPorn%20-%20Sex%20Ed%20Is%20It%20Safe%20To%20Masturbate%20Daily.mp4
             # We will benefit from it by extracting some metadata
-            mobj = re.search(r'/(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+/', video_url)
+            mobj = re.search(r'(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+/', video_url)
             if mobj:
                 height = int(mobj.group('height'))
                 bitrate = int(mobj.group('bitrate'))

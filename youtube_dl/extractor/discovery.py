@@ -9,7 +9,7 @@ from ..compat import compat_str
 
 
 class DiscoveryIE(InfoExtractor):
-    _VALID_URL = r'''(?x)http://(?:www\.)?(?:
+    _VALID_URL = r'''(?x)https?://(?:www\.)?(?:
             discovery|
             investigationdiscovery|
             discoverylife|

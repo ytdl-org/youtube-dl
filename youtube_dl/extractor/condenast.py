@@ -45,7 +45,7 @@ class CondeNastIE(InfoExtractor):
         'wmagazine': 'W Magazine',
     }
 
-    _VALID_URL = r'http://(?:video|www|player)\.(?P<site>%s)\.com/(?P<type>watch|series|video|embed(?:js)?)/(?P<id>[^/?#]+)' % '|'.join(_SITES.keys())
+    _VALID_URL = r'https?://(?:video|www|player)\.(?P<site>%s)\.com/(?P<type>watch|series|video|embed(?:js)?)/(?P<id>[^/?#]+)' % '|'.join(_SITES.keys())
     IE_DESC = 'Condé Nast media group: %s' % ', '.join(sorted(_SITES.values()))
 
     EMBED_URL = r'(?:https?:)?//player\.(?P<site>%s)\.com/(?P<type>embed(?:js)?)/.+?' % '|'.join(_SITES.keys())

@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class RUHDIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?ruhd\.ru/play\.php\?vid=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?ruhd\.ru/play\.php\?vid=(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.ruhd.ru/play.php?vid=207',
         'md5': 'd1a9ec4edf8598e3fbd92bb16072ba83',

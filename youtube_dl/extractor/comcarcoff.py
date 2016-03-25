@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class ComCarCoffIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?comediansincarsgettingcoffee\.com/(?P<id>[a-z0-9\-]*)'
+    _VALID_URL = r'https?://(?:www\.)?comediansincarsgettingcoffee\.com/(?P<id>[a-z0-9\-]*)'
     _TESTS = [{
         'url': 'http://comediansincarsgettingcoffee.com/miranda-sings-happy-thanksgiving-miranda/',
         'info_dict': {

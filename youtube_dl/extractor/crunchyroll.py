@@ -54,7 +54,7 @@ class CrunchyrollBaseIE(InfoExtractor):
     def _real_initialize(self):
         self._login()
 
-    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None):
+    def _download_webpage(self, url_or_request, *args, **kwargs):
         request = (url_or_request if isinstance(url_or_request, compat_urllib_request.Request)
                    else sanitized_Request(url_or_request))
         # Accept-Language must be set explicitly to accept any language to avoid issues
@@ -65,8 +65,7 @@ class CrunchyrollBaseIE(InfoExtractor):
         # Crunchyroll to not work in georestriction cases in some browsers that don't place
         # the locale lang first in header. However allowing any language seems to workaround the issue.
         request.add_header('Accept-Language', '*')
-        return super(CrunchyrollBaseIE, self)._download_webpage(
-            request, video_id, note, errnote, fatal, tries, timeout, encoding)
+        return super(CrunchyrollBaseIE, self)._download_webpage(request, *args, **kwargs)
 
     @staticmethod
     def _add_skip_wall(url):

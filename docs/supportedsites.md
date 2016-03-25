@@ -54,6 +54,7 @@
  - **AtresPlayer**
  - **ATTTechChannel**
  - **AudiMedia**
+ - **AudioBoom**
  - **audiomack**
  - **audiomack:album**
  - **Azubu**
@@ -73,6 +74,7 @@
  - **Bigflix**
  - **Bild**: Bild.de
  - **BiliBili**
+ - **BioBioChileTV**
  - **BleacherReport**
  - **BleacherReportCMS**
  - **blinkx**
@@ -80,6 +82,7 @@
  - **BokeCC**
  - **Bpb**: Bundeszentrale für politische Bildung
  - **BR**: Bayerischer Rundfunk Mediathek
+ - **BravoTV**
  - **Break**
  - **brightcove:legacy**
  - **brightcove:new**
@@ -98,6 +101,7 @@
  - **CBSNews**: CBS News
  - **CBSNewsLiveVideo**: CBS News Live Videos
  - **CBSSports**
+ - **CDA**
  - **CeskaTelevize**
  - **channel9**: Channel 9
  - **Chaturbate**
@@ -167,6 +171,8 @@
  - **Dump**
  - **Dumpert**
  - **dvtv**: http://video.aktualne.cz/
+ - **dw**
+ - **dw:article**
  - **EaglePlatform**
  - **EbaumsWorld**
  - **EchoMsk**
@@ -190,10 +196,10 @@
  - **ExpoTV**
  - **ExtremeTube**
  - **facebook**
- - **facebook:post**
  - **faz.net**
  - **fc2**
  - **Fczenit**
+ - **features.aol.com**
  - **fernsehkritik.tv**
  - **Firstpost**
  - **FiveTV**
@@ -240,6 +246,7 @@
  - **GPUTechConf**
  - **Groupon**
  - **Hark**
+ - **HBO**
  - **HearThisAt**
  - **Heise**
  - **HellPorno**
@@ -293,6 +300,7 @@
  - **kontrtube**: KontrTube.ru - Труба зовёт
  - **KrasView**: Красвью
  - **Ku6**
+ - **KUSI**
  - **kuwo:album**: 酷我音乐 - 专辑
  - **kuwo:category**: 酷我音乐 - 分类
  - **kuwo:chart**: 酷我音乐 - 排行榜
@@ -301,12 +309,11 @@
  - **kuwo:song**: 酷我音乐
  - **la7.tv**
  - **Laola1Tv**
+ - **Le**: 乐视网
  - **Lecture2Go**
  - **Lemonde**
- - **Letv**: 乐视网
+ - **LePlaylist**
  - **LetvCloud**: 乐视云
- - **LetvPlaylist**
- - **LetvTv**
  - **Libsyn**
  - **life:embed**
  - **lifenews**: LIFE | NEWS
@@ -324,6 +331,7 @@
  - **m6**
  - **macgamestore**: MacGameStore trailers
  - **mailru**: Видео@Mail.Ru
+ - **MakersChannel**
  - **MakerTV**
  - **Malemotion**
  - **MatchTV**
@@ -334,10 +342,12 @@
  - **Mgoon**
  - **Minhateca**
  - **MinistryGrid**
+ - **Minoto**
  - **miomio.tv**
  - **MiTele**: mitele.es
  - **mixcloud**
  - **MLB**
+ - **Mnet**
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
  - **Mofosex**
  - **Mojvideo**
@@ -421,6 +431,7 @@
  - **Npr**
  - **NRK**
  - **NRKPlaylist**
+ - **NRKSkole**: NRK Skole
  - **NRKTV**: NRK TV and NRK Radio
  - **ntv.ru**
  - **Nuvid**
@@ -433,6 +444,7 @@
  - **OnionStudios**
  - **Ooyala**
  - **OoyalaExternal**
+ - **Openload**
  - **OraTV**
  - **orf:fm4**: radio FM4
  - **orf:iptv**: iptv.ORF.at
@@ -493,6 +505,7 @@
  - **Restudy**
  - **ReverbNation**
  - **Revision3**
+ - **RICE**
  - **RingTV**
  - **RottenTomatoes**
  - **Roxwel**
@@ -517,6 +530,7 @@
  - **RUTV**: RUTV.RU
  - **Ruutu**
  - **safari**: safaribooksonline.com online video
+ - **safari:api**
  - **safari:course**: safaribooksonline.com online courses
  - **Sandia**: Sandia National Laboratories
  - **Sapo**: SAPO Vídeos
@@ -610,7 +624,9 @@
  - **TheOnion**
  - **ThePlatform**
  - **ThePlatformFeed**
+ - **TheScene**
  - **TheSixtyOne**
+ - **TheStar**
  - **ThisAmericanLife**
  - **ThisAV**
  - **THVideo**
@@ -644,6 +660,7 @@
  - **tv.dfb.de**
  - **TV2**
  - **TV2Article**
+ - **TV3**
  - **TV4**: tv4.se and tv4play.se
  - **TVC**
  - **TVCArticle**
@@ -669,6 +686,7 @@
  - **UDNEmbed**: 聯合影音
  - **Unistra**
  - **Urort**: NRK P3 Urørt
+ - **USAToday**
  - **ustream**
  - **ustream:channel**
  - **Ustudio**
@@ -682,6 +700,7 @@
  - **VGTV**: VGTV, BTTV, FTV, Aftenposten and Aftonbladet
  - **vh1.com**
  - **Vice**
+ - **ViceShow**
  - **Viddler**
  - **video.google:search**: Google Video search
  - **video.mit.edu**
@@ -709,6 +728,7 @@
  - **vimeo:channel**
  - **vimeo:group**
  - **vimeo:likes**: Vimeo user likes
+ - **vimeo:ondemand**
  - **vimeo:review**: Review pages on vimeo
  - **vimeo:user**
  - **vimeo:watchlater**: Vimeo watch later list, "vimeowatchlater" keyword (requires authentication)
@@ -773,6 +793,7 @@
  - **youtube:channel**: YouTube.com channels
  - **youtube:favorites**: YouTube.com favourite videos, ":ytfav" for short (requires authentication)
  - **youtube:history**: Youtube watch history, ":ythistory" for short (requires authentication)
+ - **youtube:live**: YouTube.com live streams
  - **youtube:playlist**: YouTube.com playlists
  - **youtube:playlists**: YouTube.com user/channel playlists
  - **youtube:recommended**: YouTube.com recommended videos, ":ytrec" for short (requires authentication)

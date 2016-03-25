@@ -8,7 +8,7 @@ from ..utils import (
 
 
 class NationalGeographicIE(InfoExtractor):
-    _VALID_URL = r'http://video\.nationalgeographic\.com/.*?'
+    _VALID_URL = r'https?://video\.nationalgeographic\.com/.*?'
 
     _TESTS = [
         {
@@ -48,7 +48,7 @@ class NationalGeographicIE(InfoExtractor):
         theplatform_id = url_basename(content.attrib.get('url'))
 
         return self.url_result(smuggle_url(
-            'http://link.theplatform.com/s/ngs/%s?format=SMIL&formats=MPEG4&manifest=f4m' % theplatform_id,
+            'http://link.theplatform.com/s/ngs/%s?formats=MPEG4&manifest=f4m' % theplatform_id,
             # For some reason, the normal links don't work and we must force
             # the use of f4m
             {'force_smil_url': True}))

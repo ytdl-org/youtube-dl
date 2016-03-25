@@ -36,6 +36,10 @@ class FoxNewsIE(AMPIE):
                 # 'upload_date': '20141204',
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
         },
         {
             'url': 'http://video.foxnews.com/v/video-embed.html?video_id=3937480&d=video.foxnews.com',

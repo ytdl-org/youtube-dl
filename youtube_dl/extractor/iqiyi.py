@@ -165,7 +165,7 @@ class IqiyiIE(InfoExtractor):
     IE_NAME = 'iqiyi'
     IE_DESC = '爱奇艺'
 
-    _VALID_URL = r'http://(?:[^.]+\.)?iqiyi\.com/.+\.html'
+    _VALID_URL = r'https?://(?:[^.]+\.)?iqiyi\.com/.+\.html'
 
     _NETRC_MACHINE = 'iqiyi'
 
@@ -501,7 +501,7 @@ class IqiyiIE(InfoExtractor):
     def get_enc_key(self, video_id):
         # TODO: automatic key extraction
         # last update at 2016-01-22 for Zombie::bite
-        enc_key = '6ab6d0280511493ba85594779759d4ed'
+        enc_key = '4a1caba4b4465345366f28da7c117d20'
         return enc_key
 
     def _extract_playlist(self, webpage):

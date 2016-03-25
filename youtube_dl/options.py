@@ -400,6 +400,10 @@ def parseOpts(overrideArguments=None):
         dest='retries', metavar='RETRIES', default=10,
         help='Number of retries (default is %default), or "infinite".')
     downloader.add_option(
+        '--fragment-retries',
+        dest='fragment_retries', metavar='RETRIES', default=10,
+        help='Number of retries for a fragment (default is %default), or "infinite" (DASH only)')
+    downloader.add_option(
         '--buffer-size',
         dest='buffersize', metavar='SIZE', default='1024',
         help='Size of download buffer (e.g. 1024 or 16K) (default is %default)')
@@ -720,7 +724,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--embed-subs',
         action='store_true', dest='embedsubtitles', default=False,
-        help='Embed subtitles in the video (only for mkv and mp4 videos)')
+        help='Embed subtitles in the video (only for mp4, webm and mkv videos)')
     postproc.add_option(
         '--embed-thumbnail',
         action='store_true', dest='embedthumbnail', default=False,

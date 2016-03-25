@@ -73,15 +73,26 @@ class VimeoIE(VimeoBaseInfoExtractor):
 
     # _VALID_URL matches Vimeo URLs
     _VALID_URL = r'''(?x)
-        https?://
-        (?:(?:www|(?P<player>player))\.)?
-        vimeo(?P<pro>pro)?\.com/
-        (?!channels/[^/?#]+/?(?:$|[?#])|album/)
-        (?:.*?/)?
-        (?:(?:play_redirect_hls|moogaloop\.swf)\?clip_id=)?
-        (?:videos?/)?
-        (?P<id>[0-9]+)
-        /?(?:[?&].*)?(?:[#].*)?$'''
+                    https?://
+                        (?:
+                            (?:
+                                www|
+                                (?P<player>player)
+                            )
+                            \.
+                        )?
+                        vimeo(?P<pro>pro)?\.com/
+                        (?!channels/[^/?#]+/?(?:$|[?#])|(?:album|ondemand)/)
+                        (?:.*?/)?
+                        (?:
+                            (?:
+                                play_redirect_hls|
+                                moogaloop\.swf)\?clip_id=
+                            )?
+                        (?:videos?/)?
+                        (?P<id>[0-9]+)
+                        /?(?:[?&].*)?(?:[#].*)?$
+                    '''
     IE_NAME = 'vimeo'
     _TESTS = [
         {
@@ -277,9 +288,8 @@ class VimeoIE(VimeoBaseInfoExtractor):
 
     def _real_extract(self, url):
         url, data = unsmuggle_url(url, {})
-        headers = std_headers
+        headers = std_headers.copy()
         if 'http_headers' in data:
-            headers = headers.copy()
             headers.update(data['http_headers'])
         if 'Referer' not in headers:
             headers['Referer'] = url
@@ -294,7 +304,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
-        request = sanitized_Request(url, None, headers)
+        request = sanitized_Request(url, headers=headers)
         try:
             webpage = self._download_webpage(request, video_id)
         except ExtractorError as ee:
@@ -496,6 +506,38 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'comment_count': comment_count,
             'subtitles': subtitles,
         }
+
+
+class VimeoOndemandIE(VimeoBaseInfoExtractor):
+    IE_NAME = 'vimeo:ondemand'
+    _VALID_URL = r'https?://(?:www\.)?vimeo\.com/ondemand/(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        # ondemand video not available via https://vimeo.com/id
+        'url': 'https://vimeo.com/ondemand/20704',
+        'md5': 'c424deda8c7f73c1dfb3edd7630e2f35',
+        'info_dict': {
+            'id': '105442900',
+            'ext': 'mp4',
+            'title': 'המעבדה - במאי יותם פלדמן',
+            'uploader': 'גם סרטים',
+            'uploader_url': 're:https?://(?:www\.)?vimeo\.com/gumfilms',
+            'uploader_id': 'gumfilms',
+        },
+    }, {
+        'url': 'https://vimeo.com/ondemand/nazmaalik',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/ondemand/141692381',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/ondemand/thelastcolony/150274832',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        return self.url_result(self._og_search_video_url(webpage), VimeoIE.ie_key())
 
 
 class VimeoChannelIE(VimeoBaseInfoExtractor):

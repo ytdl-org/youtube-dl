@@ -77,6 +77,11 @@ try:
 except ImportError:  # Python 2
     from urllib import urlretrieve as compat_urlretrieve
 
+try:
+    from html.parser import HTMLParser as compat_HTMLParser
+except ImportError:  # Python 2
+    from HTMLParser import HTMLParser as compat_HTMLParser
+
 
 try:
     from subprocess import DEVNULL
@@ -251,6 +256,16 @@ else:
                 el.text = el.text.decode('utf-8')
         return doc
 
+if sys.version_info < (2, 7):
+    # Here comes the crazy part: In 2.6, if the xpath is a unicode,
+    # .//node does not match if a node is a direct child of . !
+    def compat_xpath(xpath):
+        if isinstance(xpath, compat_str):
+            xpath = xpath.encode('ascii')
+        return xpath
+else:
+    compat_xpath = lambda xpath: xpath
+
 try:
     from urllib.parse import parse_qs as compat_parse_qs
 except ImportError:  # Python 2
@@ -326,6 +341,9 @@ def compat_ord(c):
         return ord(c)
 
 
+compat_os_name = os._name if os.name == 'java' else os.name
+
+
 if sys.version_info >= (3, 0):
     compat_getenv = os.getenv
     compat_expanduser = os.path.expanduser
@@ -346,7 +364,7 @@ else:
     # The following are os.path.expanduser implementations from cpython 2.7.8 stdlib
     # for different platforms with correct environment variables decoding.
 
-    if os.name == 'posix':
+    if compat_os_name == 'posix':
         def compat_expanduser(path):
             """Expand ~ and ~user constructions.  If user or $HOME is unknown,
             do nothing."""
@@ -370,7 +388,7 @@ else:
                 userhome = pwent.pw_dir
             userhome = userhome.rstrip('/')
             return (userhome + path[i:]) or '/'
-    elif os.name == 'nt' or os.name == 'ce':
+    elif compat_os_name == 'nt' or compat_os_name == 'ce':
         def compat_expanduser(path):
             """Expand ~ and ~user constructs.
 
@@ -540,6 +558,7 @@ else:
     from tokenize import generate_tokens as compat_tokenize_tokenize
 
 __all__ = [
+    'compat_HTMLParser',
     'compat_HTTPError',
     'compat_basestring',
     'compat_chr',
@@ -556,6 +575,7 @@ __all__ = [
     'compat_itertools_count',
     'compat_kwargs',
     'compat_ord',
+    'compat_os_name',
     'compat_parse_qs',
     'compat_print',
     'compat_shlex_split',
@@ -575,6 +595,7 @@ __all__ = [
     'compat_urlparse',
     'compat_urlretrieve',
     'compat_xml_parse_error',
+    'compat_xpath',
     'shlex_quote',
     'subprocess_check_output',
     'workaround_optparse_bug9161',

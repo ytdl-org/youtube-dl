@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class GametrailersIE(InfoExtractor):
-    _VALID_URL = r'http://www\.gametrailers\.com/videos/view/[^/]+/(?P<id>.+)'
+    _VALID_URL = r'https?://www\.gametrailers\.com/videos/view/[^/]+/(?P<id>.+)'
 
     _TEST = {
         'url': 'http://www.gametrailers.com/videos/view/gametrailers-com/116437-Just-Cause-3-Review',

@@ -28,7 +28,7 @@ from ..utils import (
 
 class LeIE(InfoExtractor):
     IE_DESC = '乐视网'
-    _VALID_URL = r'http://www\.le\.com/ptv/vplay/(?P<id>\d+)\.html'
+    _VALID_URL = r'https?://www\.le\.com/ptv/vplay/(?P<id>\d+)\.html'
 
     _URL_TEMPLATE = 'http://www.le.com/ptv/vplay/%s.html'
 
@@ -196,7 +196,7 @@ class LeIE(InfoExtractor):
 
 
 class LePlaylistIE(InfoExtractor):
-    _VALID_URL = r'http://[a-z]+\.le\.com/[a-z]+/(?P<id>[a-z0-9_]+)'
+    _VALID_URL = r'https?://[a-z]+\.le\.com/[a-z]+/(?P<id>[a-z0-9_]+)'
 
     _TESTS = [{
         'url': 'http://www.le.com/tv/46177.html',
@@ -217,14 +217,8 @@ class LePlaylistIE(InfoExtractor):
         'playlist_mincount': 96
     }, {
         'url': 'http://tv.le.com/pzt/lswjzzjc/index.shtml',
-        'info_dict': {
-            'id': 'lswjzzjc',
-            # The title should be "劲舞青春", but I can't find a simple way to
-            # determine the playlist title
-            'title': '乐视午间自制剧场',
-            'description': 'md5:b1eef244f45589a7b5b1af9ff25a4489'
-        },
-        'playlist_mincount': 7
+        # This series is moved to http://www.le.com/tv/10005297.html
+        'only_matching': True,
     }, {
         'url': 'http://www.le.com/comic/92063.html',
         'only_matching': True,
@@ -338,7 +332,7 @@ class LetvCloudIE(InfoExtractor):
             formats.append({
                 'url': url,
                 'ext': determine_ext(decoded_url),
-                'format_id': int_or_none(play_url.get('vtype')),
+                'format_id': str_or_none(play_url.get('vtype')),
                 'format_note': str_or_none(play_url.get('definition')),
                 'width': int_or_none(play_url.get('vwidth')),
                 'height': int_or_none(play_url.get('vheight')),

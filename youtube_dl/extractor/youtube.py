@@ -309,6 +309,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '102': {'ext': 'webm', 'height': 720, 'format_note': '3D', 'acodec': 'vorbis', 'abr': 192, 'vcodec': 'vp8', 'preference': -20},
 
         # Apple HTTP Live Streaming
+        '91': {'ext': 'mp4', 'height': 144, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 48, 'vcodec': 'h264', 'preference': -10},
         '92': {'ext': 'mp4', 'height': 240, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 48, 'vcodec': 'h264', 'preference': -10},
         '93': {'ext': 'mp4', 'height': 360, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 128, 'vcodec': 'h264', 'preference': -10},
         '94': {'ext': 'mp4', 'height': 480, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 128, 'vcodec': 'h264', 'preference': -10},
@@ -1910,7 +1911,8 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        return False if YoutubePlaylistsIE.suitable(url) else super(YoutubeChannelIE, cls).suitable(url)
+        return (False if YoutubePlaylistsIE.suitable(url) or YoutubeLiveIE.suitable(url)
+                else super(YoutubeChannelIE, cls).suitable(url))
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
@@ -1983,6 +1985,51 @@ class YoutubeUserIE(YoutubeChannelIE):
             return False
         else:
             return super(YoutubeUserIE, cls).suitable(url)
+
+
+class YoutubeLiveIE(YoutubeBaseInfoExtractor):
+    IE_DESC = 'YouTube.com live streams'
+    _VALID_URL = r'(?P<base_url>https?://(?:\w+\.)?youtube\.com/(?:user|channel)/(?P<id>[^/]+))/live'
+    IE_NAME = 'youtube:live'
+
+    _TESTS = [{
+        'url': 'http://www.youtube.com/user/TheYoungTurks/live',
+        'info_dict': {
+            'id': 'a48o2S1cPoo',
+            'ext': 'mp4',
+            'title': 'The Young Turks - Live Main Show',
+            'uploader': 'The Young Turks',
+            'uploader_id': 'TheYoungTurks',
+            'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/TheYoungTurks',
+            'upload_date': '20150715',
+            'license': 'Standard YouTube License',
+            'description': 'md5:438179573adcdff3c97ebb1ee632b891',
+            'categories': ['News & Politics'],
+            'tags': ['Cenk Uygur (TV Program Creator)', 'The Young Turks (Award-Winning Work)', 'Talk Show (TV Genre)'],
+            'like_count': int,
+            'dislike_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://www.youtube.com/channel/UC1yBKRuGpC1tSM73A0ZjYjQ/live',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        channel_id = mobj.group('id')
+        base_url = mobj.group('base_url')
+        webpage = self._download_webpage(url, channel_id, fatal=False)
+        if webpage:
+            page_type = self._og_search_property(
+                'type', webpage, 'page type', default=None)
+            video_id = self._html_search_meta(
+                'videoId', webpage, 'video id', default=None)
+            if page_type == 'video' and video_id and re.match(r'^[0-9A-Za-z_-]{11}$', video_id):
+                return self.url_result(video_id, YoutubeIE.ie_key())
+        return self.url_result(base_url)
 
 
 class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):

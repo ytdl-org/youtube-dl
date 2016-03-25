@@ -17,7 +17,7 @@ from ..utils import (
 
 
 class MetacafeIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?metacafe\.com/watch/([^/]+)/([^/]+)/.*'
+    _VALID_URL = r'https?://(?:www\.)?metacafe\.com/watch/([^/]+)/([^/]+)/.*'
     _DISCLAIMER = 'http://www.metacafe.com/family_filter/'
     _FILTER_POST = 'http://www.metacafe.com/f/index.php?inputType=filter&controllerGroup=user'
     IE_NAME = 'metacafe'

@@ -17,6 +17,7 @@ from ..utils import (
     encode_dict,
     ExtractorError,
     int_or_none,
+    orderedSet,
     parse_duration,
     parse_iso8601,
     sanitized_Request,
@@ -251,6 +252,7 @@ class TwitchVodIE(TwitchItemBaseIE):
                 self._USHER_BASE, item_id,
                 compat_urllib_parse.urlencode({
                     'allow_source': 'true',
+                    'allow_audio_only': 'true',
                     'allow_spectre': 'true',
                     'player': 'twitchweb',
                     'nauth': access_token['token'],
@@ -281,17 +283,37 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
         entries = []
         offset = 0
         limit = self._PAGE_LIMIT
+        broken_paging_detected = False
+        counter_override = None
         for counter in itertools.count(1):
             response = self._download_json(
                 self._PLAYLIST_URL % (channel_id, offset, limit),
-                channel_id, 'Downloading %s videos JSON page %d' % (self._PLAYLIST_TYPE, counter))
+                channel_id,
+                'Downloading %s videos JSON page %s'
+                % (self._PLAYLIST_TYPE, counter_override or counter))
             page_entries = self._extract_playlist_page(response)
             if not page_entries:
                 break
+            total = int_or_none(response.get('_total'))
+            # Since the beginning of March 2016 twitch's paging mechanism
+            # is completely broken on the twitch side. It simply ignores
+            # a limit and returns the whole offset number of videos.
+            # Working around by just requesting all videos at once.
+            # Upd: pagination bug was fixed by twitch on 15.03.2016.
+            if not broken_paging_detected and total and len(page_entries) > limit:
+                self.report_warning(
+                    'Twitch pagination is broken on twitch side, requesting all videos at once',
+                    channel_id)
+                broken_paging_detected = True
+                offset = total
+                counter_override = '(all at once)'
+                continue
             entries.extend(page_entries)
+            if broken_paging_detected or total and len(page_entries) >= total:
+                break
             offset += limit
         return self.playlist_result(
-            [self.url_result(entry) for entry in set(entries)],
+            [self.url_result(entry) for entry in orderedSet(entries)],
             channel_id, channel_name)
 
     def _extract_playlist_page(self, response):
@@ -303,7 +325,6 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
 
 
 class TwitchProfileIE(TwitchPlaylistBaseIE):
-    _WORKING = False
     IE_NAME = 'twitch:profile'
     _VALID_URL = r'%s/(?P<id>[^/]+)/profile/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
     _PLAYLIST_TYPE = 'profile'
@@ -319,7 +340,6 @@ class TwitchProfileIE(TwitchPlaylistBaseIE):
 
 
 class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
-    _WORKING = False
     IE_NAME = 'twitch:past_broadcasts'
     _VALID_URL = r'%s/(?P<id>[^/]+)/profile/past_broadcasts/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
     _PLAYLIST_URL = TwitchPlaylistBaseIE._PLAYLIST_URL + '&broadcasts=true'
@@ -336,7 +356,6 @@ class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
 
 
 class TwitchBookmarksIE(TwitchPlaylistBaseIE):
-    _WORKING = False
     IE_NAME = 'twitch:bookmarks'
     _VALID_URL = r'%s/(?P<id>[^/]+)/profile/bookmarks/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
     _PLAYLIST_URL = '%s/api/bookmark/?user=%%s&offset=%%d&limit=%%d' % TwitchBaseIE._API_BASE
@@ -414,6 +433,7 @@ class TwitchStreamIE(TwitchBaseIE):
 
         query = {
             'allow_source': 'true',
+            'allow_audio_only': 'true',
             'p': random.randint(1000000, 10000000),
             'player': 'twitchweb',
             'segment_preference': '4',
