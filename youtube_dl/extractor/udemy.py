@@ -228,10 +228,6 @@ class UdemyIE(InfoExtractor):
                 f['format_id'] = format_id
                 return f
 
-        for format_id, output in outputs.items():
-            if isinstance(output, dict) and output.get('url'):
-                formats.append(extract_output_format(output))
-
         download_urls = asset.get('download_urls')
         if isinstance(download_urls, dict):
             video = download_urls.get('Video')
