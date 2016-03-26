@@ -1124,7 +1124,23 @@ class GenericIE(InfoExtractor):
                 # m3u8 downloads
                 'skip_download': True,
             }
-        }
+        },
+        # Brightcove embed, with no valid 'renditions' but valid 'IOSRenditions'
+        # This video can't be played in browsers if Flash disabled and UA set to iPhone, which is actually a false alarm
+        {
+            'url': 'https://dl.dropboxusercontent.com/u/29092637/interview.html',
+            'info_dict': {
+                'id': '4785848093001',
+                'ext': 'mp4',
+                'title': 'The Cardinal Pell Interview',
+                'description': 'Sky News Contributor Andrew Bolt interviews George Pell in Rome, following the Cardinal\'s evidence before the Royal Commission into Child Abuse. ',
+                'uploader': 'GlobeCast Australia - GlobeStream',
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            },
+        },
     ]
 
     def report_following_redirect(self, new_url):
