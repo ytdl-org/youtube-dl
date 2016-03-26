@@ -39,6 +39,8 @@ from .compat import (
     compat_urllib_request_DataHandler,
 )
 from .utils import (
+    age_restricted,
+    args_to_str,
     ContentTooShortError,
     date_from_str,
     DateRange,
@@ -58,10 +60,12 @@ from .utils import (
     PagedList,
     parse_filesize,
     PerRequestProxyHandler,
-    PostProcessingError,
     platform_name,
+    PostProcessingError,
     preferredencoding,
+    prepend_extension,
     render_table,
+    replace_extension,
     SameFileError,
     sanitize_filename,
     sanitize_path,
@@ -76,10 +80,6 @@ from .utils import (
     write_string,
     YoutubeDLCookieProcessor,
     YoutubeDLHandler,
-    prepend_extension,
-    replace_extension,
-    args_to_str,
-    age_restricted,
 )
 from .cache import Cache
 from .extractor import get_info_extractor, gen_extractors
