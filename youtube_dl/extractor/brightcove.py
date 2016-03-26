@@ -297,7 +297,7 @@ class BrightcoveLegacyIE(InfoExtractor):
             'uploader': video_info.get('publisherName'),
         }
 
-        renditions = video_info.get('renditions')
+        renditions = video_info.get('renditions', []) + video_info.get('IOSRenditions', [])
         if renditions:
             formats = []
             for rend in renditions:
@@ -319,13 +319,23 @@ class BrightcoveLegacyIE(InfoExtractor):
                 if ext is None:
                     ext = determine_ext(url)
                 size = rend.get('size')
-                formats.append({
+                a_format = {
                     'url': url,
                     'ext': ext,
                     'height': rend.get('frameHeight'),
                     'width': rend.get('frameWidth'),
                     'filesize': size if size != 0 else None,
-                })
+                }
+
+                # m3u8 manifests with remote == false are media playlists
+                # Not calling _extract_m3u8_formats here to save network traffic
+                if ext == 'm3u8':
+                    a_format.update({
+                        'ext': 'mp4',
+                        'protocol': 'm3u8',
+                    })
+
+                formats.append(a_format)
             self._sort_formats(formats)
             info['formats'] = formats
         elif video_info.get('FLVFullLengthURL') is not None:
