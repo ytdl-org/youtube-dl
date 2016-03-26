@@ -218,15 +218,13 @@ class UdemyIE(InfoExtractor):
         if not isinstance(outputs, dict):
             outputs = {}
 
-        def add_output_format_meta(f, key, format_id):
+        def add_output_format_meta(f, key):
             output = outputs.get(key)
             if isinstance(output, dict):
                 output_format = extract_output_format(output)
                 output_format.update(f)
                 return output_format
-            else:
-                f['format_id'] = format_id
-                return f
+            return f
 
         download_urls = asset.get('download_urls')
         if isinstance(download_urls, dict):
@@ -239,12 +237,13 @@ class UdemyIE(InfoExtractor):
                     format_id = format_.get('label')
                     f = {
                         'url': format_['file'],
+                        'format_id': '%sp' % format_id,
                         'height': int_or_none(format_id),
                     }
                     if format_id:
                         # Some videos contain additional metadata (e.g.
                         # https://www.udemy.com/ios9-swift/learn/#/lecture/3383208)
-                        f = add_output_format_meta(f, format_id, '%sp' % format_id)
+                        f = add_output_format_meta(f, format_id)
                     formats.append(f)
 
         view_html = lecture.get('view_html')
@@ -275,8 +274,9 @@ class UdemyIE(InfoExtractor):
                 else:
                     formats.append(add_output_format_meta({
                         'url': src,
+                        'format_id': '%dp' % height if height else None,
                         'height': height,
-                    }, res, '%dp' % height if height else None))
+                    }, res))
 
         self._sort_formats(formats, field_preference=('height', 'width', 'tbr', 'format_id'))
 
