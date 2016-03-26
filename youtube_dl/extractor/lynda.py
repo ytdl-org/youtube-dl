@@ -219,7 +219,7 @@ class LyndaCourseIE(LyndaBaseIE):
                 'Course %s does not exist' % course_id, expected=True)
 
         unaccessible_videos = 0
-        videos = []
+        entries = []
 
         # Might want to extract videos right here from video['Formats'] as it seems 'Formats' is not provided
         # by single video API anymore
@@ -229,19 +229,21 @@ class LyndaCourseIE(LyndaBaseIE):
                 if video.get('HasAccess') is False:
                     unaccessible_videos += 1
                     continue
-                if video.get('ID'):
-                    videos.append(video['ID'])
+                video_id = video.get('ID')
+                if video_id:
+                    entries.append({
+                        '_type': 'url_transparent',
+                        'url': 'http://www.lynda.com/%s/%s-4.html' % (course_path, video_id),
+                        'ie_key': LyndaIE.ie_key(),
+                        'chapter': chapter.get('Title'),
+                        'chapter_number': int_or_none(chapter.get('ChapterIndex')),
+                        'chapter_id': compat_str(chapter.get('ID')),
+                    })
 
         if unaccessible_videos > 0:
             self._downloader.report_warning(
                 '%s videos are only available for members (or paid members) and will not be downloaded. '
                 % unaccessible_videos + self._ACCOUNT_CREDENTIALS_HINT)
-
-        entries = [
-            self.url_result(
-                'http://www.lynda.com/%s/%s-4.html' % (course_path, video_id),
-                'Lynda')
-            for video_id in videos]
 
         course_title = course.get('Title')
 
