@@ -102,6 +102,9 @@ class TwitterCardIE(TwitterBaseIE):
             r'data-(?:player-)?config="([^"]+)"', webpage, 'data player config'),
             video_id)
 
+        if config.get('source_type') == 'vine':
+            return self.url_result(config['player_url'], 'Vine')
+
         def _search_dimensions_in_video_url(a_format, video_url):
             m = re.search(r'/(?P<width>\d+)x(?P<height>\d+)/', video_url)
             if m:
@@ -245,6 +248,18 @@ class TwitterIE(InfoExtractor):
         'params': {
             'skip_download': True,  # requires ffmpeg
         },
+    }, {
+        'url': 'https://twitter.com/Filmdrunk/status/713801302971588609',
+        'md5': '89a15ed345d13b86e9a5a5e051fa308a',
+        'info_dict': {
+            'id': 'MIOxnrUteUd',
+            'ext': 'mp4',
+            'title': 'Dr.Pepperの飲み方 #japanese #バカ #ドクペ #電動ガン',
+            'uploader': 'TAKUMA',
+            'uploader_id': '1004126642786242560',
+            'upload_date': '20140615',
+        },
+        'add_ie': ['Vine'],
     }]
 
     def _real_extract(self, url):
