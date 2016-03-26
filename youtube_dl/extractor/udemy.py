@@ -218,6 +218,16 @@ class UdemyIE(InfoExtractor):
         if not isinstance(outputs, dict):
             outputs = {}
 
+        def add_output_format_meta(f, key, format_id):
+            output = outputs.get(key)
+            if isinstance(output, dict):
+                output_format = extract_output_format(output)
+                output_format.update(f)
+                return output_format
+            else:
+                f['format_id'] = format_id
+                return f
+
         for format_id, output in outputs.items():
             if isinstance(output, dict) and output.get('url'):
                 formats.append(extract_output_format(output))
@@ -238,13 +248,7 @@ class UdemyIE(InfoExtractor):
                     if format_id:
                         # Some videos contain additional metadata (e.g.
                         # https://www.udemy.com/ios9-swift/learn/#/lecture/3383208)
-                        output = outputs.get(format_id)
-                        if isinstance(output, dict):
-                            output_format = extract_output_format(output)
-                            output_format.update(f)
-                            f = output_format
-                        else:
-                            f['format_id'] = '%sp' % format_id
+                        f = add_output_format_meta(f, format_id, '%sp' % format_id)
                     formats.append(f)
 
         view_html = lecture.get('view_html')
@@ -273,11 +277,10 @@ class UdemyIE(InfoExtractor):
                                 f['tbr'] = int(m.group('tbr'))
                     formats.extend(m3u8_formats)
                 else:
-                    formats.append({
+                    formats.append(add_output_format_meta({
                         'url': src,
-                        'format_id': '%dp' % height if height else None,
                         'height': height,
-                    })
+                    }, res, '%dp' % height if height else None))
 
         self._sort_formats(formats, field_preference=('height', 'width', 'tbr', 'format_id'))
 
