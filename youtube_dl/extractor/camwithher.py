@@ -36,9 +36,9 @@ class CamWithHerIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        url = self._download_webpage(url, '')
+        webpage = self._download_webpage(url, '')
 
-        video_id = self._html_search_regex(r'<a href="/download/\?v=(.+?)\.', url, 'id')
+        video_id = self._html_search_regex(r'<a href="/download/\?v=(.+?)\.', webpage, 'id')
 
         if int(video_id) > 2010:
             rtmp_url = 'rtmp://camwithher.tv/clipshare/mp4:' + video_id + '.mp4'
@@ -47,7 +47,7 @@ class CamWithHerIE(InfoExtractor):
             rtmp_url = 'rtmp://camwithher.tv/clipshare/' + video_id
             ext = 'flv'
 
-        title = self._html_search_regex(r'<div style="float:left">\s+<h2>(.+?)</h2>', url, 'title')
+        title = self._html_search_regex(r'<div style="float:left">\s+<h2>(.+?)</h2>', webpage, 'title')
 
         return {
             'id': video_id,
