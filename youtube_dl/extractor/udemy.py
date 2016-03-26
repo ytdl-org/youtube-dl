@@ -55,21 +55,26 @@ class UdemyIE(InfoExtractor):
     }]
 
     def _enroll_course(self, base_url, webpage, course_id):
+        def combine_url(base_url, url):
+            return compat_urlparse.urljoin(base_url, url) if not url.startswith('http') else url
+
         checkout_url = unescapeHTML(self._search_regex(
-            r'href=(["\'])(?P<url>https?://(?:www\.)?udemy\.com/payment/checkout/.+?)\1',
+            r'href=(["\'])(?P<url>(?:https?://(?:www\.)?udemy\.com)?/payment/checkout/.+?)\1',
             webpage, 'checkout url', group='url', default=None))
         if checkout_url:
             raise ExtractorError(
                 'Course %s is not free. You have to pay for it before you can download. '
-                'Use this URL to confirm purchase: %s' % (course_id, checkout_url), expected=True)
+                'Use this URL to confirm purchase: %s'
+                % (course_id, combine_url(base_url, checkout_url)),
+                expected=True)
 
         enroll_url = unescapeHTML(self._search_regex(
             r'href=(["\'])(?P<url>(?:https?://(?:www\.)?udemy\.com)?/course/subscribe/.+?)\1',
             webpage, 'enroll url', group='url', default=None))
         if enroll_url:
-            if not enroll_url.startswith('http'):
-                enroll_url = compat_urlparse.urljoin(base_url, enroll_url)
-            webpage = self._download_webpage(enroll_url, course_id, 'Enrolling in the course')
+            webpage = self._download_webpage(
+                combine_url(base_url, enroll_url),
+                course_id, 'Enrolling in the course')
             if '>You have enrolled in' in webpage:
                 self.to_screen('%s: Successfully enrolled in the course' % course_id)
 
