@@ -201,7 +201,7 @@ class UdemyIE(InfoExtractor):
         def extract_output_format(src):
             return {
                 'url': src['url'],
-                'format_id': '%sp' % (src.get('label') or format_id),
+                'format_id': '%sp' % (src.get('height') or format_id),
                 'width': int_or_none(src.get('width')),
                 'height': int_or_none(src.get('height')),
                 'vbr': int_or_none(src.get('video_bitrate_in_kbps')),
