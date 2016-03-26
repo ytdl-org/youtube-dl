@@ -20,14 +20,7 @@ class CamWithHerIE(InfoExtractor):
         },
         {
             'url': 'http://camwithher.tv/view_video.php?viewkey=6dfd8b7c97531a459937',
-            'info_dict': {
-                'id': '5642',
-                'ext': 'mp4',
-                'title': 'Carmen Bella Tease',
-            },
-            'params': {
-                'skip_download': True,
-            }
+            'only_matching': True,
         },
         {
             'url': 'http://camwithher.tv/view_video.php?viewkey=b6c3b5bea9515d1a1fc4&page=&viewtype=&category=mv',
