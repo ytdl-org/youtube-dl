@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
@@ -8,6 +10,8 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    determine_ext,
+    extract_attributes,
     ExtractorError,
     float_or_none,
     int_or_none,
@@ -73,11 +77,8 @@ class UdemyIE(InfoExtractor):
         return self._download_json(
             'https://www.udemy.com/api-2.0/users/me/subscribed-courses/%s/lectures/%s?%s' % (
                 course_id, lecture_id, compat_urllib_parse_urlencode({
-                    'video_only': '',
-                    'auto_play': '',
-                    'fields[lecture]': 'title,description,asset',
+                    'fields[lecture]': 'title,description,view_html,asset',
                     'fields[asset]': 'asset_type,stream_url,thumbnail_url,download_urls,data',
-                    'instructorPreviewMode': 'False',
                 })),
             lecture_id, 'Downloading lecture JSON')
 
@@ -245,6 +246,38 @@ class UdemyIE(InfoExtractor):
                         else:
                             f['format_id'] = '%sp' % format_id
                     formats.append(f)
+
+        view_html = lecture.get('view_html')
+        if view_html:
+            view_html_urls = set()
+            for source in re.findall(r'<source[^>]+>', view_html):
+                attributes = extract_attributes(source)
+                src = attributes.get('src')
+                if not src:
+                    continue
+                res = attributes.get('data-res')
+                height = int_or_none(res)
+                if src in view_html_urls:
+                    continue
+                view_html_urls.add(src)
+                if attributes.get('type') == 'application/x-mpegURL' or determine_ext(src) == 'm3u8':
+                    m3u8_formats = self._extract_m3u8_formats(
+                        src, video_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id='hls', fatal=False)
+                    for f in m3u8_formats:
+                        m = re.search(r'/hls_(?P<height>\d{3,4})_(?P<tbr>\d{2,})/', f['url'])
+                        if m:
+                            if not f.get('height'):
+                                f['height'] = int(m.group('height'))
+                            if not f.get('tbr'):
+                                f['tbr'] = int(m.group('tbr'))
+                    formats.extend(m3u8_formats)
+                else:
+                    formats.append({
+                        'url': src,
+                        'format_id': '%dp' % height if height else None,
+                        'height': height,
+                    })
 
         self._sort_formats(formats)
 
