@@ -417,9 +417,12 @@ def sanitize_path(s):
 
 # Prepend protocol-less URLs with `http:` scheme in order to mitigate the number of
 # unwanted failures due to missing protocol
+def sanitize_url(url):
+    return 'http:%s' % url if url.startswith('//') else url
+
+
 def sanitized_Request(url, *args, **kwargs):
-    return compat_urllib_request.Request(
-        'http:%s' % url if url.startswith('//') else url, *args, **kwargs)
+    return compat_urllib_request.Request(sanitize_url(url), *args, **kwargs)
 
 
 def orderedSet(iterable):
