@@ -279,13 +279,18 @@ class PluralsightCourseIE(PluralsightBaseIE):
             course_id, 'Downloading course data JSON')
 
         entries = []
-        for module in course_data:
+        for num, module in enumerate(course_data, 1):
             for clip in module.get('clips', []):
                 player_parameters = clip.get('playerParameters')
                 if not player_parameters:
                     continue
-                entries.append(self.url_result(
-                    '%s/training/player?%s' % (self._API_BASE, player_parameters),
-                    'Pluralsight'))
+                entries.append({
+                    '_type': 'url_transparent',
+                    'url': '%s/training/player?%s' % (self._API_BASE, player_parameters),
+                    'ie_key': PluralsightIE.ie_key(),
+                    'chapter': module.get('title'),
+                    'chapter_number': num,
+                    'chapter_id': module.get('moduleRef'),
+                })
 
         return self.playlist_result(entries, course_id, title, description)
