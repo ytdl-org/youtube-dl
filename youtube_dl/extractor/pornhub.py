@@ -1,10 +1,12 @@
 from __future__ import unicode_literals
 
+import itertools
 import os
 import re
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_HTTPError,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
     compat_urllib_parse_urlparse,
@@ -189,16 +191,31 @@ class PornHubPlaylistIE(PornHubPlaylistBaseIE):
 class PornHubUserVideosIE(PornHubPlaylistBaseIE):
     _VALID_URL = r'https?://(?:www\.)?pornhub\.com/users/(?P<id>[^/]+)/videos'
     _TESTS = [{
-        'url': 'http://www.pornhub.com/users/rushandlia/videos',
+        'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
         'info_dict': {
-            'id': 'rushandlia',
+            'id': 'zoe_ph',
         },
-        'playlist_mincount': 13,
+        'playlist_mincount': 171,
+    }, {
+        'url': 'http://www.pornhub.com/users/rushandlia/videos',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         user_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, user_id)
+        entries = []
+        for page_num in itertools.count(1):
+            try:
+                webpage = self._download_webpage(
+                    url, user_id, 'Downloading page %d' % page_num,
+                    query={'page': page_num})
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
+                    break
+            page_entries = self._extract_entries(webpage)
+            if not page_entries:
+                break
+            entries.extend(page_entries)
 
-        return self.playlist_result(self._extract_entries(webpage), user_id)
+        return self.playlist_result(entries, user_id)
