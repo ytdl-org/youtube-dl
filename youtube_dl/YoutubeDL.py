@@ -1265,7 +1265,8 @@ class YoutubeDL(object):
         if subtitles:
             for _, subtitle in subtitles.items():
                 for subtitle_format in subtitle:
-                    subtitle_format['url'] = sanitize_url(subtitle_format['url'])
+                    if subtitle_format.get('url'):
+                        subtitle_format['url'] = sanitize_url(subtitle_format['url'])
                     if 'ext' not in subtitle_format:
                         subtitle_format['ext'] = determine_ext(subtitle_format['url']).lower()
 
