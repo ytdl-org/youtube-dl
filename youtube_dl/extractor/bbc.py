@@ -688,6 +688,10 @@ class BBCIE(BBCCoUkIE):
         # custom redirection to www.bbc.com
         'url': 'http://www.bbc.co.uk/news/science-environment-33661876',
         'only_matching': True,
+    }, {
+        # single video article embedded with data-media-vpid
+        'url': 'http://www.bbc.co.uk/sport/rowing/35908187',
+        'only_matching': True,
     }]
 
     @classmethod
@@ -817,7 +821,7 @@ class BBCIE(BBCCoUkIE):
 
         # single video story (e.g. http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
         programme_id = self._search_regex(
-            [r'data-video-player-vpid="(%s)"' % self._ID_REGEX,
+            [r'data-(?:video-player|media)-vpid="(%s)"' % self._ID_REGEX,
              r'<param[^>]+name="externalIdentifier"[^>]+value="(%s)"' % self._ID_REGEX,
              r'videoId\s*:\s*["\'](%s)["\']' % self._ID_REGEX],
             webpage, 'vpid', default=None)
