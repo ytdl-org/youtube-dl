@@ -24,6 +24,7 @@ from ..compat import (
     compat_urllib_parse_urlencode,
     compat_urlparse,
 )
+from ..downloader.f4m import remove_encrypted_media
 from ..utils import (
     NO_DEFAULT,
     age_restricted,
@@ -989,6 +990,11 @@ class InfoExtractor(object):
         if not media_nodes:
             manifest_version = '2.0'
             media_nodes = manifest.findall('{http://ns.adobe.com/f4m/2.0}media')
+        # Remove unsupported DRM protected media from final formats
+        # rendition (see https://github.com/rg3/youtube-dl/issues/8573).
+        media_nodes = remove_encrypted_media(media_nodes)
+        if not media_nodes:
+            return formats
         base_url = xpath_text(
             manifest, ['{http://ns.adobe.com/f4m/1.0}baseURL', '{http://ns.adobe.com/f4m/2.0}baseURL'],
             'base URL', default=None)
