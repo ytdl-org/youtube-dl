@@ -12,6 +12,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
+    orderedSet,
     sanitized_Request,
     str_to_int,
 )
@@ -150,7 +151,7 @@ class PornHubPlaylistBaseIE(InfoExtractor):
     def _extract_entries(self, webpage):
         return [
             self.url_result('http://www.pornhub.com/%s' % video_url, PornHubIE.ie_key())
-            for video_url in set(re.findall(
+            for video_url in orderedSet(re.findall(
                 r'href="/?(view_video\.php\?.*\bviewkey=[\da-z]+[^"]*)"', webpage))
         ]
 
