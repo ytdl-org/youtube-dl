@@ -78,7 +78,7 @@ class PornHubIE(InfoExtractor):
 
         flashvars = self._parse_json(
             self._search_regex(
-                r'var\s+flashv1ars_\d+\s*=\s*({.+?});', webpage, 'flashvars', default='{}'),
+                r'var\s+flashvars_\d+\s*=\s*({.+?});', webpage, 'flashvars', default='{}'),
             video_id)
         if flashvars:
             video_title = flashvars.get('video_title')
