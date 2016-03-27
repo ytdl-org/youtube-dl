@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class CamWithHerIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?camwithher\.tv/view_video\.php\?viewkey=*'
+    _VALID_URL = r'https?://(?:www\.)?camwithher\.tv/view_video\.php\?viewkey=(?P<id>\w+).*'
 
     _TESTS = [
         {
@@ -36,16 +36,16 @@ class CamWithHerIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        webpage = self._download_webpage(url, '')
+        url_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, url_id)
 
         video_id = self._html_search_regex(r'<a href="/download/\?v=(.+?)\.', webpage, 'id')
 
         if int(video_id) > 2010:
             rtmp_url = 'rtmp://camwithher.tv/clipshare/mp4:' + video_id + '.mp4'
-            ext = 'mp4'
         else:
             rtmp_url = 'rtmp://camwithher.tv/clipshare/' + video_id
-            ext = 'flv'
 
         title = self._html_search_regex(r'<div style="float:left">\s+<h2>(.+?)</h2>', webpage, 'title')
 
@@ -53,6 +53,6 @@ class CamWithHerIE(InfoExtractor):
             'id': video_id,
             'url': rtmp_url,
             'no_resume': True,
-            'ext': ext,
+            'ext': 'flv',
             'title': title,
         }
