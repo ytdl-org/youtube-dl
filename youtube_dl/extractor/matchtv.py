@@ -47,6 +47,7 @@ class MatchTVIE(InfoExtractor):
         video_url = self._download_json(request, video_id)['data']['videoUrl']
         f4m_url = xpath_text(self._download_xml(video_url, video_id), './to')
         formats = self._extract_f4m_formats(f4m_url, video_id)
+        self._sort_formats(formats)
         return {
             'id': video_id,
             'title': self._live_title('Матч ТВ - Прямой эфир'),

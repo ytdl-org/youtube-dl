@@ -67,6 +67,7 @@ class MiTeleIE(InfoExtractor):
             formats.extend(self._extract_f4m_formats(
                 file_ + '&hdcore=3.2.0&plugin=aasp-3.2.0.77.18',
                 display_id, f4m_id=loc))
+        self._sort_formats(formats)
 
         title = self._search_regex(
             r'class="Destacado-text"[^>]*>\s*<strong>([^<]+)</strong>', webpage, 'title')

@@ -118,6 +118,8 @@ class DPlayIE(InfoExtractor):
                 if info.get(protocol):
                     extract_formats(protocol, info[protocol])
 
+        self._sort_formats(formats)
+
         return {
             'id': video_id,
             'display_id': display_id,

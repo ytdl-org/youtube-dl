@@ -130,6 +130,7 @@ class Laola1TvIE(InfoExtractor):
         formats = self._extract_f4m_formats(
             '%s?hdnea=%s&hdcore=3.2.0' % (token_attrib['url'], token_auth),
             video_id, f4m_id='hds')
+        self._sort_formats(formats)
 
         categories_str = _v('meta_sports')
         categories = categories_str.split(',') if categories_str else []

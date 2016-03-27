@@ -31,6 +31,7 @@ class RestudyIE(InfoExtractor):
         formats = self._extract_smil_formats(
             'https://www.restudy.dk/awsmedia/SmilDirectory/video_%s.xml' % video_id,
             video_id)
+        self._sort_formats(formats)
 
         return {
             'id': video_id,

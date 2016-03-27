@@ -69,6 +69,7 @@ class TubiTvIE(InfoExtractor):
         apu = self._search_regex(r"apu='([^']+)'", webpage, 'apu')
         m3u8_url = codecs.decode(apu, 'rot_13')[::-1]
         formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
+        self._sort_formats(formats)
 
         return {
             'id': video_id,

@@ -39,13 +39,13 @@ class DWIE(InfoExtractor):
         hidden_inputs = self._hidden_inputs(webpage)
         title = hidden_inputs['media_title']
 
-        formats = []
         if hidden_inputs.get('player_type') == 'video' and hidden_inputs.get('stream_file') == '1':
             formats = self._extract_smil_formats(
                 'http://www.dw.com/smil/v-%s' % media_id, media_id,
                 transform_source=lambda s: s.replace(
                     'rtmp://tv-od.dw.de/flash/',
                     'http://tv-download.dw.de/dwtv_video/flv/'))
+            self._sort_formats(formats)
         else:
             formats = [{'url': hidden_inputs['file_name']}]
 

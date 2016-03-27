@@ -99,6 +99,7 @@ class SportBoxEmbedIE(InfoExtractor):
             webpage, 'hls file')
 
         formats = self._extract_m3u8_formats(hls, video_id, 'mp4')
+        self._sort_formats(formats)
 
         title = self._search_regex(
             r'sportboxPlayer\.node_title\s*=\s*"([^"]+)"', webpage, 'title')

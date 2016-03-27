@@ -77,6 +77,7 @@ class ShahidIE(InfoExtractor):
             raise ExtractorError('This video is DRM protected.', expected=True)
 
         formats = self._extract_m3u8_formats(player['url'], video_id, 'mp4')
+        self._sort_formats(formats)
 
         video = self._download_json(
             '%s/%s/%s?%s' % (

@@ -82,6 +82,7 @@ class TelecincoIE(InfoExtractor):
         )
         formats = self._extract_m3u8_formats(
             token_info['tokenizedUrl'], episode, ext='mp4', entry_protocol='m3u8_native')
+        self._sort_formats(formats)
 
         return {
             'id': embed_data['videoId'],

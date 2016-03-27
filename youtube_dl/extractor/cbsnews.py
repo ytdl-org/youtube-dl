@@ -122,6 +122,7 @@ class CBSNewsLiveVideoIE(InfoExtractor):
             for entry in f4m_formats:
                 # URLs without the extra param induce an 404 error
                 entry.update({'extra_param_to_segment_url': hdcore_sign})
+        self._sort_formats(f4m_formats)
 
         return {
             'id': video_id,
