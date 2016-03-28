@@ -60,7 +60,7 @@ CONTRIBUTING.md: README.md
 	$(PYTHON) devscripts/make_contributing.py README.md CONTRIBUTING.md
 
 ISSUE_TEMPLATE.md:
-	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE.tmpl .github/ISSUE_TEMPLATE.md
+	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl.md .github/ISSUE_TEMPLATE.md
 
 supportedsites:
 	$(PYTHON) devscripts/make_supportedsites.py docs/supportedsites.md
