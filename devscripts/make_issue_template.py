@@ -16,13 +16,11 @@ def main():
     with io.open(infile, encoding='utf-8') as inf:
         issue_template_tmpl = inf.read()
 
-    __version__ = None
-
     # Get the version from youtube_dl/version.py without importing the package
     exec(compile(open('youtube_dl/version.py').read(),
                  'youtube_dl/version.py', 'exec'))
 
-    out = issue_template_tmpl % {'version': __version__}
+    out = issue_template_tmpl % {'version': locals()['__version__']}
 
     with io.open(outfile, 'w', encoding='utf-8') as outf:
         outf.write(out)
