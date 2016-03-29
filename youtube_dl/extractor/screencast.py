@@ -97,7 +97,8 @@ class ScreencastIE(InfoExtractor):
         if title is None:
             title = self._html_search_regex(
                 [r'<b>Title:</b> ([^<]*)</div>',
-                 r'class="tabSeperator">></span><span class="tabText">(.*?)<'],
+                 r'class="tabSeperator">></span><span class="tabText">(.*?)<',
+                 r'<title>([^<]*)</title>'],
                 webpage, 'title')
         thumbnail = self._og_search_thumbnail(webpage)
         description = self._og_search_description(webpage, default=None)
