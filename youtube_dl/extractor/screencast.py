@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class ScreencastIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.screencast\.com/t/(?P<id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?screencast\.com/t/(?P<id>[a-zA-Z0-9]+)'
     _TESTS = [{
         'url': 'http://www.screencast.com/t/3ZEjQXlT',
         'md5': '917df1c13798a3e96211dd1561fded83',
@@ -34,7 +34,7 @@ class ScreencastIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.(?:gif|jpg)$',
         }
     }, {
-        'url': 'http://www.screencast.com/t/aAB3iowa',
+        'url': 'http://screencast.com/t/aAB3iowa',
         'md5': 'dedb2734ed00c9755761ccaee88527cd',
         'info_dict': {
             'id': 'aAB3iowa',
