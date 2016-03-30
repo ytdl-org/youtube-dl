@@ -44,11 +44,6 @@ class KuwoBaseIE(InfoExtractor):
                     'abr': file_format.get('abr'),
                 })
 
-        # XXX _sort_formats fails if there are not formats, while it's not the
-        # desired behavior if 'IPDeny' is ignored
-        # This check can be removed if https://github.com/rg3/youtube-dl/pull/8051 is merged
-        if not tolerate_ip_deny:
-            self._sort_formats(formats)
         return formats
 
 
@@ -103,6 +98,7 @@ class KuwoIE(KuwoBaseIE):
             lrc_content = None
 
         formats = self._get_formats(song_id)
+        self._sort_formats(formats)
 
         album_id = self._html_search_regex(
             r'<p[^>]+class="album"[^<]+<a[^>]+href="http://www\.kuwo\.cn/album/(\d+)/"',
