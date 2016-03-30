@@ -26,10 +26,23 @@ class KuwoBaseIE(InfoExtractor):
     def _get_formats(self, song_id, tolerate_ip_deny=False):
         formats = []
         for file_format in self._FORMATS:
+            headers = {}
+            cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
+            if cn_verification_proxy:
+                headers['Ytdl-request-proxy'] = cn_verification_proxy
+
+            query = {
+                'format': file_format['ext'],
+                'br': file_format.get('br', ''),
+                'rid': 'MUSIC_%s' % song_id,
+                'type': 'convert_url',
+                'response': 'url'
+            }
+
             song_url = self._download_webpage(
-                'http://antiserver.kuwo.cn/anti.s?format=%s&br=%s&rid=MUSIC_%s&type=convert_url&response=url' %
-                (file_format['ext'], file_format.get('br', ''), song_id),
+                'http://antiserver.kuwo.cn/anti.s',
                 song_id, note='Download %s url info' % file_format['format'],
+                query=query, headers=headers,
             )
 
             if song_url == 'IPDeny' and not tolerate_ip_deny:
