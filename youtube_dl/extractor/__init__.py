@@ -442,6 +442,7 @@ from .nationalgeographic import NationalGeographicIE
 from .naver import NaverIE
 from .nba import NBAIE
 from .nbc import (
+    CSNNEIE,
     NBCIE,
     NBCNewsIE,
     NBCSportsIE,
