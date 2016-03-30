@@ -9,12 +9,16 @@ class CNBCIE(InfoExtractor):
     _VALID_URL = r'https?://video\.cnbc\.com/gallery/\?video=(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://video.cnbc.com/gallery/?video=3000503714',
-        'md5': '',
         'info_dict': {
             'id': '3000503714',
             'ext': 'mp4',
-            'title': 'Video title goes here',
-        }
+            'title': 'Fighting zombies is big business',
+            'description': 'md5:0c100d8e1a7947bd2feec9a5550e519e',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):
