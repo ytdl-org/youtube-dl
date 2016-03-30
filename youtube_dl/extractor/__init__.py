@@ -127,6 +127,7 @@ from .cloudy import CloudyIE
 from .clubic import ClubicIE
 from .clyp import ClypIE
 from .cmt import CMTIE
+from .cnbc import CNBCIE
 from .cnet import CNETIE
 from .cnn import (
     CNNIE,
