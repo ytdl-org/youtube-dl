@@ -49,51 +49,84 @@ class VoxMediaIE(InfoExtractor):
             'uploader_id': 'voxdotcom',
             'uploader': 'Vox',
         }
+    }, {
+        # SBN.VideoLinkset.entryGroup multiple ooyala embeds
+        'url': 'http://www.sbnation.com/college-football-recruiting/2015/2/3/7970291/national-signing-day-rationalizations-itll-be-ok-itll-be-ok',
+        'info_dict': {
+            'id': 'national-signing-day-rationalizations-itll-be-ok-itll-be-ok',
+            'title': '25 lies you will tell yourself on National Signing Day',
+            'description': 'It\'s the most self-delusional time of the year, and everyone\'s gonna tell the same lies together!',
+        },
+        'playlist': [{
+            'md5': '721fededf2ab74ae4176c8c8cbfe092e',
+            'info_dict': {
+                'id': 'p3cThlMjE61VDi_SD9JlIteSNPWVDBB9',
+                'ext': 'mp4',
+                'title': 'Buddy Hield vs Steph Curry (and the world)',
+                'description': 'Let’s dissect only the most important Final Four storylines.',
+            },
+        }, {
+            'md5': 'bf0c5cc115636af028be1bab79217ea9',
+            'info_dict': {
+                'id': 'BmbmVjMjE6esPHxdALGubTrouQ0jYLHj',
+                'ext': 'mp4',
+                'title': 'Chasing Cinderella 2016: Syracuse basketball',
+                'description': 'md5:e02d56b026d51aa32c010676765a690d',
+            },
+        }],
     }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = compat_urllib_parse_unquote(self._download_webpage(url, display_id))
 
-        title = None
-        description = None
-        provider_video_id = None
-        provider_video_type = None
+        def create_entry(provider_video_id, provider_video_type, title=None, description=None):
+            return {
+                '_type': 'url_transparent',
+                'url': provider_video_id if provider_video_type == 'youtube' else '%s:%s' % (provider_video_type, provider_video_id),
+                'title': title or self._og_search_title(webpage),
+                'description': description or self._og_search_description(webpage),
+            }
 
-        entry = self._search_regex([
-            r'Chorus\.VideoContext\.addVideo\(\[({.+})\]\);',
-            r'var\s+entry\s*=\s*({.+});'
+        entries = []
+        entries_data = self._search_regex([
+            r'Chorus\.VideoContext\.addVideo\((\[{.+}\])\);',
+            r'var\s+entry\s*=\s*({.+});',
+            r'SBN\.VideoLinkset\.entryGroup\(\s*(\[.+\])',
         ], webpage, 'video data', default=None)
-        if entry:
-            video_data = self._parse_json(entry, display_id)
-            provider_video_id = video_data.get('provider_video_id')
-            provider_video_type = video_data.get('provider_video_type')
-            if provider_video_id and provider_video_type:
-                title = video_data.get('title')
-                description = video_data.get('description')
+        if entries_data:
+            entries_data = self._parse_json(entries_data, display_id)
+            if isinstance(entries_data, dict):
+                entries_data = [entries_data]
+            for video_data in entries_data:
+                provider_video_id = video_data.get('provider_video_id')
+                provider_video_type = video_data.get('provider_video_type')
+                if provider_video_id and provider_video_type:
+                    entries.append(create_entry(
+                        provider_video_id, provider_video_type,
+                        video_data.get('title'), video_data.get('description')))
 
-        if not provider_video_id or not provider_video_type:
-            provider_video_id = self._search_regex(
-                r'data-ooyala-id="([^"]+)"', webpage, 'ooyala id', default=None)
-            if provider_video_id:
-                provider_video_type = 'ooyala'
-            else:
-                volume_uuid = self._search_regex(r'data-volume-uuid="([^"]+)"', webpage, 'volume uuid')
-                volume_webpage = self._download_webpage(
-                    'http://volume.vox-cdn.com/embed/%s' % volume_uuid, volume_uuid)
-                video_data = self._parse_json(self._search_regex(
-                    r'Volume\.createVideo\(({.+})\s*,\s*{.*}\);', volume_webpage, 'video data'), volume_uuid)
-                title = video_data.get('title_short')
-                description = video_data.get('description_long') or video_data.get('description_short')
-                for pvtype in ('ooyala', 'youtube'):
-                    provider_video_id = video_data.get('%s_id' % pvtype)
-                    if provider_video_id:
-                        provider_video_type = pvtype
-                        break
+        provider_video_id = self._search_regex(
+            r'data-ooyala-id="([^"]+)"', webpage, 'ooyala id', default=None)
+        if provider_video_id:
+            entries.append(create_entry(provider_video_id, 'ooyala'))
 
-        return {
-            '_type': 'url_transparent',
-            'url': provider_video_id if provider_video_type == 'youtube' else '%s:%s' % (provider_video_type, provider_video_id),
-            'title': title or self._og_search_title(webpage),
-            'description': description or self._og_search_description(webpage),
-        }
+        volume_uuid = self._search_regex(
+            r'data-volume-uuid="([^"]+)"', webpage, 'volume uuid', default=None)
+        if volume_uuid:
+            volume_webpage = self._download_webpage(
+                'http://volume.vox-cdn.com/embed/%s' % volume_uuid, volume_uuid)
+            video_data = self._parse_json(self._search_regex(
+                r'Volume\.createVideo\(({.+})\s*,\s*{.*}\);', volume_webpage, 'video data'), volume_uuid)
+            for provider_video_type in ('ooyala', 'youtube'):
+                provider_video_id = video_data.get('%s_id' % provider_video_type)
+                if provider_video_id:
+                    description = video_data.get('description_long') or video_data.get('description_short')
+                    entries.append(create_entry(
+                        provider_video_id, provider_video_type, video_data.get('title_short'), description))
+                    break
+
+        if len(entries) == 1:
+            return entries[0]
+        else:
+            return self.playlist_result(entries, display_id, self._og_search_title(webpage), self._og_search_description(webpage))
