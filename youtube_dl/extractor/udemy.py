@@ -17,7 +17,6 @@ from ..utils import (
     int_or_none,
     sanitized_Request,
     unescapeHTML,
-    update_url_query,
     urlencode_postdata,
 )
 
