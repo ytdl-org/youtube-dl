@@ -1804,6 +1804,20 @@ def update_url_query(url, query):
         query=compat_urllib_parse_urlencode(qs, True)))
 
 
+def update_Request(req, url=None, data=None, headers={}, query={}):
+    req_headers = req.headers.copy()
+    req_headers.update(headers)
+    req_data = data or req.data
+    req_url = update_url_query(url or req.get_full_url(), query)
+    req_type = HEADRequest if req.get_method() == 'HEAD' else compat_urllib_request.Request
+    new_req = req_type(
+        req_url, data=req_data, headers=req_headers,
+        origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
+    if hasattr(req, 'timeout'):
+        new_req.timeout = req.timeout
+    return new_req
+
+
 def dict_get(d, key_or_keys, default=None, skip_false_values=True):
     if isinstance(key_or_keys, (list, tuple)):
         for key in key_or_keys:
