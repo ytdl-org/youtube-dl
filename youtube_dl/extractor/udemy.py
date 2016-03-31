@@ -322,16 +322,13 @@ class UdemyCourseIE(UdemyIE):
 
         self._enroll_course(url, webpage, course_id)
 
-        course_url = update_url_query(
+        response = self._download_json(
             'https://www.udemy.com/api-2.0/courses/%s/cached-subscriber-curriculum-items' % course_id,
-            {
+            course_id, 'Downloading course curriculum', query={
                 'fields[chapter]': 'title,object_index',
                 'fields[lecture]': 'title',
                 'page_size': '1000',
             })
-
-        response = self._download_json(
-            course_url, course_id, 'Downloading course curriculum')
 
         entries = []
         chapter, chapter_number = [None] * 2
