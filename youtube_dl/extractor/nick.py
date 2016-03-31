@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .mtv import MTVServicesInfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 
 
 class NickIE(MTVServicesInfoExtractor):
@@ -54,7 +54,7 @@ class NickIE(MTVServicesInfoExtractor):
     }]
 
     def _get_feed_query(self, uri):
-        return compat_urllib_parse.urlencode({
+        return compat_urllib_parse_urlencode({
             'feed': 'nick_arc_player_prime',
             'mgid': uri,
         })

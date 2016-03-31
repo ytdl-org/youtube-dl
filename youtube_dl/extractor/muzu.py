@@ -1,9 +1,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-)
+from ..compat import compat_urllib_parse_urlencode
 
 
 class MuzuTVIE(InfoExtractor):
@@ -25,7 +23,7 @@ class MuzuTVIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        info_data = compat_urllib_parse.urlencode({
+        info_data = compat_urllib_parse_urlencode({
             'format': 'json',
             'url': url,
         })
@@ -41,7 +39,7 @@ class MuzuTVIE(InfoExtractor):
             if video_info.get('v%s' % quality):
                 break
 
-        data = compat_urllib_parse.urlencode({
+        data = compat_urllib_parse_urlencode({
             'ai': video_id,
             # Even if each time you watch a video the hash changes,
             # it seems to work for different videos, and it will work

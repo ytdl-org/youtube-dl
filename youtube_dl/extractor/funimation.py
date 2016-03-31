@@ -5,7 +5,6 @@ from .common import InfoExtractor
 from ..utils import (
     clean_html,
     determine_ext,
-    encode_dict,
     int_or_none,
     sanitized_Request,
     ExtractorError,
@@ -54,10 +53,10 @@ class FunimationIE(InfoExtractor):
         (username, password) = self._get_login_info()
         if username is None:
             return
-        data = urlencode_postdata(encode_dict({
+        data = urlencode_postdata({
             'email_field': username,
             'password_field': password,
-        }))
+        })
         login_request = sanitized_Request('http://www.funimation.com/login', data, headers={
             'User-Agent': 'Mozilla/5.0 (Windows NT 5.2; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0',
             'Content-Type': 'application/x-www-form-urlencoded'

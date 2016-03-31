@@ -120,6 +120,7 @@ class AzubuLiveIE(InfoExtractor):
         bc_info = self._download_json(req, user)
         m3u8_url = next(source['src'] for source in bc_info['sources'] if source['container'] == 'M2TS')
         formats = self._extract_m3u8_formats(m3u8_url, user, ext='mp4')
+        self._sort_formats(formats)
 
         return {
             'id': info['id'],

@@ -7,7 +7,6 @@ from ..compat import compat_urlparse
 from ..utils import (
     ExtractorError,
     NO_DEFAULT,
-    encode_dict,
     sanitized_Request,
     urlencode_postdata,
 )
@@ -73,7 +72,7 @@ class NovaMovIE(InfoExtractor):
             if not post_url.startswith('http'):
                 post_url = compat_urlparse.urljoin(url, post_url)
             request = sanitized_Request(
-                post_url, urlencode_postdata(encode_dict(fields)))
+                post_url, urlencode_postdata(fields))
             request.add_header('Content-Type', 'application/x-www-form-urlencoded')
             request.add_header('Referer', post_url)
             webpage = self._download_webpage(

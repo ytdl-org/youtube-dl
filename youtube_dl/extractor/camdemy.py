@@ -6,7 +6,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
@@ -139,7 +139,7 @@ class CamdemyFolderIE(InfoExtractor):
         parsed_url = list(compat_urlparse.urlparse(url))
         query = dict(compat_urlparse.parse_qsl(parsed_url[4]))
         query.update({'displayMode': 'list'})
-        parsed_url[4] = compat_urllib_parse.urlencode(query)
+        parsed_url[4] = compat_urllib_parse_urlencode(query)
         final_url = compat_urlparse.urlunparse(parsed_url)
 
         page = self._download_webpage(final_url, folder_id)

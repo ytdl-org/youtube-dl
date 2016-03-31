@@ -136,13 +136,16 @@ class BrightcoveLegacyIE(InfoExtractor):
         else:
             flashvars = {}
 
+        data_url = object_doc.attrib.get('data', '')
+        data_url_params = compat_parse_qs(compat_urllib_parse_urlparse(data_url).query)
+
         def find_param(name):
             if name in flashvars:
                 return flashvars[name]
             node = find_xpath_attr(object_doc, './param', 'name', name)
             if node is not None:
                 return node.attrib['value']
-            return None
+            return data_url_params.get(name)
 
         params = {}
 
@@ -294,7 +297,7 @@ class BrightcoveLegacyIE(InfoExtractor):
             'uploader': video_info.get('publisherName'),
         }
 
-        renditions = video_info.get('renditions')
+        renditions = video_info.get('renditions', []) + video_info.get('IOSRenditions', [])
         if renditions:
             formats = []
             for rend in renditions:
@@ -316,13 +319,23 @@ class BrightcoveLegacyIE(InfoExtractor):
                 if ext is None:
                     ext = determine_ext(url)
                 size = rend.get('size')
-                formats.append({
+                a_format = {
                     'url': url,
                     'ext': ext,
                     'height': rend.get('frameHeight'),
                     'width': rend.get('frameWidth'),
                     'filesize': size if size != 0 else None,
-                })
+                }
+
+                # m3u8 manifests with remote == false are media playlists
+                # Not calling _extract_m3u8_formats here to save network traffic
+                if ext == 'm3u8':
+                    a_format.update({
+                        'ext': 'mp4',
+                        'protocol': 'm3u8',
+                    })
+
+                formats.append(a_format)
             self._sort_formats(formats)
             info['formats'] = formats
         elif video_info.get('FLVFullLengthURL') is not None:

@@ -13,7 +13,7 @@ from ..utils import (
 class MailRuIE(InfoExtractor):
     IE_NAME = 'mailru'
     IE_DESC = 'Видео@Mail.Ru'
-    _VALID_URL = r'https?://(?:www\.)?my\.mail\.ru/(?:video/.*#video=/?(?P<idv1>(?:[^/]+/){3}\d+)|(?:(?P<idv2prefix>(?:[^/]+/){2})video/(?P<idv2suffix>[^/]+/\d+))\.html)'
+    _VALID_URL = r'https?://(?:(?:www|m)\.)?my\.mail\.ru/(?:video/.*#video=/?(?P<idv1>(?:[^/]+/){3}\d+)|(?:(?P<idv2prefix>(?:[^/]+/){2})video/(?P<idv2suffix>[^/]+/\d+))\.html)'
 
     _TESTS = [
         {
@@ -61,6 +61,10 @@ class MailRuIE(InfoExtractor):
                 'duration': 6001,
             },
             'skip': 'Not accessible from Travis CI server',
+        },
+        {
+            'url': 'http://m.my.mail.ru/mail/3sktvtr/video/_myvideo/138.html',
+            'only_matching': True,
         }
     ]
 

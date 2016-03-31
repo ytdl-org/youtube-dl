@@ -7,7 +7,7 @@ import os
 from .common import InfoExtractor
 from ..compat import (
     compat_urlparse,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse
 )
 from ..utils import (
@@ -38,7 +38,7 @@ class NHLBaseInfoExtractor(InfoExtractor):
             parsed_url = compat_urllib_parse_urlparse(initial_video_url)
             filename, ext = os.path.splitext(parsed_url.path)
             path = '%s_sd%s' % (filename, ext)
-            data = compat_urllib_parse.urlencode({
+            data = compat_urllib_parse_urlencode({
                 'type': 'fvod',
                 'path': compat_urlparse.urlunparse(parsed_url[:2] + (path,) + parsed_url[3:])
             })
@@ -211,7 +211,7 @@ class NHLVideocenterIE(NHLBaseInfoExtractor):
             r'tab0"[^>]*?>(.*?)</td>',
             webpage, 'playlist title', flags=re.DOTALL).lower().capitalize()
 
-        data = compat_urllib_parse.urlencode({
+        data = compat_urllib_parse_urlencode({
             'cid': cat_id,
             # This is the default value
             'count': 12,

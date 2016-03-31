@@ -5,7 +5,7 @@ import re
 from .mtv import MTVServicesInfoExtractor
 from ..compat import (
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     ExtractorError,
@@ -201,7 +201,7 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
         # Correct cc.com in uri
         uri = re.sub(r'(episode:[^.]+)(\.cc)?\.com', r'\1.com', uri)
 
-        index_url = 'http://%s.cc.com/feeds/mrss?%s' % (show_name, compat_urllib_parse.urlencode({'uri': uri}))
+        index_url = 'http://%s.cc.com/feeds/mrss?%s' % (show_name, compat_urllib_parse_urlencode({'uri': uri}))
         idoc = self._download_xml(
             index_url, epTitle,
             'Downloading show index', 'Unable to download episode index')

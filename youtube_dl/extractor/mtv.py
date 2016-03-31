@@ -4,7 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_str,
 )
 from ..utils import (
@@ -171,7 +171,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         data = {'uri': uri}
         if self._LANG:
             data['lang'] = self._LANG
-        return compat_urllib_parse.urlencode(data)
+        return compat_urllib_parse_urlencode(data)
 
     def _get_videos_info(self, uri):
         video_id = self._id_from_uri(uri)

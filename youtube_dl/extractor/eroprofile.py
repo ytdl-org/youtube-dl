@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     ExtractorError,
     unescapeHTML
@@ -43,7 +43,7 @@ class EroProfileIE(InfoExtractor):
         if username is None:
             return
 
-        query = compat_urllib_parse.urlencode({
+        query = compat_urllib_parse_urlencode({
             'username': username,
             'password': password,
             'url': 'http://www.eroprofile.com/',

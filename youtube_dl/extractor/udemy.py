@@ -1,18 +1,23 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
+    determine_ext,
+    extract_attributes,
     ExtractorError,
     float_or_none,
     int_or_none,
     sanitized_Request,
     unescapeHTML,
+    urlencode_postdata,
 )
 
 
@@ -50,33 +55,35 @@ class UdemyIE(InfoExtractor):
     }]
 
     def _enroll_course(self, base_url, webpage, course_id):
+        def combine_url(base_url, url):
+            return compat_urlparse.urljoin(base_url, url) if not url.startswith('http') else url
+
         checkout_url = unescapeHTML(self._search_regex(
-            r'href=(["\'])(?P<url>https?://(?:www\.)?udemy\.com/payment/checkout/.+?)\1',
+            r'href=(["\'])(?P<url>(?:https?://(?:www\.)?udemy\.com)?/payment/checkout/.+?)\1',
             webpage, 'checkout url', group='url', default=None))
         if checkout_url:
             raise ExtractorError(
                 'Course %s is not free. You have to pay for it before you can download. '
-                'Use this URL to confirm purchase: %s' % (course_id, checkout_url), expected=True)
+                'Use this URL to confirm purchase: %s'
+                % (course_id, combine_url(base_url, checkout_url)),
+                expected=True)
 
         enroll_url = unescapeHTML(self._search_regex(
             r'href=(["\'])(?P<url>(?:https?://(?:www\.)?udemy\.com)?/course/subscribe/.+?)\1',
             webpage, 'enroll url', group='url', default=None))
         if enroll_url:
-            if not enroll_url.startswith('http'):
-                enroll_url = compat_urlparse.urljoin(base_url, enroll_url)
-            webpage = self._download_webpage(enroll_url, course_id, 'Enrolling in the course')
+            webpage = self._download_webpage(
+                combine_url(base_url, enroll_url),
+                course_id, 'Enrolling in the course')
             if '>You have enrolled in' in webpage:
                 self.to_screen('%s: Successfully enrolled in the course' % course_id)
 
     def _download_lecture(self, course_id, lecture_id):
         return self._download_json(
             'https://www.udemy.com/api-2.0/users/me/subscribed-courses/%s/lectures/%s?%s' % (
-                course_id, lecture_id, compat_urllib_parse.urlencode({
-                    'video_only': '',
-                    'auto_play': '',
-                    'fields[lecture]': 'title,description,asset',
+                course_id, lecture_id, compat_urllib_parse_urlencode({
+                    'fields[lecture]': 'title,description,view_html,asset',
                     'fields[asset]': 'asset_type,stream_url,thumbnail_url,download_urls,data',
-                    'instructorPreviewMode': 'False',
                 })),
             lecture_id, 'Downloading lecture JSON')
 
@@ -139,7 +146,7 @@ class UdemyIE(InfoExtractor):
         })
 
         request = sanitized_Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+            self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Referer', self._ORIGIN_URL)
         request.add_header('Origin', self._ORIGIN_URL)
 
@@ -199,7 +206,7 @@ class UdemyIE(InfoExtractor):
         def extract_output_format(src):
             return {
                 'url': src['url'],
-                'format_id': '%sp' % (src.get('label') or format_id),
+                'format_id': '%sp' % (src.get('height') or format_id),
                 'width': int_or_none(src.get('width')),
                 'height': int_or_none(src.get('height')),
                 'vbr': int_or_none(src.get('video_bitrate_in_kbps')),
@@ -216,9 +223,13 @@ class UdemyIE(InfoExtractor):
         if not isinstance(outputs, dict):
             outputs = {}
 
-        for format_id, output in outputs.items():
-            if isinstance(output, dict) and output.get('url'):
-                formats.append(extract_output_format(output))
+        def add_output_format_meta(f, key):
+            output = outputs.get(key)
+            if isinstance(output, dict):
+                output_format = extract_output_format(output)
+                output_format.update(f)
+                return output_format
+            return f
 
         download_urls = asset.get('download_urls')
         if isinstance(download_urls, dict):
@@ -231,21 +242,48 @@ class UdemyIE(InfoExtractor):
                     format_id = format_.get('label')
                     f = {
                         'url': format_['file'],
+                        'format_id': '%sp' % format_id,
                         'height': int_or_none(format_id),
                     }
                     if format_id:
                         # Some videos contain additional metadata (e.g.
                         # https://www.udemy.com/ios9-swift/learn/#/lecture/3383208)
-                        output = outputs.get(format_id)
-                        if isinstance(output, dict):
-                            output_format = extract_output_format(output)
-                            output_format.update(f)
-                            f = output_format
-                        else:
-                            f['format_id'] = '%sp' % format_id
+                        f = add_output_format_meta(f, format_id)
                     formats.append(f)
 
-        self._sort_formats(formats)
+        view_html = lecture.get('view_html')
+        if view_html:
+            view_html_urls = set()
+            for source in re.findall(r'<source[^>]+>', view_html):
+                attributes = extract_attributes(source)
+                src = attributes.get('src')
+                if not src:
+                    continue
+                res = attributes.get('data-res')
+                height = int_or_none(res)
+                if src in view_html_urls:
+                    continue
+                view_html_urls.add(src)
+                if attributes.get('type') == 'application/x-mpegURL' or determine_ext(src) == 'm3u8':
+                    m3u8_formats = self._extract_m3u8_formats(
+                        src, video_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id='hls', fatal=False)
+                    for f in m3u8_formats:
+                        m = re.search(r'/hls_(?P<height>\d{3,4})_(?P<tbr>\d{2,})/', f['url'])
+                        if m:
+                            if not f.get('height'):
+                                f['height'] = int(m.group('height'))
+                            if not f.get('tbr'):
+                                f['tbr'] = int(m.group('tbr'))
+                    formats.extend(m3u8_formats)
+                else:
+                    formats.append(add_output_format_meta({
+                        'url': src,
+                        'format_id': '%dp' % height if height else None,
+                        'height': height,
+                    }, res))
+
+        self._sort_formats(formats, field_preference=('height', 'width', 'tbr', 'format_id'))
 
         return {
             'id': video_id,

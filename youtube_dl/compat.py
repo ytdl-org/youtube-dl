@@ -170,6 +170,31 @@ except ImportError:  # Python 2
         return compat_urllib_parse_unquote(string, encoding, errors)
 
 try:
+    from urllib.parse import urlencode as compat_urllib_parse_urlencode
+except ImportError:  # Python 2
+    # Python 2 will choke in urlencode on mixture of byte and unicode strings.
+    # Possible solutions are to either port it from python 3 with all
+    # the friends or manually ensure input query contains only byte strings.
+    # We will stick with latter thus recursively encoding the whole query.
+    def compat_urllib_parse_urlencode(query, doseq=0, encoding='utf-8'):
+        def encode_elem(e):
+            if isinstance(e, dict):
+                e = encode_dict(e)
+            elif isinstance(e, (list, tuple,)):
+                e = encode_list(e)
+            elif isinstance(e, compat_str):
+                e = e.encode(encoding)
+            return e
+
+        def encode_dict(d):
+            return dict((encode_elem(k), encode_elem(v)) for k, v in d.items())
+
+        def encode_list(l):
+            return [encode_elem(e) for e in l]
+
+        return compat_urllib_parse.urlencode(encode_elem(query), doseq=doseq)
+
+try:
     from urllib.request import DataHandler as compat_urllib_request_DataHandler
 except ImportError:  # Python < 3.4
     # Ported from CPython 98774:1733b3bd46db, Lib/urllib/request.py
@@ -588,6 +613,7 @@ __all__ = [
     'compat_urllib_parse_unquote',
     'compat_urllib_parse_unquote_plus',
     'compat_urllib_parse_unquote_to_bytes',
+    'compat_urllib_parse_urlencode',
     'compat_urllib_parse_urlparse',
     'compat_urllib_request',
     'compat_urllib_request_DataHandler',

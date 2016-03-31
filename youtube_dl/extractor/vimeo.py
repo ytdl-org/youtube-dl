@@ -12,7 +12,6 @@ from ..compat import (
 )
 from ..utils import (
     determine_ext,
-    encode_dict,
     ExtractorError,
     InAdvancePagedList,
     int_or_none,
@@ -42,13 +41,13 @@ class VimeoBaseInfoExtractor(InfoExtractor):
         self.report_login()
         webpage = self._download_webpage(self._LOGIN_URL, None, False)
         token, vuid = self._extract_xsrft_and_vuid(webpage)
-        data = urlencode_postdata(encode_dict({
+        data = urlencode_postdata({
             'action': 'login',
             'email': username,
             'password': password,
             'service': 'vimeo',
             'token': token,
-        }))
+        })
         login_request = sanitized_Request(self._LOGIN_URL, data)
         login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         login_request.add_header('Referer', self._LOGIN_URL)
@@ -255,10 +254,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option', expected=True)
         token, vuid = self._extract_xsrft_and_vuid(webpage)
-        data = urlencode_postdata(encode_dict({
+        data = urlencode_postdata({
             'password': password,
             'token': token,
-        }))
+        })
         if url.startswith('http://'):
             # vimeo only supports https now, but the user can give an http url
             url = url.replace('http://', 'https://')
@@ -274,7 +273,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         password = self._downloader.params.get('videopassword')
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option')
-        data = urlencode_postdata(encode_dict({'password': password}))
+        data = urlencode_postdata({'password': password})
         pass_url = url + '/check-password'
         password_request = sanitized_Request(pass_url, data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
@@ -575,7 +574,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         token, vuid = self._extract_xsrft_and_vuid(webpage)
         fields['token'] = token
         fields['password'] = password
-        post = urlencode_postdata(encode_dict(fields))
+        post = urlencode_postdata(fields)
         password_path = self._search_regex(
             r'action="([^"]+)"', login_form, 'password URL')
         password_url = compat_urlparse.urljoin(page_url, password_path)

@@ -6,7 +6,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
@@ -60,7 +60,7 @@ class AddAnimeIE(InfoExtractor):
             confirm_url = (
                 parsed_url.scheme + '://' + parsed_url.netloc +
                 action + '?' +
-                compat_urllib_parse.urlencode({
+                compat_urllib_parse_urlencode({
                     'jschl_vc': vc, 'jschl_answer': compat_str(av_val)}))
             self._download_webpage(
                 confirm_url, video_id,

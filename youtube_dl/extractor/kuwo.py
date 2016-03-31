@@ -26,10 +26,23 @@ class KuwoBaseIE(InfoExtractor):
     def _get_formats(self, song_id, tolerate_ip_deny=False):
         formats = []
         for file_format in self._FORMATS:
+            headers = {}
+            cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
+            if cn_verification_proxy:
+                headers['Ytdl-request-proxy'] = cn_verification_proxy
+
+            query = {
+                'format': file_format['ext'],
+                'br': file_format.get('br', ''),
+                'rid': 'MUSIC_%s' % song_id,
+                'type': 'convert_url',
+                'response': 'url'
+            }
+
             song_url = self._download_webpage(
-                'http://antiserver.kuwo.cn/anti.s?format=%s&br=%s&rid=MUSIC_%s&type=convert_url&response=url' %
-                (file_format['ext'], file_format.get('br', ''), song_id),
+                'http://antiserver.kuwo.cn/anti.s',
                 song_id, note='Download %s url info' % file_format['format'],
+                query=query, headers=headers,
             )
 
             if song_url == 'IPDeny' and not tolerate_ip_deny:
@@ -44,18 +57,13 @@ class KuwoBaseIE(InfoExtractor):
                     'abr': file_format.get('abr'),
                 })
 
-        # XXX _sort_formats fails if there are not formats, while it's not the
-        # desired behavior if 'IPDeny' is ignored
-        # This check can be removed if https://github.com/rg3/youtube-dl/pull/8051 is merged
-        if not tolerate_ip_deny:
-            self._sort_formats(formats)
         return formats
 
 
 class KuwoIE(KuwoBaseIE):
     IE_NAME = 'kuwo:song'
     IE_DESC = '酷我音乐'
-    _VALID_URL = r'https?://www\.kuwo\.cn/yinyue/(?P<id>\d+?)'
+    _VALID_URL = r'https?://www\.kuwo\.cn/yinyue/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.kuwo.cn/yinyue/635632/',
         'info_dict': {
@@ -103,6 +111,7 @@ class KuwoIE(KuwoBaseIE):
             lrc_content = None
 
         formats = self._get_formats(song_id)
+        self._sort_formats(formats)
 
         album_id = self._html_search_regex(
             r'<p[^>]+class="album"[^<]+<a[^>]+href="http://www\.kuwo\.cn/album/(\d+)/"',

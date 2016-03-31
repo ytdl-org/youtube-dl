@@ -41,7 +41,13 @@ class ComCarCoffIE(InfoExtractor):
 
         display_id = full_data['activeVideo']['video']
         video_data = full_data.get('videos', {}).get(display_id) or full_data['singleshots'][display_id]
+
         video_id = compat_str(video_data['mediaId'])
+        title = video_data['title']
+        formats = self._extract_m3u8_formats(
+            video_data['mediaUrl'], video_id, 'mp4')
+        self._sort_formats(formats)
+
         thumbnails = [{
             'url': video_data['images']['thumb'],
         }, {
@@ -54,15 +60,14 @@ class ComCarCoffIE(InfoExtractor):
             video_data.get('duration'))
 
         return {
-            '_type': 'url_transparent',
-            'url': 'crackle:%s' % video_id,
             'id': video_id,
             'display_id': display_id,
-            'title': video_data['title'],
+            'title': title,
             'description': video_data.get('description'),
             'timestamp': timestamp,
             'duration': duration,
             'thumbnails': thumbnails,
+            'formats': formats,
             'season_number': int_or_none(video_data.get('season')),
             'episode_number': int_or_none(video_data.get('episode')),
             'webpage_url': 'http://comediansincarsgettingcoffee.com/%s' % (video_data.get('urlSlug', video_data.get('slug'))),

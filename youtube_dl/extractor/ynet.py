@@ -41,10 +41,12 @@ class YnetIE(InfoExtractor):
         m = re.search(r'ynet - HOT -- (["\']+)(?P<title>.+?)\1', title)
         if m:
             title = m.group('title')
+        formats = self._extract_f4m_formats(f4m_url, video_id)
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': title,
-            'formats': self._extract_f4m_formats(f4m_url, video_id),
+            'formats': formats,
             'thumbnail': self._og_search_thumbnail(webpage),
         }

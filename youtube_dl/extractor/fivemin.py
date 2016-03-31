@@ -4,8 +4,8 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
     compat_parse_qs,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
     compat_urlparse,
 )
@@ -109,7 +109,7 @@ class FiveMinIE(InfoExtractor):
 
         response = self._download_json(
             'https://syn.5min.com/handlers/SenseHandler.ashx?' +
-            compat_urllib_parse.urlencode({
+            compat_urllib_parse_urlencode({
                 'func': 'GetResults',
                 'playlist': video_id,
                 'sid': sid,
