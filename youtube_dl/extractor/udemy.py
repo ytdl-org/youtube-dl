@@ -305,7 +305,7 @@ class UdemyIE(InfoExtractor):
 
 class UdemyCourseIE(UdemyIE):
     IE_NAME = 'udemy:course'
-    _VALID_URL = r'https?://www\.udemy\.com/(?P<id>[\da-z-]+)'
+    _VALID_URL = r'https?://www\.udemy\.com/(?P<id>[^/?#&]+)'
     _TESTS = []
 
     @classmethod
@@ -338,7 +338,7 @@ class UdemyCourseIE(UdemyIE):
                 if lecture_id:
                     entry = {
                         '_type': 'url_transparent',
-                        'url': 'https://www.udemy.com/%s/#/lecture/%s' % (course_path, entry['id']),
+                        'url': 'https://www.udemy.com/%s/learn/v4/t/lecture/%s' % (course_path, entry['id']),
                         'title': entry.get('title'),
                         'ie_key': UdemyIE.ie_key(),
                     }
