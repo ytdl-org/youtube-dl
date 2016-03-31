@@ -4,6 +4,7 @@ from .common import InfoExtractor
 from ..utils import (
     smuggle_url,
     url_basename,
+    update_url_query,
 )
 
 
@@ -51,4 +52,50 @@ class NationalGeographicIE(InfoExtractor):
                 'http://link.theplatform.com/s/ngs/media/guid/2423130747/%s?mbr=true' % guid,
                 {'force_smil_url': True}),
             'id': guid,
+        }
+
+
+class NationalGeographicChannelIE(InfoExtractor):
+    IE_NAME = 'natgeo:channel'
+    _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?[^/]+/videos/(?P<id>[^/?]+)'
+
+    _TESTS = [
+        {
+            'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/videos/uncovering-a-universal-knowledge/',
+            'md5': '518c9aa655686cf81493af5cc21e2a04',
+            'info_dict': {
+                'id': 'nB5vIAfmyllm',
+                'ext': 'mp4',
+                'title': 'Uncovering a Universal Knowledge',
+                'description': 'md5:1a89148475bf931b3661fcd6ddb2ae3a',
+            },
+            'add_ie': ['ThePlatform'],
+        },
+        {
+            'url': 'http://channel.nationalgeographic.com/wild/destination-wild/videos/the-stunning-red-bird-of-paradise/',
+            'md5': 'c4912f656b4cbe58f3e000c489360989',
+            'info_dict': {
+                'id': '3TmMv9OvGwIR',
+                'ext': 'mp4',
+                'title': 'The Stunning Red Bird of Paradise',
+                'description': 'md5:7bc8cd1da29686be4d17ad1230f0140c',
+            },
+            'add_ie': ['ThePlatform'],
+        },
+    ]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        release_url = self._search_regex(
+            r'video_auth_playlist_url\s*=\s*"([^"]+)"',
+            webpage, 'release url')
+
+        return {
+            '_type': 'url_transparent',
+            'ie_key': 'ThePlatform',
+            'url': smuggle_url(
+                update_url_query(release_url, {'mbr': 'true', 'switch': 'http'}),
+                {'force_smil_url': True}),
+            'display_id': display_id,
         }

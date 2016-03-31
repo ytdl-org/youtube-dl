@@ -438,7 +438,10 @@ from .myspass import MySpassIE
 from .myvi import MyviIE
 from .myvideo import MyVideoIE
 from .myvidster import MyVidsterIE
-from .nationalgeographic import NationalGeographicIE
+from .nationalgeographic import (
+    NationalGeographicIE,
+    NationalGeographicChannelIE,
+)
 from .naver import NaverIE
 from .nba import NBAIE
 from .nbc import (
