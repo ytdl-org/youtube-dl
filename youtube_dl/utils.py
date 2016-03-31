@@ -778,12 +778,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
         # Substitute URL if any change after escaping
         if url != url_escaped:
-            req_type = HEADRequest if req.get_method() == 'HEAD' else compat_urllib_request.Request
-            new_req = req_type(
-                url_escaped, data=req.data, headers=req.headers,
-                origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
-            new_req.timeout = req.timeout
-            req = new_req
+            req = update_Request(req, url=url_escaped)
 
         for h, v in std_headers.items():
             # Capitalize is needed because of Python bug 2275: http://bugs.python.org/issue2275
