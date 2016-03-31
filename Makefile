@@ -1,7 +1,7 @@
-all: youtube-dl README.md CONTRIBUTING.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish supportedsites
+all: youtube-dl README.md CONTRIBUTING.md ISSUE_TEMPLATE.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish supportedsites
 
 clean:
-	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish *.dump *.part *.info.json *.mp4 *.flv *.mp3 *.avi CONTRIBUTING.md.tmp youtube-dl youtube-dl.exe
+	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish *.dump *.part *.info.json *.mp4 *.flv *.mp3 *.avi CONTRIBUTING.md.tmp ISSUE_TEMPLATE.md.tmp youtube-dl youtube-dl.exe
 	find . -name "*.pyc" -delete
 	find . -name "*.class" -delete
 
@@ -12,15 +12,7 @@ SHAREDIR ?= $(PREFIX)/share
 PYTHON ?= /usr/bin/env python
 
 # set SYSCONFDIR to /etc if PREFIX=/usr or PREFIX=/usr/local
-ifeq ($(PREFIX),/usr)
-	SYSCONFDIR=/etc
-else
-	ifeq ($(PREFIX),/usr/local)
-		SYSCONFDIR=/etc
-	else
-		SYSCONFDIR=$(PREFIX)/etc
-	endif
-endif
+SYSCONFDIR != if [ $(PREFIX) = /usr -o $(PREFIX) = /usr/local ]; then echo /etc; else echo $(PREFIX)/etc; fi
 
 install: youtube-dl youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
 	install -d $(DESTDIR)$(BINDIR)
@@ -66,6 +58,9 @@ README.md: youtube_dl/*.py youtube_dl/*/*.py
 
 CONTRIBUTING.md: README.md
 	$(PYTHON) devscripts/make_contributing.py README.md CONTRIBUTING.md
+
+ISSUE_TEMPLATE.md:
+	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl.md .github/ISSUE_TEMPLATE.md
 
 supportedsites:
 	$(PYTHON) devscripts/make_supportedsites.py docs/supportedsites.md

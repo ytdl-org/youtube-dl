@@ -6,7 +6,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class AddAnimeIE(InfoExtractor):
-    _VALID_URL = r'http://(?:\w+\.)?add-anime\.net/(?:watch_video\.php\?(?:.*?)v=|video/)(?P<id>[\w_]+)'
+    _VALID_URL = r'https?://(?:\w+\.)?add-anime\.net/(?:watch_video\.php\?(?:.*?)v=|video/)(?P<id>[\w_]+)'
     _TESTS = [{
         'url': 'http://www.add-anime.net/watch_video.php?v=24MR3YO5SAS9',
         'md5': '72954ea10bc979ab5e2eb288b21425a0',
@@ -60,7 +60,7 @@ class AddAnimeIE(InfoExtractor):
             confirm_url = (
                 parsed_url.scheme + '://' + parsed_url.netloc +
                 action + '?' +
-                compat_urllib_parse.urlencode({
+                compat_urllib_parse_urlencode({
                     'jschl_vc': vc, 'jschl_answer': compat_str(av_val)}))
             self._download_webpage(
                 confirm_url, video_id,

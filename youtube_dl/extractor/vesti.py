@@ -10,7 +10,7 @@ from .rutv import RUTVIE
 
 class VestiIE(InfoExtractor):
     IE_DESC = 'Вести.Ru'
-    _VALID_URL = r'http://(?:.+?\.)?vesti\.ru/(?P<id>.+)'
+    _VALID_URL = r'https?://(?:.+?\.)?vesti\.ru/(?P<id>.+)'
 
     _TESTS = [
         {

@@ -4,7 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_str,
 )
 from ..utils import (
@@ -17,6 +17,7 @@ from ..utils import (
     unescapeHTML,
     url_basename,
     RegexNotFoundError,
+    xpath_text,
 )
 
 
@@ -130,11 +131,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
             message += item.text
             raise ExtractorError(message, expected=True)
 
-        description_node = itemdoc.find('description')
-        if description_node is not None:
-            description = description_node.text.strip()
-        else:
-            description = None
+        description = xpath_text(itemdoc, 'description')
 
         title_el = None
         if title_el is None:
@@ -174,7 +171,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         data = {'uri': uri}
         if self._LANG:
             data['lang'] = self._LANG
-        return compat_urllib_parse.urlencode(data)
+        return compat_urllib_parse_urlencode(data)
 
     def _get_videos_info(self, uri):
         video_id = self._id_from_uri(uri)

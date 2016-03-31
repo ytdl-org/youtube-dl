@@ -47,6 +47,7 @@ from .compat import (
     compat_str,
     compat_urllib_error,
     compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urlparse,
@@ -416,9 +417,12 @@ def sanitize_path(s):
 
 # Prepend protocol-less URLs with `http:` scheme in order to mitigate the number of
 # unwanted failures due to missing protocol
+def sanitize_url(url):
+    return 'http:%s' % url if url.startswith('//') else url
+
+
 def sanitized_Request(url, *args, **kwargs):
-    return compat_urllib_request.Request(
-        'http:%s' % url if url.startswith('//') else url, *args, **kwargs)
+    return compat_urllib_request.Request(sanitize_url(url), *args, **kwargs)
 
 
 def orderedSet(iterable):
@@ -1315,7 +1319,7 @@ def shell_quote(args):
 def smuggle_url(url, data):
     """ Pass additional data in a URL for internal use. """
 
-    sdata = compat_urllib_parse.urlencode(
+    sdata = compat_urllib_parse_urlencode(
         {'__youtubedl_smuggle': json.dumps(data)})
     return url + '#' + sdata
 
@@ -1746,6 +1750,7 @@ def escape_url(url):
     """Escape URL as suggested by RFC 3986"""
     url_parsed = compat_urllib_parse_urlparse(url)
     return url_parsed._replace(
+        netloc=url_parsed.netloc.encode('idna').decode('ascii'),
         path=escape_rfc3986(url_parsed.path),
         params=escape_rfc3986(url_parsed.params),
         query=escape_rfc3986(url_parsed.query),
@@ -1755,7 +1760,8 @@ def escape_url(url):
 try:
     struct.pack('!I', 0)
 except TypeError:
-    # In Python 2.6 (and some 2.7 versions), struct requires a bytes argument
+    # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
+    # See https://bugs.python.org/issue19099
     def struct_pack(spec, *args):
         if isinstance(spec, compat_str):
             spec = spec.encode('ascii')
@@ -1787,22 +1793,15 @@ def read_batch_urls(batch_fd):
 
 
 def urlencode_postdata(*args, **kargs):
-    return compat_urllib_parse.urlencode(*args, **kargs).encode('ascii')
+    return compat_urllib_parse_urlencode(*args, **kargs).encode('ascii')
 
 
 def update_url_query(url, query):
     parsed_url = compat_urlparse.urlparse(url)
     qs = compat_parse_qs(parsed_url.query)
     qs.update(query)
-    qs = encode_dict(qs)
     return compat_urlparse.urlunparse(parsed_url._replace(
-        query=compat_urllib_parse.urlencode(qs, True)))
-
-
-def encode_dict(d, encoding='utf-8'):
-    def encode(v):
-        return v.encode(encoding) if isinstance(v, compat_basestring) else v
-    return dict((encode(k), encode(v)) for k, v in d.items())
+        query=compat_urllib_parse_urlencode(qs, True)))
 
 
 def dict_get(d, key_or_keys, default=None, skip_false_values=True):

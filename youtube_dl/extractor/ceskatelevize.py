@@ -5,7 +5,6 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
 )
@@ -13,6 +12,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -102,7 +102,7 @@ class CeskaTelevizeIE(InfoExtractor):
 
         req = sanitized_Request(
             'http://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
-            data=compat_urllib_parse.urlencode(data))
+            data=urlencode_postdata(data))
 
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
         req.add_header('x-addr', '127.0.0.1')
@@ -129,7 +129,8 @@ class CeskaTelevizeIE(InfoExtractor):
             formats = []
             for format_id, stream_url in item['streamUrls'].items():
                 formats.extend(self._extract_m3u8_formats(
-                    stream_url, playlist_id, 'mp4', entry_protocol='m3u8_native'))
+                    stream_url, playlist_id, 'mp4',
+                    entry_protocol='m3u8_native', fatal=False))
             self._sort_formats(formats)
 
             item_id = item.get('id') or item['assetId']

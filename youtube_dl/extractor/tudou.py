@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     int_or_none,
+    InAdvancePagedList,
     float_or_none,
     unescapeHTML,
 )
@@ -75,15 +76,16 @@ class TudouIE(InfoExtractor):
         quality = sorted(filter(lambda k: k.isdigit(), segments.keys()),
                          key=lambda k: int(k))[-1]
         parts = segments[quality]
-        result = []
         len_parts = len(parts)
         if len_parts > 1:
             self.to_screen('%s: found %s parts' % (video_id, len_parts))
-        for part in parts:
+
+        def part_func(partnum):
+            part = parts[partnum]
             part_id = part['k']
             final_url = self._url_for_id(part_id, quality)
             ext = (final_url.split('?')[0]).split('.')[-1]
-            part_info = {
+            return [{
                 'id': '%s' % part_id,
                 'url': final_url,
                 'ext': ext,
@@ -97,12 +99,13 @@ class TudouIE(InfoExtractor):
                 'http_headers': {
                     'Referer': self._PLAYER_URL,
                 },
-            }
-            result.append(part_info)
+            }]
+
+        entries = InAdvancePagedList(part_func, len_parts, 1)
 
         return {
             '_type': 'multi_video',
-            'entries': result,
+            'entries': entries,
             'id': video_id,
             'title': title,
         }

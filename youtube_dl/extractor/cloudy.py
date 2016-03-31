@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_HTTPError,
 )
 from ..utils import (
@@ -64,7 +64,7 @@ class CloudyIE(InfoExtractor):
                 'errorUrl': error_url,
             })
 
-        data_url = self._API_URL % (video_host, compat_urllib_parse.urlencode(form))
+        data_url = self._API_URL % (video_host, compat_urllib_parse_urlencode(form))
         player_data = self._download_webpage(
             data_url, video_id, 'Downloading player data')
         data = compat_parse_qs(player_data)

@@ -5,10 +5,7 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse,
-)
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -17,6 +14,7 @@ from ..utils import (
     str_to_int,
     unescapeHTML,
     unified_strdate,
+    urlencode_postdata,
 )
 from .vimeo import VimeoIE
 from .pladform import PladformIE
@@ -204,7 +202,7 @@ class VKIE(InfoExtractor):
 
         request = sanitized_Request(
             'https://login.vk.com/?act=login',
-            compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+            urlencode_postdata(login_form))
         login_page = self._download_webpage(
             request, None, note='Logging in as %s' % username)
 

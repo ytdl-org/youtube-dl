@@ -59,6 +59,7 @@ from .videomore import VideomoreIE
 from .googledrive import GoogleDriveIE
 from .jwplatform import JWPlatformIE
 from .digiteka import DigitekaIE
+from .instagram import InstagramIE
 
 
 class GenericIE(InfoExtractor):
@@ -1123,7 +1124,23 @@ class GenericIE(InfoExtractor):
                 # m3u8 downloads
                 'skip_download': True,
             }
-        }
+        },
+        # Brightcove embed, with no valid 'renditions' but valid 'IOSRenditions'
+        # This video can't be played in browsers if Flash disabled and UA set to iPhone, which is actually a false alarm
+        {
+            'url': 'https://dl.dropboxusercontent.com/u/29092637/interview.html',
+            'info_dict': {
+                'id': '4785848093001',
+                'ext': 'mp4',
+                'title': 'The Cardinal Pell Interview',
+                'description': 'Sky News Contributor Andrew Bolt interviews George Pell in Rome, following the Cardinal\'s evidence before the Royal Commission into Child Abuse. ',
+                'uploader': 'GlobeCast Australia - GlobeStream',
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            },
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -1293,6 +1310,7 @@ class GenericIE(InfoExtractor):
                     'vcodec': 'none' if m.group('type') == 'audio' else None
                 }]
                 info_dict['direct'] = True
+            self._sort_formats(formats)
             info_dict['formats'] = formats
             return info_dict
 
@@ -1319,6 +1337,7 @@ class GenericIE(InfoExtractor):
         # Is it an M3U playlist?
         if first_bytes.startswith(b'#EXTM3U'):
             info_dict['formats'] = self._extract_m3u8_formats(url, video_id, 'mp4')
+            self._sort_formats(info_dict['formats'])
             return info_dict
 
         # Maybe it's a direct link to a video?
@@ -1343,15 +1362,19 @@ class GenericIE(InfoExtractor):
             if doc.tag == 'rss':
                 return self._extract_rss(url, video_id, doc)
             elif re.match(r'^(?:{[^}]+})?smil$', doc.tag):
-                return self._parse_smil(doc, url, video_id)
+                smil = self._parse_smil(doc, url, video_id)
+                self._sort_formats(smil['formats'])
+                return smil
             elif doc.tag == '{http://xspf.org/ns/0/}playlist':
                 return self.playlist_result(self._parse_xspf(doc, video_id), video_id)
             elif re.match(r'(?i)^(?:{[^}]+})?MPD$', doc.tag):
                 info_dict['formats'] = self._parse_mpd_formats(
                     doc, video_id, mpd_base_url=url.rpartition('/')[0])
+                self._sort_formats(info_dict['formats'])
                 return info_dict
             elif re.match(r'^{http://ns\.adobe\.com/f4m/[12]\.0}manifest$', doc.tag):
                 info_dict['formats'] = self._parse_f4m_formats(doc, url, video_id)
+                self._sort_formats(info_dict['formats'])
                 return info_dict
         except compat_xml_parse_error:
             pass
@@ -1909,6 +1932,19 @@ class GenericIE(InfoExtractor):
                 self._proto_relative_url(unescapeHTML(mobj.group(1))),
                 'AdobeTVVideo')
 
+        # Look for Vine embeds
+        mobj = re.search(
+            r'<iframe[^>]+src=[\'"]((?:https?:)?//(?:www\.)?vine\.co/v/[^/]+/embed/(?:simple|postcard))',
+            webpage)
+        if mobj is not None:
+            return self.url_result(
+                self._proto_relative_url(unescapeHTML(mobj.group(1))), 'Vine')
+
+        # Look for Instagram embeds
+        instagram_embed_url = InstagramIE._extract_embed_url(webpage)
+        if instagram_embed_url is not None:
+            return self.url_result(instagram_embed_url, InstagramIE.ie_key())
+
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
                 return True
@@ -2022,6 +2058,9 @@ class GenericIE(InfoExtractor):
                 entry_info_dict['formats'] = self._extract_f4m_formats(video_url, video_id)
             else:
                 entry_info_dict['url'] = video_url
+
+            if entry_info_dict.get('formats'):
+                self._sort_formats(entry_info_dict['formats'])
 
             entries.append(entry_info_dict)
 

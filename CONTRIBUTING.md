@@ -85,7 +85,7 @@ To run the test, simply invoke your favorite test runner, or execute a test file
 If you want to create a build of youtube-dl yourself, you'll need
 
 * python
-* make
+* make (both GNU make and BSD make are supported)
 * pandoc
 * zip
 * nosetests

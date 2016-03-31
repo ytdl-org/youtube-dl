@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -42,7 +42,7 @@ class PrimeShareTVIE(InfoExtractor):
         self._sleep(wait_time, video_id)
 
         req = sanitized_Request(
-            url, compat_urllib_parse.urlencode(fields), headers)
+            url, urlencode_postdata(fields), headers)
         video_page = self._download_webpage(
             req, video_id, 'Downloading video page')
 

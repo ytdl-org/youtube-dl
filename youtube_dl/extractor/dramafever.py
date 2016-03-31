@@ -6,7 +6,6 @@ import itertools
 from .amp import AMPIE
 from ..compat import (
     compat_HTTPError,
-    compat_urllib_parse,
     compat_urlparse,
 )
 from ..utils import (
@@ -14,6 +13,7 @@ from ..utils import (
     clean_html,
     int_or_none,
     sanitized_Request,
+    urlencode_postdata
 )
 
 
@@ -50,7 +50,7 @@ class DramaFeverBaseIE(AMPIE):
         }
 
         request = sanitized_Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+            self._LOGIN_URL, urlencode_postdata(login_form))
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)
 

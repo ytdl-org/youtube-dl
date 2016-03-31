@@ -102,6 +102,9 @@ class TwitterCardIE(TwitterBaseIE):
             r'data-(?:player-)?config="([^"]+)"', webpage, 'data player config'),
             video_id)
 
+        if config.get('source_type') == 'vine':
+            return self.url_result(config['player_url'], 'Vine')
+
         def _search_dimensions_in_video_url(a_format, video_url):
             m = re.search(r'/(?P<width>\d+)x(?P<height>\d+)/', video_url)
             if m:
@@ -110,10 +113,9 @@ class TwitterCardIE(TwitterBaseIE):
                     'height': int(m.group('height')),
                 })
 
-        playlist = config.get('playlist')
-        if playlist:
-            video_url = playlist[0]['source']
+        video_url = config.get('video_url') or config.get('playlist', [{}])[0].get('source')
 
+        if video_url:
             f = {
                 'url': video_url,
             }
@@ -185,7 +187,6 @@ class TwitterIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'FREE THE NIPPLE - FTN supporters on Hollywood Blvd today!',
             'thumbnail': 're:^https?://.*\.jpg',
-            'duration': 12.922,
             'description': 'FREE THE NIPPLE on Twitter: "FTN supporters on Hollywood Blvd today! http://t.co/c7jHH749xJ"',
             'uploader': 'FREE THE NIPPLE',
             'uploader_id': 'freethenipple',
@@ -247,6 +248,18 @@ class TwitterIE(InfoExtractor):
         'params': {
             'skip_download': True,  # requires ffmpeg
         },
+    }, {
+        'url': 'https://twitter.com/Filmdrunk/status/713801302971588609',
+        'md5': '89a15ed345d13b86e9a5a5e051fa308a',
+        'info_dict': {
+            'id': 'MIOxnrUteUd',
+            'ext': 'mp4',
+            'title': 'Dr.Pepperの飲み方 #japanese #バカ #ドクペ #電動ガン',
+            'uploader': 'TAKUMA',
+            'uploader_id': '1004126642786242560',
+            'upload_date': '20140615',
+        },
+        'add_ie': ['Vine'],
     }]
 
     def _real_extract(self, url):

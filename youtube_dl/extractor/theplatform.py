@@ -82,7 +82,7 @@ class ThePlatformBaseIE(OnceIE):
 class ThePlatformIE(ThePlatformBaseIE):
     _VALID_URL = r'''(?x)
         (?:https?://(?:link|player)\.theplatform\.com/[sp]/(?P<provider_id>[^/]+)/
-           (?:(?P<media>(?:(?:[^/]+/)+select/)?media/)|(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/))?
+           (?:(?:(?:[^/]+/)+select/)?(?P<media>media/(?:guid/\d+/)?)|(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/))?
          |theplatform:)(?P<id>[^/\?&]+)'''
 
     _TESTS = [{
@@ -170,10 +170,10 @@ class ThePlatformIE(ThePlatformBaseIE):
         if not provider_id:
             provider_id = 'dJ5BDC'
 
-        path = provider_id
+        path = provider_id + '/'
         if mobj.group('media'):
-            path += '/media'
-        path += '/' + video_id
+            path += mobj.group('media')
+        path += video_id
 
         qs_dict = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
         if 'guid' in qs_dict:

@@ -17,16 +17,15 @@ from ..swfinterp import SWFInterpreter
 from ..compat import (
     compat_chr,
     compat_parse_qs,
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
     compat_urlparse,
     compat_str,
 )
 from ..utils import (
     clean_html,
-    encode_dict,
     error_to_compat_str,
     ExtractorError,
     float_or_none,
@@ -45,6 +44,7 @@ from ..utils import (
     unified_strdate,
     unsmuggle_url,
     uppercase_escape,
+    urlencode_postdata,
     ISO3166Utils,
 )
 
@@ -116,7 +116,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'hl': 'en_US',
         }
 
-        login_data = compat_urllib_parse.urlencode(encode_dict(login_form_strs)).encode('ascii')
+        login_data = urlencode_postdata(login_form_strs)
 
         req = sanitized_Request(self._LOGIN_URL, login_data)
         login_results = self._download_webpage(
@@ -149,7 +149,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 'TrustDevice': 'on',
             })
 
-            tfa_data = compat_urllib_parse.urlencode(encode_dict(tfa_form_strs)).encode('ascii')
+            tfa_data = urlencode_postdata(tfa_form_strs)
 
             tfa_req = sanitized_Request(self._TWOFACTOR_URL, tfa_data)
             tfa_results = self._download_webpage(
@@ -234,7 +234,9 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
 
 class YoutubePlaylistsBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
     def _process_page(self, content):
-        for playlist_id in orderedSet(re.findall(r'href="/?playlist\?list=([0-9A-Za-z-_]{10,})"', content)):
+        for playlist_id in orderedSet(re.findall(
+                r'<h3[^>]+class="[^"]*yt-lockup-title[^"]*"[^>]*><a[^>]+href="/?playlist\?list=([0-9A-Za-z-_]{10,})"',
+                content)):
             yield self.url_result(
                 'https://www.youtube.com/playlist?list=%s' % playlist_id, 'YoutubePlaylist')
 
@@ -1007,7 +1009,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 continue
             sub_formats = []
             for ext in self._SUBTITLE_FORMATS:
-                params = compat_urllib_parse.urlencode({
+                params = compat_urllib_parse_urlencode({
                     'lang': lang,
                     'v': video_id,
                     'fmt': ext,
@@ -1056,7 +1058,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if caption_url:
                 timestamp = args['timestamp']
                 # We get the available subtitles
-                list_params = compat_urllib_parse.urlencode({
+                list_params = compat_urllib_parse_urlencode({
                     'type': 'list',
                     'tlangs': 1,
                     'asrs': 1,
@@ -1075,7 +1077,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     sub_lang = lang_node.attrib['lang_code']
                     sub_formats = []
                     for ext in self._SUBTITLE_FORMATS:
-                        params = compat_urllib_parse.urlencode({
+                        params = compat_urllib_parse_urlencode({
                             'lang': original_lang,
                             'tlang': sub_lang,
                             'fmt': ext,
@@ -1094,7 +1096,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             caption_tracks = args['caption_tracks']
             caption_translation_languages = args['caption_translation_languages']
             caption_url = compat_parse_qs(caption_tracks.split(',')[0])['u'][0]
-            parsed_caption_url = compat_urlparse.urlparse(caption_url)
+            parsed_caption_url = compat_urllib_parse_urlparse(caption_url)
             caption_qs = compat_parse_qs(parsed_caption_url.query)
 
             sub_lang_list = {}
@@ -1110,7 +1112,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         'fmt': [ext],
                     })
                     sub_url = compat_urlparse.urlunparse(parsed_caption_url._replace(
-                        query=compat_urllib_parse.urlencode(caption_qs, True)))
+                        query=compat_urllib_parse_urlencode(caption_qs, True)))
                     sub_formats.append({
                         'url': sub_url,
                         'ext': ext,
@@ -1140,7 +1142,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'cpn': [cpn],
         })
         playback_url = compat_urlparse.urlunparse(
-            parsed_playback_url._replace(query=compat_urllib_parse.urlencode(qs, True)))
+            parsed_playback_url._replace(query=compat_urllib_parse_urlencode(qs, True)))
 
         self._download_webpage(
             playback_url, video_id, 'Marking watched',
@@ -1225,7 +1227,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # this can be viewed without login into Youtube
             url = proto + '://www.youtube.com/embed/%s' % video_id
             embed_webpage = self._download_webpage(url, video_id, 'Downloading embed webpage')
-            data = compat_urllib_parse.urlencode({
+            data = compat_urllib_parse_urlencode({
                 'video_id': video_id,
                 'eurl': 'https://youtube.googleapis.com/v/' + video_id,
                 'sts': self._search_regex(
@@ -1911,7 +1913,8 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        return False if YoutubePlaylistsIE.suitable(url) else super(YoutubeChannelIE, cls).suitable(url)
+        return (False if YoutubePlaylistsIE.suitable(url) or YoutubeLiveIE.suitable(url)
+                else super(YoutubeChannelIE, cls).suitable(url))
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
@@ -1986,6 +1989,51 @@ class YoutubeUserIE(YoutubeChannelIE):
             return super(YoutubeUserIE, cls).suitable(url)
 
 
+class YoutubeLiveIE(YoutubeBaseInfoExtractor):
+    IE_DESC = 'YouTube.com live streams'
+    _VALID_URL = r'(?P<base_url>https?://(?:\w+\.)?youtube\.com/(?:user|channel)/(?P<id>[^/]+))/live'
+    IE_NAME = 'youtube:live'
+
+    _TESTS = [{
+        'url': 'http://www.youtube.com/user/TheYoungTurks/live',
+        'info_dict': {
+            'id': 'a48o2S1cPoo',
+            'ext': 'mp4',
+            'title': 'The Young Turks - Live Main Show',
+            'uploader': 'The Young Turks',
+            'uploader_id': 'TheYoungTurks',
+            'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/TheYoungTurks',
+            'upload_date': '20150715',
+            'license': 'Standard YouTube License',
+            'description': 'md5:438179573adcdff3c97ebb1ee632b891',
+            'categories': ['News & Politics'],
+            'tags': ['Cenk Uygur (TV Program Creator)', 'The Young Turks (Award-Winning Work)', 'Talk Show (TV Genre)'],
+            'like_count': int,
+            'dislike_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://www.youtube.com/channel/UC1yBKRuGpC1tSM73A0ZjYjQ/live',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        channel_id = mobj.group('id')
+        base_url = mobj.group('base_url')
+        webpage = self._download_webpage(url, channel_id, fatal=False)
+        if webpage:
+            page_type = self._og_search_property(
+                'type', webpage, 'page type', default=None)
+            video_id = self._html_search_meta(
+                'videoId', webpage, 'video id', default=None)
+            if page_type == 'video' and video_id and re.match(r'^[0-9A-Za-z_-]{11}$', video_id):
+                return self.url_result(video_id, YoutubeIE.ie_key())
+        return self.url_result(base_url)
+
+
 class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
     IE_DESC = 'YouTube.com user/channel playlists'
     _VALID_URL = r'https?://(?:\w+\.)?youtube\.com/(?:user|channel)/(?P<id>[^/]+)/playlists'
@@ -2039,7 +2087,7 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubePlaylistIE):
                 'spf': 'navigate',
             }
             url_query.update(self._EXTRA_QUERY_ARGS)
-            result_url = 'https://www.youtube.com/results?' + compat_urllib_parse.urlencode(url_query)
+            result_url = 'https://www.youtube.com/results?' + compat_urllib_parse_urlencode(url_query)
             data = self._download_json(
                 result_url, video_id='query "%s"' % query,
                 note='Downloading page %s' % pagenum,

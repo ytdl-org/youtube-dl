@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class KaraoketvIE(InfoExtractor):
-    _VALID_URL = r'http://karaoketv\.co\.il/\?container=songs&id=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://karaoketv\.co\.il/\?container=songs&id=(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://karaoketv.co.il/?container=songs&id=171568',
         'info_dict': {

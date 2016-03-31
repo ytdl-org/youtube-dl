@@ -21,9 +21,10 @@ from ..compat import (
     compat_os_name,
     compat_str,
     compat_urllib_error,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
+from ..downloader.f4m import remove_encrypted_media
 from ..utils import (
     NO_DEFAULT,
     age_restricted,
@@ -989,6 +990,11 @@ class InfoExtractor(object):
         if not media_nodes:
             manifest_version = '2.0'
             media_nodes = manifest.findall('{http://ns.adobe.com/f4m/2.0}media')
+        # Remove unsupported DRM protected media from final formats
+        # rendition (see https://github.com/rg3/youtube-dl/issues/8573).
+        media_nodes = remove_encrypted_media(media_nodes)
+        if not media_nodes:
+            return formats
         base_url = xpath_text(
             manifest, ['{http://ns.adobe.com/f4m/1.0}baseURL', '{http://ns.adobe.com/f4m/2.0}baseURL'],
             'base URL', default=None)
@@ -1021,8 +1027,6 @@ class InfoExtractor(object):
                 'height': int_or_none(media_el.attrib.get('height')),
                 'preference': preference,
             })
-        self._sort_formats(formats)
-
         return formats
 
     def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
@@ -1143,7 +1147,6 @@ class InfoExtractor(object):
                     last_media = None
                 formats.append(f)
                 last_info = {}
-        self._sort_formats(formats)
         return formats
 
     @staticmethod
@@ -1300,7 +1303,7 @@ class InfoExtractor(object):
                         'plugin': 'flowplayer-3.2.0.1',
                     }
                 f4m_url += '&' if '?' in f4m_url else '?'
-                f4m_url += compat_urllib_parse.urlencode(f4m_params)
+                f4m_url += compat_urllib_parse_urlencode(f4m_params)
                 formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False))
                 continue
 
@@ -1316,8 +1319,6 @@ class InfoExtractor(object):
                     'height': height,
                 })
                 continue
-
-        self._sort_formats(formats)
 
         return formats
 
@@ -1536,7 +1537,6 @@ class InfoExtractor(object):
                             existing_format.update(f)
                     else:
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
-        self._sort_formats(formats)
         return formats
 
     def _live_title(self, name):

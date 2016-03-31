@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class THVideoIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?thvideo\.tv/(?:v/th|mobile\.php\?cid=)(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?thvideo\.tv/(?:v/th|mobile\.php\?cid=)(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://thvideo.tv/v/th1987/',
         'md5': 'fa107b1f73817e325e9433505a70db50',

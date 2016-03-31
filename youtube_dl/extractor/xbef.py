@@ -5,7 +5,7 @@ from ..compat import compat_urllib_parse_unquote
 
 
 class XBefIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?xbef\.com/video/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?xbef\.com/video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://xbef.com/video/5119-glamourous-lesbians-smoking-drinking-and-fucking',
         'md5': 'a478b565baff61634a98f5e5338be995',

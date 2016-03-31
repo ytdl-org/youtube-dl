@@ -8,6 +8,7 @@ import re
 from .common import InfoExtractor, SearchInfoExtractor
 from ..compat import (
     compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
@@ -303,7 +304,7 @@ class YahooIE(InfoExtractor):
         region = self._search_regex(
             r'\\?"region\\?"\s*:\s*\\?"([^"]+?)\\?"',
             webpage, 'region', fatal=False, default='US')
-        data = compat_urllib_parse.urlencode({
+        data = compat_urllib_parse_urlencode({
             'protocol': 'http',
             'region': region,
         })

@@ -15,7 +15,7 @@ from ..utils import (
 class VubeIE(InfoExtractor):
     IE_NAME = 'vube'
     IE_DESC = 'Vube.com'
-    _VALID_URL = r'http://vube\.com/(?:[^/]+/)+(?P<id>[\da-zA-Z]{10})\b'
+    _VALID_URL = r'https?://vube\.com/(?:[^/]+/)+(?P<id>[\da-zA-Z]{10})\b'
 
     _TESTS = [
         {

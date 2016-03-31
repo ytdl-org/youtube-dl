@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 
 class EchoMskIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?echo\.msk\.ru/sounds/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?echo\.msk\.ru/sounds/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.echo.msk.ru/sounds/1464134.html',
         'md5': '2e44b3b78daff5b458e4dbc37f191f7c',

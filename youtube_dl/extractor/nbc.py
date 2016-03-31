@@ -115,7 +115,7 @@ class NBCSportsVPlayerIE(InfoExtractor):
 
 class NBCSportsIE(InfoExtractor):
     # Does not include https because its certificate is invalid
-    _VALID_URL = r'http://www\.nbcsports\.com//?(?:[^/]+/)+(?P<id>[0-9a-z-]+)'
+    _VALID_URL = r'https?://www\.nbcsports\.com//?(?:[^/]+/)+(?P<id>[0-9a-z-]+)'
 
     _TEST = {
         'url': 'http://www.nbcsports.com//college-basketball/ncaab/tom-izzo-michigan-st-has-so-much-respect-duke',
@@ -132,6 +132,30 @@ class NBCSportsIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         return self.url_result(
             NBCSportsVPlayerIE._extract_url(webpage), 'NBCSportsVPlayer')
+
+
+class CSNNEIE(InfoExtractor):
+    _VALID_URL = r'https?://www\.csnne\.com/video/(?P<id>[0-9a-z-]+)'
+
+    _TEST = {
+        'url': 'http://www.csnne.com/video/snc-evening-update-wright-named-red-sox-no-5-starter',
+        'info_dict': {
+            'id': 'yvBLLUgQ8WU0',
+            'ext': 'mp4',
+            'title': 'SNC evening update: Wright named Red Sox\' No. 5 starter.',
+            'description': 'md5:1753cfee40d9352b19b4c9b3e589b9e3',
+        }
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        return {
+            '_type': 'url_transparent',
+            'ie_key': 'ThePlatform',
+            'url': self._html_search_meta('twitter:player:stream', webpage),
+            'display_id': display_id,
+        }
 
 
 class NBCNewsIE(ThePlatformIE):
@@ -295,7 +319,7 @@ class NBCNewsIE(ThePlatformIE):
 
 class MSNBCIE(InfoExtractor):
     # https URLs redirect to corresponding http ones
-    _VALID_URL = r'http://www\.msnbc\.com/[^/]+/watch/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://www\.msnbc\.com/[^/]+/watch/(?P<id>[^/]+)'
     _TEST = {
         'url': 'http://www.msnbc.com/all-in-with-chris-hayes/watch/the-chaotic-gop-immigration-vote-314487875924',
         'md5': '6d236bf4f3dddc226633ce6e2c3f814d',

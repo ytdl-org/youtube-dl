@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class FirstpostIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?firstpost\.com/[^/]+/.*-(?P<id>[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?firstpost\.com/[^/]+/.*-(?P<id>[0-9]+)\.html'
 
     _TEST = {
         'url': 'http://www.firstpost.com/india/india-to-launch-indigenous-aircraft-carrier-monday-1025403.html',

@@ -5,11 +5,11 @@ import codecs
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
     int_or_none,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -41,7 +41,7 @@ class TubiTvIE(InfoExtractor):
             'username': username,
             'password': password,
         }
-        payload = compat_urllib_parse.urlencode(form_data).encode('utf-8')
+        payload = urlencode_postdata(form_data)
         request = sanitized_Request(self._LOGIN_URL, payload)
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         login_page = self._download_webpage(
@@ -69,6 +69,7 @@ class TubiTvIE(InfoExtractor):
         apu = self._search_regex(r"apu='([^']+)'", webpage, 'apu')
         m3u8_url = codecs.decode(apu, 'rot_13')[::-1]
         formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
+        self._sort_formats(formats)
 
         return {
             'id': video_id,

@@ -38,6 +38,7 @@ class DFBIE(InfoExtractor):
         token_el = f4m_info.find('token')
         manifest_url = token_el.attrib['url'] + '?' + 'hdnea=' + token_el.attrib['auth'] + '&hdcore=3.2.0'
         formats = self._extract_f4m_formats(manifest_url, display_id)
+        self._sort_formats(formats)
 
         return {
             'id': video_id,

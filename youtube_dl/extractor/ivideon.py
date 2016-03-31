@@ -5,7 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import qualities
@@ -62,7 +62,7 @@ class IvideonIE(InfoExtractor):
         quality = qualities(self._QUALITIES)
 
         formats = [{
-            'url': 'https://streaming.ivideon.com/flv/live?%s' % compat_urllib_parse.urlencode({
+            'url': 'https://streaming.ivideon.com/flv/live?%s' % compat_urllib_parse_urlencode({
                 'server': server_id,
                 'camera': camera_id,
                 'sessionId': 'demo',

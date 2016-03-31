@@ -38,6 +38,7 @@ class RTVNHIE(InfoExtractor):
                     item['file'], video_id, ext='mp4', entry_protocol='m3u8_native'))
             elif item.get('type') == '':
                 formats.append({'url': item['file']})
+        self._sort_formats(formats)
 
         return {
             'id': video_id,

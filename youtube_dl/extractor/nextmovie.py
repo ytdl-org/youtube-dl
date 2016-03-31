@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .mtv import MTVServicesInfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 
 
 class NextMovieIE(MTVServicesInfoExtractor):
@@ -20,7 +20,7 @@ class NextMovieIE(MTVServicesInfoExtractor):
     }]
 
     def _get_feed_query(self, uri):
-        return compat_urllib_parse.urlencode({
+        return compat_urllib_parse_urlencode({
             'feed': '1505',
             'mgid': uri,
         })

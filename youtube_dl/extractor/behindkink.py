@@ -8,7 +8,7 @@ from ..utils import url_basename
 
 
 class BehindKinkIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?behindkink\.com/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<id>[^/#?_]+)'
+    _VALID_URL = r'https?://(?:www\.)?behindkink\.com/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/(?P<day>[0-9]{2})/(?P<id>[^/#?_]+)'
     _TEST = {
         'url': 'http://www.behindkink.com/2014/12/05/what-are-you-passionate-about-marley-blaze/',
         'md5': '507b57d8fdcd75a41a9a7bdb7989c762',

@@ -8,7 +8,7 @@ from .common import InfoExtractor
 class ExfmIE(InfoExtractor):
     IE_NAME = 'exfm'
     IE_DESC = 'ex.fm'
-    _VALID_URL = r'http://(?:www\.)?ex\.fm/song/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?ex\.fm/song/(?P<id>[^/]+)'
     _SOUNDCLOUD_URL = r'http://(?:www\.)?api\.soundcloud\.com/tracks/([^/]+)/stream'
     _TESTS = [
         {

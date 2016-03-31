@@ -17,7 +17,7 @@ from ..utils import (
 class LifeNewsIE(InfoExtractor):
     IE_NAME = 'lifenews'
     IE_DESC = 'LIFE | NEWS'
-    _VALID_URL = r'http://lifenews\.ru/(?:mobile/)?(?P<section>news|video)/(?P<id>\d+)'
+    _VALID_URL = r'https?://lifenews\.ru/(?:mobile/)?(?P<section>news|video)/(?P<id>\d+)'
 
     _TESTS = [{
         # single video embedded via video/source
@@ -159,7 +159,7 @@ class LifeNewsIE(InfoExtractor):
 
 class LifeEmbedIE(InfoExtractor):
     IE_NAME = 'life:embed'
-    _VALID_URL = r'http://embed\.life\.ru/embed/(?P<id>[\da-f]{32})'
+    _VALID_URL = r'https?://embed\.life\.ru/embed/(?P<id>[\da-f]{32})'
 
     _TEST = {
         'url': 'http://embed.life.ru/embed/e50c2dec2867350528e2574c899b8291',
