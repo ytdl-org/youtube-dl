@@ -60,6 +60,7 @@ from .googledrive import GoogleDriveIE
 from .jwplatform import JWPlatformIE
 from .digiteka import DigitekaIE
 from .instagram import InstagramIE
+from .liveleak import LiveLeakIE
 
 
 class GenericIE(InfoExtractor):
@@ -1140,6 +1141,18 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20160409',
             },
         },
+        # LiveLeak embed
+        {
+            'url': 'http://www.wykop.pl/link/3088787/',
+            'md5': 'ace83b9ed19b21f68e1b50e844fdf95d',
+            'info_dict': {
+                'id': '874_1459135191',
+                'ext': 'mp4',
+                'title': 'Man shows poor quality of new apartment building',
+                'description': 'The wall is like a sand pile.',
+                'uploader': 'Lake8737',
+            }
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -1943,6 +1956,11 @@ class GenericIE(InfoExtractor):
         instagram_embed_url = InstagramIE._extract_embed_url(webpage)
         if instagram_embed_url is not None:
             return self.url_result(instagram_embed_url, InstagramIE.ie_key())
+
+        # Look for LiveLeak embeds
+        liveleak_url = LiveLeakIE._extract_url(webpage)
+        if liveleak_url:
+            return self.url_result(liveleak_url, 'LiveLeak')
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
