@@ -406,19 +406,6 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
-        # multiple ooyala embeds on SBN network websites
-        {
-            'url': 'http://www.sbnation.com/college-football-recruiting/2015/2/3/7970291/national-signing-day-rationalizations-itll-be-ok-itll-be-ok',
-            'info_dict': {
-                'id': 'national-signing-day-rationalizations-itll-be-ok-itll-be-ok',
-                'title': '25 lies you will tell yourself on National Signing Day - SBNation.com',
-            },
-            'playlist_mincount': 3,
-            'params': {
-                'skip_download': True,
-            },
-            'add_ie': ['Ooyala'],
-        },
         # embed.ly video
         {
             'url': 'http://www.tested.com/science/weird/460206-tested-grinding-coffee-2000-frames-second/',
