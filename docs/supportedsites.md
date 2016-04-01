@@ -118,6 +118,7 @@
  - **Clubic**
  - **Clyp**
  - **cmt.com**
+ - **CNBC**
  - **CNET**
  - **CNN**
  - **CNNArticle**
@@ -134,6 +135,7 @@
  - **CrooksAndLiars**
  - **Crunchyroll**
  - **crunchyroll:playlist**
+ - **CSNNE**
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
  - **culturebox.francetvinfo.fr**
@@ -376,7 +378,8 @@
  - **myvideo** (Currently broken)
  - **MyVidster**
  - **n-tv.de**
- - **NationalGeographic**
+ - **natgeo**
+ - **natgeo:channel**
  - **Naver**
  - **NBA**
  - **NBC**
@@ -618,7 +621,6 @@
  - **Telegraaf**
  - **TeleMB**
  - **TeleTask**
- - **TenPlay**
  - **TF1**
  - **TheIntercept**
  - **TheOnion**
@@ -740,6 +742,7 @@
  - **vlive**
  - **Vodlocker**
  - **VoiceRepublic**
+ - **VoxMedia**
  - **Vporn**
  - **vpro**: npo.nl and ntr.nl
  - **VRT**
