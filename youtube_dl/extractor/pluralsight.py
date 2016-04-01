@@ -64,8 +64,8 @@ class PluralsightIE(PluralsightBaseIE):
         login_form = self._hidden_inputs(login_page)
 
         login_form.update({
-            'Username': username.encode('utf-8'),
-            'Password': password.encode('utf-8'),
+            'Username': username,
+            'Password': password,
         })
 
         post_url = self._search_regex(
