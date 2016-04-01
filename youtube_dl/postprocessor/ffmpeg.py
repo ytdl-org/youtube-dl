@@ -536,7 +536,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
             sub_filenames.append(old_file)
             new_file = subtitles_filename(filename, lang, new_ext)
 
-            if ext == 'dfxp' or ext == 'ttml':
+            if ext == 'dfxp' or ext == 'ttml' or ext == 'tt':
                 self._downloader.report_warning(
                     'You have requested to convert dfxp (TTML) subtitles into another format, '
                     'which results in style information loss')
