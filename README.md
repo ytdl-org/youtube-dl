@@ -427,6 +427,24 @@ Note that options in configuration file are just the same options aka switches u
 
 You can use `--ignore-config` if you want to disable the configuration file for a particular youtube-dl run.
 
+### Per extractor configuration
+
+In addition to globally setting options, you can also set different options for each extractor.
+A different set of files is used: `~/.config/youtube-dl/config.ini` and `/etc/youtube-dl.ini` on Unix, `%APPDATA%\youtube-dl\config.ini` or `C:\Users\<user name>\youtube-dl.ini` on Windows.
+The files are stored in the [INI format](https://en.wikipedia.org/wiki/INI_file), each argument must be written in its own line using its full name without the leading `--`.
+To start a section with the options for an specific extractor you can write a line in the form `[<name>]`, where `<name>` is the name printed before the info message while downloading (like `youtube`, `youtube:playlist`, `vimeo` ...).
+
+For example, with the following configuration file youtube-dl will always extract the audio, as an mp3 file for YouTube videos and if the are inside a playlist they will be saved in a different folder:
+```
+extract-audio=
+
+[youtube]
+audio-format=mp3
+
+[youtube:playlist]
+output=%(playlist)s/%(title)s.%(ext)s
+```
+
 ### Authentication with `.netrc` file
 
 You may also want to configure automatic credentials storage for extractors that support authentication (by providing login and password with `--username` and `--password`) in order not to pass credentials as command line arguments on every youtube-dl execution and prevent tracking plain text passwords in the shell command history. You can achieve this using a [`.netrc` file](http://stackoverflow.com/tags/.netrc/info) on per extractor basis. For that you will need to create a`.netrc` file in your `$HOME` and restrict permissions to read/write by you only:
