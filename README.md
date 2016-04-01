@@ -431,12 +431,12 @@ You can use `--ignore-config` if you want to disable the configuration file for 
 
 In addition to globally setting options, you can also set different options for each extractor.
 A different set of files is used: `~/.config/youtube-dl/config.ini` and `/etc/youtube-dl.ini` on Unix, `%APPDATA%\youtube-dl\config.ini` or `C:\Users\<user name>\youtube-dl.ini` on Windows.
-The files are stored in the [INI format](https://en.wikipedia.org/wiki/INI_file), each argument must be written in its own line using its full name without the leading `--`.
+The files are stored in the [INI format](https://en.wikipedia.org/wiki/INI_file), each argument must be written in its own line using its full name without the leading `--` or the short version without the leading `-`.
 To start a section with the options for an specific extractor you can write a line in the form `[<name>]`, where `<name>` is the name printed before the info message while downloading (like `youtube`, `youtube:playlist`, `vimeo` ...).
 
 For example, with the following configuration file youtube-dl will always extract the audio, as an mp3 file for YouTube videos and if the are inside a playlist they will be saved in a different folder:
 ```
-extract-audio=
+x=
 
 [youtube]
 audio-format=mp3

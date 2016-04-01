@@ -756,7 +756,7 @@ def parseOpts(overrideArguments=None):
 
         def convert_opts(opts):
             return [
-                '--' + opt + ('' if not arg else ('=' + arg))
+                ('-' if len(opt) == 1 else '--') + opt + ('' if not arg else ('=' + arg))
                 for opt, arg in opts]
         global_opts = convert_opts(parser.items('@GLOBAL@'))
         section_opts = dict((section, convert_opts(parser.items(section))) for section in parser.sections() if section != '@GLOBAL@')
