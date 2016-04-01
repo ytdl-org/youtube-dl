@@ -439,7 +439,7 @@ class BrightcoveNewIE(InfoExtractor):
                     </video>.*?
                     <script[^>]+
                         src=["\'](?:https?:)?//players\.brightcove\.net/
-                        (\d+)/([\da-f-]+)_([^/]+)/index(?:\.min)?\.js
+                        (\d+)/([^/]+)_([^/]+)/index(?:\.min)?\.js
                 ''', webpage):
             entries.append(
                 'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'

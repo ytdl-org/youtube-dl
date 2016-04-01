@@ -22,6 +22,7 @@ from ..compat import (
     compat_str,
     compat_urllib_error,
     compat_urllib_parse_urlencode,
+    compat_urllib_request,
     compat_urlparse,
 )
 from ..downloader.f4m import remove_encrypted_media
@@ -49,6 +50,7 @@ from ..utils import (
     determine_protocol,
     parse_duration,
     mimetype2ext,
+    update_Request,
     update_url_query,
 )
 
@@ -347,7 +349,7 @@ class InfoExtractor(object):
     def IE_NAME(self):
         return compat_str(type(self).__name__[:-2])
 
-    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, data=None, headers=None, query=None):
+    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, data=None, headers={}, query={}):
         """ Returns the response handle """
         if note is None:
             self.report_download_webpage(video_id)
@@ -357,11 +359,14 @@ class InfoExtractor(object):
             else:
                 self.to_screen('%s: %s' % (video_id, note))
         # data, headers and query params will be ignored for `Request` objects
-        if isinstance(url_or_request, compat_str):
+        if isinstance(url_or_request, compat_urllib_request.Request):
+            url_or_request = update_Request(
+                url_or_request, data=data, headers=headers, query=query)
+        else:
             if query:
                 url_or_request = update_url_query(url_or_request, query)
             if data or headers:
-                url_or_request = sanitized_Request(url_or_request, data, headers or {})
+                url_or_request = sanitized_Request(url_or_request, data, headers)
         try:
             return self._downloader.urlopen(url_or_request)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -377,7 +382,7 @@ class InfoExtractor(object):
                 self._downloader.report_warning(errmsg)
                 return False
 
-    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True, encoding=None, data=None, headers=None, query=None):
+    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True, encoding=None, data=None, headers={}, query={}):
         """ Returns a tuple (page content as string, URL handle) """
         # Strip hashes from the URL (#1038)
         if isinstance(url_or_request, (compat_str, str)):
@@ -470,7 +475,7 @@ class InfoExtractor(object):
 
         return content
 
-    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None, data=None, headers=None, query=None):
+    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None, data=None, headers={}, query={}):
         """ Returns the data of the page as a string """
         success = False
         try_count = 0
@@ -491,7 +496,7 @@ class InfoExtractor(object):
 
     def _download_xml(self, url_or_request, video_id,
                       note='Downloading XML', errnote='Unable to download XML',
-                      transform_source=None, fatal=True, encoding=None, data=None, headers=None, query=None):
+                      transform_source=None, fatal=True, encoding=None, data=None, headers={}, query={}):
         """Return the xml as an xml.etree.ElementTree.Element"""
         xml_string = self._download_webpage(
             url_or_request, video_id, note, errnote, fatal=fatal, encoding=encoding, data=data, headers=headers, query=query)
@@ -505,7 +510,7 @@ class InfoExtractor(object):
                        note='Downloading JSON metadata',
                        errnote='Unable to download JSON metadata',
                        transform_source=None,
-                       fatal=True, encoding=None, data=None, headers=None, query=None):
+                       fatal=True, encoding=None, data=None, headers={}, query={}):
         json_string = self._download_webpage(
             url_or_request, video_id, note, errnote, fatal=fatal,
             encoding=encoding, data=data, headers=headers, query=query)

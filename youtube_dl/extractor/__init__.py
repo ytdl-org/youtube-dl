@@ -438,7 +438,10 @@ from .myspass import MySpassIE
 from .myvi import MyviIE
 from .myvideo import MyVideoIE
 from .myvidster import MyVidsterIE
-from .nationalgeographic import NationalGeographicIE
+from .nationalgeographic import (
+    NationalGeographicIE,
+    NationalGeographicChannelIE,
+)
 from .naver import NaverIE
 from .nba import NBAIE
 from .nbc import (
@@ -737,7 +740,6 @@ from .telecinco import TelecincoIE
 from .telegraaf import TelegraafIE
 from .telemb import TeleMBIE
 from .teletask import TeleTaskIE
-from .tenplay import TenPlayIE
 from .testurl import TestURLIE
 from .tf1 import TF1IE
 from .theintercept import TheInterceptIE
@@ -902,6 +904,7 @@ from .vk import (
 from .vlive import VLiveIE
 from .vodlocker import VodlockerIE
 from .voicerepublic import VoiceRepublicIE
+from .voxmedia import VoxMediaIE
 from .vporn import VpornIE
 from .vrt import VRTIE
 from .vube import VubeIE

@@ -154,7 +154,7 @@ class ThePlatformIE(ThePlatformBaseIE):
         def hex_to_str(hex):
             return binascii.a2b_hex(hex)
 
-        relative_path = url.split('http://link.theplatform.com/s/')[1].split('?')[0]
+        relative_path = re.match(r'https?://link.theplatform.com/s/([^?]+)', url).group(1)
         clear_text = hex_to_str(flags + expiration_date + str_to_hex(relative_path))
         checksum = hmac.new(sig_key.encode('ascii'), clear_text, hashlib.sha1).hexdigest()
         sig = flags + expiration_date + checksum + str_to_hex(sig_secret)
