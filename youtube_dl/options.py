@@ -854,6 +854,9 @@ def parseOpts(overrideArguments=None):
             user_sections = {}
         else:
             system_conf = compat_conf(_readOptions('/etc/youtube-dl.conf'))
+            system_global, system_sections = _readIni('/etc/youtube-dl.ini')
+            system_conf.extend(system_global)
+
             if '--ignore-config' in system_conf:
                 user_conf = []
                 user_sections = {}
@@ -865,6 +868,8 @@ def parseOpts(overrideArguments=None):
         opts, args = parser.parse_args(argv)
         if opts.verbose:
             write_string('[debug] System config: ' + repr(_hide_login_info(system_conf)) + '\n')
+            for section, section_args in system_sections.items():
+                write_string('[debug] System config for "' + section + '": ' + repr(_hide_login_info(section_args)) + '\n')
             write_string('[debug] User config: ' + repr(_hide_login_info(user_conf)) + '\n')
             for section, section_args in user_sections.items():
                 write_string('[debug] User config for "' + section + '": ' + repr(_hide_login_info(section_args)) + '\n')
@@ -873,6 +878,7 @@ def parseOpts(overrideArguments=None):
         def build_section_args(*sections):
             res = system_conf + user_conf
             for section in sections:
+                res.extend(system_sections.get(section, []))
                 res.extend(user_sections.get(section, []))
             res.extend(command_line_conf)
             return res
