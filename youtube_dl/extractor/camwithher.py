@@ -72,7 +72,6 @@ class CamWithHerIE(InfoExtractor):
         upload_date = unified_strdate(self._search_regex(
             r'Added on\s*:\s*([\d-]+)', webpage, 'upload date', default=None))
 
-
         return {
             'id': flv_id,
             'url': rtmp_url,
