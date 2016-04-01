@@ -104,6 +104,7 @@ from .cbc import (
     CBCPlayerIE,
 )
 from .cbs import CBSIE
+from .cbsinteractive import CBSInteractiveIE
 from .cbsnews import (
     CBSNewsIE,
     CBSNewsLiveVideoIE,
@@ -129,7 +130,6 @@ from .clubic import ClubicIE
 from .clyp import ClypIE
 from .cmt import CMTIE
 from .cnbc import CNBCIE
-from .cnet import CNETIE
 from .cnn import (
     CNNIE,
     CNNBlogsIE,

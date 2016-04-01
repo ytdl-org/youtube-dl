@@ -1,12 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .theplatform import ThePlatformIE
 from ..utils import int_or_none
 
 
-class CNETIE(ThePlatformIE):
-    _VALID_URL = r'https?://(?:www\.)?cnet\.com/videos/(?P<id>[^/]+)/'
+class CBSInteractiveIE(ThePlatformIE):
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>cnet|zdnet)\.com/(?:videos|video/share)/(?P<id>[^/?]+)'
     _TESTS = [{
         'url': 'http://www.cnet.com/videos/hands-on-with-microsofts-windows-8-1-update/',
         'info_dict': {
@@ -33,15 +35,35 @@ class CNETIE(ThePlatformIE):
             'timestamp': 1433289889,
             'upload_date': '20150603',
         },
+    }, {
+        'url': 'http://www.zdnet.com/video/share/video-keeping-android-smartphones-and-tablets-secure/',
+        'info_dict': {
+            'id': 'bc1af9f0-a2b5-4e54-880d-0d95525781c0',
+            'ext': 'mp4',
+            'title': 'Video: Keeping Android smartphones and tablets secure',
+            'description': 'Here\'s the best way to keep Android devices secure, and what you do when they\'ve come to the end of their lives.',
+            'uploader_id': 'f2d97ea2-8175-11e2-9d12-0018fe8a00b0',
+            'uploader': 'Adrian Kingsley-Hughes',
+            'timestamp': 1448961720,
+            'upload_date': '20151201',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
     }]
     TP_RELEASE_URL_TEMPLATE = 'http://link.theplatform.com/s/kYEXFC/%s?mbr=true'
+    MPX_ACCOUNTS = {
+        'cnet': 2288573011,
+        'zdnet': 2387448114,
+    }
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        site, display_id = re.match(self._VALID_URL, url).groups()
         webpage = self._download_webpage(url, display_id)
 
         data_json = self._html_search_regex(
-            r"data-cnet-video(?:-uvp)?-options='([^']+)'",
+            r"data-(?:cnet|zdnet)-video(?:-uvp)?-options='([^']+)'",
             webpage, 'data json')
         data = self._parse_json(data_json, display_id)
         vdata = data.get('video') or data['videos'][0]
@@ -56,8 +78,11 @@ class CNETIE(ThePlatformIE):
             uploader = None
             uploader_id = None
 
-        media_guid_path = 'media/guid/2288573011/%s' % vdata['mpxRefId']
-        formats, subtitles = self._extract_theplatform_smil(self.TP_RELEASE_URL_TEMPLATE % media_guid_path, video_id)
+        media_guid_path = 'media/guid/%d/%s' % (self.MPX_ACCOUNTS[site], vdata['mpxRefId'])
+        formats, subtitles = [], {}
+        if site == 'cnet':
+            formats, subtitles = self._extract_theplatform_smil(
+                self.TP_RELEASE_URL_TEMPLATE % media_guid_path, video_id)
         for (fkey, vid) in vdata['files'].items():
             if fkey == 'hls_phone' and 'hls_tablet' in vdata['files']:
                 continue
