@@ -5,7 +5,6 @@ from .common import InfoExtractor
 from .cbs import CBSBaseIE
 from ..utils import (
     parse_duration,
-    find_xpath_attr,
 )
 
 
