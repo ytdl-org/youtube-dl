@@ -193,12 +193,12 @@ class UdemyIE(InfoExtractor):
 
         asset = lecture['asset']
 
-        asset_type = asset.get('assetType') or asset.get('asset_type')
+        asset_type = asset.get('asset_type') or asset.get('assetType')
         if asset_type != 'Video':
             raise ExtractorError(
                 'Lecture %s is not a video' % lecture_id, expected=True)
 
-        stream_url = asset.get('streamUrl') or asset.get('stream_url')
+        stream_url = asset.get('stream_url') or asset.get('streamUrl')
         if stream_url:
             youtube_url = self._search_regex(
                 r'(https?://www\.youtube\.com/watch\?v=.*)', stream_url, 'youtube URL', default=None)
@@ -206,7 +206,7 @@ class UdemyIE(InfoExtractor):
                 return self.url_result(youtube_url, 'Youtube')
 
         video_id = asset['id']
-        thumbnail = asset.get('thumbnailUrl') or asset.get('thumbnail_url')
+        thumbnail = asset.get('thumbnail_url') or asset.get('thumbnailUrl')
         duration = float_or_none(asset.get('data', {}).get('duration'))
 
         formats = []
@@ -325,7 +325,7 @@ class UdemyCourseIE(UdemyIE):
             'https://www.udemy.com/api-2.0/courses/%s/cached-subscriber-curriculum-items' % course_id,
             course_id, 'Downloading course curriculum', query={
                 'fields[chapter]': 'title,object_index',
-                'fields[lecture]': 'title',
+                'fields[lecture]': 'title,asset',
                 'page_size': '1000',
             })
 
@@ -334,6 +334,11 @@ class UdemyCourseIE(UdemyIE):
         for entry in response['results']:
             clazz = entry.get('_class')
             if clazz == 'lecture':
+                asset = entry.get('asset')
+                if isinstance(asset, dict):
+                    asset_type = asset.get('asset_type') or asset.get('assetType')
+                    if asset_type != 'Video':
+                        continue
                 lecture_id = entry.get('id')
                 if lecture_id:
                     entry = {
