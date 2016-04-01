@@ -22,6 +22,9 @@ class AENetworksIE(InfoExtractor):
             'ext': 'mp4',
             'title': "Bet You Didn't Know: Valentine's Day",
             'description': 'md5:7b57ea4829b391995b405fa60bd7b5f7',
+            'timestamp': 1375819729,
+            'upload_date': '20130806',
+            'uploader': 'AENE-NEW',
         },
         'params': {
             # m3u8 download
@@ -37,6 +40,9 @@ class AENetworksIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Winter Is Coming',
             'description': 'md5:641f424b7a19d8e24f26dea22cf59d74',
+            'timestamp': 1338306241,
+            'upload_date': '20120529',
+            'uploader': 'AENE-NEW',
         },
         'add_ie': ['ThePlatform'],
     }, {

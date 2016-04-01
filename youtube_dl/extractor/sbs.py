@@ -24,6 +24,9 @@ class SBSIE(InfoExtractor):
             'description': 'md5:f250a9856fca50d22dec0b5b8015f8a5',
             'thumbnail': 're:http://.*\.jpg',
             'duration': 308,
+            'timestamp': 1408613220,
+            'upload_date': '20140821',
+            'uploader': 'SBSC',
         },
     }, {
         'url': 'http://www.sbs.com.au/ondemand/video/320403011771/Dingo-Conservation-The-Feed',
@@ -57,6 +60,7 @@ class SBSIE(InfoExtractor):
 
         return {
             '_type': 'url_transparent',
+            'ie_key': 'ThePlatform',
             'id': video_id,
-            'url': smuggle_url(theplatform_url, {'force_smil_url': True}),
+            'url': smuggle_url(self._proto_relative_url(theplatform_url), {'force_smil_url': True}),
         }
