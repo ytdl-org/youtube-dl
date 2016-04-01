@@ -10,7 +10,18 @@ from ..utils import (
 )
 
 
-class CBSIE(ThePlatformIE):
+class CBSBaseIE(ThePlatformIE):
+    def _parse_smil_subtitles(self, smil, namespace=None, subtitles_lang='en'):
+        closed_caption_e = find_xpath_attr(smil, self._xpath_ns('.//param', namespace), 'name', 'ClosedCaptionURL')
+        return {
+            'en': [{
+                'ext': 'ttml',
+                'url': closed_caption_e.attrib['value'],
+            }]
+        } if closed_caption_e is not None and closed_caption_e.attrib.get('value') else []
+
+
+class CBSIE(CBSBaseIE):
     _VALID_URL = r'https?://(?:www\.)?(?:cbs\.com/shows/[^/]+/(?:video|artist)|colbertlateshow\.com/(?:video|podcasts))/[^/]+/(?P<id>[^/]+)'
 
     _TESTS = [{
@@ -51,15 +62,6 @@ class CBSIE(ThePlatformIE):
         'only_matching': True,
     }]
     TP_RELEASE_URL_TEMPLATE = 'http://link.theplatform.com/s/dJ5BDC/%s?manifest=m3u&mbr=true'
-
-    def _parse_smil_subtitles(self, smil, namespace=None, subtitles_lang='en'):
-        closed_caption_e = find_xpath_attr(smil, self._xpath_ns('.//param', namespace), 'name', 'ClosedCaptionURL')
-        return {
-            'en': [{
-                'ext': 'ttml',
-                'url': closed_caption_e.attrib['value'],
-            }]
-        } if closed_caption_e is not None and closed_caption_e.attrib.get('value') else []
 
     def _real_extract(self, url):
         display_id = self._match_id(url)

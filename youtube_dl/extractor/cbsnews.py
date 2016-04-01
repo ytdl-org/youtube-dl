@@ -2,14 +2,14 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from .theplatform import ThePlatformIE
+from .cbs import CBSBaseIE
 from ..utils import (
     parse_duration,
     find_xpath_attr,
 )
 
 
-class CBSNewsIE(ThePlatformIE):
+class CBSNewsIE(CBSBaseIE):
     IE_DESC = 'CBS News'
     _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/(?:news|videos)/(?P<id>[\da-z_-]+)'
 
@@ -48,15 +48,6 @@ class CBSNewsIE(ThePlatformIE):
             },
         },
     ]
-
-    def _parse_smil_subtitles(self, smil, namespace=None, subtitles_lang='en'):
-        closed_caption_e = find_xpath_attr(smil, self._xpath_ns('.//param', namespace), 'name', 'ClosedCaptionURL')
-        return {
-            'en': [{
-                'ext': 'ttml',
-                'url': closed_caption_e.attrib['value'],
-            }]
-        } if closed_caption_e is not None and closed_caption_e.attrib.get('value') else []
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
