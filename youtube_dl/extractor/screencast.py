@@ -34,7 +34,7 @@ class ScreencastIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.(?:gif|jpg)$',
         }
     }, {
-        'url': 'http://screencast.com/t/aAB3iowa',
+        'url': 'http://www.screencast.com/t/aAB3iowa',
         'md5': 'dedb2734ed00c9755761ccaee88527cd',
         'info_dict': {
             'id': 'aAB3iowa',
@@ -53,8 +53,10 @@ class ScreencastIE(InfoExtractor):
             'description': 'md5:7b9f393bc92af02326a5c5889639eab0',
             'thumbnail': 're:^https?://.*\.(?:gif|jpg)$',
         }
-    },
-    ]
+    }, {
+        'url': 'http://screencast.com/t/aAB3iowa',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
