@@ -1335,7 +1335,7 @@ class InfoExtractor(object):
             if not src or src in urls:
                 continue
             urls.append(src)
-            ext = textstream.get('ext') or determine_ext(src) or mimetype2ext(textstream.get('type'))
+            ext = textstream.get('ext') or mimetype2ext(textstream.get('type')) or determine_ext(src)
             lang = textstream.get('systemLanguage') or textstream.get('systemLanguageName') or textstream.get('lang') or subtitles_lang
             subtitles.setdefault(lang, []).append({
                 'url': src,
