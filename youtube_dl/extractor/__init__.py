@@ -858,6 +858,7 @@ from .vice import (
     ViceShowIE,
 )
 from .viddler import ViddlerIE
+from .videa import VideaIE
 from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
 from .videomega import VideoMegaIE
