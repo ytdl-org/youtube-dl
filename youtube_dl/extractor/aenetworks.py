@@ -1,13 +1,19 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
-from ..utils import smuggle_url
+from ..utils import (
+    smuggle_url,
+    update_url_query,
+    unescapeHTML,
+)
 
 
 class AENetworksIE(InfoExtractor):
     IE_NAME = 'aenetworks'
     IE_DESC = 'A+E Networks: A&E, Lifetime, History.com, FYI Network'
-    _VALID_URL = r'https?://(?:www\.)?(?:(?:history|aetv|mylifetime)\.com|fyi\.tv)/(?:[^/]+/)+(?P<id>[^/]+?)(?:$|[?#])'
+    _VALID_URL = r'https?://(?:www\.)?(?:(?:history|aetv|mylifetime)\.com|fyi\.tv)/(?P<type>[^/]+)/(?:[^/]+/)+(?P<id>[^/]+?)(?:$|[?#])'
 
     _TESTS = [{
         'url': 'http://www.history.com/topics/valentines-day/history-of-valentines-day/videos/bet-you-didnt-know-valentines-day?m=528e394da93ae&s=undefined&f=1&free=false',
@@ -25,15 +31,12 @@ class AENetworksIE(InfoExtractor):
         'expected_warnings': ['JSON-LD'],
     }, {
         'url': 'http://www.history.com/shows/mountain-men/season-1/episode-1',
+        'md5': '8ff93eb073449f151d6b90c0ae1ef0c7',
         'info_dict': {
             'id': 'eg47EERs_JsZ',
             'ext': 'mp4',
             'title': 'Winter Is Coming',
             'description': 'md5:641f424b7a19d8e24f26dea22cf59d74',
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
         },
         'add_ie': ['ThePlatform'],
     }, {
@@ -48,7 +51,7 @@ class AENetworksIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        page_type, video_id = re.match(self._VALID_URL, url).groups()
 
         webpage = self._download_webpage(url, video_id)
 
@@ -56,11 +59,22 @@ class AENetworksIE(InfoExtractor):
             r'data-href="[^"]*/%s"[^>]+data-release-url="([^"]+)"' % video_id,
             r"media_url\s*=\s*'([^']+)'"
         ]
-        video_url = self._search_regex(video_url_re, webpage, 'video url')
+        video_url = unescapeHTML(self._search_regex(video_url_re, webpage, 'video url'))
+        query = {'mbr': 'true'}
+        if page_type == 'shows':
+            query['assetTypes'] = 'medium_video_s3'
+        if 'switch=hds' in video_url:
+            query['switch'] = 'hls'
 
         info = self._search_json_ld(webpage, video_id, fatal=False)
         info.update({
             '_type': 'url_transparent',
-            'url': smuggle_url(video_url, {'sig': {'key': 'crazyjava', 'secret': 's3cr3t'}}),
+            'url': smuggle_url(update_url_query(
+                video_url, query), {
+                    'sig': {
+                        'key': 'crazyjava',
+                        'secret': 's3cr3t'},
+                    'force_smil_url': True
+                }),
         })
         return info
