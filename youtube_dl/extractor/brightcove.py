@@ -515,7 +515,7 @@ class BrightcoveNewIE(InfoExtractor):
                 raise ExtractorError(json_data[0]['message'], expected=True)
             raise
 
-        title = json_data['name']
+        title = json_data['name'].strip()
 
         formats = []
         for source in json_data.get('sources', []):
@@ -579,20 +579,22 @@ class BrightcoveNewIE(InfoExtractor):
                 formats.append(f)
         self._sort_formats(formats)
 
-        description = json_data.get('description')
-        thumbnail = json_data.get('thumbnail')
-        timestamp = parse_iso8601(json_data.get('published_at'))
-        duration = float_or_none(json_data.get('duration'), 1000)
-        tags = json_data.get('tags', [])
+        subtitles = {}
+        for text_track in json_data.get('text_tracks', []):
+            if text_track.get('src'):
+                subtitles.setdefault(text_track.get('srclang'), []).append({
+                    'url': text_track['src'],
+                })
 
         return {
             'id': video_id,
             'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'duration': duration,
-            'timestamp': timestamp,
+            'description': json_data.get('description'),
+            'thumbnail': json_data.get('thumbnail') or json_data.get('poster'),
+            'duration': float_or_none(json_data.get('duration'), 1000),
+            'timestamp': parse_iso8601(json_data.get('published_at')),
             'uploader_id': account_id,
             'formats': formats,
-            'tags': tags,
+            'subtitles': subtitles,
+            'tags': json_data.get('tags', []),
         }
