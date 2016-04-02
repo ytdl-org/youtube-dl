@@ -112,7 +112,7 @@ class TvpleIE(InfoExtractor):
         title = re.search("<h2.*title=\"(.*)\"", webpage).group(1)  # title
         uploader = re.search(r'personacon-sm".*/>\s*(.*)\s*</a>', webpage).group(1)  # username
         uploader_id = re.search(r'"/ch/(.*)/videos"', webpage).group(1)  # userid
-        description = re.search(r'collapse-content linkify break-word">\s*(.*)\s*<button type="button" class="collapse-button', webpage, re.DOTALL).group(1).replace(" <br />", "").replace("<br />", "").replace("\n            ", "")  # description
+        description = re.search(r'collapse-content linkify break-word video-body">\s*(.*)\s*<button type="button" class="collapse-button', webpage, re.DOTALL).group(1).replace(" <br />", "").replace("<br />", "").replace("\n            ", "")  # description
         view_count = int(re.search(r'fa-play"></i></span>\s*(.*)\s*</li>', webpage).group(1).replace(",", ""))  # played
         try:
             comment_count = int(re.search(r'fa-cloud"></i></span>\s*(\d*)개의 구름', webpage).group(1).replace(",", ""))  # comment count
