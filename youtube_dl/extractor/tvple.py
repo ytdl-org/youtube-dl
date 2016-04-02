@@ -69,7 +69,7 @@ class TvpleIE(InfoExtractor):
         """convert tvple cloud to ass subtitle"""
         sec = []
 
-        asstemp1 = "[Script Info]\nTitle: %s\nScriptType: v4.00+\nWrapStyle: 0\nPlayResX: %d\nPlayResY: %d\nScaledBorderAndShadow: yes\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,14,&H23FFFFFF,&H000000FF,&HC8000000,&HC8000000,-1,0,0,0,100,100,0,0,1,2,2,5,10,10,10,1\n\n" % (title + '-' + videoid, width, height)
+        asstemp1 = "[Script Info]\nTitle: %s\nScriptType: v4.00+\nWrapStyle: 0\nPlayResX: %d\nPlayResY: %d\nScaledBorderAndShadow: yes\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,25,&H23FFFFFF,&H000000FF,&HC8000000,&HC8000000,-1,0,0,0,100,100,0,0,1,2,2,5,10,10,10,1\n\n" % (title + '-' + videoid, width, height)
 
         for i in json:
             if(i != '_warning'):
@@ -139,7 +139,7 @@ class TvpleIE(InfoExtractor):
                 'height': int(playpage['stream']['height'])
             })
 
-        subtitles = self.extract_subtitles(playpage, title, video_id, duration, playpage['stream']['width'], playpage['stream']['height'])
+        subtitles = self.extract_subtitles(playpage, title, video_id, duration, int(playpage['stream']['width']), int(playpage['stream']['height']))
 
         return {
             'id': video_id,
