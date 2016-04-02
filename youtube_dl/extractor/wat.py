@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class WatIE(InfoExtractor):
-    _VALID_URL = r'(?:wat:(?P<real_id>\d{8})|http://www\.wat\.tv/video/(?P<display_id>.*)-(?P<short_id>.*?)_.*?\.html)'
+    _VALID_URL = r'(?:wat:(?P<real_id>\d{8})|https?://www\.wat\.tv/video/(?P<display_id>.*)-(?P<short_id>.*?)_.*?\.html)'
     IE_NAME = 'wat.tv'
     _TESTS = [
         {

@@ -49,6 +49,7 @@ class RteIE(InfoExtractor):
         # f4m_url = server + relative_url
         f4m_url = json_string['shows'][0]['media:group'][0]['rte:server'] + json_string['shows'][0]['media:group'][0]['url']
         f4m_formats = self._extract_f4m_formats(f4m_url, video_id)
+        self._sort_formats(f4m_formats)
 
         return {
             'id': video_id,

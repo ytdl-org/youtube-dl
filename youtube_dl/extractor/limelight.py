@@ -123,7 +123,7 @@ class LimelightBaseIE(InfoExtractor):
 
 class LimelightMediaIE(LimelightBaseIE):
     IE_NAME = 'limelight'
-    _VALID_URL = r'(?:limelight:media:|http://link\.videoplatform\.limelight\.com/media/\??\bmediaId=)(?P<id>[a-z0-9]{32})'
+    _VALID_URL = r'(?:limelight:media:|https?://link\.videoplatform\.limelight\.com/media/\??\bmediaId=)(?P<id>[a-z0-9]{32})'
     _TESTS = [{
         'url': 'http://link.videoplatform.limelight.com/media/?mediaId=3ffd040b522b4485b6d84effc750cd86',
         'info_dict': {
@@ -176,7 +176,7 @@ class LimelightMediaIE(LimelightBaseIE):
 
 class LimelightChannelIE(LimelightBaseIE):
     IE_NAME = 'limelight:channel'
-    _VALID_URL = r'(?:limelight:channel:|http://link\.videoplatform\.limelight\.com/media/\??\bchannelId=)(?P<id>[a-z0-9]{32})'
+    _VALID_URL = r'(?:limelight:channel:|https?://link\.videoplatform\.limelight\.com/media/\??\bchannelId=)(?P<id>[a-z0-9]{32})'
     _TEST = {
         'url': 'http://link.videoplatform.limelight.com/media/?channelId=ab6a524c379342f9b23642917020c082',
         'info_dict': {
@@ -207,7 +207,7 @@ class LimelightChannelIE(LimelightBaseIE):
 
 class LimelightChannelListIE(LimelightBaseIE):
     IE_NAME = 'limelight:channel_list'
-    _VALID_URL = r'(?:limelight:channel_list:|http://link\.videoplatform\.limelight\.com/media/\?.*?\bchannelListId=)(?P<id>[a-z0-9]{32})'
+    _VALID_URL = r'(?:limelight:channel_list:|https?://link\.videoplatform\.limelight\.com/media/\?.*?\bchannelListId=)(?P<id>[a-z0-9]{32})'
     _TEST = {
         'url': 'http://link.videoplatform.limelight.com/media/?channelListId=301b117890c4465c8179ede21fd92e2b',
         'info_dict': {

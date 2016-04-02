@@ -19,20 +19,25 @@ class SVTBaseIE(InfoExtractor):
         video_info = info['video']
         formats = []
         for vr in video_info['videoReferences']:
+            player_type = vr.get('playerType')
             vurl = vr['url']
             ext = determine_ext(vurl)
             if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     vurl, video_id,
                     ext='mp4', entry_protocol='m3u8_native',
-                    m3u8_id=vr.get('playerType')))
+                    m3u8_id=player_type, fatal=False))
             elif ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
                     vurl + '?hdcore=3.3.0', video_id,
-                    f4m_id=vr.get('playerType')))
+                    f4m_id=player_type, fatal=False))
+            elif ext == 'mpd':
+                if player_type == 'dashhbbtv':
+                    formats.extend(self._extract_mpd_formats(
+                        vurl, video_id, mpd_id=player_type, fatal=False))
             else:
                 formats.append({
-                    'format_id': vr.get('playerType'),
+                    'format_id': player_type,
                     'url': vurl,
                 })
         self._sort_formats(formats)

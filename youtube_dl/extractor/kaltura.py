@@ -6,7 +6,7 @@ import base64
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urlparse,
     compat_parse_qs,
 )
@@ -71,7 +71,7 @@ class KalturaIE(InfoExtractor):
                 for k, v in a.items():
                     params['%d:%s' % (i, k)] = v
 
-        query = compat_urllib_parse.urlencode(params)
+        query = compat_urllib_parse_urlencode(params)
         url = self._API_BASE + query
         data = self._download_json(url, video_id, *args, **kwargs)
 

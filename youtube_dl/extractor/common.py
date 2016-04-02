@@ -21,9 +21,11 @@ from ..compat import (
     compat_os_name,
     compat_str,
     compat_urllib_error,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
+    compat_urllib_request,
     compat_urlparse,
 )
+from ..downloader.f4m import remove_encrypted_media
 from ..utils import (
     NO_DEFAULT,
     age_restricted,
@@ -48,6 +50,7 @@ from ..utils import (
     determine_protocol,
     parse_duration,
     mimetype2ext,
+    update_Request,
     update_url_query,
 )
 
@@ -346,7 +349,7 @@ class InfoExtractor(object):
     def IE_NAME(self):
         return compat_str(type(self).__name__[:-2])
 
-    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, data=None, headers=None, query=None):
+    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, data=None, headers={}, query={}):
         """ Returns the response handle """
         if note is None:
             self.report_download_webpage(video_id)
@@ -356,11 +359,14 @@ class InfoExtractor(object):
             else:
                 self.to_screen('%s: %s' % (video_id, note))
         # data, headers and query params will be ignored for `Request` objects
-        if isinstance(url_or_request, compat_str):
+        if isinstance(url_or_request, compat_urllib_request.Request):
+            url_or_request = update_Request(
+                url_or_request, data=data, headers=headers, query=query)
+        else:
             if query:
                 url_or_request = update_url_query(url_or_request, query)
             if data or headers:
-                url_or_request = sanitized_Request(url_or_request, data, headers or {})
+                url_or_request = sanitized_Request(url_or_request, data, headers)
         try:
             return self._downloader.urlopen(url_or_request)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
@@ -376,7 +382,7 @@ class InfoExtractor(object):
                 self._downloader.report_warning(errmsg)
                 return False
 
-    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True, encoding=None, data=None, headers=None, query=None):
+    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True, encoding=None, data=None, headers={}, query={}):
         """ Returns a tuple (page content as string, URL handle) """
         # Strip hashes from the URL (#1038)
         if isinstance(url_or_request, (compat_str, str)):
@@ -469,7 +475,7 @@ class InfoExtractor(object):
 
         return content
 
-    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None, data=None, headers=None, query=None):
+    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None, data=None, headers={}, query={}):
         """ Returns the data of the page as a string """
         success = False
         try_count = 0
@@ -490,7 +496,7 @@ class InfoExtractor(object):
 
     def _download_xml(self, url_or_request, video_id,
                       note='Downloading XML', errnote='Unable to download XML',
-                      transform_source=None, fatal=True, encoding=None, data=None, headers=None, query=None):
+                      transform_source=None, fatal=True, encoding=None, data=None, headers={}, query={}):
         """Return the xml as an xml.etree.ElementTree.Element"""
         xml_string = self._download_webpage(
             url_or_request, video_id, note, errnote, fatal=fatal, encoding=encoding, data=data, headers=headers, query=query)
@@ -504,7 +510,7 @@ class InfoExtractor(object):
                        note='Downloading JSON metadata',
                        errnote='Unable to download JSON metadata',
                        transform_source=None,
-                       fatal=True, encoding=None, data=None, headers=None, query=None):
+                       fatal=True, encoding=None, data=None, headers={}, query={}):
         json_string = self._download_webpage(
             url_or_request, video_id, note, errnote, fatal=fatal,
             encoding=encoding, data=data, headers=headers, query=query)
@@ -862,6 +868,7 @@ class InfoExtractor(object):
             proto_preference = 0 if determine_protocol(f) in ['http', 'https'] else -0.1
 
             if f.get('vcodec') == 'none':  # audio only
+                preference -= 50
                 if self._downloader.params.get('prefer_free_formats'):
                     ORDER = ['aac', 'mp3', 'm4a', 'webm', 'ogg', 'opus']
                 else:
@@ -872,6 +879,8 @@ class InfoExtractor(object):
                 except ValueError:
                     audio_ext_preference = -1
             else:
+                if f.get('acodec') == 'none':  # video only
+                    preference -= 40
                 if self._downloader.params.get('prefer_free_formats'):
                     ORDER = ['flv', 'mp4', 'webm']
                 else:
@@ -986,6 +995,11 @@ class InfoExtractor(object):
         if not media_nodes:
             manifest_version = '2.0'
             media_nodes = manifest.findall('{http://ns.adobe.com/f4m/2.0}media')
+        # Remove unsupported DRM protected media from final formats
+        # rendition (see https://github.com/rg3/youtube-dl/issues/8573).
+        media_nodes = remove_encrypted_media(media_nodes)
+        if not media_nodes:
+            return formats
         base_url = xpath_text(
             manifest, ['{http://ns.adobe.com/f4m/1.0}baseURL', '{http://ns.adobe.com/f4m/2.0}baseURL'],
             'base URL', default=None)
@@ -1018,8 +1032,6 @@ class InfoExtractor(object):
                 'height': int_or_none(media_el.attrib.get('height')),
                 'preference': preference,
             })
-        self._sort_formats(formats)
-
         return formats
 
     def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
@@ -1140,7 +1152,6 @@ class InfoExtractor(object):
                     last_media = None
                 formats.append(f)
                 last_info = {}
-        self._sort_formats(formats)
         return formats
 
     @staticmethod
@@ -1297,7 +1308,7 @@ class InfoExtractor(object):
                         'plugin': 'flowplayer-3.2.0.1',
                     }
                 f4m_url += '&' if '?' in f4m_url else '?'
-                f4m_url += compat_urllib_parse.urlencode(f4m_params)
+                f4m_url += compat_urllib_parse_urlencode(f4m_params)
                 formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False))
                 continue
 
@@ -1314,8 +1325,6 @@ class InfoExtractor(object):
                 })
                 continue
 
-        self._sort_formats(formats)
-
         return formats
 
     def _parse_smil_subtitles(self, smil, namespace=None, subtitles_lang='en'):
@@ -1326,7 +1335,7 @@ class InfoExtractor(object):
             if not src or src in urls:
                 continue
             urls.append(src)
-            ext = textstream.get('ext') or determine_ext(src) or mimetype2ext(textstream.get('type'))
+            ext = textstream.get('ext') or mimetype2ext(textstream.get('type')) or determine_ext(src)
             lang = textstream.get('systemLanguage') or textstream.get('systemLanguageName') or textstream.get('lang') or subtitles_lang
             subtitles.setdefault(lang, []).append({
                 'url': src,
@@ -1506,9 +1515,16 @@ class InfoExtractor(object):
                                 representation_ms_info['total_number'] = int(math.ceil(float(period_duration) / segment_duration))
                             media_template = representation_ms_info['media_template']
                             media_template = media_template.replace('$RepresentationID$', representation_id)
-                            media_template = re.sub(r'\$(Number|Bandwidth)(?:%(0\d+)d)?\$', r'%(\1)\2d', media_template)
+                            media_template = re.sub(r'\$(Number|Bandwidth)\$', r'%(\1)d', media_template)
+                            media_template = re.sub(r'\$(Number|Bandwidth)%(\d+)\$', r'%(\1)\2d', media_template)
                             media_template.replace('$$', '$')
-                            representation_ms_info['segment_urls'] = [media_template % {'Number': segment_number, 'Bandwidth': representation_attrib.get('bandwidth')} for segment_number in range(representation_ms_info['start_number'], representation_ms_info['total_number'] + representation_ms_info['start_number'])]
+                            representation_ms_info['segment_urls'] = [
+                                media_template % {
+                                    'Number': segment_number,
+                                    'Bandwidth': representation_attrib.get('bandwidth')}
+                                for segment_number in range(
+                                    representation_ms_info['start_number'],
+                                    representation_ms_info['total_number'] + representation_ms_info['start_number'])]
                         if 'segment_urls' in representation_ms_info:
                             f.update({
                                 'segment_urls': representation_ms_info['segment_urls'],
@@ -1533,7 +1549,6 @@ class InfoExtractor(object):
                             existing_format.update(f)
                     else:
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
-        self._sort_formats(formats)
         return formats
 
     def _live_title(self, name):

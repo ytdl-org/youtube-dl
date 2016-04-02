@@ -72,6 +72,7 @@ from .bet import BetIE
 from .bigflix import BigflixIE
 from .bild import BildIE
 from .bilibili import BiliBiliIE
+from .biobiochiletv import BioBioChileTVIE
 from .bleacherreport import (
     BleacherReportIE,
     BleacherReportCMSIE,
@@ -81,6 +82,7 @@ from .bloomberg import BloombergIE
 from .bokecc import BokeCCIE
 from .bpb import BpbIE
 from .br import BRIE
+from .bravotv import BravoTVIE
 from .breakcom import BreakIE
 from .brightcove import (
     BrightcoveLegacyIE,
@@ -93,6 +95,7 @@ from .camdemy import (
     CamdemyIE,
     CamdemyFolderIE
 )
+from .camwithher import CamWithHerIE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
 from .canvas import CanvasIE
@@ -101,12 +104,14 @@ from .cbc import (
     CBCPlayerIE,
 )
 from .cbs import CBSIE
+from .cbsinteractive import CBSInteractiveIE
 from .cbsnews import (
     CBSNewsIE,
     CBSNewsLiveVideoIE,
 )
 from .cbssports import CBSSportsIE
 from .ccc import CCCIE
+from .cda import CDAIE
 from .ceskatelevize import CeskaTelevizeIE
 from .channel9 import Channel9IE
 from .chaturbate import ChaturbateIE
@@ -124,7 +129,7 @@ from .cloudy import CloudyIE
 from .clubic import ClubicIE
 from .clyp import ClypIE
 from .cmt import CMTIE
-from .cnet import CNETIE
+from .cnbc import CNBCIE
 from .cnn import (
     CNNIE,
     CNNBlogsIE,
@@ -135,6 +140,7 @@ from .collegerama import CollegeRamaIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
 from .comcarcoff import ComCarCoffIE
 from .commonmistakes import CommonMistakesIE, UnicodeBOMIE
+from .commonprotocols import RtmpIE
 from .condenast import CondeNastIE
 from .cracked import CrackedIE
 from .crackle import CrackleIE
@@ -282,6 +288,7 @@ from .goshgay import GoshgayIE
 from .gputechconf import GPUTechConfIE
 from .groupon import GrouponIE
 from .hark import HarkIE
+from .hbo import HBOIE
 from .hearthisat import HearThisAtIE
 from .heise import HeiseIE
 from .hellporno import HellPornoIE
@@ -405,6 +412,7 @@ from .mit import TechTVMITIE, MITIE, OCWMITIE
 from .mitele import MiTeleIE
 from .mixcloud import MixcloudIE
 from .mlb import MLBIE
+from .mnet import MnetIE
 from .mpora import MporaIE
 from .moevideo import MoeVideoIE
 from .mofosex import MofosexIE
@@ -431,10 +439,14 @@ from .myspass import MySpassIE
 from .myvi import MyviIE
 from .myvideo import MyVideoIE
 from .myvidster import MyVidsterIE
-from .nationalgeographic import NationalGeographicIE
+from .nationalgeographic import (
+    NationalGeographicIE,
+    NationalGeographicChannelIE,
+)
 from .naver import NaverIE
 from .nba import NBAIE
 from .nbc import (
+    CSNNEIE,
     NBCIE,
     NBCNewsIE,
     NBCSportsIE,
@@ -530,6 +542,7 @@ from .ooyala import (
     OoyalaIE,
     OoyalaExternalIE,
 )
+from .openload import OpenloadIE
 from .ora import OraTVIE
 from .orf import (
     ORFTVthekIE,
@@ -625,6 +638,7 @@ from .ruutu import RuutuIE
 from .sandia import SandiaIE
 from .safari import (
     SafariIE,
+    SafariApiIE,
     SafariCourseIE,
 )
 from .sapo import SapoIE
@@ -727,7 +741,6 @@ from .telecinco import TelecincoIE
 from .telegraaf import TelegraafIE
 from .telemb import TeleMBIE
 from .teletask import TeleTaskIE
-from .tenplay import TenPlayIE
 from .testurl import TestURLIE
 from .tf1 import TF1IE
 from .theintercept import TheInterceptIE
@@ -736,7 +749,9 @@ from .theplatform import (
     ThePlatformIE,
     ThePlatformFeedIE,
 )
+from .thescene import TheSceneIE
 from .thesixtyone import TheSixtyOneIE
+from .thestar import TheStarIE
 from .thisamericanlife import ThisAmericanLifeIE
 from .thisav import ThisAVIE
 from .tinypic import TinyPicIE
@@ -783,6 +798,7 @@ from .tv2 import (
     TV2IE,
     TV2ArticleIE,
 )
+from .tv3 import TV3IE
 from .tv4 import TV4IE
 from .tvc import (
     TVCIE,
@@ -890,6 +906,7 @@ from .vk import (
 from .vlive import VLiveIE
 from .vodlocker import VodlockerIE
 from .voicerepublic import VoiceRepublicIE
+from .voxmedia import VoxMediaIE
 from .vporn import VpornIE
 from .vrt import VRTIE
 from .vube import VubeIE
@@ -951,7 +968,9 @@ from .youtube import (
     YoutubeChannelIE,
     YoutubeFavouritesIE,
     YoutubeHistoryIE,
+    YoutubeLiveIE,
     YoutubePlaylistIE,
+    YoutubePlaylistsIE,
     YoutubeRecommendedIE,
     YoutubeSearchDateIE,
     YoutubeSearchIE,
@@ -961,7 +980,6 @@ from .youtube import (
     YoutubeTruncatedIDIE,
     YoutubeTruncatedURLIE,
     YoutubeUserIE,
-    YoutubePlaylistsIE,
     YoutubeWatchLaterIE,
 )
 from .zapiks import ZapiksIE

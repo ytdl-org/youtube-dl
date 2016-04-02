@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
 from ..utils import (
     remove_end,
     HEADRequest,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -123,7 +123,7 @@ class GDCVaultIE(InfoExtractor):
             'password': password,
         }
 
-        request = sanitized_Request(login_url, compat_urllib_parse.urlencode(login_form))
+        request = sanitized_Request(login_url, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         self._download_webpage(request, display_id, 'Logging in')
         start_page = self._download_webpage(webpage_url, display_id, 'Getting authenticated video page')

@@ -39,6 +39,8 @@ from .compat import (
     compat_urllib_request_DataHandler,
 )
 from .utils import (
+    age_restricted,
+    args_to_str,
     ContentTooShortError,
     date_from_str,
     DateRange,
@@ -58,13 +60,16 @@ from .utils import (
     PagedList,
     parse_filesize,
     PerRequestProxyHandler,
-    PostProcessingError,
     platform_name,
+    PostProcessingError,
     preferredencoding,
+    prepend_extension,
     render_table,
+    replace_extension,
     SameFileError,
     sanitize_filename,
     sanitize_path,
+    sanitize_url,
     sanitized_Request,
     std_headers,
     subtitles_filename,
@@ -75,10 +80,6 @@ from .utils import (
     write_string,
     YoutubeDLCookieProcessor,
     YoutubeDLHandler,
-    prepend_extension,
-    replace_extension,
-    args_to_str,
-    age_restricted,
 )
 from .cache import Cache
 from .extractor import get_info_extractor, gen_extractors
@@ -905,7 +906,7 @@ class YoutubeDL(object):
                 '*=': lambda attr, value: value in attr,
             }
             str_operator_rex = re.compile(r'''(?x)
-                \s*(?P<key>ext|acodec|vcodec|container|protocol)
+                \s*(?P<key>ext|acodec|vcodec|container|protocol|format_id)
                 \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?
                 \s*(?P<value>[a-zA-Z0-9._-]+)
                 \s*$
@@ -1229,6 +1230,7 @@ class YoutubeDL(object):
                 t.get('preference'), t.get('width'), t.get('height'),
                 t.get('id'), t.get('url')))
             for i, t in enumerate(thumbnails):
+                t['url'] = sanitize_url(t['url'])
                 if t.get('width') and t.get('height'):
                     t['resolution'] = '%dx%d' % (t['width'], t['height'])
                 if t.get('id') is None:
@@ -1263,6 +1265,8 @@ class YoutubeDL(object):
         if subtitles:
             for _, subtitle in subtitles.items():
                 for subtitle_format in subtitle:
+                    if subtitle_format.get('url'):
+                        subtitle_format['url'] = sanitize_url(subtitle_format['url'])
                     if 'ext' not in subtitle_format:
                         subtitle_format['ext'] = determine_ext(subtitle_format['url']).lower()
 
@@ -1291,6 +1295,8 @@ class YoutubeDL(object):
         for i, format in enumerate(formats):
             if 'url' not in format:
                 raise ExtractorError('Missing "url" key in result (index %d)' % i)
+
+            format['url'] = sanitize_url(format['url'])
 
             if format.get('format_id') is None:
                 format['format_id'] = compat_str(i)
@@ -1836,7 +1842,7 @@ class YoutubeDL(object):
         if fdict.get('language'):
             if res:
                 res += ' '
-            res += '[%s]' % fdict['language']
+            res += '[%s] ' % fdict['language']
         if fdict.get('format_note') is not None:
             res += fdict['format_note'] + ' '
         if fdict.get('tbr') is not None:

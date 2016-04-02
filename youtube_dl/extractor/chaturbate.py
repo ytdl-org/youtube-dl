@@ -48,6 +48,7 @@ class ChaturbateIE(InfoExtractor):
             raise ExtractorError('Unable to find stream URL')
 
         formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
+        self._sort_formats(formats)
 
         return {
             'id': video_id,

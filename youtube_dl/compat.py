@@ -77,6 +77,11 @@ try:
 except ImportError:  # Python 2
     from urllib import urlretrieve as compat_urlretrieve
 
+try:
+    from html.parser import HTMLParser as compat_HTMLParser
+except ImportError:  # Python 2
+    from HTMLParser import HTMLParser as compat_HTMLParser
+
 
 try:
     from subprocess import DEVNULL
@@ -165,6 +170,31 @@ except ImportError:  # Python 2
         return compat_urllib_parse_unquote(string, encoding, errors)
 
 try:
+    from urllib.parse import urlencode as compat_urllib_parse_urlencode
+except ImportError:  # Python 2
+    # Python 2 will choke in urlencode on mixture of byte and unicode strings.
+    # Possible solutions are to either port it from python 3 with all
+    # the friends or manually ensure input query contains only byte strings.
+    # We will stick with latter thus recursively encoding the whole query.
+    def compat_urllib_parse_urlencode(query, doseq=0, encoding='utf-8'):
+        def encode_elem(e):
+            if isinstance(e, dict):
+                e = encode_dict(e)
+            elif isinstance(e, (list, tuple,)):
+                e = encode_list(e)
+            elif isinstance(e, compat_str):
+                e = e.encode(encoding)
+            return e
+
+        def encode_dict(d):
+            return dict((encode_elem(k), encode_elem(v)) for k, v in d.items())
+
+        def encode_list(l):
+            return [encode_elem(e) for e in l]
+
+        return compat_urllib_parse.urlencode(encode_elem(query), doseq=doseq)
+
+try:
     from urllib.request import DataHandler as compat_urllib_request_DataHandler
 except ImportError:  # Python < 3.4
     # Ported from CPython 98774:1733b3bd46db, Lib/urllib/request.py
@@ -250,6 +280,16 @@ else:
             if el.text is not None and isinstance(el.text, bytes):
                 el.text = el.text.decode('utf-8')
         return doc
+
+if sys.version_info < (2, 7):
+    # Here comes the crazy part: In 2.6, if the xpath is a unicode,
+    # .//node does not match if a node is a direct child of . !
+    def compat_xpath(xpath):
+        if isinstance(xpath, compat_str):
+            xpath = xpath.encode('ascii')
+        return xpath
+else:
+    compat_xpath = lambda xpath: xpath
 
 try:
     from urllib.parse import parse_qs as compat_parse_qs
@@ -543,6 +583,7 @@ else:
     from tokenize import generate_tokens as compat_tokenize_tokenize
 
 __all__ = [
+    'compat_HTMLParser',
     'compat_HTTPError',
     'compat_basestring',
     'compat_chr',
@@ -572,6 +613,7 @@ __all__ = [
     'compat_urllib_parse_unquote',
     'compat_urllib_parse_unquote_plus',
     'compat_urllib_parse_unquote_to_bytes',
+    'compat_urllib_parse_urlencode',
     'compat_urllib_parse_urlparse',
     'compat_urllib_request',
     'compat_urllib_request_DataHandler',
@@ -579,6 +621,7 @@ __all__ = [
     'compat_urlparse',
     'compat_urlretrieve',
     'compat_xml_parse_error',
+    'compat_xpath',
     'shlex_quote',
     'subprocess_check_output',
     'workaround_optparse_bug9161',

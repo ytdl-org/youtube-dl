@@ -11,7 +11,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_ord,
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     determine_ext,
@@ -28,7 +28,7 @@ from ..utils import (
 
 class LeIE(InfoExtractor):
     IE_DESC = '乐视网'
-    _VALID_URL = r'http://www\.le\.com/ptv/vplay/(?P<id>\d+)\.html'
+    _VALID_URL = r'https?://www\.le\.com/ptv/vplay/(?P<id>\d+)\.html'
 
     _URL_TEMPLATE = 'http://www.le.com/ptv/vplay/%s.html'
 
@@ -122,7 +122,7 @@ class LeIE(InfoExtractor):
             'domain': 'www.le.com'
         }
         play_json_req = sanitized_Request(
-            'http://api.le.com/mms/out/video/playJson?' + compat_urllib_parse.urlencode(params)
+            'http://api.le.com/mms/out/video/playJson?' + compat_urllib_parse_urlencode(params)
         )
         cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
         if cn_verification_proxy:
@@ -151,7 +151,7 @@ class LeIE(InfoExtractor):
         for format_id in formats:
             if format_id in dispatch:
                 media_url = playurl['domain'][0] + dispatch[format_id][0]
-                media_url += '&' + compat_urllib_parse.urlencode({
+                media_url += '&' + compat_urllib_parse_urlencode({
                     'm3v': 1,
                     'format': 1,
                     'expect': 3,
@@ -196,7 +196,7 @@ class LeIE(InfoExtractor):
 
 
 class LePlaylistIE(InfoExtractor):
-    _VALID_URL = r'http://[a-z]+\.le\.com/[a-z]+/(?P<id>[a-z0-9_]+)'
+    _VALID_URL = r'https?://[a-z]+\.le\.com/[a-z]+/(?P<id>[a-z0-9_]+)'
 
     _TESTS = [{
         'url': 'http://www.le.com/tv/46177.html',
@@ -305,7 +305,7 @@ class LetvCloudIE(InfoExtractor):
             }
             self.sign_data(data)
             return self._download_json(
-                'http://api.letvcloud.com/gpc.php?' + compat_urllib_parse.urlencode(data),
+                'http://api.letvcloud.com/gpc.php?' + compat_urllib_parse_urlencode(data),
                 media_id, 'Downloading playJson data for type %s' % cf)
 
         play_json = get_play_json(cf, time.time())

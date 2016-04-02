@@ -3,17 +3,17 @@ from __future__ import unicode_literals
 import base64
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
     int_or_none,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
 class SharedIE(InfoExtractor):
     IE_DESC = 'shared.sx and vivo.sx'
-    _VALID_URL = r'http://(?:shared|vivo)\.sx/(?P<id>[\da-z]{10})'
+    _VALID_URL = r'https?://(?:shared|vivo)\.sx/(?P<id>[\da-z]{10})'
 
     _TESTS = [{
         'url': 'http://shared.sx/0060718775',
@@ -45,7 +45,7 @@ class SharedIE(InfoExtractor):
 
         download_form = self._hidden_inputs(webpage)
         request = sanitized_Request(
-            url, compat_urllib_parse.urlencode(download_form))
+            url, urlencode_postdata(download_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
 
         video_page = self._download_webpage(

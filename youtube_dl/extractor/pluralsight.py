@@ -8,7 +8,6 @@ import collections
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
-    compat_urllib_parse,
     compat_urlparse,
 )
 from ..utils import (
@@ -17,6 +16,7 @@ from ..utils import (
     parse_duration,
     qualities,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -64,8 +64,8 @@ class PluralsightIE(PluralsightBaseIE):
         login_form = self._hidden_inputs(login_page)
 
         login_form.update({
-            'Username': username.encode('utf-8'),
-            'Password': password.encode('utf-8'),
+            'Username': username,
+            'Password': password,
         })
 
         post_url = self._search_regex(
@@ -76,7 +76,7 @@ class PluralsightIE(PluralsightBaseIE):
             post_url = compat_urlparse.urljoin(self._LOGIN_URL, post_url)
 
         request = sanitized_Request(
-            post_url, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+            post_url, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
 
         response = self._download_webpage(
@@ -279,13 +279,18 @@ class PluralsightCourseIE(PluralsightBaseIE):
             course_id, 'Downloading course data JSON')
 
         entries = []
-        for module in course_data:
+        for num, module in enumerate(course_data, 1):
             for clip in module.get('clips', []):
                 player_parameters = clip.get('playerParameters')
                 if not player_parameters:
                     continue
-                entries.append(self.url_result(
-                    '%s/training/player?%s' % (self._API_BASE, player_parameters),
-                    'Pluralsight'))
+                entries.append({
+                    '_type': 'url_transparent',
+                    'url': '%s/training/player?%s' % (self._API_BASE, player_parameters),
+                    'ie_key': PluralsightIE.ie_key(),
+                    'chapter': module.get('title'),
+                    'chapter_number': num,
+                    'chapter_id': module.get('moduleRef'),
+                })
 
         return self.playlist_result(entries, course_id, title, description)

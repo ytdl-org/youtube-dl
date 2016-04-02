@@ -331,17 +331,34 @@ class FFmpegVideoConvertorPP(FFmpegPostProcessor):
 
 class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
     def run(self, information):
-        if information['ext'] not in ['mp4', 'mkv']:
-            self._downloader.to_screen('[ffmpeg] Subtitles can only be embedded in mp4 or mkv files')
+        if information['ext'] not in ('mp4', 'webm', 'mkv'):
+            self._downloader.to_screen('[ffmpeg] Subtitles can only be embedded in mp4, webm or mkv files')
             return [], information
         subtitles = information.get('requested_subtitles')
         if not subtitles:
             self._downloader.to_screen('[ffmpeg] There aren\'t any subtitles to embed')
             return [], information
 
-        sub_langs = list(subtitles.keys())
         filename = information['filepath']
-        sub_filenames = [subtitles_filename(filename, lang, sub_info['ext']) for lang, sub_info in subtitles.items()]
+
+        ext = information['ext']
+        sub_langs = []
+        sub_filenames = []
+        webm_vtt_warn = False
+
+        for lang, sub_info in subtitles.items():
+            sub_ext = sub_info['ext']
+            if ext != 'webm' or ext == 'webm' and sub_ext == 'vtt':
+                sub_langs.append(lang)
+                sub_filenames.append(subtitles_filename(filename, lang, sub_ext))
+            else:
+                if not webm_vtt_warn and ext == 'webm' and sub_ext != 'vtt':
+                    webm_vtt_warn = True
+                    self._downloader.to_screen('[ffmpeg] Only WebVTT subtitles can be embedded in webm files')
+
+        if not sub_langs:
+            return [], information
+
         input_files = [filename] + sub_filenames
 
         opts = [
@@ -519,7 +536,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
             sub_filenames.append(old_file)
             new_file = subtitles_filename(filename, lang, new_ext)
 
-            if ext == 'dfxp' or ext == 'ttml':
+            if ext == 'dfxp' or ext == 'ttml' or ext == 'tt':
                 self._downloader.report_warning(
                     'You have requested to convert dfxp (TTML) subtitles into another format, '
                     'which results in style information loss')

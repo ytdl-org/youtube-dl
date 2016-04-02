@@ -10,7 +10,7 @@ from .youtube import YoutubeIE
 
 
 class GamekingsIE(InfoExtractor):
-    _VALID_URL = r'http://www\.gamekings\.nl/(?:videos|nieuws)/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://www\.gamekings\.nl/(?:videos|nieuws)/(?P<id>[^/]+)'
     _TESTS = [{
         # YouTube embed video
         'url': 'http://www.gamekings.nl/videos/phoenix-wright-ace-attorney-dual-destinies-review/',

@@ -74,6 +74,7 @@
  - **Bigflix**
  - **Bild**: Bild.de
  - **BiliBili**
+ - **BioBioChileTV**
  - **BleacherReport**
  - **BleacherReportCMS**
  - **blinkx**
@@ -81,6 +82,7 @@
  - **BokeCC**
  - **Bpb**: Bundeszentrale für politische Bildung
  - **BR**: Bayerischer Rundfunk Mediathek
+ - **BravoTV**
  - **Break**
  - **brightcove:legacy**
  - **brightcove:new**
@@ -99,6 +101,7 @@
  - **CBSNews**: CBS News
  - **CBSNewsLiveVideo**: CBS News Live Videos
  - **CBSSports**
+ - **CDA**
  - **CeskaTelevize**
  - **channel9**: Channel 9
  - **Chaturbate**
@@ -115,6 +118,7 @@
  - **Clubic**
  - **Clyp**
  - **cmt.com**
+ - **CNBC**
  - **CNET**
  - **CNN**
  - **CNNArticle**
@@ -131,6 +135,7 @@
  - **CrooksAndLiars**
  - **Crunchyroll**
  - **crunchyroll:playlist**
+ - **CSNNE**
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
  - **culturebox.francetvinfo.fr**
@@ -243,6 +248,7 @@
  - **GPUTechConf**
  - **Groupon**
  - **Hark**
+ - **HBO**
  - **HearThisAt**
  - **Heise**
  - **HellPorno**
@@ -343,6 +349,7 @@
  - **MiTele**: mitele.es
  - **mixcloud**
  - **MLB**
+ - **Mnet**
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
  - **Mofosex**
  - **Mojvideo**
@@ -371,7 +378,8 @@
  - **myvideo** (Currently broken)
  - **MyVidster**
  - **n-tv.de**
- - **NationalGeographic**
+ - **natgeo**
+ - **natgeo:channel**
  - **Naver**
  - **NBA**
  - **NBC**
@@ -439,6 +447,7 @@
  - **OnionStudios**
  - **Ooyala**
  - **OoyalaExternal**
+ - **Openload**
  - **OraTV**
  - **orf:fm4**: radio FM4
  - **orf:iptv**: iptv.ORF.at
@@ -499,6 +508,7 @@
  - **Restudy**
  - **ReverbNation**
  - **Revision3**
+ - **RICE**
  - **RingTV**
  - **RottenTomatoes**
  - **Roxwel**
@@ -523,6 +533,7 @@
  - **RUTV**: RUTV.RU
  - **Ruutu**
  - **safari**: safaribooksonline.com online video
+ - **safari:api**
  - **safari:course**: safaribooksonline.com online courses
  - **Sandia**: Sandia National Laboratories
  - **Sapo**: SAPO Vídeos
@@ -610,13 +621,14 @@
  - **Telegraaf**
  - **TeleMB**
  - **TeleTask**
- - **TenPlay**
  - **TF1**
  - **TheIntercept**
  - **TheOnion**
  - **ThePlatform**
  - **ThePlatformFeed**
+ - **TheScene**
  - **TheSixtyOne**
+ - **TheStar**
  - **ThisAmericanLife**
  - **ThisAV**
  - **THVideo**
@@ -650,6 +662,7 @@
  - **tv.dfb.de**
  - **TV2**
  - **TV2Article**
+ - **TV3**
  - **TV4**: tv4.se and tv4play.se
  - **TVC**
  - **TVCArticle**
@@ -730,6 +743,7 @@
  - **vlive**
  - **Vodlocker**
  - **VoiceRepublic**
+ - **VoxMedia**
  - **Vporn**
  - **vpro**: npo.nl and ntr.nl
  - **VRT**
@@ -783,6 +797,7 @@
  - **youtube:channel**: YouTube.com channels
  - **youtube:favorites**: YouTube.com favourite videos, ":ytfav" for short (requires authentication)
  - **youtube:history**: Youtube watch history, ":ythistory" for short (requires authentication)
+ - **youtube:live**: YouTube.com live streams
  - **youtube:playlist**: YouTube.com playlists
  - **youtube:playlists**: YouTube.com user/channel playlists
  - **youtube:recommended**: YouTube.com recommended videos, ":ytrec" for short (requires authentication)

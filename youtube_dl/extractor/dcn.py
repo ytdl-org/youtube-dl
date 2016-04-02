@@ -6,7 +6,7 @@ import base64
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_str,
 )
 from ..utils import (
@@ -15,6 +15,7 @@ from ..utils import (
     sanitized_Request,
     smuggle_url,
     unsmuggle_url,
+    urlencode_postdata,
 )
 
 
@@ -106,7 +107,7 @@ class DCNVideoIE(DCNBaseIE):
 
         webpage = self._download_webpage(
             'http://admin.mangomolo.com/analytics/index.php/customers/embed/video?' +
-            compat_urllib_parse.urlencode({
+            compat_urllib_parse_urlencode({
                 'id': video_data['id'],
                 'user_id': video_data['user_id'],
                 'signature': video_data['signature'],
@@ -133,7 +134,7 @@ class DCNLiveIE(DCNBaseIE):
 
         webpage = self._download_webpage(
             'http://admin.mangomolo.com/analytics/index.php/customers/embed/index?' +
-            compat_urllib_parse.urlencode({
+            compat_urllib_parse_urlencode({
                 'id': base64.b64encode(channel_data['user_id'].encode()).decode(),
                 'channelid': base64.b64encode(channel_data['id'].encode()).decode(),
                 'signature': channel_data['signature'],
@@ -174,7 +175,7 @@ class DCNSeasonIE(InfoExtractor):
         data['show_id'] = show_id
         request = sanitized_Request(
             'http://admin.mangomolo.com/analytics/index.php/plus/show',
-            compat_urllib_parse.urlencode(data),
+            urlencode_postdata(data),
             {
                 'Origin': 'http://www.dcndigital.ae',
                 'Content-Type': 'application/x-www-form-urlencoded'

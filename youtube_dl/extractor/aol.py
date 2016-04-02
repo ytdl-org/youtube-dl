@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 class AolIE(InfoExtractor):
     IE_NAME = 'on.aol.com'
-    _VALID_URL = r'(?:aol-video:|http://on\.aol\.com/video/.*-)(?P<id>[0-9]+)(?:$|\?)'
+    _VALID_URL = r'(?:aol-video:|https?://on\.aol\.com/video/.*-)(?P<id>[0-9]+)(?:$|\?)'
 
     _TESTS = [{
         'url': 'http://on.aol.com/video/u-s--official-warns-of-largest-ever-irs-phone-scam-518167793?icid=OnHomepageC2Wide_MustSee_Img',
@@ -25,7 +25,7 @@ class AolIE(InfoExtractor):
 
 class AolFeaturesIE(InfoExtractor):
     IE_NAME = 'features.aol.com'
-    _VALID_URL = r'http://features\.aol\.com/video/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://features\.aol\.com/video/(?P<id>[^/?#]+)'
 
     _TESTS = [{
         'url': 'http://features.aol.com/video/behind-secret-second-careers-late-night-talk-show-hosts',

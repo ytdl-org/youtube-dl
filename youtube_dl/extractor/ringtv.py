@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 
 class RingTVIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?ringtv\.craveonline\.com/(?P<type>news|videos/video)/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?ringtv\.craveonline\.com/(?P<type>news|videos/video)/(?P<id>[^/?#]+)'
     _TEST = {
         'url': 'http://ringtv.craveonline.com/news/310833-luis-collazo-says-victor-ortiz-better-not-quit-on-jan-30',
         'md5': 'd25945f5df41cdca2d2587165ac28720',

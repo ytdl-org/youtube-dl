@@ -94,6 +94,7 @@ class BetIE(InfoExtractor):
             xpath_with_ns('./media:thumbnail', NS_MAP)).get('url')
 
         formats = self._extract_smil_formats(smil_url, display_id)
+        self._sort_formats(formats)
 
         return {
             'id': video_id,

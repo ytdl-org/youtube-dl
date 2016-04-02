@@ -5,9 +5,7 @@ import re
 
 from hashlib import sha1
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-)
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     ExtractorError,
     determine_ext,
@@ -235,7 +233,7 @@ class ProSiebenSat1IE(InfoExtractor):
         client_name = 'kolibri-2.0.19-splec4'
         client_location = url
 
-        videos_api_url = 'http://vas.sim-technik.de/vas/live/v2/videos?%s' % compat_urllib_parse.urlencode({
+        videos_api_url = 'http://vas.sim-technik.de/vas/live/v2/videos?%s' % compat_urllib_parse_urlencode({
             'access_token': access_token,
             'client_location': client_location,
             'client_name': client_name,
@@ -256,7 +254,7 @@ class ProSiebenSat1IE(InfoExtractor):
         client_id = g[:2] + sha1(''.join([clip_id, g, access_token, client_location, g, client_name])
                                  .encode('utf-8')).hexdigest()
 
-        sources_api_url = 'http://vas.sim-technik.de/vas/live/v2/videos/%s/sources?%s' % (clip_id, compat_urllib_parse.urlencode({
+        sources_api_url = 'http://vas.sim-technik.de/vas/live/v2/videos/%s/sources?%s' % (clip_id, compat_urllib_parse_urlencode({
             'access_token': access_token,
             'client_id': client_id,
             'client_location': client_location,
@@ -270,7 +268,7 @@ class ProSiebenSat1IE(InfoExtractor):
                                           client_location, source_ids_str, g, client_name])
                                  .encode('utf-8')).hexdigest()
 
-        url_api_url = 'http://vas.sim-technik.de/vas/live/v2/videos/%s/sources/url?%s' % (clip_id, compat_urllib_parse.urlencode({
+        url_api_url = 'http://vas.sim-technik.de/vas/live/v2/videos/%s/sources/url?%s' % (clip_id, compat_urllib_parse_urlencode({
             'access_token': access_token,
             'client_id': client_id,
             'client_location': client_location,

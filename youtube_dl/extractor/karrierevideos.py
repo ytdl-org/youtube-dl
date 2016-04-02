@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class KarriereVideosIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?karrierevideos\.at(?:/[^/]+)+/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?karrierevideos\.at(?:/[^/]+)+/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://www.karrierevideos.at/berufsvideos/mittlere-hoehere-schulen/altenpflegerin',
         'info_dict': {

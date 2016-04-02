@@ -63,6 +63,7 @@ class NRKIE(InfoExtractor):
         if determine_ext(media_url) == 'f4m':
             formats = self._extract_f4m_formats(
                 media_url + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81', video_id, f4m_id='hds')
+            self._sort_formats(formats)
         else:
             formats = [{
                 'url': media_url,

@@ -7,7 +7,7 @@ from ..utils import (
     float_or_none,
     int_or_none,
 )
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 
 
 class VLiveIE(InfoExtractor):
@@ -43,7 +43,7 @@ class VLiveIE(InfoExtractor):
 
         playinfo = self._download_json(
             'http://global.apis.naver.com/rmcnmv/rmcnmv/vod_play_videoInfo.json?%s'
-            % compat_urllib_parse.urlencode({
+            % compat_urllib_parse_urlencode({
                 'videoId': long_video_id,
                 'key': key,
                 'ptc': 'http',
@@ -64,7 +64,7 @@ class VLiveIE(InfoExtractor):
 
         thumbnail = self._og_search_thumbnail(webpage)
         creator = self._html_search_regex(
-            r'<div[^>]+class="info_area"[^>]*>\s*<strong[^>]+class="name"[^>]*>([^<]+)</strong>',
+            r'<div[^>]+class="info_area"[^>]*>\s*<a\s+[^>]*>([^<]+)',
             webpage, 'creator', fatal=False)
 
         view_count = int_or_none(playinfo.get('meta', {}).get('count'))

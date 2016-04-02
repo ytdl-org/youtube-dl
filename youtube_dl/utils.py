@@ -35,6 +35,7 @@ import xml.etree.ElementTree
 import zlib
 
 from .compat import (
+    compat_HTMLParser,
     compat_basestring,
     compat_chr,
     compat_etree_fromstring,
@@ -46,9 +47,11 @@ from .compat import (
     compat_str,
     compat_urllib_error,
     compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urlparse,
+    compat_xpath,
     shlex_quote,
 )
 
@@ -164,12 +167,7 @@ if sys.version_info >= (2, 7):
         return node.find(expr)
 else:
     def find_xpath_attr(node, xpath, key, val=None):
-        # Here comes the crazy part: In 2.6, if the xpath is a unicode,
-        # .//node does not match if a node is a direct child of . !
-        if isinstance(xpath, compat_str):
-            xpath = xpath.encode('ascii')
-
-        for f in node.findall(xpath):
+        for f in node.findall(compat_xpath(xpath)):
             if key not in f.attrib:
                 continue
             if val is None or f.attrib.get(key) == val:
@@ -194,9 +192,7 @@ def xpath_with_ns(path, ns_map):
 
 def xpath_element(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
     def _find_xpath(xpath):
-        if sys.version_info < (2, 7):  # Crazy 2.6
-            xpath = xpath.encode('ascii')
-        return node.find(xpath)
+        return node.find(compat_xpath(xpath))
 
     if isinstance(xpath, (str, compat_str)):
         n = _find_xpath(xpath)
@@ -271,6 +267,38 @@ def get_element_by_attribute(attribute, value, html):
         res = res[1:-1]
 
     return unescapeHTML(res)
+
+
+class HTMLAttributeParser(compat_HTMLParser):
+    """Trivial HTML parser to gather the attributes for a single element"""
+    def __init__(self):
+        self.attrs = {}
+        compat_HTMLParser.__init__(self)
+
+    def handle_starttag(self, tag, attrs):
+        self.attrs = dict(attrs)
+
+
+def extract_attributes(html_element):
+    """Given a string for an HTML element such as
+    <el
+         a="foo" B="bar" c="&98;az" d=boz
+         empty= noval entity="&amp;"
+         sq='"' dq="'"
+    >
+    Decode and return a dictionary of attributes.
+    {
+        'a': 'foo', 'b': 'bar', c: 'baz', d: 'boz',
+        'empty': '', 'noval': None, 'entity': '&',
+        'sq': '"', 'dq': '\''
+    }.
+    NB HTMLParser is stricter in Python 2.6 & 3.2 than in later versions,
+    but the cases in the unit test will work for all of 2.6, 2.7, 3.2-3.5.
+    """
+    parser = HTMLAttributeParser()
+    parser.feed(html_element)
+    parser.close()
+    return parser.attrs
 
 
 def clean_html(html):
@@ -389,9 +417,12 @@ def sanitize_path(s):
 
 # Prepend protocol-less URLs with `http:` scheme in order to mitigate the number of
 # unwanted failures due to missing protocol
+def sanitize_url(url):
+    return 'http:%s' % url if url.startswith('//') else url
+
+
 def sanitized_Request(url, *args, **kwargs):
-    return compat_urllib_request.Request(
-        'http:%s' % url if url.startswith('//') else url, *args, **kwargs)
+    return compat_urllib_request.Request(sanitize_url(url), *args, **kwargs)
 
 
 def orderedSet(iterable):
@@ -747,12 +778,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
         # Substitute URL if any change after escaping
         if url != url_escaped:
-            req_type = HEADRequest if req.get_method() == 'HEAD' else compat_urllib_request.Request
-            new_req = req_type(
-                url_escaped, data=req.data, headers=req.headers,
-                origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
-            new_req.timeout = req.timeout
-            req = new_req
+            req = update_Request(req, url=url_escaped)
 
         for h, v in std_headers.items():
             # Capitalize is needed because of Python bug 2275: http://bugs.python.org/issue2275
@@ -1288,7 +1314,7 @@ def shell_quote(args):
 def smuggle_url(url, data):
     """ Pass additional data in a URL for internal use. """
 
-    sdata = compat_urllib_parse.urlencode(
+    sdata = compat_urllib_parse_urlencode(
         {'__youtubedl_smuggle': json.dumps(data)})
     return url + '#' + sdata
 
@@ -1319,7 +1345,7 @@ def format_bytes(bytes):
 def lookup_unit_table(unit_table, s):
     units_re = '|'.join(re.escape(u) for u in unit_table)
     m = re.match(
-        r'(?P<num>[0-9]+(?:[,.][0-9]*)?)\s*(?P<unit>%s)' % units_re, s)
+        r'(?P<num>[0-9]+(?:[,.][0-9]*)?)\s*(?P<unit>%s)\b' % units_re, s)
     if not m:
         return None
     num_str = m.group('num').replace(',', '.')
@@ -1719,6 +1745,7 @@ def escape_url(url):
     """Escape URL as suggested by RFC 3986"""
     url_parsed = compat_urllib_parse_urlparse(url)
     return url_parsed._replace(
+        netloc=url_parsed.netloc.encode('idna').decode('ascii'),
         path=escape_rfc3986(url_parsed.path),
         params=escape_rfc3986(url_parsed.params),
         query=escape_rfc3986(url_parsed.query),
@@ -1728,7 +1755,8 @@ def escape_url(url):
 try:
     struct.pack('!I', 0)
 except TypeError:
-    # In Python 2.6 (and some 2.7 versions), struct requires a bytes argument
+    # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
+    # See https://bugs.python.org/issue19099
     def struct_pack(spec, *args):
         if isinstance(spec, compat_str):
             spec = spec.encode('ascii')
@@ -1760,22 +1788,29 @@ def read_batch_urls(batch_fd):
 
 
 def urlencode_postdata(*args, **kargs):
-    return compat_urllib_parse.urlencode(*args, **kargs).encode('ascii')
+    return compat_urllib_parse_urlencode(*args, **kargs).encode('ascii')
 
 
 def update_url_query(url, query):
     parsed_url = compat_urlparse.urlparse(url)
     qs = compat_parse_qs(parsed_url.query)
     qs.update(query)
-    qs = encode_dict(qs)
     return compat_urlparse.urlunparse(parsed_url._replace(
-        query=compat_urllib_parse.urlencode(qs, True)))
+        query=compat_urllib_parse_urlencode(qs, True)))
 
 
-def encode_dict(d, encoding='utf-8'):
-    def encode(v):
-        return v.encode(encoding) if isinstance(v, compat_basestring) else v
-    return dict((encode(k), encode(v)) for k, v in d.items())
+def update_Request(req, url=None, data=None, headers={}, query={}):
+    req_headers = req.headers.copy()
+    req_headers.update(headers)
+    req_data = data or req.data
+    req_url = update_url_query(url or req.get_full_url(), query)
+    req_type = HEADRequest if req.get_method() == 'HEAD' else compat_urllib_request.Request
+    new_req = req_type(
+        req_url, data=req_data, headers=req_headers,
+        origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
+    if hasattr(req, 'timeout'):
+        new_req.timeout = req.timeout
+    return new_req
 
 
 def dict_get(d, key_or_keys, default=None, skip_false_values=True):

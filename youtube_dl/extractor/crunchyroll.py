@@ -11,8 +11,8 @@ from math import pow, sqrt, floor
 from .common import InfoExtractor
 from ..compat import (
     compat_etree_fromstring,
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
+    compat_urllib_parse_urlencode,
     compat_urllib_request,
     compat_urlparse,
 )
@@ -54,7 +54,7 @@ class CrunchyrollBaseIE(InfoExtractor):
     def _real_initialize(self):
         self._login()
 
-    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None):
+    def _download_webpage(self, url_or_request, *args, **kwargs):
         request = (url_or_request if isinstance(url_or_request, compat_urllib_request.Request)
                    else sanitized_Request(url_or_request))
         # Accept-Language must be set explicitly to accept any language to avoid issues
@@ -65,8 +65,7 @@ class CrunchyrollBaseIE(InfoExtractor):
         # Crunchyroll to not work in georestriction cases in some browsers that don't place
         # the locale lang first in header. However allowing any language seems to workaround the issue.
         request.add_header('Accept-Language', '*')
-        return super(CrunchyrollBaseIE, self)._download_webpage(
-            request, video_id, note, errnote, fatal, tries, timeout, encoding)
+        return super(CrunchyrollBaseIE, self)._download_webpage(request, *args, **kwargs)
 
     @staticmethod
     def _add_skip_wall(url):
@@ -79,7 +78,7 @@ class CrunchyrollBaseIE(InfoExtractor):
         # See https://github.com/rg3/youtube-dl/issues/7202.
         qs['skip_wall'] = ['1']
         return compat_urlparse.urlunparse(
-            parsed_url._replace(query=compat_urllib_parse.urlencode(qs, True)))
+            parsed_url._replace(query=compat_urllib_parse_urlencode(qs, True)))
 
 
 class CrunchyrollIE(CrunchyrollBaseIE):
@@ -309,7 +308,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         playerdata_url = compat_urllib_parse_unquote(self._html_search_regex(r'"config_url":"([^"]+)', webpage, 'playerdata_url'))
         playerdata_req = sanitized_Request(playerdata_url)
-        playerdata_req.data = compat_urllib_parse.urlencode({'current_page': webpage_url})
+        playerdata_req.data = urlencode_postdata({'current_page': webpage_url})
         playerdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
         playerdata = self._download_webpage(playerdata_req, video_id, note='Downloading media info')
 
@@ -323,7 +322,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             streamdata_req = sanitized_Request(
                 'http://www.crunchyroll.com/xml/?req=RpcApiVideoPlayer_GetStandardConfig&media_id=%s&video_format=%s&video_quality=%s'
                 % (stream_id, stream_format, stream_quality),
-                compat_urllib_parse.urlencode({'current_page': url}).encode('utf-8'))
+                compat_urllib_parse_urlencode({'current_page': url}).encode('utf-8'))
             streamdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
             streamdata = self._download_xml(
                 streamdata_req, video_id,

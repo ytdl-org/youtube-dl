@@ -6,7 +6,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
@@ -97,7 +97,7 @@ class NBAIE(InfoExtractor):
     _PAGE_SIZE = 30
 
     def _fetch_page(self, team, video_id, page):
-        search_url = 'http://searchapp2.nba.com/nba-search/query.jsp?' + compat_urllib_parse.urlencode({
+        search_url = 'http://searchapp2.nba.com/nba-search/query.jsp?' + compat_urllib_parse_urlencode({
             'type': 'teamvideo',
             'start': page * self._PAGE_SIZE + 1,
             'npp': (page + 1) * self._PAGE_SIZE + 1,

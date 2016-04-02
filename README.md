@@ -164,6 +164,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      (e.g. 50K or 4.2M)
     -R, --retries RETRIES            Number of retries (default is 10), or
                                      "infinite".
+    --fragment-retries RETRIES       Number of retries for a fragment (default
+                                     is 10), or "infinite" (DASH only)
     --buffer-size SIZE               Size of download buffer (e.g. 1024 or 16K)
                                      (default is 1024)
     --no-resize-buffer               Do not automatically adjust the buffer
@@ -376,8 +378,8 @@ which means you can modify it, redistribute it or use it however you like.
     --no-post-overwrites             Do not overwrite post-processed files; the
                                      post-processed files are overwritten by
                                      default
-    --embed-subs                     Embed subtitles in the video (only for mkv
-                                     and mp4 videos)
+    --embed-subs                     Embed subtitles in the video (only for mp4,
+                                     webm and mkv videos)
     --embed-thumbnail                Embed thumbnail in the audio as cover art
     --add-metadata                   Write metadata to the video file
     --metadata-from-title FORMAT     Parse additional metadata like song title /
@@ -598,6 +600,7 @@ Also filtering work for comparisons `=` (equals), `!=` (not equals), `^=` (begin
  - `vcodec`: Name of the video codec in use
  - `container`: Name of the container format
  - `protocol`: The protocol that will be used for the actual download, lower-case. `http`, `https`, `rtsp`, `rtmp`, `rtmpe`, `m3u8`, or `m3u8_native`
+ - `format_id`: A short description of the format
 
 Note that none of the aforementioned meta fields are guaranteed to be present since this solely depends on the metadata obtained by particular extractor, i.e. the metadata offered by video hoster.
 
@@ -831,7 +834,7 @@ To run the test, simply invoke your favorite test runner, or execute a test file
 If you want to create a build of youtube-dl yourself, you'll need
 
 * python
-* make
+* make (both GNU make and BSD make are supported)
 * pandoc
 * zip
 * nosetests

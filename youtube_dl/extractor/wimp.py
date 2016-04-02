@@ -5,7 +5,7 @@ from .youtube import YoutubeIE
 
 
 class WimpIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?wimp\.com/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?wimp\.com/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://www.wimp.com/maruexhausted/',
         'md5': 'ee21217ffd66d058e8b16be340b74883',

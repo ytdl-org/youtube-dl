@@ -10,7 +10,7 @@ from ..utils import (
 
 class FKTVIE(InfoExtractor):
     IE_NAME = 'fernsehkritik.tv'
-    _VALID_URL = r'http://(?:www\.)?fernsehkritik\.tv/folge-(?P<id>[0-9]+)(?:/.*)?'
+    _VALID_URL = r'https?://(?:www\.)?fernsehkritik\.tv/folge-(?P<id>[0-9]+)(?:/.*)?'
 
     _TEST = {
         'url': 'http://fernsehkritik.tv/folge-1',

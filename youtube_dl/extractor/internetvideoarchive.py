@@ -5,7 +5,7 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_urlparse,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     xpath_with_ns,
@@ -38,7 +38,7 @@ class InternetVideoArchiveIE(InfoExtractor):
         # Other player ids return m3u8 urls
         cleaned_dic['playerid'] = '247'
         cleaned_dic['videokbrate'] = '100000'
-        return compat_urllib_parse.urlencode(cleaned_dic)
+        return compat_urllib_parse_urlencode(cleaned_dic)
 
     def _real_extract(self, url):
         query = compat_urlparse.urlparse(url).query

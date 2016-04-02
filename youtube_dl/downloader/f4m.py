@@ -223,6 +223,12 @@ def write_metadata_tag(stream, metadata):
         write_unsigned_int(stream, FLV_TAG_HEADER_LEN + len(metadata))
 
 
+def remove_encrypted_media(media):
+    return list(filter(lambda e: 'drmAdditionalHeaderId' not in e.attrib and
+                                 'drmAdditionalHeaderSetId' not in e.attrib,
+                       media))
+
+
 def _add_ns(prop):
     return '{http://ns.adobe.com/f4m/1.0}%s' % prop
 
@@ -244,9 +250,7 @@ class F4mFD(FragmentFD):
             # without drmAdditionalHeaderId or drmAdditionalHeaderSetId attribute
             if 'id' not in e.attrib:
                 self.report_error('Missing ID in f4m DRM')
-        media = list(filter(lambda e: 'drmAdditionalHeaderId' not in e.attrib and
-                                      'drmAdditionalHeaderSetId' not in e.attrib,
-                            media))
+        media = remove_encrypted_media(media)
         if not media:
             self.report_error('Unsupported DRM')
         return media

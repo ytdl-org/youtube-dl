@@ -37,6 +37,7 @@ class LRTIE(InfoExtractor):
             r'file\s*:\s*(["\'])(?P<url>.+?)\1\s*\+\s*location\.hash\.substring\(1\)',
             webpage, 'm3u8 url', group='url')
         formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
+        self._sort_formats(formats)
 
         thumbnail = self._og_search_thumbnail(webpage)
         description = self._og_search_description(webpage)
