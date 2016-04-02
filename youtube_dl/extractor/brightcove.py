@@ -307,13 +307,14 @@ class BrightcoveLegacyIE(InfoExtractor):
                                     playlist_title=playlist_info['mediaCollectionDTO']['displayName'])
 
     def _extract_video_info(self, video_info):
+        publisher_id = video_info.get('publisherId')
         info = {
             'id': compat_str(video_info['id']),
             'title': video_info['displayName'].strip(),
             'description': video_info.get('shortDescription'),
             'thumbnail': video_info.get('videoStillURL') or video_info.get('thumbnailURL'),
             'uploader': video_info.get('publisherName'),
-            'uploader_id': compat_str(video_info.get('publisherId')),
+            'uploader_id': compat_str(publisher_id) if publisher_id else None,
             'duration': float_or_none(video_info.get('length'), 1000),
             'timestamp': int_or_none(video_info.get('creationDate'), 1000),
         }
