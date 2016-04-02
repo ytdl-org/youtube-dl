@@ -1518,7 +1518,13 @@ class InfoExtractor(object):
                             media_template = re.sub(r'\$(Number|Bandwidth)\$', r'%(\1)d', media_template)
                             media_template = re.sub(r'\$(Number|Bandwidth)%(\d+)\$', r'%(\1)\2d', media_template)
                             media_template.replace('$$', '$')
-                            representation_ms_info['segment_urls'] = [media_template % {'Number': segment_number, 'Bandwidth': representation_attrib.get('bandwidth')} for segment_number in range(representation_ms_info['start_number'], representation_ms_info['total_number'] + representation_ms_info['start_number'])]
+                            representation_ms_info['segment_urls'] = [
+                                media_template % {
+                                    'Number': segment_number,
+                                    'Bandwidth': representation_attrib.get('bandwidth')}
+                                for segment_number in range(
+                                    representation_ms_info['start_number'],
+                                    representation_ms_info['total_number'] + representation_ms_info['start_number'])]
                         if 'segment_urls' in representation_ms_info:
                             f.update({
                                 'segment_urls': representation_ms_info['segment_urls'],
