@@ -396,6 +396,7 @@ class BrightcoveNewIE(InfoExtractor):
             'formats': 'mincount:41',
         },
         'params': {
+            # m3u8 download
             'skip_download': True,
         }
     }, {
@@ -533,7 +534,7 @@ class BrightcoveNewIE(InfoExtractor):
                     f.update({
                         'url': src or streaming_src,
                         'format_id': build_format_id('http' if src else 'http-streaming'),
-                        'preference': 2 if src else 1,
+                        'source_preference': 0 if src else -1,
                     })
                 else:
                     f.update({
