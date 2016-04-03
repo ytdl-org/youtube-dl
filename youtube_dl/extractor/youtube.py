@@ -270,7 +270,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                          ))
                          |(?:
                             youtu\.be|                                        # just youtu.be/xxxx
-                            vid\.plus                                         # or vid.plus/xxxx
+                            vid\.plus|                                        # or vid.plus/xxxx
+                            zwearz\.com/watch|                                # or zwearz.com/watch/xxxx
                          )/
                          |(?:www\.)?cleanvideosearch\.com/media/action/yt/watch\?videoId=
                          )
@@ -756,6 +757,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         },
         {
             'url': 'http://vid.plus/FlRa-iH7PGw',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://zwearz.com/watch/9lWxNJF-ufM/electra-woman-dyna-girl-official-trailer-grace-helbig.html',
             'only_matching': True,
         },
         {
