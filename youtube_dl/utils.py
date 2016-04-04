@@ -2131,6 +2131,7 @@ def dfxp2srt(dfxp_data):
     _x = functools.partial(xpath_with_ns, ns_map={
         'ttml': 'http://www.w3.org/ns/ttml',
         'ttaf1': 'http://www.w3.org/2006/10/ttaf1',
+        'ttaf1_0604': 'http://www.w3.org/2006/04/ttaf1',
     })
 
     class TTMLPElementParser(object):
@@ -2157,7 +2158,7 @@ def dfxp2srt(dfxp_data):
 
     dfxp = compat_etree_fromstring(dfxp_data.encode('utf-8'))
     out = []
-    paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall(_x('.//ttaf1:p')) or dfxp.findall('.//p')
+    paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall(_x('.//ttaf1:p')) or dfxp.findall(_x('.//ttaf1_0604:p')) or dfxp.findall('.//p')
 
     if not paras:
         raise ValueError('Invalid dfxp/TTML subtitle')
