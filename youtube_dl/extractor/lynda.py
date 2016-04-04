@@ -28,8 +28,8 @@ class LyndaBaseIE(InfoExtractor):
             return
 
         login_form = {
-            'username': username.encode('utf-8'),
-            'password': password.encode('utf-8'),
+            'username': username,
+            'password': password,
             'remember': 'false',
             'stayPut': 'false'
         }

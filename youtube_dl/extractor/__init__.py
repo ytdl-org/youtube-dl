@@ -95,6 +95,7 @@ from .camdemy import (
     CamdemyIE,
     CamdemyFolderIE
 )
+from .camwithher import CamWithHerIE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
 from .canvas import CanvasIE
@@ -103,6 +104,7 @@ from .cbc import (
     CBCPlayerIE,
 )
 from .cbs import CBSIE
+from .cbsinteractive import CBSInteractiveIE
 from .cbsnews import (
     CBSNewsIE,
     CBSNewsLiveVideoIE,
@@ -128,7 +130,6 @@ from .clubic import ClubicIE
 from .clyp import ClypIE
 from .cmt import CMTIE
 from .cnbc import CNBCIE
-from .cnet import CNETIE
 from .cnn import (
     CNNIE,
     CNNBlogsIE,

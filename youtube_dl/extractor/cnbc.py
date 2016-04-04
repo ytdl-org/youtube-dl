@@ -14,6 +14,9 @@ class CNBCIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Fighting zombies is big business',
             'description': 'md5:0c100d8e1a7947bd2feec9a5550e519e',
+            'timestamp': 1459332000,
+            'upload_date': '20160330',
+            'uploader': 'NBCU-CNBC',
         },
         'params': {
             # m3u8 download

@@ -328,6 +328,7 @@ class BBCCoUkIE(InfoExtractor):
                     'format_id': '%s_%s' % (service, format['format_id']),
                     'abr': abr,
                     'acodec': acodec,
+                    'vcodec': 'none',
                 })
             formats.extend(conn_formats)
         return formats

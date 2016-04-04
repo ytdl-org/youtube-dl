@@ -33,6 +33,9 @@ class CBSIE(CBSBaseIE):
             'title': 'Connect Chat feat. Garth Brooks',
             'description': 'Connect with country music singer Garth Brooks, as he chats with fans on Wednesday November 27, 2013. Be sure to tune in to Garth Brooks: Live from Las Vegas, Friday November 29, at 9/8c on CBS!',
             'duration': 1495,
+            'timestamp': 1385585425,
+            'upload_date': '20131127',
+            'uploader': 'CBSI-NEW',
         },
         'params': {
             # rtmp download

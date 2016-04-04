@@ -21,6 +21,7 @@ class TV3IE(InfoExtractor):
             'Failed to download MPD manifest'
         ],
         'params': {
+            # m3u8 download
             'skip_download': True,
         },
     }

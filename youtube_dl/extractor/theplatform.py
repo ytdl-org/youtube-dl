@@ -76,6 +76,8 @@ class ThePlatformBaseIE(OnceIE):
             'description': info['description'],
             'thumbnail': info['defaultThumbnailUrl'],
             'duration': int_or_none(info.get('duration'), 1000),
+            'timestamp': int_or_none(info.get('pubDate'), 1000) or None,
+            'uploader': info.get('billingCode'),
         }
 
 
@@ -94,6 +96,9 @@ class ThePlatformIE(ThePlatformBaseIE):
             'title': 'Blackberry\'s big, bold Z30',
             'description': 'The Z30 is Blackberry\'s biggest, baddest mobile messaging device yet.',
             'duration': 247,
+            'timestamp': 1383239700,
+            'upload_date': '20131031',
+            'uploader': 'CBSI-NEW',
         },
         'params': {
             # rtmp download
@@ -107,6 +112,9 @@ class ThePlatformIE(ThePlatformBaseIE):
             'ext': 'flv',
             'description': 'md5:ac330c9258c04f9d7512cf26b9595409',
             'title': 'Tesla Model S: A second step towards a cleaner motoring future',
+            'timestamp': 1426176191,
+            'upload_date': '20150312',
+            'uploader': 'CBSI-NEW',
         },
         'params': {
             # rtmp download
@@ -119,6 +127,7 @@ class ThePlatformIE(ThePlatformBaseIE):
             'ext': 'mp4',
             'description': 'md5:644ad9188d655b742f942bf2e06b002d',
             'title': 'HIGHLIGHTS: USA bag first ever series Cup win',
+            'uploader': 'EGSM',
         }
     }, {
         'url': 'http://player.theplatform.com/p/NnzsPC/widget/select/media/4Y0TlYUr_ZT7',
@@ -135,6 +144,7 @@ class ThePlatformIE(ThePlatformBaseIE):
             'thumbnail': 're:^https?://.*\.jpg$',
             'timestamp': 1435752600,
             'upload_date': '20150701',
+            'uploader': 'NBCU-NEWS',
         },
     }, {
         # From http://www.nbc.com/the-blacklist/video/sir-crispin-crandall/2928790?onid=137781#vc137781=1

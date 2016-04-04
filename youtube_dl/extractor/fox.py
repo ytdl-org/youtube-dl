@@ -16,6 +16,9 @@ class FOXIE(InfoExtractor):
             'title': 'Official Trailer: Gotham',
             'description': 'Tracing the rise of the great DC Comics Super-Villains and vigilantes, Gotham reveals an entirely new chapter that has never been told.',
             'duration': 129,
+            'timestamp': 1400020798,
+            'upload_date': '20140513',
+            'uploader': 'NEWA-FNG-FOXCOM',
         },
         'add_ie': ['ThePlatform'],
     }

@@ -152,7 +152,7 @@ class InstagramUserIE(InfoExtractor):
 
             if not page['items']:
                 break
-            max_id = page['items'][-1]['id']
+            max_id = page['items'][-1]['id'].split('_')[0]
             media_url = (
                 'http://instagram.com/%s/media?max_id=%s' % (
                     uploader_id, max_id))
