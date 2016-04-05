@@ -81,7 +81,7 @@ class NovaMovIE(InfoExtractor):
 
         filekey = extract_filekey()
 
-        title = self._html_search_regex(self._TITLE_REGEX, webpage, 'title', fatal=False)
+        title = self._html_search_regex(self._TITLE_REGEX, webpage, 'title')
         description = self._html_search_regex(self._DESCRIPTION_REGEX, webpage, 'description', default='', fatal=False)
 
         api_response = self._download_webpage(
