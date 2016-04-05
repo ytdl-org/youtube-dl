@@ -256,6 +256,7 @@ class YoutubeDL(object):
                        If it returns None, the video is downloaded.
                        match_filter_func in utils.py is one example for this.
     no_color:          Do not emit color codes in output.
+    extra_http_headers: Extra http headers to include with every request.
 
     The following options determine which downloader is picked:
     external_downloader: Executable of the external downloader to call.

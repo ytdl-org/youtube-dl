@@ -780,6 +780,11 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
         if url != url_escaped:
             req = update_Request(req, url=url_escaped)
 
+        if 'extra_http_headers' in self._params:
+            for h, v in self._params['extra_http_headers'].items():
+                if h.capitalize() not in req.headers:
+                    req.add_header(h, v)
+
         for h, v in std_headers.items():
             # Capitalize is needed because of Python bug 2275: http://bugs.python.org/issue2275
             # The dict keys are capitalized because of this bug by urllib
