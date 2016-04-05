@@ -85,6 +85,13 @@ class ZDFIE(InfoExtractor):
         uploader = xpath_text(doc, './/details/originChannelTitle', 'uploader')
         uploader_id = xpath_text(doc, './/details/originChannelId', 'uploader id')
         upload_date = unified_strdate(xpath_text(doc, './/details/airtime', 'upload date'))
+        subtitles = {}
+        captions_url = doc.find('.//caption/url')
+        if captions_url is not None:
+            subtitles['de'] = [{
+                'url': captions_url.text,
+                'ext': 'ttml',
+            }]
 
         def xml_to_thumbnails(fnode):
             thumbnails = []
@@ -190,6 +197,7 @@ class ZDFIE(InfoExtractor):
             'uploader_id': uploader_id,
             'upload_date': upload_date,
             'formats': formats,
+            'subtitles': subtitles,
         }
 
     def _real_extract(self, url):
