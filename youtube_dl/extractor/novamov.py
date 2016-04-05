@@ -27,17 +27,7 @@ class NovaMovIE(InfoExtractor):
     _DESCRIPTION_REGEX = r'(?s)<div class="v_tab blockborder rounded5" id="v_tab1">\s*<h3>[^<]+</h3><p>([^<]+)</p>'
     _URL_TEMPLATE = 'http://%s/video/%s'
 
-    _TEST = {
-        'url': 'http://www.novamov.com/video/4rurhn9x446jj',
-        'md5': '7205f346a52bbeba427603ba10d4b935',
-        'info_dict': {
-            'id': '4rurhn9x446jj',
-            'ext': 'flv',
-            'title': 'search engine optimization',
-            'description': 'search engine optimization is used to rank the web page in the google search engine'
-        },
-        'skip': '"Invalid token" errors abound (in web interface as well as youtube-dl, there is nothing we can do about it.)'
-    }
+    _TEST = None
 
     def _check_existence(self, webpage, video_id):
         if re.search(self._FILE_DELETED_REGEX, webpage) is not None:
@@ -187,3 +177,26 @@ class CloudTimeIE(NovaMovIE):
     _TITLE_REGEX = r'<div[^>]+class=["\']video_det["\'][^>]*>\s*<strong>([^<]+)</strong>'
 
     _TEST = None
+
+
+class AuroraVidIE(NovaMovIE):
+    IE_NAME = 'auroravid'
+    IE_DESC = 'AuroraVid'
+
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'auroravid\.to'}
+
+    _HOST = 'www.auroravid.to'
+
+    _FILE_DELETED_REGEX = r'This file no longer exists on our servers!<'
+
+    _TEST = {
+        'url': 'http://www.auroravid.to/video/4rurhn9x446jj',
+        'md5': '7205f346a52bbeba427603ba10d4b935',
+        'info_dict': {
+            'id': '4rurhn9x446jj',
+            'ext': 'flv',
+            'title': 'search engine optimization',
+            'description': 'search engine optimization is used to rank the web page in the google search engine'
+        },
+        'skip': '"Invalid token" errors abound (in web interface as well as youtube-dl, there is nothing we can do about it.)'
+    }

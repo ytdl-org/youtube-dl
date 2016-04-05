@@ -501,6 +501,7 @@ from .novamov import (
     NowVideoIE,
     VideoWeedIE,
     CloudTimeIE,
+    AuroraVidIE,
 )
 from .nowness import (
     NownessIE,
