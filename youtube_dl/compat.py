@@ -181,7 +181,8 @@ except ImportError:  # Python 2
             if isinstance(e, dict):
                 e = encode_dict(e)
             elif isinstance(e, (list, tuple,)):
-                e = encode_list(e)
+                list_e = encode_list(e)
+                e = tuple(list_e) if isinstance(e, tuple) else list_e
             elif isinstance(e, compat_str):
                 e = e.encode(encoding)
             return e
