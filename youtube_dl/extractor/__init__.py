@@ -230,6 +230,7 @@ from .fczenit import FczenitIE
 from .firstpost import FirstpostIE
 from .firsttv import FirstTVIE
 from .fivemin import FiveMinIE
+from .fivethirtyeight import FivethirtyeightIE
 from .fivetv import FiveTVIE
 from .fktv import FKTVIE
 from .flickr import FlickrIE
