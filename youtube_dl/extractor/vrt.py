@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import float_or_none
+from ..utils import (
+    determine_ext,
+    float_or_none,
+)
 
 
 class VRTIE(InfoExtractor):
@@ -53,6 +56,11 @@ class VRTIE(InfoExtractor):
             }
         },
         {
+            # YouTube video
+            'url': 'http://deredactie.be/cm/vrtnieuws/videozone/nieuws/cultuurenmedia/1.2622957',
+            'only_matching': True,
+        },
+        {
             'url': 'http://cobra.canvas.be/cm/cobra/videozone/rubriek/film-videozone/1.2377055',
             'only_matching': True,
         }
@@ -66,7 +74,17 @@ class VRTIE(InfoExtractor):
         video_id = self._search_regex(
             r'data-video-id="([^"]+)_[^"]+"', webpage, 'video id', fatal=False)
 
+        src = self._search_regex(
+            r'data-video-src="([^"]+)"', webpage, 'video src', default=None)
+
+        video_type = self._search_regex(
+            r'data-video-type="([^"]+)"', webpage, 'video type', default=None)
+
+        if video_type == 'YouTubeVideo':
+            return self.url_result(src, 'Youtube')
+
         formats = []
+
         mobj = re.search(
             r'data-video-iphone-server="(?P<server>[^"]+)"\s+data-video-iphone-path="(?P<path>[^"]+)"',
             webpage)
@@ -74,11 +92,15 @@ class VRTIE(InfoExtractor):
             formats.extend(self._extract_m3u8_formats(
                 '%s/%s' % (mobj.group('server'), mobj.group('path')),
                 video_id, 'mp4', m3u8_id='hls', fatal=False))
-        mobj = re.search(r'data-video-src="(?P<src>[^"]+)"', webpage)
-        if mobj:
-            formats.extend(self._extract_f4m_formats(
-                '%s/manifest.f4m' % mobj.group('src'),
-                video_id, f4m_id='hds', fatal=False))
+
+        if src:
+            if determine_ext(src) == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    src, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
+            else:
+                formats.extend(self._extract_f4m_formats(
+                    '%s/manifest.f4m' % src, video_id, f4m_id='hds', fatal=False))
 
         if not formats and 'data-video-geoblocking="true"' in webpage:
             self.raise_geo_restricted('This video is only available in Belgium')
