@@ -24,6 +24,8 @@ from ..compat import (
     compat_urllib_parse_urlencode,
     compat_urllib_request,
     compat_urlparse,
+    compat_urllib_parse_urlparse,
+    compat_urllib_parse,
 )
 from ..downloader.f4m import remove_encrypted_media
 from ..utils import (
@@ -1405,21 +1407,20 @@ class InfoExtractor(object):
         return entries
 
     def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}):
-        res = self._download_webpage_handle(
+        mpd_doc = self._download_xml(
             mpd_url, video_id,
             note=note or 'Downloading MPD manifest',
             errnote=errnote or 'Failed to download MPD manifest',
             fatal=fatal)
-        if res is False:
+
+        if mpd_doc is False:
             return []
-        mpd, urlh = res
-        mpd_base_url = re.match(r'https?://.+/', urlh.geturl()).group()
 
-        return self._parse_mpd_formats(
-            compat_etree_fromstring(mpd.encode('utf-8')), mpd_id, mpd_base_url, formats_dict=formats_dict)
+        return self._parse_mpd_formats(mpd_doc, mpd_id, mpd_url, formats_dict=formats_dict)
 
-    def _parse_mpd_formats(self, mpd_doc, mpd_id=None, mpd_base_url='', formats_dict={}):
-        if mpd_doc.get('type') == 'dynamic':
+    def _parse_mpd_formats(self, mpd_doc, mpd_id=None, mpd_url='', formats_dict={}):
+        mpd_type = mpd_doc.get('type', 'static')
+        if mpd_type == 'dynamic':
             return []
 
         namespace = self._search_regex(r'(?i)^{([^}]+)?}MPD$', mpd_doc.tag, 'namespace', default=None)
@@ -1430,63 +1431,24 @@ class InfoExtractor(object):
         def is_drm_protected(element):
             return element.find(_add_ns('ContentProtection')) is not None
 
-        def extract_multisegment_info(element, ms_parent_info):
-            ms_info = ms_parent_info.copy()
-            segment_list = element.find(_add_ns('SegmentList'))
-            if segment_list is not None:
-                segment_urls_e = segment_list.findall(_add_ns('SegmentURL'))
-                if segment_urls_e:
-                    ms_info['segment_urls'] = [segment.attrib['media'] for segment in segment_urls_e]
-                initialization = segment_list.find(_add_ns('Initialization'))
-                if initialization is not None:
-                    ms_info['initialization_url'] = initialization.attrib['sourceURL']
-            else:
-                segment_template = element.find(_add_ns('SegmentTemplate'))
-                if segment_template is not None:
-                    start_number = segment_template.get('startNumber')
-                    if start_number:
-                        ms_info['start_number'] = int(start_number)
-                    segment_timeline = segment_template.find(_add_ns('SegmentTimeline'))
-                    if segment_timeline is not None:
-                        s_e = segment_timeline.findall(_add_ns('S'))
-                        if s_e:
-                            ms_info['total_number'] = 0
-                            for s in s_e:
-                                ms_info['total_number'] += 1 + int(s.get('r', '0'))
-                    else:
-                        timescale = segment_template.get('timescale')
-                        if timescale:
-                            ms_info['timescale'] = int(timescale)
-                        segment_duration = segment_template.get('duration')
-                        if segment_duration:
-                            ms_info['segment_duration'] = int(segment_duration)
-                    media_template = segment_template.get('media')
-                    if media_template:
-                        ms_info['media_template'] = media_template
-                    initialization = segment_template.get('initialization')
-                    if initialization:
-                        ms_info['initialization_url'] = initialization
-                    else:
-                        initialization = segment_template.find(_add_ns('Initialization'))
-                        if initialization is not None:
-                            ms_info['initialization_url'] = initialization.attrib['sourceURL']
-            return ms_info
+        def has_multisegment(element):
+            return element.find(_add_ns('SegmentList')) is not None or element.find(_add_ns('SegmentTemplate')) is not None
 
-        mpd_duration = parse_duration(mpd_doc.get('mediaPresentationDuration'))
+        mpd_base_url = mpd_url.rpartition('/')[0]
+        parsed_mpd_url = None
+        if mpd_base_url:
+            parsed_mpd_url = compat_urllib_parse_urlparse(mpd_url)
         formats = []
         for period in mpd_doc.findall(_add_ns('Period')):
-            period_duration = parse_duration(period.get('duration')) or mpd_duration
-            period_ms_info = extract_multisegment_info(period, {
-                'start_number': 1,
-                'timescale': 1,
-            })
+            is_ms = has_multisegment(period)
             for adaptation_set in period.findall(_add_ns('AdaptationSet')):
                 if is_drm_protected(adaptation_set):
                     continue
-                adaption_set_ms_info = extract_multisegment_info(adaptation_set, period_ms_info)
+                is_ms = is_ms or has_multisegment(adaptation_set)
                 for representation in adaptation_set.findall(_add_ns('Representation')):
                     if is_drm_protected(representation):
                         continue
+                    is_ms = is_ms or has_multisegment(representation)
                     representation_attrib = adaptation_set.attrib.copy()
                     representation_attrib.update(representation.attrib)
                     # According to page 41 of ISO/IEC 29001-1:2014, @mimeType is mandatory
@@ -1496,24 +1458,12 @@ class InfoExtractor(object):
                         # TODO implement WebVTT downloading
                         pass
                     elif content_type == 'video' or content_type == 'audio':
-                        base_url = ''
-                        for element in (representation, adaptation_set, period, mpd_doc):
-                            base_url_e = element.find(_add_ns('BaseURL'))
-                            if base_url_e is not None:
-                                base_url = base_url_e.text + base_url
-                                if re.match(r'^https?://', base_url):
-                                    break
-                        if mpd_base_url and not re.match(r'^https?://', base_url):
-                            if not mpd_base_url.endswith('/') and not base_url.startswith('/'):
-                                mpd_base_url += '/'
-                            base_url = mpd_base_url + base_url
-                        representation_id = representation_attrib.get('id')
+                        representation_id = representation.attrib['id']
                         lang = representation_attrib.get('lang')
                         url_el = representation.find(_add_ns('BaseURL'))
                         filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength') if url_el is not None else None)
                         f = {
                             'format_id': '%s-%s' % (mpd_id, representation_id) if mpd_id else representation_id,
-                            'url': base_url,
                             'ext': mimetype2ext(mime_type),
                             'width': int_or_none(representation_attrib.get('width')),
                             'height': int_or_none(representation_attrib.get('height')),
@@ -1526,35 +1476,42 @@ class InfoExtractor(object):
                             'format_note': 'DASH %s' % content_type,
                             'filesize': filesize,
                         }
-                        representation_ms_info = extract_multisegment_info(representation, adaption_set_ms_info)
-                        if 'segment_urls' not in representation_ms_info and 'media_template' in representation_ms_info:
-                            if 'total_number' not in representation_ms_info and 'segment_duration':
-                                segment_duration = float(representation_ms_info['segment_duration']) / float(representation_ms_info['timescale'])
-                                representation_ms_info['total_number'] = int(math.ceil(float(period_duration) / segment_duration))
-                            media_template = representation_ms_info['media_template']
-                            media_template = media_template.replace('$RepresentationID$', representation_id)
-                            media_template = re.sub(r'\$(Number|Bandwidth)\$', r'%(\1)d', media_template)
-                            media_template = re.sub(r'\$(Number|Bandwidth)%(\d+)\$', r'%(\1)\2d', media_template)
-                            media_template.replace('$$', '$')
-                            representation_ms_info['segment_urls'] = [
-                                media_template % {
-                                    'Number': segment_number,
-                                    'Bandwidth': representation_attrib.get('bandwidth')}
-                                for segment_number in range(
-                                    representation_ms_info['start_number'],
-                                    representation_ms_info['total_number'] + representation_ms_info['start_number'])]
-                        if 'segment_urls' in representation_ms_info:
-                            f.update({
-                                'segment_urls': representation_ms_info['segment_urls'],
-                                'protocol': 'http_dash_segments',
-                            })
-                            if 'initialization_url' in representation_ms_info:
-                                initialization_url = representation_ms_info['initialization_url'].replace('$RepresentationID$', representation_id)
+                        if is_ms:
+                            f['_downloader_params'] = {
+                                'representation_id': representation_id,
+                            }
+                            if parsed_mpd_url:
+                                fragment_parts = ((period, 'id', 'period'), (adaptation_set, 'id', 'as'), (adaptation_set, 'group', 'track'))
+                                params = {}
+                                for ele, attr, frag_attr in fragment_parts:
+                                    frag_val = ele.attrib.get(attr)
+                                    if frag_val:
+                                        params[frag_attr] = frag_val
+                                fragment = compat_urllib_parse.urlencode(params)
+                                fragment_mpd_url = parsed_mpd_url._replace(fragment=fragment).geturl()
                                 f.update({
-                                    'initialization_url': initialization_url,
+                                    'url': fragment_mpd_url,
+                                    'protocol': 'http_dash_segments',
                                 })
-                                if not f.get('url'):
-                                    f['url'] = initialization_url
+                            if mpd_type != 'dynamic':
+                                f['_downloader_params'].update({
+                                    'mpd': mpd_doc,
+                                })
+                        else:
+                            base_url = ''
+                            for element in (representation, adaptation_set, period, mpd_doc):
+                                base_url_e = element.find(_add_ns('BaseURL'))
+                                if base_url_e is not None:
+                                    base_url = base_url_e.text + base_url
+                                    if re.match(r'^https?://', base_url):
+                                        break
+                            if mpd_base_url and not re.match(r'^https?://', base_url):
+                                if not mpd_base_url.endswith('/') and not base_url.startswith('/'):
+                                    mpd_base_url += '/'
+                                base_url = mpd_base_url + base_url
+                            f.update({
+                                'url': base_url,
+                            })
                         try:
                             existing_format = next(
                                 fo for fo in formats
