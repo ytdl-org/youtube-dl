@@ -1240,7 +1240,10 @@ class YoutubeDL(object):
             self.list_thumbnails(info_dict)
             return
 
-        if thumbnails and 'thumbnail' not in info_dict:
+        thumbnail = info_dict.get('thumbnail')
+        if thumbnail:
+            info_dict['thumbnail'] = sanitize_url(thumbnail)
+        elif thumbnails:
             info_dict['thumbnail'] = thumbnails[-1]['url']
 
         if 'display_id' not in info_dict and 'id' in info_dict:
