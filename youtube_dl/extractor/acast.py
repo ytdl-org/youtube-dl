@@ -26,13 +26,7 @@ class ACastIE(InfoExtractor):
 
     def _real_extract(self, url):
         channel, display_id = re.match(self._VALID_URL, url).groups()
-
-        embed_page = self._download_webpage(
-            re.sub('(?:www\.)?acast\.com', 'embedcdn.acast.com', url), display_id)
-        cast_data = self._parse_json(self._search_regex(
-            r'window\[\'acast/queries\'\]\s*=\s*([^;]+);', embed_page, 'acast data'),
-            display_id)['GetAcast/%s/%s' % (channel, display_id)]
-
+        cast_data = self._download_json('https://embed.acast.com/api/acasts/%s/%s' % (channel, display_id), display_id)
         return {
             'id': compat_str(cast_data['id']),
             'display_id': display_id,
