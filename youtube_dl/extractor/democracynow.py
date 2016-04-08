@@ -17,21 +17,22 @@ class DemocracynowIE(InfoExtractor):
     IE_NAME = 'democracynow'
     _TESTS = [{
         'url': 'http://www.democracynow.org/shows/2015/7/3',
-        'md5': 'fbb8fe3d7a56a5e12431ce2f9b2fab0d',
+        'md5': '3757c182d3d84da68f5c8f506c18c196',
         'info_dict': {
             'id': '2015-0703-001',
             'ext': 'mp4',
-            'title': 'July 03, 2015 - Democracy Now!',
-            'description': 'A daily independent global news hour with Amy Goodman & Juan González "What to the Slave is 4th of July?": James Earl Jones Reads Frederick Douglass\u2019 Historic Speech : "This Flag Comes Down Today": Bree Newsome Scales SC Capitol Flagpole, Takes Down Confederate Flag : "We Shall Overcome": Remembering Folk Icon, Activist Pete Seeger in His Own Words & Songs',
+            'title': 'Daily Show',
         },
     }, {
         'url': 'http://www.democracynow.org/2015/7/3/this_flag_comes_down_today_bree',
-        'md5': 'fbb8fe3d7a56a5e12431ce2f9b2fab0d',
         'info_dict': {
             'id': '2015-0703-001',
             'ext': 'mp4',
             'title': '"This Flag Comes Down Today": Bree Newsome Scales SC Capitol Flagpole, Takes Down Confederate Flag',
             'description': 'md5:4d2bc4f0d29f5553c2210a4bc7761a21',
+        },
+        'params': {
+            'skip_download': True,
         },
     }]
 
