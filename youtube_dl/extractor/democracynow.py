@@ -38,17 +38,32 @@ class DemocracynowIE(InfoExtractor):
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
+
         webpage = self._download_webpage(url, display_id)
-        description = self._og_search_description(webpage, default=None)
 
         json_data = self._parse_json(self._search_regex(
             r'<script[^>]+type="text/json"[^>]*>\s*({[^>]+})', webpage, 'json'),
             display_id)
-        video_id = None
+
+        title = json_data['title']
         formats = []
 
-        default_lang = 'en'
+        video_id = None
 
+        for key in ('file', 'audio', 'video', 'high_res_video'):
+            media_url = json_data.get(key, '')
+            if not media_url:
+                continue
+            media_url = re.sub(r'\?.*', '', compat_urlparse.urljoin(url, media_url))
+            video_id = video_id or remove_start(os.path.splitext(url_basename(media_url))[0], 'dn')
+            formats.append({
+                'url': media_url,
+                'vcodec': 'none' if key == 'audio' else None,
+            })
+
+        self._sort_formats(formats)
+
+        default_lang = 'en'
         subtitles = {}
 
         def add_subtitle_item(lang, info_dict):
@@ -68,22 +83,13 @@ class DemocracynowIE(InfoExtractor):
                 'url': compat_urlparse.urljoin(url, subtitle_item['url']),
             })
 
-        for key in ('file', 'audio', 'video'):
-            media_url = json_data.get(key, '')
-            if not media_url:
-                continue
-            media_url = re.sub(r'\?.*', '', compat_urlparse.urljoin(url, media_url))
-            video_id = video_id or remove_start(os.path.splitext(url_basename(media_url))[0], 'dn')
-            formats.append({
-                'url': media_url,
-            })
-
-        self._sort_formats(formats)
+        description = self._og_search_description(webpage, default=None)
 
         return {
             'id': video_id or display_id,
-            'title': json_data['title'],
+            'title': title,
             'description': description,
+            'thumbnail': json_data.get('image'),
             'subtitles': subtitles,
             'formats': formats,
         }
