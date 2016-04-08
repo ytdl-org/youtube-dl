@@ -17,37 +17,53 @@ class DemocracynowIE(InfoExtractor):
     IE_NAME = 'democracynow'
     _TESTS = [{
         'url': 'http://www.democracynow.org/shows/2015/7/3',
-        'md5': 'fbb8fe3d7a56a5e12431ce2f9b2fab0d',
+        'md5': '3757c182d3d84da68f5c8f506c18c196',
         'info_dict': {
             'id': '2015-0703-001',
             'ext': 'mp4',
-            'title': 'July 03, 2015 - Democracy Now!',
-            'description': 'A daily independent global news hour with Amy Goodman & Juan González "What to the Slave is 4th of July?": James Earl Jones Reads Frederick Douglass\u2019 Historic Speech : "This Flag Comes Down Today": Bree Newsome Scales SC Capitol Flagpole, Takes Down Confederate Flag : "We Shall Overcome": Remembering Folk Icon, Activist Pete Seeger in His Own Words & Songs',
+            'title': 'Daily Show',
         },
     }, {
         'url': 'http://www.democracynow.org/2015/7/3/this_flag_comes_down_today_bree',
-        'md5': 'fbb8fe3d7a56a5e12431ce2f9b2fab0d',
         'info_dict': {
             'id': '2015-0703-001',
             'ext': 'mp4',
             'title': '"This Flag Comes Down Today": Bree Newsome Scales SC Capitol Flagpole, Takes Down Confederate Flag',
             'description': 'md5:4d2bc4f0d29f5553c2210a4bc7761a21',
         },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
+
         webpage = self._download_webpage(url, display_id)
-        description = self._og_search_description(webpage)
 
         json_data = self._parse_json(self._search_regex(
             r'<script[^>]+type="text/json"[^>]*>\s*({[^>]+})', webpage, 'json'),
             display_id)
-        video_id = None
+
+        title = json_data['title']
         formats = []
 
-        default_lang = 'en'
+        video_id = None
 
+        for key in ('file', 'audio', 'video', 'high_res_video'):
+            media_url = json_data.get(key, '')
+            if not media_url:
+                continue
+            media_url = re.sub(r'\?.*', '', compat_urlparse.urljoin(url, media_url))
+            video_id = video_id or remove_start(os.path.splitext(url_basename(media_url))[0], 'dn')
+            formats.append({
+                'url': media_url,
+                'vcodec': 'none' if key == 'audio' else None,
+            })
+
+        self._sort_formats(formats)
+
+        default_lang = 'en'
         subtitles = {}
 
         def add_subtitle_item(lang, info_dict):
@@ -67,22 +83,13 @@ class DemocracynowIE(InfoExtractor):
                 'url': compat_urlparse.urljoin(url, subtitle_item['url']),
             })
 
-        for key in ('file', 'audio', 'video'):
-            media_url = json_data.get(key, '')
-            if not media_url:
-                continue
-            media_url = re.sub(r'\?.*', '', compat_urlparse.urljoin(url, media_url))
-            video_id = video_id or remove_start(os.path.splitext(url_basename(media_url))[0], 'dn')
-            formats.append({
-                'url': media_url,
-            })
-
-        self._sort_formats(formats)
+        description = self._og_search_description(webpage, default=None)
 
         return {
             'id': video_id or display_id,
-            'title': json_data['title'],
+            'title': title,
             'description': description,
+            'thumbnail': json_data.get('image'),
             'subtitles': subtitles,
             'formats': formats,
         }

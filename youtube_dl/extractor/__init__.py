@@ -496,11 +496,11 @@ from .normalboots import NormalbootsIE
 from .nosvideo import NosVideoIE
 from .nova import NovaIE
 from .novamov import (
-    NovaMovIE,
-    WholeCloudIE,
+    AuroraVidIE,
+    CloudTimeIE,
     NowVideoIE,
     VideoWeedIE,
-    CloudTimeIE,
+    WholeCloudIE,
 )
 from .nowness import (
     NownessIE,

@@ -46,7 +46,7 @@ fi
 sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
 
 /bin/echo -e "\n### Committing documentation, templates and youtube_dl/version.py..."
-make README.md CONTRIBUTING.md ISSUE_TEMPLATE.md supportedsites
+make README.md CONTRIBUTING.md .github/ISSUE_TEMPLATE.md supportedsites
 git add README.md CONTRIBUTING.md .github/ISSUE_TEMPLATE.md docs/supportedsites.md youtube_dl/version.py
 git commit -m "release $version"
 

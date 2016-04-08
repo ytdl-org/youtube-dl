@@ -1,4 +1,4 @@
-all: youtube-dl README.md CONTRIBUTING.md ISSUE_TEMPLATE.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish supportedsites
+all: youtube-dl README.md CONTRIBUTING.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish supportedsites
 
 clean:
 	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish *.dump *.part *.info.json *.mp4 *.flv *.mp3 *.avi CONTRIBUTING.md.tmp ISSUE_TEMPLATE.md.tmp youtube-dl youtube-dl.exe
@@ -59,7 +59,7 @@ README.md: youtube_dl/*.py youtube_dl/*/*.py
 CONTRIBUTING.md: README.md
 	$(PYTHON) devscripts/make_contributing.py README.md CONTRIBUTING.md
 
-ISSUE_TEMPLATE.md:
+.github/ISSUE_TEMPLATE.md: devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl.md  youtube_dl/version.py
 	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl.md .github/ISSUE_TEMPLATE.md
 
 supportedsites:

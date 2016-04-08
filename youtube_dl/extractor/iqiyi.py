@@ -368,7 +368,10 @@ class IqiyiIE(InfoExtractor):
             auth_req, video_id,
             note='Downloading video authentication JSON',
             errnote='Unable to download video authentication JSON')
-        if auth_result['code'] == 'Q00506':  # requires a VIP account
+
+        if auth_result['code'] == 'Q00505':  # No preview available (不允许试看鉴权失败)
+            raise ExtractorError('This video requires a VIP account', expected=True)
+        if auth_result['code'] == 'Q00506':  # End of preview time (试看结束鉴权失败)
             if do_report_warning:
                 self.report_warning('Needs a VIP account for full video')
             return False
