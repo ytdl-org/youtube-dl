@@ -562,6 +562,7 @@ from .pinkbike import PinkbikeIE
 from .planetaplay import PlanetaPlayIE
 from .pladform import PladformIE
 from .played import PlayedIE
+from .playerpl import PlayerPLIE
 from .playfm import PlayFMIE
 from .plays import PlaysTVIE
 from .playtvak import PlaytvakIE
