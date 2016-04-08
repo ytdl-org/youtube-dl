@@ -76,7 +76,11 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         cfg_url = self._proto_relative_url(self._html_search_regex(
-            self._CONFIG_REGEX, webpage, 'flashvars.config'), 'http:')
+            self._CONFIG_REGEX, webpage, 'flashvars.config', default=None), 'http:')
+
+        if not cfg_url:
+            inputs = self._hidden_inputs(webpage)
+            cfg_url = 'https://cdn-fck.tnaflix.com/tnaflix/%s.fid?key=%s' % (inputs['vkey'], inputs['nkey'])
 
         cfg_xml = self._download_xml(
             cfg_url, display_id, 'Downloading metadata',
