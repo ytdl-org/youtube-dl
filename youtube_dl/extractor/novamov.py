@@ -16,7 +16,14 @@ class NovaMovIE(InfoExtractor):
     IE_NAME = 'novamov'
     IE_DESC = 'NovaMov'
 
-    _VALID_URL_TEMPLATE = r'http://(?:(?:www\.)?%(host)s/(?:file|video|mobile/#/videos)/|(?:(?:embed|www)\.)%(host)s/embed\.php\?(?:.*?&)?v=)(?P<id>[a-z\d]{13})'
+    _VALID_URL_TEMPLATE = r'''(?x)
+                            http://
+                                (?:
+                                    (?:www\.)?%(host)s/(?:file|video|mobile/\#/videos)/|
+                                    (?:(?:embed|www)\.)%(host)s/embed(?:\.php|/)?\?(?:.*?&)?\bv=
+                                )
+                                (?P<id>[a-z\d]{13})
+                            '''
     _VALID_URL = _VALID_URL_TEMPLATE % {'host': 'novamov\.com'}
 
     _HOST = 'www.novamov.com'
@@ -189,7 +196,7 @@ class AuroraVidIE(NovaMovIE):
 
     _FILE_DELETED_REGEX = r'This file no longer exists on our servers!<'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.auroravid.to/video/4rurhn9x446jj',
         'md5': '7205f346a52bbeba427603ba10d4b935',
         'info_dict': {
@@ -199,4 +206,7 @@ class AuroraVidIE(NovaMovIE):
             'description': 'search engine optimization is used to rank the web page in the google search engine'
         },
         'skip': '"Invalid token" errors abound (in web interface as well as youtube-dl, there is nothing we can do about it.)'
-    }
+    }, {
+        'url': 'http://www.auroravid.to/embed/?v=4rurhn9x446jj',
+        'only_matching': True,
+    }]
