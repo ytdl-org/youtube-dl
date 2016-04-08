@@ -614,6 +614,10 @@ from .revision3 import Revision3IE
 from .rice import RICEIE
 from .ringtv import RingTVIE
 from .ro220 import Ro220IE
+from .roosterteeth import (
+    RoosterteethIE,
+    RoosterteethShowIE
+)
 from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtbf import RTBFIE
