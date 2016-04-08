@@ -1534,7 +1534,7 @@ class InfoExtractor(object):
                             media_template = representation_ms_info['media_template']
                             media_template = media_template.replace('$RepresentationID$', representation_id)
                             media_template = re.sub(r'\$(Number|Bandwidth)\$', r'%(\1)d', media_template)
-                            media_template = re.sub(r'\$(Number|Bandwidth)%(\d+)\$', r'%(\1)\2d', media_template)
+                            media_template = re.sub(r'\$(Number|Bandwidth)%([^$]+)\$', r'%(\1)\2', media_template)
                             media_template.replace('$$', '$')
                             representation_ms_info['segment_urls'] = [
                                 media_template % {
