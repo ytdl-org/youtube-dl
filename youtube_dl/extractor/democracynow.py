@@ -38,7 +38,7 @@ class DemocracynowIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        description = self._og_search_description(webpage)
+        description = self._og_search_description(webpage, default=None)
 
         json_data = self._parse_json(self._search_regex(
             r'<script[^>]+type="text/json"[^>]*>\s*({[^>]+})', webpage, 'json'),
