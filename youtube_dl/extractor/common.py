@@ -843,7 +843,7 @@ class InfoExtractor(object):
         for input in re.findall(r'(?i)<input([^>]+)>', html):
             if not re.search(r'type=(["\'])(?:hidden|submit)\1', input):
                 continue
-            name = re.search(r'name=(["\'])(?P<value>.+?)\1', input)
+            name = re.search(r'(?:name|id)=(["\'])(?P<value>.+?)\1', input)
             if not name:
                 continue
             value = re.search(r'value=(["\'])(?P<value>.*?)\1', input)
