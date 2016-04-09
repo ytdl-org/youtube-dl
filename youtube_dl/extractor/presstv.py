@@ -7,20 +7,20 @@ from ..utils import str_to_int
 
 
 class PressTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?presstv\.ir/Video/(?P<y>[0-9]+)/(?P<m>[0-9]+)/(?P<d>[0-9]+)/(?P<id>[0-9]+)/'
+    _VALID_URL = r'https?://(?:www\.)?presstv\.ir/[^/]+/(?P<y>[0-9]+)/(?P<m>[0-9]+)/(?P<d>[0-9]+)/(?P<id>[0-9]+)/'
 
     _TEST = {
-        'url': 'http://www.presstv.ir/Video/2015/10/04/431915/Max-Igan-Press-TV-Face-to-Face',
-        'md5': 'e95736ac75088b5f1e5bbb68f248f90d',
+        'url': 'http://www.presstv.ir/Detail/2016/04/09/459911/Australian-sewerage-treatment-facility-/',
+        'md5': '5d7e3195a447cb13e9267e931d8dd5a5',
         'info_dict': {
-            'id': '431915',
+            'id': '459911',
             'ext': 'mp4',
-            'title': 'Press TV’s full interview with Max Igan',
-            'upload_date': '20151004',
-            'thumbnail': 'http://217.218.67.233/photo/20151004/d5c333ad-98f9-4bd3-bc3e-a1ad6a192803.jpg',
-            'description': ('Watch Press TV’s full interview with Max Igan, a radio talk show host and political '
-                            'commentator.\nThe interview, conducted on Press TV’s Face '
-                            'to Face program, was aired on October 3, 2015.')
+            'title': 'Organic mattresses used to clean waste water',
+            'upload_date': '20160409',
+            'thumbnail': 'http://media.presstv.com/photo/20160409/41719129-76fa-4372-a09d-bf348278eb5d.jpg',
+            'description': ('A trial program at an Australian sewerage treatment facility hopes to change '
+                            'the way waste water is treated by using plant mattresses to reduce chemical '
+                            'and electricity use.')
         }
     }
 
@@ -58,12 +58,10 @@ class PressTVIE(InfoExtractor):
 
         # extract video metadata
         title = self._html_search_meta('title', webpage, 'Title', True)
-        title = title.partition(' - ')[2]
-
-        description = self._html_search_regex(r'<div class="media-text nano-content">(.*?)</div>', webpage,
-                                              'Description', flags=re.DOTALL)
+        title = title.partition('-')[2].strip()
 
         thumbnail = self._html_search_meta('og:image', webpage, 'Thumbnail', True)
+        description = self._html_search_meta('og:description', webpage, 'Description', True)
 
         year = str_to_int(self._search_regex(PressTVIE._VALID_URL, url, 'Upload year', group='y'))
         month = str_to_int(self._search_regex(PressTVIE._VALID_URL, url, 'Upload month', group='m'))
