@@ -24,16 +24,16 @@ class DeutschlandradioIE(InfoExtractor):
             'url': 'http://ondemand-mp3.dradio.de/file/dradio/2015/10/04/dlf_20151004_0715_3a945c79.mp3',
         }
     }, {
-        'url': ('http://www.deutschlandradiokultur.de/bestsellerautor-marc-elsberg-wie-realistisch'
-                '-sind-ihre.970.de.html?dram:article_id=330629'),
-        'md5': '9b0ec52c1b1f2a091fac7489e806806a',
+        'url': ('http://www.deutschlandradiokultur.de/boehmermann-nicht-dabei-grimme-preis-verleihung-'
+                'mit.2165.de.html?dram:article_id=350758'),
+        'md5': 'f7066c3a4e383394af096f9543f5d23b',
         'info_dict': {
-            'id': '9054fc27',
-            'title': 'Marc Elsberg, Bestseller-Autor von Wirtschafsthemen der digitalen Welt',
-            "duration": 2050000,
+            'id': '76188e50',
+            'title': 'Grimmepreis-Verleihung mit Abwesendem - Böhmermann wg. Schmähkritik nicht dabei',
+            "duration": 203,
             'ext': 'mp3',
             'type': 'mp3',
-            'url': 'http://ondemand-mp3.dradio.de/file/dradio/2015/09/10/drk_20150910_0907_9054fc27.mp3',
+            'url': 'http://ondemand-mp3.dradio.de/file/dradio/2016/04/09/drk_20160409_0710_76188e50.mp3',
         }
     }, {
         'url': ('http://www.deutschlandfunk.de/fluechtlingspolitik-ich-finde-den-alarmismus-aergerlich.'
