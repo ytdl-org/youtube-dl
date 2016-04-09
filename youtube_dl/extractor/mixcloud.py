@@ -25,7 +25,7 @@ class MixcloudIE(InfoExtractor):
         'url': 'http://www.mixcloud.com/dholbach/cryptkeeper/',
         'info_dict': {
             'id': 'dholbach-cryptkeeper',
-            'ext': 'mp3',
+            'ext': 'm4a',
             'title': 'Cryptkeeper',
             'description': 'After quite a long silence from myself, finally another Drum\'n\'Bass mix with my favourite current dance floor bangers.',
             'uploader': 'Daniel Holbach',
@@ -265,7 +265,7 @@ class MixcloudPlaylistIE(MixcloudUserIE):
         'info_dict': {
             'id': 'maxvibes/playlists/jazzcat-on-ness-radio',
             'title': 'Jazzcat on Ness Radio',
-            'description': 'md5:c2c51a1f1b8bb5442f2ca67c3dc4af27',
+            'description': 'md5:7bbbf0d6359a0b8cda85224be0f8f263',
         },
         'playlist_mincount': 23
     }]
