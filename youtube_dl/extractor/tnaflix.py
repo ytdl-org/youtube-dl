@@ -76,7 +76,11 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         cfg_url = self._proto_relative_url(self._html_search_regex(
-            self._CONFIG_REGEX, webpage, 'flashvars.config'), 'http:')
+            self._CONFIG_REGEX, webpage, 'flashvars.config', default=None), 'http:')
+
+        if not cfg_url:
+            inputs = self._hidden_inputs(webpage)
+            cfg_url = 'https://cdn-fck.tnaflix.com/tnaflix/%s.fid?key=%s' % (inputs['vkey'], inputs['nkey'])
 
         cfg_xml = self._download_xml(
             cfg_url, display_id, 'Downloading metadata',
@@ -132,7 +136,7 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
         average_rating = float_or_none(extract_field(self._AVERAGE_RATING_REGEX, 'average rating'))
 
         categories_str = extract_field(self._CATEGORIES_REGEX, 'categories')
-        categories = categories_str.split(', ') if categories_str is not None else []
+        categories = [c.strip() for c in categories_str.split(',')] if categories_str is not None else []
 
         return {
             'id': video_id,
@@ -186,13 +190,14 @@ class TNAFlixIE(TNAFlixNetworkBaseIE):
     _VALID_URL = r'https?://(?:www\.)?tnaflix\.com/[^/]+/(?P<display_id>[^/]+)/video(?P<id>\d+)'
 
     _TITLE_REGEX = r'<title>(.+?) - TNAFlix Porn Videos</title>'
-    _DESCRIPTION_REGEX = r'<h3 itemprop="description">([^<]+)</h3>'
-    _UPLOADER_REGEX = r'(?s)<span[^>]+class="infoTitle"[^>]*>Uploaded By:</span>(.+?)<div'
+    _DESCRIPTION_REGEX = r'<meta[^>]+name="description"[^>]+content="([^"]+)"'
+    _UPLOADER_REGEX = r'<i>\s*Verified Member\s*</i>\s*<h1>(.+?)</h1>'
+    _CATEGORIES_REGEX = r'(?s)<span[^>]*>Categories:</span>(.+?)</div>'
 
     _TESTS = [{
         # anonymous uploader, no categories
         'url': 'http://www.tnaflix.com/porn-stars/Carmella-Decesare-striptease/video553878',
-        'md5': 'ecf3498417d09216374fc5907f9c6ec0',
+        'md5': '7e569419fe6d69543d01e6be22f5f7c4',
         'info_dict': {
             'id': '553878',
             'display_id': 'Carmella-Decesare-striptease',
@@ -201,17 +206,16 @@ class TNAFlixIE(TNAFlixNetworkBaseIE):
             'thumbnail': 're:https?://.*\.jpg$',
             'duration': 91,
             'age_limit': 18,
-            'uploader': 'Anonymous',
-            'categories': [],
+            'categories': ['Porn Stars'],
         }
     }, {
         # non-anonymous uploader, categories
         'url': 'https://www.tnaflix.com/teen-porn/Educational-xxx-video/video6538',
-        'md5': '0f5d4d490dbfd117b8607054248a07c0',
+        'md5': 'fcba2636572895aba116171a899a5658',
         'info_dict': {
             'id': '6538',
             'display_id': 'Educational-xxx-video',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Educational xxx video',
             'description': 'md5:b4fab8f88a8621c8fabd361a173fe5b8',
             'thumbnail': 're:https?://.*\.jpg$',

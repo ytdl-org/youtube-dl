@@ -76,6 +76,10 @@ class TestCompat(unittest.TestCase):
         self.assertEqual(compat_urllib_parse_urlencode({'abc': b'def'}), 'abc=def')
         self.assertEqual(compat_urllib_parse_urlencode({b'abc': 'def'}), 'abc=def')
         self.assertEqual(compat_urllib_parse_urlencode({b'abc': b'def'}), 'abc=def')
+        self.assertEqual(compat_urllib_parse_urlencode([('abc', 'def')]), 'abc=def')
+        self.assertEqual(compat_urllib_parse_urlencode([('abc', b'def')]), 'abc=def')
+        self.assertEqual(compat_urllib_parse_urlencode([(b'abc', 'def')]), 'abc=def')
+        self.assertEqual(compat_urllib_parse_urlencode([(b'abc', b'def')]), 'abc=def')
 
     def test_compat_shlex_split(self):
         self.assertEqual(compat_shlex_split('-option "one two"'), ['-option', 'one two'])

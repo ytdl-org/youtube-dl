@@ -57,6 +57,7 @@
  - **AudioBoom**
  - **audiomack**
  - **audiomack:album**
+ - **auroravid**: AuroraVid
  - **Azubu**
  - **AzubuLive**
  - **BaiduVideo**: 百度视频
@@ -92,12 +93,14 @@
  - **BYUtv**
  - **Camdemy**
  - **CamdemyFolder**
+ - **CamWithHer**
  - **canalc2.tv**
  - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
  - **Canvas**
  - **CBC**
  - **CBCPlayer**
  - **CBS**
+ - **CBSInteractive**
  - **CBSNews**: CBS News
  - **CBSNewsLiveVideo**: CBS News Live Videos
  - **CBSSports**
@@ -119,7 +122,6 @@
  - **Clyp**
  - **cmt.com**
  - **CNBC**
- - **CNET**
  - **CNN**
  - **CNNArticle**
  - **CNNBlogs**
@@ -419,7 +421,6 @@
  - **Normalboots**
  - **NosVideo**
  - **Nova**: TN.cz, Prásk.tv, Nova.cz, Novaplus.cz, FANDA.tv, Krásná.cz and Doma.cz
- - **novamov**: NovaMov
  - **nowness**
  - **nowness:playlist**
  - **nowness:series**

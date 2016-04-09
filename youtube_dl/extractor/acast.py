@@ -2,10 +2,14 @@
 from __future__ import unicode_literals
 
 import re
+import functools
 
 from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    OnDemandPagedList,
+)
 
 
 class ACastIE(InfoExtractor):
@@ -26,13 +30,8 @@ class ACastIE(InfoExtractor):
 
     def _real_extract(self, url):
         channel, display_id = re.match(self._VALID_URL, url).groups()
-
-        embed_page = self._download_webpage(
-            re.sub('(?:www\.)?acast\.com', 'embedcdn.acast.com', url), display_id)
-        cast_data = self._parse_json(self._search_regex(
-            r'window\[\'acast/queries\'\]\s*=\s*([^;]+);', embed_page, 'acast data'),
-            display_id)['GetAcast/%s/%s' % (channel, display_id)]
-
+        cast_data = self._download_json(
+            'https://embed.acast.com/api/acasts/%s/%s' % (channel, display_id), display_id)
         return {
             'id': compat_str(cast_data['id']),
             'display_id': display_id,
@@ -58,15 +57,26 @@ class ACastChannelIE(InfoExtractor):
         'playlist_mincount': 20,
     }
     _API_BASE_URL = 'https://www.acast.com/api/'
+    _PAGE_SIZE = 10
 
     @classmethod
     def suitable(cls, url):
         return False if ACastIE.suitable(url) else super(ACastChannelIE, cls).suitable(url)
 
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-        channel_data = self._download_json(self._API_BASE_URL + 'channels/%s' % display_id, display_id)
-        casts = self._download_json(self._API_BASE_URL + 'channels/%s/acasts' % display_id, display_id)
-        entries = [self.url_result('https://www.acast.com/%s/%s' % (display_id, cast['url']), 'ACast') for cast in casts]
+    def _fetch_page(self, channel_slug, page):
+        casts = self._download_json(
+            self._API_BASE_URL + 'channels/%s/acasts?page=%s' % (channel_slug, page),
+            channel_slug, note='Download page %d of channel data' % page)
+        for cast in casts:
+            yield self.url_result(
+                'https://www.acast.com/%s/%s' % (channel_slug, cast['url']),
+                'ACast', cast['id'])
 
-        return self.playlist_result(entries, compat_str(channel_data['id']), channel_data['name'], channel_data.get('description'))
+    def _real_extract(self, url):
+        channel_slug = self._match_id(url)
+        channel_data = self._download_json(
+            self._API_BASE_URL + 'channels/%s' % channel_slug, channel_slug)
+        entries = OnDemandPagedList(functools.partial(
+            self._fetch_page, channel_slug), self._PAGE_SIZE)
+        return self.playlist_result(entries, compat_str(
+            channel_data['id']), channel_data['name'], channel_data.get('description'))

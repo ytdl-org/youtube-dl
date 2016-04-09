@@ -232,6 +232,24 @@ class InfoExtractor(object):
     episode_number: Number of the video episode within a season, as an integer.
     episode_id:     Id of the video episode, as a unicode string.
 
+    The following fields should only be used when the media is a track or a part of
+    a music album:
+
+    track:          Title of the track.
+    track_number:   Number of the track within an album or a disc, as an integer.
+    track_id:       Id of the track (useful in case of custom indexing, e.g. 6.iii),
+                    as a unicode string.
+    artist:         Artist(s) of the track.
+    genre:          Genre(s) of the track.
+    album:          Title of the album the track belongs to.
+    album_type:     Type of the album (e.g. "Demo", "Full-length", "Split", "Compilation", etc).
+    album_artist:   List of all artists appeared on the album (e.g.
+                    "Ash Borer / Fell Voices" or "Various Artists", useful for splits
+                    and compilations).
+    disc_number:    Number of the disc or other physical medium the track belongs to,
+                    as an integer.
+    release_year:   Year (YYYY) when the album was released.
+
     Unless mentioned otherwise, the fields should be Unicode strings.
 
     Unless mentioned otherwise, None is equivalent to absence of information.
@@ -825,7 +843,7 @@ class InfoExtractor(object):
         for input in re.findall(r'(?i)<input([^>]+)>', html):
             if not re.search(r'type=(["\'])(?:hidden|submit)\1', input):
                 continue
-            name = re.search(r'name=(["\'])(?P<value>.+?)\1', input)
+            name = re.search(r'(?:name|id)=(["\'])(?P<value>.+?)\1', input)
             if not name:
                 continue
             value = re.search(r'value=(["\'])(?P<value>.*?)\1', input)
@@ -1516,7 +1534,7 @@ class InfoExtractor(object):
                             media_template = representation_ms_info['media_template']
                             media_template = media_template.replace('$RepresentationID$', representation_id)
                             media_template = re.sub(r'\$(Number|Bandwidth)\$', r'%(\1)d', media_template)
-                            media_template = re.sub(r'\$(Number|Bandwidth)%(\d+)\$', r'%(\1)\2d', media_template)
+                            media_template = re.sub(r'\$(Number|Bandwidth)%([^$]+)\$', r'%(\1)\2', media_template)
                             media_template.replace('$$', '$')
                             representation_ms_info['segment_urls'] = [
                                 media_template % {
