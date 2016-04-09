@@ -171,7 +171,7 @@ class MixcloudUserIE(InfoExtractor):
         while True:
             # fake a AJAX request to retrieve a list fragment
             page_url = base_url + "?page=%d&list=main&_ajax=1" % current_page
-            req = compat_urllib_request.Request(page_url, headers={"X-Requested-With": "XMLHttpRequest"}, method="GET")
+            req = compat_urllib_request.Request(page_url, headers={"X-Requested-With": "XMLHttpRequest"})
             resp = self._download_webpage(req, video_id, note=dl_note + " (page %d)" % current_page, errnote=dl_errnote)
 
             # extract all track URLs from fragment
