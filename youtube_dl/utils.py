@@ -1792,6 +1792,8 @@ def urlencode_postdata(*args, **kargs):
 
 
 def update_url_query(url, query):
+    if not query:
+        return url
     parsed_url = compat_urlparse.urlparse(url)
     qs = compat_parse_qs(parsed_url.query)
     qs.update(query)
