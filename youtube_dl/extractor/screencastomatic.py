@@ -16,6 +16,7 @@ class ScreencastOMaticIE(JWPlatformBaseIE):
             'title': 'Welcome to 3-4 Philosophy @ DECV!',
             'thumbnail': 're:^https?://.*\.jpg$',
             'description': 'as the title says! also: some general info re 1) VCE philosophy and 2) distance learning.',
+            'duration': 369.163,
         }
     }
 
