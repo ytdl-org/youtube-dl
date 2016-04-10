@@ -13,10 +13,6 @@ from ..utils import (
 class JWPlatformBaseIE(InfoExtractor):
     def _parse_jwplayer_data(self, jwplayer_data, video_id, require_title=True):
         video_data = jwplayer_data['playlist'][0]
-        subtitles = {}
-        for track in video_data['tracks']:
-            if track['kind'] == 'captions':
-                subtitles[track['label']] = [{'url': self._proto_relative_url(track['file'])}]
 
         formats = []
         for source in video_data['sources']:
@@ -37,6 +33,15 @@ class JWPlatformBaseIE(InfoExtractor):
                     'height': int_or_none(source.get('height')),
                 })
         self._sort_formats(formats)
+
+        subtitles = {}
+        tracks = video_data.get('tracks')
+        if tracks and isinstance(tracks, list):
+            for track in tracks:
+                if track.get('file') and track.get('kind') == 'captions':
+                    subtitles.setdefault(track.get('label') or 'en', []).append({
+                        'url': self._proto_relative_url(track['file'])
+                    })
 
         return {
             'id': video_id,
