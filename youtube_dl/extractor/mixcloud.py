@@ -195,12 +195,10 @@ class MixcloudUserIE(InfoExtractor):
 
     def _get_user_description(self, page_content):
         return self._html_search_regex(
-            r'<div class="description-text">.*?<p>(?P<description>.*?)</p></div></div></div>',
+            r'<div class="description-text">.*?<p>(.*?)</p></div></div></div>',
             page_content,
             "user description",
-            group="description",
-            fatal=False,
-            default="")
+            fatal=False)
 
     def _get_username(self, page_content):
         return self._og_search_title(page_content)
