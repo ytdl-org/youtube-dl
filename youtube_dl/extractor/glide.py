@@ -23,8 +23,9 @@ class GlideIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         title = self._html_search_regex(
             r'<title>(.*?)</title>', webpage, 'title')
-        video_url = self.http_scheme() + self._search_regex(
-            r'<source src="(.*?)" type="video/mp4">', webpage, 'video URL')
+        video_url = self._proto_relative_url(self._search_regex(
+            r'<source[^>]+src=(["\'])(?P<url>.+?)\1',
+            webpage, 'video URL', group='url'), self.http_scheme())
         thumbnail_url = self._search_regex(
             r'<img id="video-thumbnail" src="(.*?)"',
             webpage, 'thumbnail url', fatal=False)
