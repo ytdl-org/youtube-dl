@@ -123,6 +123,7 @@ from .chirbit import (
 )
 from .cinchcast import CinchcastIE
 from .cinemassacre import CinemassacreIE
+from .cliprs import ClipRsIE
 from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
 from .clipsyndicate import ClipsyndicateIE
@@ -938,6 +939,12 @@ from .xfileshare import XFileShareIE
 from .xhamster import (
     XHamsterIE,
     XHamsterEmbedIE,
+)
+from .xiami import (
+    XiamiIE,
+    XiamiAlbumIE,
+    XiamiArtistIE,
+    XiamiCollectionIE
 )
 from .xminus import XMinusIE
 from .xnxx import XNXXIE
