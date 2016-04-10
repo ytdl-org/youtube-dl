@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    float_or_none,
+    int_or_none,
+)
 
 
 class JWPlatformBaseIE(InfoExtractor):
@@ -41,6 +44,7 @@ class JWPlatformBaseIE(InfoExtractor):
             'description': video_data.get('description'),
             'thumbnail': self._proto_relative_url(video_data.get('image')),
             'timestamp': int_or_none(video_data.get('pubdate')),
+            'duration': float_or_none(jwplayer_data.get('duration')),
             'subtitles': subtitles,
             'formats': formats,
         }
