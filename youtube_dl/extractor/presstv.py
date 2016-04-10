@@ -17,10 +17,8 @@ class PressTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Organic mattresses used to clean waste water',
             'upload_date': '20160409',
-            'thumbnail': 'http://media.presstv.com/photo/20160409/41719129-76fa-4372-a09d-bf348278eb5d.jpg',
-            'description': ('A trial program at an Australian sewerage treatment facility hopes to change '
-                            'the way waste water is treated by using plant mattresses to reduce chemical '
-                            'and electricity use.')
+            'thumbnail': 're:^https?://.*\.jpg',
+            'description': 'md5:20002e654bbafb6908395a5c0cfcd125'
         }
     }
 
@@ -35,38 +33,34 @@ class PressTVIE(InfoExtractor):
         # build list of available formats
         # specified in http://www.presstv.ir/Scripts/playback.js
         base_url = 'http://192.99.219.222:82/presstv'
-        formats = [
-            {
-                'url': base_url + video_url,
-                'format': '1080p mp4',
-                'format_id': '1080p'
-            }, {
-                'url': base_url + video_url.replace(".mp4", "_low800.mp4"),
-                'format': '720p mp4',
-                'format_id': '720p'
-            }, {
-                'url': base_url + video_url.replace(".mp4", "_low400.mp4"),
-                'format': '360p mp4',
-                'format_id': '360p'
-            }, {
-                'url': base_url + video_url.replace(".mp4", "_low200.mp4"),
-                'format': '180p mp4',
-                'format_id': '180p'
-            }
+        _formats = [
+            ("180p", "_low200.mp4"),
+            ("360p", "_low400.mp4"),
+            ("720p", "_low800.mp4"),
+            ("1080p", ".mp4")
         ]
-        formats.reverse()
+
+        formats = []
+        for fmt in _formats:
+            format_id, extension = fmt
+            formats.append({
+                'url': base_url + video_url[:-4] + extension,
+                'format_id': format_id
+            })
 
         # extract video metadata
         title = self._html_search_meta('title', webpage, 'Title', True)
         title = title.partition('-')[2].strip()
 
-        thumbnail = self._html_search_meta('og:image', webpage, 'Thumbnail', True)
-        description = self._html_search_meta('og:description', webpage, 'Description', True)
+        thumbnail = self._og_search_thumbnail(webpage)
+        description = self._og_search_description(webpage)
 
-        year = str_to_int(self._search_regex(PressTVIE._VALID_URL, url, 'Upload year', group='y'))
-        month = str_to_int(self._search_regex(PressTVIE._VALID_URL, url, 'Upload month', group='m'))
-        day = str_to_int(self._search_regex(PressTVIE._VALID_URL, url, 'Upload day', group='d'))
-        upload_date = '%04d%02d%02d' % (year, month, day)
+        match = re.match(PressTVIE._VALID_URL, url)
+        upload_date = '%04d%02d%02d' % (
+            str_to_int(match.group('y')),
+            str_to_int(match.group('m')),
+            str_to_int(match.group('d'))
+        )
 
         return {
             'id': video_id,
