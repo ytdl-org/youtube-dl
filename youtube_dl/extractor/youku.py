@@ -8,7 +8,7 @@ import time
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_ord,
 )
 from ..utils import (
@@ -138,7 +138,7 @@ class YoukuIE(InfoExtractor):
                     '_00' + \
                     '/st/' + self.parse_ext_l(format) + \
                     '/fileid/' + get_fileid(format, n) + '?' + \
-                    compat_urllib_parse.urlencode(param)
+                    compat_urllib_parse_urlencode(param)
                 video_urls.append(video_url)
             video_urls_dict[format] = video_urls
 

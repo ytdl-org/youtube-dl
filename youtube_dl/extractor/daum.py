@@ -8,8 +8,8 @@ import itertools
 from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
+    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
@@ -70,7 +70,7 @@ class DaumIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = compat_urllib_parse_unquote(self._match_id(url))
-        query = compat_urllib_parse.urlencode({'vid': video_id})
+        query = compat_urllib_parse_urlencode({'vid': video_id})
         movie_data = self._download_json(
             'http://videofarm.daum.net/controller/api/closed/v1_2/IntegratedMovieData.json?' + query,
             video_id, 'Downloading video formats info')
@@ -86,7 +86,7 @@ class DaumIE(InfoExtractor):
         formats = []
         for format_el in movie_data['output_list']['output_list']:
             profile = format_el['profile']
-            format_query = compat_urllib_parse.urlencode({
+            format_query = compat_urllib_parse_urlencode({
                 'vid': video_id,
                 'profile': profile,
             })

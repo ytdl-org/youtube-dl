@@ -12,7 +12,7 @@ from ..utils import (
 class ImdbIE(InfoExtractor):
     IE_NAME = 'imdb'
     IE_DESC = 'Internet Movie Database trailers'
-    _VALID_URL = r'http://(?:www|m)\.imdb\.com/video/imdb/vi(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www|m)\.imdb\.com/video/imdb/vi(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://www.imdb.com/video/imdb/vi2524815897',
@@ -42,7 +42,7 @@ class ImdbIE(InfoExtractor):
             for f_url, f_name in extra_formats]
         format_pages.append(player_page)
 
-        quality = qualities(['SD', '480p', '720p'])
+        quality = qualities(('SD', '480p', '720p', '1080p'))
         formats = []
         for format_page in format_pages:
             json_data = self._search_regex(
@@ -70,7 +70,7 @@ class ImdbIE(InfoExtractor):
 class ImdbListIE(InfoExtractor):
     IE_NAME = 'imdb:list'
     IE_DESC = 'Internet Movie Database lists'
-    _VALID_URL = r'http://www\.imdb\.com/list/(?P<id>[\da-zA-Z_-]{11})'
+    _VALID_URL = r'https?://www\.imdb\.com/list/(?P<id>[\da-zA-Z_-]{11})'
     _TEST = {
         'url': 'http://www.imdb.com/list/JFs9NWw6XI0',
         'info_dict': {

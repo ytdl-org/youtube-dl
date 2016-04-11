@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
 from ..utils import (
     remove_end,
     HEADRequest,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -123,7 +123,7 @@ class GDCVaultIE(InfoExtractor):
             'password': password,
         }
 
-        request = sanitized_Request(login_url, compat_urllib_parse.urlencode(login_form))
+        request = sanitized_Request(login_url, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         self._download_webpage(request, display_id, 'Logging in')
         start_page = self._download_webpage(webpage_url, display_id, 'Getting authenticated video page')
@@ -159,9 +159,10 @@ class GDCVaultIE(InfoExtractor):
                 'title': title,
             }
 
+        PLAYER_REGEX = r'<iframe src="(?P<xml_root>.+?)/player.*?\.html.*?".*?</iframe>'
+
         xml_root = self._html_search_regex(
-            r'<iframe src="(?P<xml_root>.*?)player.html.*?".*?</iframe>',
-            start_page, 'xml root', default=None)
+            PLAYER_REGEX, start_page, 'xml root', default=None)
         if xml_root is None:
             # Probably need to authenticate
             login_res = self._login(webpage_url, display_id)
@@ -171,18 +172,19 @@ class GDCVaultIE(InfoExtractor):
                 start_page = login_res
                 # Grab the url from the authenticated page
                 xml_root = self._html_search_regex(
-                    r'<iframe src="(.*?)player.html.*?".*?</iframe>',
-                    start_page, 'xml root')
+                    PLAYER_REGEX, start_page, 'xml root')
 
         xml_name = self._html_search_regex(
             r'<iframe src=".*?\?xml=(.+?\.xml).*?".*?</iframe>',
             start_page, 'xml filename', default=None)
         if xml_name is None:
             # Fallback to the older format
-            xml_name = self._html_search_regex(r'<iframe src=".*?\?xmlURL=xml/(?P<xml_file>.+?\.xml).*?".*?</iframe>', start_page, 'xml filename')
+            xml_name = self._html_search_regex(
+                r'<iframe src=".*?\?xmlURL=xml/(?P<xml_file>.+?\.xml).*?".*?</iframe>',
+                start_page, 'xml filename')
 
-        xml_description_url = xml_root + 'xml/' + xml_name
-        xml_description = self._download_xml(xml_description_url, display_id)
+        xml_description = self._download_xml(
+            '%s/xml/%s' % (xml_root, xml_name), display_id)
 
         video_title = xml_description.find('./metadata/title').text
         video_formats = self._parse_mp4(xml_description)

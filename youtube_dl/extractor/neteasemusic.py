@@ -8,7 +8,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_str,
     compat_itertools_count,
 )
@@ -153,7 +153,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'ids': '[%s]' % song_id
         }
         info = self.query_api(
-            'song/detail?' + compat_urllib_parse.urlencode(params),
+            'song/detail?' + compat_urllib_parse_urlencode(params),
             song_id, 'Downloading song info')['songs'][0]
 
         formats = self.extract_formats(info)

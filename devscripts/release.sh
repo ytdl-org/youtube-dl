@@ -45,9 +45,9 @@ fi
 /bin/echo -e "\n### Changing version in version.py..."
 sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
 
-/bin/echo -e "\n### Committing documentation and youtube_dl/version.py..."
-make README.md CONTRIBUTING.md supportedsites
-git add README.md CONTRIBUTING.md docs/supportedsites.md youtube_dl/version.py
+/bin/echo -e "\n### Committing documentation, templates and youtube_dl/version.py..."
+make README.md CONTRIBUTING.md .github/ISSUE_TEMPLATE.md supportedsites
+git add README.md CONTRIBUTING.md .github/ISSUE_TEMPLATE.md docs/supportedsites.md youtube_dl/version.py
 git commit -m "release $version"
 
 /bin/echo -e "\n### Now tagging, signing and pushing..."

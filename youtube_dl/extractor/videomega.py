@@ -4,11 +4,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import sanitized_Request
+from ..utils import (
+    decode_packed_codes,
+    sanitized_Request,
+)
 
 
 class VideoMegaIE(InfoExtractor):
-    _WORKING = False
     _VALID_URL = r'(?:videomega:|https?://(?:www\.)?videomega\.tv/(?:(?:view|iframe|cdn)\.php)?\?ref=)(?P<id>[A-Za-z0-9]+)'
     _TESTS = [{
         'url': 'http://videomega.tv/cdn.php?ref=AOSQBJYKIDDIKYJBQSOA',
@@ -42,8 +44,10 @@ class VideoMegaIE(InfoExtractor):
             r'(?:^[Vv]ideo[Mm]ega\.tv\s-\s*|\s*-\svideomega\.tv$)', '', title)
         thumbnail = self._search_regex(
             r'<video[^>]+?poster="([^"]+)"', webpage, 'thumbnail', fatal=False)
+
+        real_codes = decode_packed_codes(webpage)
         video_url = self._search_regex(
-            r'<source[^>]+?src="([^"]+)"', webpage, 'video URL')
+            r'"src"\s*,\s*"([^"]+)"', real_codes, 'video URL')
 
         return {
             'id': video_id,

@@ -1,11 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
-from ..utils import smuggle_url
+from .jwplatform import JWPlatformBaseIE
+from ..utils import (
+    decode_packed_codes,
+    js_to_json,
+)
 
 
-class VidziIE(InfoExtractor):
+class VidziIE(JWPlatformBaseIE):
     _VALID_URL = r'https?://(?:www\.)?vidzi\.tv/(?P<id>\w+)'
     _TEST = {
         'url': 'http://vidzi.tv/cghql9yq6emu.html',
@@ -14,7 +17,6 @@ class VidziIE(InfoExtractor):
             'id': 'cghql9yq6emu',
             'ext': 'mp4',
             'title': 'youtube-dl test video  1\\\\2\'3/4<5\\\\6ä7↭',
-            'uploader': 'vidzi.tv',
         },
         'params': {
             # m3u8 download
@@ -29,11 +31,12 @@ class VidziIE(InfoExtractor):
         title = self._html_search_regex(
             r'(?s)<h2 class="video-title">(.*?)</h2>', webpage, 'title')
 
-        # Vidzi now uses jwplayer, which can be handled by GenericIE
-        return {
-            '_type': 'url_transparent',
-            'id': video_id,
-            'title': title,
-            'url': smuggle_url(url, {'to_generic': True}),
-            'ie_key': 'Generic',
-        }
+        code = decode_packed_codes(webpage).replace('\\\'', '\'')
+        jwplayer_data = self._parse_json(
+            self._search_regex(r'setup\(([^)]+)\)', code, 'jwplayer data'),
+            video_id, transform_source=js_to_json)
+
+        info_dict = self._parse_jwplayer_data(jwplayer_data, video_id, require_title=False)
+        info_dict['title'] = title
+
+        return info_dict

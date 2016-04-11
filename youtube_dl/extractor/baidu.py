@@ -9,7 +9,7 @@ from ..utils import unescapeHTML
 
 class BaiduVideoIE(InfoExtractor):
     IE_DESC = '百度视频'
-    _VALID_URL = r'http://v\.baidu\.com/(?P<type>[a-z]+)/(?P<id>\d+)\.htm'
+    _VALID_URL = r'https?://v\.baidu\.com/(?P<type>[a-z]+)/(?P<id>\d+)\.htm'
     _TESTS = [{
         'url': 'http://v.baidu.com/comic/1069.htm?frp=bdbrand&q=%E4%B8%AD%E5%8D%8E%E5%B0%8F%E5%BD%93%E5%AE%B6',
         'info_dict': {

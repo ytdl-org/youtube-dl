@@ -69,12 +69,14 @@ class AMPIE(InfoExtractor):
 
         self._sort_formats(formats)
 
+        timestamp = parse_iso8601(item.get('pubDate'), ' ') or parse_iso8601(item.get('dc-date'))
+
         return {
             'id': video_id,
             'title': get_media_node('title'),
             'description': get_media_node('description'),
             'thumbnails': thumbnails,
-            'timestamp': parse_iso8601(item.get('pubDate'), ' '),
+            'timestamp': timestamp,
             'duration': int_or_none(media_content[0].get('@attributes', {}).get('duration')),
             'subtitles': subtitles,
             'formats': formats,

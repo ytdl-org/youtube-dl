@@ -6,6 +6,7 @@ from ..utils import (
     int_or_none,
     js_to_json,
     unescapeHTML,
+    determine_ext,
 )
 
 
@@ -39,7 +40,7 @@ class HowStuffWorksIE(InfoExtractor):
             'url': 'http://entertainment.howstuffworks.com/arts/2706-sword-swallowing-1-by-dan-meyer-video.htm',
             'info_dict': {
                 'id': '440011',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Sword Swallowing #1 by Dan Meyer',
                 'description': 'Video footage (1 of 3) used by permission of the owner Dan Meyer through Sword Swallowers Association International <www.swordswallow.org>',
                 'display_id': 'sword-swallowing-1-by-dan-meyer',
@@ -63,13 +64,19 @@ class HowStuffWorksIE(InfoExtractor):
         video_id = clip_info['content_id']
         formats = []
         m3u8_url = clip_info.get('m3u8')
-        if m3u8_url:
-            formats += self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
+        if m3u8_url and determine_ext(m3u8_url) == 'm3u8':
+            formats.extend(self._extract_m3u8_formats(m3u8_url, video_id, 'mp4', format_id='hls', fatal=True))
+        flv_url = clip_info.get('flv_url')
+        if flv_url:
+            formats.append({
+                'url': flv_url,
+                'format_id': 'flv',
+            })
         for video in clip_info.get('mp4', []):
             formats.append({
                 'url': video['src'],
-                'format_id': video['bitrate'],
-                'vbr': int(video['bitrate'].rstrip('k')),
+                'format_id': 'mp4-%s' % video['bitrate'],
+                'vbr': int_or_none(video['bitrate'].rstrip('k')),
             })
 
         if not formats:
@@ -102,6 +109,6 @@ class HowStuffWorksIE(InfoExtractor):
             'title': unescapeHTML(clip_info['clip_title']),
             'description': unescapeHTML(clip_info.get('caption')),
             'thumbnail': clip_info.get('video_still_url'),
-            'duration': clip_info.get('duration'),
+            'duration': int_or_none(clip_info.get('duration')),
             'formats': formats,
         }

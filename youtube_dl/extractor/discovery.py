@@ -9,7 +9,7 @@ from ..compat import compat_str
 
 
 class DiscoveryIE(InfoExtractor):
-    _VALID_URL = r'''(?x)http://(?:www\.)?(?:
+    _VALID_URL = r'''(?x)https?://(?:www\.)?(?:
             discovery|
             investigationdiscovery|
             discoverylife|
@@ -63,18 +63,23 @@ class DiscoveryIE(InfoExtractor):
 
         video_title = info.get('playlist_title') or info.get('video_title')
 
-        entries = [{
-            'id': compat_str(video_info['id']),
-            'formats': self._extract_m3u8_formats(
+        entries = []
+
+        for idx, video_info in enumerate(info['playlist']):
+            formats = self._extract_m3u8_formats(
                 video_info['src'], display_id, 'mp4', 'm3u8_native', m3u8_id='hls',
-                note='Download m3u8 information for video %d' % (idx + 1)),
-            'title': video_info['title'],
-            'description': video_info.get('description'),
-            'duration': parse_duration(video_info.get('video_length')),
-            'webpage_url': video_info.get('href') or video_info.get('url'),
-            'thumbnail': video_info.get('thumbnailURL'),
-            'alt_title': video_info.get('secondary_title'),
-            'timestamp': parse_iso8601(video_info.get('publishedDate')),
-        } for idx, video_info in enumerate(info['playlist'])]
+                note='Download m3u8 information for video %d' % (idx + 1))
+            self._sort_formats(formats)
+            entries.append({
+                'id': compat_str(video_info['id']),
+                'formats': formats,
+                'title': video_info['title'],
+                'description': video_info.get('description'),
+                'duration': parse_duration(video_info.get('video_length')),
+                'webpage_url': video_info.get('href') or video_info.get('url'),
+                'thumbnail': video_info.get('thumbnailURL'),
+                'alt_title': video_info.get('secondary_title'),
+                'timestamp': parse_iso8601(video_info.get('publishedDate')),
+            })
 
         return self.playlist_result(entries, display_id, video_title)

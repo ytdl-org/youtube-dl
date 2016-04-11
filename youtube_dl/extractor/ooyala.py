@@ -9,7 +9,7 @@ from ..utils import (
     ExtractorError,
     unsmuggle_url,
 )
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 
 
 class OoyalaBaseIE(InfoExtractor):
@@ -35,7 +35,7 @@ class OoyalaBaseIE(InfoExtractor):
         for supported_format in ('mp4', 'm3u8', 'hds', 'rtmp'):
             auth_data = self._download_json(
                 self._AUTHORIZATION_URL_TEMPLATE % (pcode, embed_code) +
-                compat_urllib_parse.urlencode({
+                compat_urllib_parse_urlencode({
                     'domain': domain,
                     'supportedFormats': supported_format
                 }),

@@ -10,6 +10,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     remove_end,
+    remove_start,
     sanitized_Request,
     std_headers,
     struct_unpack,
@@ -61,7 +62,7 @@ def _decrypt_url(png):
 class RTVEALaCartaIE(InfoExtractor):
     IE_NAME = 'rtve.es:alacarta'
     IE_DESC = 'RTVE a la carta'
-    _VALID_URL = r'http://www\.rtve\.es/(m/)?alacarta/videos/[^/]+/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'https?://www\.rtve\.es/(m/)?alacarta/videos/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/alacarta/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
@@ -178,14 +179,14 @@ class RTVEInfantilIE(InfoExtractor):
 class RTVELiveIE(InfoExtractor):
     IE_NAME = 'rtve.es:live'
     IE_DESC = 'RTVE.es live streams'
-    _VALID_URL = r'http://www\.rtve\.es/(?:deportes/directo|noticias|television)/(?P<id>[a-zA-Z0-9-]+)'
+    _VALID_URL = r'https?://www\.rtve\.es/directo/(?P<id>[a-zA-Z0-9-]+)'
 
     _TESTS = [{
-        'url': 'http://www.rtve.es/noticias/directo-la-1/',
+        'url': 'http://www.rtve.es/directo/la-1/',
         'info_dict': {
-            'id': 'directo-la-1',
-            'ext': 'flv',
-            'title': 're:^La 1 de TVE [0-9]{4}-[0-9]{2}-[0-9]{2}Z[0-9]{6}$',
+            'id': 'la-1',
+            'ext': 'mp4',
+            'title': 're:^La 1 [0-9]{4}-[0-9]{2}-[0-9]{2}Z[0-9]{6}$',
         },
         'params': {
             'skip_download': 'live stream',
@@ -198,23 +199,21 @@ class RTVELiveIE(InfoExtractor):
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
-        player_url = self._search_regex(
-            r'<param name="movie" value="([^"]+)"/>', webpage, 'player URL')
-        title = remove_end(self._og_search_title(webpage), ' en directo')
+        title = remove_end(self._og_search_title(webpage), ' en directo en RTVE.es')
+        title = remove_start(title, 'Estoy viendo ')
         title += ' ' + time.strftime('%Y-%m-%dZ%H%M%S', start_time)
 
         vidplayer_id = self._search_regex(
-            r' id="vidplayer([0-9]+)"', webpage, 'internal video ID')
-        png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/default/videos/%s.png' % vidplayer_id
+            r'playerId=player([0-9]+)', webpage, 'internal video ID')
+        png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/amonet/videos/%s.png' % vidplayer_id
         png = self._download_webpage(png_url, video_id, 'Downloading url information')
-        video_url = _decrypt_url(png)
+        m3u8_url = _decrypt_url(png)
+        formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'ext': 'flv',
             'title': title,
-            'url': video_url,
-            'app': 'rtve-live-live?ovpfv=2.1.2',
-            'player_url': player_url,
-            'rtmp_live': True,
+            'formats': formats,
+            'is_live': True,
         }

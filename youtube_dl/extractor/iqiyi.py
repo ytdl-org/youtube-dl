@@ -14,10 +14,11 @@ from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
+    decode_packed_codes,
     ExtractorError,
     ohdave_rsa_encrypt,
     remove_start,
@@ -126,43 +127,11 @@ class IqiyiSDK(object):
 
 
 class IqiyiSDKInterpreter(object):
-    BASE62_TABLE = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-
     def __init__(self, sdk_code):
         self.sdk_code = sdk_code
 
-    @classmethod
-    def base62(cls, num):
-        if num == 0:
-            return '0'
-        ret = ''
-        while num:
-            ret = cls.BASE62_TABLE[num % 62] + ret
-            num = num // 62
-        return ret
-
-    def decode_eval_codes(self):
-        self.sdk_code = self.sdk_code[5:-3]
-
-        mobj = re.search(
-            r"'([^']+)',62,(\d+),'([^']+)'\.split\('\|'\),[^,]+,{}",
-            self.sdk_code)
-        obfucasted_code, count, symbols = mobj.groups()
-        count = int(count)
-        symbols = symbols.split('|')
-        symbol_table = {}
-
-        while count:
-            count -= 1
-            b62count = self.base62(count)
-            symbol_table[b62count] = symbols[count] or b62count
-
-        self.sdk_code = re.sub(
-            r'\b(\w+)\b', lambda mobj: symbol_table[mobj.group(0)],
-            obfucasted_code)
-
     def run(self, target, ip, timestamp):
-        self.decode_eval_codes()
+        self.sdk_code = decode_packed_codes(self.sdk_code)
 
         functions = re.findall(r'input=([a-zA-Z0-9]+)\(input', self.sdk_code)
 
@@ -196,7 +165,7 @@ class IqiyiIE(InfoExtractor):
     IE_NAME = 'iqiyi'
     IE_DESC = '爱奇艺'
 
-    _VALID_URL = r'http://(?:[^.]+\.)?iqiyi\.com/.+\.html'
+    _VALID_URL = r'https?://(?:[^.]+\.)?iqiyi\.com/.+\.html'
 
     _NETRC_MACHINE = 'iqiyi'
 
@@ -353,7 +322,7 @@ class IqiyiIE(InfoExtractor):
             'bird_t': timestamp,
         }
         validation_result = self._download_json(
-            'http://kylin.iqiyi.com/validate?' + compat_urllib_parse.urlencode(validation_params), None,
+            'http://kylin.iqiyi.com/validate?' + compat_urllib_parse_urlencode(validation_params), None,
             note='Validate credentials', errnote='Unable to validate credentials')
 
         MSG_MAP = {
@@ -399,7 +368,10 @@ class IqiyiIE(InfoExtractor):
             auth_req, video_id,
             note='Downloading video authentication JSON',
             errnote='Unable to download video authentication JSON')
-        if auth_result['code'] == 'Q00506':  # requires a VIP account
+
+        if auth_result['code'] == 'Q00505':  # No preview available (不允许试看鉴权失败)
+            raise ExtractorError('This video requires a VIP account', expected=True)
+        if auth_result['code'] == 'Q00506':  # End of preview time (试看结束鉴权失败)
             if do_report_warning:
                 self.report_warning('Needs a VIP account for full video')
             return False
@@ -487,7 +459,7 @@ class IqiyiIE(InfoExtractor):
                         'QY00001': auth_result['data']['u'],
                     })
                 api_video_url += '?' if '?' not in api_video_url else '&'
-                api_video_url += compat_urllib_parse.urlencode(param)
+                api_video_url += compat_urllib_parse_urlencode(param)
                 js = self._download_json(
                     api_video_url, video_id,
                     note='Download video info of segment %d for format %s' % (segment_index + 1, format_id))
@@ -525,14 +497,14 @@ class IqiyiIE(InfoExtractor):
         }
 
         api_url = 'http://cache.video.qiyi.com/vms' + '?' + \
-            compat_urllib_parse.urlencode(param)
+            compat_urllib_parse_urlencode(param)
         raw_data = self._download_json(api_url, video_id)
         return raw_data
 
-    def get_enc_key(self, swf_url, video_id):
+    def get_enc_key(self, video_id):
         # TODO: automatic key extraction
         # last update at 2016-01-22 for Zombie::bite
-        enc_key = '6ab6d0280511493ba85594779759d4ed'
+        enc_key = '4a1caba4b4465345366f28da7c117d20'
         return enc_key
 
     def _extract_playlist(self, webpage):
@@ -582,11 +554,9 @@ class IqiyiIE(InfoExtractor):
             r'data-player-tvid\s*=\s*[\'"](\d+)', webpage, 'tvid')
         video_id = self._search_regex(
             r'data-player-videoid\s*=\s*[\'"]([a-f\d]+)', webpage, 'video_id')
-        swf_url = self._search_regex(
-            r'(http://[^\'"]+MainPlayer[^.]+\.swf)', webpage, 'swf player URL')
         _uuid = uuid.uuid4().hex
 
-        enc_key = self.get_enc_key(swf_url, video_id)
+        enc_key = self.get_enc_key(video_id)
 
         raw_data = self.get_raw_data(tvid, video_id, enc_key, _uuid)
 

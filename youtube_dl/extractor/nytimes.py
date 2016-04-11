@@ -18,8 +18,9 @@ class NYTimesBaseIE(InfoExtractor):
         description = video_data.get('summary')
         duration = float_or_none(video_data.get('duration'), 1000)
 
-        uploader = video_data['byline']
-        timestamp = parse_iso8601(video_data['publication_date'][:-8])
+        uploader = video_data.get('byline')
+        publication_date = video_data.get('publication_date')
+        timestamp = parse_iso8601(publication_date[:-8]) if publication_date else None
 
         def get_file_size(file_size):
             if isinstance(file_size, int):
@@ -37,7 +38,7 @@ class NYTimesBaseIE(InfoExtractor):
                 'width': int_or_none(video.get('width')),
                 'height': int_or_none(video.get('height')),
                 'filesize': get_file_size(video.get('fileSize')),
-            } for video in video_data['renditions']
+            } for video in video_data['renditions'] if video.get('url')
         ]
         self._sort_formats(formats)
 
@@ -46,7 +47,7 @@ class NYTimesBaseIE(InfoExtractor):
                 'url': 'http://www.nytimes.com/%s' % image['url'],
                 'width': int_or_none(image.get('width')),
                 'height': int_or_none(image.get('height')),
-            } for image in video_data['images']
+            } for image in video_data.get('images', []) if image.get('url')
         ]
 
         return {

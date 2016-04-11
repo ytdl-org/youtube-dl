@@ -5,6 +5,7 @@ import re
 import sys
 import time
 
+from ..compat import compat_os_name
 from ..utils import (
     encodeFilename,
     error_to_compat_str,
@@ -115,6 +116,10 @@ class FileDownloader(object):
         return '%10s' % ('%s/s' % format_bytes(speed))
 
     @staticmethod
+    def format_retries(retries):
+        return 'inf' if retries == float('inf') else '%.0f' % retries
+
+    @staticmethod
     def best_block_size(elapsed_time, bytes):
         new_min = max(bytes / 2.0, 1.0)
         new_max = min(max(bytes * 2.0, 1.0), 4194304)  # Do not surpass 4 MB
@@ -219,7 +224,7 @@ class FileDownloader(object):
         if self.params.get('progress_with_newline', False):
             self.to_screen(fullmsg)
         else:
-            if os.name == 'nt':
+            if compat_os_name == 'nt':
                 prev_len = getattr(self, '_report_progress_prev_line_length',
                                    0)
                 if prev_len > len(fullmsg):
@@ -296,7 +301,9 @@ class FileDownloader(object):
 
     def report_retry(self, count, retries):
         """Report retry in case of HTTP error 5xx"""
-        self.to_screen('[download] Got server HTTP error. Retrying (attempt %d of %.0f)...' % (count, retries))
+        self.to_screen(
+            '[download] Got server HTTP error. Retrying (attempt %d of %s)...'
+            % (count, self.format_retries(retries)))
 
     def report_file_already_downloaded(self, file_name):
         """Report file has already been fully downloaded."""

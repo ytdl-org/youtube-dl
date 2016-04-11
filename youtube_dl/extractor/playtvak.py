@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import (
     compat_urlparse,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     ExtractorError,
@@ -106,7 +106,7 @@ class PlaytvakIE(InfoExtractor):
         })
 
         info_url = compat_urlparse.urlunparse(
-            parsed_url._replace(query=compat_urllib_parse.urlencode(qs, True)))
+            parsed_url._replace(query=compat_urllib_parse_urlencode(qs, True)))
 
         json_info = self._download_json(
             info_url, video_id,

@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class GameSpotIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?gamespot\.com/.*-(?P<id>\d+)/?'
+    _VALID_URL = r'https?://(?:www\.)?gamespot\.com/.*-(?P<id>\d+)/?'
     _TESTS = [{
         'url': 'http://www.gamespot.com/videos/arma-3-community-guide-sitrep-i/2300-6410818/',
         'md5': 'b2a30deaa8654fcccd43713a6b6a4825',

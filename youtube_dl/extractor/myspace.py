@@ -2,13 +2,13 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+    parse_iso8601,
 )
-from ..utils import ExtractorError
 
 
 class MySpaceIE(InfoExtractor):
@@ -24,6 +24,8 @@ class MySpaceIE(InfoExtractor):
                 'description': 'This country quartet was all smiles while playing a sold out show at the Pacific Amphitheatre in Orange County, California.',
                 'uploader': 'Five Minutes to the Stage',
                 'uploader_id': 'fiveminutestothestage',
+                'timestamp': 1414108751,
+                'upload_date': '20141023',
             },
             'params': {
                 # rtmp download
@@ -64,7 +66,7 @@ class MySpaceIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Starset - First Light',
                 'description': 'md5:2d5db6c9d11d527683bcda818d332414',
-                'uploader': 'Jacob Soren',
+                'uploader': 'Yumi K',
                 'uploader_id': 'SorenPromotions',
                 'upload_date': '20140725',
             }
@@ -77,6 +79,19 @@ class MySpaceIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         player_url = self._search_regex(
             r'playerSwf":"([^"?]*)', webpage, 'player URL')
+
+        def rtmp_format_from_stream_url(stream_url, width=None, height=None):
+            rtmp_url, play_path = stream_url.split(';', 1)
+            return {
+                'format_id': 'rtmp',
+                'url': rtmp_url,
+                'play_path': play_path,
+                'player_url': player_url,
+                'protocol': 'rtmp',
+                'ext': 'flv',
+                'width': width,
+                'height': height,
+            }
 
         if mobj.group('mediatype').startswith('music/song'):
             # songs don't store any useful info in the 'context' variable
@@ -93,8 +108,8 @@ class MySpaceIE(InfoExtractor):
                 return self._search_regex(
                     r'''data-%s=([\'"])(?P<data>.*?)\1''' % name,
                     song_data, name, default='', group='data')
-            streamUrl = search_data('stream-url')
-            if not streamUrl:
+            stream_url = search_data('stream-url')
+            if not stream_url:
                 vevo_id = search_data('vevo-id')
                 youtube_id = search_data('youtube-id')
                 if vevo_id:
@@ -106,35 +121,46 @@ class MySpaceIE(InfoExtractor):
                 else:
                     raise ExtractorError(
                         'Found song but don\'t know how to download it')
-            info = {
+            return {
                 'id': video_id,
                 'title': self._og_search_title(webpage),
                 'uploader': search_data('artist-name'),
                 'uploader_id': search_data('artist-username'),
                 'thumbnail': self._og_search_thumbnail(webpage),
+                'duration': int_or_none(search_data('duration')),
+                'formats': [rtmp_format_from_stream_url(stream_url)]
             }
         else:
-            context = json.loads(self._search_regex(
-                r'context = ({.*?});', webpage, 'context'))
-            video = context['video']
-            streamUrl = video['streamUrl']
-            info = {
-                'id': compat_str(video['mediaId']),
+            video = self._parse_json(self._search_regex(
+                r'context = ({.*?});', webpage, 'context'),
+                video_id)['video']
+            formats = []
+            hls_stream_url = video.get('hlsStreamUrl')
+            if hls_stream_url:
+                formats.append({
+                    'format_id': 'hls',
+                    'url': hls_stream_url,
+                    'protocol': 'm3u8_native',
+                    'ext': 'mp4',
+                })
+            stream_url = video.get('streamUrl')
+            if stream_url:
+                formats.append(rtmp_format_from_stream_url(
+                    stream_url,
+                    int_or_none(video.get('width')),
+                    int_or_none(video.get('height'))))
+            self._sort_formats(formats)
+            return {
+                'id': video_id,
                 'title': video['title'],
-                'description': video['description'],
-                'thumbnail': video['imageUrl'],
-                'uploader': video['artistName'],
-                'uploader_id': video['artistUsername'],
+                'description': video.get('description'),
+                'thumbnail': video.get('imageUrl'),
+                'uploader': video.get('artistName'),
+                'uploader_id': video.get('artistUsername'),
+                'duration': int_or_none(video.get('duration')),
+                'timestamp': parse_iso8601(video.get('dateAdded')),
+                'formats': formats,
             }
-
-        rtmp_url, play_path = streamUrl.split(';', 1)
-        info.update({
-            'url': rtmp_url,
-            'play_path': play_path,
-            'player_url': player_url,
-            'ext': 'flv',
-        })
-        return info
 
 
 class MySpaceAlbumIE(InfoExtractor):

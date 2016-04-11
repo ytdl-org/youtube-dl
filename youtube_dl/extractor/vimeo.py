@@ -12,7 +12,6 @@ from ..compat import (
 )
 from ..utils import (
     determine_ext,
-    encode_dict,
     ExtractorError,
     InAdvancePagedList,
     int_or_none,
@@ -42,13 +41,13 @@ class VimeoBaseInfoExtractor(InfoExtractor):
         self.report_login()
         webpage = self._download_webpage(self._LOGIN_URL, None, False)
         token, vuid = self._extract_xsrft_and_vuid(webpage)
-        data = urlencode_postdata(encode_dict({
+        data = urlencode_postdata({
             'action': 'login',
             'email': username,
             'password': password,
             'service': 'vimeo',
             'token': token,
-        }))
+        })
         login_request = sanitized_Request(self._LOGIN_URL, data)
         login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         login_request.add_header('Referer', self._LOGIN_URL)
@@ -73,15 +72,26 @@ class VimeoIE(VimeoBaseInfoExtractor):
 
     # _VALID_URL matches Vimeo URLs
     _VALID_URL = r'''(?x)
-        https?://
-        (?:(?:www|(?P<player>player))\.)?
-        vimeo(?P<pro>pro)?\.com/
-        (?!channels/[^/?#]+/?(?:$|[?#])|album/)
-        (?:.*?/)?
-        (?:(?:play_redirect_hls|moogaloop\.swf)\?clip_id=)?
-        (?:videos?/)?
-        (?P<id>[0-9]+)
-        /?(?:[?&].*)?(?:[#].*)?$'''
+                    https?://
+                        (?:
+                            (?:
+                                www|
+                                (?P<player>player)
+                            )
+                            \.
+                        )?
+                        vimeo(?P<pro>pro)?\.com/
+                        (?!channels/[^/?#]+/?(?:$|[?#])|(?:album|ondemand)/)
+                        (?:.*?/)?
+                        (?:
+                            (?:
+                                play_redirect_hls|
+                                moogaloop\.swf)\?clip_id=
+                            )?
+                        (?:videos?/)?
+                        (?P<id>[0-9]+)
+                        /?(?:[?&].*)?(?:[#].*)?$
+                    '''
     IE_NAME = 'vimeo'
     _TESTS = [
         {
@@ -93,6 +103,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'title': "youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
                 'description': 'md5:2d3305bad981a06ff79f027f19865021',
                 'upload_date': '20121220',
+                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/user7108434',
                 'uploader_id': 'user7108434',
                 'uploader': 'Filippo Valsorda',
                 'duration': 10,
@@ -105,6 +116,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'info_dict': {
                 'id': '68093876',
                 'ext': 'mp4',
+                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/openstreetmapus',
                 'uploader_id': 'openstreetmapus',
                 'uploader': 'OpenStreetMap US',
                 'title': 'Andy Allan - Putting the Carto into OpenStreetMap Cartography',
@@ -121,6 +133,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'Kathy Sierra: Building the minimum Badass User, Business of Software 2012',
                 'uploader': 'The BLN & Business of Software',
+                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/theblnbusinessofsoftware',
                 'uploader_id': 'theblnbusinessofsoftware',
                 'duration': 3610,
                 'description': None,
@@ -135,6 +148,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'youtube-dl password protected test video',
                 'upload_date': '20130614',
+                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/user18948128',
                 'uploader_id': 'user18948128',
                 'uploader': 'Jaime Marquínez Ferrándiz',
                 'duration': 10,
@@ -154,6 +168,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'Key & Peele: Terrorist Interrogation',
                 'description': 'md5:8678b246399b070816b12313e8b4eb5c',
+                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/atencio',
                 'uploader_id': 'atencio',
                 'uploader': 'Peter Atencio',
                 'upload_date': '20130927',
@@ -169,6 +184,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'title': 'The New Vimeo Player (You Know, For Videos)',
                 'description': 'md5:2ec900bf97c3f389378a96aee11260ea',
                 'upload_date': '20131015',
+                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/staff',
                 'uploader_id': 'staff',
                 'uploader': 'Vimeo Staff',
                 'duration': 62,
@@ -183,6 +199,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'Pier Solar OUYA Official Trailer',
                 'uploader': 'Tulio Gonçalves',
+                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/user28849593',
                 'uploader_id': 'user28849593',
             },
         },
@@ -195,6 +212,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'FOX CLASSICS - Forever Classic ID - A Full Minute',
                 'uploader': 'The DMCI',
+                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/dmci',
                 'uploader_id': 'dmci',
                 'upload_date': '20111220',
                 'description': 'md5:ae23671e82d05415868f7ad1aec21147',
@@ -236,10 +254,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option', expected=True)
         token, vuid = self._extract_xsrft_and_vuid(webpage)
-        data = urlencode_postdata(encode_dict({
+        data = urlencode_postdata({
             'password': password,
             'token': token,
-        }))
+        })
         if url.startswith('http://'):
             # vimeo only supports https now, but the user can give an http url
             url = url.replace('http://', 'https://')
@@ -255,7 +273,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         password = self._downloader.params.get('videopassword')
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option')
-        data = urlencode_postdata(encode_dict({'password': password}))
+        data = urlencode_postdata({'password': password})
         pass_url = url + '/check-password'
         password_request = sanitized_Request(pass_url, data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
@@ -269,9 +287,8 @@ class VimeoIE(VimeoBaseInfoExtractor):
 
     def _real_extract(self, url):
         url, data = unsmuggle_url(url, {})
-        headers = std_headers
+        headers = std_headers.copy()
         if 'http_headers' in data:
-            headers = headers.copy()
             headers.update(data['http_headers'])
         if 'Referer' not in headers:
             headers['Referer'] = url
@@ -286,7 +303,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
-        request = sanitized_Request(url, None, headers)
+        request = sanitized_Request(url, headers=headers)
         try:
             webpage = self._download_webpage(request, video_id)
         except ExtractorError as ee:
@@ -370,9 +387,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
         # Extract title
         video_title = config['video']['title']
 
-        # Extract uploader and uploader_id
-        video_uploader = config['video']['owner']['name']
-        video_uploader_id = config['video']['owner']['url'].split('/')[-1] if config['video']['owner']['url'] else None
+        # Extract uploader, uploader_url and uploader_id
+        video_uploader = config['video'].get('owner', {}).get('name')
+        video_uploader_url = config['video'].get('owner', {}).get('url')
+        video_uploader_id = video_uploader_url.split('/')[-1] if video_uploader_url else None
 
         # Extract video thumbnail
         video_thumbnail = config['video'].get('thumbnail')
@@ -473,6 +491,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         return {
             'id': video_id,
             'uploader': video_uploader,
+            'uploader_url': video_uploader_url,
             'uploader_id': video_uploader_id,
             'upload_date': video_upload_date,
             'title': video_title,
@@ -486,6 +505,38 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'comment_count': comment_count,
             'subtitles': subtitles,
         }
+
+
+class VimeoOndemandIE(VimeoBaseInfoExtractor):
+    IE_NAME = 'vimeo:ondemand'
+    _VALID_URL = r'https?://(?:www\.)?vimeo\.com/ondemand/(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        # ondemand video not available via https://vimeo.com/id
+        'url': 'https://vimeo.com/ondemand/20704',
+        'md5': 'c424deda8c7f73c1dfb3edd7630e2f35',
+        'info_dict': {
+            'id': '105442900',
+            'ext': 'mp4',
+            'title': 'המעבדה - במאי יותם פלדמן',
+            'uploader': 'גם סרטים',
+            'uploader_url': 're:https?://(?:www\.)?vimeo\.com/gumfilms',
+            'uploader_id': 'gumfilms',
+        },
+    }, {
+        'url': 'https://vimeo.com/ondemand/nazmaalik',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/ondemand/141692381',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/ondemand/thelastcolony/150274832',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        return self.url_result(self._og_search_video_url(webpage), VimeoIE.ie_key())
 
 
 class VimeoChannelIE(VimeoBaseInfoExtractor):
@@ -523,7 +574,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         token, vuid = self._extract_xsrft_and_vuid(webpage)
         fields['token'] = token
         fields['password'] = password
-        post = urlencode_postdata(encode_dict(fields))
+        post = urlencode_postdata(fields)
         password_path = self._search_regex(
             r'action="([^"]+)"', login_form, 'password URL')
         password_url = compat_urlparse.urljoin(page_url, password_path)

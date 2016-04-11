@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
-from ..utils import sanitized_Request
+from ..utils import (
+    sanitized_Request,
+    urlencode_postdata,
+)
 
 
 class NFBIE(InfoExtractor):
@@ -40,7 +42,7 @@ class NFBIE(InfoExtractor):
 
         request = sanitized_Request(
             'https://www.nfb.ca/film/%s/player_config' % video_id,
-            compat_urllib_parse.urlencode({'getConfig': 'true'}).encode('ascii'))
+            urlencode_postdata({'getConfig': 'true'}))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         request.add_header('X-NFB-Referer', 'http://www.nfb.ca/medias/flash/NFBVideoPlayer.swf')
 

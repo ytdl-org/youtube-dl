@@ -7,7 +7,7 @@ from .zdf import ZDFIE
 
 class DreiSatIE(ZDFIE):
     IE_NAME = '3sat'
-    _VALID_URL = r'(?:http://)?(?:www\.)?3sat\.de/mediathek/(?:index\.php|mediathek\.php)?\?(?:(?:mode|display)=[^&]+&)*obj=(?P<id>[0-9]+)$'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?3sat\.de/mediathek/(?:index\.php|mediathek\.php)?\?(?:(?:mode|display)=[^&]+&)*obj=(?P<id>[0-9]+)$'
     _TESTS = [
         {
             'url': 'http://www.3sat.de/mediathek/index.php?mode=play&obj=45918',

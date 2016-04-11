@@ -4,6 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    dict_get,
     float_or_none,
     int_or_none,
     unified_strdate,
@@ -170,6 +171,12 @@ class XHamsterEmbedIE(InfoExtractor):
 
         video_url = self._search_regex(
             r'href="(https?://xhamster\.com/movies/%s/[^"]+\.html[^"]*)"' % video_id,
-            webpage, 'xhamster url')
+            webpage, 'xhamster url', default=None)
+
+        if not video_url:
+            vars = self._parse_json(
+                self._search_regex(r'vars\s*:\s*({.+?})\s*,\s*\n', webpage, 'vars'),
+                video_id)
+            video_url = dict_get(vars, ('downloadLink', 'homepageLink', 'commentsLink', 'shareUrl'))
 
         return self.url_result(video_url, 'XHamster')

@@ -57,6 +57,7 @@ class CWTVIE(InfoExtractor):
 
         formats = self._extract_m3u8_formats(
             video_data['videos']['variantplaylist']['uri'], video_id, 'mp4')
+        self._sort_formats(formats)
 
         thumbnails = [{
             'url': image['uri'],

@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 from .common import InfoExtractor
 
+
 class LcpIE(InfoExtractor):
     IE_NAME = 'LCP'
     _VALID_URL = r'https?://(?:www\.)?lcp\.fr/(?:[^\/]+/)*(?P<id>[^/]+)'

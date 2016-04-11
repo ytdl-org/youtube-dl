@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 class TrailerAddictIE(InfoExtractor):
     _WORKING = False
-    _VALID_URL = r'(?:http://)?(?:www\.)?traileraddict\.com/(?:trailer|clip)/(?P<movie>.+?)/(?P<trailer_name>.+)'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?traileraddict\.com/(?:trailer|clip)/(?P<movie>.+?)/(?P<trailer_name>.+)'
     _TEST = {
         'url': 'http://www.traileraddict.com/trailer/prince-avalanche/trailer',
         'md5': '41365557f3c8c397d091da510e73ceb4',

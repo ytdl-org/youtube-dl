@@ -7,19 +7,19 @@ from .common import InfoExtractor
 
 
 class PyvideoIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?pyvideo\.org/video/(?P<id>\d+)/(.*)'
+    _VALID_URL = r'https?://(?:www\.)?pyvideo\.org/video/(?P<id>\d+)/(.*)'
 
     _TESTS = [
         {
             'url': 'http://pyvideo.org/video/1737/become-a-logging-expert-in-30-minutes',
-            'md5': 'de317418c8bc76b1fd8633e4f32acbc6',
+            'md5': '520915673e53a5c5d487c36e0c4d85b5',
             'info_dict': {
                 'id': '24_4WWkSmNo',
-                'ext': 'mp4',
+                'ext': 'webm',
                 'title': 'Become a logging expert in 30 minutes',
                 'description': 'md5:9665350d466c67fb5b1598de379021f7',
                 'upload_date': '20130320',
-                'uploader': 'NextDayVideo',
+                'uploader': 'Next Day Video',
                 'uploader_id': 'NextDayVideo',
             },
             'add_ie': ['Youtube'],

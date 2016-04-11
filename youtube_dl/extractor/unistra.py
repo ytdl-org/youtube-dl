@@ -7,7 +7,7 @@ from ..utils import qualities
 
 
 class UnistraIE(InfoExtractor):
-    _VALID_URL = r'http://utv\.unistra\.fr/(?:index|video)\.php\?id_video\=(?P<id>\d+)'
+    _VALID_URL = r'https?://utv\.unistra\.fr/(?:index|video)\.php\?id_video\=(?P<id>\d+)'
 
     _TESTS = [
         {

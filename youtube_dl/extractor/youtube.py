@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import itertools
 import json
 import os.path
+import random
 import re
 import time
 import traceback
@@ -16,16 +17,15 @@ from ..swfinterp import SWFInterpreter
 from ..compat import (
     compat_chr,
     compat_parse_qs,
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
     compat_urlparse,
     compat_str,
 )
 from ..utils import (
     clean_html,
-    encode_dict,
     error_to_compat_str,
     ExtractorError,
     float_or_none,
@@ -44,6 +44,7 @@ from ..utils import (
     unified_strdate,
     unsmuggle_url,
     uppercase_escape,
+    urlencode_postdata,
     ISO3166Utils,
 )
 
@@ -115,7 +116,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'hl': 'en_US',
         }
 
-        login_data = compat_urllib_parse.urlencode(encode_dict(login_form_strs)).encode('ascii')
+        login_data = urlencode_postdata(login_form_strs)
 
         req = sanitized_Request(self._LOGIN_URL, login_data)
         login_results = self._download_webpage(
@@ -148,7 +149,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 'TrustDevice': 'on',
             })
 
-            tfa_data = compat_urllib_parse.urlencode(encode_dict(tfa_form_strs)).encode('ascii')
+            tfa_data = urlencode_postdata(tfa_form_strs)
 
             tfa_req = sanitized_Request(self._TWOFACTOR_URL, tfa_data)
             tfa_results = self._download_webpage(
@@ -233,7 +234,9 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
 
 class YoutubePlaylistsBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
     def _process_page(self, content):
-        for playlist_id in orderedSet(re.findall(r'href="/?playlist\?list=([0-9A-Za-z-_]{10,})"', content)):
+        for playlist_id in orderedSet(re.findall(
+                r'<h3[^>]+class="[^"]*yt-lockup-title[^"]*"[^>]*><a[^>]+href="/?playlist\?list=([0-9A-Za-z-_]{10,})"',
+                content)):
             yield self.url_result(
                 'https://www.youtube.com/playlist?list=%s' % playlist_id, 'YoutubePlaylist')
 
@@ -267,7 +270,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                          ))
                          |(?:
                             youtu\.be|                                        # just youtu.be/xxxx
-                            vid\.plus                                         # or vid.plus/xxxx
+                            vid\.plus|                                        # or vid.plus/xxxx
+                            zwearz\.com/watch|                                # or zwearz.com/watch/xxxx
                          )/
                          |(?:www\.)?cleanvideosearch\.com/media/action/yt/watch\?videoId=
                          )
@@ -308,6 +312,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '102': {'ext': 'webm', 'height': 720, 'format_note': '3D', 'acodec': 'vorbis', 'abr': 192, 'vcodec': 'vp8', 'preference': -20},
 
         # Apple HTTP Live Streaming
+        '91': {'ext': 'mp4', 'height': 144, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 48, 'vcodec': 'h264', 'preference': -10},
         '92': {'ext': 'mp4', 'height': 240, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 48, 'vcodec': 'h264', 'preference': -10},
         '93': {'ext': 'mp4', 'height': 360, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 128, 'vcodec': 'h264', 'preference': -10},
         '94': {'ext': 'mp4', 'height': 480, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 128, 'vcodec': 'h264', 'preference': -10},
@@ -382,7 +387,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': 'youtube-dl test video "\'/\\ä↭𝕐',
                 'uploader': 'Philipp Hagemeister',
                 'uploader_id': 'phihag',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/phihag',
                 'upload_date': '20121002',
+                'license': 'Standard YouTube License',
                 'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
                 'categories': ['Science & Technology'],
                 'tags': ['youtube-dl'],
@@ -401,12 +408,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'upload_date': '20120506',
                 'title': 'Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]',
                 'alt_title': 'I Love It (feat. Charli XCX)',
-                'description': 'md5:782e8651347686cba06e58f71ab51773',
+                'description': 'md5:f3ceb5ef83a08d95b9d146f973157cc8',
                 'tags': ['Icona Pop i love it', 'sweden', 'pop music', 'big beat records', 'big beat', 'charli',
                          'xcx', 'charli xcx', 'girls', 'hbo', 'i love it', "i don't care", 'icona', 'pop',
                          'iconic ep', 'iconic', 'love', 'it'],
                 'uploader': 'Icona Pop',
                 'uploader_id': 'IconaPop',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/IconaPop',
+                'license': 'Standard YouTube License',
                 'creator': 'Icona Pop',
             }
         },
@@ -422,6 +431,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'md5:64249768eec3bc4276236606ea996373',
                 'uploader': 'justintimberlakeVEVO',
                 'uploader_id': 'justintimberlakeVEVO',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/justintimberlakeVEVO',
+                'license': 'Standard YouTube License',
                 'creator': 'Justin Timberlake',
                 'age_limit': 18,
             }
@@ -437,6 +448,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'md5:09b78bd971f1e3e289601dfba15ca4f7',
                 'uploader': 'SET India',
                 'uploader_id': 'setindia',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/setindia',
+                'license': 'Standard YouTube License',
                 'age_limit': 18,
             }
         },
@@ -449,7 +462,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': 'youtube-dl test video "\'/\\ä↭𝕐',
                 'uploader': 'Philipp Hagemeister',
                 'uploader_id': 'phihag',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/phihag',
                 'upload_date': '20121002',
+                'license': 'Standard YouTube License',
                 'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
                 'categories': ['Science & Technology'],
                 'tags': ['youtube-dl'],
@@ -468,8 +483,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'm4a',
                 'upload_date': '20121002',
                 'uploader_id': '8KVIDEO',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/8KVIDEO',
                 'description': '',
                 'uploader': '8KVIDEO',
+                'license': 'Standard YouTube License',
                 'title': 'UHDTV TEST 8K VIDEO.mp4'
             },
             'params': {
@@ -488,6 +505,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'AfrojackVEVO',
                 'uploader_id': 'AfrojackVEVO',
                 'upload_date': '20131011',
+                'license': 'Standard YouTube License',
             },
             'params': {
                 'youtube_include_dash_manifest': True,
@@ -506,6 +524,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'TaylorSwiftVEVO',
                 'uploader_id': 'TaylorSwiftVEVO',
                 'upload_date': '20140818',
+                'license': 'Standard YouTube License',
                 'creator': 'Taylor Swift',
             },
             'params': {
@@ -522,6 +541,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'upload_date': '20100909',
                 'uploader': 'The Amazing Atheist',
                 'uploader_id': 'TheAmazingAtheist',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/TheAmazingAtheist',
+                'license': 'Standard YouTube License',
                 'title': 'Burning Everyone\'s Koran',
                 'description': 'SUBSCRIBE: http://www.youtube.com/saturninefilms\n\nEven Obama has taken a stand against freedom on this issue: http://www.huffingtonpost.com/2010/09/09/obama-gma-interview-quran_n_710282.html',
             }
@@ -536,7 +557,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 're:(?s).{100,}About the Game\n.*?The Witcher 3: Wild Hunt.{100,}',
                 'uploader': 'The Witcher',
                 'uploader_id': 'WitcherGame',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/WitcherGame',
                 'upload_date': '20140605',
+                'license': 'Standard YouTube License',
                 'age_limit': 18,
             },
         },
@@ -550,7 +573,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'md5:33765bb339e1b47e7e72b5490139bb41',
                 'uploader': 'LloydVEVO',
                 'uploader_id': 'LloydVEVO',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/LloydVEVO',
                 'upload_date': '20110629',
+                'license': 'Standard YouTube License',
                 'age_limit': 18,
             },
         },
@@ -562,9 +587,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'upload_date': '20100430',
                 'uploader_id': 'deadmau5',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/deadmau5',
                 'creator': 'deadmau5',
                 'description': 'md5:12c56784b8032162bb936a5f76d55360',
                 'uploader': 'deadmau5',
+                'license': 'Standard YouTube License',
                 'title': 'Deadmau5 - Some Chords (HD)',
                 'alt_title': 'Some Chords',
             },
@@ -580,6 +607,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'upload_date': '20150827',
                 'uploader_id': 'olympic',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/olympic',
+                'license': 'Standard YouTube License',
                 'description': 'HO09  - Women -  GER-AUS - Hockey - 31 July 2012 - London 2012 Olympic Games',
                 'uploader': 'Olympics',
                 'title': 'Hockey - Women -  GER-AUS - London 2012 Olympic Games',
@@ -597,8 +626,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'stretched_ratio': 16 / 9.,
                 'upload_date': '20110310',
                 'uploader_id': 'AllenMeow',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/AllenMeow',
                 'description': 'made by Wacom from Korea | 字幕&加油添醋 by TY\'s Allen | 感謝heylisa00cavey1001同學熱情提供梗及翻譯',
                 'uploader': '孫艾倫',
+                'license': 'Standard YouTube License',
                 'title': '[A-made] 變態妍字幕版 太妍 我就是這樣的人',
             },
         },
@@ -629,7 +660,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'md5:116377fd2963b81ec4ce64b542173306',
                 'upload_date': '20150625',
                 'uploader_id': 'dorappi2000',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/dorappi2000',
                 'uploader': 'dorappi2000',
+                'license': 'Standard YouTube License',
                 'formats': 'mincount:33',
             },
         },
@@ -644,6 +677,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'Airtek',
                 'description': 'Retransmisión en directo de la XVIII media maratón de Zaragoza.',
                 'uploader_id': 'UCzTzUmjXxxacNnL8I3m4LnQ',
+                'license': 'Standard YouTube License',
                 'title': 'Retransmisión XVIII Media maratón Zaragoza 2015',
             },
             'params': {
@@ -668,6 +702,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'upload_date': '20150721',
                     'uploader': 'Beer Games Beer',
                     'uploader_id': 'beergamesbeer',
+                    'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/beergamesbeer',
+                    'license': 'Standard YouTube License',
                 },
             }, {
                 'info_dict': {
@@ -678,6 +714,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'upload_date': '20150721',
                     'uploader': 'Beer Games Beer',
                     'uploader_id': 'beergamesbeer',
+                    'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/beergamesbeer',
+                    'license': 'Standard YouTube License',
                 },
             }, {
                 'info_dict': {
@@ -688,6 +726,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'upload_date': '20150721',
                     'uploader': 'Beer Games Beer',
                     'uploader_id': 'beergamesbeer',
+                    'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/beergamesbeer',
+                    'license': 'Standard YouTube License',
                 },
             }, {
                 'info_dict': {
@@ -698,6 +738,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'upload_date': '20150721',
                     'uploader': 'Beer Games Beer',
                     'uploader_id': 'beergamesbeer',
+                    'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/beergamesbeer',
+                    'license': 'Standard YouTube License',
                 },
             }],
             'params': {
@@ -718,6 +760,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'only_matching': True,
         },
         {
+            'url': 'http://zwearz.com/watch/9lWxNJF-ufM/electra-woman-dyna-girl-official-trailer-grace-helbig.html',
+            'only_matching': True,
+        },
+        {
             # Title with JS-like syntax "};" (see https://github.com/rg3/youtube-dl/issues/7468)
             # Also tests cut-off URL expansion in video description (see
             # https://github.com/rg3/youtube-dl/issues/1892,
@@ -731,7 +777,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'md5:8085699c11dc3f597ce0410b0dcbb34a',
                 'upload_date': '20151119',
                 'uploader_id': 'IronSoulElf',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/IronSoulElf',
                 'uploader': 'IronSoulElf',
+                'license': 'Standard YouTube License',
                 'creator': 'Todd Haberman, Daniel Law Heath & Aaron Kaplan',
             },
             'params': {
@@ -754,6 +802,42 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'upload_date': '20151107',
                 'uploader_id': 'UCCr7TALkRbo3EtFzETQF1LA',
                 'uploader': 'CH GAMER DROID',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Video licensed under Creative Commons
+            'url': 'https://www.youtube.com/watch?v=M4gD1WSo5mA',
+            'info_dict': {
+                'id': 'M4gD1WSo5mA',
+                'ext': 'mp4',
+                'title': 'md5:e41008789470fc2533a3252216f1c1d1',
+                'description': 'md5:a677553cf0840649b731a3024aeff4cc',
+                'upload_date': '20150127',
+                'uploader_id': 'BerkmanCenter',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/BerkmanCenter',
+                'uploader': 'BerkmanCenter',
+                'license': 'Creative Commons Attribution license (reuse allowed)',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Channel-like uploader_url
+            'url': 'https://www.youtube.com/watch?v=eQcmzGIKrzg',
+            'info_dict': {
+                'id': 'eQcmzGIKrzg',
+                'ext': 'mp4',
+                'title': 'Democratic Socialism and Foreign Policy | Bernie Sanders',
+                'description': 'md5:dda0d780d5a6e120758d1711d062a867',
+                'upload_date': '20151119',
+                'uploader': 'Bernie 2016',
+                'uploader_id': 'UCH1dpzjCEiGAt8CXkryhkZg',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/channel/UCH1dpzjCEiGAt8CXkryhkZg',
+                'license': 'Creative Commons Attribution license (reuse allowed)',
             },
             'params': {
                 'skip_download': True,
@@ -930,7 +1014,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 continue
             sub_formats = []
             for ext in self._SUBTITLE_FORMATS:
-                params = compat_urllib_parse.urlencode({
+                params = compat_urllib_parse_urlencode({
                     'lang': lang,
                     'v': video_id,
                     'fmt': ext,
@@ -975,40 +1059,67 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return {}
         try:
             args = player_config['args']
-            caption_url = args['ttsurl']
-            if not caption_url:
-                self._downloader.report_warning(err_msg)
-                return {}
-            timestamp = args['timestamp']
-            # We get the available subtitles
-            list_params = compat_urllib_parse.urlencode({
-                'type': 'list',
-                'tlangs': 1,
-                'asrs': 1,
-            })
-            list_url = caption_url + '&' + list_params
-            caption_list = self._download_xml(list_url, video_id)
-            original_lang_node = caption_list.find('track')
-            if original_lang_node is None:
-                self._downloader.report_warning('Video doesn\'t have automatic captions')
-                return {}
-            original_lang = original_lang_node.attrib['lang_code']
-            caption_kind = original_lang_node.attrib.get('kind', '')
+            caption_url = args.get('ttsurl')
+            if caption_url:
+                timestamp = args['timestamp']
+                # We get the available subtitles
+                list_params = compat_urllib_parse_urlencode({
+                    'type': 'list',
+                    'tlangs': 1,
+                    'asrs': 1,
+                })
+                list_url = caption_url + '&' + list_params
+                caption_list = self._download_xml(list_url, video_id)
+                original_lang_node = caption_list.find('track')
+                if original_lang_node is None:
+                    self._downloader.report_warning('Video doesn\'t have automatic captions')
+                    return {}
+                original_lang = original_lang_node.attrib['lang_code']
+                caption_kind = original_lang_node.attrib.get('kind', '')
+
+                sub_lang_list = {}
+                for lang_node in caption_list.findall('target'):
+                    sub_lang = lang_node.attrib['lang_code']
+                    sub_formats = []
+                    for ext in self._SUBTITLE_FORMATS:
+                        params = compat_urllib_parse_urlencode({
+                            'lang': original_lang,
+                            'tlang': sub_lang,
+                            'fmt': ext,
+                            'ts': timestamp,
+                            'kind': caption_kind,
+                        })
+                        sub_formats.append({
+                            'url': caption_url + '&' + params,
+                            'ext': ext,
+                        })
+                    sub_lang_list[sub_lang] = sub_formats
+                return sub_lang_list
+
+            # Some videos don't provide ttsurl but rather caption_tracks and
+            # caption_translation_languages (e.g. 20LmZk1hakA)
+            caption_tracks = args['caption_tracks']
+            caption_translation_languages = args['caption_translation_languages']
+            caption_url = compat_parse_qs(caption_tracks.split(',')[0])['u'][0]
+            parsed_caption_url = compat_urllib_parse_urlparse(caption_url)
+            caption_qs = compat_parse_qs(parsed_caption_url.query)
 
             sub_lang_list = {}
-            for lang_node in caption_list.findall('target'):
-                sub_lang = lang_node.attrib['lang_code']
+            for lang in caption_translation_languages.split(','):
+                lang_qs = compat_parse_qs(compat_urllib_parse_unquote_plus(lang))
+                sub_lang = lang_qs.get('lc', [None])[0]
+                if not sub_lang:
+                    continue
                 sub_formats = []
                 for ext in self._SUBTITLE_FORMATS:
-                    params = compat_urllib_parse.urlencode({
-                        'lang': original_lang,
-                        'tlang': sub_lang,
-                        'fmt': ext,
-                        'ts': timestamp,
-                        'kind': caption_kind,
+                    caption_qs.update({
+                        'tlang': [sub_lang],
+                        'fmt': [ext],
                     })
+                    sub_url = compat_urlparse.urlunparse(parsed_caption_url._replace(
+                        query=compat_urllib_parse_urlencode(caption_qs, True)))
                     sub_formats.append({
-                        'url': caption_url + '&' + params,
+                        'url': sub_url,
                         'ext': ext,
                     })
                 sub_lang_list[sub_lang] = sub_formats
@@ -1018,6 +1129,29 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         except (KeyError, ExtractorError):
             self._downloader.report_warning(err_msg)
             return {}
+
+    def _mark_watched(self, video_id, video_info):
+        playback_url = video_info.get('videostats_playback_base_url', [None])[0]
+        if not playback_url:
+            return
+        parsed_playback_url = compat_urlparse.urlparse(playback_url)
+        qs = compat_urlparse.parse_qs(parsed_playback_url.query)
+
+        # cpn generation algorithm is reverse engineered from base.js.
+        # In fact it works even with dummy cpn.
+        CPN_ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_'
+        cpn = ''.join((CPN_ALPHABET[random.randint(0, 256) & 63] for _ in range(0, 16)))
+
+        qs.update({
+            'ver': ['2'],
+            'cpn': [cpn],
+        })
+        playback_url = compat_urlparse.urlunparse(
+            parsed_playback_url._replace(query=compat_urllib_parse_urlencode(qs, True)))
+
+        self._download_webpage(
+            playback_url, video_id, 'Marking watched',
+            'Unable to mark watched', fatal=False)
 
     @classmethod
     def extract_id(cls, url):
@@ -1098,7 +1232,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # this can be viewed without login into Youtube
             url = proto + '://www.youtube.com/embed/%s' % video_id
             embed_webpage = self._download_webpage(url, video_id, 'Downloading embed webpage')
-            data = compat_urllib_parse.urlencode({
+            data = compat_urllib_parse_urlencode({
                 'video_id': video_id,
                 'eurl': 'https://youtube.googleapis.com/v/' + video_id,
                 'sts': self._search_regex(
@@ -1245,9 +1379,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # uploader_id
         video_uploader_id = None
-        mobj = re.search(r'<link itemprop="url" href="http://www.youtube.com/(?:user|channel)/([^"]+)">', video_webpage)
+        video_uploader_url = None
+        mobj = re.search(
+            r'<link itemprop="url" href="(?P<uploader_url>https?://www.youtube.com/(?:user|channel)/(?P<uploader_id>[^"]+))">',
+            video_webpage)
         if mobj is not None:
-            video_uploader_id = mobj.group(1)
+            video_uploader_id = mobj.group('uploader_id')
+            video_uploader_url = mobj.group('uploader_url')
         else:
             self._downloader.report_warning('unable to extract uploader nickname')
 
@@ -1274,6 +1412,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if upload_date:
                 upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
         upload_date = unified_strdate(upload_date)
+
+        video_license = self._html_search_regex(
+            r'<h4[^>]+class="title"[^>]*>\s*License\s*</h4>\s*<ul[^>]*>\s*<li>(.+?)</li',
+            video_webpage, 'license', default=None)
 
         m_music = re.search(
             r'<h4[^>]+class="title"[^>]*>\s*Music\s*</h4>\s*<ul[^>]*>\s*<li>(?P<title>.+?) by (?P<creator>.+?)(?:\(.+?\))?</li',
@@ -1348,6 +1490,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts', [''])[0]
             if 'rtmpe%3Dyes' in encoded_url_map:
                 raise ExtractorError('rtmpe downloads are not supported, see https://github.com/rg3/youtube-dl/issues/343 for more information.', expected=True)
+            formats_spec = {}
+            fmt_list = video_info.get('fmt_list', [''])[0]
+            if fmt_list:
+                for fmt in fmt_list.split(','):
+                    spec = fmt.split('/')
+                    if len(spec) > 1:
+                        width_height = spec[1].split('x')
+                        if len(width_height) == 2:
+                            formats_spec[spec[0]] = {
+                                'resolution': spec[1],
+                                'width': int_or_none(width_height[0]),
+                                'height': int_or_none(width_height[1]),
+                            }
             formats = []
             for url_data_str in encoded_url_map.split(','):
                 url_data = compat_parse_qs(url_data_str)
@@ -1416,6 +1571,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 }
                 if format_id in self._formats:
                     dct.update(self._formats[format_id])
+                if format_id in formats_spec:
+                    dct.update(formats_spec[format_id])
 
                 # Some itags are not included in DASH manifest thus corresponding formats will
                 # lack metadata (see https://github.com/rg3/youtube-dl/pull/5993).
@@ -1528,11 +1685,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         self._sort_formats(formats)
 
+        self.mark_watched(video_id, video_info)
+
         return {
             'id': video_id,
             'uploader': video_uploader,
             'uploader_id': video_uploader_id,
+            'uploader_url': video_uploader_url,
             'upload_date': upload_date,
+            'license': video_license,
             'creator': video_creator,
             'title': video_title,
             'alt_title': video_alt_title,
@@ -1757,7 +1918,8 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        return False if YoutubePlaylistsIE.suitable(url) else super(YoutubeChannelIE, cls).suitable(url)
+        return (False if YoutubePlaylistsIE.suitable(url) or YoutubeLiveIE.suitable(url)
+                else super(YoutubeChannelIE, cls).suitable(url))
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
@@ -1832,6 +1994,51 @@ class YoutubeUserIE(YoutubeChannelIE):
             return super(YoutubeUserIE, cls).suitable(url)
 
 
+class YoutubeLiveIE(YoutubeBaseInfoExtractor):
+    IE_DESC = 'YouTube.com live streams'
+    _VALID_URL = r'(?P<base_url>https?://(?:\w+\.)?youtube\.com/(?:user|channel)/(?P<id>[^/]+))/live'
+    IE_NAME = 'youtube:live'
+
+    _TESTS = [{
+        'url': 'http://www.youtube.com/user/TheYoungTurks/live',
+        'info_dict': {
+            'id': 'a48o2S1cPoo',
+            'ext': 'mp4',
+            'title': 'The Young Turks - Live Main Show',
+            'uploader': 'The Young Turks',
+            'uploader_id': 'TheYoungTurks',
+            'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/TheYoungTurks',
+            'upload_date': '20150715',
+            'license': 'Standard YouTube License',
+            'description': 'md5:438179573adcdff3c97ebb1ee632b891',
+            'categories': ['News & Politics'],
+            'tags': ['Cenk Uygur (TV Program Creator)', 'The Young Turks (Award-Winning Work)', 'Talk Show (TV Genre)'],
+            'like_count': int,
+            'dislike_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://www.youtube.com/channel/UC1yBKRuGpC1tSM73A0ZjYjQ/live',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        channel_id = mobj.group('id')
+        base_url = mobj.group('base_url')
+        webpage = self._download_webpage(url, channel_id, fatal=False)
+        if webpage:
+            page_type = self._og_search_property(
+                'type', webpage, 'page type', default=None)
+            video_id = self._html_search_meta(
+                'videoId', webpage, 'video id', default=None)
+            if page_type == 'video' and video_id and re.match(r'^[0-9A-Za-z_-]{11}$', video_id):
+                return self.url_result(video_id, YoutubeIE.ie_key())
+        return self.url_result(base_url)
+
+
 class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
     IE_DESC = 'YouTube.com user/channel playlists'
     _VALID_URL = r'https?://(?:\w+\.)?youtube\.com/(?:user|channel)/(?P<id>[^/]+)/playlists'
@@ -1885,7 +2092,7 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubePlaylistIE):
                 'spf': 'navigate',
             }
             url_query.update(self._EXTRA_QUERY_ARGS)
-            result_url = 'https://www.youtube.com/results?' + compat_urllib_parse.urlencode(url_query)
+            result_url = 'https://www.youtube.com/results?' + compat_urllib_parse_urlencode(url_query)
             data = self._download_json(
                 result_url, video_id='query "%s"' % query,
                 note='Downloading page %s' % pagenum,

@@ -8,7 +8,7 @@ from .common import InfoExtractor
 
 
 class JeuxVideoIE(InfoExtractor):
-    _VALID_URL = r'http://.*?\.jeuxvideo\.com/.*/(.*?)\.htm'
+    _VALID_URL = r'https?://.*?\.jeuxvideo\.com/.*/(.*?)\.htm'
 
     _TESTS = [{
         'url': 'http://www.jeuxvideo.com/reportages-videos-jeux/0004/00046170/tearaway-playstation-vita-gc-2013-tearaway-nous-presente-ses-papiers-d-identite-00115182.htm',
@@ -30,7 +30,7 @@ class JeuxVideoIE(InfoExtractor):
         webpage = self._download_webpage(url, title)
         title = self._html_search_meta('name', webpage) or self._og_search_title(webpage)
         config_url = self._html_search_regex(
-            r'data-src="(/contenu/medias/video.php.*?)"',
+            r'data-src(?:set-video)?="(/contenu/medias/video.php.*?)"',
             webpage, 'config URL')
         config_url = 'http://www.jeuxvideo.com' + config_url
 

@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     ExtractorError,
@@ -170,7 +170,7 @@ class SohuIE(InfoExtractor):
                     if retries > 0:
                         download_note += ' (retry #%d)' % retries
                     part_info = self._parse_json(self._download_webpage(
-                        'http://%s/?%s' % (allot, compat_urllib_parse.urlencode(params)),
+                        'http://%s/?%s' % (allot, compat_urllib_parse_urlencode(params)),
                         video_id, download_note), video_id)
 
                     video_url = part_info['url']

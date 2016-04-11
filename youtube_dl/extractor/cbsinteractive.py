@@ -1,12 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .theplatform import ThePlatformIE
 from ..utils import int_or_none
 
 
-class CNETIE(ThePlatformIE):
-    _VALID_URL = r'https?://(?:www\.)?cnet\.com/videos/(?P<id>[^/]+)/'
+class CBSInteractiveIE(ThePlatformIE):
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>cnet|zdnet)\.com/(?:videos|video/share)/(?P<id>[^/?]+)'
     _TESTS = [{
         'url': 'http://www.cnet.com/videos/hands-on-with-microsofts-windows-8-1-update/',
         'info_dict': {
@@ -17,6 +19,8 @@ class CNETIE(ThePlatformIE):
             'uploader_id': '6085384d-619e-11e3-b231-14feb5ca9861',
             'uploader': 'Sarah Mitroff',
             'duration': 70,
+            'timestamp': 1396479627,
+            'upload_date': '20140402',
         },
     }, {
         'url': 'http://www.cnet.com/videos/whiny-pothole-tweets-at-local-government-when-hit-by-cars-tomorrow-daily-187/',
@@ -28,15 +32,38 @@ class CNETIE(ThePlatformIE):
             'uploader_id': 'b163284d-6b73-44fc-b3e6-3da66c392d40',
             'uploader': 'Ashley Esqueda',
             'duration': 1482,
+            'timestamp': 1433289889,
+            'upload_date': '20150603',
         },
+    }, {
+        'url': 'http://www.zdnet.com/video/share/video-keeping-android-smartphones-and-tablets-secure/',
+        'info_dict': {
+            'id': 'bc1af9f0-a2b5-4e54-880d-0d95525781c0',
+            'ext': 'mp4',
+            'title': 'Video: Keeping Android smartphones and tablets secure',
+            'description': 'Here\'s the best way to keep Android devices secure, and what you do when they\'ve come to the end of their lives.',
+            'uploader_id': 'f2d97ea2-8175-11e2-9d12-0018fe8a00b0',
+            'uploader': 'Adrian Kingsley-Hughes',
+            'timestamp': 1448961720,
+            'upload_date': '20151201',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
     }]
+    TP_RELEASE_URL_TEMPLATE = 'http://link.theplatform.com/s/kYEXFC/%s?mbr=true'
+    MPX_ACCOUNTS = {
+        'cnet': 2288573011,
+        'zdnet': 2387448114,
+    }
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        site, display_id = re.match(self._VALID_URL, url).groups()
         webpage = self._download_webpage(url, display_id)
 
         data_json = self._html_search_regex(
-            r"data-cnet-video(?:-uvp)?-options='([^']+)'",
+            r"data-(?:cnet|zdnet)-video(?:-uvp)?-options='([^']+)'",
             webpage, 'data json')
         data = self._parse_json(data_json, display_id)
         vdata = data.get('video') or data['videos'][0]
@@ -51,18 +78,15 @@ class CNETIE(ThePlatformIE):
             uploader = None
             uploader_id = None
 
-        mpx_account = data['config']['uvpConfig']['default']['mpx_account']
-
-        metadata = self.get_metadata('%s/%s' % (mpx_account, list(vdata['files'].values())[0]), video_id)
-        description = vdata.get('description') or metadata.get('description')
-        duration = int_or_none(vdata.get('duration')) or metadata.get('duration')
-
-        formats = []
-        subtitles = {}
+        media_guid_path = 'media/guid/%d/%s' % (self.MPX_ACCOUNTS[site], vdata['mpxRefId'])
+        formats, subtitles = [], {}
+        if site == 'cnet':
+            formats, subtitles = self._extract_theplatform_smil(
+                self.TP_RELEASE_URL_TEMPLATE % media_guid_path, video_id)
         for (fkey, vid) in vdata['files'].items():
             if fkey == 'hls_phone' and 'hls_tablet' in vdata['files']:
                 continue
-            release_url = 'http://link.theplatform.com/s/%s/%s?format=SMIL&mbr=true' % (mpx_account, vid)
+            release_url = self.TP_RELEASE_URL_TEMPLATE % vid
             if fkey == 'hds':
                 release_url += '&manifest=f4m'
             tp_formats, tp_subtitles = self._extract_theplatform_smil(release_url, video_id, 'Downloading %s SMIL data' % fkey)
@@ -70,15 +94,15 @@ class CNETIE(ThePlatformIE):
             subtitles = self._merge_subtitles(subtitles, tp_subtitles)
         self._sort_formats(formats)
 
-        return {
+        info = self.get_metadata('kYEXFC/%s' % media_guid_path, video_id)
+        info.update({
             'id': video_id,
             'display_id': display_id,
             'title': title,
-            'description': description,
-            'thumbnail': metadata.get('thumbnail'),
-            'duration': duration,
+            'duration': int_or_none(vdata.get('duration')),
             'uploader': uploader,
             'uploader_id': uploader_id,
             'subtitles': subtitles,
             'formats': formats,
-        }
+        })
+        return info

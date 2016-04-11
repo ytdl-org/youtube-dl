@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding: utf-8
 from __future__ import unicode_literals
 
 # Allow direct execution
@@ -52,7 +53,12 @@ class TestHTTP(unittest.TestCase):
             ('localhost', 0), HTTPTestRequestHandler)
         self.httpd.socket = ssl.wrap_socket(
             self.httpd.socket, certfile=certfn, server_side=True)
-        self.port = self.httpd.socket.getsockname()[1]
+        if os.name == 'java':
+            # In Jython SSLSocket is not a subclass of socket.socket
+            sock = self.httpd.socket.sock
+        else:
+            sock = self.httpd.socket
+        self.port = sock.getsockname()[1]
         self.server_thread = threading.Thread(target=self.httpd.serve_forever)
         self.server_thread.daemon = True
         self.server_thread.start()
@@ -114,6 +120,15 @@ class TestProxy(unittest.TestCase):
         req.add_header('Ytdl-request-proxy', cn_proxy)
         response = ydl.urlopen(req).read().decode('utf-8')
         self.assertEqual(response, 'cn: {0}'.format(url))
+
+    def test_proxy_with_idn(self):
+        ydl = YoutubeDL({
+            'proxy': 'localhost:{0}'.format(self.port),
+        })
+        url = 'http://中文.tw/'
+        response = ydl.urlopen(url).read().decode('utf-8')
+        # b'xn--fiq228c' is '中文'.encode('idna')
+        self.assertEqual(response, 'normal: http://xn--fiq228c.tw/')
 
 if __name__ == '__main__':
     unittest.main()

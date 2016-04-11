@@ -7,7 +7,7 @@ from .nuevo import NuevoBaseIE
 
 
 class TrollvidsIE(NuevoBaseIE):
-    _VALID_URL = r'http://(?:www\.)?trollvids\.com/video/(?P<id>\d+)/(?P<display_id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?trollvids\.com/video/(?P<id>\d+)/(?P<display_id>[^/?#&]+)'
     IE_NAME = 'trollvids'
     _TEST = {
         'url': 'http://trollvids.com/video/2349002/%E3%80%90MMD-R-18%E3%80%91%E3%82%AC%E3%83%BC%E3%83%AB%E3%83%95%E3%83%AC%E3%83%B3%E3%83%89-carrymeoff',

@@ -14,8 +14,11 @@ class VideoDetectiveIE(InfoExtractor):
             'id': '194487',
             'ext': 'mp4',
             'title': 'KICK-ASS 2',
-            'description': 'md5:65ba37ad619165afac7d432eaded6013',
-            'duration': 138,
+            'description': 'md5:c189d5b7280400630a1d3dd17eaa8d8a',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
     }
 
@@ -24,4 +27,4 @@ class VideoDetectiveIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         og_video = self._og_search_video_url(webpage)
         query = compat_urlparse.urlparse(og_video).query
-        return self.url_result(InternetVideoArchiveIE._build_url(query), ie=InternetVideoArchiveIE.ie_key())
+        return self.url_result(InternetVideoArchiveIE._build_json_url(query), ie=InternetVideoArchiveIE.ie_key())
