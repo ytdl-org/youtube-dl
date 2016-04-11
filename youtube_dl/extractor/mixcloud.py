@@ -7,6 +7,7 @@ from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     ExtractorError,
     HEADRequest,
+    NO_DEFAULT,
     parse_count,
     str_to_int,
 )
@@ -63,8 +64,17 @@ class MixcloudIE(InfoExtractor):
 
         webpage = self._download_webpage(url, track_id)
 
+        message = self._html_search_regex(
+            r'(?s)<div[^>]+class="global-message cloudcast-disabled-notice-light"[^>]*>(.+?)<(?:a|/div)',
+            webpage, 'error message', default=None)
+
         preview_url = self._search_regex(
-            r'\s(?:data-preview-url|m-preview)="([^"]+)"', webpage, 'preview url')
+            r'\s(?:data-preview-url|m-preview)="([^"]+)"',
+            webpage, 'preview url', default=None if message else NO_DEFAULT)
+
+        if message:
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, message), expected=True)
+
         song_url = re.sub(r'audiocdn(\d+)', r'stream\1', preview_url)
         song_url = song_url.replace('/previews/', '/c/originals/')
         if not self._check_url(song_url, track_id, 'mp3'):
