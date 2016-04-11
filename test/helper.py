@@ -143,6 +143,9 @@ def expect_value(self, got, expected, field):
             expect_value(self, item_got, item_expected, field)
     else:
         if isinstance(expected, compat_str) and expected.startswith('md5:'):
+            self.assertTrue(
+                isinstance(got, compat_str),
+                'Expected field %s to be a unicode object, but got value %r of type %r' % (field, got, type(got)))
             got = 'md5:' + md5(got)
         elif isinstance(expected, compat_str) and expected.startswith('mincount:'):
             self.assertTrue(

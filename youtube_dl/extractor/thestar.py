@@ -19,6 +19,10 @@ class TheStarIE(InfoExtractor):
             'uploader_id': '794267642001',
             'timestamp': 1454353482,
             'upload_date': '20160201',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         }
     }
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/794267642001/default_default/index.html?videoId=%s'

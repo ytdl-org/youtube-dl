@@ -39,9 +39,14 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
         'info_dict': {
             'id': '4878838',
             'ext': 'mp3',
-            'title': 'Carlo Ambrosio - Gypsy Eyes 1',
+            'title': 'Carlo Ambrosio & Fabio Di Bari, Carlo Ambrosio - Gypsy Eyes 1',
             'filesize': 4628061,
             'duration': 193.04,
+            'track': 'Gypsy Eyes 1',
+            'album': 'Gypsy Soul',
+            'album_artist': 'Carlo Ambrosio',
+            'artist': 'Carlo Ambrosio & Fabio Di Bari, Carlo Ambrosio',
+            'release_year': '2009',
         }
     }
 
@@ -64,15 +69,44 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             thumbnail = cover_uri.replace('%%', 'orig')
             if not thumbnail.startswith('http'):
                 thumbnail = 'http://' + thumbnail
-        return {
+
+        track_title = track['title']
+        track_info = {
             'id': track['id'],
             'ext': 'mp3',
             'url': self._get_track_url(track['storageDir'], track['id']),
-            'title': '%s - %s' % (track['artists'][0]['name'], track['title']),
             'filesize': int_or_none(track.get('fileSize')),
             'duration': float_or_none(track.get('durationMs'), 1000),
             'thumbnail': thumbnail,
+            'track': track_title,
         }
+
+        def extract_artist(artist_list):
+            if artist_list and isinstance(artist_list, list):
+                artists_names = [a['name'] for a in artist_list if a.get('name')]
+                if artists_names:
+                    return ', '.join(artists_names)
+
+        albums = track.get('albums')
+        if albums and isinstance(albums, list):
+            album = albums[0]
+            if isinstance(album, dict):
+                year = album.get('year')
+                track_info.update({
+                    'album': album.get('title'),
+                    'album_artist': extract_artist(album.get('artists')),
+                    'release_year': compat_str(year) if year else None,
+                })
+
+        track_artist = extract_artist(track.get('artists'))
+        if track_artist:
+            track_info.update({
+                'artist': track_artist,
+                'title': '%s - %s' % (track_artist, track_title),
+            })
+        else:
+            track_info['title'] = track_title
+        return track_info
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

@@ -778,12 +778,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
         # Substitute URL if any change after escaping
         if url != url_escaped:
-            req_type = HEADRequest if req.get_method() == 'HEAD' else compat_urllib_request.Request
-            new_req = req_type(
-                url_escaped, data=req.data, headers=req.headers,
-                origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
-            new_req.timeout = req.timeout
-            req = new_req
+            req = update_Request(req, url=url_escaped)
 
         for h, v in std_headers.items():
             # Capitalize is needed because of Python bug 2275: http://bugs.python.org/issue2275
@@ -1797,11 +1792,27 @@ def urlencode_postdata(*args, **kargs):
 
 
 def update_url_query(url, query):
+    if not query:
+        return url
     parsed_url = compat_urlparse.urlparse(url)
     qs = compat_parse_qs(parsed_url.query)
     qs.update(query)
     return compat_urlparse.urlunparse(parsed_url._replace(
         query=compat_urllib_parse_urlencode(qs, True)))
+
+
+def update_Request(req, url=None, data=None, headers={}, query={}):
+    req_headers = req.headers.copy()
+    req_headers.update(headers)
+    req_data = data or req.data
+    req_url = update_url_query(url or req.get_full_url(), query)
+    req_type = HEADRequest if req.get_method() == 'HEAD' else compat_urllib_request.Request
+    new_req = req_type(
+        req_url, data=req_data, headers=req_headers,
+        origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
+    if hasattr(req, 'timeout'):
+        new_req.timeout = req.timeout
+    return new_req
 
 
 def dict_get(d, key_or_keys, default=None, skip_false_values=True):
@@ -2122,6 +2133,7 @@ def dfxp2srt(dfxp_data):
     _x = functools.partial(xpath_with_ns, ns_map={
         'ttml': 'http://www.w3.org/ns/ttml',
         'ttaf1': 'http://www.w3.org/2006/10/ttaf1',
+        'ttaf1_0604': 'http://www.w3.org/2006/04/ttaf1',
     })
 
     class TTMLPElementParser(object):
@@ -2148,7 +2160,7 @@ def dfxp2srt(dfxp_data):
 
     dfxp = compat_etree_fromstring(dfxp_data.encode('utf-8'))
     out = []
-    paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall(_x('.//ttaf1:p')) or dfxp.findall('.//p')
+    paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall(_x('.//ttaf1:p')) or dfxp.findall(_x('.//ttaf1_0604:p')) or dfxp.findall('.//p')
 
     if not paras:
         raise ValueError('Invalid dfxp/TTML subtitle')

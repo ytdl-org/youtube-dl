@@ -46,6 +46,9 @@ class BrightcoveLegacyIE(InfoExtractor):
                 'title': 'Xavier Sala i Martín: “Un banc que no presta és un banc zombi que no serveix per a res”',
                 'uploader': '8TV',
                 'description': 'md5:a950cc4285c43e44d763d036710cd9cd',
+                'timestamp': 1368213670,
+                'upload_date': '20130510',
+                'uploader_id': '1589608506001',
             }
         },
         {
@@ -57,6 +60,9 @@ class BrightcoveLegacyIE(InfoExtractor):
                 'title': 'JVMLS 2012: Arrays 2.0 - Opportunities and Challenges',
                 'description': 'John Rose speaks at the JVM Language Summit, August 1, 2012.',
                 'uploader': 'Oracle',
+                'timestamp': 1344975024,
+                'upload_date': '20120814',
+                'uploader_id': '1460825906',
             },
         },
         {
@@ -68,6 +74,9 @@ class BrightcoveLegacyIE(InfoExtractor):
                 'title': 'This Bracelet Acts as a Personal Thermostat',
                 'description': 'md5:547b78c64f4112766ccf4e151c20b6a0',
                 'uploader': 'Mashable',
+                'timestamp': 1382041798,
+                'upload_date': '20131017',
+                'uploader_id': '1130468786001',
             },
         },
         {
@@ -85,14 +94,17 @@ class BrightcoveLegacyIE(InfoExtractor):
         {
             # test flv videos served by akamaihd.net
             # From http://www.redbull.com/en/bike/stories/1331655643987/replay-uci-dh-world-cup-2014-from-fort-william
-            'url': 'http://c.brightcove.com/services/viewer/htmlFederated?%40videoPlayer=ref%3ABC2996102916001&linkBaseURL=http%3A%2F%2Fwww.redbull.com%2Fen%2Fbike%2Fvideos%2F1331655630249%2Freplay-uci-fort-william-2014-dh&playerKey=AQ%7E%7E%2CAAAApYJ7UqE%7E%2Cxqr_zXk0I-zzNndy8NlHogrCb5QdyZRf&playerID=1398061561001#__youtubedl_smuggle=%7B%22Referer%22%3A+%22http%3A%2F%2Fwww.redbull.com%2Fen%2Fbike%2Fstories%2F1331655643987%2Freplay-uci-dh-world-cup-2014-from-fort-william%22%7D',
+            'url': 'http://c.brightcove.com/services/viewer/htmlFederated?%40videoPlayer=ref%3Aevent-stream-356&linkBaseURL=http%3A%2F%2Fwww.redbull.com%2Fen%2Fbike%2Fvideos%2F1331655630249%2Freplay-uci-fort-william-2014-dh&playerKey=AQ%7E%7E%2CAAAApYJ7UqE%7E%2Cxqr_zXk0I-zzNndy8NlHogrCb5QdyZRf&playerID=1398061561001#__youtubedl_smuggle=%7B%22Referer%22%3A+%22http%3A%2F%2Fwww.redbull.com%2Fen%2Fbike%2Fstories%2F1331655643987%2Freplay-uci-dh-world-cup-2014-from-fort-william%22%7D',
             # The md5 checksum changes on each download
             'info_dict': {
-                'id': '2996102916001',
+                'id': '3750436379001',
                 'ext': 'flv',
                 'title': 'UCI MTB World Cup 2014: Fort William, UK - Downhill Finals',
-                'uploader': 'Red Bull TV',
+                'uploader': 'RBTV Old (do not use)',
                 'description': 'UCI MTB World Cup 2014: Fort William, UK - Downhill Finals',
+                'timestamp': 1409122195,
+                'upload_date': '20140827',
+                'uploader_id': '710858724001',
             },
         },
         {
@@ -106,6 +118,12 @@ class BrightcoveLegacyIE(InfoExtractor):
             'playlist_mincount': 7,
         },
     ]
+    FLV_VCODECS = {
+        1: 'SORENSON',
+        2: 'ON2',
+        3: 'H264',
+        4: 'VP8',
+    }
 
     @classmethod
     def _build_brighcove_url(cls, object_str):
@@ -289,12 +307,16 @@ class BrightcoveLegacyIE(InfoExtractor):
                                     playlist_title=playlist_info['mediaCollectionDTO']['displayName'])
 
     def _extract_video_info(self, video_info):
+        publisher_id = video_info.get('publisherId')
         info = {
             'id': compat_str(video_info['id']),
             'title': video_info['displayName'].strip(),
             'description': video_info.get('shortDescription'),
             'thumbnail': video_info.get('videoStillURL') or video_info.get('thumbnailURL'),
             'uploader': video_info.get('publisherName'),
+            'uploader_id': compat_str(publisher_id) if publisher_id else None,
+            'duration': float_or_none(video_info.get('length'), 1000),
+            'timestamp': int_or_none(video_info.get('creationDate'), 1000),
         }
 
         renditions = video_info.get('renditions', []) + video_info.get('IOSRenditions', [])
@@ -318,19 +340,30 @@ class BrightcoveLegacyIE(InfoExtractor):
                         ext = 'flv'
                 if ext is None:
                     ext = determine_ext(url)
-                size = rend.get('size')
+                tbr = int_or_none(rend.get('encodingRate'), 1000),
                 a_format = {
+                    'format_id': 'http%s' % ('-%s' % tbr if tbr else ''),
                     'url': url,
                     'ext': ext,
-                    'height': rend.get('frameHeight'),
-                    'width': rend.get('frameWidth'),
-                    'filesize': size if size != 0 else None,
+                    'filesize': int_or_none(rend.get('size')) or None,
+                    'tbr': tbr,
                 }
+                if rend.get('audioOnly'):
+                    a_format.update({
+                        'vcodec': 'none',
+                    })
+                else:
+                    a_format.update({
+                        'height': int_or_none(rend.get('frameHeight')),
+                        'width': int_or_none(rend.get('frameWidth')),
+                        'vcodec': rend.get('videoCodec'),
+                    })
 
                 # m3u8 manifests with remote == false are media playlists
                 # Not calling _extract_m3u8_formats here to save network traffic
                 if ext == 'm3u8':
                     a_format.update({
+                        'format_id': 'hls%s' % ('-%s' % tbr if tbr else ''),
                         'ext': 'mp4',
                         'protocol': 'm3u8',
                     })
@@ -341,6 +374,8 @@ class BrightcoveLegacyIE(InfoExtractor):
         elif video_info.get('FLVFullLengthURL') is not None:
             info.update({
                 'url': video_info['FLVFullLengthURL'],
+                'vcodec': self.FLV_VCODECS.get(video_info.get('FLVFullCodec')),
+                'filesize': int_or_none(video_info.get('FLVFullSize')),
             })
 
         if self._downloader.params.get('include_ads', False):
@@ -396,6 +431,7 @@ class BrightcoveNewIE(InfoExtractor):
             'formats': 'mincount:41',
         },
         'params': {
+            # m3u8 download
             'skip_download': True,
         }
     }, {
@@ -439,7 +475,7 @@ class BrightcoveNewIE(InfoExtractor):
                     </video>.*?
                     <script[^>]+
                         src=["\'](?:https?:)?//players\.brightcove\.net/
-                        (\d+)/([\da-f-]+)_([^/]+)/index(?:\.min)?\.js
+                        (\d+)/([^/]+)_([^/]+)/index(?:\.min)?\.js
                 ''', webpage):
             entries.append(
                 'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'
@@ -480,7 +516,7 @@ class BrightcoveNewIE(InfoExtractor):
                 raise ExtractorError(json_data[0]['message'], expected=True)
             raise
 
-        title = json_data['name']
+        title = json_data['name'].strip()
 
         formats = []
         for source in json_data.get('sources', []):
@@ -533,7 +569,7 @@ class BrightcoveNewIE(InfoExtractor):
                     f.update({
                         'url': src or streaming_src,
                         'format_id': build_format_id('http' if src else 'http-streaming'),
-                        'preference': 2 if src else 1,
+                        'source_preference': 0 if src else -1,
                     })
                 else:
                     f.update({
@@ -544,20 +580,22 @@ class BrightcoveNewIE(InfoExtractor):
                 formats.append(f)
         self._sort_formats(formats)
 
-        description = json_data.get('description')
-        thumbnail = json_data.get('thumbnail')
-        timestamp = parse_iso8601(json_data.get('published_at'))
-        duration = float_or_none(json_data.get('duration'), 1000)
-        tags = json_data.get('tags', [])
+        subtitles = {}
+        for text_track in json_data.get('text_tracks', []):
+            if text_track.get('src'):
+                subtitles.setdefault(text_track.get('srclang'), []).append({
+                    'url': text_track['src'],
+                })
 
         return {
             'id': video_id,
             'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'duration': duration,
-            'timestamp': timestamp,
+            'description': json_data.get('description'),
+            'thumbnail': json_data.get('thumbnail') or json_data.get('poster'),
+            'duration': float_or_none(json_data.get('duration'), 1000),
+            'timestamp': parse_iso8601(json_data.get('published_at')),
             'uploader_id': account_id,
             'formats': formats,
-            'tags': tags,
+            'subtitles': subtitles,
+            'tags': json_data.get('tags', []),
         }

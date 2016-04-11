@@ -57,6 +57,7 @@
  - **AudioBoom**
  - **audiomack**
  - **audiomack:album**
+ - **auroravid**: AuroraVid
  - **Azubu**
  - **AzubuLive**
  - **BaiduVideo**: 百度视频
@@ -92,12 +93,14 @@
  - **BYUtv**
  - **Camdemy**
  - **CamdemyFolder**
+ - **CamWithHer**
  - **canalc2.tv**
  - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
  - **Canvas**
  - **CBC**
  - **CBCPlayer**
  - **CBS**
+ - **CBSInteractive**
  - **CBSNews**: CBS News
  - **CBSNewsLiveVideo**: CBS News Live Videos
  - **CBSSports**
@@ -118,7 +121,7 @@
  - **Clubic**
  - **Clyp**
  - **cmt.com**
- - **CNET**
+ - **CNBC**
  - **CNN**
  - **CNNArticle**
  - **CNNBlogs**
@@ -134,6 +137,7 @@
  - **CrooksAndLiars**
  - **Crunchyroll**
  - **crunchyroll:playlist**
+ - **CSNNE**
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
  - **culturebox.francetvinfo.fr**
@@ -376,7 +380,8 @@
  - **myvideo** (Currently broken)
  - **MyVidster**
  - **n-tv.de**
- - **NationalGeographic**
+ - **natgeo**
+ - **natgeo:channel**
  - **Naver**
  - **NBA**
  - **NBC**
@@ -416,7 +421,6 @@
  - **Normalboots**
  - **NosVideo**
  - **Nova**: TN.cz, Prásk.tv, Nova.cz, Novaplus.cz, FANDA.tv, Krásná.cz and Doma.cz
- - **novamov**: NovaMov
  - **nowness**
  - **nowness:playlist**
  - **nowness:series**
@@ -618,7 +622,6 @@
  - **Telegraaf**
  - **TeleMB**
  - **TeleTask**
- - **TenPlay**
  - **TF1**
  - **TheIntercept**
  - **TheOnion**
@@ -740,6 +743,7 @@
  - **vlive**
  - **Vodlocker**
  - **VoiceRepublic**
+ - **VoxMedia**
  - **Vporn**
  - **vpro**: npo.nl and ntr.nl
  - **VRT**

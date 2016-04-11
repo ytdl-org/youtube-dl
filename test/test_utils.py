@@ -20,6 +20,7 @@ from youtube_dl.utils import (
     args_to_str,
     encode_base_n,
     clean_html,
+    date_from_str,
     DateRange,
     detect_exe_version,
     determine_ext,
@@ -233,6 +234,13 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unescapeHTML('&#47;'), '/')
         self.assertEqual(unescapeHTML('&eacute;'), 'é')
         self.assertEqual(unescapeHTML('&#2013266066;'), '&#2013266066;')
+
+    def test_date_from_str(self):
+        self.assertEqual(date_from_str('yesterday'), date_from_str('now-1day'))
+        self.assertEqual(date_from_str('now+7day'), date_from_str('now+1week'))
+        self.assertEqual(date_from_str('now+14day'), date_from_str('now+2week'))
+        self.assertEqual(date_from_str('now+365day'), date_from_str('now+1year'))
+        self.assertEqual(date_from_str('now+30day'), date_from_str('now+1month'))
 
     def test_daterange(self):
         _20century = DateRange("19000101", "20000101")

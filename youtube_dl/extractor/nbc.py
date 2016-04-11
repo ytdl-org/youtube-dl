@@ -27,6 +27,9 @@ class NBCIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Jimmy Fallon Surprises Fans at Ben & Jerry\'s',
                 'description': 'Jimmy gives out free scoops of his new "Tonight Dough" ice cream flavor by surprising customers at the Ben & Jerry\'s scoop shop.',
+                'timestamp': 1424246400,
+                'upload_date': '20150218',
+                'uploader': 'NBCU-COM',
             },
             'params': {
                 # m3u8 download
@@ -50,6 +53,9 @@ class NBCIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Star Wars Teaser',
                 'description': 'md5:0b40f9cbde5b671a7ff62fceccc4f442',
+                'timestamp': 1417852800,
+                'upload_date': '20141206',
+                'uploader': 'NBCU-COM',
             },
             'params': {
                 # m3u8 download
@@ -78,6 +84,7 @@ class NBCIE(InfoExtractor):
             theplatform_url = 'http:' + theplatform_url
         return {
             '_type': 'url_transparent',
+            'ie_key': 'ThePlatform',
             'url': smuggle_url(theplatform_url, {'source_url': url}),
             'id': video_id,
         }
@@ -93,6 +100,9 @@ class NBCSportsVPlayerIE(InfoExtractor):
             'ext': 'flv',
             'description': 'md5:df390f70a9ba7c95ff1daace988f0d8d',
             'title': 'Tyler Kalinoski hits buzzer-beater to lift Davidson',
+            'timestamp': 1426270238,
+            'upload_date': '20150313',
+            'uploader': 'NBCU-SPORTS',
         }
     }, {
         'url': 'http://vplayer.nbcsports.com/p/BxmELC/nbc_embedshare/select/_hqLjQ95yx8Z',
@@ -144,6 +154,9 @@ class CSNNEIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'SNC evening update: Wright named Red Sox\' No. 5 starter.',
             'description': 'md5:1753cfee40d9352b19b4c9b3e589b9e3',
+            'timestamp': 1459369979,
+            'upload_date': '20160330',
+            'uploader': 'NBCU-SPORTS',
         }
     }
 
@@ -331,6 +344,7 @@ class MSNBCIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.jpg$',
             'timestamp': 1406937606,
             'upload_date': '20140802',
+            'uploader': 'NBCU-NEWS',
             'categories': ['MSNBC/Topics/Franchise/Best of last night', 'MSNBC/Topics/General/Congress'],
         },
     }

@@ -82,7 +82,7 @@ from .utils import (
     YoutubeDLHandler,
 )
 from .cache import Cache
-from .extractor import get_info_extractor, gen_extractors
+from .extractor import get_info_extractor, gen_extractor_classes, _LAZY_LOADER
 from .downloader import get_suitable_downloader
 from .downloader.rtmp import rtmpdump_version
 from .postprocessor import (
@@ -378,8 +378,9 @@ class YoutubeDL(object):
     def add_info_extractor(self, ie):
         """Add an InfoExtractor object to the end of the list."""
         self._ies.append(ie)
-        self._ies_instances[ie.ie_key()] = ie
-        ie.set_downloader(self)
+        if not isinstance(ie, type):
+            self._ies_instances[ie.ie_key()] = ie
+            ie.set_downloader(self)
 
     def get_info_extractor(self, ie_key):
         """
@@ -397,7 +398,7 @@ class YoutubeDL(object):
         """
         Add the InfoExtractors returned by gen_extractors to the end of the list
         """
-        for ie in gen_extractors():
+        for ie in gen_extractor_classes():
             self.add_info_extractor(ie)
 
     def add_post_processor(self, pp):
@@ -661,6 +662,7 @@ class YoutubeDL(object):
             if not ie.suitable(url):
                 continue
 
+            ie = self.get_info_extractor(ie.ie_key())
             if not ie.working():
                 self.report_warning('The program functionality for this site has been marked as broken, '
                                     'and will probably not work.')
@@ -1240,7 +1242,10 @@ class YoutubeDL(object):
             self.list_thumbnails(info_dict)
             return
 
-        if thumbnails and 'thumbnail' not in info_dict:
+        thumbnail = info_dict.get('thumbnail')
+        if thumbnail:
+            info_dict['thumbnail'] = sanitize_url(thumbnail)
+        elif thumbnails:
             info_dict['thumbnail'] = thumbnails[-1]['url']
 
         if 'display_id' not in info_dict and 'id' in info_dict:
@@ -1954,6 +1959,8 @@ class YoutubeDL(object):
         write_string(encoding_str, encoding=None)
 
         self._write_string('[debug] youtube-dl version ' + __version__ + '\n')
+        if _LAZY_LOADER:
+            self._write_string('[debug] Lazy loading extractors enabled' + '\n')
         try:
             sp = subprocess.Popen(
                 ['git', 'rev-parse', '--short', 'HEAD'],

@@ -15,6 +15,9 @@ class BravoTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Last Chance Kitchen Returns',
             'description': 'S13: Last Chance Kitchen Returns for Top Chef Season 13',
+            'timestamp': 1448926740,
+            'upload_date': '20151130',
+            'uploader': 'NBCU-BRAV',
         }
     }
 

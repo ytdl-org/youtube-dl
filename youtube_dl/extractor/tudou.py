@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
+    ExtractorError,
     int_or_none,
     InAdvancePagedList,
     float_or_none,
@@ -46,6 +47,19 @@ class TudouIE(InfoExtractor):
 
     _PLAYER_URL = 'http://js.tudouui.com/bin/lingtong/PortalPlayer_177.swf'
 
+    # Translated from tudou/tools/TVCHelper.as in PortalPlayer_193.swf
+    # 0001, 0002 and 4001 are not included as they indicate temporary issues
+    TVC_ERRORS = {
+        '0003': 'The video is deleted or does not exist',
+        '1001': 'This video is unavailable due to licensing issues',
+        '1002': 'This video is unavailable as it\'s under review',
+        '1003': 'This video is unavailable as it\'s under review',
+        '3001': 'Password required',
+        '5001': 'This video is available in Mainland China only due to licensing issues',
+        '7001': 'This video is unavailable',
+        '8001': 'This video is unavailable due to licensing issues',
+    }
+
     def _url_for_id(self, video_id, quality=None):
         info_url = 'http://v2.tudou.com/f?id=' + compat_str(video_id)
         if quality:
@@ -62,6 +76,15 @@ class TudouIE(InfoExtractor):
         youku_vcode = item_data.get('vcode')
         if youku_vcode:
             return self.url_result('youku:' + youku_vcode, ie='Youku')
+
+        if not item_data.get('itemSegs'):
+            tvc_code = item_data.get('tvcCode')
+            if tvc_code:
+                err_msg = self.TVC_ERRORS.get(tvc_code)
+                if err_msg:
+                    raise ExtractorError('Tudou said: %s' % err_msg, expected=True)
+                raise ExtractorError('Unexpected error %s returned from Tudou' % tvc_code)
+            raise ExtractorError('Unxpected error returned from Tudou')
 
         title = unescapeHTML(item_data['kw'])
         description = item_data.get('desc')
