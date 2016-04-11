@@ -337,7 +337,7 @@ class ArteTVEmbedIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:embed'
     _VALID_URL = r'''(?x)
         http://www\.arte\.tv
-        /playerv2/embed\.php\?json_url=
+        /(?:playerv2/embed|arte_vp/index)\.php\?json_url=
         (?P<json_url>
             http://arte\.tv/papi/tvguide/videos/stream/player/
             (?P<lang>[^/]+)/(?P<id>[^/]+)[^&]*
