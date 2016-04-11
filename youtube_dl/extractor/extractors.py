@@ -544,7 +544,6 @@ from .ooyala import (
     OoyalaIE,
     OoyalaExternalIE,
 )
-from .openclassroom import OpenClassRoomIE
 from .openload import OpenloadIE
 from .ora import OraTVIE
 from .orf import (
