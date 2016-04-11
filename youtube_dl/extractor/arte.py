@@ -161,16 +161,20 @@ class ArteTVPlus7IE(InfoExtractor):
             'es': 'E[ESP]',
         }
 
+        langcode = LANGS.get(lang, lang)
         formats = []
         for format_id, format_dict in player_info['VSR'].items():
             f = dict(format_dict)
             versionCode = f.get('versionCode')
-            langcode = LANGS.get(lang, lang)
             lang_rexs = [r'VO?%s-' % re.escape(langcode), r'VO?.-ST%s$' % re.escape(langcode)]
             lang_pref = None
             if versionCode:
-                matched_lang_rexs = [r for r in lang_rexs if re.match(r, versionCode)]
-                lang_pref = -10 if not matched_lang_rexs else 10 * len(matched_lang_rexs)
+                if versionCode == 'VO%s' % langcode:
+                    # versionCode exactly matches langCode
+                    lang_pref = 20
+                else:
+                    matched_lang_rexs = [r for r in lang_rexs if re.match(r, versionCode)]
+                    lang_pref = -10 if not matched_lang_rexs else 10 * len(matched_lang_rexs)
             source_pref = 0
             if versionCode is not None:
                 # The original version with subtitles has lower relevance
