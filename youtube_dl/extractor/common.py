@@ -376,7 +376,6 @@ class InfoExtractor(object):
                 self.to_screen('%s' % (note,))
             else:
                 self.to_screen('%s: %s' % (video_id, note))
-        # data, headers and query params will be ignored for `Request` objects
         if isinstance(url_or_request, compat_urllib_request.Request):
             url_or_request = update_Request(
                 url_or_request, data=data, headers=headers, query=query)
@@ -843,7 +842,7 @@ class InfoExtractor(object):
         for input in re.findall(r'(?i)<input([^>]+)>', html):
             if not re.search(r'type=(["\'])(?:hidden|submit)\1', input):
                 continue
-            name = re.search(r'name=(["\'])(?P<value>.+?)\1', input)
+            name = re.search(r'(?:name|id)=(["\'])(?P<value>.+?)\1', input)
             if not name:
                 continue
             value = re.search(r'value=(["\'])(?P<value>.*?)\1', input)
@@ -1534,7 +1533,7 @@ class InfoExtractor(object):
                             media_template = representation_ms_info['media_template']
                             media_template = media_template.replace('$RepresentationID$', representation_id)
                             media_template = re.sub(r'\$(Number|Bandwidth)\$', r'%(\1)d', media_template)
-                            media_template = re.sub(r'\$(Number|Bandwidth)%(\d+)\$', r'%(\1)\2d', media_template)
+                            media_template = re.sub(r'\$(Number|Bandwidth)%([^$]+)\$', r'%(\1)\2', media_template)
                             media_template.replace('$$', '$')
                             representation_ms_info['segment_urls'] = [
                                 media_template % {
