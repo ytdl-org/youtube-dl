@@ -336,7 +336,6 @@ from .ivi import (
 )
 from .ivideon import IvideonIE
 from .izlesene import IzleseneIE
-from .jadorecettepub import JadoreCettePubIE
 from .jeuxvideo import JeuxVideoIE
 from .jove import JoveIE
 from .jwplatform import JWPlatformIE
