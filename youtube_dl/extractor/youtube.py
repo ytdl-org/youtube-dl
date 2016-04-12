@@ -1884,7 +1884,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         if video:
             return video
 
-        if playlist_id.startswith('RD') or playlist_id.startswith('UL'):
+        if playlist_id.startswith(('RD', 'UL', 'PU')):
             # Mixes require a custom extraction process
             return self._extract_mix(playlist_id)
 
