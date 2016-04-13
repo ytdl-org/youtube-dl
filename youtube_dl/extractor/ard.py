@@ -83,7 +83,7 @@ class ARDMediathekIE(InfoExtractor):
         subtitle_url = media_info.get('_subtitleUrl')
         if subtitle_url:
             subtitles['de'] = [{
-                'ext': 'srt',
+                'ext': 'ttml',
                 'url': subtitle_url,
             }]
 

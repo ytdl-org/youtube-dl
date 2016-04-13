@@ -336,7 +336,6 @@ from .ivi import (
 )
 from .ivideon import IvideonIE
 from .izlesene import IzleseneIE
-from .jadorecettepub import JadoreCettePubIE
 from .jeuxvideo import JeuxVideoIE
 from .jove import JoveIE
 from .jwplatform import JWPlatformIE
@@ -584,6 +583,7 @@ from .pornhub import (
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
 from .pornoxo import PornoXOIE
+from .presstv import PressTVIE
 from .primesharetv import PrimeShareTVIE
 from .promptfile import PromptFileIE
 from .prosiebensat1 import ProSiebenSat1IE

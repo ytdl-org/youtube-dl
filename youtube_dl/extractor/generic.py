@@ -1128,6 +1128,18 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        # Another form of arte.tv embed
+        {
+            'url': 'http://www.tv-replay.fr/redirection/09-04-16/arte-reportage-arte-11508975.html',
+            'md5': '850bfe45417ddf221288c88a0cffe2e2',
+            'info_dict': {
+                'id': '030273-562_PLUS7-F',
+                'ext': 'mp4',
+                'title': 'ARTE Reportage - Nulle part, en France',
+                'description': 'md5:e3a0e8868ed7303ed509b9e3af2b870d',
+                'upload_date': '20160409',
+            },
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -1702,7 +1714,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded arte.tv player
         mobj = re.search(
-            r'<script [^>]*?src="(?P<url>http://www\.arte\.tv/playerv2/embed[^"]+)"',
+            r'<(?:script|iframe) [^>]*?src="(?P<url>http://www\.arte\.tv/(?:playerv2/embed|arte_vp/index)[^"]+)"',
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'ArteTVEmbed')
