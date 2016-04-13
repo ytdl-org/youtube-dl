@@ -340,7 +340,7 @@ class BrightcoveLegacyIE(InfoExtractor):
                         ext = 'flv'
                 if ext is None:
                     ext = determine_ext(url)
-                tbr = int_or_none(rend.get('encodingRate'), 1000),
+                tbr = int_or_none(rend.get('encodingRate'), 1000)
                 a_format = {
                     'format_id': 'http%s' % ('-%s' % tbr if tbr else ''),
                     'url': url,
