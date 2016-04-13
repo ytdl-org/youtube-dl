@@ -115,6 +115,7 @@
  - **Cinemassacre**
  - **Clipfish**
  - **cliphunter**
+ - **ClipRs**
  - **Clipsyndicate**
  - **cloudtime**: CloudTime
  - **Cloudy**
@@ -286,7 +287,6 @@
  - **ivi:compilation**: ivi.ru compilations
  - **ivideon**: Ivideon TV
  - **Izlesene**
- - **JadoreCettePub**
  - **JeuxVideo**
  - **Jove**
  - **jpopsuki.tv**
@@ -484,6 +484,7 @@
  - **Pornotube**
  - **PornoVoisines**
  - **PornoXO**
+ - **PressTV**
  - **PrimeShareTV**
  - **PromptFile**
  - **prosiebensat1**: ProSiebenSat.1 Digital
