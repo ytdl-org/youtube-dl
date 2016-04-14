@@ -14,43 +14,20 @@ class TDSLifewayIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'The Gospel by Numbers',
             'thumbnail': 're:^https?://.*\.jpg',
+            'upload_date': '20140410',
+            'description': 'Coming soon from T4G 2014!',
+            'uploader_id': '2034960640001',
+            'timestamp': 1397145591,
         },
         'params': {
             # m3u8 download
             'skip_download': True,
         },
+        'add_ie': ['BrightcoveNew'],
     }
 
+    BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/2034960640001/default_default/index.html?videoId=%s'
+
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-
-        # XXX: A generic brightcove function?
-        json_data = self._download_json(
-            'http://api.brightcove.com/services/library', video_id,
-            query={
-                'command': 'find_video_by_id',
-                'video_id': video_id,
-                'video_fields': 'id,name,videoStillURL,HLSURL,FLVURL',
-                'media_delivery': 'http',
-                # token extracted from http://tds.lifeway.com/v1/trainingdeliverysystem/courses/player_test.js
-                'token': 'MrrNjVSP15NGY3R0gipp-lvclofucPXKD3skFouJMjZXM3KOS2ch0g..',
-            })
-
-        formats = []
-
-        if 'HLSURL' in json_data:
-            formats.extend(self._extract_m3u8_formats(
-                json_data['HLSURL'], video_id, ext='mp4', m3u8_id='hls', fatal=False))
-        if 'FLVURL' in json_data:
-            formats.append({
-                'url': json_data['FLVURL'],
-            })
-
-        self._sort_formats(formats)
-
-        return {
-            'id': video_id,
-            'title': json_data['name'],
-            'thumbnail': json_data.get('videoStillURL'),
-            'formats': formats,
-        }
+        brightcove_id = self._match_id(url)
+        return self.url_result(self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, 'BrightcoveNew', brightcove_id)

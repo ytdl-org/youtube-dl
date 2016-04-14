@@ -17,11 +17,17 @@ class MinistryGridIE(InfoExtractor):
             'id': '3453494717001',
             'ext': 'mp4',
             'title': 'The Gospel by Numbers',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'upload_date': '20140410',
+            'description': 'Coming soon from T4G 2014!',
+            'uploader_id': '2034960640001',
+            'timestamp': 1397145591,
         },
         'params': {
             # m3u8 download
             'skip_download': True,
         },
+        'add_ie': ['TDSLifeway'],
     }
 
     def _real_extract(self, url):
