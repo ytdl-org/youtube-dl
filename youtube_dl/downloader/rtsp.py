@@ -27,6 +27,8 @@ class RtspFD(FileDownloader):
             self.report_error('MMS or RTSP download detected but neither "mplayer" nor "mpv" could be run. Please install any.')
             return False
 
+        self._debug_cmd(args)
+
         retval = subprocess.call(args)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
