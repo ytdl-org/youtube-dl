@@ -225,7 +225,7 @@ class FFmpegFD(ExternalFD):
 
         args += ['-i', url, '-c', 'copy']
         if protocol == 'm3u8':
-            if self.params.get('hls_use_mpegts', False):
+            if self.params.get('hls_use_mpegts', False) or tmpfilename == '-':
                 args += ['-f', 'mpegts']
             else:
                 args += ['-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
@@ -235,7 +235,10 @@ class FFmpegFD(ExternalFD):
             args += ['-f', EXT_TO_OUT_FORMATS.get(info_dict['ext'], info_dict['ext'])]
 
         args = [encodeArgument(opt) for opt in args]
-        args.append(encodeFilename(ffpp._ffmpeg_filename_argument(tmpfilename), True))
+        if tmpfilename == '-':
+            args.append('pipe:1')
+        else:
+            args.append(encodeFilename(ffpp._ffmpeg_filename_argument(tmpfilename), True))
 
         self._debug_cmd(args)
 
