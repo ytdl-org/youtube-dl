@@ -210,7 +210,7 @@ class ArteTVPlus7IE(InfoExtractor):
 # It also uses the arte_vp_url url from the webpage to extract the information
 class ArteTVCreativeIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:creative'
-    _VALID_URL = r'https?://creative\.arte\.tv/(?P<lang>fr|de|en|es)/(?:magazine?/)?(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://creative\.arte\.tv/(?P<lang>fr|de|en|es)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'http://creative.arte.tv/de/magazin/agentur-amateur-corporate-design',
@@ -229,6 +229,9 @@ class ArteTVCreativeIE(ArteTVPlus7IE):
             'description': 'Événement ! Quarante-cinq ans après leurs premiers succès, les légendaires Monty Python remontent sur scène.\n',
             'upload_date': '20140805',
         }
+    }, {
+        'url': 'http://creative.arte.tv/de/episode/agentur-amateur-4-der-erste-kunde',
+        'only_matching': True,
     }]
 
 
