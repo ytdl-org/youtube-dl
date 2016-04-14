@@ -1,19 +1,21 @@
 from __future__ import unicode_literals
 
+import functools
 import re
 
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse_unquote,
-    compat_urllib_request
+    compat_urlparse,
 )
 from ..utils import (
+    clean_html,
     ExtractorError,
     HEADRequest,
+    OnDemandPagedList,
     NO_DEFAULT,
     parse_count,
     str_to_int,
-    clean_html
 )
 
 
@@ -121,191 +123,143 @@ class MixcloudIE(InfoExtractor):
         }
 
 
-class MixcloudUserIE(InfoExtractor):
-    """
-    Information extractor for Mixcloud users.
-    It can retrieve a list of a user's uploads, favorites or listens.
-    """
+class MixcloudPlaylistBaseIE(InfoExtractor):
+    _PAGE_SIZE = 24
 
+    def _fetch_tracks_page(self, path, video_id, page_name, current_page):
+        resp = self._download_webpage(
+            'https://www.mixcloud.com/%s/' % path, video_id,
+            note='Download %s (page %d)' % (page_name, current_page + 1),
+            errnote='Unable to download %s' % page_name,
+            query={'page': (current_page + 1), 'list': 'main', '_ajax': '1'},
+            headers={'X-Requested-With': 'XMLHttpRequest'})
+
+        for url in re.findall(r'm-play-button m-url="(?P<url>[^"]+)"', resp):
+            yield self.url_result(
+                compat_urlparse.urljoin('https://www.mixcloud.com', clean_html(url)),
+                MixcloudIE.ie_key())
+
+    def _get_user_description(self, page_content):
+        return self._html_search_regex(
+            r'<div[^>]+class="description-text"[^>]*>(.+?)</div>',
+            page_content, 'user description', fatal=False)
+
+
+class MixcloudUserIE(MixcloudPlaylistBaseIE):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/(?P<user>[^/]+)/(?P<type>uploads|favorites|listens)?/?$'
     IE_NAME = 'mixcloud:user'
 
     _TESTS = [{
         'url': 'http://www.mixcloud.com/dholbach/',
         'info_dict': {
-            'id': 'dholbach/uploads',
+            'id': 'dholbach_uploads',
             'title': 'Daniel Holbach (uploads)',
             'description': 'md5:327af72d1efeb404a8216c27240d1370',
         },
-        'playlist_mincount': 11
+        'playlist_mincount': 11,
     }, {
         'url': 'http://www.mixcloud.com/dholbach/uploads/',
         'info_dict': {
-            'id': 'dholbach/uploads',
+            'id': 'dholbach_uploads',
             'title': 'Daniel Holbach (uploads)',
             'description': 'md5:327af72d1efeb404a8216c27240d1370',
         },
-        'playlist_mincount': 11
+        'playlist_mincount': 11,
     }, {
         'url': 'http://www.mixcloud.com/dholbach/favorites/',
         'info_dict': {
-            'id': 'dholbach/favorites',
+            'id': 'dholbach_favorites',
             'title': 'Daniel Holbach (favorites)',
             'description': 'md5:327af72d1efeb404a8216c27240d1370',
         },
-        'playlist_mincount': 244
+        'params': {
+            'playlist_items': '1-100',
+        },
+        'playlist_mincount': 100,
     }, {
         'url': 'http://www.mixcloud.com/dholbach/listens/',
         'info_dict': {
-            'id': 'dholbach/listens',
+            'id': 'dholbach_listens',
             'title': 'Daniel Holbach (listens)',
             'description': 'md5:327af72d1efeb404a8216c27240d1370',
         },
-        'playlist_mincount': 846
+        'params': {
+            'playlist_items': '1-100',
+        },
+        'playlist_mincount': 100,
     }]
-
-    def _fetch_tracks(self, base_url, video_id, dl_note=None, dl_errnote=None):
-        # retrieve all fragments of a list of tracks with fake AJAX calls
-        track_urls = []
-        current_page = 1
-        while True:
-            # fake a AJAX request to retrieve a list fragment
-            page_url = base_url + "?page=%d&list=main&_ajax=1" % current_page
-            req = compat_urllib_request.Request(page_url, headers={"X-Requested-With": "XMLHttpRequest"})
-            resp = self._download_webpage(req, video_id, note=dl_note + " (page %d)" % current_page, errnote=dl_errnote)
-
-            # extract all track URLs from fragment
-            urls = re.findall(r'm-play-button m-url="(?P<url>[^"]+)"', resp)
-            # clean up URLs
-            urls = map(clean_html, urls)
-            # create absolute URLs
-            urls = map(lambda u: "https://www.mixcloud.com" + u, urls)
-            track_urls.extend(urls)
-
-            # advance to next fragment, if any
-            if " m-next-page-url=" in resp:
-                current_page += 1
-            else:
-                break
-
-        return track_urls
-
-    def _handle_track_urls(self, urls):
-        return map(lambda u: self.url_result(u, "Mixcloud"), urls)
-
-    def _get_user_description(self, page_content):
-        return self._html_search_regex(
-            r'<div class="description-text">.*?<p>(.*?)</p></div></div></div>',
-            page_content,
-            "user description",
-            fatal=False)
-
-    def _get_username(self, page_content):
-        return self._og_search_title(page_content)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        user_id = mobj.group("user")
-        list_type = mobj.group("type")
+        user_id = mobj.group('user')
+        list_type = mobj.group('type')
 
         # if only a profile URL was supplied, default to download all uploads
         if list_type is None:
-            list_type = "uploads"
+            list_type = 'uploads'
 
-        video_id = "%s/%s" % (user_id, list_type)
+        video_id = '%s_%s' % (user_id, list_type)
 
-        # download the user's profile to retrieve some metadata
-        profile = self._download_webpage("https://www.mixcloud.com/%s/" % user_id,
-                                         video_id,
-                                         note="Downloading user profile",
-                                         errnote="Unable to download user profile")
+        profile = self._download_webpage(
+            'https://www.mixcloud.com/%s/' % user_id, video_id,
+            note='Downloading user profile',
+            errnote='Unable to download user profile')
 
-        username = self._get_username(profile)
+        username = self._og_search_title(profile)
         description = self._get_user_description(profile)
 
-        # retrieve all page fragments of uploads, favorites or listens
-        track_urls = self._fetch_tracks(
-            "https://www.mixcloud.com/%s/%s/" % (user_id, list_type),
-            video_id,
-            dl_note="Downloading list of %s" % list_type,
-            dl_errnote="Unable to download list of %s" % list_type)
+        entries = OnDemandPagedList(
+            functools.partial(
+                self._fetch_tracks_page,
+                '%s/%s' % (user_id, list_type), video_id, 'list of %s' % list_type),
+            self._PAGE_SIZE, use_cache=True)
 
-        # let MixcloudIE handle each track URL
-        entries = self._handle_track_urls(track_urls)
-
-        return {
-            '_type': 'playlist',
-            'entries': entries,
-            'title': "%s (%s)" % (username, list_type),
-            'id': video_id,
-            "description": description
-        }
+        return self.playlist_result(
+            entries, video_id, '%s (%s)' % (username, list_type), description)
 
 
-class MixcloudPlaylistIE(MixcloudUserIE):
-    """
-    Information extractor for Mixcloud playlists.
-    """
-
+class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
     _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/(?P<user>[^/]+)/playlists/(?P<playlist>[^/]+)/?$'
     IE_NAME = 'mixcloud:playlist'
 
     _TESTS = [{
         'url': 'https://www.mixcloud.com/RedBullThre3style/playlists/tokyo-finalists-2015/',
         'info_dict': {
-            'id': 'RedBullThre3style/playlists/tokyo-finalists-2015',
+            'id': 'RedBullThre3style_tokyo-finalists-2015',
             'title': 'National Champions 2015',
             'description': 'md5:6ff5fb01ac76a31abc9b3939c16243a3',
         },
-        'playlist_mincount': 16
+        'playlist_mincount': 16,
     }, {
         'url': 'https://www.mixcloud.com/maxvibes/playlists/jazzcat-on-ness-radio/',
         'info_dict': {
-            'id': 'maxvibes/playlists/jazzcat-on-ness-radio',
+            'id': 'maxvibes_jazzcat-on-ness-radio',
             'title': 'Jazzcat on Ness Radio',
             'description': 'md5:7bbbf0d6359a0b8cda85224be0f8f263',
         },
         'playlist_mincount': 23
     }]
 
-    def _get_playlist_title(self, page_content):
-        return self._html_search_regex(
-            r'<span class="main-list-title list-playlist-title ">(?P<title>.*?)</span>',
-            page_content,
-            "playlist title",
-            group="title",
-            fatal=True
-        )
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        user_id = mobj.group("user")
-        playlist_id = mobj.group("playlist")
-        video_id = "%s/playlists/%s" % (user_id, playlist_id)
+        user_id = mobj.group('user')
+        playlist_id = mobj.group('playlist')
+        video_id = '%s_%s' % (user_id, playlist_id)
 
-        # download the playlist page to retrieve some metadata
-        profile = self._download_webpage(url,
-                                         user_id,
-                                         note="Downloading playlist page",
-                                         errnote="Unable to download playlist page")
+        profile = self._download_webpage(
+            url, user_id,
+            note='Downloading playlist page',
+            errnote='Unable to download playlist page')
 
         description = self._get_user_description(profile)
-        playlist_title = self._get_playlist_title(profile)
+        playlist_title = self._html_search_regex(
+            r'<span[^>]+class="[^"]*list-playlist-title[^"]*"[^>]*>(.*?)</span>',
+            profile, 'playlist title')
 
-        # retrieve all page fragments of playlist
-        track_urls = self._fetch_tracks(
-            "https://www.mixcloud.com/%s/playlists/%s/" % (user_id, playlist_id),
-            video_id,
-            dl_note="Downloading tracklist of %s" % playlist_title,
-            dl_errnote="Unable to tracklist of %s" % playlist_title)
+        entries = OnDemandPagedList(
+            functools.partial(
+                self._fetch_tracks_page,
+                '%s/playlists/%s' % (user_id, playlist_id), video_id, 'tracklist'),
+            self._PAGE_SIZE)
 
-        # let MixcloudIE handle each track
-        entries = self._handle_track_urls(track_urls)
-
-        return {
-            '_type': 'playlist',
-            'entries': entries,
-            'title': playlist_title,
-            'id': video_id,
-            "description": description
-        }
+        return self.playlist_result(entries, video_id, playlist_title, description)
