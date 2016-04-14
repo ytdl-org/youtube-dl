@@ -232,6 +232,21 @@ class ArteTVCreativeIE(ArteTVPlus7IE):
     }]
 
 
+class ArteTVInfoIE(ArteTVPlus7IE):
+    IE_NAME = 'arte.tv:info'
+    _VALID_URL = r'https?://info\.arte\.tv/(?P<lang>fr|de|en|es)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+
+    _TEST = {
+        'url': 'http://info.arte.tv/fr/service-civique-un-cache-misere',
+        'info_dict': {
+            'id': '067528-000-A',
+            'ext': 'mp4',
+            'title': 'Service civique, un cache misère ?',
+            'upload_date': '20160403',
+        },
+    }
+
+
 class ArteTVFutureIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:future'
     _VALID_URL = r'https?://future\.arte\.tv/(?P<lang>fr|de|en|es)/(?P<id>[^/?#&]+)'
