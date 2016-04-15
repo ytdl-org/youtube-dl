@@ -165,7 +165,7 @@ class IqiyiIE(InfoExtractor):
     IE_NAME = 'iqiyi'
     IE_DESC = '爱奇艺'
 
-    _VALID_URL = r'https?://(?:[^.]+\.)?iqiyi\.com/.+\.html'
+    _VALID_URL = r'https?://(?:(?:[^.]+\.)?iqiyi\.com|www\.pps\.tv)/.+\.html'
 
     _NETRC_MACHINE = 'iqiyi'
 
@@ -273,6 +273,9 @@ class IqiyiIE(InfoExtractor):
             'title': '灌篮高手 国语版',
         },
         'playlist_count': 101,
+    }, {
+        'url': 'http://www.pps.tv/w_19rrbav0ph.html',
+        'only_matching': True,
     }]
 
     _FORMATS_MAP = [
