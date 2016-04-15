@@ -2,20 +2,22 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse_unquote_plus
-from ..utils import (
-    js_to_json,
-)
 
 
 class KaraoketvIE(InfoExtractor):
-    _VALID_URL = r'https?://karaoketv\.co\.il/\?container=songs&id=(?P<id>[0-9]+)'
+    '''
+    In api_play.php there's a video-cdn.com <iframe>. The latter plays an
+    unencrypted RTMP stream. However I can't download it with rtmpdump.
+    '''
+    _WORKING = False
+
+    _VALID_URL = r'http://www.karaoketv.co.il/[^/]+/(?P<id>\d+)'
     _TEST = {
-        'url': 'http://karaoketv.co.il/?container=songs&id=171568',
+        'url': 'http://www.karaoketv.co.il/%D7%A9%D7%99%D7%A8%D7%99_%D7%A7%D7%A8%D7%99%D7%95%D7%A7%D7%99/58356/%D7%90%D7%99%D7%96%D7%95%D7%9F',
         'info_dict': {
-            'id': '171568',
-            'ext': 'mp4',
-            'title': 'אל העולם שלך - רותם כהן - שרים קריוקי',
+            'id': '58356',
+            'ext': 'flv',
+            'title': 'קריוקי של איזון',
         }
     }
 
@@ -23,18 +25,13 @@ class KaraoketvIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        page_video_url = self._og_search_video_url(webpage, video_id)
-        config_json = compat_urllib_parse_unquote_plus(self._search_regex(
-            r'config=(.*)', page_video_url, 'configuration'))
-
-        urls_info_json = self._download_json(
-            config_json, video_id, 'Downloading configuration',
-            transform_source=js_to_json)
-
-        url = urls_info_json['playlist'][0]['url']
+        api_page_url = self._html_search_regex(
+            r'<iframe[^>]+src="(http://www.karaoke.co.il/api_play.php?[^"]+)"',
+            webpage, 'API play URL')
 
         return {
+            '_type': 'url_transparent',
             'id': video_id,
             'title': self._og_search_title(webpage),
-            'url': url,
+            'url': api_page_url,
         }
