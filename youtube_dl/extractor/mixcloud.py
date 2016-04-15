@@ -1,19 +1,20 @@
 from __future__ import unicode_literals
 
+import base64
 import functools
 import re
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_chr,
+    compat_ord,
     compat_urllib_parse_unquote,
     compat_urlparse,
 )
 from ..utils import (
     clean_html,
     ExtractorError,
-    HEADRequest,
     OnDemandPagedList,
-    NO_DEFAULT,
     parse_count,
     str_to_int,
 )
@@ -45,22 +46,22 @@ class MixcloudIE(InfoExtractor):
             'description': 'md5:2b8aec6adce69f9d41724647c65875e8',
             'uploader': 'Gilles Peterson Worldwide',
             'uploader_id': 'gillespeterson',
-            'thumbnail': 're:https?://.*/images/',
+            'thumbnail': 're:https?://.*',
             'view_count': int,
             'like_count': int,
         },
     }]
 
-    def _check_url(self, url, track_id, ext):
-        try:
-            # We only want to know if the request succeed
-            # don't download the whole file
-            self._request_webpage(
-                HEADRequest(url), track_id,
-                'Trying %s URL' % ext)
-            return True
-        except ExtractorError:
-            return False
+    # See https://www.mixcloud.com/media/js2/www_js_2.9e23256562c080482435196ca3975ab5.js
+    @staticmethod
+    def _decrypt_play_info(play_info):
+        KEY = 'pleasedontdownloadourmusictheartistswontgetpaid'
+
+        play_info = base64.b64decode(play_info.encode('ascii'))
+
+        return ''.join([
+            compat_chr(compat_ord(ch) ^ compat_ord(KEY[idx % len(KEY)]))
+            for idx, ch in enumerate(play_info)])
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -74,19 +75,15 @@ class MixcloudIE(InfoExtractor):
             r'(?s)<div[^>]+class="global-message cloudcast-disabled-notice-light"[^>]*>(.+?)<(?:a|/div)',
             webpage, 'error message', default=None)
 
-        preview_url = self._search_regex(
-            r'\s(?:data-preview-url|m-preview)="([^"]+)"',
-            webpage, 'preview url', default=None if message else NO_DEFAULT)
+        encrypted_play_info = self._search_regex(
+            r'm-play-info="([^"]+)"', webpage, 'play info')
+        play_info = self._parse_json(
+            self._decrypt_play_info(encrypted_play_info), track_id)
 
-        if message:
+        if message and 'stream_url' not in play_info:
             raise ExtractorError('%s said: %s' % (self.IE_NAME, message), expected=True)
 
-        song_url = re.sub(r'audiocdn(\d+)', r'stream\1', preview_url)
-        song_url = song_url.replace('/previews/', '/c/originals/')
-        if not self._check_url(song_url, track_id, 'mp3'):
-            song_url = song_url.replace('.mp3', '.m4a').replace('originals/', 'm4a/64/')
-            if not self._check_url(song_url, track_id, 'm4a'):
-                raise ExtractorError('Unable to extract track url')
+        song_url = play_info['stream_url']
 
         PREFIX = (
             r'm-play-on-spacebar[^>]+'
