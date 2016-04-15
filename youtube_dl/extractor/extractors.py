@@ -412,7 +412,11 @@ from .minoto import MinotoIE
 from .miomio import MioMioIE
 from .mit import TechTVMITIE, MITIE, OCWMITIE
 from .mitele import MiTeleIE
-from .mixcloud import MixcloudIE
+from .mixcloud import (
+    MixcloudIE,
+    MixcloudUserIE,
+    MixcloudPlaylistIE
+)
 from .mlb import MLBIE
 from .mnet import MnetIE
 from .mpora import MporaIE
