@@ -50,6 +50,7 @@
  - **arte.tv:ddc**
  - **arte.tv:embed**
  - **arte.tv:future**
+ - **arte.tv:info**
  - **arte.tv:magazine**
  - **AtresPlayer**
  - **ATTTechChannel**
@@ -350,6 +351,9 @@
  - **miomio.tv**
  - **MiTele**: mitele.es
  - **mixcloud**
+ - **mixcloud:playlist**
+ - **mixcloud:stream**
+ - **mixcloud:user**
  - **MLB**
  - **Mnet**
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
@@ -609,6 +613,7 @@
  - **Tagesschau**
  - **Tapely**
  - **Tass**
+ - **TDSLifeway**
  - **teachertube**: teachertube.com videos
  - **teachertube:user:collection**: teachertube.com user and collection videos
  - **TeachingChannel**
@@ -684,7 +689,6 @@
  - **twitter**
  - **twitter:amplify**
  - **twitter:card**
- - **Ubu**
  - **udemy**
  - **udemy:course**
  - **UDNEmbed**: 聯合影音
@@ -754,7 +758,6 @@
  - **Walla**
  - **WashingtonPost**
  - **wat.tv**
- - **WayOfTheMaster**
  - **WDR**
  - **wdr:mobile**
  - **WDRMaus**: Sendung mit der Maus
