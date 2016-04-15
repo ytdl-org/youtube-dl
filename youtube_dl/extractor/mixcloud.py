@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import base64
 import functools
+import itertools
 import re
 
 from .common import InfoExtractor
@@ -123,18 +124,26 @@ class MixcloudIE(InfoExtractor):
 class MixcloudPlaylistBaseIE(InfoExtractor):
     _PAGE_SIZE = 24
 
-    def _fetch_tracks_page(self, path, video_id, page_name, current_page):
-        resp = self._download_webpage(
-            'https://www.mixcloud.com/%s/' % path, video_id,
-            note='Download %s (page %d)' % (page_name, current_page + 1),
-            errnote='Unable to download %s' % page_name,
-            query={'page': (current_page + 1), 'list': 'main', '_ajax': '1'},
-            headers={'X-Requested-With': 'XMLHttpRequest'})
-
-        for url in re.findall(r'm-play-button m-url="(?P<url>[^"]+)"', resp):
+    def _find_urls_in_page(self, page):
+        for url in re.findall(r'm-play-button m-url="(?P<url>[^"]+)"', page):
             yield self.url_result(
                 compat_urlparse.urljoin('https://www.mixcloud.com', clean_html(url)),
                 MixcloudIE.ie_key())
+
+    def _fetch_tracks_page(self, path, video_id, page_name, current_page, real_page_number=None):
+        real_page_number = real_page_number or current_page + 1
+        return self._download_webpage(
+            'https://www.mixcloud.com/%s/' % path, video_id,
+            note='Download %s (page %d)' % (page_name, current_page + 1),
+            errnote='Unable to download %s' % page_name,
+            query={'page': real_page_number, 'list': 'main', '_ajax': '1'},
+            headers={'X-Requested-With': 'XMLHttpRequest'})
+
+    def _tracks_page_func(self, page, video_id, page_name, current_page):
+        resp = self._fetch_tracks_page(page, video_id, page_name, current_page)
+
+        for item in self._find_urls_in_page(resp):
+            yield item
 
     def _get_user_description(self, page_content):
         return self._html_search_regex(
@@ -207,7 +216,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
 
         entries = OnDemandPagedList(
             functools.partial(
-                self._fetch_tracks_page,
+                self._tracks_page_func,
                 '%s/%s' % (user_id, list_type), video_id, 'list of %s' % list_type),
             self._PAGE_SIZE, use_cache=True)
 
@@ -255,8 +264,56 @@ class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
 
         entries = OnDemandPagedList(
             functools.partial(
-                self._fetch_tracks_page,
+                self._tracks_page_func,
                 '%s/playlists/%s' % (user_id, playlist_id), video_id, 'tracklist'),
             self._PAGE_SIZE)
 
         return self.playlist_result(entries, video_id, playlist_title, description)
+
+
+class MixcloudStreamIE(MixcloudPlaylistBaseIE):
+    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/(?P<id>[^/]+)/stream/?$'
+    IE_NAME = 'mixcloud:stream'
+
+    _TEST = {
+        'url': 'https://www.mixcloud.com/FirstEar/stream/',
+        'info_dict': {
+            'id': 'FirstEar',
+            'title': 'First Ear',
+            'description': 'Curators of good music\nfirstearmusic.com',
+        },
+        'playlist_mincount': 192,
+    }
+
+    def _real_extract(self, url):
+        user_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, user_id)
+
+        entries = []
+        prev_page_url = None
+
+        def _handle_page(page):
+            entries.extend(self._find_urls_in_page(page))
+            return self._search_regex(
+                r'm-next-page-url="([^"]+)"', page,
+                'next page URL', default=None)
+
+        next_page_url = _handle_page(webpage)
+
+        for idx in itertools.count(0):
+            if not next_page_url or prev_page_url == next_page_url:
+                break
+
+            prev_page_url = next_page_url
+            current_page = int(self._search_regex(
+                r'\?page=(\d+)', next_page_url, 'next page number'))
+
+            next_page_url = _handle_page(self._fetch_tracks_page(
+                '%s/stream' % user_id, user_id, 'stream', idx,
+                real_page_number=current_page))
+
+        username = self._og_search_title(webpage)
+        description = self._get_user_description(webpage)
+
+        return self.playlist_result(entries, user_id, username, description)
