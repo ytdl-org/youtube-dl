@@ -1987,8 +1987,8 @@ class YoutubeUserIE(YoutubeChannelIE):
     def suitable(cls, url):
         # Don't return True if the url can be extracted with other youtube
         # extractor, the regex would is too permissive and it would match.
-        other_ies = iter(klass for (name, klass) in globals().items() if name.endswith('IE') and klass is not cls)
-        if any(ie.suitable(url) for ie in other_ies):
+        other_yt_ies = iter(klass for (name, klass) in globals().items() if name.startswith('Youtube') and name.endswith('IE') and klass is not cls)
+        if any(ie.suitable(url) for ie in other_yt_ies):
             return False
         else:
             return super(YoutubeUserIE, cls).suitable(url)
