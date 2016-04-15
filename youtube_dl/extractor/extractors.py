@@ -46,6 +46,7 @@ from .arte import (
     ArteTVPlus7IE,
     ArteTVCreativeIE,
     ArteTVConcertIE,
+    ArteTVInfoIE,
     ArteTVFutureIE,
     ArteTVCinemaIE,
     ArteTVDDCIE,
@@ -411,7 +412,12 @@ from .minoto import MinotoIE
 from .miomio import MioMioIE
 from .mit import TechTVMITIE, MITIE, OCWMITIE
 from .mitele import MiTeleIE
-from .mixcloud import MixcloudIE
+from .mixcloud import (
+    MixcloudIE,
+    MixcloudUserIE,
+    MixcloudPlaylistIE,
+    MixcloudStreamIE,
+)
 from .mlb import MLBIE
 from .mnet import MnetIE
 from .mpora import MporaIE
@@ -729,6 +735,7 @@ from .sztvhu import SztvHuIE
 from .tagesschau import TagesschauIE
 from .tapely import TapelyIE
 from .tass import TassIE
+from .tdslifeway import TDSLifewayIE
 from .teachertube import (
     TeacherTubeIE,
     TeacherTubeUserIE,
@@ -831,7 +838,6 @@ from .twitter import (
     TwitterIE,
     TwitterAmplifyIE,
 )
-from .ubu import UbuIE
 from .udemy import (
     UdemyIE,
     UdemyCourseIE
@@ -916,7 +922,6 @@ from .vulture import VultureIE
 from .walla import WallaIE
 from .washingtonpost import WashingtonPostIE
 from .wat import WatIE
-from .wayofthemaster import WayOfTheMasterIE
 from .wdr import (
     WDRIE,
     WDRMobileIE,

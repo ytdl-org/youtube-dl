@@ -11,7 +11,7 @@ from ..utils import (
 class MetacriticIE(InfoExtractor):
     _VALID_URL = r'https?://www\.metacritic\.com/.+?/trailers/(?P<id>\d+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.metacritic.com/game/playstation-4/infamous-second-son/trailers/3698222',
         'info_dict': {
             'id': '3698222',
@@ -20,7 +20,17 @@ class MetacriticIE(InfoExtractor):
             'description': 'Take a peak behind-the-scenes to see how Sucker Punch brings smoke into the universe of inFAMOUS Second Son on the PS4.',
             'duration': 221,
         },
-    }
+        'skip': 'Not providing trailers anymore',
+    }, {
+        'url': 'http://www.metacritic.com/game/playstation-4/tales-from-the-borderlands-a-telltale-game-series/trailers/5740315',
+        'info_dict': {
+            'id': '5740315',
+            'ext': 'mp4',
+            'title': 'Tales from the Borderlands - Finale: The Vault of the Traveler',
+            'description': 'In the final episode of the season, all hell breaks loose. Jack is now in control of Helios\' systems, and he\'s ready to reclaim his rightful place as king of Hyperion (with or without you).',
+            'duration': 114,
+        },
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

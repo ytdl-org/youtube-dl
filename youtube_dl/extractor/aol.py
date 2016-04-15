@@ -12,9 +12,10 @@ from ..utils import (
 
 class AolIE(InfoExtractor):
     IE_NAME = 'on.aol.com'
-    _VALID_URL = r'(?:aol-video:|https?://on\.aol\.com/video/.*-)(?P<id>[^/?-]+)'
+    _VALID_URL = r'(?:aol-video:|https?://on\.aol\.com/.*-)(?P<id>[^/?-]+)'
 
     _TESTS = [{
+        # video with 5min ID
         'url': 'http://on.aol.com/video/u-s--official-warns-of-largest-ever-irs-phone-scam-518167793?icid=OnHomepageC2Wide_MustSee_Img',
         'md5': '18ef68f48740e86ae94b98da815eec42',
         'info_dict': {
@@ -31,6 +32,7 @@ class AolIE(InfoExtractor):
             'skip_download': True,
         }
     }, {
+        # video with vidible ID
         'url': 'http://on.aol.com/video/netflix-is-raising-rates-5707d6b8e4b090497b04f706?context=PC:homepage:PL1944:1460189336183',
         'info_dict': {
             'id': '5707d6b8e4b090497b04f706',
@@ -45,6 +47,12 @@ class AolIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         }
+    }, {
+        'url': 'http://on.aol.com/partners/abc-551438d309eab105804dbfe8/sneak-peek-was-haley-really-framed-570eaebee4b0448640a5c944',
+        'only_matching': True,
+    }, {
+        'url': 'http://on.aol.com/shows/park-bench-shw518173474-559a1b9be4b0c3bfad3357a7?context=SH:SHW518173474:PL4327:1460619712763',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
