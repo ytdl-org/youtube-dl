@@ -41,6 +41,12 @@ class UstreamIE(InfoExtractor):
             'uploader': 'sportscanadatv',
         },
         'skip': 'This Pro Broadcaster has chosen to remove this video from the ustream.tv site.',
+    }, {
+        'url': 'http://www.ustream.tv/embed/10299409',
+        'info_dict': {
+            'id': '10299409',
+        },
+        'playlist_count': 3,
     }]
 
     def _real_extract(self, url):
@@ -55,10 +61,12 @@ class UstreamIE(InfoExtractor):
         if m.group('type') == 'embed':
             video_id = m.group('id')
             webpage = self._download_webpage(url, video_id)
-            desktop_video_id = self._html_search_regex(
-                r'ContentVideoIds=\["([^"]*?)"\]', webpage, 'desktop_video_id')
-            desktop_url = 'http://www.ustream.tv/recorded/' + desktop_video_id
-            return self.url_result(desktop_url, 'Ustream')
+            content_video_ids = self._parse_json(self._search_regex(
+                r'ustream\.vars\.offAirContentVideoIds=([^;]+);', webpage,
+                'content video IDs'), video_id)
+            return self.playlist_result(
+                map(lambda u: self.url_result('http://www.ustream.tv/recorded/' + u, 'Ustream'), content_video_ids),
+                video_id)
 
         params = self._download_json(
             'https://api.ustream.tv/videos/%s.json' % video_id, video_id)
