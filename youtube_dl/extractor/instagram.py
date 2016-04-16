@@ -45,6 +45,12 @@ class InstagramIE(InfoExtractor):
 
     @staticmethod
     def _extract_embed_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?instagram\.com/p/[^/]+/embed.*?)\1',
+            webpage)
+        if mobj:
+            return mobj.group('url')
+
         blockquote_el = get_element_by_attribute(
             'class', 'instagram-media', webpage)
         if blockquote_el is None:
