@@ -175,6 +175,7 @@ class FFmpegPostProcessor(PostProcessor):
         # Always use 'file:' because the filename may contain ':' (ffmpeg
         # interprets that as a protocol) or can start with '-' (-- is broken in
         # ffmpeg, see https://ffmpeg.org/trac/ffmpeg/ticket/2127 for details)
+        # Also leave '-' intact in order not to break streaming to stdout.
         return 'file:' + fn if fn != '-' else fn
 
 
