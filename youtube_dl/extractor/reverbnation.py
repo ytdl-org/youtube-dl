@@ -12,12 +12,12 @@ class ReverbNationIE(InfoExtractor):
         'url': 'http://www.reverbnation.com/alkilados/song/16965047-mona-lisa',
         'md5': '3da12ebca28c67c111a7f8b262d3f7a7',
         'info_dict': {
-            "id": "16965047",
-            "ext": "mp3",
-            "title": "MONA LISA",
-            "uploader": "ALKILADOS",
-            "uploader_id": "216429",
-            "thumbnail": "re:^https://gp1\.wac\.edgecastcdn\.net/.*?\.jpg$"
+            'id': '16965047',
+            'ext': 'mp3',
+            'title': 'MONA LISA',
+            'uploader': 'ALKILADOS',
+            'uploader_id': '216429',
+            'thumbnail': 're:^https://gp1\.wac\.edgecastcdn\.net/.*?\.jpg$'
         },
     }]
 

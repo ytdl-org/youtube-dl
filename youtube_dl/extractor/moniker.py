@@ -5,11 +5,11 @@ import os.path
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
     remove_start,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -88,7 +88,7 @@ class MonikerIE(InfoExtractor):
             fields = re.findall(r'type="hidden" name="(.+?)"\s* value="?(.+?)">', orig_webpage)
             data = dict(fields)
 
-            post = compat_urllib_parse.urlencode(data)
+            post = urlencode_postdata(data)
             headers = {
                 b'Content-Type': b'application/x-www-form-urlencoded',
             }

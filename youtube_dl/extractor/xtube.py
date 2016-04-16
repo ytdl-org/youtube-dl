@@ -7,15 +7,17 @@ from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     int_or_none,
-    parse_duration,
+    orderedSet,
     sanitized_Request,
     str_to_int,
 )
 
 
 class XTubeIE(InfoExtractor):
-    _VALID_URL = r'(?:xtube:|https?://(?:www\.)?xtube\.com/watch\.php\?.*\bv=)(?P<id>[^/?&#]+)'
-    _TEST = {
+    _VALID_URL = r'(?:xtube:|https?://(?:www\.)?xtube\.com/(?:watch\.php\?.*\bv=|video-watch/(?P<display_id>[^/]+)-))(?P<id>[^/?&#]+)'
+
+    _TESTS = [{
+        # old URL schema
         'url': 'http://www.xtube.com/watch.php?v=kVTUy_G222_',
         'md5': '092fbdd3cbe292c920ef6fc6a8a9cdab',
         'info_dict': {
@@ -27,63 +29,60 @@ class XTubeIE(InfoExtractor):
             'duration': 450,
             'age_limit': 18,
         }
-    }
+    }, {
+        # new URL schema
+        'url': 'http://www.xtube.com/video-watch/strange-erotica-625837',
+        'only_matching': True,
+    }, {
+        'url': 'xtube:625837',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        display_id = mobj.group('display_id')
 
-        req = sanitized_Request('http://www.xtube.com/watch.php?v=%s' % video_id)
-        req.add_header('Cookie', 'age_verified=1')
-        webpage = self._download_webpage(req, video_id)
+        if not display_id:
+            display_id = video_id
+            url = 'http://www.xtube.com/watch.php?v=%s' % video_id
 
-        video_title = self._html_search_regex(
-            r'<p class="title">([^<]+)', webpage, 'title')
-        video_uploader = self._html_search_regex(
-            [r"var\s+contentOwnerId\s*=\s*'([^']+)",
-             r'By:\s*<a href="/community/profile\.php\?user=([^"]+)'],
+        req = sanitized_Request(url)
+        req.add_header('Cookie', 'age_verified=1; cookiesAccepted=1')
+        webpage = self._download_webpage(req, display_id)
+
+        flashvars = self._parse_json(
+            self._search_regex(
+                r'xt\.playerOps\s*=\s*({.+?});', webpage, 'player ops'),
+            video_id)['flashvars']
+
+        title = flashvars.get('title') or self._search_regex(
+            r'<h1>([^<]+)</h1>', webpage, 'title')
+        video_url = compat_urllib_parse_unquote(flashvars['video_url'])
+        duration = int_or_none(flashvars.get('video_duration'))
+
+        uploader = self._search_regex(
+            r'<input[^>]+name="contentOwnerId"[^>]+value="([^"]+)"',
             webpage, 'uploader', fatal=False)
-        video_description = self._html_search_regex(
-            r'<p class="fieldsDesc">([^<]+)',
-            webpage, 'description', fatal=False)
-        duration = parse_duration(self._html_search_regex(
-            r'<span class="bold">Runtime:</span> ([^<]+)</p>',
-            webpage, 'duration', fatal=False))
-        view_count = str_to_int(self._html_search_regex(
-            r'<span class="bold">Views:</span> ([\d,\.]+)</p>',
+        description = self._search_regex(
+            r'</h1>\s*<p>([^<]+)', webpage, 'description', fatal=False)
+        view_count = str_to_int(self._search_regex(
+            r'<dt>Views:</dt>\s*<dd>([\d,\.]+)</dd>',
             webpage, 'view count', fatal=False))
         comment_count = str_to_int(self._html_search_regex(
-            r'<div id="commentBar">([\d,\.]+) Comments</div>',
+            r'>Comments? \(([\d,\.]+)\)<',
             webpage, 'comment count', fatal=False))
-
-        formats = []
-        for format_id, video_url in re.findall(
-                r'flashvars\.quality_(.+?)\s*=\s*"([^"]+)"', webpage):
-            fmt = {
-                'url': compat_urllib_parse_unquote(video_url),
-                'format_id': format_id,
-            }
-            m = re.search(r'^(?P<height>\d+)[pP]', format_id)
-            if m:
-                fmt['height'] = int(m.group('height'))
-            formats.append(fmt)
-
-        if not formats:
-            video_url = compat_urllib_parse_unquote(self._search_regex(
-                r'flashvars\.video_url\s*=\s*"([^"]+)"',
-                webpage, 'video URL'))
-            formats.append({'url': video_url})
-
-        self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'title': video_title,
-            'uploader': video_uploader,
-            'description': video_description,
+            'display_id': display_id,
+            'url': video_url,
+            'title': title,
+            'description': description,
+            'uploader': uploader,
             'duration': duration,
             'view_count': view_count,
             'comment_count': comment_count,
-            'formats': formats,
             'age_limit': 18,
         }
 
@@ -120,7 +119,8 @@ class XTubeUserIE(InfoExtractor):
             if not html:
                 break
 
-            for _, video_id in re.findall(r'data-plid=(["\'])(.+?)\1', html):
+            for video_id in orderedSet([video_id for _, video_id in re.findall(
+                    r'data-plid=(["\'])(.+?)\1', html)]):
                 entries.append(self.url_result('xtube:%s' % video_id, XTubeIE.ie_key()))
 
             page_count = int_or_none(page.get('pageCount'))

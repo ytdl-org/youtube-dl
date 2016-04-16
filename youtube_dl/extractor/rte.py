@@ -39,16 +39,22 @@ class RteIE(InfoExtractor):
         duration = float_or_none(self._html_search_meta(
             'duration', webpage, 'duration', fatal=False), 1000)
 
-        thumbnail_id = self._search_regex(
-            r'<meta name="thumbnail" content="uri:irus:(.*?)" />', webpage, 'thumbnail')
-        thumbnail = 'http://img.rasset.ie/' + thumbnail_id + '.jpg'
+        thumbnail = None
+        thumbnail_meta = self._html_search_meta('thumbnail', webpage)
+        if thumbnail_meta:
+            thumbnail_id = self._search_regex(
+                r'uri:irus:(.+)', thumbnail_meta,
+                'thumbnail id', fatal=False)
+            if thumbnail_id:
+                thumbnail = 'http://img.rasset.ie/%s.jpg' % thumbnail_id
 
-        feeds_url = self._html_search_meta("feeds-prefix", webpage, 'feeds url') + video_id
+        feeds_url = self._html_search_meta('feeds-prefix', webpage, 'feeds url') + video_id
         json_string = self._download_json(feeds_url, video_id)
 
         # f4m_url = server + relative_url
         f4m_url = json_string['shows'][0]['media:group'][0]['rte:server'] + json_string['shows'][0]['media:group'][0]['url']
         f4m_formats = self._extract_f4m_formats(f4m_url, video_id)
+        self._sort_formats(f4m_formats)
 
         return {
             'id': video_id,

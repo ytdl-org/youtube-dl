@@ -7,12 +7,12 @@ import hashlib
 import uuid
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
     int_or_none,
     sanitized_Request,
     unified_strdate,
+    urlencode_postdata,
 )
 
 
@@ -170,12 +170,12 @@ class SmotriIE(InfoExtractor):
             'getvideoinfo': '1',
         }
 
-        video_password = self._downloader.params.get('videopassword', None)
+        video_password = self._downloader.params.get('videopassword')
         if video_password:
             video_form['pass'] = hashlib.md5(video_password.encode('utf-8')).hexdigest()
 
         request = sanitized_Request(
-            'http://smotri.com/video/view/url/bot/', compat_urllib_parse.urlencode(video_form))
+            'http://smotri.com/video/view/url/bot/', urlencode_postdata(video_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
 
         video = self._download_json(request, video_id, 'Downloading video JSON')
@@ -338,7 +338,7 @@ class SmotriBroadcastIE(InfoExtractor):
             }
 
             request = sanitized_Request(
-                broadcast_url + '/?no_redirect=1', compat_urllib_parse.urlencode(login_form))
+                broadcast_url + '/?no_redirect=1', urlencode_postdata(login_form))
             request.add_header('Content-Type', 'application/x-www-form-urlencoded')
             broadcast_page = self._download_webpage(
                 request, broadcast_id, 'Logging in and confirming age')
@@ -356,7 +356,7 @@ class SmotriBroadcastIE(InfoExtractor):
 
         url = 'http://smotri.com/broadcast/view/url/?ticket=%s' % ticket
 
-        broadcast_password = self._downloader.params.get('videopassword', None)
+        broadcast_password = self._downloader.params.get('videopassword')
         if broadcast_password:
             url += '&pass=%s' % hashlib.md5(broadcast_password.encode('utf-8')).hexdigest()
 

@@ -5,17 +5,16 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse,
-)
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
+    int_or_none,
     orderedSet,
     sanitized_Request,
     str_to_int,
     unescapeHTML,
     unified_strdate,
+    urlencode_postdata,
 )
 from .vimeo import VimeoIE
 from .pladform import PladformIE
@@ -141,13 +140,26 @@ class VKIE(InfoExtractor):
             'url': 'https://vk.com/video276849682_170681728',
             'info_dict': {
                 'id': 'V3K4mi0SYkc',
-                'ext': 'mp4',
+                'ext': 'webm',
                 'title': "DSWD Awards 'Children's Joy Foundation, Inc.' Certificate of Registration and License to Operate",
                 'description': 'md5:bf9c26cfa4acdfb146362682edd3827a',
-                'duration': 179,
+                'duration': 178,
                 'upload_date': '20130116',
                 'uploader': "Children's Joy Foundation",
                 'uploader_id': 'thecjf',
+                'view_count': int,
+            },
+        },
+        {
+            # video key is extra_data not url\d+
+            'url': 'http://vk.com/video-110305615_171782105',
+            'md5': 'e13fcda136f99764872e739d13fac1d1',
+            'info_dict': {
+                'id': '171782105',
+                'ext': 'mp4',
+                'title': 'S-Dance, репетиции к The way show',
+                'uploader': 'THE WAY SHOW | 17 апреля',
+                'upload_date': '20160207',
                 'view_count': int,
             },
         },
@@ -190,7 +202,7 @@ class VKIE(InfoExtractor):
 
         request = sanitized_Request(
             'https://login.vk.com/?act=login',
-            compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+            urlencode_postdata(login_form))
         login_page = self._download_webpage(
             request, None, note='Logging in as %s' % username)
 
@@ -298,12 +310,17 @@ class VKIE(InfoExtractor):
             view_count = str_to_int(self._search_regex(
                 r'([\d,.]+)', views, 'view count', fatal=False))
 
-        formats = [{
-            'format_id': k,
-            'url': v,
-            'width': int(k[len('url'):]),
-        } for k, v in data.items()
-            if k.startswith('url')]
+        formats = []
+        for k, v in data.items():
+            if not k.startswith('url') and k != 'extra_data' or not v:
+                continue
+            height = int_or_none(self._search_regex(
+                r'^url(\d+)', k, 'height', default=None))
+            formats.append({
+                'format_id': k,
+                'url': v,
+                'height': height,
+            })
         self._sort_formats(formats)
 
         return {

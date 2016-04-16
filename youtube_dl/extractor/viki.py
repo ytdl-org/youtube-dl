@@ -176,13 +176,13 @@ class VikiIE(VikiBaseIE):
     }, {
         # youtube external
         'url': 'http://www.viki.com/videos/50562v-poor-nastya-complete-episode-1',
-        'md5': '216d1afdc0c64d1febc1e9f2bd4b864b',
+        'md5': '63f8600c1da6f01b7640eee7eca4f1da',
         'info_dict': {
             'id': '50562v',
-            'ext': 'mp4',
+            'ext': 'webm',
             'title': 'Poor Nastya [COMPLETE] - Episode 1',
             'description': '',
-            'duration': 607,
+            'duration': 606,
             'timestamp': 1274949505,
             'upload_date': '20101213',
             'uploader': 'ad14065n',

@@ -4,13 +4,15 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    get_element_by_attribute,
     int_or_none,
     limit_length,
+    lowercase_escape,
 )
 
 
 class InstagramIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?instagram\.com/p/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'(?P<url>https?://(?:www\.)?instagram\.com/p/(?P<id>[^/?#&]+))'
     _TESTS = [{
         'url': 'https://instagram.com/p/aye83DjauH/?foo=bar#abc',
         'md5': '0d2da106a9d2631273e192b372806516',
@@ -36,16 +38,41 @@ class InstagramIE(InfoExtractor):
     }, {
         'url': 'https://instagram.com/p/-Cmh1cukG2/',
         'only_matching': True,
+    }, {
+        'url': 'http://instagram.com/p/9o6LshA7zy/embed/',
+        'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_embed_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?instagram\.com/p/[^/]+/embed.*?)\1',
+            webpage)
+        if mobj:
+            return mobj.group('url')
+
+        blockquote_el = get_element_by_attribute(
+            'class', 'instagram-media', webpage)
+        if blockquote_el is None:
+            return
+
+        mobj = re.search(
+            r'<a[^>]+href=([\'"])(?P<link>[^\'"]+)\1', blockquote_el)
+        if mobj:
+            return mobj.group('link')
+
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        url = mobj.group('url')
 
         webpage = self._download_webpage(url, video_id)
         uploader_id = self._search_regex(r'"owner":{"username":"(.+?)"',
                                          webpage, 'uploader id', fatal=False)
         desc = self._search_regex(
             r'"caption":"(.+?)"', webpage, 'description', default=None)
+        if desc is not None:
+            desc = lowercase_escape(desc)
 
         return {
             'id': video_id,
@@ -136,7 +163,7 @@ class InstagramUserIE(InfoExtractor):
 
             if not page['items']:
                 break
-            max_id = page['items'][-1]['id']
+            max_id = page['items'][-1]['id'].split('_')[0]
             media_url = (
                 'http://instagram.com/%s/media?max_id=%s' % (
                     uploader_id, max_id))

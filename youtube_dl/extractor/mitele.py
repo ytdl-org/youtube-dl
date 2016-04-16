@@ -2,11 +2,10 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
-    encode_dict,
     get_element_by_attribute,
     int_or_none,
 )
@@ -14,7 +13,7 @@ from ..utils import (
 
 class MiTeleIE(InfoExtractor):
     IE_DESC = 'mitele.es'
-    _VALID_URL = r'http://www\.mitele\.es/[^/]+/[^/]+/[^/]+/(?P<id>[^/]+)/'
+    _VALID_URL = r'https?://www\.mitele\.es/[^/]+/[^/]+/[^/]+/(?P<id>[^/]+)/'
 
     _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/la-redaccion/programa-144/',
@@ -60,7 +59,7 @@ class MiTeleIE(InfoExtractor):
                 'sta': '0',
             }
             media = self._download_json(
-                '%s/?%s' % (gat, compat_urllib_parse.urlencode(encode_dict(token_data))),
+                '%s/?%s' % (gat, compat_urllib_parse_urlencode(token_data)),
                 display_id, 'Downloading %s JSON' % location['loc'])
             file_ = media.get('file')
             if not file_:
@@ -68,6 +67,7 @@ class MiTeleIE(InfoExtractor):
             formats.extend(self._extract_f4m_formats(
                 file_ + '&hdcore=3.2.0&plugin=aasp-3.2.0.77.18',
                 display_id, f4m_id=loc))
+        self._sort_formats(formats)
 
         title = self._search_regex(
             r'class="Destacado-text"[^>]*>\s*<strong>([^<]+)</strong>', webpage, 'title')

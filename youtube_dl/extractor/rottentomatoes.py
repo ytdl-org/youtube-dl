@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 
-from .videodetective import VideoDetectiveIE
+from .common import InfoExtractor
+from ..compat import compat_urlparse
+from .internetvideoarchive import InternetVideoArchiveIE
 
 
-# It just uses the same method as videodetective.com,
-# the internetvideoarchive.com is extracted from the og:video property
-class RottenTomatoesIE(VideoDetectiveIE):
+class RottenTomatoesIE(InfoExtractor):
     _VALID_URL = r'https?://www\.rottentomatoes\.com/m/[^/]+/trailers/(?P<id>\d+)'
 
     _TEST = {
@@ -13,7 +13,19 @@ class RottenTomatoesIE(VideoDetectiveIE):
         'info_dict': {
             'id': '613340',
             'ext': 'mp4',
-            'title': 'TOY STORY 3',
-            'description': 'From the creators of the beloved TOY STORY films, comes a story that will reunite the gang in a whole new way.',
+            'title': 'Toy Story 3',
         },
     }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        og_video = self._og_search_video_url(webpage)
+        query = compat_urlparse.urlparse(og_video).query
+
+        return {
+            '_type': 'url_transparent',
+            'url': InternetVideoArchiveIE._build_xml_url(query),
+            'ie_key': InternetVideoArchiveIE.ie_key(),
+            'title': self._og_search_title(webpage),
+        }

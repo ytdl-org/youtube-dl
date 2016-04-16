@@ -8,11 +8,12 @@ import warnings
 import sys
 
 try:
-    from setuptools import setup
+    from setuptools import setup, Command
     setuptools_available = True
 except ImportError:
-    from distutils.core import setup
+    from distutils.core import setup, Command
     setuptools_available = False
+from distutils.spawn import spawn
 
 try:
     # This will create an exe that needs Microsoft Visual C++ 2008
@@ -70,6 +71,22 @@ else:
     else:
         params['scripts'] = ['bin/youtube-dl']
 
+class build_lazy_extractors(Command):
+    description = "Build the extractor lazy loading module"
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        spawn(
+            [sys.executable, 'devscripts/make_lazy_extractors.py', 'youtube_dl/extractor/lazy_extractors.py'],
+            dry_run=self.dry_run,
+        )
+
 # Get the version from youtube_dl/version.py without importing the package
 exec(compile(open('youtube_dl/version.py').read(),
              'youtube_dl/version.py', 'exec'))
@@ -107,5 +124,6 @@ setup(
         "Programming Language :: Python :: 3.4",
     ],
 
+    cmdclass={'build_lazy_extractors': build_lazy_extractors},
     **params
 )

@@ -4,12 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
 from ..utils import (
     ExtractorError,
-    encode_dict,
     int_or_none,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -17,7 +16,7 @@ class XFileShareIE(InfoExtractor):
     IE_DESC = 'XFileShare based sites: GorillaVid.in, daclips.in, movpod.in, fastvideo.in, realvid.net, filehoot.com and vidto.me'
     _VALID_URL = r'''(?x)
         https?://(?P<host>(?:www\.)?
-            (?:daclips\.in|gorillavid\.in|movpod\.in|fastvideo\.in|realvid\.net|filehoot\.com|vidto\.me))/
+            (?:daclips\.in|gorillavid\.in|movpod\.in|fastvideo\.in|realvid\.net|filehoot\.com|vidto\.me|powerwatch\.pw))/
         (?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:-[0-9]+x[0-9]+\.html)?
     '''
 
@@ -81,6 +80,13 @@ class XFileShareIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'test'
         }
+    }, {
+        'url': 'http://powerwatch.pw/duecjibvicbu',
+        'info_dict': {
+            'id': 'duecjibvicbu',
+            'ext': 'mp4',
+            'title': 'Big Buck Bunny trailer',
+        },
     }]
 
     def _real_extract(self, url):
@@ -102,7 +108,7 @@ class XFileShareIE(InfoExtractor):
             if countdown:
                 self._sleep(countdown, video_id)
 
-            post = compat_urllib_parse.urlencode(encode_dict(fields))
+            post = urlencode_postdata(fields)
 
             req = sanitized_Request(url, post)
             req.add_header('Content-type', 'application/x-www-form-urlencoded')
@@ -112,6 +118,7 @@ class XFileShareIE(InfoExtractor):
         title = (self._search_regex(
             [r'style="z-index: [0-9]+;">([^<]+)</span>',
              r'<td nowrap>([^<]+)</td>',
+             r'h4-fine[^>]*>([^<]+)<',
              r'>Watch (.+) ',
              r'<h2 class="video-page-head">([^<]+)</h2>'],
             webpage, 'title', default=None) or self._og_search_title(webpage)).strip()

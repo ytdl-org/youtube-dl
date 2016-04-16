@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class BreakIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?break\.com/video/(?:[^/]+/)*.+-(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?break\.com/video/(?:[^/]+/)*.+-(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.break.com/video/when-girls-act-like-guys-2468056',
         'info_dict': {

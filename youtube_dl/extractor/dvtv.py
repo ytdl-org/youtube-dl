@@ -15,7 +15,7 @@ class DVTVIE(InfoExtractor):
     IE_NAME = 'dvtv'
     IE_DESC = 'http://video.aktualne.cz/'
 
-    _VALID_URL = r'http://video\.aktualne\.cz/(?:[^/]+/)+r~(?P<id>[0-9a-f]{32})'
+    _VALID_URL = r'https?://video\.aktualne\.cz/(?:[^/]+/)+r~(?P<id>[0-9a-f]{32})'
 
     _TESTS = [{
         'url': 'http://video.aktualne.cz/dvtv/vondra-o-ceskem-stoleti-pri-pohledu-na-havla-mi-bylo-trapne/r~e5efe9ca855511e4833a0025900fea04/',

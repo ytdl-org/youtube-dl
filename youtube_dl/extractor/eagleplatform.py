@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_HTTPError
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -55,8 +56,13 @@ class EaglePlatformIE(InfoExtractor):
             raise ExtractorError(' '.join(response['errors']), expected=True)
 
     def _download_json(self, url_or_request, video_id, note='Downloading JSON metadata'):
-        response = super(EaglePlatformIE, self)._download_json(url_or_request, video_id, note)
-        self._handle_error(response)
+        try:
+            response = super(EaglePlatformIE, self)._download_json(url_or_request, video_id, note)
+        except ExtractorError as ee:
+            if isinstance(ee.cause, compat_HTTPError):
+                response = self._parse_json(ee.cause.read().decode('utf-8'), video_id)
+                self._handle_error(response)
+            raise
         return response
 
     def _get_video_url(self, url_or_request, video_id, note='Downloading JSON metadata'):

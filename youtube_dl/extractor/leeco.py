@@ -1,36 +1,39 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
 import datetime
+import hashlib
 import re
 import time
-import base64
-import hashlib
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
     compat_ord,
     compat_str,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     determine_ext,
+    encode_data_uri,
     ExtractorError,
+    int_or_none,
+    orderedSet,
     parse_iso8601,
     sanitized_Request,
-    int_or_none,
     str_or_none,
-    encode_data_uri,
     url_basename,
 )
 
 
-class LetvIE(InfoExtractor):
+class LeIE(InfoExtractor):
     IE_DESC = '乐视网'
-    _VALID_URL = r'http://www\.letv\.com/ptv/vplay/(?P<id>\d+).html'
+    _VALID_URL = r'https?://www\.le\.com/ptv/vplay/(?P<id>\d+)\.html'
+
+    _URL_TEMPLATE = 'http://www.le.com/ptv/vplay/%s.html'
 
     _TESTS = [{
-        'url': 'http://www.letv.com/ptv/vplay/22005890.html',
+        'url': 'http://www.le.com/ptv/vplay/22005890.html',
         'md5': 'edadcfe5406976f42f9f266057ee5e40',
         'info_dict': {
             'id': '22005890',
@@ -42,7 +45,7 @@ class LetvIE(InfoExtractor):
             'hls_prefer_native': True,
         },
     }, {
-        'url': 'http://www.letv.com/ptv/vplay/1415246.html',
+        'url': 'http://www.le.com/ptv/vplay/1415246.html',
         'info_dict': {
             'id': '1415246',
             'ext': 'mp4',
@@ -54,7 +57,7 @@ class LetvIE(InfoExtractor):
         },
     }, {
         'note': 'This video is available only in Mainland China, thus a proxy is needed',
-        'url': 'http://www.letv.com/ptv/vplay/1118082.html',
+        'url': 'http://www.le.com/ptv/vplay/1118082.html',
         'md5': '2424c74948a62e5f31988438979c5ad1',
         'info_dict': {
             'id': '1118082',
@@ -94,17 +97,16 @@ class LetvIE(InfoExtractor):
             return encrypted_data
         encrypted_data = encrypted_data[5:]
 
-        _loc4_ = bytearray()
-        while encrypted_data:
-            b = compat_ord(encrypted_data[0])
-            _loc4_.extend([b // 16, b & 0x0f])
-            encrypted_data = encrypted_data[1:]
+        _loc4_ = bytearray(2 * len(encrypted_data))
+        for idx, val in enumerate(encrypted_data):
+            b = compat_ord(val)
+            _loc4_[2 * idx] = b // 16
+            _loc4_[2 * idx + 1] = b % 16
         idx = len(_loc4_) - 11
         _loc4_ = _loc4_[idx:] + _loc4_[:idx]
-        _loc7_ = bytearray()
-        while _loc4_:
-            _loc7_.append(_loc4_[0] * 16 + _loc4_[1])
-            _loc4_ = _loc4_[2:]
+        _loc7_ = bytearray(len(encrypted_data))
+        for i in range(len(encrypted_data)):
+            _loc7_[i] = _loc4_[2 * i] * 16 + _loc4_[2 * i + 1]
 
         return bytes(_loc7_)
 
@@ -117,10 +119,10 @@ class LetvIE(InfoExtractor):
             'splatid': 101,
             'format': 1,
             'tkey': self.calc_time_key(int(time.time())),
-            'domain': 'www.letv.com'
+            'domain': 'www.le.com'
         }
         play_json_req = sanitized_Request(
-            'http://api.letv.com/mms/out/video/playJson?' + compat_urllib_parse.urlencode(params)
+            'http://api.le.com/mms/out/video/playJson?' + compat_urllib_parse_urlencode(params)
         )
         cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
         if cn_verification_proxy:
@@ -149,7 +151,7 @@ class LetvIE(InfoExtractor):
         for format_id in formats:
             if format_id in dispatch:
                 media_url = playurl['domain'][0] + dispatch[format_id][0]
-                media_url += '&' + compat_urllib_parse.urlencode({
+                media_url += '&' + compat_urllib_parse_urlencode({
                     'm3v': 1,
                     'format': 1,
                     'expect': 3,
@@ -193,26 +195,51 @@ class LetvIE(InfoExtractor):
         }
 
 
-class LetvTvIE(InfoExtractor):
-    _VALID_URL = r'http://www.letv.com/tv/(?P<id>\d+).html'
+class LePlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://[a-z]+\.le\.com/[a-z]+/(?P<id>[a-z0-9_]+)'
+
     _TESTS = [{
-        'url': 'http://www.letv.com/tv/46177.html',
+        'url': 'http://www.le.com/tv/46177.html',
         'info_dict': {
             'id': '46177',
             'title': '美人天下',
             'description': 'md5:395666ff41b44080396e59570dbac01c'
         },
         'playlist_count': 35
+    }, {
+        'url': 'http://tv.le.com/izt/wuzetian/index.html',
+        'info_dict': {
+            'id': 'wuzetian',
+            'title': '武媚娘传奇',
+            'description': 'md5:e12499475ab3d50219e5bba00b3cb248'
+        },
+        # This playlist contains some extra videos other than the drama itself
+        'playlist_mincount': 96
+    }, {
+        'url': 'http://tv.le.com/pzt/lswjzzjc/index.shtml',
+        # This series is moved to http://www.le.com/tv/10005297.html
+        'only_matching': True,
+    }, {
+        'url': 'http://www.le.com/comic/92063.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://list.le.com/listn/c1009_sc532002_d2_p1_o1.html',
+        'only_matching': True,
     }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if LeIE.suitable(url) else super(LePlaylistIE, cls).suitable(url)
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
         page = self._download_webpage(url, playlist_id)
 
-        media_urls = list(set(re.findall(
-            r'http://www.letv.com/ptv/vplay/\d+.html', page)))
-        entries = [self.url_result(media_url, ie='Letv')
-                   for media_url in media_urls]
+        # Currently old domain names are still used in playlists
+        media_ids = orderedSet(re.findall(
+            r'<a[^>]+href="http://www\.letv\.com/ptv/vplay/(\d+)\.html', page))
+        entries = [self.url_result(LeIE._URL_TEMPLATE % media_id, ie='Le')
+                   for media_id in media_ids]
 
         title = self._html_search_meta('keywords', page,
                                        fatal=False).split('，')[0]
@@ -222,31 +249,9 @@ class LetvTvIE(InfoExtractor):
                                     playlist_description=description)
 
 
-class LetvPlaylistIE(LetvTvIE):
-    _VALID_URL = r'http://tv.letv.com/[a-z]+/(?P<id>[a-z]+)/index.s?html'
-    _TESTS = [{
-        'url': 'http://tv.letv.com/izt/wuzetian/index.html',
-        'info_dict': {
-            'id': 'wuzetian',
-            'title': '武媚娘传奇',
-            'description': 'md5:e12499475ab3d50219e5bba00b3cb248'
-        },
-        # This playlist contains some extra videos other than the drama itself
-        'playlist_mincount': 96
-    }, {
-        'url': 'http://tv.letv.com/pzt/lswjzzjc/index.shtml',
-        'info_dict': {
-            'id': 'lswjzzjc',
-            # The title should be "劲舞青春", but I can't find a simple way to
-            # determine the playlist title
-            'title': '乐视午间自制剧场',
-            'description': 'md5:b1eef244f45589a7b5b1af9ff25a4489'
-        },
-        'playlist_mincount': 7
-    }]
-
-
 class LetvCloudIE(InfoExtractor):
+    # Most of *.letv.com is changed to *.le.com on 2016/01/02
+    # but yuntv.letv.com is kept, so also keep the extractor name
     IE_DESC = '乐视云'
     _VALID_URL = r'https?://yuntv\.letv\.com/bcloud.html\?.+'
 
@@ -300,7 +305,7 @@ class LetvCloudIE(InfoExtractor):
             }
             self.sign_data(data)
             return self._download_json(
-                'http://api.letvcloud.com/gpc.php?' + compat_urllib_parse.urlencode(data),
+                'http://api.letvcloud.com/gpc.php?' + compat_urllib_parse_urlencode(data),
                 media_id, 'Downloading playJson data for type %s' % cf)
 
         play_json = get_play_json(cf, time.time())
@@ -327,7 +332,7 @@ class LetvCloudIE(InfoExtractor):
             formats.append({
                 'url': url,
                 'ext': determine_ext(decoded_url),
-                'format_id': int_or_none(play_url.get('vtype')),
+                'format_id': str_or_none(play_url.get('vtype')),
                 'format_note': str_or_none(play_url.get('definition')),
                 'width': int_or_none(play_url.get('vwidth')),
                 'height': int_or_none(play_url.get('vheight')),

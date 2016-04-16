@@ -5,7 +5,7 @@ import re
 from .mtv import MTVServicesInfoExtractor
 from ..compat import (
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     ExtractorError,
@@ -16,11 +16,11 @@ from ..utils import (
 
 class ComedyCentralIE(MTVServicesInfoExtractor):
     _VALID_URL = r'''(?x)https?://(?:www\.)?cc\.com/
-        (video-clips|episodes|cc-studios|video-collections|full-episodes)
+        (video-clips|episodes|cc-studios|video-collections|full-episodes|shows)
         /(?P<title>.*)'''
     _FEED_URL = 'http://comedycentral.com/feeds/mrss/'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.cc.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother',
         'md5': 'c4f48e9eda1b16dd10add0744344b6d8',
         'info_dict': {
@@ -29,7 +29,10 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
             'title': 'CC:Stand-Up|Greg Fitzsimmons: Life on Stage|Uncensored - Too Good of a Mother',
             'description': 'After a certain point, breastfeeding becomes c**kblocking.',
         },
-    }
+    }, {
+        'url': 'http://www.cc.com/shows/the-daily-show-with-trevor-noah/interviews/6yx39d/exclusive-rand-paul-extended-interview',
+        'only_matching': True,
+    }]
 
 
 class ComedyCentralShowsIE(MTVServicesInfoExtractor):
@@ -192,13 +195,13 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
             if len(altMovieParams) == 0:
                 raise ExtractorError('unable to find Flash URL in webpage ' + url)
             else:
-                mMovieParams = [("http://media.mtvnservices.com/" + altMovieParams[0], altMovieParams[0])]
+                mMovieParams = [('http://media.mtvnservices.com/' + altMovieParams[0], altMovieParams[0])]
 
         uri = mMovieParams[0][1]
         # Correct cc.com in uri
         uri = re.sub(r'(episode:[^.]+)(\.cc)?\.com', r'\1.com', uri)
 
-        index_url = 'http://%s.cc.com/feeds/mrss?%s' % (show_name, compat_urllib_parse.urlencode({'uri': uri}))
+        index_url = 'http://%s.cc.com/feeds/mrss?%s' % (show_name, compat_urllib_parse_urlencode({'uri': uri}))
         idoc = self._download_xml(
             index_url, epTitle,
             'Downloading show index', 'Unable to download episode index')

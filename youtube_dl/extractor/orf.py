@@ -112,6 +112,7 @@ class ORFTVthekIE(InfoExtractor):
                             % geo_str),
                         fatal=False)
 
+            self._check_formats(formats, video_id)
             self._sort_formats(formats)
 
             upload_date = unified_strdate(sd['created_date'])
@@ -136,7 +137,7 @@ class ORFTVthekIE(InfoExtractor):
 class ORFOE1IE(InfoExtractor):
     IE_NAME = 'orf:oe1'
     IE_DESC = 'Radio Österreich 1'
-    _VALID_URL = r'http://oe1\.orf\.at/(?:programm/|konsole.*?#\?track_id=)(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://oe1\.orf\.at/(?:programm/|konsole.*?#\?track_id=)(?P<id>[0-9]+)'
 
     # Audios on ORF radio are only available for 7 days, so we can't add tests.
     _TEST = {
@@ -170,7 +171,7 @@ class ORFOE1IE(InfoExtractor):
 class ORFFM4IE(InfoExtractor):
     IE_NAME = 'orf:fm4'
     IE_DESC = 'radio FM4'
-    _VALID_URL = r'http://fm4\.orf\.at/(?:7tage/?#|player/)(?P<date>[0-9]+)/(?P<show>\w+)'
+    _VALID_URL = r'https?://fm4\.orf\.at/(?:7tage/?#|player/)(?P<date>[0-9]+)/(?P<show>\w+)'
 
     _TEST = {
         'url': 'http://fm4.orf.at/player/20160110/IS/',
@@ -221,7 +222,7 @@ class ORFFM4IE(InfoExtractor):
 class ORFIPTVIE(InfoExtractor):
     IE_NAME = 'orf:iptv'
     IE_DESC = 'iptv.ORF.at'
-    _VALID_URL = r'http://iptv\.orf\.at/(?:#/)?stories/(?P<id>\d+)'
+    _VALID_URL = r'https?://iptv\.orf\.at/(?:#/)?stories/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://iptv.orf.at/stories/2275236/',

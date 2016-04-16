@@ -119,7 +119,7 @@ class VineIE(InfoExtractor):
 class VineUserIE(InfoExtractor):
     IE_NAME = 'vine:user'
     _VALID_URL = r'(?:https?://)?vine\.co/(?P<u>u/)?(?P<user>[^/]+)/?(\?.*)?$'
-    _VINE_BASE_URL = "https://vine.co/"
+    _VINE_BASE_URL = 'https://vine.co/'
     _TESTS = [
         {
             'url': 'https://vine.co/Visa',
@@ -139,7 +139,7 @@ class VineUserIE(InfoExtractor):
         user = mobj.group('user')
         u = mobj.group('u')
 
-        profile_url = "%sapi/users/profiles/%s%s" % (
+        profile_url = '%sapi/users/profiles/%s%s' % (
             self._VINE_BASE_URL, 'vanity/' if not u else '', user)
         profile_data = self._download_json(
             profile_url, user, note='Downloading user profile data')
@@ -147,7 +147,7 @@ class VineUserIE(InfoExtractor):
         user_id = profile_data['data']['userId']
         timeline_data = []
         for pagenum in itertools.count(1):
-            timeline_url = "%sapi/timelines/users/%s?page=%s&size=100" % (
+            timeline_url = '%sapi/timelines/users/%s?page=%s&size=100' % (
                 self._VINE_BASE_URL, user_id, pagenum)
             timeline_page = self._download_json(
                 timeline_url, user, note='Downloading page %d' % pagenum)

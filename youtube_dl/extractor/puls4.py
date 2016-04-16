@@ -40,7 +40,7 @@ class Puls4IE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         error_message = self._html_search_regex(
-            r'<div class="message-error">(.+?)</div>',
+            r'<div[^>]+class="message-error"[^>]*>(.+?)</div>',
             webpage, 'error message', default=None)
         if error_message:
             raise ExtractorError(

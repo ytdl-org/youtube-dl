@@ -4,10 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
 from ..utils import (
     parse_duration,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -47,7 +47,7 @@ class ShareSixIE(InfoExtractor):
         fields = {
             'method_free': 'Free'
         }
-        post = compat_urllib_parse.urlencode(fields)
+        post = urlencode_postdata(fields)
         req = sanitized_Request(url, post)
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
 

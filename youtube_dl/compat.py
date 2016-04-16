@@ -77,6 +77,11 @@ try:
 except ImportError:  # Python 2
     from urllib import urlretrieve as compat_urlretrieve
 
+try:
+    from html.parser import HTMLParser as compat_HTMLParser
+except ImportError:  # Python 2
+    from HTMLParser import HTMLParser as compat_HTMLParser
+
 
 try:
     from subprocess import DEVNULL
@@ -165,6 +170,32 @@ except ImportError:  # Python 2
         return compat_urllib_parse_unquote(string, encoding, errors)
 
 try:
+    from urllib.parse import urlencode as compat_urllib_parse_urlencode
+except ImportError:  # Python 2
+    # Python 2 will choke in urlencode on mixture of byte and unicode strings.
+    # Possible solutions are to either port it from python 3 with all
+    # the friends or manually ensure input query contains only byte strings.
+    # We will stick with latter thus recursively encoding the whole query.
+    def compat_urllib_parse_urlencode(query, doseq=0, encoding='utf-8'):
+        def encode_elem(e):
+            if isinstance(e, dict):
+                e = encode_dict(e)
+            elif isinstance(e, (list, tuple,)):
+                list_e = encode_list(e)
+                e = tuple(list_e) if isinstance(e, tuple) else list_e
+            elif isinstance(e, compat_str):
+                e = e.encode(encoding)
+            return e
+
+        def encode_dict(d):
+            return dict((encode_elem(k), encode_elem(v)) for k, v in d.items())
+
+        def encode_list(l):
+            return [encode_elem(e) for e in l]
+
+        return compat_urllib_parse.urlencode(encode_elem(query), doseq=doseq)
+
+try:
     from urllib.request import DataHandler as compat_urllib_request_DataHandler
 except ImportError:  # Python < 3.4
     # Ported from CPython 98774:1733b3bd46db, Lib/urllib/request.py
@@ -181,20 +212,20 @@ except ImportError:  # Python < 3.4
             # parameter := attribute "=" value
             url = req.get_full_url()
 
-            scheme, data = url.split(":", 1)
-            mediatype, data = data.split(",", 1)
+            scheme, data = url.split(':', 1)
+            mediatype, data = data.split(',', 1)
 
             # even base64 encoded data URLs might be quoted so unquote in any case:
             data = compat_urllib_parse_unquote_to_bytes(data)
-            if mediatype.endswith(";base64"):
+            if mediatype.endswith(';base64'):
                 data = binascii.a2b_base64(data)
                 mediatype = mediatype[:-7]
 
             if not mediatype:
-                mediatype = "text/plain;charset=US-ASCII"
+                mediatype = 'text/plain;charset=US-ASCII'
 
             headers = email.message_from_string(
-                "Content-type: %s\nContent-length: %d\n" % (mediatype, len(data)))
+                'Content-type: %s\nContent-length: %d\n' % (mediatype, len(data)))
 
             return compat_urllib_response.addinfourl(io.BytesIO(data), headers, url)
 
@@ -251,6 +282,16 @@ else:
                 el.text = el.text.decode('utf-8')
         return doc
 
+if sys.version_info < (2, 7):
+    # Here comes the crazy part: In 2.6, if the xpath is a unicode,
+    # .//node does not match if a node is a direct child of . !
+    def compat_xpath(xpath):
+        if isinstance(xpath, compat_str):
+            xpath = xpath.encode('ascii')
+        return xpath
+else:
+    compat_xpath = lambda xpath: xpath
+
 try:
     from urllib.parse import parse_qs as compat_parse_qs
 except ImportError:  # Python 2
@@ -268,7 +309,7 @@ except ImportError:  # Python 2
             nv = name_value.split('=', 1)
             if len(nv) != 2:
                 if strict_parsing:
-                    raise ValueError("bad query field: %r" % (name_value,))
+                    raise ValueError('bad query field: %r' % (name_value,))
                 # Handle case of a control-name with no equal sign
                 if keep_blank_values:
                     nv.append('')
@@ -326,6 +367,9 @@ def compat_ord(c):
         return ord(c)
 
 
+compat_os_name = os._name if os.name == 'java' else os.name
+
+
 if sys.version_info >= (3, 0):
     compat_getenv = os.getenv
     compat_expanduser = os.path.expanduser
@@ -346,7 +390,7 @@ else:
     # The following are os.path.expanduser implementations from cpython 2.7.8 stdlib
     # for different platforms with correct environment variables decoding.
 
-    if os.name == 'posix':
+    if compat_os_name == 'posix':
         def compat_expanduser(path):
             """Expand ~ and ~user constructions.  If user or $HOME is unknown,
             do nothing."""
@@ -370,7 +414,7 @@ else:
                 userhome = pwent.pw_dir
             userhome = userhome.rstrip('/')
             return (userhome + path[i:]) or '/'
-    elif os.name == 'nt' or os.name == 'ce':
+    elif compat_os_name == 'nt' or compat_os_name == 'ce':
         def compat_expanduser(path):
             """Expand ~ and ~user constructs.
 
@@ -466,7 +510,7 @@ if sys.version_info < (2, 7):
         if err is not None:
             raise err
         else:
-            raise socket.error("getaddrinfo returns an empty list")
+            raise socket.error('getaddrinfo returns an empty list')
 else:
     compat_socket_create_connection = socket.create_connection
 
@@ -540,6 +584,7 @@ else:
     from tokenize import generate_tokens as compat_tokenize_tokenize
 
 __all__ = [
+    'compat_HTMLParser',
     'compat_HTTPError',
     'compat_basestring',
     'compat_chr',
@@ -556,6 +601,7 @@ __all__ = [
     'compat_itertools_count',
     'compat_kwargs',
     'compat_ord',
+    'compat_os_name',
     'compat_parse_qs',
     'compat_print',
     'compat_shlex_split',
@@ -568,6 +614,7 @@ __all__ = [
     'compat_urllib_parse_unquote',
     'compat_urllib_parse_unquote_plus',
     'compat_urllib_parse_unquote_to_bytes',
+    'compat_urllib_parse_urlencode',
     'compat_urllib_parse_urlparse',
     'compat_urllib_request',
     'compat_urllib_request_DataHandler',
@@ -575,6 +622,7 @@ __all__ = [
     'compat_urlparse',
     'compat_urlretrieve',
     'compat_xml_parse_error',
+    'compat_xpath',
     'shlex_quote',
     'subprocess_check_output',
     'workaround_optparse_bug9161',

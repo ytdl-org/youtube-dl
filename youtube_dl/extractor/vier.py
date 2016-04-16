@@ -50,6 +50,7 @@ class VierIE(InfoExtractor):
 
         playlist_url = 'http://vod.streamcloud.be/%s/mp4:_definst_/%s.mp4/playlist.m3u8' % (application, filename)
         formats = self._extract_m3u8_formats(playlist_url, display_id, 'mp4')
+        self._sort_formats(formats)
 
         title = self._og_search_title(webpage, default=display_id)
         description = self._og_search_description(webpage, default=None)

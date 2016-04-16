@@ -8,7 +8,7 @@ from ..utils import int_or_none
 
 
 class TumblrIE(InfoExtractor):
-    _VALID_URL = r'http://(?P<blog_name>.*?)\.tumblr\.com/(?:post|video)/(?P<id>[0-9]+)(?:$|[/?#])'
+    _VALID_URL = r'https?://(?P<blog_name>[^/?#&]+)\.tumblr\.com/(?:post|video)/(?P<id>[0-9]+)(?:$|[/?#])'
     _TESTS = [{
         'url': 'http://tatianamaslanydaily.tumblr.com/post/54196191430/orphan-black-dvd-extra-behind-the-scenes',
         'md5': '479bb068e5b16462f5176a6828829767',
@@ -67,6 +67,34 @@ class TumblrIE(InfoExtractor):
             'uploader_id': 'user32021558',
         },
         'add_ie': ['Vimeo'],
+    }, {
+        'url': 'http://sutiblr.tumblr.com/post/139638707273',
+        'md5': '2dd184b3669e049ba40563a7d423f95c',
+        'info_dict': {
+            'id': 'ir7qBEIKqvq',
+            'ext': 'mp4',
+            'title': 'Vine by sutiblr',
+            'alt_title': 'Vine by sutiblr',
+            'uploader': 'sutiblr',
+            'uploader_id': '1198993975374495744',
+            'upload_date': '20160220',
+            'like_count': int,
+            'comment_count': int,
+            'repost_count': int,
+        },
+        'add_ie': ['Vine'],
+    }, {
+        'url': 'http://vitasidorkina.tumblr.com/post/134652425014/joskriver-victoriassecret-invisibility-or',
+        'md5': '01c12ceb82cbf6b2fe0703aa56b3ad72',
+        'info_dict': {
+            'id': '-7LnUPGlSo',
+            'ext': 'mp4',
+            'title': 'Video by victoriassecret',
+            'description': 'Invisibility or flight…which superpower would YOU choose? #VSFashionShow #ThisOrThat',
+            'uploader_id': 'victoriassecret',
+            'thumbnail': 're:^https?://.*\.jpg'
+        },
+        'add_ie': ['Instagram'],
     }]
 
     def _real_extract(self, url):

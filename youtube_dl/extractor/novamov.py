@@ -7,7 +7,6 @@ from ..compat import compat_urlparse
 from ..utils import (
     ExtractorError,
     NO_DEFAULT,
-    encode_dict,
     sanitized_Request,
     urlencode_postdata,
 )
@@ -17,7 +16,14 @@ class NovaMovIE(InfoExtractor):
     IE_NAME = 'novamov'
     IE_DESC = 'NovaMov'
 
-    _VALID_URL_TEMPLATE = r'http://(?:(?:www\.)?%(host)s/(?:file|video|mobile/#/videos)/|(?:(?:embed|www)\.)%(host)s/embed\.php\?(?:.*?&)?v=)(?P<id>[a-z\d]{13})'
+    _VALID_URL_TEMPLATE = r'''(?x)
+                            http://
+                                (?:
+                                    (?:www\.)?%(host)s/(?:file|video|mobile/\#/videos)/|
+                                    (?:(?:embed|www)\.)%(host)s/embed(?:\.php|/)?\?(?:.*?&)?\bv=
+                                )
+                                (?P<id>[a-z\d]{13})
+                            '''
     _VALID_URL = _VALID_URL_TEMPLATE % {'host': 'novamov\.com'}
 
     _HOST = 'www.novamov.com'
@@ -28,17 +34,7 @@ class NovaMovIE(InfoExtractor):
     _DESCRIPTION_REGEX = r'(?s)<div class="v_tab blockborder rounded5" id="v_tab1">\s*<h3>[^<]+</h3><p>([^<]+)</p>'
     _URL_TEMPLATE = 'http://%s/video/%s'
 
-    _TEST = {
-        'url': 'http://www.novamov.com/video/4rurhn9x446jj',
-        'md5': '7205f346a52bbeba427603ba10d4b935',
-        'info_dict': {
-            'id': '4rurhn9x446jj',
-            'ext': 'flv',
-            'title': 'search engine optimization',
-            'description': 'search engine optimization is used to rank the web page in the google search engine'
-        },
-        'skip': '"Invalid token" errors abound (in web interface as well as youtube-dl, there is nothing we can do about it.)'
-    }
+    _TEST = None
 
     def _check_existence(self, webpage, video_id):
         if re.search(self._FILE_DELETED_REGEX, webpage) is not None:
@@ -73,7 +69,7 @@ class NovaMovIE(InfoExtractor):
             if not post_url.startswith('http'):
                 post_url = compat_urlparse.urljoin(url, post_url)
             request = sanitized_Request(
-                post_url, urlencode_postdata(encode_dict(fields)))
+                post_url, urlencode_postdata(fields))
             request.add_header('Content-Type', 'application/x-www-form-urlencoded')
             request.add_header('Referer', post_url)
             webpage = self._download_webpage(
@@ -82,7 +78,7 @@ class NovaMovIE(InfoExtractor):
 
         filekey = extract_filekey()
 
-        title = self._html_search_regex(self._TITLE_REGEX, webpage, 'title', fatal=False)
+        title = self._html_search_regex(self._TITLE_REGEX, webpage, 'title')
         description = self._html_search_regex(self._DESCRIPTION_REGEX, webpage, 'description', default='', fatal=False)
 
         api_response = self._download_webpage(
@@ -188,3 +184,29 @@ class CloudTimeIE(NovaMovIE):
     _TITLE_REGEX = r'<div[^>]+class=["\']video_det["\'][^>]*>\s*<strong>([^<]+)</strong>'
 
     _TEST = None
+
+
+class AuroraVidIE(NovaMovIE):
+    IE_NAME = 'auroravid'
+    IE_DESC = 'AuroraVid'
+
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'auroravid\.to'}
+
+    _HOST = 'www.auroravid.to'
+
+    _FILE_DELETED_REGEX = r'This file no longer exists on our servers!<'
+
+    _TESTS = [{
+        'url': 'http://www.auroravid.to/video/4rurhn9x446jj',
+        'md5': '7205f346a52bbeba427603ba10d4b935',
+        'info_dict': {
+            'id': '4rurhn9x446jj',
+            'ext': 'flv',
+            'title': 'search engine optimization',
+            'description': 'search engine optimization is used to rank the web page in the google search engine'
+        },
+        'skip': '"Invalid token" errors abound (in web interface as well as youtube-dl, there is nothing we can do about it.)'
+    }, {
+        'url': 'http://www.auroravid.to/embed/?v=4rurhn9x446jj',
+        'only_matching': True,
+    }]

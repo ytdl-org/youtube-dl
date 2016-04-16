@@ -85,6 +85,13 @@ class ZDFIE(InfoExtractor):
         uploader = xpath_text(doc, './/details/originChannelTitle', 'uploader')
         uploader_id = xpath_text(doc, './/details/originChannelId', 'uploader id')
         upload_date = unified_strdate(xpath_text(doc, './/details/airtime', 'upload date'))
+        subtitles = {}
+        captions_url = doc.find('.//caption/url')
+        if captions_url is not None:
+            subtitles['de'] = [{
+                'url': captions_url.text,
+                'ext': 'ttml',
+            }]
 
         def xml_to_thumbnails(fnode):
             thumbnails = []
@@ -137,6 +144,10 @@ class ZDFIE(InfoExtractor):
                 formats.extend(self._extract_smil_formats(
                     video_url, video_id, fatal=False))
             elif ext == 'm3u8':
+                # the certificates are misconfigured (see
+                # https://github.com/rg3/youtube-dl/issues/8665)
+                if video_url.startswith('https://'):
+                    continue
                 formats.extend(self._extract_m3u8_formats(
                     video_url, video_id, 'mp4', m3u8_id=format_id, fatal=False))
             elif ext == 'f4m':
@@ -186,6 +197,7 @@ class ZDFIE(InfoExtractor):
             'uploader_id': uploader_id,
             'upload_date': upload_date,
             'formats': formats,
+            'subtitles': subtitles,
         }
 
     def _real_extract(self, url):

@@ -5,19 +5,18 @@ import hashlib
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
     compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
-    encode_dict,
     ExtractorError,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
 class FC2IE(InfoExtractor):
-    _VALID_URL = r'^http://video\.fc2\.com/(?:[^/]+/)*content/(?P<id>[^/]+)'
+    _VALID_URL = r'^https?://video\.fc2\.com/(?:[^/]+/)*content/(?P<id>[^/]+)'
     IE_NAME = 'fc2'
     _NETRC_MACHINE = 'fc2'
     _TESTS = [{
@@ -57,7 +56,7 @@ class FC2IE(InfoExtractor):
             'Submit': ' Login ',
         }
 
-        login_data = compat_urllib_parse.urlencode(encode_dict(login_form_strs)).encode('utf-8')
+        login_data = urlencode_postdata(login_form_strs)
         request = sanitized_Request(
             'https://secure.id.fc2.com/index.php?mode=login&switch_language=en', login_data)
 
@@ -87,7 +86,7 @@ class FC2IE(InfoExtractor):
         mimi = hashlib.md5((video_id + '_gGddgPfeaf_gzyr').encode('utf-8')).hexdigest()
 
         info_url = (
-            "http://video.fc2.com/ginfo.php?mimi={1:s}&href={2:s}&v={0:s}&fversion=WIN%2011%2C6%2C602%2C180&from=2&otag=0&upid={0:s}&tk=null&".
+            'http://video.fc2.com/ginfo.php?mimi={1:s}&href={2:s}&v={0:s}&fversion=WIN%2011%2C6%2C602%2C180&from=2&otag=0&upid={0:s}&tk=null&'.
             format(video_id, mimi, compat_urllib_request.quote(refer, safe=b'').replace('.', '%2E')))
 
         info_webpage = self._download_webpage(

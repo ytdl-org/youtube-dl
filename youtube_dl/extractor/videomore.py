@@ -111,6 +111,7 @@ class VideomoreIE(InfoExtractor):
 
         video_url = xpath_text(video, './/video_url', 'video url', fatal=True)
         formats = self._extract_f4m_formats(video_url, video_id, f4m_id='hds')
+        self._sort_formats(formats)
 
         data = self._download_json(
             'http://videomore.ru/video/tracks/%s.json' % video_id,

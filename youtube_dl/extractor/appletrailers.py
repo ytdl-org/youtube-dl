@@ -12,7 +12,7 @@ from ..utils import (
 
 class AppleTrailersIE(InfoExtractor):
     IE_NAME = 'appletrailers'
-    _VALID_URL = r'https?://(?:www\.)?trailers\.apple\.com/(?:trailers|ca)/(?P<company>[^/]+)/(?P<movie>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.|movie)?trailers\.apple\.com/(?:trailers|ca)/(?P<company>[^/]+)/(?P<movie>[^/]+)'
     _TESTS = [{
         'url': 'http://trailers.apple.com/trailers/wb/manofsteel/',
         'info_dict': {
@@ -72,6 +72,9 @@ class AppleTrailersIE(InfoExtractor):
         'playlist_mincount': 2,
     }, {
         'url': 'http://trailers.apple.com/ca/metropole/autrui/',
+        'only_matching': True,
+    }, {
+        'url': 'http://movietrailers.apple.com/trailers/focus_features/kuboandthetwostrings/',
         'only_matching': True,
     }]
 

@@ -6,11 +6,11 @@ from ..utils import int_or_none
 
 
 class FranceInterIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?franceinter\.fr/player/reecouter\?play=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?franceinter\.fr/player/reecouter\?play=(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.franceinter.fr/player/reecouter?play=793962',
         'md5': '4764932e466e6f6c79c317d2e74f6884',
-        "info_dict": {
+        'info_dict': {
             'id': '793962',
             'ext': 'mp3',
             'title': 'L’Histoire dans les jeux vidéo',

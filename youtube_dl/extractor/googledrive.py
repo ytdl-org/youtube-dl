@@ -10,8 +10,8 @@ from ..utils import (
 
 
 class GoogleDriveIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:docs|drive)\.google\.com/(?:uc\?.*?id=|file/d/)|video\.google\.com/get_player\?.*?docid=)(?P<id>[a-zA-Z0-9_-]{28})'
-    _TEST = {
+    _VALID_URL = r'https?://(?:(?:docs|drive)\.google\.com/(?:uc\?.*?id=|file/d/)|video\.google\.com/get_player\?.*?docid=)(?P<id>[a-zA-Z0-9_-]{28,})'
+    _TESTS = [{
         'url': 'https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/edit?pli=1',
         'md5': '881f7700aec4f538571fa1e0eed4a7b6',
         'info_dict': {
@@ -20,7 +20,11 @@ class GoogleDriveIE(InfoExtractor):
             'title': 'Big Buck Bunny.mp4',
             'duration': 46,
         }
-    }
+    }, {
+        # video id is longer than 28 characters
+        'url': 'https://drive.google.com/file/d/1ENcQ_jeCuj7y19s66_Ou9dRP4GKGsodiDQ/edit',
+        'only_matching': True,
+    }]
     _FORMATS_EXT = {
         '5': 'flv',
         '6': 'flv',
@@ -43,7 +47,7 @@ class GoogleDriveIE(InfoExtractor):
     @staticmethod
     def _extract_url(webpage):
         mobj = re.search(
-            r'<iframe[^>]+src="https?://(?:video\.google\.com/get_player\?.*?docid=|(?:docs|drive)\.google\.com/file/d/)(?P<id>[a-zA-Z0-9_-]{28})',
+            r'<iframe[^>]+src="https?://(?:video\.google\.com/get_player\?.*?docid=|(?:docs|drive)\.google\.com/file/d/)(?P<id>[a-zA-Z0-9_-]{28,})',
             webpage)
         if mobj:
             return 'https://drive.google.com/file/d/%s' % mobj.group('id')
@@ -82,7 +86,7 @@ class GoogleDriveIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': self._og_search_thumbnail(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage, default=None),
             'duration': duration,
             'formats': formats,
         }

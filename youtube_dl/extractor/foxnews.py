@@ -18,8 +18,8 @@ class FoxNewsIE(AMPIE):
                 'title': 'Frozen in Time',
                 'description': '16-year-old girl is size of toddler',
                 'duration': 265,
-                # 'timestamp': 1304411491,
-                # 'upload_date': '20110503',
+                'timestamp': 1304411491,
+                'upload_date': '20110503',
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
         },
@@ -32,9 +32,13 @@ class FoxNewsIE(AMPIE):
                 'title': "Rep. Luis Gutierrez on if Obama's immigration plan is legal",
                 'description': "Congressman discusses president's plan",
                 'duration': 292,
-                # 'timestamp': 1417662047,
-                # 'upload_date': '20141204',
+                'timestamp': 1417662047,
+                'upload_date': '20141204',
                 'thumbnail': 're:^https?://.*\.jpg$',
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
             },
         },
         {

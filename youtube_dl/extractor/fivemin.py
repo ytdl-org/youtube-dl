@@ -1,9 +1,11 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
     compat_parse_qs,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
     compat_urlparse,
 )
@@ -16,12 +18,7 @@ from ..utils import (
 
 class FiveMinIE(InfoExtractor):
     IE_NAME = '5min'
-    _VALID_URL = r'''(?x)
-        (?:https?://[^/]*?5min\.com/Scripts/PlayerSeed\.js\?(?:.*?&)?playList=|
-            https?://(?:(?:massively|www)\.)?joystiq\.com/video/|
-            5min:)
-        (?P<id>\d+)
-        '''
+    _VALID_URL = r'(?:5min:(?P<id>\d+)(?::(?P<sid>\d+))?|https?://[^/]*?5min\.com/Scripts/PlayerSeed\.js\?(?P<query>.*))'
 
     _TESTS = [
         {
@@ -45,6 +42,7 @@ class FiveMinIE(InfoExtractor):
                 'title': 'How to Make a Next-Level Fruit Salad',
                 'duration': 184,
             },
+            'skip': 'no longer available',
         },
     ]
     _ERRORS = {
@@ -91,20 +89,33 @@ class FiveMinIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        sid = mobj.group('sid')
+
+        if mobj.group('query'):
+            qs = compat_parse_qs(mobj.group('query'))
+            if not qs.get('playList'):
+                raise ExtractorError('Invalid URL', expected=True)
+            video_id = qs['playList'][0]
+            if qs.get('sid'):
+                sid = qs['sid'][0]
+
         embed_url = 'https://embed.5min.com/playerseed/?playList=%s' % video_id
-        embed_page = self._download_webpage(embed_url, video_id,
-                                            'Downloading embed page')
-        sid = self._search_regex(r'sid=(\d+)', embed_page, 'sid')
-        query = compat_urllib_parse.urlencode({
-            'func': 'GetResults',
-            'playlist': video_id,
-            'sid': sid,
-            'isPlayerSeed': 'true',
-            'url': embed_url,
-        })
+        if not sid:
+            embed_page = self._download_webpage(embed_url, video_id,
+                                                'Downloading embed page')
+            sid = self._search_regex(r'sid=(\d+)', embed_page, 'sid')
+
         response = self._download_json(
-            'https://syn.5min.com/handlers/SenseHandler.ashx?' + query,
+            'https://syn.5min.com/handlers/SenseHandler.ashx?' +
+            compat_urllib_parse_urlencode({
+                'func': 'GetResults',
+                'playlist': video_id,
+                'sid': sid,
+                'isPlayerSeed': 'true',
+                'url': embed_url,
+            }),
             video_id)
         if not response['success']:
             raise ExtractorError(
@@ -118,9 +129,7 @@ class FiveMinIE(InfoExtractor):
         parsed_video_url = compat_urllib_parse_urlparse(compat_parse_qs(
             compat_urllib_parse_urlparse(info['EmbededURL']).query)['videoUrl'][0])
         for rendition in info['Renditions']:
-            if rendition['RenditionType'] == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(rendition['Url'], video_id, m3u8_id='hls'))
-            elif rendition['RenditionType'] == 'aac':
+            if rendition['RenditionType'] == 'aac' or rendition['RenditionType'] == 'm3u8':
                 continue
             else:
                 rendition_url = compat_urlparse.urlunparse(parsed_video_url._replace(path=replace_extension(parsed_video_url.path.replace('//', '/%s/' % rendition['ID']), rendition['RenditionType'])))

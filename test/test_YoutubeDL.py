@@ -222,6 +222,11 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], 'dash-video-low')
 
+        ydl = YDL({'format': 'bestvideo[format_id^=dash][format_id$=low]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'dash-video-low')
+
         formats = [
             {'format_id': 'vid-vcodec-dot', 'ext': 'mp4', 'preference': 1, 'vcodec': 'avc1.123456', 'acodec': 'none', 'url': TEST_URL},
         ]
@@ -234,7 +239,7 @@ class TestFormatSelection(unittest.TestCase):
 
     def test_youtube_format_selection(self):
         order = [
-            '38', '37', '46', '22', '45', '35', '44', '18', '34', '43', '6', '5', '36', '17', '13',
+            '38', '37', '46', '22', '45', '35', '44', '18', '34', '43', '6', '5', '17', '36', '13',
             # Apple HTTP Live Streaming
             '96', '95', '94', '93', '92', '132', '151',
             # 3D
@@ -502,6 +507,9 @@ class TestYoutubeDL(unittest.TestCase):
         assertRegexpMatches(self, ydl._format_note({
             'vbr': 10,
         }), '^\s*10k$')
+        assertRegexpMatches(self, ydl._format_note({
+            'fps': 30,
+        }), '^30fps$')
 
     def test_postprocessors(self):
         filename = 'post-processor-testfile.mp4'

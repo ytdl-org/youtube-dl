@@ -5,7 +5,6 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
 )
@@ -13,6 +12,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -102,7 +102,7 @@ class CeskaTelevizeIE(InfoExtractor):
 
         req = sanitized_Request(
             'http://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
-            data=compat_urllib_parse.urlencode(data))
+            data=urlencode_postdata(data))
 
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
         req.add_header('x-addr', '127.0.0.1')
@@ -129,7 +129,8 @@ class CeskaTelevizeIE(InfoExtractor):
             formats = []
             for format_id, stream_url in item['streamUrls'].items():
                 formats.extend(self._extract_m3u8_formats(
-                    stream_url, playlist_id, 'mp4', entry_protocol='m3u8_native'))
+                    stream_url, playlist_id, 'mp4',
+                    entry_protocol='m3u8_native', fatal=False))
             self._sort_formats(formats)
 
             item_id = item.get('id') or item['assetId']
@@ -177,16 +178,16 @@ class CeskaTelevizeIE(InfoExtractor):
             for divider in [1000, 60, 60, 100]:
                 components.append(msec % divider)
                 msec //= divider
-            return "{3:02}:{2:02}:{1:02},{0:03}".format(*components)
+            return '{3:02}:{2:02}:{1:02},{0:03}'.format(*components)
 
         def _fix_subtitle(subtitle):
             for line in subtitle.splitlines():
-                m = re.match(r"^\s*([0-9]+);\s*([0-9]+)\s+([0-9]+)\s*$", line)
+                m = re.match(r'^\s*([0-9]+);\s*([0-9]+)\s+([0-9]+)\s*$', line)
                 if m:
                     yield m.group(1)
                     start, stop = (_msectotimecode(int(t)) for t in m.groups()[1:])
-                    yield "{0} --> {1}".format(start, stop)
+                    yield '{0} --> {1}'.format(start, stop)
                 else:
                     yield line
 
-        return "\r\n".join(_fix_subtitle(subtitles))
+        return '\r\n'.join(_fix_subtitle(subtitles))

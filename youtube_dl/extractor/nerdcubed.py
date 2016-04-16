@@ -18,14 +18,14 @@ class NerdCubedFeedIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        feed = self._download_json(url, url, "Downloading NerdCubed JSON feed")
+        feed = self._download_json(url, url, 'Downloading NerdCubed JSON feed')
 
         entries = [{
             '_type': 'url',
             'title': feed_entry['title'],
             'uploader': feed_entry['source']['name'] if feed_entry['source'] else None,
             'upload_date': datetime.datetime.strptime(feed_entry['date'], '%Y-%m-%d').strftime('%Y%m%d'),
-            'url': "http://www.youtube.com/watch?v=" + feed_entry['youtube_id'],
+            'url': 'http://www.youtube.com/watch?v=' + feed_entry['youtube_id'],
         } for feed_entry in feed]
 
         return {

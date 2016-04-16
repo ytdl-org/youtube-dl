@@ -1,16 +1,20 @@
 from __future__ import unicode_literals
 
+import itertools
 import os
 import re
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_HTTPError,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
     ExtractorError,
+    int_or_none,
+    orderedSet,
     sanitized_Request,
     str_to_int,
 )
@@ -23,13 +27,18 @@ class PornHubIE(InfoExtractor):
     _VALID_URL = r'https?://(?:[a-z]+\.)?pornhub\.com/(?:view_video\.php\?viewkey=|embed/)(?P<id>[0-9a-z]+)'
     _TESTS = [{
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
-        'md5': '882f488fa1f0026f023f33576004a2ed',
+        'md5': '1e19b41231a02eba417839222ac9d58e',
         'info_dict': {
             'id': '648719015',
             'ext': 'mp4',
-            "uploader": "Babes",
-            "title": "Seductive Indian beauty strips down and fingers her pink pussy",
-            "age_limit": 18
+            'title': 'Seductive Indian beauty strips down and fingers her pink pussy',
+            'uploader': 'Babes',
+            'duration': 361,
+            'view_count': int,
+            'like_count': int,
+            'dislike_count': int,
+            'comment_count': int,
+            'age_limit': 18,
         }
     }, {
         'url': 'http://www.pornhub.com/view_video.php?viewkey=ph557bbb6676d2d',
@@ -67,13 +76,23 @@ class PornHubIE(InfoExtractor):
                 'PornHub said: %s' % error_msg,
                 expected=True, video_id=video_id)
 
-        video_title = self._html_search_regex(r'<h1 [^>]+>([^<]+)', webpage, 'title')
+        flashvars = self._parse_json(
+            self._search_regex(
+                r'var\s+flashvars_\d+\s*=\s*({.+?});', webpage, 'flashvars', default='{}'),
+            video_id)
+        if flashvars:
+            video_title = flashvars.get('video_title')
+            thumbnail = flashvars.get('image_url')
+            duration = int_or_none(flashvars.get('video_duration'))
+        else:
+            video_title, thumbnail, duration = [None] * 3
+
+        if not video_title:
+            video_title = self._html_search_regex(r'<h1 [^>]+>([^<]+)', webpage, 'title')
+
         video_uploader = self._html_search_regex(
             r'(?s)From:&nbsp;.+?<(?:a href="/users/|a href="/channels/|span class="username)[^>]+>(.+?)<',
             webpage, 'uploader', fatal=False)
-        thumbnail = self._html_search_regex(r'"image_url":"([^"]+)', webpage, 'thumbnail', fatal=False)
-        if thumbnail:
-            thumbnail = compat_urllib_parse_unquote(thumbnail)
 
         view_count = self._extract_count(
             r'<span class="count">([\d,\.]+)</span> views', webpage, 'view')
@@ -95,7 +114,7 @@ class PornHubIE(InfoExtractor):
             path = compat_urllib_parse_urlparse(video_url).path
             extension = os.path.splitext(path)[1][1:]
             format = path.split('/')[5].split('_')[:2]
-            format = "-".join(format)
+            format = '-'.join(format)
 
             m = re.match(r'^(?P<height>[0-9]+)[pP]-(?P<tbr>[0-9]+)[kK]$', format)
             if m is None:
@@ -120,6 +139,7 @@ class PornHubIE(InfoExtractor):
             'uploader': video_uploader,
             'title': video_title,
             'thumbnail': thumbnail,
+            'duration': duration,
             'view_count': view_count,
             'like_count': like_count,
             'dislike_count': dislike_count,
@@ -129,7 +149,34 @@ class PornHubIE(InfoExtractor):
         }
 
 
-class PornHubPlaylistIE(InfoExtractor):
+class PornHubPlaylistBaseIE(InfoExtractor):
+    def _extract_entries(self, webpage):
+        return [
+            self.url_result(
+                'http://www.pornhub.com/%s' % video_url,
+                PornHubIE.ie_key(), video_title=title)
+            for video_url, title in orderedSet(re.findall(
+                r'href="/?(view_video\.php\?.*\bviewkey=[\da-z]+[^"]*)"[^>]*\s+title="([^"]+)"',
+                webpage))
+        ]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = self._extract_entries(webpage)
+
+        playlist = self._parse_json(
+            self._search_regex(
+                r'playlistObject\s*=\s*({.+?});', webpage, 'playlist'),
+            playlist_id)
+
+        return self.playlist_result(
+            entries, playlist_id, playlist.get('title'), playlist.get('description'))
+
+
+class PornHubPlaylistIE(PornHubPlaylistBaseIE):
     _VALID_URL = r'https?://(?:www\.)?pornhub\.com/playlist/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.pornhub.com/playlist/6201671',
@@ -140,21 +187,35 @@ class PornHubPlaylistIE(InfoExtractor):
         'playlist_mincount': 35,
     }]
 
+
+class PornHubUserVideosIE(PornHubPlaylistBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/users/(?P<id>[^/]+)/videos'
+    _TESTS = [{
+        'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
+        'info_dict': {
+            'id': 'zoe_ph',
+        },
+        'playlist_mincount': 171,
+    }, {
+        'url': 'http://www.pornhub.com/users/rushandlia/videos',
+        'only_matching': True,
+    }]
+
     def _real_extract(self, url):
-        playlist_id = self._match_id(url)
+        user_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, playlist_id)
+        entries = []
+        for page_num in itertools.count(1):
+            try:
+                webpage = self._download_webpage(
+                    url, user_id, 'Downloading page %d' % page_num,
+                    query={'page': page_num})
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
+                    break
+            page_entries = self._extract_entries(webpage)
+            if not page_entries:
+                break
+            entries.extend(page_entries)
 
-        entries = [
-            self.url_result('http://www.pornhub.com/%s' % video_url, 'PornHub')
-            for video_url in set(re.findall(
-                r'href="/?(view_video\.php\?.*\bviewkey=[\da-z]+[^"]*)"', webpage))
-        ]
-
-        playlist = self._parse_json(
-            self._search_regex(
-                r'playlistObject\s*=\s*({.+?});', webpage, 'playlist'),
-            playlist_id)
-
-        return self.playlist_result(
-            entries, playlist_id, playlist.get('title'), playlist.get('description'))
+        return self.playlist_result(entries, user_id)

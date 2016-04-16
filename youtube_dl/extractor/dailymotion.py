@@ -122,10 +122,13 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         description = self._og_search_description(webpage) or self._html_search_meta(
             'description', webpage, 'description')
 
-        view_count = str_to_int(self._search_regex(
-            [r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserPlays:(\d+)"',
-             r'video_views_count[^>]+>\s+([\d\.,]+)'],
-            webpage, 'view count', fatal=False))
+        view_count_str = self._search_regex(
+            (r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserPlays:([\s\d,.]+)"',
+             r'video_views_count[^>]+>\s+([\s\d\,.]+)'),
+            webpage, 'view count', fatal=False)
+        if view_count_str:
+            view_count_str = re.sub(r'\s', '', view_count_str)
+        view_count = str_to_int(view_count_str)
         comment_count = int_or_none(self._search_regex(
             r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserComments:(\d+)"',
             webpage, 'comment count', fatal=False))
@@ -396,13 +399,13 @@ class DailymotionCloudIE(DailymotionBaseInfoExtractor):
     }]
 
     @classmethod
-    def _extract_dmcloud_url(self, webpage):
-        mobj = re.search(r'<iframe[^>]+src=[\'"](%s)[\'"]' % self._VALID_EMBED_URL, webpage)
+    def _extract_dmcloud_url(cls, webpage):
+        mobj = re.search(r'<iframe[^>]+src=[\'"](%s)[\'"]' % cls._VALID_EMBED_URL, webpage)
         if mobj:
             return mobj.group(1)
 
         mobj = re.search(
-            r'<input[^>]+id=[\'"]dmcloudUrlEmissionSelect[\'"][^>]+value=[\'"](%s)[\'"]' % self._VALID_EMBED_URL,
+            r'<input[^>]+id=[\'"]dmcloudUrlEmissionSelect[\'"][^>]+value=[\'"](%s)[\'"]' % cls._VALID_EMBED_URL,
             webpage)
         if mobj:
             return mobj.group(1)

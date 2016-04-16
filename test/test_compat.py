@@ -19,6 +19,7 @@ from youtube_dl.compat import (
     compat_str,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
+    compat_urllib_parse_urlencode,
 )
 
 
@@ -69,6 +70,16 @@ class TestCompat(unittest.TestCase):
     def test_compat_urllib_parse_unquote_plus(self):
         self.assertEqual(compat_urllib_parse_unquote_plus('abc%20def'), 'abc def')
         self.assertEqual(compat_urllib_parse_unquote_plus('%7e/abc+def'), '~/abc def')
+
+    def test_compat_urllib_parse_urlencode(self):
+        self.assertEqual(compat_urllib_parse_urlencode({'abc': 'def'}), 'abc=def')
+        self.assertEqual(compat_urllib_parse_urlencode({'abc': b'def'}), 'abc=def')
+        self.assertEqual(compat_urllib_parse_urlencode({b'abc': 'def'}), 'abc=def')
+        self.assertEqual(compat_urllib_parse_urlencode({b'abc': b'def'}), 'abc=def')
+        self.assertEqual(compat_urllib_parse_urlencode([('abc', 'def')]), 'abc=def')
+        self.assertEqual(compat_urllib_parse_urlencode([('abc', b'def')]), 'abc=def')
+        self.assertEqual(compat_urllib_parse_urlencode([(b'abc', 'def')]), 'abc=def')
+        self.assertEqual(compat_urllib_parse_urlencode([(b'abc', b'def')]), 'abc=def')
 
     def test_compat_shlex_split(self):
         self.assertEqual(compat_shlex_split('-option "one two"'), ['-option', 'one two'])

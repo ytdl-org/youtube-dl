@@ -4,15 +4,13 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse,
-)
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     clean_html,
     int_or_none,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -30,13 +28,13 @@ class LyndaBaseIE(InfoExtractor):
             return
 
         login_form = {
-            'username': username.encode('utf-8'),
-            'password': password.encode('utf-8'),
+            'username': username,
+            'password': password,
             'remember': 'false',
             'stayPut': 'false'
         }
         request = sanitized_Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+            self._LOGIN_URL, urlencode_postdata(login_form))
         login_page = self._download_webpage(
             request, None, 'Logging in as %s' % username)
 
@@ -65,7 +63,7 @@ class LyndaBaseIE(InfoExtractor):
                     'stayPut': 'false',
                 }
                 request = sanitized_Request(
-                    self._LOGIN_URL, compat_urllib_parse.urlencode(confirm_form).encode('utf-8'))
+                    self._LOGIN_URL, urlencode_postdata(confirm_form))
                 login_page = self._download_webpage(
                     request, None,
                     'Confirming log in and log out from another device')
@@ -221,7 +219,7 @@ class LyndaCourseIE(LyndaBaseIE):
                 'Course %s does not exist' % course_id, expected=True)
 
         unaccessible_videos = 0
-        videos = []
+        entries = []
 
         # Might want to extract videos right here from video['Formats'] as it seems 'Formats' is not provided
         # by single video API anymore
@@ -231,19 +229,21 @@ class LyndaCourseIE(LyndaBaseIE):
                 if video.get('HasAccess') is False:
                     unaccessible_videos += 1
                     continue
-                if video.get('ID'):
-                    videos.append(video['ID'])
+                video_id = video.get('ID')
+                if video_id:
+                    entries.append({
+                        '_type': 'url_transparent',
+                        'url': 'http://www.lynda.com/%s/%s-4.html' % (course_path, video_id),
+                        'ie_key': LyndaIE.ie_key(),
+                        'chapter': chapter.get('Title'),
+                        'chapter_number': int_or_none(chapter.get('ChapterIndex')),
+                        'chapter_id': compat_str(chapter.get('ID')),
+                    })
 
         if unaccessible_videos > 0:
             self._downloader.report_warning(
                 '%s videos are only available for members (or paid members) and will not be downloaded. '
                 % unaccessible_videos + self._ACCOUNT_CREDENTIALS_HINT)
-
-        entries = [
-            self.url_result(
-                'http://www.lynda.com/%s/%s-4.html' % (course_path, video_id),
-                'Lynda')
-            for video_id in videos]
 
         course_title = course.get('Title')
 

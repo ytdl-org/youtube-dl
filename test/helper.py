@@ -11,8 +11,11 @@ import sys
 
 import youtube_dl.extractor
 from youtube_dl import YoutubeDL
-from youtube_dl.utils import (
+from youtube_dl.compat import (
+    compat_os_name,
     compat_str,
+)
+from youtube_dl.utils import (
     preferredencoding,
     write_string,
 )
@@ -42,7 +45,7 @@ def report_warning(message):
     Print the message to stderr, it will be prefixed with 'WARNING:'
     If stderr is a tty file the 'WARNING:' will be colored
     '''
-    if sys.stderr.isatty() and os.name != 'nt':
+    if sys.stderr.isatty() and compat_os_name != 'nt':
         _msg_header = '\033[0;33mWARNING:\033[0m'
     else:
         _msg_header = 'WARNING:'
@@ -140,6 +143,9 @@ def expect_value(self, got, expected, field):
             expect_value(self, item_got, item_expected, field)
     else:
         if isinstance(expected, compat_str) and expected.startswith('md5:'):
+            self.assertTrue(
+                isinstance(got, compat_str),
+                'Expected field %s to be a unicode object, but got value %r of type %r' % (field, got, type(got)))
             got = 'md5:' + md5(got)
         elif isinstance(expected, compat_str) and expected.startswith('mincount:'):
             self.assertTrue(

@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
+    determine_protocol,
     parse_duration,
     int_or_none,
 )
@@ -18,10 +19,14 @@ class Lecture2GoIE(InfoExtractor):
         'md5': 'ac02b570883020d208d405d5a3fd2f7f',
         'info_dict': {
             'id': '17473',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': '2 - Endliche Automaten und reguläre Sprachen',
             'creator': 'Frank Heitmann',
             'duration': 5220,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         }
     }
 
@@ -32,14 +37,18 @@ class Lecture2GoIE(InfoExtractor):
         title = self._html_search_regex(r'<em[^>]+class="title">(.+)</em>', webpage, 'title')
 
         formats = []
-        for url in set(re.findall(r'"src","([^"]+)"', webpage)):
+        for url in set(re.findall(r'var\s+playerUri\d+\s*=\s*"([^"]+)"', webpage)):
             ext = determine_ext(url)
+            protocol = determine_protocol({'url': url})
             if ext == 'f4m':
-                formats.extend(self._extract_f4m_formats(url, video_id))
+                formats.extend(self._extract_f4m_formats(url, video_id, f4m_id='hds'))
             elif ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(url, video_id))
+                formats.extend(self._extract_m3u8_formats(url, video_id, ext='mp4', m3u8_id='hls'))
             else:
+                if protocol == 'rtmp':
+                    continue  # XXX: currently broken
                 formats.append({
+                    'format_id': protocol,
                     'url': url,
                 })
 

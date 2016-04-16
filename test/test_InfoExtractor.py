@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from test.helper import FakeYDL
 from youtube_dl.extractor.common import InfoExtractor
 from youtube_dl.extractor import YoutubeIE, get_info_extractor
+from youtube_dl.utils import encode_data_uri, strip_jsonp, ExtractorError
 
 
 class TestIE(InfoExtractor):
@@ -65,6 +66,15 @@ class TestInfoExtractor(unittest.TestCase):
         self.assertEqual(ie._html_search_meta('d', html), '4')
         self.assertEqual(ie._html_search_meta('e', html), '5')
         self.assertEqual(ie._html_search_meta('f', html), '6')
+
+    def test_download_json(self):
+        uri = encode_data_uri(b'{"foo": "blah"}', 'application/json')
+        self.assertEqual(self.ie._download_json(uri, None), {'foo': 'blah'})
+        uri = encode_data_uri(b'callback({"foo": "blah"})', 'application/javascript')
+        self.assertEqual(self.ie._download_json(uri, None, transform_source=strip_jsonp), {'foo': 'blah'})
+        uri = encode_data_uri(b'{"foo": invalid}', 'application/json')
+        self.assertRaises(ExtractorError, self.ie._download_json, uri, None)
+        self.assertEqual(self.ie._download_json(uri, None, fatal=False), None)
 
 if __name__ == '__main__':
     unittest.main()

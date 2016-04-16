@@ -34,9 +34,12 @@ class FacebookIE(InfoExtractor):
                                 video/video\.php|
                                 photo\.php|
                                 video\.php|
-                                video/embed
-                            )\?(?:.*?)(?:v|video_id)=|
-                            [^/]+/videos/(?:[^/]+/)?
+                                video/embed|
+                                story\.php
+                            )\?(?:.*?)(?:v|video_id|story_fbid)=|
+                            [^/]+/videos/(?:[^/]+/)?|
+                            [^/]+/posts/|
+                            groups/[^/]+/permalink/
                         )|
                     facebook:
                 )
@@ -48,6 +51,8 @@ class FacebookIE(InfoExtractor):
     IE_NAME = 'facebook'
 
     _CHROME_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36'
+
+    _VIDEO_PAGE_TEMPLATE = 'https://www.facebook.com/video/video.php?v=%s'
 
     _TESTS = [{
         'url': 'https://www.facebook.com/video.php?v=637842556329505&fref=nf',
@@ -81,6 +86,33 @@ class FacebookIE(InfoExtractor):
             'uploader': 'Demy de Zeeuw',
         },
     }, {
+        'url': 'https://www.facebook.com/maxlayn/posts/10153807558977570',
+        'md5': '037b1fa7f3c2d02b7a0d7bc16031ecc6',
+        'info_dict': {
+            'id': '544765982287235',
+            'ext': 'mp4',
+            'title': '"What are you doing running in the snow?"',
+            'uploader': 'FailArmy',
+        }
+    }, {
+        'url': 'https://m.facebook.com/story.php?story_fbid=1035862816472149&id=116132035111903',
+        'md5': '1deb90b6ac27f7efcf6d747c8a27f5e3',
+        'info_dict': {
+            'id': '1035862816472149',
+            'ext': 'mp4',
+            'title': 'What the Flock Is Going On In New Zealand  Credit: ViralHog',
+            'uploader': 'S. Saint',
+        },
+    }, {
+        'note': 'swf params escaped',
+        'url': 'https://www.facebook.com/barackobama/posts/10153664894881749',
+        'md5': '97ba073838964d12c70566e0085c2b91',
+        'info_dict': {
+            'id': '10153664894881749',
+            'ext': 'mp4',
+            'title': 'Facebook video #10153664894881749',
+        },
+    }, {
         'url': 'https://www.facebook.com/video.php?v=10204634152394104',
         'only_matching': True,
     }, {
@@ -91,6 +123,9 @@ class FacebookIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'facebook:544765982287235',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.facebook.com/groups/164828000315060/permalink/764967300301124/',
         'only_matching': True,
     }]
 
@@ -160,19 +195,19 @@ class FacebookIE(InfoExtractor):
     def _real_initialize(self):
         self._login()
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        req = sanitized_Request('https://www.facebook.com/video/video.php?v=%s' % video_id)
+    def _extract_from_url(self, url, video_id, fatal_if_no_video=True):
+        req = sanitized_Request(url)
         req.add_header('User-Agent', self._CHROME_USER_AGENT)
         webpage = self._download_webpage(req, video_id)
 
         video_data = None
 
-        BEFORE = '{swf.addParam(param[0], param[1]);});\n'
+        BEFORE = '{swf.addParam(param[0], param[1]);});'
         AFTER = '.forEach(function(variable) {swf.addVariable(variable[0], variable[1]);});'
-        m = re.search(re.escape(BEFORE) + '(.*?)' + re.escape(AFTER), webpage)
+        m = re.search(re.escape(BEFORE) + '(?:\n|\\\\n)(.*?)' + re.escape(AFTER), webpage)
         if m:
-            data = dict(json.loads(m.group(1)))
+            swf_params = m.group(1).replace('\\\\', '\\').replace('\\"', '"')
+            data = dict(json.loads(swf_params))
             params_raw = compat_urllib_parse_unquote(data['params'])
             video_data = json.loads(params_raw)['video_data']
 
@@ -185,13 +220,15 @@ class FacebookIE(InfoExtractor):
 
         if not video_data:
             server_js_data = self._parse_json(self._search_regex(
-                r'handleServerJS\(({.+})\);', webpage, 'server js data'), video_id)
-            for item in server_js_data['instances']:
+                r'handleServerJS\(({.+})\);', webpage, 'server js data', default='{}'), video_id)
+            for item in server_js_data.get('instances', []):
                 if item[1][0] == 'VideoConfig':
                     video_data = video_data_list2dict(item[2][0]['videoData'])
                     break
 
         if not video_data:
+            if not fatal_if_no_video:
+                return webpage, False
             m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
             if m_msg is not None:
                 raise ExtractorError(
@@ -208,10 +245,13 @@ class FacebookIE(InfoExtractor):
                 for src_type in ('src', 'src_no_ratelimit'):
                     src = f[0].get('%s_%s' % (quality, src_type))
                     if src:
+                        preference = -10 if format_id == 'progressive' else 0
+                        if quality == 'hd':
+                            preference += 5
                         formats.append({
                             'format_id': '%s_%s_%s' % (format_id, quality, src_type),
                             'url': src,
-                            'preference': -10 if format_id == 'progressive' else 0,
+                            'preference': preference,
                         })
             dash_manifest = f[0].get('dash_manifest')
             if dash_manifest:
@@ -234,39 +274,36 @@ class FacebookIE(InfoExtractor):
             video_title = 'Facebook video #%s' % video_id
         uploader = clean_html(get_element_by_id('fbPhotoPageAuthorName', webpage))
 
-        return {
+        info_dict = {
             'id': video_id,
             'title': video_title,
             'formats': formats,
             'uploader': uploader,
         }
 
-
-class FacebookPostIE(InfoExtractor):
-    IE_NAME = 'facebook:post'
-    _VALID_URL = r'https?://(?:\w+\.)?facebook\.com/[^/]+/posts/(?P<id>\d+)'
-    _TEST = {
-        'url': 'https://www.facebook.com/maxlayn/posts/10153807558977570',
-        'md5': '037b1fa7f3c2d02b7a0d7bc16031ecc6',
-        'info_dict': {
-            'id': '544765982287235',
-            'ext': 'mp4',
-            'title': '"What are you doing running in the snow?"',
-            'uploader': 'FailArmy',
-        }
-    }
+        return webpage, info_dict
 
     def _real_extract(self, url):
-        post_id = self._match_id(url)
+        video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, post_id)
+        real_url = self._VIDEO_PAGE_TEMPLATE % video_id if url.startswith('facebook:') else url
+        webpage, info_dict = self._extract_from_url(real_url, video_id, fatal_if_no_video=False)
 
-        entries = [
-            self.url_result('facebook:%s' % video_id, FacebookIE.ie_key())
-            for video_id in self._parse_json(
-                self._search_regex(
-                    r'(["\'])video_ids\1\s*:\s*(?P<ids>\[.+?\])',
-                    webpage, 'video ids', group='ids'),
-                post_id)]
+        if info_dict:
+            return info_dict
 
-        return self.playlist_result(entries, post_id)
+        if '/posts/' in url:
+            entries = [
+                self.url_result('facebook:%s' % vid, FacebookIE.ie_key())
+                for vid in self._parse_json(
+                    self._search_regex(
+                        r'(["\'])video_ids\1\s*:\s*(?P<ids>\[.+?\])',
+                        webpage, 'video ids', group='ids'),
+                    video_id)]
+
+            return self.playlist_result(entries, video_id)
+        else:
+            _, info_dict = self._extract_from_url(
+                self._VIDEO_PAGE_TEMPLATE % video_id,
+                video_id, fatal_if_no_video=True)
+            return info_dict

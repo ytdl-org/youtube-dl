@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import base64
+import binascii
 import calendar
 import codecs
 import contextlib
@@ -34,6 +35,7 @@ import xml.etree.ElementTree
 import zlib
 
 from .compat import (
+    compat_HTMLParser,
     compat_basestring,
     compat_chr,
     compat_etree_fromstring,
@@ -45,9 +47,11 @@ from .compat import (
     compat_str,
     compat_urllib_error,
     compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
     compat_urllib_request,
     compat_urlparse,
+    compat_xpath,
     shlex_quote,
 )
 
@@ -56,7 +60,7 @@ from .compat import (
 compiled_regex_type = type(re.compile(''))
 
 std_headers = {
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20150101 Firefox/20.0 (Chrome)',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20150101 Firefox/44.0 (Chrome)',
     'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate',
@@ -159,18 +163,11 @@ if sys.version_info >= (2, 7):
     def find_xpath_attr(node, xpath, key, val=None):
         """ Find the xpath xpath[@key=val] """
         assert re.match(r'^[a-zA-Z_-]+$', key)
-        if val:
-            assert re.match(r'^[a-zA-Z0-9@\s:._-]*$', val)
         expr = xpath + ('[@%s]' % key if val is None else "[@%s='%s']" % (key, val))
         return node.find(expr)
 else:
     def find_xpath_attr(node, xpath, key, val=None):
-        # Here comes the crazy part: In 2.6, if the xpath is a unicode,
-        # .//node does not match if a node is a direct child of . !
-        if isinstance(xpath, compat_str):
-            xpath = xpath.encode('ascii')
-
-        for f in node.findall(xpath):
+        for f in node.findall(compat_xpath(xpath)):
             if key not in f.attrib:
                 continue
             if val is None or f.attrib.get(key) == val:
@@ -195,9 +192,7 @@ def xpath_with_ns(path, ns_map):
 
 def xpath_element(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
     def _find_xpath(xpath):
-        if sys.version_info < (2, 7):  # Crazy 2.6
-            xpath = xpath.encode('ascii')
-        return node.find(xpath)
+        return node.find(compat_xpath(xpath))
 
     if isinstance(xpath, (str, compat_str)):
         n = _find_xpath(xpath)
@@ -248,7 +243,7 @@ def xpath_attr(node, xpath, key, name=None, fatal=False, default=NO_DEFAULT):
 
 def get_element_by_id(id, html):
     """Return the content of the tag with the specified ID in the passed HTML document"""
-    return get_element_by_attribute("id", id, html)
+    return get_element_by_attribute('id', id, html)
 
 
 def get_element_by_attribute(attribute, value, html):
@@ -272,6 +267,38 @@ def get_element_by_attribute(attribute, value, html):
         res = res[1:-1]
 
     return unescapeHTML(res)
+
+
+class HTMLAttributeParser(compat_HTMLParser):
+    """Trivial HTML parser to gather the attributes for a single element"""
+    def __init__(self):
+        self.attrs = {}
+        compat_HTMLParser.__init__(self)
+
+    def handle_starttag(self, tag, attrs):
+        self.attrs = dict(attrs)
+
+
+def extract_attributes(html_element):
+    """Given a string for an HTML element such as
+    <el
+         a="foo" B="bar" c="&98;az" d=boz
+         empty= noval entity="&amp;"
+         sq='"' dq="'"
+    >
+    Decode and return a dictionary of attributes.
+    {
+        'a': 'foo', 'b': 'bar', c: 'baz', d: 'boz',
+        'empty': '', 'noval': None, 'entity': '&',
+        'sq': '"', 'dq': '\''
+    }.
+    NB HTMLParser is stricter in Python 2.6 & 3.2 than in later versions,
+    but the cases in the unit test will work for all of 2.6, 2.7, 3.2-3.5.
+    """
+    parser = HTMLAttributeParser()
+    parser.feed(html_element)
+    parser.close()
+    return parser.attrs
 
 
 def clean_html(html):
@@ -390,9 +417,12 @@ def sanitize_path(s):
 
 # Prepend protocol-less URLs with `http:` scheme in order to mitigate the number of
 # unwanted failures due to missing protocol
+def sanitize_url(url):
+    return 'http:%s' % url if url.startswith('//') else url
+
+
 def sanitized_Request(url, *args, **kwargs):
-    return compat_urllib_request.Request(
-        'http:%s' % url if url.startswith('//') else url, *args, **kwargs)
+    return compat_urllib_request.Request(sanitize_url(url), *args, **kwargs)
 
 
 def orderedSet(iterable):
@@ -464,6 +494,10 @@ def encodeFilename(s, for_subprocess=False):
     # (Detecting Windows NT 4 is tricky because 'major >= 4' would
     # match Windows 9x series as well. Besides, NT 4 is obsolete.)
     if not for_subprocess and sys.platform == 'win32' and sys.getwindowsversion()[0] >= 5:
+        return s
+
+    # Jython assumes filenames are Unicode strings though reported as Python 2.x compatible
+    if sys.platform.startswith('java'):
         return s
 
     return s.encode(get_subprocess_encoding(), 'ignore')
@@ -744,12 +778,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
         # Substitute URL if any change after escaping
         if url != url_escaped:
-            req_type = HEADRequest if req.get_method() == 'HEAD' else compat_urllib_request.Request
-            new_req = req_type(
-                url_escaped, data=req.data, headers=req.headers,
-                origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
-            new_req.timeout = req.timeout
-            req = new_req
+            req = update_Request(req, url=url_escaped)
 
         for h, v in std_headers.items():
             # Capitalize is needed because of Python bug 2275: http://bugs.python.org/issue2275
@@ -904,9 +933,9 @@ def unified_strdate(date_str, day_first=True):
         '%d %b %Y',
         '%B %d %Y',
         '%b %d %Y',
-        '%b %dst %Y %I:%M%p',
-        '%b %dnd %Y %I:%M%p',
-        '%b %dth %Y %I:%M%p',
+        '%b %dst %Y %I:%M',
+        '%b %dnd %Y %I:%M',
+        '%b %dth %Y %I:%M',
         '%Y %m %d',
         '%Y-%m-%d',
         '%Y/%m/%d',
@@ -994,7 +1023,7 @@ def date_from_str(date_str):
         unit += 's'
         delta = datetime.timedelta(**{unit: time})
         return today + delta
-    return datetime.datetime.strptime(date_str, "%Y%m%d").date()
+    return datetime.datetime.strptime(date_str, '%Y%m%d').date()
 
 
 def hyphenate_date(date_str):
@@ -1074,22 +1103,22 @@ def _windows_write_string(s, out):
 
     GetStdHandle = ctypes.WINFUNCTYPE(
         ctypes.wintypes.HANDLE, ctypes.wintypes.DWORD)(
-        (b"GetStdHandle", ctypes.windll.kernel32))
+        (b'GetStdHandle', ctypes.windll.kernel32))
     h = GetStdHandle(WIN_OUTPUT_IDS[fileno])
 
     WriteConsoleW = ctypes.WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE, ctypes.wintypes.LPWSTR,
         ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD),
-        ctypes.wintypes.LPVOID)((b"WriteConsoleW", ctypes.windll.kernel32))
+        ctypes.wintypes.LPVOID)((b'WriteConsoleW', ctypes.windll.kernel32))
     written = ctypes.wintypes.DWORD(0)
 
-    GetFileType = ctypes.WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)((b"GetFileType", ctypes.windll.kernel32))
+    GetFileType = ctypes.WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)((b'GetFileType', ctypes.windll.kernel32))
     FILE_TYPE_CHAR = 0x0002
     FILE_TYPE_REMOTE = 0x8000
     GetConsoleMode = ctypes.WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE,
         ctypes.POINTER(ctypes.wintypes.DWORD))(
-        (b"GetConsoleMode", ctypes.windll.kernel32))
+        (b'GetConsoleMode', ctypes.windll.kernel32))
     INVALID_HANDLE_VALUE = ctypes.wintypes.DWORD(-1).value
 
     def not_a_console(handle):
@@ -1216,13 +1245,23 @@ if sys.platform == 'win32':
             raise OSError('Unlocking file failed: %r' % ctypes.FormatError())
 
 else:
-    import fcntl
+    # Some platforms, such as Jython, is missing fcntl
+    try:
+        import fcntl
 
-    def _lock_file(f, exclusive):
-        fcntl.flock(f, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
+        def _lock_file(f, exclusive):
+            fcntl.flock(f, fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH)
 
-    def _unlock_file(f):
-        fcntl.flock(f, fcntl.LOCK_UN)
+        def _unlock_file(f):
+            fcntl.flock(f, fcntl.LOCK_UN)
+    except ImportError:
+        UNSUPPORTED_MSG = 'file locking is not supported on this platform'
+
+        def _lock_file(f, exclusive):
+            raise IOError(UNSUPPORTED_MSG)
+
+        def _unlock_file(f):
+            raise IOError(UNSUPPORTED_MSG)
 
 
 class locked_file(object):
@@ -1275,7 +1314,7 @@ def shell_quote(args):
 def smuggle_url(url, data):
     """ Pass additional data in a URL for internal use. """
 
-    sdata = compat_urllib_parse.urlencode(
+    sdata = compat_urllib_parse_urlencode(
         {'__youtubedl_smuggle': json.dumps(data)})
     return url + '#' + sdata
 
@@ -1301,6 +1340,17 @@ def format_bytes(bytes):
     suffix = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'][exponent]
     converted = float(bytes) / float(1024 ** exponent)
     return '%.2f%s' % (converted, suffix)
+
+
+def lookup_unit_table(unit_table, s):
+    units_re = '|'.join(re.escape(u) for u in unit_table)
+    m = re.match(
+        r'(?P<num>[0-9]+(?:[,.][0-9]*)?)\s*(?P<unit>%s)\b' % units_re, s)
+    if not m:
+        return None
+    num_str = m.group('num').replace(',', '.')
+    mult = unit_table[m.group('unit')]
+    return int(float(num_str) * mult)
 
 
 def parse_filesize(s):
@@ -1346,15 +1396,28 @@ def parse_filesize(s):
         'Yb': 1000 ** 8,
     }
 
-    units_re = '|'.join(re.escape(u) for u in _UNIT_TABLE)
-    m = re.match(
-        r'(?P<num>[0-9]+(?:[,.][0-9]*)?)\s*(?P<unit>%s)' % units_re, s)
-    if not m:
+    return lookup_unit_table(_UNIT_TABLE, s)
+
+
+def parse_count(s):
+    if s is None:
         return None
 
-    num_str = m.group('num').replace(',', '.')
-    mult = _UNIT_TABLE[m.group('unit')]
-    return int(float(num_str) * mult)
+    s = s.strip()
+
+    if re.match(r'^[\d,.]+$', s):
+        return str_to_int(s)
+
+    _UNIT_TABLE = {
+        'k': 1000,
+        'K': 1000,
+        'm': 1000 ** 2,
+        'M': 1000 ** 2,
+        'kk': 1000 ** 2,
+        'KK': 1000 ** 2,
+    }
+
+    return lookup_unit_table(_UNIT_TABLE, s)
 
 
 def month_by_name(name):
@@ -1386,8 +1449,14 @@ def fix_xml_ampersands(xml_str):
 
 def setproctitle(title):
     assert isinstance(title, compat_str)
+
+    # ctypes in Jython is not complete
+    # http://bugs.jython.org/issue2148
+    if sys.platform.startswith('java'):
+        return
+
     try:
-        libc = ctypes.cdll.LoadLibrary("libc.so.6")
+        libc = ctypes.cdll.LoadLibrary('libc.so.6')
     except OSError:
         return
     title_bytes = title.encode('utf-8')
@@ -1427,7 +1496,7 @@ def url_basename(url):
 
 class HEADRequest(compat_urllib_request.Request):
     def get_method(self):
-        return "HEAD"
+        return 'HEAD'
 
 
 def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1):
@@ -1569,9 +1638,12 @@ class PagedList(object):
 
 
 class OnDemandPagedList(PagedList):
-    def __init__(self, pagefunc, pagesize):
+    def __init__(self, pagefunc, pagesize, use_cache=False):
         self._pagefunc = pagefunc
         self._pagesize = pagesize
+        self._use_cache = use_cache
+        if use_cache:
+            self._cache = {}
 
     def getslice(self, start=0, end=None):
         res = []
@@ -1581,7 +1653,13 @@ class OnDemandPagedList(PagedList):
             if start >= nextfirstid:
                 continue
 
-            page_results = list(self._pagefunc(pagenum))
+            page_results = None
+            if self._use_cache:
+                page_results = self._cache.get(pagenum)
+            if page_results is None:
+                page_results = list(self._pagefunc(pagenum))
+            if self._use_cache:
+                self._cache[pagenum] = page_results
 
             startv = (
                 start % self._pagesize
@@ -1667,6 +1745,7 @@ def escape_url(url):
     """Escape URL as suggested by RFC 3986"""
     url_parsed = compat_urllib_parse_urlparse(url)
     return url_parsed._replace(
+        netloc=url_parsed.netloc.encode('idna').decode('ascii'),
         path=escape_rfc3986(url_parsed.path),
         params=escape_rfc3986(url_parsed.params),
         query=escape_rfc3986(url_parsed.query),
@@ -1676,7 +1755,8 @@ def escape_url(url):
 try:
     struct.pack('!I', 0)
 except TypeError:
-    # In Python 2.6 (and some 2.7 versions), struct requires a bytes argument
+    # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
+    # See https://bugs.python.org/issue19099
     def struct_pack(spec, *args):
         if isinstance(spec, compat_str):
             spec = spec.encode('ascii')
@@ -1708,13 +1788,31 @@ def read_batch_urls(batch_fd):
 
 
 def urlencode_postdata(*args, **kargs):
-    return compat_urllib_parse.urlencode(*args, **kargs).encode('ascii')
+    return compat_urllib_parse_urlencode(*args, **kargs).encode('ascii')
 
 
-def encode_dict(d, encoding='utf-8'):
-    def encode(v):
-        return v.encode(encoding) if isinstance(v, compat_basestring) else v
-    return dict((encode(k), encode(v)) for k, v in d.items())
+def update_url_query(url, query):
+    if not query:
+        return url
+    parsed_url = compat_urlparse.urlparse(url)
+    qs = compat_parse_qs(parsed_url.query)
+    qs.update(query)
+    return compat_urlparse.urlunparse(parsed_url._replace(
+        query=compat_urllib_parse_urlencode(qs, True)))
+
+
+def update_Request(req, url=None, data=None, headers={}, query={}):
+    req_headers = req.headers.copy()
+    req_headers.update(headers)
+    req_data = data or req.data
+    req_url = update_url_query(url or req.get_full_url(), query)
+    req_type = HEADRequest if req.get_method() == 'HEAD' else compat_urllib_request.Request
+    new_req = req_type(
+        req_url, data=req_data, headers=req_headers,
+        origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
+    if hasattr(req, 'timeout'):
+        new_req.timeout = req.timeout
+    return new_req
 
 
 def dict_get(d, key_or_keys, default=None, skip_false_values=True):
@@ -1744,7 +1842,7 @@ def parse_age_limit(s):
     if s is None:
         return None
     m = re.match(r'^(?P<age>\d{1,2})\+?$', s)
-    return int(m.group('age')) if m else US_RATINGS.get(s, None)
+    return int(m.group('age')) if m else US_RATINGS.get(s)
 
 
 def strip_jsonp(code):
@@ -1835,11 +1933,21 @@ def error_to_compat_str(err):
 
 
 def mimetype2ext(mt):
+    ext = {
+        'audio/mp4': 'm4a',
+    }.get(mt)
+    if ext is not None:
+        return ext
+
     _, _, res = mt.rpartition('/')
 
     return {
         '3gpp': '3gp',
+        'smptett+xml': 'tt',
+        'srt': 'srt',
+        'ttaf+xml': 'dfxp',
         'ttml+xml': 'ttml',
+        'vtt': 'vtt',
         'x-flv': 'flv',
         'x-mp4-fragmented': 'mp4',
         'x-ms-wmv': 'wmv',
@@ -2025,6 +2133,7 @@ def dfxp2srt(dfxp_data):
     _x = functools.partial(xpath_with_ns, ns_map={
         'ttml': 'http://www.w3.org/ns/ttml',
         'ttaf1': 'http://www.w3.org/2006/10/ttaf1',
+        'ttaf1_0604': 'http://www.w3.org/2006/04/ttaf1',
     })
 
     class TTMLPElementParser(object):
@@ -2051,7 +2160,7 @@ def dfxp2srt(dfxp_data):
 
     dfxp = compat_etree_fromstring(dfxp_data.encode('utf-8'))
     out = []
-    paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall(_x('.//ttaf1:p')) or dfxp.findall('.//p')
+    paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall(_x('.//ttaf1:p')) or dfxp.findall(_x('.//ttaf1_0604:p')) or dfxp.findall('.//p')
 
     if not paras:
         raise ValueError('Invalid dfxp/TTML subtitle')
@@ -2582,3 +2691,58 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
             return None  # No Proxy
         return compat_urllib_request.ProxyHandler.proxy_open(
             self, req, proxy, type)
+
+
+def ohdave_rsa_encrypt(data, exponent, modulus):
+    '''
+    Implement OHDave's RSA algorithm. See http://www.ohdave.com/rsa/
+
+    Input:
+        data: data to encrypt, bytes-like object
+        exponent, modulus: parameter e and N of RSA algorithm, both integer
+    Output: hex string of encrypted data
+
+    Limitation: supports one block encryption only
+    '''
+
+    payload = int(binascii.hexlify(data[::-1]), 16)
+    encrypted = pow(payload, exponent, modulus)
+    return '%x' % encrypted
+
+
+def encode_base_n(num, n, table=None):
+    FULL_TABLE = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    if not table:
+        table = FULL_TABLE[:n]
+
+    if n > len(table):
+        raise ValueError('base %d exceeds table length %d' % (n, len(table)))
+
+    if num == 0:
+        return table[0]
+
+    ret = ''
+    while num:
+        ret = table[num % n] + ret
+        num = num // n
+    return ret
+
+
+def decode_packed_codes(code):
+    mobj = re.search(
+        r"}\('(.+)',(\d+),(\d+),'([^']+)'\.split\('\|'\)",
+        code)
+    obfucasted_code, base, count, symbols = mobj.groups()
+    base = int(base)
+    count = int(count)
+    symbols = symbols.split('|')
+    symbol_table = {}
+
+    while count:
+        count -= 1
+        base_n_count = encode_base_n(count, base)
+        symbol_table[base_n_count] = symbols[count] or base_n_count
+
+    return re.sub(
+        r'\b(\w+)\b', lambda mobj: symbol_table[mobj.group(0)],
+        obfucasted_code)

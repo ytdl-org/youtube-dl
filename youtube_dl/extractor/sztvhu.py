@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class SztvHuIE(InfoExtractor):
-    _VALID_URL = r'http://(?:(?:www\.)?sztv\.hu|www\.tvszombathely\.hu)/(?:[^/]+)/.+-(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:(?:www\.)?sztv\.hu|www\.tvszombathely\.hu)/(?:[^/]+)/.+-(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://sztv.hu/hirek/cserkeszek-nepszerusitettek-a-kornyezettudatos-eletmodot-a-savaria-teren-20130909',
         'md5': 'a6df607b11fb07d0e9f2ad94613375cb',

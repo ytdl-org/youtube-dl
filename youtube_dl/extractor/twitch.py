@@ -9,17 +9,18 @@ from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
     compat_urlparse,
 )
 from ..utils import (
-    encode_dict,
     ExtractorError,
     int_or_none,
+    orderedSet,
     parse_duration,
     parse_iso8601,
     sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -81,7 +82,7 @@ class TwitchBaseIE(InfoExtractor):
             post_url = compat_urlparse.urljoin(redirect_url, post_url)
 
         request = sanitized_Request(
-            post_url, compat_urllib_parse.urlencode(encode_dict(login_form)).encode('utf-8'))
+            post_url, urlencode_postdata(login_form))
         request.add_header('Referer', redirect_url)
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)
@@ -249,8 +250,9 @@ class TwitchVodIE(TwitchItemBaseIE):
         formats = self._extract_m3u8_formats(
             '%s/vod/%s?%s' % (
                 self._USHER_BASE, item_id,
-                compat_urllib_parse.urlencode({
+                compat_urllib_parse_urlencode({
                     'allow_source': 'true',
+                    'allow_audio_only': 'true',
                     'allow_spectre': 'true',
                     'player': 'twitchweb',
                     'nauth': access_token['token'],
@@ -281,17 +283,37 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
         entries = []
         offset = 0
         limit = self._PAGE_LIMIT
+        broken_paging_detected = False
+        counter_override = None
         for counter in itertools.count(1):
             response = self._download_json(
                 self._PLAYLIST_URL % (channel_id, offset, limit),
-                channel_id, 'Downloading %s videos JSON page %d' % (self._PLAYLIST_TYPE, counter))
+                channel_id,
+                'Downloading %s videos JSON page %s'
+                % (self._PLAYLIST_TYPE, counter_override or counter))
             page_entries = self._extract_playlist_page(response)
             if not page_entries:
                 break
+            total = int_or_none(response.get('_total'))
+            # Since the beginning of March 2016 twitch's paging mechanism
+            # is completely broken on the twitch side. It simply ignores
+            # a limit and returns the whole offset number of videos.
+            # Working around by just requesting all videos at once.
+            # Upd: pagination bug was fixed by twitch on 15.03.2016.
+            if not broken_paging_detected and total and len(page_entries) > limit:
+                self.report_warning(
+                    'Twitch pagination is broken on twitch side, requesting all videos at once',
+                    channel_id)
+                broken_paging_detected = True
+                offset = total
+                counter_override = '(all at once)'
+                continue
             entries.extend(page_entries)
+            if broken_paging_detected or total and len(page_entries) >= total:
+                break
             offset += limit
         return self.playlist_result(
-            [self.url_result(entry) for entry in set(entries)],
+            [self.url_result(entry) for entry in orderedSet(entries)],
             channel_id, channel_name)
 
     def _extract_playlist_page(self, response):
@@ -411,6 +433,7 @@ class TwitchStreamIE(TwitchBaseIE):
 
         query = {
             'allow_source': 'true',
+            'allow_audio_only': 'true',
             'p': random.randint(1000000, 10000000),
             'player': 'twitchweb',
             'segment_preference': '4',
@@ -419,7 +442,7 @@ class TwitchStreamIE(TwitchBaseIE):
         }
         formats = self._extract_m3u8_formats(
             '%s/api/channel/hls/%s.m3u8?%s'
-            % (self._USHER_BASE, channel_id, compat_urllib_parse.urlencode(query)),
+            % (self._USHER_BASE, channel_id, compat_urllib_parse_urlencode(query)),
             channel_id, 'mp4')
         self._prefer_source(formats)
 

@@ -4,18 +4,20 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_str,
 )
 from ..utils import (
     ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
+    float_or_none,
     HEADRequest,
     sanitized_Request,
     unescapeHTML,
     url_basename,
     RegexNotFoundError,
+    xpath_text,
 )
 
 
@@ -110,7 +112,8 @@ class MTVServicesInfoExtractor(InfoExtractor):
         uri = itemdoc.find('guid').text
         video_id = self._id_from_uri(uri)
         self.report_extraction(video_id)
-        mediagen_url = itemdoc.find('%s/%s' % (_media_xml_tag('group'), _media_xml_tag('content'))).attrib['url']
+        content_el = itemdoc.find('%s/%s' % (_media_xml_tag('group'), _media_xml_tag('content')))
+        mediagen_url = content_el.attrib['url']
         # Remove the templates, like &device={device}
         mediagen_url = re.sub(r'&[^=]*?={.*?}(?=(&|$))', '', mediagen_url)
         if 'acceptMethods' not in mediagen_url:
@@ -128,11 +131,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
             message += item.text
             raise ExtractorError(message, expected=True)
 
-        description_node = itemdoc.find('description')
-        if description_node is not None:
-            description = description_node.text.strip()
-        else:
-            description = None
+        description = xpath_text(itemdoc, 'description')
 
         title_el = None
         if title_el is None:
@@ -165,13 +164,14 @@ class MTVServicesInfoExtractor(InfoExtractor):
             'id': video_id,
             'thumbnail': self._get_thumbnail_url(uri, itemdoc),
             'description': description,
+            'duration': float_or_none(content_el.attrib.get('duration')),
         }
 
     def _get_feed_query(self, uri):
         data = {'uri': uri}
         if self._LANG:
             data['lang'] = self._LANG
-        return compat_urllib_parse.urlencode(data)
+        return compat_urllib_parse_urlencode(data)
 
     def _get_videos_info(self, uri):
         video_id = self._id_from_uri(uri)

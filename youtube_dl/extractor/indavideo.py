@@ -73,7 +73,7 @@ class IndavideoEmbedIE(InfoExtractor):
             'url': self._proto_relative_url(thumbnail)
         } for thumbnail in video.get('thumbnails', [])]
 
-        tags = [tag['title'] for tag in video.get('tags', [])]
+        tags = [tag['title'] for tag in video.get('tags') or []]
 
         return {
             'id': video.get('id') or video_id,

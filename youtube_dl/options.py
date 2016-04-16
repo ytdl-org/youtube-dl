@@ -85,7 +85,7 @@ def parseOpts(overrideArguments=None):
         if option.takes_value():
             opts.append(' %s' % option.metavar)
 
-        return "".join(opts)
+        return ''.join(opts)
 
     def _comma_separated_values_options_callback(option, opt_str, value, parser):
         setattr(parser.values, option.dest, value.split(','))
@@ -170,6 +170,14 @@ def parseOpts(overrideArguments=None):
         action='store_const', dest='extract_flat', const='in_playlist',
         default=False,
         help='Do not extract the videos of a playlist, only list them.')
+    general.add_option(
+        '--mark-watched',
+        action='store_true', dest='mark_watched', default=False,
+        help='Mark videos watched (YouTube only)')
+    general.add_option(
+        '--no-mark-watched',
+        action='store_false', dest='mark_watched', default=False,
+        help='Do not mark videos watched (YouTube only)')
     general.add_option(
         '--no-color', '--no-colors',
         action='store_true', dest='no_color',
@@ -391,6 +399,10 @@ def parseOpts(overrideArguments=None):
         '-R', '--retries',
         dest='retries', metavar='RETRIES', default=10,
         help='Number of retries (default is %default), or "infinite".')
+    downloader.add_option(
+        '--fragment-retries',
+        dest='fragment_retries', metavar='RETRIES', default=10,
+        help='Number of retries for a fragment (default is %default), or "infinite" (DASH only)')
     downloader.add_option(
         '--buffer-size',
         dest='buffersize', metavar='SIZE', default='1024',
@@ -712,7 +724,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--embed-subs',
         action='store_true', dest='embedsubtitles', default=False,
-        help='Embed subtitles in the video (only for mkv and mp4 videos)')
+        help='Embed subtitles in the video (only for mp4, webm and mkv videos)')
     postproc.add_option(
         '--embed-thumbnail',
         action='store_true', dest='embedthumbnail', default=False,

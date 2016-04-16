@@ -5,7 +5,9 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
+    ExtractorError,
     int_or_none,
+    InAdvancePagedList,
     float_or_none,
     unescapeHTML,
 )
@@ -45,11 +47,27 @@ class TudouIE(InfoExtractor):
 
     _PLAYER_URL = 'http://js.tudouui.com/bin/lingtong/PortalPlayer_177.swf'
 
+    # Translated from tudou/tools/TVCHelper.as in PortalPlayer_193.swf
+    # 0001, 0002 and 4001 are not included as they indicate temporary issues
+    TVC_ERRORS = {
+        '0003': 'The video is deleted or does not exist',
+        '1001': 'This video is unavailable due to licensing issues',
+        '1002': 'This video is unavailable as it\'s under review',
+        '1003': 'This video is unavailable as it\'s under review',
+        '3001': 'Password required',
+        '5001': 'This video is available in Mainland China only due to licensing issues',
+        '7001': 'This video is unavailable',
+        '8001': 'This video is unavailable due to licensing issues',
+    }
+
     def _url_for_id(self, video_id, quality=None):
         info_url = 'http://v2.tudou.com/f?id=' + compat_str(video_id)
         if quality:
             info_url += '&hd' + quality
-        xml_data = self._download_xml(info_url, video_id, "Opening the info XML page")
+        xml_data = self._download_xml(info_url, video_id, 'Opening the info XML page')
+        error = xml_data.attrib.get('error')
+        if error is not None:
+            raise ExtractorError('Tudou said: %s' % error, expected=True)
         final_url = xml_data.text
         return final_url
 
@@ -61,6 +79,15 @@ class TudouIE(InfoExtractor):
         youku_vcode = item_data.get('vcode')
         if youku_vcode:
             return self.url_result('youku:' + youku_vcode, ie='Youku')
+
+        if not item_data.get('itemSegs'):
+            tvc_code = item_data.get('tvcCode')
+            if tvc_code:
+                err_msg = self.TVC_ERRORS.get(tvc_code)
+                if err_msg:
+                    raise ExtractorError('Tudou said: %s' % err_msg, expected=True)
+                raise ExtractorError('Unexpected error %s returned from Tudou' % tvc_code)
+            raise ExtractorError('Unxpected error returned from Tudou')
 
         title = unescapeHTML(item_data['kw'])
         description = item_data.get('desc')
@@ -75,15 +102,16 @@ class TudouIE(InfoExtractor):
         quality = sorted(filter(lambda k: k.isdigit(), segments.keys()),
                          key=lambda k: int(k))[-1]
         parts = segments[quality]
-        result = []
         len_parts = len(parts)
         if len_parts > 1:
             self.to_screen('%s: found %s parts' % (video_id, len_parts))
-        for part in parts:
+
+        def part_func(partnum):
+            part = parts[partnum]
             part_id = part['k']
             final_url = self._url_for_id(part_id, quality)
             ext = (final_url.split('?')[0]).split('.')[-1]
-            part_info = {
+            return [{
                 'id': '%s' % part_id,
                 'url': final_url,
                 'ext': ext,
@@ -97,12 +125,13 @@ class TudouIE(InfoExtractor):
                 'http_headers': {
                     'Referer': self._PLAYER_URL,
                 },
-            }
-            result.append(part_info)
+            }]
+
+        entries = InAdvancePagedList(part_func, len_parts, 1)
 
         return {
             '_type': 'multi_video',
-            'entries': result,
+            'entries': entries,
             'id': video_id,
             'title': title,
         }
