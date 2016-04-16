@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
+    js_to_json,
     unified_strdate,
 )
 
@@ -94,19 +95,32 @@ class SportBoxEmbedIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        hls = self._search_regex(
-            r"sportboxPlayer\.jwplayer_common_params\.file\s*=\s*['\"]([^'\"]+)['\"]",
-            webpage, 'hls file')
+        formats = []
 
-        formats = self._extract_m3u8_formats(hls, video_id, 'mp4')
+        def cleanup_js(code):
+            # desktop_advert_config contains complex Javascripts and we don't need it
+            return js_to_json(re.sub(r'desktop_advert_config.*', '', code))
+
+        jwplayer_data = self._parse_json(self._search_regex(
+            r'(?s)player\.setup\(({.+?})\);', webpage, 'jwplayer settings'), video_id,
+            transform_source=cleanup_js)
+
+        hls_url = jwplayer_data.get('hls_url')
+        if hls_url:
+            formats.extend(self._extract_m3u8_formats(
+                hls_url, video_id, ext='mp4', m3u8_id='hls'))
+
+        rtsp_url = jwplayer_data.get('rtsp_url')
+        if rtsp_url:
+            formats.append({
+                'url': rtsp_url,
+                'format_id': 'rtsp',
+            })
+
         self._sort_formats(formats)
 
-        title = self._search_regex(
-            r'sportboxPlayer\.node_title\s*=\s*"([^"]+)"', webpage, 'title')
-
-        thumbnail = self._search_regex(
-            r'sportboxPlayer\.jwplayer_common_params\.image\s*=\s*"([^"]+)"',
-            webpage, 'thumbnail', default=None)
+        title = jwplayer_data['node_title']
+        thumbnail = jwplayer_data.get('image_url')
 
         return {
             'id': video_id,
