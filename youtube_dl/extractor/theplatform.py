@@ -50,8 +50,6 @@ class ThePlatformBaseIE(OnceIE):
             else:
                 formats.append(_format)
 
-        self._sort_formats(formats)
-
         subtitles = self._parse_smil_subtitles(meta, default_ns)
 
         return formats, subtitles
@@ -241,6 +239,7 @@ class ThePlatformIE(ThePlatformBaseIE):
             smil_url = self._sign_url(smil_url, sig['key'], sig['secret'])
 
         formats, subtitles = self._extract_theplatform_smil(smil_url, video_id)
+        self._sort_formats(formats)
 
         ret = self.get_metadata(path, video_id)
         combined_subtitles = self._merge_subtitles(ret.get('subtitles', {}), subtitles)
