@@ -105,7 +105,8 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,  # infinite live stream
             },
             'expected_warnings': [
-                r'501.*Not Implemented'
+                r'501.*Not Implemented',
+                r'400.*Bad Request',
             ],
         },
         # Direct link with incorrect MIME type
