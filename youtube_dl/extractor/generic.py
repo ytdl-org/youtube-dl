@@ -1956,7 +1956,8 @@ class GenericIE(InfoExtractor):
         # Look for Instagram embeds
         instagram_embed_url = InstagramIE._extract_embed_url(webpage)
         if instagram_embed_url is not None:
-            return self.url_result(instagram_embed_url, InstagramIE.ie_key())
+            return self.url_result(
+                self._proto_relative_url(instagram_embed_url), InstagramIE.ie_key())
 
         # Look for LiveLeak embeds
         liveleak_url = LiveLeakIE._extract_url(webpage)
