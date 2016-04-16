@@ -175,7 +175,7 @@ class FFmpegPostProcessor(PostProcessor):
         # Always use 'file:' because the filename may contain ':' (ffmpeg
         # interprets that as a protocol) or can start with '-' (-- is broken in
         # ffmpeg, see https://ffmpeg.org/trac/ffmpeg/ticket/2127 for details)
-        return 'file:' + fn
+        return 'file:' + fn if fn != '-' else fn
 
 
 class FFmpegExtractAudioPP(FFmpegPostProcessor):

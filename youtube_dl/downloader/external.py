@@ -235,10 +235,7 @@ class FFmpegFD(ExternalFD):
             args += ['-f', EXT_TO_OUT_FORMATS.get(info_dict['ext'], info_dict['ext'])]
 
         args = [encodeArgument(opt) for opt in args]
-        if tmpfilename == '-':
-            args.append('pipe:1')
-        else:
-            args.append(encodeFilename(ffpp._ffmpeg_filename_argument(tmpfilename), True))
+        args.append(encodeFilename(ffpp._ffmpeg_filename_argument(tmpfilename), True))
 
         self._debug_cmd(args)
 
