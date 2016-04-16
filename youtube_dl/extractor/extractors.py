@@ -397,6 +397,7 @@ from .lynda import (
 )
 from .m6 import M6IE
 from .macgamestore import MacGameStoreIE
+from .madmoizelle import MadmoizelleIE
 from .mailru import MailRuIE
 from .makerschannel import MakersChannelIE
 from .makertv import MakerTVIE
