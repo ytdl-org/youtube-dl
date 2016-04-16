@@ -27,6 +27,7 @@ class Varzesh3IE(InfoExtractor):
         'skip': 'HTTP 404 Error',
     }, {
         'url': 'http://video.varzesh3.com/video/112785/%D8%AF%D9%84%D9%87-%D8%B9%D9%84%DB%8C%D8%9B-%D8%B3%D8%AA%D8%A7%D8%B1%D9%87-%D9%86%D9%88%D8%B8%D9%87%D9%88%D8%B1-%D9%84%DB%8C%DA%AF-%D8%A8%D8%B1%D8%AA%D8%B1-%D8%AC%D8%B2%DB%8C%D8%B1%D9%87',
+        'md5': '841b7cd3afbc76e61708d94e53a4a4e7',
         'info_dict': {
             'id': '112785',
             'ext': 'mp4',
