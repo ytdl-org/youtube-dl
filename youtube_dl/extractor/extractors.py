@@ -425,7 +425,6 @@ from .moevideo import MoeVideoIE
 from .mofosex import MofosexIE
 from .mojvideo import MojvideoIE
 from .moniker import MonikerIE
-from .mooshare import MooshareIE
 from .morningstar import MorningstarIE
 from .motherless import MotherlessIE
 from .motorsport import MotorsportIE
