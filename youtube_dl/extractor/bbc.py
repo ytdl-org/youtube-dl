@@ -671,6 +671,7 @@ class BBCIE(BBCCoUkIE):
         'info_dict': {
             'id': '34475836',
             'title': 'Jurgen Klopp: Furious football from a witty and winning coach',
+            'description': 'Fast-paced football, wit, wisdom and a ready smile - why Liverpool fans should come to love new boss Jurgen Klopp.',
         },
         'playlist_count': 3,
     }, {
