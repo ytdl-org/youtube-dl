@@ -328,8 +328,11 @@ class F4mFD(FragmentFD):
         fragments_list = build_fragments_list(boot_info)
         test = self.params.get('test', False)
         if test:
-            # We only download the first fragment
-            fragments_list = fragments_list[:1]
+            # We will not download any fragments during test since truncated
+            # fragment file may introduce bogus parse error in FlvReader thus
+            # making the whole test to fail erroneously
+            return True
+
         total_frags = len(fragments_list)
         # For some akamai manifests we'll need to add a query to the fragment url
         akamai_pv = xpath_text(doc, _add_ns('pv-2.0'))
