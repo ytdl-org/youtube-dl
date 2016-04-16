@@ -49,8 +49,8 @@ class MDRIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Beutolomäus und der geheime Weihnachtswunsch',
             'description': 'md5:b69d32d7b2c55cbe86945ab309d39bbd',
-            'timestamp': 1419047100,
-            'upload_date': '20141220',
+            'timestamp': 1450950000,
+            'upload_date': '20151224',
             'duration': 4628,
             'uploader': 'KIKA',
         },
@@ -71,8 +71,8 @@ class MDRIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         data_url = self._search_regex(
-            r'(?:dataURL|playerXml(?:["\'])?)\s*:\s*(["\'])(?P<url>\\?/.+/(?:video|audio)-?[0-9]+-avCustom\.xml)\1',
-            webpage, 'data url', default=None, group='url').replace('\/', '/')
+            r'(?:dataURL|playerXml(?:["\'])?)\s*:\s*(["\'])(?P<url>.+/(?:video|audio)-?[0-9]+-avCustom\.xml)\1',
+            webpage, 'data url', group='url').replace('\/', '/')
 
         doc = self._download_xml(
             compat_urlparse.urljoin(url, data_url), video_id)
