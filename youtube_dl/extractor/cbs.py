@@ -84,14 +84,11 @@ class CBSIE(CBSBaseIE):
             pid = xpath_text(item, 'pid')
             if not pid:
                 continue
-            try:
-                tp_release_url = self.TP_RELEASE_URL_TEMPLATE % pid
-                if '.m3u8' in xpath_text(item, 'contentUrl', default=''):
-                    tp_release_url += '&manifest=m3u'
-                tp_formats, tp_subtitles = self._extract_theplatform_smil(
-                    tp_release_url, content_id, 'Downloading %s SMIL data' % pid)
-            except ExtractorError:
-                continue
+            tp_release_url = self.TP_RELEASE_URL_TEMPLATE % pid
+            if '.m3u8' in xpath_text(item, 'contentUrl', default=''):
+                tp_release_url += '&manifest=m3u'
+            tp_formats, tp_subtitles = self._extract_theplatform_smil(
+                tp_release_url, content_id, 'Downloading %s SMIL data' % pid)
             formats.extend(tp_formats)
             subtitles = self._merge_subtitles(subtitles, tp_subtitles)
         self._sort_formats(formats)
