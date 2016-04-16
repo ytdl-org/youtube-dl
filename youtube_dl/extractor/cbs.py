@@ -5,7 +5,6 @@ from ..utils import (
     xpath_text,
     xpath_element,
     int_or_none,
-    ExtractorError,
     find_xpath_attr,
 )
 
