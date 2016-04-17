@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .ooyala import OoyalaIE
 from ..utils import ExtractorError
 
 
@@ -49,7 +48,6 @@ class ViceIE(InfoExtractor):
                 r'embedCode=([^&\'"]+)', webpage,
                 'ooyala embed code', default=None)
             if embed_code:
-                ooyala_url = OoyalaIE._url_for_embed_code(embed_code)
                 return self.url_result('ooyala:%s' % embed_code, 'Ooyala')
             youtube_id = self._search_regex(
                 r'data-youtube-id="([^"]+)"', webpage, 'youtube id')
