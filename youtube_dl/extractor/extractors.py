@@ -751,7 +751,6 @@ from .teletask import TeleTaskIE
 from .testurl import TestURLIE
 from .tf1 import TF1IE
 from .theintercept import TheInterceptIE
-from .theonion import TheOnionIE
 from .theplatform import (
     ThePlatformIE,
     ThePlatformFeedIE,
