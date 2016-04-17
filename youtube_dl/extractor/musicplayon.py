@@ -11,9 +11,9 @@ from ..utils import (
 
 
 class MusicPlayOnIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:.+?\.)?musicplayon\.com/play(?:-touch)?\?(?:v|pl=100&play)=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:.+?\.)?musicplayon\.com/play(?:-touch)?\?(?:v|pl=\d+&play)=(?P<id>\d+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://en.musicplayon.com/play?v=433377',
         'md5': '00cdcdea1726abdf500d1e7fd6dd59bb',
         'info_dict': {
@@ -24,10 +24,16 @@ class MusicPlayOnIE(InfoExtractor):
             'duration': 342,
             'uploader': 'ultrafish',
         },
-    }
+    }, {
+        'url': 'http://en.musicplayon.com/play?pl=102&play=442629',
+        'only_matching': True,
+    }]
+
+    _URL_TEMPLATE = 'http://en.musicplayon.com/play?v=%s'
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        url = self._URL_TEMPLATE % video_id
 
         page = self._download_webpage(url, video_id)
 
