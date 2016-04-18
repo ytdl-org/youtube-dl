@@ -260,6 +260,17 @@ class TwitterIE(InfoExtractor):
             'upload_date': '20140615',
         },
         'add_ie': ['Vine'],
+    }, {
+        'url': 'https://twitter.com/captainamerica/status/719944021058060289',
+        # md5 constantly changes
+        'info_dict': {
+            'id': '719944021058060289',
+            'ext': 'mp4',
+            'title': 'Captain America - @King0fNerd Are you sure you made the right choice? Find out in theaters.',
+            'description': 'Captain America on Twitter: "@King0fNerd Are you sure you made the right choice? Find out in theaters. https://t.co/GpgYi9xMJI"',
+            'uploader_id': 'captainamerica',
+            'uploader': 'Captain America',
+        },
     }]
 
     def _real_extract(self, url):
@@ -283,17 +294,6 @@ class TwitterIE(InfoExtractor):
             'description': '%s on Twitter: "%s"' % (username, description),
             'title': username + ' - ' + title,
         }
-
-        card_id = self._search_regex(
-            r'["\']/i/cards/tfw/v1/(\d+)', webpage, 'twitter card url', default=None)
-        if card_id:
-            card_url = 'https://twitter.com/i/cards/tfw/v1/' + card_id
-            info.update({
-                '_type': 'url_transparent',
-                'ie_key': 'TwitterCard',
-                'url': card_url,
-            })
-            return info
 
         mobj = re.search(r'''(?x)
             <video[^>]+class="animated-gif"(?P<more_info>[^>]+)>\s*

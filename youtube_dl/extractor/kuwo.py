@@ -268,7 +268,7 @@ class KuwoCategoryIE(InfoExtractor):
             'title': '八十年代精选',
             'description': '这些都是属于八十年代的回忆！',
         },
-        'playlist_count': 30,
+        'playlist_count': 24,
     }
 
     def _real_extract(self, url):

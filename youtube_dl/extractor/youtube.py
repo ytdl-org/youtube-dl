@@ -1818,20 +1818,32 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     def _extract_mix(self, playlist_id):
         # The mixes are generated from a single video
         # the id of the playlist is just 'RD' + video_id
-        url = 'https://youtube.com/watch?v=%s&list=%s' % (playlist_id[-11:], playlist_id)
-        webpage = self._download_webpage(
-            url, playlist_id, 'Downloading Youtube mix')
+        ids = []
+        last_id = playlist_id[-11:]
+        for n in itertools.count(1):
+            url = 'https://youtube.com/watch?v=%s&list=%s' % (last_id, playlist_id)
+            webpage = self._download_webpage(
+                url, playlist_id, 'Downloading page {0} of Youtube mix'.format(n))
+            new_ids = orderedSet(re.findall(
+                r'''(?xs)data-video-username=".*?".*?
+                           href="/watch\?v=([0-9A-Za-z_-]{11})&amp;[^"]*?list=%s''' % re.escape(playlist_id),
+                webpage))
+            # Fetch new pages until all the videos are repeated, it seems that
+            # there are always 51 unique videos.
+            new_ids = [_id for _id in new_ids if _id not in ids]
+            if not new_ids:
+                break
+            ids.extend(new_ids)
+            last_id = ids[-1]
+
+        url_results = self._ids_to_results(ids)
+
         search_title = lambda class_name: get_element_by_attribute('class', class_name, webpage)
         title_span = (
             search_title('playlist-title') or
             search_title('title long-title') or
             search_title('title'))
         title = clean_html(title_span)
-        ids = orderedSet(re.findall(
-            r'''(?xs)data-video-username=".*?".*?
-                       href="/watch\?v=([0-9A-Za-z_-]{11})&amp;[^"]*?list=%s''' % re.escape(playlist_id),
-            webpage))
-        url_results = self._ids_to_results(ids)
 
         return self.playlist_result(url_results, playlist_id, title)
 
@@ -1987,8 +1999,8 @@ class YoutubeUserIE(YoutubeChannelIE):
     def suitable(cls, url):
         # Don't return True if the url can be extracted with other youtube
         # extractor, the regex would is too permissive and it would match.
-        other_ies = iter(klass for (name, klass) in globals().items() if name.endswith('IE') and klass is not cls)
-        if any(ie.suitable(url) for ie in other_ies):
+        other_yt_ies = iter(klass for (name, klass) in globals().items() if name.startswith('Youtube') and name.endswith('IE') and klass is not cls)
+        if any(ie.suitable(url) for ie in other_yt_ies):
             return False
         else:
             return super(YoutubeUserIE, cls).suitable(url)

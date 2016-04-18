@@ -65,6 +65,9 @@ class TudouIE(InfoExtractor):
         if quality:
             info_url += '&hd' + quality
         xml_data = self._download_xml(info_url, video_id, 'Opening the info XML page')
+        error = xml_data.attrib.get('error')
+        if error is not None:
+            raise ExtractorError('Tudou said: %s' % error, expected=True)
         final_url = xml_data.text
         return final_url
 

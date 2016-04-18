@@ -69,7 +69,7 @@ class HuffPostIE(InfoExtractor):
                 formats.extend(self._extract_m3u8_formats(
                     url, video_id, ext='mp4', m3u8_id='hls', fatal=False))
             elif ext == 'f4m':
-                formats.extend(self._extract_f4m_formatsa(
+                formats.extend(self._extract_f4m_formats(
                     url + '?hdcore=2.9.5', video_id, f4m_id='hds', fatal=False))
             else:
                 formats.append({
