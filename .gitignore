@@ -35,6 +35,9 @@ test/testdata
 test/local_parameters.json
 .tox
 youtube-dl.zsh
+
+# IntelliJ related files
 .idea
-.idea/*
+*.iml
+
 tmp/
