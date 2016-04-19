@@ -50,6 +50,7 @@
  - **arte.tv:ddc**
  - **arte.tv:embed**
  - **arte.tv:future**
+ - **arte.tv:info**
  - **arte.tv:magazine**
  - **AtresPlayer**
  - **ATTTechChannel**
@@ -350,13 +351,15 @@
  - **miomio.tv**
  - **MiTele**: mitele.es
  - **mixcloud**
+ - **mixcloud:playlist**
+ - **mixcloud:stream**
+ - **mixcloud:user**
  - **MLB**
  - **Mnet**
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
  - **Mofosex**
  - **Mojvideo**
  - **Moniker**: allmyvideos.net and vidspot.net
- - **mooshare**: Mooshare.biz
  - **Morningstar**: morningstar.com
  - **Motherless**
  - **Motorsport**: motorsport.com
@@ -393,7 +396,6 @@
  - **ndr:embed:base**
  - **NDTV**
  - **NerdCubedFeed**
- - **Nerdist**
  - **netease:album**: 网易云音乐 - 专辑
  - **netease:djradio**: 网易云音乐 - 电台
  - **netease:mv**: 网易云音乐 - MV
@@ -609,6 +611,7 @@
  - **Tagesschau**
  - **Tapely**
  - **Tass**
+ - **TDSLifeway**
  - **teachertube**: teachertube.com videos
  - **teachertube:user:collection**: teachertube.com user and collection videos
  - **TeachingChannel**
@@ -625,7 +628,6 @@
  - **TeleTask**
  - **TF1**
  - **TheIntercept**
- - **TheOnion**
  - **ThePlatform**
  - **ThePlatformFeed**
  - **TheScene**
@@ -684,7 +686,6 @@
  - **twitter**
  - **twitter:amplify**
  - **twitter:card**
- - **Ubu**
  - **udemy**
  - **udemy:course**
  - **UDNEmbed**: 聯合影音
@@ -754,7 +755,6 @@
  - **Walla**
  - **WashingtonPost**
  - **wat.tv**
- - **WayOfTheMaster**
  - **WDR**
  - **wdr:mobile**
  - **WDRMaus**: Sendung mit der Maus
