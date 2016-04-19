@@ -81,7 +81,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                             \.
                         )?
                         vimeo(?P<pro>pro)?\.com/
-                        (?!channels/[^/?#]+/?(?:$|[?#])|(?:album|ondemand)/)
+                        (?!channels/[^/?#]+/?(?:$|[?#])|[^/]+/review/|(?:album|ondemand)/)
                         (?:.*?/)?
                         (?:
                             (?:
@@ -90,6 +90,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                             )?
                         (?:videos?/)?
                         (?P<id>[0-9]+)
+                        (?:/[\da-f]+)?
                         /?(?:[?&].*)?(?:[#].*)?$
                     '''
     IE_NAME = 'vimeo'
@@ -232,6 +233,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'url': 'https://vimeo.com/7809605',
             'only_matching': True,
         },
+        {
+            'url': 'https://vimeo.com/160743502/abd0e13fb4',
+            'only_matching': True,
+        }
     ]
 
     @staticmethod

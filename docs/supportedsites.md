@@ -360,7 +360,6 @@
  - **Mofosex**
  - **Mojvideo**
  - **Moniker**: allmyvideos.net and vidspot.net
- - **mooshare**: Mooshare.biz
  - **Morningstar**: morningstar.com
  - **Motherless**
  - **Motorsport**: motorsport.com
@@ -397,7 +396,6 @@
  - **ndr:embed:base**
  - **NDTV**
  - **NerdCubedFeed**
- - **Nerdist**
  - **netease:album**: 网易云音乐 - 专辑
  - **netease:djradio**: 网易云音乐 - 电台
  - **netease:mv**: 网易云音乐 - MV
@@ -630,7 +628,6 @@
  - **TeleTask**
  - **TF1**
  - **TheIntercept**
- - **TheOnion**
  - **ThePlatform**
  - **ThePlatformFeed**
  - **TheScene**
