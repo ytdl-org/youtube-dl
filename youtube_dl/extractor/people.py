@@ -21,7 +21,6 @@ class PeopleIE(InfoExtractor):
             'uploader_id': '416418724',
         },
         'params': {
-            # m3u8 download
             'skip_download': True,
         },
         'add_ie': ['BrightcoveNew'],
