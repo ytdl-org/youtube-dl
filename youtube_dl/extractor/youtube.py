@@ -125,6 +125,12 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         if login_results is False:
             return False
 
+        error_msg = self._html_search_regex(
+            r'<[^>]+id="errormsg_0_Passwd"[^>]*>([^<]+)<',
+            login_results, 'error message', default=None)
+        if error_msg:
+            raise ExtractorError('Unable to login: %s' % error_msg, expected=True)
+
         if re.search(r'id="errormsg_0_Passwd"', login_results) is not None:
             raise ExtractorError('Please use your account password and a two-factor code instead of an application-specific password.', expected=True)
 
