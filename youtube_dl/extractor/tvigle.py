@@ -58,7 +58,9 @@ class TvigleIE(InfoExtractor):
         if not video_id:
             webpage = self._download_webpage(url, display_id)
             video_id = self._html_search_regex(
-                r'class="video-preview current_playing" id="(\d+)">',
+                (r'<div[^>]+class=["\']player["\'][^>]+id=["\'](\d+)',
+                 r'var\s+cloudId\s*=\s*["\'](\d+)',
+                 r'class="video-preview current_playing" id="(\d+)"'),
                 webpage, 'video id')
 
         video_data = self._download_json(
