@@ -64,7 +64,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                         video_id, f4m_id=format_id, fatal=False))
             elif ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
-                    video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    video_url, video_id, 'mp4',
                     m3u8_id=format_id, fatal=False))
             elif video_url.startswith('rtmp'):
                 formats.append({
