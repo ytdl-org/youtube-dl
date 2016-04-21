@@ -282,10 +282,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
         pass_url = url + '/check-password'
         password_request = sanitized_Request(pass_url, data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        password_request.add_header('Referer', url)
         return self._download_json(
             password_request, video_id,
-            'Verifying the password',
-            'Wrong password')
+            'Verifying the password', 'Wrong password')
 
     def _real_initialize(self):
         self._login()
