@@ -6,7 +6,8 @@ from ..utils import int_or_none
 
 
 class MGTVIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.mgtv\.com/v/(?:[^/]+/)*(?P<id>\d+).html'
+    _VALID_URL = r'https?://www\.mgtv\.com/v/(?:[^/]+/)*(?P<id>\d+)\.html'
+    IE_DESC = '芒果TV'
 
     _TEST = {
         'url': 'http://www.mgtv.com/v/1/290525/f/3116640.html',
