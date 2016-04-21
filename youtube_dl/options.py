@@ -426,7 +426,7 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--hls-prefer-native',
         dest='hls_prefer_native', action='store_true',
-        help='Use the native HLS downloader instead of ffmpeg (experimental)')
+        help='Use the native HLS downloader instead of ffmpeg')
     downloader.add_option(
         '--hls-use-mpegts',
         dest='hls_use_mpegts', action='store_true',
