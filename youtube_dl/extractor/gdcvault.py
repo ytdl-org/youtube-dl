@@ -52,6 +52,7 @@ class GDCVaultIE(InfoExtractor):
             'only_matching': True,
         },
         {
+            # Hard-coded hostname
             'url': 'http://gdcvault.com/play/1023460/Tenacious-Design-and-The-Interface',
             'md5': 'a8efb6c31ed06ca8739294960b2dbabd',
             'info_dict': {
@@ -60,6 +61,19 @@ class GDCVaultIE(InfoExtractor):
                 'display_id': 'Tenacious-Design-and-The-Interface',
                 'title': 'Tenacious Design and The Interface of \'Destiny\'',
             },
+        },
+        {
+            # Multiple audios
+            'url': 'http://www.gdcvault.com/play/1014631/Classic-Game-Postmortem-PAC',
+            'info_dict': {
+                'id': '1014631',
+                'ext': 'flv',
+                'title': 'How to Create a Good Game - From My Experience of Designing Pac-Man',
+            },
+            'params': {
+                'skip_download': True,  # Requires rtmpdump
+                'format': 'jp',  # The japanese audio
+            }
         },
     ]
 

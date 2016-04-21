@@ -13,9 +13,9 @@ from ..utils import (
 
 
 class DigitalSpeakingIE(InfoExtractor):
-    _VALID_URL = r'http://evt.dispeak.com/([^/]+/)+xml/(?P<id>[^.]+).xml'
+    _VALID_URL = r'http://(?:evt\.dispeak|events\.digitallyspeaking)\.com/([^/]+/)+xml/(?P<id>[^.]+).xml'
 
-    _TEST = {
+    _TESTS = [{
         # From http://evt.dispeak.com/ubm/gdc/sf16/xml/840376_BQRC.xml
         'url': 'http://evt.dispeak.com/ubm/gdc/sf16/xml/840376_BQRC.xml',
         'md5': 'a8efb6c31ed06ca8739294960b2dbabd',
@@ -24,7 +24,11 @@ class DigitalSpeakingIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Tenacious Design and The Interface of \'Destiny\'',
         },
-    }
+    }, {
+        # From http://www.gdcvault.com/play/1014631/Classic-Game-Postmortem-PAC
+        'url': 'http://events.digitallyspeaking.com/gdc/sf11/xml/12396_1299111843500GMPX.xml',
+        'only_matching': True,
+    }]
 
     def _parse_mp4(self, metadata):
         video_formats = []
@@ -60,16 +64,15 @@ class DigitalSpeakingIE(InfoExtractor):
     def _parse_flv(self, metadata):
         formats = []
         akamai_url = xpath_text(metadata, './akamaiHost', fatal=True)
-        audios = metadata.find('./audios')
-        if audios is not None:
-            for audio in audios:
-                formats.append({
-                    'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
-                    'play_path': remove_end(audio.get('url'), '.flv'),
-                    'ext': 'flv',
-                    'vcodec': 'none',
-                    'format_id': audio.get('code'),
-                })
+        audios = metadata.findall('./audios/audio')
+        for audio in audios:
+            formats.append({
+                'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
+                'play_path': remove_end(audio.get('url'), '.flv'),
+                'ext': 'flv',
+                'vcodec': 'none',
+                'format_id': audio.get('code'),
+            })
         slide_video_path = xpath_text(metadata, './slideVideo', fatal=True)
         formats.append({
             'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
