@@ -133,6 +133,8 @@ class PornHubIE(InfoExtractor):
                 'height': height,
             })
         self._sort_formats(formats)
+        
+        pornstars = [s.strip() for s in list(map(compat_urllib_parse_unquote, re.findall(r'<a class="pstar-list-btn".*href="/pornstar[^>]+>(.+?)<', webpage)))]
 
         return {
             'id': video_id,
@@ -146,6 +148,7 @@ class PornHubIE(InfoExtractor):
             'comment_count': comment_count,
             'formats': formats,
             'age_limit': 18,
+            'pornstars': pornstars,
         }
 
 
