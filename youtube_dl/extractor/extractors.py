@@ -197,6 +197,7 @@ from .dump import DumpIE
 from .dumpert import DumpertIE
 from .defense import DefenseGouvFrIE
 from .discovery import DiscoveryIE
+from .dispeak import DigitalSpeakingIE
 from .dropbox import DropboxIE
 from .dw import (
     DWIE,
