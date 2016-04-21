@@ -12,7 +12,7 @@ from ..utils import (
 )
 
 
-class DigitalSpeakingIE(InfoExtractor):
+class DigitallySpeakingIE(InfoExtractor):
     _VALID_URL = r'https?://(?:evt\.dispeak|events\.digitallyspeaking)\.com/(?:[^/]+/)+xml/(?P<id>[^.]+)\.xml'
 
     _TESTS = [{

@@ -157,5 +157,5 @@ class GDCVaultIE(InfoExtractor):
             'id': video_id,
             'display_id': display_id,
             'url': '%s/xml/%s' % (xml_root, xml_name),
-            'ie_key': 'DigitalSpeaking',
+            'ie_key': 'DigitallySpeaking',
         }
