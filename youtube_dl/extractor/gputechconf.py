@@ -31,5 +31,5 @@ class GPUTechConfIE(InfoExtractor):
             '_type': 'url_transparent',
             'id': video_id,
             'url': '%sxml/%s.xml' % (root_path, xml_file_id),
-            'ie': 'DigitalSpeaking',
+            'ie_key': 'DigitalSpeaking',
         }

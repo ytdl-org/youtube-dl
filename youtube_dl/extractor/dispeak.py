@@ -13,10 +13,10 @@ from ..utils import (
 
 
 class DigitalSpeakingIE(InfoExtractor):
-    _VALID_URL = r'http://(?:evt\.dispeak|events\.digitallyspeaking)\.com/([^/]+/)+xml/(?P<id>[^.]+).xml'
+    _VALID_URL = r'https?://(?:evt\.dispeak|events\.digitallyspeaking)\.com/(?:[^/]+/)+xml/(?P<id>[^.]+)\.xml'
 
     _TESTS = [{
-        # From http://evt.dispeak.com/ubm/gdc/sf16/xml/840376_BQRC.xml
+        # From http://gdcvault.com/play/1023460/Tenacious-Design-and-The-Interface
         'url': 'http://evt.dispeak.com/ubm/gdc/sf16/xml/840376_BQRC.xml',
         'md5': 'a8efb6c31ed06ca8739294960b2dbabd',
         'info_dict': {
