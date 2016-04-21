@@ -51,18 +51,34 @@ class GDCVaultIE(InfoExtractor):
         {
             'url': 'http://gdcvault.com/play/1020791/',
             'only_matching': True,
-        }
+        },
+        {
+            'url': 'http://gdcvault.com/play/1023460/Tenacious-Design-and-The-Interface',
+            'md5': 'a8efb6c31ed06ca8739294960b2dbabd',
+            'info_dict': {
+                'id': '1023460',
+                'ext': 'mp4',
+                'display_id': 'Tenacious-Design-and-The-Interface',
+                'title': 'Tenacious Design and The Interface of \'Destiny\'',
+            },
+        },
     ]
 
     def _parse_mp4(self, xml_description):
         video_formats = []
-        mp4_video = xml_description.find('./metadata/mp4video')
-        if mp4_video is None:
-            return None
+        video_root = None
 
-        mobj = re.match(r'(?P<root>https?://.*?/).*', mp4_video.text)
-        video_root = mobj.group('root')
+        mp4_video = xml_description.find('./metadata/mp4video')
+        if mp4_video is not None:
+            mobj = re.match(r'(?P<root>https?://.*?/).*', mp4_video.text)
+            video_root = mobj.group('root')
+        if video_root is None:
+            # Hard-coded in http://evt.dispeak.com/ubm/gdc/sf16/custom/player2.js
+            video_root = 'http://s3-2u.digitallyspeaking.com/'
+
         formats = xml_description.findall('./metadata/MBRVideos/MBRVideo')
+        if not formats:
+            return None
         for format in formats:
             mobj = re.match(r'mp4\:(?P<path>.*)', format.find('streamName').text)
             url = video_root + mobj.group('path')
