@@ -382,7 +382,7 @@ class InfoExtractor(object):
         else:
             if query:
                 url_or_request = update_url_query(url_or_request, query)
-            if data or headers:
+            if data is not None or headers:
                 url_or_request = sanitized_Request(url_or_request, data, headers)
         try:
             return self._downloader.urlopen(url_or_request)

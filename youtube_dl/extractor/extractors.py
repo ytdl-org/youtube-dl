@@ -193,10 +193,10 @@ from .drbonanza import DRBonanzaIE
 from .drtuber import DrTuberIE
 from .drtv import DRTVIE
 from .dvtv import DVTVIE
-from .dump import DumpIE
 from .dumpert import DumpertIE
 from .defense import DefenseGouvFrIE
 from .discovery import DiscoveryIE
+from .dispeak import DigitallySpeakingIE
 from .dropbox import DropboxIE
 from .dw import (
     DWIE,
@@ -406,6 +406,7 @@ from .mdr import MDRIE
 from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mgoon import MgoonIE
+from .mgtv import MGTVIE
 from .minhateca import MinhatecaIE
 from .ministrygrid import MinistryGridIE
 from .minoto import MinotoIE
@@ -559,12 +560,12 @@ from .pandoratv import PandoraTVIE
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
+from .people import PeopleIE
 from .periscope import PeriscopeIE
 from .philharmoniedeparis import PhilharmonieDeParisIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
 from .pinkbike import PinkbikeIE
-from .planetaplay import PlanetaPlayIE
 from .pladform import PladformIE
 from .played import PlayedIE
 from .playfm import PlayFMIE
@@ -600,7 +601,6 @@ from .qqmusic import (
     QQMusicToplistIE,
     QQMusicPlaylistIE,
 )
-from .quickvid import QuickVidIE
 from .r7 import R7IE
 from .radiode import RadioDeIE
 from .radiojavan import RadioJavanIE

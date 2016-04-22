@@ -260,7 +260,9 @@ class YoutubeDL(object):
     The following options determine which downloader is picked:
     external_downloader: Executable of the external downloader to call.
                        None or unset for standard (built-in) downloader.
-    hls_prefer_native: Use the native HLS downloader instead of ffmpeg/avconv.
+    hls_prefer_native: Use the native HLS downloader instead of ffmpeg/avconv
+                       if True, otherwise use ffmpeg/avconv if False, otherwise
+                       use downloader suggested by extractor if None.
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the downloader (see youtube_dl/downloader/common.py):

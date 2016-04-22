@@ -58,7 +58,9 @@ class TvigleIE(InfoExtractor):
         if not video_id:
             webpage = self._download_webpage(url, display_id)
             video_id = self._html_search_regex(
-                r'class="video-preview current_playing" id="(\d+)">',
+                (r'<div[^>]+class=["\']player["\'][^>]+id=["\'](\d+)',
+                 r'var\s+cloudId\s*=\s*["\'](\d+)',
+                 r'class="video-preview current_playing" id="(\d+)"'),
                 webpage, 'video id')
 
         video_data = self._download_json(
@@ -81,10 +83,10 @@ class TvigleIE(InfoExtractor):
 
         formats = []
         for vcodec, fmts in item['videos'].items():
+            if vcodec == 'hls':
+                continue
             for format_id, video_url in fmts.items():
                 if format_id == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        video_url, video_id, 'mp4', m3u8_id=vcodec))
                     continue
                 height = self._search_regex(
                     r'^(\d+)[pP]$', format_id, 'height', default=None)

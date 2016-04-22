@@ -8,6 +8,7 @@ from ..compat import compat_HTTPError
 from ..utils import (
     ExtractorError,
     int_or_none,
+    url_basename,
 )
 
 
@@ -22,7 +23,7 @@ class EaglePlatformIE(InfoExtractor):
     _TESTS = [{
         # http://lenta.ru/news/2015/03/06/navalny/
         'url': 'http://lentaru.media.eagleplatform.com/index/player?player=new&record_id=227304&player_template_id=5201',
-        'md5': '70f5187fb620f2c1d503b3b22fd4efe3',
+        'md5': '881ee8460e1b7735a8be938e2ffb362b',
         'info_dict': {
             'id': '227304',
             'ext': 'mp4',
@@ -37,7 +38,7 @@ class EaglePlatformIE(InfoExtractor):
         # http://muz-tv.ru/play/7129/
         # http://media.clipyou.ru/index/player?record_id=12820&width=730&height=415&autoplay=true
         'url': 'eagleplatform:media.clipyou.ru:12820',
-        'md5': '90b26344ba442c8e44aa4cf8f301164a',
+        'md5': '358597369cf8ba56675c1df15e7af624',
         'info_dict': {
             'id': '12820',
             'ext': 'mp4',
@@ -90,17 +91,30 @@ class EaglePlatformIE(InfoExtractor):
 
         secure_m3u8 = self._proto_relative_url(media['sources']['secure_m3u8']['auto'], 'http:')
 
+        formats = []
+
         m3u8_url = self._get_video_url(secure_m3u8, video_id, 'Downloading m3u8 JSON')
-        formats = self._extract_m3u8_formats(
+        m3u8_formats = self._extract_m3u8_formats(
             m3u8_url, video_id,
             'mp4', entry_protocol='m3u8_native', m3u8_id='hls')
+        formats.extend(m3u8_formats)
 
         mp4_url = self._get_video_url(
             # Secure mp4 URL is constructed according to Player.prototype.mp4 from
             # http://lentaru.media.eagleplatform.com/player/player.js
             re.sub(r'm3u8|hlsvod|hls|f4m', 'mp4', secure_m3u8),
             video_id, 'Downloading mp4 JSON')
-        formats.append({'url': mp4_url, 'format_id': 'mp4'})
+        mp4_url_basename = url_basename(mp4_url)
+        for m3u8_format in m3u8_formats:
+            mobj = re.search('/([^/]+)/index\.m3u8', m3u8_format['url'])
+            if mobj:
+                http_format = m3u8_format.copy()
+                http_format.update({
+                    'url': mp4_url.replace(mp4_url_basename, mobj.group(1)),
+                    'format_id': m3u8_format['format_id'].replace('hls', 'http'),
+                    'protocol': 'http',
+                })
+                formats.append(http_format)
 
         self._sort_formats(formats)
 
