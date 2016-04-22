@@ -24,14 +24,11 @@ class GazetaIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.gazeta.ru/video/main/main/2015/06/22/platit_ili_ne_platit_po_isku_yukosa.shtml',
+        'md5': '37f19f78355eb2f4256ee1688359f24c',
         'info_dict': {
             'id': '252048',
             'ext': 'mp4',
             'title': '"Если по иску ЮКОСа придется платить, это будет большой удар по бюджету"',
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
         },
         'add_ie': ['EaglePlatform'],
     }]
