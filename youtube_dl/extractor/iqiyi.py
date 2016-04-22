@@ -287,6 +287,13 @@ class IqiyiIE(InfoExtractor):
         ('10', 'h1'),
     ]
 
+    AUTH_API_ERRORS = {
+        # No preview available (不允许试看鉴权失败)
+        'Q00505': 'This video requires a VIP account',
+        # End of preview time (试看结束鉴权失败)
+        'Q00506': 'Needs a VIP account for full video',
+    }
+
     def _real_initialize(self):
         self._login()
 
@@ -372,14 +379,18 @@ class IqiyiIE(InfoExtractor):
             note='Downloading video authentication JSON',
             errnote='Unable to download video authentication JSON')
 
-        if auth_result['code'] == 'Q00505':  # No preview available (不允许试看鉴权失败)
-            raise ExtractorError('This video requires a VIP account', expected=True)
-        if auth_result['code'] == 'Q00506':  # End of preview time (试看结束鉴权失败)
+        code = auth_result.get('code')
+        msg = self.AUTH_API_ERRORS.get(code) or auth_result.get('msg') or code
+        if code == 'Q00506':
             if do_report_warning:
-                self.report_warning('Needs a VIP account for full video')
+                self.report_warning(msg)
             return False
+        if 'data' not in auth_result:
+            if msg is not None:
+                raise ExtractorError('%s said: %s' % (self.IE_NAME, msg), expected=True)
+            raise ExtractorError('Unexpected error from Iqiyi auth API')
 
-        return auth_result
+        return auth_result['data']
 
     def construct_video_urls(self, data, video_id, _uuid, tvid):
         def do_xor(x, y):
@@ -455,11 +466,11 @@ class IqiyiIE(InfoExtractor):
                         need_vip_warning_report = False
                         break
                     param.update({
-                        't': auth_result['data']['t'],
+                        't': auth_result['t'],
                         # cid is hard-coded in com/qiyi/player/core/player/RuntimeData.as
                         'cid': 'afbe8fd3d73448c9',
                         'vid': video_id,
-                        'QY00001': auth_result['data']['u'],
+                        'QY00001': auth_result['u'],
                     })
                 api_video_url += '?' if '?' not in api_video_url else '&'
                 api_video_url += compat_urllib_parse_urlencode(param)
