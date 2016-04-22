@@ -8,10 +8,15 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urlparse,
     compat_urllib_parse_urlencode,
-    compat_urllib_parse_urlparse
+    compat_urllib_parse_urlparse,
+    compat_str,
 )
 from ..utils import (
     unified_strdate,
+    determine_ext,
+    int_or_none,
+    parse_iso8601,
+    parse_duration,
 )
 
 
@@ -70,8 +75,8 @@ class NHLBaseInfoExtractor(InfoExtractor):
         return ret
 
 
-class NHLIE(NHLBaseInfoExtractor):
-    IE_NAME = 'nhl.com'
+class NHLVideocenterIE(NHLBaseInfoExtractor):
+    IE_NAME = 'nhl.com:videocenter'
     _VALID_URL = r'https?://video(?P<team>\.[^.]*)?\.nhl\.com/videocenter/(?:console|embed)?(?:\?(?:.*?[?&])?)(?:id|hlg|playlist)=(?P<id>[-0-9a-zA-Z,]+)'
 
     _TESTS = [{
@@ -186,8 +191,8 @@ class NHLNewsIE(NHLBaseInfoExtractor):
         return self._real_extract_video(video_id)
 
 
-class NHLVideocenterIE(NHLBaseInfoExtractor):
-    IE_NAME = 'nhl.com:videocenter'
+class NHLVideocenterCategoryIE(NHLBaseInfoExtractor):
+    IE_NAME = 'nhl.com:videocenter:category'
     IE_DESC = 'NHL videocenter category'
     _VALID_URL = r'https?://video\.(?P<team>[^.]*)\.nhl\.com/videocenter/(console\?[^(id=)]*catid=(?P<catid>[0-9]+)(?![&?]id=).*?)?$'
     _TEST = {
@@ -235,4 +240,87 @@ class NHLVideocenterIE(NHLBaseInfoExtractor):
             'title': playlist_title,
             'id': cat_id,
             'entries': [self._extract_video(v) for v in videos],
+        }
+
+
+class NHLIE(InfoExtractor):
+    IE_NAME = 'nhl.com'
+    _VALID_URL = r'https?://(?:www\.)?nhl\.com/([^/]+/)*c-(?P<id>\d+)'
+    _TESTS = [{
+        # type=video
+        'url': 'https://www.nhl.com/video/anisimov-cleans-up-mess/t-277752844/c-43663503',
+        'md5': '0f7b9a8f986fb4b4eeeece9a56416eaf',
+        'info_dict': {
+            'id': '43663503',
+            'ext': 'mp4',
+            'title': 'Anisimov cleans up mess',
+            'description': 'md5:a02354acdfe900e940ce40706939ca63',
+            'timestamp': 1461288600,
+            'upload_date': '20160422',
+        },
+    }, {
+        # type=article
+        'url': 'https://www.nhl.com/news/dennis-wideman-suspended/c-278258934',
+        'md5': '1f39f4ea74c1394dea110699a25b366c',
+        'info_dict': {
+            'id': '40784403',
+            'ext': 'mp4',
+            'title': 'Wideman suspended by NHL',
+            'description': 'Flames defenseman Dennis Wideman was banned 20 games for violation of Rule 40 (Physical Abuse of Officials)',
+            'upload_date': '20160204',
+            'timestamp': 1454544904,
+        },
+    }]
+
+    def _real_extract(self, url):
+        tmp_id = self._match_id(url)
+        video_data = self._download_json(
+            'https://nhl.bamcontent.com/nhl/id/v1/%s/details/web-v1.json' % tmp_id,
+            tmp_id)
+        if video_data.get('type') == 'article':
+            video_data = video_data['media']
+
+        video_id = compat_str(video_data['id'])
+        title = video_data['title']
+
+        formats = []
+        for playback in video_data.get('playbacks', []):
+            playback_url = playback.get('url')
+            if not playback_url:
+                continue
+            ext = determine_ext(playback_url)
+            if ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    playback_url, video_id, 'mp4', 'm3u8_native',
+                    m3u8_id=playback.get('name', 'hls'), fatal=False))
+            else:
+                height = int_or_none(playback.get('height'))
+                formats.append({
+                    'format_id': playback.get('name', 'http' + ('-%dp' % height if height else '')),
+                    'url': playback_url,
+                    'width': int_or_none(playback.get('width')),
+                    'height': height,
+                })
+        self._sort_formats(formats, ('preference', 'width', 'height', 'tbr', 'format_id'))
+
+        thumbnails = []
+        for thumbnail_id, thumbnail_data in video_data.get('image', {}).get('cuts', {}).items():
+            thumbnail_url = thumbnail_data.get('src')
+            if not thumbnail_url:
+                continue
+            thumbnails.append({
+                'id': thumbnail_id,
+                'url': thumbnail_url,
+                'width': int_or_none(thumbnail_data.get('width')),
+                'height': int_or_none(thumbnail_data.get('height')),
+            })
+
+        return {
+            'id': video_id,
+            'title': title,
+            'description': video_data.get('description'),
+            'timestamp': parse_iso8601(video_data.get('date')),
+            'duration': parse_duration(video_data.get('duration')),
+            'thumbnails': thumbnails,
+            'formats': formats,
         }
