@@ -129,6 +129,13 @@ class DPlayIE(InfoExtractor):
 
         self._sort_formats(formats)
 
+        subtitles = {}
+        for lang in ('se', 'sv', 'da', 'nl', 'no'):
+            for format_id in ('web_vtt', 'vtt', 'srt'):
+                subtitle_url = info.get('subtitles_%s_%s' % (lang, format_id))
+                if subtitle_url:
+                    subtitles.setdefault(lang, []).append({'url': subtitle_url})
+
         return {
             'id': video_id,
             'display_id': display_id,
@@ -142,4 +149,5 @@ class DPlayIE(InfoExtractor):
             'episode_number': int_or_none(info.get('episode')),
             'age_limit': int_or_none(info.get('minimum_age')),
             'formats': formats,
+            'subtitles': subtitles,
         }
