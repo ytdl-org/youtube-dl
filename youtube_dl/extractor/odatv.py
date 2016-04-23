@@ -48,7 +48,6 @@ class OdaTVIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        print(url)
         if 'NO VIDEO!' in webpage:
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
