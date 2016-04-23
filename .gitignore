@@ -31,6 +31,7 @@ updates_key.pem
 *.part
 *.swp
 test/testdata
+test/local_parameters.json
 .tox
 youtube-dl.zsh
 .idea
