@@ -13,6 +13,7 @@ class DPlayIE(InfoExtractor):
     _VALID_URL = r'https?://(?P<domain>it\.dplay\.com|www\.dplay\.(?:dk|se|no))/[^/]+/(?P<id>[^/?#]+)'
 
     _TESTS = [{
+        # geo restricted, via direct unsigned hls URL
         'url': 'http://it.dplay.com/take-me-out/stagione-1-episodio-25/',
         'info_dict': {
             'id': '1255600',
@@ -31,6 +32,7 @@ class DPlayIE(InfoExtractor):
         },
         'expected_warnings': ['Unable to download f4m manifest'],
     }, {
+        # non geo restricted, via secure api
         'url': 'http://www.dplay.se/nugammalt-77-handelser-som-format-sverige/season-1-svensken-lar-sig-njuta-av-livet/',
         'info_dict': {
             'id': '3172',
@@ -48,6 +50,7 @@ class DPlayIE(InfoExtractor):
             'age_limit': 0,
         },
     }, {
+        # geo restricted, via secure api
         'url': 'http://www.dplay.dk/mig-og-min-mor/season-6-episode-12/',
         'info_dict': {
             'id': '70816',
@@ -65,6 +68,7 @@ class DPlayIE(InfoExtractor):
             'age_limit': 0,
         },
     }, {
+        # geo restricted, via direct unsigned hls URL
         'url': 'http://www.dplay.no/pga-tour/season-1-hoydepunkter-18-21-februar/',
         'only_matching': True,
     }]
@@ -101,6 +105,7 @@ class DPlayIE(InfoExtractor):
         domain_tld = domain.split('.')[-1]
         if domain_tld in ('se', 'dk', 'no'):
             for protocol in PROTOCOLS:
+                # Providing dsc-geo allows to bypass geo restriction in some cases
                 self._set_cookie(
                     'secure.dplay.%s' % domain_tld, 'dsc-geo',
                     json.dumps({
@@ -113,7 +118,11 @@ class DPlayIE(InfoExtractor):
                     'Downloading %s stream JSON' % protocol, fatal=False)
                 if stream and stream.get(protocol):
                     extract_formats(protocol, stream[protocol])
-        else:
+
+        # The last resort is to try direct unsigned hls/hds URLs from info dictionary.
+        # Sometimes this does work even when secure API with dsc-geo has failed (e.g.
+        # http://www.dplay.no/pga-tour/season-1-hoydepunkter-18-21-februar/).
+        if not formats:
             for protocol in PROTOCOLS:
                 if info.get(protocol):
                     extract_formats(protocol, info[protocol])
