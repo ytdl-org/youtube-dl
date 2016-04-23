@@ -6,7 +6,11 @@ import re
 import time
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..compat import compat_urlparse
+from ..utils import (
+    int_or_none,
+    update_url_query,
+)
 
 
 class DPlayIE(InfoExtractor):
@@ -32,12 +36,12 @@ class DPlayIE(InfoExtractor):
         },
         'expected_warnings': ['Unable to download f4m manifest'],
     }, {
-        # non geo restricted, via secure api
+        # non geo restricted, via secure api, unsigned download hls URL
         'url': 'http://www.dplay.se/nugammalt-77-handelser-som-format-sverige/season-1-svensken-lar-sig-njuta-av-livet/',
         'info_dict': {
             'id': '3172',
             'display_id': 'season-1-svensken-lar-sig-njuta-av-livet',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Svensken lär sig njuta av livet',
             'description': 'md5:d3819c9bccffd0fe458ca42451dd50d8',
             'duration': 2650,
@@ -50,18 +54,18 @@ class DPlayIE(InfoExtractor):
             'age_limit': 0,
         },
     }, {
-        # geo restricted, via secure api
+        # geo restricted, via secure api, unsigned download hls URL
         'url': 'http://www.dplay.dk/mig-og-min-mor/season-6-episode-12/',
         'info_dict': {
             'id': '70816',
             'display_id': 'season-6-episode-12',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Episode 12',
             'description': 'md5:9c86e51a93f8a4401fc9641ef9894c90',
             'duration': 2563,
             'timestamp': 1429696800,
             'upload_date': '20150422',
-            'creator': 'Kanal 4',
+            'creator': 'Kanal 4 (Home)',
             'series': 'Mig og min mor',
             'season_number': 6,
             'episode_number': 12,
@@ -94,9 +98,15 @@ class DPlayIE(InfoExtractor):
 
         def extract_formats(protocol, manifest_url):
             if protocol == 'hls':
-                formats.extend(self._extract_m3u8_formats(
+                m3u8_formats = self._extract_m3u8_formats(
                     manifest_url, video_id, ext='mp4',
-                    entry_protocol='m3u8_native', m3u8_id=protocol, fatal=False))
+                    entry_protocol='m3u8_native', m3u8_id=protocol, fatal=False)
+                # Sometimes final URLs inside m3u8 are unsigned, let's fix this
+                # ourselves
+                query = compat_urlparse.parse_qs(compat_urlparse.urlparse(manifest_url).query)
+                for m3u8_format in m3u8_formats:
+                    m3u8_format['url'] = update_url_query(m3u8_format['url'], query)
+                formats.extend(m3u8_formats)
             elif protocol == 'hds':
                 formats.extend(self._extract_f4m_formats(
                     manifest_url + '&hdcore=3.8.0&plugin=flowplayer-3.8.0.0',
