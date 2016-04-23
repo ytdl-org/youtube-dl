@@ -4,10 +4,12 @@ import collections
 import io
 import zlib
 
-from .compat import compat_str
+from .compat import (
+    compat_str,
+    struct_unpack,
+)
 from .utils import (
     ExtractorError,
-    struct_unpack,
 )
 
 
