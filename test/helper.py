@@ -24,8 +24,13 @@ from youtube_dl.utils import (
 def get_params(override=None):
     PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    "parameters.json")
+    LOCAL_PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                         "local_parameters.json")
     with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
         parameters = json.load(pf)
+    if os.path.exists(LOCAL_PARAMETERS_FILE):
+        with io.open(LOCAL_PARAMETERS_FILE, encoding='utf-8') as pf:
+            parameters.update(json.load(pf))
     if override:
         parameters.update(override)
     return parameters
