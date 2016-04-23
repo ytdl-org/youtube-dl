@@ -55,6 +55,11 @@ from .compat import (
     struct_pack,
 )
 
+from .socks import (
+    ProxyType,
+    sockssocket,
+)
+
 
 # This is not clearly defined otherwise
 compiled_regex_type = type(re.compile(''))
@@ -752,8 +757,15 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
         self._params = params
 
     def http_open(self, req):
+        conn_class = compat_http_client.HTTPConnection
+
+        socks_proxy = req.headers.get('Ytdl-socks-proxy')
+        if socks_proxy:
+            conn_class = make_socks_conn_class(conn_class, socks_proxy)
+            del req.headers['Ytdl-socks-proxy']
+
         return self.do_open(functools.partial(
-            _create_http_connection, self, compat_http_client.HTTPConnection, False),
+            _create_http_connection, self, conn_class, False),
             req)
 
     @staticmethod
@@ -849,6 +861,41 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     https_response = http_response
 
 
+def make_socks_conn_class(base_class, socks_proxy):
+    assert issubclass(base_class, (
+        compat_http_client.HTTPConnection, compat_http_client.HTTPSConnection))
+
+    url_components = compat_urlparse.urlparse(socks_proxy)
+    if url_components.scheme.lower() == 'socks5':
+        socks_type = ProxyType.SOCKS5
+    elif url_components.scheme.lower() in ('socks', 'socks4'):
+        socks_type = ProxyType.SOCKS4
+
+    proxy_args = (
+        socks_type,
+        url_components.hostname, url_components.port or 1080,
+        True,  # Remote DNS
+        url_components.username, url_components.password
+    )
+
+    class SocksConnection(base_class):
+        def connect(self):
+            self.sock = sockssocket()
+            self.sock.setproxy(*proxy_args)
+            if type(self.timeout) in (int, float):
+                self.sock.settimeout(self.timeout)
+            self.sock.connect((self.host, self.port))
+
+            if isinstance(self, compat_http_client.HTTPSConnection):
+                if hasattr(self, '_context'):  # Python > 2.6
+                    self.sock = self._context.wrap_socket(
+                        self.sock, server_hostname=self.host)
+                else:
+                    self.sock = ssl.wrap_socket(self.sock)
+
+    return SocksConnection
+
+
 class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
     def __init__(self, params, https_conn_class=None, *args, **kwargs):
         compat_urllib_request.HTTPSHandler.__init__(self, *args, **kwargs)
@@ -857,12 +904,20 @@ class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
 
     def https_open(self, req):
         kwargs = {}
+        conn_class = self._https_conn_class
+
         if hasattr(self, '_context'):  # python > 2.6
             kwargs['context'] = self._context
         if hasattr(self, '_check_hostname'):  # python 3.x
             kwargs['check_hostname'] = self._check_hostname
+
+        socks_proxy = req.headers.get('Ytdl-socks-proxy')
+        if socks_proxy:
+            conn_class = make_socks_conn_class(conn_class, socks_proxy)
+            del req.headers['Ytdl-socks-proxy']
+
         return self.do_open(functools.partial(
-            _create_http_connection, self, self._https_conn_class, True),
+            _create_http_connection, self, conn_class, True),
             req, **kwargs)
 
 
@@ -2683,6 +2738,10 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
 
         if proxy == '__noproxy__':
             return None  # No Proxy
+        if compat_urlparse.urlparse(proxy).scheme.lower() in ('socks', 'socks4', 'socks5'):
+            req.add_header('Ytdl-socks-proxy', proxy)
+            # youtube-dl's http/https handlers do wrapping the socket with socks
+            return None
         return compat_urllib_request.ProxyHandler.proxy_open(
             self, req, proxy, type)
 
