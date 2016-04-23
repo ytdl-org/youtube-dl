@@ -6,6 +6,9 @@ import re
 import time
 
 from .common import InfoExtractor
+from ..compat import (
+    struct_unpack,
+)
 from ..utils import (
     ExtractorError,
     float_or_none,
@@ -13,7 +16,6 @@ from ..utils import (
     remove_start,
     sanitized_Request,
     std_headers,
-    struct_unpack,
 )
 
 

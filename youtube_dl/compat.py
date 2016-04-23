@@ -11,6 +11,7 @@ import re
 import shlex
 import shutil
 import socket
+import struct
 import subprocess
 import sys
 import itertools
@@ -592,6 +593,26 @@ if sys.version_info >= (3, 0):
 else:
     from tokenize import generate_tokens as compat_tokenize_tokenize
 
+
+try:
+    struct.pack('!I', 0)
+except TypeError:
+    # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
+    # See https://bugs.python.org/issue19099
+    def struct_pack(spec, *args):
+        if isinstance(spec, compat_str):
+            spec = spec.encode('ascii')
+        return struct.pack(spec, *args)
+
+    def struct_unpack(spec, *args):
+        if isinstance(spec, compat_str):
+            spec = spec.encode('ascii')
+        return struct.unpack(spec, *args)
+else:
+    struct_pack = struct.pack
+    struct_unpack = struct.unpack
+
+
 __all__ = [
     'compat_HTMLParser',
     'compat_HTTPError',
@@ -634,6 +655,8 @@ __all__ = [
     'compat_xml_parse_error',
     'compat_xpath',
     'shlex_quote',
+    'struct_pack',
+    'struct_unpack',
     'subprocess_check_output',
     'workaround_optparse_bug9161',
 ]

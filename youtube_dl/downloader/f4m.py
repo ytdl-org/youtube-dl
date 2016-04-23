@@ -12,13 +12,13 @@ from ..compat import (
     compat_urlparse,
     compat_urllib_error,
     compat_urllib_parse_urlparse,
+    struct_pack,
+    struct_unpack,
 )
 from ..utils import (
     encodeFilename,
     fix_xml_ampersands,
     sanitize_open,
-    struct_pack,
-    struct_unpack,
     xpath_text,
 )
 

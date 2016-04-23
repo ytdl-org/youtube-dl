@@ -26,7 +26,6 @@ import platform
 import re
 import socket
 import ssl
-import struct
 import subprocess
 import sys
 import tempfile
@@ -53,6 +52,7 @@ from .compat import (
     compat_urlparse,
     compat_xpath,
     shlex_quote,
+    struct_pack,
 )
 
 
@@ -1760,24 +1760,6 @@ def escape_url(url):
         query=escape_rfc3986(url_parsed.query),
         fragment=escape_rfc3986(url_parsed.fragment)
     ).geturl()
-
-try:
-    struct.pack('!I', 0)
-except TypeError:
-    # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
-    # See https://bugs.python.org/issue19099
-    def struct_pack(spec, *args):
-        if isinstance(spec, compat_str):
-            spec = spec.encode('ascii')
-        return struct.pack(spec, *args)
-
-    def struct_unpack(spec, *args):
-        if isinstance(spec, compat_str):
-            spec = spec.encode('ascii')
-        return struct.unpack(spec, *args)
-else:
-    struct_pack = struct.pack
-    struct_unpack = struct.unpack
 
 
 def read_batch_urls(batch_fd):
