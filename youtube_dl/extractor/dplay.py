@@ -99,7 +99,7 @@ class DPlayIE(InfoExtractor):
                     video_id, f4m_id=protocol, fatal=False))
 
         domain_tld = domain.split('.')[-1]
-        if domain_tld in ('se', 'dk'):
+        if domain_tld in ('se', 'dk', 'no'):
             for protocol in PROTOCOLS:
                 self._set_cookie(
                     'secure.dplay.%s' % domain_tld, 'dsc-geo',
