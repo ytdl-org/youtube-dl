@@ -99,9 +99,14 @@ class OpenloadIE(InfoExtractor):
         video_url = self._search_regex(
             r'return\s+"(https?://[^"]+)"', self.openload_decode(code), 'video URL')
 
+        title = self._og_search_title(webpage, default=None) or self._search_regex(
+            r'<span[^>]+class=["\']title["\'][^>]*>([^<]+)', webpage,
+            'title', default=None) or self._html_search_meta(
+            'description', webpage, 'title', fatal=True)
+
         return {
             'id': video_id,
-            'title': self._og_search_title(webpage),
+            'title': title,
             'thumbnail': self._og_search_thumbnail(webpage),
             'url': video_url,
         }
