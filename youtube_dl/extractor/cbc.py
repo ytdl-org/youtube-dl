@@ -33,6 +33,7 @@ class CBCIE(InfoExtractor):
             'title': 'Robin Williams freestyles on 90 Minutes Live',
             'description': 'Wacky American comedian Robin Williams shows off his infamous "freestyle" comedic talents while being interviewed on CBC\'s 90 Minutes Live.',
             'upload_date': '19700101',
+            'uploader': 'CBCC-NEW',
         },
         'params': {
             # rtmp download

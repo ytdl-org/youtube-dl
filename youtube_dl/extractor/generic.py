@@ -237,6 +237,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'car-20120827-manifest',
                 'formats': 'mincount:9',
+                'upload_date': '20130904',
             },
             'params': {
                 'format': 'bestvideo',
@@ -596,7 +597,11 @@ class GenericIE(InfoExtractor):
                 'id': 'k2mm4bCdJ6CQ2i7c8o2',
                 'ext': 'mp4',
                 'title': 'Le Zap de Spi0n n°216 - Zapping du Web',
+                'description': 'md5:faf028e48a461b8b7fad38f1e104b119',
                 'uploader': 'Spi0n',
+                'uploader_id': 'xgditw',
+                'upload_date': '20140425',
+                'timestamp': 1398441542,
             },
             'add_ie': ['Dailymotion'],
         },
@@ -729,8 +734,11 @@ class GenericIE(InfoExtractor):
                 'id': 'uxjb0lwrcz',
                 'ext': 'mp4',
                 'title': 'Conversation about Hexagonal Rails Part 1 - ThoughtWorks',
+                'description': 'a Martin Fowler video from ThoughtWorks',
                 'duration': 1715.0,
                 'uploader': 'thoughtworks.wistia.com',
+                'upload_date': '20140603',
+                'timestamp': 1401832161,
             },
         },
         # Soundcloud embed
@@ -981,6 +989,9 @@ class GenericIE(InfoExtractor):
                 'ext': 'flv',
                 'title': "PFT Live: New leader in the 'new-look' defense",
                 'description': 'md5:65a19b4bbfb3b0c0c5768bed1dfad74e',
+                'uploader': 'NBCU-SPORTS',
+                'upload_date': '20140107',
+                'timestamp': 1389118457,
             },
         },
         # UDN embed
@@ -1033,6 +1044,9 @@ class GenericIE(InfoExtractor):
                 'title': 'SN Presents: Russell Martin, World Citizen',
                 'description': 'To understand why he was the Toronto Blue Jays’ top off-season priority is to appreciate his background and upbringing in Montreal, where he first developed his baseball skills. Written and narrated by Stephen Brunt.',
                 'uploader': 'Rogers Sportsnet',
+                'uploader_id': '1704050871',
+                'upload_date': '20150525',
+                'timestamp': 1432570283,
             },
         },
         # Dailymotion Cloud video
@@ -1124,6 +1138,9 @@ class GenericIE(InfoExtractor):
                 'title': 'The Cardinal Pell Interview',
                 'description': 'Sky News Contributor Andrew Bolt interviews George Pell in Rome, following the Cardinal\'s evidence before the Royal Commission into Child Abuse. ',
                 'uploader': 'GlobeCast Australia - GlobeStream',
+                'uploader_id': '2733773828001',
+                'upload_date': '20160304',
+                'timestamp': 1457083087,
             },
             'params': {
                 # m3u8 downloads

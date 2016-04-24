@@ -134,6 +134,9 @@ class NBCSportsIE(InfoExtractor):
             'ext': 'flv',
             'title': 'Tom Izzo, Michigan St. has \'so much respect\' for Duke',
             'description': 'md5:ecb459c9d59e0766ac9c7d5d0eda8113',
+            'uploader': 'NBCU-SPORTS',
+            'upload_date': '20150330',
+            'timestamp': 1427726529,
         }
     }
 
