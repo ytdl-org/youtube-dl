@@ -31,6 +31,11 @@ class OpenloadIE(InfoExtractor):
     }, {
         'url': 'https://openload.io/f/ZAn6oz-VZGE/',
         'only_matching': True,
+    }, {
+        # unavailable via https://openload.co/f/Sxz5sADo82g/, different layout
+        # for title and ext
+        'url': 'https://openload.co/embed/Sxz5sADo82g/',
+        'only_matching': True,
     }]
 
     @staticmethod
