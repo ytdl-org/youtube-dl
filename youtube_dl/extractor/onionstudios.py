@@ -65,7 +65,7 @@ class OnionStudiosIE(InfoExtractor):
             r'share_title\s*=\s*(["\'])(?P<title>[^\1]+?)\1',
             webpage, 'title', group='title')
         description = self._search_regex(
-            r'share_description\s*=\s*(["\'])(?P<description>[^\1]+?)\1',
+            r'share_description\s*=\s*(["\'])(?P<description>[^\'"]+?)\1',
             webpage, 'description', default=None, group='description')
         thumbnail = self._search_regex(
             r'poster\s*=\s*(["\'])(?P<thumbnail>[^\1]+?)\1',
