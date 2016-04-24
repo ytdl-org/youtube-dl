@@ -24,7 +24,7 @@ from .nbc import NBCSportsVPlayerIE
 
 class YahooIE(InfoExtractor):
     IE_DESC = 'Yahoo screen and movies'
-    _VALID_URL = r'(?P<url>(?P<host>https?://(?:[a-zA-Z]{2}\.)?[\da-zA-Z_-]+\.yahoo\.com)/(?:[^/]+/)*(?P<display_id>.+)?-(?P<id>[0-9]+)(?:-[a-z]+)?\.html)'
+    _VALID_URL = r'(?P<url>(?P<host>https?://(?:[a-zA-Z]{2}\.)?[\da-zA-Z_-]+\.yahoo\.com)/(?:[^/]+/)*(?P<display_id>.+)?-(?P<id>[0-9]+)(?:-[a-z]+)?(?:\.html)?)'
     _TESTS = [
         {
             'url': 'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
@@ -166,6 +166,17 @@ class YahooIE(InfoExtractor):
                 'description': 'While they play feuding fathers in \'Daddy\'s Home,\' star Will Ferrell & Mark Wahlberg share their true feelings on parenthood.',
             },
         },
+        {
+            # config['models']['applet_model']['data']['sapi'] has no query
+            'url': 'https://www.yahoo.com/music/livenation/event/galactic-2016',
+            'md5': 'dac0c72d502bc5facda80c9e6d5c98db',
+            'info_dict': {
+                'id': 'a6015640-e9e5-3efb-bb60-05589a183919',
+                'ext': 'mp4',
+                'description': 'Galactic',
+                'title': 'Dolla Diva (feat. Maggie Koerner)',
+            },
+        },
     ]
 
     def _real_extract(self, url):
@@ -202,7 +213,7 @@ class YahooIE(InfoExtractor):
             config = self._parse_json(config_json, display_id, fatal=False)
             if config:
                 sapi = config.get('models', {}).get('applet_model', {}).get('data', {}).get('sapi')
-                if sapi:
+                if sapi and 'query' in sapi:
                     return self._extract_info(display_id, sapi, webpage)
 
         items_json = self._search_regex(
