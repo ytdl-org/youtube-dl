@@ -38,7 +38,7 @@ class YahooIE(InfoExtractor):
         },
         {
             'url': 'http://screen.yahoo.com/wired/codefellas-s1-ep12-cougar-lies-103000935.html',
-            'md5': 'd6e6fc6e1313c608f316ddad7b82b306',
+            'md5': 'c3466d2b6d5dd6b9f41ba9ed04c24b23',
             'info_dict': {
                 'id': 'd1dedf8c-d58c-38c3-8963-e899929ae0a9',
                 'ext': 'mp4',
@@ -49,7 +49,7 @@ class YahooIE(InfoExtractor):
         },
         {
             'url': 'https://screen.yahoo.com/community/community-sizzle-reel-203225340.html?format=embed',
-            'md5': '60e8ac193d8fb71997caa8fce54c6460',
+            'md5': '75ffabdb87c16d4ffe8c036dc4d1c136',
             'info_dict': {
                 'id': '4fe78544-8d48-39d8-97cd-13f205d9fcdb',
                 'ext': 'mp4',
@@ -122,7 +122,7 @@ class YahooIE(InfoExtractor):
             }
         }, {
             'url': 'https://www.yahoo.com/movies/v/true-story-trailer-173000497.html',
-            'md5': '989396ae73d20c6f057746fb226aa215',
+            'md5': 'b17ac378b1134fa44370fb27db09a744',
             'info_dict': {
                 'id': '071c4013-ce30-3a93-a5b2-e0413cd4a9d1',
                 'ext': 'mp4',
@@ -141,6 +141,9 @@ class YahooIE(InfoExtractor):
                 'ext': 'flv',
                 'description': 'md5:df390f70a9ba7c95ff1daace988f0d8d',
                 'title': 'Tyler Kalinoski hits buzzer-beater to lift Davidson',
+                'upload_date': '20150313',
+                'uploader': 'NBCU-SPORTS',
+                'timestamp': 1426270238,
             }
         }, {
             'url': 'https://tw.news.yahoo.com/-100120367.html',
@@ -148,7 +151,7 @@ class YahooIE(InfoExtractor):
         }, {
             # Query result is embedded in webpage, but explicit request to video API fails with geo restriction
             'url': 'https://screen.yahoo.com/community/communitary-community-episode-1-ladders-154501237.html',
-            'md5': '4fbafb9c9b6f07aa8f870629f6671b35',
+            'md5': '1ddbf7c850777548438e5c4f147c7b8c',
             'info_dict': {
                 'id': '1f32853c-a271-3eef-8cb6-f6d6872cb504',
                 'ext': 'mp4',
