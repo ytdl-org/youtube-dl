@@ -176,7 +176,9 @@ which means you can modify it, redistribute it or use it however you like.
     --xattr-set-filesize             Set file xattribute ytdl.filesize with
                                      expected filesize (experimental)
     --hls-prefer-native              Use the native HLS downloader instead of
-                                     ffmpeg (experimental)
+                                     ffmpeg
+    --hls-prefer-ffmpeg              Use ffmpeg instead of the native HLS
+                                     downloader
     --hls-use-mpegts                 Use the mpegts container for HLS videos,
                                      allowing to play the video while
                                      downloading (some players may not be able
