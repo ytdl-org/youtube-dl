@@ -59,15 +59,15 @@ class YahooIE(InfoExtractor):
             }
         },
         {
-            'url': 'https://tw.screen.yahoo.com/election-2014-askmayor/敢問市長-黃秀霜批賴清德-非常高傲-033009720.html',
-            'md5': '3a09cf59349cfaddae1797acc3c087fc',
+            'url': 'https://tw.news.yahoo.com/%E6%95%A2%E5%95%8F%E5%B8%82%E9%95%B7%20%E9%BB%83%E7%A7%80%E9%9C%9C%E6%89%B9%E8%B3%B4%E6%B8%85%E5%BE%B7%20%E9%9D%9E%E5%B8%B8%E9%AB%98%E5%82%B2-034024051.html',
+            'md5': '9035d38f88b1782682a3e89f985be5bb',
             'info_dict': {
                 'id': 'cac903b3-fcf4-3c14-b632-643ab541712f',
                 'ext': 'mp4',
                 'title': '敢問市長／黃秀霜批賴清德「非常高傲」',
                 'description': '直言台南沒捷運 交通居五都之末',
                 'duration': 396,
-            }
+            },
         },
         {
             'url': 'https://uk.screen.yahoo.com/editor-picks/cute-raccoon-freed-drain-using-091756545.html',
@@ -89,7 +89,8 @@ class YahooIE(InfoExtractor):
                 'title': 'Program that makes hockey more affordable not offered in Manitoba',
                 'description': 'md5:c54a609f4c078d92b74ffb9bf1f496f4',
                 'duration': 121,
-            }
+            },
+            'skip': 'Video gone',
         }, {
             'url': 'https://ca.finance.yahoo.com/news/hackers-sony-more-trouble-well-154609075.html',
             'info_dict': {
@@ -133,7 +134,8 @@ class YahooIE(InfoExtractor):
                 'title': 'Connect the Dots: Dark Side of Virgo',
                 'description': 'md5:1428185051cfd1949807ad4ff6d3686a',
                 'duration': 201,
-            }
+            },
+            'skip': 'Domain name in.lifestyle.yahoo.com gone',
         }, {
             'url': 'https://www.yahoo.com/movies/v/true-story-trailer-173000497.html',
             'md5': 'b17ac378b1134fa44370fb27db09a744',
@@ -202,7 +204,9 @@ class YahooIE(InfoExtractor):
         page_id = mobj.group('id')
         url = mobj.group('url')
         host = mobj.group('host')
-        webpage = self._download_webpage(url, display_id)
+        webpage, urlh = self._download_webpage_handle(url, display_id)
+        if 'err=404' in urlh.geturl():
+            raise ExtractorError('Video gone', expected=True)
 
         # Look for iframed media first
         entries = []
