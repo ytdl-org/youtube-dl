@@ -6,8 +6,10 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_chr
 from ..utils import (
+    determine_ext,
     encode_base_n,
     ExtractorError,
+    mimetype2ext,
 )
 
 
@@ -96,17 +98,25 @@ class OpenloadIE(InfoExtractor):
             r'<video[^>]+>\s*<script[^>]+>([^<]+)</script>',
             webpage, 'JS code')
 
+        decoded = self.openload_decode(code)
+
         video_url = self._search_regex(
-            r'return\s+"(https?://[^"]+)"', self.openload_decode(code), 'video URL')
+            r'return\s+"(https?://[^"]+)"', decoded, 'video URL')
 
         title = self._og_search_title(webpage, default=None) or self._search_regex(
             r'<span[^>]+class=["\']title["\'][^>]*>([^<]+)', webpage,
             'title', default=None) or self._html_search_meta(
             'description', webpage, 'title', fatal=True)
 
+        ext = mimetype2ext(self._search_regex(
+            r'window\.vt\s*=\s*(["\'])(?P<mimetype>.+?)\1', decoded,
+            'mimetype', default=None, group='mimetype')) or determine_ext(
+            video_url, 'mp4')
+
         return {
             'id': video_id,
             'title': title,
+            'ext': ext,
             'thumbnail': self._og_search_thumbnail(webpage),
             'url': video_url,
         }
