@@ -146,21 +146,26 @@ class ViewsterIE(InfoExtractor):
                 qualities_basename = self._search_regex(
                     '/([^/]+)\.csmil/',
                     manifest_url, 'qualities basename', default=None)
-                if qualities_basename:
-                    QUALITIES_RE = r'((,\d+k)+,?)'
-                    qualities = self._search_regex(
-                        QUALITIES_RE, qualities_basename,
-                        'qualities').strip(',').split(',')
-                    http_template = re.sub(QUALITIES_RE, r'%s', qualities_basename)
-                    http_url_basename = url_basename(video_url)
-                    for q in qualities:
-                        formats.append({
-                            'url': video_url.replace(http_url_basename, http_template % q),
-                            'ext': 'mp4',
-                            'format_id': 'http-%s' % q,
-                            'tbr': int_or_none(self._search_regex(
-                                r'(\d+)k', q, 'bitrate', default=None)),
-                        })
+                if not qualities_basename:
+                    continue
+                QUALITIES_RE = r'((,\d+k)+,?)'
+                qualities = self._search_regex(
+                    QUALITIES_RE, qualities_basename,
+                    'qualities', default=None)
+                if not qualities:
+                    continue
+                qualities = qualities.strip(',').split(',')
+                http_template = re.sub(QUALITIES_RE, r'%s', qualities_basename)
+                http_url_basename = url_basename(video_url)
+                for q in qualities:
+                    tbr = int_or_none(self._search_regex(
+                        r'(\d+)k', q, 'bitrate', default=None))
+                    formats.append({
+                        'url': video_url.replace(http_url_basename, http_template % q),
+                        'ext': 'mp4',
+                        'format_id': 'http' + ('-%d' % tbr if tbr else ''),
+                        'tbr': tbr,
+                    })
 
         if not formats and not info.get('LanguageSets') and not info.get('VODSettings'):
             self.raise_geo_restricted()
