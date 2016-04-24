@@ -122,6 +122,6 @@ class OpenloadIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'ext': ext,
-            'thumbnail': self._og_search_thumbnail(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage, default=None),
             'url': video_url,
         }
