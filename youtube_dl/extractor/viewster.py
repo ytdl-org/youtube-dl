@@ -144,7 +144,7 @@ class ViewsterIE(InfoExtractor):
                     formats.extend(m3u8_formats)
             else:
                 qualities_basename = self._search_regex(
-                    '/([^/]+)(?:.csmil/manifest.f4m|.csmil/master.m3u8)',
+                    '/([^/]+)\.csmil/',
                     manifest_url, 'qualities basename', default=None)
                 if qualities_basename:
                     QUALITIES_RE = r'((,\d+k)+,?)'
