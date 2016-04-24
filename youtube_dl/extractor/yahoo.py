@@ -92,14 +92,28 @@ class YahooIE(InfoExtractor):
             }
         }, {
             'url': 'https://ca.finance.yahoo.com/news/hackers-sony-more-trouble-well-154609075.html',
-            'md5': '226a895aae7e21b0129e2a2006fe9690',
             'info_dict': {
-                'id': 'e624c4bc-3389-34de-9dfc-025f74943409',
-                'ext': 'mp4',
-                'title': '\'The Interview\' TV Spot: War',
-                'description': 'The Interview',
-                'duration': 30,
-            }
+                'id': '154609075',
+            },
+            'playlist': [{
+                'md5': 'f8e336c6b66f503282e5f719641d6565',
+                'info_dict': {
+                    'id': 'e624c4bc-3389-34de-9dfc-025f74943409',
+                    'ext': 'mp4',
+                    'title': '\'The Interview\' TV Spot: War',
+                    'description': 'The Interview',
+                    'duration': 30,
+                },
+            }, {
+                'md5': '958bcb90b4d6df71c56312137ee1cd5a',
+                'info_dict': {
+                    'id': '1fc8ada0-718e-3abe-a450-bf31f246d1a9',
+                    'ext': 'mp4',
+                    'title': '\'The Interview\' TV Spot: Guys',
+                    'description': 'The Interview',
+                    'duration': 30,
+                },
+            }],
         }, {
             'url': 'http://news.yahoo.com/video/china-moses-crazy-blues-104538833.html',
             'md5': '88e209b417f173d86186bef6e4d1f160',
@@ -191,16 +205,21 @@ class YahooIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         # Look for iframed media first
-        iframe_m = re.search(r'<iframe[^>]+src="(/video/.+?-\d+\.html\?format=embed.*?)"', webpage)
-        if iframe_m:
+        entries = []
+        iframe_urls = re.findall(r'<iframe[^>]+src="(/video/.+?-\d+\.html\?format=embed.*?)"', webpage)
+        for idx, iframe_url in enumerate(iframe_urls):
             iframepage = self._download_webpage(
-                host + iframe_m.group(1), display_id, 'Downloading iframe webpage')
+                host + iframe_url, display_id,
+                note='Downloading iframe webpage for video #%d' % idx)
             items_json = self._search_regex(
                 r'mediaItems: (\[.+?\])$', iframepage, 'items', flags=re.MULTILINE, default=None)
             if items_json:
                 items = json.loads(items_json)
                 video_id = items[0]['id']
-                return self._get_info(video_id, display_id, webpage)
+                entries.append(self._get_info(video_id, display_id, webpage))
+        if entries:
+            return self.playlist_result(entries, page_id)
+
         # Look for NBCSports iframes
         nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
         if nbc_sports_url:
