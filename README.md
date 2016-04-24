@@ -515,6 +515,18 @@ Available for the video that is an episode of some series or programme:
  - `episode_number`: Number of the video episode within a season
  - `episode_id`: Id of the video episode
 
+Available for the media that is a track or a part of a music album:
+ - `track`: Title of the track
+ - `track_number`: Number of the track within an album or a disc
+ - `track_id`: Id of the track
+ - `artist`: Artist(s) of the track
+ - `genre`: Genre(s) of the track
+ - `album`: Title of the album the track belongs to
+ - `album_type`: Type of the album
+ - `album_artist`: List of all artists appeared on the album
+ - `disc_number`: Number of the disc or other physical medium the track belongs to
+ - `release_year`: Year (YYYY) when the album was released
+
 Each aforementioned sequence when referenced in output template will be replaced by the actual value corresponding to the sequence name. Note that some of the sequences are not guaranteed to be present since they depend on the metadata obtained by particular extractor, such sequences will be replaced with `NA`.
 
 For example for `-o %(title)s-%(id)s.%(ext)s` and mp4 video with title `youtube-dl test video` and id `BaW_jenozKcj` this will result in a `youtube-dl test video-BaW_jenozKcj.mp4` file created in the current directory.
