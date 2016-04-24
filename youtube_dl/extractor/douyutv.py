@@ -18,7 +18,7 @@ class DouyuTVIE(InfoExtractor):
             'display_id': 'iseven',
             'ext': 'flv',
             'title': 're:^清晨醒脑！T-ara根本停不下来！ [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
-            'description': 'md5:f34981259a03e980a3c6404190a3ed61',
+            'description': 're:.*m7show@163\.com.*',
             'thumbnail': 're:^https?://.*\.jpg$',
             'uploader': '7师傅',
             'uploader_id': '431925',
@@ -43,7 +43,7 @@ class DouyuTVIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
-        'skip': 'Romm not found',
+        'skip': 'Room not found',
     }, {
         'url': 'http://www.douyutv.com/17732',
         'info_dict': {
@@ -51,7 +51,7 @@ class DouyuTVIE(InfoExtractor):
             'display_id': '17732',
             'ext': 'flv',
             'title': 're:^清晨醒脑！T-ara根本停不下来！ [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
-            'description': 'md5:f34981259a03e980a3c6404190a3ed61',
+            'description': 're:.*m7show@163\.com.*',
             'thumbnail': 're:^https?://.*\.jpg$',
             'uploader': '7师傅',
             'uploader_id': '431925',
@@ -75,13 +75,28 @@ class DouyuTVIE(InfoExtractor):
             room_id = self._html_search_regex(
                 r'"room_id"\s*:\s*(\d+),', page, 'room id')
 
-        prefix = 'room/%s?aid=android&client_sys=android&time=%d' % (
-            room_id, int(time.time()))
+        config = None
+        # Douyu API sometimes returns error "Unable to load the requested class: eticket_redis_cache"
+        # Retry with different parameters - same parameters cause same errors
+        for i in range(5):
+            prefix = 'room/%s?aid=android&client_sys=android&time=%d' % (
+                room_id, int(time.time()))
+            auth = hashlib.md5((prefix + '1231').encode('ascii')).hexdigest()
 
-        auth = hashlib.md5((prefix + '1231').encode('ascii')).hexdigest()
-        config = self._download_json(
-            'http://www.douyutv.com/api/v1/%s&auth=%s' % (prefix, auth),
-            video_id)
+            config_page = self._download_webpage(
+                'http://www.douyutv.com/api/v1/%s&auth=%s' % (prefix, auth),
+                video_id)
+            try:
+                config = self._parse_json(config_page, video_id, fatal=False)
+            except ExtractorError:
+                # Wait some time before retrying to get a different time() value
+                self._sleep(1, video_id, msg_template='%(video_id)s: Error occurs. '
+                                                      'Waiting for %(timeout)s seconds before retrying')
+                continue
+            else:
+                break
+        if config is None:
+            raise ExtractorError('Unable to fetch API result')
 
         data = config['data']
 
