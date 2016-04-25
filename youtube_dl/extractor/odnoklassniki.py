@@ -2,7 +2,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse_unquote
+from ..compat import (
+    compat_parse_qs,
+    compat_urllib_parse_unquote,
+    compat_urllib_parse_urlparse,
+)
 from ..utils import (
     ExtractorError,
     unified_strdate,
@@ -32,7 +36,7 @@ class OdnoklassnikiIE(InfoExtractor):
         'skip': 'Video has been blocked',
     }, {
         # metadataUrl
-        'url': 'http://ok.ru/video/63567059965189-0',
+        'url': 'http://ok.ru/video/63567059965189-0?fromTime=5',
         'md5': '9676cf86eff5391d35dea675d224e131',
         'info_dict': {
             'id': '63567059965189-0',
@@ -44,6 +48,7 @@ class OdnoklassnikiIE(InfoExtractor):
             'uploader': '☭ Андрей Мещанинов ☭',
             'like_count': int,
             'age_limit': 0,
+            'start_time': 5,
         },
     }, {
         # YouTube embed (metadataUrl, provider == USER_YOUTUBE)
@@ -94,6 +99,9 @@ class OdnoklassnikiIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
+        start_time = int_or_none(compat_parse_qs(
+            compat_urllib_parse_urlparse(url).query).get('fromTime', [None])[0])
+
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(
@@ -158,6 +166,7 @@ class OdnoklassnikiIE(InfoExtractor):
             'uploader_id': uploader_id,
             'like_count': like_count,
             'age_limit': age_limit,
+            'start_time': start_time,
         }
 
         if provider == 'USER_YOUTUBE':
