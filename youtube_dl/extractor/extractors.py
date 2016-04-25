@@ -490,9 +490,10 @@ from .nextmovie import NextMovieIE
 from .nfb import NFBIE
 from .nfl import NFLIE
 from .nhl import (
-    NHLIE,
-    NHLNewsIE,
     NHLVideocenterIE,
+    NHLNewsIE,
+    NHLVideocenterCategoryIE,
+    NHLIE,
 )
 from .nick import NickIE
 from .niconico import NiconicoIE, NiconicoPlaylistIE

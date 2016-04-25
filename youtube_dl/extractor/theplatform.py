@@ -269,6 +269,7 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
             'timestamp': 1391824260,
             'duration': 467.0,
             'categories': ['MSNBC/Issues/Democrats', 'MSNBC/Issues/Elections/Election 2016'],
+            'uploader': 'NBCU-NEWS',
         },
     }
 

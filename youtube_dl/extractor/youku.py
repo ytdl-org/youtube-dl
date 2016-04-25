@@ -64,6 +64,14 @@ class YoukuIE(InfoExtractor):
         'params': {
             'videopassword': '100600',
         },
+    }, {
+        # /play/get.json contains streams with "channel_type":"tail"
+        'url': 'http://v.youku.com/v_show/id_XOTUxMzg4NDMy.html',
+        'info_dict': {
+            'id': 'XOTUxMzg4NDMy',
+            'title': '我的世界☆明月庄主☆车震猎杀☆杀人艺术Minecraft',
+        },
+        'playlist_count': 6,
     }]
 
     def construct_video_urls(self, data):
@@ -92,6 +100,8 @@ class YoukuIE(InfoExtractor):
 
         fileid_dict = {}
         for stream in data['stream']:
+            if stream.get('channel_type') == 'tail':
+                continue
             format = stream.get('stream_type')
             fileid = stream['stream_fileid']
             fileid_dict[format] = fileid
@@ -117,6 +127,8 @@ class YoukuIE(InfoExtractor):
         # generate video_urls
         video_urls_dict = {}
         for stream in data['stream']:
+            if stream.get('channel_type') == 'tail':
+                continue
             format = stream.get('stream_type')
             video_urls = []
             for dt in stream['segs']:
@@ -253,6 +265,8 @@ class YoukuIE(InfoExtractor):
             # which one has all
         } for i in range(max(len(v.get('segs')) for v in data['stream']))]
         for stream in data['stream']:
+            if stream.get('channel_type') == 'tail':
+                continue
             fm = stream.get('stream_type')
             video_urls = video_urls_dict[fm]
             for video_url, seg, entry in zip(video_urls, stream['segs'], entries):

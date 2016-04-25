@@ -1935,6 +1935,9 @@ def error_to_compat_str(err):
 
 
 def mimetype2ext(mt):
+    if mt is None:
+        return None
+
     ext = {
         'audio/mp4': 'm4a',
     }.get(mt)

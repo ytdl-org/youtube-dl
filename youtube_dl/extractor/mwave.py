@@ -12,7 +12,7 @@ class MwaveIE(InfoExtractor):
     _VALID_URL = r'https?://mwave\.interest\.me/mnettv/videodetail\.m\?searchVideoDetailVO\.clip_id=(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://mwave.interest.me/mnettv/videodetail.m?searchVideoDetailVO.clip_id=168859',
-        'md5': 'c930e27b7720aaa3c9d0018dfc8ff6cc',
+        # md5 is unstable
         'info_dict': {
             'id': '168859',
             'ext': 'flv',

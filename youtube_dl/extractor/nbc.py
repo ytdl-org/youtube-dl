@@ -134,6 +134,9 @@ class NBCSportsIE(InfoExtractor):
             'ext': 'flv',
             'title': 'Tom Izzo, Michigan St. has \'so much respect\' for Duke',
             'description': 'md5:ecb459c9d59e0766ac9c7d5d0eda8113',
+            'uploader': 'NBCU-SPORTS',
+            'upload_date': '20150330',
+            'timestamp': 1427726529,
         }
     }
 
@@ -172,7 +175,7 @@ class CSNNEIE(InfoExtractor):
 
 
 class NBCNewsIE(ThePlatformIE):
-    _VALID_URL = r'''(?x)https?://(?:www\.)?nbcnews\.com/
+    _VALID_URL = r'''(?x)https?://(?:www\.)?(?:nbcnews|today)\.com/
         (?:video/.+?/(?P<id>\d+)|
         ([^/]+/)*(?P<display_id>[^/?]+))
         '''
@@ -231,6 +234,18 @@ class NBCNewsIE(ThePlatformIE):
             'expected_warnings': ['http-6000 is not available']
         },
         {
+            'url': 'http://www.today.com/video/see-the-aurora-borealis-from-space-in-stunning-new-nasa-video-669831235788',
+            'md5': '118d7ca3f0bea6534f119c68ef539f71',
+            'info_dict': {
+                'id': '669831235788',
+                'ext': 'mp4',
+                'title': 'See the aurora borealis from space in stunning new NASA video',
+                'description': 'md5:74752b7358afb99939c5f8bb2d1d04b1',
+                'upload_date': '20160420',
+                'timestamp': 1461152093,
+            },
+        },
+        {
             'url': 'http://www.nbcnews.com/watch/dateline/full-episode--deadly-betrayal-386250819952',
             'only_matching': True,
         },
@@ -264,7 +279,10 @@ class NBCNewsIE(ThePlatformIE):
                 info = bootstrap['results'][0]['video']
             else:
                 player_instance_json = self._search_regex(
-                    r'videoObj\s*:\s*({.+})', webpage, 'player instance')
+                    r'videoObj\s*:\s*({.+})', webpage, 'player instance', default=None)
+                if not player_instance_json:
+                    player_instance_json = self._html_search_regex(
+                        r'data-video="([^"]+)"', webpage, 'video json')
                 info = self._parse_json(player_instance_json, display_id)
             video_id = info['mpxId']
             title = info['title']
@@ -295,7 +313,7 @@ class NBCNewsIE(ThePlatformIE):
                     formats.extend(tp_formats)
                     subtitles = self._merge_subtitles(subtitles, tp_subtitles)
                 else:
-                    tbr = int_or_none(video_asset.get('bitRate'), 1000)
+                    tbr = int_or_none(video_asset.get('bitRate') or video_asset.get('bitrate'), 1000)
                     format_id = 'http%s' % ('-%d' % tbr if tbr else '')
                     video_url = update_url_query(
                         video_url, {'format': 'redirect'})
@@ -321,10 +339,9 @@ class NBCNewsIE(ThePlatformIE):
                 'id': video_id,
                 'title': title,
                 'description': info.get('description'),
-                'thumbnail': info.get('description'),
                 'thumbnail': info.get('thumbnail'),
                 'duration': int_or_none(info.get('duration')),
-                'timestamp': parse_iso8601(info.get('pubDate')),
+                'timestamp': parse_iso8601(info.get('pubDate') or info.get('pub_date')),
                 'formats': formats,
                 'subtitles': subtitles,
             }
