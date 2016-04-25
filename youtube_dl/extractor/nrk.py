@@ -23,7 +23,7 @@ class NRKIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.nrk.no/video/PS*150533',
-            'md5': 'bccd850baebefe23b56d708a113229c2',
+            # MD5 is unstable
             'info_dict': {
                 'id': '150533',
                 'ext': 'flv',
@@ -34,7 +34,7 @@ class NRKIE(InfoExtractor):
         },
         {
             'url': 'http://www.nrk.no/video/PS*154915',
-            'md5': '0b1493ba1aae7d9579a5ad5531bc395a',
+            # MD5 is unstable
             'info_dict': {
                 'id': '154915',
                 'ext': 'flv',
