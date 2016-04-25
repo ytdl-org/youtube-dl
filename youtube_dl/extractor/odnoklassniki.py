@@ -61,6 +61,22 @@ class OdnoklassnikiIE(InfoExtractor):
             'age_limit': 0,
         },
     }, {
+        # YouTube embed (metadata, provider == USER_YOUTUBE, no metadata.movie.title field)
+        'url': 'http://ok.ru/video/62036049272859-0',
+        'info_dict': {
+            'id': '62036049272859-0',
+            'ext': 'mp4',
+            'title': 'МУЗЫКА     ДОЖДЯ .',
+            'description': 'md5:6f1867132bd96e33bf53eda1091e8ed0',
+            'upload_date': '20120106',
+            'uploader_id': '473534735899',
+            'uploader': 'МARINA D',
+            'age_limit': 0,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         'url': 'http://ok.ru/web-api/video/moviePlayer/20079905452',
         'only_matching': True,
     }, {
@@ -106,7 +122,14 @@ class OdnoklassnikiIE(InfoExtractor):
                 video_id, 'Downloading metadata JSON')
 
         movie = metadata['movie']
-        title = movie['title']
+
+        # Some embedded videos may not contain title in movie dict (e.g.
+        # http://ok.ru/video/62036049272859-0) thus we allow missing title
+        # here and it's going to be extracted later by an extractor that
+        # will process the actual embed.
+        provider = metadata.get('provider')
+        title = movie['title'] if provider == 'UPLOADED_ODKL' else movie.get('title')
+
         thumbnail = movie.get('poster')
         duration = int_or_none(movie.get('duration'))
 
@@ -137,7 +160,7 @@ class OdnoklassnikiIE(InfoExtractor):
             'age_limit': age_limit,
         }
 
-        if metadata.get('provider') == 'USER_YOUTUBE':
+        if provider == 'USER_YOUTUBE':
             info.update({
                 '_type': 'url_transparent',
                 'url': movie['contentId'],
