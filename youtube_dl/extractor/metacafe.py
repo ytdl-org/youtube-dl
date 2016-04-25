@@ -81,6 +81,9 @@ class MetacafeIE(InfoExtractor):
                 'title': 'Open: This is Face the Nation, February 9',
                 'description': 'md5:8a9ceec26d1f7ed6eab610834cc1a476',
                 'duration': 96,
+                'uploader': 'CBSI-NEW',
+                'upload_date': '20140209',
+                'timestamp': 1391959800,
             },
             'params': {
                 # rtmp download

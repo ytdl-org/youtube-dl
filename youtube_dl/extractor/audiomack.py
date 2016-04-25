@@ -30,14 +30,14 @@ class AudiomackIE(InfoExtractor):
         # audiomack wrapper around soundcloud song
         {
             'add_ie': ['Soundcloud'],
-            'url': 'http://www.audiomack.com/song/xclusiveszone/take-kare',
+            'url': 'http://www.audiomack.com/song/hip-hop-daily/black-mamba-freestyle',
             'info_dict': {
-                'id': '172419696',
+                'id': '258901379',
                 'ext': 'mp3',
-                'description': 'md5:1fc3272ed7a635cce5be1568c2822997',
-                'title': 'Young Thug ft Lil Wayne - Take Kare',
-                'uploader': 'Young Thug World',
-                'upload_date': '20141016',
+                'description': 'mamba day freestyle for the legend Kobe Bryant ',
+                'title': 'Black Mamba Freestyle [Prod. By Danny Wolf]',
+                'uploader': 'ILOVEMAKONNEN',
+                'upload_date': '20160414',
             }
         },
     ]

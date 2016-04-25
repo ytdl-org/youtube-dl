@@ -1540,44 +1540,46 @@ def parse_duration(s):
 
     s = s.strip()
 
-    m = re.match(
-        r'''(?ix)(?:P?T)?
-        (?:
-            (?P<only_mins>[0-9.]+)\s*(?:mins?\.?|minutes?)\s*|
-            (?P<only_hours>[0-9.]+)\s*(?:hours?)|
-
-            \s*(?P<hours_reversed>[0-9]+)\s*(?:[:h]|hours?)\s*(?P<mins_reversed>[0-9]+)\s*(?:[:m]|mins?\.?|minutes?)\s*|
-            (?:
+    days, hours, mins, secs, ms = [None] * 5
+    m = re.match(r'(?:(?:(?:(?P<days>[0-9]+):)?(?P<hours>[0-9]+):)?(?P<mins>[0-9]+):)?(?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?$', s)
+    if m:
+        days, hours, mins, secs, ms = m.groups()
+    else:
+        m = re.match(
+            r'''(?ix)(?:P?T)?
                 (?:
-                    (?:(?P<days>[0-9]+)\s*(?:[:d]|days?)\s*)?
-                    (?P<hours>[0-9]+)\s*(?:[:h]|hours?)\s*
+                    (?P<days>[0-9]+)\s*d(?:ays?)?\s*
                 )?
-                (?P<mins>[0-9]+)\s*(?:[:m]|mins?|minutes?)\s*
-            )?
-            (?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?\s*(?:s|secs?|seconds?)?
-        )$''', s)
-    if not m:
-        return None
-    res = 0
-    if m.group('only_mins'):
-        return float_or_none(m.group('only_mins'), invscale=60)
-    if m.group('only_hours'):
-        return float_or_none(m.group('only_hours'), invscale=60 * 60)
-    if m.group('secs'):
-        res += int(m.group('secs'))
-    if m.group('mins_reversed'):
-        res += int(m.group('mins_reversed')) * 60
-    if m.group('mins'):
-        res += int(m.group('mins')) * 60
-    if m.group('hours'):
-        res += int(m.group('hours')) * 60 * 60
-    if m.group('hours_reversed'):
-        res += int(m.group('hours_reversed')) * 60 * 60
-    if m.group('days'):
-        res += int(m.group('days')) * 24 * 60 * 60
-    if m.group('ms'):
-        res += float(m.group('ms'))
-    return res
+                (?:
+                    (?P<hours>[0-9]+)\s*h(?:ours?)?\s*
+                )?
+                (?:
+                    (?P<mins>[0-9]+)\s*m(?:in(?:ute)?s?)?\s*
+                )?
+                (?:
+                    (?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?\s*s(?:ec(?:ond)?s?)?\s*
+                )?$''', s)
+        if m:
+            days, hours, mins, secs, ms = m.groups()
+        else:
+            m = re.match(r'(?i)(?:(?P<hours>[0-9.]+)\s*(?:hours?)|(?P<mins>[0-9.]+)\s*(?:mins?\.?|minutes?)\s*)$', s)
+            if m:
+                hours, mins = m.groups()
+            else:
+                return None
+
+    duration = 0
+    if secs:
+        duration += float(secs)
+    if mins:
+        duration += float(mins) * 60
+    if hours:
+        duration += float(hours) * 60 * 60
+    if days:
+        duration += float(days) * 24 * 60 * 60
+    if ms:
+        duration += float(ms)
+    return duration
 
 
 def prepend_extension(filename, ext, expected_real_ext=None):
@@ -1933,6 +1935,9 @@ def error_to_compat_str(err):
 
 
 def mimetype2ext(mt):
+    if mt is None:
+        return None
+
     ext = {
         'audio/mp4': 'm4a',
     }.get(mt)

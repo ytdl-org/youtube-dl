@@ -46,6 +46,7 @@ from .arte import (
     ArteTVPlus7IE,
     ArteTVCreativeIE,
     ArteTVConcertIE,
+    ArteTVInfoIE,
     ArteTVFutureIE,
     ArteTVCinemaIE,
     ArteTVDDCIE,
@@ -192,10 +193,10 @@ from .drbonanza import DRBonanzaIE
 from .drtuber import DrTuberIE
 from .drtv import DRTVIE
 from .dvtv import DVTVIE
-from .dump import DumpIE
 from .dumpert import DumpertIE
 from .defense import DefenseGouvFrIE
 from .discovery import DiscoveryIE
+from .dispeak import DigitallySpeakingIE
 from .dropbox import DropboxIE
 from .dw import (
     DWIE,
@@ -336,7 +337,6 @@ from .ivi import (
 )
 from .ivideon import IvideonIE
 from .izlesene import IzleseneIE
-from .jadorecettepub import JadoreCettePubIE
 from .jeuxvideo import JeuxVideoIE
 from .jove import JoveIE
 from .jwplatform import JWPlatformIE
@@ -406,13 +406,19 @@ from .mdr import MDRIE
 from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mgoon import MgoonIE
+from .mgtv import MGTVIE
 from .minhateca import MinhatecaIE
 from .ministrygrid import MinistryGridIE
 from .minoto import MinotoIE
 from .miomio import MioMioIE
 from .mit import TechTVMITIE, MITIE, OCWMITIE
 from .mitele import MiTeleIE
-from .mixcloud import MixcloudIE
+from .mixcloud import (
+    MixcloudIE,
+    MixcloudUserIE,
+    MixcloudPlaylistIE,
+    MixcloudStreamIE,
+)
 from .mlb import MLBIE
 from .mnet import MnetIE
 from .mpora import MporaIE
@@ -420,7 +426,6 @@ from .moevideo import MoeVideoIE
 from .mofosex import MofosexIE
 from .mojvideo import MojvideoIE
 from .moniker import MonikerIE
-from .mooshare import MooshareIE
 from .morningstar import MorningstarIE
 from .motherless import MotherlessIE
 from .motorsport import MotorsportIE
@@ -465,7 +470,6 @@ from .ndr import (
 from .ndtv import NDTVIE
 from .netzkino import NetzkinoIE
 from .nerdcubed import NerdCubedFeedIE
-from .nerdist import NerdistIE
 from .neteasemusic import (
     NetEaseMusicIE,
     NetEaseMusicAlbumIE,
@@ -486,9 +490,10 @@ from .nextmovie import NextMovieIE
 from .nfb import NFBIE
 from .nfl import NFLIE
 from .nhl import (
-    NHLIE,
-    NHLNewsIE,
     NHLVideocenterIE,
+    NHLNewsIE,
+    NHLVideocenterCategoryIE,
+    NHLIE,
 )
 from .nick import NickIE
 from .niconico import NiconicoIE, NiconicoPlaylistIE
@@ -556,12 +561,12 @@ from .pandoratv import PandoraTVIE
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
+from .people import PeopleIE
 from .periscope import PeriscopeIE
 from .philharmoniedeparis import PhilharmonieDeParisIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
 from .pinkbike import PinkbikeIE
-from .planetaplay import PlanetaPlayIE
 from .pladform import PladformIE
 from .played import PlayedIE
 from .playfm import PlayFMIE
@@ -597,7 +602,6 @@ from .qqmusic import (
     QQMusicToplistIE,
     QQMusicPlaylistIE,
 )
-from .quickvid import QuickVidIE
 from .r7 import R7IE
 from .radiode import RadioDeIE
 from .radiojavan import RadioJavanIE
@@ -730,6 +734,7 @@ from .sztvhu import SztvHuIE
 from .tagesschau import TagesschauIE
 from .tapely import TapelyIE
 from .tass import TassIE
+from .tdslifeway import TDSLifewayIE
 from .teachertube import (
     TeacherTubeIE,
     TeacherTubeUserIE,
@@ -747,7 +752,6 @@ from .teletask import TeleTaskIE
 from .testurl import TestURLIE
 from .tf1 import TF1IE
 from .theintercept import TheInterceptIE
-from .theonion import TheOnionIE
 from .theplatform import (
     ThePlatformIE,
     ThePlatformFeedIE,
@@ -832,7 +836,6 @@ from .twitter import (
     TwitterIE,
     TwitterAmplifyIE,
 )
-from .ubu import UbuIE
 from .udemy import (
     UdemyIE,
     UdemyCourseIE
@@ -917,7 +920,6 @@ from .vulture import VultureIE
 from .walla import WallaIE
 from .washingtonpost import WashingtonPostIE
 from .wat import WatIE
-from .wayofthemaster import WayOfTheMasterIE
 from .wdr import (
     WDRIE,
     WDRMobileIE,

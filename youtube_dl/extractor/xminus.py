@@ -2,15 +2,15 @@
 from __future__ import unicode_literals
 
 import re
+import time
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_chr,
     compat_ord,
 )
 from ..utils import (
     int_or_none,
-    parse_filesize,
+    parse_duration,
 )
 
 
@@ -22,7 +22,7 @@ class XMinusIE(InfoExtractor):
         'info_dict': {
             'id': '4542',
             'ext': 'mp3',
-            'title': 'Леонид Агутин-Песенка шофера',
+            'title': 'Леонид Агутин-Песенка шофёра',
             'duration': 156,
             'tbr': 320,
             'filesize_approx': 5900000,
@@ -36,38 +36,41 @@ class XMinusIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         artist = self._html_search_regex(
-            r'minus_track\.artist="(.+?)"', webpage, 'artist')
+            r'<a[^>]+href="/artist/\d+">([^<]+)</a>', webpage, 'artist')
         title = artist + '-' + self._html_search_regex(
-            r'minus_track\.title="(.+?)"', webpage, 'title')
-        duration = int_or_none(self._html_search_regex(
-            r'minus_track\.dur_sec=\'([0-9]*?)\'',
+            r'<span[^>]+class="minustrack-full-title(?:\s+[^"]+)?"[^>]*>([^<]+)', webpage, 'title')
+        duration = parse_duration(self._html_search_regex(
+            r'<span[^>]+class="player-duration(?:\s+[^"]+)?"[^>]*>([^<]+)',
             webpage, 'duration', fatal=False))
-        filesize_approx = parse_filesize(self._html_search_regex(
-            r'<div id="finfo"[^>]*>\s*↓\s*([0-9.]+\s*[a-zA-Z][bB])',
-            webpage, 'approximate filesize', fatal=False))
-        tbr = int_or_none(self._html_search_regex(
-            r'<div class="quality[^"]*"></div>\s*([0-9]+)\s*kbps',
-            webpage, 'bitrate', fatal=False))
+        mobj = re.search(
+            r'<div[^>]+class="dw-info(?:\s+[^"]+)?"[^>]*>(?P<tbr>\d+)\s*кбит/c\s+(?P<filesize>[0-9.]+)\s*мб</div>',
+            webpage)
+        tbr = filesize_approx = None
+        if mobj:
+            filesize_approx = float(mobj.group('filesize')) * 1000000
+            tbr = float(mobj.group('tbr'))
         view_count = int_or_none(self._html_search_regex(
-            r'<div class="quality.*?► ([0-9]+)',
+            r'<span><[^>]+class="icon-chart-bar".*?>(\d+)</span>',
             webpage, 'view count', fatal=False))
         description = self._html_search_regex(
-            r'(?s)<div id="song_texts">(.*?)</div><br',
+            r'(?s)<pre[^>]+id="lyrics-original"[^>]*>(.*?)</pre>',
             webpage, 'song lyrics', fatal=False)
         if description:
             description = re.sub(' *\r *', '\n', description)
 
-        enc_token = self._html_search_regex(
-            r'minus_track\.s?tkn="(.+?)"', webpage, 'enc_token')
-        token = ''.join(
-            c if pos == 3 else compat_chr(compat_ord(c) - 1)
-            for pos, c in enumerate(reversed(enc_token)))
-        video_url = 'http://x-minus.org/dwlf/%s/%s.mp3' % (video_id, token)
+        k = self._search_regex(
+            r'<div[^>]+id="player-bottom"[^>]+data-k="([^"]+)">', webpage,
+            'encoded data')
+        h = time.time() / 3600
+        a = sum(map(int, [compat_ord(c) for c in k])) + int(video_id) + h
+        video_url = 'http://x-minus.me/dl/minus?id=%s&tkn2=%df%d' % (video_id, a, h)
 
         return {
             'id': video_id,
             'title': title,
             'url': video_url,
+            # The extension is unknown until actual downloading
+            'ext': 'mp3',
             'duration': duration,
             'filesize_approx': filesize_approx,
             'tbr': tbr,

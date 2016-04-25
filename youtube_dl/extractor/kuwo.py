@@ -81,7 +81,7 @@ class KuwoIE(KuwoBaseIE):
             'id': '6446136',
             'ext': 'mp3',
             'title': '心',
-            'description': 'md5:b2ab6295d014005bfc607525bfc1e38a',
+            'description': 'md5:5d0e947b242c35dc0eb1d2fce9fbf02c',
             'creator': 'IU',
             'upload_date': '20150518',
         },
@@ -102,10 +102,10 @@ class KuwoIE(KuwoBaseIE):
             raise ExtractorError('this song has been offline because of copyright issues', expected=True)
 
         song_name = self._html_search_regex(
-            r'(?s)class="(?:[^"\s]+\s+)*title(?:\s+[^"\s]+)*".*?<h1[^>]+title="([^"]+)"', webpage, 'song name')
-        singer_name = self._html_search_regex(
-            r'<div[^>]+class="s_img">\s*<a[^>]+title="([^>]+)"',
-            webpage, 'singer name', fatal=False)
+            r'<p[^>]+id="lrcName">([^<]+)</p>', webpage, 'song name')
+        singer_name = remove_start(self._html_search_regex(
+            r'<a[^>]+href="http://www\.kuwo\.cn/artist/content\?name=([^"]+)">',
+            webpage, 'singer name', fatal=False), '歌手')
         lrc_content = clean_html(get_element_by_id('lrcContent', webpage))
         if lrc_content == '暂无':     # indicates no lyrics
             lrc_content = None
@@ -114,7 +114,7 @@ class KuwoIE(KuwoBaseIE):
         self._sort_formats(formats)
 
         album_id = self._html_search_regex(
-            r'<p[^>]+class="album"[^<]+<a[^>]+href="http://www\.kuwo\.cn/album/(\d+)/"',
+            r'<a[^>]+href="http://www\.kuwo\.cn/album/(\d+)/"',
             webpage, 'album id', fatal=False)
 
         publish_time = None
@@ -268,7 +268,7 @@ class KuwoCategoryIE(InfoExtractor):
             'title': '八十年代精选',
             'description': '这些都是属于八十年代的回忆！',
         },
-        'playlist_count': 30,
+        'playlist_mincount': 24,
     }
 
     def _real_extract(self, url):

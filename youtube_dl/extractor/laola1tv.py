@@ -63,6 +63,7 @@ class Laola1TvIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+        'skip': 'This live stream has already finished.',
     }]
 
     def _real_extract(self, url):
@@ -73,6 +74,9 @@ class Laola1TvIE(InfoExtractor):
         portal = mobj.group('portal')
 
         webpage = self._download_webpage(url, display_id)
+
+        if 'Dieser Livestream ist bereits beendet.' in webpage:
+            raise ExtractorError('This live stream has already finished.', expected=True)
 
         iframe_url = self._search_regex(
             r'<iframe[^>]*?id="videoplayer"[^>]*?src="([^"]+)"',

@@ -5,7 +5,6 @@ from ..utils import (
     xpath_text,
     xpath_element,
     int_or_none,
-    ExtractorError,
     find_xpath_attr,
 )
 
@@ -64,7 +63,7 @@ class CBSIE(CBSBaseIE):
         'url': 'http://www.colbertlateshow.com/podcasts/dYSwjqPs_X1tvbV_P2FcPWRa_qT6akTC/in-the-bad-room-with-stephen/',
         'only_matching': True,
     }]
-    TP_RELEASE_URL_TEMPLATE = 'http://link.theplatform.com/s/dJ5BDC/%s?manifest=m3u&mbr=true'
+    TP_RELEASE_URL_TEMPLATE = 'http://link.theplatform.com/s/dJ5BDC/%s?mbr=true'
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
@@ -84,11 +83,11 @@ class CBSIE(CBSBaseIE):
             pid = xpath_text(item, 'pid')
             if not pid:
                 continue
-            try:
-                tp_formats, tp_subtitles = self._extract_theplatform_smil(
-                    self.TP_RELEASE_URL_TEMPLATE % pid, content_id, 'Downloading %s SMIL data' % pid)
-            except ExtractorError:
-                continue
+            tp_release_url = self.TP_RELEASE_URL_TEMPLATE % pid
+            if '.m3u8' in xpath_text(item, 'contentUrl', default=''):
+                tp_release_url += '&manifest=m3u'
+            tp_formats, tp_subtitles = self._extract_theplatform_smil(
+                tp_release_url, content_id, 'Downloading %s SMIL data' % pid)
             formats.extend(tp_formats)
             subtitles = self._merge_subtitles(subtitles, tp_subtitles)
         self._sort_formats(formats)

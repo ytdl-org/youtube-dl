@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
@@ -14,6 +16,7 @@ from ..utils import (
     parse_iso8601,
     sanitized_Request,
     HEADRequest,
+    url_basename,
 )
 
 
@@ -114,6 +117,7 @@ class ViewsterIE(InfoExtractor):
             return self.playlist_result(entries, video_id, title, description)
 
         formats = []
+        manifest_url = None
         for media_type in ('application/f4m+xml', 'application/x-mpegURL', 'video/mp4'):
             media = self._download_json(
                 'https://public-api.viewster.com/movies/%s/video?mediaType=%s'
@@ -126,29 +130,42 @@ class ViewsterIE(InfoExtractor):
                 continue
             ext = determine_ext(video_url)
             if ext == 'f4m':
+                manifest_url = video_url
                 video_url += '&' if '?' in video_url else '?'
                 video_url += 'hdcore=3.2.0&plugin=flowplayer-3.2.0.1'
                 formats.extend(self._extract_f4m_formats(
                     video_url, video_id, f4m_id='hds'))
             elif ext == 'm3u8':
+                manifest_url = video_url
                 m3u8_formats = self._extract_m3u8_formats(
                     video_url, video_id, 'mp4', m3u8_id='hls',
                     fatal=False)  # m3u8 sometimes fail
                 if m3u8_formats:
                     formats.extend(m3u8_formats)
             else:
-                format_id = media.get('Bitrate')
-                f = {
-                    'url': video_url,
-                    'format_id': 'mp4-%s' % format_id,
-                    'height': int_or_none(media.get('Height')),
-                    'width': int_or_none(media.get('Width')),
-                    'preference': 1,
-                }
-                if format_id and not f['height']:
-                    f['height'] = int_or_none(self._search_regex(
-                        r'^(\d+)[pP]$', format_id, 'height', default=None))
-                formats.append(f)
+                qualities_basename = self._search_regex(
+                    '/([^/]+)\.csmil/',
+                    manifest_url, 'qualities basename', default=None)
+                if not qualities_basename:
+                    continue
+                QUALITIES_RE = r'((,\d+k)+,?)'
+                qualities = self._search_regex(
+                    QUALITIES_RE, qualities_basename,
+                    'qualities', default=None)
+                if not qualities:
+                    continue
+                qualities = qualities.strip(',').split(',')
+                http_template = re.sub(QUALITIES_RE, r'%s', qualities_basename)
+                http_url_basename = url_basename(video_url)
+                for q in qualities:
+                    tbr = int_or_none(self._search_regex(
+                        r'(\d+)k', q, 'bitrate', default=None))
+                    formats.append({
+                        'url': video_url.replace(http_url_basename, http_template % q),
+                        'ext': 'mp4',
+                        'format_id': 'http' + ('-%d' % tbr if tbr else ''),
+                        'tbr': tbr,
+                    })
 
         if not formats and not info.get('LanguageSets') and not info.get('VODSettings'):
             self.raise_geo_restricted()

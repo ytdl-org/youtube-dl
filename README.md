@@ -176,7 +176,9 @@ which means you can modify it, redistribute it or use it however you like.
     --xattr-set-filesize             Set file xattribute ytdl.filesize with
                                      expected filesize (experimental)
     --hls-prefer-native              Use the native HLS downloader instead of
-                                     ffmpeg (experimental)
+                                     ffmpeg
+    --hls-prefer-ffmpeg              Use ffmpeg instead of the native HLS
+                                     downloader
     --hls-use-mpegts                 Use the mpegts container for HLS videos,
                                      allowing to play the video while
                                      downloading (some players may not be able
@@ -514,6 +516,18 @@ Available for the video that is an episode of some series or programme:
  - `episode`: Title of the video episode
  - `episode_number`: Number of the video episode within a season
  - `episode_id`: Id of the video episode
+
+Available for the media that is a track or a part of a music album:
+ - `track`: Title of the track
+ - `track_number`: Number of the track within an album or a disc
+ - `track_id`: Id of the track
+ - `artist`: Artist(s) of the track
+ - `genre`: Genre(s) of the track
+ - `album`: Title of the album the track belongs to
+ - `album_type`: Type of the album
+ - `album_artist`: List of all artists appeared on the album
+ - `disc_number`: Number of the disc or other physical medium the track belongs to
+ - `release_year`: Year (YYYY) when the album was released
 
 Each aforementioned sequence when referenced in output template will be replaced by the actual value corresponding to the sequence name. Note that some of the sequences are not guaranteed to be present since they depend on the metadata obtained by particular extractor, such sequences will be replaced with `NA`.
 

@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .ooyala import OoyalaIE
 from ..utils import ExtractorError
 
 
@@ -14,13 +13,21 @@ class ViceIE(InfoExtractor):
         'url': 'http://www.vice.com/video/cowboy-capitalists-part-1',
         'info_dict': {
             'id': '43cW1mYzpia9IlestBjVpd23Yu3afAfp',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'VICE_COWBOYCAPITALISTS_PART01_v1_VICE_WM_1080p.mov',
             'duration': 725.983,
         },
-        'params': {
-            # Requires ffmpeg (m3u8 manifest)
-            'skip_download': True,
+    }, {
+        'url': 'http://www.vice.com/video/how-to-hack-a-car',
+        'md5': '6fb2989a3fed069fb8eab3401fc2d3c9',
+        'info_dict': {
+            'id': '3jstaBeXgAs',
+            'ext': 'mp4',
+            'title': 'How to Hack a Car: Phreaked Out (Episode 2)',
+            'description': 'md5:ee95453f7ff495db8efe14ae8bf56f30',
+            'uploader_id': 'MotherboardTV',
+            'uploader': 'Motherboard',
+            'upload_date': '20140529',
         },
     }, {
         'url': 'https://news.vice.com/video/experimenting-on-animals-inside-the-monkey-lab',
@@ -39,11 +46,14 @@ class ViceIE(InfoExtractor):
         try:
             embed_code = self._search_regex(
                 r'embedCode=([^&\'"]+)', webpage,
-                'ooyala embed code')
-            ooyala_url = OoyalaIE._url_for_embed_code(embed_code)
+                'ooyala embed code', default=None)
+            if embed_code:
+                return self.url_result('ooyala:%s' % embed_code, 'Ooyala')
+            youtube_id = self._search_regex(
+                r'data-youtube-id="([^"]+)"', webpage, 'youtube id')
+            return self.url_result(youtube_id, 'Youtube')
         except ExtractorError:
             raise ExtractorError('The page doesn\'t contain a video', expected=True)
-        return self.url_result(ooyala_url, ie='Ooyala')
 
 
 class ViceShowIE(InfoExtractor):

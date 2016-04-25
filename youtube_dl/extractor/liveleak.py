@@ -53,6 +53,14 @@ class LiveLeakIE(InfoExtractor):
         }
     }]
 
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+src="https?://(?:\w+\.)?liveleak\.com/ll_embed\?(?:.*?)i=(?P<id>[\w_]+)(?:.*)',
+            webpage)
+        if mobj:
+            return 'http://www.liveleak.com/view?i=%s' % mobj.group('id')
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)

@@ -29,7 +29,7 @@ class IzleseneIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Sevinçten Çıldırtan Doğum Günü Hediyesi',
                 'description': 'md5:253753e2655dde93f59f74b572454f6d',
-                'thumbnail': 're:^http://.*\.jpg',
+                'thumbnail': 're:^https?://.*\.jpg',
                 'uploader_id': 'pelikzzle',
                 'timestamp': int,
                 'upload_date': '20140702',
@@ -44,8 +44,7 @@ class IzleseneIE(InfoExtractor):
                 'id': '17997',
                 'ext': 'mp4',
                 'title': 'Tarkan Dortmund 2006 Konseri',
-                'description': 'Tarkan Dortmund 2006 Konseri',
-                'thumbnail': 're:^http://.*\.jpg',
+                'thumbnail': 're:^https://.*\.jpg',
                 'uploader_id': 'parlayankiz',
                 'timestamp': int,
                 'upload_date': '20061112',
@@ -62,7 +61,7 @@ class IzleseneIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
+        description = self._og_search_description(webpage, default=None)
         thumbnail = self._proto_relative_url(
             self._og_search_thumbnail(webpage), scheme='http:')
 
