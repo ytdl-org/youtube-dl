@@ -887,6 +887,7 @@ class GenericIE(InfoExtractor):
         # Eagle.Platform embed (generic URL)
         {
             'url': 'http://lenta.ru/news/2015/03/06/navalny/',
+            # Not checking MD5 as sometimes the direct HTTP link results in 404 and HLS is used
             'info_dict': {
                 'id': '227304',
                 'ext': 'mp4',
@@ -901,6 +902,7 @@ class GenericIE(InfoExtractor):
         # ClipYou (Eagle.Platform) embed (custom URL)
         {
             'url': 'http://muz-tv.ru/play/7129/',
+            # Not checking MD5 as sometimes the direct HTTP link results in 404 and HLS is used
             'info_dict': {
                 'id': '12820',
                 'ext': 'mp4',
