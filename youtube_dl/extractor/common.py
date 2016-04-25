@@ -1006,6 +1006,13 @@ class InfoExtractor(object):
     def _parse_f4m_formats(self, manifest, manifest_url, video_id, preference=None, f4m_id=None,
                            transform_source=lambda s: fix_xml_ampersands(s).strip(),
                            fatal=True):
+        # currently youtube-dl cannot decode the playerVerificationChallenge as Akamai uses Adobe Alchemy
+        akamai_pv = manifest.find('{http://ns.adobe.com/f4m/1.0}pv-2.0')
+        if akamai_pv is not None and ';' in akamai_pv.text:
+            playerVerificationChallenge = akamai_pv.text.split(';')[0]
+            if playerVerificationChallenge.strip() != '':
+                return []
+
         formats = []
         manifest_version = '1.0'
         media_nodes = manifest.findall('{http://ns.adobe.com/f4m/1.0}media')
