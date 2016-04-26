@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from .screenwavemedia import ScreenwaveMediaIE
 
 from ..utils import (
     unified_strdate,
@@ -12,7 +13,6 @@ class NormalbootsIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?normalboots\.com/video/(?P<id>[0-9a-z-]*)/?$'
     _TEST = {
         'url': 'http://normalboots.com/video/home-alone-games-jontron/',
-        'md5': '8bf6de238915dd501105b44ef5f1e0f6',
         'info_dict': {
             'id': 'home-alone-games-jontron',
             'ext': 'mp4',
@@ -22,9 +22,10 @@ class NormalbootsIE(InfoExtractor):
             'upload_date': '20140125',
         },
         'params': {
-            # rtmp download
+            # m3u8 download
             'skip_download': True,
         },
+        'add_ie': ['ScreenwaveMedia'],
     }
 
     def _real_extract(self, url):
@@ -38,16 +39,15 @@ class NormalbootsIE(InfoExtractor):
             r'<span style="text-transform:uppercase; font-size:inherit;">[A-Za-z]+, (?P<date>.*)</span>',
             webpage, 'date', fatal=False))
 
-        player_url = self._html_search_regex(
-            r'<iframe\swidth="[0-9]+"\sheight="[0-9]+"\ssrc="(?P<url>[\S]+)"',
-            webpage, 'player url')
-        player_page = self._download_webpage(player_url, video_id)
-        video_url = self._html_search_regex(
-            r"file:\s'(?P<file>[^']+\.mp4)'", player_page, 'file')
+        screenwavemedia_url = self._html_search_regex(
+            ScreenwaveMediaIE.EMBED_PATTERN, webpage, 'screenwave URL',
+            group='url')
 
         return {
+            '_type': 'url_transparent',
             'id': video_id,
-            'url': video_url,
+            'url': screenwavemedia_url,
+            'ie_key': ScreenwaveMediaIE.ie_key(),
             'title': self._og_search_title(webpage),
             'description': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),

@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class ScreenwaveMediaIE(InfoExtractor):
-    _VALID_URL = r'https?://player\d?\.screenwavemedia\.com/(?:play/)?[a-zA-Z]+\.php\?.*\bid=(?P<id>[A-Za-z0-9-]+)'
+    _VALID_URL = r'(?:https?:)?//player\d?\.screenwavemedia\.com/(?:play/)?[a-zA-Z]+\.php\?.*\bid=(?P<id>[A-Za-z0-9-]+)'
     EMBED_PATTERN = r'src=(["\'])(?P<url>(?:https?:)?//player\d?\.screenwavemedia\.com/(?:play/)?[a-zA-Z]+\.php\?.*\bid=.+?)\1'
     _TESTS = [{
         'url': 'http://player.screenwavemedia.com/play/play.php?playerdiv=videoarea&companiondiv=squareAd&id=Cinemassacre-19911',
