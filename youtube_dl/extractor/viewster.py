@@ -118,6 +118,7 @@ class ViewsterIE(InfoExtractor):
 
         formats = []
         manifest_url = None
+        m3u8_formats = []
         for media_type in ('application/f4m+xml', 'application/x-mpegURL', 'video/mp4'):
             media = self._download_json(
                 'https://public-api.viewster.com/movies/%s/video?mediaType=%s'
@@ -154,18 +155,32 @@ class ViewsterIE(InfoExtractor):
                     'qualities', default=None)
                 if not qualities:
                     continue
-                qualities = qualities.strip(',').split(',')
-                http_template = re.sub(QUALITIES_RE, r'%s', qualities_basename)
+                qualities = list(map(lambda q: int(q[:-1]), qualities.strip(',').split(',')))
+                qualities.sort()
+                http_template = re.sub(QUALITIES_RE, r'%dk', qualities_basename)
                 http_url_basename = url_basename(video_url)
-                for q in qualities:
-                    tbr = int_or_none(self._search_regex(
-                        r'(\d+)k', q, 'bitrate', default=None))
-                    formats.append({
-                        'url': video_url.replace(http_url_basename, http_template % q),
-                        'ext': 'mp4',
-                        'format_id': 'http' + ('-%d' % tbr if tbr else ''),
-                        'tbr': tbr,
-                    })
+                if m3u8_formats:
+                    self._sort_formats(m3u8_formats)
+                    m3u8_formats = list(filter(
+                        lambda f: f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
+                        m3u8_formats))
+                if len(qualities) == len(m3u8_formats):
+                    for q, m3u8_format in zip(qualities, m3u8_formats):
+                        f = m3u8_format.copy()
+                        f.update({
+                            'url': video_url.replace(http_url_basename, http_template % q),
+                            'format_id': f['format_id'].replace('hls', 'http'),
+                            'protocol': 'http',
+                        })
+                        formats.append(f)
+                else:
+                    for q in qualities:
+                        formats.append({
+                            'url': video_url.replace(http_url_basename, http_template % q),
+                            'ext': 'mp4',
+                            'format_id': 'http-%d' % q,
+                            'tbr': q,
+                        })
 
         if not formats and not info.get('LanguageSets') and not info.get('VODSettings'):
             self.raise_geo_restricted()
