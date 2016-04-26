@@ -203,33 +203,20 @@ class MySpaceAlbumIE(InfoExtractor):
         entries = [
             self.url_result(t_path, ie=MySpaceIE.ie_key())
             for t_path in tracks_paths]
-        return {
-            '_type': 'playlist',
-            'id': playlist_id,
-            'display_id': display_id,
-            'title': self._og_search_title(webpage),
-            'entries': entries,
-        }
+        return self.playlist_result(entries, playlist_id, self._og_search_title(webpage))
 
 
 class MySpaceArtistSongsIE(InfoExtractor):
     IE_NAME = 'MySpace:artist:songs'
     _VALID_URL = r'https?://myspace\.com/(?P<artist>[^/]*)/music/songs'
 
-    _TESTS = [{
-        'url': 'https://myspace.com/starset2/music/album/transmissions-19455773',
-        'url': 'https://myspace.com/ryanlewismusic/music/songs',
-        'info_dict': {
-            'title': 'RYAN LEWIS',
-        },
-        'playlist_count': 8,
-    }, {
+    _TEST = {
         'url': 'https://myspace.com/studio99/music/songs/',
         'info_dict': {
             'title': 'Studio 99 IS CLOSED!! R.I.P.',
         },
         'playlist_count': 4,
-    }]
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -247,9 +234,4 @@ class MySpaceArtistSongsIE(InfoExtractor):
         #   if we invert this if, we get album urls. but not all music are in alba.
         #   Also the musics in alba are already here individually
 
-        return {
-            '_type': 'playlist',
-            'display_id': display_id,
-            'title': self._og_search_title(webpage),
-            'entries': entries,
-        }
+        return self.playlist_result(entries, playlist_title=self._og_search_title(webpage))
