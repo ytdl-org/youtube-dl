@@ -56,3 +56,26 @@ class MwaveIE(InfoExtractor):
             'view_count': int_or_none(vod_info.get('hit')),
             'formats': formats,
         }
+
+
+class MwaveMeetGreetIE(InfoExtractor):
+    _VALID_URL = r'https?://mwave\.interest\.me/meetgreet/view/(?P<id>[0-9]+)'
+    _TEST = {
+        'url': 'http://mwave.interest.me/meetgreet/view/256',
+        'info_dict': {
+            'id': '173294',
+            'ext': 'flv',
+            'title': '[MEET&GREET] Park BoRam',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'uploader': 'Mwave',
+            'duration': 3634,
+            'view_count': int,
+        }
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        clip_id = self._html_search_regex(r'<iframe src="/mnettv/ifr_clip\.m\?searchVideoDetailVO\.clip_id=(?P<id>[0-9]+)', webpage, 'clip ID')
+        clip_url = 'http://mwave.interest.me/mnettv/videodetail.m?searchVideoDetailVO.clip_id={0}'.format(clip_id)
+        return self.url_result(clip_url, 'Mwave', clip_id)
