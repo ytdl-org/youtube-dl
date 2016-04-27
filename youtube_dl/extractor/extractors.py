@@ -400,7 +400,6 @@ from .macgamestore import MacGameStoreIE
 from .mailru import MailRuIE
 from .makerschannel import MakersChannelIE
 from .makertv import MakerTVIE
-from .malemotion import MalemotionIE
 from .matchtv import MatchTVIE
 from .mdr import MDRIE
 from .metacafe import MetacafeIE
