@@ -159,11 +159,11 @@ class ThePlatformIE(ThePlatformBaseIE):
         def str_to_hex(str):
             return binascii.b2a_hex(str.encode('ascii')).decode('ascii')
 
-        def hex_to_str(hex):
-            return binascii.a2b_hex(hex)
+        def hex_to_bytes(hex):
+            return binascii.a2b_hex(hex.encode('ascii'))
 
         relative_path = re.match(r'https?://link.theplatform.com/s/([^?]+)', url).group(1)
-        clear_text = hex_to_str(flags + expiration_date + str_to_hex(relative_path))
+        clear_text = hex_to_bytes(flags + expiration_date + str_to_hex(relative_path))
         checksum = hmac.new(sig_key.encode('ascii'), clear_text, hashlib.sha1).hexdigest()
         sig = flags + expiration_date + checksum + str_to_hex(sig_secret)
         return '%s&sig=%s' % (url, sig)
