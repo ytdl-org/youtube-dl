@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import get_element_by_attribute
 
 
 class FlipagramIE(InfoExtractor):
@@ -27,32 +26,17 @@ class FlipagramIE(InfoExtractor):
         }
     }]
 
-    @staticmethod
-    def _extract_embed_url(webpage):
-        blockquote_el = get_element_by_attribute(
-            'class', 'flipagram-media', webpage)
-        if blockquote_el is None:
-            return
-
-        mobj = re.search(
-            r'<a[^>]+href=[\'"])(?P,link.[^\'"]+)\1', blockquote_el)
-        if mobj:
-            return mobj.group('link')
-
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-
-        video_id = mobj.group('id')
-        webpage_url = 'https://flipagram.com/f/' + video_id
-        webpage = self._download_webpage(webpage_url, video_id)
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
 
         self.report_extraction(video_id)
 
-        video_url = self._html_search_regex(r'"contentUrl":"https://d2fab04skj7pig.cloudfront.net/(.+?)"', webpage, u'video_URL', fatal=False)
+        video_url = self._html_search_regex(r'"contentUrl":"(.+?)"', webpage, u'video_URL', fatal=False)
 
         return{
             'id': video_id,
             'ext': 'mp4',
-            'url': "https://d2fab04skj7pig.cloudfront.net/" + video_url,
+            'url': video_url,
             'title': self._og_search_title(webpage),
         }
