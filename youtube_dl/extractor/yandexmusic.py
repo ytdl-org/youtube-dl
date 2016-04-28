@@ -18,9 +18,10 @@ from ..utils import (
 class YandexMusicBaseIE(InfoExtractor):
     @staticmethod
     def _handle_error(response):
-        error = response.get('error')
-        if error:
-            raise ExtractorError(error, expected=True)
+        if isinstance(response, dict):
+            error = response.get('error')
+            if error:
+                raise ExtractorError(error, expected=True)
 
     def _download_webpage(self, *args, **kwargs):
         webpage = super(YandexMusicBaseIE, self)._download_webpage(*args, **kwargs)
