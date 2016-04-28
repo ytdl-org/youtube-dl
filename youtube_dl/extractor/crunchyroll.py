@@ -11,7 +11,6 @@ from math import pow, sqrt, floor
 from .common import InfoExtractor
 from ..compat import (
     compat_etree_fromstring,
-    compat_urllib_parse_unquote,
     compat_urllib_parse_urlencode,
     compat_urllib_request,
     compat_urlparse,
@@ -306,28 +305,24 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             r'<a[^>]+href="/publisher/[^"]+"[^>]*>([^<]+)</a>', webpage,
             'video_uploader', fatal=False)
 
-        playerdata_url = compat_urllib_parse_unquote(self._html_search_regex(r'"config_url":"([^"]+)', webpage, 'playerdata_url'))
-        playerdata_req = sanitized_Request(playerdata_url)
-        playerdata_req.data = urlencode_postdata({'current_page': webpage_url})
-        playerdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        playerdata = self._download_webpage(playerdata_req, video_id, note='Downloading media info')
-
-        stream_id = self._search_regex(r'<media_id>([^<]+)', playerdata, 'stream_id')
-        video_thumbnail = self._search_regex(r'<episode_image_url>([^<]+)', playerdata, 'thumbnail', fatal=False)
-
         formats = []
-        for fmt in re.findall(r'showmedia\.([0-9]{3,4})p', webpage):
+        video_encode_ids = []
+        for fmt in re.findall(r'token="showmedia\.([0-9]{3,4})p"', webpage):
             stream_quality, stream_format = self._FORMAT_IDS[fmt]
             video_format = fmt + 'p'
             streamdata_req = sanitized_Request(
                 'http://www.crunchyroll.com/xml/?req=RpcApiVideoPlayer_GetStandardConfig&media_id=%s&video_format=%s&video_quality=%s'
-                % (stream_id, stream_format, stream_quality),
+                % (video_id, stream_format, stream_quality),
                 compat_urllib_parse_urlencode({'current_page': url}).encode('utf-8'))
             streamdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
             streamdata = self._download_xml(
                 streamdata_req, video_id,
                 note='Downloading media info for %s' % video_format)
             stream_info = streamdata.find('./{default}preload/stream_info')
+            video_encode_id = xpath_text(stream_info, './video_encode_id')
+            if video_encode_id in video_encode_ids:
+                continue
+            video_encode_ids.append(video_encode_id)
             video_url = xpath_text(stream_info, './host')
             video_play_path = xpath_text(stream_info, './file')
             if not video_url or not video_play_path:
@@ -360,15 +355,25 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             })
             formats.append(format_info)
 
+        metadata = self._download_xml(
+            'http://www.crunchyroll.com/xml', video_id,
+            note='Downloading media info', query={
+                'req': 'RpcApiVideoPlayer_GetMediaMetadata',
+                'media_id': video_id,
+            })
+
         subtitles = self.extract_subtitles(video_id, webpage)
 
         return {
             'id': video_id,
             'title': video_title,
             'description': video_description,
-            'thumbnail': video_thumbnail,
+            'thumbnail': xpath_text(metadata, 'episode_image_url'),
             'uploader': video_uploader,
             'upload_date': video_upload_date,
+            'series': xpath_text(metadata, 'series_title'),
+            'episode': xpath_text(metadata, 'episode_title'),
+            'episode_number': int_or_none(xpath_text(metadata, 'episode_number')),
             'subtitles': subtitles,
             'formats': formats,
         }
