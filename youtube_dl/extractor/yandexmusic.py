@@ -26,7 +26,11 @@ class YandexMusicBaseIE(InfoExtractor):
     def _download_webpage(self, *args, **kwargs):
         webpage = super(YandexMusicBaseIE, self)._download_webpage(*args, **kwargs)
         if 'Нам очень жаль, но&nbsp;запросы, поступившие с&nbsp;вашего IP-адреса, похожи на&nbsp;автоматические.' in webpage:
-            raise ExtractorError('Blocked by YandexMusic', expected=True)
+            raise ExtractorError(
+                'YandexMusic asks you to solve a CAPTCHA: go to '
+                'https://music.yandex.ru/ and solve it, then export '
+                'cookies and pass cookie file to youtube-dl with --cookies',
+                expected=True)
         return webpage
 
     def _download_json(self, *args, **kwargs):
