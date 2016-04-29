@@ -3,10 +3,11 @@ from __future__ import division, unicode_literals
 
 import re
 import time
+
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
     dict_get,
+    ExtractorError,
     float_or_none,
     int_or_none,
 )
@@ -99,10 +100,9 @@ class VLiveIE(InfoExtractor):
         self._sort_formats(formats)
 
         return dict(self._get_common_fields(webpage),
-            id=video_id,
-            formats=formats,
-            is_live=True,
-        )
+                    id=video_id,
+                    formats=formats,
+                    is_live=True)
 
     def _replay(self, video_id, webpage, long_video_id, key):
         playinfo = self._download_json(
@@ -137,8 +137,7 @@ class VLiveIE(InfoExtractor):
                     'url': caption['source']}]
 
         return dict(self._get_common_fields(webpage),
-            id=video_id,
-            formats=formats,
-            view_count=view_count,
-            subtitles=subtitles,
-        )
+                    id=video_id,
+                    formats=formats,
+                    view_count=view_count,
+                    subtitles=subtitles)
