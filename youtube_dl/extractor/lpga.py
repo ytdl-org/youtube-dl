@@ -12,7 +12,7 @@ class YourExtractorIE(InfoExtractor):
         'info_dict': {
             'id': '42',
             'ext': 'mp4',
-            'title': 'Video title goes here',
+            'title': 'Brooke Henderson Talks About Solid Back 9 after Opening Round of 2016 VOA Texas Shootout',
             'thumbnail': 're:^https?://.*\.jpg$',
             # TODO more properties, either as:
             # * A value
