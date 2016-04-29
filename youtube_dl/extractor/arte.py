@@ -63,7 +63,7 @@ class ArteTvIE(InfoExtractor):
 
 class ArteTVPlus7IE(InfoExtractor):
     IE_NAME = 'arte.tv:+7'
-    _VALID_URL = r'https?://(?:www\.)?arte\.tv/guide/(?P<lang>fr|de|en|es)/(?:(?:sendungen|emissions|embed)/)?(?P<id>[^/]+)/(?P<name>[^/?#&+])'
+    _VALID_URL = r'https?://(?:www\.)?arte\.tv/guide/(?P<lang>fr|de|en|es)/(?:(?:sendungen|emissions|embed)/)?(?P<id>[^/]+)/(?P<name>[^/?#&]+)'
 
     @classmethod
     def _extract_url_info(cls, url):

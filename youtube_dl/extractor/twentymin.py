@@ -32,7 +32,22 @@ class TwentyMinutenIE(InfoExtractor):
             'title': '«Wir müssen mutig nach vorne schauen»',
             'description': 'Kein Land sei innovativer als die Schweiz, sagte Johann Schneider-Ammann in seiner Neujahrsansprache. Das Land müsse aber seine Hausaufgaben machen.',
             'thumbnail': 'http://www.20min.ch/images/content/2/2/0/22050469/10/teaserbreit.jpg'
-        }
+        },
+        'skip': '"This video is no longer available" is shown both on the web page and in the downloaded file.',
+    }, {
+        # YouTube embed
+        'url': 'http://www.20min.ch/ro/sports/football/story/Il-marque-une-bicyclette-de-plus-de-30-metres--21115184',
+        'md5': 'cec64d59aa01c0ed9dbba9cf639dd82f',
+        'info_dict': {
+            'id': 'ivM7A7SpDOs',
+            'ext': 'mp4',
+            'title': 'GOLAZO DE CHILENA DE JAVI GÓMEZ, FINALISTA AL BALÓN DE CLM 2016',
+            'description': 'md5:903c92fbf2b2f66c09de514bc25e9f5a',
+            'upload_date': '20160424',
+            'uploader': 'RTVCM Castilla-La Mancha',
+            'uploader_id': 'RTVCM',
+        },
+        'add_ie': ['Youtube'],
     }, {
         'url': 'http://www.20min.ch/videotv/?cid=44&vid=468738',
         'only_matching': True,
@@ -47,6 +62,12 @@ class TwentyMinutenIE(InfoExtractor):
         display_id = mobj.group('display_id') or video_id
 
         webpage = self._download_webpage(url, display_id)
+
+        youtube_url = self._html_search_regex(
+            r'<iframe[^>]+src="((?:https?:)?//www\.youtube\.com/embed/[^"]+)"',
+            webpage, 'YouTube embed URL', default=None)
+        if youtube_url is not None:
+            return self.url_result(youtube_url, 'Youtube')
 
         title = self._html_search_regex(
             r'<h1>.*?<span>(.+?)</span></h1>',

@@ -51,7 +51,7 @@ from .tnaflix import TNAFlixNetworkEmbedIE
 from .vimeo import VimeoIE
 from .dailymotion import DailymotionCloudIE
 from .onionstudios import OnionStudiosIE
-from .snagfilms import SnagFilmsEmbedIE
+from .viewlift import ViewLiftEmbedIE
 from .screenwavemedia import ScreenwaveMediaIE
 from .mtv import MTVServicesEmbeddedIE
 from .pladform import PladformIE
@@ -1924,10 +1924,10 @@ class GenericIE(InfoExtractor):
         if onionstudios_url:
             return self.url_result(onionstudios_url)
 
-        # Look for SnagFilms embeds
-        snagfilms_url = SnagFilmsEmbedIE._extract_url(webpage)
-        if snagfilms_url:
-            return self.url_result(snagfilms_url)
+        # Look for ViewLift embeds
+        viewlift_url = ViewLiftEmbedIE._extract_url(webpage)
+        if viewlift_url:
+            return self.url_result(viewlift_url)
 
         # Look for JWPlatform embeds
         jwplatform_url = JWPlatformIE._extract_url(webpage)

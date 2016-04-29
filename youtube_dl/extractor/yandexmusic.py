@@ -18,9 +18,23 @@ from ..utils import (
 class YandexMusicBaseIE(InfoExtractor):
     @staticmethod
     def _handle_error(response):
-        error = response.get('error')
-        if error:
-            raise ExtractorError(error, expected=True)
+        if isinstance(response, dict):
+            error = response.get('error')
+            if error:
+                raise ExtractorError(error, expected=True)
+
+    def _download_webpage(self, *args, **kwargs):
+        webpage = super(YandexMusicBaseIE, self)._download_webpage(*args, **kwargs)
+        if 'Нам очень жаль, но&nbsp;запросы, поступившие с&nbsp;вашего IP-адреса, похожи на&nbsp;автоматические.' in webpage:
+            raise ExtractorError(
+                'YandexMusic has considered youtube-dl requests automated and '
+                'asks you to solve a CAPTCHA. You can either wait for some '
+                'time until unblocked and optionally use --sleep-interval '
+                'in future or alternatively you can go to https://music.yandex.ru/ '
+                'solve CAPTCHA, then export cookies and pass cookie file to '
+                'youtube-dl with --cookies',
+                expected=True)
+        return webpage
 
     def _download_json(self, *args, **kwargs):
         response = super(YandexMusicBaseIE, self)._download_json(*args, **kwargs)
@@ -47,7 +61,8 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             'album_artist': 'Carlo Ambrosio',
             'artist': 'Carlo Ambrosio & Fabio Di Bari, Carlo Ambrosio',
             'release_year': '2009',
-        }
+        },
+        'skip': 'Travis CI servers blocked by YandexMusic',
     }
 
     def _get_track_url(self, storage_dir, track_id):
@@ -139,6 +154,7 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
             'title': 'Carlo Ambrosio - Gypsy Soul (2009)',
         },
         'playlist_count': 50,
+        'skip': 'Travis CI servers blocked by YandexMusic',
     }
 
     def _real_extract(self, url):
@@ -171,6 +187,7 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
             'description': 'md5:3b9f27b0efbe53f2ee1e844d07155cc9',
         },
         'playlist_count': 6,
+        'skip': 'Travis CI servers blocked by YandexMusic',
     }, {
         # playlist exceeding the limit of 150 tracks shipped with webpage (see
         # https://github.com/rg3/youtube-dl/issues/6666)
@@ -180,6 +197,7 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
             'title': 'Музыка 90-х',
         },
         'playlist_count': 310,
+        'skip': 'Travis CI servers blocked by YandexMusic',
     }]
 
     def _real_extract(self, url):

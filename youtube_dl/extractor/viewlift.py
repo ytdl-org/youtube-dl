@@ -13,8 +13,12 @@ from ..utils import (
 )
 
 
-class SnagFilmsEmbedIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www|embed)\.)?snagfilms\.com/embed/player\?.*\bfilmId=(?P<id>[\da-f-]{36})'
+class ViewLiftBaseIE(InfoExtractor):
+    _DOMAINS_REGEX = '(?:snagfilms|snagxtreme|funnyforfree|kiddovid|winnersview|monumentalsportsnetwork|vayafilm)\.com|kesari\.tv'
+
+
+class ViewLiftEmbedIE(ViewLiftBaseIE):
+    _VALID_URL = r'https?://(?:(?:www|embed)\.)?(?:%s)/embed/player\?.*\bfilmId=(?P<id>[\da-f-]{36})' % ViewLiftBaseIE._DOMAINS_REGEX
     _TESTS = [{
         'url': 'http://embed.snagfilms.com/embed/player?filmId=74849a00-85a9-11e1-9660-123139220831&w=500',
         'md5': '2924e9215c6eff7a55ed35b72276bd93',
@@ -40,7 +44,7 @@ class SnagFilmsEmbedIE(InfoExtractor):
     @staticmethod
     def _extract_url(webpage):
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:embed\.)?snagfilms\.com/embed/player.+?)\1',
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:embed\.)?(?:%s)/embed/player.+?)\1' % ViewLiftBaseIE._DOMAINS_REGEX,
             webpage)
         if mobj:
             return mobj.group('url')
@@ -55,6 +59,7 @@ class SnagFilmsEmbedIE(InfoExtractor):
                 'Film %s is not playable in your area.' % video_id, expected=True)
 
         formats = []
+        has_bitrate = False
         for source in self._parse_json(js_to_json(self._search_regex(
                 r'(?s)sources:\s*(\[.+?\]),', webpage, 'json')), video_id):
             file_ = source.get('file')
@@ -63,22 +68,25 @@ class SnagFilmsEmbedIE(InfoExtractor):
             type_ = source.get('type')
             ext = determine_ext(file_)
             format_id = source.get('label') or ext
-            if all(v == 'm3u8' for v in (type_, ext)):
+            if all(v == 'm3u8' or v == 'hls' for v in (type_, ext)):
                 formats.extend(self._extract_m3u8_formats(
                     file_, video_id, 'mp4', m3u8_id='hls'))
             else:
                 bitrate = int_or_none(self._search_regex(
                     [r'(\d+)kbps', r'_\d{1,2}x\d{1,2}_(\d{3,})\.%s' % ext],
                     file_, 'bitrate', default=None))
+                if not has_bitrate and bitrate:
+                    has_bitrate = True
                 height = int_or_none(self._search_regex(
                     r'^(\d+)[pP]$', format_id, 'height', default=None))
                 formats.append({
                     'url': file_,
-                    'format_id': format_id,
+                    'format_id': 'http-%s%s' % (format_id, ('-%dk' % bitrate if bitrate else '')),
                     'tbr': bitrate,
                     'height': height,
                 })
-        self._sort_formats(formats)
+        field_preference = None if has_bitrate else ('height', 'tbr', 'format_id')
+        self._sort_formats(formats, field_preference)
 
         title = self._search_regex(
             [r"title\s*:\s*'([^']+)'", r'<title>([^<]+)</title>'],
@@ -91,8 +99,8 @@ class SnagFilmsEmbedIE(InfoExtractor):
         }
 
 
-class SnagFilmsIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?snagfilms\.com/(?:films/title|show)/(?P<id>[^?#]+)'
+class ViewLiftIE(ViewLiftBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?(?P<domain>%s)/(?:films/title|show|(?:news/)?videos?)/(?P<id>[^?#]+)' % ViewLiftBaseIE._DOMAINS_REGEX
     _TESTS = [{
         'url': 'http://www.snagfilms.com/films/title/lost_for_life',
         'md5': '19844f897b35af219773fd63bdec2942',
@@ -127,10 +135,16 @@ class SnagFilmsIE(InfoExtractor):
         # Film is not available.
         'url': 'http://www.snagfilms.com/show/augie_alone/flirting',
         'only_matching': True,
+    }, {
+        'url': 'http://www.winnersview.com/videos/the-good-son',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.kesari.tv/news/video/1461919076414',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        domain, display_id = re.match(self._VALID_URL, url).groups()
 
         webpage = self._download_webpage(url, display_id)
 
@@ -170,7 +184,7 @@ class SnagFilmsIE(InfoExtractor):
 
         return {
             '_type': 'url_transparent',
-            'url': 'http://embed.snagfilms.com/embed/player?filmId=%s' % film_id,
+            'url': 'http://%s/embed/player?filmId=%s' % (domain, film_id),
             'id': film_id,
             'display_id': display_id,
             'title': title,
@@ -178,4 +192,5 @@ class SnagFilmsIE(InfoExtractor):
             'thumbnail': thumbnail,
             'duration': duration,
             'categories': categories,
+            'ie_key': 'ViewLiftEmbed',
         }

@@ -6,7 +6,6 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
 )
 from ..utils import (
@@ -78,11 +77,11 @@ class ViewsterIE(InfoExtractor):
 
     _ACCEPT_HEADER = 'application/json, text/javascript, */*; q=0.01'
 
-    def _download_json(self, url, video_id, note='Downloading JSON metadata', fatal=True):
+    def _download_json(self, url, video_id, note='Downloading JSON metadata', fatal=True, query={}):
         request = sanitized_Request(url)
         request.add_header('Accept', self._ACCEPT_HEADER)
         request.add_header('Auth-token', self._AUTH_TOKEN)
-        return super(ViewsterIE, self)._download_json(request, video_id, note, fatal=fatal)
+        return super(ViewsterIE, self)._download_json(request, video_id, note, fatal=fatal, query=query)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -117,57 +116,85 @@ class ViewsterIE(InfoExtractor):
             return self.playlist_result(entries, video_id, title, description)
 
         formats = []
-        manifest_url = None
-        for media_type in ('application/f4m+xml', 'application/x-mpegURL', 'video/mp4'):
-            media = self._download_json(
-                'https://public-api.viewster.com/movies/%s/video?mediaType=%s'
-                % (entry_id, compat_urllib_parse.quote(media_type)),
-                video_id, 'Downloading %s JSON' % media_type, fatal=False)
-            if not media:
-                continue
-            video_url = media.get('Uri')
-            if not video_url:
-                continue
-            ext = determine_ext(video_url)
-            if ext == 'f4m':
-                manifest_url = video_url
-                video_url += '&' if '?' in video_url else '?'
-                video_url += 'hdcore=3.2.0&plugin=flowplayer-3.2.0.1'
-                formats.extend(self._extract_f4m_formats(
-                    video_url, video_id, f4m_id='hds'))
-            elif ext == 'm3u8':
-                manifest_url = video_url
-                m3u8_formats = self._extract_m3u8_formats(
-                    video_url, video_id, 'mp4', m3u8_id='hls',
-                    fatal=False)  # m3u8 sometimes fail
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
-            else:
-                qualities_basename = self._search_regex(
-                    '/([^/]+)\.csmil/',
-                    manifest_url, 'qualities basename', default=None)
-                if not qualities_basename:
-                    continue
-                QUALITIES_RE = r'((,\d+k)+,?)'
-                qualities = self._search_regex(
-                    QUALITIES_RE, qualities_basename,
-                    'qualities', default=None)
-                if not qualities:
-                    continue
-                qualities = qualities.strip(',').split(',')
-                http_template = re.sub(QUALITIES_RE, r'%s', qualities_basename)
-                http_url_basename = url_basename(video_url)
-                for q in qualities:
-                    tbr = int_or_none(self._search_regex(
-                        r'(\d+)k', q, 'bitrate', default=None))
-                    formats.append({
-                        'url': video_url.replace(http_url_basename, http_template % q),
-                        'ext': 'mp4',
-                        'format_id': 'http' + ('-%d' % tbr if tbr else ''),
-                        'tbr': tbr,
-                    })
+        for language_set in info.get('LanguageSets', []):
+            manifest_url = None
+            m3u8_formats = []
+            audio = language_set.get('Audio') or ''
+            subtitle = language_set.get('Subtitle') or ''
+            base_format_id = audio
+            if subtitle:
+                base_format_id += '-%s' % subtitle
 
-        if not formats and not info.get('LanguageSets') and not info.get('VODSettings'):
+            def concat(suffix, sep='-'):
+                return (base_format_id + '%s%s' % (sep, suffix)) if base_format_id else suffix
+
+            for media_type in ('application/f4m+xml', 'application/x-mpegURL', 'video/mp4'):
+                media = self._download_json(
+                    'https://public-api.viewster.com/movies/%s/video' % entry_id,
+                    video_id, 'Downloading %s JSON' % concat(media_type, ' '), fatal=False, query={
+                        'mediaType': media_type,
+                        'language': audio,
+                        'subtitle': subtitle,
+                    })
+                if not media:
+                    continue
+                video_url = media.get('Uri')
+                if not video_url:
+                    continue
+                ext = determine_ext(video_url)
+                if ext == 'f4m':
+                    manifest_url = video_url
+                    video_url += '&' if '?' in video_url else '?'
+                    video_url += 'hdcore=3.2.0&plugin=flowplayer-3.2.0.1'
+                    formats.extend(self._extract_f4m_formats(
+                        video_url, video_id, f4m_id=concat('hds')))
+                elif ext == 'm3u8':
+                    manifest_url = video_url
+                    m3u8_formats = self._extract_m3u8_formats(
+                        video_url, video_id, 'mp4', m3u8_id=concat('hls'),
+                        fatal=False)  # m3u8 sometimes fail
+                    if m3u8_formats:
+                        formats.extend(m3u8_formats)
+                else:
+                    qualities_basename = self._search_regex(
+                        '/([^/]+)\.csmil/',
+                        manifest_url, 'qualities basename', default=None)
+                    if not qualities_basename:
+                        continue
+                    QUALITIES_RE = r'((,\d+k)+,?)'
+                    qualities = self._search_regex(
+                        QUALITIES_RE, qualities_basename,
+                        'qualities', default=None)
+                    if not qualities:
+                        continue
+                    qualities = list(map(lambda q: int(q[:-1]), qualities.strip(',').split(',')))
+                    qualities.sort()
+                    http_template = re.sub(QUALITIES_RE, r'%dk', qualities_basename)
+                    http_url_basename = url_basename(video_url)
+                    if m3u8_formats:
+                        self._sort_formats(m3u8_formats)
+                        m3u8_formats = list(filter(
+                            lambda f: f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
+                            m3u8_formats))
+                    if len(qualities) == len(m3u8_formats):
+                        for q, m3u8_format in zip(qualities, m3u8_formats):
+                            f = m3u8_format.copy()
+                            f.update({
+                                'url': video_url.replace(http_url_basename, http_template % q),
+                                'format_id': f['format_id'].replace('hls', 'http'),
+                                'protocol': 'http',
+                            })
+                            formats.append(f)
+                    else:
+                        for q in qualities:
+                            formats.append({
+                                'url': video_url.replace(http_url_basename, http_template % q),
+                                'ext': 'mp4',
+                                'format_id': 'http-%d' % q,
+                                'tbr': q,
+                            })
+
+        if not formats and not info.get('VODSettings'):
             self.raise_geo_restricted()
 
         self._sort_formats(formats)
