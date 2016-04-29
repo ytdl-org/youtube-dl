@@ -673,10 +673,6 @@ from .smotri import (
     SmotriUserIE,
     SmotriBroadcastIE,
 )
-from .snagfilms import (
-    SnagFilmsIE,
-    SnagFilmsEmbedIE,
-)
 from .snotr import SnotrIE
 from .sohu import SohuIE
 from .soundcloud import (
@@ -879,6 +875,10 @@ from .vidme import (
 )
 from .vidzi import VidziIE
 from .vier import VierIE, VierVideosIE
+from .viewlift import (
+    ViewLiftIE,
+    ViewLiftEmbedIE,
+)
 from .viewster import ViewsterIE
 from .viidea import ViideaIE
 from .vimeo import (
