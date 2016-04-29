@@ -26,6 +26,7 @@ from ..utils import (
     unified_strdate,
     urlencode_postdata,
     xpath_text,
+    extract_attributes,
 )
 from ..aes import (
     aes_cbc_decrypt,
@@ -305,9 +306,18 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             r'<a[^>]+href="/publisher/[^"]+"[^>]*>([^<]+)</a>', webpage,
             'video_uploader', fatal=False)
 
-        formats = []
+        available_fmts = []
+        for a, fmt in re.findall(r'(<a[^>]+token="showmedia\.([0-9]{3,4})p"[^>]+>.*?</a>)', webpage):
+            attrs = extract_attributes(a)
+            href = attrs.get('href')
+            if href and '/freetrial' in href:
+                continue
+            available_fmts.append(fmt)
+        if not available_fmts:
+            available_fmts = re.findall(r'token="showmedia\.([0-9]{3,4})p"', webpage)
         video_encode_ids = []
-        for fmt in re.findall(r'token="showmedia\.([0-9]{3,4})p"', webpage):
+        formats = []
+        for fmt in available_fmts:
             stream_quality, stream_format = self._FORMAT_IDS[fmt]
             video_format = fmt + 'p'
             streamdata_req = sanitized_Request(
