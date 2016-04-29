@@ -389,6 +389,7 @@ from .livestream import (
     LivestreamShortenerIE,
 )
 from .lnkgo import LnkGoIE
+from .lpga import lpga
 from .lovehomeporn import LoveHomePornIE
 from .lrt import LRTIE
 from .lynda import (
