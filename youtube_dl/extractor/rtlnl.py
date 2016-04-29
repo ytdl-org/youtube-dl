@@ -20,16 +20,16 @@ class RtlNlIE(InfoExtractor):
         (?P<id>[0-9a-f-]+)'''
 
     _TESTS = [{
-        'url': 'http://www.rtlxl.nl/#!/rtl-nieuws-132237/6e4203a6-0a5e-3596-8424-c599a59e0677',
-        'md5': 'cc16baa36a6c169391f0764fa6b16654',
+        'url': 'http://www.rtlxl.nl/#!/rtl-nieuws-132237/82b1aad1-4a14-3d7b-b554-b0aed1b2c416',
+        'md5': '473d1946c1fdd050b2c0161a4b13c373',
         'info_dict': {
-            'id': '6e4203a6-0a5e-3596-8424-c599a59e0677',
+            'id': '82b1aad1-4a14-3d7b-b554-b0aed1b2c416',
             'ext': 'mp4',
-            'title': 'RTL Nieuws - Laat',
-            'description': 'md5:6b61f66510c8889923b11f2778c72dc5',
-            'timestamp': 1408051800,
-            'upload_date': '20140814',
-            'duration': 576.880,
+            'title': 'RTL Nieuws',
+            'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
+            'timestamp': 1461951000,
+            'upload_date': '20160429',
+            'duration': 1167.96,
         },
     }, {
         # best format avaialble a3t
