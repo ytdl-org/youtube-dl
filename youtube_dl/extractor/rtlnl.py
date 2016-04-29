@@ -32,6 +32,7 @@ class RtlNlIE(InfoExtractor):
             'duration': 576.880,
         },
     }, {
+        # best format avaialble a3t
         'url': 'http://www.rtl.nl/system/videoplayer/derden/rtlnieuws/video_embed.html#uuid=84ae5571-ac25-4225-ae0c-ef8d9efb2aed/autoplay=false',
         'md5': 'dea7474214af1271d91ef332fb8be7ea',
         'info_dict': {
@@ -45,6 +46,7 @@ class RtlNlIE(InfoExtractor):
         }
     }, {
         # empty synopsis and missing episodes (see https://github.com/rg3/youtube-dl/issues/6275)
+        # best format available nettv
         'url': 'http://www.rtl.nl/system/videoplayer/derden/rtlnieuws/video_embed.html#uuid=f536aac0-1dc3-4314-920e-3bd1c5b3811a/autoplay=false',
         'info_dict': {
             'id': 'f536aac0-1dc3-4314-920e-3bd1c5b3811a',
