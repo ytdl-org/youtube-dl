@@ -307,7 +307,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             'video_uploader', fatal=False)
 
         available_fmts = []
-        for a, fmt in re.findall(r'(<a[^>]+token="showmedia\.([0-9]{3,4})p"[^>]+>.*?</a>)', webpage):
+        for a, fmt in re.findall(r'(<a[^>]+token=["\']showmedia\.([0-9]{3,4})p["\'][^>]+>)', webpage):
             attrs = extract_attributes(a)
             href = attrs.get('href')
             if href and '/freetrial' in href:
