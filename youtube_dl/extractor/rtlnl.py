@@ -39,7 +39,7 @@ class RtlNlIE(InfoExtractor):
             'ext': 'mp4',
             'timestamp': 1424039400,
             'title': 'RTL Nieuws - Nieuwe beelden Kopenhagen: chaos direct na aanslag',
-            'thumbnail': 're:^https?://screenshots\.rtl\.nl/system/thumb/sz=[0-9]+x[0-9]+/uuid=84ae5571-ac25-4225-ae0c-ef8d9efb2aed$',
+            'thumbnail': 're:^https?://screenshots\.rtl\.nl/(?:[^/]+/)*sz=[0-9]+x[0-9]+/uuid=84ae5571-ac25-4225-ae0c-ef8d9efb2aed$',
             'upload_date': '20150215',
             'description': 'Er zijn nieuwe beelden vrijgegeven die vlak na de aanslag in Kopenhagen zijn gemaakt. Op de video is goed te zien hoe omstanders zich bekommeren om één van de slachtoffers, terwijl de eerste agenten ter plaatse komen.',
         }
@@ -50,7 +50,7 @@ class RtlNlIE(InfoExtractor):
             'id': 'f536aac0-1dc3-4314-920e-3bd1c5b3811a',
             'ext': 'mp4',
             'title': 'RTL Nieuws - Meer beelden van overval juwelier',
-            'thumbnail': 're:^https?://screenshots\.rtl\.nl/system/thumb/sz=[0-9]+x[0-9]+/uuid=f536aac0-1dc3-4314-920e-3bd1c5b3811a$',
+            'thumbnail': 're:^https?://screenshots\.rtl\.nl/(?:[^/]+/)*sz=[0-9]+x[0-9]+/uuid=f536aac0-1dc3-4314-920e-3bd1c5b3811a$',
             'timestamp': 1437233400,
             'upload_date': '20150718',
             'duration': 30.474,
