@@ -94,19 +94,30 @@ class RtlNlIE(InfoExtractor):
         videopath = material['videopath']
         m3u8_url = meta.get('videohost', 'http://manifest.us.rtl.nl') + videopath
 
-        formats = self._extract_m3u8_formats(m3u8_url, uuid, ext='mp4')
+        formats = self._extract_m3u8_formats(m3u8_url, uuid)
 
         video_urlpart = videopath.split('/adaptive/')[1][:-5]
         PG_URL_TEMPLATE = 'http://pg.us.rtl.nl/rtlxl/network/%s/progressive/%s.mp4'
 
         formats.extend([
             {
-                'url': PG_URL_TEMPLATE % ('a2m', video_urlpart),
-                'format_id': 'pg-sd',
+                'url': PG_URL_TEMPLATE % ('a2t', video_urlpart),
+                'format_id': 'a2t',
+                'width': 512,
+                'height': 288,
             },
             {
-                'url': PG_URL_TEMPLATE % ('a3m', video_urlpart),
-                'format_id': 'pg-hd',
+                'url': PG_URL_TEMPLATE % ('a3t', video_urlpart),
+                'format_id': 'a3t',
+                'width': 704,
+                'height': 400,
+                'quality': 0,
+            },
+            {
+                'url': PG_URL_TEMPLATE % ('nettv', video_urlpart),
+                'format_id': 'nettv',
+                'width': 1280,
+                'height': 720,
                 'quality': 0,
             }
         ])
