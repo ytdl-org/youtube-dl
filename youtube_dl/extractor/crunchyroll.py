@@ -314,7 +314,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 continue
             available_fmts.append(fmt)
         if not available_fmts:
-            available_fmts = re.findall(r'token="showmedia\.([0-9]{3,4})p"', webpage)
+            for p in (r'token=["\']showmedia\.([0-9]{3,4})p"', r'showmedia\.([0-9]{3,4})p'):
+                available_fmts = re.findall(p, webpage)
+                if available_fmts:
+                    break
         video_encode_ids = []
         formats = []
         for fmt in available_fmts:
