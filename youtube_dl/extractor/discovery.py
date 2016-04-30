@@ -114,6 +114,16 @@ class DiscoveryIE(InfoExtractor):
                                 'tbr': q,
                             })
             self._sort_formats(formats)
+
+            subtitles = []
+            caption_url = video_info.get('captionsUrl')
+            if caption_url:
+                subtitles = {
+                    'en': [{
+                        'url': caption_url,
+                    }]
+                }
+
             entries.append({
                 'id': compat_str(video_info['id']),
                 'formats': formats,
@@ -124,6 +134,7 @@ class DiscoveryIE(InfoExtractor):
                 'thumbnail': video_info.get('thumbnailURL'),
                 'alt_title': video_info.get('secondary_title'),
                 'timestamp': parse_iso8601(video_info.get('publishedDate')),
+                'subtitles': subtitles,
             })
 
         return self.playlist_result(entries, display_id, video_title)
