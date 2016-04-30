@@ -941,6 +941,12 @@ from .xhamster import (
     XHamsterIE,
     XHamsterEmbedIE,
 )
+from .xiami import (
+    XiamiIE,
+    XiamiAlbumIE,
+    XiamiArtistIE,
+    XiamiCollectionIE
+)
 from .xminus import XMinusIE
 from .xnxx import XNXXIE
 from .xstream import XstreamIE
