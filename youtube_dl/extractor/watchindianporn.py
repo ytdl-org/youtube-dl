@@ -11,61 +11,27 @@ from ..utils import (
 )
 
 
-class SexyKarmaIE(InfoExtractor):
-    IE_DESC = 'Sexy Karma and Watch Indian Porn'
-    _VALID_URL = r'https?://(?:www\.)?(?:sexykarma\.com|watchindianporn\.net)/(?:[^/]+/)*video/(?P<display_id>[^/]+)-(?P<id>[a-zA-Z0-9]+)\.html'
-    _TESTS = [{
-        'url': 'http://www.sexykarma.com/gonewild/video/taking-a-quick-pee-yHI70cOyIHt.html',
-        'md5': 'b9798e7d1ef1765116a8f516c8091dbd',
+class WatchIndianPornIE(InfoExtractor):
+    IE_DESC = 'Watch Indian Porn'
+    _VALID_URL = r'https?://(?:www\.)?watchindianporn\.net/(?:[^/]+/)*video/(?P<display_id>[^/]+)-(?P<id>[a-zA-Z0-9]+)\.html'
+    _TEST = {
+        'url': 'http://www.watchindianporn.net/video/hot-milf-from-kerala-shows-off-her-gorgeous-large-breasts-on-camera-RZa2avywNPa.html',
+        'md5': '249589a164dde236ec65832bfce17440',
         'info_dict': {
-            'id': 'yHI70cOyIHt',
-            'display_id': 'taking-a-quick-pee',
+            'id': 'RZa2avywNPa',
+            'display_id': 'hot-milf-from-kerala-shows-off-her-gorgeous-large-breasts-on-camera',
             'ext': 'mp4',
-            'title': 'Taking a quick pee.',
+            'title': 'Hot milf from kerala shows off her gorgeous large breasts on camera',
             'thumbnail': 're:^https?://.*\.jpg$',
-            'uploader': 'wildginger7',
-            'upload_date': '20141008',
-            'duration': 22,
+            'uploader': 'LoveJay',
+            'upload_date': '20160428',
+            'duration': 226,
             'view_count': int,
             'comment_count': int,
             'categories': list,
             'age_limit': 18,
         }
-    }, {
-        'url': 'http://www.sexykarma.com/gonewild/video/pot-pixie-tribute-8Id6EZPbuHf.html',
-        'md5': 'dd216c68d29b49b12842b9babe762a5d',
-        'info_dict': {
-            'id': '8Id6EZPbuHf',
-            'display_id': 'pot-pixie-tribute',
-            'ext': 'mp4',
-            'title': 'pot_pixie tribute',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            'uploader': 'banffite',
-            'upload_date': '20141013',
-            'duration': 16,
-            'view_count': int,
-            'comment_count': int,
-            'categories': list,
-            'age_limit': 18,
-        }
-    }, {
-        'url': 'http://www.watchindianporn.net/video/desi-dancer-namrata-stripping-completely-nude-and-dancing-on-a-hot-number-dW2mtctxJfs.html',
-        'md5': '9afb80675550406ed9a63ac2819ef69d',
-        'info_dict': {
-            'id': 'dW2mtctxJfs',
-            'display_id': 'desi-dancer-namrata-stripping-completely-nude-and-dancing-on-a-hot-number',
-            'ext': 'mp4',
-            'title': 'Desi dancer namrata stripping completely nude and dancing on a hot number',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            'uploader': 'Don',
-            'upload_date': '20140213',
-            'duration': 83,
-            'view_count': int,
-            'comment_count': int,
-            'categories': list,
-            'age_limit': 18,
-        }
-    }]
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -109,6 +75,9 @@ class SexyKarmaIE(InfoExtractor):
             'id': video_id,
             'display_id': display_id,
             'url': video_url,
+            'http_headers': {
+                'Referer': url,
+            },
             'title': title,
             'thumbnail': thumbnail,
             'uploader': uploader,

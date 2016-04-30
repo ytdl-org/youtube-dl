@@ -51,7 +51,7 @@ from .tnaflix import TNAFlixNetworkEmbedIE
 from .vimeo import VimeoIE
 from .dailymotion import DailymotionCloudIE
 from .onionstudios import OnionStudiosIE
-from .snagfilms import SnagFilmsEmbedIE
+from .viewlift import ViewLiftEmbedIE
 from .screenwavemedia import ScreenwaveMediaIE
 from .mtv import MTVServicesEmbeddedIE
 from .pladform import PladformIE
@@ -887,6 +887,7 @@ class GenericIE(InfoExtractor):
         # Eagle.Platform embed (generic URL)
         {
             'url': 'http://lenta.ru/news/2015/03/06/navalny/',
+            # Not checking MD5 as sometimes the direct HTTP link results in 404 and HLS is used
             'info_dict': {
                 'id': '227304',
                 'ext': 'mp4',
@@ -901,6 +902,7 @@ class GenericIE(InfoExtractor):
         # ClipYou (Eagle.Platform) embed (custom URL)
         {
             'url': 'http://muz-tv.ru/play/7129/',
+            # Not checking MD5 as sometimes the direct HTTP link results in 404 and HLS is used
             'info_dict': {
                 'id': '12820',
                 'ext': 'mp4',
@@ -1922,10 +1924,10 @@ class GenericIE(InfoExtractor):
         if onionstudios_url:
             return self.url_result(onionstudios_url)
 
-        # Look for SnagFilms embeds
-        snagfilms_url = SnagFilmsEmbedIE._extract_url(webpage)
-        if snagfilms_url:
-            return self.url_result(snagfilms_url)
+        # Look for ViewLift embeds
+        viewlift_url = ViewLiftEmbedIE._extract_url(webpage)
+        if viewlift_url:
+            return self.url_result(viewlift_url)
 
         # Look for JWPlatform embeds
         jwplatform_url = JWPlatformIE._extract_url(webpage)

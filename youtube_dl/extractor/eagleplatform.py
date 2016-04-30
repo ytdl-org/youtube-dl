@@ -23,7 +23,7 @@ class EaglePlatformIE(InfoExtractor):
     _TESTS = [{
         # http://lenta.ru/news/2015/03/06/navalny/
         'url': 'http://lentaru.media.eagleplatform.com/index/player?player=new&record_id=227304&player_template_id=5201',
-        'md5': '881ee8460e1b7735a8be938e2ffb362b',
+        # Not checking MD5 as sometimes the direct HTTP link results in 404 and HLS is used
         'info_dict': {
             'id': '227304',
             'ext': 'mp4',
@@ -109,8 +109,11 @@ class EaglePlatformIE(InfoExtractor):
             mobj = re.search('/([^/]+)/index\.m3u8', m3u8_format['url'])
             if mobj:
                 http_format = m3u8_format.copy()
+                video_url = mp4_url.replace(mp4_url_basename, mobj.group(1))
+                if not self._is_valid_url(video_url, video_id):
+                    continue
                 http_format.update({
-                    'url': mp4_url.replace(mp4_url_basename, mobj.group(1)),
+                    'url': video_url,
                     'format_id': m3u8_format['format_id'].replace('hls', 'http'),
                     'protocol': 'http',
                 })

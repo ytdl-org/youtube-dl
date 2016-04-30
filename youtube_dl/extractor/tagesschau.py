@@ -8,7 +8,7 @@ from ..utils import parse_filesize
 
 
 class TagesschauIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/(?:[^/]+/)*?[^/#?]+?(?P<id>-?[0-9]+)(?:~_[^/#?]+?)?\.html'
+    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/(?:[^/]+/)*?[^/#?]+?(?P<id>-?[0-9]+)(?:~_?[^/#?]+?)?\.html'
 
     _TESTS = [{
         'url': 'http://www.tagesschau.de/multimedia/video/video-102143.html',
@@ -61,12 +61,18 @@ class TagesschauIE(InfoExtractor):
     }, {
         'url': 'http://www.tagesschau.de/multimedia/video/video-102303~_bab-sendung-211.html',
         'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/video/video-179517~player.html',
+        'only_matching': True,
     }]
 
     _FORMATS = {
-        's': {'width': 256, 'height': 144, 'quality': 1},
+        'xs': {'quality': 0},
+        's': {'width': 320, 'height': 180, 'quality': 1},
         'm': {'width': 512, 'height': 288, 'quality': 2},
-        'l': {'width': 960, 'height': 544, 'quality': 3},
+        'l': {'width': 960, 'height': 540, 'quality': 3},
+        'xl': {'width': 1280, 'height': 720, 'quality': 4},
+        'xxl': {'quality': 5},
     }
 
     def _real_extract(self, url):

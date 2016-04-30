@@ -2139,10 +2139,11 @@ class YoutubeSearchDateIE(YoutubeSearchIE):
     _EXTRA_QUERY_ARGS = {'search_sort': 'video_date_uploaded'}
 
 
-class YoutubeSearchURLIE(InfoExtractor):
+class YoutubeSearchURLIE(YoutubePlaylistBaseInfoExtractor):
     IE_DESC = 'YouTube.com search URLs'
     IE_NAME = 'youtube:search_url'
     _VALID_URL = r'https?://(?:www\.)?youtube\.com/results\?(.*?&)?(?:search_query|q)=(?P<query>[^&]+)(?:[&]|$)'
+    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})(?:[^"]*"[^>]+\btitle="(?P<title>[^"]+))?'
     _TESTS = [{
         'url': 'https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video',
         'playlist_mincount': 5,
@@ -2157,32 +2158,8 @@ class YoutubeSearchURLIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         query = compat_urllib_parse_unquote_plus(mobj.group('query'))
-
         webpage = self._download_webpage(url, query)
-        result_code = self._search_regex(
-            r'(?s)<ol[^>]+class="item-section"(.*?)</ol>', webpage, 'result HTML')
-
-        part_codes = re.findall(
-            r'(?s)<h3[^>]+class="[^"]*yt-lockup-title[^"]*"[^>]*>(.*?)</h3>', result_code)
-        entries = []
-        for part_code in part_codes:
-            part_title = self._html_search_regex(
-                [r'(?s)title="([^"]+)"', r'>([^<]+)</a>'], part_code, 'item title', fatal=False)
-            part_url_snippet = self._html_search_regex(
-                r'(?s)href="([^"]+)"', part_code, 'item URL')
-            part_url = compat_urlparse.urljoin(
-                'https://www.youtube.com/', part_url_snippet)
-            entries.append({
-                '_type': 'url',
-                'url': part_url,
-                'title': part_title,
-            })
-
-        return {
-            '_type': 'playlist',
-            'entries': entries,
-            'title': query,
-        }
+        return self.playlist_result(self._process_page(webpage), playlist_title=query)
 
 
 class YoutubeShowIE(YoutubePlaylistsBaseInfoExtractor):

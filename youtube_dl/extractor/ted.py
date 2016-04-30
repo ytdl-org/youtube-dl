@@ -27,7 +27,7 @@ class TEDIE(InfoExtractor):
         '''
     _TESTS = [{
         'url': 'http://www.ted.com/talks/dan_dennett_on_our_consciousness.html',
-        'md5': 'fc94ac279feebbce69f21c0c6ee82810',
+        'md5': '0de43ac406aa3e4ea74b66c9c7789b13',
         'info_dict': {
             'id': '102',
             'ext': 'mp4',
@@ -37,21 +37,26 @@ class TEDIE(InfoExtractor):
                             'consciousness, but that half the time our brains are '
                             'actively fooling us.'),
             'uploader': 'Dan Dennett',
-            'width': 854,
+            'width': 853,
             'duration': 1308,
         }
     }, {
         'url': 'http://www.ted.com/watch/ted-institute/ted-bcg/vishal-sikka-the-beauty-and-power-of-algorithms',
-        'md5': '226f4fb9c62380d11b7995efa4c87994',
+        'md5': 'b899ac15e345fb39534d913f7606082b',
         'info_dict': {
-            'id': 'vishal-sikka-the-beauty-and-power-of-algorithms',
+            'id': 'tSVI8ta_P4w',
             'ext': 'mp4',
             'title': 'Vishal Sikka: The beauty and power of algorithms',
             'thumbnail': 're:^https?://.+\.jpg',
-            'description': 'Adaptive, intelligent, and consistent, algorithms are emerging as the ultimate app for everything from matching consumers to products to assessing medical diagnoses. Vishal Sikka shares his appreciation for the algorithm, charting both its inherent beauty and its growing power.',
-        }
+            'description': 'md5:6261fdfe3e02f4f579cbbfc00aff73f4',
+            'upload_date': '20140122',
+            'uploader_id': 'TEDInstitute',
+            'uploader': 'TED Institute',
+        },
+        'add_ie': ['Youtube'],
     }, {
         'url': 'http://www.ted.com/talks/gabby_giffords_and_mark_kelly_be_passionate_be_courageous_be_your_best',
+        'md5': '71b3ab2f4233012dce09d515c9c39ce2',
         'info_dict': {
             'id': '1972',
             'ext': 'mp4',
@@ -102,9 +107,9 @@ class TEDIE(InfoExtractor):
     }]
 
     _NATIVE_FORMATS = {
-        'low': {'preference': 1, 'width': 320, 'height': 180},
-        'medium': {'preference': 2, 'width': 512, 'height': 288},
-        'high': {'preference': 3, 'width': 854, 'height': 480},
+        'low': {'width': 320, 'height': 180},
+        'medium': {'width': 512, 'height': 288},
+        'high': {'width': 854, 'height': 480},
     }
 
     def _extract_info(self, webpage):
@@ -171,15 +176,21 @@ class TEDIE(InfoExtractor):
                 if finfo:
                     f.update(finfo)
 
+        http_url = None
         for format_id, resources in talk_info['resources'].items():
             if format_id == 'h264':
                 for resource in resources:
+                    h264_url = resource.get('file')
+                    if not h264_url:
+                        continue
                     bitrate = int_or_none(resource.get('bitrate'))
                     formats.append({
-                        'url': resource['file'],
+                        'url': h264_url,
                         'format_id': '%s-%sk' % (format_id, bitrate),
                         'tbr': bitrate,
                     })
+                    if re.search('\d+k', h264_url):
+                        http_url = h264_url
             elif format_id == 'rtmp':
                 streamer = talk_info.get('streamer')
                 if not streamer:
@@ -195,16 +206,24 @@ class TEDIE(InfoExtractor):
                         'tbr': int_or_none(resource.get('bitrate')),
                     })
             elif format_id == 'hls':
-                hls_formats = self._extract_m3u8_formats(
-                    resources.get('stream'), video_name, 'mp4', m3u8_id=format_id)
-                for f in hls_formats:
-                    if f.get('format_id') == 'hls-meta':
-                        continue
-                    if not f.get('height'):
-                        f['vcodec'] = 'none'
-                    else:
-                        f['acodec'] = 'none'
-                formats.extend(hls_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    resources.get('stream'), video_name, 'mp4', m3u8_id=format_id, fatal=False))
+
+        m3u8_formats = list(filter(
+            lambda f: f.get('protocol') == 'm3u8' and f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
+            formats))
+        if http_url:
+            for m3u8_format in m3u8_formats:
+                bitrate = self._search_regex(r'(\d+k)', m3u8_format['url'], 'bitrate', default=None)
+                if not bitrate:
+                    continue
+                f = m3u8_format.copy()
+                f.update({
+                    'url': re.sub(r'\d+k', bitrate, http_url),
+                    'format_id': m3u8_format['format_id'].replace('hls', 'http'),
+                    'protocol': 'http',
+                })
+                formats.append(f)
 
         audio_download = talk_info.get('audioDownload')
         if audio_download:
@@ -212,7 +231,6 @@ class TEDIE(InfoExtractor):
                 'url': audio_download,
                 'format_id': 'audio',
                 'vcodec': 'none',
-                'preference': -0.5,
             })
 
         self._sort_formats(formats)
@@ -254,7 +272,11 @@ class TEDIE(InfoExtractor):
 
         config_json = self._html_search_regex(
             r'"pages\.jwplayer"\s*,\s*({.+?})\s*\)\s*</script>',
-            webpage, 'config')
+            webpage, 'config', default=None)
+        if not config_json:
+            embed_url = self._search_regex(
+                r"<iframe[^>]+class='pages-video-embed__video__object'[^>]+src='([^']+)'", webpage, 'embed url')
+            return self.url_result(self._proto_relative_url(embed_url))
         config = json.loads(config_json)['config']
         video_url = config['video']['url']
         thumbnail = config.get('image', {}).get('url')
