@@ -27,7 +27,7 @@ class TEDIE(InfoExtractor):
         '''
     _TESTS = [{
         'url': 'http://www.ted.com/talks/dan_dennett_on_our_consciousness.html',
-        'md5': 'fc94ac279feebbce69f21c0c6ee82810',
+        'md5': '0de43ac406aa3e4ea74b66c9c7789b13',
         'info_dict': {
             'id': '102',
             'ext': 'mp4',
@@ -37,21 +37,26 @@ class TEDIE(InfoExtractor):
                             'consciousness, but that half the time our brains are '
                             'actively fooling us.'),
             'uploader': 'Dan Dennett',
-            'width': 854,
+            'width': 853,
             'duration': 1308,
         }
     }, {
         'url': 'http://www.ted.com/watch/ted-institute/ted-bcg/vishal-sikka-the-beauty-and-power-of-algorithms',
-        'md5': '226f4fb9c62380d11b7995efa4c87994',
+        'md5': 'b899ac15e345fb39534d913f7606082b',
         'info_dict': {
-            'id': 'vishal-sikka-the-beauty-and-power-of-algorithms',
+            'id': 'tSVI8ta_P4w',
             'ext': 'mp4',
             'title': 'Vishal Sikka: The beauty and power of algorithms',
             'thumbnail': 're:^https?://.+\.jpg',
-            'description': 'Adaptive, intelligent, and consistent, algorithms are emerging as the ultimate app for everything from matching consumers to products to assessing medical diagnoses. Vishal Sikka shares his appreciation for the algorithm, charting both its inherent beauty and its growing power.',
-        }
+            'description': 'md5:6261fdfe3e02f4f579cbbfc00aff73f4',
+            'upload_date': '20140122',
+            'uploader_id': 'TEDInstitute',
+            'uploader': 'TED Institute',
+        },
+        'add_ie': ['Youtube'],
     }, {
         'url': 'http://www.ted.com/talks/gabby_giffords_and_mark_kelly_be_passionate_be_courageous_be_your_best',
+        'md5': '71b3ab2f4233012dce09d515c9c39ce2',
         'info_dict': {
             'id': '1972',
             'ext': 'mp4',
@@ -228,7 +233,7 @@ class TEDIE(InfoExtractor):
                 'vcodec': 'none',
             })
 
-        self._sort_formats(formats, ('width', 'height', 'tbr', 'format_id'))
+        self._sort_formats(formats)
 
         video_id = compat_str(talk_info['id'])
 
@@ -267,7 +272,11 @@ class TEDIE(InfoExtractor):
 
         config_json = self._html_search_regex(
             r'"pages\.jwplayer"\s*,\s*({.+?})\s*\)\s*</script>',
-            webpage, 'config')
+            webpage, 'config', default=None)
+        if not config_json:
+            embed_url = self._search_regex(
+                r"<iframe[^>]+class='pages-video-embed__video__object'[^>]+src='([^']+)'", webpage, 'embed url')
+            return self.url_result(self._proto_relative_url(embed_url))
         config = json.loads(config_json)['config']
         video_url = config['video']['url']
         thumbnail = config.get('image', {}).get('url')
