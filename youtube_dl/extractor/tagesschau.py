@@ -8,7 +8,7 @@ from ..utils import parse_filesize
 
 
 class TagesschauIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/(?:[^/]+/)*?[^/#?]+?(?P<id>-?[0-9]+)(?:~_[^/#?]+?)?\.html'
+    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/(?:[^/]+/)*?[^/#?]+?(?P<id>-?[0-9]+)(?:~_?[^/#?]+?)?\.html'
 
     _TESTS = [{
         'url': 'http://www.tagesschau.de/multimedia/video/video-102143.html',
@@ -60,6 +60,9 @@ class TagesschauIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.tagesschau.de/multimedia/video/video-102303~_bab-sendung-211.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/video/video-179517~player.html',
         'only_matching': True,
     }]
 
