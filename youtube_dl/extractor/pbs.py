@@ -514,10 +514,8 @@ class PBSIE(InfoExtractor):
                 bitrate = self._search_regex(r'(\d+k)', m3u8_format['url'], 'bitrate', default=None)
                 # extract only the formats that we know that they will be available as http format.
                 # https://projects.pbs.org/confluence/display/coveapi/COVE+Video+Specifications
-                if not bitrate or bitrate not in ('192k', '400k', '800k', '1200k', '2500k'):
+                if not bitrate or bitrate not in ('400k', '800k', '1200k', '2500k'):
                     continue
-                if bitrate == '192k':
-                    bitrate = 'baseline'
                 f = m3u8_format.copy()
                 f.update({
                     'url': re.sub(r'\d+k|baseline', bitrate, http_url),
