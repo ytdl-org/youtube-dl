@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import parse_filesize
+from ..utils import (
+    determine_ext,
+    parse_filesize,
+)
 
 
 class TagesschauIE(InfoExtractor):
@@ -82,37 +85,54 @@ class TagesschauIE(InfoExtractor):
         'xxl': {'quality': 5},
     }
 
-    def _extract_formats(self, download_text):
+    def _extract_formats(self, download_text, media_kind):
         links = re.finditer(
             r'<div class="button" title="(?P<title>[^"]*)"><a href="(?P<url>[^"]+)">(?P<name>.+?)</a></div>',
             download_text)
         formats = []
         for l in links:
+            link_url = l.group('url')
+            if not link_url:
+                continue
             format_id = self._search_regex(
-                r'.*/[^/.]+\.([^/]+)\.[^/.]+', l.group('url'), 'format ID')
+                r'.*/[^/.]+\.([^/]+)\.[^/.]+$', link_url, 'format ID',
+                default=determine_ext(link_url))
             format = {
                 'format_id': format_id,
                 'url': l.group('url'),
                 'format_name': l.group('name'),
             }
-            m = re.match(
-                r'''(?x)
-                    Video:\s*(?P<vcodec>[a-zA-Z0-9/._-]+)\s*&\#10;
-                    (?P<width>[0-9]+)x(?P<height>[0-9]+)px&\#10;
-                    (?P<vbr>[0-9]+)kbps&\#10;
-                    Audio:\s*(?P<abr>[0-9]+)kbps,\s*(?P<audio_desc>[A-Za-z\.0-9]+)&\#10;
-                    Gr&ouml;&szlig;e:\s*(?P<filesize_approx>[0-9.,]+\s+[a-zA-Z]*B)''',
-                l.group('title'))
-            if m:
-                format.update({
-                    'format_note': m.group('audio_desc'),
-                    'vcodec': m.group('vcodec'),
-                    'width': int(m.group('width')),
-                    'height': int(m.group('height')),
-                    'abr': int(m.group('abr')),
-                    'vbr': int(m.group('vbr')),
-                    'filesize_approx': parse_filesize(m.group('filesize_approx')),
-                })
+            title = l.group('title')
+            if title:
+                if media_kind.lower() == 'video':
+                    m = re.match(
+                        r'''(?x)
+                            Video:\s*(?P<vcodec>[a-zA-Z0-9/._-]+)\s*&\#10;
+                            (?P<width>[0-9]+)x(?P<height>[0-9]+)px&\#10;
+                            (?P<vbr>[0-9]+)kbps&\#10;
+                            Audio:\s*(?P<abr>[0-9]+)kbps,\s*(?P<audio_desc>[A-Za-z\.0-9]+)&\#10;
+                            Gr&ouml;&szlig;e:\s*(?P<filesize_approx>[0-9.,]+\s+[a-zA-Z]*B)''',
+                        title)
+                    if m:
+                        format.update({
+                            'format_note': m.group('audio_desc'),
+                            'vcodec': m.group('vcodec'),
+                            'width': int(m.group('width')),
+                            'height': int(m.group('height')),
+                            'abr': int(m.group('abr')),
+                            'vbr': int(m.group('vbr')),
+                            'filesize_approx': parse_filesize(m.group('filesize_approx')),
+                        })
+                else:
+                    m = re.match(
+                        r'(?P<format>.+?)-Format\s*:\s*(?P<abr>\d+)kbps\s*,\s*(?P<note>.+)',
+                        title)
+                    if m:
+                        format.update({
+                            'format_note': '%s, %s' % (m.group('format'), m.group('note')),
+                            'vcodec': 'none',
+                            'abr': int(m.group('abr')),
+                        })
             formats.append(format)
         self._sort_formats(formats)
         return formats
@@ -154,23 +174,26 @@ class TagesschauIE(InfoExtractor):
             title = self._html_search_regex(
                 r'<span class="headline".*?>(.*?)</span>', webpage, 'title')
 
-            DOWNLOAD_REGEX = r'(?s)<p>Wir bieten dieses Video in folgenden Formaten zum Download an:</p>\s*<div class="controls">(.*?)</div>\s*<p>'
+            DOWNLOAD_REGEX = r'(?s)<p>Wir bieten dieses (?P<kind>Video|Audio) in folgenden Formaten zum Download an:</p>\s*<div class="controls">(?P<links>.*?)</div>\s*<p>'
 
             webpage_type = self._og_search_property('type', webpage, default=None)
             if webpage_type == 'website':  # Article
                 entries = []
-                for num, (entry_title, download_text) in enumerate(re.findall(
+                for num, (entry_title, media_kind, download_text) in enumerate(re.findall(
                         r'(?s)<p[^>]+class="infotext"[^>]*>.*?<strong>(.+?)</strong>.*?</p>.*?%s' % DOWNLOAD_REGEX,
                         webpage)):
                     entries.append({
                         'id': display_id,
                         'title': '%s-%d' % (entry_title, num),
-                        'formats': self._extract_formats(download_text),
+                        'formats': self._extract_formats(download_text, media_kind),
                     })
                 return self.playlist_result(entries, display_id, title)
             else:  # Assume single video
-                download_text = self._search_regex(DOWNLOAD_REGEX, webpage, 'download links')
-                formats = self._extract_formats(download_text)
+                download_text = self._search_regex(
+                    DOWNLOAD_REGEX, webpage, 'download links', group='links')
+                media_kind = self._search_regex(
+                    DOWNLOAD_REGEX, webpage, 'media kind', default='Video', group='links')
+                formats = self._extract_formats(download_text, media_kind)
                 thumbnail = self._og_search_thumbnail(webpage)
                 description = self._html_search_regex(
                     r'(?s)<p class="teasertext">(.*?)</p>',
