@@ -181,10 +181,10 @@ class TagesschauIE(InfoExtractor):
                 entries = []
                 for num, (entry_title, media_kind, download_text) in enumerate(re.findall(
                         r'(?s)<p[^>]+class="infotext"[^>]*>.*?<strong>(.+?)</strong>.*?</p>.*?%s' % DOWNLOAD_REGEX,
-                        webpage)):
+                        webpage), 1):
                     entries.append({
-                        'id': display_id,
-                        'title': '%s-%d' % (entry_title, num),
+                        'id': '%s-%d' % (display_id, num),
+                        'title': '%s' % entry_title,
                         'formats': self._extract_formats(download_text, media_kind),
                     })
                 return self.playlist_result(entries, display_id, title)
