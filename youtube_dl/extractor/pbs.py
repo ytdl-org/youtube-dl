@@ -196,7 +196,7 @@ class PBSIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.pbs.org/tpt/constitution-usa-peter-sagal/watch/a-more-perfect-union/',
-            'md5': 'ce1888486f0908d555a8093cac9a7362',
+            'md5': '173dc391afd361fa72eab5d3d918968d',
             'info_dict': {
                 'id': '2365006249',
                 'ext': 'mp4',
@@ -204,13 +204,10 @@ class PBSIE(InfoExtractor):
                 'description': 'md5:36f341ae62e251b8f5bd2b754b95a071',
                 'duration': 3190,
             },
-            'params': {
-                'skip_download': True,  # requires ffmpeg
-            },
         },
         {
             'url': 'http://www.pbs.org/wgbh/pages/frontline/losing-iraq/',
-            'md5': '143c98aa54a346738a3d78f54c925321',
+            'md5': '6f722cb3c3982186d34b0f13374499c7',
             'info_dict': {
                 'id': '2365297690',
                 'ext': 'mp4',
@@ -218,9 +215,6 @@ class PBSIE(InfoExtractor):
                 'description': 'md5:4d3eaa01f94e61b3e73704735f1196d9',
                 'duration': 5050,
             },
-            'params': {
-                'skip_download': True,  # requires ffmpeg
-            }
         },
         {
             'url': 'http://www.pbs.org/newshour/bb/education-jan-june12-cyberschools_02-23/',
@@ -244,9 +238,6 @@ class PBSIE(InfoExtractor):
                 'duration': 6559,
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
-            'params': {
-                'skip_download': True,  # requires ffmpeg
-            },
         },
         {
             'url': 'http://www.pbs.org/wgbh/nova/earth/killer-typhoon.html',
@@ -261,9 +252,6 @@ class PBSIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'upload_date': '20140122',
                 'age_limit': 10,
-            },
-            'params': {
-                'skip_download': True,  # requires ffmpeg
             },
         },
         {
@@ -290,6 +278,7 @@ class PBSIE(InfoExtractor):
         },
         {
             'url': 'http://www.pbs.org/video/2365245528/',
+            'md5': '115223d41bd55cda8ae5cd5ed4e11497',
             'info_dict': {
                 'id': '2365245528',
                 'display_id': '2365245528',
@@ -299,15 +288,13 @@ class PBSIE(InfoExtractor):
                 'duration': 6851,
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
-            'params': {
-                'skip_download': True,  # requires ffmpeg
-            },
         },
         {
             # Video embedded in iframe containing angle brackets as attribute's value (e.g.
             # "<iframe style='position: absolute;<br />\ntop: 0; left: 0;' ...", see
             # https://github.com/rg3/youtube-dl/issues/7059)
             'url': 'http://www.pbs.org/food/features/a-chefs-life-season-3-episode-5-prickly-business/',
+            'md5': '84ced42850d78f1d4650297356e95e6f',
             'info_dict': {
                 'id': '2365546844',
                 'display_id': 'a-chefs-life-season-3-episode-5-prickly-business',
@@ -316,9 +303,6 @@ class PBSIE(InfoExtractor):
                 'description': 'md5:54033c6baa1f9623607c6e2ed245888b',
                 'duration': 1480,
                 'thumbnail': 're:^https?://.*\.jpg$',
-            },
-            'params': {
-                'skip_download': True,  # requires ffmpeg
             },
         },
         {
@@ -340,6 +324,7 @@ class PBSIE(InfoExtractor):
         {
             # Serves hd only via wigget/partnerplayer page
             'url': 'http://www.pbs.org/video/2365641075/',
+            'md5': 'acfd4c400b48149a44861cb16dd305cf',
             'info_dict': {
                 'id': '2365641075',
                 'ext': 'mp4',
@@ -347,9 +332,6 @@ class PBSIE(InfoExtractor):
                 'duration': 6852,
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'formats': 'mincount:8',
-            },
-            'params': {
-                'skip_download': True,  # requires ffmpeg
             },
         },
         {
@@ -494,6 +476,7 @@ class PBSIE(InfoExtractor):
                         info = video_info
 
         formats = []
+        http_url = None
         for num, redirect in enumerate(redirects):
             redirect_id = redirect.get('eeid')
 
@@ -514,13 +497,30 @@ class PBSIE(InfoExtractor):
 
             if determine_ext(format_url) == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
-                    format_url, display_id, 'mp4', preference=1, m3u8_id='hls'))
+                    format_url, display_id, 'mp4', m3u8_id='hls', fatal=False))
             else:
                 formats.append({
                     'url': format_url,
                     'format_id': redirect_id,
                 })
+                if re.search(r'^https?://.*(?:\d+k|baseline)', format_url):
+                    http_url = format_url
         self._remove_duplicate_formats(formats)
+        m3u8_formats = list(filter(
+            lambda f: f.get('protocol') == 'm3u8' and f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
+            formats))
+        if http_url:
+            for m3u8_format in m3u8_formats:
+                bitrate = self._search_regex(r'(\d+k)', m3u8_format['url'], 'bitrate', default=None)
+                if not bitrate:
+                    continue
+                f = m3u8_format.copy()
+                f.update({
+                    'url': re.sub(r'\d+k|baseline', bitrate, http_url),
+                    'format_id': m3u8_format['format_id'].replace('hls', 'http'),
+                    'protocol': 'http',
+                })
+                formats.append(f)
         self._sort_formats(formats)
 
         rating_str = info.get('rating')
