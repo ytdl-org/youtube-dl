@@ -64,9 +64,12 @@ class TagesschauIE(InfoExtractor):
     }]
 
     _FORMATS = {
-        's': {'width': 256, 'height': 144, 'quality': 1},
+        'xs': {'quality': 0},
+        's': {'width': 320, 'height': 180, 'quality': 1},
         'm': {'width': 512, 'height': 288, 'quality': 2},
-        'l': {'width': 960, 'height': 544, 'quality': 3},
+        'l': {'width': 960, 'height': 540, 'quality': 3},
+        'xl': {'width': 1280, 'height': 720, 'quality': 4},
+        'xxl': {'quality': 5},
     }
 
     def _real_extract(self, url):
