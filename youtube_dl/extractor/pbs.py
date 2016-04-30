@@ -514,6 +514,8 @@ class PBSIE(InfoExtractor):
                 bitrate = self._search_regex(r'(\d+k)', m3u8_format['url'], 'bitrate', default=None)
                 if not bitrate:
                     continue
+                if bitrate == '192k':
+                    bitrate = 'baseline'
                 f = m3u8_format.copy()
                 f.update({
                     'url': re.sub(r'\d+k|baseline', bitrate, http_url),
