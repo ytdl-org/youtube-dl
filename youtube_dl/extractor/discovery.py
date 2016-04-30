@@ -1,11 +1,16 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     parse_duration,
     parse_iso8601,
 )
-from ..compat import compat_str
+from ..compat import (
+    compat_str,
+    compat_urlparse,
+)
 
 
 class DiscoveryIE(InfoExtractor):
@@ -66,9 +71,48 @@ class DiscoveryIE(InfoExtractor):
         entries = []
 
         for idx, video_info in enumerate(info['playlist']):
-            formats = self._extract_m3u8_formats(
-                video_info['src'], display_id, 'mp4', 'm3u8_native', m3u8_id='hls',
+            m3u8_url = video_info['src']
+            formats = m3u8_formats = self._extract_m3u8_formats(
+                m3u8_url, display_id, 'mp4', 'm3u8_native', m3u8_id='hls',
                 note='Download m3u8 information for video %d' % (idx + 1))
+            qualities_basename = self._search_regex(
+                '/([^/]+)\.csmil/', m3u8_url, 'qualities basename', default=None)
+            if qualities_basename:
+                m3u8_path = compat_urlparse.urlparse(m3u8_url).path
+                QUALITIES_RE = r'((,\d+k)+,?)'
+                qualities = self._search_regex(
+                    QUALITIES_RE, qualities_basename,
+                    'qualities', default=None)
+                if qualities:
+                    qualities = list(map(lambda q: int(q[:-1]), qualities.strip(',').split(',')))
+                    qualities.sort()
+                    http_path = m3u8_path[1:].split('/', 1)[1]
+                    http_template = re.sub(QUALITIES_RE, r'%dk', http_path)
+                    http_template = http_template.replace('.csmil/master.m3u8', '')
+                    http_template = compat_urlparse.urljoin(
+                        'http://discsmil.edgesuite.net/', http_template)
+                    if m3u8_formats:
+                        self._sort_formats(m3u8_formats)
+                        m3u8_formats = list(filter(
+                            lambda f: f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
+                            m3u8_formats))
+                    if len(qualities) == len(m3u8_formats):
+                        for q, m3u8_format in zip(qualities, m3u8_formats):
+                            f = m3u8_format.copy()
+                            f.update({
+                                'url': http_template % q,
+                                'format_id': f['format_id'].replace('hls', 'http'),
+                                'protocol': 'http',
+                            })
+                            formats.append(f)
+                    else:
+                        for q in qualities:
+                            formats.append({
+                                'url': http_template % q,
+                                'ext': 'mp4',
+                                'format_id': 'http-%d' % q,
+                                'tbr': q,
+                            })
             self._sort_formats(formats)
             entries.append({
                 'id': compat_str(video_info['id']),
