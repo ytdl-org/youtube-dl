@@ -125,10 +125,12 @@ class RtlNlIE(InfoExtractor):
                 try:
                     # Find hls format with the same width and height corresponding
                     # to progressive format and copy metadata from it.
-                    f = next(f for f in formats
-                             if f.get('width') == width and f.get('height') == height).copy()
-                    f.update(pg_format(format_id, width, height))
-                    pg_formats.append(f)
+                    f = next(f for f in formats if f.get('height') == height)
+                    # hls formats may have invalid width
+                    f['width'] = width
+                    f_copy = f.copy()
+                    f_copy.update(pg_format(format_id, width, height))
+                    pg_formats.append(f_copy)
                 except StopIteration:
                     # Missing hls format does mean that no progressive format with
                     # such width and height exists either.
