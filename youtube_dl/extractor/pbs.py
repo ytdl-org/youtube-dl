@@ -537,6 +537,19 @@ class PBSIE(InfoExtractor):
                 'ext': 'ttml',
                 'url': closed_captions_url,
             }]
+            mobj = re.search(r'/(\d+)_Encoded\.dfxp', closed_captions_url)
+            if mobj:
+                ttml_caption_suffix, ttml_caption_id = mobj.group(0, 1)
+                ttml_caption_id = int(ttml_caption_id)
+                subtitles['en'].extend([{
+                    'url': closed_captions_url.replace(
+                        ttml_caption_suffix, '/%d_Encoded.srt' % (ttml_caption_id + 1)),
+                    'ext': 'srt',
+                }, {
+                    'url': closed_captions_url.replace(
+                        ttml_caption_suffix, '/%d_Encoded.vtt' % (ttml_caption_id + 2)),
+                    'ext': 'vtt',
+                }])
 
         # info['title'] is often incomplete (e.g. 'Full Episode', 'Episode 5', etc)
         # Try turning it to 'program - title' naming scheme if possible
