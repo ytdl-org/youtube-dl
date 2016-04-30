@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class CWTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?cw(?:tv|seed)\.com/shows/(?:[^/]+/){2}\?play=(?P<id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})'
+    _VALID_URL = r'https?://(?:www\.)?cw(?:tv|seed)\.com/(?:shows/)?(?:[^/]+/){2}\?.*\bplay=(?P<id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})'
     _TESTS = [{
         'url': 'http://cwtv.com/shows/arrow/legends-of-yesterday/?play=6b15e985-9345-4f60-baf8-56e96be57c63',
         'info_dict': {
@@ -48,6 +48,9 @@ class CWTVIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         }
+    }, {
+        'url': 'http://cwtv.com/thecw/chroniclesofcisco/?play=8adebe35-f447-465f-ab52-e863506ff6d6',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

@@ -2,6 +2,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_HTTPError,
+    compat_urllib_parse_unquote_plus,
+)
 from ..utils import (
     clean_html,
     determine_ext,
@@ -27,6 +31,7 @@ class FunimationIE(InfoExtractor):
             'description': 'md5:1769f43cd5fc130ace8fd87232207892',
             'thumbnail': 're:https?://.*\.jpg',
         },
+        'skip': 'Access without user interaction is forbidden by CloudFlare, and video removed',
     }, {
         'url': 'http://www.funimation.com/shows/hacksign/videos/official/role-play',
         'info_dict': {
@@ -37,6 +42,7 @@ class FunimationIE(InfoExtractor):
             'description': 'md5:b602bdc15eef4c9bbb201bb6e6a4a2dd',
             'thumbnail': 're:https?://.*\.jpg',
         },
+        'skip': 'Access without user interaction is forbidden by CloudFlare',
     }, {
         'url': 'http://www.funimation.com/shows/attack-on-titan-junior-high/videos/promotional/broadcast-dub-preview',
         'info_dict': {
@@ -47,7 +53,35 @@ class FunimationIE(InfoExtractor):
             'description': 'md5:f8ec49c0aff702a7832cd81b8a44f803',
             'thumbnail': 're:https?://.*\.(?:jpg|png)',
         },
+        'skip': 'Access without user interaction is forbidden by CloudFlare',
     }]
+
+    _LOGIN_URL = 'http://www.funimation.com/login'
+
+    def _download_webpage(self, *args, **kwargs):
+        try:
+            return super(FunimationIE, self)._download_webpage(*args, **kwargs)
+        except ExtractorError as ee:
+            if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
+                response = ee.cause.read()
+                if b'>Please complete the security check to access<' in response:
+                    raise ExtractorError(
+                        'Access to funimation.com is blocked by CloudFlare. '
+                        'Please browse to http://www.funimation.com/, solve '
+                        'the reCAPTCHA, export browser cookies to a text file,'
+                        ' and then try again with --cookies YOUR_COOKIE_FILE.',
+                        expected=True)
+            raise
+
+    def _extract_cloudflare_session_ua(self, url):
+        ci_session_cookie = self._get_cookies(url).get('ci_session')
+        if ci_session_cookie:
+            ci_session = compat_urllib_parse_unquote_plus(ci_session_cookie.value)
+            # ci_session is a string serialized by PHP function serialize()
+            # This case is simple enough to use regular expressions only
+            return self._search_regex(
+                r'"user_agent";s:\d+:"([^"]+)"', ci_session, 'user agent',
+                default=None)
 
     def _login(self):
         (username, password) = self._get_login_info()
@@ -57,8 +91,11 @@ class FunimationIE(InfoExtractor):
             'email_field': username,
             'password_field': password,
         })
-        login_request = sanitized_Request('http://www.funimation.com/login', data, headers={
-            'User-Agent': 'Mozilla/5.0 (Windows NT 5.2; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0',
+        user_agent = self._extract_cloudflare_session_ua(self._LOGIN_URL)
+        if not user_agent:
+            user_agent = 'Mozilla/5.0 (Windows NT 5.2; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0'
+        login_request = sanitized_Request(self._LOGIN_URL, data, headers={
+            'User-Agent': user_agent,
             'Content-Type': 'application/x-www-form-urlencoded'
         })
         login_page = self._download_webpage(
@@ -103,11 +140,16 @@ class FunimationIE(InfoExtractor):
             ('mobile', 'Mozilla/5.0 (Linux; Android 4.4.2; Nexus 4 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36'),
         )
 
+        user_agent = self._extract_cloudflare_session_ua(url)
+        if user_agent:
+            USER_AGENTS = ((None, user_agent),)
+
         for kind, user_agent in USER_AGENTS:
             request = sanitized_Request(url)
             request.add_header('User-Agent', user_agent)
             webpage = self._download_webpage(
-                request, display_id, 'Downloading %s webpage' % kind)
+                request, display_id,
+                'Downloading %s webpage' % kind if kind else 'Downloading webpage')
 
             playlist = self._parse_json(
                 self._search_regex(

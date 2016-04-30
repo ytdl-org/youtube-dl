@@ -96,6 +96,8 @@ class OoyalaIE(OoyalaBaseIE):
                 'description': 'How badly damaged does a drive have to be to defeat Russell and his crew? Apparently, smashed to bits.',
                 'duration': 853.386,
             },
+            # The video in the original webpage now uses PlayWire
+            'skip': 'Ooyala said: movie expired',
         }, {
             # Only available for ipad
             'url': 'http://player.ooyala.com/player.js?embedCode=x1b3lqZDq9y_7kMyC2Op5qo-p077tXD0',

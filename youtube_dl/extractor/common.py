@@ -1061,7 +1061,7 @@ class InfoExtractor(object):
     def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
                               entry_protocol='m3u8', preference=None,
                               m3u8_id=None, note=None, errnote=None,
-                              fatal=True):
+                              fatal=True, live=False):
 
         formats = [{
             'format_id': '-'.join(filter(None, [m3u8_id, 'meta'])),
@@ -1139,7 +1139,11 @@ class InfoExtractor(object):
                 if m3u8_id:
                     format_id.append(m3u8_id)
                 last_media_name = last_media.get('NAME') if last_media and last_media.get('TYPE') != 'SUBTITLES' else None
-                format_id.append(last_media_name if last_media_name else '%d' % (tbr if tbr else len(formats)))
+                # Bandwidth of live streams may differ over time thus making
+                # format_id unpredictable. So it's better to keep provided
+                # format_id intact.
+                if not live:
+                    format_id.append(last_media_name if last_media_name else '%d' % (tbr if tbr else len(formats)))
                 f = {
                     'format_id': '-'.join(format_id),
                     'url': format_url(line.strip()),

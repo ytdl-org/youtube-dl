@@ -19,7 +19,7 @@ from ..utils import (
 class CloudyIE(InfoExtractor):
     _IE_DESC = 'cloudy.ec and videoraj.ch'
     _VALID_URL = r'''(?x)
-        https?://(?:www\.)?(?P<host>cloudy\.ec|videoraj\.ch)/
+        https?://(?:www\.)?(?P<host>cloudy\.ec|videoraj\.(?:ch|to))/
         (?:v/|embed\.php\?id=)
         (?P<id>[A-Za-z0-9]+)
         '''
@@ -37,7 +37,7 @@ class CloudyIE(InfoExtractor):
             }
         },
         {
-            'url': 'http://www.videoraj.ch/v/47f399fd8bb60',
+            'url': 'http://www.videoraj.to/v/47f399fd8bb60',
             'md5': '7d0f8799d91efd4eda26587421c3c3b0',
             'info_dict': {
                 'id': '47f399fd8bb60',

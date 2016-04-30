@@ -185,6 +185,7 @@ class ORFFM4IE(InfoExtractor):
             'timestamp': 1452456073,
             'upload_date': '20160110',
         },
+        'skip': 'Live streams on FM4 got deleted soon',
     }
 
     def _real_extract(self, url):
