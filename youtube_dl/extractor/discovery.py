@@ -1,16 +1,11 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     parse_duration,
     parse_iso8601,
 )
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_str
 
 
 class DiscoveryIE(InfoExtractor):
