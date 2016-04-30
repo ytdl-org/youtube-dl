@@ -102,9 +102,9 @@ class TEDIE(InfoExtractor):
     }]
 
     _NATIVE_FORMATS = {
-        'low': {'preference': 1, 'width': 320, 'height': 180},
-        'medium': {'preference': 2, 'width': 512, 'height': 288},
-        'high': {'preference': 3, 'width': 854, 'height': 480},
+        'low': {'width': 320, 'height': 180},
+        'medium': {'width': 512, 'height': 288},
+        'high': {'width': 854, 'height': 480},
     }
 
     def _extract_info(self, webpage):
@@ -171,15 +171,21 @@ class TEDIE(InfoExtractor):
                 if finfo:
                     f.update(finfo)
 
+        http_url = None
         for format_id, resources in talk_info['resources'].items():
             if format_id == 'h264':
                 for resource in resources:
+                    h264_url = resource.get('file')
+                    if not h264_url:
+                        continue
                     bitrate = int_or_none(resource.get('bitrate'))
                     formats.append({
-                        'url': resource['file'],
+                        'url': h264_url,
                         'format_id': '%s-%sk' % (format_id, bitrate),
                         'tbr': bitrate,
                     })
+                    if re.search('\d+k', h264_url):
+                        http_url = h264_url
             elif format_id == 'rtmp':
                 streamer = talk_info.get('streamer')
                 if not streamer:
@@ -195,16 +201,24 @@ class TEDIE(InfoExtractor):
                         'tbr': int_or_none(resource.get('bitrate')),
                     })
             elif format_id == 'hls':
-                hls_formats = self._extract_m3u8_formats(
-                    resources.get('stream'), video_name, 'mp4', m3u8_id=format_id)
-                for f in hls_formats:
-                    if f.get('format_id') == 'hls-meta':
-                        continue
-                    if not f.get('height'):
-                        f['vcodec'] = 'none'
-                    else:
-                        f['acodec'] = 'none'
-                formats.extend(hls_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    resources.get('stream'), video_name, 'mp4', m3u8_id=format_id, fatal=False))
+
+        m3u8_formats = list(filter(
+            lambda f: f.get('protocol') == 'm3u8' and f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
+            formats))
+        if http_url:
+            for m3u8_format in m3u8_formats:
+                bitrate = self._search_regex(r'(\d+k)', m3u8_format['url'], 'bitrate', default=None)
+                if not bitrate:
+                    continue
+                f = m3u8_format.copy()
+                f.update({
+                    'url': re.sub(r'\d+k', bitrate, http_url),
+                    'format_id': m3u8_format['format_id'].replace('hls', 'http'),
+                    'protocol': 'http',
+                })
+                formats.append(f)
 
         audio_download = talk_info.get('audioDownload')
         if audio_download:
@@ -212,10 +226,9 @@ class TEDIE(InfoExtractor):
                 'url': audio_download,
                 'format_id': 'audio',
                 'vcodec': 'none',
-                'preference': -0.5,
             })
 
-        self._sort_formats(formats)
+        self._sort_formats(formats, ('width', 'height', 'tbr', 'format_id'))
 
         video_id = compat_str(talk_info['id'])
 
