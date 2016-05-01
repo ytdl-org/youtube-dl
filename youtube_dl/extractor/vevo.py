@@ -15,7 +15,16 @@ from ..utils import (
 )
 
 
-class VevoIE(InfoExtractor):
+class VevoBaseIE(InfoExtractor):
+    def _extract_json(self, webpage, video_id, item):
+        return self._parse_json(
+            self._search_regex(
+                r'window\.__INITIAL_STORE__\s*=\s*({.+?});\s*</script>',
+                webpage, 'initial store'),
+            video_id)['default'][item]
+
+
+class VevoIE(VevoBaseIE):
     '''
     Accepts urls from vevo.com or in the format 'vevo:{id}'
     (currently used by MTVIE and MySpaceIE)
@@ -186,7 +195,14 @@ class VevoIE(InfoExtractor):
             video_versions = self._call_api(
                 'video/%s/streams' % video_id, video_id,
                 'Downloading video versions info',
-                'Failed to download video versions info')
+                'Failed to download video versions info',
+                fatal=False)
+
+            # Some videos are only available via webpage (e.g.
+            # https://github.com/rg3/youtube-dl/issues/9366)
+            if not video_versions:
+                webpage = self._download_webpage(url, video_id)
+                video_versions = self._extract_json(webpage, video_id, 'streams')[video_id][0]
 
             timestamp = parse_iso8601(video_info.get('releaseDate'))
             artists = video_info.get('artists')
@@ -306,7 +322,7 @@ class VevoIE(InfoExtractor):
         }
 
 
-class VevoPlaylistIE(InfoExtractor):
+class VevoPlaylistIE(VevoBaseIE):
     _VALID_URL = r'https?://www\.vevo\.com/watch/(?P<kind>playlist|genre)/(?P<id>[^/?#&]+)'
 
     _TESTS = [{
@@ -357,11 +373,7 @@ class VevoPlaylistIE(InfoExtractor):
             if video_id:
                 return self.url_result('vevo:%s' % video_id, VevoIE.ie_key())
 
-        playlists = self._parse_json(
-            self._search_regex(
-                r'window\.__INITIAL_STORE__\s*=\s*({.+?});\s*</script>',
-                webpage, 'initial store'),
-            playlist_id)['default']['%ss' % playlist_kind]
+        playlists = self._extract_json(webpage, playlist_id, '%ss' % playlist_kind)
 
         playlist = (list(playlists.values())[0]
                     if playlist_kind == 'playlist' else playlists[playlist_id])
