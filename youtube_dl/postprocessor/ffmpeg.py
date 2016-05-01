@@ -399,6 +399,8 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
             metadata['artist'] = info['uploader']
         elif info.get('uploader_id') is not None:
             metadata['artist'] = info['uploader_id']
+        elif info.get('creator') is not None:
+            metadata['artist'] = info['creator']
         if info.get('description') is not None:
             metadata['description'] = info['description']
             metadata['comment'] = info['description']
