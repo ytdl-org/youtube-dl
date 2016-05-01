@@ -307,7 +307,7 @@ class VevoIE(InfoExtractor):
 
 
 class VevoPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.vevo\.com/watch/(?:playlist|genre)/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://www\.vevo\.com/watch/(?P<kind>playlist|genre)/(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'http://www.vevo.com/watch/playlist/dadbf4e7-b99f-4184-9670-6f0e547b6a29',
@@ -316,6 +316,13 @@ class VevoPlaylistIE(InfoExtractor):
             'title': 'Best-Of: Birdman',
         },
         'playlist_count': 10,
+    }, {
+        'url': 'http://www.vevo.com/watch/genre/rock',
+        'info_dict': {
+            'id': 'rock',
+            'title': 'Rock',
+        },
+        'playlist_count': 20,
     }, {
         'url': 'http://www.vevo.com/watch/playlist/dadbf4e7-b99f-4184-9670-6f0e547b6a29?index=0',
         'md5': '32dcdfddddf9ec6917fc88ca26d36282',
@@ -334,7 +341,9 @@ class VevoPlaylistIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        playlist_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        playlist_id = mobj.group('id')
+        playlist_kind = mobj.group('kind')
 
         webpage = self._download_webpage(url, playlist_id)
 
@@ -352,9 +361,10 @@ class VevoPlaylistIE(InfoExtractor):
             self._search_regex(
                 r'window\.__INITIAL_STORE__\s*=\s*({.+?});\s*</script>',
                 webpage, 'initial store'),
-            playlist_id)['default']['playlists']
+            playlist_id)['default']['%ss' % playlist_kind]
 
-        playlist = list(playlists.values())[0]
+        playlist = (list(playlists.values())[0]
+                    if playlist_kind == 'playlist' else playlists[playlist_id])
 
         entries = [
             self.url_result('vevo:%s' % src, VevoIE.ie_key())
