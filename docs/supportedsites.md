@@ -338,7 +338,6 @@
  - **mailru**: Видео@Mail.Ru
  - **MakersChannel**
  - **MakerTV**
- - **Malemotion**
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
@@ -375,8 +374,8 @@
  - **mtvservices:embedded**
  - **MuenchenTV**: münchen.tv
  - **MusicPlayOn**
- - **muzu.tv**
  - **Mwave**
+ - **MwaveMeetGreet**
  - **MySpace**
  - **MySpace:album**
  - **MySpass**
@@ -554,7 +553,6 @@
  - **SenateISVP**
  - **ServingSys**
  - **Sexu**
- - **SexyKarma**: Sexy Karma and Watch Indian Porn
  - **Shahid**
  - **Shared**: shared.sx and vivo.sx
  - **ShareSix**
@@ -567,8 +565,6 @@
  - **smotri:broadcast**: Smotri.com broadcasts
  - **smotri:community**: Smotri.com community videos
  - **smotri:user**: Smotri.com user videos
- - **SnagFilms**
- - **SnagFilmsEmbed**
  - **Snotr**
  - **Sohu**
  - **soundcloud**
@@ -610,6 +606,7 @@
  - **Syfy**
  - **SztvHu**
  - **Tagesschau**
+ - **tagesschau:player**
  - **Tapely**
  - **Tass**
  - **TDSLifeway**
@@ -725,6 +722,8 @@
  - **Vidzi**
  - **vier**
  - **vier:videos**
+ - **ViewLift**
+ - **ViewLiftEmbed**
  - **Viewster**
  - **Viidea**
  - **viki**
@@ -756,6 +755,7 @@
  - **Walla**
  - **WashingtonPost**
  - **wat.tv**
+ - **WatchIndianPorn**: Watch Indian Porn
  - **WDR**
  - **wdr:mobile**
  - **WDRMaus**: Sendung mit der Maus
@@ -775,6 +775,10 @@
  - **XFileShare**: XFileShare based sites: GorillaVid.in, daclips.in, movpod.in, fastvideo.in, realvid.net, filehoot.com and vidto.me
  - **XHamster**
  - **XHamsterEmbed**
+ - **xiami:album**: 虾米音乐 - 专辑
+ - **xiami:artist**: 虾米音乐 - 歌手
+ - **xiami:collection**: 虾米音乐 - 精选集
+ - **xiami:song**: 虾米音乐
  - **XMinus**
  - **XNXX**
  - **Xstream**
