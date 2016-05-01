@@ -84,6 +84,20 @@ class VevoIE(VevoBaseIE):
             'uploader': 'K Camp',
             'timestamp': 1449468000,
         },
+    }, {
+        'note': 'Only available via webpage',
+        'url': 'http://www.vevo.com/watch/GBUV71600656',
+        'md5': '67e79210613865b66a47c33baa5e37fe',
+        'info_dict': {
+            'id': 'GBUV71600656',
+            'ext': 'mp4',
+            'title': 'Viva Love',
+            'upload_date': '20160428',
+            'age_limit': 0,
+            'uploader': 'ABC',
+            'timestamp': 1461830400,
+        },
+        'expected_warnings': ['Failed to download video versions info'],
     }]
     _SMIL_BASE_URL = 'http://smil.lvl3.vevo.com'
     _SOURCE_TYPES = {
