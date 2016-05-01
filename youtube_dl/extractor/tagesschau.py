@@ -6,8 +6,122 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
+    js_to_json,
+    parse_iso8601,
     parse_filesize,
 )
+
+
+class TagesschauPlayerIE(InfoExtractor):
+    IE_NAME = 'tagesschau:player'
+    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/multimedia/(?P<kind>audio|video)/(?P=kind)-(?P<id>\d+)~player(?:_[^/?#&]+)?\.html'
+
+    _TESTS = [{
+        'url': 'http://www.tagesschau.de/multimedia/video/video-179517~player.html',
+        'md5': '8d09548d5c15debad38bee3a4d15ca21',
+        'info_dict': {
+            'id': '179517',
+            'ext': 'mp4',
+            'title': 'Marie Kristin Boese, ARD Berlin, über den zukünftigen Kurs der AfD',
+            'thumbnail': 're:^https?:.*\.jpg$',
+            'formats': 'mincount:6',
+        },
+    }, {
+        'url': 'https://www.tagesschau.de/multimedia/audio/audio-29417~player.html',
+        'md5': '76e6eec6ebd40740671cf0a2c88617e5',
+        'info_dict': {
+            'id': '29417',
+            'ext': 'mp3',
+            'title': 'Trabi - Bye, bye Rennpappe',
+            'thumbnail': 're:^https?:.*\.jpg$',
+            'formats': 'mincount:2',
+        },
+    }, {
+        'url': 'http://www.tagesschau.de/multimedia/audio/audio-29417~player_autoplay-true.html',
+        'only_matching': True,
+    }]
+
+    _FORMATS = {
+        'xs': {'quality': 0},
+        's': {'width': 320, 'height': 180, 'quality': 1},
+        'm': {'width': 512, 'height': 288, 'quality': 2},
+        'l': {'width': 960, 'height': 540, 'quality': 3},
+        'xl': {'width': 1280, 'height': 720, 'quality': 4},
+        'xxl': {'quality': 5},
+    }
+
+    def _extract_via_api(self, kind, video_id):
+        info = self._download_json(
+            'https://www.tagesschau.de/api/multimedia/{0}/{0}-{1}.json'.format(kind, video_id),
+            video_id)
+        title = info['headline']
+        formats = []
+        for media in info['mediadata']:
+            for format_id, format_url in media.items():
+                if determine_ext(format_url) == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, video_id, 'mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls'))
+                else:
+                    formats.append({
+                        'url': format_url,
+                        'format_id': format_id,
+                        'vcodec': 'none' if kind == 'audio' else None,
+                    })
+        self._sort_formats(formats)
+        timestamp = parse_iso8601(info.get('date'))
+        return {
+            'id': video_id,
+            'title': title,
+            'timestamp': timestamp,
+            'formats': formats,
+        }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+
+        # kind = mobj.group('kind').lower()
+        # if kind == 'video':
+        #     return self._extract_via_api(kind, video_id)
+
+        # JSON api does not provide some audio formats (e.g. ogg) thus
+        # extractiong audio via webpage
+
+        webpage = self._download_webpage(url, video_id)
+
+        title = self._og_search_title(webpage).strip()
+        formats = []
+
+        for media_json in re.findall(r'({src\s*:\s*["\']http[^}]+type\s*:[^}]+})', webpage):
+            media = self._parse_json(js_to_json(media_json), video_id, fatal=False)
+            if not media:
+                continue
+            src = media.get('src')
+            if not src:
+                return
+            quality = media.get('quality')
+            kind = media.get('type', '').split('/')[0]
+            ext = determine_ext(src)
+            f = {
+                'url': src,
+                'format_id': '%s_%s' % (quality, ext) if quality else ext,
+                'ext': ext,
+                'vcodec': 'none' if kind == 'audio' else None,
+            }
+            f.update(self._FORMATS.get(quality, {}))
+            formats.append(f)
+
+        self._sort_formats(formats)
+
+        thumbnail = self._og_search_thumbnail(webpage)
+
+        return {
+            'id': video_id,
+            'title': title,
+            'thumbnail': thumbnail,
+            'formats': formats,
+        }
 
 
 class TagesschauIE(InfoExtractor):
@@ -20,7 +134,7 @@ class TagesschauIE(InfoExtractor):
             'id': '102143',
             'ext': 'mp4',
             'title': 'Regierungsumbildung in Athen: Neue Minister in Griechenland vereidigt',
-            'description': 'md5:171feccd9d9b3dd54d05d501568f6359',
+            'description': '18.07.2015 20:10 Uhr',
             'thumbnail': 're:^https?:.*\.jpg$',
         },
     }, {
@@ -29,18 +143,30 @@ class TagesschauIE(InfoExtractor):
         'info_dict': {
             'id': '5727',
             'ext': 'mp4',
-            'description': 'md5:695c01bfd98b7e313c501386327aea59',
             'title': 'Sendung: tagesschau \t04.12.2014 20:00 Uhr',
+            'description': 'md5:695c01bfd98b7e313c501386327aea59',
             'thumbnail': 're:^https?:.*\.jpg$',
         },
     }, {
-        'url': 'http://www.tagesschau.de/multimedia/politikimradio/audio-18407.html',
-        'md5': 'aef45de271c4bf0a5db834aa40bf774c',
+        # exclusive audio
+        'url': 'http://www.tagesschau.de/multimedia/audio/audio-29417.html',
+        'md5': '76e6eec6ebd40740671cf0a2c88617e5',
         'info_dict': {
-            'id': '18407',
+            'id': '29417',
             'ext': 'mp3',
-            'title': 'Flüchtlingsdebatte: Hitzig, aber wenig hilfreich',
-            'description': 'Flüchtlingsdebatte: Hitzig, aber wenig hilfreich',
+            'title': 'Trabi - Bye, bye Rennpappe',
+            'description': 'md5:8687dda862cbbe2cfb2df09b56341317',
+            'thumbnail': 're:^https?:.*\.jpg$',
+        },
+    }, {
+        # audio in article
+        'url': 'http://www.tagesschau.de/inland/bnd-303.html',
+        'md5': 'e0916c623e85fc1d2b26b78f299d3958',
+        'info_dict': {
+            'id': '303',
+            'ext': 'mp3',
+            'title': 'Viele Baustellen für neuen BND-Chef',
+            'description': 'md5:1e69a54be3e1255b2b07cdbce5bcd8b4',
             'thumbnail': 're:^https?:.*\.jpg$',
         },
     }, {
@@ -71,19 +197,11 @@ class TagesschauIE(InfoExtractor):
     }, {
         'url': 'http://www.tagesschau.de/multimedia/video/video-102303~_bab-sendung-211.html',
         'only_matching': True,
-    }, {
-        'url': 'http://www.tagesschau.de/multimedia/video/video-179517~player.html',
-        'only_matching': True,
     }]
 
-    _FORMATS = {
-        'xs': {'quality': 0},
-        's': {'width': 320, 'height': 180, 'quality': 1},
-        'm': {'width': 512, 'height': 288, 'quality': 2},
-        'l': {'width': 960, 'height': 540, 'quality': 3},
-        'xl': {'width': 1280, 'height': 720, 'quality': 4},
-        'xxl': {'quality': 5},
-    }
+    @classmethod
+    def suitable(cls, url):
+        return False if TagesschauPlayerIE.suitable(url) else super(TagesschauIE, cls).suitable(url)
 
     def _extract_formats(self, download_text, media_kind):
         links = re.finditer(
@@ -140,64 +258,39 @@ class TagesschauIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         display_id = video_id.lstrip('-')
+
         webpage = self._download_webpage(url, display_id)
 
-        player_url = self._html_search_meta(
-            'twitter:player', webpage, 'player URL', default=None)
-        if player_url:
-            playerpage = self._download_webpage(
-                player_url, display_id, 'Downloading player page')
+        title = self._html_search_regex(
+            r'<span[^>]*class="headline"[^>]*>(.+?)</span>',
+            webpage, 'title', default=None) or self._og_search_title(webpage)
 
-            formats = []
-            for media in re.finditer(
-                    r'''(?x)
-                        (?P<q_url>["\'])(?P<url>http://media.+?)(?P=q_url)
-                        ,\s*type:(?P<q_type>["\'])(?P<type>video|audio)/(?P<ext>.+?)(?P=q_type)
-                        (?:,\s*quality:(?P<q_quality>["\'])(?P<quality>.+?)(?P=q_quality))?
-                    ''', playerpage):
-                url = media.group('url')
-                webpage_type = media.group('type')
-                ext = media.group('ext')
-                res = media.group('quality')
-                f = {
-                    'format_id': '%s_%s' % (res, ext) if res else ext,
-                    'url': url,
-                    'ext': ext,
-                    'vcodec': 'none' if webpage_type == 'audio' else None,
-                }
-                f.update(self._FORMATS.get(res, {}))
-                formats.append(f)
-            thumbnail = self._og_search_thumbnail(playerpage)
-            title = self._og_search_title(webpage).strip()
-            description = self._og_search_description(webpage).strip()
-        else:
-            title = self._html_search_regex(
-                r'<span class="headline".*?>(.*?)</span>', webpage, 'title')
+        DOWNLOAD_REGEX = r'(?s)<p>Wir bieten dieses (?P<kind>Video|Audio) in folgenden Formaten zum Download an:</p>\s*<div class="controls">(?P<links>.*?)</div>\s*<p>'
 
-            DOWNLOAD_REGEX = r'(?s)<p>Wir bieten dieses (?P<kind>Video|Audio) in folgenden Formaten zum Download an:</p>\s*<div class="controls">(?P<links>.*?)</div>\s*<p>'
-
-            webpage_type = self._og_search_property('type', webpage, default=None)
-            if webpage_type == 'website':  # Article
-                entries = []
-                for num, (entry_title, media_kind, download_text) in enumerate(re.findall(
-                        r'(?s)<p[^>]+class="infotext"[^>]*>.*?<strong>(.+?)</strong>.*?</p>.*?%s' % DOWNLOAD_REGEX,
-                        webpage), 1):
-                    entries.append({
-                        'id': '%s-%d' % (display_id, num),
-                        'title': '%s' % entry_title,
-                        'formats': self._extract_formats(download_text, media_kind),
-                    })
+        webpage_type = self._og_search_property('type', webpage, default=None)
+        if webpage_type == 'website':  # Article
+            entries = []
+            for num, (entry_title, media_kind, download_text) in enumerate(re.findall(
+                    r'(?s)<p[^>]+class="infotext"[^>]*>.*?<strong>(.+?)</strong>.*?</p>.*?%s' % DOWNLOAD_REGEX,
+                    webpage), 1):
+                entries.append({
+                    'id': '%s-%d' % (display_id, num),
+                    'title': '%s' % entry_title,
+                    'formats': self._extract_formats(download_text, media_kind),
+                })
+            if len(entries) > 1:
                 return self.playlist_result(entries, display_id, title)
-            else:  # Assume single video
-                download_text = self._search_regex(
-                    DOWNLOAD_REGEX, webpage, 'download links', group='links')
-                media_kind = self._search_regex(
-                    DOWNLOAD_REGEX, webpage, 'media kind', default='Video', group='links')
-                formats = self._extract_formats(download_text, media_kind)
-                thumbnail = self._og_search_thumbnail(webpage)
-                description = self._html_search_regex(
-                    r'(?s)<p class="teasertext">(.*?)</p>',
-                    webpage, 'description', default=None)
+            formats = entries[0]['formats']
+        else:  # Assume single video
+            download_text = self._search_regex(
+                DOWNLOAD_REGEX, webpage, 'download links', group='links')
+            media_kind = self._search_regex(
+                DOWNLOAD_REGEX, webpage, 'media kind', default='Video', group='kind')
+            formats = self._extract_formats(download_text, media_kind)
+        thumbnail = self._og_search_thumbnail(webpage)
+        description = self._html_search_regex(
+            r'(?s)<p class="teasertext">(.*?)</p>',
+            webpage, 'description', default=None)
 
         self._sort_formats(formats)
 
