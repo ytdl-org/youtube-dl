@@ -389,23 +389,30 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
 class FFmpegMetadataPP(FFmpegPostProcessor):
     def run(self, info):
         metadata = {}
-        if info.get('title') is not None:
-            metadata['title'] = info['title']
-        if info.get('upload_date') is not None:
-            metadata['date'] = info['upload_date']
-        if info.get('artist') is not None:
-            metadata['artist'] = info['artist']
-        elif info.get('uploader') is not None:
-            metadata['artist'] = info['uploader']
-        elif info.get('uploader_id') is not None:
-            metadata['artist'] = info['uploader_id']
-        if info.get('description') is not None:
-            metadata['description'] = info['description']
-            metadata['comment'] = info['description']
-        if info.get('webpage_url') is not None:
-            metadata['purl'] = info['webpage_url']
-        if info.get('album') is not None:
-            metadata['album'] = info['album']
+
+        def add(meta_list, info_list=None):
+            if not info_list:
+                info_list = meta_list
+            if not isinstance(meta_list, (list, tuple)):
+                meta_list = (meta_list,)
+            if not isinstance(info_list, (list, tuple)):
+                info_list = (info_list,)
+            for info_f in info_list:
+                if info.get(info_f) is not None:
+                    for meta_f in meta_list:
+                        metadata[meta_f] = info[info_f]
+                    break
+
+        add('title', ('track', 'title'))
+        add('date', 'upload_date')
+        add(('description', 'comment'), 'description')
+        add('purl', 'webpage_url')
+        add('track', 'track_number')
+        add('artist', ('artist', 'creator', 'uploader', 'uploader_id'))
+        add('genre')
+        add('album')
+        add('album_artist')
+        add('disc', 'disc_number')
 
         if not metadata:
             self._downloader.to_screen('[ffmpeg] There isn\'t any metadata to add')

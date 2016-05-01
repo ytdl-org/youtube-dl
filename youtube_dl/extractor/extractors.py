@@ -724,7 +724,10 @@ from .svt import (
 from .swrmediathek import SWRMediathekIE
 from .syfy import SyfyIE
 from .sztvhu import SztvHuIE
-from .tagesschau import TagesschauIE
+from .tagesschau import (
+    TagesschauPlayerIE,
+    TagesschauIE,
+)
 from .tapely import TapelyIE
 from .tass import TassIE
 from .tdslifeway import TDSLifewayIE
