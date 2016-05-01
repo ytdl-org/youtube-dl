@@ -139,7 +139,7 @@ class FFmpegPostProcessor(PostProcessor):
     def probe_executable(self):
         return self._paths[self.probe_basename]
 
-    def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
+    def run_ffmpeg_multiple_files(self, input_paths, out_path, opts, prefix_input_paths=True):
         self.check_version()
 
         oldest_mtime = min(
@@ -151,7 +151,7 @@ class FFmpegPostProcessor(PostProcessor):
         for path in input_paths:
             files_cmd.extend([
                 encodeArgument('-i'),
-                encodeFilename(self._ffmpeg_filename_argument(path), True)
+                encodeFilename(self._ffmpeg_filename_argument(path) if prefix_input_paths else path, True)
             ])
         cmd = ([encodeFilename(self.executable, True), encodeArgument('-y')] +
                files_cmd +
