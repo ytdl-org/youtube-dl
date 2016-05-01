@@ -423,5 +423,5 @@ class VevoPlaylistIE(VevoBaseIE):
             for src in playlist['isrcs']]
 
         return self.playlist_result(
-            entries, playlist.get('playlistId'),
+            entries, playlist.get('playlistId') or playlist_id,
             playlist.get('name'), playlist.get('description'))
