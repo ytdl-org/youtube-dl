@@ -316,10 +316,6 @@ class VevoPlaylistIE(InfoExtractor):
             'title': 'Best-Of: Birdman',
         },
         'playlist_count': 10,
-        'params': {
-            'proxy': '52.53.186.253:8083',
-            'no_check_certificate': True,
-        },
     }, {
         'url': 'http://www.vevo.com/watch/playlist/dadbf4e7-b99f-4184-9670-6f0e547b6a29?index=0',
         'md5': '32dcdfddddf9ec6917fc88ca26d36282',
@@ -332,10 +328,6 @@ class VevoPlaylistIE(InfoExtractor):
             'uploader': 'Birdman',
         },
         'expected_warnings': ['Unable to download SMIL file'],
-        'params': {
-            'proxy': '52.53.186.253:8083',
-            'no_check_certificate': True,
-        },
     }, {
         'url': 'http://www.vevo.com/watch/genre/rock?index=0',
         'only_matching': True,
