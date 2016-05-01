@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_etree_fromstring
+from ..compat import (
+    compat_etree_fromstring,
+    compat_urlparse,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -18,7 +21,7 @@ class VevoIE(InfoExtractor):
     (currently used by MTVIE and MySpaceIE)
     '''
     _VALID_URL = r'''(?x)
-        (?:https?://www\.vevo\.com/watch/(?:[^/]+/(?:[^/]+/)?)?|
+        (?:https?://www\.vevo\.com/watch/(?!playlist|genre)(?:[^/]+/(?:[^/]+/)?)?|
            https?://cache\.vevo\.com/m/html/embed\.html\?video=|
            https?://videoplayer\.vevo\.com/embed/embedded\?videoId=|
            vevo:)
@@ -301,3 +304,70 @@ class VevoIE(InfoExtractor):
             'view_count': view_count,
             'age_limit': age_limit,
         }
+
+
+class VevoPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://www\.vevo\.com/watch/(?:playlist|genre)/(?P<id>[^/?#&]+)'
+
+    _TESTS = [{
+        'url': 'http://www.vevo.com/watch/playlist/dadbf4e7-b99f-4184-9670-6f0e547b6a29',
+        'info_dict': {
+            'id': 'dadbf4e7-b99f-4184-9670-6f0e547b6a29',
+            'title': 'Best-Of: Birdman',
+        },
+        'playlist_count': 10,
+        'params': {
+            'proxy': '52.53.186.253:8083',
+            'no_check_certificate': True,
+        },
+    }, {
+        'url': 'http://www.vevo.com/watch/playlist/dadbf4e7-b99f-4184-9670-6f0e547b6a29?index=0',
+        'md5': '32dcdfddddf9ec6917fc88ca26d36282',
+        'info_dict': {
+            'id': 'USCMV1100073',
+            'ext': 'mp4',
+            'title': 'Y.U. MAD',
+            'timestamp': 1323417600,
+            'upload_date': '20111209',
+            'uploader': 'Birdman',
+        },
+        'expected_warnings': ['Unable to download SMIL file'],
+        'params': {
+            'proxy': '52.53.186.253:8083',
+            'no_check_certificate': True,
+        },
+    }, {
+        'url': 'http://www.vevo.com/watch/genre/rock?index=0',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+        index = qs.get('index', [None])[0]
+
+        if index:
+            video_id = self._search_regex(
+                r'<meta[^>]+content=(["\'])vevo://video/(?P<id>.+?)\1[^>]*>',
+                webpage, 'video id', default=None, group='id')
+            if video_id:
+                return self.url_result('vevo:%s' % video_id, VevoIE.ie_key())
+
+        playlists = self._parse_json(
+            self._search_regex(
+                r'window\.__INITIAL_STORE__\s*=\s*({.+?});\s*</script>',
+                webpage, 'initial store'),
+            playlist_id)['default']['playlists']
+
+        playlist = list(playlists.values())[0]
+
+        entries = [
+            self.url_result('vevo:%s' % src, VevoIE.ie_key())
+            for src in playlist['isrcs']]
+
+        return self.playlist_result(
+            entries, playlist.get('playlistId'),
+            playlist.get('name'), playlist.get('description'))

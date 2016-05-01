@@ -849,7 +849,10 @@ from .veehd import VeeHDIE
 from .veoh import VeohIE
 from .vessel import VesselIE
 from .vesti import VestiIE
-from .vevo import VevoIE
+from .vevo import (
+    VevoIE,
+    VevoPlaylistIE,
+)
 from .vgtv import (
     BTArticleIE,
     BTVestlendingenIE,
