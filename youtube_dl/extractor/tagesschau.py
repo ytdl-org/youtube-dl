@@ -125,7 +125,7 @@ class TagesschauPlayerIE(InfoExtractor):
 
 
 class TagesschauIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/[^/]+/(?:[^/]+/)*?[^/#?]+?(?P<id>-?[0-9]+)(?:~_?[^/#?]+?)?\.html'
+    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/(?P<path>[^/]+/(?:[^/]+/)*?[^/#?]+?(?P<id>-?[0-9]+)?)(?:~_?[^/#?]+?)?\.html'
 
     _TESTS = [{
         'url': 'http://www.tagesschau.de/multimedia/video/video-102143.html',
@@ -197,6 +197,9 @@ class TagesschauIE(InfoExtractor):
     }, {
         'url': 'http://www.tagesschau.de/multimedia/video/video-102303~_bab-sendung-211.html',
         'only_matching': True,
+    }, {
+        'url': 'http://www.tagesschau.de/100sekunden/index.html',
+        'only_matching': True,
     }]
 
     @classmethod
@@ -256,7 +259,8 @@ class TagesschauIE(InfoExtractor):
         return formats
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id') or mobj.group('path')
         display_id = video_id.lstrip('-')
 
         webpage = self._download_webpage(url, display_id)
