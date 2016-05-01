@@ -149,8 +149,8 @@ class VevoIE(InfoExtractor):
         auth_info = self._parse_json(webpage, video_id)
         self._api_url_template = self.http_scheme() + '//apiv2.vevo.com/%s?token=' + auth_info['access_token']
 
-    def _call_api(self, path, video_id, note, errnote, fatal=True):
-        return self._download_json(self._api_url_template % path, video_id, note, errnote)
+    def _call_api(self, path, *args, **kwargs):
+        return self._download_json(self._api_url_template % path, *args, **kwargs)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
