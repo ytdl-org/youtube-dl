@@ -200,6 +200,10 @@ class TagesschauIE(InfoExtractor):
     }, {
         'url': 'http://www.tagesschau.de/100sekunden/index.html',
         'only_matching': True,
+    }, {
+        # playlist article with collapsing sections
+        'url': 'http://www.tagesschau.de/wirtschaft/faq-freihandelszone-eu-usa-101.html',
+        'only_matching': True,
     }]
 
     @classmethod
@@ -275,7 +279,7 @@ class TagesschauIE(InfoExtractor):
         if webpage_type == 'website':  # Article
             entries = []
             for num, (entry_title, media_kind, download_text) in enumerate(re.findall(
-                    r'(?s)<p[^>]+class="infotext"[^>]*>.*?<strong>(.+?)</strong>.*?</p>.*?%s' % DOWNLOAD_REGEX,
+                    r'(?s)<p[^>]+class="infotext"[^>]*>\s*(?:<a[^>]+>)?\s*<strong>(.+?)</strong>.*?</p>.*?%s' % DOWNLOAD_REGEX,
                     webpage), 1):
                 entries.append({
                     'id': '%s-%d' % (display_id, num),
