@@ -42,11 +42,15 @@ class VevoIE(VevoBaseIE):
         'info_dict': {
             'id': 'GB1101300280',
             'ext': 'mp4',
-            'title': 'Somebody to Die For',
+            'title': 'Hurts - Somebody to Die For',
+            'timestamp': 1372057200,
             'upload_date': '20130624',
             'uploader': 'Hurts',
-            'timestamp': 1372057200,
+            'track': 'Somebody to Die For',
+            'artist': 'Hurts',
+            'genre': 'Pop',
         },
+        'expected_warnings': ['Unable to download SMIL file'],
     }, {
         'note': 'v3 SMIL format',
         'url': 'http://www.vevo.com/watch/cassadee-pope/i-wish-i-could-break-your-heart/USUV71302923',
@@ -54,23 +58,31 @@ class VevoIE(VevoBaseIE):
         'info_dict': {
             'id': 'USUV71302923',
             'ext': 'mp4',
-            'title': 'I Wish I Could Break Your Heart',
+            'title': 'Cassadee Pope - I Wish I Could Break Your Heart',
+            'timestamp': 1392796919,
             'upload_date': '20140219',
             'uploader': 'Cassadee Pope',
-            'timestamp': 1392796919,
+            'track': 'I Wish I Could Break Your Heart',
+            'artist': 'Cassadee Pope',
+            'genre': 'Country',
         },
+        'expected_warnings': ['Unable to download SMIL file'],
     }, {
         'note': 'Age-limited video',
         'url': 'https://www.vevo.com/watch/justin-timberlake/tunnel-vision-explicit/USRV81300282',
         'info_dict': {
             'id': 'USRV81300282',
             'ext': 'mp4',
-            'title': 'Tunnel Vision (Explicit)',
-            'upload_date': '20130703',
+            'title': 'Justin Timberlake - Tunnel Vision (Explicit)',
             'age_limit': 18,
-            'uploader': 'Justin Timberlake',
             'timestamp': 1372888800,
+            'upload_date': '20130703',
+            'uploader': 'Justin Timberlake',
+            'track': 'Tunnel Vision (Explicit)',
+            'artist': 'Justin Timberlake',
+            'genre': 'Pop',
         },
+        'expected_warnings': ['Unable to download SMIL file'],
     }, {
         'note': 'No video_info',
         'url': 'http://www.vevo.com/watch/k-camp-1/Till-I-Die/USUV71503000',
@@ -78,11 +90,14 @@ class VevoIE(VevoBaseIE):
         'info_dict': {
             'id': 'USUV71503000',
             'ext': 'mp4',
-            'title': 'Till I Die',
-            'upload_date': '20151207',
+            'title': 'K Camp - Till I Die',
             'age_limit': 18,
-            'uploader': 'K Camp',
             'timestamp': 1449468000,
+            'upload_date': '20151207',
+            'uploader': 'K Camp',
+            'track': 'Till I Die',
+            'artist': 'K Camp',
+            'genre': 'Rap/Hip-Hop',
         },
     }, {
         'note': 'Only available via webpage',
@@ -91,11 +106,14 @@ class VevoIE(VevoBaseIE):
         'info_dict': {
             'id': 'GBUV71600656',
             'ext': 'mp4',
-            'title': 'Viva Love',
-            'upload_date': '20160428',
+            'title': 'ABC - Viva Love',
             'age_limit': 0,
-            'uploader': 'ABC',
             'timestamp': 1461830400,
+            'upload_date': '20160428',
+            'uploader': 'ABC',
+            'track': 'Viva Love',
+            'artist': 'ABC',
+            'genre': 'Pop',
         },
         'expected_warnings': ['Failed to download video versions info'],
     }]
@@ -184,8 +202,8 @@ class VevoIE(VevoBaseIE):
         video_info = response.get('video') or {}
         video_versions = video_info.get('videoVersions')
         uploader = None
-        timestamp = None
         view_count = None
+        timestamp = None
         formats = []
 
         if not video_info:
@@ -311,7 +329,9 @@ class VevoIE(VevoBaseIE):
                         smil_parsed = True
         self._sort_formats(formats)
 
-        title = video_info['title']
+        track = video_info['title']
+        title = '%s - %s' % (uploader, track) if uploader else track
+        genre = video_info.get('genres', [None])[0]
 
         is_explicit = video_info.get('isExplicit')
         if is_explicit is True:
@@ -333,6 +353,9 @@ class VevoIE(VevoBaseIE):
             'duration': duration,
             'view_count': view_count,
             'age_limit': age_limit,
+            'track': track,
+            'artist': uploader,
+            'genre': genre,
         }
 
 
@@ -359,10 +382,13 @@ class VevoPlaylistIE(VevoBaseIE):
         'info_dict': {
             'id': 'USCMV1100073',
             'ext': 'mp4',
-            'title': 'Y.U. MAD',
+            'title': 'Birdman - Y.U. MAD',
             'timestamp': 1323417600,
             'upload_date': '20111209',
             'uploader': 'Birdman',
+            'track': 'Y.U. MAD',
+            'artist': 'Birdman',
+            'genre': 'Rap/Hip-Hop',
         },
         'expected_warnings': ['Unable to download SMIL file'],
     }, {
