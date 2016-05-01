@@ -125,13 +125,13 @@ class TagesschauPlayerIE(InfoExtractor):
 
 
 class TagesschauIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/(?P<path>[^/]+/(?:[^/]+/)*?[^/#?]+?(?P<id>-?[0-9]+)?)(?:~_?[^/#?]+?)?\.html'
+    _VALID_URL = r'https?://(?:www\.)?tagesschau\.de/(?P<path>[^/]+/(?:[^/]+/)*?(?P<id>[^/#?]+?(?:-?[0-9]+)?))(?:~_?[^/#?]+?)?\.html'
 
     _TESTS = [{
         'url': 'http://www.tagesschau.de/multimedia/video/video-102143.html',
         'md5': 'f7c27a0eff3bfe8c7727e65f8fe1b1e6',
         'info_dict': {
-            'id': '102143',
+            'id': 'video-102143',
             'ext': 'mp4',
             'title': 'Regierungsumbildung in Athen: Neue Minister in Griechenland vereidigt',
             'description': '18.07.2015 20:10 Uhr',
@@ -141,7 +141,7 @@ class TagesschauIE(InfoExtractor):
         'url': 'http://www.tagesschau.de/multimedia/sendung/ts-5727.html',
         'md5': '3c54c1f6243d279b706bde660ceec633',
         'info_dict': {
-            'id': '5727',
+            'id': 'ts-5727',
             'ext': 'mp4',
             'title': 'Sendung: tagesschau \t04.12.2014 20:00 Uhr',
             'description': 'md5:695c01bfd98b7e313c501386327aea59',
@@ -152,7 +152,7 @@ class TagesschauIE(InfoExtractor):
         'url': 'http://www.tagesschau.de/multimedia/audio/audio-29417.html',
         'md5': '76e6eec6ebd40740671cf0a2c88617e5',
         'info_dict': {
-            'id': '29417',
+            'id': 'audio-29417',
             'ext': 'mp3',
             'title': 'Trabi - Bye, bye Rennpappe',
             'description': 'md5:8687dda862cbbe2cfb2df09b56341317',
@@ -163,7 +163,7 @@ class TagesschauIE(InfoExtractor):
         'url': 'http://www.tagesschau.de/inland/bnd-303.html',
         'md5': 'e0916c623e85fc1d2b26b78f299d3958',
         'info_dict': {
-            'id': '303',
+            'id': 'bnd-303',
             'ext': 'mp3',
             'title': 'Viele Baustellen für neuen BND-Chef',
             'description': 'md5:1e69a54be3e1255b2b07cdbce5bcd8b4',
@@ -172,7 +172,7 @@ class TagesschauIE(InfoExtractor):
     }, {
         'url': 'http://www.tagesschau.de/inland/afd-parteitag-135.html',
         'info_dict': {
-            'id': '135',
+            'id': 'afd-parteitag-135',
             'title': 'Möchtegern-Underdog mit Machtanspruch',
         },
         'playlist_count': 2,
