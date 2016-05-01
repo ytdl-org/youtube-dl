@@ -563,7 +563,7 @@ class YoutubeDL(object):
             if autonumber_size is None:
                 autonumber_size = 5
             autonumber_templ = '%0' + str(autonumber_size) + 'd'
-            template_dict['autonumber'] = autonumber_templ % self._num_downloads
+            template_dict['autonumber'] = autonumber_templ % (self.params.get('autonumber_start', 1) - 1 + self._num_downloads)
             if template_dict.get('playlist_index') is not None:
                 template_dict['playlist_index'] = '%0*d' % (len(str(template_dict['n_entries'])), template_dict['playlist_index'])
             if template_dict.get('resolution') is None:

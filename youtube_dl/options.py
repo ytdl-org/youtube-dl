@@ -617,6 +617,10 @@ def parseOpts(overrideArguments=None):
         dest='autonumber_size', metavar='NUMBER',
         help='Specify the number of digits in %(autonumber)s when it is present in output filename template or --auto-number option is given')
     filesystem.add_option(
+        '--autonumber-start',
+        dest='autonumber_start', metavar='NUMBER', type="int", default=1,
+        help='Specify the start value for the %(autonumber)s counter. Defaults to 1.')
+    filesystem.add_option(
         '--restrict-filenames',
         action='store_true', dest='restrictfilenames', default=False,
         help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames')
