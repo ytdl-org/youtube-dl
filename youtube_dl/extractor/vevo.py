@@ -201,6 +201,8 @@ class VevoIE(VevoBaseIE):
             json_url, video_id, 'Downloading video info', 'Unable to download info')
         video_info = response.get('video') or {}
         video_versions = video_info.get('videoVersions')
+        artist = None
+        featured_artist = None
         uploader = None
         view_count = None
         timestamp = None
@@ -239,7 +241,7 @@ class VevoIE(VevoBaseIE):
             timestamp = parse_iso8601(video_info.get('releaseDate'))
             artists = video_info.get('artists')
             if artists:
-                uploader = artists[0]['name']
+                artist = uploader = artists[0]['name']
             view_count = int_or_none(video_info.get('views', {}).get('total'))
 
             for video_version in video_versions:
@@ -292,7 +294,11 @@ class VevoIE(VevoBaseIE):
                 scale=1000)
             artists = video_info.get('mainArtists')
             if artists:
-                uploader = artists[0]['artistName']
+                artist = uploader = artists[0]['artistName']
+
+            featured_artists = video_info.get('featuredArtists')
+            if featured_artists:
+                featured_artist = featured_artists[0]['artistName']
 
             smil_parsed = False
             for video_version in video_info['videoVersions']:
@@ -330,7 +336,9 @@ class VevoIE(VevoBaseIE):
         self._sort_formats(formats)
 
         track = video_info['title']
-        title = '%s - %s' % (uploader, track) if uploader else track
+        if featured_artist:
+            artist = '%s ft. %s' % (artist, featured_artist)
+        title = '%s - %s' % (artist, track) if artist else track
         genre = video_info.get('genres', [None])[0]
 
         is_explicit = video_info.get('isExplicit')
