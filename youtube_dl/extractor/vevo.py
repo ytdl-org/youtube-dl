@@ -205,12 +205,10 @@ class VevoIE(VevoBaseIE):
         response = self._download_json(
             json_url, video_id, 'Downloading video info', 'Unable to download info')
         video_info = response.get('video') or {}
-        video_versions = video_info.get('videoVersions')
         artist = None
         featured_artist = None
         uploader = None
         view_count = None
-        timestamp = None
         formats = []
 
         if not video_info:
