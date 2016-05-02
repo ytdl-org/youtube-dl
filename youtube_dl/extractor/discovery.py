@@ -71,7 +71,7 @@ class DiscoveryIE(InfoExtractor):
         entries = []
 
         for idx, video_info in enumerate(info['playlist']):
-            subtitles = []
+            subtitles = {}
             caption_url = video_info.get('captionsUrl')
             if caption_url:
                 subtitles = {
