@@ -14,8 +14,8 @@ import email.utils
 import errno
 import functools
 import gzip
-import itertools
 import io
+import itertools
 import json
 import locale
 import math
@@ -24,8 +24,8 @@ import os
 import pipes
 import platform
 import re
-import ssl
 import socket
+import ssl
 import struct
 import subprocess
 import sys
@@ -365,6 +365,11 @@ def sanitize_filename(s, restricted=False, is_id=False):
     Set is_id if this is not an arbitrary string, but an ID that should be kept if possible
     """
     def replace_insane(char):
+        accents = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ',
+                           itertools.chain('AAAAAA', ['AE'], 'CEEEEIIIIDNOOOOOOUUUUYP', ['ss'],
+                                           'aaaaaa', ['ae'], 'ceeeeiiiionoooooouuuuypy')))
+        if restricted and char in accents:
+            return accents[char]
         if char == '?' or ord(char) < 32 or ord(char) == 127:
             return ''
         elif char == '"':

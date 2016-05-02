@@ -139,8 +139,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual('yes_no', sanitize_filename('yes? no', restricted=True))
         self.assertEqual('this_-_that', sanitize_filename('this: that', restricted=True))
 
-        tests = 'a\xe4b\u4e2d\u56fd\u7684c'
-        self.assertEqual(sanitize_filename(tests, restricted=True), 'a_b_c')
+        tests = 'aäb\u4e2d\u56fd\u7684c'
+        self.assertEqual(sanitize_filename(tests, restricted=True), 'aab_c')
         self.assertTrue(sanitize_filename('\xf6', restricted=True) != '')  # No empty filename
 
         forbidden = '"\0\\/&!: \'\t\n()[]{}$;`^,#'
@@ -154,6 +154,11 @@ class TestUtil(unittest.TestCase):
         # .. but make sure the file name is never empty
         self.assertTrue(sanitize_filename('-', restricted=True) != '')
         self.assertTrue(sanitize_filename(':', restricted=True) != '')
+
+        self.assertEqual(sanitize_filename(
+            'ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ', restricted=True),
+            'AAAAAAAECEEEEIIIIDNOOOOOOUUUUYPssaaaaaaaeceeeeiiiionoooooouuuuypy')
+        pass
 
     def test_sanitize_ids(self):
         self.assertEqual(sanitize_filename('_n_cd26wFpw', is_id=True), '_n_cd26wFpw')
