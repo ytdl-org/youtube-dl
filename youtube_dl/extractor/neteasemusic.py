@@ -85,6 +85,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'ext': 'mp3',
             'title': 'Bad Blood (feat. Kendrick Lamar)',
             'creator': 'Taylor Swift / Kendrick Lamar',
+            'album': 'Bad Blood (feat. Kendrick Lamar)',
             'upload_date': '20150517',
             'timestamp': 1431878400,
             'description': 'md5:a10a54589c2860300d02e1de821eb2ef',
@@ -98,6 +99,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'ext': 'mp3',
             'title': '听见下雨的声音',
             'creator': '周杰伦',
+            'album': '哎呦，不错哦',
             'upload_date': '20141225',
             'timestamp': 1419523200,
             'description': 'md5:a4d8d89f44656af206b7b2555c0bce6c',
@@ -111,6 +113,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'ext': 'mp3',
             'title': 'Opus 28',
             'creator': 'Dustin O\'Halloran',
+            'album': 'Piano Solos Vol. 2',
             'upload_date': '20080211',
             'timestamp': 1202745600,
         },
@@ -123,6 +126,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'ext': 'mp3',
             'title': '소원을 말해봐 (Genie)',
             'creator': '少女时代',
+            'album': 'Oh!',
             'description': 'md5:79d99cc560e4ca97e0c4d86800ee4184',
             'upload_date': '20100127',
             'timestamp': 1264608000,
@@ -172,13 +176,16 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
         if info.get('transNames'):
             alt_title = '/'.join(info.get('transNames'))
 
+        album_info = info.get('album', {})
+
         return {
             'id': song_id,
             'title': info['name'],
             'alt_title': alt_title,
             'creator': ' / '.join([artist['name'] for artist in info.get('artists', [])]),
             'timestamp': self.convert_milliseconds(info.get('album', {}).get('publishTime')),
-            'thumbnail': info.get('album', {}).get('picUrl'),
+            'thumbnail': album_info.get('picUrl'),
+            'album': album_info.get('name'),
             'duration': self.convert_milliseconds(info.get('duration', 0)),
             'description': lyrics,
             'formats': formats,
