@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_etree_fromstring,
+    compat_str,
     compat_urlparse,
 )
 from ..utils import (
@@ -116,6 +117,10 @@ class VevoIE(VevoBaseIE):
             'genre': 'Pop',
         },
         'expected_warnings': ['Failed to download video versions info'],
+    }, {
+        # no genres available
+        'url': 'http://www.vevo.com/watch/INS171400764',
+        'only_matching': True,
     }]
     _SMIL_BASE_URL = 'http://smil.lvl3.vevo.com'
     _SOURCE_TYPES = {
@@ -339,7 +344,11 @@ class VevoIE(VevoBaseIE):
         if featured_artist:
             artist = '%s ft. %s' % (artist, featured_artist)
         title = '%s - %s' % (artist, track) if artist else track
-        genre = video_info.get('genres', [None])[0]
+
+        genres = video_info.get('genres')
+        genre = (
+            genres[0] if genres and isinstance(genres, list) and
+            isinstance(genres[0], compat_str) else None)
 
         is_explicit = video_info.get('isExplicit')
         if is_explicit is True:
