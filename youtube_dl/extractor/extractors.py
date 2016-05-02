@@ -724,7 +724,10 @@ from .svt import (
 from .swrmediathek import SWRMediathekIE
 from .syfy import SyfyIE
 from .sztvhu import SztvHuIE
-from .tagesschau import TagesschauIE
+from .tagesschau import (
+    TagesschauPlayerIE,
+    TagesschauIE,
+)
 from .tapely import TapelyIE
 from .tass import TassIE
 from .tdslifeway import TDSLifewayIE
@@ -846,7 +849,10 @@ from .veehd import VeeHDIE
 from .veoh import VeohIE
 from .vessel import VesselIE
 from .vesti import VestiIE
-from .vevo import VevoIE
+from .vevo import (
+    VevoIE,
+    VevoPlaylistIE,
+)
 from .vgtv import (
     BTArticleIE,
     BTVestlendingenIE,
@@ -940,6 +946,12 @@ from .xfileshare import XFileShareIE
 from .xhamster import (
     XHamsterIE,
     XHamsterEmbedIE,
+)
+from .xiami import (
+    XiamiSongIE,
+    XiamiAlbumIE,
+    XiamiArtistIE,
+    XiamiCollectionIE
 )
 from .xminus import XMinusIE
 from .xnxx import XNXXIE

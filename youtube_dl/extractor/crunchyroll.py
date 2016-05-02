@@ -307,14 +307,17 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             'video_uploader', fatal=False)
 
         available_fmts = []
-        for a, fmt in re.findall(r'(<a[^>]+token="showmedia\.([0-9]{3,4})p"[^>]+>.*?</a>)', webpage):
+        for a, fmt in re.findall(r'(<a[^>]+token=["\']showmedia\.([0-9]{3,4})p["\'][^>]+>)', webpage):
             attrs = extract_attributes(a)
             href = attrs.get('href')
             if href and '/freetrial' in href:
                 continue
             available_fmts.append(fmt)
         if not available_fmts:
-            available_fmts = re.findall(r'token="showmedia\.([0-9]{3,4})p"', webpage)
+            for p in (r'token=["\']showmedia\.([0-9]{3,4})p"', r'showmedia\.([0-9]{3,4})p'):
+                available_fmts = re.findall(p, webpage)
+                if available_fmts:
+                    break
         video_encode_ids = []
         formats = []
         for fmt in available_fmts:
@@ -364,6 +367,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 'ext': 'flv',
             })
             formats.append(format_info)
+        self._sort_formats(formats)
 
         metadata = self._download_xml(
             'http://www.crunchyroll.com/xml', video_id,

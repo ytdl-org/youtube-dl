@@ -1142,7 +1142,7 @@ class InfoExtractor(object):
                 # Bandwidth of live streams may differ over time thus making
                 # format_id unpredictable. So it's better to keep provided
                 # format_id intact.
-                if last_media_name and not live:
+                if not live:
                     format_id.append(last_media_name if last_media_name else '%d' % (tbr if tbr else len(formats)))
                 f = {
                     'format_id': '-'.join(format_id),

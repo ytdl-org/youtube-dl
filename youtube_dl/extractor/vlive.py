@@ -43,7 +43,7 @@ class VLiveIE(InfoExtractor):
         status_params = self._download_json(
             'http://www.vlive.tv/video/status?videoSeq=%s' % video_id,
             video_id, 'Downloading JSON status',
-            headers={'Referer': url})
+            headers={'Referer': url.encode('utf-8')})
         status = status_params.get('status')
         air_start = status_params.get('onAirStartAt', '')
         is_live = status_params.get('isLive')

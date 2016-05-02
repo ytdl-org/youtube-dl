@@ -33,6 +33,7 @@ class DiscoveryIE(InfoExtractor):
             'duration': 156,
             'timestamp': 1302032462,
             'upload_date': '20110405',
+            'uploader_id': '103207',
         },
         'params': {
             'skip_download': True,  # requires ffmpeg
@@ -54,7 +55,11 @@ class DiscoveryIE(InfoExtractor):
             'upload_date': '20140725',
             'timestamp': 1406246400,
             'duration': 116,
+            'uploader_id': '103207',
         },
+        'params': {
+            'skip_download': True,  # requires ffmpeg
+        }
     }]
 
     def _real_extract(self, url):
@@ -66,13 +71,19 @@ class DiscoveryIE(InfoExtractor):
         entries = []
 
         for idx, video_info in enumerate(info['playlist']):
-            formats = self._extract_m3u8_formats(
-                video_info['src'], display_id, 'mp4', 'm3u8_native', m3u8_id='hls',
-                note='Download m3u8 information for video %d' % (idx + 1))
-            self._sort_formats(formats)
+            subtitles = {}
+            caption_url = video_info.get('captionsUrl')
+            if caption_url:
+                subtitles = {
+                    'en': [{
+                        'url': caption_url,
+                    }]
+                }
+
             entries.append({
+                '_type': 'url_transparent',
+                'url': 'http://players.brightcove.net/103207/default_default/index.html?videoId=ref:%s' % video_info['referenceId'],
                 'id': compat_str(video_info['id']),
-                'formats': formats,
                 'title': video_info['title'],
                 'description': video_info.get('description'),
                 'duration': parse_duration(video_info.get('video_length')),
@@ -80,6 +91,7 @@ class DiscoveryIE(InfoExtractor):
                 'thumbnail': video_info.get('thumbnailURL'),
                 'alt_title': video_info.get('secondary_title'),
                 'timestamp': parse_iso8601(video_info.get('publishedDate')),
+                'subtitles': subtitles,
             })
 
         return self.playlist_result(entries, display_id, video_title)
