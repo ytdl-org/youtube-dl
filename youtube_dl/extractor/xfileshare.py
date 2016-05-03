@@ -16,7 +16,7 @@ class XFileShareIE(InfoExtractor):
     IE_DESC = 'XFileShare based sites: GorillaVid.in, daclips.in, movpod.in, fastvideo.in, realvid.net, filehoot.com and vidto.me'
     _VALID_URL = r'''(?x)
         https?://(?P<host>(?:www\.)?
-            (?:daclips\.in|gorillavid\.in|movpod\.in|fastvideo\.in|realvid\.net|filehoot\.com|vidto\.me|powerwatch\.pw))/
+            (?:daclips\.in|gorillavid\.in|movpod\.in|fastvideo\.in|realvid\.net|filehoot\.com|vidto\.me|powerwatch\.pw|thevideobee\.to))/
         (?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:-[0-9]+x[0-9]+\.html)?
     '''
 
