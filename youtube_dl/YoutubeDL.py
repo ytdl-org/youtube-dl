@@ -64,6 +64,7 @@ from .utils import (
     PostProcessingError,
     preferredencoding,
     prepend_extension,
+    register_socks_protocols,
     render_table,
     replace_extension,
     SameFileError,
@@ -360,6 +361,8 @@ class YoutubeDL(object):
 
         for ph in self.params.get('progress_hooks', []):
             self.add_progress_hook(ph)
+
+        register_socks_protocols()
 
     def warn_if_short_id(self, argv):
         # short YouTube ID starting with dash?

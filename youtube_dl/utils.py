@@ -61,6 +61,13 @@ from .socks import (
 )
 
 
+def register_socks_protocols():
+    # "Register" SOCKS protocols
+    for scheme in ('socks', 'socks4', 'socks4a', 'socks5'):
+        if scheme not in compat_urlparse.uses_netloc:
+            compat_urlparse.uses_netloc.append(scheme)
+
+
 # This is not clearly defined otherwise
 compiled_regex_type = type(re.compile(''))
 
@@ -870,6 +877,8 @@ def make_socks_conn_class(base_class, socks_proxy):
         socks_type = ProxyType.SOCKS5
     elif url_components.scheme.lower() in ('socks', 'socks4'):
         socks_type = ProxyType.SOCKS4
+    elif url_components.scheme.lower() == 'socks4a':
+        socks_type = ProxyType.SOCKS4A
 
     proxy_args = (
         socks_type,
@@ -2738,7 +2747,7 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
 
         if proxy == '__noproxy__':
             return None  # No Proxy
-        if compat_urlparse.urlparse(proxy).scheme.lower() in ('socks', 'socks4', 'socks5'):
+        if compat_urlparse.urlparse(proxy).scheme.lower() in ('socks', 'socks4', 'socks4a', 'socks5'):
             req.add_header('Ytdl-socks-proxy', proxy)
             # youtube-dl's http/https handlers do wrapping the socket with socks
             return None
