@@ -6,7 +6,7 @@ import zlib
 
 from .compat import (
     compat_str,
-    struct_unpack,
+    compat_struct_unpack,
 )
 from .utils import (
     ExtractorError,
@@ -25,17 +25,17 @@ def _extract_tags(file_contents):
             file_contents[:1])
 
     # Determine number of bits in framesize rectangle
-    framesize_nbits = struct_unpack('!B', content[:1])[0] >> 3
+    framesize_nbits = compat_struct_unpack('!B', content[:1])[0] >> 3
     framesize_len = (5 + 4 * framesize_nbits + 7) // 8
 
     pos = framesize_len + 2 + 2
     while pos < len(content):
-        header16 = struct_unpack('<H', content[pos:pos + 2])[0]
+        header16 = compat_struct_unpack('<H', content[pos:pos + 2])[0]
         pos += 2
         tag_code = header16 >> 6
         tag_len = header16 & 0x3f
         if tag_len == 0x3f:
-            tag_len = struct_unpack('<I', content[pos:pos + 4])[0]
+            tag_len = compat_struct_unpack('<I', content[pos:pos + 4])[0]
             pos += 4
         assert pos + tag_len <= len(content), \
             ('Tag %d ends at %d+%d - that\'s longer than the file (%d)'
@@ -103,7 +103,7 @@ def _read_int(reader):
     for _ in range(5):
         buf = reader.read(1)
         assert len(buf) == 1
-        b = struct_unpack('<B', buf)[0]
+        b = compat_struct_unpack('<B', buf)[0]
         res = res | ((b & 0x7f) << shift)
         if b & 0x80 == 0:
             break
@@ -129,7 +129,7 @@ def _s24(reader):
     bs = reader.read(3)
     assert len(bs) == 3
     last_byte = b'\xff' if (ord(bs[2:3]) >= 0x80) else b'\x00'
-    return struct_unpack('<i', bs + last_byte)[0]
+    return compat_struct_unpack('<i', bs + last_byte)[0]
 
 
 def _read_string(reader):
@@ -148,7 +148,7 @@ def _read_bytes(count, reader):
 
 def _read_byte(reader):
     resb = _read_bytes(1, reader=reader)
-    res = struct_unpack('<B', resb)[0]
+    res = compat_struct_unpack('<B', resb)[0]
     return res
 
 

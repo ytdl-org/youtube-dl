@@ -44,6 +44,7 @@ from .compat import (
     compat_parse_qs,
     compat_socket_create_connection,
     compat_str,
+    compat_struct_pack,
     compat_urllib_error,
     compat_urllib_parse,
     compat_urllib_parse_urlencode,
@@ -52,7 +53,6 @@ from .compat import (
     compat_urlparse,
     compat_xpath,
     shlex_quote,
-    struct_pack,
 )
 
 from .socks import (
@@ -1259,7 +1259,7 @@ def bytes_to_intlist(bs):
 def intlist_to_bytes(xs):
     if not xs:
         return b''
-    return struct_pack('%dB' % len(xs), *xs)
+    return compat_struct_pack('%dB' % len(xs), *xs)
 
 
 # Cross-platform file locking

@@ -599,18 +599,18 @@ try:
 except TypeError:
     # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
     # See https://bugs.python.org/issue19099
-    def struct_pack(spec, *args):
+    def compat_struct_pack(spec, *args):
         if isinstance(spec, compat_str):
             spec = spec.encode('ascii')
         return struct.pack(spec, *args)
 
-    def struct_unpack(spec, *args):
+    def compat_struct_unpack(spec, *args):
         if isinstance(spec, compat_str):
             spec = spec.encode('ascii')
         return struct.unpack(spec, *args)
 else:
-    struct_pack = struct.pack
-    struct_unpack = struct.unpack
+    compat_struct_pack = struct.pack
+    compat_struct_unpack = struct.unpack
 
 
 __all__ = [
@@ -638,6 +638,8 @@ __all__ = [
     'compat_shlex_split',
     'compat_socket_create_connection',
     'compat_str',
+    'compat_struct_pack',
+    'compat_struct_unpack',
     'compat_subprocess_get_DEVNULL',
     'compat_tokenize_tokenize',
     'compat_urllib_error',
@@ -655,8 +657,6 @@ __all__ = [
     'compat_xml_parse_error',
     'compat_xpath',
     'shlex_quote',
-    'struct_pack',
-    'struct_unpack',
     'subprocess_check_output',
     'workaround_optparse_bug9161',
 ]
