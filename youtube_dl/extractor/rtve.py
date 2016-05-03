@@ -7,7 +7,7 @@ import time
 
 from .common import InfoExtractor
 from ..compat import (
-    struct_unpack,
+    compat_struct_unpack,
 )
 from ..utils import (
     ExtractorError,
@@ -23,7 +23,7 @@ def _decrypt_url(png):
     encrypted_data = base64.b64decode(png.encode('utf-8'))
     text_index = encrypted_data.find(b'tEXt')
     text_chunk = encrypted_data[text_index - 4:]
-    length = struct_unpack('!I', text_chunk[:4])[0]
+    length = compat_struct_unpack('!I', text_chunk[:4])[0]
     # Use bytearray to get integers when iterating in both python 2.x and 3.x
     data = bytearray(text_chunk[8:8 + length])
     data = [chr(b) for b in data if b != 0]
