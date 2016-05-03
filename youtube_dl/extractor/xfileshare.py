@@ -13,12 +13,20 @@ from ..utils import (
 
 
 class XFileShareIE(InfoExtractor):
-    IE_DESC = 'XFileShare based sites: GorillaVid.in, daclips.in, movpod.in, fastvideo.in, realvid.net, filehoot.com and vidto.me'
-    _VALID_URL = r'''(?x)
-        https?://(?P<host>(?:www\.)?
-            (?:daclips\.in|gorillavid\.in|movpod\.in|fastvideo\.in|realvid\.net|filehoot\.com|vidto\.me|powerwatch\.pw|thevideobee\.to))/
-        (?:embed-)?(?P<id>[0-9a-zA-Z]+)(?:-[0-9]+x[0-9]+\.html)?
-    '''
+    _SITES = (
+        ('daclips.in', 'DaClips'),
+        ('filehoot.com', 'FileHoot'),
+        ('gorillavid.in', 'GorillaVid'),
+        ('movpod.in', 'MovPod'),
+        ('powerwatch.pw', 'PowerWatch'),
+        ('rapidvideo.ws', 'Rapidvideo.ws'),
+        ('thevideobee.to', 'TheVideoBee'),
+        ('vidto.me', 'Vidto'),
+    )
+
+    IE_DESC = 'XFileShare based sites: %s' % ', '.join(list(zip(*_SITES))[1])
+    _VALID_URL = (r'https?://(?P<host>(?:www\.)?(?:%s))/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
+                  % '|'.join(re.escape(site) for site in list(zip(*_SITES))[0]))
 
     _FILE_NOT_FOUND_REGEX = r'>(?:404 - )?File Not Found<'
 
@@ -43,25 +51,6 @@ class XFileShareIE(InfoExtractor):
             'title': 'Micro Pig piglets ready on 16th July 2009-bG0PdrCdxUc',
             'thumbnail': 're:http://.*\.jpg',
         }
-    }, {
-        # video with countdown timeout
-        'url': 'http://fastvideo.in/1qmdn1lmsmbw',
-        'md5': '8b87ec3f6564a3108a0e8e66594842ba',
-        'info_dict': {
-            'id': '1qmdn1lmsmbw',
-            'ext': 'mp4',
-            'title': 'Man of Steel - Trailer',
-            'thumbnail': 're:http://.*\.jpg',
-        },
-    }, {
-        'url': 'http://realvid.net/ctn2y6p2eviw',
-        'md5': 'b2166d2cf192efd6b6d764c18fd3710e',
-        'info_dict': {
-            'id': 'ctn2y6p2eviw',
-            'ext': 'flv',
-            'title': 'rdx 1955',
-            'thumbnail': 're:http://.*\.jpg',
-        },
     }, {
         'url': 'http://movpod.in/0wguyyxi1yca',
         'only_matching': True,
