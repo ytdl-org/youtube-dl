@@ -189,8 +189,8 @@ class VevoIE(VevoBaseIE):
             errnote='Unable to retrieve oauth token')
 
         if 'THIS PAGE IS CURRENTLY UNAVAILABLE IN YOUR REGION' in webpage:
-            raise ExtractorError(
-                '%s said: This page is currently unavailable in your region.' % self.IE_NAME, expected=True)
+            self.raise_geo_restricted(
+                '%s said: This page is currently unavailable in your region' % self.IE_NAME)
 
         auth_info = self._parse_json(webpage, video_id)
         self._api_url_template = self.http_scheme() + '//apiv2.vevo.com/%s?token=' + auth_info['access_token']
