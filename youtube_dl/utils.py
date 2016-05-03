@@ -89,6 +89,11 @@ KNOWN_EXTENSIONS = (
     'wav',
     'f4f', 'f4m', 'm3u8', 'smil')
 
+# needed for sanitizing filenames in restricted mode
+ACCENT_CHARS = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ',
+                        itertools.chain('AAAAAA', ['AE'], 'CEEEEIIIIDNOOOOOOUUUUYP', ['ss'],
+                                        'aaaaaa', ['ae'], 'ceeeeiiiionoooooouuuuypy')))
+
 
 def preferredencoding():
     """Get preferred encoding.
@@ -365,11 +370,8 @@ def sanitize_filename(s, restricted=False, is_id=False):
     Set is_id if this is not an arbitrary string, but an ID that should be kept if possible
     """
     def replace_insane(char):
-        accents = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ',
-                           itertools.chain('AAAAAA', ['AE'], 'CEEEEIIIIDNOOOOOOUUUUYP', ['ss'],
-                                           'aaaaaa', ['ae'], 'ceeeeiiiionoooooouuuuypy')))
-        if restricted and char in accents:
-            return accents[char]
+        if restricted and char in ACCENT_CHARS:
+            return ACCENT_CHARS[char]
         if char == '?' or ord(char) < 32 or ord(char) == 127:
             return ''
         elif char == '"':
