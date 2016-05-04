@@ -9,6 +9,11 @@ from ..utils import int_or_none
 class XiamiBaseIE(InfoExtractor):
     _API_BASE_URL = 'http://www.xiami.com/song/playlist/cat/json/id'
 
+    def _download_webpage(self, *args, **kwargs):
+        webpage = super(XiamiBaseIE, self)._download_webpage(*args, **kwargs)
+        if '>Xiami is currently not available in your country.<' in webpage:
+            self.raise_geo_restricted('Xiami is currently not available in your country')
+
     def _extract_track(self, track, track_id=None):
         title = track['title']
         track_url = self._decrypt(track['location'])
@@ -81,7 +86,8 @@ class XiamiSongIE(XiamiBaseIE):
                     'ext': 'lrc',
                 }],
             },
-        }
+        },
+        'skip': 'Georestricted',
     }, {
         'url': 'http://www.xiami.com/song/1775256504',
         'md5': '932a3abd45c6aa2b1fdbe028fcb4c4fc',
@@ -100,7 +106,8 @@ class XiamiSongIE(XiamiBaseIE):
                     'ext': 'lrc',
                 }],
             },
-        }
+        },
+        'skip': 'Georestricted',
     }]
 
     def _real_extract(self, url):
@@ -124,6 +131,7 @@ class XiamiAlbumIE(XiamiPlaylistBaseIE):
             'id': '2100300444',
         },
         'playlist_count': 10,
+        'skip': 'Georestricted',
     }, {
         'url': 'http://www.xiami.com/album/512288?spm=a1z1s.6843761.1110925389.6.hhE9p9',
         'only_matching': True,
@@ -141,6 +149,7 @@ class XiamiArtistIE(XiamiPlaylistBaseIE):
             'id': '2132',
         },
         'playlist_count': 20,
+        'skip': 'Georestricted',
     }
 
 
@@ -155,4 +164,5 @@ class XiamiCollectionIE(XiamiPlaylistBaseIE):
             'id': '156527391',
         },
         'playlist_mincount': 29,
+        'skip': 'Georestricted',
     }

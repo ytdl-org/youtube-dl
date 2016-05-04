@@ -580,7 +580,7 @@ class YoutubeDL(object):
                 is_id=(k == 'id'))
             template_dict = dict((k, sanitize(k, v))
                                  for k, v in template_dict.items()
-                                 if v is not None)
+                                 if v is not None and not isinstance(v, (list, tuple, dict)))
             template_dict = collections.defaultdict(lambda: 'NA', template_dict)
 
             outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
@@ -1639,7 +1639,7 @@ class YoutubeDL(object):
                     # Just a single file
                     success = dl(filename, info_dict)
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self.report_error('unable to download video data: %s' % str(err))
+                self.report_error('unable to download video data: %s' % error_to_compat_str(err))
                 return
             except (OSError, IOError) as err:
                 raise UnavailableVideoError(err)
