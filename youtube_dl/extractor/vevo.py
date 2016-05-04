@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_etree_fromstring,
+    compat_str,
     compat_urlparse,
 )
 from ..utils import (
@@ -116,6 +117,10 @@ class VevoIE(VevoBaseIE):
             'genre': 'Pop',
         },
         'expected_warnings': ['Failed to download video versions info'],
+    }, {
+        # no genres available
+        'url': 'http://www.vevo.com/watch/INS171400764',
+        'only_matching': True,
     }]
     _SMIL_BASE_URL = 'http://smil.lvl3.vevo.com'
     _SOURCE_TYPES = {
@@ -184,8 +189,8 @@ class VevoIE(VevoBaseIE):
             errnote='Unable to retrieve oauth token')
 
         if 'THIS PAGE IS CURRENTLY UNAVAILABLE IN YOUR REGION' in webpage:
-            raise ExtractorError(
-                '%s said: This page is currently unavailable in your region.' % self.IE_NAME, expected=True)
+            self.raise_geo_restricted(
+                '%s said: This page is currently unavailable in your region' % self.IE_NAME)
 
         auth_info = self._parse_json(webpage, video_id)
         self._api_url_template = self.http_scheme() + '//apiv2.vevo.com/%s?token=' + auth_info['access_token']
@@ -200,12 +205,10 @@ class VevoIE(VevoBaseIE):
         response = self._download_json(
             json_url, video_id, 'Downloading video info', 'Unable to download info')
         video_info = response.get('video') or {}
-        video_versions = video_info.get('videoVersions')
         artist = None
         featured_artist = None
         uploader = None
         view_count = None
-        timestamp = None
         formats = []
 
         if not video_info:
@@ -339,7 +342,11 @@ class VevoIE(VevoBaseIE):
         if featured_artist:
             artist = '%s ft. %s' % (artist, featured_artist)
         title = '%s - %s' % (artist, track) if artist else track
-        genre = video_info.get('genres', [None])[0]
+
+        genres = video_info.get('genres')
+        genre = (
+            genres[0] if genres and isinstance(genres, list) and
+            isinstance(genres[0], compat_str) else None)
 
         is_explicit = video_info.get('isExplicit')
         if is_explicit is True:

@@ -12,7 +12,7 @@ from ..utils import (
 
 class AolIE(InfoExtractor):
     IE_NAME = 'on.aol.com'
-    _VALID_URL = r'(?:aol-video:|https?://on\.aol\.com/.*-)(?P<id>[^/?-]+)'
+    _VALID_URL = r'(?:aol-video:|https?://on\.aol\.com/(?:[^/]+/)*(?:[^/?#&]+-)?)(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         # video with 5min ID
@@ -52,6 +52,12 @@ class AolIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://on.aol.com/shows/park-bench-shw518173474-559a1b9be4b0c3bfad3357a7?context=SH:SHW518173474:PL4327:1460619712763',
+        'only_matching': True,
+    }, {
+        'url': 'http://on.aol.com/video/519442220',
+        'only_matching': True,
+    }, {
+        'url': 'aol-video:5707d6b8e4b090497b04f706',
         'only_matching': True,
     }]
 
