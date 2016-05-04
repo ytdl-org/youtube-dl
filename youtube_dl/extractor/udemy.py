@@ -84,7 +84,8 @@ class UdemyIE(InfoExtractor):
         if enroll_url:
             webpage = self._download_webpage(
                 combine_url(base_url, enroll_url),
-                course_id, 'Enrolling in the course')
+                course_id, 'Enrolling in the course',
+                headers={'Referer': base_url})
             if '>You have enrolled in' in webpage:
                 self.to_screen('%s: Successfully enrolled in the course' % course_id)
 
