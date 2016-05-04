@@ -194,7 +194,7 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
             'id': '1036',
             'title': 'Музыка 90-х',
         },
-        'playlist_count': 310,
+        'playlist_mincount': 300,
         'skip': 'Travis CI servers blocked by YandexMusic',
     }]
 
