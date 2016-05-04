@@ -10,8 +10,6 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     float_or_none,
-    sanitized_Request,
-    urlencode_postdata,
 )
 
 
