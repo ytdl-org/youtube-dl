@@ -30,6 +30,10 @@ PROTOCOL_MAP = {
 def get_suitable_downloader(info_dict, params={}):
     """Get the downloader class that can handle the info dict."""
     protocol = determine_protocol(info_dict)
+    if protocol == 'm3u8' and params.get('hls_prefer_native') is True:
+        protocol = 'm3u8_native'
+    elif protocol == 'm3u8_native' and params.get('hls_prefer_native') is False:
+        protocol = 'm3u8'
     info_dict['protocol'] = protocol
 
     # if (info_dict.get('start_time') or info_dict.get('end_time')) and not info_dict.get('requested_formats') and FFmpegFD.can_download(info_dict):
@@ -40,12 +44,6 @@ def get_suitable_downloader(info_dict, params={}):
         ed = get_external_downloader(external_downloader)
         if ed.can_download(info_dict):
             return ed
-
-    if protocol == 'm3u8' and params.get('hls_prefer_native') is True:
-        return HlsFD
-
-    if protocol == 'm3u8_native' and params.get('hls_prefer_native') is False:
-        return FFmpegFD
 
     return PROTOCOL_MAP.get(protocol, HttpFD)
 
