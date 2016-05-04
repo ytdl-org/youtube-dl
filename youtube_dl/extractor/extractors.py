@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .abc import ABCIE
 from .abc7news import Abc7NewsIE
+from .abcgo import AbcGoIE
 from .academicearth import AcademicEarthCourseIE
 from .acast import (
     ACastIE,
