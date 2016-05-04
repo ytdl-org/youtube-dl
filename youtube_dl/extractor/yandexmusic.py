@@ -177,7 +177,7 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
 class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
     IE_NAME = 'yandexmusic:playlist'
     IE_DESC = 'Яндекс.Музыка - Плейлист'
-    _VALID_URL = r'https?://music\.yandex\.(?:ru|kz|ua|by)/users/[^/]+/playlists/(?P<id>\d+)'
+    _VALID_URL = r'https?://music\.yandex\.(?P<tld>ru|kz|ua|by)/users/(?P<user>[^/]+)/playlists/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://music.yandex.ru/users/music.partners/playlists/1245',
@@ -201,19 +201,32 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
     }]
 
     def _real_extract(self, url):
-        playlist_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        tld = mobj.group('tld')
+        user = mobj.group('user')
+        playlist_id = mobj.group('id')
 
-        webpage = self._download_webpage(url, playlist_id)
+        playlist = self._download_json(
+            'https://music.yandex.%s/handlers/playlist.jsx' % tld,
+            playlist_id, 'Downloading missing tracks JSON',
+            fatal=False,
+            headers={
+                'Referer': url,
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-Retpath-Y': url,
+            },
+            query={
+                'owner': user,
+                'kinds': playlist_id,
+                'light': 'true',
+                'lang': tld,
+                'external-domain': 'music.yandex.%s' % tld,
+                'overembed': 'false',
+            })['playlist']
 
-        mu = self._parse_json(
-            self._search_regex(
-                r'var\s+Mu\s*=\s*({.+?});\s*</script>', webpage, 'player'),
-            playlist_id)
-
-        playlist = mu['pageData']['playlist']
         tracks, track_ids = playlist['tracks'], playlist['trackIds']
 
-        # tracks dictionary shipped with webpage is limited to 150 tracks,
+        # tracks dictionary shipped with playlist.jsx API is limited to 150 tracks,
         # missing tracks should be retrieved manually.
         if len(tracks) < len(track_ids):
             present_track_ids = set([compat_str(track['id']) for track in tracks if track.get('id')])
@@ -222,10 +235,9 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
                 'https://music.yandex.ru/handlers/track-entries.jsx',
                 urlencode_postdata({
                     'entries': ','.join(missing_track_ids),
-                    'lang': mu.get('settings', {}).get('lang', 'en'),
-                    'external-domain': 'music.yandex.ru',
+                    'lang': tld,
+                    'external-domain': 'music.yandex.%s' % tld,
                     'overembed': 'false',
-                    'sign': mu.get('authData', {}).get('user', {}).get('sign'),
                     'strict': 'true',
                 }))
             request.add_header('Referer', url)
