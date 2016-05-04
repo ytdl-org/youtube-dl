@@ -231,20 +231,21 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
         if len(tracks) < len(track_ids):
             present_track_ids = set([compat_str(track['id']) for track in tracks if track.get('id')])
             missing_track_ids = set(map(compat_str, track_ids)) - set(present_track_ids)
-            request = sanitized_Request(
-                'https://music.yandex.ru/handlers/track-entries.jsx',
-                urlencode_postdata({
+            missing_tracks = self._download_json(
+                'https://music.yandex.%s/handlers/track-entries.jsx' % tld,
+                playlist_id, 'Downloading missing tracks JSON',
+                fatal=False,
+                headers={
+                    'Referer': url,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                query={
                     'entries': ','.join(missing_track_ids),
                     'lang': tld,
                     'external-domain': 'music.yandex.%s' % tld,
                     'overembed': 'false',
                     'strict': 'true',
-                }))
-            request.add_header('Referer', url)
-            request.add_header('X-Requested-With', 'XMLHttpRequest')
-
-            missing_tracks = self._download_json(
-                request, playlist_id, 'Downloading missing tracks JSON', fatal=False)
+                })
             if missing_tracks:
                 tracks.extend(missing_tracks)
 
