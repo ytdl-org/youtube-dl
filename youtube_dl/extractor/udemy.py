@@ -5,7 +5,6 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
-    compat_urllib_parse_urlencode,
     compat_urllib_request,
     compat_urlparse,
 )
@@ -91,12 +90,12 @@ class UdemyIE(InfoExtractor):
 
     def _download_lecture(self, course_id, lecture_id):
         return self._download_json(
-            'https://www.udemy.com/api-2.0/users/me/subscribed-courses/%s/lectures/%s?%s' % (
-                course_id, lecture_id, compat_urllib_parse_urlencode({
-                    'fields[lecture]': 'title,description,view_html,asset',
-                    'fields[asset]': 'asset_type,stream_url,thumbnail_url,download_urls,data',
-                })),
-            lecture_id, 'Downloading lecture JSON')
+            'https://www.udemy.com/api-2.0/users/me/subscribed-courses/%s/lectures/%s?'
+            % (course_id, lecture_id),
+            lecture_id, 'Downloading lecture JSON', query={
+                'fields[lecture]': 'title,description,view_html,asset',
+                'fields[asset]': 'asset_type,stream_url,thumbnail_url,download_urls,data',
+            })
 
     def _handle_error(self, response):
         if not isinstance(response, dict):
@@ -156,13 +155,13 @@ class UdemyIE(InfoExtractor):
             'password': password,
         })
 
-        request = sanitized_Request(
-            self._LOGIN_URL, urlencode_postdata(login_form))
-        request.add_header('Referer', self._ORIGIN_URL)
-        request.add_header('Origin', self._ORIGIN_URL)
-
         response = self._download_webpage(
-            request, None, 'Logging in as %s' % username)
+            self._LOGIN_URL, None, 'Logging in as %s' % username,
+            data=urlencode_postdata(login_form),
+            headers={
+                'Referer': self._ORIGIN_URL,
+                'Origin': self._ORIGIN_URL,
+            })
 
         if not is_logged(response):
             error = self._html_search_regex(
