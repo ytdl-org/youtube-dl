@@ -222,13 +222,17 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
                 'overembed': 'false',
             })['playlist']
 
-        tracks, track_ids = playlist['tracks'], playlist['trackIds']
+        tracks, track_ids = playlist['tracks'], map(compat_str, playlist['trackIds'])
 
         # tracks dictionary shipped with playlist.jsx API is limited to 150 tracks,
         # missing tracks should be retrieved manually.
         if len(tracks) < len(track_ids):
-            present_track_ids = set([compat_str(track['id']) for track in tracks if track.get('id')])
-            missing_track_ids = set(map(compat_str, track_ids)) - set(present_track_ids)
+            present_track_ids = set([
+                compat_str(track['id'])
+                for track in tracks if track.get('id')])
+            missing_track_ids = [
+                track_id for track_id in track_ids
+                if track_id not in present_track_ids]
             missing_tracks = self._download_json(
                 'https://music.yandex.%s/handlers/track-entries.jsx' % tld,
                 playlist_id, 'Downloading missing tracks JSON',
