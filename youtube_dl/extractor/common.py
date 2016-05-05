@@ -245,6 +245,10 @@ class InfoExtractor(object):
                     specified in the URL.
     end_time:       Time in seconds where the reproduction should end, as
                     specified in the URL.
+    chapters:       A list of dictionaries, with the following entries:
+                        * "start_time" - The start time of the chapter in seconds
+                        * "end_time" - The end time of the chapter in seconds
+                        * "title" (optional, string)
 
     The following fields should only be used when the video belongs to some logical
     chapter or section:
