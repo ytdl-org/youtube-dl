@@ -9,6 +9,7 @@ from ..utils import (
     ExtractorError,
     determine_ext,
     int_or_none,
+    float_or_none,
     js_to_json,
     strip_jsonp,
     unified_strdate,
@@ -459,6 +460,7 @@ class PBSIE(InfoExtractor):
             if not isinstance(e.cause, compat_HTTPError) or e.cause.code != 404:
                 raise
 
+        chapters = []
         # Player pages may also serve different qualities
         for page in ('widget/partnerplayer', 'portalplayer'):
             player = self._download_webpage(
@@ -474,6 +476,21 @@ class PBSIE(InfoExtractor):
                     extract_redirect_urls(video_info)
                     if not info:
                         info = video_info
+                if not chapters:
+                    chapters_data = re.findall(r'(?s)chapters\.push\(({.*?})\)', player) or []
+                    for chapter_data in chapters_data:
+                        chapter = self._parse_json(chapter_data, video_id, js_to_json, fatal=False)
+                        if not chapter:
+                            continue
+                        start_time = float_or_none(chapter.get('start_time'), 1000)
+                        duration = float_or_none(chapter.get('duration'), 1000)
+                        if start_time is None or duration is None:
+                            continue
+                        chapters.append({
+                            'start_time': start_time,
+                            'end_time': start_time + duration,
+                            'title': chapter.get('title'),
+                        })
 
         formats = []
         http_url = None
@@ -568,4 +585,5 @@ class PBSIE(InfoExtractor):
             'upload_date': upload_date,
             'formats': formats,
             'subtitles': subtitles,
+            'chapters': chapters,
         }
