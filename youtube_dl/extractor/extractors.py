@@ -157,6 +157,7 @@ from .cspan import CSpanIE
 from .ctsnews import CtsNewsIE
 from .cultureunplugged import CultureUnpluggedIE
 from .cwtv import CWTVIE
+from .dailymail import DailyMailIE
 from .dailymotion import (
     DailymotionIE,
     DailymotionPlaylistIE,
