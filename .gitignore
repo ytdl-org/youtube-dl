@@ -36,3 +36,4 @@ test/local_parameters.json
 youtube-dl.zsh
 .idea
 .idea/*
+tmp/

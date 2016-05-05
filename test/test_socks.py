@@ -8,11 +8,20 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import (FakeYDL, get_params)
-from youtube_dl.compat import compat_urllib_request
+import random
+import subprocess
+
+from test.helper import (
+    FakeYDL,
+    get_params,
+)
+from youtube_dl.compat import (
+    compat_str,
+    compat_urllib_request,
+)
 
 
-class TestSocks(unittest.TestCase):
+class TestMultipleSocks(unittest.TestCase):
     @staticmethod
     def _check_params(attrs):
         params = get_params()
@@ -65,6 +74,33 @@ class TestSocks(unittest.TestCase):
         self.assertEqual(
             ydl.urlopen(req).read().decode('utf-8'),
             params['secondary_server_ip'])
+
+
+class TestSocks(unittest.TestCase):
+    def setUp(self):
+        self.port = random.randint(49152, 65535)
+        self.server_process = subprocess.Popen([
+            'srelay', '-f', '-i', '127.0.0.1:%d' % self.port],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    def tearDown(self):
+        self.server_process.terminate()
+        self.server_process.communicate()
+
+    def _get_ip(self, protocol):
+        ydl = FakeYDL({
+            'proxy': '%s://127.0.0.1:%d' % (protocol, self.port),
+        })
+        return ydl.urlopen('http://yt-dl.org/ip').read().decode('utf-8')
+
+    def test_socks4(self):
+        self.assertTrue(isinstance(self._get_ip('socks4'), compat_str))
+
+    def test_socks4a(self):
+        self.assertTrue(isinstance(self._get_ip('socks4a'), compat_str))
+
+    def test_socks5(self):
+        self.assertTrue(isinstance(self._get_ip('socks5'), compat_str))
 
 
 if __name__ == '__main__':
