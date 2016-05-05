@@ -561,7 +561,10 @@ from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
 from .people import PeopleIE
-from .periscope import PeriscopeIE
+from .periscope import (
+    PeriscopeIE,
+    PeriscopeUserIE,
+)
 from .philharmoniedeparis import PhilharmonieDeParisIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE

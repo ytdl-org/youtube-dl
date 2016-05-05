@@ -7,6 +7,7 @@ from ..utils import parse_iso8601
 
 class PeriscopeIE(InfoExtractor):
     IE_DESC = 'Periscope'
+    IE_NAME = 'periscope'
     _VALID_URL = r'https?://(?:www\.)?periscope\.tv/[^/]+/(?P<id>[^/?#]+)'
     # Alive example URLs can be found here http://onperiscope.com/
     _TESTS = [{
@@ -79,3 +80,39 @@ class PeriscopeIE(InfoExtractor):
             'thumbnails': thumbnails,
             'formats': formats,
         }
+
+
+class PeriscopeUserIE(InfoExtractor):
+    _VALID_URL = r'https?://www\.periscope\.tv/(?P<id>[^/]+)/?$'
+    IE_DESC = 'Periscope user videos'
+    IE_NAME = 'periscope:user'
+
+    _TEST = {
+        'url': 'https://www.periscope.tv/LularoeHusbandMike/',
+        'info_dict': {
+            'id': 'LularoeHusbandMike',
+            'title': 'LULAROE HUSBAND MIKE',
+        },
+        # Periscope only shows videos in the last 24 hours, so it's possible to
+        # get 0 videos
+        'playlist_mincount': 0,
+    }
+
+    def _real_extract(self, url):
+        user_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, user_id)
+
+        broadcast_data = self._parse_json(self._html_search_meta(
+            'broadcast-data', webpage, default='{}'), user_id)
+        username = broadcast_data.get('user', {}).get('display_name')
+        user_broadcasts = self._parse_json(
+            self._html_search_meta('user-broadcasts', webpage, default='{}'),
+            user_id)
+
+        entries = [
+            self.url_result(
+                'https://www.periscope.tv/%s/%s' % (user_id, broadcast['id']))
+            for broadcast in user_broadcasts.get('broadcasts', [])]
+
+        return self.playlist_result(entries, user_id, username)
