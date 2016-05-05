@@ -266,6 +266,7 @@ class KuwoCategoryIE(InfoExtractor):
         'info_dict': {
             'id': '86375',
             'title': '八十年代精选',
+            'description': '这些都是属于八十年代的回忆！',
         },
         'playlist_mincount': 24,
     }
