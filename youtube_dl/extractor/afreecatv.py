@@ -9,6 +9,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
+    xpath_text,
 )
 
 
@@ -41,25 +42,24 @@ class AfreecaTVIE(InfoExtractor):
             path='/api/video/get_video_info.php'))
         video_xml = self._download_xml(info_url, video_id)
 
-        track = video_xml.find('track')
-        if track.find('flag').text != 'SUCCEED':
+        if xpath_text(video_xml, './track/flag', default='FAIL') != 'SUCCEED':
             raise ExtractorError('Specified AfreecaTV video does not exist',
                                  expected=True)
-        title = track.find('title').text
-        uploader = track.find('nickname').text
-        uploader_id = track.find('bj_id').text
-        duration = int_or_none(track.find('duration').text)
-        thumbnail = track.find('titleImage').text
+        title = xpath_text(video_xml, './track/title', 'title')
+        uploader = xpath_text(video_xml, './track/nickname', 'uploader')
+        uploader_id = xpath_text(video_xml, './track/bj_id', 'uploader id')
+        duration = int_or_none(xpath_text(video_xml, './track/duration',
+                                          'duration'))
+        thumbnail = xpath_text(video_xml, './track/titleImage', 'thumbnail')
 
         entries = []
-        for video in track.findall('video'):
-            for video_file in video.findall('file'):
-                entries.append({
-                    'id': video_file.get('key'),
-                    'title': title,
-                    'duration': int_or_none(video_file.get('duration')),
-                    'formats': [{'url': video_file.text}]
-                })
+        for video_file in video_xml.findall('./track/video/file'):
+            entries.append({
+                'id': video_file.get('key'),
+                'title': title,
+                'duration': int_or_none(video_file.get('duration')),
+                'formats': [{'url': video_file.text}]
+            })
 
         info = {
             'id': video_id,
