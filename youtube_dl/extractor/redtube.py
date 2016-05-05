@@ -66,7 +66,6 @@ class RedTubeIE(InfoExtractor):
             r'<span[^>]*>VIEWS</span></td>\s*<td>([\d,.]+)',
             webpage, 'view count', fatal=False))
 
-
         # No self-labeling, but they describe themselves as
         # "Home of Videos Porno"
         age_limit = 18
