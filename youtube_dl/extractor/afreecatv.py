@@ -23,7 +23,7 @@ class AfreecaTVIE(InfoExtractor):
             /app/(?:index|read_ucc_bbs)\.cgi|
             /player/[Pp]layer\.(?:swf|html))
         \?.*?\bnTitleNo=(?P<id>\d+)'''
-    _TEST = {
+    _TESTS = [{
         'url': 'http://live.afreecatv.com:8079/app/index.cgi?szType=read_ucc_bbs&szBjId=dailyapril&nStationNo=16711924&nBbsNo=18605867&nTitleNo=36164052&szSkin=',
         'md5': 'f72c89fe7ecc14c1b5ce506c4996046e',
         'info_dict': {
@@ -33,8 +33,36 @@ class AfreecaTVIE(InfoExtractor):
             'thumbnail': 're:^https?://videoimg.afreecatv.com/.*$',
             'uploader': 'dailyapril',
             'uploader_id': 'dailyapril',
+            'upload_date': '20160503',
         }
-    }
+    }, {
+        'url': 'http://afbbs.afreecatv.com:8080/app/read_ucc_bbs.cgi?nStationNo=16711924&nTitleNo=36153164&szBjId=dailyapril&nBbsNo=18605867',
+        'info_dict': {
+            'id': '36153164',
+            'title': "BJ유트루와 함께하는 '팅커벨 메이크업!'",
+            'thumbnail': 're:^https?://videoimg.afreecatv.com/.*$',
+            'uploader': 'dailyapril',
+            'uploader_id': 'dailyapril',
+        },
+        'playlist_count': 2,
+        'playlist': [{
+            'md5': 'd8b7c174568da61d774ef0203159bf97',
+            'info_dict': {
+                'id': '36153164_1',
+                'ext': 'mp4',
+                'title': "BJ유트루와 함께하는 '팅커벨 메이크업!'",
+                'upload_date': '20160502',
+            },
+        }, {
+            'md5': '58f2ce7f6044e34439ab2d50612ab02b',
+            'info_dict': {
+                'id': '36153164_2',
+                'ext': 'mp4',
+                'title': "BJ유트루와 함께하는 '팅커벨 메이크업!'",
+                'upload_date': '20160502',
+            },
+        }],
+    }]
 
     @staticmethod
     def parse_video_key(key):
