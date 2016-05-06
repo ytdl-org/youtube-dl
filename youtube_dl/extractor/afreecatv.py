@@ -58,7 +58,7 @@ class AfreecaTVIE(InfoExtractor):
                 'id': video_file.get('key'),
                 'title': title,
                 'duration': int_or_none(video_file.get('duration')),
-                'formats': [{'url': video_file.text}]
+                'url': video_file.text,
             })
 
         info = {
@@ -74,7 +74,7 @@ class AfreecaTVIE(InfoExtractor):
             info['_type'] = 'multi_video'
             info['entries'] = entries
         elif len(entries) == 1:
-            info['formats'] = entries[0]['formats']
+            info['url'] = entries[0]['url']
         else:
             raise ExtractorError(
                 'No files found for the specified AfreecaTV video, either'
