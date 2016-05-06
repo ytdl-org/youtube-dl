@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse_urlparse,
@@ -34,6 +36,15 @@ class AfreecaTVIE(InfoExtractor):
         }
     }
 
+    @staticmethod
+    def parse_video_key(key):
+        video_key = {'upload_date': None, 'part': '0'}
+        m = re.match(r'^(?P<upload_date>\d{8})_\w+_(?P<part>\d+)$', key)
+        if m:
+            video_key['upload_date'] = m.group('upload_date')
+            video_key['part'] = m.group('part')
+        return video_key
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         parsed_url = compat_urllib_parse_urlparse(url)
@@ -54,9 +65,11 @@ class AfreecaTVIE(InfoExtractor):
 
         entries = []
         for video_file in video_xml.findall('./track/video/file'):
+            video_key = self.parse_video_key(video_file.get('key'))
             entries.append({
-                'id': video_file.get('key'),
+                'id': '%s_%s' % (video_id, video_key['part']),
                 'title': title,
+                'upload_date': video_key['upload_date'],
                 'duration': int_or_none(video_file.get('duration')),
                 'url': video_file.text,
             })
@@ -75,6 +88,7 @@ class AfreecaTVIE(InfoExtractor):
             info['entries'] = entries
         elif len(entries) == 1:
             info['url'] = entries[0]['url']
+            info['upload_date'] = entries[0]['upload_date']
         else:
             raise ExtractorError(
                 'No files found for the specified AfreecaTV video, either'
