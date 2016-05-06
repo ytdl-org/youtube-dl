@@ -157,6 +157,7 @@ from .cspan import CSpanIE
 from .ctsnews import CtsNewsIE
 from .cultureunplugged import CultureUnpluggedIE
 from .cwtv import CWTVIE
+from .dailymail import DailyMailIE
 from .dailymotion import (
     DailymotionIE,
     DailymotionPlaylistIE,
@@ -560,7 +561,10 @@ from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
 from .people import PeopleIE
-from .periscope import PeriscopeIE
+from .periscope import (
+    PeriscopeIE,
+    PeriscopeUserIE,
+)
 from .philharmoniedeparis import PhilharmonieDeParisIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
