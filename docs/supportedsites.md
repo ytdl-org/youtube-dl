@@ -700,6 +700,7 @@
  - **Vessel**
  - **Vesti**: Вести.Ru
  - **Vevo**
+ - **VevoPlaylist**
  - **VGTV**: VGTV, BTTV, FTV, Aftenposten and Aftonbladet
  - **vh1.com**
  - **Vice**
@@ -772,7 +773,7 @@
  - **WSJ**: Wall Street Journal
  - **XBef**
  - **XboxClips**
- - **XFileShare**: XFileShare based sites: GorillaVid.in, daclips.in, movpod.in, fastvideo.in, realvid.net, filehoot.com and vidto.me
+ - **XFileShare**: XFileShare based sites: DaClips, FileHoot, GorillaVid, MovPod, PowerWatch, Rapidvideo.ws, TheVideoBee, Vidto, Streamin.To
  - **XHamster**
  - **XHamsterEmbed**
  - **xiami:album**: 虾米音乐 - 专辑
