@@ -66,7 +66,7 @@ class AfreecaTVIE(InfoExtractor):
 
     @staticmethod
     def parse_video_key(key):
-        video_key = {'upload_date': None, 'part': '0'}
+        video_key = {}
         m = re.match(r'^(?P<upload_date>\d{8})_\w+_(?P<part>\d+)$', key)
         if m:
             video_key['upload_date'] = m.group('upload_date')
@@ -92,12 +92,12 @@ class AfreecaTVIE(InfoExtractor):
         thumbnail = xpath_text(video_xml, './track/titleImage', 'thumbnail')
 
         entries = []
-        for video_file in video_xml.findall('./track/video/file'):
+        for i, video_file in enumerate(video_xml.findall('./track/video/file')):
             video_key = self.parse_video_key(video_file.get('key'))
             entries.append({
-                'id': '%s_%s' % (video_id, video_key['part']),
+                'id': '%s_%s' % (video_id, video_key.get('part', i + 1)),
                 'title': title,
-                'upload_date': video_key['upload_date'],
+                'upload_date': video_key.get('upload_date'),
                 'duration': int_or_none(video_file.get('duration')),
                 'url': video_file.text,
             })
