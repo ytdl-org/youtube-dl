@@ -406,7 +406,7 @@ def _real_main(argv=None):
 
         try:
             if opts.load_info_filename is not None:
-                retcode = ydl.download_with_info_file(opts.load_info_filename)
+                retcode = ydl.download_with_info_file(compat_expanduser(opts.load_info_filename))
             else:
                 retcode = ydl.download(all_urls)
         except MaxDownloadsReached:
