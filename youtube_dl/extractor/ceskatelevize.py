@@ -33,14 +33,13 @@ class CeskaTelevizeIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        'url': 'http://www.ceskatelevize.cz/ivysilani/10532695142-prvni-republika/bonus/14716-zpevacka-z-duparny-bobina',
+        # live stream
+        'url': 'http://www.ceskatelevize.cz/ivysilani/zive/ct4/',
         'info_dict': {
-            'id': '61924494876844374',
+            'id': 402,
             'ext': 'mp4',
-            'title': 'První republika: Zpěvačka z Dupárny Bobina',
-            'description': 'Sága mapující atmosféru první republiky od r. 1918 do r. 1945.',
-            'thumbnail': 're:^https?://.*\.jpg',
-            'duration': 88.4,
+            'title': 're:ČT Sport.*',
+            'is_live': True,
         },
         'params': {
             # m3u8 download
@@ -118,19 +117,21 @@ class CeskaTelevizeIE(InfoExtractor):
         req = sanitized_Request(compat_urllib_parse_unquote(playlist_url))
         req.add_header('Referer', url)
 
-        playlist_title = self._og_search_title(webpage)
-        playlist_description = self._og_search_description(webpage)
+        playlist_title = self._og_search_title(webpage, default=None)
+        playlist_description = self._og_search_description(webpage, default=None)
 
         playlist = self._download_json(req, playlist_id)['playlist']
         playlist_len = len(playlist)
 
         entries = []
         for item in playlist:
+            is_live = item['type'] == 'LIVE'
             formats = []
             for format_id, stream_url in item['streamUrls'].items():
                 formats.extend(self._extract_m3u8_formats(
                     stream_url, playlist_id, 'mp4',
-                    entry_protocol='m3u8_native', fatal=False))
+                    entry_protocol='m3u8' if is_live else 'm3u8_native',
+                    fatal=False))
             self._sort_formats(formats)
 
             item_id = item.get('id') or item['assetId']
@@ -145,14 +146,28 @@ class CeskaTelevizeIE(InfoExtractor):
                 if subs:
                     subtitles = self.extract_subtitles(episode_id, subs)
 
+            if playlist_len == 1:
+                if is_live:
+                    # live streams has channel name in title
+                    final_title = self._live_title(title)
+                elif playlist_title:
+                    # title is always set (no KeyError caught)
+                    # and gives good fallback
+                    final_title = title
+                else:
+                    final_title = playlist_title
+            else:
+                final_title = '%s (%s)' % (playlist_title, title)
+
             entries.append({
                 'id': item_id,
-                'title': playlist_title if playlist_len == 1 else '%s (%s)' % (playlist_title, title),
+                'title': final_title,
                 'description': playlist_description if playlist_len == 1 else None,
                 'thumbnail': thumbnail,
                 'duration': duration,
                 'formats': formats,
                 'subtitles': subtitles,
+                'is_live': is_live,
             })
 
         return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
