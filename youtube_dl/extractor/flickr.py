@@ -27,10 +27,24 @@ class FlickrIE(InfoExtractor):
             'comment_count': int,
             'view_count': int,
             'tags': list,
+            'license': 'Attribution-ShareAlike',
         }
     }
-
     _API_BASE_URL = 'https://api.flickr.com/services/rest?'
+    # https://help.yahoo.com/kb/flickr/SLN25525.html
+    _LICENSES = {
+        '0': 'All Rights Reserved',
+        '1': 'Attribution-NonCommercial-ShareAlike',
+        '2': 'Attribution-NonCommercial',
+        '3': 'Attribution-NonCommercial-NoDerivs',
+        '4': 'Attribution',
+        '5': 'Attribution-ShareAlike',
+        '6': 'Attribution-NoDerivs',
+        '7': 'No known copyright restrictions',
+        '8': 'United States government work',
+        '9': 'Public Domain Dedication (CC0)',
+        '10': 'Public Domain Work',
+    }
 
     def _call_api(self, method, video_id, api_key, note, secret=None):
         query = {
@@ -87,7 +101,8 @@ class FlickrIE(InfoExtractor):
                 'uploader': owner.get('realname'),
                 'comment_count': int_or_none(video_info.get('comments', {}).get('_content')),
                 'view_count': int_or_none(video_info.get('views')),
-                'tags': [tag.get('_content') for tag in video_info.get('tags', {}).get('tag', [])]
+                'tags': [tag.get('_content') for tag in video_info.get('tags', {}).get('tag', [])],
+                'license': self._LICENSES.get(video_info.get('license')),
             }
         else:
             raise ExtractorError('not a video', expected=True)
