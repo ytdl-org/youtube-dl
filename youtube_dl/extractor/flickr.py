@@ -24,6 +24,7 @@ class FlickrIE(InfoExtractor):
             'upload_date': '20110423',
             'uploader_id': '10922353@N03',
             'uploader': 'Forest Wander',
+            'uploader_url': 'https://www.flickr.com/photos/forestwander-nature-pictures/',
             'comment_count': int,
             'view_count': int,
             'tags': list,
@@ -89,6 +90,9 @@ class FlickrIE(InfoExtractor):
             self._sort_formats(formats)
 
             owner = video_info.get('owner', {})
+            uploader_id = owner.get('nsid')
+            uploader_path = owner.get('path_alias') or uploader_id
+            uploader_url = 'https://www.flickr.com/photos/%s/' % uploader_path if uploader_path else None
 
             return {
                 'id': video_id,
@@ -97,8 +101,9 @@ class FlickrIE(InfoExtractor):
                 'formats': formats,
                 'timestamp': int_or_none(video_info.get('dateuploaded')),
                 'duration': int_or_none(video_info.get('video', {}).get('duration')),
-                'uploader_id': owner.get('nsid'),
+                'uploader_id': uploader_id,
                 'uploader': owner.get('realname'),
+                'uploader_url': uploader_url,
                 'comment_count': int_or_none(video_info.get('comments', {}).get('_content')),
                 'view_count': int_or_none(video_info.get('views')),
                 'tags': [tag.get('_content') for tag in video_info.get('tags', {}).get('tag', [])],
