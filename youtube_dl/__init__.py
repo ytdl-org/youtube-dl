@@ -86,7 +86,9 @@ def _real_main(argv=None):
             if opts.batchfile == '-':
                 batchfd = sys.stdin
             else:
-                batchfd = io.open(opts.batchfile, 'r', encoding='utf-8', errors='ignore')
+                batchfd = io.open(
+                    compat_expanduser(opts.batchfile),
+                    'r', encoding='utf-8', errors='ignore')
             batch_urls = read_batch_urls(batchfd)
             if opts.verbose:
                 write_string('[debug] Batch file urls: ' + repr(batch_urls) + '\n')
