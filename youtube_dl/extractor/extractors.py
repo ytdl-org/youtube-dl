@@ -69,6 +69,7 @@ from .bbc import (
 )
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
+from .beatport import BeatportIE
 from .beatportpro import BeatportProIE
 from .bet import BetIE
 from .bigflix import BigflixIE
