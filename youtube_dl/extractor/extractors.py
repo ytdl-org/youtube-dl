@@ -16,8 +16,8 @@ from .adobetv import (
     AdobeTVVideoIE,
 )
 from .adultswim import AdultSwimIE
-from .afreecatv import AfreecaTVIE
 from .aenetworks import AENetworksIE
+from .afreecatv import AfreecaTVIE
 from .aftonbladet import AftonbladetIE
 from .airmozilla import AirMozillaIE
 from .aljazeera import AlJazeeraIE
