@@ -95,7 +95,7 @@ class AfreecaTVIE(InfoExtractor):
         thumbnail = xpath_text(video_xml, './track/titleImage', 'thumbnail')
 
         entries = []
-        for i, video_file in enumerate(video_xml.findall('./track/video/file')):
+        for i, video_file in enumerate(video_xml.findall('./track/video/file[@key]')):
             video_key = self.parse_video_key(video_file.get('key'))
             entries.append({
                 'id': '%s_%s' % (video_id, video_key.get('part', i + 1)),
@@ -119,7 +119,7 @@ class AfreecaTVIE(InfoExtractor):
             info['entries'] = entries
         elif len(entries) == 1:
             info['url'] = entries[0]['url']
-            info['upload_date'] = entries[0]['upload_date']
+            info['upload_date'] = entries[0].get('upload_date')
         else:
             raise ExtractorError(
                 'No files found for the specified AfreecaTV video, either'
