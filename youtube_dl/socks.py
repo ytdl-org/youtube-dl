@@ -210,8 +210,6 @@ class sockssocket(socket.socket):
             if status != SOCKS5_USER_AUTH_SUCCESS:
                 self.close()
                 raise Socks5Error(Socks5Error.ERR_GENERAL_FAILURE)
-        elif method == Socks5Auth.AUTH_NONE:
-            pass
 
     def _setup_socks5(self, address):
         destaddr, port = address
