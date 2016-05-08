@@ -78,7 +78,7 @@ class TestMultipleSocks(unittest.TestCase):
 
 class TestSocks(unittest.TestCase):
     def setUp(self):
-        self.port = random.randint(49152, 65535)
+        self.port = random.randint(20000, 30000)
         self.server_process = subprocess.Popen([
             'srelay', '-f', '-i', '127.0.0.1:%d' % self.port],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
