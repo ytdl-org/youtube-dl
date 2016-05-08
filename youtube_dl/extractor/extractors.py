@@ -409,6 +409,10 @@ from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mgoon import MgoonIE
 from .mgtv import MGTVIE
+from .microsoftvirtualacademy import (
+    MicrosoftVirtualAcademyIE,
+    MicrosoftVirtualAcademyCourseIE,
+)
 from .minhateca import MinhatecaIE
 from .ministrygrid import MinistryGridIE
 from .minoto import MinotoIE
