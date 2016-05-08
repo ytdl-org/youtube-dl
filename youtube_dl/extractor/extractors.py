@@ -384,6 +384,7 @@ from .limelight import (
     LimelightChannelIE,
     LimelightChannelListIE,
 )
+from .litv import LiTVIE
 from .liveleak import LiveLeakIE
 from .livestream import (
     LivestreamIE,
