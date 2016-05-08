@@ -31,7 +31,7 @@ class MicrosoftVirtualAcademyBaseIE(InfoExtractor):
 class MicrosoftVirtualAcademyIE(MicrosoftVirtualAcademyBaseIE):
     IE_NAME = 'mva'
     IE_DESC = 'Microsoft Virtual Academy videos'
-    _VALID_URL = r'(?:%s:|https?://(?:mva\.microsoft|microsoftvirtualacademy)\.com/[^/]+/training-courses/[^/?#&]+-)(?P<course_id>\d+)(?::|\?l=)(?P<id>[\da-zA-Z]+_\d+)' % IE_NAME
+    _VALID_URL = r'(?:%s:|https?://(?:mva\.microsoft|(?:www\.)?microsoftvirtualacademy)\.com/[^/]+/training-courses/[^/?#&]+-)(?P<course_id>\d+)(?::|\?l=)(?P<id>[\da-zA-Z]+_\d+)' % IE_NAME
 
     _TESTS = [{
         'url': 'https://mva.microsoft.com/en-US/training-courses/microsoft-azure-fundamentals-virtual-machines-11788?l=gfVXISmEB_6804984382',
@@ -118,7 +118,7 @@ class MicrosoftVirtualAcademyIE(MicrosoftVirtualAcademyBaseIE):
 class MicrosoftVirtualAcademyCourseIE(MicrosoftVirtualAcademyBaseIE):
     IE_NAME = 'mva:course'
     IE_DESC = 'Microsoft Virtual Academy courses'
-    _VALID_URL = r'(?:%s:|https?://(?:mva\.microsoft|microsoftvirtualacademy)\.com/[^/]+/training-courses/(?P<display_id>[^/?#&]+)-)(?P<id>\d+)' % IE_NAME
+    _VALID_URL = r'(?:%s:|https?://(?:mva\.microsoft|(?:www\.)?microsoftvirtualacademy)\.com/[^/]+/training-courses/(?P<display_id>[^/?#&]+)-)(?P<id>\d+)' % IE_NAME
 
     _TESTS = [{
         'url': 'https://mva.microsoft.com/en-US/training-courses/microsoft-azure-fundamentals-virtual-machines-11788',
