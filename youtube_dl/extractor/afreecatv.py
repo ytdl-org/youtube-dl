@@ -30,7 +30,7 @@ class AfreecaTVIE(InfoExtractor):
             'id': '36164052',
             'ext': 'mp4',
             'title': '데일리 에이프릴 요정들의 시상식!',
-            'thumbnail': 're:^https?://videoimg.afreecatv.com/.*$',
+            'thumbnail': 're:^https?://(?:video|st)img.afreecatv.com/.*$',
             'uploader': 'dailyapril',
             'uploader_id': 'dailyapril',
             'upload_date': '20160503',
@@ -40,7 +40,7 @@ class AfreecaTVIE(InfoExtractor):
         'info_dict': {
             'id': '36153164',
             'title': "BJ유트루와 함께하는 '팅커벨 메이크업!'",
-            'thumbnail': 're:^https?://videoimg.afreecatv.com/.*$',
+            'thumbnail': 're:^https?://(?:video|st)img.afreecatv.com/.*$',
             'uploader': 'dailyapril',
             'uploader_id': 'dailyapril',
         },
@@ -62,6 +62,9 @@ class AfreecaTVIE(InfoExtractor):
                 'upload_date': '20160502',
             },
         }],
+    }, {
+        'url': 'http://www.afreecatv.com/player/Player.swf?szType=szBjId=djleegoon&nStationNo=11273158&nBbsNo=13161095&nTitleNo=36327652',
+        'only_matching': True,
     }]
 
     @staticmethod
