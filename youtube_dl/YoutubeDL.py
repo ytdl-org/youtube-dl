@@ -408,6 +408,10 @@ class YoutubeDL(object):
         self._pps.append(pp)
         pp.set_downloader(self)
 
+    def _hook_progress(self, status):
+        for ph in self._progress_hooks:
+            ph(status)
+
     def add_progress_hook(self, ph):
         """Add the progress hook (currently only for the file downloader)"""
         self._progress_hooks.append(ph)
@@ -680,6 +684,10 @@ class YoutubeDL(object):
                         'entries': ie_result,
                     }
                 self.add_default_extra_info(ie_result, ie, url)
+                self._hook_progress({
+                    'status': 'extract_info',
+                    'ie_result': ie_result,
+                })
                 if process:
                     return self.process_ie_result(ie_result, download, extra_info)
                 else:
@@ -1575,8 +1583,7 @@ class YoutubeDL(object):
             try:
                 def dl(name, info):
                     fd = get_suitable_downloader(info, self.params)(self, self.params)
-                    for ph in self._progress_hooks:
-                        fd.add_progress_hook(ph)
+                    fd.add_progress_hook(self._hook_progress)
                     if self.params.get('verbose'):
                         self.to_stdout('[debug] Invoking downloader on %r' % info.get('url'))
                     return fd.download(name, info)
