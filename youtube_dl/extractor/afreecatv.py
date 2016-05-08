@@ -95,8 +95,10 @@ class AfreecaTVIE(InfoExtractor):
         thumbnail = xpath_text(video_xml, './track/titleImage', 'thumbnail')
 
         entries = []
-        for i, video_file in enumerate(video_xml.findall('./track/video/file[@key]')):
-            video_key = self.parse_video_key(video_file.get('key'))
+        for i, video_file in enumerate(video_xml.findall('./track/video/file')):
+            video_key = self.parse_video_key(video_file.get('key', ''))
+            if not video_key:
+                continue
             entries.append({
                 'id': '%s_%s' % (video_id, video_key.get('part', i + 1)),
                 'title': title,
