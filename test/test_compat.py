@@ -10,7 +10,6 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-from youtube_dl.utils import get_filesystem_encoding
 from youtube_dl.compat import (
     compat_getenv,
     compat_setenv,
