@@ -4,6 +4,7 @@ import os.path
 import re
 
 from .fragment import FragmentFD
+from .external import FFmpegFD
 
 from ..compat import compat_urlparse
 from ..utils import (
@@ -17,12 +18,34 @@ class HlsFD(FragmentFD):
 
     FD_NAME = 'hlsnative'
 
+    @staticmethod
+    def can_download(manifest):
+        UNSUPPORTED_FEATURES = (
+            r'#EXT-X-KEY:METHOD=(?!NONE)',  # encrypted streams [1]
+            r'#EXT-X-BYTERANGE',  # playlists composed of byte ranges of media files [2]
+            r'#EXT-X-MEDIA-SEQUENCE:(?!0$)',  # live streams [3]
+            # 1. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.2.4
+            # 2. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.2.2
+            # 3. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3.2
+        )
+        return all(not re.search(feature, manifest) for feature in UNSUPPORTED_FEATURES)
+
     def real_download(self, filename, info_dict):
         man_url = info_dict['url']
         self.to_screen('[%s] Downloading m3u8 manifest' % self.FD_NAME)
         manifest = self.ydl.urlopen(man_url).read()
 
         s = manifest.decode('utf-8', 'ignore')
+
+        if not self.can_download(s):
+            self.report_warning(
+                'hlsnative has detected features it does not support, '
+                'extraction will be delegated to ffmpeg')
+            fd = FFmpegFD(self.ydl, self.params)
+            for ph in self._progress_hooks:
+                fd.add_progress_hook(ph)
+            return fd.real_download(filename, info_dict)
+
         fragment_urls = []
         for line in s.splitlines():
             line = line.strip()

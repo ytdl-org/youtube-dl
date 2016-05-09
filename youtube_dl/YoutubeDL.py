@@ -2025,6 +2025,7 @@ class YoutubeDL(object):
         if opts_cookiefile is None:
             self.cookiejar = compat_cookiejar.CookieJar()
         else:
+            opts_cookiefile = compat_expanduser(opts_cookiefile)
             self.cookiejar = compat_cookiejar.MozillaCookieJar(
                 opts_cookiefile)
             if os.access(opts_cookiefile, os.R_OK):
