@@ -42,7 +42,7 @@ class TestCompat(unittest.TestCase):
         test_str = 'C:\Documents and Settings\тест\Application Data'
         compat_setenv('HOME', test_str)
         self.assertEqual(compat_expanduser('~'), test_str)
-        compat_setenv('HOME', old_home)
+        compat_setenv('HOME', old_home or '')
 
     def test_all_present(self):
         import youtube_dl.compat
