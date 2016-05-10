@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import ExtractorError
 
 print_debug = 1    # 1 to turn on debug notification printing
 
@@ -20,6 +21,9 @@ class ErrIE(InfoExtractor):
             'ext': 'mp4',
             'title': '2016-000934-0611_Pealtnagija.mp4'
         },
+        'params': {
+            'skip_download': 'requires rtmpdump'
+        },
     }, {
         # ETV recent (folder: /gb/, pattern: sources)
         'url': 'http://etv.err.ee/v/dokumentaalfilmid/valisilma_dokk/saated/c4e742ef-262f-4e8b-9eb7-90415630eff8/valisilma-dokk-suur-plaan-eestilatileedu-2016',
@@ -27,6 +31,9 @@ class ErrIE(InfoExtractor):
             'id': '2015-023708-0001_Suur_plaan.mp4',
             'ext': 'mp4',
             'title': '2015-023708-0001_Suur_plaan.mp4'
+        },
+        'params': {
+            'skip_download': 'requires rtmpdump'
         },
     }, {
         # ETV archive (video)
@@ -36,6 +43,9 @@ class ErrIE(InfoExtractor):
             'ext': 'mp4',
             'title': '1990-082743-0001_0001_D10_VURST-VOLKONSKI.mp4'
         },
+        'params': {
+            'skip_download': 'requires rtmpdump'
+        },
     }, {
         # ETV archive (audio)
         'url': 'https://arhiiv.err.ee/vaata/estraadikava-naisevott-raali-abil',
@@ -44,6 +54,9 @@ class ErrIE(InfoExtractor):
             'ext': 'm4a',
             'title': 'a_108175_RMARHIIV.m4a'
         },
+        'params': {
+            'skip_download': 'requires rtmpdump'
+        },
     }, {
         # Radios: Vikerraadio, R2
         'url': 'http://r2.err.ee/v/2tartutudengipaevad/saated/8c0e0116-2f67-43a4-8b74-8bf974510d6a/tudengi-45',
@@ -51,6 +64,9 @@ class ErrIE(InfoExtractor):
             'id': 'RR2049iu7382.m4a',
             'ext': 'mp4',
             'title': 'RR2049iu7382.m4a'
+        },
+        'params': {
+            'skip_download': 'requires rtmpdump'
         },
     }]
 
@@ -128,17 +144,17 @@ class ErrIE(InfoExtractor):
 
         # folder was found checks
         if webpage_folder == "":
-            print("[Err] [ERROR] No webpage_folder was found from webpage: webpage_folder = " + webpage_folder)
+            raise ExtractorError('[Err] No *webpage_folder* was found from webpage: webpage_folder = ' + webpage_folder)
         elif webpage_folder != "":
             if print_debug == 1:
-                print("[Err] [DEBUG] Found from webpage: webpage_folder = " + webpage_folder)
+                self.to_screen('[DEBUG] Found from webpage: webpage_folder = ' + webpage_folder)
 
             # source pattern found checks
             if source_pattern == "":
-                print("[Err] [ERROR] Found webpage: webpage_folder: " + webpage_folder + ", no data for *source_pattern* found!")
+                raise ExtractorError('[Err] Found webpage: webpage_folder: ' + webpage_folder + ', no data for *source_pattern* found!')
             elif source_pattern != "":
                 if print_debug == 1:
-                    print("[Err] [DEBUG] Found pattern from webpage: source_pattern = " + source_pattern)
+                    self.to_screen('[DEBUG] Found pattern from webpage: source_pattern = ' + source_pattern)
 
                 # common BEFORE cleanup for all source_patterns
                 clean_pattern_v = re.findall(source_pattern, webpage)
@@ -185,9 +201,9 @@ class ErrIE(InfoExtractor):
 
                 # source_pattern was cleaned to clean_pattern
                 if clean_pattern == "":
-                    print("[Err] [ERROR] found webpage_folder = " + webpage_folder + ", source_pattern " + source_pattern + ", but NO clean_pattern = " + clean_pattern)
+                    raise ExtractorError('[Err] found webpage_folder = ' + webpage_folder + ', source_pattern ' + source_pattern + ', but NO *clean_pattern* = ' + clean_pattern)
                 elif clean_pattern != "":
-                    print("[Err] Found data pattern: " + clean_pattern)
+                    self.to_screen('Found data pattern: ' + clean_pattern)
 
                     # if clean_pattern.find("m4a") > 0: don't use this control, because this hack works only for webpage_folder /AUDIO/
                     if webpage_folder == "AUDIO":
@@ -198,7 +214,7 @@ class ErrIE(InfoExtractor):
                         audio_title = clean_pattern
                         audio_url = "rtmp://media.err.ee:80/arhiiv/"    # don't change it to webpage_folder, it doesn't work so
                         if print_debug == 1:
-                            print("[Err] [DEBUG] Starting to download audio data from " + audio_url)
+                            self.to_screen('[DEBUG] Starting to download audio data from ' + audio_url)
                         return {                      # id, title, url are mandatory, ext is for beauty, ERR audio download is not working without play_path, last two ones help to download
                             'id': audio_id,
                             'title': audio_title,
@@ -216,7 +232,7 @@ class ErrIE(InfoExtractor):
                         video_title = clean_pattern
                         video_url = "rtmp://media.err.ee/" + webpage_folder + "/mp4:" + clean_pattern
                         if print_debug == 1:
-                            print("[Err] [DEBUG] Starting to download video data from " + video_url)
+                            self.to_screen('[DEBUG] Starting to download video data from ' + video_url)
                         return {                       # id, title, url are mandatory, ext is for beauty, last two ones help to download
                             'id': video_id,            # Video identifier
                             'title': video_title,      # Video title, unescaped.
