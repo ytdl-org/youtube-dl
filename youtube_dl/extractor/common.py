@@ -163,7 +163,7 @@ class InfoExtractor(object):
     description:    Full video description.
     uploader:       Full name of the video uploader.
     license:        License name the video is licensed under.
-    creator:        The main artist who created the video.
+    creator:        The creator of the video.
     release_date:   The date (YYYYMMDD) when the video was released.
     timestamp:      UNIX timestamp of the moment the video became available.
     upload_date:    Video upload date (YYYYMMDD).

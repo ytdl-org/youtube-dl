@@ -75,6 +75,7 @@ from .bigflix import BigflixIE
 from .bild import BildIE
 from .bilibili import BiliBiliIE
 from .biobiochiletv import BioBioChileTVIE
+from .biqle import BIQLEIE
 from .bleacherreport import (
     BleacherReportIE,
     BleacherReportCMSIE,
@@ -157,6 +158,7 @@ from .cspan import CSpanIE
 from .ctsnews import CtsNewsIE
 from .cultureunplugged import CultureUnpluggedIE
 from .cwtv import CWTVIE
+from .dailymail import DailyMailIE
 from .dailymotion import (
     DailymotionIE,
     DailymotionPlaylistIE,
@@ -382,6 +384,7 @@ from .limelight import (
     LimelightChannelIE,
     LimelightChannelListIE,
 )
+from .litv import LiTVIE
 from .liveleak import LiveLeakIE
 from .livestream import (
     LivestreamIE,
@@ -406,6 +409,10 @@ from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mgoon import MgoonIE
 from .mgtv import MGTVIE
+from .microsoftvirtualacademy import (
+    MicrosoftVirtualAcademyIE,
+    MicrosoftVirtualAcademyCourseIE,
+)
 from .minhateca import MinhatecaIE
 from .ministrygrid import MinistryGridIE
 from .minoto import MinotoIE
@@ -560,7 +567,10 @@ from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
 from .people import PeopleIE
-from .periscope import PeriscopeIE
+from .periscope import (
+    PeriscopeIE,
+    PeriscopeUserIE,
+)
 from .philharmoniedeparis import PhilharmonieDeParisIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
@@ -724,7 +734,10 @@ from .svt import (
 from .swrmediathek import SWRMediathekIE
 from .syfy import SyfyIE
 from .sztvhu import SztvHuIE
-from .tagesschau import TagesschauIE
+from .tagesschau import (
+    TagesschauPlayerIE,
+    TagesschauIE,
+)
 from .tapely import TapelyIE
 from .tass import TassIE
 from .tdslifeway import TDSLifewayIE
@@ -846,7 +859,10 @@ from .veehd import VeeHDIE
 from .veoh import VeohIE
 from .vessel import VesselIE
 from .vesti import VestiIE
-from .vevo import VevoIE
+from .vevo import (
+    VevoIE,
+    VevoPlaylistIE,
+)
 from .vgtv import (
     BTArticleIE,
     BTVestlendingenIE,

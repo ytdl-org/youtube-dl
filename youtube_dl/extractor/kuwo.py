@@ -283,6 +283,8 @@ class KuwoCategoryIE(InfoExtractor):
         category_desc = remove_start(
             get_element_by_id('intro', webpage).strip(),
             '%s简介：' % category_name)
+        if category_desc == '暂无':
+            category_desc = None
 
         jsonm = self._parse_json(self._html_search_regex(
             r'var\s+jsonm\s*=\s*([^;]+);', webpage, 'category songs'), category_id)
