@@ -218,6 +218,7 @@ from .embedly import EmbedlyIE
 from .engadget import EngadgetIE
 from .eporner import EpornerIE
 from .eroprofile import EroProfileIE
+from .err import ErrIE
 from .escapist import EscapistIE
 from .espn import ESPNIE
 from .esri import EsriVideoIE
