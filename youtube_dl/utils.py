@@ -42,6 +42,7 @@ from .compat import (
     compat_http_client,
     compat_kwargs,
     compat_parse_qs,
+    compat_shlex_quote,
     compat_socket_create_connection,
     compat_str,
     compat_struct_pack,
@@ -52,7 +53,6 @@ from .compat import (
     compat_urllib_request,
     compat_urlparse,
     compat_xpath,
-    shlex_quote,
 )
 
 from .socks import (
@@ -1977,7 +1977,7 @@ def ytdl_is_updateable():
 
 def args_to_str(args):
     # Get a short string representation for a subprocess command
-    return ' '.join(shlex_quote(a) for a in args)
+    return ' '.join(compat_shlex_quote(a) for a in args)
 
 
 def error_to_compat_str(err):
