@@ -203,7 +203,8 @@ class VevoIE(VevoBaseIE):
 
         json_url = 'http://api.vevo.com/VideoService/AuthenticateVideo?isrc=%s' % video_id
         response = self._download_json(
-            json_url, video_id, 'Downloading video info', 'Unable to download info')
+            json_url, video_id, 'Downloading video info',
+            'Unable to download info', fatal=False) or {}
         video_info = response.get('video') or {}
         artist = None
         featured_artist = None
@@ -212,7 +213,7 @@ class VevoIE(VevoBaseIE):
         formats = []
 
         if not video_info:
-            if response.get('statusCode') != 909:
+            if response and response.get('statusCode') != 909:
                 ytid = response.get('errorInfo', {}).get('ytid')
                 if ytid:
                     self.report_warning(

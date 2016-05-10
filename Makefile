@@ -37,7 +37,7 @@ test:
 ot: offlinetest
 
 offlinetest: codetest
-	$(PYTHON) -m nose --verbose test --exclude test_download.py --exclude test_age_restriction.py --exclude test_subtitles.py --exclude test_write_annotations.py --exclude test_youtube_lists.py --exclude test_iqiyi_sdk_interpreter.py
+	$(PYTHON) -m nose --verbose test --exclude test_download.py --exclude test_age_restriction.py --exclude test_subtitles.py --exclude test_write_annotations.py --exclude test_youtube_lists.py --exclude test_iqiyi_sdk_interpreter.py --exclude test_socks.py
 
 tar: youtube-dl.tar.gz
 

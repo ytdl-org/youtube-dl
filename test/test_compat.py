@@ -10,13 +10,14 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-from youtube_dl.utils import get_filesystem_encoding
 from youtube_dl.compat import (
     compat_getenv,
+    compat_setenv,
     compat_etree_fromstring,
     compat_expanduser,
     compat_shlex_split,
     compat_str,
+    compat_struct_unpack,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
     compat_urllib_parse_urlencode,
@@ -26,19 +27,22 @@ from youtube_dl.compat import (
 class TestCompat(unittest.TestCase):
     def test_compat_getenv(self):
         test_str = 'тест'
-        os.environ['YOUTUBE-DL-TEST'] = (
-            test_str if sys.version_info >= (3, 0)
-            else test_str.encode(get_filesystem_encoding()))
+        compat_setenv('YOUTUBE-DL-TEST', test_str)
         self.assertEqual(compat_getenv('YOUTUBE-DL-TEST'), test_str)
+
+    def test_compat_setenv(self):
+        test_var = 'YOUTUBE-DL-TEST'
+        test_str = 'тест'
+        compat_setenv(test_var, test_str)
+        compat_getenv(test_var)
+        self.assertEqual(compat_getenv(test_var), test_str)
 
     def test_compat_expanduser(self):
         old_home = os.environ.get('HOME')
         test_str = 'C:\Documents and Settings\тест\Application Data'
-        os.environ['HOME'] = (
-            test_str if sys.version_info >= (3, 0)
-            else test_str.encode(get_filesystem_encoding()))
+        compat_setenv('HOME', test_str)
         self.assertEqual(compat_expanduser('~'), test_str)
-        os.environ['HOME'] = old_home
+        compat_setenv('HOME', old_home or '')
 
     def test_all_present(self):
         import youtube_dl.compat
@@ -98,6 +102,10 @@ class TestCompat(unittest.TestCase):
         self.assertTrue(isinstance(doc.find('normal').text, compat_str))
         self.assertTrue(isinstance(doc.find('chinese').text, compat_str))
         self.assertTrue(isinstance(doc.find('foo/bar').text, compat_str))
+
+    def test_struct_unpack(self):
+        self.assertEqual(compat_struct_unpack('!B', b'\x00'), (0,))
+
 
 if __name__ == '__main__':
     unittest.main()

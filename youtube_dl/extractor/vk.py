@@ -26,12 +26,16 @@ class VKIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:m\.)?vk\.com/video_ext\.php\?.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+)|
+                            (?:
+                                (?:m\.)?vk\.com/video_|
+                                (?:www\.)?daxab.com/
+                            )
+                            ext\.php\?(?P<embed_query>.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+).*)|
                             (?:
                                 (?:m\.)?vk\.com/(?:.+?\?.*?z=)?video|
-                                (?:www\.)?biqle\.ru/watch/
+                                (?:www\.)?daxab.com/embed/
                             )
-                            (?P<videoid>[^s].*?)(?:\?(?:.*\blist=(?P<list_id>[\da-f]+))?|%2F|$)
+                            (?P<videoid>-?\d+_\d+)(?:.*\blist=(?P<list_id>[\da-f]+))?
                         )
                     '''
     _NETRC_MACHINE = 'vk'
@@ -75,7 +79,8 @@ class VKIE(InfoExtractor):
                 'duration': 101,
                 'upload_date': '20120730',
                 'view_count': int,
-            }
+            },
+            'skip': 'This video has been removed from public access.',
         },
         {
             # VIDEO NOW REMOVED
@@ -142,7 +147,7 @@ class VKIE(InfoExtractor):
                 'id': 'V3K4mi0SYkc',
                 'ext': 'webm',
                 'title': "DSWD Awards 'Children's Joy Foundation, Inc.' Certificate of Registration and License to Operate",
-                'description': 'md5:bf9c26cfa4acdfb146362682edd3827a',
+                'description': 'md5:d9903938abdc74c738af77f527ca0596',
                 'duration': 178,
                 'upload_date': '20130116',
                 'uploader': "Children's Joy Foundation",
@@ -171,11 +176,6 @@ class VKIE(InfoExtractor):
         {
             # age restricted video, requires vk account credentials
             'url': 'https://vk.com/video205387401_164765225',
-            'only_matching': True,
-        },
-        {
-            # vk wrapper
-            'url': 'http://www.biqle.ru/watch/847655_160197695',
             'only_matching': True,
         },
         {
@@ -217,20 +217,22 @@ class VKIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('videoid')
 
-        if not video_id:
+        info_url = url
+        if video_id:
+            info_url = 'https://vk.com/al_video.php?act=show&al=1&module=video&video=%s' % video_id
+            # Some videos (removed?) can only be downloaded with list id specified
+            list_id = mobj.group('list_id')
+            if list_id:
+                info_url += '&list=%s' % list_id
+        else:
+            info_url = 'http://vk.com/video_ext.php?' + mobj.group('embed_query')
             video_id = '%s_%s' % (mobj.group('oid'), mobj.group('id'))
-
-        info_url = 'https://vk.com/al_video.php?act=show&al=1&module=video&video=%s' % video_id
-
-        # Some videos (removed?) can only be downloaded with list id specified
-        list_id = mobj.group('list_id')
-        if list_id:
-            info_url += '&list=%s' % list_id
 
         info_page = self._download_webpage(info_url, video_id)
 
         error_message = self._html_search_regex(
-            r'(?s)<!><div[^>]+class="video_layer_message"[^>]*>(.+?)</div>',
+            [r'(?s)<!><div[^>]+class="video_layer_message"[^>]*>(.+?)</div>',
+                r'(?s)<div[^>]+id="video_ext_msg"[^>]*>(.+?)</div>'],
             info_page, 'error message', default=None)
         if error_message:
             raise ExtractorError(error_message, expected=True)
@@ -305,17 +307,17 @@ class VKIE(InfoExtractor):
         view_count = None
         views = self._html_search_regex(
             r'"mv_views_count_number"[^>]*>(.+?\bviews?)<',
-            info_page, 'view count', fatal=False)
+            info_page, 'view count', default=None)
         if views:
             view_count = str_to_int(self._search_regex(
                 r'([\d,.]+)', views, 'view count', fatal=False))
 
         formats = []
         for k, v in data.items():
-            if not k.startswith('url') and k != 'extra_data' or not v:
+            if not k.startswith('url') and not k.startswith('cache') and k != 'extra_data' or not v:
                 continue
             height = int_or_none(self._search_regex(
-                r'^url(\d+)', k, 'height', default=None))
+                r'^(?:url|cache)(\d+)', k, 'height', default=None))
             formats.append({
                 'format_id': k,
                 'url': v,

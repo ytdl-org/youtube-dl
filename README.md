@@ -85,9 +85,11 @@ which means you can modify it, redistribute it or use it however you like.
     --no-color                       Do not emit color codes in output
 
 ## Network Options:
-    --proxy URL                      Use the specified HTTP/HTTPS proxy. Pass in
-                                     an empty string (--proxy "") for direct
-                                     connection
+    --proxy URL                      Use the specified HTTP/HTTPS/SOCKS proxy.
+                                     To enable experimental SOCKS proxy, specify
+                                     a proper scheme. For example
+                                     socks5://127.0.0.1:1080/. Pass in an empty
+                                     string (--proxy "") for direct connection
     --socket-timeout SECONDS         Time to wait before giving up, in seconds
     --source-address IP              Client-side IP address to bind to
                                      (experimental)

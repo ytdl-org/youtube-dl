@@ -11,6 +11,7 @@ import re
 import shlex
 import shutil
 import socket
+import struct
 import subprocess
 import sys
 import itertools
@@ -373,6 +374,9 @@ compat_os_name = os._name if os.name == 'java' else os.name
 if sys.version_info >= (3, 0):
     compat_getenv = os.getenv
     compat_expanduser = os.path.expanduser
+
+    def compat_setenv(key, value, env=os.environ):
+        env[key] = value
 else:
     # Environment variables should be decoded with filesystem encoding.
     # Otherwise it will fail if any non-ASCII characters present (see #3854 #3217 #2918)
@@ -383,6 +387,12 @@ else:
         if env:
             env = env.decode(get_filesystem_encoding())
         return env
+
+    def compat_setenv(key, value, env=os.environ):
+        def encode(v):
+            from .utils import get_filesystem_encoding
+            return v.encode(get_filesystem_encoding()) if isinstance(v, compat_str) else v
+        env[encode(key)] = encode(value)
 
     # HACK: The default implementations of os.path.expanduser from cpython do not decode
     # environment variables with filesystem encoding. We will work around this by
@@ -583,6 +593,26 @@ if sys.version_info >= (3, 0):
 else:
     from tokenize import generate_tokens as compat_tokenize_tokenize
 
+
+try:
+    struct.pack('!I', 0)
+except TypeError:
+    # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
+    # See https://bugs.python.org/issue19099
+    def compat_struct_pack(spec, *args):
+        if isinstance(spec, compat_str):
+            spec = spec.encode('ascii')
+        return struct.pack(spec, *args)
+
+    def compat_struct_unpack(spec, *args):
+        if isinstance(spec, compat_str):
+            spec = spec.encode('ascii')
+        return struct.unpack(spec, *args)
+else:
+    compat_struct_pack = struct.pack
+    compat_struct_unpack = struct.unpack
+
+
 __all__ = [
     'compat_HTMLParser',
     'compat_HTTPError',
@@ -604,9 +634,12 @@ __all__ = [
     'compat_os_name',
     'compat_parse_qs',
     'compat_print',
+    'compat_setenv',
     'compat_shlex_split',
     'compat_socket_create_connection',
     'compat_str',
+    'compat_struct_pack',
+    'compat_struct_unpack',
     'compat_subprocess_get_DEVNULL',
     'compat_tokenize_tokenize',
     'compat_urllib_error',

@@ -75,6 +75,7 @@ from .bigflix import BigflixIE
 from .bild import BildIE
 from .bilibili import BiliBiliIE
 from .biobiochiletv import BioBioChileTVIE
+from .biqle import BIQLEIE
 from .bleacherreport import (
     BleacherReportIE,
     BleacherReportCMSIE,
@@ -383,6 +384,7 @@ from .limelight import (
     LimelightChannelIE,
     LimelightChannelListIE,
 )
+from .litv import LiTVIE
 from .liveleak import LiveLeakIE
 from .livestream import (
     LivestreamIE,
@@ -407,6 +409,10 @@ from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mgoon import MgoonIE
 from .mgtv import MGTVIE
+from .microsoftvirtualacademy import (
+    MicrosoftVirtualAcademyIE,
+    MicrosoftVirtualAcademyCourseIE,
+)
 from .minhateca import MinhatecaIE
 from .ministrygrid import MinistryGridIE
 from .minoto import MinotoIE

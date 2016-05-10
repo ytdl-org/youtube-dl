@@ -26,7 +26,6 @@ import platform
 import re
 import socket
 import ssl
-import struct
 import subprocess
 import sys
 import tempfile
@@ -45,6 +44,7 @@ from .compat import (
     compat_parse_qs,
     compat_socket_create_connection,
     compat_str,
+    compat_struct_pack,
     compat_urllib_error,
     compat_urllib_parse,
     compat_urllib_parse_urlencode,
@@ -54,6 +54,20 @@ from .compat import (
     compat_xpath,
     shlex_quote,
 )
+
+from .socks import (
+    ProxyType,
+    sockssocket,
+)
+
+
+def register_socks_protocols():
+    # "Register" SOCKS protocols
+    # In Python < 2.6.5, urlsplit() suffers from bug https://bugs.python.org/issue7904
+    # URLs with protocols not in urlparse.uses_netloc are not handled correctly
+    for scheme in ('socks', 'socks4', 'socks4a', 'socks5'):
+        if scheme not in compat_urlparse.uses_netloc:
+            compat_urlparse.uses_netloc.append(scheme)
 
 
 # This is not clearly defined otherwise
@@ -256,9 +270,9 @@ def get_element_by_attribute(attribute, value, html):
 
     m = re.search(r'''(?xs)
         <([a-zA-Z0-9:._-]+)
-         (?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]+|="[^"]+"|='[^']+'))*?
+         (?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]*|="[^"]*"|='[^']*'))*?
          \s+%s=['"]?%s['"]?
-         (?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]+|="[^"]+"|='[^']+'))*?
+         (?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]*|="[^"]*"|='[^']*'))*?
         \s*>
         (?P<content>.*?)
         </\1>
@@ -752,8 +766,15 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
         self._params = params
 
     def http_open(self, req):
+        conn_class = compat_http_client.HTTPConnection
+
+        socks_proxy = req.headers.get('Ytdl-socks-proxy')
+        if socks_proxy:
+            conn_class = make_socks_conn_class(conn_class, socks_proxy)
+            del req.headers['Ytdl-socks-proxy']
+
         return self.do_open(functools.partial(
-            _create_http_connection, self, compat_http_client.HTTPConnection, False),
+            _create_http_connection, self, conn_class, False),
             req)
 
     @staticmethod
@@ -849,6 +870,43 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     https_response = http_response
 
 
+def make_socks_conn_class(base_class, socks_proxy):
+    assert issubclass(base_class, (
+        compat_http_client.HTTPConnection, compat_http_client.HTTPSConnection))
+
+    url_components = compat_urlparse.urlparse(socks_proxy)
+    if url_components.scheme.lower() == 'socks5':
+        socks_type = ProxyType.SOCKS5
+    elif url_components.scheme.lower() in ('socks', 'socks4'):
+        socks_type = ProxyType.SOCKS4
+    elif url_components.scheme.lower() == 'socks4a':
+        socks_type = ProxyType.SOCKS4A
+
+    proxy_args = (
+        socks_type,
+        url_components.hostname, url_components.port or 1080,
+        True,  # Remote DNS
+        url_components.username, url_components.password
+    )
+
+    class SocksConnection(base_class):
+        def connect(self):
+            self.sock = sockssocket()
+            self.sock.setproxy(*proxy_args)
+            if type(self.timeout) in (int, float):
+                self.sock.settimeout(self.timeout)
+            self.sock.connect((self.host, self.port))
+
+            if isinstance(self, compat_http_client.HTTPSConnection):
+                if hasattr(self, '_context'):  # Python > 2.6
+                    self.sock = self._context.wrap_socket(
+                        self.sock, server_hostname=self.host)
+                else:
+                    self.sock = ssl.wrap_socket(self.sock)
+
+    return SocksConnection
+
+
 class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
     def __init__(self, params, https_conn_class=None, *args, **kwargs):
         compat_urllib_request.HTTPSHandler.__init__(self, *args, **kwargs)
@@ -857,12 +915,20 @@ class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
 
     def https_open(self, req):
         kwargs = {}
+        conn_class = self._https_conn_class
+
         if hasattr(self, '_context'):  # python > 2.6
             kwargs['context'] = self._context
         if hasattr(self, '_check_hostname'):  # python 3.x
             kwargs['check_hostname'] = self._check_hostname
+
+        socks_proxy = req.headers.get('Ytdl-socks-proxy')
+        if socks_proxy:
+            conn_class = make_socks_conn_class(conn_class, socks_proxy)
+            del req.headers['Ytdl-socks-proxy']
+
         return self.do_open(functools.partial(
-            _create_http_connection, self, self._https_conn_class, True),
+            _create_http_connection, self, conn_class, True),
             req, **kwargs)
 
 
@@ -1193,7 +1259,7 @@ def bytes_to_intlist(bs):
 def intlist_to_bytes(xs):
     if not xs:
         return b''
-    return struct_pack('%dB' % len(xs), *xs)
+    return compat_struct_pack('%dB' % len(xs), *xs)
 
 
 # Cross-platform file locking
@@ -1760,24 +1826,6 @@ def escape_url(url):
         query=escape_rfc3986(url_parsed.query),
         fragment=escape_rfc3986(url_parsed.fragment)
     ).geturl()
-
-try:
-    struct.pack('!I', 0)
-except TypeError:
-    # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
-    # See https://bugs.python.org/issue19099
-    def struct_pack(spec, *args):
-        if isinstance(spec, compat_str):
-            spec = spec.encode('ascii')
-        return struct.pack(spec, *args)
-
-    def struct_unpack(spec, *args):
-        if isinstance(spec, compat_str):
-            spec = spec.encode('ascii')
-        return struct.unpack(spec, *args)
-else:
-    struct_pack = struct.pack
-    struct_unpack = struct.unpack
 
 
 def read_batch_urls(batch_fd):
@@ -2703,6 +2751,10 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
 
         if proxy == '__noproxy__':
             return None  # No Proxy
+        if compat_urlparse.urlparse(proxy).scheme.lower() in ('socks', 'socks4', 'socks4a', 'socks5'):
+            req.add_header('Ytdl-socks-proxy', proxy)
+            # youtube-dl's http/https handlers do wrapping the socket with socks
+            return None
         return compat_urllib_request.ProxyHandler.proxy_open(
             self, req, proxy, type)
 
