@@ -571,6 +571,7 @@ from .periscope import (
     PeriscopeIE,
     PeriscopeUserIE,
 )
+from .philharmonie import PhilharmonieTvIE
 from .philharmoniedeparis import PhilharmonieDeParisIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
