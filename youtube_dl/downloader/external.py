@@ -6,6 +6,7 @@ import sys
 import re
 
 from .common import FileDownloader
+from ..compat import compat_setenv
 from ..postprocessor.ffmpeg import FFmpegPostProcessor, EXT_TO_OUT_FORMATS
 from ..utils import (
     cli_option,
@@ -198,6 +199,18 @@ class FFmpegFD(ExternalFD):
                 '-headers',
                 ''.join('%s: %s\r\n' % (key, val) for key, val in headers.items())]
 
+        env = None
+        proxy = self.params.get('proxy')
+        if proxy:
+            if not re.match(r'^[\da-zA-Z]+://', proxy):
+                proxy = 'http://%s' % proxy
+            # Since December 2015 ffmpeg supports -http_proxy option (see
+            # http://git.videolan.org/?p=ffmpeg.git;a=commit;h=b4eb1f29ebddd60c41a2eb39f5af701e38e0d3fd)
+            # We could switch to the following code if we are able to detect version properly
+            # args += ['-http_proxy', proxy]
+            env = os.environ.copy()
+            compat_setenv('HTTP_PROXY', proxy, env=env)
+
         protocol = info_dict.get('protocol')
 
         if protocol == 'rtmp':
@@ -239,7 +252,7 @@ class FFmpegFD(ExternalFD):
 
         self._debug_cmd(args)
 
-        proc = subprocess.Popen(args, stdin=subprocess.PIPE)
+        proc = subprocess.Popen(args, stdin=subprocess.PIPE, env=env)
         try:
             retval = proc.wait()
         except KeyboardInterrupt:

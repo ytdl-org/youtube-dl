@@ -55,7 +55,6 @@ from youtube_dl.utils import (
     smuggle_url,
     str_to_int,
     strip_jsonp,
-    struct_unpack,
     timeconvert,
     unescapeHTML,
     unified_strdate,
@@ -456,9 +455,6 @@ class TestUtil(unittest.TestCase):
         testPL(5, 2, (1, 4), [1, 2, 3])
         testPL(5, 2, (2, 99), [2, 3, 4])
         testPL(5, 2, (20, 99), [])
-
-    def test_struct_unpack(self):
-        self.assertEqual(struct_unpack('!B', b'\x00'), (0,))
 
     def test_read_batch_urls(self):
         f = io.StringIO('''\xef\xbb\xbf foo
