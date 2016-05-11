@@ -67,7 +67,7 @@ def _real_main(argv=None):
     # Custom HTTP headers
     if opts.headers is not None:
         for h in opts.headers:
-            if h.find(':', 1) < 0:
+            if ':' not in h:
                 parser.error('wrong header formatting, it should be key:value, not "%s"' % h)
             key, value = h.split(':', 1)
             if opts.verbose:
