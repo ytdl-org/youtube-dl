@@ -69,7 +69,7 @@ def _real_main(argv=None):
         for h in opts.headers:
             if h.find(':', 1) < 0:
                 parser.error('wrong header formatting, it should be key:value, not "%s"' % h)
-            key, value = h.split(':', 2)
+            key, value = h.split(':', 1)
             if opts.verbose:
                 write_string('[debug] Adding header from command line option %s:%s\n' % (key, value))
             std_headers[key] = value
