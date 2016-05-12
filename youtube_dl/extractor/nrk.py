@@ -4,90 +4,223 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urlparse,
-    compat_urllib_parse_unquote,
-)
+from ..compat import compat_urllib_parse_unquote
 from ..utils import (
-    determine_ext,
     ExtractorError,
-    float_or_none,
+    int_or_none,
+    parse_age_limit,
     parse_duration,
-    unified_strdate,
 )
 
 
-class NRKIE(InfoExtractor):
-    _VALID_URL = r'(?:nrk:|https?://(?:www\.)?nrk\.no/video/PS\*)(?P<id>\d+)'
-
-    _TESTS = [
-        {
-            'url': 'http://www.nrk.no/video/PS*150533',
-            # MD5 is unstable
-            'info_dict': {
-                'id': '150533',
-                'ext': 'flv',
-                'title': 'Dompap og andre fugler i Piip-Show',
-                'description': 'md5:d9261ba34c43b61c812cb6b0269a5c8f',
-                'duration': 263,
-            }
-        },
-        {
-            'url': 'http://www.nrk.no/video/PS*154915',
-            # MD5 is unstable
-            'info_dict': {
-                'id': '154915',
-                'ext': 'flv',
-                'title': 'Slik høres internett ut når du er blind',
-                'description': 'md5:a621f5cc1bd75c8d5104cb048c6b8568',
-                'duration': 20,
-            }
-        },
-    ]
+class NRKBaseIE(InfoExtractor):
+    def _extract_formats(self, manifest_url, video_id, fatal=True):
+        return self._extract_f4m_formats(
+            manifest_url + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81',
+            video_id, f4m_id='hds', fatal=fatal)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         data = self._download_json(
-            'http://v8.psapi.nrk.no/mediaelement/%s' % video_id,
-            video_id, 'Downloading media JSON')
+            'http://%s/mediaelement/%s' % (self._API_HOST, video_id),
+            video_id, 'Downloading mediaelement JSON')
 
-        media_url = data.get('mediaUrl')
+        title = data.get('fullTitle') or data.get('mainTitle') or data['title']
+        video_id = data.get('id') or video_id
 
-        if not media_url:
-            if data['usageRights']['isGeoBlocked']:
+        entries = []
+
+        media_assets = data.get('mediaAssets')
+        if media_assets and isinstance(media_assets, list):
+            def video_id_and_title(idx):
+                return ((video_id, title) if len(media_assets) == 1
+                        else ('%s-%d' % (video_id, idx), '%s (Part %d)' % (title, idx)))
+            for num, asset in enumerate(media_assets, 1):
+                asset_url = asset.get('url')
+                if not asset_url:
+                    continue
+                formats = self._extract_formats(asset_url, video_id, fatal=False)
+                if not formats:
+                    continue
+                self._sort_formats(formats)
+                entry_id, entry_title = video_id_and_title(num)
+                duration = parse_duration(asset.get('duration'))
+                subtitles = {}
+                for subtitle in ('webVtt', 'timedText'):
+                    subtitle_url = asset.get('%sSubtitlesUrl' % subtitle)
+                    if subtitle_url:
+                        subtitles.setdefault('no', []).append({'url': subtitle_url})
+                entries.append({
+                    'id': asset.get('carrierId') or entry_id,
+                    'title': entry_title,
+                    'duration': duration,
+                    'subtitles': subtitles,
+                    'formats': formats,
+                })
+
+        if not entries:
+            media_url = data.get('mediaUrl')
+            if media_url:
+                formats = self._extract_formats(media_url, video_id)
+                self._sort_formats(formats)
+                duration = parse_duration(data.get('duration'))
+                entries = [{
+                    'id': video_id,
+                    'title': title,
+                    'duration': duration,
+                    'formats': formats,
+                }]
+
+        if not entries:
+            if data.get('usageRights', {}).get('isGeoBlocked'):
                 raise ExtractorError(
                     'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
                     expected=True)
 
-        if determine_ext(media_url) == 'f4m':
-            formats = self._extract_f4m_formats(
-                media_url + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81', video_id, f4m_id='hds')
-            self._sort_formats(formats)
-        else:
-            formats = [{
-                'url': media_url,
-                'ext': 'flv',
-            }]
+        conviva = data.get('convivaStatistics') or {}
+        series = conviva.get('seriesName') or data.get('seriesTitle')
+        episode = conviva.get('episodeName') or data.get('episodeNumberOrDate')
 
-        duration = parse_duration(data.get('duration'))
-
+        thumbnails = None
         images = data.get('images')
-        if images:
-            thumbnails = images['webImages']
-            thumbnails.sort(key=lambda image: image['pixelWidth'])
-            thumbnail = thumbnails[-1]['imageUrl']
-        else:
-            thumbnail = None
+        if images and isinstance(images, dict):
+            web_images = images.get('webImages')
+            if isinstance(web_images, list):
+                thumbnails = [{
+                    'url': image['imageUrl'],
+                    'width': int_or_none(image.get('width')),
+                    'height': int_or_none(image.get('height')),
+                } for image in web_images if image.get('imageUrl')]
 
-        return {
-            'id': video_id,
-            'title': data['title'],
-            'description': data['description'],
-            'duration': duration,
-            'thumbnail': thumbnail,
-            'formats': formats,
+        description = data.get('description')
+
+        common_info = {
+            'description': description,
+            'series': series,
+            'episode': episode,
+            'age_limit': parse_age_limit(data.get('legalAge')),
+            'thumbnails': thumbnails,
         }
+
+        vcodec = 'none' if data.get('mediaType') == 'Audio' else None
+
+        # TODO: extract chapters when https://github.com/rg3/youtube-dl/pull/9409 is merged
+
+        for entry in entries:
+            entry.update(common_info)
+            for f in entry['formats']:
+                f['vcodec'] = vcodec
+
+        return self.playlist_result(entries, video_id, title, description)
+
+
+class NRKIE(NRKBaseIE):
+    _VALID_URL = r'(?:nrk:|https?://(?:www\.)?nrk\.no/video/PS\*)(?P<id>\d+)'
+    _API_HOST = 'v8.psapi.nrk.no'
+    _TESTS = [{
+        # video
+        'url': 'http://www.nrk.no/video/PS*150533',
+        # MD5 is unstable
+        'info_dict': {
+            'id': '150533',
+            'ext': 'flv',
+            'title': 'Dompap og andre fugler i Piip-Show',
+            'description': 'md5:d9261ba34c43b61c812cb6b0269a5c8f',
+            'duration': 263,
+        }
+    }, {
+        # audio
+        'url': 'http://www.nrk.no/video/PS*154915',
+        # MD5 is unstable
+        'info_dict': {
+            'id': '154915',
+            'ext': 'flv',
+            'title': 'Slik høres internett ut når du er blind',
+            'description': 'md5:a621f5cc1bd75c8d5104cb048c6b8568',
+            'duration': 20,
+        }
+    }]
+
+
+class NRKTVIE(NRKBaseIE):
+    IE_DESC = 'NRK TV and NRK Radio'
+    _VALID_URL = r'https?://(?:tv|radio)\.nrk(?:super)?\.no/(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})(?:/\d{2}-\d{2}-\d{4})?(?:#del=(?P<part_id>\d+))?'
+    _API_HOST = 'psapi-we.nrk.no'
+
+    _TESTS = [{
+        'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
+        'info_dict': {
+            'id': 'MUHH48000314',
+            'ext': 'mp4',
+            'title': '20 spørsmål',
+            'description': 'md5:bdea103bc35494c143c6a9acdd84887a',
+            'upload_date': '20140523',
+            'duration': 1741.52,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://tv.nrk.no/program/mdfp15000514',
+        'info_dict': {
+            'id': 'mdfp15000514',
+            'ext': 'mp4',
+            'title': 'Grunnlovsjubiléet - Stor ståhei for ingenting',
+            'description': 'md5:654c12511f035aed1e42bdf5db3b206a',
+            'upload_date': '20140524',
+            'duration': 4605.08,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        # single playlist video
+        'url': 'https://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015#del=2',
+        'md5': 'adbd1dbd813edaf532b0a253780719c2',
+        'info_dict': {
+            'id': 'MSPO40010515-part2',
+            'ext': 'flv',
+            'title': 'Tour de Ski: Sprint fri teknikk, kvinner og menn 06.01.2015 (del 2:2)',
+            'description': 'md5:238b67b97a4ac7d7b4bf0edf8cc57d26',
+            'upload_date': '20150106',
+        },
+        'skip': 'Only works from Norway',
+    }, {
+        'url': 'https://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015',
+        'playlist': [{
+            'md5': '9480285eff92d64f06e02a5367970a7a',
+            'info_dict': {
+                'id': 'MSPO40010515-part1',
+                'ext': 'flv',
+                'title': 'Tour de Ski: Sprint fri teknikk, kvinner og menn 06.01.2015 (del 1:2)',
+                'description': 'md5:238b67b97a4ac7d7b4bf0edf8cc57d26',
+                'upload_date': '20150106',
+            },
+        }, {
+            'md5': 'adbd1dbd813edaf532b0a253780719c2',
+            'info_dict': {
+                'id': 'MSPO40010515-part2',
+                'ext': 'flv',
+                'title': 'Tour de Ski: Sprint fri teknikk, kvinner og menn 06.01.2015 (del 2:2)',
+                'description': 'md5:238b67b97a4ac7d7b4bf0edf8cc57d26',
+                'upload_date': '20150106',
+            },
+        }],
+        'info_dict': {
+            'id': 'MSPO40010515',
+            'title': 'Tour de Ski: Sprint fri teknikk, kvinner og menn',
+            'description': 'md5:238b67b97a4ac7d7b4bf0edf8cc57d26',
+            'upload_date': '20150106',
+            'duration': 6947.52,
+        },
+        'skip': 'Only works from Norway',
+    }, {
+        'url': 'https://radio.nrk.no/serie/dagsnytt/NPUB21019315/12-07-2015#',
+        'only_matching': True,
+    }]
 
 
 class NRKPlaylistIE(InfoExtractor):
@@ -159,179 +292,3 @@ class NRKSkoleIE(InfoExtractor):
 
         nrk_id = self._search_regex(r'data-nrk-id=["\'](\d+)', webpage, 'nrk id')
         return self.url_result('nrk:%s' % nrk_id)
-
-
-class NRKTVIE(InfoExtractor):
-    IE_DESC = 'NRK TV and NRK Radio'
-    _VALID_URL = r'(?P<baseurl>https?://(?:tv|radio)\.nrk(?:super)?\.no/)(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})(?:/\d{2}-\d{2}-\d{4})?(?:#del=(?P<part_id>\d+))?'
-
-    _TESTS = [
-        {
-            'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
-            'info_dict': {
-                'id': 'MUHH48000314',
-                'ext': 'mp4',
-                'title': '20 spørsmål',
-                'description': 'md5:bdea103bc35494c143c6a9acdd84887a',
-                'upload_date': '20140523',
-                'duration': 1741.52,
-            },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
-            },
-        },
-        {
-            'url': 'https://tv.nrk.no/program/mdfp15000514',
-            'info_dict': {
-                'id': 'mdfp15000514',
-                'ext': 'mp4',
-                'title': 'Grunnlovsjubiléet - Stor ståhei for ingenting',
-                'description': 'md5:654c12511f035aed1e42bdf5db3b206a',
-                'upload_date': '20140524',
-                'duration': 4605.08,
-            },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
-            },
-        },
-        {
-            # single playlist video
-            'url': 'https://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015#del=2',
-            'md5': 'adbd1dbd813edaf532b0a253780719c2',
-            'info_dict': {
-                'id': 'MSPO40010515-part2',
-                'ext': 'flv',
-                'title': 'Tour de Ski: Sprint fri teknikk, kvinner og menn 06.01.2015 (del 2:2)',
-                'description': 'md5:238b67b97a4ac7d7b4bf0edf8cc57d26',
-                'upload_date': '20150106',
-            },
-            'skip': 'Only works from Norway',
-        },
-        {
-            'url': 'https://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015',
-            'playlist': [
-                {
-                    'md5': '9480285eff92d64f06e02a5367970a7a',
-                    'info_dict': {
-                        'id': 'MSPO40010515-part1',
-                        'ext': 'flv',
-                        'title': 'Tour de Ski: Sprint fri teknikk, kvinner og menn 06.01.2015 (del 1:2)',
-                        'description': 'md5:238b67b97a4ac7d7b4bf0edf8cc57d26',
-                        'upload_date': '20150106',
-                    },
-                },
-                {
-                    'md5': 'adbd1dbd813edaf532b0a253780719c2',
-                    'info_dict': {
-                        'id': 'MSPO40010515-part2',
-                        'ext': 'flv',
-                        'title': 'Tour de Ski: Sprint fri teknikk, kvinner og menn 06.01.2015 (del 2:2)',
-                        'description': 'md5:238b67b97a4ac7d7b4bf0edf8cc57d26',
-                        'upload_date': '20150106',
-                    },
-                },
-            ],
-            'info_dict': {
-                'id': 'MSPO40010515',
-                'title': 'Tour de Ski: Sprint fri teknikk, kvinner og menn',
-                'description': 'md5:238b67b97a4ac7d7b4bf0edf8cc57d26',
-                'upload_date': '20150106',
-                'duration': 6947.5199999999995,
-            },
-            'skip': 'Only works from Norway',
-        },
-        {
-            'url': 'https://radio.nrk.no/serie/dagsnytt/NPUB21019315/12-07-2015#',
-            'only_matching': True,
-        }
-    ]
-
-    def _extract_f4m(self, manifest_url, video_id):
-        return self._extract_f4m_formats(
-            manifest_url + '?hdcore=3.1.1&plugin=aasp-3.1.1.69.124', video_id, f4m_id='hds')
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        part_id = mobj.group('part_id')
-        base_url = mobj.group('baseurl')
-
-        webpage = self._download_webpage(url, video_id)
-
-        title = self._html_search_meta(
-            'title', webpage, 'title')
-        description = self._html_search_meta(
-            'description', webpage, 'description')
-
-        thumbnail = self._html_search_regex(
-            r'data-posterimage="([^"]+)"',
-            webpage, 'thumbnail', fatal=False)
-        upload_date = unified_strdate(self._html_search_meta(
-            'rightsfrom', webpage, 'upload date', fatal=False))
-        duration = float_or_none(self._html_search_regex(
-            r'data-duration="([^"]+)"',
-            webpage, 'duration', fatal=False))
-
-        # playlist
-        parts = re.findall(
-            r'<a href="#del=(\d+)"[^>]+data-argument="([^"]+)">([^<]+)</a>', webpage)
-        if parts:
-            entries = []
-            for current_part_id, stream_url, part_title in parts:
-                if part_id and current_part_id != part_id:
-                    continue
-                video_part_id = '%s-part%s' % (video_id, current_part_id)
-                formats = self._extract_f4m(stream_url, video_part_id)
-                entries.append({
-                    'id': video_part_id,
-                    'title': part_title,
-                    'description': description,
-                    'thumbnail': thumbnail,
-                    'upload_date': upload_date,
-                    'formats': formats,
-                })
-            if part_id:
-                if entries:
-                    return entries[0]
-            else:
-                playlist = self.playlist_result(entries, video_id, title, description)
-                playlist.update({
-                    'thumbnail': thumbnail,
-                    'upload_date': upload_date,
-                    'duration': duration,
-                })
-                return playlist
-
-        formats = []
-
-        f4m_url = re.search(r'data-media="([^"]+)"', webpage)
-        if f4m_url:
-            formats.extend(self._extract_f4m(f4m_url.group(1), video_id))
-
-        m3u8_url = re.search(r'data-hls-media="([^"]+)"', webpage)
-        if m3u8_url:
-            formats.extend(self._extract_m3u8_formats(m3u8_url.group(1), video_id, 'mp4', m3u8_id='hls'))
-        self._sort_formats(formats)
-
-        subtitles_url = self._html_search_regex(
-            r'data-subtitlesurl\s*=\s*(["\'])(?P<url>.+?)\1',
-            webpage, 'subtitle URL', default=None, group='url')
-        subtitles = {}
-        if subtitles_url:
-            subtitles['no'] = [{
-                'ext': 'ttml',
-                'url': compat_urlparse.urljoin(base_url, subtitles_url),
-            }]
-
-        return {
-            'id': video_id,
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'upload_date': upload_date,
-            'duration': duration,
-            'formats': formats,
-            'subtitles': subtitles,
-        }
