@@ -48,6 +48,10 @@ class BandcampIE(InfoExtractor):
             if m_trackinfo:
                 json_code = m_trackinfo.group(1)
                 data = json.loads(json_code)[0]
+                track_id = compat_str(data['id'])
+
+                if not data['streaming']:
+                    raise ExtractorError('Not streamable', video_id=track_id, expected=True)
 
                 formats = []
                 for format_id, format_url in data['file'].items():
@@ -64,7 +68,7 @@ class BandcampIE(InfoExtractor):
                 self._sort_formats(formats)
 
                 return {
-                    'id': compat_str(data['id']),
+                    'id': track_id,
                     'title': data['title'],
                     'formats': formats,
                     'duration': float_or_none(data.get('duration')),
