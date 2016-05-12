@@ -357,32 +357,6 @@ class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
     }
 
 
-class TwitchBookmarksIE(TwitchPlaylistBaseIE):
-    IE_NAME = 'twitch:bookmarks'
-    _VALID_URL = r'%s/(?P<id>[^/]+)/profile/bookmarks/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
-    _PLAYLIST_URL = '%s/api/bookmark/?user=%%s&offset=%%d&limit=%%d' % TwitchBaseIE._API_BASE
-    _PLAYLIST_TYPE = 'bookmarks'
-
-    _TEST = {
-        'url': 'http://www.twitch.tv/ognos/profile/bookmarks',
-        'info_dict': {
-            'id': 'ognos',
-            'title': 'Ognos',
-        },
-        'playlist_mincount': 3,
-        'skip': 'HTTP Error 404: Not Found',
-    }
-
-    def _extract_playlist_page(self, response):
-        entries = []
-        for bookmark in response.get('bookmarks', []):
-            video = bookmark.get('video')
-            if not video:
-                continue
-            entries.append(video['url'])
-        return entries
-
-
 class TwitchStreamIE(TwitchBaseIE):
     IE_NAME = 'twitch:stream'
     _VALID_URL = r'%s/(?P<id>[^/#?]+)/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE

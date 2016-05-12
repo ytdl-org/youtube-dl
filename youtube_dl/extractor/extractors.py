@@ -834,7 +834,6 @@ from .twitch import (
     TwitchVodIE,
     TwitchProfileIE,
     TwitchPastBroadcastsIE,
-    TwitchBookmarksIE,
     TwitchStreamIE,
 )
 from .twitter import (
