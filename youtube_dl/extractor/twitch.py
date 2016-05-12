@@ -171,6 +171,7 @@ class TwitchVideoIE(TwitchItemBaseIE):
             'title': 'Worlds Semifinals - Star Horn Royal Club vs. OMG',
         },
         'playlist_mincount': 12,
+        'skip': 'HTTP Error 404: Not Found',
     }
 
 
@@ -187,6 +188,7 @@ class TwitchChapterIE(TwitchItemBaseIE):
             'title': 'ACRL Off Season - Sports Cars @ Nordschleife',
         },
         'playlist_mincount': 3,
+        'skip': 'HTTP Error 404: Not Found',
     }, {
         'url': 'http://www.twitch.tv/tsm_theoddone/c/2349361',
         'only_matching': True,
@@ -368,6 +370,7 @@ class TwitchBookmarksIE(TwitchPlaylistBaseIE):
             'title': 'Ognos',
         },
         'playlist_mincount': 3,
+        'skip': 'HTTP Error 404: Not Found',
     }
 
     def _extract_playlist_page(self, response):
