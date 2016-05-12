@@ -29,7 +29,7 @@ class BandcampIE(InfoExtractor):
         '_skip': 'There is a limit of 200 free downloads / month for the test song'
     }, {
         'url': 'http://benprunty.bandcamp.com/track/lanius-battle',
-        'md5': '2b68e5851514c20efdff2afc5603b8b4',
+        'md5': '73d0b3171568232574e45652f8720b5c',
         'info_dict': {
             'id': '2650410135',
             'ext': 'mp3',
