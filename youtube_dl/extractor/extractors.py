@@ -21,6 +21,7 @@ from .aftonbladet import AftonbladetIE
 from .airmozilla import AirMozillaIE
 from .aljazeera import AlJazeeraIE
 from .alphaporno import AlphaPornoIE
+from .amc import AMCIE
 from .animeondemand import AnimeOnDemandIE
 from .anitube import AnitubeIE
 from .anysex import AnySexIE
