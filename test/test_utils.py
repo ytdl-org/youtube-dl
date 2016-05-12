@@ -155,8 +155,8 @@ class TestUtil(unittest.TestCase):
         self.assertTrue(sanitize_filename(':', restricted=True) != '')
 
         self.assertEqual(sanitize_filename(
-            'ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ', restricted=True),
-            'AAAAAAAECEEEEIIIIDNOOOOOOUUUUYPssaaaaaaaeceeeeiiiionoooooouuuuypy')
+            'ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØŒÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøœùúûüýþÿ', restricted=True),
+            'AAAAAAAECEEEEIIIIDNOOOOOOOEUUUUYPssaaaaaaaeceeeeiiiionoooooooeuuuuypy')
 
     def test_sanitize_ids(self):
         self.assertEqual(sanitize_filename('_n_cd26wFpw', is_id=True), '_n_cd26wFpw')
