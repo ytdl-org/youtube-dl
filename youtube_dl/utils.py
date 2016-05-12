@@ -50,6 +50,7 @@ from .compat import (
     compat_urllib_parse,
     compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
+    compat_urllib_parse_unquote_plus,
     compat_urllib_request,
     compat_urlparse,
     compat_xpath,
@@ -886,7 +887,8 @@ def make_socks_conn_class(base_class, socks_proxy):
         socks_type,
         url_components.hostname, url_components.port or 1080,
         True,  # Remote DNS
-        url_components.username, url_components.password
+        compat_urllib_parse_unquote_plus(url_components.username),
+        compat_urllib_parse_unquote_plus(url_components.password),
     )
 
     class SocksConnection(base_class):
