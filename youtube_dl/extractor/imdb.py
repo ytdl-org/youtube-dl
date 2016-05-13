@@ -12,9 +12,9 @@ from ..utils import (
 class ImdbIE(InfoExtractor):
     IE_NAME = 'imdb'
     IE_DESC = 'Internet Movie Database trailers'
-    _VALID_URL = r'https?://(?:www|m)\.imdb\.com/video/imdb/vi(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www|m)\.imdb\.com/video/[^/]+/vi(?P<id>\d+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.imdb.com/video/imdb/vi2524815897',
         'info_dict': {
             'id': '2524815897',
@@ -22,7 +22,10 @@ class ImdbIE(InfoExtractor):
             'title': 'Ice Age: Continental Drift Trailer (No. 2) - IMDb',
             'description': 'md5:9061c2219254e5d14e03c25c98e96a81',
         }
-    }
+    }, {
+        'url': 'http://www.imdb.com/video/_/vi2524815897',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
