@@ -150,6 +150,7 @@ class YoutubeDL(object):
     restrictfilenames: Do not allow "&" and spaces in file names
     ignoreerrors:      Do not stop on download errors.
     force_generic_extractor: Force downloader to use the generic extractor
+    no_generic_extractor: Prevent usage of the generic extractor
     nooverwrites:      Prevent overwriting files.
     playliststart:     Playlist item to start at.
     playlistend:       Playlist item to end at.
@@ -648,7 +649,7 @@ class YoutubeDL(object):
             info_dict.setdefault(key, value)
 
     def extract_info(self, url, download=True, ie_key=None, extra_info={},
-                     process=True, force_generic_extractor=False):
+                     process=True, force_generic_extractor=False, no_generic_extractor=False):
         '''
         Returns a list with a dictionary for each video we find.
         If 'download', also downloads the videos.
@@ -664,6 +665,8 @@ class YoutubeDL(object):
             ies = self._ies
 
         for ie in ies:
+            if(ie.ie_key() == "Generic" and no_generic_extractor):
+                continue
             if not ie.suitable(url):
                 continue
 
@@ -1733,7 +1736,9 @@ class YoutubeDL(object):
             try:
                 # It also downloads the videos
                 res = self.extract_info(
-                    url, force_generic_extractor=self.params.get('force_generic_extractor', False))
+                    url,
+                    force_generic_extractor=self.params.get('force_generic_extractor', False),
+                    no_generic_extractor=self.params.get('no_generic_extractor', False))
             except UnavailableVideoError:
                 self.report_error('unable to download video')
             except MaxDownloadsReached:
