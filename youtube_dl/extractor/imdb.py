@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..utils import (
+    mimetype2ext,
     qualities,
 )
 
@@ -51,13 +51,27 @@ class ImdbIE(InfoExtractor):
             json_data = self._search_regex(
                 r'<script[^>]+class="imdb-player-data"[^>]*?>(.*?)</script>',
                 format_page, 'json data', flags=re.DOTALL)
-            info = json.loads(json_data)
-            format_info = info['videoPlayerObject']['video']
-            f_id = format_info['ffname']
+            info = self._parse_json(json_data, video_id, fatal=False)
+            if not info:
+                continue
+            format_info = info.get('videoPlayerObject', {}).get('video', {})
+            if not format_info:
+                continue
+            video_info_list = format_info.get('videoInfoList')
+            if not video_info_list or not isinstance(video_info_list, list):
+                continue
+            video_info = video_info_list[0]
+            if not video_info or not isinstance(video_info, dict):
+                continue
+            video_url = video_info.get('videoUrl')
+            if not video_url:
+                continue
+            format_id = format_info.get('ffname')
             formats.append({
-                'format_id': f_id,
-                'url': format_info['videoInfoList'][0]['videoUrl'],
-                'quality': quality(f_id),
+                'format_id': format_id,
+                'url': video_url,
+                'ext': mimetype2ext(video_info.get('videoMimeType')),
+                'quality': quality(format_id),
             })
         self._sort_formats(formats)
 
