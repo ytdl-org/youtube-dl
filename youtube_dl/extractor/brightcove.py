@@ -307,9 +307,10 @@ class BrightcoveLegacyIE(InfoExtractor):
                                     playlist_title=playlist_info['mediaCollectionDTO']['displayName'])
 
     def _extract_video_info(self, video_info):
+        video_id = compat_str(video_info['id'])
         publisher_id = video_info.get('publisherId')
         info = {
-            'id': compat_str(video_info['id']),
+            'id': video_id,
             'title': video_info['displayName'].strip(),
             'description': video_info.get('shortDescription'),
             'thumbnail': video_info.get('videoStillURL') or video_info.get('thumbnailURL'),
@@ -331,7 +332,8 @@ class BrightcoveLegacyIE(InfoExtractor):
                     url_comp = compat_urllib_parse_urlparse(url)
                     if url_comp.path.endswith('.m3u8'):
                         formats.extend(
-                            self._extract_m3u8_formats(url, info['id'], 'mp4'))
+                            self._extract_m3u8_formats(
+                                url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
                         continue
                     elif 'akamaihd.net' in url_comp.netloc:
                         # This type of renditions are served through
@@ -365,7 +367,7 @@ class BrightcoveLegacyIE(InfoExtractor):
                     a_format.update({
                         'format_id': 'hls%s' % ('-%s' % tbr if tbr else ''),
                         'ext': 'mp4',
-                        'protocol': 'm3u8',
+                        'protocol': 'm3u8_native',
                     })
 
                 formats.append(a_format)
@@ -395,7 +397,7 @@ class BrightcoveLegacyIE(InfoExtractor):
                     return ad_info
 
         if 'url' not in info and not info.get('formats'):
-            raise ExtractorError('Unable to extract video url for %s' % info['id'])
+            raise ExtractorError('Unable to extract video url for %s' % video_id)
         return info
 
 
@@ -527,7 +529,7 @@ class BrightcoveNewIE(InfoExtractor):
                 if not src:
                     continue
                 formats.extend(self._extract_m3u8_formats(
-                    src, video_id, 'mp4', m3u8_id='hls', fatal=False))
+                    src, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
             elif source_type == 'application/dash+xml':
                 if not src:
                     continue
