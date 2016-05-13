@@ -15,9 +15,14 @@ from ..utils import (
 
 class NRKBaseIE(InfoExtractor):
     def _extract_formats(self, manifest_url, video_id, fatal=True):
-        return self._extract_f4m_formats(
+        formats = []
+        formats.extend(self._extract_f4m_formats(
             manifest_url + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81',
-            video_id, f4m_id='hds', fatal=fatal)
+            video_id, f4m_id='hds', fatal=fatal))
+        formats.extend(self._extract_m3u8_formats(manifest_url.replace(
+            'akamaihd.net/z/', 'akamaihd.net/i/').replace('/manifest.f4m', '/master.m3u8'),
+            video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=fatal))
+        return formats
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -121,10 +126,10 @@ class NRKIE(NRKBaseIE):
     _TESTS = [{
         # video
         'url': 'http://www.nrk.no/video/PS*150533',
-        # MD5 is unstable
+        'md5': '2f7f6eeb2aacdd99885f355428715cfa',
         'info_dict': {
             'id': '150533',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Dompap og andre fugler i Piip-Show',
             'description': 'md5:d9261ba34c43b61c812cb6b0269a5c8f',
             'duration': 263,
@@ -150,31 +155,23 @@ class NRKTVIE(NRKBaseIE):
 
     _TESTS = [{
         'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
+        'md5': '4e9ca6629f09e588ed240fb11619922a',
         'info_dict': {
-            'id': 'MUHH48000314',
+            'id': 'MUHH48000314AA',
             'ext': 'mp4',
-            'title': '20 spørsmål',
+            'title': '20 spørsmål 23.05.2014',
             'description': 'md5:bdea103bc35494c143c6a9acdd84887a',
-            'upload_date': '20140523',
             'duration': 1741.52,
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
         },
     }, {
         'url': 'https://tv.nrk.no/program/mdfp15000514',
+        'md5': '43d0be26663d380603a9cf0c24366531',
         'info_dict': {
-            'id': 'mdfp15000514',
+            'id': 'MDFP15000514CA',
             'ext': 'mp4',
-            'title': 'Grunnlovsjubiléet - Stor ståhei for ingenting',
-            'description': 'md5:654c12511f035aed1e42bdf5db3b206a',
-            'upload_date': '20140524',
+            'title': 'Grunnlovsjubiléet - Stor ståhei for ingenting 24.05.2014',
+            'description': 'md5:89290c5ccde1b3a24bb8050ab67fe1db',
             'duration': 4605.08,
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
         },
     }, {
         # single playlist video
@@ -185,7 +182,6 @@ class NRKTVIE(NRKBaseIE):
             'ext': 'flv',
             'title': 'Tour de Ski: Sprint fri teknikk, kvinner og menn 06.01.2015 (del 2:2)',
             'description': 'md5:238b67b97a4ac7d7b4bf0edf8cc57d26',
-            'upload_date': '20150106',
         },
         'skip': 'Only works from Norway',
     }, {
@@ -197,7 +193,6 @@ class NRKTVIE(NRKBaseIE):
                 'ext': 'flv',
                 'title': 'Tour de Ski: Sprint fri teknikk, kvinner og menn 06.01.2015 (del 1:2)',
                 'description': 'md5:238b67b97a4ac7d7b4bf0edf8cc57d26',
-                'upload_date': '20150106',
             },
         }, {
             'md5': 'adbd1dbd813edaf532b0a253780719c2',
@@ -206,14 +201,12 @@ class NRKTVIE(NRKBaseIE):
                 'ext': 'flv',
                 'title': 'Tour de Ski: Sprint fri teknikk, kvinner og menn 06.01.2015 (del 2:2)',
                 'description': 'md5:238b67b97a4ac7d7b4bf0edf8cc57d26',
-                'upload_date': '20150106',
             },
         }],
         'info_dict': {
             'id': 'MSPO40010515',
             'title': 'Tour de Ski: Sprint fri teknikk, kvinner og menn',
             'description': 'md5:238b67b97a4ac7d7b4bf0edf8cc57d26',
-            'upload_date': '20150106',
             'duration': 6947.52,
         },
         'skip': 'Only works from Norway',
