@@ -100,7 +100,7 @@ class OpenloadIE(InfoExtractor):
             raise ExtractorError('File not found', expected=True)
 
         code = self._search_regex(
-            r'<video[^>]+>\s*<script[^>]+>([^<]+)</script>',
+            r'</video>\s*</div>\s*<script[^>]+>([^<]+)</script>',
             webpage, 'JS code')
 
         decoded = self.openload_decode(code)
