@@ -1925,6 +1925,17 @@ def js_to_json(code):
                 '\\x': '\\u00',
             }.get(m.group(0), m.group(0)), v[1:-1])
 
+        INTEGER_TABLE = (
+            (r'^(0[xX][0-9a-fA-F]+)', 16),
+            (r'^(0+[0-7]+)', 8),
+        )
+
+        for regex, base in INTEGER_TABLE:
+            im = re.match(regex, v)
+            if im:
+                i = int(im.group(1), base)
+                return '"%d":' % i if v.endswith(':') else '%d' % i
+
         return '"%s"' % v
 
     return re.sub(r'''(?sx)
@@ -1932,6 +1943,7 @@ def js_to_json(code):
         '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^'\\]*'|
         /\*.*?\*/|,(?=\s*[\]}])|
         [a-zA-Z_][.a-zA-Z_0-9]*|
+        (?:0[xX][0-9a-fA-F]+|0+[0-7]+)(?:\s*:)?|
         [0-9]+(?=\s*:)
         ''', fix_kv, code)
 

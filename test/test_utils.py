@@ -617,6 +617,15 @@ class TestUtil(unittest.TestCase):
         json_code = js_to_json(inp)
         self.assertEqual(json.loads(json_code), json.loads(inp))
 
+        inp = '''{
+            0:{src:'skipped', type: 'application/dash+xml'},
+            1:{src:'skipped', type: 'application/vnd.apple.mpegURL'},
+        }'''
+        self.assertEqual(js_to_json(inp), '''{
+            "0":{"src":"skipped", "type": "application/dash+xml"},
+            "1":{"src":"skipped", "type": "application/vnd.apple.mpegURL"}
+        }''')
+
     def test_js_to_json_edgecases(self):
         on = js_to_json("{abc_def:'1\\'\\\\2\\\\\\'3\"4'}")
         self.assertEqual(json.loads(on), {"abc_def": "1'\\2\\'3\"4"})
@@ -651,6 +660,16 @@ class TestUtil(unittest.TestCase):
 
         on = js_to_json("['a\\\nb']")
         self.assertEqual(json.loads(on), ['ab'])
+
+        on = js_to_json('{0xff:0xff}')
+        self.assertEqual(json.loads(on), {'255': 255})
+
+        on = js_to_json('{077:077}')
+        self.assertEqual(json.loads(on), {'63': 63})
+
+        on = js_to_json('{42:42}')
+        self.assertEqual(json.loads(on), {'42': 42})
+
 
     def test_extract_attributes(self):
         self.assertEqual(extract_attributes('<e x="y">'), {'x': 'y'})
