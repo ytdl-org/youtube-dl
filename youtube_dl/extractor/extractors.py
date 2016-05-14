@@ -766,6 +766,7 @@ from .thesixtyone import TheSixtyOneIE
 from .thestar import TheStarIE
 from .thisamericanlife import ThisAmericanLifeIE
 from .thisav import ThisAVIE
+from .threeqsdn import ThreeQSDNIE
 from .tinypic import TinyPicIE
 from .tlc import TlcDeIE
 from .tmz import (
