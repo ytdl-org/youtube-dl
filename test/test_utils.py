@@ -670,7 +670,6 @@ class TestUtil(unittest.TestCase):
         on = js_to_json('{42:42}')
         self.assertEqual(json.loads(on), {'42': 42})
 
-
     def test_extract_attributes(self):
         self.assertEqual(extract_attributes('<e x="y">'), {'x': 'y'})
         self.assertEqual(extract_attributes("<e x='y'>"), {'x': 'y'})
