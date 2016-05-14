@@ -24,8 +24,13 @@ from youtube_dl.utils import (
 def get_params(override=None):
     PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                    "parameters.json")
+    LOCAL_PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                         "local_parameters.json")
     with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
         parameters = json.load(pf)
+    if os.path.exists(LOCAL_PARAMETERS_FILE):
+        with io.open(LOCAL_PARAMETERS_FILE, encoding='utf-8') as pf:
+            parameters.update(json.load(pf))
     if override:
         parameters.update(override)
     return parameters
@@ -143,6 +148,9 @@ def expect_value(self, got, expected, field):
             expect_value(self, item_got, item_expected, field)
     else:
         if isinstance(expected, compat_str) and expected.startswith('md5:'):
+            self.assertTrue(
+                isinstance(got, compat_str),
+                'Expected field %s to be a unicode object, but got value %r of type %r' % (field, got, type(got)))
             got = 'md5:' + md5(got)
         elif isinstance(expected, compat_str) and expected.startswith('mincount:'):
             self.assertTrue(

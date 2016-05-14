@@ -85,9 +85,11 @@ which means you can modify it, redistribute it or use it however you like.
     --no-color                       Do not emit color codes in output
 
 ## Network Options:
-    --proxy URL                      Use the specified HTTP/HTTPS proxy. Pass in
-                                     an empty string (--proxy "") for direct
-                                     connection
+    --proxy URL                      Use the specified HTTP/HTTPS/SOCKS proxy.
+                                     To enable experimental SOCKS proxy, specify
+                                     a proper scheme. For example
+                                     socks5://127.0.0.1:1080/. Pass in an empty
+                                     string (--proxy "") for direct connection
     --socket-timeout SECONDS         Time to wait before giving up, in seconds
     --source-address IP              Client-side IP address to bind to
                                      (experimental)
@@ -176,7 +178,9 @@ which means you can modify it, redistribute it or use it however you like.
     --xattr-set-filesize             Set file xattribute ytdl.filesize with
                                      expected filesize (experimental)
     --hls-prefer-native              Use the native HLS downloader instead of
-                                     ffmpeg (experimental)
+                                     ffmpeg
+    --hls-prefer-ffmpeg              Use ffmpeg instead of the native HLS
+                                     downloader
     --hls-use-mpegts                 Use the mpegts container for HLS videos,
                                      allowing to play the video while
                                      downloading (some players may not be able
@@ -463,7 +467,7 @@ The basic usage is not to set any template arguments when downloading a single f
  - `display_id`: An alternative identifier for the video
  - `uploader`: Full name of the video uploader
  - `license`: License name the video is licensed under
- - `creator`: The main artist who created the video
+ - `creator`: The creator of the video
  - `release_date`: The date (YYYYMMDD) when the video was released
  - `timestamp`: UNIX timestamp of the moment the video became available
  - `upload_date`: Video upload date (YYYYMMDD)
@@ -514,6 +518,18 @@ Available for the video that is an episode of some series or programme:
  - `episode`: Title of the video episode
  - `episode_number`: Number of the video episode within a season
  - `episode_id`: Id of the video episode
+
+Available for the media that is a track or a part of a music album:
+ - `track`: Title of the track
+ - `track_number`: Number of the track within an album or a disc
+ - `track_id`: Id of the track
+ - `artist`: Artist(s) of the track
+ - `genre`: Genre(s) of the track
+ - `album`: Title of the album the track belongs to
+ - `album_type`: Type of the album
+ - `album_artist`: List of all artists appeared on the album
+ - `disc_number`: Number of the disc or other physical medium the track belongs to
+ - `release_year`: Year (YYYY) when the album was released
 
 Each aforementioned sequence when referenced in output template will be replaced by the actual value corresponding to the sequence name. Note that some of the sequences are not guaranteed to be present since they depend on the metadata obtained by particular extractor, such sequences will be replaced with `NA`.
 
@@ -683,6 +699,10 @@ YouTube changed their playlist format in March 2014 and later on, so you'll need
 
 If you have installed youtube-dl with a package manager, pip, setup.py or a tarball, please use that to update. Note that Ubuntu packages do not seem to get updated anymore. Since we are not affiliated with Ubuntu, there is little we can do. Feel free to [report bugs](https://bugs.launchpad.net/ubuntu/+source/youtube-dl/+filebug) to the [Ubuntu packaging guys](mailto:ubuntu-motu@lists.ubuntu.com?subject=outdated%20version%20of%20youtube-dl) - all they have to do is update the package to a somewhat recent version. See above for a way to update.
 
+### I'm getting an error when trying to use output template: `error: using output template conflicts with using title, video ID or auto number`
+
+Make sure you are not using `-o` with any of these options `-t`, `--title`, `--id`, `-A` or `--auto-number` set in command line or in a configuration file. Remove the latter if any.
+
 ### Do I always have to pass `-citw`?
 
 By default, youtube-dl intends to have the best options (incidentally, if you have a convincing case that these should be different, [please file an issue where you explain that](https://yt-dl.org/bug)). Therefore, it is unnecessary and sometimes harmful to copy long option strings from webpages. In particular, the only option out of `-citw` that is regularly useful is `-i`.
@@ -703,7 +723,7 @@ Videos or video formats streamed via RTMP protocol can only be downloaded when [
 
 ### I have downloaded a video but how can I play it?
 
-Once the video is fully downloaded, use any video player, such as [vlc](http://www.videolan.org) or [mplayer](http://www.mplayerhq.hu/).
+Once the video is fully downloaded, use any video player, such as [mpv](https://mpv.io/), [vlc](http://www.videolan.org) or [mplayer](http://www.mplayerhq.hu/).
 
 ### I extracted a video URL with `-g`, but it does not play on another machine / in my webbrowser.
 

@@ -16,14 +16,14 @@ class GrouponIE(InfoExtractor):
         'playlist': [{
             'info_dict': {
                 'id': 'tubGNycTo_9Uxg82uESj4i61EYX8nyuf',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'Bikram Yoga Huntington Beach | Orange County',
                 'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
                 'duration': 44.961,
             },
         }],
         'params': {
-            'skip_download': 'HLS',
+            'skip_download': 'HDS',
         }
     }
 
@@ -32,7 +32,7 @@ class GrouponIE(InfoExtractor):
         webpage = self._download_webpage(url, playlist_id)
 
         payload = self._parse_json(self._search_regex(
-            r'var\s+payload\s*=\s*(.*?);\n', webpage, 'payload'), playlist_id)
+            r'(?:var\s+|window\.)payload\s*=\s*(.*?);\n', webpage, 'payload'), playlist_id)
         videos = payload['carousel'].get('dealVideos', [])
         entries = []
         for v in videos:

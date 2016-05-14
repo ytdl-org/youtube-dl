@@ -4,16 +4,15 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    float_or_none,
+    int_or_none,
+)
 
 
 class JWPlatformBaseIE(InfoExtractor):
     def _parse_jwplayer_data(self, jwplayer_data, video_id, require_title=True):
         video_data = jwplayer_data['playlist'][0]
-        subtitles = {}
-        for track in video_data['tracks']:
-            if track['kind'] == 'captions':
-                subtitles[track['label']] = [{'url': self._proto_relative_url(track['file'])}]
 
         formats = []
         for source in video_data['sources']:
@@ -35,12 +34,22 @@ class JWPlatformBaseIE(InfoExtractor):
                 })
         self._sort_formats(formats)
 
+        subtitles = {}
+        tracks = video_data.get('tracks')
+        if tracks and isinstance(tracks, list):
+            for track in tracks:
+                if track.get('file') and track.get('kind') == 'captions':
+                    subtitles.setdefault(track.get('label') or 'en', []).append({
+                        'url': self._proto_relative_url(track['file'])
+                    })
+
         return {
             'id': video_id,
             'title': video_data['title'] if require_title else video_data.get('title'),
             'description': video_data.get('description'),
             'thumbnail': self._proto_relative_url(video_data.get('image')),
             'timestamp': int_or_none(video_data.get('pubdate')),
+            'duration': float_or_none(jwplayer_data.get('duration')),
             'subtitles': subtitles,
             'formats': formats,
         }

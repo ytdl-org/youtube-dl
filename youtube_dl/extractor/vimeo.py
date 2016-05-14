@@ -81,7 +81,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                             \.
                         )?
                         vimeo(?P<pro>pro)?\.com/
-                        (?!channels/[^/?#]+/?(?:$|[?#])|(?:album|ondemand)/)
+                        (?!channels/[^/?#]+/?(?:$|[?#])|[^/]+/review/|(?:album|ondemand)/)
                         (?:.*?/)?
                         (?:
                             (?:
@@ -90,6 +90,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                             )?
                         (?:videos?/)?
                         (?P<id>[0-9]+)
+                        (?:/[\da-f]+)?
                         /?(?:[?&].*)?(?:[#].*)?$
                     '''
     IE_NAME = 'vimeo'
@@ -232,6 +233,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'url': 'https://vimeo.com/7809605',
             'only_matching': True,
         },
+        {
+            'url': 'https://vimeo.com/160743502/abd0e13fb4',
+            'only_matching': True,
+        }
     ]
 
     @staticmethod
@@ -277,10 +282,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
         pass_url = url + '/check-password'
         password_request = sanitized_Request(pass_url, data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        password_request.add_header('Referer', url)
         return self._download_json(
             password_request, video_id,
-            'Verifying the password',
-            'Wrong password')
+            'Verifying the password', 'Wrong password')
 
     def _real_initialize(self):
         self._login()

@@ -63,7 +63,7 @@ class ArteTvIE(InfoExtractor):
 
 class ArteTVPlus7IE(InfoExtractor):
     IE_NAME = 'arte.tv:+7'
-    _VALID_URL = r'https?://(?:www\.)?arte\.tv/guide/(?P<lang>fr|de|en|es)/(?:(?:sendungen|emissions|embed)/)?(?P<id>[^/]+)/(?P<name>[^/?#&+])'
+    _VALID_URL = r'https?://(?:www\.)?arte\.tv/guide/(?P<lang>fr|de|en|es)/(?:(?:sendungen|emissions|embed)/)?(?P<id>[^/]+)/(?P<name>[^/?#&]+)'
 
     @classmethod
     def _extract_url_info(cls, url):
@@ -161,24 +161,53 @@ class ArteTVPlus7IE(InfoExtractor):
             'es': 'E[ESP]',
         }
 
+        langcode = LANGS.get(lang, lang)
+
         formats = []
         for format_id, format_dict in player_info['VSR'].items():
             f = dict(format_dict)
             versionCode = f.get('versionCode')
-            langcode = LANGS.get(lang, lang)
-            lang_rexs = [r'VO?%s-' % re.escape(langcode), r'VO?.-ST%s$' % re.escape(langcode)]
-            lang_pref = None
-            if versionCode:
-                matched_lang_rexs = [r for r in lang_rexs if re.match(r, versionCode)]
-                lang_pref = -10 if not matched_lang_rexs else 10 * len(matched_lang_rexs)
-            source_pref = 0
-            if versionCode is not None:
-                # The original version with subtitles has lower relevance
-                if re.match(r'VO-ST(F|A|E)', versionCode):
-                    source_pref -= 10
-                # The version with sourds/mal subtitles has also lower relevance
-                elif re.match(r'VO?(F|A|E)-STM\1', versionCode):
-                    source_pref -= 9
+            l = re.escape(langcode)
+
+            # Language preference from most to least priority
+            # Reference: section 5.6.3 of
+            # http://www.arte.tv/sites/en/corporate/files/complete-technical-guidelines-arte-geie-v1-05.pdf
+            PREFERENCES = (
+                # original version in requested language, without subtitles
+                r'VO{0}$'.format(l),
+                # original version in requested language, with partial subtitles in requested language
+                r'VO{0}-ST{0}$'.format(l),
+                # original version in requested language, with subtitles for the deaf and hard-of-hearing in requested language
+                r'VO{0}-STM{0}$'.format(l),
+                # non-original (dubbed) version in requested language, without subtitles
+                r'V{0}$'.format(l),
+                # non-original (dubbed) version in requested language, with subtitles partial subtitles in requested language
+                r'V{0}-ST{0}$'.format(l),
+                # non-original (dubbed) version in requested language, with subtitles for the deaf and hard-of-hearing in requested language
+                r'V{0}-STM{0}$'.format(l),
+                # original version in requested language, with partial subtitles in different language
+                r'VO{0}-ST(?!{0}).+?$'.format(l),
+                # original version in requested language, with subtitles for the deaf and hard-of-hearing in different language
+                r'VO{0}-STM(?!{0}).+?$'.format(l),
+                # original version in different language, with partial subtitles in requested language
+                r'VO(?:(?!{0}).+?)?-ST{0}$'.format(l),
+                # original version in different language, with subtitles for the deaf and hard-of-hearing in requested language
+                r'VO(?:(?!{0}).+?)?-STM{0}$'.format(l),
+                # original version in different language, without subtitles
+                r'VO(?:(?!{0}))?$'.format(l),
+                # original version in different language, with partial subtitles in different language
+                r'VO(?:(?!{0}).+?)?-ST(?!{0}).+?$'.format(l),
+                # original version in different language, with subtitles for the deaf and hard-of-hearing in different language
+                r'VO(?:(?!{0}).+?)?-STM(?!{0}).+?$'.format(l),
+            )
+
+            for pref, p in enumerate(PREFERENCES):
+                if re.match(p, versionCode):
+                    lang_pref = len(PREFERENCES) - pref
+                    break
+            else:
+                lang_pref = -1
+
             format = {
                 'format_id': format_id,
                 'preference': -10 if f.get('videoFormat') == 'M3U8' else None,
@@ -188,7 +217,6 @@ class ArteTVPlus7IE(InfoExtractor):
                 'height': int_or_none(f.get('height')),
                 'tbr': int_or_none(f.get('bitrate')),
                 'quality': qfunc(f.get('quality')),
-                'source_preference': source_pref,
             }
 
             if f.get('mediaType') == 'rtmp':
@@ -210,7 +238,7 @@ class ArteTVPlus7IE(InfoExtractor):
 # It also uses the arte_vp_url url from the webpage to extract the information
 class ArteTVCreativeIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:creative'
-    _VALID_URL = r'https?://creative\.arte\.tv/(?P<lang>fr|de|en|es)/(?:magazine?/)?(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://creative\.arte\.tv/(?P<lang>fr|de|en|es)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'http://creative.arte.tv/de/magazin/agentur-amateur-corporate-design',
@@ -229,7 +257,25 @@ class ArteTVCreativeIE(ArteTVPlus7IE):
             'description': 'Événement ! Quarante-cinq ans après leurs premiers succès, les légendaires Monty Python remontent sur scène.\n',
             'upload_date': '20140805',
         }
+    }, {
+        'url': 'http://creative.arte.tv/de/episode/agentur-amateur-4-der-erste-kunde',
+        'only_matching': True,
     }]
+
+
+class ArteTVInfoIE(ArteTVPlus7IE):
+    IE_NAME = 'arte.tv:info'
+    _VALID_URL = r'https?://info\.arte\.tv/(?P<lang>fr|de|en|es)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+
+    _TEST = {
+        'url': 'http://info.arte.tv/fr/service-civique-un-cache-misere',
+        'info_dict': {
+            'id': '067528-000-A',
+            'ext': 'mp4',
+            'title': 'Service civique, un cache misère ?',
+            'upload_date': '20160403',
+        },
+    }
 
 
 class ArteTVFutureIE(ArteTVPlus7IE):
@@ -337,7 +383,7 @@ class ArteTVEmbedIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:embed'
     _VALID_URL = r'''(?x)
         http://www\.arte\.tv
-        /playerv2/embed\.php\?json_url=
+        /(?:playerv2/embed|arte_vp/index)\.php\?json_url=
         (?P<json_url>
             http://arte\.tv/papi/tvguide/videos/stream/player/
             (?P<lang>[^/]+)/(?P<id>[^/]+)[^&]*

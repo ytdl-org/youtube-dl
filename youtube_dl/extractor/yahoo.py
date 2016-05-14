@@ -24,7 +24,7 @@ from .nbc import NBCSportsVPlayerIE
 
 class YahooIE(InfoExtractor):
     IE_DESC = 'Yahoo screen and movies'
-    _VALID_URL = r'(?P<url>(?P<host>https?://(?:[a-zA-Z]{2}\.)?[\da-zA-Z_-]+\.yahoo\.com)/(?:[^/]+/)*(?P<display_id>.+)?-(?P<id>[0-9]+)(?:-[a-z]+)?\.html)'
+    _VALID_URL = r'(?P<url>(?P<host>https?://(?:[a-zA-Z]{2}\.)?[\da-zA-Z_-]+\.yahoo\.com)/(?:[^/]+/)*(?P<display_id>.+)?-(?P<id>[0-9]+)(?:-[a-z]+)?(?:\.html)?)'
     _TESTS = [
         {
             'url': 'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
@@ -38,7 +38,7 @@ class YahooIE(InfoExtractor):
         },
         {
             'url': 'http://screen.yahoo.com/wired/codefellas-s1-ep12-cougar-lies-103000935.html',
-            'md5': 'd6e6fc6e1313c608f316ddad7b82b306',
+            'md5': 'c3466d2b6d5dd6b9f41ba9ed04c24b23',
             'info_dict': {
                 'id': 'd1dedf8c-d58c-38c3-8963-e899929ae0a9',
                 'ext': 'mp4',
@@ -49,7 +49,7 @@ class YahooIE(InfoExtractor):
         },
         {
             'url': 'https://screen.yahoo.com/community/community-sizzle-reel-203225340.html?format=embed',
-            'md5': '60e8ac193d8fb71997caa8fce54c6460',
+            'md5': '75ffabdb87c16d4ffe8c036dc4d1c136',
             'info_dict': {
                 'id': '4fe78544-8d48-39d8-97cd-13f205d9fcdb',
                 'ext': 'mp4',
@@ -59,15 +59,15 @@ class YahooIE(InfoExtractor):
             }
         },
         {
-            'url': 'https://tw.screen.yahoo.com/election-2014-askmayor/敢問市長-黃秀霜批賴清德-非常高傲-033009720.html',
-            'md5': '3a09cf59349cfaddae1797acc3c087fc',
+            'url': 'https://tw.news.yahoo.com/%E6%95%A2%E5%95%8F%E5%B8%82%E9%95%B7%20%E9%BB%83%E7%A7%80%E9%9C%9C%E6%89%B9%E8%B3%B4%E6%B8%85%E5%BE%B7%20%E9%9D%9E%E5%B8%B8%E9%AB%98%E5%82%B2-034024051.html',
+            'md5': '9035d38f88b1782682a3e89f985be5bb',
             'info_dict': {
                 'id': 'cac903b3-fcf4-3c14-b632-643ab541712f',
                 'ext': 'mp4',
                 'title': '敢問市長／黃秀霜批賴清德「非常高傲」',
                 'description': '直言台南沒捷運 交通居五都之末',
                 'duration': 396,
-            }
+            },
         },
         {
             'url': 'https://uk.screen.yahoo.com/editor-picks/cute-raccoon-freed-drain-using-091756545.html',
@@ -89,17 +89,32 @@ class YahooIE(InfoExtractor):
                 'title': 'Program that makes hockey more affordable not offered in Manitoba',
                 'description': 'md5:c54a609f4c078d92b74ffb9bf1f496f4',
                 'duration': 121,
-            }
+            },
+            'skip': 'Video gone',
         }, {
             'url': 'https://ca.finance.yahoo.com/news/hackers-sony-more-trouble-well-154609075.html',
-            'md5': '226a895aae7e21b0129e2a2006fe9690',
             'info_dict': {
-                'id': 'e624c4bc-3389-34de-9dfc-025f74943409',
-                'ext': 'mp4',
-                'title': '\'The Interview\' TV Spot: War',
-                'description': 'The Interview',
-                'duration': 30,
-            }
+                'id': '154609075',
+            },
+            'playlist': [{
+                'md5': 'f8e336c6b66f503282e5f719641d6565',
+                'info_dict': {
+                    'id': 'e624c4bc-3389-34de-9dfc-025f74943409',
+                    'ext': 'mp4',
+                    'title': '\'The Interview\' TV Spot: War',
+                    'description': 'The Interview',
+                    'duration': 30,
+                },
+            }, {
+                'md5': '958bcb90b4d6df71c56312137ee1cd5a',
+                'info_dict': {
+                    'id': '1fc8ada0-718e-3abe-a450-bf31f246d1a9',
+                    'ext': 'mp4',
+                    'title': '\'The Interview\' TV Spot: Guys',
+                    'description': 'The Interview',
+                    'duration': 30,
+                },
+            }],
         }, {
             'url': 'http://news.yahoo.com/video/china-moses-crazy-blues-104538833.html',
             'md5': '88e209b417f173d86186bef6e4d1f160',
@@ -119,10 +134,11 @@ class YahooIE(InfoExtractor):
                 'title': 'Connect the Dots: Dark Side of Virgo',
                 'description': 'md5:1428185051cfd1949807ad4ff6d3686a',
                 'duration': 201,
-            }
+            },
+            'skip': 'Domain name in.lifestyle.yahoo.com gone',
         }, {
             'url': 'https://www.yahoo.com/movies/v/true-story-trailer-173000497.html',
-            'md5': '989396ae73d20c6f057746fb226aa215',
+            'md5': 'b17ac378b1134fa44370fb27db09a744',
             'info_dict': {
                 'id': '071c4013-ce30-3a93-a5b2-e0413cd4a9d1',
                 'ext': 'mp4',
@@ -141,6 +157,9 @@ class YahooIE(InfoExtractor):
                 'ext': 'flv',
                 'description': 'md5:df390f70a9ba7c95ff1daace988f0d8d',
                 'title': 'Tyler Kalinoski hits buzzer-beater to lift Davidson',
+                'upload_date': '20150313',
+                'uploader': 'NBCU-SPORTS',
+                'timestamp': 1426270238,
             }
         }, {
             'url': 'https://tw.news.yahoo.com/-100120367.html',
@@ -148,7 +167,7 @@ class YahooIE(InfoExtractor):
         }, {
             # Query result is embedded in webpage, but explicit request to video API fails with geo restriction
             'url': 'https://screen.yahoo.com/community/communitary-community-episode-1-ladders-154501237.html',
-            'md5': '4fbafb9c9b6f07aa8f870629f6671b35',
+            'md5': '1ddbf7c850777548438e5c4f147c7b8c',
             'info_dict': {
                 'id': '1f32853c-a271-3eef-8cb6-f6d6872cb504',
                 'ext': 'mp4',
@@ -166,6 +185,17 @@ class YahooIE(InfoExtractor):
                 'description': 'While they play feuding fathers in \'Daddy\'s Home,\' star Will Ferrell & Mark Wahlberg share their true feelings on parenthood.',
             },
         },
+        {
+            # config['models']['applet_model']['data']['sapi'] has no query
+            'url': 'https://www.yahoo.com/music/livenation/event/galactic-2016',
+            'md5': 'dac0c72d502bc5facda80c9e6d5c98db',
+            'info_dict': {
+                'id': 'a6015640-e9e5-3efb-bb60-05589a183919',
+                'ext': 'mp4',
+                'description': 'Galactic',
+                'title': 'Dolla Diva (feat. Maggie Koerner)',
+            },
+        },
     ]
 
     def _real_extract(self, url):
@@ -174,19 +204,26 @@ class YahooIE(InfoExtractor):
         page_id = mobj.group('id')
         url = mobj.group('url')
         host = mobj.group('host')
-        webpage = self._download_webpage(url, display_id)
+        webpage, urlh = self._download_webpage_handle(url, display_id)
+        if 'err=404' in urlh.geturl():
+            raise ExtractorError('Video gone', expected=True)
 
         # Look for iframed media first
-        iframe_m = re.search(r'<iframe[^>]+src="(/video/.+?-\d+\.html\?format=embed.*?)"', webpage)
-        if iframe_m:
+        entries = []
+        iframe_urls = re.findall(r'<iframe[^>]+src="(/video/.+?-\d+\.html\?format=embed.*?)"', webpage)
+        for idx, iframe_url in enumerate(iframe_urls):
             iframepage = self._download_webpage(
-                host + iframe_m.group(1), display_id, 'Downloading iframe webpage')
+                host + iframe_url, display_id,
+                note='Downloading iframe webpage for video #%d' % idx)
             items_json = self._search_regex(
                 r'mediaItems: (\[.+?\])$', iframepage, 'items', flags=re.MULTILINE, default=None)
             if items_json:
                 items = json.loads(items_json)
                 video_id = items[0]['id']
-                return self._get_info(video_id, display_id, webpage)
+                entries.append(self._get_info(video_id, display_id, webpage))
+        if entries:
+            return self.playlist_result(entries, page_id)
+
         # Look for NBCSports iframes
         nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
         if nbc_sports_url:
@@ -202,7 +239,7 @@ class YahooIE(InfoExtractor):
             config = self._parse_json(config_json, display_id, fatal=False)
             if config:
                 sapi = config.get('models', {}).get('applet_model', {}).get('data', {}).get('sapi')
-                if sapi:
+                if sapi and 'query' in sapi:
                     return self._extract_info(display_id, sapi, webpage)
 
         items_json = self._search_regex(

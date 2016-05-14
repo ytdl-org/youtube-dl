@@ -64,6 +64,7 @@ from .utils import (
     PostProcessingError,
     preferredencoding,
     prepend_extension,
+    register_socks_protocols,
     render_table,
     replace_extension,
     SameFileError,
@@ -260,7 +261,9 @@ class YoutubeDL(object):
     The following options determine which downloader is picked:
     external_downloader: Executable of the external downloader to call.
                        None or unset for standard (built-in) downloader.
-    hls_prefer_native: Use the native HLS downloader instead of ffmpeg/avconv.
+    hls_prefer_native: Use the native HLS downloader instead of ffmpeg/avconv
+                       if True, otherwise use ffmpeg/avconv if False, otherwise
+                       use downloader suggested by extractor if None.
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the downloader (see youtube_dl/downloader/common.py):
@@ -358,6 +361,8 @@ class YoutubeDL(object):
 
         for ph in self.params.get('progress_hooks', []):
             self.add_progress_hook(ph)
+
+        register_socks_protocols()
 
     def warn_if_short_id(self, argv):
         # short YouTube ID starting with dash?
@@ -578,7 +583,7 @@ class YoutubeDL(object):
                 is_id=(k == 'id'))
             template_dict = dict((k, sanitize(k, v))
                                  for k, v in template_dict.items()
-                                 if v is not None)
+                                 if v is not None and not isinstance(v, (list, tuple, dict)))
             template_dict = collections.defaultdict(lambda: 'NA', template_dict)
 
             outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
@@ -715,6 +720,7 @@ class YoutubeDL(object):
         result_type = ie_result.get('_type', 'video')
 
         if result_type in ('url', 'url_transparent'):
+            ie_result['url'] = sanitize_url(ie_result['url'])
             extract_flat = self.params.get('extract_flat', False)
             if ((extract_flat == 'in_playlist' and 'playlist' in extra_info) or
                     extract_flat is True):
@@ -1637,7 +1643,7 @@ class YoutubeDL(object):
                     # Just a single file
                     success = dl(filename, info_dict)
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
-                self.report_error('unable to download video data: %s' % str(err))
+                self.report_error('unable to download video data: %s' % error_to_compat_str(err))
                 return
             except (OSError, IOError) as err:
                 raise UnavailableVideoError(err)
@@ -2016,6 +2022,7 @@ class YoutubeDL(object):
         if opts_cookiefile is None:
             self.cookiejar = compat_cookiejar.CookieJar()
         else:
+            opts_cookiefile = compat_expanduser(opts_cookiefile)
             self.cookiejar = compat_cookiejar.MozillaCookieJar(
                 opts_cookiefile)
             if os.access(opts_cookiefile, os.R_OK):

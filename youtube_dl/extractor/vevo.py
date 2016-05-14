@@ -3,7 +3,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_etree_fromstring
+from ..compat import (
+    compat_etree_fromstring,
+    compat_str,
+    compat_urlparse,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -12,13 +16,22 @@ from ..utils import (
 )
 
 
-class VevoIE(InfoExtractor):
+class VevoBaseIE(InfoExtractor):
+    def _extract_json(self, webpage, video_id, item):
+        return self._parse_json(
+            self._search_regex(
+                r'window\.__INITIAL_STORE__\s*=\s*({.+?});\s*</script>',
+                webpage, 'initial store'),
+            video_id)['default'][item]
+
+
+class VevoIE(VevoBaseIE):
     '''
     Accepts urls from vevo.com or in the format 'vevo:{id}'
     (currently used by MTVIE and MySpaceIE)
     '''
     _VALID_URL = r'''(?x)
-        (?:https?://www\.vevo\.com/watch/(?:[^/]+/(?:[^/]+/)?)?|
+        (?:https?://www\.vevo\.com/watch/(?!playlist|genre)(?:[^/]+/(?:[^/]+/)?)?|
            https?://cache\.vevo\.com/m/html/embed\.html\?video=|
            https?://videoplayer\.vevo\.com/embed/embedded\?videoId=|
            vevo:)
@@ -30,11 +43,15 @@ class VevoIE(InfoExtractor):
         'info_dict': {
             'id': 'GB1101300280',
             'ext': 'mp4',
-            'title': 'Somebody to Die For',
+            'title': 'Hurts - Somebody to Die For',
+            'timestamp': 1372057200,
             'upload_date': '20130624',
             'uploader': 'Hurts',
-            'timestamp': 1372057200,
+            'track': 'Somebody to Die For',
+            'artist': 'Hurts',
+            'genre': 'Pop',
         },
+        'expected_warnings': ['Unable to download SMIL file'],
     }, {
         'note': 'v3 SMIL format',
         'url': 'http://www.vevo.com/watch/cassadee-pope/i-wish-i-could-break-your-heart/USUV71302923',
@@ -42,23 +59,31 @@ class VevoIE(InfoExtractor):
         'info_dict': {
             'id': 'USUV71302923',
             'ext': 'mp4',
-            'title': 'I Wish I Could Break Your Heart',
+            'title': 'Cassadee Pope - I Wish I Could Break Your Heart',
+            'timestamp': 1392796919,
             'upload_date': '20140219',
             'uploader': 'Cassadee Pope',
-            'timestamp': 1392796919,
+            'track': 'I Wish I Could Break Your Heart',
+            'artist': 'Cassadee Pope',
+            'genre': 'Country',
         },
+        'expected_warnings': ['Unable to download SMIL file'],
     }, {
         'note': 'Age-limited video',
         'url': 'https://www.vevo.com/watch/justin-timberlake/tunnel-vision-explicit/USRV81300282',
         'info_dict': {
             'id': 'USRV81300282',
             'ext': 'mp4',
-            'title': 'Tunnel Vision (Explicit)',
-            'upload_date': '20130703',
+            'title': 'Justin Timberlake - Tunnel Vision (Explicit)',
             'age_limit': 18,
-            'uploader': 'Justin Timberlake',
             'timestamp': 1372888800,
+            'upload_date': '20130703',
+            'uploader': 'Justin Timberlake',
+            'track': 'Tunnel Vision (Explicit)',
+            'artist': 'Justin Timberlake',
+            'genre': 'Pop',
         },
+        'expected_warnings': ['Unable to download SMIL file'],
     }, {
         'note': 'No video_info',
         'url': 'http://www.vevo.com/watch/k-camp-1/Till-I-Die/USUV71503000',
@@ -66,12 +91,36 @@ class VevoIE(InfoExtractor):
         'info_dict': {
             'id': 'USUV71503000',
             'ext': 'mp4',
-            'title': 'Till I Die',
-            'upload_date': '20151207',
+            'title': 'K Camp - Till I Die',
             'age_limit': 18,
-            'uploader': 'K Camp',
             'timestamp': 1449468000,
+            'upload_date': '20151207',
+            'uploader': 'K Camp',
+            'track': 'Till I Die',
+            'artist': 'K Camp',
+            'genre': 'Rap/Hip-Hop',
         },
+    }, {
+        'note': 'Only available via webpage',
+        'url': 'http://www.vevo.com/watch/GBUV71600656',
+        'md5': '67e79210613865b66a47c33baa5e37fe',
+        'info_dict': {
+            'id': 'GBUV71600656',
+            'ext': 'mp4',
+            'title': 'ABC - Viva Love',
+            'age_limit': 0,
+            'timestamp': 1461830400,
+            'upload_date': '20160428',
+            'uploader': 'ABC',
+            'track': 'Viva Love',
+            'artist': 'ABC',
+            'genre': 'Pop',
+        },
+        'expected_warnings': ['Failed to download video versions info'],
+    }, {
+        # no genres available
+        'url': 'http://www.vevo.com/watch/INS171400764',
+        'only_matching': True,
     }]
     _SMIL_BASE_URL = 'http://smil.lvl3.vevo.com'
     _SOURCE_TYPES = {
@@ -140,42 +189,41 @@ class VevoIE(InfoExtractor):
             errnote='Unable to retrieve oauth token')
 
         if 'THIS PAGE IS CURRENTLY UNAVAILABLE IN YOUR REGION' in webpage:
-            raise ExtractorError(
-                '%s said: This page is currently unavailable in your region.' % self.IE_NAME, expected=True)
+            self.raise_geo_restricted(
+                '%s said: This page is currently unavailable in your region' % self.IE_NAME)
 
         auth_info = self._parse_json(webpage, video_id)
         self._api_url_template = self.http_scheme() + '//apiv2.vevo.com/%s?token=' + auth_info['access_token']
 
-    def _call_api(self, path, video_id, note, errnote, fatal=True):
-        return self._download_json(self._api_url_template % path, video_id, note, errnote)
+    def _call_api(self, path, *args, **kwargs):
+        return self._download_json(self._api_url_template % path, *args, **kwargs)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         json_url = 'http://api.vevo.com/VideoService/AuthenticateVideo?isrc=%s' % video_id
         response = self._download_json(
-            json_url, video_id, 'Downloading video info', 'Unable to download info')
+            json_url, video_id, 'Downloading video info',
+            'Unable to download info', fatal=False) or {}
         video_info = response.get('video') or {}
-        video_versions = video_info.get('videoVersions')
+        artist = None
+        featured_artist = None
         uploader = None
-        timestamp = None
         view_count = None
         formats = []
 
         if not video_info:
-            if response.get('statusCode') != 909:
+            try:
+                self._initialize_api(video_id)
+            except ExtractorError:
                 ytid = response.get('errorInfo', {}).get('ytid')
                 if ytid:
                     self.report_warning(
                         'Video is geoblocked, trying with the YouTube video %s' % ytid)
                     return self.url_result(ytid, 'Youtube', ytid)
 
-                if 'statusMessage' in response:
-                    raise ExtractorError('%s said: %s' % (
-                        self.IE_NAME, response['statusMessage']), expected=True)
-                raise ExtractorError('Unable to extract videos')
+                raise
 
-            self._initialize_api(video_id)
             video_info = self._call_api(
                 'video/%s' % video_id, video_id, 'Downloading api video info',
                 'Failed to download video info')
@@ -183,12 +231,19 @@ class VevoIE(InfoExtractor):
             video_versions = self._call_api(
                 'video/%s/streams' % video_id, video_id,
                 'Downloading video versions info',
-                'Failed to download video versions info')
+                'Failed to download video versions info',
+                fatal=False)
+
+            # Some videos are only available via webpage (e.g.
+            # https://github.com/rg3/youtube-dl/issues/9366)
+            if not video_versions:
+                webpage = self._download_webpage(url, video_id)
+                video_versions = self._extract_json(webpage, video_id, 'streams')[video_id][0]
 
             timestamp = parse_iso8601(video_info.get('releaseDate'))
             artists = video_info.get('artists')
             if artists:
-                uploader = artists[0]['name']
+                artist = uploader = artists[0]['name']
             view_count = int_or_none(video_info.get('views', {}).get('total'))
 
             for video_version in video_versions:
@@ -241,7 +296,11 @@ class VevoIE(InfoExtractor):
                 scale=1000)
             artists = video_info.get('mainArtists')
             if artists:
-                uploader = artists[0]['artistName']
+                artist = uploader = artists[0]['artistName']
+
+            featured_artists = video_info.get('featuredArtists')
+            if featured_artists:
+                featured_artist = featured_artists[0]['artistName']
 
             smil_parsed = False
             for video_version in video_info['videoVersions']:
@@ -278,7 +337,15 @@ class VevoIE(InfoExtractor):
                         smil_parsed = True
         self._sort_formats(formats)
 
-        title = video_info['title']
+        track = video_info['title']
+        if featured_artist:
+            artist = '%s ft. %s' % (artist, featured_artist)
+        title = '%s - %s' % (artist, track) if artist else track
+
+        genres = video_info.get('genres')
+        genre = (
+            genres[0] if genres and isinstance(genres, list) and
+            isinstance(genres[0], compat_str) else None)
 
         is_explicit = video_info.get('isExplicit')
         if is_explicit is True:
@@ -300,4 +367,75 @@ class VevoIE(InfoExtractor):
             'duration': duration,
             'view_count': view_count,
             'age_limit': age_limit,
+            'track': track,
+            'artist': uploader,
+            'genre': genre,
         }
+
+
+class VevoPlaylistIE(VevoBaseIE):
+    _VALID_URL = r'https?://www\.vevo\.com/watch/(?P<kind>playlist|genre)/(?P<id>[^/?#&]+)'
+
+    _TESTS = [{
+        'url': 'http://www.vevo.com/watch/playlist/dadbf4e7-b99f-4184-9670-6f0e547b6a29',
+        'info_dict': {
+            'id': 'dadbf4e7-b99f-4184-9670-6f0e547b6a29',
+            'title': 'Best-Of: Birdman',
+        },
+        'playlist_count': 10,
+    }, {
+        'url': 'http://www.vevo.com/watch/genre/rock',
+        'info_dict': {
+            'id': 'rock',
+            'title': 'Rock',
+        },
+        'playlist_count': 20,
+    }, {
+        'url': 'http://www.vevo.com/watch/playlist/dadbf4e7-b99f-4184-9670-6f0e547b6a29?index=0',
+        'md5': '32dcdfddddf9ec6917fc88ca26d36282',
+        'info_dict': {
+            'id': 'USCMV1100073',
+            'ext': 'mp4',
+            'title': 'Birdman - Y.U. MAD',
+            'timestamp': 1323417600,
+            'upload_date': '20111209',
+            'uploader': 'Birdman',
+            'track': 'Y.U. MAD',
+            'artist': 'Birdman',
+            'genre': 'Rap/Hip-Hop',
+        },
+        'expected_warnings': ['Unable to download SMIL file'],
+    }, {
+        'url': 'http://www.vevo.com/watch/genre/rock?index=0',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        playlist_id = mobj.group('id')
+        playlist_kind = mobj.group('kind')
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+        index = qs.get('index', [None])[0]
+
+        if index:
+            video_id = self._search_regex(
+                r'<meta[^>]+content=(["\'])vevo://video/(?P<id>.+?)\1[^>]*>',
+                webpage, 'video id', default=None, group='id')
+            if video_id:
+                return self.url_result('vevo:%s' % video_id, VevoIE.ie_key())
+
+        playlists = self._extract_json(webpage, playlist_id, '%ss' % playlist_kind)
+
+        playlist = (list(playlists.values())[0]
+                    if playlist_kind == 'playlist' else playlists[playlist_id])
+
+        entries = [
+            self.url_result('vevo:%s' % src, VevoIE.ie_key())
+            for src in playlist['isrcs']]
+
+        return self.playlist_result(
+            entries, playlist.get('playlistId') or playlist_id,
+            playlist.get('name'), playlist.get('description'))

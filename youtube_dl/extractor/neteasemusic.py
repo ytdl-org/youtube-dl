@@ -89,6 +89,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'timestamp': 1431878400,
             'description': 'md5:a10a54589c2860300d02e1de821eb2ef',
         },
+        'skip': 'Blocked outside Mainland China',
     }, {
         'note': 'No lyrics translation.',
         'url': 'http://music.163.com/#/song?id=29822014',
@@ -101,6 +102,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'timestamp': 1419523200,
             'description': 'md5:a4d8d89f44656af206b7b2555c0bce6c',
         },
+        'skip': 'Blocked outside Mainland China',
     }, {
         'note': 'No lyrics.',
         'url': 'http://music.163.com/song?id=17241424',
@@ -112,6 +114,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'upload_date': '20080211',
             'timestamp': 1202745600,
         },
+        'skip': 'Blocked outside Mainland China',
     }, {
         'note': 'Has translated name.',
         'url': 'http://music.163.com/#/song?id=22735043',
@@ -124,7 +127,8 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'upload_date': '20100127',
             'timestamp': 1264608000,
             'alt_title': '说出愿望吧(Genie)',
-        }
+        },
+        'skip': 'Blocked outside Mainland China',
     }]
 
     def _process_lyrics(self, lyrics_info):
@@ -192,6 +196,7 @@ class NetEaseMusicAlbumIE(NetEaseMusicBaseIE):
             'title': 'B\'day',
         },
         'playlist_count': 23,
+        'skip': 'Blocked outside Mainland China',
     }
 
     def _real_extract(self, url):
@@ -223,6 +228,7 @@ class NetEaseMusicSingerIE(NetEaseMusicBaseIE):
             'title': '张惠妹 - aMEI;阿密特',
         },
         'playlist_count': 50,
+        'skip': 'Blocked outside Mainland China',
     }, {
         'note': 'Singer has translated name.',
         'url': 'http://music.163.com/#/artist?id=124098',
@@ -231,6 +237,7 @@ class NetEaseMusicSingerIE(NetEaseMusicBaseIE):
             'title': '李昇基 - 이승기',
         },
         'playlist_count': 50,
+        'skip': 'Blocked outside Mainland China',
     }]
 
     def _real_extract(self, url):
@@ -266,6 +273,7 @@ class NetEaseMusicListIE(NetEaseMusicBaseIE):
             'description': 'md5:12fd0819cab2965b9583ace0f8b7b022'
         },
         'playlist_count': 99,
+        'skip': 'Blocked outside Mainland China',
     }, {
         'note': 'Toplist/Charts sample',
         'url': 'http://music.163.com/#/discover/toplist?id=3733003',
@@ -275,6 +283,7 @@ class NetEaseMusicListIE(NetEaseMusicBaseIE):
             'description': 'md5:73ec782a612711cadc7872d9c1e134fc',
         },
         'playlist_count': 50,
+        'skip': 'Blocked outside Mainland China',
     }]
 
     def _real_extract(self, url):
@@ -314,6 +323,7 @@ class NetEaseMusicMvIE(NetEaseMusicBaseIE):
             'creator': '白雅言',
             'upload_date': '20150520',
         },
+        'skip': 'Blocked outside Mainland China',
     }
 
     def _real_extract(self, url):
@@ -357,6 +367,7 @@ class NetEaseMusicProgramIE(NetEaseMusicBaseIE):
             'upload_date': '20150613',
             'duration': 900,
         },
+        'skip': 'Blocked outside Mainland China',
     }, {
         'note': 'This program has accompanying songs.',
         'url': 'http://music.163.com/#/program?id=10141022',
@@ -366,6 +377,7 @@ class NetEaseMusicProgramIE(NetEaseMusicBaseIE):
             'description': 'md5:8d594db46cc3e6509107ede70a4aaa3b',
         },
         'playlist_count': 4,
+        'skip': 'Blocked outside Mainland China',
     }, {
         'note': 'This program has accompanying songs.',
         'url': 'http://music.163.com/#/program?id=10141022',
@@ -379,7 +391,8 @@ class NetEaseMusicProgramIE(NetEaseMusicBaseIE):
         },
         'params': {
             'noplaylist': True
-        }
+        },
+        'skip': 'Blocked outside Mainland China',
     }]
 
     def _real_extract(self, url):
@@ -438,6 +451,7 @@ class NetEaseMusicDjRadioIE(NetEaseMusicBaseIE):
             'description': 'md5:766220985cbd16fdd552f64c578a6b15'
         },
         'playlist_mincount': 40,
+        'skip': 'Blocked outside Mainland China',
     }
     _PAGE_SIZE = 1000
 

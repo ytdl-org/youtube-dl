@@ -20,6 +20,7 @@ from youtube_dl.utils import (
     args_to_str,
     encode_base_n,
     clean_html,
+    date_from_str,
     DateRange,
     detect_exe_version,
     determine_ext,
@@ -54,7 +55,6 @@ from youtube_dl.utils import (
     smuggle_url,
     str_to_int,
     strip_jsonp,
-    struct_unpack,
     timeconvert,
     unescapeHTML,
     unified_strdate,
@@ -138,8 +138,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual('yes_no', sanitize_filename('yes? no', restricted=True))
         self.assertEqual('this_-_that', sanitize_filename('this: that', restricted=True))
 
-        tests = 'a\xe4b\u4e2d\u56fd\u7684c'
-        self.assertEqual(sanitize_filename(tests, restricted=True), 'a_b_c')
+        tests = 'aäb\u4e2d\u56fd\u7684c'
+        self.assertEqual(sanitize_filename(tests, restricted=True), 'aab_c')
         self.assertTrue(sanitize_filename('\xf6', restricted=True) != '')  # No empty filename
 
         forbidden = '"\0\\/&!: \'\t\n()[]{}$;`^,#'
@@ -153,6 +153,10 @@ class TestUtil(unittest.TestCase):
         # .. but make sure the file name is never empty
         self.assertTrue(sanitize_filename('-', restricted=True) != '')
         self.assertTrue(sanitize_filename(':', restricted=True) != '')
+
+        self.assertEqual(sanitize_filename(
+            'ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØŒÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøœùúûüýþÿ', restricted=True),
+            'AAAAAAAECEEEEIIIIDNOOOOOOOEUUUUYPssaaaaaaaeceeeeiiiionoooooooeuuuuypy')
 
     def test_sanitize_ids(self):
         self.assertEqual(sanitize_filename('_n_cd26wFpw', is_id=True), '_n_cd26wFpw')
@@ -233,6 +237,13 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unescapeHTML('&#47;'), '/')
         self.assertEqual(unescapeHTML('&eacute;'), 'é')
         self.assertEqual(unescapeHTML('&#2013266066;'), '&#2013266066;')
+
+    def test_date_from_str(self):
+        self.assertEqual(date_from_str('yesterday'), date_from_str('now-1day'))
+        self.assertEqual(date_from_str('now+7day'), date_from_str('now+1week'))
+        self.assertEqual(date_from_str('now+14day'), date_from_str('now+2week'))
+        self.assertEqual(date_from_str('now+365day'), date_from_str('now+1year'))
+        self.assertEqual(date_from_str('now+30day'), date_from_str('now+1month'))
 
     def test_daterange(self):
         _20century = DateRange("19000101", "20000101")
@@ -405,6 +416,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_duration('01:02:03:04'), 93784)
         self.assertEqual(parse_duration('1 hour 3 minutes'), 3780)
         self.assertEqual(parse_duration('87 Min.'), 5220)
+        self.assertEqual(parse_duration('PT1H0.040S'), 3600.04)
 
     def test_fix_xml_ampersands(self):
         self.assertEqual(
@@ -443,9 +455,6 @@ class TestUtil(unittest.TestCase):
         testPL(5, 2, (1, 4), [1, 2, 3])
         testPL(5, 2, (2, 99), [2, 3, 4])
         testPL(5, 2, (20, 99), [])
-
-    def test_struct_unpack(self):
-        self.assertEqual(struct_unpack('!B', b'\x00'), (0,))
 
     def test_read_batch_urls(self):
         f = io.StringIO('''\xef\xbb\xbf foo

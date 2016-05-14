@@ -4,23 +4,23 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+)
 
 
 class NewstubeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?newstube\.ru/media/(?P<id>.+)'
     _TEST = {
         'url': 'http://www.newstube.ru/media/telekanal-cnn-peremestil-gorod-slavyansk-v-krym',
+        'md5': '801eef0c2a9f4089fa04e4fe3533abdc',
         'info_dict': {
             'id': '728e0ef2-e187-4012-bac0-5a081fdcb1f6',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Телеканал CNN переместил город Славянск в Крым',
             'description': 'md5:419a8c9f03442bc0b0a794d689360335',
             'duration': 31.05,
-        },
-        'params': {
-            # rtmp download
-            'skip_download': True,
         },
     }
 
@@ -62,7 +62,6 @@ class NewstubeIE(InfoExtractor):
             server = media_location.find(ns('./Server')).text
             app = media_location.find(ns('./App')).text
             media_id = stream_info.find(ns('./Id')).text
-            quality_id = stream_info.find(ns('./QualityId')).text
             name = stream_info.find(ns('./Name')).text
             width = int(stream_info.find(ns('./Width')).text)
             height = int(stream_info.find(ns('./Height')).text)
@@ -74,12 +73,38 @@ class NewstubeIE(InfoExtractor):
                 'rtmp_conn': ['S:%s' % session_id, 'S:%s' % media_id, 'S:n2'],
                 'page_url': url,
                 'ext': 'flv',
-                'format_id': quality_id,
-                'format_note': name,
+                'format_id': 'rtmp' + ('-%s' % name if name else ''),
                 'width': width,
                 'height': height,
             })
 
+        sources_data = self._download_json(
+            'http://www.newstube.ru/player2/getsources?guid=%s' % video_guid,
+            video_guid, fatal=False)
+        if sources_data:
+            for source in sources_data.get('Sources', []):
+                source_url = source.get('Src')
+                if not source_url:
+                    continue
+                height = int_or_none(source.get('Height'))
+                f = {
+                    'format_id': 'http' + ('-%dp' % height if height else ''),
+                    'url': source_url,
+                    'width': int_or_none(source.get('Width')),
+                    'height': height,
+                }
+                source_type = source.get('Type')
+                if source_type:
+                    mobj = re.search(r'codecs="([^,]+),\s*([^"]+)"', source_type)
+                    if mobj:
+                        vcodec, acodec = mobj.groups()
+                        f.update({
+                            'vcodec': vcodec,
+                            'acodec': acodec,
+                        })
+                formats.append(f)
+
+        self._check_formats(formats, video_guid)
         self._sort_formats(formats)
 
         return {

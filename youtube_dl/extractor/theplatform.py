@@ -50,8 +50,6 @@ class ThePlatformBaseIE(OnceIE):
             else:
                 formats.append(_format)
 
-        self._sort_formats(formats)
-
         subtitles = self._parse_smil_subtitles(meta, default_ns)
 
         return formats, subtitles
@@ -161,11 +159,11 @@ class ThePlatformIE(ThePlatformBaseIE):
         def str_to_hex(str):
             return binascii.b2a_hex(str.encode('ascii')).decode('ascii')
 
-        def hex_to_str(hex):
-            return binascii.a2b_hex(hex)
+        def hex_to_bytes(hex):
+            return binascii.a2b_hex(hex.encode('ascii'))
 
         relative_path = re.match(r'https?://link.theplatform.com/s/([^?]+)', url).group(1)
-        clear_text = hex_to_str(flags + expiration_date + str_to_hex(relative_path))
+        clear_text = hex_to_bytes(flags + expiration_date + str_to_hex(relative_path))
         checksum = hmac.new(sig_key.encode('ascii'), clear_text, hashlib.sha1).hexdigest()
         sig = flags + expiration_date + checksum + str_to_hex(sig_secret)
         return '%s&sig=%s' % (url, sig)
@@ -241,6 +239,7 @@ class ThePlatformIE(ThePlatformBaseIE):
             smil_url = self._sign_url(smil_url, sig['key'], sig['secret'])
 
         formats, subtitles = self._extract_theplatform_smil(smil_url, video_id)
+        self._sort_formats(formats)
 
         ret = self.get_metadata(path, video_id)
         combined_subtitles = self._merge_subtitles(ret.get('subtitles', {}), subtitles)
@@ -270,6 +269,7 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
             'timestamp': 1391824260,
             'duration': 467.0,
             'categories': ['MSNBC/Issues/Democrats', 'MSNBC/Issues/Elections/Election 2016'],
+            'uploader': 'NBCU-NEWS',
         },
     }
 

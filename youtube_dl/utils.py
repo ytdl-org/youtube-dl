@@ -14,8 +14,8 @@ import email.utils
 import errno
 import functools
 import gzip
-import itertools
 import io
+import itertools
 import json
 import locale
 import math
@@ -24,9 +24,8 @@ import os
 import pipes
 import platform
 import re
-import ssl
 import socket
-import struct
+import ssl
 import subprocess
 import sys
 import tempfile
@@ -43,17 +42,33 @@ from .compat import (
     compat_http_client,
     compat_kwargs,
     compat_parse_qs,
+    compat_shlex_quote,
     compat_socket_create_connection,
     compat_str,
+    compat_struct_pack,
     compat_urllib_error,
     compat_urllib_parse,
     compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
+    compat_urllib_parse_unquote_plus,
     compat_urllib_request,
     compat_urlparse,
     compat_xpath,
-    shlex_quote,
 )
+
+from .socks import (
+    ProxyType,
+    sockssocket,
+)
+
+
+def register_socks_protocols():
+    # "Register" SOCKS protocols
+    # In Python < 2.6.5, urlsplit() suffers from bug https://bugs.python.org/issue7904
+    # URLs with protocols not in urlparse.uses_netloc are not handled correctly
+    for scheme in ('socks', 'socks4', 'socks4a', 'socks5'):
+        if scheme not in compat_urlparse.uses_netloc:
+            compat_urlparse.uses_netloc.append(scheme)
 
 
 # This is not clearly defined otherwise
@@ -88,6 +103,11 @@ KNOWN_EXTENSIONS = (
     'ape',
     'wav',
     'f4f', 'f4m', 'm3u8', 'smil')
+
+# needed for sanitizing filenames in restricted mode
+ACCENT_CHARS = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØŒÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøœùúûüýþÿ',
+                        itertools.chain('AAAAAA', ['AE'], 'CEEEEIIIIDNOOOOOO', ['OE'], 'UUUUYP', ['ss'],
+                                        'aaaaaa', ['ae'], 'ceeeeiiiionoooooo', ['oe'], 'uuuuypy')))
 
 
 def preferredencoding():
@@ -251,9 +271,9 @@ def get_element_by_attribute(attribute, value, html):
 
     m = re.search(r'''(?xs)
         <([a-zA-Z0-9:._-]+)
-         (?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]+|="[^"]+"|='[^']+'))*?
+         (?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]*|="[^"]*"|='[^']*'))*?
          \s+%s=['"]?%s['"]?
-         (?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]+|="[^"]+"|='[^']+'))*?
+         (?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]*|="[^"]*"|='[^']*'))*?
         \s*>
         (?P<content>.*?)
         </\1>
@@ -365,6 +385,8 @@ def sanitize_filename(s, restricted=False, is_id=False):
     Set is_id if this is not an arbitrary string, but an ID that should be kept if possible
     """
     def replace_insane(char):
+        if restricted and char in ACCENT_CHARS:
+            return ACCENT_CHARS[char]
         if char == '?' or ord(char) < 32 or ord(char) == 127:
             return ''
         elif char == '"':
@@ -745,8 +767,15 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
         self._params = params
 
     def http_open(self, req):
+        conn_class = compat_http_client.HTTPConnection
+
+        socks_proxy = req.headers.get('Ytdl-socks-proxy')
+        if socks_proxy:
+            conn_class = make_socks_conn_class(conn_class, socks_proxy)
+            del req.headers['Ytdl-socks-proxy']
+
         return self.do_open(functools.partial(
-            _create_http_connection, self, compat_http_client.HTTPConnection, False),
+            _create_http_connection, self, conn_class, False),
             req)
 
     @staticmethod
@@ -842,6 +871,44 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     https_response = http_response
 
 
+def make_socks_conn_class(base_class, socks_proxy):
+    assert issubclass(base_class, (
+        compat_http_client.HTTPConnection, compat_http_client.HTTPSConnection))
+
+    url_components = compat_urlparse.urlparse(socks_proxy)
+    if url_components.scheme.lower() == 'socks5':
+        socks_type = ProxyType.SOCKS5
+    elif url_components.scheme.lower() in ('socks', 'socks4'):
+        socks_type = ProxyType.SOCKS4
+    elif url_components.scheme.lower() == 'socks4a':
+        socks_type = ProxyType.SOCKS4A
+
+    proxy_args = (
+        socks_type,
+        url_components.hostname, url_components.port or 1080,
+        True,  # Remote DNS
+        compat_urllib_parse_unquote_plus(url_components.username),
+        compat_urllib_parse_unquote_plus(url_components.password),
+    )
+
+    class SocksConnection(base_class):
+        def connect(self):
+            self.sock = sockssocket()
+            self.sock.setproxy(*proxy_args)
+            if type(self.timeout) in (int, float):
+                self.sock.settimeout(self.timeout)
+            self.sock.connect((self.host, self.port))
+
+            if isinstance(self, compat_http_client.HTTPSConnection):
+                if hasattr(self, '_context'):  # Python > 2.6
+                    self.sock = self._context.wrap_socket(
+                        self.sock, server_hostname=self.host)
+                else:
+                    self.sock = ssl.wrap_socket(self.sock)
+
+    return SocksConnection
+
+
 class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
     def __init__(self, params, https_conn_class=None, *args, **kwargs):
         compat_urllib_request.HTTPSHandler.__init__(self, *args, **kwargs)
@@ -850,12 +917,20 @@ class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
 
     def https_open(self, req):
         kwargs = {}
+        conn_class = self._https_conn_class
+
         if hasattr(self, '_context'):  # python > 2.6
             kwargs['context'] = self._context
         if hasattr(self, '_check_hostname'):  # python 3.x
             kwargs['check_hostname'] = self._check_hostname
+
+        socks_proxy = req.headers.get('Ytdl-socks-proxy')
+        if socks_proxy:
+            conn_class = make_socks_conn_class(conn_class, socks_proxy)
+            del req.headers['Ytdl-socks-proxy']
+
         return self.do_open(functools.partial(
-            _create_http_connection, self, self._https_conn_class, True),
+            _create_http_connection, self, conn_class, True),
             req, **kwargs)
 
 
@@ -1186,7 +1261,7 @@ def bytes_to_intlist(bs):
 def intlist_to_bytes(xs):
     if not xs:
         return b''
-    return struct_pack('%dB' % len(xs), *xs)
+    return compat_struct_pack('%dB' % len(xs), *xs)
 
 
 # Cross-platform file locking
@@ -1540,44 +1615,46 @@ def parse_duration(s):
 
     s = s.strip()
 
-    m = re.match(
-        r'''(?ix)(?:P?T)?
-        (?:
-            (?P<only_mins>[0-9.]+)\s*(?:mins?\.?|minutes?)\s*|
-            (?P<only_hours>[0-9.]+)\s*(?:hours?)|
-
-            \s*(?P<hours_reversed>[0-9]+)\s*(?:[:h]|hours?)\s*(?P<mins_reversed>[0-9]+)\s*(?:[:m]|mins?\.?|minutes?)\s*|
-            (?:
+    days, hours, mins, secs, ms = [None] * 5
+    m = re.match(r'(?:(?:(?:(?P<days>[0-9]+):)?(?P<hours>[0-9]+):)?(?P<mins>[0-9]+):)?(?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?$', s)
+    if m:
+        days, hours, mins, secs, ms = m.groups()
+    else:
+        m = re.match(
+            r'''(?ix)(?:P?T)?
                 (?:
-                    (?:(?P<days>[0-9]+)\s*(?:[:d]|days?)\s*)?
-                    (?P<hours>[0-9]+)\s*(?:[:h]|hours?)\s*
+                    (?P<days>[0-9]+)\s*d(?:ays?)?\s*
                 )?
-                (?P<mins>[0-9]+)\s*(?:[:m]|mins?|minutes?)\s*
-            )?
-            (?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?\s*(?:s|secs?|seconds?)?
-        )$''', s)
-    if not m:
-        return None
-    res = 0
-    if m.group('only_mins'):
-        return float_or_none(m.group('only_mins'), invscale=60)
-    if m.group('only_hours'):
-        return float_or_none(m.group('only_hours'), invscale=60 * 60)
-    if m.group('secs'):
-        res += int(m.group('secs'))
-    if m.group('mins_reversed'):
-        res += int(m.group('mins_reversed')) * 60
-    if m.group('mins'):
-        res += int(m.group('mins')) * 60
-    if m.group('hours'):
-        res += int(m.group('hours')) * 60 * 60
-    if m.group('hours_reversed'):
-        res += int(m.group('hours_reversed')) * 60 * 60
-    if m.group('days'):
-        res += int(m.group('days')) * 24 * 60 * 60
-    if m.group('ms'):
-        res += float(m.group('ms'))
-    return res
+                (?:
+                    (?P<hours>[0-9]+)\s*h(?:ours?)?\s*
+                )?
+                (?:
+                    (?P<mins>[0-9]+)\s*m(?:in(?:ute)?s?)?\s*
+                )?
+                (?:
+                    (?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?\s*s(?:ec(?:ond)?s?)?\s*
+                )?$''', s)
+        if m:
+            days, hours, mins, secs, ms = m.groups()
+        else:
+            m = re.match(r'(?i)(?:(?P<hours>[0-9.]+)\s*(?:hours?)|(?P<mins>[0-9.]+)\s*(?:mins?\.?|minutes?)\s*)$', s)
+            if m:
+                hours, mins = m.groups()
+            else:
+                return None
+
+    duration = 0
+    if secs:
+        duration += float(secs)
+    if mins:
+        duration += float(mins) * 60
+    if hours:
+        duration += float(hours) * 60 * 60
+    if days:
+        duration += float(days) * 24 * 60 * 60
+    if ms:
+        duration += float(ms)
+    return duration
 
 
 def prepend_extension(filename, ext, expected_real_ext=None):
@@ -1752,24 +1829,6 @@ def escape_url(url):
         fragment=escape_rfc3986(url_parsed.fragment)
     ).geturl()
 
-try:
-    struct.pack('!I', 0)
-except TypeError:
-    # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
-    # See https://bugs.python.org/issue19099
-    def struct_pack(spec, *args):
-        if isinstance(spec, compat_str):
-            spec = spec.encode('ascii')
-        return struct.pack(spec, *args)
-
-    def struct_unpack(spec, *args):
-        if isinstance(spec, compat_str):
-            spec = spec.encode('ascii')
-        return struct.unpack(spec, *args)
-else:
-    struct_pack = struct.pack
-    struct_unpack = struct.unpack
-
 
 def read_batch_urls(batch_fd):
     def fixup(url):
@@ -1792,6 +1851,8 @@ def urlencode_postdata(*args, **kargs):
 
 
 def update_url_query(url, query):
+    if not query:
+        return url
     parsed_url = compat_urlparse.urlparse(url)
     qs = compat_parse_qs(parsed_url.query)
     qs.update(query)
@@ -1918,7 +1979,7 @@ def ytdl_is_updateable():
 
 def args_to_str(args):
     # Get a short string representation for a subprocess command
-    return ' '.join(shlex_quote(a) for a in args)
+    return ' '.join(compat_shlex_quote(a) for a in args)
 
 
 def error_to_compat_str(err):
@@ -1931,6 +1992,9 @@ def error_to_compat_str(err):
 
 
 def mimetype2ext(mt):
+    if mt is None:
+        return None
+
     ext = {
         'audio/mp4': 'm4a',
     }.get(mt)
@@ -2687,6 +2751,10 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
 
         if proxy == '__noproxy__':
             return None  # No Proxy
+        if compat_urlparse.urlparse(proxy).scheme.lower() in ('socks', 'socks4', 'socks4a', 'socks5'):
+            req.add_header('Ytdl-socks-proxy', proxy)
+            # youtube-dl's http/https handlers do wrapping the socket with socks
+            return None
         return compat_urllib_request.ProxyHandler.proxy_open(
             self, req, proxy, type)
 

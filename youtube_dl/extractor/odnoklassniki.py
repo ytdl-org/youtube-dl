@@ -2,7 +2,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse_unquote
+from ..compat import (
+    compat_parse_qs,
+    compat_urllib_parse_unquote,
+    compat_urllib_parse_urlparse,
+)
 from ..utils import (
     ExtractorError,
     unified_strdate,
@@ -32,7 +36,7 @@ class OdnoklassnikiIE(InfoExtractor):
         'skip': 'Video has been blocked',
     }, {
         # metadataUrl
-        'url': 'http://ok.ru/video/63567059965189-0',
+        'url': 'http://ok.ru/video/63567059965189-0?fromTime=5',
         'md5': '9676cf86eff5391d35dea675d224e131',
         'info_dict': {
             'id': '63567059965189-0',
@@ -44,6 +48,7 @@ class OdnoklassnikiIE(InfoExtractor):
             'uploader': '☭ Андрей Мещанинов ☭',
             'like_count': int,
             'age_limit': 0,
+            'start_time': 5,
         },
     }, {
         # YouTube embed (metadataUrl, provider == USER_YOUTUBE)
@@ -59,6 +64,22 @@ class OdnoklassnikiIE(InfoExtractor):
             'uploader_id': '750099571',
             'uploader': 'Алина П',
             'age_limit': 0,
+        },
+    }, {
+        # YouTube embed (metadata, provider == USER_YOUTUBE, no metadata.movie.title field)
+        'url': 'http://ok.ru/video/62036049272859-0',
+        'info_dict': {
+            'id': '62036049272859-0',
+            'ext': 'mp4',
+            'title': 'МУЗЫКА     ДОЖДЯ .',
+            'description': 'md5:6f1867132bd96e33bf53eda1091e8ed0',
+            'upload_date': '20120106',
+            'uploader_id': '473534735899',
+            'uploader': 'МARINA D',
+            'age_limit': 0,
+        },
+        'params': {
+            'skip_download': True,
         },
     }, {
         'url': 'http://ok.ru/web-api/video/moviePlayer/20079905452',
@@ -78,6 +99,9 @@ class OdnoklassnikiIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
+        start_time = int_or_none(compat_parse_qs(
+            compat_urllib_parse_urlparse(url).query).get('fromTime', [None])[0])
+
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(
@@ -106,7 +130,14 @@ class OdnoklassnikiIE(InfoExtractor):
                 video_id, 'Downloading metadata JSON')
 
         movie = metadata['movie']
-        title = movie['title']
+
+        # Some embedded videos may not contain title in movie dict (e.g.
+        # http://ok.ru/video/62036049272859-0) thus we allow missing title
+        # here and it's going to be extracted later by an extractor that
+        # will process the actual embed.
+        provider = metadata.get('provider')
+        title = movie['title'] if provider == 'UPLOADED_ODKL' else movie.get('title')
+
         thumbnail = movie.get('poster')
         duration = int_or_none(movie.get('duration'))
 
@@ -135,9 +166,10 @@ class OdnoklassnikiIE(InfoExtractor):
             'uploader_id': uploader_id,
             'like_count': like_count,
             'age_limit': age_limit,
+            'start_time': start_time,
         }
 
-        if metadata.get('provider') == 'USER_YOUTUBE':
+        if provider == 'USER_YOUTUBE':
             info.update({
                 '_type': 'url_transparent',
                 'url': movie['contentId'],

@@ -165,7 +165,7 @@ class IqiyiIE(InfoExtractor):
     IE_NAME = 'iqiyi'
     IE_DESC = '爱奇艺'
 
-    _VALID_URL = r'https?://(?:[^.]+\.)?iqiyi\.com/.+\.html'
+    _VALID_URL = r'https?://(?:(?:[^.]+\.)?iqiyi\.com|www\.pps\.tv)/.+\.html'
 
     _NETRC_MACHINE = 'iqiyi'
 
@@ -273,6 +273,9 @@ class IqiyiIE(InfoExtractor):
             'title': '灌篮高手 国语版',
         },
         'playlist_count': 101,
+    }, {
+        'url': 'http://www.pps.tv/w_19rrbav0ph.html',
+        'only_matching': True,
     }]
 
     _FORMATS_MAP = [
@@ -283,6 +286,13 @@ class IqiyiIE(InfoExtractor):
         ('5', 'h2'),
         ('10', 'h1'),
     ]
+
+    AUTH_API_ERRORS = {
+        # No preview available (不允许试看鉴权失败)
+        'Q00505': 'This video requires a VIP account',
+        # End of preview time (试看结束鉴权失败)
+        'Q00506': 'Needs a VIP account for full video',
+    }
 
     def _real_initialize(self):
         self._login()
@@ -369,14 +379,18 @@ class IqiyiIE(InfoExtractor):
             note='Downloading video authentication JSON',
             errnote='Unable to download video authentication JSON')
 
-        if auth_result['code'] == 'Q00505':  # No preview available (不允许试看鉴权失败)
-            raise ExtractorError('This video requires a VIP account', expected=True)
-        if auth_result['code'] == 'Q00506':  # End of preview time (试看结束鉴权失败)
+        code = auth_result.get('code')
+        msg = self.AUTH_API_ERRORS.get(code) or auth_result.get('msg') or code
+        if code == 'Q00506':
             if do_report_warning:
-                self.report_warning('Needs a VIP account for full video')
+                self.report_warning(msg)
             return False
+        if 'data' not in auth_result:
+            if msg is not None:
+                raise ExtractorError('%s said: %s' % (self.IE_NAME, msg), expected=True)
+            raise ExtractorError('Unexpected error from Iqiyi auth API')
 
-        return auth_result
+        return auth_result['data']
 
     def construct_video_urls(self, data, video_id, _uuid, tvid):
         def do_xor(x, y):
@@ -452,11 +466,11 @@ class IqiyiIE(InfoExtractor):
                         need_vip_warning_report = False
                         break
                     param.update({
-                        't': auth_result['data']['t'],
+                        't': auth_result['t'],
                         # cid is hard-coded in com/qiyi/player/core/player/RuntimeData.as
                         'cid': 'afbe8fd3d73448c9',
                         'vid': video_id,
-                        'QY00001': auth_result['data']['u'],
+                        'QY00001': auth_result['u'],
                     })
                 api_video_url += '?' if '?' not in api_video_url else '&'
                 api_video_url += compat_urllib_parse_urlencode(param)
@@ -491,7 +505,10 @@ class IqiyiIE(InfoExtractor):
             'enc': md5_text(enc_key + tail),
             'qyid': _uuid,
             'tn': random.random(),
-            'um': 0,
+            # In iQiyi's flash player, um is set to 1 if there's a logged user
+            # Some 1080P formats are only available with a logged user.
+            # Here force um=1 to trick the iQiyi server
+            'um': 1,
             'authkey': md5_text(md5_text('') + tail),
             'k_tag': 1,
         }

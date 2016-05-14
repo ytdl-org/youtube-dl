@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import determine_ext
+from ..utils import (
+    determine_ext,
+    int_or_none,
+)
 
 
 class OnionStudiosIE(InfoExtractor):
@@ -17,7 +20,7 @@ class OnionStudiosIE(InfoExtractor):
             'id': '2937',
             'ext': 'mp4',
             'title': 'Hannibal charges forward, stops for a cocktail',
-            'description': 'md5:545299bda6abf87e5ec666548c6a9448',
+            'description': 'md5:e786add7f280b7f0fe237b64cc73df76',
             'thumbnail': 're:^https?://.*\.jpg$',
             'uploader': 'The A.V. Club',
             'uploader_id': 'TheAVClub',
@@ -42,9 +45,19 @@ class OnionStudiosIE(InfoExtractor):
 
         formats = []
         for src in re.findall(r'<source[^>]+src="([^"]+)"', webpage):
-            if determine_ext(src) != 'm3u8':  # m3u8 always results in 403
+            ext = determine_ext(src)
+            if ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    src, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+            else:
+                height = int_or_none(self._search_regex(
+                    r'/(\d+)\.%s' % ext, src, 'height', default=None))
                 formats.append({
+                    'format_id': ext + ('-%sp' % height if height else ''),
                     'url': src,
+                    'height': height,
+                    'ext': ext,
+                    'preference': 1,
                 })
         self._sort_formats(formats)
 
@@ -52,7 +65,7 @@ class OnionStudiosIE(InfoExtractor):
             r'share_title\s*=\s*(["\'])(?P<title>[^\1]+?)\1',
             webpage, 'title', group='title')
         description = self._search_regex(
-            r'share_description\s*=\s*(["\'])(?P<description>[^\1]+?)\1',
+            r'share_description\s*=\s*(["\'])(?P<description>[^\'"]+?)\1',
             webpage, 'description', default=None, group='description')
         thumbnail = self._search_regex(
             r'poster\s*=\s*(["\'])(?P<thumbnail>[^\1]+?)\1',

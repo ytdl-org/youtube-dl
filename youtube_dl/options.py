@@ -188,7 +188,10 @@ def parseOpts(overrideArguments=None):
     network.add_option(
         '--proxy', dest='proxy',
         default=None, metavar='URL',
-        help='Use the specified HTTP/HTTPS proxy. Pass in an empty string (--proxy "") for direct connection')
+        help='Use the specified HTTP/HTTPS/SOCKS proxy. To enable experimental '
+             'SOCKS proxy, specify a proper scheme. For example '
+             'socks5://127.0.0.1:1080/. Pass in an empty string (--proxy "") '
+             'for direct connection')
     network.add_option(
         '--socket-timeout',
         dest='socket_timeout', type=float, default=None, metavar='SECONDS',
@@ -425,8 +428,12 @@ def parseOpts(overrideArguments=None):
         help='Set file xattribute ytdl.filesize with expected filesize (experimental)')
     downloader.add_option(
         '--hls-prefer-native',
-        dest='hls_prefer_native', action='store_true',
-        help='Use the native HLS downloader instead of ffmpeg (experimental)')
+        dest='hls_prefer_native', action='store_true', default=None,
+        help='Use the native HLS downloader instead of ffmpeg')
+    downloader.add_option(
+        '--hls-prefer-ffmpeg',
+        dest='hls_prefer_native', action='store_false', default=None,
+        help='Use ffmpeg instead of the native HLS downloader')
     downloader.add_option(
         '--hls-use-mpegts',
         dest='hls_use_mpegts', action='store_true',

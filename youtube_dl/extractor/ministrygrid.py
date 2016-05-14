@@ -1,8 +1,5 @@
 from __future__ import unicode_literals
 
-import json
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
@@ -20,21 +17,28 @@ class MinistryGridIE(InfoExtractor):
             'id': '3453494717001',
             'ext': 'mp4',
             'title': 'The Gospel by Numbers',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'upload_date': '20140410',
             'description': 'Coming soon from T4G 2014!',
-            'uploader': 'LifeWay Christian Resources (MG)',
+            'uploader_id': '2034960640001',
+            'timestamp': 1397145591,
         },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'add_ie': ['TDSLifeway'],
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        portlets_json = self._search_regex(
-            r'Liferay\.Portlet\.list=(\[.+?\])', webpage, 'portlet list')
-        portlets = json.loads(portlets_json)
+        portlets = self._parse_json(self._search_regex(
+            r'Liferay\.Portlet\.list=(\[.+?\])', webpage, 'portlet list'),
+            video_id)
         pl_id = self._search_regex(
-            r'<!--\s*p_l_id - ([0-9]+)<br>', webpage, 'p_l_id')
+            r'getPlid:function\(\){return"(\d+)"}', webpage, 'p_l_id')
 
         for i, portlet in enumerate(portlets):
             portlet_url = 'http://www.ministrygrid.com/c/portal/render_portlet?p_l_id=%s&p_p_id=%s' % (pl_id, portlet)
@@ -46,12 +50,8 @@ class MinistryGridIE(InfoExtractor):
                 r'<iframe.*?src="([^"]+)"', portlet_code, 'video iframe',
                 default=None)
             if video_iframe_url:
-                surl = smuggle_url(
-                    video_iframe_url, {'force_videoid': video_id})
-                return {
-                    '_type': 'url',
-                    'id': video_id,
-                    'url': surl,
-                }
+                return self.url_result(
+                    smuggle_url(video_iframe_url, {'force_videoid': video_id}),
+                    video_id=video_id)
 
         raise ExtractorError('Could not find video iframe in any portlets')

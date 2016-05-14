@@ -10,17 +10,29 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     float_or_none,
-    sanitized_Request,
-    urlencode_postdata,
 )
 
 
 class YandexMusicBaseIE(InfoExtractor):
     @staticmethod
     def _handle_error(response):
-        error = response.get('error')
-        if error:
-            raise ExtractorError(error, expected=True)
+        if isinstance(response, dict):
+            error = response.get('error')
+            if error:
+                raise ExtractorError(error, expected=True)
+
+    def _download_webpage(self, *args, **kwargs):
+        webpage = super(YandexMusicBaseIE, self)._download_webpage(*args, **kwargs)
+        if 'Нам очень жаль, но&nbsp;запросы, поступившие с&nbsp;вашего IP-адреса, похожи на&nbsp;автоматические.' in webpage:
+            raise ExtractorError(
+                'YandexMusic has considered youtube-dl requests automated and '
+                'asks you to solve a CAPTCHA. You can either wait for some '
+                'time until unblocked and optionally use --sleep-interval '
+                'in future or alternatively you can go to https://music.yandex.ru/ '
+                'solve CAPTCHA, then export cookies and pass cookie file to '
+                'youtube-dl with --cookies',
+                expected=True)
+        return webpage
 
     def _download_json(self, *args, **kwargs):
         response = super(YandexMusicBaseIE, self)._download_json(*args, **kwargs)
@@ -47,7 +59,8 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             'album_artist': 'Carlo Ambrosio',
             'artist': 'Carlo Ambrosio & Fabio Di Bari, Carlo Ambrosio',
             'release_year': '2009',
-        }
+        },
+        'skip': 'Travis CI servers blocked by YandexMusic',
     }
 
     def _get_track_url(self, storage_dir, track_id):
@@ -139,6 +152,7 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
             'title': 'Carlo Ambrosio - Gypsy Soul (2009)',
         },
         'playlist_count': 50,
+        'skip': 'Travis CI servers blocked by YandexMusic',
     }
 
     def _real_extract(self, url):
@@ -161,7 +175,7 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
 class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
     IE_NAME = 'yandexmusic:playlist'
     IE_DESC = 'Яндекс.Музыка - Плейлист'
-    _VALID_URL = r'https?://music\.yandex\.(?:ru|kz|ua|by)/users/[^/]+/playlists/(?P<id>\d+)'
+    _VALID_URL = r'https?://music\.yandex\.(?P<tld>ru|kz|ua|by)/users/(?P<user>[^/]+)/playlists/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://music.yandex.ru/users/music.partners/playlists/1245',
@@ -171,6 +185,7 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
             'description': 'md5:3b9f27b0efbe53f2ee1e844d07155cc9',
         },
         'playlist_count': 6,
+        'skip': 'Travis CI servers blocked by YandexMusic',
     }, {
         # playlist exceeding the limit of 150 tracks shipped with webpage (see
         # https://github.com/rg3/youtube-dl/issues/6666)
@@ -179,46 +194,64 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
             'id': '1036',
             'title': 'Музыка 90-х',
         },
-        'playlist_count': 310,
+        'playlist_mincount': 300,
+        'skip': 'Travis CI servers blocked by YandexMusic',
     }]
 
     def _real_extract(self, url):
-        playlist_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        tld = mobj.group('tld')
+        user = mobj.group('user')
+        playlist_id = mobj.group('id')
 
-        webpage = self._download_webpage(url, playlist_id)
+        playlist = self._download_json(
+            'https://music.yandex.%s/handlers/playlist.jsx' % tld,
+            playlist_id, 'Downloading missing tracks JSON',
+            fatal=False,
+            headers={
+                'Referer': url,
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-Retpath-Y': url,
+            },
+            query={
+                'owner': user,
+                'kinds': playlist_id,
+                'light': 'true',
+                'lang': tld,
+                'external-domain': 'music.yandex.%s' % tld,
+                'overembed': 'false',
+            })['playlist']
 
-        mu = self._parse_json(
-            self._search_regex(
-                r'var\s+Mu\s*=\s*({.+?});\s*</script>', webpage, 'player'),
-            playlist_id)
+        tracks, track_ids = playlist['tracks'], map(compat_str, playlist['trackIds'])
 
-        playlist = mu['pageData']['playlist']
-        tracks, track_ids = playlist['tracks'], playlist['trackIds']
-
-        # tracks dictionary shipped with webpage is limited to 150 tracks,
+        # tracks dictionary shipped with playlist.jsx API is limited to 150 tracks,
         # missing tracks should be retrieved manually.
         if len(tracks) < len(track_ids):
-            present_track_ids = set([compat_str(track['id']) for track in tracks if track.get('id')])
-            missing_track_ids = set(map(compat_str, track_ids)) - set(present_track_ids)
-            request = sanitized_Request(
-                'https://music.yandex.ru/handlers/track-entries.jsx',
-                urlencode_postdata({
-                    'entries': ','.join(missing_track_ids),
-                    'lang': mu.get('settings', {}).get('lang', 'en'),
-                    'external-domain': 'music.yandex.ru',
-                    'overembed': 'false',
-                    'sign': mu.get('authData', {}).get('user', {}).get('sign'),
-                    'strict': 'true',
-                }))
-            request.add_header('Referer', url)
-            request.add_header('X-Requested-With', 'XMLHttpRequest')
-
+            present_track_ids = set([
+                compat_str(track['id'])
+                for track in tracks if track.get('id')])
+            missing_track_ids = [
+                track_id for track_id in track_ids
+                if track_id not in present_track_ids]
             missing_tracks = self._download_json(
-                request, playlist_id, 'Downloading missing tracks JSON', fatal=False)
+                'https://music.yandex.%s/handlers/track-entries.jsx' % tld,
+                playlist_id, 'Downloading missing tracks JSON',
+                fatal=False,
+                headers={
+                    'Referer': url,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                query={
+                    'entries': ','.join(missing_track_ids),
+                    'lang': tld,
+                    'external-domain': 'music.yandex.%s' % tld,
+                    'overembed': 'false',
+                    'strict': 'true',
+                })
             if missing_tracks:
                 tracks.extend(missing_tracks)
 
         return self.playlist_result(
             self._build_playlist(tracks),
             compat_str(playlist_id),
-            playlist['title'], playlist.get('description'))
+            playlist.get('title'), playlist.get('description'))

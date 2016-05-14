@@ -125,6 +125,12 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         if login_results is False:
             return False
 
+        error_msg = self._html_search_regex(
+            r'<[^>]+id="errormsg_0_Passwd"[^>]*>([^<]+)<',
+            login_results, 'error message', default=None)
+        if error_msg:
+            raise ExtractorError('Unable to login: %s' % error_msg, expected=True)
+
         if re.search(r'id="errormsg_0_Passwd"', login_results) is not None:
             raise ExtractorError('Please use your account password and a two-factor code instead of an application-specific password.', expected=True)
 
@@ -1320,9 +1326,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if video_description:
             video_description = re.sub(r'''(?x)
                 <a\s+
-                    (?:[a-zA-Z-]+="[^"]+"\s+)*?
+                    (?:[a-zA-Z-]+="[^"]*"\s+)*?
                     (?:title|href)="([^"]+)"\s+
-                    (?:[a-zA-Z-]+="[^"]+"\s+)*?
+                    (?:[a-zA-Z-]+="[^"]*"\s+)*?
                     class="(?:yt-uix-redirect-link|yt-uix-sessionlink[^"]*)"[^>]*>
                 [^<]+\.{3}\s*
                 </a>
@@ -1818,20 +1824,32 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     def _extract_mix(self, playlist_id):
         # The mixes are generated from a single video
         # the id of the playlist is just 'RD' + video_id
-        url = 'https://youtube.com/watch?v=%s&list=%s' % (playlist_id[-11:], playlist_id)
-        webpage = self._download_webpage(
-            url, playlist_id, 'Downloading Youtube mix')
+        ids = []
+        last_id = playlist_id[-11:]
+        for n in itertools.count(1):
+            url = 'https://youtube.com/watch?v=%s&list=%s' % (last_id, playlist_id)
+            webpage = self._download_webpage(
+                url, playlist_id, 'Downloading page {0} of Youtube mix'.format(n))
+            new_ids = orderedSet(re.findall(
+                r'''(?xs)data-video-username=".*?".*?
+                           href="/watch\?v=([0-9A-Za-z_-]{11})&amp;[^"]*?list=%s''' % re.escape(playlist_id),
+                webpage))
+            # Fetch new pages until all the videos are repeated, it seems that
+            # there are always 51 unique videos.
+            new_ids = [_id for _id in new_ids if _id not in ids]
+            if not new_ids:
+                break
+            ids.extend(new_ids)
+            last_id = ids[-1]
+
+        url_results = self._ids_to_results(ids)
+
         search_title = lambda class_name: get_element_by_attribute('class', class_name, webpage)
         title_span = (
             search_title('playlist-title') or
             search_title('title long-title') or
             search_title('title'))
         title = clean_html(title_span)
-        ids = orderedSet(re.findall(
-            r'''(?xs)data-video-username=".*?".*?
-                       href="/watch\?v=([0-9A-Za-z_-]{11})&amp;[^"]*?list=%s''' % re.escape(playlist_id),
-            webpage))
-        url_results = self._ids_to_results(ids)
 
         return self.playlist_result(url_results, playlist_id, title)
 
@@ -1884,7 +1902,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         if video:
             return video
 
-        if playlist_id.startswith('RD') or playlist_id.startswith('UL'):
+        if playlist_id.startswith(('RD', 'UL', 'PU')):
             # Mixes require a custom extraction process
             return self._extract_mix(playlist_id)
 
@@ -1987,8 +2005,8 @@ class YoutubeUserIE(YoutubeChannelIE):
     def suitable(cls, url):
         # Don't return True if the url can be extracted with other youtube
         # extractor, the regex would is too permissive and it would match.
-        other_ies = iter(klass for (name, klass) in globals().items() if name.endswith('IE') and klass is not cls)
-        if any(ie.suitable(url) for ie in other_ies):
+        other_yt_ies = iter(klass for (name, klass) in globals().items() if name.startswith('Youtube') and name.endswith('IE') and klass is not cls)
+        if any(ie.suitable(url) for ie in other_yt_ies):
             return False
         else:
             return super(YoutubeUserIE, cls).suitable(url)
@@ -2121,10 +2139,11 @@ class YoutubeSearchDateIE(YoutubeSearchIE):
     _EXTRA_QUERY_ARGS = {'search_sort': 'video_date_uploaded'}
 
 
-class YoutubeSearchURLIE(InfoExtractor):
+class YoutubeSearchURLIE(YoutubePlaylistBaseInfoExtractor):
     IE_DESC = 'YouTube.com search URLs'
     IE_NAME = 'youtube:search_url'
     _VALID_URL = r'https?://(?:www\.)?youtube\.com/results\?(.*?&)?(?:search_query|q)=(?P<query>[^&]+)(?:[&]|$)'
+    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})(?:[^"]*"[^>]+\btitle="(?P<title>[^"]+))?'
     _TESTS = [{
         'url': 'https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video',
         'playlist_mincount': 5,
@@ -2139,32 +2158,8 @@ class YoutubeSearchURLIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         query = compat_urllib_parse_unquote_plus(mobj.group('query'))
-
         webpage = self._download_webpage(url, query)
-        result_code = self._search_regex(
-            r'(?s)<ol[^>]+class="item-section"(.*?)</ol>', webpage, 'result HTML')
-
-        part_codes = re.findall(
-            r'(?s)<h3[^>]+class="[^"]*yt-lockup-title[^"]*"[^>]*>(.*?)</h3>', result_code)
-        entries = []
-        for part_code in part_codes:
-            part_title = self._html_search_regex(
-                [r'(?s)title="([^"]+)"', r'>([^<]+)</a>'], part_code, 'item title', fatal=False)
-            part_url_snippet = self._html_search_regex(
-                r'(?s)href="([^"]+)"', part_code, 'item URL')
-            part_url = compat_urlparse.urljoin(
-                'https://www.youtube.com/', part_url_snippet)
-            entries.append({
-                '_type': 'url',
-                'url': part_url,
-                'title': part_title,
-            })
-
-        return {
-            '_type': 'playlist',
-            'entries': entries,
-            'title': query,
-        }
+        return self.playlist_result(self._process_page(webpage), playlist_title=query)
 
 
 class YoutubeShowIE(YoutubePlaylistsBaseInfoExtractor):

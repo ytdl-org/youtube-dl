@@ -12,7 +12,7 @@ from ..utils import (
 class XboxClipsIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?xboxclips\.com/(?:video\.php\?.*vid=|[^/]+/)(?P<id>[\w-]{36})'
     _TEST = {
-        'url': 'https://xboxclips.com/video.php?uid=2533274823424419&gamertag=Iabdulelah&vid=074a69a9-5faf-46aa-b93b-9909c1720325',
+        'url': 'http://xboxclips.com/video.php?uid=2533274823424419&gamertag=Iabdulelah&vid=074a69a9-5faf-46aa-b93b-9909c1720325',
         'md5': 'fbe1ec805e920aeb8eced3c3e657df5d',
         'info_dict': {
             'id': '074a69a9-5faf-46aa-b93b-9909c1720325',

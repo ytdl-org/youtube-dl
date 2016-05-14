@@ -24,6 +24,7 @@ class HowStuffWorksIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'duration': 161,
             },
+            'skip': 'Video broken',
         },
         {
             'url': 'http://adventure.howstuffworks.com/7199-survival-zone-food-and-water-in-the-savanna-video.htm',
