@@ -61,6 +61,7 @@ from .jwplatform import JWPlatformIE
 from .digiteka import DigitekaIE
 from .instagram import InstagramIE
 from .liveleak import LiveLeakIE
+from .threeqsdn import ThreeQSDNIE
 
 
 class GenericIE(InfoExtractor):
@@ -1982,6 +1983,11 @@ class GenericIE(InfoExtractor):
         liveleak_url = LiveLeakIE._extract_url(webpage)
         if liveleak_url:
             return self.url_result(liveleak_url, 'LiveLeak')
+
+        # Look for 3Q SDN embeds
+        threeqsdn_url = ThreeQSDNIE._extract_url(webpage)
+        if threeqsdn_url:
+            return self.url_result(self._proto_relative_url(threeqsdn_url), ThreeQSDNIE.ie_key())
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
