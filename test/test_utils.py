@@ -640,6 +640,18 @@ class TestUtil(unittest.TestCase):
         on = js_to_json('{"abc": "def",}')
         self.assertEqual(json.loads(on), {'abc': 'def'})
 
+        on = js_to_json('{ 0: /* " \n */ ",]" , }')
+        self.assertEqual(json.loads(on), {'0': ',]'})
+
+        on = js_to_json(r'["<p>x<\/p>"]')
+        self.assertEqual(json.loads(on), ['<p>x</p>'])
+
+        on = js_to_json(r'["\xaa"]')
+        self.assertEqual(json.loads(on), ['\u00aa'])
+
+        on = js_to_json("['a\\\nb']")
+        self.assertEqual(json.loads(on), ['ab'])
+
     def test_extract_attributes(self):
         self.assertEqual(extract_attributes('<e x="y">'), {'x': 'y'})
         self.assertEqual(extract_attributes("<e x='y'>"), {'x': 'y'})
