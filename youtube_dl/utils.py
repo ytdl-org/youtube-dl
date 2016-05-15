@@ -2031,11 +2031,7 @@ def mimetype2ext(mt):
 
 
 def urlhandle_detect_ext(url_handle):
-    try:
-        url_handle.headers
-        getheader = lambda h: url_handle.headers[h]
-    except AttributeError:  # Python < 3
-        getheader = url_handle.info().getheader
+    getheader = url_handle.headers.get
 
     cd = getheader('Content-Disposition')
     if cd:
