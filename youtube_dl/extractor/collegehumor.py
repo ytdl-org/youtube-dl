@@ -35,14 +35,14 @@ class CollegeHumorIE(InfoExtractor):
             },
         }, {
             # embedded youtube video
-            'url': 'http://www.collegehumor.com/embed/6950306',
+            'url': 'http://www.collegehumor.com/post/6950306/jfk-john-f-kennedy-died-this-morning-interview-prank',
             'info_dict': {
                 'id': 'Z-bao9fg6Yc',
-                'ext': 'mp4',
                 'title': 'Young Americans Think President John F. Kennedy Died THIS MORNING IN A CAR ACCIDENT!!!',
+                #'md5': '', # --test returns one audio and one video file
                 'uploader': 'Mark Dice',
                 'uploader_id': 'MarkDice',
-                'description': 'md5:62c3dab9351fac7bb44b53b69511d87f',
+                'description': '',
                 'upload_date': '20140127',
             },
             'params': {
