@@ -35,14 +35,6 @@ class OdaTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'not found check'
         }
-    }, {
-        'url': 'http://odatv.com/mob_video.php?id=8E395',
-        'md5': '13179a1025f07b60933d311e06574a70',
-        'info_dict': {
-            'id': '8E395',
-            'ext': 'mp4',
-            'title': 'md5:16d2e8d0eb42e793d8224af3fae20c86'
-        }
     }]
 
     def _real_extract(self, url):
