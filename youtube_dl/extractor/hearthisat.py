@@ -27,7 +27,7 @@ class HearThisAtIE(InfoExtractor):
             'title': 'Moofi - Dr. Kreep',
             'thumbnail': 're:^https?://.*\.jpg$',
             'timestamp': 1421564134,
-            'description': 'Creepy Patch. Mutable Instruments Braids Vowel + Formant Mode.',
+            'description': 'Listen to Dr. Kreep by Moofi on hearthis.at - Modular, Eurorack, Mutable Intruments Braids, Valhalla-DSP',
             'upload_date': '20150118',
             'comment_count': int,
             'view_count': int,
