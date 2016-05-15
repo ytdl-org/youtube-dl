@@ -39,7 +39,6 @@ class CollegeHumorIE(InfoExtractor):
             'info_dict': {
                 'id': 'Z-bao9fg6Yc',
                 'title': 'Young Americans Think President John F. Kennedy Died THIS MORNING IN A CAR ACCIDENT!!!',
-                #'md5': '', # --test returns one audio and one video file
                 'uploader': 'Mark Dice',
                 'uploader_id': 'MarkDice',
                 'description': '',
