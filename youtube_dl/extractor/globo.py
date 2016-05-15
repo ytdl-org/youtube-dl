@@ -28,7 +28,7 @@ class GloboIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://g1.globo.com/carros/autoesporte/videos/t/exclusivos-do-g1/v/mercedes-benz-gla-passa-por-teste-de-colisao-na-europa/3607726/',
-        'md5': 'b3ccc801f75cd04a914d51dadb83a78d',
+        'md5': 'a869e168910a9c7a68b5dbe805dc4d39',
         'info_dict': {
             'id': '3607726',
             'ext': 'mp4',
@@ -39,7 +39,7 @@ class GloboIE(InfoExtractor):
         },
     }, {
         'url': 'http://globoplay.globo.com/v/4581987/',
-        'md5': 'f36a1ecd6a50da1577eee6dd17f67eff',
+        'md5': '0d6974b117527ae0ee139d1eea070efe',
         'info_dict': {
             'id': '4581987',
             'ext': 'mp4',
