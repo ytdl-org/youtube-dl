@@ -6,6 +6,7 @@
  - **22tracks:genre**
  - **22tracks:track**
  - **24video**
+ - **3qsdn**: 3Q SDN
  - **3sat**
  - **4tube**
  - **56.com**
@@ -114,7 +115,6 @@
  - **chirbit**
  - **chirbit:profile**
  - **Cinchcast**
- - **Cinemassacre**
  - **Clipfish**
  - **cliphunter**
  - **ClipRs**
@@ -128,7 +128,6 @@
  - **CNN**
  - **CNNArticle**
  - **CNNBlogs**
- - **CollegeHumor**
  - **CollegeRama**
  - **ComCarCoff**
  - **ComedyCentral**
@@ -680,7 +679,6 @@
  - **tvp.pl:Series**
  - **TVPlay**: TV3Play and related services
  - **Tweakers**
- - **twitch:bookmarks**
  - **twitch:chapter**
  - **twitch:past_broadcasts**
  - **twitch:profile**
@@ -698,7 +696,8 @@
  - **USAToday**
  - **ustream**
  - **ustream:channel**
- - **Ustudio**
+ - **ustudio**
+ - **ustudio:embed**
  - **Varzesh3**
  - **Vbox7**
  - **VeeHD**
