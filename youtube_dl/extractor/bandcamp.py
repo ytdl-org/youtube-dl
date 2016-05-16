@@ -50,7 +50,7 @@ class BandcampIE(InfoExtractor):
                 data = json.loads(json_code)[0]
                 track_id = compat_str(data['id'])
 
-                if not data['file']:
+                if not data.get('file'):
                     raise ExtractorError('Not streamable', video_id=track_id, expected=True)
 
                 formats = []
