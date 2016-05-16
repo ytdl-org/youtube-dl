@@ -5,14 +5,18 @@ from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
     compat_urllib_parse_unquote_plus,
+    compat_urllib_parse_urlparse,
+    compat_parse_qs,
 )
 from ..utils import (
     clean_html,
     determine_ext,
     int_or_none,
+    float_or_none,
     sanitized_Request,
     ExtractorError,
-    urlencode_postdata
+    urlencode_postdata,
+    NO_DEFAULT,
 )
 
 
@@ -144,6 +148,15 @@ class FunimationIE(InfoExtractor):
         if user_agent:
             USER_AGENTS = ((None, user_agent),)
 
+        # Extract language preference from URL if present
+        query = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+        preference = query.get('watch', [None])[-1]
+
+        # Initialize variables with defaults
+        season_id = None
+        season_number = None
+        episode_number = None
+
         for kind, user_agent in USER_AGENTS:
             request = sanitized_Request(url)
             request.add_header('User-Agent', user_agent)
@@ -157,8 +170,13 @@ class FunimationIE(InfoExtractor):
                     webpage, 'players data'),
                 display_id)[0]['playlist']
 
-            items = next(item['items'] for item in playlist if item.get('items'))
-            item = next(item for item in items if item.get('itemAK') == display_id)
+            season = next(item for item in playlist if item.get('items'))
+            item = next(item for item in season['items'] if item.get('itemAK') == display_id)
+            if season.get('itemClass') == 'season':
+                season_id = season.get('itemAK')
+                season_number = int_or_none(self._search_regex(
+                    r'^Season ([0-9]+)$', season_id, 'season number', None))
+                episode_number = float_or_none(item.get('number'))
 
             error_messages = {}
             video_error_messages = self._search_regex(
@@ -181,7 +199,6 @@ class FunimationIE(InfoExtractor):
                 if not auth_token:
                     continue
                 funimation_id = video.get('FUNImationID') or video.get('videoId')
-                preference = 1 if video.get('languageMode') == 'dub' else 0
                 if not auth_token.startswith('?'):
                     auth_token = '?%s' % auth_token
                 for quality, height in (('sd', 480), ('hd', 720), ('hd1080', 1080)):
@@ -192,9 +209,18 @@ class FunimationIE(InfoExtractor):
                         errors.append(format_url)
                         continue
                     if determine_ext(format_url) == 'm3u8':
-                        formats.extend(self._extract_m3u8_formats(
+                        m3u8_formats = self._extract_m3u8_formats(
                             format_url + auth_token, display_id, 'mp4', entry_protocol='m3u8_native',
-                            preference=preference, m3u8_id='%s-hls' % funimation_id, fatal=False))
+                            m3u8_id='%s-hls' % funimation_id, fatal=False)
+                        # Add language and preference
+                        for m3u8_format in m3u8_formats:
+                            m3u8_format['language'] = ('en-US'
+                                                       if video.get('languageMode') == 'dub'
+                                                       else 'ja-JP')
+                            m3u8_format['language_preference'] = (10
+                                                                  if video.get('languageMode') == preference
+                                                                  else -1)
+                            formats.append(m3u8_format)
                     else:
                         tbr = int_or_none(self._search_regex(
                             r'-(\d+)[Kk]', format_url, 'tbr', default=None))
@@ -203,7 +229,8 @@ class FunimationIE(InfoExtractor):
                             'format_id': '%s-http-%dp' % (funimation_id, height),
                             'height': height,
                             'tbr': tbr,
-                            'preference': preference,
+                            'language': 'en-US' if video.get('languageMode') == 'dub' else 'ja-JP',
+                            'language_preference': 10 if video.get('languageMode') == preference else -1
                         })
 
         if not formats and errors:
@@ -216,8 +243,11 @@ class FunimationIE(InfoExtractor):
 
         title = item['title']
         artist = item.get('artist')
+        episode = None
         if artist:
             title = '%s - %s' % (artist, title)
+            episode = self._search_regex(
+                r'^[0-9]+ - (.*)$', item['title'], 'episode name', NO_DEFAULT, False)
         description = self._og_search_description(webpage) or item.get('description')
         thumbnail = self._og_search_thumbnail(webpage) or item.get('posterUrl')
         video_id = item.get('itemId') or display_id
@@ -227,6 +257,12 @@ class FunimationIE(InfoExtractor):
             'display_id': display_id,
             'title': title,
             'description': description,
+            'series': artist,
+            'season_id': season_id,
+            'season_number': season_number,
+            'episode_id': item.get('videoUrl'),
+            'episode': episode,
+            'episode_number': episode_number,
             'thumbnail': thumbnail,
             'formats': formats,
         }
