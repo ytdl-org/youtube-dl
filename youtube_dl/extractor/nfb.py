@@ -37,8 +37,7 @@ class NFBIE(InfoExtractor):
 
         uploader_id = self._html_search_regex(r'<a class="director-link" href="/explore-all-directors/([^/]+)/"',
                                               page, 'director id', fatal=False)
-        uploader = self._html_search_regex(r'<em class="director-name" itemprop="name">([^<]+)</em>',
-                                           page, 'director name', fatal=False)
+        uploader = self._og_search_property('video:director', page, 'director name')
 
         request = sanitized_Request(
             'https://www.nfb.ca/film/%s/player_config' % video_id,
