@@ -665,7 +665,7 @@ class YoutubeDL(object):
             ies = self._ies
 
         for ie in ies:
-            if(ie.ie_key() == "Generic" and no_generic_extractor):
+            if ie.ie_key() == 'Generic' and no_generic_extractor:
                 continue
             if not ie.suitable(url):
                 continue
