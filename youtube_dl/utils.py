@@ -883,12 +883,17 @@ def make_socks_conn_class(base_class, socks_proxy):
     elif url_components.scheme.lower() == 'socks4a':
         socks_type = ProxyType.SOCKS4A
 
+    def unquote_if_non_empty(s):
+        if not s:
+            return s
+        return compat_urllib_parse_unquote_plus(s)
+
     proxy_args = (
         socks_type,
         url_components.hostname, url_components.port or 1080,
         True,  # Remote DNS
-        compat_urllib_parse_unquote_plus(url_components.username),
-        compat_urllib_parse_unquote_plus(url_components.password),
+        unquote_if_non_empty(url_components.username),
+        unquote_if_non_empty(url_components.password),
     )
 
     class SocksConnection(base_class):
