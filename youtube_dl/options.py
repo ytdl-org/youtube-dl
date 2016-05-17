@@ -157,7 +157,7 @@ def parseOpts(overrideArguments=None):
     general.add_option(
         '--no-generic-extractor',
         action='store_true', dest='no_generic_extractor', default=False,
-        help='prevent extraction from using the generic extractor')
+        help='Prevent extraction from using the generic extractor')
     general.add_option(
         '--default-search',
         dest='default_search', metavar='PREFIX',
