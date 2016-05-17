@@ -1139,11 +1139,14 @@ class InfoExtractor(object):
                 if m3u8_id:
                     format_id.append(m3u8_id)
                 last_media_name = last_media.get('NAME') if last_media and last_media.get('TYPE') != 'SUBTITLES' else None
+                # Despite specification does not mention NAME attribute for
+                # EXT-X-STREAM-INF it still sometimes may be present
+                stream_name = last_info.get('NAME') or last_media_name
                 # Bandwidth of live streams may differ over time thus making
                 # format_id unpredictable. So it's better to keep provided
                 # format_id intact.
                 if not live:
-                    format_id.append(last_media_name if last_media_name else '%d' % (tbr if tbr else len(formats)))
+                    format_id.append(stream_name if stream_name else '%d' % (tbr if tbr else len(formats)))
                 f = {
                     'format_id': '-'.join(format_id),
                     'url': format_url(line.strip()),

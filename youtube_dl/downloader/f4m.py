@@ -23,26 +23,38 @@ from ..utils import (
 )
 
 
+class DataTruncatedError(Exception):
+    pass
+
+
 class FlvReader(io.BytesIO):
     """
     Reader for Flv files
     The file format is documented in https://www.adobe.com/devnet/f4v.html
     """
 
+    def read_bytes(self, n):
+        data = self.read(n)
+        if len(data) < n:
+            raise DataTruncatedError(
+                'FlvReader error: need %d bytes while only %d bytes got' % (
+                    n, len(data)))
+        return data
+
     # Utility functions for reading numbers and strings
     def read_unsigned_long_long(self):
-        return compat_struct_unpack('!Q', self.read(8))[0]
+        return compat_struct_unpack('!Q', self.read_bytes(8))[0]
 
     def read_unsigned_int(self):
-        return compat_struct_unpack('!I', self.read(4))[0]
+        return compat_struct_unpack('!I', self.read_bytes(4))[0]
 
     def read_unsigned_char(self):
-        return compat_struct_unpack('!B', self.read(1))[0]
+        return compat_struct_unpack('!B', self.read_bytes(1))[0]
 
     def read_string(self):
         res = b''
         while True:
-            char = self.read(1)
+            char = self.read_bytes(1)
             if char == b'\x00':
                 break
             res += char
@@ -53,18 +65,18 @@ class FlvReader(io.BytesIO):
         Read a box and return the info as a tuple: (box_size, box_type, box_data)
         """
         real_size = size = self.read_unsigned_int()
-        box_type = self.read(4)
+        box_type = self.read_bytes(4)
         header_end = 8
         if size == 1:
             real_size = self.read_unsigned_long_long()
             header_end = 16
-        return real_size, box_type, self.read(real_size - header_end)
+        return real_size, box_type, self.read_bytes(real_size - header_end)
 
     def read_asrt(self):
         # version
         self.read_unsigned_char()
         # flags
-        self.read(3)
+        self.read_bytes(3)
         quality_entry_count = self.read_unsigned_char()
         # QualityEntryCount
         for i in range(quality_entry_count):
@@ -85,7 +97,7 @@ class FlvReader(io.BytesIO):
         # version
         self.read_unsigned_char()
         # flags
-        self.read(3)
+        self.read_bytes(3)
         # time scale
         self.read_unsigned_int()
 
@@ -119,7 +131,7 @@ class FlvReader(io.BytesIO):
         # version
         self.read_unsigned_char()
         # flags
-        self.read(3)
+        self.read_bytes(3)
 
         self.read_unsigned_int()  # BootstrapinfoVersion
         # Profile,Live,Update,Reserved
@@ -374,7 +386,17 @@ class F4mFD(FragmentFD):
                 down.close()
                 reader = FlvReader(down_data)
                 while True:
-                    _, box_type, box_data = reader.read_box_info()
+                    try:
+                        _, box_type, box_data = reader.read_box_info()
+                    except DataTruncatedError:
+                        if test:
+                            # In tests, segments may be truncated, and thus
+                            # FlvReader may not be able to parse the whole
+                            # chunk. If so, write the segment as is
+                            # See https://github.com/rg3/youtube-dl/issues/9214
+                            dest_stream.write(down_data)
+                            break
+                        raise
                     if box_type == b'mdat':
                         dest_stream.write(box_data)
                         break

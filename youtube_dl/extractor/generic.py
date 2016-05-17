@@ -61,6 +61,7 @@ from .jwplatform import JWPlatformIE
 from .digiteka import DigitekaIE
 from .instagram import InstagramIE
 from .liveleak import LiveLeakIE
+from .threeqsdn import ThreeQSDNIE
 
 
 class GenericIE(InfoExtractor):
@@ -1427,7 +1428,8 @@ class GenericIE(InfoExtractor):
         #   Site Name | Video Title
         #   Video Title - Tagline | Site Name
         # and so on and so forth; it's just not practical
-        video_title = self._html_search_regex(
+        video_title = self._og_search_title(
+            webpage, default=None) or self._html_search_regex(
             r'(?s)<title>(.*?)</title>', webpage, 'video title',
             default='video')
 
@@ -1444,6 +1446,9 @@ class GenericIE(InfoExtractor):
         # video uploader is domain name
         video_uploader = self._search_regex(
             r'^(?:https?://)?([^/]*)/.*', url, 'video uploader')
+
+        video_description = self._og_search_description(webpage, default=None)
+        video_thumbnail = self._og_search_thumbnail(webpage, default=None)
 
         # Helper method
         def _playlist_from_matches(matches, getter=None, ie=None):
@@ -1982,6 +1987,19 @@ class GenericIE(InfoExtractor):
         liveleak_url = LiveLeakIE._extract_url(webpage)
         if liveleak_url:
             return self.url_result(liveleak_url, 'LiveLeak')
+
+        # Look for 3Q SDN embeds
+        threeqsdn_url = ThreeQSDNIE._extract_url(webpage)
+        if threeqsdn_url:
+            return {
+                '_type': 'url_transparent',
+                'ie_key': ThreeQSDNIE.ie_key(),
+                'url': self._proto_relative_url(threeqsdn_url),
+                'title': video_title,
+                'description': video_description,
+                'thumbnail': video_thumbnail,
+                'uploader': video_uploader,
+            }
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

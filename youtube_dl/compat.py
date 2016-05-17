@@ -341,9 +341,9 @@ except ImportError:  # Python 2
         return parsed_result
 
 try:
-    from shlex import quote as shlex_quote
+    from shlex import quote as compat_shlex_quote
 except ImportError:  # Python < 3.3
-    def shlex_quote(s):
+    def compat_shlex_quote(s):
         if re.match(r'^[-_\w./]+$', s):
             return s
         else:
@@ -465,18 +465,6 @@ else:
         assert isinstance(s, compat_str)
         print(s)
 
-
-try:
-    subprocess_check_output = subprocess.check_output
-except AttributeError:
-    def subprocess_check_output(*args, **kwargs):
-        assert 'input' not in kwargs
-        p = subprocess.Popen(*args, stdout=subprocess.PIPE, **kwargs)
-        output, _ = p.communicate()
-        ret = p.poll()
-        if ret:
-            raise subprocess.CalledProcessError(ret, p.args, output=output)
-        return output
 
 if sys.version_info < (3, 0) and sys.platform == 'win32':
     def compat_getpass(prompt, *args, **kwargs):
@@ -635,6 +623,7 @@ __all__ = [
     'compat_parse_qs',
     'compat_print',
     'compat_setenv',
+    'compat_shlex_quote',
     'compat_shlex_split',
     'compat_socket_create_connection',
     'compat_str',
@@ -656,7 +645,5 @@ __all__ = [
     'compat_urlretrieve',
     'compat_xml_parse_error',
     'compat_xpath',
-    'shlex_quote',
-    'subprocess_check_output',
     'workaround_optparse_bug9161',
 ]

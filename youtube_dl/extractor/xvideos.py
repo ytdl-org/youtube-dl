@@ -8,7 +8,6 @@ from ..utils import (
     clean_html,
     ExtractorError,
     determine_ext,
-    sanitized_Request,
 )
 
 
@@ -25,8 +24,6 @@ class XVideosIE(InfoExtractor):
         }
     }
 
-    _ANDROID_USER_AGENT = 'Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19'
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
@@ -35,31 +32,34 @@ class XVideosIE(InfoExtractor):
         if mobj:
             raise ExtractorError('%s said: %s' % (self.IE_NAME, clean_html(mobj.group(1))), expected=True)
 
-        video_url = compat_urllib_parse_unquote(
-            self._search_regex(r'flv_url=(.+?)&', webpage, 'video URL'))
         video_title = self._html_search_regex(
             r'<title>(.*?)\s+-\s+XVID', webpage, 'title')
         video_thumbnail = self._search_regex(
             r'url_bigthumb=(.+?)&amp', webpage, 'thumbnail', fatal=False)
 
-        formats = [{
-            'url': video_url,
-        }]
+        formats = []
 
-        android_req = sanitized_Request(url)
-        android_req.add_header('User-Agent', self._ANDROID_USER_AGENT)
-        android_webpage = self._download_webpage(android_req, video_id, fatal=False)
+        video_url = compat_urllib_parse_unquote(self._search_regex(
+            r'flv_url=(.+?)&', webpage, 'video URL', default=''))
+        if video_url:
+            formats.append({'url': video_url})
 
-        if android_webpage is not None:
-            player_params_str = self._search_regex(
-                'mobileReplacePlayerDivTwoQual\(([^)]+)\)',
-                android_webpage, 'player parameters', default='')
-            player_params = list(map(lambda s: s.strip(' \''), player_params_str.split(',')))
-            if player_params:
-                formats.extend([{
-                    'url': param,
-                    'preference': -10,
-                } for param in player_params if determine_ext(param) == 'mp4'])
+        player_args = self._search_regex(
+            r'(?s)new\s+HTML5Player\((.+?)\)', webpage, ' html5 player', default=None)
+        if player_args:
+            for arg in player_args.split(','):
+                format_url = self._search_regex(
+                    r'(["\'])(?P<url>https?://.+?)\1', arg, 'url',
+                    default=None, group='url')
+                if not format_url:
+                    continue
+                ext = determine_ext(format_url)
+                if ext == 'mp4':
+                    formats.append({'url': format_url})
+                elif ext == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, video_id, 'mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls', fatal=False))
 
         self._sort_formats(formats)
 
@@ -67,7 +67,6 @@ class XVideosIE(InfoExtractor):
             'id': video_id,
             'formats': formats,
             'title': video_title,
-            'ext': 'flv',
             'thumbnail': video_thumbnail,
             'age_limit': 18,
         }

@@ -124,7 +124,6 @@ from .chirbit import (
     ChirbitProfileIE,
 )
 from .cinchcast import CinchcastIE
-from .cinemassacre import CinemassacreIE
 from .cliprs import ClipRsIE
 from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
@@ -139,7 +138,6 @@ from .cnn import (
     CNNBlogsIE,
     CNNArticleIE,
 )
-from .collegehumor import CollegeHumorIE
 from .collegerama import CollegeRamaIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
 from .comcarcoff import ComCarCoffIE
@@ -767,6 +765,7 @@ from .thesixtyone import TheSixtyOneIE
 from .thestar import TheStarIE
 from .thisamericanlife import ThisAmericanLifeIE
 from .thisav import ThisAVIE
+from .threeqsdn import ThreeQSDNIE
 from .tinypic import TinyPicIE
 from .tlc import TlcDeIE
 from .tmz import (
@@ -834,7 +833,6 @@ from .twitch import (
     TwitchVodIE,
     TwitchProfileIE,
     TwitchPastBroadcastsIE,
-    TwitchBookmarksIE,
     TwitchStreamIE,
 )
 from .twitter import (
@@ -852,7 +850,10 @@ from .unistra import UnistraIE
 from .urort import UrortIE
 from .usatoday import USATodayIE
 from .ustream import UstreamIE, UstreamChannelIE
-from .ustudio import UstudioIE
+from .ustudio import (
+    UstudioIE,
+    UstudioEmbedIE,
+)
 from .varzesh3 import Varzesh3IE
 from .vbox7 import Vbox7IE
 from .veehd import VeeHDIE

@@ -213,19 +213,17 @@ class VevoIE(VevoBaseIE):
         formats = []
 
         if not video_info:
-            if response and response.get('statusCode') != 909:
+            try:
+                self._initialize_api(video_id)
+            except ExtractorError:
                 ytid = response.get('errorInfo', {}).get('ytid')
                 if ytid:
                     self.report_warning(
                         'Video is geoblocked, trying with the YouTube video %s' % ytid)
                     return self.url_result(ytid, 'Youtube', ytid)
 
-                if 'statusMessage' in response:
-                    raise ExtractorError('%s said: %s' % (
-                        self.IE_NAME, response['statusMessage']), expected=True)
-                raise ExtractorError('Unable to extract videos')
+                raise
 
-            self._initialize_api(video_id)
             video_info = self._call_api(
                 'video/%s' % video_id, video_id, 'Downloading api video info',
                 'Failed to download video info')

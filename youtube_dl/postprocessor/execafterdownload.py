@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import subprocess
 
 from .common import PostProcessor
-from ..compat import shlex_quote
+from ..compat import compat_shlex_quote
 from ..utils import PostProcessingError
 
 
@@ -17,7 +17,7 @@ class ExecAfterDownloadPP(PostProcessor):
         if '{}' not in cmd:
             cmd += ' {}'
 
-        cmd = cmd.replace('{}', shlex_quote(information['filepath']))
+        cmd = cmd.replace('{}', compat_shlex_quote(information['filepath']))
 
         self._downloader.to_screen('[exec] Executing command: %s' % cmd)
         retCode = subprocess.call(cmd, shell=True)
