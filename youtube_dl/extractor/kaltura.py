@@ -175,11 +175,18 @@ class KalturaIE(InfoExtractor):
                 unsigned_url += '?referrer=%s' % referrer
             return unsigned_url
 
+        has_native_formats = False
         formats = []
         for f in flavor_assets:
             # Continue if asset is not ready
             if f['status'] != 2:
                 continue
+            if f['containerFormat'] == 'applehttp':
+                m3u8_url = sign_url(info['dataUrl'])
+                formats.extend(self._extract_m3u8_formats(
+                    m3u8_url, entry_id, 'mp4', m3u8_id='hls', fatal=False))
+                continue
+            has_native_formats=True
             video_url = sign_url('%s/flavorId/%s' % (info['dataUrl'], f['id']))
             formats.append({
                 'format_id': '%(fileExt)s-%(bitrate)s' % f,
@@ -193,9 +200,13 @@ class KalturaIE(InfoExtractor):
                 'width': int_or_none(f.get('width')),
                 'url': video_url,
             })
-        m3u8_url = sign_url(info['dataUrl'].replace('format/url', 'format/applehttp'))
-        formats.extend(self._extract_m3u8_formats(
-            m3u8_url, entry_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+
+        if has_native_formats:
+            m3u8_url = sign_url(info['dataUrl'].replace(
+                'format/url', 'format/applehttp'))
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, entry_id, 'mp4', 'm3u8_native', m3u8_id='hls',
+                fatal=False))
 
         self._check_formats(formats, entry_id)
         self._sort_formats(formats)
