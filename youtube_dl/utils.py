@@ -1549,15 +1549,11 @@ def setproctitle(title):
 
 
 def remove_start(s, start):
-    if s.startswith(start):
-        return s[len(start):]
-    return s
+    return s[len(start):] if s is not None and s.startswith(start) else s
 
 
 def remove_end(s, end):
-    if s.endswith(end):
-        return s[:-len(end)]
-    return s
+    return s[:-len(end)] if s is not None and s.endswith(end) else s
 
 
 def remove_quotes(s):
