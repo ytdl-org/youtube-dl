@@ -3,6 +3,10 @@ from __future__ import unicode_literals
 
 from .abc import ABCIE
 from .abc7news import Abc7NewsIE
+from .abcnews import (
+    AbcNewsIE,
+    AbcNewsVideoIE,
+)
 from .academicearth import AcademicEarthCourseIE
 from .acast import (
     ACastIE,
@@ -238,6 +242,7 @@ from .fktv import FKTVIE
 from .flickr import FlickrIE
 from .folketinget import FolketingetIE
 from .footyroom import FootyRoomIE
+from .formula1 import Formula1IE
 from .fourtube import FourTubeIE
 from .fox import FOXIE
 from .foxgay import FoxgayIE
@@ -365,6 +370,7 @@ from .kuwo import (
 )
 from .la7 import LA7IE
 from .laola1tv import Laola1TvIE
+from .learnr import LearnrIE
 from .lecture2go import Lecture2GoIE
 from .lemonde import LemondeIE
 from .leeco import (

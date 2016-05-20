@@ -50,6 +50,8 @@ from youtube_dl.utils import (
     sanitize_path,
     prepend_extension,
     replace_extension,
+    remove_start,
+    remove_end,
     remove_quotes,
     shell_quote,
     smuggle_url,
@@ -214,6 +216,16 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(replace_extension('abc', 'temp'), 'abc.temp')
         self.assertEqual(replace_extension('.abc', 'temp'), '.abc.temp')
         self.assertEqual(replace_extension('.abc.ext', 'temp'), '.abc.temp')
+
+    def test_remove_start(self):
+        self.assertEqual(remove_start(None, 'A - '), None)
+        self.assertEqual(remove_start('A - B', 'A - '), 'B')
+        self.assertEqual(remove_start('B - A', 'A - '), 'B - A')
+
+    def test_remove_end(self):
+        self.assertEqual(remove_end(None, ' - B'), None)
+        self.assertEqual(remove_end('A - B', ' - B'), 'A')
+        self.assertEqual(remove_end('B - A', ' - B'), 'B - A')
 
     def test_remove_quotes(self):
         self.assertEqual(remove_quotes(None), None)

@@ -1,19 +1,18 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
-    month_by_name,
     int_or_none,
+    remove_end,
+    unified_strdate,
 )
 
 
 class NDTVIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?ndtv\.com/video/player/[^/]*/[^/]*/(?P<id>[a-z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?ndtv\.com/video/(?:[^/]+/)+[^/?^&]+-(?P<id>\d+)'
 
     _TEST = {
-        'url': 'http://www.ndtv.com/video/player/news/ndtv-exclusive-don-t-need-character-certificate-from-rahul-gandhi-says-arvind-kejriwal/300710',
+        'url': 'http://www.ndtv.com/video/news/news/ndtv-exclusive-don-t-need-character-certificate-from-rahul-gandhi-says-arvind-kejriwal-300710',
         'md5': '39f992dbe5fb531c395d8bbedb1e5e88',
         'info_dict': {
             'id': '300710',
@@ -22,7 +21,7 @@ class NDTVIE(InfoExtractor):
             'description': 'md5:ab2d4b4a6056c5cb4caa6d729deabf02',
             'upload_date': '20131208',
             'duration': 1327,
-            'thumbnail': 'http://i.ndtvimg.com/video/images/vod/medium/2013-12/big_300710_1386518307.jpg',
+            'thumbnail': 're:https?://.*\.jpg',
         },
     }
 
@@ -30,36 +29,19 @@ class NDTVIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
+        title = remove_end(self._og_search_title(webpage), ' - NDTV')
+
         filename = self._search_regex(
             r"__filename='([^']+)'", webpage, 'video filename')
-        video_url = ('http://bitcast-b.bitgravity.com/ndtvod/23372/ndtv/%s' %
-                     filename)
+        video_url = 'http://bitcast-b.bitgravity.com/ndtvod/23372/ndtv/%s' % filename
 
         duration = int_or_none(self._search_regex(
             r"__duration='([^']+)'", webpage, 'duration', fatal=False))
 
-        date_m = re.search(r'''(?x)
-            <p\s+class="vod_dateline">\s*
-                Published\s+On:\s*
-                (?P<monthname>[A-Za-z]+)\s+(?P<day>[0-9]+),\s*(?P<year>[0-9]+)
-            ''', webpage)
-        upload_date = None
+        upload_date = unified_strdate(self._html_search_meta(
+            'publish-date', webpage, 'upload date', fatal=False))
 
-        if date_m is not None:
-            month = month_by_name(date_m.group('monthname'))
-            if month is not None:
-                upload_date = '%s%02d%02d' % (
-                    date_m.group('year'), month, int(date_m.group('day')))
-
-        description = self._og_search_description(webpage)
-        READ_MORE = ' (Read more)'
-        if description.endswith(READ_MORE):
-            description = description[:-len(READ_MORE)]
-
-        title = self._og_search_title(webpage)
-        TITLE_SUFFIX = ' - NDTV'
-        if title.endswith(TITLE_SUFFIX):
-            title = title[:-len(TITLE_SUFFIX)]
+        description = remove_end(self._og_search_description(webpage), ' (Read more)')
 
         return {
             'id': video_id,
