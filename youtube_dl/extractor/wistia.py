@@ -27,6 +27,10 @@ class WistiaIE(InfoExtractor):
     }, {
         'url': 'wistia:sh7fpupwlt',
         'only_matching': True,
+    }, {
+        # with hls video
+        'url': 'wistia:807fafadvk',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -63,6 +67,8 @@ class WistiaIE(InfoExtractor):
                     'height': int_or_none(a.get('height')),
                 })
             else:
+                aext = a.get('ext')
+                is_m3u8 = a.get('container') == 'm3u8' or aext == 'm3u8'
                 formats.append({
                     'format_id': atype,
                     'url': aurl,
@@ -73,7 +79,8 @@ class WistiaIE(InfoExtractor):
                     'filesize': int_or_none(a.get('size')),
                     'vcodec': a.get('codec'),
                     'container': a.get('container'),
-                    'ext': a.get('ext'),
+                    'ext': 'mp4' if is_m3u8 else aext,
+                    'protocol': 'm3u8' if is_m3u8 else None,
                     'preference': 1 if atype == 'original' else None,
                 })
 
