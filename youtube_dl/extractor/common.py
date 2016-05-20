@@ -1278,21 +1278,21 @@ class InfoExtractor(object):
         m3u8_count = 0
 
         srcs = []
-        videos = smil.findall(self._xpath_ns('.//video', namespace))
-        for video in videos:
-            src = video.get('src')
+        media = smil.findall(self._xpath_ns('.//video', namespace)) + smil.findall(self._xpath_ns('.//audio', namespace))
+        for medium in media:
+            src = medium.get('src')
             if not src or src in srcs:
                 continue
             srcs.append(src)
 
-            bitrate = float_or_none(video.get('system-bitrate') or video.get('systemBitrate'), 1000)
-            filesize = int_or_none(video.get('size') or video.get('fileSize'))
-            width = int_or_none(video.get('width'))
-            height = int_or_none(video.get('height'))
-            proto = video.get('proto')
-            ext = video.get('ext')
+            bitrate = float_or_none(medium.get('system-bitrate') or medium.get('systemBitrate'), 1000)
+            filesize = int_or_none(medium.get('size') or medium.get('fileSize'))
+            width = int_or_none(medium.get('width'))
+            height = int_or_none(medium.get('height'))
+            proto = medium.get('proto')
+            ext = medium.get('ext')
             src_ext = determine_ext(src)
-            streamer = video.get('streamer') or base
+            streamer = medium.get('streamer') or base
 
             if proto == 'rtmp' or streamer.startswith('rtmp'):
                 rtmp_count += 1
