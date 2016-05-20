@@ -1563,6 +1563,15 @@ class GenericIE(InfoExtractor):
                 'id': match.group('id')
             }
 
+        match = re.search(
+            r'''(?sx)
+                <script[^>]+src=(["'])(?:https?:)?//fast\.wistia\.com/assets/external/E-v1\.js\1[^>]*>.*?
+                <div[^>]+class=(["']).*?\bwistia_async_(?P<id>[a-z0-9]+)\b.*?\2
+            ''', webpage)
+        if match:
+            return self.url_result(self._proto_relative_url(
+                'wistia:%s' % match.group('id')), 'Wistia')
+
         # Look for SVT player
         svt_url = SVTIE._extract_url(webpage)
         if svt_url:
