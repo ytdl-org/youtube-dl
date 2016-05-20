@@ -49,19 +49,23 @@ class WistiaIE(InfoExtractor):
         formats = []
         thumbnails = []
         for a in data['assets']:
+            aurl = a.get('url')
+            if not aurl:
+                continue
             astatus = a.get('status')
             atype = a.get('type')
-            if (astatus is not None and astatus != 2) or atype == 'preview':
+            if (astatus is not None and astatus != 2) or atype in ('preview', 'storyboard'):
                 continue
             elif atype in ('still', 'still_image'):
                 thumbnails.append({
-                    'url': a['url'],
-                    'resolution': '%dx%d' % (a['width'], a['height']),
+                    'url': aurl,
+                    'width': int_or_none(a.get('width')),
+                    'height': int_or_none(a.get('height')),
                 })
             else:
                 formats.append({
                     'format_id': atype,
-                    'url': a['url'],
+                    'url': aurl,
                     'tbr': int_or_none(a.get('bitrate')),
                     'vbr': int_or_none(a.get('opt_vbitrate')),
                     'width': int_or_none(a.get('width')),
