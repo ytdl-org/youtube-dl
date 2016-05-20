@@ -91,7 +91,7 @@ class CBCIE(InfoExtractor):
 
 class CBCPlayerIE(InfoExtractor):
     _VALID_URL = r'(?:cbcplayer:|https?://(?:www\.)?cbc\.ca/(?:player/play/|i/caffeine/syndicate/\?mediaId=))(?P<id>\d+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.cbc.ca/player/play/2683190193',
         'info_dict': {
             'id': '2683190193',
@@ -102,7 +102,20 @@ class CBCPlayerIE(InfoExtractor):
             'upload_date': '20160210',
             'uploader': 'CBCC-NEW',
         },
-    }
+    }, {
+        # Redirected from http://www.cbc.ca/player/AudioMobile/All%20in%20a%20Weekend%20Montreal/ID/2657632011/
+        'url': 'http://www.cbc.ca/player/play/2657631896',
+        'md5': 'e5e708c34ae6fca156aafe17c43e8b75',
+        'info_dict': {
+            'id': '2657631896',
+            'ext': 'mp3',
+            'title': 'CBC Montreal is organizing its first ever community hackathon!',
+            'description': 'The modern technology we tend to depend on so heavily, is never without it\'s share of hiccups and headaches. Next weekend - CBC Montreal will be getting members of the public for its first Hackathon.',
+            'timestamp': 1425704400,
+            'upload_date': '20150307',
+            'uploader': 'CBCC-NEW',
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
