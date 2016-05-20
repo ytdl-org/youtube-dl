@@ -259,6 +259,7 @@ from .expotv import ExpoTVIE
 from .extremetube import ExtremeTubeIE
 from .eyedotv import EyedoTVIE
 from .facebook import FacebookIE
+from .favourme import FavourMeIE
 from .faz import FazIE
 from .fc2 import FC2IE
 from .fczenit import FczenitIE
