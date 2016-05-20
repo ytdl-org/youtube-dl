@@ -3,16 +3,16 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    sanitized_Request,
     int_or_none,
 )
 
 
 class WistiaIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:fast\.)?wistia\.net/embed/iframe/(?P<id>[a-z0-9]+)'
-    _API_URL = 'http://fast.wistia.com/embed/medias/{0:}.json'
+    _VALID_URL = r'(?:wistia:|https?://(?:fast\.)?wistia\.net/embed/iframe/)(?P<id>[a-z0-9]+)'
+    _API_URL = 'http://fast.wistia.com/embed/medias/%s.json'
+    _IFRAME_URL = 'http://fast.wistia.net/embed/iframe/%s'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://fast.wistia.net/embed/iframe/sh7fpupwlt',
         'md5': 'cafeb56ec0c53c18c97405eecb3133df',
         'info_dict': {
@@ -24,17 +24,25 @@ class WistiaIE(InfoExtractor):
             'timestamp': 1386185018,
             'duration': 117,
         },
-    }
+    }, {
+        'url': 'wistia:sh7fpupwlt',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        request = sanitized_Request(self._API_URL.format(video_id))
-        request.add_header('Referer', url)  # Some videos require this.
-        data_json = self._download_json(request, video_id)
+        data_json = self._download_json(
+            self._API_URL % video_id, video_id,
+            # Some videos require this.
+            headers={
+                'Referer': url if url.startswith('http') else self._IFRAME_URL % video_id,
+            })
+
         if data_json.get('error'):
-            raise ExtractorError('Error while getting the playlist',
-                                 expected=True)
+            raise ExtractorError(
+                'Error while getting the playlist', expected=True)
+
         data = data_json['media']
         title = data['name']
 
