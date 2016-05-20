@@ -444,6 +444,10 @@ class BrightcoveNewIE(InfoExtractor):
         # non numeric ref: prefixed video id
         'url': 'http://players.brightcove.net/710858724001/default_default/index.html?videoId=ref:event-stream-356',
         'only_matching': True,
+    }, {
+        # unavailable video without message but with error_code
+        'url': 'http://players.brightcove.net/1305187701/c832abfb-641b-44eb-9da0-2fe76786505f_default/index.html?videoId=4377407326001',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -514,8 +518,9 @@ class BrightcoveNewIE(InfoExtractor):
             })
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
-                json_data = self._parse_json(e.cause.read().decode(), video_id)
-                raise ExtractorError(json_data[0]['message'], expected=True)
+                json_data = self._parse_json(e.cause.read().decode(), video_id)[0]
+                raise ExtractorError(
+                    json_data.get('message') or json_data['error_code'], expected=True)
             raise
 
         title = json_data['name'].strip()
