@@ -742,6 +742,22 @@ class GenericIE(InfoExtractor):
                 'timestamp': 1401832161,
             },
         },
+        # Wistia standard embed (async)
+        {
+            'url': 'https://www.getdrip.com/university/brennan-dunn-drip-workshop/',
+            'info_dict': {
+                'id': '807fafadvk',
+                'ext': 'mp4',
+                'title': 'Drip Brennan Dunn Workshop',
+                'description': 'a JV Webinars video from getdrip-1',
+                'duration': 4986.95,
+                'upload_date': '20160518',
+                'timestamp': 1463607249,
+            },
+            'params': {
+                'skip_download': True,
+            }
+        },
         # Soundcloud embed
         {
             'url': 'http://nakedsecurity.sophos.com/2014/10/29/sscc-171-are-you-sure-that-1234-is-a-bad-password-podcast/',

@@ -4,6 +4,7 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
+    float_or_none,
 )
 
 
@@ -92,6 +93,6 @@ class WistiaIE(InfoExtractor):
             'description': data.get('seoDescription'),
             'formats': formats,
             'thumbnails': thumbnails,
-            'duration': int_or_none(data.get('duration')),
+            'duration': float_or_none(data.get('duration')),
             'timestamp': int_or_none(data.get('createdAt')),
         }
