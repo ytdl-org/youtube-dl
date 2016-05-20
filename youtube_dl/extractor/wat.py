@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import hashlib
 
 from .common import InfoExtractor
 from ..utils import (
@@ -68,9 +67,6 @@ class WatIE(InfoExtractor):
             raise ExtractorError(
                 '%s returned error: %s' % (self.IE_NAME, error_desc), expected=True)
 
-        geo_list = video_info.get('geoList')
-        country = geo_list[0] if geo_list else ''
-
         chapters = video_info['chapters']
         first_chapter = chapters[0]
         files = video_info['files']
@@ -78,53 +74,23 @@ class WatIE(InfoExtractor):
 
         if real_id_for_chapter(first_chapter) != real_id:
             self.to_screen('Multipart video detected')
-            chapter_urls = []
-            for chapter in chapters:
-                chapter_id = real_id_for_chapter(chapter)
-                # Yes, when we this chapter is processed by WatIE,
-                # it will download the info again
-                chapter_info = self.download_video_info(chapter_id)
-                chapter_urls.append(chapter_info['url'])
-            entries = [self.url_result(chapter_url) for chapter_url in chapter_urls]
+            entries = [self.url_result('wat:%s' % real_id_for_chapter(chapter)) for chapter in chapters]
             return self.playlist_result(entries, real_id, video_info['title'])
 
         upload_date = None
         if 'date_diffusion' in first_chapter:
             upload_date = unified_strdate(first_chapter['date_diffusion'])
         # Otherwise we can continue and extract just one part, we have to use
-        # the short id for getting the video url
+        # the real id for getting the video url
 
         formats = [{
             'url': 'http://wat.tv/get/android5/%s.mp4' % real_id,
             'format_id': 'Mobile',
         }]
-
-        fmts = [('SD', 'web')]
-        if first_file.get('hasHD'):
-            fmts.append(('HD', 'webhd'))
-
-        def compute_token(param):
-            timestamp = '%08x' % int(self._download_webpage(
-                'http://www.wat.tv/servertime', real_id,
-                'Downloading server time').split('|')[0])
-            magic = '9b673b13fa4682ed14c3cfa5af5310274b514c4133e9b3a81e6e3aba009l2564'
-            return '%s/%s' % (hashlib.md5((magic + param + timestamp).encode('ascii')).hexdigest(), timestamp)
-
-        for fmt in fmts:
-            webid = '/%s/%s' % (fmt[1], real_id)
-            video_url = self._download_webpage(
-                'http://www.wat.tv/get%s?token=%s&getURL=1&country=%s' % (webid, compute_token(webid), country),
-                real_id,
-                'Downloading %s video URL' % fmt[0],
-                'Failed to download %s video URL' % fmt[0],
-                False)
-            if not video_url:
-                continue
-            formats.append({
-                'url': video_url,
-                'ext': 'mp4',
-                'format_id': fmt[0],
-            })
+        formats.extend(self._extract_m3u8_formats(
+            'http://wat.tv/get/ipad/%s.m3u8' % real_id,
+            real_id, 'mp4', 'm3u8_native', m3u8_id='hls'))
+        self._sort_formats(formats)
 
         return {
             'id': real_id,
