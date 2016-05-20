@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import js_to_json
+from ..utils import (
+    js_to_json,
+    smuggle_url,
+)
 
 
 class CBCIE(InfoExtractor):
@@ -12,57 +15,54 @@ class CBCIE(InfoExtractor):
     _TESTS = [{
         # with mediaId
         'url': 'http://www.cbc.ca/22minutes/videos/clips-season-23/don-cherry-play-offs',
+        'md5': '97e24d09672fc4cf56256d6faa6c25bc',
         'info_dict': {
             'id': '2682904050',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Don Cherry – All-Stars',
             'description': 'Don Cherry has a bee in his bonnet about AHL player John Scott because that guy’s got heart.',
-            'timestamp': 1454475540,
+            'timestamp': 1454463000,
             'upload_date': '20160203',
-        },
-        'params': {
-            # rtmp download
-            'skip_download': True,
+            'uploader': 'CBCC-NEW',
         },
     }, {
         # with clipId
         'url': 'http://www.cbc.ca/archives/entry/1978-robin-williams-freestyles-on-90-minutes-live',
         'info_dict': {
             'id': '2487345465',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Robin Williams freestyles on 90 Minutes Live',
             'description': 'Wacky American comedian Robin Williams shows off his infamous "freestyle" comedic talents while being interviewed on CBC\'s 90 Minutes Live.',
-            'upload_date': '19700101',
+            'upload_date': '19780210',
             'uploader': 'CBCC-NEW',
-        },
-        'params': {
-            # rtmp download
-            'skip_download': True,
+            'timestamp': 255977160,
         },
     }, {
         # multiple iframes
         'url': 'http://www.cbc.ca/natureofthings/blog/birds-eye-view-from-vancouvers-burrard-street-bridge-how-we-got-the-shot',
         'playlist': [{
+            'md5': '377572d0b49c4ce0c9ad77470e0b96b4',
             'info_dict': {
                 'id': '2680832926',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'An Eagle\'s-Eye View Off Burrard Bridge',
                 'description': 'Hercules the eagle flies from Vancouver\'s Burrard Bridge down to a nearby park with a mini-camera strapped to his back.',
-                'upload_date': '19700101',
+                'upload_date': '20160201',
+                'timestamp': 1454342820,
+                'uploader': 'CBCC-NEW',
             },
         }, {
+            'md5': '415a0e3f586113894174dfb31aa5bb1a',
             'info_dict': {
                 'id': '2658915080',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Fly like an eagle!',
                 'description': 'Eagle equipped with a mini camera flies from the world\'s tallest tower',
-                'upload_date': '19700101',
+                'upload_date': '20150315',
+                'timestamp': 1426443984,
+                'uploader': 'CBCC-NEW',
             },
         }],
-        'params': {
-            # rtmp download
-            'skip_download': True,
-        },
     }]
 
     @classmethod
@@ -95,20 +95,23 @@ class CBCPlayerIE(InfoExtractor):
         'url': 'http://www.cbc.ca/player/play/2683190193',
         'info_dict': {
             'id': '2683190193',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Gerry Runs a Sweat Shop',
             'description': 'md5:b457e1c01e8ff408d9d801c1c2cd29b0',
-            'timestamp': 1455067800,
+            'timestamp': 1455071400,
             'upload_date': '20160210',
-        },
-        'params': {
-            # rtmp download
-            'skip_download': True,
+            'uploader': 'CBCC-NEW',
         },
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        return self.url_result(
-            'http://feed.theplatform.com/f/ExhSPC/vms_5akSXx4Ng_Zn?byGuid=%s' % video_id,
-            'ThePlatformFeed', video_id)
+        return {
+            '_type': 'url_transparent',
+            'ie_key': 'ThePlatform',
+            'url': smuggle_url(
+                'http://link.theplatform.com/s/ExhSPC/media/guid/2655402169/%s?mbr=true' % video_id, {
+                    'force_smil_url': True
+                }),
+            'id': video_id,
+        }
