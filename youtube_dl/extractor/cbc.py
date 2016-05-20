@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class CBCIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?cbc\.ca/(?:[^/]+/)+(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?cbc\.ca/(?!player/)(?:[^/]+/)+(?P<id>[^/?#]+)'
     _TESTS = [{
         # with mediaId
         'url': 'http://www.cbc.ca/22minutes/videos/clips-season-23/don-cherry-play-offs',
