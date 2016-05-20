@@ -28,6 +28,7 @@ class CBCIE(InfoExtractor):
     }, {
         # with clipId
         'url': 'http://www.cbc.ca/archives/entry/1978-robin-williams-freestyles-on-90-minutes-live',
+        'md5': '0274a90b51a9b4971fe005c63f592f12',
         'info_dict': {
             'id': '2487345465',
             'ext': 'mp4',
@@ -93,6 +94,7 @@ class CBCPlayerIE(InfoExtractor):
     _VALID_URL = r'(?:cbcplayer:|https?://(?:www\.)?cbc\.ca/(?:player/play/|i/caffeine/syndicate/\?mediaId=))(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.cbc.ca/player/play/2683190193',
+        'md5': '64d25f841ddf4ddb28a235338af32e2c',
         'info_dict': {
             'id': '2683190193',
             'ext': 'mp4',
@@ -115,6 +117,19 @@ class CBCPlayerIE(InfoExtractor):
             'upload_date': '20150307',
             'uploader': 'CBCC-NEW',
         },
+    }, {
+        # available only when we add `formats=MPEG4,FLV,MP3` to theplatform url
+        'url': 'http://www.cbc.ca/player/play/2164402062',
+        'md5': '17a61eb813539abea40618d6323a7f82',
+        'info_dict': {
+            'id': '2164402062',
+            'ext': 'flv',
+            'title': 'Cancer survivor four times over',
+            'description': 'Tim Mayer has beaten three different forms of cancer four times in five years.',
+            'timestamp': 1320410746,
+            'upload_date': '20111104',
+            'uploader': 'CBCC-NEW',
+        },
     }]
 
     def _real_extract(self, url):
@@ -123,7 +138,7 @@ class CBCPlayerIE(InfoExtractor):
             '_type': 'url_transparent',
             'ie_key': 'ThePlatform',
             'url': smuggle_url(
-                'http://link.theplatform.com/s/ExhSPC/media/guid/2655402169/%s?mbr=true' % video_id, {
+                'http://link.theplatform.com/s/ExhSPC/media/guid/2655402169/%s?mbr=true&formats=MPEG4,FLV,MP3' % video_id, {
                     'force_smil_url': True
                 }),
             'id': video_id,
