@@ -717,15 +717,18 @@ class GenericIE(InfoExtractor):
         },
         # Wistia embed
         {
-            'url': 'http://education-portal.com/academy/lesson/north-american-exploration-failed-colonies-of-spain-france-england.html#lesson',
-            'md5': '8788b683c777a5cf25621eaf286d0c23',
+            'url': 'http://study.com/academy/lesson/north-american-exploration-failed-colonies-of-spain-france-england.html#lesson',
+            'md5': '1953f3a698ab51cfc948ed3992a0b7ff',
             'info_dict': {
-                'id': '1cfaf6b7ea',
+                'id': '6e2wtrbdaf',
                 'ext': 'mov',
-                'title': 'md5:51364a8d3d009997ba99656004b5e20d',
-                'duration': 643.0,
-                'filesize': 182808282,
-                'uploader': 'education-portal.com',
+                'title': 'paywall_north-american-exploration-failed-colonies-of-spain-france-england',
+                'description': 'a Paywall Videos video from Remilon',
+                'duration': 644.072,
+                'uploader': 'study.com',
+                'timestamp': 1459678540,
+                'upload_date': '20160403',
+                'filesize': 24687186,
             },
         },
         {
@@ -734,12 +737,12 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'id': 'uxjb0lwrcz',
                 'ext': 'mp4',
-                'title': 'Conversation about Hexagonal Rails Part 1 - ThoughtWorks',
+                'title': 'Conversation about Hexagonal Rails Part 1',
                 'description': 'a Martin Fowler video from ThoughtWorks',
                 'duration': 1715.0,
                 'uploader': 'thoughtworks.wistia.com',
-                'upload_date': '20140603',
                 'timestamp': 1401832161,
+                'upload_date': '20140603',
             },
         },
         # Wistia standard embed (async)
@@ -751,8 +754,8 @@ class GenericIE(InfoExtractor):
                 'title': 'Drip Brennan Dunn Workshop',
                 'description': 'a JV Webinars video from getdrip-1',
                 'duration': 4986.95,
-                'upload_date': '20160518',
                 'timestamp': 1463607249,
+                'upload_date': '20160518',
             },
             'params': {
                 'skip_download': True,
@@ -1564,19 +1567,15 @@ class GenericIE(InfoExtractor):
                 'url': embed_url,
                 'ie_key': 'Wistia',
                 'uploader': video_uploader,
-                'title': video_title,
-                'id': video_id,
             }
 
         match = re.search(r'(?:id=["\']wistia_|data-wistia-?id=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
         if match:
             return {
                 '_type': 'url_transparent',
-                'url': 'http://fast.wistia.net/embed/iframe/{0:}'.format(match.group('id')),
+                'url': 'wistia:%s' % match.group('id'),
                 'ie_key': 'Wistia',
                 'uploader': video_uploader,
-                'title': video_title,
-                'id': match.group('id')
             }
 
         match = re.search(
