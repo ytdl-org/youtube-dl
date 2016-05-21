@@ -16,6 +16,8 @@
  - **9gag**
  - **abc.net.au**
  - **Abc7News**
+ - **abcnews**
+ - **abcnews:video**
  - **AcademicEarth:Course**
  - **acast**
  - **acast:channel**
@@ -104,6 +106,7 @@
  - **CBCPlayer**
  - **CBS**
  - **CBSInteractive**
+ - **CBSLocal**
  - **CBSNews**: CBS News
  - **CBSNewsLiveVideo**: CBS News Live Videos
  - **CBSSports**
@@ -213,6 +216,7 @@
  - **Flickr**
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
  - **FootyRoom**
+ - **Formula1**
  - **FOX**
  - **Foxgay**
  - **FoxNews**: Fox News and Fox Business Video
@@ -316,6 +320,7 @@
  - **la7.tv**
  - **Laola1Tv**
  - **Le**: 乐视网
+ - **Learnr**
  - **Lecture2Go**
  - **Lemonde**
  - **LePlaylist**
@@ -331,6 +336,7 @@
  - **livestream**
  - **livestream:original**
  - **LnkGo**
+ - **LocalNews8**
  - **LoveHomePorn**
  - **lrt.lt**
  - **lynda**: lynda.com videos
@@ -556,6 +562,7 @@
  - **ScreenJunkies**
  - **ScreenwaveMedia**
  - **SenateISVP**
+ - **SendtoNews**
  - **ServingSys**
  - **Sexu**
  - **Shahid**
