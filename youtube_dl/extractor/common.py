@@ -1141,7 +1141,7 @@ class InfoExtractor(object):
                 format_id = []
                 if m3u8_id:
                     format_id.append(m3u8_id)
-                last_media_name = last_media.get('NAME') if last_media and last_media.get('TYPE') != 'SUBTITLES' else None
+                last_media_name = last_media.get('NAME') if last_media and last_media.get('TYPE') not in ('SUBTITLES', 'CLOSED-CAPTIONS') else None
                 # Despite specification does not mention NAME attribute for
                 # EXT-X-STREAM-INF it still sometimes may be present
                 stream_name = last_info.get('NAME') or last_media_name
