@@ -34,15 +34,18 @@ class JWPlatformBaseIE(InfoExtractor):
                     'height': int_or_none(source.get('height')),
                 }
                 if source_url.startswith('rtmp'):
+                    a_format['ext'] = 'flv',
+
                     # See com/longtailvideo/jwplayer/media/RTMPMediaProvider.as
                     # of jwplayer.flash.swf
-                    rtmp_url, prefix, play_path = re.split(
+                    rtmp_url_parts = re.split(
                         r'((?:mp4|mp3|flv):)', source_url, 1)
-                    a_format.update({
-                        'url': rtmp_url,
-                        'ext': 'flv',
-                        'play_path': prefix + play_path,
-                    })
+                    if len(rtmp_url_parts) == 3:
+                        rtmp_url, prefix, play_path = rtmp_url_parts
+                        a_format.update({
+                            'url': rtmp_url,
+                            'play_path': prefix + play_path,
+                        })
                     if rtmp_params:
                         a_format.update(rtmp_params)
                 formats.append(a_format)
