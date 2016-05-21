@@ -1058,12 +1058,8 @@ class InfoExtractor(object):
             })
         return formats
 
-    def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
-                              entry_protocol='m3u8', preference=None,
-                              m3u8_id=None, note=None, errnote=None,
-                              fatal=True, live=False):
-
-        formats = [{
+    def _m3u8_meta_format(self, m3u8_url, ext=None, preference=None, m3u8_id=None):
+        return {
             'format_id': '-'.join(filter(None, [m3u8_id, 'meta'])),
             'url': m3u8_url,
             'ext': ext,
@@ -1071,7 +1067,14 @@ class InfoExtractor(object):
             'preference': preference - 1 if preference else -1,
             'resolution': 'multiple',
             'format_note': 'Quality selection URL',
-        }]
+        }
+
+    def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
+                              entry_protocol='m3u8', preference=None,
+                              m3u8_id=None, note=None, errnote=None,
+                              fatal=True, live=False):
+
+        formats = [self._m3u8_meta_format(m3u8_url, ext, preference, m3u8_id)]
 
         format_url = lambda u: (
             u
