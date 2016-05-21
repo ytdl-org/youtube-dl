@@ -5,33 +5,47 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     float_or_none,
     int_or_none,
 )
 
 
 class JWPlatformBaseIE(InfoExtractor):
-    def _parse_jwplayer_data(self, jwplayer_data, video_id, require_title=True):
+    def _parse_jwplayer_data(self, jwplayer_data, video_id, require_title=True, m3u8_id=None, rtmp_params=None):
         video_data = jwplayer_data['playlist'][0]
 
         formats = []
         for source in video_data['sources']:
             source_url = self._proto_relative_url(source['file'])
             source_type = source.get('type') or ''
-            if source_type in ('application/vnd.apple.mpegurl', 'hls'):
+            if source_type in ('application/vnd.apple.mpegurl', 'hls') or determine_ext(source_url) == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
-                    source_url, video_id, 'mp4', 'm3u8_native', fatal=False))
+                    source_url, video_id, 'mp4', 'm3u8_native', m3u8_id=m3u8_id, fatal=False))
             elif source_type.startswith('audio'):
                 formats.append({
                     'url': source_url,
                     'vcodec': 'none',
                 })
             else:
-                formats.append({
+                a_format = {
                     'url': source_url,
                     'width': int_or_none(source.get('width')),
                     'height': int_or_none(source.get('height')),
-                })
+                }
+                if source_url.startswith('rtmp'):
+                    # See com/longtailvideo/jwplayer/media/RTMPMediaProvider.as
+                    # of jwplayer.flash.swf
+                    rtmp_url, prefix, play_path = re.split(
+                        r'((?:mp4|mp3|flv):)', source_url, 1)
+                    a_format.update({
+                        'url': rtmp_url,
+                        'ext': 'flv',
+                        'play_path': prefix + play_path,
+                    })
+                    if rtmp_params:
+                        a_format.update(rtmp_params)
+                formats.append(a_format)
         self._sort_formats(formats)
 
         subtitles = {}
