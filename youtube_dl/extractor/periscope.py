@@ -45,8 +45,11 @@ class PeriscopeIE(InfoExtractor):
         broadcast = broadcast_data['broadcast']
         status = broadcast['status']
 
-        uploader = broadcast.get('user_display_name') or broadcast_data.get('user', {}).get('display_name')
-        uploader_id = broadcast.get('user_id') or broadcast_data.get('user', {}).get('id')
+        user = broadcast_data.get('user', {})
+
+        uploader = broadcast.get('user_display_name') or user.get('display_name')
+        uploader_id = (broadcast.get('username') or user.get('username') or
+                       broadcast.get('user_id') or user.get('id'))
 
         title = '%s - %s' % (uploader, status) if uploader else status
         state = broadcast.get('state').lower()
