@@ -894,6 +894,7 @@ from .videomore import (
 )
 from .videopremium import VideoPremiumIE
 from .videott import VideoTtIE
+from .vidio import VidioIE
 from .vidme import (
     VidmeIE,
     VidmeUserIE,
