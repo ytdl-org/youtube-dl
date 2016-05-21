@@ -47,7 +47,7 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
                           (?P<showname>thedailyshow|thecolbertreport|tosh)\.(?:cc\.)?com/
                          ((?:full-)?episodes/(?:[0-9a-z]{6}/)?(?P<episode>.*)|
                           (?P<clip>
-                              (?:(?:guests/[^/]+|videos|video-clips|video-playlists|special-editions|news-team/[^/]+)/[^/]+/(?P<videotitle>[^/?#]+))
+                              (?:(?:guests/[^/]+|videos|video-(?:clips|playlists)|special-editions|news-team/[^/]+)/[^/]+/(?P<videotitle>[^/?#]+))
                               |(the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
                               |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*))
                           )|
@@ -128,6 +128,9 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://thedailyshow.cc.com/news-team/michael-che/7wnfel/we-need-to-talk-about-israel',
+        'only_matching': True,
+    }, {
+        'url': 'http://tosh.cc.com/video-clips/68g93d/twitter-users-share-summer-plans',
         'only_matching': True,
     }]
 
