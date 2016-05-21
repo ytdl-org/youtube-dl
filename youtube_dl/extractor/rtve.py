@@ -64,7 +64,7 @@ def _decrypt_url(png):
 class RTVEALaCartaIE(InfoExtractor):
     IE_NAME = 'rtve.es:alacarta'
     IE_DESC = 'RTVE a la carta'
-    _VALID_URL = r'https?://www\.rtve\.es/(m/)?alacarta/videos/[^/]+/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'https?://www\.rtve\.es/(m/)?(alacarta/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/alacarta/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
@@ -86,6 +86,9 @@ class RTVEALaCartaIE(InfoExtractor):
         'skip': 'The f4m manifest can\'t be used yet',
     }, {
         'url': 'http://www.rtve.es/m/alacarta/videos/cuentame-como-paso/cuentame-como-paso-t16-ultimo-minuto-nuestra-vida-capitulo-276/2969138/?media=tve',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.rtve.es/filmoteca/no-do/not-1-introduccion-primer-noticiario-espanol/1465256/',
         'only_matching': True,
     }]
 
