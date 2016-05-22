@@ -29,7 +29,7 @@ class LibraryOfCongressIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         self.report_extraction(video_id)
-        json_id = self._search_regex('media-player-([0-9A-Z]{32})', webpage, video_id)
+        json_id = self._search_regex('media-player-([0-9A-Z]{32})', webpage, 'json id')
 
         data = self._parse_json(self._download_webpage('https://media.loc.gov/services/v1/media?id=%s' % json_id, video_id), video_id)
         data = data['mediaObject']
