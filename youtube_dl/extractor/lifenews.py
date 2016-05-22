@@ -188,7 +188,8 @@ class LifeEmbedIE(InfoExtractor):
             ext = determine_ext(video_url)
             if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
-                    video_url, video_id, 'mp4', m3u8_id='m3u8'))
+                    video_url, video_id, 'mp4',
+                    entry_protocol='m3u8_native', m3u8_id='m3u8'))
             else:
                 formats.append({
                     'url': video_url,
