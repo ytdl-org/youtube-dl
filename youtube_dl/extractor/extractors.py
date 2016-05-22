@@ -941,7 +941,10 @@ from .vube import VubeIE
 from .vuclip import VuClipIE
 from .vulture import VultureIE
 from .walla import WallaIE
-from .washingtonpost import WashingtonPostIE
+from .washingtonpost import (
+    WashingtonPostIE,
+    WashingtonPostArticleIE,
+)
 from .wat import WatIE
 from .watchindianporn import WatchIndianPornIE
 from .wdr import (
