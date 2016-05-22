@@ -784,6 +784,19 @@ class GenericIE(InfoExtractor):
                 'title': 'Rosetta #CometLanding webcast HL 10',
             }
         },
+        # Another Livestream embed, without 'new.' in URL
+        {
+            'url': 'https://www.freespeech.org/',
+            'info_dict': {
+                'id': '123537347',
+                'ext': 'mp4',
+                'title': 're:^FSTV [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            },
+            'params': {
+                # Live stream
+                'skip_download': True,
+            },
+        },
         # LazyYT
         {
             'url': 'http://discourse.ubuntu.com/t/unity-8-desktop-mode-windows-on-mir/1986',
@@ -1878,7 +1891,7 @@ class GenericIE(InfoExtractor):
             return self.url_result(self._proto_relative_url(mobj.group('url'), scheme='http:'), 'CondeNast')
 
         mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://new\.livestream\.com/[^"]+/player[^"]+)"',
+            r'<iframe[^>]+src="(?P<url>https?://(?:new\.)?livestream\.com/[^"]+/player[^"]+)"',
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'Livestream')
