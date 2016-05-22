@@ -62,6 +62,7 @@ from .digiteka import DigitekaIE
 from .instagram import InstagramIE
 from .liveleak import LiveLeakIE
 from .threeqsdn import ThreeQSDNIE
+from .theplatform import ThePlatformIE
 
 
 class GenericIE(InfoExtractor):
@@ -1498,6 +1499,11 @@ class GenericIE(InfoExtractor):
         bc_urls = BrightcoveNewIE._extract_urls(webpage)
         if bc_urls:
             return _playlist_from_matches(bc_urls, ie='BrightcoveNew')
+
+        # Look for ThePlatform embeds
+        tp_urls = ThePlatformIE._extract_urls(webpage)
+        if tp_urls:
+            return _playlist_from_matches(tp_urls, ie='ThePlatform')
 
         # Look for embedded rtl.nl player
         matches = re.findall(
