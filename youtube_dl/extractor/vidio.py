@@ -32,7 +32,7 @@ class VidioIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         video_data = self._parse_json(self._html_search_regex(
-            r'data-json-clips\s*=\s*"\[(.+)\]"', webpage, display_id), display_id)
+            r'data-json-clips\s*=\s*"\[(.+)\]"', webpage, 'video data'), display_id)
 
         formats = self._extract_m3u8_formats(
             video_data['sources'][0]['file'],
