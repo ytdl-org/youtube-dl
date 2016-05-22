@@ -6,6 +6,9 @@ import re
 import time
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_struct_unpack,
+)
 from ..utils import (
     ExtractorError,
     float_or_none,
@@ -13,7 +16,6 @@ from ..utils import (
     remove_start,
     sanitized_Request,
     std_headers,
-    struct_unpack,
 )
 
 
@@ -21,7 +23,7 @@ def _decrypt_url(png):
     encrypted_data = base64.b64decode(png.encode('utf-8'))
     text_index = encrypted_data.find(b'tEXt')
     text_chunk = encrypted_data[text_index - 4:]
-    length = struct_unpack('!I', text_chunk[:4])[0]
+    length = compat_struct_unpack('!I', text_chunk[:4])[0]
     # Use bytearray to get integers when iterating in both python 2.x and 3.x
     data = bytearray(text_chunk[8:8 + length])
     data = [chr(b) for b in data if b != 0]
@@ -62,7 +64,7 @@ def _decrypt_url(png):
 class RTVEALaCartaIE(InfoExtractor):
     IE_NAME = 'rtve.es:alacarta'
     IE_DESC = 'RTVE a la carta'
-    _VALID_URL = r'https?://www\.rtve\.es/(m/)?alacarta/videos/[^/]+/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'https?://www\.rtve\.es/(m/)?(alacarta/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/alacarta/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
@@ -84,6 +86,9 @@ class RTVEALaCartaIE(InfoExtractor):
         'skip': 'The f4m manifest can\'t be used yet',
     }, {
         'url': 'http://www.rtve.es/m/alacarta/videos/cuentame-como-paso/cuentame-como-paso-t16-ultimo-minuto-nuestra-vida-capitulo-276/2969138/?media=tve',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.rtve.es/filmoteca/no-do/not-1-introduccion-primer-noticiario-espanol/1465256/',
         'only_matching': True,
     }]
 

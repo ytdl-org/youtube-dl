@@ -17,6 +17,9 @@ class BloombergIE(InfoExtractor):
             'title': 'Shah\'s Presentation on Foreign-Exchange Strategies',
             'description': 'md5:a8ba0302912d03d246979735c17d2761',
         },
+        'params': {
+            'format': 'best[format_id^=hds]',
+        },
     }, {
         'url': 'http://www.bloomberg.com/news/articles/2015-11-12/five-strange-things-that-have-been-happening-in-financial-markets',
         'only_matching': True,

@@ -3,6 +3,10 @@ from __future__ import unicode_literals
 
 from .abc import ABCIE
 from .abc7news import Abc7NewsIE
+from .abcnews import (
+    AbcNewsIE,
+    AbcNewsVideoIE,
+)
 from .academicearth import AcademicEarthCourseIE
 from .acast import (
     ACastIE,
@@ -107,6 +111,7 @@ from .cbc import (
     CBCPlayerIE,
 )
 from .cbs import CBSIE
+from .cbslocal import CBSLocalIE
 from .cbsinteractive import CBSInteractiveIE
 from .cbsnews import (
     CBSNewsIE,
@@ -124,7 +129,6 @@ from .chirbit import (
     ChirbitProfileIE,
 )
 from .cinchcast import CinchcastIE
-from .cinemassacre import CinemassacreIE
 from .cliprs import ClipRsIE
 from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
@@ -139,7 +143,6 @@ from .cnn import (
     CNNBlogsIE,
     CNNArticleIE,
 )
-from .collegehumor import CollegeHumorIE
 from .collegerama import CollegeRamaIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
 from .comcarcoff import ComCarCoffIE
@@ -240,6 +243,7 @@ from .fktv import FKTVIE
 from .flickr import FlickrIE
 from .folketinget import FolketingetIE
 from .footyroom import FootyRoomIE
+from .formula1 import Formula1IE
 from .fourtube import FourTubeIE
 from .fox import FOXIE
 from .foxgay import FoxgayIE
@@ -367,6 +371,7 @@ from .kuwo import (
 )
 from .la7 import LA7IE
 from .laola1tv import Laola1TvIE
+from .learnr import LearnrIE
 from .lecture2go import Lecture2GoIE
 from .lemonde import LemondeIE
 from .leeco import (
@@ -392,6 +397,7 @@ from .livestream import (
     LivestreamShortenerIE,
 )
 from .lnkgo import LnkGoIE
+from .localnews8 import LocalNews8IE
 from .lovehomeporn import LoveHomePornIE
 from .lrt import LRTIE
 from .lynda import (
@@ -665,6 +671,7 @@ from .screencastomatic import ScreencastOMaticIE
 from .screenjunkies import ScreenJunkiesIE
 from .screenwavemedia import ScreenwaveMediaIE, TeamFourIE
 from .senateisvp import SenateISVPIE
+from .sendtonews import SendtoNewsIE
 from .servingsys import ServingSysIE
 from .sexu import SexuIE
 from .shahid import ShahidIE
@@ -767,6 +774,7 @@ from .thesixtyone import TheSixtyOneIE
 from .thestar import TheStarIE
 from .thisamericanlife import ThisAmericanLifeIE
 from .thisav import ThisAVIE
+from .threeqsdn import ThreeQSDNIE
 from .tinypic import TinyPicIE
 from .tlc import TlcDeIE
 from .tmz import (
@@ -834,7 +842,6 @@ from .twitch import (
     TwitchVodIE,
     TwitchProfileIE,
     TwitchPastBroadcastsIE,
-    TwitchBookmarksIE,
     TwitchStreamIE,
 )
 from .twitter import (
@@ -852,7 +859,10 @@ from .unistra import UnistraIE
 from .urort import UrortIE
 from .usatoday import USATodayIE
 from .ustream import UstreamIE, UstreamChannelIE
-from .ustudio import UstudioIE
+from .ustudio import (
+    UstudioIE,
+    UstudioEmbedIE,
+)
 from .varzesh3 import Varzesh3IE
 from .vbox7 import Vbox7IE
 from .veehd import VeeHDIE

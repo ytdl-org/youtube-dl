@@ -2,7 +2,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import parse_iso8601
+from ..utils import (
+    parse_iso8601,
+    unescapeHTML,
+)
 
 
 class PeriscopeIE(InfoExtractor):
@@ -42,8 +45,11 @@ class PeriscopeIE(InfoExtractor):
         broadcast = broadcast_data['broadcast']
         status = broadcast['status']
 
-        uploader = broadcast.get('user_display_name') or broadcast_data.get('user', {}).get('display_name')
-        uploader_id = broadcast.get('user_id') or broadcast_data.get('user', {}).get('id')
+        user = broadcast_data.get('user', {})
+
+        uploader = broadcast.get('user_display_name') or user.get('display_name')
+        uploader_id = (broadcast.get('username') or user.get('username') or
+                       broadcast.get('user_id') or user.get('id'))
 
         title = '%s - %s' % (uploader, status) if uploader else status
         state = broadcast.get('state').lower()
@@ -92,6 +98,7 @@ class PeriscopeUserIE(InfoExtractor):
         'info_dict': {
             'id': 'LularoeHusbandMike',
             'title': 'LULAROE HUSBAND MIKE',
+            'description': 'md5:6cf4ec8047768098da58e446e82c82f0',
         },
         # Periscope only shows videos in the last 24 hours, so it's possible to
         # get 0 videos
@@ -103,16 +110,19 @@ class PeriscopeUserIE(InfoExtractor):
 
         webpage = self._download_webpage(url, user_id)
 
-        broadcast_data = self._parse_json(self._html_search_meta(
-            'broadcast-data', webpage, default='{}'), user_id)
-        username = broadcast_data.get('user', {}).get('display_name')
-        user_broadcasts = self._parse_json(
-            self._html_search_meta('user-broadcasts', webpage, default='{}'),
+        data_store = self._parse_json(
+            unescapeHTML(self._search_regex(
+                r'data-store=(["\'])(?P<data>.+?)\1',
+                webpage, 'data store', default='{}', group='data')),
             user_id)
+
+        user = data_store.get('User', {}).get('user', {})
+        title = user.get('display_name') or user.get('username')
+        description = user.get('description')
 
         entries = [
             self.url_result(
                 'https://www.periscope.tv/%s/%s' % (user_id, broadcast['id']))
-            for broadcast in user_broadcasts.get('broadcasts', [])]
+            for broadcast in data_store.get('UserBroadcastHistory', {}).get('broadcasts', [])]
 
-        return self.playlist_result(entries, user_id, username)
+        return self.playlist_result(entries, user_id, title, description)

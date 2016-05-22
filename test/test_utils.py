@@ -50,12 +50,13 @@ from youtube_dl.utils import (
     sanitize_path,
     prepend_extension,
     replace_extension,
+    remove_start,
+    remove_end,
     remove_quotes,
     shell_quote,
     smuggle_url,
     str_to_int,
     strip_jsonp,
-    struct_unpack,
     timeconvert,
     unescapeHTML,
     unified_strdate,
@@ -156,8 +157,8 @@ class TestUtil(unittest.TestCase):
         self.assertTrue(sanitize_filename(':', restricted=True) != '')
 
         self.assertEqual(sanitize_filename(
-            'ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ', restricted=True),
-            'AAAAAAAECEEEEIIIIDNOOOOOOUUUUYPssaaaaaaaeceeeeiiiionoooooouuuuypy')
+            'ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØŒÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøœùúûüýþÿ', restricted=True),
+            'AAAAAAAECEEEEIIIIDNOOOOOOOEUUUUYPssaaaaaaaeceeeeiiiionoooooooeuuuuypy')
 
     def test_sanitize_ids(self):
         self.assertEqual(sanitize_filename('_n_cd26wFpw', is_id=True), '_n_cd26wFpw')
@@ -215,6 +216,16 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(replace_extension('abc', 'temp'), 'abc.temp')
         self.assertEqual(replace_extension('.abc', 'temp'), '.abc.temp')
         self.assertEqual(replace_extension('.abc.ext', 'temp'), '.abc.temp')
+
+    def test_remove_start(self):
+        self.assertEqual(remove_start(None, 'A - '), None)
+        self.assertEqual(remove_start('A - B', 'A - '), 'B')
+        self.assertEqual(remove_start('B - A', 'A - '), 'B - A')
+
+    def test_remove_end(self):
+        self.assertEqual(remove_end(None, ' - B'), None)
+        self.assertEqual(remove_end('A - B', ' - B'), 'A')
+        self.assertEqual(remove_end('B - A', ' - B'), 'B - A')
 
     def test_remove_quotes(self):
         self.assertEqual(remove_quotes(None), None)
@@ -457,9 +468,6 @@ class TestUtil(unittest.TestCase):
         testPL(5, 2, (2, 99), [2, 3, 4])
         testPL(5, 2, (20, 99), [])
 
-    def test_struct_unpack(self):
-        self.assertEqual(struct_unpack('!B', b'\x00'), (0,))
-
     def test_read_batch_urls(self):
         f = io.StringIO('''\xef\xbb\xbf foo
             bar\r
@@ -621,6 +629,15 @@ class TestUtil(unittest.TestCase):
         json_code = js_to_json(inp)
         self.assertEqual(json.loads(json_code), json.loads(inp))
 
+        inp = '''{
+            0:{src:'skipped', type: 'application/dash+xml'},
+            1:{src:'skipped', type: 'application/vnd.apple.mpegURL'},
+        }'''
+        self.assertEqual(js_to_json(inp), '''{
+            "0":{"src":"skipped", "type": "application/dash+xml"},
+            "1":{"src":"skipped", "type": "application/vnd.apple.mpegURL"}
+        }''')
+
     def test_js_to_json_edgecases(self):
         on = js_to_json("{abc_def:'1\\'\\\\2\\\\\\'3\"4'}")
         self.assertEqual(json.loads(on), {"abc_def": "1'\\2\\'3\"4"})
@@ -643,6 +660,27 @@ class TestUtil(unittest.TestCase):
 
         on = js_to_json('{"abc": "def",}')
         self.assertEqual(json.loads(on), {'abc': 'def'})
+
+        on = js_to_json('{ 0: /* " \n */ ",]" , }')
+        self.assertEqual(json.loads(on), {'0': ',]'})
+
+        on = js_to_json(r'["<p>x<\/p>"]')
+        self.assertEqual(json.loads(on), ['<p>x</p>'])
+
+        on = js_to_json(r'["\xaa"]')
+        self.assertEqual(json.loads(on), ['\u00aa'])
+
+        on = js_to_json("['a\\\nb']")
+        self.assertEqual(json.loads(on), ['ab'])
+
+        on = js_to_json('{0xff:0xff}')
+        self.assertEqual(json.loads(on), {'255': 255})
+
+        on = js_to_json('{077:077}')
+        self.assertEqual(json.loads(on), {'63': 63})
+
+        on = js_to_json('{42:42}')
+        self.assertEqual(json.loads(on), {'42': 42})
 
     def test_extract_attributes(self):
         self.assertEqual(extract_attributes('<e x="y">'), {'x': 'y'})

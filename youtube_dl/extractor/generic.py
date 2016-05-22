@@ -61,6 +61,8 @@ from .jwplatform import JWPlatformIE
 from .digiteka import DigitekaIE
 from .instagram import InstagramIE
 from .liveleak import LiveLeakIE
+from .threeqsdn import ThreeQSDNIE
+from .theplatform import ThePlatformIE
 
 
 class GenericIE(InfoExtractor):
@@ -716,15 +718,18 @@ class GenericIE(InfoExtractor):
         },
         # Wistia embed
         {
-            'url': 'http://education-portal.com/academy/lesson/north-american-exploration-failed-colonies-of-spain-france-england.html#lesson',
-            'md5': '8788b683c777a5cf25621eaf286d0c23',
+            'url': 'http://study.com/academy/lesson/north-american-exploration-failed-colonies-of-spain-france-england.html#lesson',
+            'md5': '1953f3a698ab51cfc948ed3992a0b7ff',
             'info_dict': {
-                'id': '1cfaf6b7ea',
+                'id': '6e2wtrbdaf',
                 'ext': 'mov',
-                'title': 'md5:51364a8d3d009997ba99656004b5e20d',
-                'duration': 643.0,
-                'filesize': 182808282,
-                'uploader': 'education-portal.com',
+                'title': 'paywall_north-american-exploration-failed-colonies-of-spain-france-england',
+                'description': 'a Paywall Videos video from Remilon',
+                'duration': 644.072,
+                'uploader': 'study.com',
+                'timestamp': 1459678540,
+                'upload_date': '20160403',
+                'filesize': 24687186,
             },
         },
         {
@@ -733,13 +738,29 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'id': 'uxjb0lwrcz',
                 'ext': 'mp4',
-                'title': 'Conversation about Hexagonal Rails Part 1 - ThoughtWorks',
+                'title': 'Conversation about Hexagonal Rails Part 1',
                 'description': 'a Martin Fowler video from ThoughtWorks',
                 'duration': 1715.0,
                 'uploader': 'thoughtworks.wistia.com',
-                'upload_date': '20140603',
                 'timestamp': 1401832161,
+                'upload_date': '20140603',
             },
+        },
+        # Wistia standard embed (async)
+        {
+            'url': 'https://www.getdrip.com/university/brennan-dunn-drip-workshop/',
+            'info_dict': {
+                'id': '807fafadvk',
+                'ext': 'mp4',
+                'title': 'Drip Brennan Dunn Workshop',
+                'description': 'a JV Webinars video from getdrip-1',
+                'duration': 4986.95,
+                'timestamp': 1463607249,
+                'upload_date': '20160518',
+            },
+            'params': {
+                'skip_download': True,
+            }
         },
         # Soundcloud embed
         {
@@ -1427,7 +1448,8 @@ class GenericIE(InfoExtractor):
         #   Site Name | Video Title
         #   Video Title - Tagline | Site Name
         # and so on and so forth; it's just not practical
-        video_title = self._html_search_regex(
+        video_title = self._og_search_title(
+            webpage, default=None) or self._html_search_regex(
             r'(?s)<title>(.*?)</title>', webpage, 'video title',
             default='video')
 
@@ -1444,6 +1466,9 @@ class GenericIE(InfoExtractor):
         # video uploader is domain name
         video_uploader = self._search_regex(
             r'^(?:https?://)?([^/]*)/.*', url, 'video uploader')
+
+        video_description = self._og_search_description(webpage, default=None)
+        video_thumbnail = self._og_search_thumbnail(webpage, default=None)
 
         # Helper method
         def _playlist_from_matches(matches, getter=None, ie=None):
@@ -1474,6 +1499,11 @@ class GenericIE(InfoExtractor):
         bc_urls = BrightcoveNewIE._extract_urls(webpage)
         if bc_urls:
             return _playlist_from_matches(bc_urls, ie='BrightcoveNew')
+
+        # Look for ThePlatform embeds
+        tp_urls = ThePlatformIE._extract_urls(webpage)
+        if tp_urls:
+            return _playlist_from_matches(tp_urls, ie='ThePlatform')
 
         # Look for embedded rtl.nl player
         matches = re.findall(
@@ -1543,20 +1573,25 @@ class GenericIE(InfoExtractor):
                 'url': embed_url,
                 'ie_key': 'Wistia',
                 'uploader': video_uploader,
-                'title': video_title,
-                'id': video_id,
             }
 
         match = re.search(r'(?:id=["\']wistia_|data-wistia-?id=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
         if match:
             return {
                 '_type': 'url_transparent',
-                'url': 'http://fast.wistia.net/embed/iframe/{0:}'.format(match.group('id')),
+                'url': 'wistia:%s' % match.group('id'),
                 'ie_key': 'Wistia',
                 'uploader': video_uploader,
-                'title': video_title,
-                'id': match.group('id')
             }
+
+        match = re.search(
+            r'''(?sx)
+                <script[^>]+src=(["'])(?:https?:)?//fast\.wistia\.com/assets/external/E-v1\.js\1[^>]*>.*?
+                <div[^>]+class=(["']).*?\bwistia_async_(?P<id>[a-z0-9]+)\b.*?\2
+            ''', webpage)
+        if match:
+            return self.url_result(self._proto_relative_url(
+                'wistia:%s' % match.group('id')), 'Wistia')
 
         # Look for SVT player
         svt_url = SVTIE._extract_url(webpage)
@@ -1982,6 +2017,19 @@ class GenericIE(InfoExtractor):
         liveleak_url = LiveLeakIE._extract_url(webpage)
         if liveleak_url:
             return self.url_result(liveleak_url, 'LiveLeak')
+
+        # Look for 3Q SDN embeds
+        threeqsdn_url = ThreeQSDNIE._extract_url(webpage)
+        if threeqsdn_url:
+            return {
+                '_type': 'url_transparent',
+                'ie_key': ThreeQSDNIE.ie_key(),
+                'url': self._proto_relative_url(threeqsdn_url),
+                'title': video_title,
+                'description': video_description,
+                'thumbnail': video_thumbnail,
+                'uploader': video_uploader,
+            }
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

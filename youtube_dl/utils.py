@@ -26,7 +26,6 @@ import platform
 import re
 import socket
 import ssl
-import struct
 import subprocess
 import sys
 import tempfile
@@ -43,17 +42,33 @@ from .compat import (
     compat_http_client,
     compat_kwargs,
     compat_parse_qs,
+    compat_shlex_quote,
     compat_socket_create_connection,
     compat_str,
+    compat_struct_pack,
     compat_urllib_error,
     compat_urllib_parse,
     compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
+    compat_urllib_parse_unquote_plus,
     compat_urllib_request,
     compat_urlparse,
     compat_xpath,
-    shlex_quote,
 )
+
+from .socks import (
+    ProxyType,
+    sockssocket,
+)
+
+
+def register_socks_protocols():
+    # "Register" SOCKS protocols
+    # In Python < 2.6.5, urlsplit() suffers from bug https://bugs.python.org/issue7904
+    # URLs with protocols not in urlparse.uses_netloc are not handled correctly
+    for scheme in ('socks', 'socks4', 'socks4a', 'socks5'):
+        if scheme not in compat_urlparse.uses_netloc:
+            compat_urlparse.uses_netloc.append(scheme)
 
 
 # This is not clearly defined otherwise
@@ -90,9 +105,9 @@ KNOWN_EXTENSIONS = (
     'f4f', 'f4m', 'm3u8', 'smil')
 
 # needed for sanitizing filenames in restricted mode
-ACCENT_CHARS = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ',
-                        itertools.chain('AAAAAA', ['AE'], 'CEEEEIIIIDNOOOOOOUUUUYP', ['ss'],
-                                        'aaaaaa', ['ae'], 'ceeeeiiiionoooooouuuuypy')))
+ACCENT_CHARS = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØŒÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøœùúûüýþÿ',
+                        itertools.chain('AAAAAA', ['AE'], 'CEEEEIIIIDNOOOOOO', ['OE'], 'UUUUYP', ['ss'],
+                                        'aaaaaa', ['ae'], 'ceeeeiiiionoooooo', ['oe'], 'uuuuypy')))
 
 
 def preferredencoding():
@@ -752,8 +767,15 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
         self._params = params
 
     def http_open(self, req):
+        conn_class = compat_http_client.HTTPConnection
+
+        socks_proxy = req.headers.get('Ytdl-socks-proxy')
+        if socks_proxy:
+            conn_class = make_socks_conn_class(conn_class, socks_proxy)
+            del req.headers['Ytdl-socks-proxy']
+
         return self.do_open(functools.partial(
-            _create_http_connection, self, compat_http_client.HTTPConnection, False),
+            _create_http_connection, self, conn_class, False),
             req)
 
     @staticmethod
@@ -849,6 +871,49 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     https_response = http_response
 
 
+def make_socks_conn_class(base_class, socks_proxy):
+    assert issubclass(base_class, (
+        compat_http_client.HTTPConnection, compat_http_client.HTTPSConnection))
+
+    url_components = compat_urlparse.urlparse(socks_proxy)
+    if url_components.scheme.lower() == 'socks5':
+        socks_type = ProxyType.SOCKS5
+    elif url_components.scheme.lower() in ('socks', 'socks4'):
+        socks_type = ProxyType.SOCKS4
+    elif url_components.scheme.lower() == 'socks4a':
+        socks_type = ProxyType.SOCKS4A
+
+    def unquote_if_non_empty(s):
+        if not s:
+            return s
+        return compat_urllib_parse_unquote_plus(s)
+
+    proxy_args = (
+        socks_type,
+        url_components.hostname, url_components.port or 1080,
+        True,  # Remote DNS
+        unquote_if_non_empty(url_components.username),
+        unquote_if_non_empty(url_components.password),
+    )
+
+    class SocksConnection(base_class):
+        def connect(self):
+            self.sock = sockssocket()
+            self.sock.setproxy(*proxy_args)
+            if type(self.timeout) in (int, float):
+                self.sock.settimeout(self.timeout)
+            self.sock.connect((self.host, self.port))
+
+            if isinstance(self, compat_http_client.HTTPSConnection):
+                if hasattr(self, '_context'):  # Python > 2.6
+                    self.sock = self._context.wrap_socket(
+                        self.sock, server_hostname=self.host)
+                else:
+                    self.sock = ssl.wrap_socket(self.sock)
+
+    return SocksConnection
+
+
 class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
     def __init__(self, params, https_conn_class=None, *args, **kwargs):
         compat_urllib_request.HTTPSHandler.__init__(self, *args, **kwargs)
@@ -857,12 +922,20 @@ class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
 
     def https_open(self, req):
         kwargs = {}
+        conn_class = self._https_conn_class
+
         if hasattr(self, '_context'):  # python > 2.6
             kwargs['context'] = self._context
         if hasattr(self, '_check_hostname'):  # python 3.x
             kwargs['check_hostname'] = self._check_hostname
+
+        socks_proxy = req.headers.get('Ytdl-socks-proxy')
+        if socks_proxy:
+            conn_class = make_socks_conn_class(conn_class, socks_proxy)
+            del req.headers['Ytdl-socks-proxy']
+
         return self.do_open(functools.partial(
-            _create_http_connection, self, self._https_conn_class, True),
+            _create_http_connection, self, conn_class, True),
             req, **kwargs)
 
 
@@ -982,7 +1055,10 @@ def unified_strdate(date_str, day_first=True):
     if upload_date is None:
         timetuple = email.utils.parsedate_tz(date_str)
         if timetuple:
-            upload_date = datetime.datetime(*timetuple[:6]).strftime('%Y%m%d')
+            try:
+                upload_date = datetime.datetime(*timetuple[:6]).strftime('%Y%m%d')
+            except ValueError:
+                pass
     if upload_date is not None:
         return compat_str(upload_date)
 
@@ -1193,7 +1269,7 @@ def bytes_to_intlist(bs):
 def intlist_to_bytes(xs):
     if not xs:
         return b''
-    return struct_pack('%dB' % len(xs), *xs)
+    return compat_struct_pack('%dB' % len(xs), *xs)
 
 
 # Cross-platform file locking
@@ -1476,15 +1552,11 @@ def setproctitle(title):
 
 
 def remove_start(s, start):
-    if s.startswith(start):
-        return s[len(start):]
-    return s
+    return s[len(start):] if s is not None and s.startswith(start) else s
 
 
 def remove_end(s, end):
-    if s.endswith(end):
-        return s[:-len(end)]
-    return s
+    return s[:-len(end)] if s is not None and s.endswith(end) else s
 
 
 def remove_quotes(s):
@@ -1761,24 +1833,6 @@ def escape_url(url):
         fragment=escape_rfc3986(url_parsed.fragment)
     ).geturl()
 
-try:
-    struct.pack('!I', 0)
-except TypeError:
-    # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
-    # See https://bugs.python.org/issue19099
-    def struct_pack(spec, *args):
-        if isinstance(spec, compat_str):
-            spec = spec.encode('ascii')
-        return struct.pack(spec, *args)
-
-    def struct_unpack(spec, *args):
-        if isinstance(spec, compat_str):
-            spec = spec.encode('ascii')
-        return struct.unpack(spec, *args)
-else:
-    struct_pack = struct.pack
-    struct_unpack = struct.unpack
-
 
 def read_batch_urls(batch_fd):
     def fixup(url):
@@ -1864,24 +1918,38 @@ def js_to_json(code):
         v = m.group(0)
         if v in ('true', 'false', 'null'):
             return v
-        if v.startswith('"'):
-            v = re.sub(r"\\'", "'", v[1:-1])
-        elif v.startswith("'"):
-            v = v[1:-1]
-            v = re.sub(r"\\\\|\\'|\"", lambda m: {
-                '\\\\': '\\\\',
-                "\\'": "'",
+        elif v.startswith('/*') or v == ',':
+            return ""
+
+        if v[0] in ("'", '"'):
+            v = re.sub(r'(?s)\\.|"', lambda m: {
                 '"': '\\"',
-            }[m.group(0)], v)
+                "\\'": "'",
+                '\\\n': '',
+                '\\x': '\\u00',
+            }.get(m.group(0), m.group(0)), v[1:-1])
+
+        INTEGER_TABLE = (
+            (r'^0[xX][0-9a-fA-F]+', 16),
+            (r'^0+[0-7]+', 8),
+        )
+
+        for regex, base in INTEGER_TABLE:
+            im = re.match(regex, v)
+            if im:
+                i = int(im.group(0), base)
+                return '"%d":' % i if v.endswith(':') else '%d' % i
+
         return '"%s"' % v
 
-    res = re.sub(r'''(?x)
-        "(?:[^"\\]*(?:\\\\|\\['"nu]))*[^"\\]*"|
-        '(?:[^'\\]*(?:\\\\|\\['"nu]))*[^'\\]*'|
-        [a-zA-Z_][.a-zA-Z_0-9]*
+    return re.sub(r'''(?sx)
+        "(?:[^"\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^"\\]*"|
+        '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^'\\]*'|
+        /\*.*?\*/|,(?=\s*[\]}])|
+        [a-zA-Z_][.a-zA-Z_0-9]*|
+        (?:0[xX][0-9a-fA-F]+|0+[0-7]+)(?:\s*:)?|
+        [0-9]+(?=\s*:)
         ''', fix_kv, code)
-    res = re.sub(r',(\s*[\]}])', lambda m: m.group(1), res)
-    return res
 
 
 def qualities(quality_ids):
@@ -1929,7 +1997,7 @@ def ytdl_is_updateable():
 
 def args_to_str(args):
     # Get a short string representation for a subprocess command
-    return ' '.join(shlex_quote(a) for a in args)
+    return ' '.join(compat_shlex_quote(a) for a in args)
 
 
 def error_to_compat_str(err):
@@ -1967,11 +2035,7 @@ def mimetype2ext(mt):
 
 
 def urlhandle_detect_ext(url_handle):
-    try:
-        url_handle.headers
-        getheader = lambda h: url_handle.headers[h]
-    except AttributeError:  # Python < 3
-        getheader = url_handle.info().getheader
+    getheader = url_handle.headers.get
 
     cd = getheader('Content-Disposition')
     if cd:
@@ -2701,6 +2765,10 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
 
         if proxy == '__noproxy__':
             return None  # No Proxy
+        if compat_urlparse.urlparse(proxy).scheme.lower() in ('socks', 'socks4', 'socks4a', 'socks5'):
+            req.add_header('Ytdl-socks-proxy', proxy)
+            # youtube-dl's http/https handlers do wrapping the socket with socks
+            return None
         return compat_urllib_request.ProxyHandler.proxy_open(
             self, req, proxy, type)
 

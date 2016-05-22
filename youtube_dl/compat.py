@@ -11,6 +11,7 @@ import re
 import shlex
 import shutil
 import socket
+import struct
 import subprocess
 import sys
 import itertools
@@ -340,9 +341,9 @@ except ImportError:  # Python 2
         return parsed_result
 
 try:
-    from shlex import quote as shlex_quote
+    from shlex import quote as compat_shlex_quote
 except ImportError:  # Python < 3.3
-    def shlex_quote(s):
+    def compat_shlex_quote(s):
         if re.match(r'^[-_\w./]+$', s):
             return s
         else:
@@ -465,18 +466,6 @@ else:
         print(s)
 
 
-try:
-    subprocess_check_output = subprocess.check_output
-except AttributeError:
-    def subprocess_check_output(*args, **kwargs):
-        assert 'input' not in kwargs
-        p = subprocess.Popen(*args, stdout=subprocess.PIPE, **kwargs)
-        output, _ = p.communicate()
-        ret = p.poll()
-        if ret:
-            raise subprocess.CalledProcessError(ret, p.args, output=output)
-        return output
-
 if sys.version_info < (3, 0) and sys.platform == 'win32':
     def compat_getpass(prompt, *args, **kwargs):
         if isinstance(prompt, compat_str):
@@ -592,6 +581,26 @@ if sys.version_info >= (3, 0):
 else:
     from tokenize import generate_tokens as compat_tokenize_tokenize
 
+
+try:
+    struct.pack('!I', 0)
+except TypeError:
+    # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
+    # See https://bugs.python.org/issue19099
+    def compat_struct_pack(spec, *args):
+        if isinstance(spec, compat_str):
+            spec = spec.encode('ascii')
+        return struct.pack(spec, *args)
+
+    def compat_struct_unpack(spec, *args):
+        if isinstance(spec, compat_str):
+            spec = spec.encode('ascii')
+        return struct.unpack(spec, *args)
+else:
+    compat_struct_pack = struct.pack
+    compat_struct_unpack = struct.unpack
+
+
 __all__ = [
     'compat_HTMLParser',
     'compat_HTTPError',
@@ -614,9 +623,12 @@ __all__ = [
     'compat_parse_qs',
     'compat_print',
     'compat_setenv',
+    'compat_shlex_quote',
     'compat_shlex_split',
     'compat_socket_create_connection',
     'compat_str',
+    'compat_struct_pack',
+    'compat_struct_unpack',
     'compat_subprocess_get_DEVNULL',
     'compat_tokenize_tokenize',
     'compat_urllib_error',
@@ -633,7 +645,5 @@ __all__ = [
     'compat_urlretrieve',
     'compat_xml_parse_error',
     'compat_xpath',
-    'shlex_quote',
-    'subprocess_check_output',
     'workaround_optparse_bug9161',
 ]

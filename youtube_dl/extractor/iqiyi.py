@@ -505,7 +505,10 @@ class IqiyiIE(InfoExtractor):
             'enc': md5_text(enc_key + tail),
             'qyid': _uuid,
             'tn': random.random(),
-            'um': 0,
+            # In iQiyi's flash player, um is set to 1 if there's a logged user
+            # Some 1080P formats are only available with a logged user.
+            # Here force um=1 to trick the iQiyi server
+            'um': 1,
             'authkey': md5_text(md5_text('') + tail),
             'k_tag': 1,
         }

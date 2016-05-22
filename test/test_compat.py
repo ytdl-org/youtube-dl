@@ -17,6 +17,7 @@ from youtube_dl.compat import (
     compat_expanduser,
     compat_shlex_split,
     compat_str,
+    compat_struct_unpack,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
     compat_urllib_parse_urlencode,
@@ -101,6 +102,10 @@ class TestCompat(unittest.TestCase):
         self.assertTrue(isinstance(doc.find('normal').text, compat_str))
         self.assertTrue(isinstance(doc.find('chinese').text, compat_str))
         self.assertTrue(isinstance(doc.find('foo/bar').text, compat_str))
+
+    def test_struct_unpack(self):
+        self.assertEqual(compat_struct_unpack('!B', b'\x00'), (0,))
+
 
 if __name__ == '__main__':
     unittest.main()
