@@ -150,7 +150,7 @@ class LivestreamIE(InfoExtractor):
         }
 
     def _extract_stream_info(self, stream_info):
-        broadcast_id = stream_info['broadcast_id']
+        broadcast_id = compat_str(stream_info['broadcast_id'])
         is_live = stream_info.get('is_live')
 
         formats = []
