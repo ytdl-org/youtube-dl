@@ -15,13 +15,13 @@ from ..utils import (
 
 
 class LifeNewsIE(InfoExtractor):
-    IE_NAME = 'lifenews'
-    IE_DESC = 'LIFE | NEWS'
-    _VALID_URL = r'https?://lifenews\.ru/(?:mobile/)?(?P<section>news|video)/(?P<id>\d+)'
+    IE_NAME = 'life'
+    IE_DESC = 'Life.ru'
+    _VALID_URL = r'https?://life\.ru/t/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         # single video embedded via video/source
-        'url': 'http://lifenews.ru/news/98736',
+        'url': 'https://life.ru/t/новости/98736',
         'md5': '77c95eaefaca216e32a76a343ad89d23',
         'info_dict': {
             'id': '98736',
@@ -34,7 +34,7 @@ class LifeNewsIE(InfoExtractor):
         }
     }, {
         # single video embedded via iframe
-        'url': 'http://lifenews.ru/news/152125',
+        'url': 'https://life.ru/t/новости/152125',
         'md5': '77d19a6f0886cd76bdbf44b4d971a273',
         'info_dict': {
             'id': '152125',
@@ -47,7 +47,7 @@ class LifeNewsIE(InfoExtractor):
         }
     }, {
         # two videos embedded via iframe
-        'url': 'http://lifenews.ru/news/153461',
+        'url': 'https://life.ru/t/новости/153461',
         'info_dict': {
             'id': '153461',
             'title': 'В Москве спасли потерявшегося медвежонка, который спрятался на дереве',
@@ -77,18 +77,20 @@ class LifeNewsIE(InfoExtractor):
             },
         }],
     }, {
-        'url': 'http://lifenews.ru/video/13035',
+        'url': 'https://life.ru/t/новости/213035',
+        'only_matching': True,
+    }, {
+        'url': 'https://life.ru/t/%D0%BD%D0%BE%D0%B2%D0%BE%D1%81%D1%82%D0%B8/153461',
+        'only_matching': True,
+    }, {
+        'url': 'https://life.ru/t/новости/411489/manuel_vals_nazval_frantsiiu_tsieliu_nomier_odin_dlia_ighil',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        section = mobj.group('section')
+        video_id = self._match_id(url)
 
-        webpage = self._download_webpage(
-            'http://lifenews.ru/%s/%s' % (section, video_id),
-            video_id, 'Downloading page')
+        webpage = self._download_webpage(url, video_id)
 
         video_urls = re.findall(
             r'<video[^>]+><source[^>]+src=["\'](.+?)["\']', webpage)
@@ -102,7 +104,7 @@ class LifeNewsIE(InfoExtractor):
 
         title = remove_end(
             self._og_search_title(webpage),
-            ' - Первый по срочным новостям — LIFE | NEWS')
+            ' - Life.ru')
 
         description = self._og_search_description(webpage)
 
