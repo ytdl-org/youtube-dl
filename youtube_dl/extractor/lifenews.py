@@ -7,10 +7,10 @@ from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
     determine_ext,
-    int_or_none,
-    remove_end,
-    unified_strdate,
     ExtractorError,
+    int_or_none,
+    parse_iso8601,
+    remove_end,
 )
 
 
@@ -28,7 +28,9 @@ class LifeNewsIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Мужчина нашел дома архив оборонного завода',
             'description': 'md5:3b06b1b39b5e2bea548e403d99b8bf26',
+            'timestamp': 1344154740,
             'upload_date': '20120805',
+            'view_count': int,
         }
     }, {
         # single video embedded via iframe
@@ -39,7 +41,9 @@ class LifeNewsIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'В Сети появилось видео захвата «Правым сектором» колхозных полей ',
             'description': 'Жители двух поселков Днепропетровской области не простили радикалам угрозу лишения плодородных земель и пошли в лобовую. ',
+            'timestamp': 1427961840,
             'upload_date': '20150402',
+            'view_count': int,
         }
     }, {
         # two videos embedded via iframe
@@ -48,7 +52,8 @@ class LifeNewsIE(InfoExtractor):
             'id': '153461',
             'title': 'В Москве спасли потерявшегося медвежонка, который спрятался на дереве',
             'description': 'Маленький хищник не смог найти дорогу домой и обрел временное убежище на тополе недалеко от жилого массива, пока его не нашла соседская собака.',
-            'upload_date': '20150505',
+            'timestamp': 1430825520,
+            'view_count': int,
         },
         'playlist': [{
             'md5': '9b6ef8bc0ffa25aebc8bdb40d89ab795',
@@ -57,6 +62,7 @@ class LifeNewsIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'В Москве спасли потерявшегося медвежонка, который спрятался на дереве (Видео 1)',
                 'description': 'Маленький хищник не смог найти дорогу домой и обрел временное убежище на тополе недалеко от жилого массива, пока его не нашла соседская собака.',
+                'timestamp': 1430825520,
                 'upload_date': '20150505',
             },
         }, {
@@ -66,6 +72,7 @@ class LifeNewsIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'В Москве спасли потерявшегося медвежонка, который спрятался на дереве (Видео 2)',
                 'description': 'Маленький хищник не смог найти дорогу домой и обрел временное убежище на тополе недалеко от жилого массива, пока его не нашла соседская собака.',
+                'timestamp': 1430825520,
                 'upload_date': '20150505',
             },
         }],
@@ -100,21 +107,17 @@ class LifeNewsIE(InfoExtractor):
         description = self._og_search_description(webpage)
 
         view_count = self._html_search_regex(
-            r'<div class=\'views\'>\s*(\d+)\s*</div>', webpage, 'view count', fatal=False)
-        comment_count = self._html_search_regex(
-            r'=\'commentCount\'[^>]*>\s*(\d+)\s*<',
-            webpage, 'comment count', fatal=False)
+            r'<div[^>]+class=(["\']).*?\bhits-count\b.*?\1[^>]*>\s*(?P<value>\d+)\s*</div>',
+            webpage, 'view count', fatal=False, group='value')
 
-        upload_date = self._html_search_regex(
-            r'<time[^>]*datetime=\'([^\']+)\'', webpage, 'upload date', fatal=False)
-        if upload_date is not None:
-            upload_date = unified_strdate(upload_date)
+        timestamp = parse_iso8601(self._search_regex(
+            r'<time[^>]+datetime=(["\'])(?P<value>.+?)\1',
+            webpage, 'upload date', fatal=False, group='value'))
 
         common_info = {
             'description': description,
             'view_count': int_or_none(view_count),
-            'comment_count': int_or_none(comment_count),
-            'upload_date': upload_date,
+            'timestamp': timestamp,
         }
 
         def make_entry(video_id, video_url, index=None):
