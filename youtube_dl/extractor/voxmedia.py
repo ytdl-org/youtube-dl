@@ -117,7 +117,7 @@ class VoxMediaIE(InfoExtractor):
             volume_webpage = self._download_webpage(
                 'http://volume.vox-cdn.com/embed/%s' % volume_uuid, volume_uuid)
             video_data = self._parse_json(self._search_regex(
-                r'Volume\.createVideo\(({.+})\s*,\s*{.*}\);', volume_webpage, 'video data'), volume_uuid)
+                r'Volume\.createVideo\(({.+})\s*,\s*{.*}\s*,\s*\[.*\]\s*,\s*{.*}\);', volume_webpage, 'video data'), volume_uuid)
             for provider_video_type in ('ooyala', 'youtube'):
                 provider_video_id = video_data.get('%s_id' % provider_video_type)
                 if provider_video_id:
