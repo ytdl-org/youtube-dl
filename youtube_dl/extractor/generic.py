@@ -1194,6 +1194,16 @@ class GenericIE(InfoExtractor):
                 'uploader': 'Lake8737',
             }
         },
+        # Duplicated embedded video URLs
+        {
+            'url': 'http://www.hudl.com/athlete/2538180/highlights/149298443',
+            'info_dict': {
+                'id': '149298443_480_16c25b74_2',
+                'ext': 'mp4',
+                'title': 'vs. Blue Orange Spring Game',
+                'uploader': 'www.hudl.com',
+            },
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -2111,7 +2121,7 @@ class GenericIE(InfoExtractor):
             raise UnsupportedError(url)
 
         entries = []
-        for video_url in found:
+        for video_url in orderedSet(found):
             video_url = unescapeHTML(video_url)
             video_url = video_url.replace('\\/', '/')
             video_url = compat_urlparse.urljoin(url, video_url)
