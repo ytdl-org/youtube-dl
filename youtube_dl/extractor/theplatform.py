@@ -151,6 +151,22 @@ class ThePlatformIE(ThePlatformBaseIE):
         'only_matching': True,
     }]
 
+    @classmethod
+    def _extract_urls(cls, webpage):
+        m = re.search(
+            r'''(?x)
+                    <meta\s+
+                        property=(["'])(?:og:video(?::(?:secure_)?url)?|twitter:player)\1\s+
+                        content=(["'])(?P<url>https?://player\.theplatform\.com/p/.+?)\2
+            ''', webpage)
+        if m:
+            return [m.group('url')]
+
+        matches = re.findall(
+            r'<(?:iframe|script)[^>]+src=(["\'])((?:https?:)?//player\.theplatform\.com/p/.+?)\1', webpage)
+        if matches:
+            return list(zip(*matches))[1]
+
     @staticmethod
     def _sign_url(url, sig_key, sig_secret, life=600, include_qs=False):
         flags = '10' if include_qs else '00'
