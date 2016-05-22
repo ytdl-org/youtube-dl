@@ -581,6 +581,7 @@ from .philharmoniedeparis import PhilharmonieDeParisIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
 from .pinkbike import PinkbikeIE
+from .pix11 import Pix11IE
 from .pladform import PladformIE
 from .played import PlayedIE
 from .playfm import PlayFMIE
