@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 import re
 from .common import InfoExtractor
 
+from ..utils import int_or_none
+
 
 class VidioIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?vidio\.com/watch/(?P<id>\d{6})-(?P<display_id>[^/?]+)'
@@ -40,7 +42,7 @@ class VidioIE(InfoExtractor):
             'id': video_id,
             'title': self._og_search_title(webpage),
             'formats': formats,
-            'thumbnail': video_data.get('image', ''),
+            'thumbnail': video_data.get('image'),
             'description': self._og_search_description(webpage),
-            'duration': video_data.get('clip_duration'),
+            'duration': int_or_none(video_data.get('clip_duration')),
         }
