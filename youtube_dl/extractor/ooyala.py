@@ -22,13 +22,7 @@ class OoyalaBaseIE(InfoExtractor):
         metadata = content_tree[list(content_tree)[0]]
         embed_code = metadata['embed_code']
         pcode = metadata.get('asset_pcode') or embed_code
-        video_info = {
-            'id': embed_code,
-            'title': metadata['title'],
-            'description': metadata.get('description'),
-            'thumbnail': metadata.get('thumbnail_image') or metadata.get('promo_image'),
-            'duration': float_or_none(metadata.get('duration'), 1000),
-        }
+        title = metadata['title']
 
         urls = []
         formats = []
@@ -78,8 +72,24 @@ class OoyalaBaseIE(InfoExtractor):
                     self.IE_NAME, cur_auth_data['message']), expected=True)
         self._sort_formats(formats)
 
-        video_info['formats'] = formats
-        return video_info
+        subtitles = {}
+        for lang, sub in metadata.get('closed_captions_vtt', {}).get('captions', {}).items():
+            sub_url = sub.get('url')
+            if not sub_url:
+                continue
+            subtitles[lang] = [{
+                'url': sub_url,
+            }]
+
+        return {
+            'id': embed_code,
+            'title': title,
+            'description': metadata.get('description'),
+            'thumbnail': metadata.get('thumbnail_image') or metadata.get('promo_image'),
+            'duration': float_or_none(metadata.get('duration'), 1000),
+            'subtitles': subtitles,
+            'formats': formats,
+        }
 
 
 class OoyalaIE(OoyalaBaseIE):
