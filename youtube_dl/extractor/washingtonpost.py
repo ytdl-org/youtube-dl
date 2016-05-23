@@ -74,12 +74,6 @@ class WashingtonPostIE(InfoExtractor):
                     'vcodec': s.get('videoCodec') if has_width else 'none',
                     'filesize': int_or_none(s.get('fileSize')),
                     'url': s_url,
-                    'ext': 'mp4',
-                    'protocol': {
-                        'mp4': 'http',
-                        'ts': 'm3u8_native',
-                        'hls': 'm3u8_native',
-                    }.get(s.get('type')),
                 })
         source_media_url = video_data.get('sourceMediaURL')
         if source_media_url:
