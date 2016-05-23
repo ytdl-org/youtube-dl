@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class XHamsterIE(InfoExtractor):
-    _VALID_URL = r'(?P<proto>https?)://(?:.+?\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.+?)\.html(?:\?.*)?'
+    _VALID_URL = r'(?P<proto>https?)://(?:.+?\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.*?)\.html(?:\?.*)?'
     _TESTS = [
         {
             'url': 'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
@@ -35,6 +35,18 @@ class XHamsterIE(InfoExtractor):
                 'upload_date': '20130914',
                 'uploader': 'jojo747400',
                 'duration': 200.48,
+                'age_limit': 18,
+            }
+        },
+        {
+            'url': 'http://xhamster.com/movies/5667973/.html',
+            'info_dict': {
+                'id': '5667973',
+                'ext': 'mp4',
+                'title': '....',
+                'upload_date': '20160208',
+                'uploader': 'parejafree',
+                'duration': 72.0,
                 'age_limit': 18,
             }
         },
@@ -170,7 +182,7 @@ class XHamsterEmbedIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_url = self._search_regex(
-            r'href="(https?://xhamster\.com/movies/%s/[^"]+\.html[^"]*)"' % video_id,
+            r'href="(https?://xhamster\.com/movies/%s/[^"]*\.html[^"]*)"' % video_id,
             webpage, 'xhamster url', default=None)
 
         if not video_url:
