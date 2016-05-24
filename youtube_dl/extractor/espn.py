@@ -15,6 +15,9 @@ class ESPNIE(InfoExtractor):
             'title': '30 for 30 Shorts: Judging Jewell',
             'description': None,
         },
+        'params': {
+            'skip_download': True,
+        },
         'add_ie': ['OoyalaExternal'],
     }, {
         # intl video, from http://www.espnfc.us/video/mls-highlights/150/video/2743663/must-see-moments-best-of-the-mls-season
@@ -24,6 +27,9 @@ class ESPNIE(InfoExtractor):
             'id': '50NDFkeTqRHB0nXBOK-RGdSG5YQPuxHg',
             'ext': 'mp4',
             'title': 'Must-See Moments: Best of the MLS season',
+        },
+        'params': {
+            'skip_download': True,
         },
         'add_ie': ['OoyalaExternal'],
     }, {

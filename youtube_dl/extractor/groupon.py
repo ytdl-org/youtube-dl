@@ -26,7 +26,10 @@ class GrouponIE(InfoExtractor):
                 'uploader': 'Groupon',
             },
             'add_ie': ['Youtube'],
-        }]
+        }],
+        'params': {
+            'skip_download': True,
+        },
     }
 
     _PROVIDERS = {

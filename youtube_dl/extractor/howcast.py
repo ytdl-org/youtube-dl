@@ -18,6 +18,9 @@ class HowcastIE(InfoExtractor):
             'upload_date': '20100609',
             'duration': 56.823,
         },
+        'params': {
+            'skip_download': True,
+        },
         'add_ie': ['Ooyala'],
     }
 

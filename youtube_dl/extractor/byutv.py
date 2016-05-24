@@ -20,6 +20,9 @@ class BYUtvIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.jpg$',
             'duration': 1486.486,
         },
+        'params': {
+            'skip_download': True,
+        },
         'add_ie': ['Ooyala'],
     }
 

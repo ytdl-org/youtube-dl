@@ -19,6 +19,9 @@ class TeachingChannelIE(InfoExtractor):
             'description': 'md5:2a9033db8da81f2edffa4c99888140b3',
             'duration': 422.255,
         },
+        'params': {
+            'skip_download': True,
+        },
         'add_ie': ['Ooyala'],
     }
 
