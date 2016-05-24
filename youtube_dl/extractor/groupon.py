@@ -14,6 +14,7 @@ class GrouponIE(InfoExtractor):
             'description': 'Studio kept at 105 degrees and 40% humidity with anti-microbial and anti-slip Flotex flooring; certified instructors',
         },
         'playlist': [{
+            'md5': '42428ce8a00585f9bc36e49226eae7a1',
             'info_dict': {
                 'id': 'fk6OhWpXgIQ',
                 'ext': 'mp4',
@@ -24,10 +25,8 @@ class GrouponIE(InfoExtractor):
                 'uploader_id': 'groupon',
                 'uploader': 'Groupon',
             },
-        }],
-        'params': {
-            'skip_download': True,
-        }
+            'add_ie': ['Youtube'],
+        }]
     }
 
     _PROVIDERS = {

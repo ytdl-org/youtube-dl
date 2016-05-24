@@ -13,7 +13,8 @@ class Formula1IE(InfoExtractor):
             'id': 'JvYXJpMzE6pArfHWm5ARp5AiUmD-gibV',
             'ext': 'flv',
             'title': 'Race highlights - Spain 2016',
-        }
+        },
+        'add_ie': ['Ooyala'],
     }
 
     def _real_extract(self, url):

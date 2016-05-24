@@ -8,6 +8,7 @@ from ..utils import (
     float_or_none,
     ExtractorError,
     unsmuggle_url,
+    determine_ext,
 )
 from ..compat import compat_urllib_parse_urlencode
 
@@ -37,26 +38,27 @@ class OoyalaBaseIE(InfoExtractor):
         formats = []
         if cur_auth_data['authorized']:
             for stream in cur_auth_data['streams']:
-                url = base64.b64decode(
+                s_url = base64.b64decode(
                     stream['url']['data'].encode('ascii')).decode('utf-8')
-                if url in urls:
+                if s_url in urls:
                     continue
-                urls.append(url)
+                urls.append(s_url)
+                ext = determine_ext(s_url, None)
                 delivery_type = stream['delivery_type']
-                if delivery_type == 'hls' or '.m3u8' in url:
+                if delivery_type == 'hls' or ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
-                        url, embed_code, 'mp4', 'm3u8_native',
+                        s_url, embed_code, 'mp4', 'm3u8_native',
                         m3u8_id='hls', fatal=False))
-                elif delivery_type == 'hds' or '.f4m' in url:
+                elif delivery_type == 'hds' or ext == 'f4m':
                     formats.extend(self._extract_f4m_formats(
-                        url + '?hdcore=3.7.0', embed_code, f4m_id='hds', fatal=False))
-                elif '.smil' in url:
+                        s_url + '?hdcore=3.7.0', embed_code, f4m_id='hds', fatal=False))
+                elif ext == 'smil':
                     formats.extend(self._extract_smil_formats(
-                        url, embed_code, fatal=False))
+                        s_url, embed_code, fatal=False))
                 else:
                     formats.append({
-                        'url': url,
-                        'ext': stream.get('delivery_type'),
+                        'url': s_url,
+                        'ext': ext or stream.get('delivery_type'),
                         'vcodec': stream.get('video_codec'),
                         'format_id': delivery_type,
                         'width': int_or_none(stream.get('width')),

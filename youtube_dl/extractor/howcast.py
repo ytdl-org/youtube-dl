@@ -8,7 +8,7 @@ class HowcastIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?howcast\.com/videos/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.howcast.com/videos/390161-How-to-Tie-a-Square-Knot-Properly',
-        'md5': '8b743df908c42f60cf6496586c7f12c3',
+        'md5': '7d45932269a288149483144f01b99789',
         'info_dict': {
             'id': '390161',
             'ext': 'mp4',
@@ -18,10 +18,7 @@ class HowcastIE(InfoExtractor):
             'upload_date': '20100609',
             'duration': 56.823,
         },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
+        'add_ie': ['Ooyala'],
     }
 
     def _real_extract(self, url):
