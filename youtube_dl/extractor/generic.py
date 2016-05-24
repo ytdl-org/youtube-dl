@@ -784,6 +784,19 @@ class GenericIE(InfoExtractor):
                 'title': 'Rosetta #CometLanding webcast HL 10',
             }
         },
+        # Another Livestream embed, without 'new.' in URL
+        {
+            'url': 'https://www.freespeech.org/',
+            'info_dict': {
+                'id': '123537347',
+                'ext': 'mp4',
+                'title': 're:^FSTV [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            },
+            'params': {
+                # Live stream
+                'skip_download': True,
+            },
+        },
         # LazyYT
         {
             'url': 'http://discourse.ubuntu.com/t/unity-8-desktop-mode-windows-on-mir/1986',
@@ -1193,6 +1206,16 @@ class GenericIE(InfoExtractor):
                 'description': 'The wall is like a sand pile.',
                 'uploader': 'Lake8737',
             }
+        },
+        # Duplicated embedded video URLs
+        {
+            'url': 'http://www.hudl.com/athlete/2538180/highlights/149298443',
+            'info_dict': {
+                'id': '149298443_480_16c25b74_2',
+                'ext': 'mp4',
+                'title': 'vs. Blue Orange Spring Game',
+                'uploader': 'www.hudl.com',
+            },
         },
     ]
 
@@ -1868,7 +1891,7 @@ class GenericIE(InfoExtractor):
             return self.url_result(self._proto_relative_url(mobj.group('url'), scheme='http:'), 'CondeNast')
 
         mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://new\.livestream\.com/[^"]+/player[^"]+)"',
+            r'<iframe[^>]+src="(?P<url>https?://(?:new\.)?livestream\.com/[^"]+/player[^"]+)"',
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'Livestream')
@@ -2111,7 +2134,7 @@ class GenericIE(InfoExtractor):
             raise UnsupportedError(url)
 
         entries = []
-        for video_url in found:
+        for video_url in orderedSet(found):
             video_url = unescapeHTML(video_url)
             video_url = video_url.replace('\\/', '/')
             video_url = compat_urlparse.urljoin(url, video_url)

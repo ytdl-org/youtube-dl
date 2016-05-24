@@ -617,6 +617,10 @@ from .qqmusic import (
     QQMusicPlaylistIE,
 )
 from .r7 import R7IE
+from .radiocanada import (
+    RadioCanadaIE,
+    RadioCanadaAudioVideoIE,
+)
 from .radiode import RadioDeIE
 from .radiojavan import RadioJavanIE
 from .radiobremen import RadioBremenIE
@@ -630,6 +634,7 @@ from .rds import RDSIE
 from .redtube import RedTubeIE
 from .regiotv import RegioTVIE
 from .restudy import RestudyIE
+from .reuters import ReutersIE
 from .reverbnation import ReverbNationIE
 from .revision3 import Revision3IE
 from .rice import RICEIE
@@ -941,7 +946,10 @@ from .vube import VubeIE
 from .vuclip import VuClipIE
 from .vulture import VultureIE
 from .walla import WallaIE
-from .washingtonpost import WashingtonPostIE
+from .washingtonpost import (
+    WashingtonPostIE,
+    WashingtonPostArticleIE,
+)
 from .wat import WatIE
 from .watchindianporn import WatchIndianPornIE
 from .wdr import (

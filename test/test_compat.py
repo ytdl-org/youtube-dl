@@ -103,6 +103,12 @@ class TestCompat(unittest.TestCase):
         self.assertTrue(isinstance(doc.find('chinese').text, compat_str))
         self.assertTrue(isinstance(doc.find('foo/bar').text, compat_str))
 
+    def test_compat_etree_fromstring_doctype(self):
+        xml = '''<?xml version="1.0"?>
+<!DOCTYPE smil PUBLIC "-//W3C//DTD SMIL 2.0//EN" "http://www.w3.org/2001/SMIL20/SMIL20.dtd">
+<smil xmlns="http://www.w3.org/2001/SMIL20/Language"></smil>'''
+        compat_etree_fromstring(xml)
+
     def test_struct_unpack(self):
         self.assertEqual(compat_struct_unpack('!B', b'\x00'), (0,))
 

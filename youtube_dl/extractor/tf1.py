@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 class TF1IE(InfoExtractor):
     """TF1 uses the wat.tv player."""
-    _VALID_URL = r'https?://(?:(?:videos|www|lci)\.tf1|www\.tfou)\.fr/(?:[^/]+/)*(?P<id>.+?)\.html'
+    _VALID_URL = r'https?://(?:(?:videos|www|lci)\.tf1|(?:www\.)?(?:tfou|ushuaiatv|histoire|tvbreizh))\.fr/(?:[^/]+/)*(?P<id>[^/?#.]+)'
     _TESTS = [{
         'url': 'http://videos.tf1.fr/auto-moto/citroen-grand-c4-picasso-2013-presentation-officielle-8062060.html',
         'info_dict': {
@@ -48,6 +48,6 @@ class TF1IE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         wat_id = self._html_search_regex(
-            r'(["\'])(?:https?:)?//www\.wat\.tv/embedframe/.*?(?P<id>\d{8})(?:#.*?)?\1',
+            r'(["\'])(?:https?:)?//www\.wat\.tv/embedframe/.*?(?P<id>\d{8})(?:.*?)?\1',
             webpage, 'wat id', group='id')
         return self.url_result('wat:%s' % wat_id, 'Wat')

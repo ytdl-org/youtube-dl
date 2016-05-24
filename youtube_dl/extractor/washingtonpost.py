@@ -11,7 +11,96 @@ from ..utils import (
 
 
 class WashingtonPostIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?washingtonpost\.com/.*?/(?P<id>[^/]+)/(?:$|[?#])'
+    IE_NAME = 'washingtonpost'
+    _VALID_URL = r'(?:washingtonpost:|https?://(?:www\.)?washingtonpost\.com/video/(?:[^/]+/)*)(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
+    _TEST = {
+        'url': 'https://www.washingtonpost.com/video/c/video/480ba4ee-1ec7-11e6-82c2-a7dcb313287d',
+        'md5': '6f537e1334b714eb15f9563bd4b9cdfa',
+        'info_dict': {
+            'id': '480ba4ee-1ec7-11e6-82c2-a7dcb313287d',
+            'ext': 'mp4',
+            'title': 'Egypt finds belongings, debris from plane crash',
+            'description': 'md5:a17ceee432f215a5371388c1f680bd86',
+            'upload_date': '20160520',
+            'uploader': 'Reuters',
+            'timestamp': 1463778452,
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        video_data = self._download_json(
+            'http://www.washingtonpost.com/posttv/c/videojson/%s?resType=jsonp' % video_id,
+            video_id, transform_source=strip_jsonp)[0]['contentConfig']
+        title = video_data['title']
+
+        urls = []
+        formats = []
+        for s in video_data.get('streams', []):
+            s_url = s.get('url')
+            if not s_url or s_url in urls:
+                continue
+            urls.append(s_url)
+            video_type = s.get('type')
+            if video_type == 'smil':
+                continue
+            elif video_type in ('ts', 'hls') and ('_master.m3u8' in s_url or '_mobile.m3u8' in s_url):
+                m3u8_formats = self._extract_m3u8_formats(
+                    s_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
+                for m3u8_format in m3u8_formats:
+                    width = m3u8_format.get('width')
+                    if not width:
+                        continue
+                    vbr = self._search_regex(
+                        r'%d_%d_(\d+)' % (width, m3u8_format['height']), m3u8_format['url'], 'vbr', default=None)
+                    if vbr:
+                        m3u8_format.update({
+                            'vbr': int_or_none(vbr),
+                        })
+                formats.extend(m3u8_formats)
+            else:
+                width = int_or_none(s.get('width'))
+                vbr = int_or_none(s.get('bitrate'))
+                has_width = width != 0
+                formats.append({
+                    'format_id': (
+                        '%s-%d-%d' % (video_type, width, vbr)
+                        if width
+                        else video_type),
+                    'vbr': vbr if has_width else None,
+                    'width': width,
+                    'height': int_or_none(s.get('height')),
+                    'acodec': s.get('audioCodec'),
+                    'vcodec': s.get('videoCodec') if has_width else 'none',
+                    'filesize': int_or_none(s.get('fileSize')),
+                    'url': s_url,
+                    'ext': 'mp4',
+                    'protocol': 'm3u8_native' if video_type in ('ts', 'hls') else None,
+                })
+        source_media_url = video_data.get('sourceMediaURL')
+        if source_media_url:
+            formats.append({
+                'format_id': 'source_media',
+                'url': source_media_url,
+            })
+        self._sort_formats(
+            formats, ('width', 'height', 'vbr', 'filesize', 'tbr', 'format_id'))
+
+        return {
+            'id': video_id,
+            'title': title,
+            'description': video_data.get('blurb'),
+            'uploader': video_data.get('credits', {}).get('source'),
+            'formats': formats,
+            'duration': int_or_none(video_data.get('videoDuration'), 100),
+            'timestamp': int_or_none(
+                video_data.get('dateConfig', {}).get('dateFirstPublished'), 1000),
+        }
+
+
+class WashingtonPostArticleIE(InfoExtractor):
+    IE_NAME = 'washingtonpost:article'
+    _VALID_URL = r'https?://(?:www\.)?washingtonpost\.com/(?:[^/]+/)*(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'http://www.washingtonpost.com/sf/national/2014/03/22/sinkhole-of-bureaucracy/',
         'info_dict': {
@@ -63,6 +152,10 @@ class WashingtonPostIE(InfoExtractor):
         }]
     }]
 
+    @classmethod
+    def suitable(cls, url):
+        return False if WashingtonPostIE.suitable(url) else super(WashingtonPostArticleIE, cls).suitable(url)
+
     def _real_extract(self, url):
         page_id = self._match_id(url)
         webpage = self._download_webpage(url, page_id)
@@ -74,54 +167,7 @@ class WashingtonPostIE(InfoExtractor):
                 <div\s+class="posttv-video-embed[^>]*?data-uuid=|
                 data-video-uuid=
             )"([^"]+)"''', webpage)
-        entries = []
-        for i, uuid in enumerate(uuids, start=1):
-            vinfo_all = self._download_json(
-                'http://www.washingtonpost.com/posttv/c/videojson/%s?resType=jsonp' % uuid,
-                page_id,
-                transform_source=strip_jsonp,
-                note='Downloading information of video %d/%d' % (i, len(uuids))
-            )
-            vinfo = vinfo_all[0]['contentConfig']
-            uploader = vinfo.get('credits', {}).get('source')
-            timestamp = int_or_none(
-                vinfo.get('dateConfig', {}).get('dateFirstPublished'), 1000)
-
-            formats = [{
-                'format_id': (
-                    '%s-%s-%s' % (s.get('type'), s.get('width'), s.get('bitrate'))
-                    if s.get('width')
-                    else s.get('type')),
-                'vbr': s.get('bitrate') if s.get('width') != 0 else None,
-                'width': s.get('width'),
-                'height': s.get('height'),
-                'acodec': s.get('audioCodec'),
-                'vcodec': s.get('videoCodec') if s.get('width') != 0 else 'none',
-                'filesize': s.get('fileSize'),
-                'url': s.get('url'),
-                'ext': 'mp4',
-                'preference': -100 if s.get('type') == 'smil' else None,
-                'protocol': {
-                    'MP4': 'http',
-                    'F4F': 'f4m',
-                }.get(s.get('type')),
-            } for s in vinfo.get('streams', [])]
-            source_media_url = vinfo.get('sourceMediaURL')
-            if source_media_url:
-                formats.append({
-                    'format_id': 'source_media',
-                    'url': source_media_url,
-                })
-            self._sort_formats(formats)
-            entries.append({
-                'id': uuid,
-                'title': vinfo['title'],
-                'description': vinfo.get('blurb'),
-                'uploader': uploader,
-                'formats': formats,
-                'duration': int_or_none(vinfo.get('videoDuration'), 100),
-                'timestamp': timestamp,
-            })
+        entries = [self.url_result('washingtonpost:%s' % uuid, 'WashingtonPost', uuid) for uuid in uuids]
 
         return {
             '_type': 'playlist',

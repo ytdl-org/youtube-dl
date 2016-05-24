@@ -8,6 +8,7 @@ class ESPNIE(InfoExtractor):
     _VALID_URL = r'https?://espn\.go\.com/(?:[^/]+/)*(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://espn.go.com/video/clip?id=10365079',
+        'md5': '60e5d097a523e767d06479335d1bdc58',
         'info_dict': {
             'id': 'FkYWtmazr6Ed8xmvILvKLWjd4QvYZpzG',
             'ext': 'mp4',
@@ -15,21 +16,22 @@ class ESPNIE(InfoExtractor):
             'description': None,
         },
         'params': {
-            # m3u8 download
             'skip_download': True,
         },
+        'add_ie': ['OoyalaExternal'],
     }, {
         # intl video, from http://www.espnfc.us/video/mls-highlights/150/video/2743663/must-see-moments-best-of-the-mls-season
         'url': 'http://espn.go.com/video/clip?id=2743663',
+        'md5': 'f4ac89b59afc7e2d7dbb049523df6768',
         'info_dict': {
             'id': '50NDFkeTqRHB0nXBOK-RGdSG5YQPuxHg',
             'ext': 'mp4',
             'title': 'Must-See Moments: Best of the MLS season',
         },
         'params': {
-            # m3u8 download
             'skip_download': True,
         },
+        'add_ie': ['OoyalaExternal'],
     }, {
         'url': 'https://espn.go.com/video/iframe/twitter/?cms=espn&id=10365079',
         'only_matching': True,

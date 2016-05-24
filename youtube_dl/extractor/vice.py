@@ -11,12 +11,14 @@ class ViceIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.vice.com/video/cowboy-capitalists-part-1',
+        'md5': 'e9d77741f9e42ba583e683cd170660f7',
         'info_dict': {
             'id': '43cW1mYzpia9IlestBjVpd23Yu3afAfp',
             'ext': 'flv',
             'title': 'VICE_COWBOYCAPITALISTS_PART01_v1_VICE_WM_1080p.mov',
             'duration': 725.983,
         },
+        'add_ie': ['Ooyala'],
     }, {
         'url': 'http://www.vice.com/video/how-to-hack-a-car',
         'md5': '6fb2989a3fed069fb8eab3401fc2d3c9',
@@ -29,6 +31,7 @@ class ViceIE(InfoExtractor):
             'uploader': 'Motherboard',
             'upload_date': '20140529',
         },
+        'add_ie': ['Youtube'],
     }, {
         'url': 'https://news.vice.com/video/experimenting-on-animals-inside-the-monkey-lab',
         'only_matching': True,

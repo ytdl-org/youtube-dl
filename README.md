@@ -693,6 +693,10 @@ hash -r
 
 Again, from then on you'll be able to update with `sudo youtube-dl -U`.
 
+### youtube-dl is extremely slow to start on Windows
+
+Add a file exclusion for `youtube-dl.exe` in Windows Defender settings.
+
 ### I'm getting an error `Unable to extract OpenGraph title` on YouTube playlists
 
 YouTube changed their playlist format in March 2014 and later on, so you'll need at least youtube-dl 2014.07.25 to download all YouTube videos.
