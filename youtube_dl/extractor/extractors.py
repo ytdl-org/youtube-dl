@@ -617,6 +617,10 @@ from .qqmusic import (
     QQMusicPlaylistIE,
 )
 from .r7 import R7IE
+from .radiocanada import (
+    RadioCanadaIE,
+    RadioCanadaAudioVideoIE,
+)
 from .radiode import RadioDeIE
 from .radiojavan import RadioJavanIE
 from .radiobremen import RadioBremenIE
