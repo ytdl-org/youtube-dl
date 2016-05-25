@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import RegexNotFoundError
 import re
 
 
@@ -46,23 +45,12 @@ class BlickIE(InfoExtractor):
         found_videos = []
         regex_og = self._og_regexes('video')
         regex_ogs = self._og_regexes('video:secure_url')
-        try:
-            video_og = self._html_search_regex(regex_og, webpage, name=None)
-            found_videos.append(video_og)
-        except RegexNotFoundError:
-            pass
-        try:
-            video_ogs = self._html_search_regex(regex_ogs, webpage, name=None)
-            if video_ogs not in found_videos:
-                found_videos.append(video_ogs)
-        except RegexNotFoundError:
-            pass
-        try:
-            video_meta = self._html_search_meta('contentURL', webpage)
-            if video_meta not in found_videos:
-                found_videos.append(video_meta)
-        except RegexNotFoundError:
-            pass
+        video_og = self._html_search_regex(regex_og, webpage, name=None, default=None, fatal=False)
+        video_ogs = self._html_search_regex(regex_ogs, webpage, name=None, default=None, fatal=False)
+        video_meta = self._html_search_meta('contentURL', webpage, fatal=False, default=None)
+        for elem in [video_og, video_ogs, video_meta]:
+            if elem:
+                found_videos.append(elem)
 
         video_url = ''
         for video in found_videos:
