@@ -1058,12 +1058,8 @@ class InfoExtractor(object):
             })
         return formats
 
-    def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
-                              entry_protocol='m3u8', preference=None,
-                              m3u8_id=None, note=None, errnote=None,
-                              fatal=True, live=False):
-
-        formats = [{
+    def _m3u8_meta_format(self, m3u8_url, ext=None, preference=None, m3u8_id=None):
+        return {
             'format_id': '-'.join(filter(None, [m3u8_id, 'meta'])),
             'url': m3u8_url,
             'ext': ext,
@@ -1071,7 +1067,14 @@ class InfoExtractor(object):
             'preference': preference - 1 if preference else -1,
             'resolution': 'multiple',
             'format_note': 'Quality selection URL',
-        }]
+        }
+
+    def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
+                              entry_protocol='m3u8', preference=None,
+                              m3u8_id=None, note=None, errnote=None,
+                              fatal=True, live=False):
+
+        formats = [self._m3u8_meta_format(m3u8_url, ext, preference, m3u8_id)]
 
         format_url = lambda u: (
             u
@@ -1138,7 +1141,7 @@ class InfoExtractor(object):
                 format_id = []
                 if m3u8_id:
                     format_id.append(m3u8_id)
-                last_media_name = last_media.get('NAME') if last_media and last_media.get('TYPE') != 'SUBTITLES' else None
+                last_media_name = last_media.get('NAME') if last_media and last_media.get('TYPE') not in ('SUBTITLES', 'CLOSED-CAPTIONS') else None
                 # Despite specification does not mention NAME attribute for
                 # EXT-X-STREAM-INF it still sometimes may be present
                 stream_name = last_info.get('NAME') or last_media_name
@@ -1278,21 +1281,21 @@ class InfoExtractor(object):
         m3u8_count = 0
 
         srcs = []
-        videos = smil.findall(self._xpath_ns('.//video', namespace))
-        for video in videos:
-            src = video.get('src')
+        media = smil.findall(self._xpath_ns('.//video', namespace)) + smil.findall(self._xpath_ns('.//audio', namespace))
+        for medium in media:
+            src = medium.get('src')
             if not src or src in srcs:
                 continue
             srcs.append(src)
 
-            bitrate = float_or_none(video.get('system-bitrate') or video.get('systemBitrate'), 1000)
-            filesize = int_or_none(video.get('size') or video.get('fileSize'))
-            width = int_or_none(video.get('width'))
-            height = int_or_none(video.get('height'))
-            proto = video.get('proto')
-            ext = video.get('ext')
+            bitrate = float_or_none(medium.get('system-bitrate') or medium.get('systemBitrate'), 1000)
+            filesize = int_or_none(medium.get('size') or medium.get('fileSize'))
+            width = int_or_none(medium.get('width'))
+            height = int_or_none(medium.get('height'))
+            proto = medium.get('proto')
+            ext = medium.get('ext')
             src_ext = determine_ext(src)
-            streamer = video.get('streamer') or base
+            streamer = medium.get('streamer') or base
 
             if proto == 'rtmp' or streamer.startswith('rtmp'):
                 rtmp_count += 1

@@ -245,13 +245,20 @@ try:
 except ImportError:  # Python 2.6
     from xml.parsers.expat import ExpatError as compat_xml_parse_error
 
+
+etree = xml.etree.ElementTree
+
+
+class _TreeBuilder(etree.TreeBuilder):
+    def doctype(self, name, pubid, system):
+        pass
+
 if sys.version_info[0] >= 3:
-    compat_etree_fromstring = xml.etree.ElementTree.fromstring
+    def compat_etree_fromstring(text):
+        return etree.XML(text, parser=etree.XMLParser(target=_TreeBuilder()))
 else:
     # python 2.x tries to encode unicode strings with ascii (see the
     # XMLParser._fixtext method)
-    etree = xml.etree.ElementTree
-
     try:
         _etree_iter = etree.Element.iter
     except AttributeError:  # Python <=2.6
@@ -265,7 +272,7 @@ else:
     # 2.7 source
     def _XML(text, parser=None):
         if not parser:
-            parser = etree.XMLParser(target=etree.TreeBuilder())
+            parser = etree.XMLParser(target=_TreeBuilder())
         parser.feed(text)
         return parser.close()
 
@@ -277,7 +284,7 @@ else:
         return el
 
     def compat_etree_fromstring(text):
-        doc = _XML(text, parser=etree.XMLParser(target=etree.TreeBuilder(element_factory=_element_factory)))
+        doc = _XML(text, parser=etree.XMLParser(target=_TreeBuilder(element_factory=_element_factory)))
         for el in _etree_iter(doc):
             if el.text is not None and isinstance(el.text, bytes):
                 el.text = el.text.decode('utf-8')

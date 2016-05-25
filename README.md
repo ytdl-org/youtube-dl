@@ -25,7 +25,7 @@ If you do not have curl, you can alternatively use a recent wget:
     sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
     sudo chmod a+rx /usr/local/bin/youtube-dl
 
-Windows users can [download a .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in their home directory or any other location on their [PATH](http://en.wikipedia.org/wiki/PATH_%28variable%29).
+Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in any location on their [PATH](http://en.wikipedia.org/wiki/PATH_%28variable%29) except for `%SYSTEMROOT%\System32` (e.g. **do not** put in `C:\Windows\System32`).
 
 OS X users can install **youtube-dl** with [Homebrew](http://brew.sh/).
 
@@ -434,7 +434,7 @@ You can use `--ignore-config` if you want to disable the configuration file for 
 
 ### Authentication with `.netrc` file
 
-You may also want to configure automatic credentials storage for extractors that support authentication (by providing login and password with `--username` and `--password`) in order not to pass credentials as command line arguments on every youtube-dl execution and prevent tracking plain text passwords in the shell command history. You can achieve this using a [`.netrc` file](http://stackoverflow.com/tags/.netrc/info) on per extractor basis. For that you will need to create a`.netrc` file in your `$HOME` and restrict permissions to read/write by you only:
+You may also want to configure automatic credentials storage for extractors that support authentication (by providing login and password with `--username` and `--password`) in order not to pass credentials as command line arguments on every youtube-dl execution and prevent tracking plain text passwords in the shell command history. You can achieve this using a [`.netrc` file](http://stackoverflow.com/tags/.netrc/info) on per extractor basis. For that you will need to create a `.netrc` file in your `$HOME` and restrict permissions to read/write by you only:
 ```
 touch $HOME/.netrc
 chmod a-rwx,u+rw $HOME/.netrc
@@ -693,6 +693,10 @@ hash -r
 ```
 
 Again, from then on you'll be able to update with `sudo youtube-dl -U`.
+
+### youtube-dl is extremely slow to start on Windows
+
+Add a file exclusion for `youtube-dl.exe` in Windows Defender settings.
 
 ### I'm getting an error `Unable to extract OpenGraph title` on YouTube playlists
 

@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import re
+
 from .theplatform import ThePlatformIE
 from ..utils import (
     xpath_text,
@@ -21,7 +23,7 @@ class CBSBaseIE(ThePlatformIE):
 
 
 class CBSIE(CBSBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?(?:cbs\.com/shows/[^/]+/(?:video|artist)|colbertlateshow\.com/(?:video|podcasts))/[^/]+/(?P<id>[^/]+)'
+    _VALID_URL = r'(?:cbs:(?P<content_id>\w+)|https?://(?:www\.)?(?:cbs\.com/shows/[^/]+/(?:video|artist)|colbertlateshow\.com/(?:video|podcasts))/[^/]+/(?P<display_id>[^/]+))'
 
     _TESTS = [{
         'url': 'http://www.cbs.com/shows/garth-brooks/video/_u7W953k6la293J7EPTd9oHkSPs6Xn6_/connect-chat-feat-garth-brooks/',
@@ -66,11 +68,12 @@ class CBSIE(CBSBaseIE):
     TP_RELEASE_URL_TEMPLATE = 'http://link.theplatform.com/s/dJ5BDC/%s?mbr=true'
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id)
-        content_id = self._search_regex(
-            [r"video\.settings\.content_id\s*=\s*'([^']+)';", r"cbsplayer\.contentId\s*=\s*'([^']+)';"],
-            webpage, 'content id')
+        content_id, display_id = re.match(self._VALID_URL, url).groups()
+        if not content_id:
+            webpage = self._download_webpage(url, display_id)
+            content_id = self._search_regex(
+                [r"video\.settings\.content_id\s*=\s*'([^']+)';", r"cbsplayer\.contentId\s*=\s*'([^']+)';"],
+                webpage, 'content id')
         items_data = self._download_xml(
             'http://can.cbs.com/thunder/player/videoPlayerService.php',
             content_id, query={'partner': 'cbs', 'contentId': content_id})

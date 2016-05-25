@@ -37,6 +37,7 @@ class VeohIE(InfoExtractor):
                 'uploader': 'afp-news',
                 'duration': 123,
             },
+            'skip': 'This video has been deleted.',
         },
         {
             'url': 'http://www.veoh.com/watch/v69525809F6Nc4frX',

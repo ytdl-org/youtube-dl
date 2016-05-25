@@ -55,7 +55,9 @@ class NRKBaseIE(InfoExtractor):
                 for subtitle in ('webVtt', 'timedText'):
                     subtitle_url = asset.get('%sSubtitlesUrl' % subtitle)
                     if subtitle_url:
-                        subtitles.setdefault('no', []).append({'url': subtitle_url})
+                        subtitles.setdefault('no', []).append({
+                            'url': compat_urllib_parse_unquote(subtitle_url)
+                        })
                 entries.append({
                     'id': asset.get('carrierId') or entry_id,
                     'title': entry_title,

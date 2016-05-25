@@ -62,6 +62,7 @@ from .digiteka import DigitekaIE
 from .instagram import InstagramIE
 from .liveleak import LiveLeakIE
 from .threeqsdn import ThreeQSDNIE
+from .theplatform import ThePlatformIE
 
 
 class GenericIE(InfoExtractor):
@@ -717,15 +718,18 @@ class GenericIE(InfoExtractor):
         },
         # Wistia embed
         {
-            'url': 'http://education-portal.com/academy/lesson/north-american-exploration-failed-colonies-of-spain-france-england.html#lesson',
-            'md5': '8788b683c777a5cf25621eaf286d0c23',
+            'url': 'http://study.com/academy/lesson/north-american-exploration-failed-colonies-of-spain-france-england.html#lesson',
+            'md5': '1953f3a698ab51cfc948ed3992a0b7ff',
             'info_dict': {
-                'id': '1cfaf6b7ea',
+                'id': '6e2wtrbdaf',
                 'ext': 'mov',
-                'title': 'md5:51364a8d3d009997ba99656004b5e20d',
-                'duration': 643.0,
-                'filesize': 182808282,
-                'uploader': 'education-portal.com',
+                'title': 'paywall_north-american-exploration-failed-colonies-of-spain-france-england',
+                'description': 'a Paywall Videos video from Remilon',
+                'duration': 644.072,
+                'uploader': 'study.com',
+                'timestamp': 1459678540,
+                'upload_date': '20160403',
+                'filesize': 24687186,
             },
         },
         {
@@ -734,13 +738,29 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'id': 'uxjb0lwrcz',
                 'ext': 'mp4',
-                'title': 'Conversation about Hexagonal Rails Part 1 - ThoughtWorks',
+                'title': 'Conversation about Hexagonal Rails Part 1',
                 'description': 'a Martin Fowler video from ThoughtWorks',
                 'duration': 1715.0,
                 'uploader': 'thoughtworks.wistia.com',
-                'upload_date': '20140603',
                 'timestamp': 1401832161,
+                'upload_date': '20140603',
             },
+        },
+        # Wistia standard embed (async)
+        {
+            'url': 'https://www.getdrip.com/university/brennan-dunn-drip-workshop/',
+            'info_dict': {
+                'id': '807fafadvk',
+                'ext': 'mp4',
+                'title': 'Drip Brennan Dunn Workshop',
+                'description': 'a JV Webinars video from getdrip-1',
+                'duration': 4986.95,
+                'timestamp': 1463607249,
+                'upload_date': '20160518',
+            },
+            'params': {
+                'skip_download': True,
+            }
         },
         # Soundcloud embed
         {
@@ -763,6 +783,19 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20141112',
                 'title': 'Rosetta #CometLanding webcast HL 10',
             }
+        },
+        # Another Livestream embed, without 'new.' in URL
+        {
+            'url': 'https://www.freespeech.org/',
+            'info_dict': {
+                'id': '123537347',
+                'ext': 'mp4',
+                'title': 're:^FSTV [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            },
+            'params': {
+                # Live stream
+                'skip_download': True,
+            },
         },
         # LazyYT
         {
@@ -1174,6 +1207,16 @@ class GenericIE(InfoExtractor):
                 'uploader': 'Lake8737',
             }
         },
+        # Duplicated embedded video URLs
+        {
+            'url': 'http://www.hudl.com/athlete/2538180/highlights/149298443',
+            'info_dict': {
+                'id': '149298443_480_16c25b74_2',
+                'ext': 'mp4',
+                'title': 'vs. Blue Orange Spring Game',
+                'uploader': 'www.hudl.com',
+            },
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -1480,6 +1523,11 @@ class GenericIE(InfoExtractor):
         if bc_urls:
             return _playlist_from_matches(bc_urls, ie='BrightcoveNew')
 
+        # Look for ThePlatform embeds
+        tp_urls = ThePlatformIE._extract_urls(webpage)
+        if tp_urls:
+            return _playlist_from_matches(tp_urls, ie='ThePlatform')
+
         # Look for embedded rtl.nl player
         matches = re.findall(
             r'<iframe[^>]+?src="((?:https?:)?//(?:www\.)?rtl\.nl/system/videoplayer/[^"]+(?:video_)?embed[^"]+)"',
@@ -1548,20 +1596,25 @@ class GenericIE(InfoExtractor):
                 'url': embed_url,
                 'ie_key': 'Wistia',
                 'uploader': video_uploader,
-                'title': video_title,
-                'id': video_id,
             }
 
         match = re.search(r'(?:id=["\']wistia_|data-wistia-?id=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
         if match:
             return {
                 '_type': 'url_transparent',
-                'url': 'http://fast.wistia.net/embed/iframe/{0:}'.format(match.group('id')),
+                'url': 'wistia:%s' % match.group('id'),
                 'ie_key': 'Wistia',
                 'uploader': video_uploader,
-                'title': video_title,
-                'id': match.group('id')
             }
+
+        match = re.search(
+            r'''(?sx)
+                <script[^>]+src=(["'])(?:https?:)?//fast\.wistia\.com/assets/external/E-v1\.js\1[^>]*>.*?
+                <div[^>]+class=(["']).*?\bwistia_async_(?P<id>[a-z0-9]+)\b.*?\2
+            ''', webpage)
+        if match:
+            return self.url_result(self._proto_relative_url(
+                'wistia:%s' % match.group('id')), 'Wistia')
 
         # Look for SVT player
         svt_url = SVTIE._extract_url(webpage)
@@ -1838,7 +1891,7 @@ class GenericIE(InfoExtractor):
             return self.url_result(self._proto_relative_url(mobj.group('url'), scheme='http:'), 'CondeNast')
 
         mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://new\.livestream\.com/[^"]+/player[^"]+)"',
+            r'<iframe[^>]+src="(?P<url>https?://(?:new\.)?livestream\.com/[^"]+/player[^"]+)"',
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'Livestream')
@@ -2081,7 +2134,7 @@ class GenericIE(InfoExtractor):
             raise UnsupportedError(url)
 
         entries = []
-        for video_url in found:
+        for video_url in orderedSet(found):
             video_url = unescapeHTML(video_url)
             video_url = video_url.replace('\\/', '/')
             video_url = compat_urlparse.urljoin(url, video_url)

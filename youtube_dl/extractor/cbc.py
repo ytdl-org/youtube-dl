@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class CBCIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?cbc\.ca/(?:[^/]+/)+(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?cbc\.ca/(?!player/)(?:[^/]+/)+(?P<id>[^/?#]+)'
     _TESTS = [{
         # with mediaId
         'url': 'http://www.cbc.ca/22minutes/videos/clips-season-23/don-cherry-play-offs',
@@ -28,6 +28,7 @@ class CBCIE(InfoExtractor):
     }, {
         # with clipId
         'url': 'http://www.cbc.ca/archives/entry/1978-robin-williams-freestyles-on-90-minutes-live',
+        'md5': '0274a90b51a9b4971fe005c63f592f12',
         'info_dict': {
             'id': '2487345465',
             'ext': 'mp4',
@@ -91,8 +92,9 @@ class CBCIE(InfoExtractor):
 
 class CBCPlayerIE(InfoExtractor):
     _VALID_URL = r'(?:cbcplayer:|https?://(?:www\.)?cbc\.ca/(?:player/play/|i/caffeine/syndicate/\?mediaId=))(?P<id>\d+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.cbc.ca/player/play/2683190193',
+        'md5': '64d25f841ddf4ddb28a235338af32e2c',
         'info_dict': {
             'id': '2683190193',
             'ext': 'mp4',
@@ -102,7 +104,33 @@ class CBCPlayerIE(InfoExtractor):
             'upload_date': '20160210',
             'uploader': 'CBCC-NEW',
         },
-    }
+    }, {
+        # Redirected from http://www.cbc.ca/player/AudioMobile/All%20in%20a%20Weekend%20Montreal/ID/2657632011/
+        'url': 'http://www.cbc.ca/player/play/2657631896',
+        'md5': 'e5e708c34ae6fca156aafe17c43e8b75',
+        'info_dict': {
+            'id': '2657631896',
+            'ext': 'mp3',
+            'title': 'CBC Montreal is organizing its first ever community hackathon!',
+            'description': 'The modern technology we tend to depend on so heavily, is never without it\'s share of hiccups and headaches. Next weekend - CBC Montreal will be getting members of the public for its first Hackathon.',
+            'timestamp': 1425704400,
+            'upload_date': '20150307',
+            'uploader': 'CBCC-NEW',
+        },
+    }, {
+        # available only when we add `formats=MPEG4,FLV,MP3` to theplatform url
+        'url': 'http://www.cbc.ca/player/play/2164402062',
+        'md5': '17a61eb813539abea40618d6323a7f82',
+        'info_dict': {
+            'id': '2164402062',
+            'ext': 'flv',
+            'title': 'Cancer survivor four times over',
+            'description': 'Tim Mayer has beaten three different forms of cancer four times in five years.',
+            'timestamp': 1320410746,
+            'upload_date': '20111104',
+            'uploader': 'CBCC-NEW',
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -110,7 +138,7 @@ class CBCPlayerIE(InfoExtractor):
             '_type': 'url_transparent',
             'ie_key': 'ThePlatform',
             'url': smuggle_url(
-                'http://link.theplatform.com/s/ExhSPC/media/guid/2655402169/%s?mbr=true' % video_id, {
+                'http://link.theplatform.com/s/ExhSPC/media/guid/2655402169/%s?mbr=true&formats=MPEG4,FLV,MP3' % video_id, {
                     'force_smil_url': True
                 }),
             'id': video_id,
