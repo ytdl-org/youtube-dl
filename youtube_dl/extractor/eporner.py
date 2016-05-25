@@ -24,20 +24,10 @@ class EpornerIE(InfoExtractor):
             'view_count': int,
             'age_limit': 18,
         },
-    },
-    # New (May 2016) URL layout
-    {
+    }, {
+        # New (May 2016) URL layout
         'url': 'http://www.eporner.com/hd-porn/3YRUtzMcWn0/Star-Wars-XXX-Parody/',
-        'md5': '3469eeaa93b6967a34cdbdbb9d064b33',
-        'info_dict': {
-            'id': '3YRUtzMcWn0',
-            'display_id': 'Star-Wars-XXX-Parody',
-            'ext': 'mp4',
-            'title': 'Star Wars XXX Parody',
-            'duration': 361.0,
-            'view_count': int,
-            'age_limit': 18,
-        },
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
