@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import RegexNotFoundError
 import re
 
 
@@ -26,6 +27,15 @@ class BlickIE(InfoExtractor):
             'thumbnail': 'http://f.blick.ch/img/incoming/crop5066860/5146024130-csquare-w300-h300/Bildschirmfoto-2016-05-23-um-14.jpg',
             'description': 'Da ist Papa Heinz mächtig stolz. Seine Tochter Alessandra Günthardt ist für einen schwedischen Musik-Preis unter den drei Nominierten. Die Abstimmung läuft noch bis 7. Juni.'
         }
+    }, {
+        'url': 'http://www.blick.ch/sport/fussball/superleague/totomat-fehler-in-sion-fcz-buff-stinksauer-wegen-falschem-lugano-resultat-id5063421.html',
+        'info_dict': {
+            'id': '5063421',
+            'ext': 'mp4',
+            'title': 'totomat-fehler-in-sion-fcz-buff-stinksauer-wegen-falschem-lugano-resultat',
+            'thumbnail': 'http://f.blick.ch/img/incoming/crop5063475/820602933-csquare-w300-h300/Bildschirmfoto-2016-05-22-um-19.jpg',
+            'description': 'Der FC Zürich bleibt das Schlusslicht der Raiffeisen Super League. Einen dicken Hals bekommen Buff und Co. aber wegen einer falschen Resultatanzeige aus dem Ländle.',
+        }
     }]
 
     def _real_extract(self, url):
@@ -33,10 +43,27 @@ class BlickIE(InfoExtractor):
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
 
-        found_videos_og = re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)
-        found_videos_ogs = re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage)
-        found_videos_meta = re.findall(r'<meta.*?itemprop="contentURL".*?content="(.*?)"', webpage)
-        found_videos = found_videos_og + found_videos_ogs + found_videos_meta
+        found_videos = []
+        regex_og = self._og_regexes('video')
+        regex_ogs = self._og_regexes('video:secure_url')
+        try:
+            video_og = self._html_search_regex(regex_og, webpage, name=None)
+            found_videos.append(video_og)
+        except RegexNotFoundError:
+            pass
+        try:
+            video_ogs = self._html_search_regex(regex_ogs, webpage, name=None)
+            if video_ogs not in found_videos:
+                found_videos.append(video_ogs)
+        except RegexNotFoundError:
+            pass
+        try:
+            video_meta = self._html_search_meta('contentURL', webpage)
+            if video_meta not in found_videos:
+                found_videos.append(video_meta)
+        except RegexNotFoundError:
+            pass
+
         video_url = ''
         for video in found_videos:
             if re.match(r'.*detect\.mp4', video):
