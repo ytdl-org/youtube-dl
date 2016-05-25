@@ -57,6 +57,8 @@ class FlipagramIE(InfoExtractor):
                 'height': int_or_none(cover.get('height')),
             })
 
+        # Note that this only retrieves comments that are initally loaded.
+        # For videos with large amounts of comments, most won't be retrieved.
         comments = []
         for comment in user_data.get('comments', {}).get(video_id, {}).get('items', []):
             text = comment.get('comment', [])
