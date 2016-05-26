@@ -60,7 +60,7 @@ class PlaywireIE(InfoExtractor):
         thumbnail = content.get('poster')
         src = content['media']['f4m']
 
-        formats = self._extract_f4m_formats(src, video_id, assume_f4mv2=True, m3u8_id='hls')
+        formats = self._extract_f4m_formats(src, video_id, m3u8_id='hls')
         for a_format in formats:
             if not dict_get(a_format, ['tbr', 'width', 'height']):
                 a_format['quality'] = 1 if '-hd.' in a_format['url'] else 0

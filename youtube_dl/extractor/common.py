@@ -987,7 +987,7 @@ class InfoExtractor(object):
 
     def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None,
                              transform_source=lambda s: fix_xml_ampersands(s).strip(),
-                             fatal=True, assume_f4mv2=False, m3u8_id=None):
+                             fatal=True, m3u8_id=None):
         manifest = self._download_xml(
             manifest_url, video_id, 'Downloading f4m manifest',
             'Unable to download f4m manifest',
@@ -1001,12 +1001,11 @@ class InfoExtractor(object):
 
         return self._parse_f4m_formats(
             manifest, manifest_url, video_id, preference=preference, f4m_id=f4m_id,
-            transform_source=transform_source, fatal=fatal, assume_f4mv2=assume_f4mv2,
-            m3u8_id=m3u8_id)
+            transform_source=transform_source, fatal=fatal, m3u8_id=m3u8_id)
 
     def _parse_f4m_formats(self, manifest, manifest_url, video_id, preference=None, f4m_id=None,
                            transform_source=lambda s: fix_xml_ampersands(s).strip(),
-                           fatal=True, assume_f4mv2=False, m3u8_id=None):
+                           fatal=True, m3u8_id=None):
         # currently youtube-dl cannot decode the playerVerificationChallenge as Akamai uses Adobe Alchemy
         akamai_pv = manifest.find('{http://ns.adobe.com/f4m/1.0}pv-2.0')
         if akamai_pv is not None and ';' in akamai_pv.text:
@@ -1036,8 +1035,16 @@ class InfoExtractor(object):
             'bootstrap info', default=None)
 
         for i, media_el in enumerate(media_nodes):
-            if manifest_version == '2.0' or assume_f4mv2:
-                media_url = media_el.attrib.get('href') or media_el.attrib.get('url')
+            # If <bootstrapInfo> is present, the specified f4m is a
+            # stream-level manifest, and only set-level manifests may refer to
+            # external resources.  See section 11.4 and section 4 of F4M spec
+            if bootstrap_info is None:
+                media_url = None
+                # @href is introduced in 2.0, see section 11.6 of F4M spec
+                if manifest_version == '2.0':
+                    media_url = media_el.attrib.get('href')
+                if media_url is None:
+                    media_url = media_el.attrib.get('url')
                 if not media_url:
                     continue
                 manifest_url = (
