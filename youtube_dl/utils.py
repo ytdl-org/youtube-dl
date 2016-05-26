@@ -1050,8 +1050,6 @@ def unified_strdate(date_str, day_first=True):
         ])
     for expression in format_expressions:
         try:
-            print(expression)
-            print(date_str)
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
         except ValueError:
             pass
