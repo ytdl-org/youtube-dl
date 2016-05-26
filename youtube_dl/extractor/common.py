@@ -987,7 +987,7 @@ class InfoExtractor(object):
 
     def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None,
                              transform_source=lambda s: fix_xml_ampersands(s).strip(),
-                             fatal=True, assume_f4mv2=False):
+                             fatal=True, assume_f4mv2=False, m3u8_id=None):
         manifest = self._download_xml(
             manifest_url, video_id, 'Downloading f4m manifest',
             'Unable to download f4m manifest',
@@ -1001,11 +1001,12 @@ class InfoExtractor(object):
 
         return self._parse_f4m_formats(
             manifest, manifest_url, video_id, preference=preference, f4m_id=f4m_id,
-            transform_source=transform_source, fatal=fatal, assume_f4mv2=assume_f4mv2)
+            transform_source=transform_source, fatal=fatal, assume_f4mv2=assume_f4mv2,
+            m3u8_id=m3u8_id)
 
     def _parse_f4m_formats(self, manifest, manifest_url, video_id, preference=None, f4m_id=None,
                            transform_source=lambda s: fix_xml_ampersands(s).strip(),
-                           fatal=True, assume_f4mv2=False):
+                           fatal=True, assume_f4mv2=False, m3u8_id=None):
         # currently youtube-dl cannot decode the playerVerificationChallenge as Akamai uses Adobe Alchemy
         akamai_pv = manifest.find('{http://ns.adobe.com/f4m/1.0}pv-2.0')
         if akamai_pv is not None and ';' in akamai_pv.text:
@@ -1046,10 +1047,16 @@ class InfoExtractor(object):
                 # since bitrates in parent manifest (this one) and media_url manifest
                 # may differ leading to inability to resolve the format by requested
                 # bitrate in f4m downloader
-                if determine_ext(manifest_url) == 'f4m':
+                ext = determine_ext(manifest_url)
+                if ext == 'f4m':
                     formats.extend(self._extract_f4m_formats(
                         manifest_url, video_id, preference=preference, f4m_id=f4m_id,
                         transform_source=transform_source, fatal=fatal))
+                    continue
+                elif ext == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        manifest_url, video_id, 'mp4', preference=preference,
+                        m3u8_id=m3u8_id, fatal=False))
                     continue
             tbr = int_or_none(media_el.attrib.get('bitrate'))
             formats.append({
