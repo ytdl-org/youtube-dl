@@ -13,7 +13,7 @@ class BlickIE(InfoExtractor):
         'info_dict': {
             'id': '5070813',
             'ext': 'mp4',
-            'title': 'uli-forte-vor-dem-abstiegs-showdown-ich-gehe-davon-aus-dass-der-fussball-gott-fcz-fan-ist',
+            'title': 'Uli Forte vor dem Abstiegs-Showdown: «Ich gehe davon aus, dass der Fussball-Gott FCZ-Fan ist»',
             'thumbnail': 'http://blick.simplex.tv/content/51/52/70062/simvid_1.jpg',
             'description': 'Am Mittwochabend entscheidet sich, ob der FCZ oder der FC Lugano aus der Super League absteigt. Uli Forte schwört dabei auf den Fussball-Gott und zündet in der Kirche eine Kerze an.'
         }
@@ -22,7 +22,7 @@ class BlickIE(InfoExtractor):
         'info_dict': {
             'id': '5066863',
             'ext': 'mp4',
-            'title': 'nominiert-fuer-musik-preis-in-schweden-so-toll-singt-guenthardts-tochter-alessandra',
+            'title': 'Nominiert für Musik-Preis in Schweden: So toll singt Günthardts Tochter Alessandra',
             'thumbnail': 'http://f.blick.ch/img/incoming/crop5066860/5146024130-csquare-w300-h300/Bildschirmfoto-2016-05-23-um-14.jpg',
             'description': 'Da ist Papa Heinz mächtig stolz. Seine Tochter Alessandra Günthardt ist für einen schwedischen Musik-Preis unter den drei Nominierten. Die Abstimmung läuft noch bis 7. Juni.'
         }
@@ -31,22 +31,21 @@ class BlickIE(InfoExtractor):
         'info_dict': {
             'id': '5063421',
             'ext': 'mp4',
-            'title': 'totomat-fehler-in-sion-fcz-buff-stinksauer-wegen-falschem-lugano-resultat',
+            'title': 'Totomat-Fehler in Sion! FCZ-Buff stinksauer wegen falschem Lugano-Resultat',
             'thumbnail': 'http://f.blick.ch/img/incoming/crop5063475/820602933-csquare-w300-h300/Bildschirmfoto-2016-05-22-um-19.jpg',
             'description': 'Der FC Zürich bleibt das Schlusslicht der Raiffeisen Super League. Einen dicken Hals bekommen Buff und Co. aber wegen einer falschen Resultatanzeige aus dem Ländle.',
         }
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         found_videos = []
         regex_og = self._og_regexes('video')
         regex_ogs = self._og_regexes('video:secure_url')
-        video_og = self._html_search_regex(regex_og, webpage, name=None, default=None, fatal=False)
-        video_ogs = self._html_search_regex(regex_ogs, webpage, name=None, default=None, fatal=False)
+        video_og = self._html_search_regex(regex_og, webpage, name=None, default=None)
+        video_ogs = self._html_search_regex(regex_ogs, webpage, name=None, default=None)
         video_meta = self._html_search_meta('contentURL', webpage, fatal=False, default=None)
         for elem in [video_og, video_ogs, video_meta]:
             if elem:
@@ -66,11 +65,7 @@ class BlickIE(InfoExtractor):
         if not video_url:
             return []
 
-        video_title = str(url)
-        b_ind = video_title.rfind('/') + 1
-        e_ind = video_title.rfind('-id')
-        video_title = video_title[b_ind:e_ind]
-
+        video_title = self._og_search_title(webpage)
         video_description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
 
@@ -87,32 +82,31 @@ class BlickIE(InfoExtractor):
             ext='mp4',
             entry_protocol='m3u8_native')
 
-        if entry_info_dict.get('formats'):
-            self._sort_formats(entry_info_dict['formats'])
+        self._sort_formats(entry_info_dict['formats'])
 
-            # Remove entries containing a url to an index.m3u8 file
-            cleaned_formats = [x for x in entry_info_dict['formats'] if x.get('format_id') != 'meta']
-            entry_info_dict['formats'] = cleaned_formats
+        # Remove entries containing a url to an index.m3u8 file
+        cleaned_formats = [x for x in entry_info_dict['formats'] if x.get('format_id') != 'meta']
+        entry_info_dict['formats'] = cleaned_formats
 
-            duration_found = False
-            duration = None
-            attr = ''
-            for elem in entry_info_dict.get('formats'):
-                if not duration_found:
-                    duration = self.calculateDuration(elem['url'], video_id)
-                    duration_found = True if duration else False
-                tbr = elem.get('tbr')
-                try:
-                    attr = ''
-                    if tbr < 1000:
-                        attr = 'lq'
-                    elif tbr >= 1000 and tbr < 2000:
-                        attr = 'sq'
-                    elif tbr >= 2000:
-                        attr = 'hq'
-                except TypeError:
-                    attr = 'un'
-                elem['format_id'] = attr + '-' + str(tbr)
+        duration_found = False
+        duration = None
+        attr = ''
+        for elem in entry_info_dict.get('formats'):
+            if not duration_found:
+                duration = self.calculateDuration(elem['url'], video_id)
+                duration_found = True if duration else False
+            tbr = elem.get('tbr')
+            try:
+                attr = ''
+                if tbr < 1000:
+                    attr = 'lq'
+                elif tbr >= 1000 and tbr < 2000:
+                    attr = 'sq'
+                elif tbr >= 2000:
+                    attr = 'hq'
+            except TypeError:
+                attr = 'un'
+            elem['format_id'] = attr + '-' + str(tbr)
         entry_info_dict['duration'] = duration
         return entry_info_dict
 
