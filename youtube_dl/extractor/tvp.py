@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -6,20 +6,13 @@ import re
 from .common import InfoExtractor
 
 
-class TvpIE(InfoExtractor):
-    IE_NAME = 'tvp.pl'
-    _VALID_URL = r'https?://(?:vod|www)\.tvp\.pl/.*/(?P<id>\d+)$'
+class TVPIE(InfoExtractor):
+    IE_NAME = 'tvp'
+    IE_DESC = 'Telewizja Polska'
+    _VALID_URL = r'https?://[^/]+\.tvp\.(?:pl|info)/(?:(?!\d+/)[^/]+/)*(?P<id>\d+)'
 
     _TESTS = [{
-        'url': 'http://vod.tvp.pl/filmy-fabularne/filmy-za-darmo/ogniem-i-mieczem/wideo/odc-2/4278035',
-        'md5': 'cdd98303338b8a7f7abab5cd14092bf2',
-        'info_dict': {
-            'id': '4278035',
-            'ext': 'wmv',
-            'title': 'Ogniem i mieczem, odc. 2',
-        },
-    }, {
-        'url': 'http://vod.tvp.pl/seriale/obyczajowe/czas-honoru/sezon-1-1-13/i-seria-odc-13/194536',
+        'url': 'http://vod.tvp.pl/194536/i-seria-odc-13',
         'md5': '8aa518c15e5cc32dfe8db400dc921fbb',
         'info_dict': {
             'id': '194536',
@@ -36,12 +29,22 @@ class TvpIE(InfoExtractor):
         },
     }, {
         'url': 'http://vod.tvp.pl/seriale/obyczajowe/na-sygnale/sezon-2-27-/odc-39/17834272',
-        'md5': 'c3b15ed1af288131115ff17a17c19dda',
-        'info_dict': {
-            'id': '17834272',
-            'ext': 'mp4',
-            'title': 'Na sygnale, odc. 39',
-        },
+        'only_matching': True,
+    }, {
+        'url': 'http://wiadomosci.tvp.pl/25169746/24052016-1200',
+        'only_matching': True,
+    }, {
+        'url': 'http://krakow.tvp.pl/25511623/25lecie-mck-wyjatkowe-miejsce-na-mapie-krakowa',
+        'only_matching': True,
+    }, {
+        'url': 'http://teleexpress.tvp.pl/25522307/wierni-wzieli-udzial-w-procesjach',
+        'only_matching': True,
+    }, {
+        'url': 'http://sport.tvp.pl/25522165/krychowiak-uspokaja-w-sprawie-kontuzji-dwa-tygodnie-to-maksimum',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tvp.info/25511919/trwa-rewolucja-wladza-zdecydowala-sie-na-pogwalcenie-konstytucji',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -92,8 +95,8 @@ class TvpIE(InfoExtractor):
         }
 
 
-class TvpSeriesIE(InfoExtractor):
-    IE_NAME = 'tvp.pl:Series'
+class TVPSeriesIE(InfoExtractor):
+    IE_NAME = 'tvp:series'
     _VALID_URL = r'https?://vod\.tvp\.pl/(?:[^/]+/){2}(?P<id>[^/]+)/?$'
 
     _TESTS = [{
@@ -127,7 +130,7 @@ class TvpSeriesIE(InfoExtractor):
         videos_paths = re.findall(
             '(?s)class="shortTitle">.*?href="(/[^"]+)', playlist)
         entries = [
-            self.url_result('http://vod.tvp.pl%s' % v_path, ie=TvpIE.ie_key())
+            self.url_result('http://vod.tvp.pl%s' % v_path, ie=TVPIE.ie_key())
             for v_path in videos_paths]
 
         return {
