@@ -1035,6 +1035,10 @@ class InfoExtractor(object):
             'bootstrap info', default=None)
 
         for i, media_el in enumerate(media_nodes):
+            tbr = int_or_none(media_el.attrib.get('bitrate'))
+            width = int_or_none(media_el.attrib.get('width'))
+            height = int_or_none(media_el.attrib.get('height'))
+            format_id = '-'.join(filter(None, [f4m_id, compat_str(i if tbr is None else tbr)]))
             # If <bootstrapInfo> is present, the specified f4m is a
             # stream-level manifest, and only set-level manifests may refer to
             # external resources.  See section 11.4 and section 4 of F4M spec
@@ -1056,23 +1060,35 @@ class InfoExtractor(object):
                 # bitrate in f4m downloader
                 ext = determine_ext(manifest_url)
                 if ext == 'f4m':
-                    formats.extend(self._extract_f4m_formats(
+                    f4m_formats = self._extract_f4m_formats(
                         manifest_url, video_id, preference=preference, f4m_id=f4m_id,
-                        transform_source=transform_source, fatal=fatal))
+                        transform_source=transform_source, fatal=fatal)
+                    # Sometimes stream-level manifest contains single media entry that
+                    # does not contain any quality metadata (e.g. http://matchtv.ru/#live-player).
+                    # At the same time parent's media entry in set-level manifest may
+                    # contain it. We will copy it from parent in such cases.
+                    if len(f4m_formats) == 1:
+                        f = f4m_formats[0]
+                        f.update({
+                            'tbr': f.get('tbr') or tbr,
+                            'width': f.get('width') or width,
+                            'height': f.get('height') or height,
+                            'format_id': f.get('format_id') if not tbr else format_id,
+                        })
+                    formats.extend(f4m_formats)
                     continue
                 elif ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
                         manifest_url, video_id, 'mp4', preference=preference,
                         m3u8_id=m3u8_id, fatal=fatal))
                     continue
-            tbr = int_or_none(media_el.attrib.get('bitrate'))
             formats.append({
-                'format_id': '-'.join(filter(None, [f4m_id, compat_str(i if tbr is None else tbr)])),
+                'format_id': format_id,
                 'url': manifest_url,
                 'ext': 'flv' if bootstrap_info else None,
                 'tbr': tbr,
-                'width': int_or_none(media_el.attrib.get('width')),
-                'height': int_or_none(media_el.attrib.get('height')),
+                'width': width,
+                'height': height,
                 'preference': preference,
             })
         return formats
