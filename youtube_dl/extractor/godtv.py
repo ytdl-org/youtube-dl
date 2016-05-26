@@ -7,7 +7,7 @@ from .ooyala import OoyalaIE
 
 
 class GodTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?god\.tv(?:/[a-z0-9-]+)+/(?P<display_id>)'
+    _VALID_URL = r'https?://(?:www\.)?god\.tv(?:/[a-z0-9-]+)+/(?P<display_id>[a-z0-9-]+)'
     _TEST = {
         'url': 'http://god.tv/jesus-image/video/jesus-conference-2016/randy-needham',
         'info_dict': {
