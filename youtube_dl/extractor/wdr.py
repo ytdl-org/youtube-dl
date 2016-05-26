@@ -9,6 +9,7 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    strip_jsonp,
     unified_strdate,
     ExtractorError,
 )
@@ -112,9 +113,8 @@ class WDRIE(InfoExtractor):
 
             raise ExtractorError('No downloadable streams found', expected=True)
 
-        js_data = self._download_webpage(js_url, 'metadata')
-        json_data = self._search_regex(r'\(({.*})\)', js_data, 'json')
-        metadata = self._parse_json(json_data, display_id)
+        metadata = self._download_json(
+            js_url, 'metadata', transform_source=strip_jsonp)
 
         metadata_tracker_data = metadata['trackerData']
         metadata_media_resource = metadata['mediaResource']
