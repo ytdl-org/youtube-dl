@@ -6,7 +6,56 @@ import re
 from .common import InfoExtractor
 
 
-class TvpIE(InfoExtractor):
+class _TvpCommonIE(InfoExtractor):
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(
+            'http://www.tvp.pl/sess/tvplayer.php?object_id=%s' % video_id, video_id)
+
+        title = self._search_regex(
+            r'name\s*:\s*([\'"])Title\1\s*,\s*value\s*:\s*\1(?P<title>.+?)\1',
+            webpage, 'title', group='title')
+        series_title = self._search_regex(
+            r'name\s*:\s*([\'"])SeriesTitle\1\s*,\s*value\s*:\s*\1(?P<series>.+?)\1',
+            webpage, 'series', group='series', default=None)
+        if series_title:
+            title = '%s, %s' % (series_title, title)
+
+        thumbnail = self._search_regex(
+            r"poster\s*:\s*'([^']+)'", webpage, 'thumbnail', default=None)
+
+        video_url = self._search_regex(
+            r'0:{src:([\'"])(?P<url>.*?)\1', webpage, 'formats', group='url', default=None)
+        if not video_url:
+            video_url = self._download_json(
+                'http://www.tvp.pl/pub/stat/videofileinfo?video_id=%s' % video_id,
+                video_id)['video_url']
+
+        ext = video_url.rsplit('.', 1)[-1]
+        if ext == 'ism/manifest':
+            m3u8_url = re.sub('([^/]*)\.ism/manifest', r'\1.ism/\1.m3u8', video_url)
+            formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
+        else:
+            if '/' in ext:
+                ext = 'mp4'
+            formats = [{
+                'format_id': 'direct',
+                'url': video_url,
+                'ext': ext,
+            }]
+
+        self._sort_formats(formats)
+
+        return {
+            'id': video_id,
+            'title': title,
+            'thumbnail': thumbnail,
+            'formats': formats,
+        }
+
+
+class TvpIE(_TvpCommonIE):
     IE_NAME = 'tvp.pl'
     _VALID_URL = r'https?://(?:vod|www)\.tvp\.pl/.*/(?P<id>\d+)$'
 
@@ -44,52 +93,20 @@ class TvpIE(InfoExtractor):
         },
     }]
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
 
-        webpage = self._download_webpage(
-            'http://www.tvp.pl/sess/tvplayer.php?object_id=%s' % video_id, video_id)
+class TvpWiadomosciIE(_TvpCommonIE):
+    IE_NAME = 'wiadomosci.tvp.pl'
+    _VALID_URL = r'https?://wiadomosci\.tvp\.pl/(?P<id>\d+)/.*$'
 
-        title = self._search_regex(
-            r'name\s*:\s*([\'"])Title\1\s*,\s*value\s*:\s*\1(?P<title>.+?)\1',
-            webpage, 'title', group='title')
-        series_title = self._search_regex(
-            r'name\s*:\s*([\'"])SeriesTitle\1\s*,\s*value\s*:\s*\1(?P<series>.+?)\1',
-            webpage, 'series', group='series', default=None)
-        if series_title:
-            title = '%s, %s' % (series_title, title)
-
-        thumbnail = self._search_regex(
-            r"poster\s*:\s*'([^']+)'", webpage, 'thumbnail', default=None)
-
-        video_url = self._search_regex(
-            r'0:{src:([\'"])(?P<url>.*?)\1', webpage, 'formats', group='url', default=None)
-        if not video_url:
-            video_url = self._download_json(
-                'http://www.tvp.pl/pub/stat/videofileinfo?video_id=%s' % video_id,
-                video_id)['video_url']
-
-        ext = video_url.rsplit('.', 1)[-1]
-        if ext != 'ism/manifest':
-            if '/' in ext:
-                ext = 'mp4'
-            formats = [{
-                'format_id': 'direct',
-                'url': video_url,
-                'ext': ext,
-            }]
-        else:
-            m3u8_url = re.sub('([^/]*)\.ism/manifest', r'\1.ism/\1.m3u8', video_url)
-            formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
-
-        self._sort_formats(formats)
-
-        return {
-            'id': video_id,
-            'title': title,
-            'thumbnail': thumbnail,
-            'formats': formats,
+    _TESTS = [{
+        'url': 'http://wiadomosci.tvp.pl/25169746/24052016-1200',
+        'md5': 'ac104f7adc03b324d1fecfa0fbcfcdb8',
+        'info_dict': {
+            'id': '25169746',
+            'ext': 'mp4',
+            'title': 'Wiadomości, 24.05.2016, 12:00'
         }
+    }]
 
 
 class TvpSeriesIE(InfoExtractor):
