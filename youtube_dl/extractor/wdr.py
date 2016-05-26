@@ -72,7 +72,7 @@ class WDRIE(InfoExtractor):
         },
         {
             'url': 'http://www1.wdr.de/mediathek/video/sendungen/aktuelle-stunde/aktuelle-stunde-120.html',
-            'playlist_mincount': 10,
+            'playlist_mincount': 8,
             'info_dict': {
                 'id': 'aktuelle-stunde/aktuelle-stunde-120',
             },
@@ -121,7 +121,7 @@ class WDRIE(InfoExtractor):
             entries = [
                 self.url_result(page_url + href[0], 'WDR')
                 for href in re.findall(
-                    r'<a href="(%s)"' % self._PAGE_REGEX,
+                    r'<a href="(%s)"[^>]+data-extension=' % self._PAGE_REGEX,
                     webpage)
             ]
 
