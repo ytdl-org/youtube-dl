@@ -1063,7 +1063,7 @@ class InfoExtractor(object):
                 elif ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
                         manifest_url, video_id, 'mp4', preference=preference,
-                        m3u8_id=m3u8_id, fatal=False))
+                        m3u8_id=m3u8_id, fatal=fatal))
                     continue
             tbr = int_or_none(media_el.attrib.get('bitrate'))
             formats.append({
