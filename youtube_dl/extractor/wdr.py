@@ -10,6 +10,7 @@ from ..compat import (
 )
 from ..utils import (
     determine_ext,
+    js_to_json,
     strip_jsonp,
     unified_strdate,
     ExtractorError,
@@ -20,8 +21,6 @@ class WDRIE(InfoExtractor):
     _CURRENT_MAUS_URL = r'https?://www.wdrmaus.de/aktuelle-sendung/(wdr|index).php5'
     _PAGE_REGEX = r'/mediathek/(?P<media_type>[^/]+)/(?P<type>[^/]+)/(?P<display_id>.+)\.html'
     _VALID_URL = r'(?P<page_url>https?://(?:www\d\.)?wdr\d?\.de)' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL
-
-    _JS_URL_REGEX = r'(https?://deviceids-medp.wdr.de/ondemand/\d+/\d+\.js)'
 
     _TESTS = [
         {
@@ -102,9 +101,13 @@ class WDRIE(InfoExtractor):
         display_id = mobj.group('display_id')
         webpage = self._download_webpage(url, display_id)
 
-        js_url = self._search_regex(self._JS_URL_REGEX, webpage, 'js_url', default=None)
+        # for wdr.de the data-extension is in a tag with the class "mediaLink"
+        # for wdrmaus its in a link to the page in a multiline "videoLink"-tag
+        json_metadata = self._html_search_regex(
+            r'class=(?:"mediaLink\b[^"]*"[^>]+|"videoLink\b[^"]*"[\s]*>\n[^\n]*)data-extension="([^"]+)"',
+            webpage, 'media link', default=None, flags=re.MULTILINE)
 
-        if not js_url:
+        if not json_metadata:
             entries = [
                 self.url_result(page_url + href[0], 'WDR')
                 for href in re.findall(
@@ -117,8 +120,12 @@ class WDRIE(InfoExtractor):
 
             raise ExtractorError('No downloadable streams found', expected=True)
 
+        media_link_obj = self._parse_json(json_metadata, display_id,
+                                          transform_source=js_to_json)
+        jsonp_url = media_link_obj['mediaObj']['url']
+
         metadata = self._download_json(
-            js_url, 'metadata', transform_source=strip_jsonp)
+            jsonp_url, 'metadata', transform_source=strip_jsonp)
 
         metadata_tracker_data = metadata['trackerData']
         metadata_media_resource = metadata['mediaResource']
