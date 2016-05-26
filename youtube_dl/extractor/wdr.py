@@ -9,6 +9,7 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    determine_ext,
     strip_jsonp,
     unified_strdate,
     ExtractorError,
@@ -61,7 +62,7 @@ class WDRIE(InfoExtractor):
             'url': 'http://www1.wdr.de/mediathek/video/live/index.html',
             'info_dict': {
                 'id': 'mdb-103364',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'display_id': 'index',
                 'title': r're:^WDR Fernsehen im Livestream [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
                 'alt_title': 'WDR Fernsehen Live',
@@ -69,7 +70,10 @@ class WDRIE(InfoExtractor):
                 'description': 'md5:ae2ff888510623bf8d4b115f95a9b7c9',
                 'is_live': True,
                 'subtitles': {}
-            }
+            },
+            'params': {
+                'skip_download': True,  # m3u8 download
+            },
         },
         {
             'url': 'http://www1.wdr.de/mediathek/video/sendungen/aktuelle-stunde/aktuelle-stunde-120.html',
@@ -126,9 +130,16 @@ class WDRIE(InfoExtractor):
         if metadata_media_alt:
             for tag_name in ['videoURL', 'audioURL']:
                 if tag_name in metadata_media_alt:
-                    formats.append({
-                        'url': metadata_media_alt[tag_name]
-                    })
+                    alt_url = metadata_media_alt[tag_name]
+                    if determine_ext(alt_url) == 'm3u8':
+                        m3u_fmt = self._extract_m3u8_formats(
+                            alt_url, display_id, 'mp4', 'm3u8_native',
+                            m3u8_id='hls')
+                        formats.extend(m3u_fmt)
+                    else:
+                        formats.append({
+                            'url': alt_url
+                        })
 
         # check if there are flash-streams for this video
         if 'dflt' in metadata_media_resource and 'videoURL' in metadata_media_resource['dflt']:
