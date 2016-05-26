@@ -22,6 +22,18 @@ class PlaywireIE(InfoExtractor):
             'duration': 145.94,
         },
     }, {
+        # m3u8 in f4m
+        'url': 'http://config.playwire.com/21772/videos/v2/4840492/zeus.json',
+        'info_dict': {
+            'id': '4840492',
+            'ext': 'mp4',
+            'title': 'ITV EL SHOW FULL',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
         # Multiple resolutions while bitrates missing
         'url': 'http://cdn.playwire.com/11625/embed/85228.html',
         'only_matching': True,
@@ -48,7 +60,7 @@ class PlaywireIE(InfoExtractor):
         thumbnail = content.get('poster')
         src = content['media']['f4m']
 
-        formats = self._extract_f4m_formats(src, video_id, assume_f4mv2=True)
+        formats = self._extract_f4m_formats(src, video_id, assume_f4mv2=True, m3u8_id='hls')
         for a_format in formats:
             if not dict_get(a_format, ['tbr', 'width', 'height']):
                 a_format['quality'] = 1 if '-hd.' in a_format['url'] else 0
