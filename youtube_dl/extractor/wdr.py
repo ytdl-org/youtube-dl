@@ -4,10 +4,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_urlparse,
-)
 from ..utils import (
     determine_ext,
     js_to_json,
@@ -18,7 +14,7 @@ from ..utils import (
 
 
 class WDRIE(InfoExtractor):
-    _CURRENT_MAUS_URL = r'https?://www.wdrmaus.de/aktuelle-sendung/(wdr|index).php5'
+    _CURRENT_MAUS_URL = r'https?://(?:www\.)wdrmaus.de/(?:[^/]+/){1,2}[^/?#]+\.php5'
     _PAGE_REGEX = r'/mediathek/(?P<media_type>[^/]+)/(?P<type>[^/]+)/(?P<display_id>.+)\.html'
     _VALID_URL = r'(?P<page_url>https?://(?:www\d\.)?wdr\d?\.de)' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL
 
@@ -91,6 +87,20 @@ class WDRIE(InfoExtractor):
                 'description': '- Die Sendung mit der Maus -',
             },
             'skip': 'The id changes from week to week because of the new episode'
+        },
+        {
+            'url': 'http://www.wdrmaus.de/sachgeschichten/sachgeschichten/achterbahn.php5',
+            'md5': 'ca365705551e4bd5217490f3b0591290',
+            'info_dict': {
+                'id': 'mdb-186083',
+                'ext': 'flv',
+                'upload_date': '20130919',
+                'title': 'Sachgeschichte - Achterbahn ',
+                'description': '- Die Sendung mit der Maus -',
+            },
+            'params': {
+                'skip_download': True,  # the file has different versions :(
+            },
         },
     ]
 
@@ -221,73 +231,4 @@ class WDRMobileIE(InfoExtractor):
             'http_headers': {
                 'User-Agent': 'mobile',
             },
-        }
-
-
-class WDRMausIE(InfoExtractor):
-    _VALID_URL = 'https?://(?:www\.)?wdrmaus\.de/(?:[^/]+/){,2}(?P<id>[^/?#]+)((?<!index)\.php5|/(?:$|[?#]))'
-    IE_DESC = 'Sendung mit der Maus'
-    _TESTS = [{
-        'url': 'http://www.wdrmaus.de/sachgeschichten/sachgeschichten/achterbahn.php5',
-        'md5': '178b432d002162a14ccb3e0876741095',
-        'info_dict': {
-            'id': 'achterbahn',
-            'ext': 'mp4',
-            'thumbnail': 're:^http://.+\.jpg',
-            'upload_date': '20131001',
-            'title': '19.09.2013 - Achterbahn',
-        }
-    }]
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, video_id)
-        param_code = self._html_search_regex(
-            r'<a href="\?startVideo=1&amp;([^"]+)"', webpage, 'parameters')
-
-        title_date = self._search_regex(
-            r'<div class="sendedatum"><p>Sendedatum:\s*([0-9\.]+)</p>',
-            webpage, 'air date')
-        title_str = self._html_search_regex(
-            r'<h1>(.*?)</h1>', webpage, 'title')
-        title = '%s - %s' % (title_date, title_str)
-        upload_date = unified_strdate(
-            self._html_search_meta('dc.date', webpage))
-
-        fields = compat_parse_qs(param_code)
-        video_url = fields['firstVideo'][0]
-        thumbnail = compat_urlparse.urljoin(url, fields['startPicture'][0])
-
-        formats = [{
-            'format_id': 'rtmp',
-            'url': video_url,
-        }]
-
-        jscode = self._download_webpage(
-            'http://www.wdrmaus.de/codebase/js/extended-medien.min.js',
-            video_id, fatal=False,
-            note='Downloading URL translation table',
-            errnote='Could not download URL translation table')
-        if jscode:
-            for m in re.finditer(
-                    r"stream:\s*'dslSrc=(?P<stream>[^']+)',\s*download:\s*'(?P<dl>[^']+)'\s*\}",
-                    jscode):
-                if video_url.startswith(m.group('stream')):
-                    http_url = video_url.replace(
-                        m.group('stream'), m.group('dl'))
-                    formats.append({
-                        'format_id': 'http',
-                        'url': http_url,
-                    })
-                    break
-
-        self._sort_formats(formats)
-
-        return {
-            'id': video_id,
-            'title': title,
-            'formats': formats,
-            'thumbnail': thumbnail,
-            'upload_date': upload_date,
         }

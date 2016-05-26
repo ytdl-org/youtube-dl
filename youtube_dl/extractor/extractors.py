@@ -923,7 +923,6 @@ from .wat import WatIE
 from .wdr import (
     WDRIE,
     WDRMobileIE,
-    WDRMausIE,
 )
 from .webofstories import (
     WebOfStoriesIE,
