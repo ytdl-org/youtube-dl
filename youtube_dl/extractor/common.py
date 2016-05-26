@@ -987,7 +987,7 @@ class InfoExtractor(object):
 
     def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None,
                              transform_source=lambda s: fix_xml_ampersands(s).strip(),
-                             fatal=True):
+                             fatal=True, assume_f4mv2=False):
         manifest = self._download_xml(
             manifest_url, video_id, 'Downloading f4m manifest',
             'Unable to download f4m manifest',
@@ -1001,11 +1001,11 @@ class InfoExtractor(object):
 
         return self._parse_f4m_formats(
             manifest, manifest_url, video_id, preference=preference, f4m_id=f4m_id,
-            transform_source=transform_source, fatal=fatal)
+            transform_source=transform_source, fatal=fatal, assume_f4mv2=assume_f4mv2)
 
     def _parse_f4m_formats(self, manifest, manifest_url, video_id, preference=None, f4m_id=None,
                            transform_source=lambda s: fix_xml_ampersands(s).strip(),
-                           fatal=True):
+                           fatal=True, assume_f4mv2=False):
         # currently youtube-dl cannot decode the playerVerificationChallenge as Akamai uses Adobe Alchemy
         akamai_pv = manifest.find('{http://ns.adobe.com/f4m/1.0}pv-2.0')
         if akamai_pv is not None and ';' in akamai_pv.text:
@@ -1029,8 +1029,13 @@ class InfoExtractor(object):
             'base URL', default=None)
         if base_url:
             base_url = base_url.strip()
+
+        bootstrap_info = xpath_text(
+            manifest, ['{http://ns.adobe.com/f4m/1.0}bootstrapInfo', '{http://ns.adobe.com/f4m/2.0}bootstrapInfo'],
+            'bootstrap info', default=None)
+
         for i, media_el in enumerate(media_nodes):
-            if manifest_version == '2.0':
+            if manifest_version == '2.0' or assume_f4mv2:
                 media_url = media_el.attrib.get('href') or media_el.attrib.get('url')
                 if not media_url:
                     continue
@@ -1050,7 +1055,7 @@ class InfoExtractor(object):
             formats.append({
                 'format_id': '-'.join(filter(None, [f4m_id, compat_str(i if tbr is None else tbr)])),
                 'url': manifest_url,
-                'ext': 'flv',
+                'ext': 'flv' if bootstrap_info else None,
                 'tbr': tbr,
                 'width': int_or_none(media_el.attrib.get('width')),
                 'height': int_or_none(media_el.attrib.get('height')),
