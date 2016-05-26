@@ -4,9 +4,8 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    xpath_text,
+    dict_get,
     float_or_none,
-    int_or_none,
 )
 
 
@@ -23,6 +22,7 @@ class PlaywireIE(InfoExtractor):
             'duration': 145.94,
         },
     }, {
+        # Multiple resolutions while bitrates missing
         'url': 'http://cdn.playwire.com/11625/embed/85228.html',
         'only_matching': True,
     }, {
@@ -48,25 +48,10 @@ class PlaywireIE(InfoExtractor):
         thumbnail = content.get('poster')
         src = content['media']['f4m']
 
-        f4m = self._download_xml(src, video_id)
-        base_url = xpath_text(f4m, './{http://ns.adobe.com/f4m/1.0}baseURL', 'base url', fatal=True)
-        formats = []
-        for media in f4m.findall('./{http://ns.adobe.com/f4m/1.0}media'):
-            media_url = media.get('url')
-            if not media_url:
-                continue
-            tbr = int_or_none(media.get('bitrate'))
-            width = int_or_none(media.get('width'))
-            height = int_or_none(media.get('height'))
-            f = {
-                'url': '%s/%s' % (base_url, media.attrib['url']),
-                'tbr': tbr,
-                'width': width,
-                'height': height,
-            }
-            if not (tbr or width or height):
-                f['quality'] = 1 if '-hd.' in media_url else 0
-            formats.append(f)
+        formats = self._extract_f4m_formats(src, video_id, assume_f4mv2=True)
+        for a_format in formats:
+            if not dict_get(a_format, ['tbr', 'width', 'height']):
+                a_format['quality'] = 1 if '-hd.' in a_format['url'] else 0
         self._sort_formats(formats)
 
         return {
