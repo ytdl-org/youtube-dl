@@ -84,10 +84,6 @@ class BlickIE(InfoExtractor):
 
         self._sort_formats(entry_info_dict['formats'])
 
-        # Remove entries containing a url to an index.m3u8 file
-        cleaned_formats = [x for x in entry_info_dict['formats'] if x.get('format_id') != 'meta']
-        entry_info_dict['formats'] = cleaned_formats
-
         duration_found = False
         duration = None
         attr = ''
