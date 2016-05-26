@@ -17,7 +17,7 @@ from ..utils import (
 class WDRIE(InfoExtractor):
     _CURRENT_MAUS_URL = r'https?://www.wdrmaus.de/aktuelle-sendung/(wdr|index).php5'
     _PAGE_REGEX = r'/mediathek/(?P<media_type>[^/]+)/(?P<type>[^/]+)/(?P<display_id>.+)\.html'
-    _VALID_URL = r'(?P<page_url>https?://(?:www\d\.)?wdr\d?\.de)' + _PAGE_REGEX + "|" + _CURRENT_MAUS_URL
+    _VALID_URL = r'(?P<page_url>https?://(?:www\d\.)?wdr\d?\.de)' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL
 
     _JS_URL_REGEX = r'(https?://deviceids-medp.wdr.de/ondemand/\d+/\d+\.js)'
 
@@ -116,23 +116,23 @@ class WDRIE(InfoExtractor):
         json_data = self._search_regex(r'\(({.*})\)', js_data, 'json')
         metadata = self._parse_json(json_data, display_id)
 
-        metadata_tracker_data = metadata["trackerData"]
-        metadata_media_resource = metadata["mediaResource"]
+        metadata_tracker_data = metadata['trackerData']
+        metadata_media_resource = metadata['mediaResource']
 
         formats = []
 
         # check if the metadata contains a direct URL to a file
-        metadata_media_alt = metadata_media_resource.get("alt")
+        metadata_media_alt = metadata_media_resource.get('alt')
         if metadata_media_alt:
-            for tag_name in ["videoURL", 'audioURL']:
+            for tag_name in ['videoURL', 'audioURL']:
                 if tag_name in metadata_media_alt:
                     formats.append({
                         'url': metadata_media_alt[tag_name]
                     })
 
         # check if there are flash-streams for this video
-        if "dflt" in metadata_media_resource and "videoURL" in metadata_media_resource["dflt"]:
-            video_url = metadata_media_resource["dflt"]["videoURL"]
+        if 'dflt' in metadata_media_resource and 'videoURL' in metadata_media_resource['dflt']:
+            video_url = metadata_media_resource['dflt']['videoURL']
             if video_url.endswith('.f4m'):
                 full_video_url = video_url + '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18'
                 formats.extend(self._extract_f4m_formats(full_video_url, display_id, f4m_id='hds', fatal=False))
@@ -140,13 +140,13 @@ class WDRIE(InfoExtractor):
                 formats.extend(self._extract_smil_formats(video_url, 'stream', fatal=False))
 
         subtitles = {}
-        caption_url = metadata_media_resource.get("captionURL")
+        caption_url = metadata_media_resource.get('captionURL')
         if caption_url:
             subtitles['de'] = [{
                 'url': caption_url
             }]
 
-        title = metadata_tracker_data.get("trackerClipTitle")
+        title = metadata_tracker_data.get('trackerClipTitle')
         is_live = url_type == 'live'
 
         if is_live:
@@ -163,13 +163,13 @@ class WDRIE(InfoExtractor):
         self._sort_formats(formats)
 
         return {
-            'id': metadata_tracker_data.get("trackerClipId", display_id),
+            'id': metadata_tracker_data.get('trackerClipId', display_id),
             'display_id': display_id,
             'title': title,
-            'alt_title': metadata_tracker_data.get("trackerClipSubcategory"),
+            'alt_title': metadata_tracker_data.get('trackerClipSubcategory'),
             'formats': formats,
             'upload_date': upload_date,
-            'description': self._html_search_meta("Description", webpage),
+            'description': self._html_search_meta('Description', webpage),
             'is_live': is_live,
             'subtitles': subtitles,
         }
