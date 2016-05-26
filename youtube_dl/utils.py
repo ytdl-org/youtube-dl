@@ -1035,6 +1035,7 @@ def unified_strdate(date_str, day_first=True):
         format_expressions.extend([
             '%d-%m-%Y',
             '%d.%m.%Y',
+            '%d.%m.%y',
             '%d/%m/%Y',
             '%d/%m/%y',
             '%d/%m/%Y %H:%M:%S',
@@ -1049,6 +1050,8 @@ def unified_strdate(date_str, day_first=True):
         ])
     for expression in format_expressions:
         try:
+            print(expression)
+            print(date_str)
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
         except ValueError:
             pass
@@ -1910,7 +1913,7 @@ def parse_age_limit(s):
 
 def strip_jsonp(code):
     return re.sub(
-        r'(?s)^[a-zA-Z0-9_.]+\s*\(\s*(.*)\);?\s*?(?://[^\n]*)*$', r'\1', code)
+        r'(?s)^[a-zA-Z0-9_.$]+\s*\(\s*(.*)\);?\s*?(?://[^\n]*)*$', r'\1', code)
 
 
 def js_to_json(code):
