@@ -221,6 +221,7 @@ from .ellentv import (
 from .elpais import ElPaisIE
 from .embedly import EmbedlyIE
 from .engadget import EngadgetIE
+from .eonline import EOnlineIE
 from .eporner import EpornerIE
 from .eroprofile import EroProfileIE
 from .escapist import EscapistIE
