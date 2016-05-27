@@ -38,6 +38,10 @@ class CoubIE(InfoExtractor):
     }, {
         'url': 'coub:5u5n1',
         'only_matching': True,
+    }, {
+        # longer video id
+        'url': 'http://coub.com/view/237d5l5h',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
