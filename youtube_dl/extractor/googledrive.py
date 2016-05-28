@@ -13,12 +13,27 @@ class GoogleDriveIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:docs|drive)\.google\.com/(?:uc\?.*?id=|file/d/)|video\.google\.com/get_player\?.*?docid=)(?P<id>[a-zA-Z0-9_-]{28,})'
     _TESTS = [{
         'url': 'https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/edit?pli=1',
-        'md5': '881f7700aec4f538571fa1e0eed4a7b6',
+        'md5': '5c602afbbf2c1db91831f5d82f678554',
+        'params': {
+            'format': "Original"
+        },
         'info_dict': {
             'id': '0ByeS4oOUV-49Zzh4R1J6R09zazQ',
             'ext': 'mp4',
             'title': 'Big Buck Bunny.mp4',
-            'duration': 46,
+            'duration': 45,
+        }
+    }, {
+        'url': 'https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/edit?pli=1',
+        'md5': 'd109872761f7e7ecf353fa108c0dbe1e',
+        'params': {
+            'format': "37"
+        },
+        'info_dict': {
+            'id': '0ByeS4oOUV-49Zzh4R1J6R09zazQ',
+            'ext': 'mp4',
+            'title': 'Big Buck Bunny.mp4',
+            'duration': 45,
         }
     }, {
         # video id is longer than 28 characters
@@ -105,7 +120,7 @@ class GoogleDriveIE(InfoExtractor):
                 'filesize': originalSize,
                 'protocol': 'https',
             })
-        
+
         return {
             'id': video_id,
             'title': title,
