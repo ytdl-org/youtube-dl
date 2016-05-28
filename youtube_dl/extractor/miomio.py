@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import random
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import (
     xpath_text,
     int_or_none,
@@ -40,20 +41,22 @@ class MioMioIE(InfoExtractor):
             'title': 'The New Macbook 2015 上手试玩与简评'
         },
         'playlist_mincount': 2,
+    }, {
+        # new 'h5' player
+        'url': 'http://www.miomio.tv/watch/cc273295/',
+        'md5': '',
+        'info_dict': {
+            'id': '273295',
+            'ext': 'mp4',
+            'title': 'アウト×デラックス 20160526',
+        },
+        'params': {
+            # intermittent HTTP 500
+            'skip_download': True,
+        },
     }]
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-
-        title = self._html_search_meta(
-            'description', webpage, 'title', fatal=True)
-
-        mioplayer_path = self._search_regex(
-            r'src="(/mioplayer/[^"]+)"', webpage, 'ref_path')
-
-        http_headers = {'Referer': 'http://www.miomio.tv%s' % mioplayer_path}
-
+    def _extract_mioplayer(self, webpage, video_id, title, http_headers):
         xml_config = self._search_regex(
             r'flashvars="type=(?:sina|video)&amp;(.+?)&amp;',
             webpage, 'xml config')
@@ -92,10 +95,34 @@ class MioMioIE(InfoExtractor):
                 'http_headers': http_headers,
             })
 
+        return entries
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        title = self._html_search_meta(
+            'description', webpage, 'title', fatal=True)
+
+        mioplayer_path = self._search_regex(
+            r'src="(/mioplayer(?:_h5)?/[^"]+)"', webpage, 'ref_path')
+
+        if '_h5' in mioplayer_path:
+            player_url = compat_urlparse.urljoin(url, mioplayer_path)
+            player_webpage = self._download_webpage(
+                player_url, video_id,
+                note='Downloading player webpage', headers={'Referer': url})
+            entries = self._parse_html5_media_entries(player_url, player_webpage)
+            http_headers = {'Referer': player_url}
+        else:
+            http_headers = {'Referer': 'http://www.miomio.tv%s' % mioplayer_path}
+            entries = self._extract_mioplayer(webpage, video_id, title, http_headers)
+
         if len(entries) == 1:
             segment = entries[0]
             segment['id'] = video_id
             segment['title'] = title
+            segment['http_headers'] = http_headers
             return segment
 
         return {
