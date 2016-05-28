@@ -83,6 +83,29 @@ class GoogleDriveIE(InfoExtractor):
             })
         self._sort_formats(formats)
 
+        downloadable = True
+        # DownloadPage will either be the actual file, a "we can't virus-scan this" page with a confirmation button, or a "you don't have permission" page.
+        # The actual file supports range requests, but the confirmation/permission pages don't, so this will download the whole page for either of those.
+        downloadPage = self._download_webpage('https://docs.google.com/uc?export=download&id=%s' % video_id, video_id, headers={'Range': 'bytes=0-15'}, encoding='unicode_escape')
+        if 'html' in downloadPage:
+            confirm = self._search_regex(r'confirm=([^&"]+)', downloadPage, 'confirm', default=None)
+            if confirm:
+                dlstring = 'https://docs.google.com/uc?export=download&confirm=%s&id=%s' % (confirm, video_id)
+            else:
+                downloadable = False
+        else:
+            dlstring = 'https://docs.google.com/uc?export=download&id=%s' % video_id
+        if downloadable:
+            originalExtension = self._search_regex(r'"([^"]+)",[^,]*,[^,]*$', webpage, 'original extension', default=None)
+            originalSize = int_or_none(self._search_regex(r'"([^"]+)"[^"]*\n[^\n]*,[^,]*$', webpage, 'original size', default=None))
+            formats.append({
+                'url': dlstring,
+                'format_id': 'Original',
+                'ext': originalExtension,
+                'filesize': originalSize,
+                'protocol': 'https',
+            })
+        
         return {
             'id': video_id,
             'title': title,
