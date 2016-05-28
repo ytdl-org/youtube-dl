@@ -1384,6 +1384,23 @@ class YoutubeDL(object):
         info_dict.update(formats_to_download[-1])
         return info_dict
 
+    def _get_first_match(self, req_list, available_list):
+        """Find the first match of an entry in both given lists
+
+        Returns the first match of an entry in req_list that is also
+        in available_list. Returns None if there is no match.
+
+        req_list: List of strings with requested entries to be checked against
+            available_list.
+        available_list: List of strings to be checked against.
+
+        """
+        for option in req_list:
+            if option in available_list:
+                return option
+        else:
+            return None
+
     def process_subtitles(self, video_id, normal_subtitles, automatic_captions):
         """Select the requested subtitles and their format"""
         available_subs = {}
@@ -1409,10 +1426,17 @@ class YoutubeDL(object):
             else:
                 requested_langs = [list(available_subs.keys())[0]]
 
+        # Processing preferences in requested_langs
+        requested_langs_filtered = list()
+        for lang_set in requested_langs:
+            match = self._get_first_match(lang_set.split('/'), available_subs)
+            if match is not None:
+                requested_langs_filtered.append(match)
+
         formats_query = self.params.get('subtitlesformat', 'best')
         formats_preference = formats_query.split('/') if formats_query else []
         subs = {}
-        for lang in requested_langs:
+        for lang in requested_langs_filtered:
             formats = available_subs.get(lang)
             if formats is None:
                 self.report_warning('%s subtitles not available for %s' % (lang, video_id))
