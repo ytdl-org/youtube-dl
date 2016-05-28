@@ -105,16 +105,16 @@ class GoogleDriveIE(InfoExtractor):
         if 'html' in downloadPage:
             confirm = self._search_regex(r'confirm=([^&"]+)', downloadPage, 'confirm', default=None)
             if confirm:
-                dlstring = 'https://docs.google.com/uc?export=download&confirm=%s&id=%s' % (confirm, video_id)
+                originalURL = 'https://docs.google.com/uc?export=download&confirm=%s&id=%s' % (confirm, video_id)
             else:
                 downloadable = False
         else:
-            dlstring = 'https://docs.google.com/uc?export=download&id=%s' % video_id
+            originalURL = 'https://docs.google.com/uc?export=download&id=%s' % video_id
         if downloadable:
             originalExtension = self._search_regex(r'"([^"]+)",[^,]*,[^,]*$', webpage, 'original extension', default=None)
             originalSize = int_or_none(self._search_regex(r'"([^"]+)"[^"]*\n[^\n]*,[^,]*$', webpage, 'original size', default=None))
             formats.append({
-                'url': dlstring,
+                'url': originalURL,
                 'format_id': 'Original',
                 'ext': originalExtension,
                 'filesize': originalSize,
