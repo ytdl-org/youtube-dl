@@ -28,6 +28,7 @@ updates_key.pem
 *.mp4
 *.m4a
 *.m4v
+*.mp3
 *.part
 *.swp
 test/testdata
