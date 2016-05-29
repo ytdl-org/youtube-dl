@@ -14,7 +14,7 @@
 
 <p>Note that if you directly click on these hyperlinks, your web browser will most likely display the program contents. It's usually better to right-click on it and choose the appropriate option, normally called <em>Save Target As</em> or <em>Save Link As</em>, depending on the web browser you are using.</p>
 
-<p>Remember <em>youtube-dl</em> requires <a href="http://www.python.org/">Python</a> version 2.6, 2.7, or 3.2+ to work.</p>
+<p>Remember <em>youtube-dl</em> requires <a href="http://www.python.org/">Python</a> version 2.6, 2.7, or 3.2+ to work except for <a href="@EXE_URL@">Windows exe</a> binary that is shipped with <a href="http://www.python.org/">Python</a> embedded.</p></p>
 
 <h2><a href="@PROGRAM_URL@">@PROGRAM_VERSION@</a> (<a href="@PROGRAM_URL@.sig">sig</a>)</h2>
 
