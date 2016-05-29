@@ -866,6 +866,8 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
                 location_escaped = escape_url(location)
                 if location != location_escaped:
                     del resp.headers['Location']
+                    if sys.version_info < (3, 0):
+                        location_escaped = location_escaped.encode('utf-8')
                     resp.headers['Location'] = location_escaped
         return resp
 
