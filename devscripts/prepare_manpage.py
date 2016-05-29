@@ -1,12 +1,45 @@
 from __future__ import unicode_literals
 
 import io
+import optparse
 import os.path
-import sys
 import re
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 README_FILE = os.path.join(ROOT_DIR, 'README.md')
+
+PREFIX = '''%YOUTUBE-DL(1)
+
+# NAME
+
+youtube\-dl \- download videos from youtube.com or other video platforms
+
+# SYNOPSIS
+
+**youtube-dl** \[OPTIONS\] URL [URL...]
+
+'''
+
+
+def main():
+    parser = optparse.OptionParser(usage='%prog OUTFILE.md')
+    options, args = parser.parse_args()
+    if len(args) != 1:
+        parser.error('Expected an output filename')
+
+    outfile, = args
+
+    with io.open(README_FILE, encoding='utf-8') as f:
+        readme = f.read()
+
+    readme = re.sub(r'(?s)^.*?(?=# DESCRIPTION)', '', readme)
+    readme = re.sub(r'\s+youtube-dl \[OPTIONS\] URL \[URL\.\.\.\]', '', readme)
+    readme = PREFIX + readme
+
+    readme = filter_options(readme)
+
+    with io.open(outfile, 'w', encoding='utf-8') as outf:
+        outf.write(readme)
 
 
 def filter_options(readme):
@@ -37,27 +70,5 @@ def filter_options(readme):
 
     return ret
 
-with io.open(README_FILE, encoding='utf-8') as f:
-    readme = f.read()
-
-PREFIX = '''%YOUTUBE-DL(1)
-
-# NAME
-
-youtube\-dl \- download videos from youtube.com or other video platforms
-
-# SYNOPSIS
-
-**youtube-dl** \[OPTIONS\] URL [URL...]
-
-'''
-readme = re.sub(r'(?s)^.*?(?=# DESCRIPTION)', '', readme)
-readme = re.sub(r'\s+youtube-dl \[OPTIONS\] URL \[URL\.\.\.\]', '', readme)
-readme = PREFIX + readme
-
-readme = filter_options(readme)
-
-if sys.version_info < (3, 0):
-    print(readme.encode('utf-8'))
-else:
-    print(readme)
+if __name__ == '__main__':
+    main()
