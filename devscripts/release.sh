@@ -6,7 +6,7 @@
 # * the git config user.signingkey is properly set
 
 # You will need
-# pip install coverage nose rsa
+# pip install coverage nose rsa wheel
 
 # TODO
 # release notes
@@ -35,6 +35,7 @@ if [ ! -z "$useless_files" ]; then echo "ERROR: Non-.py files in youtube_dl: $us
 if [ ! -f "updates_key.pem" ]; then echo 'ERROR: updates_key.pem missing'; exit 1; fi
 if ! type pandoc >/dev/null 2>/dev/null; then echo 'ERROR: pandoc is missing'; exit 1; fi
 if ! python3 -c 'import rsa' 2>/dev/null; then echo 'ERROR: python3-rsa is missing'; exit 1; fi
+if ! python3 -c 'import wheel' 2>/dev/null; then echo 'ERROR: wheel is missing'; exit 1; fi
 
 /bin/echo -e "\n### First of all, testing..."
 make clean
