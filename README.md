@@ -73,8 +73,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      repairs broken URLs, but emits an error if
                                      this is not possible instead of searching.
     --ignore-config                  Do not read configuration files. When given
-                                     in the global configuration file /etc
-                                     /youtube-dl.conf: Do not read the user
+                                     in the global configuration file
+                                     /etc/youtube-dl.conf: Do not read the user
                                      configuration in ~/.config/youtube-
                                      dl/config (%APPDATA%/youtube-dl/config.txt
                                      on Windows)
@@ -256,11 +256,12 @@ which means you can modify it, redistribute it or use it however you like.
                                      jar in
     --cache-dir DIR                  Location in the filesystem where youtube-dl
                                      can store some downloaded information
-                                     permanently. By default $XDG_CACHE_HOME
-                                     /youtube-dl or ~/.cache/youtube-dl . At the
-                                     moment, only YouTube player files (for
-                                     videos with obfuscated signatures) are
-                                     cached, but that may change.
+                                     permanently. By default
+                                     $XDG_CACHE_HOME/youtube-dl or
+                                     ~/.cache/youtube-dl . At the moment, only
+                                     YouTube player files (for videos with
+                                     obfuscated signatures) are cached, but that
+                                     may change.
     --no-cache-dir                   Disable filesystem caching
     --rm-cache-dir                   Delete all filesystem cache files
 
