@@ -216,7 +216,7 @@ def main(args=None):
                         action='store_const', dest='action', const='service',
                         help='Run as a Windows service')
     parser.add_argument('-b', '--bind', metavar='<host:port>',
-                        action='store', default='localhost:8142',
+                        action='store', default='0.0.0.0:8142',
                         help='Bind to host:port (default %default)')
     options = parser.parse_args(args=args)
 
