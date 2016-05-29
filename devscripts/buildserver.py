@@ -273,15 +273,24 @@ class HTTPError(BuildError):
 class PythonBuilder(object):
     def __init__(self, **kwargs):
         python_version = kwargs.pop('python', '3.4')
-        try:
-            key = compat_winreg.OpenKey(
-                compat_winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\Python\PythonCore\%s\InstallPath' % python_version)
+        python_path = None
+        for node in ('Wow6432Node\\', ''):
             try:
-                self.pythonPath, _ = compat_winreg.QueryValueEx(key, '')
-            finally:
-                compat_winreg.CloseKey(key)
-        except Exception:
+                key = compat_winreg.OpenKey(
+                    compat_winreg.HKEY_LOCAL_MACHINE,
+                    r'SOFTWARE\%sPython\PythonCore\%s\InstallPath' % (node, python_version))
+                try:
+                    python_path, _ = compat_winreg.QueryValueEx(key, '')
+                finally:
+                    compat_winreg.CloseKey(key)
+                break
+            except Exception:
+                pass
+
+        if not python_path:
             raise BuildError('No such Python version: %s' % python_version)
+
+        self.pythonPath = python_path
 
         super(PythonBuilder, self).__init__(**kwargs)
 
