@@ -69,7 +69,7 @@ README.txt: README.md
 	pandoc -f markdown -t plain README.md -o README.txt
 
 youtube-dl.1: README.md
-	$(PYTHON) devscripts/prepare_manpage.py >youtube-dl.1.temp.md
+	$(PYTHON) devscripts/prepare_manpage.py youtube-dl.1.temp.md
 	pandoc -s -f markdown -t man youtube-dl.1.temp.md -o youtube-dl.1
 	rm -f youtube-dl.1.temp.md
 
