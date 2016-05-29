@@ -14,29 +14,31 @@
 
 <p>Note that if you directly click on these hyperlinks, your web browser will most likely display the program contents. It's usually better to right-click on it and choose the appropriate option, normally called <em>Save Target As</em> or <em>Save Link As</em>, depending on the web browser you are using.</p>
 
-<p>Remember <em>youtube-dl</em> requires <a href="http://www.python.org/">Python</a> version 2.6, 2.7, or 3.2+ to work.</p>
+<p>Remember <em>youtube-dl</em> requires <a href="http://www.python.org/">Python</a> version 2.6, 2.7, or 3.2+ to work except for Windows exe.</p>
 
-<h2><a href="https://yt-dl.org/downloads/2016.05.21.2/youtube-dl">2016.05.21.2</a> (<a href="https://yt-dl.org/downloads/2016.05.21.2/youtube-dl.sig">sig</a>)</h2>
+<p><a href="https://yt-dl.org/downloads/2016.05.30/youtube-dl.exe">Windows exe</a> requires <a href="https://www.microsoft.com/en-US/download/details.aspx?id=5555">Microsoft Visual C++ 2010 Redistributable Package (x86)</a> and does not require Python that is already embedded into the binary.</p>
+
+<h2><a href="https://yt-dl.org/downloads/2016.05.30/youtube-dl">2016.05.30</a> (<a href="https://yt-dl.org/downloads/2016.05.30/youtube-dl.sig">sig</a>)</h2>
 
 <ul>
-<li><strong>MD5</strong>: 19b7965dd05b525b60e37dab2ecf2b35</li>
-<li><strong>SHA1</strong>: a0af42b1b4793364de102075f8732f77f90d0399</li>
-<li><strong>SHA256</strong>: d943aac0510b6c6252023eb902cfffb1b20ce6587c26d478b6632af6201309c0</li>
+<li><strong>MD5</strong>: 3ad70c3ea2c00d30e96d578c225c834f</li>
+<li><strong>SHA1</strong>: e7c11212896ba4c2e6b4e48fc28378813f3c2d85</li>
+<li><strong>SHA256</strong>: e65832ab39576716e242d248cf9cf7cf92e15cb776048b73dbe58f35dab6190c</li>
 </ul>
 
 <p>
-	<a href="https://yt-dl.org/downloads/2016.05.21.2/youtube-dl.exe">Windows exe</a> (<a href="https://yt-dl.org/downloads/2016.05.21.2/youtube-dl.exe.sig">sig</a> - fa3d62243800a8301790c457a45a5493486d3c72d1d841c2915ef44a9607cc68)<br>
-	<a href="https://yt-dl.org/downloads/2016.05.21.2/youtube-dl-2016.05.21.2.tar.gz">Full source + docs + binary tarball</a> (<a href="https://yt-dl.org/downloads/2016.05.21.2/youtube-dl-2016.05.21.2.tar.gz.sig">sig</a> - 66f94fc97012c4c7a6338dc4df6ec62af66dcfc144c5e8c8cd8b5519756f1a98)
+	<a href="https://yt-dl.org/downloads/2016.05.30/youtube-dl.exe">Windows exe</a> (<a href="https://yt-dl.org/downloads/2016.05.30/youtube-dl.exe.sig">sig</a> - 27811c67c80729155114582df44b9e76ed473f4903c3aef28c6e93d9ba1e2c41)<br>
+	<a href="https://yt-dl.org/downloads/2016.05.30/youtube-dl-2016.05.30.tar.gz">Full source + docs + binary tarball</a> (<a href="https://yt-dl.org/downloads/2016.05.30/youtube-dl-2016.05.30.tar.gz.sig">sig</a> - 13d0fa99938b46cd25c919fb72f715c863f2374c43a611166721bcbf6c98227f)
 </p>
 
 <p>To install it right away for all UNIX users (Linux, OS X, etc.), type:
-<code class="commands">sudo curl https://yt-dl.org/downloads/2016.05.21.2/youtube-dl -o /usr/local/bin/youtube-dl<br/>
+<code class="commands">sudo curl https://yt-dl.org/downloads/2016.05.30/youtube-dl -o /usr/local/bin/youtube-dl<br/>
 sudo chmod a+rx /usr/local/bin/youtube-dl</code>
 </p>
 
 <p>If you do not have curl, you can alternatively use a recent wget:
 
-<code class="commands">sudo wget https://yt-dl.org/downloads/2016.05.21.2/youtube-dl -O /usr/local/bin/youtube-dl<br/>
+<code class="commands">sudo wget https://yt-dl.org/downloads/2016.05.30/youtube-dl -O /usr/local/bin/youtube-dl<br/>
 sudo chmod a+rx /usr/local/bin/youtube-dl</code>
 </p>
 
@@ -53,13 +55,14 @@ See the <a href="https://pypi.python.org/pypi/youtube_dl">pypi page</a> for more
 </p>
 
 <p>To check the signature, type:
-<code class="commands">sudo wget https://yt-dl.org/downloads/2016.05.21.2/youtube-dl.sig -O youtube-dl.sig<br/>gpg --verify youtube-dl.sig /usr/local/bin/youtube-dl<br/>rm youtube-dl.sig</code>
+<code class="commands">sudo wget https://yt-dl.org/downloads/2016.05.30/youtube-dl.sig -O youtube-dl.sig<br/>gpg --verify youtube-dl.sig /usr/local/bin/youtube-dl<br/>rm youtube-dl.sig</code>
 </p>
 
 <p>The following GPG keys will be used to sign the binaries and the git tags:</p>
 <ul>
 <li><strong>4096R/A4826A18</strong> Philipp Hagemeister <code>Key fingerprint = 7D33 D762 FD6C 3513 0481  347F DB4B 54CB A482 6A18</code></li>
 <li><strong>4096R/BCF05F6B</strong> Filippo Valsorda <code>Key fingerprint = 428D F5D6 3EF0 7494 BB45  5AC0 EBF0 1804 BCF0 5F6B</code></li>
+<li><strong>4096R/18A9236D</strong> Sergey M. <code>Key fingerprint = ED7F 5BF4 6B3B BED8 1C87  368E 2C39 3E0F 18A9 236D</code></li>
 </ul>
 
 <p>Older releases are also signed with one of:
