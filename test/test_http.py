@@ -17,7 +17,7 @@ TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def http_server_port(httpd):
-    if os.name == 'java':
+    if os.name == 'java' and isinstance(httpd.socket, ssl.SSLSocket):
         # In Jython SSLSocket is not a subclass of socket.socket
         sock = httpd.socket.sock
     else:
