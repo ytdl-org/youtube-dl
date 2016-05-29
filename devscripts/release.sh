@@ -15,10 +15,28 @@
 set -e
 
 skip_tests=true
-if [ "$1" = '--run-tests' ]; then
-    skip_tests=false
-    shift
-fi
+buildserver='localhost:8142'
+
+while true
+do
+case "$1" in
+    --run-tests)
+        skip_tests=false
+        shift
+    ;;
+    --buildserver)
+        buildserver="$2"
+        shift 2
+    ;;
+    --*)
+        echo "ERROR: unknown option $1"
+        exit 1
+    ;;
+    *)
+        break
+    ;;
+esac
+done
 
 if [ -z "$1" ]; then echo "ERROR: specify version number like this: $0 1994.09.06"; exit 1; fi
 version="$1"
@@ -67,7 +85,7 @@ git push origin "$version"
 REV=$(git rev-parse HEAD)
 make youtube-dl youtube-dl.tar.gz
 read -p "VM running? (y/n) " -n 1
-wget "http://localhost:8142/build/rg3/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe
+wget "http://$buildserver/build/rg3/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe
 mkdir -p "build/$version"
 mv youtube-dl youtube-dl.exe "build/$version"
 mv youtube-dl.tar.gz "build/$version/youtube-dl-$version.tar.gz"
