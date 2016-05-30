@@ -143,6 +143,7 @@ from .cnn import (
     CNNBlogsIE,
     CNNArticleIE,
 )
+from .coub import CoubIE
 from .collegerama import CollegeRamaIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
 from .comcarcoff import ComCarCoffIE

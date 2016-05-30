@@ -20,18 +20,24 @@ class YandexMusicBaseIE(InfoExtractor):
             error = response.get('error')
             if error:
                 raise ExtractorError(error, expected=True)
+            if response.get('type') == 'captcha' or 'captcha' in response:
+                YandexMusicBaseIE._raise_captcha()
+
+    @staticmethod
+    def _raise_captcha():
+        raise ExtractorError(
+            'YandexMusic has considered youtube-dl requests automated and '
+            'asks you to solve a CAPTCHA. You can either wait for some '
+            'time until unblocked and optionally use --sleep-interval '
+            'in future or alternatively you can go to https://music.yandex.ru/ '
+            'solve CAPTCHA, then export cookies and pass cookie file to '
+            'youtube-dl with --cookies',
+            expected=True)
 
     def _download_webpage(self, *args, **kwargs):
         webpage = super(YandexMusicBaseIE, self)._download_webpage(*args, **kwargs)
         if 'Нам очень жаль, но&nbsp;запросы, поступившие с&nbsp;вашего IP-адреса, похожи на&nbsp;автоматические.' in webpage:
-            raise ExtractorError(
-                'YandexMusic has considered youtube-dl requests automated and '
-                'asks you to solve a CAPTCHA. You can either wait for some '
-                'time until unblocked and optionally use --sleep-interval '
-                'in future or alternatively you can go to https://music.yandex.ru/ '
-                'solve CAPTCHA, then export cookies and pass cookie file to '
-                'youtube-dl with --cookies',
-                expected=True)
+            self._raise_captcha()
         return webpage
 
     def _download_json(self, *args, **kwargs):

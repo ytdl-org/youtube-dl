@@ -275,6 +275,8 @@ class YoukuIE(InfoExtractor):
                     'format_id': self.get_format_name(fm),
                     'ext': self.parse_ext_l(fm),
                     'filesize': int(seg['size']),
+                    'width': stream.get('width'),
+                    'height': stream.get('height'),
                 })
 
         return {

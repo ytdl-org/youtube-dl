@@ -217,7 +217,6 @@ class VKIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('videoid')
 
-        info_url = url
         if video_id:
             info_url = 'https://vk.com/al_video.php?act=show&al=1&module=video&video=%s' % video_id
             # Some videos (removed?) can only be downloaded with list id specified
