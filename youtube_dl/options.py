@@ -395,8 +395,8 @@ def parseOpts(overrideArguments=None):
 
     downloader = optparse.OptionGroup(parser, 'Download Options')
     downloader.add_option(
-        '-r', '--rate-limit',
-        dest='ratelimit', metavar='LIMIT',
+        '-r', '--limit-rate', '--rate-limit',
+        dest='ratelimit', metavar='RATE',
         help='Maximum download rate in bytes per second (e.g. 50K or 4.2M)')
     downloader.add_option(
         '-R', '--retries',
