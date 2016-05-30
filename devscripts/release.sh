@@ -6,7 +6,7 @@
 # * the git config user.signingkey is properly set
 
 # You will need
-# pip install coverage nose rsa
+# pip install coverage nose rsa wheel
 
 # TODO
 # release notes
@@ -15,10 +15,28 @@
 set -e
 
 skip_tests=true
-if [ "$1" = '--run-tests' ]; then
-    skip_tests=false
-    shift
-fi
+buildserver='localhost:8142'
+
+while true
+do
+case "$1" in
+    --run-tests)
+        skip_tests=false
+        shift
+    ;;
+    --buildserver)
+        buildserver="$2"
+        shift 2
+    ;;
+    --*)
+        echo "ERROR: unknown option $1"
+        exit 1
+    ;;
+    *)
+        break
+    ;;
+esac
+done
 
 if [ -z "$1" ]; then echo "ERROR: specify version number like this: $0 1994.09.06"; exit 1; fi
 version="$1"
@@ -35,6 +53,7 @@ if [ ! -z "$useless_files" ]; then echo "ERROR: Non-.py files in youtube_dl: $us
 if [ ! -f "updates_key.pem" ]; then echo 'ERROR: updates_key.pem missing'; exit 1; fi
 if ! type pandoc >/dev/null 2>/dev/null; then echo 'ERROR: pandoc is missing'; exit 1; fi
 if ! python3 -c 'import rsa' 2>/dev/null; then echo 'ERROR: python3-rsa is missing'; exit 1; fi
+if ! python3 -c 'import wheel' 2>/dev/null; then echo 'ERROR: wheel is missing'; exit 1; fi
 
 /bin/echo -e "\n### First of all, testing..."
 make clean
@@ -66,7 +85,7 @@ git push origin "$version"
 REV=$(git rev-parse HEAD)
 make youtube-dl youtube-dl.tar.gz
 read -p "VM running? (y/n) " -n 1
-wget "http://localhost:8142/build/rg3/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe
+wget "http://$buildserver/build/rg3/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe
 mkdir -p "build/$version"
 mv youtube-dl youtube-dl.exe "build/$version"
 mv youtube-dl.tar.gz "build/$version/youtube-dl-$version.tar.gz"

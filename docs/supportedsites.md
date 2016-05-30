@@ -43,8 +43,8 @@
  - **appletrailers:section**
  - **archive.org**: archive.org videos
  - **ARD**
- - **ARD:mediathek**: Saarländischer Rundfunk
  - **ARD:mediathek**
+ - **ARD:mediathek**: Saarländischer Rundfunk
  - **arte.tv**
  - **arte.tv:+7**
  - **arte.tv:cinema**
@@ -136,6 +136,7 @@
  - **ComedyCentral**
  - **ComedyCentralShows**: The Daily Show / The Colbert Report
  - **CondeNast**: Condé Nast media group: Allure, Architectural Digest, Ars Technica, Bon Appétit, Brides, Condé Nast, Condé Nast Traveler, Details, Epicurious, GQ, Glamour, Golf Digest, SELF, Teen Vogue, The New Yorker, Vanity Fair, Vogue, W Magazine, WIRED
+ - **Coub**
  - **Cracked**
  - **Crackle**
  - **Criterion**
@@ -205,6 +206,7 @@
  - **exfm**: ex.fm
  - **ExpoTV**
  - **ExtremeTube**
+ - **EyedoTV**
  - **facebook**
  - **faz.net**
  - **fc2**
@@ -326,8 +328,8 @@
  - **LePlaylist**
  - **LetvCloud**: 乐视云
  - **Libsyn**
+ - **life**: Life.ru
  - **life:embed**
- - **lifenews**: LIFE | NEWS
  - **limelight**
  - **limelight:channel**
  - **limelight:channel_list**
@@ -512,6 +514,8 @@
  - **R7**
  - **radio.de**
  - **radiobremen**
+ - **radiocanada**
+ - **RadioCanadaAudioVideo**
  - **radiofrance**
  - **RadioJavan**
  - **Rai**
@@ -521,6 +525,7 @@
  - **RedTube**
  - **RegioTV**
  - **Restudy**
+ - **Reuters**
  - **ReverbNation**
  - **Revision3**
  - **RICE**
@@ -682,8 +687,8 @@
  - **TVCArticle**
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvland.com**
- - **tvp.pl**
- - **tvp.pl:Series**
+ - **tvp**: Telewizja Polska
+ - **tvp:series**
  - **TVPlay**: TV3Play and related services
  - **Tweakers**
  - **twitch:chapter**
@@ -766,7 +771,8 @@
  - **VuClip**
  - **vulture.com**
  - **Walla**
- - **WashingtonPost**
+ - **washingtonpost**
+ - **washingtonpost:article**
  - **wat.tv**
  - **WatchIndianPorn**: Watch Indian Porn
  - **WDR**

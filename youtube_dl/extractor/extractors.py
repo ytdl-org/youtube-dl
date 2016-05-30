@@ -143,6 +143,7 @@ from .cnn import (
     CNNBlogsIE,
     CNNArticleIE,
 )
+from .coub import CoubIE
 from .collegerama import CollegeRamaIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
 from .comcarcoff import ComCarCoffIE
@@ -833,7 +834,10 @@ from .tvc import (
 )
 from .tvigle import TvigleIE
 from .tvland import TVLandIE
-from .tvp import TvpIE, TvpSeriesIE
+from .tvp import (
+    TVPIE,
+    TVPSeriesIE,
+)
 from .tvplay import TVPlayIE
 from .tweakers import TweakersIE
 from .twentyfourvideo import TwentyFourVideoIE

@@ -319,7 +319,7 @@ class F4mFD(FragmentFD):
         doc = compat_etree_fromstring(manifest)
         formats = [(int(f.attrib.get('bitrate', -1)), f)
                    for f in self._get_unencrypted_media(doc)]
-        if requested_bitrate is None:
+        if requested_bitrate is None or len(formats) == 1:
             # get the best format
             formats = sorted(formats, key=lambda f: f[0])
             rate, media = formats[-1]

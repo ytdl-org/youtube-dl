@@ -73,8 +73,8 @@ which means you can modify it, redistribute it or use it however you like.
                                      repairs broken URLs, but emits an error if
                                      this is not possible instead of searching.
     --ignore-config                  Do not read configuration files. When given
-                                     in the global configuration file /etc
-                                     /youtube-dl.conf: Do not read the user
+                                     in the global configuration file
+                                     /etc/youtube-dl.conf: Do not read the user
                                      configuration in ~/.config/youtube-
                                      dl/config (%APPDATA%/youtube-dl/config.txt
                                      on Windows)
@@ -256,11 +256,12 @@ which means you can modify it, redistribute it or use it however you like.
                                      jar in
     --cache-dir DIR                  Location in the filesystem where youtube-dl
                                      can store some downloaded information
-                                     permanently. By default $XDG_CACHE_HOME
-                                     /youtube-dl or ~/.cache/youtube-dl . At the
-                                     moment, only YouTube player files (for
-                                     videos with obfuscated signatures) are
-                                     cached, but that may change.
+                                     permanently. By default
+                                     $XDG_CACHE_HOME/youtube-dl or
+                                     ~/.cache/youtube-dl . At the moment, only
+                                     YouTube player files (for videos with
+                                     obfuscated signatures) are cached, but that
+                                     may change.
     --no-cache-dir                   Disable filesystem caching
     --rm-cache-dir                   Delete all filesystem cache files
 
@@ -784,9 +785,9 @@ means you're using an outdated version of Python. Please update to Python 2.6 or
 
 Since June 2012 ([#342](https://github.com/rg3/youtube-dl/issues/342)) youtube-dl is packed as an executable zipfile, simply unzip it (might need renaming to `youtube-dl.zip` first on some systems) or clone the git repository, as laid out above. If you modify the code, you can run it by executing the `__main__.py` file. To recompile the executable, run `make youtube-dl`.
 
-### The exe throws a *Runtime error from Visual C++*
+### The exe throws an error due to missing `MSVCR100.dll`
 
-To run the exe you need to install first the [Microsoft Visual C++ 2008 Redistributable Package](http://www.microsoft.com/en-us/download/details.aspx?id=29).
+To run the exe you need to install first the [Microsoft Visual C++ 2010 Redistributable Package (x86)](https://www.microsoft.com/en-US/download/details.aspx?id=5555).
 
 ### On Windows, how should I set up ffmpeg and youtube-dl? Where should I put the exe files?
 

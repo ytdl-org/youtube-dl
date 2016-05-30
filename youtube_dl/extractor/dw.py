@@ -2,13 +2,16 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    unified_strdate,
+)
 from ..compat import compat_urlparse
 
 
 class DWIE(InfoExtractor):
     IE_NAME = 'dw'
-    _VALID_URL = r'https?://(?:www\.)?dw\.com/(?:[^/]+/)+av-(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?dw\.com/(?:[^/]+/)+(?:av|e)-(?P<id>\d+)'
     _TESTS = [{
         # video
         'url': 'http://www.dw.com/en/intelligent-light/av-19112290',
@@ -31,6 +34,16 @@ class DWIE(InfoExtractor):
             'description': 'md5:bc9ca6e4e063361e21c920c53af12405',
             'upload_date': '20160311',
         }
+    }, {
+        'url': 'http://www.dw.com/en/documentaries-welcome-to-the-90s-2016-05-21/e-19220158-9798',
+        'md5': '56b6214ef463bfb9a3b71aeb886f3cf1',
+        'info_dict': {
+            'id': '19274438',
+            'ext': 'mp4',
+            'title': 'Welcome to the 90s – Hip Hop',
+            'description': 'Welcome to the 90s - The Golden Decade of Hip Hop',
+            'upload_date': '20160521',
+        },
     }]
 
     def _real_extract(self, url):
@@ -38,6 +51,7 @@ class DWIE(InfoExtractor):
         webpage = self._download_webpage(url, media_id)
         hidden_inputs = self._hidden_inputs(webpage)
         title = hidden_inputs['media_title']
+        media_id = hidden_inputs.get('media_id') or media_id
 
         if hidden_inputs.get('player_type') == 'video' and hidden_inputs.get('stream_file') == '1':
             formats = self._extract_smil_formats(
@@ -49,13 +63,20 @@ class DWIE(InfoExtractor):
         else:
             formats = [{'url': hidden_inputs['file_name']}]
 
+        upload_date = hidden_inputs.get('display_date')
+        if not upload_date:
+            upload_date = self._html_search_regex(
+                r'<span[^>]+class="date">([0-9.]+)\s*\|', webpage,
+                'upload date', default=None)
+            upload_date = unified_strdate(upload_date)
+
         return {
             'id': media_id,
             'title': title,
             'description': self._og_search_description(webpage),
             'thumbnail': hidden_inputs.get('preview_image'),
             'duration': int_or_none(hidden_inputs.get('file_duration')),
-            'upload_date': hidden_inputs.get('display_date'),
+            'upload_date': upload_date,
             'formats': formats,
         }
 
