@@ -11,6 +11,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
+    xpath_element,
     xpath_text,
 )
 
@@ -84,9 +85,10 @@ class AfreecaTVIE(InfoExtractor):
             path='/api/video/get_video_info.php'))
         video_xml = self._download_xml(info_url, video_id)
 
-        if xpath_text(video_xml, './track/flag', default='FAIL') != 'SUCCEED':
+        if xpath_element(video_xml, './track/video/file') is None:
             raise ExtractorError('Specified AfreecaTV video does not exist',
                                  expected=True)
+
         title = xpath_text(video_xml, './track/title', 'title')
         uploader = xpath_text(video_xml, './track/nickname', 'uploader')
         uploader_id = xpath_text(video_xml, './track/bj_id', 'uploader id')
