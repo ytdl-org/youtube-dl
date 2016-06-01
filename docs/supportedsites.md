@@ -228,6 +228,7 @@
  - **freespeech.org**
  - **FreeVideo**
  - **Funimation**
+ - **funimation:playlist**
  - **FunnyOrDie**
  - **GameInformer**
  - **Gamekings**

@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
@@ -17,54 +19,17 @@ from ..utils import (
     ExtractorError,
     urlencode_postdata,
     NO_DEFAULT,
+    OnDemandPagedList,
 )
 
 
-class FunimationIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?funimation\.com/shows/[^/]+/videos/(?:official|promotional)/(?P<id>[^/?#&]+)'
-
+class FunimationBaseIE(InfoExtractor):
     _NETRC_MACHINE = 'funimation'
-
-    _TESTS = [{
-        'url': 'http://www.funimation.com/shows/air/videos/official/breeze',
-        'info_dict': {
-            'id': '658',
-            'display_id': 'breeze',
-            'ext': 'mp4',
-            'title': 'Air - 1 - Breeze',
-            'description': 'md5:1769f43cd5fc130ace8fd87232207892',
-            'thumbnail': 're:https?://.*\.jpg',
-        },
-        'skip': 'Access without user interaction is forbidden by CloudFlare, and video removed',
-    }, {
-        'url': 'http://www.funimation.com/shows/hacksign/videos/official/role-play',
-        'info_dict': {
-            'id': '31128',
-            'display_id': 'role-play',
-            'ext': 'mp4',
-            'title': '.hack//SIGN - 1 - Role Play',
-            'description': 'md5:b602bdc15eef4c9bbb201bb6e6a4a2dd',
-            'thumbnail': 're:https?://.*\.jpg',
-        },
-        'skip': 'Access without user interaction is forbidden by CloudFlare',
-    }, {
-        'url': 'http://www.funimation.com/shows/attack-on-titan-junior-high/videos/promotional/broadcast-dub-preview',
-        'info_dict': {
-            'id': '9635',
-            'display_id': 'broadcast-dub-preview',
-            'ext': 'mp4',
-            'title': 'Attack on Titan: Junior High - Broadcast Dub Preview',
-            'description': 'md5:f8ec49c0aff702a7832cd81b8a44f803',
-            'thumbnail': 're:https?://.*\.(?:jpg|png)',
-        },
-        'skip': 'Access without user interaction is forbidden by CloudFlare',
-    }]
-
     _LOGIN_URL = 'http://www.funimation.com/login'
 
     def _download_webpage(self, *args, **kwargs):
         try:
-            return super(FunimationIE, self)._download_webpage(*args, **kwargs)
+            return super(FunimationBaseIE, self)._download_webpage(*args, **kwargs)
         except ExtractorError as ee:
             if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
                 response = ee.cause.read()
@@ -115,6 +80,33 @@ class FunimationIE(InfoExtractor):
 
     def _real_initialize(self):
         self._login()
+
+
+class FunimationIE(FunimationBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?funimation\.com/shows/[^/]+/videos/(?:official|promotional)/(?P<id>[^/?#&"]+)'
+    _TESTS = [{
+        'url': 'http://www.funimation.com/shows/hacksign/videos/official/role-play',
+        'info_dict': {
+            'id': '31128',
+            'display_id': 'role-play',
+            'ext': 'mp4',
+            'title': '.hack//SIGN - 1 - Role Play',
+            'description': 'md5:b602bdc15eef4c9bbb201bb6e6a4a2dd',
+            'thumbnail': 're:https?://.*\.jpg',
+        },
+        'skip': 'Access without user interaction is forbidden by CloudFlare',
+    }, {
+        'url': 'http://www.funimation.com/shows/attack-on-titan-junior-high/videos/promotional/broadcast-dub-preview',
+        'info_dict': {
+            'id': '9635',
+            'display_id': 'broadcast-dub-preview',
+            'ext': 'mp4',
+            'title': 'Attack on Titan: Junior High - Broadcast Dub Preview',
+            'description': 'md5:f8ec49c0aff702a7832cd81b8a44f803',
+            'thumbnail': 're:https?://.*\.(?:jpg|png)',
+        },
+        'skip': 'Access without user interaction is forbidden by CloudFlare',
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
@@ -249,6 +241,8 @@ class FunimationIE(InfoExtractor):
             episode = self._search_regex(
                 r'^[0-9]+ - (.*)$', item['title'], 'episode name', NO_DEFAULT, False)
         description = self._og_search_description(webpage) or item.get('description')
+        if description:
+            description = description.strip()
         thumbnail = self._og_search_thumbnail(webpage) or item.get('posterUrl')
         video_id = item.get('itemId') or display_id
 
@@ -265,4 +259,77 @@ class FunimationIE(InfoExtractor):
             'episode_number': episode_number,
             'thumbnail': thumbnail,
             'formats': formats,
+        }
+
+
+class FunimationShowPlaylistIE(FunimationBaseIE):
+    IE_NAME = 'funimation:playlist'
+    _VALID_URL = r'(?P<seriesurl>https?://(?:www\.)?funimation\.com/shows/(?P<id>[^/]+))(?:/(?:home|about|videos))?$'
+    _TESTS = [{
+        'url': 'http://www.funimation.com/shows/a-certain-scientific-railgun/home',
+        'info_dict': {
+            'id': 'a-certain-scientific-railgun',
+            'description': 'Misaka’s electro-manipulation abilities – and delightfully destructive Railgun projectile move – make her a rock star in Academy City. The techno-metropolis is packed with supernaturally powered students known as espers, including Misaka’s flirty friend and roommate, Kuroko. She uses her teleportation skills as a member of the Judgment law enforcement team, fighting crime alongside her fellow agent Uiharu. Joined by their friend Saten, a spunky Level 0 esper, Misaka,',
+            'title': 'A Certain Scientific Railgun'
+        },
+        'playlist_count': 48
+    }, {
+        'url': 'http://www.funimation.com/shows/hacksign/home',
+        'info_dict': {
+            'id': 'hacksign',
+            'description': 'Tsukasa wakes up inside The World, a massive online role-playing game full of magic and monsters, and finds himself unable to log out. With no knowledge of what’s happening in the real world, Tsukasa must discover how he ended up stuck in the game, and what connection he has with the fabled Key of the Twilight—an item that’s rumored to grant ultimate control over the digital realm.',
+            'title': '.hack//SIGN'
+        },
+        'playlist_count': 56
+    }]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        user_agent = self._extract_cloudflare_session_ua(url)
+
+        # Use series page to get ID number and title / description
+        series_url = self._search_regex(self._VALID_URL, url, 'series URL', group='seriesurl')
+        request = sanitized_Request(series_url)
+        request.add_header('User-Agent', user_agent)
+        webpage = self._download_webpage(request, display_id, 'Downloading series webpage')
+
+        # Parseable show data stored as a JavaScript variable
+        playlist = self._parse_json(
+            self._search_regex(
+                r'var\s+playersData\s*=\s*(\[.+?\]);\n',
+                webpage, 'players data'),
+            display_id)[0]['playlist'][0]
+
+        def pagefunc(pagenum):
+            # Internal Funimation endpoint for getting paginated video list HTML
+            request = sanitized_Request(
+                'https://www.funimation.com/shows/viewAllFiltered?section=episodes&showid={0}&offset={1}'
+                .format(playlist.get('showId'), pagenum * 20))
+            request.add_header('User-Agent', user_agent)
+            episode_list = self._download_json(
+                request, display_id, 'Downloading episode list from {0}'.format(pagenum * 20))['main']
+
+            # There are multiple instances of each video URL, so filter for unique URLs
+            # while keeping the order of the episodes
+            urls_seen = set()
+            episode_paths = re.finditer(
+                r'(?s)<a href="(' + FunimationIE._VALID_URL + r')"',
+                episode_list)
+            episode_paths = [
+                path.group(1) for path in episode_paths
+                if not (path.group(1) in urls_seen or urls_seen.add(path.group(1)))]
+
+            return [self.url_result(ep, FunimationIE.ie_key()) for ep in episode_paths]
+
+        description = self._og_search_description(webpage) or playlist.get('description')
+        if description:
+            description = description.strip()
+
+        return {
+            '_type': 'playlist',
+            'id': display_id,
+            'title': playlist.get('artist'),
+            'description': description,
+            'entries': OnDemandPagedList(pagefunc, 20, True)
         }
