@@ -55,6 +55,7 @@
  - **arte.tv:future**
  - **arte.tv:info**
  - **arte.tv:magazine**
+ - **arte.tv:playlist**
  - **AtresPlayer**
  - **ATTTechChannel**
  - **AudiMedia**

@@ -162,7 +162,7 @@ which means you can modify it, redistribute it or use it however you like.
                                      (experimental)
 
 ## Download Options:
-    -r, --rate-limit LIMIT           Maximum download rate in bytes per second
+    -r, --limit-rate RATE            Maximum download rate in bytes per second
                                      (e.g. 50K or 4.2M)
     -R, --retries RETRIES            Number of retries (default is 10), or
                                      "infinite".
