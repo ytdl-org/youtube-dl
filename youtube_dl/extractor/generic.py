@@ -881,18 +881,6 @@ class GenericIE(InfoExtractor):
                 'title': 'EP3S5 - Bon Appétit - Baqueira Mi Corazon !',
             }
         },
-        # Kaltura embed
-        {
-            'url': 'http://www.monumentalnetwork.com/videos/john-carlson-postgame-2-25-15',
-            'info_dict': {
-                'id': '1_eergr3h1',
-                'ext': 'mp4',
-                'upload_date': '20150226',
-                'uploader_id': 'MonumentalSports-Kaltura@perfectsensedigital.com',
-                'timestamp': int,
-                'title': 'John Carlson Postgame 2/25/15',
-            },
-        },
         # Kaltura embed (different embed code)
         {
             'url': 'http://www.premierchristianradio.com/Shows/Saturday/Unbelievable/Conference-Videos/Os-Guinness-Is-It-Fools-Talk-Unbelievable-Conference-2014',
