@@ -1033,14 +1033,18 @@ class GenericIE(InfoExtractor):
         },
         # UDN embed
         {
-            'url': 'http://www.udn.com/news/story/7314/822787',
+            'url': 'https://video.udn.com/news/300346',
             'md5': 'fd2060e988c326991037b9aff9df21a6',
             'info_dict': {
                 'id': '300346',
                 'ext': 'mp4',
                 'title': '中一中男師變性 全校師生力挺',
                 'thumbnail': 're:^https?://.*\.jpg$',
-            }
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
         },
         # Ooyala embed
         {
