@@ -105,9 +105,9 @@ KNOWN_EXTENSIONS = (
     'f4f', 'f4m', 'm3u8', 'smil')
 
 # needed for sanitizing filenames in restricted mode
-ACCENT_CHARS = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØŒÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøœùúûüýþÿ',
-                        itertools.chain('AAAAAA', ['AE'], 'CEEEEIIIIDNOOOOOO', ['OE'], 'UUUUYP', ['ss'],
-                                        'aaaaaa', ['ae'], 'ceeeeiiiionoooooo', ['oe'], 'uuuuypy')))
+ACCENT_CHARS = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖŐØŒÙÚÛÜŰÝÞßàáâãäåæçèéêëìíîïðñòóôõöőøœùúûüűýþÿ',
+                        itertools.chain('AAAAAA', ['AE'], 'CEEEEIIIIDNOOOOOOO', ['OE'], 'UUUUUYP', ['ss'],
+                                        'aaaaaa', ['ae'], 'ceeeeiiiionooooooo', ['oe'], 'uuuuuypy')))
 
 
 def preferredencoding():
@@ -861,9 +861,13 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
                 # As of RFC 2616 default charset is iso-8859-1 that is respected by python 3
                 if sys.version_info >= (3, 0):
                     location = location.encode('iso-8859-1').decode('utf-8')
+                else:
+                    location = location.decode('utf-8')
                 location_escaped = escape_url(location)
                 if location != location_escaped:
                     del resp.headers['Location']
+                    if sys.version_info < (3, 0):
+                        location_escaped = location_escaped.encode('utf-8')
                     resp.headers['Location'] = location_escaped
         return resp
 
