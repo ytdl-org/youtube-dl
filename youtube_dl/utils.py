@@ -105,9 +105,9 @@ KNOWN_EXTENSIONS = (
     'f4f', 'f4m', 'm3u8', 'smil')
 
 # needed for sanitizing filenames in restricted mode
-ACCENT_CHARS = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØŒÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøœùúûüýþÿ',
-                        itertools.chain('AAAAAA', ['AE'], 'CEEEEIIIIDNOOOOOO', ['OE'], 'UUUUYP', ['ss'],
-                                        'aaaaaa', ['ae'], 'ceeeeiiiionoooooo', ['oe'], 'uuuuypy')))
+ACCENT_CHARS = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖŐØŒÙÚÛÜŰÝÞßàáâãäåæçèéêëìíîïðñòóôõöőøœùúûüűýþÿ',
+                        itertools.chain('AAAAAA', ['AE'], 'CEEEEIIIIDNOOOOOOO', ['OE'], 'UUUUUYP', ['ss'],
+                                        'aaaaaa', ['ae'], 'ceeeeiiiionooooooo', ['oe'], 'uuuuuypy')))
 
 
 def preferredencoding():
