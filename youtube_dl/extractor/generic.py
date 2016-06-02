@@ -881,18 +881,6 @@ class GenericIE(InfoExtractor):
                 'title': 'EP3S5 - Bon Appétit - Baqueira Mi Corazon !',
             }
         },
-        # Kaltura embed
-        {
-            'url': 'http://www.monumentalnetwork.com/videos/john-carlson-postgame-2-25-15',
-            'info_dict': {
-                'id': '1_eergr3h1',
-                'ext': 'mp4',
-                'upload_date': '20150226',
-                'uploader_id': 'MonumentalSports-Kaltura@perfectsensedigital.com',
-                'timestamp': int,
-                'title': 'John Carlson Postgame 2/25/15',
-            },
-        },
         # Kaltura embed (different embed code)
         {
             'url': 'http://www.premierchristianradio.com/Shows/Saturday/Unbelievable/Conference-Videos/Os-Guinness-Is-It-Fools-Talk-Unbelievable-Conference-2014',
@@ -917,6 +905,19 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20150624',
                 'uploader_id': 'echojecka',
             },
+        },
+        # Kaltura embed with single quotes
+        {
+            'url': 'http://fod.infobase.com/p_ViewPlaylist.aspx?AssignmentID=NUN8ZY',
+            'info_dict': {
+                'id': '0_izeg5utt',
+                'ext': 'mp4',
+                'title': '35871',
+                'timestamp': 1355743100,
+                'upload_date': '20121217',
+                'uploader_id': 'batchUser',
+            },
+            'add_ie': ['Kaltura'],
         },
         # Eagle.Platform embed (generic URL)
         {
@@ -1032,14 +1033,18 @@ class GenericIE(InfoExtractor):
         },
         # UDN embed
         {
-            'url': 'http://www.udn.com/news/story/7314/822787',
+            'url': 'https://video.udn.com/news/300346',
             'md5': 'fd2060e988c326991037b9aff9df21a6',
             'info_dict': {
                 'id': '300346',
                 'ext': 'mp4',
                 'title': '中一中男師變性 全校師生力挺',
                 'thumbnail': 're:^https?://.*\.jpg$',
-            }
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
         },
         # Ooyala embed
         {
@@ -1903,7 +1908,7 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'Zapiks')
 
         # Look for Kaltura embeds
-        mobj = (re.search(r"(?s)kWidget\.(?:thumb)?[Ee]mbed\(\{.*?'wid'\s*:\s*'_?(?P<partner_id>[^']+)',.*?'entry_?[Ii]d'\s*:\s*'(?P<id>[^']+)',", webpage) or
+        mobj = (re.search(r"(?s)kWidget\.(?:thumb)?[Ee]mbed\(\{.*?(?P<q1>['\"])wid(?P=q1)\s*:\s*(?P<q2>['\"])_?(?P<partner_id>[^'\"]+)(?P=q2),.*?(?P<q3>['\"])entry_?[Ii]d(?P=q3)\s*:\s*(?P<q4>['\"])(?P<id>[^'\"]+)(?P=q4),", webpage) or
                 re.search(r'(?s)(?P<q1>["\'])(?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/.*?(?:p|partner_id)/(?P<partner_id>\d+).*?(?P=q1).*?entry_?[Ii]d\s*:\s*(?P<q2>["\'])(?P<id>.+?)(?P=q2)', webpage))
         if mobj is not None:
             return self.url_result(smuggle_url(
