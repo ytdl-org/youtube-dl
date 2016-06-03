@@ -1,12 +1,15 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 
 from ..utils import (
     determine_ext,
     float_or_none,
     int_or_none,
+    parse_filesize,
 )
 
 
@@ -40,6 +43,20 @@ class LibraryOfCongressIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # with direct download links
+        'url': 'https://www.loc.gov/item/78710669/',
+        'info_dict': {
+            'id': '78710669',
+            'ext': 'mp4',
+            'title': 'La vie et la passion de Jesus-Christ',
+            'duration': 0,
+            'view_count': int,
+            'formats': 'mincount:4',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
@@ -60,6 +77,9 @@ class LibraryOfCongressIE(InfoExtractor):
         derivative = data['derivatives'][0]
         media_url = derivative['derivativeUrl']
 
+        title = derivative.get('shortName') or data.get('shortName') or self._og_search_title(
+            webpage)
+
         # Following algorithm was extracted from setAVSource js function
         # found in webpage
         media_url = media_url.replace('rtmp', 'https')
@@ -75,6 +95,7 @@ class LibraryOfCongressIE(InfoExtractor):
                 'format_id': 'hls',
                 'ext': 'mp4',
                 'protocol': 'm3u8_native',
+                'quality': 1,
             }]
         elif 'vod/mp3:' in media_url:
             formats = [{
@@ -82,9 +103,24 @@ class LibraryOfCongressIE(InfoExtractor):
                 'vcodec': 'none',
             }]
 
+        download_urls = set()
+        for m in re.finditer(
+                r'<option[^>]+value=(["\'])(?P<url>.+?)\1[^>]+data-file-download=[^>]+>\s*(?P<id>.+?)(?:(?:&nbsp;|\s+)\((?P<size>.+?)\))?\s*<', webpage):
+            format_id = m.group('id').lower()
+            if format_id == 'gif':
+                continue
+            download_url = m.group('url')
+            if download_url in download_urls:
+                continue
+            download_urls.add(download_url)
+            formats.append({
+                'url': download_url,
+                'format_id': format_id,
+                'filesize_approx': parse_filesize(m.group('size')),
+            })
+
         self._sort_formats(formats)
 
-        title = derivative.get('shortName') or data.get('shortName') or self._og_search_title(webpage)
         duration = float_or_none(data.get('duration'))
         view_count = int_or_none(data.get('viewCount'))
 
