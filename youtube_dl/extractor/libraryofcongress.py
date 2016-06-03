@@ -15,6 +15,7 @@ class LibraryOfCongressIE(InfoExtractor):
     IE_DESC = 'Library of Congress'
     _VALID_URL = r'https?://(?:www\.)?loc\.gov/(?:item/|today/cyberlc/feature_wdesc\.php\?.*\brec=)(?P<id>[0-9]+)'
     _TESTS = [{
+        # embedded via <div class="media-player"
         'url': 'http://loc.gov/item/90716351/',
         'md5': '353917ff7f0255aa6d4b80a034833de8',
         'info_dict': {
@@ -26,8 +27,19 @@ class LibraryOfCongressIE(InfoExtractor):
             'view_count': int,
         },
     }, {
+        # webcast embedded via mediaObjectId
         'url': 'https://www.loc.gov/today/cyberlc/feature_wdesc.php?rec=5578',
-        'only_matching': True,
+        'info_dict': {
+            'id': '5578',
+            'ext': 'mp4',
+            'title': 'Help! Preservation Training Needs Here, There & Everywhere',
+            'duration': 3765,
+            'view_count': int,
+            'subtitles': 'mincount:1',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
@@ -76,6 +88,14 @@ class LibraryOfCongressIE(InfoExtractor):
         duration = float_or_none(data.get('duration'))
         view_count = int_or_none(data.get('viewCount'))
 
+        subtitles = {}
+        cc_url = data.get('ccUrl')
+        if cc_url:
+            subtitles.setdefault('en', []).append({
+                'url': cc_url,
+                'ext': 'ttml',
+            })
+
         return {
             'id': video_id,
             'title': title,
@@ -83,4 +103,5 @@ class LibraryOfCongressIE(InfoExtractor):
             'duration': duration,
             'view_count': view_count,
             'formats': formats,
+            'subtitles': subtitles,
         }
