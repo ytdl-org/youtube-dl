@@ -13,8 +13,8 @@ from ..utils import (
 class LibraryOfCongressIE(InfoExtractor):
     IE_NAME = 'loc'
     IE_DESC = 'Library of Congress'
-    _VALID_URL = r'https?://(?:www\.)?loc\.gov/item/(?P<id>[0-9]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?loc\.gov/(?:item/|today/cyberlc/feature_wdesc\.php\?.*\brec=)(?P<id>[0-9]+)'
+    _TESTS = [{
         'url': 'http://loc.gov/item/90716351/',
         'md5': '353917ff7f0255aa6d4b80a034833de8',
         'info_dict': {
@@ -25,7 +25,10 @@ class LibraryOfCongressIE(InfoExtractor):
             'duration': 0,
             'view_count': int,
         },
-    }
+    }, {
+        'url': 'https://www.loc.gov/today/cyberlc/feature_wdesc.php?rec=5578',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -34,13 +37,12 @@ class LibraryOfCongressIE(InfoExtractor):
         media_id = self._search_regex(
             (r'id=(["\'])media-player-(?P<id>.+?)\1',
              r'<video[^>]+id=(["\'])uuid-(?P<id>.+?)\1',
-             r'<video[^>]+data-uuid=(["\'])(?P<id>.+?)\1'),
+             r'<video[^>]+data-uuid=(["\'])(?P<id>.+?)\1',
+             r'mediaObjectId\s*:\s*(["\'])(?P<id>.+?)\1'),
             webpage, 'media id', group='id')
 
-        data = self._parse_json(
-            self._download_webpage(
-                'https://media.loc.gov/services/v1/media?id=%s&context=json' % media_id,
-                video_id),
+        data = self._download_json(
+            'https://media.loc.gov/services/v1/media?id=%s&context=json' % media_id,
             video_id)['mediaObject']
 
         derivative = data['derivatives'][0]
@@ -77,7 +79,7 @@ class LibraryOfCongressIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': self._og_search_thumbnail(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage, default=None),
             'duration': duration,
             'view_count': view_count,
             'formats': formats,
