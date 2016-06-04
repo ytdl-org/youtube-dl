@@ -11,4 +11,5 @@ fi
 cd "$(dirname $(readlink -f $0))"
 
 echo -n "$version" > latest_version
-/bin/echo -e "RewriteEngine On\nRewriteRule ^(.*)$ /downloads/latest/$1 [L,R=302]" > latest/.htaccess
+ln -sf downloads/latest downloads/$1
+
