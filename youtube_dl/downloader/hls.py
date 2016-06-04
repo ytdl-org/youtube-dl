@@ -29,8 +29,8 @@ class HlsFD(FragmentFD):
             # r'#EXT-X-MEDIA-SEQUENCE:(?!0$)',  # live streams [3]
 
             # This heuristic also is not correct since segments may not be appended as well.
-            # Twitch vods have EXT-X-PLAYLIST-TYPE:EVENT despite no segments will definitely
-            # be appended to the end of the playlist.
+            # Twitch vods of finished streams have EXT-X-PLAYLIST-TYPE:EVENT despite
+            # no segments will definitely be appended to the end of the playlist.
             # r'#EXT-X-PLAYLIST-TYPE:EVENT',  # media segments may be appended to the end of
             #                                 # event media playlists [4]
 
