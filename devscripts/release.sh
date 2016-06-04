@@ -95,17 +95,16 @@ RELEASE_FILES="youtube-dl youtube-dl.exe youtube-dl-$version.tar.gz"
 (cd build/$version/ && sha256sum $RELEASE_FILES > SHA2-256SUMS)
 (cd build/$version/ && sha512sum $RELEASE_FILES > SHA2-512SUMS)
 
-/bin/echo -e "\n### Signing and uploading the new binaries to yt-dl.org ..."
+/bin/echo -e "\n### Signing and uploading the new binaries to GitHub..."
 for f in $RELEASE_FILES; do gpg --passphrase-repeat 5 --detach-sig "build/$version/$f"; done
 
-echo 'TODO: upload on GitHub'
-exit 1
+ROOT=$(pwd)
+python devscripts/create-github-release.py $version "$ROOT/build/$version"
 
 ssh ytdl@yt-dl.org "sh html/update_latest.sh $version"
 
 /bin/echo -e "\n### Now switching to gh-pages..."
 git clone --branch gh-pages --single-branch . build/gh-pages
-ROOT=$(pwd)
 (
     set -e
     ORIGIN_URL=$(git config --get remote.origin.url)
