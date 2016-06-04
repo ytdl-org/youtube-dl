@@ -16,4 +16,5 @@ RewriteRule ^latest/version$ latest_version [L,T=text/plain]
 RewriteRule ^latest_version$ - [T=text/plain]
 RewriteRule ^latest/(.*)$ /downloads/latest/$1 [R=302,L]
 
+ErrorDocument 302 "302"
 
