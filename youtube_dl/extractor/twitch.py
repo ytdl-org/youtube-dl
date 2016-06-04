@@ -260,7 +260,7 @@ class TwitchVodIE(TwitchItemBaseIE):
                     'nauth': access_token['token'],
                     'nauthsig': access_token['sig'],
                 })),
-            item_id, 'mp4')
+            item_id, 'mp4', entry_protocol='m3u8_native')
 
         self._prefer_source(formats)
         info['formats'] = formats
