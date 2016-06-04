@@ -10,12 +10,7 @@
 <h1>youtube-dl downloads</h1>
 
 <?php
-$DOWNLOAD_DIR = 'downloads';
-
-$versions = array_filter(scandir($DOWNLOAD_DIR), function($v) {return (($v{0} != '.') && ($v != 'latest'));});
-sort($versions);
-
-$latest = end($versions);
+$latest = file_get_contents('latest_version');
 
 echo '<div class="latest">';
 echo '<div><a href="latest">Latest</a> (v' . htmlspecialchars($latest) . ') downloads:</div>';
@@ -24,14 +19,9 @@ echo '<a href="downloads/' . htmlspecialchars($latest) . '/youtube-dl.exe">youtu
 echo '<a href="downloads/' . htmlspecialchars($latest) . '/youtube-dl-' . htmlspecialchars($latest) . '.tar.gz">youtube-dl-' . htmlspecialchars($latest) . '.tar.gz</a>';
 echo '</div>';
 
-echo '<ul class="all-versions">';
-foreach ($versions as $version) {
-    echo '<li><a href="downloads/' . htmlspecialchars($version) . '">' . htmlspecialchars($version) . '</a></li>';
-}
-echo '</ul>';
-
 ?>
 
+See the right for more resources.
 
 <table border="0" id="rgb" style="float: right;">
     <tr><td><a class="button" id="main-homepage" href="http://rg3.github.com/youtube-dl/">Homepage</a></td></tr>
