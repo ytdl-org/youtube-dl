@@ -23,11 +23,17 @@ class HlsFD(FragmentFD):
         UNSUPPORTED_FEATURES = (
             r'#EXT-X-KEY:METHOD=(?!NONE)',  # encrypted streams [1]
             r'#EXT-X-BYTERANGE',  # playlists composed of byte ranges of media files [2]
+
             # Live streams heuristic does not always work (e.g. geo restricted to Germany
             # http://hls-geo.daserste.de/i/videoportal/Film/c_620000/622873/format,716451,716457,716450,716458,716459,.mp4.csmil/index_4_av.m3u8?null=0)
             # r'#EXT-X-MEDIA-SEQUENCE:(?!0$)',  # live streams [3]
-            r'#EXT-X-PLAYLIST-TYPE:EVENT',  # media segments may be appended to the end of
-                                            # event media playlists [4]
+
+            # This heuristic also is not correct since segments may not be appended as well.
+            # Twitch vods have EXT-X-PLAYLIST-TYPE:EVENT despite no segments will definitely
+            # be appended to the end of the playlist.
+            # r'#EXT-X-PLAYLIST-TYPE:EVENT',  # media segments may be appended to the end of
+                                              # event media playlists [4]
+
             # 1. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.2.4
             # 2. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.2.2
             # 3. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3.2
