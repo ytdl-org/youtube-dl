@@ -32,7 +32,7 @@ class HlsFD(FragmentFD):
             # Twitch vods have EXT-X-PLAYLIST-TYPE:EVENT despite no segments will definitely
             # be appended to the end of the playlist.
             # r'#EXT-X-PLAYLIST-TYPE:EVENT',  # media segments may be appended to the end of
-                                              # event media playlists [4]
+            #                                 # event media playlists [4]
 
             # 1. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.2.4
             # 2. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.2.2
