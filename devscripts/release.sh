@@ -97,8 +97,10 @@ RELEASE_FILES="youtube-dl youtube-dl.exe youtube-dl-$version.tar.gz"
 
 /bin/echo -e "\n### Signing and uploading the new binaries to yt-dl.org ..."
 for f in $RELEASE_FILES; do gpg --passphrase-repeat 5 --detach-sig "build/$version/$f"; done
-scp -r "build/$version" ytdl@yt-dl.org:html/tmp/
-ssh ytdl@yt-dl.org "mv html/tmp/$version html/downloads/"
+
+echo 'TODO: upload on GitHub'
+exit 1
+
 ssh ytdl@yt-dl.org "sh html/update_latest.sh $version"
 
 /bin/echo -e "\n### Now switching to gh-pages..."
