@@ -97,10 +97,9 @@ def main():
 
     version, build_path = args
 
-    releaser = GitHubReleaser(debuglevel=0)
+    releaser = GitHubReleaser()
 
-    new_release = releaser.create_release(
-        version, name='youtube-dl %s' % version, draft=True, prerelease=True)
+    new_release = releaser.create_release(version, name='youtube-dl %s' % version)
     release_id = new_release['id']
 
     for asset in os.listdir(build_path):
