@@ -628,6 +628,7 @@ __all__ = [
     'compat_html_entities',
     'compat_http_client',
     'compat_http_server',
+    'compat_input',
     'compat_itertools_count',
     'compat_kwargs',
     'compat_ord',
