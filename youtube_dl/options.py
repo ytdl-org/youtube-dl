@@ -668,7 +668,7 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='writeannotations', default=False,
         help='Write video annotations to a .annotations.xml file')
     filesystem.add_option(
-        '--load-info',
+        '--load-info-json', '--load-info',
         dest='load_info_filename', metavar='FILE',
         help='JSON file containing the video information (created with the "--write-info-json" option)')
     filesystem.add_option(
