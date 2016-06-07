@@ -9,6 +9,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
+    remove_start,
 )
 from ..compat import compat_urllib_parse_urlencode
 
@@ -39,6 +40,7 @@ class VLiveIE(InfoExtractor):
             webpage, 'video params')
         status, _, _, live_params, long_video_id, key = re.split(
             r'"\s*,\s*"', video_params)[2:8]
+        status = remove_start(status, 'PRODUCT_')
 
         if status == 'LIVE_ON_AIR' or status == 'BIG_EVENT_ON_AIR':
             live_params = self._parse_json('"%s"' % live_params, video_id)
