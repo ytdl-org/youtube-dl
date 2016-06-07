@@ -38,14 +38,14 @@ class CanalplusIE(InfoExtractor):
     }
 
     _TESTS = [{
-        'url': 'http://www.canalplus.fr/c-emissions/pid1830-c-zapping.html?vid=1263092',
-        'md5': '12164a6f14ff6df8bd628e8ba9b10b78',
+        'url': 'http://www.canalplus.fr/c-emissions/pid1830-c-zapping.html?vid=1192814',
+        'md5': '41f438a4904f7664b91b4ed0dec969dc',
         'info_dict': {
-            'id': '1263092',
+            'id': '1192814',
             'ext': 'mp4',
-            'title': 'Le Zapping - 13/05/15',
-            'description': 'md5:09738c0d06be4b5d06a0940edb0da73f',
-            'upload_date': '20150513',
+            'title': "L'Année du Zapping 2014 - L'Année du Zapping 2014",
+            'description': "Toute l'année 2014 dans un Zapping exceptionnel !",
+            'upload_date': '20150105',
         },
     }, {
         'url': 'http://www.piwiplus.fr/videos-piwi/pid1405-le-labyrinthe-boing-super-ranger.html?vid=1108190',
@@ -58,24 +58,28 @@ class CanalplusIE(InfoExtractor):
         },
         'skip': 'Only works from France',
     }, {
-        'url': 'http://www.d8.tv/d8-docs-mags/pid6589-d8-campagne-intime.html',
+        'url': 'http://www.d8.tv/d8-docs-mags/pid5198-d8-en-quete-d-actualite.html?vid=1390231',
         'info_dict': {
-            'id': '966289',
-            'ext': 'flv',
-            'title': 'Campagne intime - Documentaire exceptionnel',
-            'description': 'md5:d2643b799fb190846ae09c61e59a859f',
-            'upload_date': '20131108',
-        },
-        'skip': 'videos get deleted after a while',
-    }, {
-        'url': 'http://www.itele.fr/france/video/aubervilliers-un-lycee-en-colere-111559',
-        'md5': '38b8f7934def74f0d6f3ba6c036a5f82',
-        'info_dict': {
-            'id': '1213714',
+            'id': '1390231',
             'ext': 'mp4',
-            'title': 'Aubervilliers : un lycée en colère - Le 11/02/2015 à 06h45',
-            'description': 'md5:8216206ec53426ea6321321f3b3c16db',
-            'upload_date': '20150211',
+            'title': "Vacances pas chères : prix discount ou grosses dépenses ? - En quête d'actualité",
+            'description': 'md5:edb6cf1cb4a1e807b5dd089e1ac8bfc6',
+            'upload_date': '20160512',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://www.itele.fr/chroniques/invite-bruce-toussaint/thierry-solere-nicolas-sarkozy-officialisera-sa-candidature-a-la-primaire-quand-il-le-voudra-167224',
+        'info_dict': {
+            'id': '1398334',
+            'ext': 'mp4',
+            'title': "L'invité de Bruce Toussaint du 07/06/2016 - ",
+            'description': 'md5:40ac7c9ad0feaeb6f605bad986f61324',
+            'upload_date': '20160607',
+        },
+        'params': {
+            'skip_download': True,
         },
     }, {
         'url': 'http://m.canalplus.fr/?vid=1398231',
