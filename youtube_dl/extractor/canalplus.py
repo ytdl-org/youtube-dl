@@ -23,6 +23,7 @@ class CanalplusIE(InfoExtractor):
                                     (?:(?:www|m)\.)?canalplus\.fr|
                                     (?:www\.)?piwiplus\.fr|
                                     (?:www\.)?d8\.tv|
+                                    (?:www\.)?d17\.tv|
                                     (?:www\.)?itele\.fr
                                 )/(?:(?:[^/]+/)*(?P<display_id>[^/?#&]+))?(?:\?.*\bvid=(?P<vid>\d+))?|
                                 player\.canalplus\.fr/#/(?P<id>\d+)
@@ -34,6 +35,7 @@ class CanalplusIE(InfoExtractor):
         'canalplus': 'cplus',
         'piwiplus': 'teletoon',
         'd8': 'd8',
+        'd17': 'd17',
         'itele': 'itele',
     }
 
@@ -83,6 +85,9 @@ class CanalplusIE(InfoExtractor):
         },
     }, {
         'url': 'http://m.canalplus.fr/?vid=1398231',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.d17.tv/emissions/pid8303-lolywood.html?vid=1397061',
         'only_matching': True,
     }]
 
