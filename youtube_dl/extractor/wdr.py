@@ -31,6 +31,9 @@ class WDRBaseIE(InfoExtractor):
                                           transform_source=js_to_json)
         jsonp_url = media_link_obj['mediaObj']['url']
 
+        return self._get_formats_from_jsonp_url(jsonp_url, display_id)
+
+    def _get_formats_from_jsonp_url(self, jsonp_url, display_id):
         metadata = self._download_json(
             jsonp_url, 'metadata', transform_source=strip_jsonp)
 
@@ -96,9 +99,9 @@ class WDRBaseIE(InfoExtractor):
 
 
 class WDRIE(WDRBaseIE):
-    _CURRENT_MAUS_URL = r'https?://(?:www\.)wdrmaus.de/(?:[^/]+/){1,2}[^/?#]+\.php5'
+    _MAUS_REGEX = r'https?://(?:www\.)wdrmaus\.de/(elefantenseite/#/(?P<elefanten_page_id>.*)|(?:[^/]+/){1,2}[^/?#]+\.php5)'
     _PAGE_REGEX = r'/(?:mediathek/)?[^/]+/(?P<type>[^/]+)/(?P<display_id>.+)\.html'
-    _VALID_URL = r'(?P<page_url>https?://(?:www\d\.)?wdr\d?\.de)' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL
+    _VALID_URL = r'(?P<page_url>https?://(?:www\d\.)?wdr\d?\.de)' + _PAGE_REGEX + '|' + _MAUS_REGEX
 
     _TESTS = [
         {
@@ -190,7 +193,18 @@ class WDRIE(WDRBaseIE):
                 'description': 'md5:2309992a6716c347891c045be50992e4',
                 'upload_date': '20160101',
             },
-        }
+        },
+        {
+            'url': 'http://www.wdrmaus.de/elefantenseite/#/lieder_metcalf_das_wilde_tier',
+            # HDS download, MD5 is unstable
+            'info_dict': {
+                'id': 'mdb-870527',
+                'ext': 'flv',
+                'title': 'Das wilde Tier',
+                'alt_title': 'Die Sendung mit dem Elefanten',
+                'upload_date': '20100714',
+            },
+        },
     ]
 
     def _real_extract(self, url):
@@ -203,6 +217,11 @@ class WDRIE(WDRBaseIE):
         info_dict = self._extract_wdr_video(webpage, display_id)
 
         if not info_dict:
+            elephant_id = mobj.group('elefanten_page_id')
+            if elephant_id:
+                jsonp_url = self._get_elephant_jsonp_url(webpage, elephant_id)
+                return self._get_formats_from_jsonp_url(jsonp_url, display_id)
+
             entries = [
                 self.url_result(page_url + href[0], 'WDR')
                 for href in re.findall(
@@ -231,6 +250,33 @@ class WDRIE(WDRBaseIE):
         })
 
         return info_dict
+
+    def _get_elephant_jsonp_url(self, webpage, id):
+        elephant_base_url = 'http://www.wdrmaus.de/elefantenseite/'
+
+        # the "elefantenseite" is entirely flash-based and uses the page anchor
+        # to search in a full table of content to find the movie url
+        config_path = self._html_search_regex(
+            r'flashvars.config\s*=\s*"([^"]+)";', webpage, 'flash config')
+        config_url = elephant_base_url + config_path
+        config_doc = self._download_xml(config_url, '%s config' % id)
+
+        toc_path = config_doc.find('./tableOfContentsPath').text
+        toc_url = elephant_base_url + toc_path
+        toc_doc = self._download_xml(toc_url, '%s toc' % id)
+
+        for page in toc_doc.findall('./page'):
+            if page.find('./id').text == id:
+                xml_url = elephant_base_url + page.find('./xmlPath').text
+                metadata_doc = self._download_xml(xml_url, '%s xmlPath' % id)
+                jsonp_url = metadata_doc.find('./movie/zmdb_url')
+                if jsonp_url is not None:
+                    return jsonp_url.text
+
+                # some of the pages are no videos but interactive content
+                raise ExtractorError('%s is not a video' % id, expected=True)
+
+        raise ExtractorError('No page with id "%s" found' % id)
 
 
 class WDRMobileIE(InfoExtractor):
