@@ -4,11 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     ExtractorError,
     HEADRequest,
     unified_strdate,
-    url_basename,
     qualities,
     int_or_none,
 )
@@ -16,13 +16,25 @@ from ..utils import (
 
 class CanalplusIE(InfoExtractor):
     IE_DESC = 'canalplus.fr, piwiplus.fr and d8.tv'
-    _VALID_URL = r'https?://(?:www\.(?P<site>canalplus\.fr|piwiplus\.fr|d8\.tv|itele\.fr)/.*?/(?P<path>.*)|player\.canalplus\.fr/#/(?P<id>[0-9]+))'
+    _VALID_URL = r'''(?x)
+                        https?://
+                            (?:
+                                (?:
+                                    (?:(?:www|m)\.)?canalplus\.fr|
+                                    (?:www\.)?piwiplus\.fr|
+                                    (?:www\.)?d8\.tv|
+                                    (?:www\.)?itele\.fr
+                                )/(?:(?:[^/]+/)*(?P<display_id>[^/?#&]+))?(?:\?.*\bvid=(?P<vid>\d+))?|
+                                player\.canalplus\.fr/#/(?P<id>\d+)
+                            )
+
+                    '''
     _VIDEO_INFO_TEMPLATE = 'http://service.canal-plus.com/video/rest/getVideosLiees/%s/%s?format=json'
     _SITE_ID_MAP = {
-        'canalplus.fr': 'cplus',
-        'piwiplus.fr': 'teletoon',
-        'd8.tv': 'd8',
-        'itele.fr': 'itele',
+        'canalplus': 'cplus',
+        'piwiplus': 'teletoon',
+        'd8': 'd8',
+        'itele': 'itele',
     }
 
     _TESTS = [{
@@ -65,16 +77,19 @@ class CanalplusIE(InfoExtractor):
             'description': 'md5:8216206ec53426ea6321321f3b3c16db',
             'upload_date': '20150211',
         },
+    }, {
+        'url': 'http://m.canalplus.fr/?vid=1398231',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.groupdict().get('id')
+        video_id = mobj.groupdict().get('id') or mobj.groupdict().get('vid')
 
-        site_id = self._SITE_ID_MAP[mobj.group('site') or 'canal']
+        site_id = self._SITE_ID_MAP[compat_urllib_parse_urlparse(url).netloc.rsplit('.', 2)[-2]]
 
         # Beware, some subclasses do not define an id group
-        display_id = url_basename(mobj.group('path'))
+        display_id = mobj.group('display_id') or video_id
 
         if video_id is None:
             webpage = self._download_webpage(url, display_id)
