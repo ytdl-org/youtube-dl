@@ -21,7 +21,7 @@ class WDRIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www1.wdr.de/mediathek/video/sendungen/doku-am-freitag/video-geheimnis-aachener-dom-100.html',
-            'md5': 'e58c39c3e30077141d258bf588700a7b',
+            # HDS download, MD5 is unstable
             'info_dict': {
                 'id': 'mdb-1058683',
                 'ext': 'flv',
@@ -35,7 +35,6 @@ class WDRIE(InfoExtractor):
                     'url': 'http://ondemand-ww.wdr.de/medp/fsk0/105/1058683/1058683_12220974.xml'
                 }]},
             },
-            'skip': 'Page Not Found',
         },
         {
             'url': 'http://www1.wdr.de/mediathek/audio/wdr3/wdr3-gespraech-am-samstag/audio-schriftstellerin-juli-zeh-100.html',
@@ -51,7 +50,6 @@ class WDRIE(InfoExtractor):
                 'is_live': False,
                 'subtitles': {}
             },
-            'skip': 'Page Not Found',
         },
         {
             'url': 'http://www1.wdr.de/mediathek/video/live/index.html',
@@ -90,16 +88,13 @@ class WDRIE(InfoExtractor):
         },
         {
             'url': 'http://www.wdrmaus.de/sachgeschichten/sachgeschichten/achterbahn.php5',
-            'md5': 'ca365705551e4bd5217490f3b0591290',
+            # HDS download, MD5 is unstable
             'info_dict': {
                 'id': 'mdb-186083',
                 'ext': 'flv',
                 'upload_date': '20130919',
                 'title': 'Sachgeschichte - Achterbahn ',
                 'description': '- Die Sendung mit der Maus -',
-            },
-            'params': {
-                'skip_download': True,  # the file has different versions :(
             },
         },
     ]
