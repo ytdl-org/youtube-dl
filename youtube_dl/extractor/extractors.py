@@ -1013,7 +1013,10 @@ from .yesjapan import YesJapanIE
 from .yinyuetai import YinYueTaiIE
 from .ynet import YnetIE
 from .youjizz import YouJizzIE
-from .youku import YoukuIE
+from .youku import (
+    YoukuIE,
+    YoukuShowIE,
+)
 from .youporn import YouPornIE
 from .yourupload import YourUploadIE
 from .youtube import (
