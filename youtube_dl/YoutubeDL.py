@@ -91,6 +91,7 @@ from .postprocessor import (
     FFmpegFixupM4aPP,
     FFmpegFixupStretchedPP,
     FFmpegMergerPP,
+    FFmpegMetadataPP,
     FFmpegPostProcessor,
     get_postprocessor,
 )
@@ -1782,13 +1783,26 @@ class YoutubeDL(object):
                 files_to_delete, info = pp.run(info)
             except PostProcessingError as e:
                 self.report_error(e.msg)
-            if files_to_delete and not self.params.get('keepvideo', False):
-                for old_filename in files_to_delete:
+            for old_filename in files_to_delete:
+                if not self.params.get('keepvideo', False):
                     self.to_screen('Deleting original file %s (pass -k to keep)' % old_filename)
                     try:
                         os.remove(encodeFilename(old_filename))
                     except (IOError, OSError):
                         self.report_warning('Unable to remove downloaded original file')
+                elif self.params.get('addmetadata', False):
+                    filepath = info['filepath']
+                    ext = info['ext']
+                    info['filepath'] = old_filename
+                    info['ext'] = old_filename[old_filename.rfind('.') + 1:]
+                    try:
+                        FFmpegMetadataPP(self).run(info)
+                    except PostProcessingError as e:
+                        self.report_error(e.msg)
+                    finally:
+                        info['filepath'] = filepath
+                        info['ext'] = ext
+
 
     def _make_archive_id(self, info_dict):
         # Future-proof against any change in case

@@ -222,8 +222,6 @@ def _real_main(argv=None):
             'titleformat': opts.metafromtitle
         })
     if opts.extractaudio:
-        if opts.addmetadata and opts.keepvideo:
-            postprocessors.append({'key': 'FFmpegMetadata'})
         postprocessors.append({
             'key': 'FFmpegExtractAudio',
             'preferredcodec': opts.audioformat,
@@ -384,6 +382,7 @@ def _real_main(argv=None):
         'external_downloader_args': external_downloader_args,
         'postprocessor_args': postprocessor_args,
         'cn_verification_proxy': opts.cn_verification_proxy,
+        'addmetadata': opts.addmetadata,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
