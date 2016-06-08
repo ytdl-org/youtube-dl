@@ -111,13 +111,17 @@ class VesselIE(InfoExtractor):
             location = f.get('location')
             if not location:
                 continue
-            if f.get('name') == 'hls-index':
+            name = f.get('name')
+            if name == 'hls-index':
                 formats.extend(self._extract_m3u8_formats(
                     location, video_id, ext='mp4',
                     entry_protocol='m3u8_native', m3u8_id='m3u8'))
+            elif name == 'dash-index':
+                formats.extend(self._extract_mpd_formats(
+                    location, video_id, mpd_id='dash', fatal=False))
             else:
                 formats.append({
-                    'format_id': f.get('name'),
+                    'format_id': name,
                     'tbr': f.get('bitrate'),
                     'height': f.get('height'),
                     'width': f.get('width'),
