@@ -18,7 +18,6 @@ from .options import (
 from .compat import (
     compat_expanduser,
     compat_getpass,
-    compat_print,
     compat_shlex_split,
     workaround_optparse_bug9161,
 )
@@ -76,7 +75,7 @@ def _real_main(argv=None):
 
     # Dump user agent
     if opts.dump_user_agent:
-        compat_print(std_headers['User-Agent'])
+        write_string(std_headers['User-Agent'] + '\n', out=sys.stdout)
         sys.exit(0)
 
     # Batch file verification
@@ -101,10 +100,10 @@ def _real_main(argv=None):
 
     if opts.list_extractors:
         for ie in list_extractors(opts.age_limit):
-            compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
+            write_string(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else '') + '\n', out=sys.stdout)
             matchedUrls = [url for url in all_urls if ie.suitable(url)]
             for mu in matchedUrls:
-                compat_print('  ' + mu)
+                write_string('  ' + mu + '\n', out=sys.stdout)
         sys.exit(0)
     if opts.list_extractor_descriptions:
         for ie in list_extractors(opts.age_limit):
@@ -117,7 +116,7 @@ def _real_main(argv=None):
                 _SEARCHES = ('cute kittens', 'slithering pythons', 'falling cat', 'angry poodle', 'purple fish', 'running tortoise', 'sleeping bunny', 'burping cow')
                 _COUNTS = ('', '5', '10', 'all')
                 desc += ' (Example: "%s%s:%s" )' % (ie.SEARCH_KEY, random.choice(_COUNTS), random.choice(_SEARCHES))
-            compat_print(desc)
+            write_string(desc + '\n', out=sys.stdout)
         sys.exit(0)
 
     # Conflicting, missing and erroneous options

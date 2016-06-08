@@ -12,7 +12,7 @@ class TheSixtyOneIE(InfoExtractor):
             s|
             song/comments/list|
             song
-        )/(?P<id>[A-Za-z0-9]+)/?$'''
+        )/(?:[^/]+/)?(?P<id>[A-Za-z0-9]+)/?$'''
     _SONG_URL_TEMPLATE = 'http://thesixtyone.com/s/{0:}'
     _SONG_FILE_URL_TEMPLATE = 'http://{audio_server:}/thesixtyone_production/audio/{0:}_stream'
     _THUMBNAIL_URL_TEMPLATE = '{photo_base_url:}_desktop'
@@ -43,6 +43,10 @@ class TheSixtyOneIE(InfoExtractor):
         },
         {
             'url': 'http://www.thesixtyone.com/song/SrE3zD7s1jt/',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://www.thesixtyone.com/maryatmidnight/song/StrawberriesandCream/yvWtLp0c4GQ/',
             'only_matching': True,
         },
     ]

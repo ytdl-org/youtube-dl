@@ -482,6 +482,11 @@ if sys.version_info < (3, 0) and sys.platform == 'win32':
 else:
     compat_getpass = getpass.getpass
 
+try:
+    compat_input = raw_input
+except NameError:  # Python 3
+    compat_input = input
+
 # Python < 2.6.5 require kwargs to be bytes
 try:
     def _testfunc(x):
@@ -623,6 +628,7 @@ __all__ = [
     'compat_html_entities',
     'compat_http_client',
     'compat_http_server',
+    'compat_input',
     'compat_itertools_count',
     'compat_kwargs',
     'compat_ord',

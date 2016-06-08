@@ -382,6 +382,7 @@ from .leeco import (
     LePlaylistIE,
     LetvCloudIE,
 )
+from .libraryofcongress import LibraryOfCongressIE
 from .libsyn import LibsynIE
 from .lifenews import (
     LifeNewsIE,
@@ -909,6 +910,7 @@ from .videomore import (
 )
 from .videopremium import VideoPremiumIE
 from .videott import VideoTtIE
+from .vidio import VidioIE
 from .vidme import (
     VidmeIE,
     VidmeUserIE,
@@ -965,7 +967,6 @@ from .watchindianporn import WatchIndianPornIE
 from .wdr import (
     WDRIE,
     WDRMobileIE,
-    WDRMausIE,
 )
 from .webofstories import (
     WebOfStoriesIE,
