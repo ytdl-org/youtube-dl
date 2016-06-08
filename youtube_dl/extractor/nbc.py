@@ -67,6 +67,23 @@ class NBCIE(InfoExtractor):
             # This video has expired but with an escaped embedURL
             'url': 'http://www.nbc.com/parenthood/episode-guide/season-5/just-like-at-home/515',
             'only_matching': True,
+        },
+        {
+            # HLS streams requires the 'hdnea3' cookie
+            'url': 'http://www.nbc.com/Kings/video/goliath/n1806',
+            'info_dict': {
+                'id': 'n1806',
+                'ext': 'mp4',
+                'title': 'Goliath',
+                'description': 'When an unknown soldier saves the life of the King\'s son in battle, he\'s thrust into the limelight and politics of the kingdom.',
+                'timestamp': 1237100400,
+                'upload_date': '20090315',
+                'uploader': 'NBCU-COM',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'skip': 'Only works from US',
         }
     ]
 
