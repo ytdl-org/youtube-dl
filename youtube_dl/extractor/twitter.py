@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     float_or_none,
     xpath_text,
     remove_end,
@@ -116,13 +117,16 @@ class TwitterCardIE(TwitterBaseIE):
         video_url = config.get('video_url') or config.get('playlist', [{}])[0].get('source')
 
         if video_url:
-            f = {
-                'url': video_url,
-            }
+            if determine_ext(video_url) == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(video_url, video_id, ext='mp4', m3u8_id='hls'))
+            else:
+                f = {
+                    'url': video_url,
+                }
 
-            _search_dimensions_in_video_url(f, video_url)
+                _search_dimensions_in_video_url(f, video_url)
 
-            formats.append(f)
+                formats.append(f)
 
         vmap_url = config.get('vmapUrl') or config.get('vmap_url')
         if vmap_url:
@@ -263,7 +267,6 @@ class TwitterIE(InfoExtractor):
         'add_ie': ['Vine'],
     }, {
         'url': 'https://twitter.com/captainamerica/status/719944021058060289',
-        # md5 constantly changes
         'info_dict': {
             'id': '719944021058060289',
             'ext': 'mp4',
@@ -271,6 +274,9 @@ class TwitterIE(InfoExtractor):
             'description': 'Captain America on Twitter: "@King0fNerd Are you sure you made the right choice? Find out in theaters. https://t.co/GpgYi9xMJI"',
             'uploader_id': 'captainamerica',
             'uploader': 'Captain America',
+        },
+        'params': {
+            'skip_download': True,  # requires ffmpeg
         },
     }]
 
