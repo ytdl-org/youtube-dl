@@ -113,7 +113,8 @@ class VesselIE(InfoExtractor):
                 continue
             if f.get('name') == 'hls-index':
                 formats.extend(self._extract_m3u8_formats(
-                    location, video_id, ext='mp4', m3u8_id='m3u8'))
+                    location, video_id, ext='mp4',
+                    entry_protocol='m3u8_native', m3u8_id='m3u8'))
             else:
                 formats.append({
                     'format_id': f.get('name'),
