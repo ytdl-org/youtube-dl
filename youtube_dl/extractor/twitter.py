@@ -207,6 +207,7 @@ class TwitterIE(InfoExtractor):
             'uploader_id': 'giphz',
         },
         'expected_warnings': ['height', 'width'],
+        'skip': 'Account suspended',
     }, {
         'url': 'https://twitter.com/starwars/status/665052190608723968',
         'md5': '39b7199856dee6cd4432e72c74bc69d4',
@@ -278,7 +279,11 @@ class TwitterIE(InfoExtractor):
         user_id = mobj.group('user_id')
         twid = mobj.group('id')
 
-        webpage = self._download_webpage(self._TEMPLATE_URL % (user_id, twid), twid)
+        webpage, urlh = self._download_webpage_handle(
+            self._TEMPLATE_URL % (user_id, twid), twid)
+
+        if 'twitter.com/account/suspended' in urlh.geturl():
+            raise ExtractorError('Account suspended by Twitter.', expected=True)
 
         username = remove_end(self._og_search_title(webpage), ' on Twitter')
 
