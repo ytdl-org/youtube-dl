@@ -230,13 +230,13 @@ def _real_main(argv=None):
             'preferredquality': opts.audioquality,
             'nopostoverwrites': opts.nopostoverwrites,
         })
-    if opts.addmetadata:
-        postprocessors.append({'key': 'FFmpegMetadata'})
     if opts.recodevideo:
         postprocessors.append({
             'key': 'FFmpegVideoConvertor',
             'preferedformat': opts.recodevideo,
         })
+    if opts.addmetadata:
+        postprocessors.append({'key': 'FFmpegMetadata'})
     if opts.convertsubtitles:
         postprocessors.append({
             'key': 'FFmpegSubtitlesConvertor',
