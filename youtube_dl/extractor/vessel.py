@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import json
+import re
 
 from .common import InfoExtractor
 from ..utils import (
@@ -12,11 +13,11 @@ from ..utils import (
 
 
 class VesselIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vessel\.com/videos/(?P<id>[0-9a-zA-Z]+)'
+    _VALID_URL = r'https?://(?:www\.)?vessel\.com/(?:videos|embed)/(?P<id>[0-9a-zA-Z]+)'
     _API_URL_TEMPLATE = 'https://www.vessel.com/api/view/items/%s'
     _LOGIN_URL = 'https://www.vessel.com/api/account/login'
     _NETRC_MACHINE = 'vessel'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.vessel.com/videos/HDN7G5UMs',
         'md5': '455cdf8beb71c6dd797fd2f3818d05c4',
         'info_dict': {
@@ -28,7 +29,16 @@ class VesselIE(InfoExtractor):
             'description': 'Did Nvidia pull out all the stops on the Titan X, or does its performance leave something to be desired?',
             'timestamp': int,
         },
-    }
+    }, {
+        'url': 'https://www.vessel.com/embed/G4U7gUJ6a?w=615&h=346',
+        'only_matching': True,
+    }]
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return [url for _, url in re.findall(
+            r'<iframe[^>]+src=(["\'])((?:https?:)?//(?:www\.)?vessel\.com/embed/[0-9a-zA-Z]+.*?)\1',
+            webpage)]
 
     @staticmethod
     def make_json_request(url, data):
@@ -98,16 +108,19 @@ class VesselIE(InfoExtractor):
 
         formats = []
         for f in video_asset.get('sources', []):
-            if f['name'] == 'hls-index':
+            location = f.get('location')
+            if not location:
+                continue
+            if f.get('name') == 'hls-index':
                 formats.extend(self._extract_m3u8_formats(
-                    f['location'], video_id, ext='mp4', m3u8_id='m3u8'))
+                    location, video_id, ext='mp4', m3u8_id='m3u8'))
             else:
                 formats.append({
-                    'format_id': f['name'],
+                    'format_id': f.get('name'),
                     'tbr': f.get('bitrate'),
                     'height': f.get('height'),
                     'width': f.get('width'),
-                    'url': f['location'],
+                    'url': location,
                 })
         self._sort_formats(formats)
 
