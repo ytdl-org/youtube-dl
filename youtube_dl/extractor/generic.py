@@ -63,6 +63,7 @@ from .instagram import InstagramIE
 from .liveleak import LiveLeakIE
 from .threeqsdn import ThreeQSDNIE
 from .theplatform import ThePlatformIE
+from .vessel import VesselIE
 
 
 class GenericIE(InfoExtractor):
@@ -1532,6 +1533,11 @@ class GenericIE(InfoExtractor):
         tp_urls = ThePlatformIE._extract_urls(webpage)
         if tp_urls:
             return _playlist_from_matches(tp_urls, ie='ThePlatform')
+
+        # Look for Vessel embeds
+        vessel_urls = VesselIE._extract_urls(webpage)
+        if vessel_urls:
+            return _playlist_from_matches(vessel_urls, ie=VesselIE.ie_key())
 
         # Look for embedded rtl.nl player
         matches = re.findall(
