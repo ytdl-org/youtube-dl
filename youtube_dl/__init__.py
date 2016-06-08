@@ -221,17 +221,17 @@ def _real_main(argv=None):
             'key': 'MetadataFromTitle',
             'titleformat': opts.metafromtitle
         })
-    if opts.addmetadata and opts.keepvideo:
-        postprocessors.append({'key': 'FFmpegMetadata'})
     if opts.extractaudio:
+        if opts.addmetadata and opts.keepvideo:
+            postprocessors.append({'key': 'FFmpegMetadata'})
         postprocessors.append({
             'key': 'FFmpegExtractAudio',
             'preferredcodec': opts.audioformat,
             'preferredquality': opts.audioquality,
             'nopostoverwrites': opts.nopostoverwrites,
         })
-        if opts.addmetadata:
-            postprocessors.append({'key': 'FFmpegMetadata'})
+    if opts.addmetadata:
+        postprocessors.append({'key': 'FFmpegMetadata'})
     if opts.recodevideo:
         postprocessors.append({
             'key': 'FFmpegVideoConvertor',
