@@ -53,7 +53,7 @@ class TwitterCardIE(TwitterBaseIE):
                 'id': 'dq4Oj5quskI',
                 'ext': 'mp4',
                 'title': 'Ubuntu 11.10 Overview',
-                'description': 'Take a quick peek at what\'s new and improved in Ubuntu 11.10.\n\nOnce installed take a look at 10 Things to Do After Installing: http://www.omgubuntu.co.uk/2011/10/10-things-to-do-after-installing-ubuntu-11-10/',
+                'description': 'Take a quick peek at what\'s new and improved in Ubuntu 11.10.\n\nOnce installed take a look at 10 Things to Do After Installing: http://www.omgubuntu.co.uk/2011/10/10...',
                 'upload_date': '20111013',
                 'uploader': 'OMG! Ubuntu!',
                 'uploader_id': 'omgubuntu',
@@ -244,10 +244,10 @@ class TwitterIE(InfoExtractor):
         'info_dict': {
             'id': '700207533655363584',
             'ext': 'mp4',
-            'title': 'jay - BEAT PROD: @suhmeduh #Damndaniel',
-            'description': 'jay on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
+            'title': 'Donte The Dumbass - BEAT PROD: @suhmeduh #Damndaniel',
+            'description': 'Donte The Dumbass on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
             'thumbnail': 're:^https?://.*\.jpg',
-            'uploader': 'jay',
+            'uploader': 'Donte The Dumbass',
             'uploader_id': 'jaydingeer',
         },
         'params': {
