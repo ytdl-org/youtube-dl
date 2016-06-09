@@ -1,13 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 from .common import InfoExtractor
 from .ooyala import OoyalaIE
 
 
 class GodTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?god\.tv(?:/[a-z0-9-]+)+/(?P<display_id>[a-z0-9-]+)'
+    _VALID_URL = r'https?://(?:www\.)?god\.tv(?:/[^/]+)+/(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'http://god.tv/jesus-image/video/jesus-conference-2016/randy-needham',
         'info_dict': {
@@ -22,8 +21,7 @@ class GodTVIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        display_id = mobj.group('display_id')
+        display_id = self._match_id(url)
 
         webpage = self._download_webpage(url, display_id)
         ooyala_id = self._search_regex(r'"content_id"\s*:\s*"([\w-]{32})"', webpage, display_id)
