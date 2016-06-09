@@ -34,7 +34,8 @@ class WDRIE(InfoExtractor):
                 'description': 'md5:87be8ff14d8dfd7a7ee46f0299b52318',
                 'is_live': False,
                 'subtitles': {'de': [{
-                    'url': 'http://ondemand-ww.wdr.de/medp/fsk0/105/1058683/1058683_12220974.xml'
+                    'url': 'http://ondemand-ww.wdr.de/medp/fsk0/105/1058683/1058683_12220974.xml',
+                    'ext': 'ttml',
                 }]},
             },
         },
@@ -190,7 +191,8 @@ class WDRIE(InfoExtractor):
         caption_url = metadata_media_resource.get('captionURL')
         if caption_url:
             subtitles['de'] = [{
-                'url': caption_url
+                'url': caption_url,
+                'ext': 'ttml',
             }]
 
         title = metadata_tracker_data.get('trackerClipTitle')
