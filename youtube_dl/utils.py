@@ -2834,3 +2834,9 @@ def decode_packed_codes(code):
     return re.sub(
         r'\b(\w+)\b', lambda mobj: symbol_table[mobj.group(0)],
         obfucasted_code)
+
+
+class DownloadTarget(object):
+    MEDIA = 1
+    THUMBNAILS = 2
+    SUBTITLES = 3
