@@ -6,7 +6,7 @@ from ..utils import js_to_json
 
 
 class GodTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?god\.tv(?:/[^/]+)+/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?god\.tv(?:/[^/]+)*/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://god.tv/jesus-image/video/jesus-conference-2016/randy-needham',
         'info_dict': {
@@ -29,6 +29,9 @@ class GodTVIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://god.tv/live/africa',
+        'only_matching': True,
+    }, {
+        'url': 'http://god.tv/liveevents',
         'only_matching': True,
     }]
 
