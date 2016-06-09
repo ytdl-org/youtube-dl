@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class OpenloadIE(InfoExtractor):
-    _VALID_URL = r'https://openload.(?:co|io)/(?:f|embed)/(?P<id>[a-zA-Z0-9-]+)'
+    _VALID_URL = r'https://openload.(?:co|io)/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
@@ -30,6 +30,9 @@ class OpenloadIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://openload.io/f/ZAn6oz-VZGE/',
+        'only_matching': True,
+    }, {
+        'url': 'https://openload.co/f/_-ztPaZtMhM/',
         'only_matching': True,
     }, {
         # unavailable via https://openload.co/f/Sxz5sADo82g/, different layout
