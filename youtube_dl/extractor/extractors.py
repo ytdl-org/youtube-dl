@@ -21,6 +21,7 @@ from .adobetv import (
 )
 from .adultswim import AdultSwimIE
 from .aenetworks import AENetworksIE
+from .afreecatv import AfreecaTVIE
 from .aftonbladet import AftonbladetIE
 from .airmozilla import AirMozillaIE
 from .aljazeera import AlJazeeraIE
