@@ -10,6 +10,7 @@ from ..utils import (
     strip_jsonp,
     unified_strdate,
     ExtractorError,
+    update_url_query,
     urlhandle_detect_ext,
 )
 
@@ -100,9 +101,10 @@ class WDRIE(InfoExtractor):
         },
         {
             'url': 'http://www1.wdr.de/radio/player/radioplayer116~_layout-popupVersion.html',
+            # Live stream, MD5 unstable
             'info_dict': {
                 'id': 'mdb-869971',
-                'ext': 'mp3',
+                'ext': 'flv',
                 'title': 'Funkhaus Europa Livestream',
                 'description': 'md5:2309992a6716c347891c045be50992e4',
                 'upload_date': '20160101',
@@ -150,36 +152,38 @@ class WDRIE(InfoExtractor):
         formats = []
 
         # check if the metadata contains a direct URL to a file
-        metadata_media_alt = metadata_media_resource.get('alt')
-        if metadata_media_alt:
-            for tag_name in ['videoURL', 'audioURL']:
-                if tag_name in metadata_media_alt:
-                    alt_url = metadata_media_alt[tag_name]
-                    ext = determine_ext(alt_url)
-                    if ext == 'm3u8':
-                        m3u_fmt = self._extract_m3u8_formats(
-                            alt_url, display_id, 'mp4', 'm3u8_native',
-                            m3u8_id='hls')
-                        formats.extend(m3u_fmt)
-                    else:
-                        a_format = {
-                            'url': alt_url
-                        }
-                        if ext == 'unknown_video':
-                            urlh = self._request_webpage(
-                                alt_url, display_id, note='Determining extension')
-                            ext = urlhandle_detect_ext(urlh)
-                            a_format['ext'] = ext
-                        formats.append(a_format)
+        for kind, media_resource in metadata_media_resource.items():
+            if kind not in ('dflt', 'alt'):
+                continue
 
-        # check if there are flash-streams for this video
-        if 'dflt' in metadata_media_resource and 'videoURL' in metadata_media_resource['dflt']:
-            video_url = metadata_media_resource['dflt']['videoURL']
-            if video_url.endswith('.f4m'):
-                full_video_url = video_url + '?hdcore=3.2.0&plugin=aasp-3.2.0.77.18'
-                formats.extend(self._extract_f4m_formats(full_video_url, display_id, f4m_id='hds', fatal=False))
-            elif video_url.endswith('.smil'):
-                formats.extend(self._extract_smil_formats(video_url, 'stream', fatal=False))
+            for tag_name, medium_url in media_resource.items():
+                if tag_name not in ('videoURL', 'audioURL'):
+                    continue
+
+                ext = determine_ext(medium_url)
+                if ext == 'm3u8':
+                    m3u_fmt = self._extract_m3u8_formats(
+                        medium_url, display_id, 'mp4', 'm3u8_native',
+                        m3u8_id='hls')
+                    formats.extend(m3u_fmt)
+                elif ext == 'f4m':
+                    manifest_url = update_url_query(
+                        medium_url, {'hdcore': '3.2.0', 'plugin': 'aasp-3.2.0.77.18'})
+                    formats.extend(self._extract_f4m_formats(
+                        manifest_url, display_id, f4m_id='hds', fatal=False))
+                elif ext == 'smil':
+                    formats.extend(self._extract_smil_formats(
+                        medium_url, 'stream', fatal=False))
+                else:
+                    a_format = {
+                        'url': medium_url
+                    }
+                    if ext == 'unknown_video':
+                        urlh = self._request_webpage(
+                            medium_url, display_id, note='Determining extension')
+                        ext = urlhandle_detect_ext(urlh)
+                        a_format['ext'] = ext
+                    formats.append(a_format)
 
         subtitles = {}
         caption_url = metadata_media_resource.get('captionURL')
