@@ -48,6 +48,7 @@ from .utils import (
     determine_ext,
     determine_protocol,
     DownloadError,
+    DownloadTarget,
     encode_compat_str,
     encodeFilename,
     error_to_compat_str,
@@ -1462,6 +1463,7 @@ class YoutubeDL(object):
         self._num_downloads += 1
 
         info_dict['_filename'] = filename = self.prepare_filename(info_dict)
+        info_dict['_downloaded_targets'] = []
 
         # Forced printings
         if self.params.get('forcetitle', False):
@@ -1541,6 +1543,9 @@ class YoutubeDL(object):
             # that way it will silently go on when used with unsupporting IE
             subtitles = info_dict['requested_subtitles']
             ie = self.get_info_extractor(info_dict['extractor_key'])
+
+            all_subtitles_ok = True
+
             for sub_lang, sub_info in subtitles.items():
                 sub_format = sub_info['ext']
                 if sub_info.get('data') is not None:
@@ -1552,6 +1557,7 @@ class YoutubeDL(object):
                     except ExtractorError as err:
                         self.report_warning('Unable to download subtitle for "%s": %s' %
                                             (sub_lang, error_to_compat_str(err.cause)))
+                        all_subtitles_ok = False
                         continue
                 try:
                     sub_filename = subtitles_filename(filename, sub_lang, sub_format)
@@ -1563,7 +1569,11 @@ class YoutubeDL(object):
                             subfile.write(sub_data)
                 except (OSError, IOError):
                     self.report_error('Cannot write subtitles file ' + sub_filename)
+                    all_subtitles_ok = False
                     return
+
+            if all_subtitles_ok:
+                info_dict['_downloaded_targets'].append(DownloadTarget.SUBTITLES)
 
         if self.params.get('writeinfojson', False):
             infofn = replace_extension(filename, 'info.json', info_dict.get('ext'))
@@ -1577,7 +1587,8 @@ class YoutubeDL(object):
                     self.report_error('Cannot write metadata to JSON file ' + infofn)
                     return
 
-        self._write_thumbnails(info_dict, filename)
+        if self._write_thumbnails(info_dict, filename):
+            info_dict['_downloaded_targets'].append(DownloadTarget.THUMBNAILS)
 
         if not self.params.get('skip_download', False):
             try:
@@ -1718,12 +1729,16 @@ class YoutubeDL(object):
                     else:
                         assert fixup_policy in ('ignore', 'never')
 
-                try:
-                    self.post_process(filename, info_dict)
-                except (PostProcessingError) as err:
-                    self.report_error('postprocessing: %s' % str(err))
-                    return
-                self.record_download_archive(info_dict)
+                info_dict['_downloaded_targets'].append(DownloadTarget.MEDIA)
+
+        try:
+            self.post_process(filename, info_dict)
+        except (PostProcessingError) as err:
+            self.report_error('postprocessing: %s' % str(err))
+            return
+
+        if DownloadTarget.MEDIA in info_dict['_downloaded_targets']:
+            self.record_download_archive(info_dict)
 
     def download(self, url_list):
         """Download a given list of URLs."""
@@ -1776,11 +1791,15 @@ class YoutubeDL(object):
         """Run all the postprocessors on the given file."""
         info = dict(ie_info)
         info['filepath'] = filename
+        downloaded_targets = set(ie_info['_downloaded_targets'])
+
         pps_chain = []
         if ie_info.get('__postprocessors') is not None:
             pps_chain.extend(ie_info['__postprocessors'])
         pps_chain.extend(self._pps)
         for pp in pps_chain:
+            if not pp.DEPENDENCY.issubset(downloaded_targets):
+                continue
             files_to_delete = []
             try:
                 files_to_delete, info = pp.run(info)
@@ -2093,11 +2112,13 @@ class YoutubeDL(object):
         elif self.params.get('write_all_thumbnails', False):
             thumbnails = info_dict.get('thumbnails')
         else:
-            return
+            return False
 
         if not thumbnails:
             # No thumbnails present, so return immediately
-            return
+            return False
+
+        all_thumbnails_ok = True
 
         for t in thumbnails:
             thumb_ext = determine_ext(t['url'], 'jpg')
@@ -2120,3 +2141,6 @@ class YoutubeDL(object):
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     self.report_warning('Unable to download thumbnail "%s": %s' %
                                         (t['url'], error_to_compat_str(err)))
+                    all_thumbnails_ok = False
+
+        return all_thumbnails_ok
