@@ -7,6 +7,8 @@ from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
     int_or_none,
+    unified_strdate,
+    parse_duration,
 )
 
 
@@ -63,19 +65,28 @@ class AppleTrailersIE(InfoExtractor):
                     'uploader_id': 'wb',
                 },
             },
-        ]
+        ],
+        'expected_warnings': ['Unable to download JSON metadata: HTTP Error 404: Not Found'],
     }, {
         'url': 'http://trailers.apple.com/trailers/magnolia/blackthorn/',
         'info_dict': {
             'id': 'blackthorn',
         },
         'playlist_mincount': 2,
+        'expected_warnings': ['Unable to download JSON metadata: HTTP Error 404: Not Found'],
     }, {
         'url': 'http://trailers.apple.com/ca/metropole/autrui/',
-        'only_matching': True,
+        'info_dict': {
+            'id': 'autrui',
+        },
+        'playlist_mincount': 1,
+        'expected_warnings': ['Unable to download JSON metadata: HTTP Error 404: Not Found'],
     }, {
         'url': 'http://movietrailers.apple.com/trailers/focus_features/kuboandthetwostrings/',
-        'only_matching': True,
+        'info_dict': {
+            'id': 'kuboandthetwostrings',
+        },
+        'playlist_mincount': 4,
     }]
 
     _JSON_RE = r'iTunes.playURL\((.*?)\);'
@@ -85,71 +96,98 @@ class AppleTrailersIE(InfoExtractor):
         movie = mobj.group('movie')
         uploader_id = mobj.group('company')
 
-        playlist_url = compat_urlparse.urljoin(url, 'includes/playlists/itunes.inc')
-
-        def fix_html(s):
-            s = re.sub(r'(?s)<script[^<]*?>.*?</script>', '', s)
-            s = re.sub(r'<img ([^<]*?)/?>', r'<img \1/>', s)
-            # The ' in the onClick attributes are not escaped, it couldn't be parsed
-            # like: http://trailers.apple.com/trailers/wb/gravity/
-
-            def _clean_json(m):
-                return 'iTunes.playURL(%s);' % m.group(1).replace('\'', '&#39;')
-            s = re.sub(self._JSON_RE, _clean_json, s)
-            s = '<html>%s</html>' % s
-            return s
-        doc = self._download_xml(playlist_url, movie, transform_source=fix_html)
-
         playlist = []
-        for li in doc.findall('./div/ul/li'):
-            on_click = li.find('.//a').attrib['onClick']
-            trailer_info_json = self._search_regex(self._JSON_RE,
-                                                   on_click, 'trailer info')
-            trailer_info = json.loads(trailer_info_json)
-            first_url = trailer_info.get('url')
-            if not first_url:
-                continue
-            title = trailer_info['title']
+
+        def create_playlist_item(source, uncommon={}):
+            title = source['title']
             video_id = movie + '-' + re.sub(r'[^a-zA-Z0-9]', '', title).lower()
-            thumbnail = li.find('.//img').attrib['src']
-            upload_date = trailer_info['posted'].replace('-', '')
 
-            runtime = trailer_info['runtime']
-            m = re.search(r'(?P<minutes>[0-9]+):(?P<seconds>[0-9]{1,2})', runtime)
-            duration = None
-            if m:
-                duration = 60 * int(m.group('minutes')) + int(m.group('seconds'))
-
-            trailer_id = first_url.split('/')[-1].rpartition('_')[0].lower()
-            settings_json_url = compat_urlparse.urljoin(url, 'includes/settings/%s.json' % trailer_id)
-            settings = self._download_json(settings_json_url, trailer_id, 'Downloading settings json')
-
-            formats = []
-            for format in settings['metadata']['sizes']:
-                # The src is a file pointing to the real video file
-                format_url = re.sub(r'_(\d*p.mov)', r'_h\1', format['src'])
-                formats.append({
-                    'url': format_url,
-                    'format': format['type'],
-                    'width': int_or_none(format['width']),
-                    'height': int_or_none(format['height']),
-                })
-
-            self._sort_formats(formats)
-
-            playlist.append({
+            item = {
                 '_type': 'video',
                 'id': video_id,
-                'formats': formats,
                 'title': title,
-                'duration': duration,
-                'thumbnail': thumbnail,
-                'upload_date': upload_date,
+                'duration': parse_duration(source['runtime']),
+                'upload_date': unified_strdate(source['posted']),
                 'uploader_id': uploader_id,
                 'http_headers': {
                     'User-Agent': 'QuickTime compatible (youtube-dl)',
                 },
-            })
+            }
+            item.update(uncommon)
+            return item
+
+        def create_format_item(source, uncommon={}):
+            item = {
+                # The src is a file pointing to the real video file
+                'url': re.sub(r'_(\d*p.mov)' , r'_h\1', source['src']),
+                'width': int_or_none(source['width']),
+                'height': int_or_none(source['height']),
+            }
+            item.update(uncommon)
+            return item
+
+        # Test for presence of newer JSON format.
+        html = self._download_webpage(url, movie, fatal=False)
+        film_id = self._search_regex(r"^\s*var\s+FilmId\s*=\s*'(?P<film_id>\d+)'", html, 'FilmId', fatal=False, flags=re.MULTILINE, group='film_id')
+        json_data = None
+        if film_id:
+            data_url = 'http://trailers.apple.com/trailers/feeds/data/%s.json' % film_id
+            json_data = self._download_json(data_url, movie, 'Downloading trailer JSON', fatal=False)
+
+        if json_data:
+            for clip in json_data['clips']:
+                formats = []
+                for kind, meta in clip['versions']['enus']['sizes'].items():
+                    formats.append(create_format_item(meta, {
+                        'format_id': kind,
+                    }))
+                self._sort_formats(formats)
+
+                playlist.append(create_playlist_item(clip, {
+                    'formats': formats,
+                    'thumbnail': clip['thumb'],
+                }))
+        else:
+            playlist_url = compat_urlparse.urljoin(url, 'includes/playlists/itunes.inc')
+
+            def fix_html(s):
+                s = re.sub(r'(?s)<script[^<]*?>.*?</script>', '', s)
+                s = re.sub(r'<img ([^<]*?)/?>', r'<img \1/>', s)
+                # The ' in the onClick attributes are not escaped, it couldn't be parsed
+                # like: http://trailers.apple.com/trailers/wb/gravity/
+
+                def _clean_json(m):
+                    return 'iTunes.playURL(%s);' % m.group(1).replace('\'', '&#39;')
+                s = re.sub(self._JSON_RE, _clean_json, s)
+                s = '<html>%s</html>' % s
+                return s
+            doc = self._download_xml(playlist_url, movie, transform_source=fix_html)
+
+            for li in doc.findall('./div/ul/li'):
+                on_click = li.find('.//a').attrib['onClick']
+                trailer_info_json = self._search_regex(self._JSON_RE,
+                                                       on_click, 'trailer info')
+                trailer_info = json.loads(trailer_info_json)
+                first_url = trailer_info.get('url')
+                if not first_url:
+                    continue
+                thumbnail = li.find('.//img').attrib['src']
+                trailer_id = first_url.split('/')[-1].rpartition('_')[0].lower()
+                settings_json_url = compat_urlparse.urljoin(url, 'includes/settings/%s.json' % trailer_id)
+                settings = self._download_json(settings_json_url, trailer_id, 'Downloading settings json')
+
+                formats = []
+                for format in settings['metadata']['sizes']:
+                    formats.append(create_format_item(format, {
+                        'format': format['type'],
+                    }))
+
+                self._sort_formats(formats)
+
+                playlist.append(create_playlist_item(trailer_info, {
+                    'formats': formats,
+                    'thumbnail': thumbnail,
+                }))
 
         return {
             '_type': 'playlist',
