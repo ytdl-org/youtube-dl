@@ -6,10 +6,10 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
+    ExtractorError,
     js_to_json,
     strip_jsonp,
     unified_strdate,
-    ExtractorError,
     update_url_query,
     urlhandle_detect_ext,
 )
@@ -17,7 +17,7 @@ from ..utils import (
 
 class WDRIE(InfoExtractor):
     _CURRENT_MAUS_URL = r'https?://(?:www\.)wdrmaus.de/(?:[^/]+/){1,2}[^/?#]+\.php5'
-    _PAGE_REGEX = r'/(?:mediathek/)?(?P<media_type>[^/]+)/(?P<type>[^/]+)/(?P<display_id>.+)\.html'
+    _PAGE_REGEX = r'/(?:mediathek/)?[^/]+/(?P<type>[^/]+)/(?P<display_id>.+)\.html'
     _VALID_URL = r'(?P<page_url>https?://(?:www\d\.)?wdr\d?\.de)' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL
 
     _TESTS = [
@@ -162,10 +162,9 @@ class WDRIE(InfoExtractor):
 
                 ext = determine_ext(medium_url)
                 if ext == 'm3u8':
-                    m3u_fmt = self._extract_m3u8_formats(
+                    formats.extend(self._extract_m3u8_formats(
                         medium_url, display_id, 'mp4', 'm3u8_native',
-                        m3u8_id='hls')
-                    formats.extend(m3u_fmt)
+                        m3u8_id='hls'))
                 elif ext == 'f4m':
                     manifest_url = update_url_query(
                         medium_url, {'hdcore': '3.2.0', 'plugin': 'aasp-3.2.0.77.18'})
@@ -184,6 +183,8 @@ class WDRIE(InfoExtractor):
                         ext = urlhandle_detect_ext(urlh)
                         a_format['ext'] = ext
                     formats.append(a_format)
+
+        self._sort_formats(formats)
 
         subtitles = {}
         caption_url = metadata_media_resource.get('captionURL')
@@ -205,8 +206,6 @@ class WDRIE(InfoExtractor):
 
         if upload_date:
             upload_date = unified_strdate(upload_date)
-
-        self._sort_formats(formats)
 
         return {
             'id': metadata_tracker_data.get('trackerClipId', display_id),
