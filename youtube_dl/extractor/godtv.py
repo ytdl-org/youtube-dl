@@ -24,6 +24,12 @@ class GodTVIE(InfoExtractor):
             'id': 'bible-study',
         },
         'playlist_mincount': 37,
+    }, {
+        'url': 'http://god.tv/node/15097',
+        'only_matching': True,
+    }, {
+        'url': 'http://god.tv/live/africa',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
