@@ -292,6 +292,7 @@ from .globo import (
     GloboArticleIE,
 )
 from .godtube import GodTubeIE
+from .godtv import GodTVIE
 from .goldenmoustache import GoldenMoustacheIE
 from .golem import GolemIE
 from .googledrive import GoogleDriveIE
