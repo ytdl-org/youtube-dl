@@ -10,12 +10,13 @@ from ..utils import (
     strip_jsonp,
     unified_strdate,
     ExtractorError,
+    urlhandle_detect_ext,
 )
 
 
 class WDRIE(InfoExtractor):
     _CURRENT_MAUS_URL = r'https?://(?:www\.)wdrmaus.de/(?:[^/]+/){1,2}[^/?#]+\.php5'
-    _PAGE_REGEX = r'/mediathek/(?P<media_type>[^/]+)/(?P<type>[^/]+)/(?P<display_id>.+)\.html'
+    _PAGE_REGEX = r'/(?:mediathek/)?(?P<media_type>[^/]+)/(?P<type>[^/]+)/(?P<display_id>.+)\.html'
     _VALID_URL = r'(?P<page_url>https?://(?:www\d\.)?wdr\d?\.de)' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL
 
     _TESTS = [
@@ -97,6 +98,16 @@ class WDRIE(InfoExtractor):
                 'description': '- Die Sendung mit der Maus -',
             },
         },
+        {
+            'url': 'http://www1.wdr.de/radio/player/radioplayer116~_layout-popupVersion.html',
+            'info_dict': {
+                'id': 'mdb-869971',
+                'ext': 'mp3',
+                'title': 'Funkhaus Europa Livestream',
+                'description': 'md5:2309992a6716c347891c045be50992e4',
+                'upload_date': '20160101',
+            },
+        }
     ]
 
     def _real_extract(self, url):
@@ -107,9 +118,10 @@ class WDRIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         # for wdr.de the data-extension is in a tag with the class "mediaLink"
+        # for wdr.de radio players, in a tag with the class "wdrrPlayerPlayBtn"
         # for wdrmaus its in a link to the page in a multiline "videoLink"-tag
         json_metadata = self._html_search_regex(
-            r'class=(?:"mediaLink\b[^"]*"[^>]+|"videoLink\b[^"]*"[\s]*>\n[^\n]*)data-extension="([^"]+)"',
+            r'class=(?:"(?:mediaLink|wdrrPlayerPlayBtn)\b[^"]*"[^>]+|"videoLink\b[^"]*"[\s]*>\n[^\n]*)data-extension="([^"]+)"',
             webpage, 'media link', default=None, flags=re.MULTILINE)
 
         if not json_metadata:
@@ -143,15 +155,22 @@ class WDRIE(InfoExtractor):
             for tag_name in ['videoURL', 'audioURL']:
                 if tag_name in metadata_media_alt:
                     alt_url = metadata_media_alt[tag_name]
-                    if determine_ext(alt_url) == 'm3u8':
+                    ext = determine_ext(alt_url)
+                    if ext == 'm3u8':
                         m3u_fmt = self._extract_m3u8_formats(
                             alt_url, display_id, 'mp4', 'm3u8_native',
                             m3u8_id='hls')
                         formats.extend(m3u_fmt)
                     else:
-                        formats.append({
+                        a_format = {
                             'url': alt_url
-                        })
+                        }
+                        if ext == 'unknown_video':
+                            urlh = self._request_webpage(
+                                alt_url, display_id, note='Determining extension')
+                            ext = urlhandle_detect_ext(urlh)
+                            a_format['ext'] = ext
+                        formats.append(a_format)
 
         # check if there are flash-streams for this video
         if 'dflt' in metadata_media_resource and 'videoURL' in metadata_media_resource['dflt']:
