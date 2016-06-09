@@ -12,6 +12,7 @@ from ..compat import (
     compat_subprocess_get_DEVNULL,
 )
 from ..utils import (
+    DownloadTarget,
     encodeArgument,
     encodeFilename,
     get_exe_version,
@@ -180,6 +181,8 @@ class FFmpegPostProcessor(PostProcessor):
 
 
 class FFmpegExtractAudioPP(FFmpegPostProcessor):
+    DEPENDENCY = set([DownloadTarget.MEDIA])
+
     def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, nopostoverwrites=False):
         FFmpegPostProcessor.__init__(self, downloader)
         if preferredcodec is None:
@@ -308,6 +311,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
 
 class FFmpegVideoConvertorPP(FFmpegPostProcessor):
+    DEPENDENCY = set([DownloadTarget.MEDIA])
+
     def __init__(self, downloader=None, preferedformat=None):
         super(FFmpegVideoConvertorPP, self).__init__(downloader)
         self._preferedformat = preferedformat
@@ -331,6 +336,8 @@ class FFmpegVideoConvertorPP(FFmpegPostProcessor):
 
 
 class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
+    DEPENDENCY = set([DownloadTarget.MEDIA, DownloadTarget.SUBTITLES])
+
     def run(self, information):
         if information['ext'] not in ('mp4', 'webm', 'mkv'):
             self._downloader.to_screen('[ffmpeg] Subtitles can only be embedded in mp4, webm or mkv files')
@@ -387,6 +394,8 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
 
 
 class FFmpegMetadataPP(FFmpegPostProcessor):
+    DEPENDENCY = set([DownloadTarget.MEDIA])
+
     def run(self, info):
         metadata = {}
 
@@ -437,6 +446,8 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
 
 
 class FFmpegMergerPP(FFmpegPostProcessor):
+    DEPENDENCY = set([DownloadTarget.MEDIA])
+
     def run(self, info):
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
@@ -465,6 +476,8 @@ class FFmpegMergerPP(FFmpegPostProcessor):
 
 
 class FFmpegFixupStretchedPP(FFmpegPostProcessor):
+    DEPENDENCY = set([DownloadTarget.MEDIA])
+
     def run(self, info):
         stretched_ratio = info.get('stretched_ratio')
         if stretched_ratio is None or stretched_ratio == 1:
@@ -484,6 +497,8 @@ class FFmpegFixupStretchedPP(FFmpegPostProcessor):
 
 
 class FFmpegFixupM4aPP(FFmpegPostProcessor):
+    DEPENDENCY = set([DownloadTarget.MEDIA])
+
     def run(self, info):
         if info.get('container') != 'm4a_dash':
             return [], info
@@ -502,6 +517,8 @@ class FFmpegFixupM4aPP(FFmpegPostProcessor):
 
 
 class FFmpegFixupM3u8PP(FFmpegPostProcessor):
+    DEPENDENCY = set([DownloadTarget.MEDIA])
+
     def run(self, info):
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
@@ -517,6 +534,8 @@ class FFmpegFixupM3u8PP(FFmpegPostProcessor):
 
 
 class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
+    DEPENDENCY = set([DownloadTarget.SUBTITLES])
+
     def __init__(self, downloader=None, format=None):
         super(FFmpegSubtitlesConvertorPP, self).__init__(downloader)
         self.format = format

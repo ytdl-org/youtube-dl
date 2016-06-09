@@ -4,10 +4,15 @@ import subprocess
 
 from .common import PostProcessor
 from ..compat import compat_shlex_quote
-from ..utils import PostProcessingError
+from ..utils import (
+    DownloadTarget,
+    PostProcessingError,
+)
 
 
 class ExecAfterDownloadPP(PostProcessor):
+    DEPENDENCY = set([DownloadTarget.MEDIA])
+
     def __init__(self, downloader, exec_cmd):
         super(ExecAfterDownloadPP, self).__init__(downloader)
         self.exec_cmd = exec_cmd

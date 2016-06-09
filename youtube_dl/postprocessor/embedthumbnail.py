@@ -9,6 +9,7 @@ from .ffmpeg import FFmpegPostProcessor
 
 from ..utils import (
     check_executable,
+    DownloadTarget,
     encodeArgument,
     encodeFilename,
     PostProcessingError,
@@ -22,6 +23,8 @@ class EmbedThumbnailPPError(PostProcessingError):
 
 
 class EmbedThumbnailPP(FFmpegPostProcessor):
+    DEPENDENCY = set([DownloadTarget.MEDIA, DownloadTarget.THUMBNAILS])
+
     def __init__(self, downloader=None, already_have_thumbnail=False):
         super(EmbedThumbnailPP, self).__init__(downloader)
         self._already_have_thumbnail = already_have_thumbnail

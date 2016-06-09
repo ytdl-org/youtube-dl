@@ -11,6 +11,8 @@ class MetadataFromTitlePPError(PostProcessingError):
 
 
 class MetadataFromTitlePP(PostProcessor):
+    DEPENDENCY = set()
+
     def __init__(self, downloader, titleformat):
         super(MetadataFromTitlePP, self).__init__(downloader)
         self._titleformat = titleformat

@@ -9,6 +9,7 @@ from .common import PostProcessor
 from ..compat import compat_os_name
 from ..utils import (
     check_executable,
+    DownloadTarget,
     hyphenate_date,
     version_tuple,
     PostProcessingError,
@@ -33,6 +34,7 @@ class XAttrMetadataError(PostProcessingError):
 
 
 class XAttrMetadataPP(PostProcessor):
+    DEPENDENCY = set([DownloadTarget.MEDIA])
 
     #
     # More info about extended attributes for media:
