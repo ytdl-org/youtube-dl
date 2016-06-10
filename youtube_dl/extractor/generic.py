@@ -1032,6 +1032,17 @@ class GenericIE(InfoExtractor):
                 'timestamp': 1389118457,
             },
         },
+        # NBC News embed
+        {
+            'url': 'http://www.vulture.com/2016/06/letterman-couldnt-care-less-about-late-night.html',
+            'md5': '1aa589c675898ae6d37a17913cf68d66',
+            'info_dict': {
+                'id': '701714499682',
+                'ext': 'mp4',
+                'title': 'PREVIEW: On Assignment: David Letterman',
+                'description': 'A preview of Tom Brokaw\'s interview with David Letterman as part of the On Assignment series powered by Dateline. Airs Sunday June 12 at 7/6c.',
+            },
+        },
         # UDN embed
         {
             'url': 'https://video.udn.com/news/300346',
@@ -1965,6 +1976,12 @@ class GenericIE(InfoExtractor):
         nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
         if nbc_sports_url:
             return self.url_result(nbc_sports_url, 'NBCSportsVPlayer')
+
+        # Look for NBC News embeds
+        nbc_news_embed_url = re.search(
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//www\.nbcnews\.com/widget/video-embed/[^"\']+)\1', webpage)
+        if nbc_news_embed_url:
+            return self.url_result(nbc_news_embed_url.group('url'), 'NBCNews')
 
         # Look for Google Drive embeds
         google_drive_url = GoogleDriveIE._extract_url(webpage)
