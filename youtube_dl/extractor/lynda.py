@@ -1,84 +1,89 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_HTTPError,
+    compat_str,
+    compat_urlparse,
+)
 from ..utils import (
     ExtractorError,
-    clean_html,
     int_or_none,
-    sanitized_Request,
     urlencode_postdata,
 )
 
 
 class LyndaBaseIE(InfoExtractor):
-    _LOGIN_URL = 'https://www.lynda.com/login/login.aspx'
+    _SIGNIN_URL = 'https://www.lynda.com/signin'
+    _PASSWORD_URL = 'https://www.lynda.com/signin/password'
+    _USER_URL = 'https://www.lynda.com/signin/user'
     _ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to provide lynda.com account credentials.'
     _NETRC_MACHINE = 'lynda'
 
     def _real_initialize(self):
         self._login()
 
+    @staticmethod
+    def _check_error(json_string, key_or_keys):
+        keys = [key_or_keys] if isinstance(key_or_keys, compat_str) else key_or_keys
+        for key in keys:
+            error = json_string.get(key)
+            if error:
+                raise ExtractorError('Unable to login: %s' % error, expected=True)
+
+    def _login_step(self, form_html, fallback_action_url, extra_form_data, note, referrer_url):
+        action_url = self._search_regex(
+            r'<form[^>]+action=(["\'])(?P<url>.+?)\1', form_html,
+            'post url', default=fallback_action_url, group='url')
+
+        if not action_url.startswith('http'):
+            action_url = compat_urlparse.urljoin(self._SIGNIN_URL, action_url)
+
+        form_data = self._hidden_inputs(form_html)
+        form_data.update(extra_form_data)
+
+        try:
+            response = self._download_json(
+                action_url, None, note,
+                data=urlencode_postdata(form_data),
+                headers={
+                    'Referer': referrer_url,
+                    'X-Requested-With': 'XMLHttpRequest',
+                })
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 500:
+                response = self._parse_json(e.cause.read().decode('utf-8'), None)
+                self._check_error(response, ('email', 'password'))
+            raise
+
+        self._check_error(response, 'ErrorMessage')
+
+        return response, action_url
+
     def _login(self):
         username, password = self._get_login_info()
         if username is None:
             return
 
-        login_form = {
-            'username': username,
-            'password': password,
-            'remember': 'false',
-            'stayPut': 'false'
-        }
-        request = sanitized_Request(
-            self._LOGIN_URL, urlencode_postdata(login_form))
-        login_page = self._download_webpage(
-            request, None, 'Logging in as %s' % username)
+        # Step 1: download signin page
+        signin_page = self._download_webpage(
+            self._SIGNIN_URL, None, 'Downloading signin page')
 
-        # Not (yet) logged in
-        m = re.search(r'loginResultJson\s*=\s*\'(?P<json>[^\']+)\';', login_page)
-        if m is not None:
-            response = m.group('json')
-            response_json = json.loads(response)
-            state = response_json['state']
+        # Step 2: submit email
+        signin_form = self._search_regex(
+            r'(?s)(<form[^>]+data-form-name=["\']signin["\'][^>]*>.+?</form>)',
+            signin_page, 'signin form')
+        signin_page, signin_url = self._login_step(
+            signin_form, self._PASSWORD_URL, {'email': username},
+            'Submitting email', self._SIGNIN_URL)
 
-            if state == 'notlogged':
-                raise ExtractorError(
-                    'Unable to login, incorrect username and/or password',
-                    expected=True)
-
-            # This is when we get popup:
-            # > You're already logged in to lynda.com on two devices.
-            # > If you log in here, we'll log you out of another device.
-            # So, we need to confirm this.
-            if state == 'conflicted':
-                confirm_form = {
-                    'username': '',
-                    'password': '',
-                    'resolve': 'true',
-                    'remember': 'false',
-                    'stayPut': 'false',
-                }
-                request = sanitized_Request(
-                    self._LOGIN_URL, urlencode_postdata(confirm_form))
-                login_page = self._download_webpage(
-                    request, None,
-                    'Confirming log in and log out from another device')
-
-        if all(not re.search(p, login_page) for p in ('isLoggedIn\s*:\s*true', r'logout\.aspx', r'>Log out<')):
-            if 'login error' in login_page:
-                mobj = re.search(
-                    r'(?s)<h1[^>]+class="topmost">(?P<title>[^<]+)</h1>\s*<div>(?P<description>.+?)</div>',
-                    login_page)
-                if mobj:
-                    raise ExtractorError(
-                        'lynda returned error: %s - %s'
-                        % (mobj.group('title'), clean_html(mobj.group('description'))),
-                        expected=True)
-            raise ExtractorError('Unable to log in')
+        # Step 3: submit password
+        password_form = signin_page['body']
+        self._login_step(
+            password_form, self._USER_URL, {'email': username, 'password': password},
+            'Submitting password', signin_url)
 
     def _logout(self):
         username, _ = self._get_login_info()
