@@ -28,6 +28,7 @@
  - **AdobeTVVideo**
  - **AdultSwim**
  - **aenetworks**: A+E Networks: A&E, Lifetime, History.com, FYI Network
+ - **AfreecaTV**: afreecatv.com
  - **Aftonbladet**
  - **AirMozilla**
  - **AlJazeera**
@@ -43,8 +44,8 @@
  - **appletrailers:section**
  - **archive.org**: archive.org videos
  - **ARD**
- - **ARD:mediathek**: Saarländischer Rundfunk
  - **ARD:mediathek**
+ - **ARD:mediathek**: Saarländischer Rundfunk
  - **arte.tv**
  - **arte.tv:+7**
  - **arte.tv:cinema**
@@ -253,6 +254,7 @@
  - **Globo**
  - **GloboArticle**
  - **GodTube**
+ - **GodTV**
  - **GoldenMoustache**
  - **Golem**
  - **GoogleDrive**
@@ -738,6 +740,7 @@
  - **VideoPremium**
  - **VideoTt**: video.tt - Your True Tube (Currently broken)
  - **videoweed**: VideoWeed
+ - **Vidio**
  - **vidme**
  - **vidme:user**
  - **vidme:user:likes**
@@ -773,7 +776,6 @@
  - **VRT**
  - **vube**: Vube.com
  - **VuClip**
- - **vulture.com**
  - **Walla**
  - **washingtonpost**
  - **washingtonpost:article**
@@ -781,10 +783,8 @@
  - **WatchIndianPorn**: Watch Indian Porn
  - **WDR**
  - **wdr:mobile**
- - **WDRMaus**: Sendung mit der Maus
  - **WebOfStories**
  - **WebOfStoriesPlaylist**
- - **Weibo**
  - **WeiqiTV**: WQTV
  - **wholecloud**: WholeCloud
  - **Wimp**
@@ -820,6 +820,7 @@
  - **Ynet**
  - **YouJizz**
  - **youku**: 优酷
+ - **youku:show**
  - **YouPorn**
  - **YourUpload**
  - **youtube**: YouTube.com
