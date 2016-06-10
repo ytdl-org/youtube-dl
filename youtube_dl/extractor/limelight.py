@@ -123,7 +123,18 @@ class LimelightBaseIE(InfoExtractor):
 
 class LimelightMediaIE(LimelightBaseIE):
     IE_NAME = 'limelight'
-    _VALID_URL = r'(?:limelight:media:|https?://link\.videoplatform\.limelight\.com/media/\?.*?\bmediaId=)(?P<id>[a-z0-9]{32})'
+    _VALID_URL = r'''(?x)
+                        (?:
+                            limelight:media:|
+                            https?://
+                                (?:
+                                    link\.videoplatform\.limelight\.com/media/|
+                                    assets\.delvenetworks\.com/player/loader\.swf
+                                )
+                                \?.*?\bmediaId=
+                        )
+                        (?P<id>[a-z0-9]{32})
+                    '''
     _TESTS = [{
         'url': 'http://link.videoplatform.limelight.com/media/?mediaId=3ffd040b522b4485b6d84effc750cd86',
         'info_dict': {
@@ -158,6 +169,9 @@ class LimelightMediaIE(LimelightBaseIE):
             # rtmp download
             'skip_download': True,
         },
+    }, {
+        'url': 'https://assets.delvenetworks.com/player/loader.swf?mediaId=8018a574f08d416e95ceaccae4ba0452',
+        'only_matching': True,
     }]
     _PLAYLIST_SERVICE_PATH = 'media'
     _API_PATH = 'media'
@@ -176,15 +190,29 @@ class LimelightMediaIE(LimelightBaseIE):
 
 class LimelightChannelIE(LimelightBaseIE):
     IE_NAME = 'limelight:channel'
-    _VALID_URL = r'(?:limelight:channel:|https?://link\.videoplatform\.limelight\.com/media/\?.*?\bchannelId=)(?P<id>[a-z0-9]{32})'
-    _TEST = {
+    _VALID_URL = r'''(?x)
+                        (?:
+                            limelight:channel:|
+                            https?://
+                                (?:
+                                    link\.videoplatform\.limelight\.com/media/|
+                                    assets\.delvenetworks\.com/player/loader\.swf
+                                )
+                                \?.*?\bchannelId=
+                        )
+                        (?P<id>[a-z0-9]{32})
+                    '''
+    _TESTS = [{
         'url': 'http://link.videoplatform.limelight.com/media/?channelId=ab6a524c379342f9b23642917020c082',
         'info_dict': {
             'id': 'ab6a524c379342f9b23642917020c082',
             'title': 'Javascript Sample Code',
         },
         'playlist_mincount': 3,
-    }
+    }, {
+        'url': 'http://assets.delvenetworks.com/player/loader.swf?channelId=ab6a524c379342f9b23642917020c082',
+        'only_matching': True,
+    }]
     _PLAYLIST_SERVICE_PATH = 'channel'
     _API_PATH = 'channels'
 
@@ -207,15 +235,29 @@ class LimelightChannelIE(LimelightBaseIE):
 
 class LimelightChannelListIE(LimelightBaseIE):
     IE_NAME = 'limelight:channel_list'
-    _VALID_URL = r'(?:limelight:channel_list:|https?://link\.videoplatform\.limelight\.com/media/\?.*?\bchannelListId=)(?P<id>[a-z0-9]{32})'
-    _TEST = {
+    _VALID_URL = r'''(?x)
+                        (?:
+                            limelight:channel_list:|
+                            https?://
+                                (?:
+                                    link\.videoplatform\.limelight\.com/media/|
+                                    assets\.delvenetworks\.com/player/loader\.swf
+                                )
+                                \?.*?\bchannelListId=
+                        )
+                        (?P<id>[a-z0-9]{32})
+                    '''
+    _TESTS = [{
         'url': 'http://link.videoplatform.limelight.com/media/?channelListId=301b117890c4465c8179ede21fd92e2b',
         'info_dict': {
             'id': '301b117890c4465c8179ede21fd92e2b',
             'title': 'Website - Hero Player',
         },
         'playlist_mincount': 2,
-    }
+    }, {
+        'url': 'https://assets.delvenetworks.com/player/loader.swf?channelListId=301b117890c4465c8179ede21fd92e2b',
+        'only_matching': True,
+    }]
     _PLAYLIST_SERVICE_PATH = 'channel_list'
 
     def _real_extract(self, url):
