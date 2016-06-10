@@ -102,9 +102,15 @@ class LimelightBaseIE(InfoExtractor):
             lang = caption.get('language_code')
             subtitles_url = caption.get('url')
             if lang and subtitles_url:
-                subtitles[lang] = [{
+                subtitles.setdefault(lang, []).append({
                     'url': subtitles_url,
-                }]
+                })
+        closed_captions_url = properties.get('closed_captions_url')
+        if closed_captions_url:
+            subtitles.setdefault('en', []).append({
+                'url': closed_captions_url,
+                'ext': 'ttml',
+            })
 
         return {
             'id': video_id,
