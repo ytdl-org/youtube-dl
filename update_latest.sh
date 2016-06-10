@@ -11,5 +11,8 @@ fi
 cd "$(dirname $(readlink -f $0))"
 
 echo -n "$version" > latest_version
-ln -sf downloads/latest downloads/$1
 
+echo -e "RewriteEngine On" > downloads/.htaccess
+echo -e "RewriteRule ^$ https://github.com/rg3/youtube-dl/releases" >> downloads/.htaccess
+echo -e "RewriteRule ^(\d{4}\.\d{2}\.\d{2}.*)$ https://github.com/rg3/youtube-dl/releases/tag/\$1" >> downloads/.htaccess
+echo -e "RewriteRule latest(.*) /downloads/$1 [L,R=302]" >> downloads/.htaccess
