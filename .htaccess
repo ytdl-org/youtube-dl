@@ -14,7 +14,7 @@ RewriteRule ^g403$ https://github.com/rg3/youtube-dl/blob/master/README.md#i-ext
  
 RewriteRule ^latest/version$ latest_version [L,T=text/plain]
 RewriteRule ^latest_version$ - [T=text/plain]
-RewriteRule ^latest/(.*)$ /downloads/latest/$1 [R=302,L]
+RewriteRule ^latest(?:/(.*))?$ /downloads/latest/$1 [R=302,L]
 
 ErrorDocument 302 "302"
 
