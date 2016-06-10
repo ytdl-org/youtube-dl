@@ -98,7 +98,7 @@ class LimelightBaseIE(InfoExtractor):
         } for thumbnail in properties.get('thumbnails', []) if thumbnail.get('url')]
 
         subtitles = {}
-        for caption in properties.get('captions', {}):
+        for caption in properties.get('captions', []):
             lang = caption.get('language_code')
             subtitles_url = caption.get('url')
             if lang and subtitles_url:
