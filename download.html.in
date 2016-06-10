@@ -32,7 +32,7 @@
 </p>
 
 <p>To install it right away for all UNIX users (Linux, OS X, etc.), type:
-<code class="commands">sudo curl @PROGRAM_URL@ -o /usr/local/bin/youtube-dl<br/>
+<code class="commands">sudo curl -L @PROGRAM_URL@ -o /usr/local/bin/youtube-dl<br/>
 sudo chmod a+rx /usr/local/bin/youtube-dl</code>
 </p>
 
