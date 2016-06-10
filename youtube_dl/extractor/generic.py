@@ -1857,14 +1857,6 @@ class GenericIE(InfoExtractor):
             url = unescapeHTML(mobj.group('url'))
             return self.url_result(url)
 
-        # Look for embedded vulture.com player
-        mobj = re.search(
-            r'<iframe src="(?P<url>https?://video\.vulture\.com/[^"]+)"',
-            webpage)
-        if mobj is not None:
-            url = unescapeHTML(mobj.group('url'))
-            return self.url_result(url, ie='Vulture')
-
         # Look for embedded mtvservices player
         mtvservices_url = MTVServicesEmbeddedIE._extract_url(webpage)
         if mtvservices_url:
