@@ -266,6 +266,11 @@ class NBCNewsIE(ThePlatformIE):
             'url': 'http://www.nbcnews.com/watch/dateline/full-episode--deadly-betrayal-386250819952',
             'only_matching': True,
         },
+        {
+            # From http://www.vulture.com/2016/06/letterman-couldnt-care-less-about-late-night.html
+            'url': 'http://www.nbcnews.com/widget/video-embed/701714499682',
+            'only_matching': True,
+        },
     ]
 
     def _real_extract(self, url):
@@ -289,18 +294,17 @@ class NBCNewsIE(ThePlatformIE):
             webpage = self._download_webpage(url, display_id)
             info = None
             bootstrap_json = self._search_regex(
-                r'(?m)var\s+(?:bootstrapJson|playlistData)\s*=\s*({.+});?\s*$',
+                [r'(?m)(?:var\s+(?:bootstrapJson|playlistData)|NEWS\.videoObj)\s*=\s*({.+});?\s*$',
+                 r'videoObj\s*:\s*({.+})', r'data-video="([^"]+)"'],
                 webpage, 'bootstrap json', default=None)
-            if bootstrap_json:
-                bootstrap = self._parse_json(bootstrap_json, display_id)
+            bootstrap = self._parse_json(
+                bootstrap_json, display_id, transform_source=unescapeHTML)
+            if 'results' in bootstrap:
                 info = bootstrap['results'][0]['video']
+            elif 'video' in bootstrap:
+                info = bootstrap['video']
             else:
-                player_instance_json = self._search_regex(
-                    r'videoObj\s*:\s*({.+})', webpage, 'player instance', default=None)
-                if not player_instance_json:
-                    player_instance_json = self._html_search_regex(
-                        r'data-video="([^"]+)"', webpage, 'video json')
-                info = self._parse_json(player_instance_json, display_id)
+                info = bootstrap
             video_id = info['mpxId']
             title = info['title']
 
