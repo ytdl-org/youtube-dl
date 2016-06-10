@@ -16,6 +16,4 @@ echo -e "RewriteEngine On" > downloads/.htaccess
 echo -e "RewriteRule ^$ https://github.com/rg3/youtube-dl/releases" >> downloads/.htaccess
 echo -e "RewriteRule ^(\d{4}\.\d{2}\.\d{2}(?:\.\d+)?/?)$ https://github.com/rg3/youtube-dl/releases/tag/\$1" >> downloads/.htaccess
 echo -e "RewriteRule ^(\d{4}\.\d{2}\.\d{2}(?:\.\d+)?/.+)$ https://github.com/rg3/youtube-dl/releases/download/\$1" >> downloads/.htaccess
-echo -e "RewriteRule latest(.*) /downloads/$1 [L,R=302]" >> downloads/.htaccess
-
-
+echo -e "RewriteRule latest(.*) /downloads/$1\$1 [L,R=302]" >> downloads/.htaccess
