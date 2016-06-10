@@ -64,8 +64,8 @@ except ImportError:  # Python 2
     import htmlentitydefs as compat_html_entities
 
 try:  # Python >= 3.3
-    from compat_html_entities import html as compat_html_entities_html5
-except ImportError:
+    compat_html_entities_html5 = compat_html_entities.html5
+except AttributeError:
     # Copied from CPython 3.5.1 html/entities.py
     compat_html_entities_html5 = {
         'Aacute': '\xc1',
