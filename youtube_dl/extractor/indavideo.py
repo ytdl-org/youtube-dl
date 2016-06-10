@@ -51,16 +51,9 @@ class IndavideoEmbedIE(InfoExtractor):
             video_urls.append(video_file)
         video_urls = list(set(video_urls))
 
-        video_prefix = video_urls[0].rsplit('/', 1)[0]
-
-        for flv_file in video.get('flv_files', []):
-            flv_url = '%s/%s' % (video_prefix, flv_file)
-            if flv_url not in video_urls:
-                video_urls.append(flv_url)
-
         formats = [{
             'url': video_url,
-            'height': self._search_regex(r'\.(\d{3,4})\.mp4$', video_url, 'height', default=None),
+            'height': int_or_none(self._search_regex(r'\.(\d+)\.mp4', video_url, 'height', default=None)),
         } for video_url in video_urls]
         self._sort_formats(formats)
 
