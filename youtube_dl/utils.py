@@ -39,6 +39,7 @@ from .compat import (
     compat_chr,
     compat_etree_fromstring,
     compat_html_entities,
+    compat_html_entities_html5,
     compat_http_client,
     compat_kwargs,
     compat_parse_qs,
@@ -456,11 +457,18 @@ def orderedSet(iterable):
     return res
 
 
-def _htmlentity_transform(entity):
+def _htmlentity_transform(entity_with_semicolon):
     """Transforms an HTML entity to a character."""
+    entity = entity_with_semicolon[:-1]
+
     # Known non-numeric HTML entity
     if entity in compat_html_entities.name2codepoint:
         return compat_chr(compat_html_entities.name2codepoint[entity])
+
+    # TODO: HTML5 allows entities without a semicolon. For example,
+    # '&Eacuteric' should be decoded as 'Éric'.
+    if entity_with_semicolon in compat_html_entities_html5:
+        return compat_html_entities_html5[entity_with_semicolon]
 
     mobj = re.match(r'#(x[0-9a-fA-F]+|[0-9]+)', entity)
     if mobj is not None:
@@ -486,7 +494,7 @@ def unescapeHTML(s):
     assert type(s) == compat_str
 
     return re.sub(
-        r'&([^;]+);', lambda m: _htmlentity_transform(m.group(1)), s)
+        r'&([^;]+;)', lambda m: _htmlentity_transform(m.group(1)), s)
 
 
 def get_subprocess_encoding():
