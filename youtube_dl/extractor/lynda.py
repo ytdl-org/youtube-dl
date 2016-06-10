@@ -71,6 +71,11 @@ class LyndaBaseIE(InfoExtractor):
         signin_page = self._download_webpage(
             self._SIGNIN_URL, None, 'Downloading signin page')
 
+        # Already logged in
+        if any(re.search(p, signin_page) for p in (
+                'isLoggedIn\s*:\s*true', r'logout\.aspx', r'>Log out<')):
+            return
+
         # Step 2: submit email
         signin_form = self._search_regex(
             r'(?s)(<form[^>]+data-form-name=["\']signin["\'][^>]*>.+?</form>)',
@@ -84,15 +89,6 @@ class LyndaBaseIE(InfoExtractor):
         self._login_step(
             password_form, self._USER_URL, {'email': username, 'password': password},
             'Submitting password', signin_url)
-
-    def _logout(self):
-        username, _ = self._get_login_info()
-        if username is None:
-            return
-
-        self._download_webpage(
-            'http://www.lynda.com/ajax/logout.aspx', None,
-            'Logging out', 'Unable to log out', fatal=False)
 
 
 class LyndaIE(LyndaBaseIE):
@@ -216,8 +212,6 @@ class LyndaCourseIE(LyndaBaseIE):
         course = self._download_json(
             'http://www.lynda.com/ajax/player?courseId=%s&type=course' % course_id,
             course_id, 'Downloading course JSON')
-
-        self._logout()
 
         if course.get('Status') == 'NotFound':
             raise ExtractorError(
