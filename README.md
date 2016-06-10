@@ -511,6 +511,9 @@ The basic usage is not to set any template arguments when downloading a single f
  - `autonumber`: Five-digit number that will be increased with each download, starting at zero
  - `playlist`: Name or id of the playlist that contains the video
  - `playlist_index`: Index of the video in the playlist padded with leading zeros according to the total length of the playlist
+ - `playlist_id`: Playlist identifier
+ - `playlist_title`: Playlist title
+
 
 Available for the video that belongs to some logical chapter or section:
  - `chapter`: Name or title of the chapter the video belongs to
