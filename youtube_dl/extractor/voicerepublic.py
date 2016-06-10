@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..compat import (
+    compat_str,
+    compat_urlparse,
+)
 from ..utils import (
     ExtractorError,
     determine_ext,
@@ -16,13 +19,13 @@ class VoiceRepublicIE(InfoExtractor):
     _VALID_URL = r'https?://voicerepublic\.com/(?:talks|embed)/(?P<id>[0-9a-z-]+)'
     _TESTS = [{
         'url': 'http://voicerepublic.com/talks/watching-the-watchers-building-a-sousveillance-state',
-        'md5': '0554a24d1657915aa8e8f84e15dc9353',
+        'md5': 'b9174d651323f17783000876347116e3',
         'info_dict': {
             'id': '2296',
             'display_id': 'watching-the-watchers-building-a-sousveillance-state',
             'ext': 'm4a',
             'title': 'Watching the Watchers: Building a Sousveillance State',
-            'description': 'md5:715ba964958afa2398df615809cfecb1',
+            'description': 'Secret surveillance programs have metadata too. The people and companies that operate secret surveillance programs can be surveilled.',
             'thumbnail': 're:^https?://.*\.(?:png|jpg)$',
             'duration': 1800,
             'view_count': int,
@@ -52,7 +55,7 @@ class VoiceRepublicIE(InfoExtractor):
         if data:
             title = data['title']
             description = data.get('teaser')
-            talk_id = data.get('talk_id') or display_id
+            talk_id = compat_str(data.get('talk_id') or display_id)
             talk = data['talk']
             duration = int_or_none(talk.get('duration'))
             formats = [{
