@@ -66,6 +66,7 @@ class XuiteIE(InfoExtractor):
             'uploader_id': '242127761',
             'categories': ['電玩動漫'],
         },
+        'skip': 'Video removed',
     }, {
         'url': 'http://vlog.xuite.net/play/S1dDUjdyLTMyOTc3NjcuZmx2/%E5%AD%AB%E7%87%95%E5%A7%BF-%E7%9C%BC%E6%B7%9A%E6%88%90%E8%A9%A9',
         'only_matching': True,
