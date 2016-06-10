@@ -627,13 +627,13 @@ class GenericIE(InfoExtractor):
         },
         # MTVSercices embed
         {
-            'url': 'http://www.gametrailers.com/news-post/76093/north-america-europe-is-getting-that-mario-kart-8-mercedes-dlc-too',
-            'md5': '35727f82f58c76d996fc188f9755b0d5',
+            'url': 'http://www.vulture.com/2016/06/new-key-peele-sketches-released.html',
+            'md5': 'ca1aef97695ef2c1d6973256a57e5252',
             'info_dict': {
-                'id': '0306a69b-8adf-4fb5-aace-75f8e8cbfca9',
+                'id': '769f7ec0-0692-4d62-9b45-0d88074bffc1',
                 'ext': 'mp4',
-                'title': 'Review',
-                'description': 'Mario\'s life in the fast lane has never looked so good.',
+                'title': 'Key and Peele|October 10, 2012|2|203|Liam Neesons - Uncensored',
+                'description': 'Two valets share their love for movie star Liam Neesons.',
             },
         },
         # YouTube embed via <data-embed-url="">
