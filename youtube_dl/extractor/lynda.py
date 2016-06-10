@@ -245,5 +245,6 @@ class LyndaCourseIE(LyndaBaseIE):
                 % unaccessible_videos + self._ACCOUNT_CREDENTIALS_HINT)
 
         course_title = course.get('Title')
+        course_description = course.get('Description')
 
-        return self.playlist_result(entries, course_id, course_title)
+        return self.playlist_result(entries, course_id, course_title, course_description)
