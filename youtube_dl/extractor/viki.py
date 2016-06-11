@@ -101,9 +101,12 @@ class VikiBaseIE(InfoExtractor):
             self.report_warning('Unable to get session token, login has probably failed')
 
     @staticmethod
-    def dict_selection(dict_obj, preferred_key):
+    def dict_selection(dict_obj, preferred_key, allow_fallback=True):
         if preferred_key in dict_obj:
             return dict_obj.get(preferred_key)
+
+        if not allow_fallback:
+            return
 
         filtered_dict = list(filter(None, [dict_obj.get(k) for k in dict_obj.keys()]))
         return filtered_dict[0] if filtered_dict else None
@@ -218,7 +221,7 @@ class VikiIE(VikiBaseIE):
 
         self._check_errors(video)
 
-        title = self.dict_selection(video.get('titles', {}), 'en')
+        title = self.dict_selection(video.get('titles', {}), 'en', allow_fallback=False)
         if not title:
             title = 'Episode %d' % video.get('number') if video.get('type') == 'episode' else video.get('id') or video_id
             container_titles = video.get('container', {}).get('titles', {})
