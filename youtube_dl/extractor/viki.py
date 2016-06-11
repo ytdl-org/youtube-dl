@@ -156,7 +156,8 @@ class VikiIE(VikiBaseIE):
         'params': {
             # m3u8 download
             'skip_download': True,
-        }
+        },
+        'skip': 'Blocked in the US',
     }, {
         # episode
         'url': 'http://www.viki.com/videos/44699v-boys-over-flowers-episode-1',
