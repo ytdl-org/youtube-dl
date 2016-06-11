@@ -1073,20 +1073,6 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             }
         },
-        # Contains a SMIL manifest
-        {
-            'url': 'http://www.telewebion.com/fa/1263668/%D9%82%D8%B1%D8%B9%D9%87%E2%80%8C%DA%A9%D8%B4%DB%8C-%D9%84%DB%8C%DA%AF-%D9%82%D9%87%D8%B1%D9%85%D8%A7%D9%86%D8%A7%D9%86-%D8%A7%D8%B1%D9%88%D9%BE%D8%A7/%2B-%D9%81%D9%88%D8%AA%D8%A8%D8%A7%D9%84.html',
-            'info_dict': {
-                'id': 'file',
-                'ext': 'flv',
-                'title': '+ Football: Lottery Champions League Europe',
-                'uploader': 'www.telewebion.com',
-            },
-            'params': {
-                # rtmpe downloads
-                'skip_download': True,
-            }
-        },
         # Brightcove URL in single quotes
         {
             'url': 'http://www.sportsnet.ca/baseball/mlb/sn-presents-russell-martin-world-citizen/',
