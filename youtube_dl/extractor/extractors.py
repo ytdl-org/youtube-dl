@@ -777,6 +777,7 @@ from .telecinco import TelecincoIE
 from .telegraaf import TelegraafIE
 from .telemb import TeleMBIE
 from .teletask import TeleTaskIE
+from .telewebion import TelewebionIE
 from .testurl import TestURLIE
 from .tf1 import TF1IE
 from .theintercept import TheInterceptIE
