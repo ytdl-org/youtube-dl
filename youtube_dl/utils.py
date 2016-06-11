@@ -1901,6 +1901,16 @@ def dict_get(d, key_or_keys, default=None, skip_false_values=True):
     return d.get(key_or_keys, default)
 
 
+def try_get(src, getter, expected_type=None):
+    try:
+        v = getter(src)
+    except (AttributeError, KeyError, TypeError, IndexError):
+        pass
+    else:
+        if expected_type is None or isinstance(v, expected_type):
+            return v
+
+
 def encode_compat_str(string, encoding=preferredencoding(), errors='strict'):
     return string if isinstance(string, compat_str) else compat_str(string, encoding, errors)
 
