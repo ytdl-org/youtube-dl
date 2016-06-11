@@ -127,7 +127,7 @@ class VikiIE(VikiBaseIE):
     }, {
         # clip
         'url': 'http://www.viki.com/videos/1067139v-the-avengers-age-of-ultron-press-conference',
-        'md5': '86c0b5dbd4d83a6611a79987cc7a1989',
+        'md5': 'feea2b1d7b3957f70886e6dfd8b8be84',
         'info_dict': {
             'id': '1067139v',
             'ext': 'mp4',
@@ -161,13 +161,13 @@ class VikiIE(VikiBaseIE):
     }, {
         # episode
         'url': 'http://www.viki.com/videos/44699v-boys-over-flowers-episode-1',
-        'md5': '190f3ef426005ba3a080a63325955bc3',
+        'md5': '1f54697dabc8f13f31bf06bb2e4de6db',
         'info_dict': {
             'id': '44699v',
             'ext': 'mp4',
             'title': 'Boys Over Flowers - Episode 1',
-            'description': 'md5:52617e4f729c7d03bfd4bcbbb6e946f2',
-            'duration': 4155,
+            'description': 'md5:b89cf50038b480b88b5b3c93589a9076',
+            'duration': 4204,
             'timestamp': 1270496524,
             'upload_date': '20100405',
             'uploader': 'group8',
@@ -197,7 +197,7 @@ class VikiIE(VikiBaseIE):
     }, {
         # non-English description
         'url': 'http://www.viki.com/videos/158036v-love-in-magic',
-        'md5': '1713ae35df5a521b31f6dc40730e7c9c',
+        'md5': '013dc282714e22acf9447cad14ff1208',
         'info_dict': {
             'id': '158036v',
             'ext': 'mp4',
@@ -303,7 +303,7 @@ class VikiChannelIE(VikiBaseIE):
             'title': 'Boys Over Flowers',
             'description': 'md5:ecd3cff47967fe193cff37c0bec52790',
         },
-        'playlist_count': 70,
+        'playlist_mincount': 71,
     }, {
         'url': 'http://www.viki.com/tv/1354c-poor-nastya-complete',
         'info_dict': {
