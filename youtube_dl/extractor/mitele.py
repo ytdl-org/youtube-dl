@@ -70,7 +70,7 @@ class MiTeleIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = self._search_regex(
-            r'class="Destacado-text"[^>]*>\s*<strong>([^<]+)</strong>', webpage, 'title')
+            r'class="Destacado-text"[^>]*>\s*<strong>([^<]+)</strong>', webpage, 'title', 'NO_TITLE')
 
         video_id = self._search_regex(
             r'data-media-id\s*=\s*"([^"]+)"', webpage,
