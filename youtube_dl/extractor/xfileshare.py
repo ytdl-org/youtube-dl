@@ -5,8 +5,10 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    decode_packed_codes,
     ExtractorError,
     int_or_none,
+    NO_DEFAULT,
     sanitized_Request,
     urlencode_postdata,
 )
@@ -23,6 +25,7 @@ class XFileShareIE(InfoExtractor):
         ('thevideobee.to', 'TheVideoBee'),
         ('vidto.me', 'Vidto'),
         ('streamin.to', 'Streamin.To'),
+        ('xvidstage.com', 'XVIDSTAGE'),
     )
 
     IE_DESC = 'XFileShare based sites: %s' % ', '.join(list(zip(*_SITES))[1])
@@ -78,6 +81,13 @@ class XFileShareIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Big Buck Bunny trailer',
         },
+    }, {
+        'url': 'http://xvidstage.com/e0qcnl03co6z',
+        'info_dict': {
+            'id': 'e0qcnl03co6z',
+            'ext': 'mp4',
+            'title': 'Chucky Prank 2015.mp4',
+        },
     }]
 
     def _real_extract(self, url):
@@ -113,10 +123,23 @@ class XFileShareIE(InfoExtractor):
              r'>Watch (.+) ',
              r'<h2 class="video-page-head">([^<]+)</h2>'],
             webpage, 'title', default=None) or self._og_search_title(webpage)).strip()
-        video_url = self._search_regex(
-            [r'file\s*:\s*["\'](http[^"\']+)["\'],',
-             r'file_link\s*=\s*\'(https?:\/\/[0-9a-zA-z.\/\-_]+)'],
-            webpage, 'file url')
+
+        def extract_video_url(default=NO_DEFAULT):
+            return self._search_regex(
+                (r'file\s*:\s*(["\'])(?P<url>http.+?)\1,',
+                 r'file_link\s*=\s*(["\'])(?P<url>http.+?)\1',
+                 r'addVariable\((\\?["\'])file\1\s*,\s*(\\?["\'])(?P<url>http.+?)\2\)',
+                 r'<embed[^>]+src=(["\'])(?P<url>http.+?)\1'),
+                webpage, 'file url', default=default, group='url')
+
+        video_url = extract_video_url(default=None)
+
+        if not video_url:
+            webpage = decode_packed_codes(self._search_regex(
+                r"(}\('(.+)',(\d+),(\d+),'[^']*\b(?:file|embed)\b[^']*'\.split\('\|'\))",
+                webpage, 'packed code'))
+            video_url = extract_video_url()
+
         thumbnail = self._search_regex(
             r'image\s*:\s*["\'](http[^"\']+)["\'],', webpage, 'thumbnail', default=None)
 
