@@ -163,7 +163,7 @@ class NRKTVIE(NRKBaseIE):
             'ext': 'mp4',
             'title': '20 spørsmål 23.05.2014',
             'description': 'md5:bdea103bc35494c143c6a9acdd84887a',
-            'duration': 1741.52,
+            'duration': 1741,
         },
     }, {
         'url': 'https://tv.nrk.no/program/mdfp15000514',
@@ -173,7 +173,7 @@ class NRKTVIE(NRKBaseIE):
             'ext': 'mp4',
             'title': 'Grunnlovsjubiléet - Stor ståhei for ingenting 24.05.2014',
             'description': 'md5:89290c5ccde1b3a24bb8050ab67fe1db',
-            'duration': 4605.08,
+            'duration': 4605,
         },
     }, {
         # single playlist video
