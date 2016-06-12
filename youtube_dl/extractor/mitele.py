@@ -34,7 +34,8 @@ class MiTeleIE(InfoExtractor):
             'id': 'eLZSwoEd1S3pVyUm8lc6F',
             'display_id': 'programa-226',
             'ext': 'flv',
-            'title': 'programa-226', #This is what we are testing, should be same as display_id since the video has no title
+            'title': 'Programa 226', #This is what we are testing, should be same as display_id since the video has no title
+            'title': 'Programa 226', #This is what we are testing, should be same as display_id since the video has no title
             'description': 'md5:50daf9fadefa4e62d9fc866d0c015701',
             'thumbnail': 're:(?i)^https?://.*\.jpg$',
             'duration': 7312,
@@ -81,8 +82,14 @@ class MiTeleIE(InfoExtractor):
                 display_id, f4m_id=loc))
         self._sort_formats(formats)
 
+        alt_title = self._search_regex(
+            r'class="temp"[^>]*>\s*<h1>(?:\s*<span>([^<]+)</span>\s*)+</h1>', webpage, 'alt_title', display_id)
+        #Alternative, but it is not good since it adds "Watch online" (Ver online) to the title
+        #alt_title = self._search_regex(
+        #    r'<title>([^>]*)<\/title>', webpage, 'alt_title', display_id)
+
         title = self._search_regex(
-            r'class="Destacado-text"[^>]*>\s*<strong>([^<]+)</strong>', webpage, 'title', display_id)
+            r'class="Destacado-text"[^>]*>\s*<strong>([^<]+)</strong>', webpage, 'title', alt_title)
 
         video_id = self._search_regex(
             r'data-media-id\s*=\s*"([^"]+)"', webpage,
