@@ -32,7 +32,10 @@ class XFileShareIE(InfoExtractor):
     _VALID_URL = (r'https?://(?P<host>(?:www\.)?(?:%s))/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
                   % '|'.join(re.escape(site) for site in list(zip(*_SITES))[0]))
 
-    _FILE_NOT_FOUND_REGEX = r'>(?:404 - )?File Not Found<'
+    _FILE_NOT_FOUND_REGEXES = (
+        r'>(?:404 - )?File Not Found<',
+        r'>The file was removed by administrator<',
+    )
 
     _TESTS = [{
         'url': 'http://gorillavid.in/06y9juieqpmi',
@@ -88,6 +91,10 @@ class XFileShareIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Chucky Prank 2015.mp4',
         },
+    }, {
+        # removed by administrator
+        'url': 'http://xvidstage.com/amfy7atlkx25',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -97,7 +104,7 @@ class XFileShareIE(InfoExtractor):
         url = 'http://%s/%s' % (mobj.group('host'), video_id)
         webpage = self._download_webpage(url, video_id)
 
-        if re.search(self._FILE_NOT_FOUND_REGEX, webpage) is not None:
+        if any(re.search(p, webpage) for p in self._FILE_NOT_FOUND_REGEXES):
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
         fields = self._hidden_inputs(webpage)
