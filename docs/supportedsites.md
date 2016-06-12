@@ -44,8 +44,8 @@
  - **appletrailers:section**
  - **archive.org**: archive.org videos
  - **ARD**
- - **ARD:mediathek**
  - **ARD:mediathek**: Saarländischer Rundfunk
+ - **ARD:mediathek**
  - **arte.tv**
  - **arte.tv:+7**
  - **arte.tv:cinema**
@@ -647,6 +647,7 @@
  - **Telegraaf**
  - **TeleMB**
  - **TeleTask**
+ - **Telewebion**
  - **TF1**
  - **TheIntercept**
  - **ThePlatform**
