@@ -35,7 +35,6 @@ class MiTeleIE(InfoExtractor):
             'display_id': 'programa-226',
             'ext': 'flv',
             'title': 'Programa 226', #This is what we are testing, should be same as display_id since the video has no title
-            'title': 'Programa 226', #This is what we are testing, should be same as display_id since the video has no title
             'description': 'md5:50daf9fadefa4e62d9fc866d0c015701',
             'thumbnail': 're:(?i)^https?://.*\.jpg$',
             'duration': 7312,
