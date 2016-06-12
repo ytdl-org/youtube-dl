@@ -15,7 +15,7 @@ class MiTeleIE(InfoExtractor):
     IE_DESC = 'mitele.es'
     _VALID_URL = r'https?://www\.mitele\.es/[^/]+/[^/]+/[^/]+/(?P<id>[^/]+)/'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/la-redaccion/programa-144/',
         # MD5 is unstable
         'info_dict': {
@@ -27,7 +27,19 @@ class MiTeleIE(InfoExtractor):
             'thumbnail': 're:(?i)^https?://.*\.jpg$',
             'duration': 2913,
         },
-    }
+    }, {
+        'url': 'http://www.mitele.es/programas-tv/cuarto-milenio/temporada-6/programa-226/',
+        # MD5 is unstable
+        'info_dict': {
+            'id': 'eLZSwoEd1S3pVyUm8lc6F',
+            'display_id': 'programa-226',
+            'ext': 'flv',
+            'title': 'programa-226', #This is what we are testing, should be same as display_id since the video has no title
+            'description': 'md5:50daf9fadefa4e62d9fc866d0c015701',
+            'thumbnail': 're:(?i)^https?://.*\.jpg$',
+            'duration': 7312,
+        },
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
@@ -70,7 +82,7 @@ class MiTeleIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = self._search_regex(
-            r'class="Destacado-text"[^>]*>\s*<strong>([^<]+)</strong>', webpage, 'title', 'NO_TITLE')
+            r'class="Destacado-text"[^>]*>\s*<strong>([^<]+)</strong>', webpage, 'title', display_id)
 
         video_id = self._search_regex(
             r'data-media-id\s*=\s*"([^"]+)"', webpage,
