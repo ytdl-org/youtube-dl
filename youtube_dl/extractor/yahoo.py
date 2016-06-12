@@ -343,7 +343,7 @@ class YahooIE(InfoExtractor):
             webpage, 'region', fatal=False, default='US')
         data = compat_urllib_parse_urlencode({
             'protocol': 'http',
-            'region': region,
+            'region': region.upper(),
         })
         query_url = (
             'https://video.media.yql.yahoo.com/v1/video/sapi/streams/'

@@ -46,6 +46,78 @@ class BiliBiliIE(InfoExtractor):
             'description': '这是个神奇的故事~每个人不留弹幕不给走哦~切利哦！~',
         },
         'playlist_count': 9,
+    }, {
+        'url': 'http://www.bilibili.com/video/av4808130/',
+        'info_dict': {
+            'id': '4808130',
+            'title': '【长篇】哆啦A梦443【钉铛】',
+            'description': '(2016.05.27)来组合客人的脸吧&amp;amp;寻母六千里锭 抱歉，又轮到周日上班现在才到家 封面www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=56912929',
+        },
+        'playlist': [{
+            'md5': '55cdadedf3254caaa0d5d27cf20a8f9c',
+            'info_dict': {
+                'id': '4808130_part1',
+                'ext': 'flv',
+                'title': '【长篇】哆啦A梦443【钉铛】',
+                'description': '(2016.05.27)来组合客人的脸吧&amp;amp;寻母六千里锭 抱歉，又轮到周日上班现在才到家 封面www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=56912929',
+                'timestamp': 1464564180,
+                'upload_date': '20160529',
+                'uploader': '喜欢拉面',
+                'uploader_id': '151066',
+            },
+        }, {
+            'md5': '926f9f67d0c482091872fbd8eca7ea3d',
+            'info_dict': {
+                'id': '4808130_part2',
+                'ext': 'flv',
+                'title': '【长篇】哆啦A梦443【钉铛】',
+                'description': '(2016.05.27)来组合客人的脸吧&amp;amp;寻母六千里锭 抱歉，又轮到周日上班现在才到家 封面www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=56912929',
+                'timestamp': 1464564180,
+                'upload_date': '20160529',
+                'uploader': '喜欢拉面',
+                'uploader_id': '151066',
+            },
+        }, {
+            'md5': '4b7b225b968402d7c32348c646f1fd83',
+            'info_dict': {
+                'id': '4808130_part3',
+                'ext': 'flv',
+                'title': '【长篇】哆啦A梦443【钉铛】',
+                'description': '(2016.05.27)来组合客人的脸吧&amp;amp;寻母六千里锭 抱歉，又轮到周日上班现在才到家 封面www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=56912929',
+                'timestamp': 1464564180,
+                'upload_date': '20160529',
+                'uploader': '喜欢拉面',
+                'uploader_id': '151066',
+            },
+        }, {
+            'md5': '7b795e214166501e9141139eea236e91',
+            'info_dict': {
+                'id': '4808130_part4',
+                'ext': 'flv',
+                'title': '【长篇】哆啦A梦443【钉铛】',
+                'description': '(2016.05.27)来组合客人的脸吧&amp;amp;寻母六千里锭 抱歉，又轮到周日上班现在才到家 封面www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=56912929',
+                'timestamp': 1464564180,
+                'upload_date': '20160529',
+                'uploader': '喜欢拉面',
+                'uploader_id': '151066',
+            },
+        }],
+    }, {
+        # Missing upload time
+        'url': 'http://www.bilibili.com/video/av1867637/',
+        'info_dict': {
+            'id': '2880301',
+            'ext': 'flv',
+            'title': '【HDTV】【喜剧】岳父岳母真难当 （2014）【法国票房冠军】',
+            'description': '一个信奉天主教的法国旧式传统资产阶级家庭中有四个女儿。三个女儿却分别找了阿拉伯、犹太、中国丈夫，老夫老妻唯独期盼剩下未嫁的小女儿能找一个信奉天主教的法国白人，结果没想到小女儿找了一位非裔黑人……【这次应该不会跳帧了】',
+            'uploader': '黑夜为猫',
+            'uploader_id': '610729',
+        },
+        'params': {
+            # Just to test metadata extraction
+            'skip_download': True,
+        },
+        'expected_warnings': ['upload time'],
     }]
 
     # BiliBili blocks keys from time to time. The current key is extracted from
@@ -116,6 +188,7 @@ class BiliBiliIE(InfoExtractor):
         description = self._html_search_meta('description', webpage)
         datetime_str = self._html_search_regex(
             r'<time[^>]+datetime="([^"]+)"', webpage, 'upload time', fatal=False)
+        timestamp = None
         if datetime_str:
             timestamp = calendar.timegm(datetime.datetime.strptime(datetime_str, '%Y-%m-%dT%H:%M').timetuple())
 
@@ -144,6 +217,9 @@ class BiliBiliIE(InfoExtractor):
         if len(entries) == 1:
             return entries[0]
         else:
+            for idx, entry in enumerate(entries):
+                entry['id'] = '%s_part%d' % (video_id, (idx + 1))
+
             return {
                 '_type': 'multi_video',
                 'id': video_id,

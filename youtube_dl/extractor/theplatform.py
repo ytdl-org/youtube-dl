@@ -14,11 +14,13 @@ from ..compat import (
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
+    determine_ext,
     ExtractorError,
     float_or_none,
     int_or_none,
     sanitized_Request,
     unsmuggle_url,
+    update_url_query,
     xpath_with_ns,
     mimetype2ext,
     find_xpath_attr,
@@ -48,6 +50,12 @@ class ThePlatformBaseIE(OnceIE):
             if OnceIE.suitable(_format['url']):
                 formats.extend(self._extract_once_formats(_format['url']))
             else:
+                media_url = _format['url']
+                if determine_ext(media_url) == 'm3u8':
+                    hdnea2 = self._get_cookies(media_url).get('hdnea2')
+                    if hdnea2:
+                        _format['url'] = update_url_query(media_url, {'hdnea3': hdnea2.value})
+
                 formats.append(_format)
 
         subtitles = self._parse_smil_subtitles(meta, default_ns)

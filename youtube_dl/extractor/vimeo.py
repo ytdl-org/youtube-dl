@@ -66,6 +66,69 @@ class VimeoBaseInfoExtractor(InfoExtractor):
     def _set_vimeo_cookie(self, name, value):
         self._set_cookie('vimeo.com', name, value)
 
+    def _vimeo_sort_formats(self, formats):
+        # Bitrates are completely broken. Single m3u8 may contain entries in kbps and bps
+        # at the same time without actual units specified. This lead to wrong sorting.
+        self._sort_formats(formats, field_preference=('preference', 'height', 'width', 'fps', 'format_id'))
+
+    def _parse_config(self, config, video_id):
+        # Extract title
+        video_title = config['video']['title']
+
+        # Extract uploader, uploader_url and uploader_id
+        video_uploader = config['video'].get('owner', {}).get('name')
+        video_uploader_url = config['video'].get('owner', {}).get('url')
+        video_uploader_id = video_uploader_url.split('/')[-1] if video_uploader_url else None
+
+        # Extract video thumbnail
+        video_thumbnail = config['video'].get('thumbnail')
+        if video_thumbnail is None:
+            video_thumbs = config['video'].get('thumbs')
+            if video_thumbs and isinstance(video_thumbs, dict):
+                _, video_thumbnail = sorted((int(width if width.isdigit() else 0), t_url) for (width, t_url) in video_thumbs.items())[-1]
+
+        # Extract video duration
+        video_duration = int_or_none(config['video'].get('duration'))
+
+        formats = []
+        config_files = config['video'].get('files') or config['request'].get('files', {})
+        for f in config_files.get('progressive', []):
+            video_url = f.get('url')
+            if not video_url:
+                continue
+            formats.append({
+                'url': video_url,
+                'format_id': 'http-%s' % f.get('quality'),
+                'width': int_or_none(f.get('width')),
+                'height': int_or_none(f.get('height')),
+                'fps': int_or_none(f.get('fps')),
+                'tbr': int_or_none(f.get('bitrate')),
+            })
+        m3u8_url = config_files.get('hls', {}).get('url')
+        if m3u8_url:
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+
+        subtitles = {}
+        text_tracks = config['request'].get('text_tracks')
+        if text_tracks:
+            for tt in text_tracks:
+                subtitles[tt['lang']] = [{
+                    'ext': 'vtt',
+                    'url': 'https://vimeo.com' + tt['url'],
+                }]
+
+        return {
+            'title': video_title,
+            'uploader': video_uploader,
+            'uploader_id': video_uploader_id,
+            'uploader_url': video_uploader_url,
+            'thumbnail': video_thumbnail,
+            'duration': video_duration,
+            'formats': formats,
+            'subtitles': subtitles,
+        }
+
 
 class VimeoIE(VimeoBaseInfoExtractor):
     """Information extractor for vimeo.com."""
@@ -153,7 +216,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'uploader_id': 'user18948128',
                 'uploader': 'Jaime Marquínez Ferrándiz',
                 'duration': 10,
-                'description': 'This is "youtube-dl password protected test video" by Jaime Marquínez Ferrándiz on Vimeo, the home for high quality videos and the people\u2026',
+                'description': 'This is "youtube-dl password protected test video" by  on Vimeo, the home for high quality videos and the people who love them.',
             },
             'params': {
                 'videopassword': 'youtube-dl',
@@ -389,21 +452,6 @@ class VimeoIE(VimeoBaseInfoExtractor):
                     'https://player.vimeo.com/player/%s' % feature_id,
                     {'force_feature_id': True}), 'Vimeo')
 
-        # Extract title
-        video_title = config['video']['title']
-
-        # Extract uploader, uploader_url and uploader_id
-        video_uploader = config['video'].get('owner', {}).get('name')
-        video_uploader_url = config['video'].get('owner', {}).get('url')
-        video_uploader_id = video_uploader_url.split('/')[-1] if video_uploader_url else None
-
-        # Extract video thumbnail
-        video_thumbnail = config['video'].get('thumbnail')
-        if video_thumbnail is None:
-            video_thumbs = config['video'].get('thumbs')
-            if video_thumbs and isinstance(video_thumbs, dict):
-                _, video_thumbnail = sorted((int(width if width.isdigit() else 0), t_url) for (width, t_url) in video_thumbs.items())[-1]
-
         # Extract video description
 
         video_description = self._html_search_regex(
@@ -422,9 +470,6 @@ class VimeoIE(VimeoBaseInfoExtractor):
                     'description', orig_webpage, default=None)
         if not video_description and not mobj.group('player'):
             self._downloader.report_warning('Cannot find video description')
-
-        # Extract video duration
-        video_duration = int_or_none(config['video'].get('duration'))
 
         # Extract upload date
         video_upload_date = None
@@ -463,53 +508,22 @@ class VimeoIE(VimeoBaseInfoExtractor):
                             'format_id': source_name,
                             'preference': 1,
                         })
-        config_files = config['video'].get('files') or config['request'].get('files', {})
-        for f in config_files.get('progressive', []):
-            video_url = f.get('url')
-            if not video_url:
-                continue
-            formats.append({
-                'url': video_url,
-                'format_id': 'http-%s' % f.get('quality'),
-                'width': int_or_none(f.get('width')),
-                'height': int_or_none(f.get('height')),
-                'fps': int_or_none(f.get('fps')),
-                'tbr': int_or_none(f.get('bitrate')),
-            })
-        m3u8_url = config_files.get('hls', {}).get('url')
-        if m3u8_url:
-            formats.extend(self._extract_m3u8_formats(
-                m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
-        # Bitrates are completely broken. Single m3u8 may contain entries in kbps and bps
-        # at the same time without actual units specified. This lead to wrong sorting.
-        self._sort_formats(formats, field_preference=('preference', 'height', 'width', 'fps', 'format_id'))
 
-        subtitles = {}
-        text_tracks = config['request'].get('text_tracks')
-        if text_tracks:
-            for tt in text_tracks:
-                subtitles[tt['lang']] = [{
-                    'ext': 'vtt',
-                    'url': 'https://vimeo.com' + tt['url'],
-                }]
-
-        return {
+        info_dict = self._parse_config(config, video_id)
+        formats.extend(info_dict['formats'])
+        self._vimeo_sort_formats(formats)
+        info_dict.update({
             'id': video_id,
-            'uploader': video_uploader,
-            'uploader_url': video_uploader_url,
-            'uploader_id': video_uploader_id,
-            'upload_date': video_upload_date,
-            'title': video_title,
-            'thumbnail': video_thumbnail,
-            'description': video_description,
-            'duration': video_duration,
             'formats': formats,
+            'upload_date': video_upload_date,
+            'description': video_description,
             'webpage_url': url,
             'view_count': view_count,
             'like_count': like_count,
             'comment_count': comment_count,
-            'subtitles': subtitles,
-        }
+        })
+
+        return info_dict
 
 
 class VimeoOndemandIE(VimeoBaseInfoExtractor):
@@ -692,7 +706,7 @@ class VimeoGroupsIE(VimeoAlbumIE):
         return self._extract_videos(name, 'https://vimeo.com/groups/%s' % name)
 
 
-class VimeoReviewIE(InfoExtractor):
+class VimeoReviewIE(VimeoBaseInfoExtractor):
     IE_NAME = 'vimeo:review'
     IE_DESC = 'Review pages on vimeo'
     _VALID_URL = r'https://vimeo\.com/[^/]+/review/(?P<id>[^/]+)'
@@ -704,6 +718,7 @@ class VimeoReviewIE(InfoExtractor):
             'ext': 'mp4',
             'title': "DICK HARDWICK 'Comedian'",
             'uploader': 'Richard Hardwick',
+            'uploader_id': 'user21297594',
         }
     }, {
         'note': 'video player needs Referer',
@@ -716,14 +731,18 @@ class VimeoReviewIE(InfoExtractor):
             'uploader': 'DevWeek Events',
             'duration': 2773,
             'thumbnail': 're:^https?://.*\.jpg$',
+            'uploader_id': 'user22258446',
         }
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        player_url = 'https://player.vimeo.com/player/' + video_id
-        return self.url_result(player_url, 'Vimeo', video_id)
+        video_id = self._match_id(url)
+        config = self._download_json(
+            'https://player.vimeo.com/video/%s/config' % video_id, video_id)
+        info_dict = self._parse_config(config, video_id)
+        self._vimeo_sort_formats(info_dict['formats'])
+        info_dict['id'] = video_id
+        return info_dict
 
 
 class VimeoWatchLaterIE(VimeoChannelIE):

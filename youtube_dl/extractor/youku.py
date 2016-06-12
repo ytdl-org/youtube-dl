@@ -2,7 +2,9 @@
 from __future__ import unicode_literals
 
 import base64
+import itertools
 import random
+import re
 import string
 import time
 
@@ -13,6 +15,7 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    get_element_by_attribute,
     sanitized_Request,
 )
 
@@ -285,3 +288,52 @@ class YoukuIE(InfoExtractor):
             'title': title,
             'entries': entries,
         }
+
+
+class YoukuShowIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?youku\.com/show_page/id_(?P<id>[0-9a-z]+)\.html'
+    IE_NAME = 'youku:show'
+
+    _TEST = {
+        'url': 'http://www.youku.com/show_page/id_zc7c670be07ff11e48b3f.html',
+        'info_dict': {
+            'id': 'zc7c670be07ff11e48b3f',
+            'title': '花千骨 未删减版',
+            'description': 'md5:578d4f2145ae3f9128d9d4d863312910',
+        },
+        'playlist_count': 50,
+    }
+
+    _PAGE_SIZE = 40
+
+    def _find_videos_in_page(self, webpage):
+        videos = re.findall(
+            r'<li><a[^>]+href="(?P<url>https?://v\.youku\.com/[^"]+)"[^>]+title="(?P<title>[^"]+)"', webpage)
+        return [
+            self.url_result(video_url, YoukuIE.ie_key(), title)
+            for video_url, title in videos]
+
+    def _real_extract(self, url):
+        show_id = self._match_id(url)
+        webpage = self._download_webpage(url, show_id)
+
+        entries = self._find_videos_in_page(webpage)
+
+        playlist_title = self._html_search_regex(
+            r'<span[^>]+class="name">([^<]+)</span>', webpage, 'playlist title', fatal=False)
+        detail_div = get_element_by_attribute('class', 'detail', webpage) or ''
+        playlist_description = self._html_search_regex(
+            r'<span[^>]+style="display:none"[^>]*>([^<]+)</span>',
+            detail_div, 'playlist description', fatal=False)
+
+        for idx in itertools.count(1):
+            episodes_page = self._download_webpage(
+                'http://www.youku.com/show_episode/id_%s.html' % show_id,
+                show_id, query={'divid': 'reload_%d' % (idx * self._PAGE_SIZE + 1)},
+                note='Downloading episodes page %d' % idx)
+            new_entries = self._find_videos_in_page(episodes_page)
+            entries.extend(new_entries)
+            if len(new_entries) < self._PAGE_SIZE:
+                break
+
+        return self.playlist_result(entries, show_id, playlist_title, playlist_description)

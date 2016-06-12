@@ -1223,6 +1223,10 @@ class YoutubeDL(object):
         if 'title' not in info_dict:
             raise ExtractorError('Missing "title" field in extractor result')
 
+        if not isinstance(info_dict['id'], compat_str):
+            self.report_warning('"id" field is not a string - forcing string conversion')
+            info_dict['id'] = compat_str(info_dict['id'])
+
         if 'playlist' not in info_dict:
             # It isn't part of a playlist
             info_dict['playlist'] = None

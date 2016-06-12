@@ -13,6 +13,7 @@ import os.path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname((os.path.abspath(__file__)))))
 from youtube_dl.compat import (
+    compat_input,
     compat_http_server,
     compat_str,
     compat_urlparse,
@@ -29,11 +30,6 @@ try:
     import socketserver as compat_socketserver
 except ImportError:  # Python 2
     import SocketServer as compat_socketserver
-
-try:
-    compat_input = raw_input
-except NameError:  # Python 3
-    compat_input = input
 
 
 class BuildHTTPServer(compat_socketserver.ThreadingMixIn, compat_http_server.HTTPServer):

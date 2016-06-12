@@ -62,7 +62,8 @@ class XFileShareIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'youtube-dl test video \'äBaW_jenozKc.mp4.mp4',
             'thumbnail': 're:http://.*\.jpg',
-        }
+        },
+        'skip': 'Video removed',
     }, {
         'url': 'http://vidto.me/ku5glz52nqe1.html',
         'info_dict': {

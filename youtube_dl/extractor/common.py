@@ -45,6 +45,7 @@ from ..utils import (
     unescapeHTML,
     unified_strdate,
     url_basename,
+    xpath_element,
     xpath_text,
     xpath_with_ns,
     determine_protocol,
@@ -1030,7 +1031,7 @@ class InfoExtractor(object):
         if base_url:
             base_url = base_url.strip()
 
-        bootstrap_info = xpath_text(
+        bootstrap_info = xpath_element(
             manifest, ['{http://ns.adobe.com/f4m/1.0}bootstrapInfo', '{http://ns.adobe.com/f4m/2.0}bootstrapInfo'],
             'bootstrap info', default=None)
 
@@ -1085,7 +1086,7 @@ class InfoExtractor(object):
             formats.append({
                 'format_id': format_id,
                 'url': manifest_url,
-                'ext': 'flv' if bootstrap_info else None,
+                'ext': 'flv' if bootstrap_info is not None else None,
                 'tbr': tbr,
                 'width': width,
                 'height': height,

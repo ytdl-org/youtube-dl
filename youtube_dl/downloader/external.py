@@ -210,6 +210,7 @@ class FFmpegFD(ExternalFD):
             # args += ['-http_proxy', proxy]
             env = os.environ.copy()
             compat_setenv('HTTP_PROXY', proxy, env=env)
+            compat_setenv('http_proxy', proxy, env=env)
 
         protocol = info_dict.get('protocol')
 

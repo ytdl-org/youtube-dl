@@ -6,6 +6,7 @@ import time
 
 from .common import InfoExtractor
 from .soundcloud import SoundcloudIE
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     url_basename,
@@ -136,7 +137,7 @@ class AudiomackAlbumIE(InfoExtractor):
                         result[resultkey] = api_response[apikey]
                 song_id = url_basename(api_response['url']).rpartition('.')[0]
                 result['entries'].append({
-                    'id': api_response.get('id', song_id),
+                    'id': compat_str(api_response.get('id', song_id)),
                     'uploader': api_response.get('artist'),
                     'title': api_response.get('title', song_id),
                     'url': api_response['url'],

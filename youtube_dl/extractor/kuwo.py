@@ -148,8 +148,8 @@ class KuwoAlbumIE(InfoExtractor):
         'url': 'http://www.kuwo.cn/album/502294/',
         'info_dict': {
             'id': '502294',
-            'title': 'M',
-            'description': 'md5:6a7235a84cc6400ec3b38a7bdaf1d60c',
+            'title': 'Made\xa0Series\xa0《M》',
+            'description': 'md5:d463f0d8a0ff3c3ea3d6ed7452a9483f',
         },
         'playlist_count': 2,
     }
@@ -209,7 +209,7 @@ class KuwoSingerIE(InfoExtractor):
         'url': 'http://www.kuwo.cn/mingxing/bruno+mars/',
         'info_dict': {
             'id': 'bruno+mars',
-            'title': 'Bruno Mars',
+            'title': 'Bruno\xa0Mars',
         },
         'playlist_mincount': 329,
     }, {
@@ -306,7 +306,7 @@ class KuwoMvIE(KuwoBaseIE):
             'id': '6480076',
             'ext': 'mp4',
             'title': 'My HouseMV',
-            'creator': '2PM',
+            'creator': 'PM02:00',
         },
         # In this video, music URLs (anti.s) are blocked outside China and
         # USA, while the MV URL (mvurl) is available globally, so force the MV
