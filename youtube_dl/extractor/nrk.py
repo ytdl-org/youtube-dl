@@ -260,30 +260,34 @@ class NRKPlaylistIE(InfoExtractor):
 
 class NRKSkoleIE(InfoExtractor):
     IE_DESC = 'NRK Skole'
-    _VALID_URL = r'https?://(?:www\.)?nrk\.no/skole/klippdetalj?.*\btopic=(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?nrk\.no/skole/?\?.*\bmediaId=(?P<id>\d+)'
 
     _TESTS = [{
-        'url': 'http://nrk.no/skole/klippdetalj?topic=nrk:klipp/616532',
-        'md5': '04cd85877cc1913bce73c5d28a47e00f',
+        'url': 'https://www.nrk.no/skole/?page=search&q=&mediaId=14099',
+        'md5': '6bc936b01f9dd8ed45bc58b252b2d9b6',
         'info_dict': {
             'id': '6021',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Genetikk og eneggede tvillinger',
             'description': 'md5:3aca25dcf38ec30f0363428d2b265f8d',
             'duration': 399,
         },
     }, {
-        'url': 'http://www.nrk.no/skole/klippdetalj?topic=nrk%3Aklipp%2F616532#embed',
-        'only_matching': True,
-    }, {
-        'url': 'http://www.nrk.no/skole/klippdetalj?topic=urn:x-mediadb:21379',
+        'url': 'https://www.nrk.no/skole/?page=objectives&subject=naturfag&objective=K15114&mediaId=19355',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        video_id = compat_urllib_parse_unquote(self._match_id(url))
+        video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(
+            'https://mimir.nrk.no/plugin/1.0/static?mediaId=%s' % video_id,
+            video_id)
 
-        nrk_id = self._search_regex(r'data-nrk-id=["\'](\d+)', webpage, 'nrk id')
+        nrk_id = self._parse_json(
+            self._search_regex(
+                r'<script[^>]+type=["\']application/json["\'][^>]*>({.+?})</script>',
+                webpage, 'application json'),
+            video_id)['activeMedia']['psId']
+
         return self.url_result('nrk:%s' % nrk_id)
