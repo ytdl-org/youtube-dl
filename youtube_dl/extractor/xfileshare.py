@@ -39,7 +39,7 @@ class XFileShareIE(InfoExtractor):
         'md5': '5ae4a3580620380619678ee4875893ba',
         'info_dict': {
             'id': '06y9juieqpmi',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Rebecca Black My Moment Official Music Video Reaction-6GK87Rc8bzQ',
             'thumbnail': 're:http://.*\.jpg',
         },
