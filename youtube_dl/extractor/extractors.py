@@ -513,6 +513,7 @@ from .nhl import (
     NHLIE,
 )
 from .nick import NickIE
+from .nickde import NickDeIE
 from .niconico import NiconicoIE, NiconicoPlaylistIE
 from .ninegag import NineGagIE
 from .noco import NocoIE
