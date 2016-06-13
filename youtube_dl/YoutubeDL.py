@@ -1751,8 +1751,8 @@ class YoutubeDL(object):
 
     def download_with_info_file(self, info_filename):
         with contextlib.closing(fileinput.FileInput(
-                [info_filename], mode='r',
-                openhook=fileinput.hook_encoded('utf-8'))) as f:
+            [info_filename], mode='r',
+            openhook=fileinput.hook_encoded('utf-8'))) as f:
             # FileInput doesn't have a read method, we can't call json.load
             info = self.filter_requested_info(json.loads('\n'.join(f)))
         try:
@@ -1941,7 +1941,7 @@ class YoutubeDL(object):
         self.to_screen(render_table(
             ['Language', 'formats'],
             [[lang, ', '.join(f['ext'] for f in reversed(formats))]
-                for lang, formats in subtitles.items()]))
+             for lang, formats in subtitles.items()]))
 
     def urlopen(self, req):
         """ Start an HTTP download """
