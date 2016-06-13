@@ -16,6 +16,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
+    js_to_json,
     orderedSet,
     parse_duration,
     parse_iso8601,
@@ -453,4 +454,46 @@ class TwitchStreamIE(TwitchBaseIE):
             'view_count': view_count,
             'formats': formats,
             'is_live': True,
+        }
+
+
+class TwitchClipsIE(InfoExtractor):
+    IE_NAME = 'twitch:clips'
+    _VALID_URL = r'https?://clips\.twitch\.tv/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+
+    _TEST = {
+        'url': 'https://clips.twitch.tv/ea/AggressiveCobraPoooound',
+        'md5': '761769e1eafce0ffebfb4089cb3847cd',
+        'info_dict': {
+            'id': 'AggressiveCobraPoooound',
+            'ext': 'mp4',
+            'title': 'EA Play 2016 Live from the Novo Theatre',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'creator': 'EA',
+            'uploader': 'stereotype_',
+            'uploader_id': 'stereotype_',
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        clip = self._parse_json(
+            self._search_regex(
+                r'(?s)clipInfo\s*=\s*({.+?});', webpage, 'clip info'),
+            video_id, transform_source=js_to_json)
+
+        video_url = clip['clip_video_url']
+        title = clip['channel_title']
+
+        return {
+            'id': video_id,
+            'url': video_url,
+            'title': title,
+            'thumbnail': self._og_search_thumbnail(webpage),
+            'creator': clip.get('broadcaster_display_name') or clip.get('broadcaster_login'),
+            'uploader': clip.get('curator_login'),
+            'uploader_id': clip.get('curator_display_name'),
         }
