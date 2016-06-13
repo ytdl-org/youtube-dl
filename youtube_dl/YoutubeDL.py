@@ -1953,7 +1953,7 @@ class YoutubeDL(object):
         if not self.params.get('verbose'):
             return
 
-        if type('') is not compat_str:
+        if isinstance('') is not compat_str:
             # Python 2.6 on SLES11 SP1 (https://github.com/rg3/youtube-dl/issues/3326)
             self.report_warning(
                 'Your Python is broken! Update to a newer and supported version')
