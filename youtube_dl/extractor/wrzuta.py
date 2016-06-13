@@ -80,3 +80,77 @@ class WrzutaIE(InfoExtractor):
             'description': self._og_search_description(webpage),
             'age_limit': embedpage.get('minimalAge', 0),
         }
+
+
+_ENTRY_PATTERN = r'<a href="(?P<playlist_entry_url>[^"]+)" target="_blank" class="playlist\-file\-page">'
+_PLAYLIST_SIZE_PATTERN = r'<div class="playlist-counter">[0-9]+/([0-9]+)</div>'
+
+
+class WrzutaPlaylistIE(InfoExtractor):
+    """
+        this class covers extraction of wrzuta playlist entries
+        the extraction process bases on following steps:
+        * collect information of playlist size
+        * download all entries provided on
+          the playlist webpage (the playlist is split
+          on two pages: first directly reached from webpage
+          second: downloaded on demand by ajax call and rendered
+          using the ajax call response)
+        * in case size of extracted entries not reached total number of entries
+          use the ajax call to collect the remaining entries
+    """
+
+    IE_NAME = 'wrzuta.pl:playlist'
+
+    _VALID_URL = r'https?://(?P<uploader>[0-9a-zA-Z]+)\.wrzuta\.pl/playlista/' \
+                 '(?P<id>[0-9a-zA-Z]+)/.*'
+
+    _TESTS = [{
+        'url': 'http://miromak71.wrzuta.pl/playlista/7XfO4vE84iR/moja_muza',
+        'playlist_mincount': 14,
+        'info_dict': {
+            'id': '7XfO4vE84iR',
+            'title': 'Moja muza',
+        },
+    }, {
+        'url': 'http://heroesf70.wrzuta.pl/playlista/6Nj3wQHx756/lipiec_-_lato_2015_muzyka_swiata',
+        'playlist_mincount': 144,
+        'info_dict': {
+            'id': '6Nj3wQHx756',
+            'title': 'Lipiec - Lato 2015 Muzyka Świata',
+        },
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        playlist_id = mobj.group('id')
+        uploader = mobj.group('uploader')
+
+        entries = []
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        playlist_size = self._html_search_regex(_PLAYLIST_SIZE_PATTERN, webpage, 'Size of the playlist')
+        playlist_size = int(playlist_size) if playlist_size else 0
+
+        playlist_title = self._og_search_title(webpage).replace('Playlista: ', '', 1)
+
+        if playlist_size:
+            entries = list(map(
+                lambda entry_url: self.url_result(entry_url),
+                re.findall(_ENTRY_PATTERN, webpage)
+            ))
+
+            if playlist_size > len(entries):
+                playlist_content = self._download_json(
+                    'http://{uploader_id}.wrzuta.pl/xhr/get_playlist_offset/{playlist_id}'.format(
+                        uploader_id=uploader,
+                        playlist_id=playlist_id,
+                    ),
+                    playlist_id,
+                    'Downloading playlist content as JSON metadata',
+                    'Unable to download playlist content as JSON metadata',
+                )
+                entries += [self.url_result(entry['filelink']) for entry in playlist_content['files']]
+
+        return self.playlist_result(entries, playlist_id, playlist_title)
