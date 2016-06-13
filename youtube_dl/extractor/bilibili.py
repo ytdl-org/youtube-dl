@@ -102,6 +102,22 @@ class BiliBiliIE(InfoExtractor):
                 'uploader_id': '151066',
             },
         }],
+    }, {
+        # Missing upload time
+        'url': 'http://www.bilibili.com/video/av1867637/',
+        'info_dict': {
+            'id': '2880301',
+            'ext': 'flv',
+            'title': '【HDTV】【喜剧】岳父岳母真难当 （2014）【法国票房冠军】',
+            'description': '一个信奉天主教的法国旧式传统资产阶级家庭中有四个女儿。三个女儿却分别找了阿拉伯、犹太、中国丈夫，老夫老妻唯独期盼剩下未嫁的小女儿能找一个信奉天主教的法国白人，结果没想到小女儿找了一位非裔黑人……【这次应该不会跳帧了】',
+            'uploader': '黑夜为猫',
+            'uploader_id': '610729',
+        },
+        'params': {
+            # Just to test metadata extraction
+            'skip_download': True,
+        },
+        'expected_warnings': ['upload time'],
     }]
 
     # BiliBili blocks keys from time to time. The current key is extracted from
@@ -172,6 +188,7 @@ class BiliBiliIE(InfoExtractor):
         description = self._html_search_meta('description', webpage)
         datetime_str = self._html_search_regex(
             r'<time[^>]+datetime="([^"]+)"', webpage, 'upload time', fatal=False)
+        timestamp = None
         if datetime_str:
             timestamp = calendar.timegm(datetime.datetime.strptime(datetime_str, '%Y-%m-%dT%H:%M').timetuple())
 

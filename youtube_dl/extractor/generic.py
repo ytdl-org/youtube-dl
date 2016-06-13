@@ -63,6 +63,7 @@ from .instagram import InstagramIE
 from .liveleak import LiveLeakIE
 from .threeqsdn import ThreeQSDNIE
 from .theplatform import ThePlatformIE
+from .vessel import VesselIE
 
 
 class GenericIE(InfoExtractor):
@@ -626,13 +627,13 @@ class GenericIE(InfoExtractor):
         },
         # MTVSercices embed
         {
-            'url': 'http://www.gametrailers.com/news-post/76093/north-america-europe-is-getting-that-mario-kart-8-mercedes-dlc-too',
-            'md5': '35727f82f58c76d996fc188f9755b0d5',
+            'url': 'http://www.vulture.com/2016/06/new-key-peele-sketches-released.html',
+            'md5': 'ca1aef97695ef2c1d6973256a57e5252',
             'info_dict': {
-                'id': '0306a69b-8adf-4fb5-aace-75f8e8cbfca9',
+                'id': '769f7ec0-0692-4d62-9b45-0d88074bffc1',
                 'ext': 'mp4',
-                'title': 'Review',
-                'description': 'Mario\'s life in the fast lane has never looked so good.',
+                'title': 'Key and Peele|October 10, 2012|2|203|Liam Neesons - Uncensored',
+                'description': 'Two valets share their love for movie star Liam Neesons.',
             },
         },
         # YouTube embed via <data-embed-url="">
@@ -1031,6 +1032,17 @@ class GenericIE(InfoExtractor):
                 'timestamp': 1389118457,
             },
         },
+        # NBC News embed
+        {
+            'url': 'http://www.vulture.com/2016/06/letterman-couldnt-care-less-about-late-night.html',
+            'md5': '1aa589c675898ae6d37a17913cf68d66',
+            'info_dict': {
+                'id': '701714499682',
+                'ext': 'mp4',
+                'title': 'PREVIEW: On Assignment: David Letterman',
+                'description': 'A preview of Tom Brokaw\'s interview with David Letterman as part of the On Assignment series powered by Dateline. Airs Sunday June 12 at 7/6c.',
+            },
+        },
         # UDN embed
         {
             'url': 'https://video.udn.com/news/300346',
@@ -1058,20 +1070,6 @@ class GenericIE(InfoExtractor):
             },
             'params': {
                 # m3u8 downloads
-                'skip_download': True,
-            }
-        },
-        # Contains a SMIL manifest
-        {
-            'url': 'http://www.telewebion.com/fa/1263668/%D9%82%D8%B1%D8%B9%D9%87%E2%80%8C%DA%A9%D8%B4%DB%8C-%D9%84%DB%8C%DA%AF-%D9%82%D9%87%D8%B1%D9%85%D8%A7%D9%86%D8%A7%D9%86-%D8%A7%D8%B1%D9%88%D9%BE%D8%A7/%2B-%D9%81%D9%88%D8%AA%D8%A8%D8%A7%D9%84.html',
-            'info_dict': {
-                'id': 'file',
-                'ext': 'flv',
-                'title': '+ Football: Lottery Champions League Europe',
-                'uploader': 'www.telewebion.com',
-            },
-            'params': {
-                # rtmpe downloads
                 'skip_download': True,
             }
         },
@@ -1533,6 +1531,11 @@ class GenericIE(InfoExtractor):
         if tp_urls:
             return _playlist_from_matches(tp_urls, ie='ThePlatform')
 
+        # Look for Vessel embeds
+        vessel_urls = VesselIE._extract_urls(webpage)
+        if vessel_urls:
+            return _playlist_from_matches(vessel_urls, ie=VesselIE.ie_key())
+
         # Look for embedded rtl.nl player
         matches = re.findall(
             r'<iframe[^>]+?src="((?:https?:)?//(?:www\.)?rtl\.nl/system/videoplayer/[^"]+(?:video_)?embed[^"]+)"',
@@ -1840,14 +1843,6 @@ class GenericIE(InfoExtractor):
             url = unescapeHTML(mobj.group('url'))
             return self.url_result(url)
 
-        # Look for embedded vulture.com player
-        mobj = re.search(
-            r'<iframe src="(?P<url>https?://video\.vulture\.com/[^"]+)"',
-            webpage)
-        if mobj is not None:
-            url = unescapeHTML(mobj.group('url'))
-            return self.url_result(url, ie='Vulture')
-
         # Look for embedded mtvservices player
         mtvservices_url = MTVServicesEmbeddedIE._extract_url(webpage)
         if mtvservices_url:
@@ -1959,6 +1954,12 @@ class GenericIE(InfoExtractor):
         nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
         if nbc_sports_url:
             return self.url_result(nbc_sports_url, 'NBCSportsVPlayer')
+
+        # Look for NBC News embeds
+        nbc_news_embed_url = re.search(
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//www\.nbcnews\.com/widget/video-embed/[^"\']+)\1', webpage)
+        if nbc_news_embed_url:
+            return self.url_result(nbc_news_embed_url.group('url'), 'NBCNews')
 
         # Look for Google Drive embeds
         google_drive_url = GoogleDriveIE._extract_url(webpage)

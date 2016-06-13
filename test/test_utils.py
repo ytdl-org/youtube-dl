@@ -249,6 +249,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unescapeHTML('&#47;'), '/')
         self.assertEqual(unescapeHTML('&eacute;'), 'é')
         self.assertEqual(unescapeHTML('&#2013266066;'), '&#2013266066;')
+        # HTML5 entities
+        self.assertEqual(unescapeHTML('&period;&apos;'), '.\'')
 
     def test_date_from_str(self):
         self.assertEqual(date_from_str('yesterday'), date_from_str('now-1day'))

@@ -35,6 +35,7 @@ class DWIE(InfoExtractor):
             'upload_date': '20160311',
         }
     }, {
+        # DW documentaries, only last for one or two weeks
         'url': 'http://www.dw.com/en/documentaries-welcome-to-the-90s-2016-05-21/e-19220158-9798',
         'md5': '56b6214ef463bfb9a3b71aeb886f3cf1',
         'info_dict': {
@@ -44,6 +45,7 @@ class DWIE(InfoExtractor):
             'description': 'Welcome to the 90s - The Golden Decade of Hip Hop',
             'upload_date': '20160521',
         },
+        'skip': 'Video removed',
     }]
 
     def _real_extract(self, url):

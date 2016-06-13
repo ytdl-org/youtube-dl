@@ -1988,7 +1988,7 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
 
 class YoutubeUserIE(YoutubeChannelIE):
     IE_DESC = 'YouTube.com user videos (URL or "ytuser" keyword)'
-    _VALID_URL = r'(?:(?:https?://(?:\w+\.)?youtube\.com/(?:user/)?(?!(?:attribution_link|watch|results)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)(?P<id>[A-Za-z0-9_-]+)'
+    _VALID_URL = r'(?:(?:https?://(?:\w+\.)?youtube\.com/(?:user/|c/)?(?!(?:attribution_link|watch|results)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)(?P<id>[A-Za-z0-9_-]+)'
     _TEMPLATE_URL = 'https://www.youtube.com/user/%s/videos'
     IE_NAME = 'youtube:user'
 
@@ -2000,6 +2000,9 @@ class YoutubeUserIE(YoutubeChannelIE):
         }
     }, {
         'url': 'ytuser:phihag',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/c/gametrailers',
         'only_matching': True,
     }]
 

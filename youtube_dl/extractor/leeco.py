@@ -28,7 +28,7 @@ from ..utils import (
 
 class LeIE(InfoExtractor):
     IE_DESC = '乐视网'
-    _VALID_URL = r'https?://www\.le\.com/ptv/vplay/(?P<id>\d+)\.html'
+    _VALID_URL = r'https?://(?:www\.le\.com/ptv/vplay|sports\.le\.com/video)/(?P<id>\d+)\.html'
 
     _URL_TEMPLATE = 'http://www.le.com/ptv/vplay/%s.html'
 
@@ -69,6 +69,9 @@ class LeIE(InfoExtractor):
             'hls_prefer_native': True,
         },
         'skip': 'Only available in China',
+    }, {
+        'url': 'http://sports.le.com/video/25737697.html',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -196,7 +199,7 @@ class LeIE(InfoExtractor):
 
 
 class LePlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://[a-z]+\.le\.com/[a-z]+/(?P<id>[a-z0-9_]+)'
+    _VALID_URL = r'https?://[a-z]+\.le\.com/(?!video)[a-z]+/(?P<id>[a-z0-9_]+)'
 
     _TESTS = [{
         'url': 'http://www.le.com/tv/46177.html',
