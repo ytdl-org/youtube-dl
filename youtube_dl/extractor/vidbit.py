@@ -26,7 +26,7 @@ class VidbitIE(InfoExtractor):
         return {
             'id': video_id,
             'title': self._html_search_regex(r'<h1>(.+)</h1>', webpage, 'title'),
-            'url': self._BASE_URL % self._html_search_regex(r'file:\s*["\'](.+)["\']', webpage, 'video URL'),
-            'thumbnail': self._BASE_URL % self._html_search_regex(r'image:\s*["\'](.*)["\']', webpage, 'thumbnail', None),
-            'desription': self._html_search_regex(r'description:\s*["\'](.*)["\']', webpage, 'thumbnail', None),
+            'url': self._BASE_URL % self._html_search_regex(r'file:\s*(["\'])((?:(?!\1).)+)\1', webpage, 'video URL', group=2),
+            'thumbnail': self._BASE_URL % self._html_search_regex(r'image:\s*(["\'])((?:(?!\1).)+)\1', webpage, 'thumbnail', None, group=2),
+            'description': self._html_search_regex(r'description:(["\'])((?:(?!\1).)+)\1', webpage, 'description', None, group=2),
         }
