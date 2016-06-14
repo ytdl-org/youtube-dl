@@ -15,6 +15,7 @@
 set -e
 
 skip_tests=true
+gpg_sign_commits=""
 buildserver='localhost:8142'
 
 while true
@@ -22,6 +23,10 @@ do
 case "$1" in
     --run-tests)
         skip_tests=false
+        shift
+    ;;
+    --gpg-sign-commits|-S)
+        gpg_sign_commits="-S"
         shift
     ;;
     --buildserver)
@@ -69,7 +74,7 @@ sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
 /bin/echo -e "\n### Committing documentation, templates and youtube_dl/version.py..."
 make README.md CONTRIBUTING.md .github/ISSUE_TEMPLATE.md supportedsites
 git add README.md CONTRIBUTING.md .github/ISSUE_TEMPLATE.md docs/supportedsites.md youtube_dl/version.py
-git commit -m "release $version"
+git commit $gpg_sign_commits -m "release $version"
 
 /bin/echo -e "\n### Now tagging, signing and pushing..."
 git tag -s -m "Release $version" "$version"
@@ -116,7 +121,7 @@ git clone --branch gh-pages --single-branch . build/gh-pages
     "$ROOT/devscripts/gh-pages/update-copyright.py"
     "$ROOT/devscripts/gh-pages/update-sites.py"
     git add *.html *.html.in update
-    git commit -m "release $version"
+    git commit $gpg_sign_commits -m "release $version"
     git push "$ROOT" gh-pages
     git push "$ORIGIN_URL" gh-pages
 )

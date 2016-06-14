@@ -95,7 +95,6 @@ class LyndaIE(LyndaBaseIE):
     IE_NAME = 'lynda'
     IE_DESC = 'lynda.com videos'
     _VALID_URL = r'https?://www\.lynda\.com/(?:[^/]+/[^/]+/\d+|player/embed)/(?P<id>\d+)'
-    _NETRC_MACHINE = 'lynda'
 
     _TIMECODE_REGEX = r'\[(?P<timecode>\d+:\d+:\d+[\.,]\d+)\]'
 

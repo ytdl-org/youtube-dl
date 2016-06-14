@@ -85,7 +85,7 @@ class ExternalFD(FileDownloader):
             cmd, stderr=subprocess.PIPE)
         _, stderr = p.communicate()
         if p.returncode != 0:
-            self.to_stderr(stderr)
+            self.to_stderr(stderr.decode('utf-8', 'replace'))
         return p.returncode
 
 
