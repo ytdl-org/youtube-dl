@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     int_or_none,
     qualities,
     remove_start,
@@ -27,16 +28,17 @@ class WrzutaIE(InfoExtractor):
             'uploader_id': 'laboratoriumdextera',
             'description': 'md5:7fb5ef3c21c5893375fda51d9b15d9cd',
         },
+        'skip': 'Redirected to wrzuta.pl',
     }, {
-        'url': 'http://jolka85.wrzuta.pl/audio/063jOPX5ue2/liber_natalia_szroeder_-_teraz_ty',
-        'md5': 'bc78077859bea7bcfe4295d7d7fc9025',
+        'url': 'http://vexling.wrzuta.pl/audio/01xBFabGXu6/james_horner_-_into_the_na_39_vi_world_bonus',
+        'md5': 'f80564fb5a2ec6ec59705ae2bf2ba56d',
         'info_dict': {
-            'id': '063jOPX5ue2',
-            'ext': 'ogg',
-            'title': 'Liber & Natalia Szroeder - Teraz Ty',
-            'duration': 203,
-            'uploader_id': 'jolka85',
-            'description': 'md5:2d2b6340f9188c8c4cd891580e481096',
+            'id': '01xBFabGXu6',
+            'ext': 'mp3',
+            'title': 'James Horner - Into The Na\'vi World [Bonus]',
+            'description': 'md5:30a70718b2cd9df3120fce4445b0263b',
+            'duration': 95,
+            'uploader_id': 'vexling',
         },
     }]
 
@@ -46,7 +48,10 @@ class WrzutaIE(InfoExtractor):
         typ = mobj.group('typ')
         uploader = mobj.group('uploader')
 
-        webpage = self._download_webpage(url, video_id)
+        webpage, urlh = self._download_webpage_handle(url, video_id)
+
+        if urlh.geturl() == 'http://www.wrzuta.pl/':
+            raise ExtractorError('Video removed', expected=True)
 
         quality = qualities(['SD', 'MQ', 'HQ', 'HD'])
 
