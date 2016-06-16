@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import itertools
@@ -39,7 +40,25 @@ class PornHubIE(InfoExtractor):
             'dislike_count': int,
             'comment_count': int,
             'age_limit': 18,
-        }
+        },
+    }, {
+        # non-ASCII title
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=1331683002',
+        'info_dict': {
+            'id': '1331683002',
+            'ext': 'mp4',
+            'title': '重庆婷婷女王足交',
+            'uploader': 'cj397186295',
+            'duration': 1753,
+            'view_count': int,
+            'like_count': int,
+            'dislike_count': int,
+            'comment_count': int,
+            'age_limit': 18,
+        },
+        'params': {
+            'skip_download': True,
+        },
     }, {
         'url': 'http://www.pornhub.com/view_video.php?viewkey=ph557bbb6676d2d',
         'only_matching': True,
@@ -76,19 +95,25 @@ class PornHubIE(InfoExtractor):
                 'PornHub said: %s' % error_msg,
                 expected=True, video_id=video_id)
 
+        # video_title from flashvars contains whitespace instead of non-ASCII (see
+        # http://www.pornhub.com/view_video.php?viewkey=1331683002), not relying
+        # on that anymore.
+        title = self._html_search_meta(
+            'twitter:title', webpage, default=None) or self._search_regex(
+            (r'<h1[^>]+class=["\']title["\'][^>]*>(?P<title>[^<]+)',
+             r'<div[^>]+data-video-title=(["\'])(?P<title>.+?)\1',
+             r'shareTitle\s*=\s*(["\'])(?P<title>.+?)\1'),
+            webpage, 'title', group='title')
+
         flashvars = self._parse_json(
             self._search_regex(
                 r'var\s+flashvars_\d+\s*=\s*({.+?});', webpage, 'flashvars', default='{}'),
             video_id)
         if flashvars:
-            video_title = flashvars.get('video_title')
             thumbnail = flashvars.get('image_url')
             duration = int_or_none(flashvars.get('video_duration'))
         else:
-            video_title, thumbnail, duration = [None] * 3
-
-        if not video_title:
-            video_title = self._html_search_regex(r'<h1 [^>]+>([^<]+)', webpage, 'title')
+            title, thumbnail, duration = [None] * 3
 
         video_uploader = self._html_search_regex(
             r'(?s)From:&nbsp;.+?<(?:a href="/users/|a href="/channels/|span class="username)[^>]+>(.+?)<',
@@ -137,7 +162,7 @@ class PornHubIE(InfoExtractor):
         return {
             'id': video_id,
             'uploader': video_uploader,
-            'title': video_title,
+            'title': title,
             'thumbnail': thumbnail,
             'duration': duration,
             'view_count': view_count,

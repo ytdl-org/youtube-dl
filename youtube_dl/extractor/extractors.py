@@ -649,6 +649,7 @@ from .revision3 import (
 from .rice import RICEIE
 from .ringtv import RingTVIE
 from .ro220 import Ro220IE
+from .rockstargames import RockstarGamesIE
 from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtbf import RTBFIE
@@ -862,6 +863,7 @@ from .twitch import (
     TwitchProfileIE,
     TwitchPastBroadcastsIE,
     TwitchStreamIE,
+    TwitchClipsIE,
 )
 from .twitter import (
     TwitterCardIE,
@@ -978,7 +980,10 @@ from .weiqitv import WeiqiTVIE
 from .wimp import WimpIE
 from .wistia import WistiaIE
 from .worldstarhiphop import WorldStarHipHopIE
-from .wrzuta import WrzutaIE
+from .wrzuta import (
+    WrzutaIE,
+    WrzutaPlaylistIE,
+)
 from .wsj import WSJIE
 from .xbef import XBefIE
 from .xboxclips import XboxClipsIE

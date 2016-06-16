@@ -535,6 +535,7 @@
  - **revision3:embed**
  - **RICE**
  - **RingTV**
+ - **RockstarGames**
  - **RottenTomatoes**
  - **Roxwel**
  - **RTBF**
@@ -699,6 +700,7 @@
  - **TVPlay**: TV3Play and related services
  - **Tweakers**
  - **twitch:chapter**
+ - **twitch:clips**
  - **twitch:past_broadcasts**
  - **twitch:profile**
  - **twitch:stream**
@@ -793,10 +795,11 @@
  - **WNL**
  - **WorldStarHipHop**
  - **wrzuta.pl**
+ - **wrzuta.pl:playlist**
  - **WSJ**: Wall Street Journal
  - **XBef**
  - **XboxClips**
- - **XFileShare**: XFileShare based sites: DaClips, FileHoot, GorillaVid, MovPod, PowerWatch, Rapidvideo.ws, TheVideoBee, Vidto, Streamin.To
+ - **XFileShare**: XFileShare based sites: DaClips, FileHoot, GorillaVid, MovPod, PowerWatch, Rapidvideo.ws, TheVideoBee, Vidto, Streamin.To, XVIDSTAGE
  - **XHamster**
  - **XHamsterEmbed**
  - **xiami:album**: 虾米音乐 - 专辑
