@@ -336,7 +336,7 @@ class YoutubeDLBuilder(object):
         try:
             proc = subprocess.Popen([os.path.join(self.pythonPath, 'python.exe'), 'setup.py', 'py2exe'], stdin=subprocess.PIPE, cwd=self.buildPath)
             proc.wait()
-            #subprocess.check_output([os.path.join(self.pythonPath, 'python.exe'), 'setup.py', 'py2exe'],
+            # subprocess.check_output([os.path.join(self.pythonPath, 'python.exe'), 'setup.py', 'py2exe'],
             #                        cwd=self.buildPath)
         except subprocess.CalledProcessError as e:
             raise BuildError(e.output)
