@@ -44,8 +44,8 @@
  - **appletrailers:section**
  - **archive.org**: archive.org videos
  - **ARD**
- - **ARD:mediathek**: Saarländischer Rundfunk
  - **ARD:mediathek**
+ - **ARD:mediathek**: Saarländischer Rundfunk
  - **arte.tv**
  - **arte.tv:+7**
  - **arte.tv:cinema**

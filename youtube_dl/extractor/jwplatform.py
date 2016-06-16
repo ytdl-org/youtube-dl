@@ -12,8 +12,34 @@ from ..utils import (
 
 
 class JWPlatformBaseIE(InfoExtractor):
+    @staticmethod
+    def _find_jwplayer_data(webpage):
+        # TODO: Merge this with JWPlayer-related codes in generic.py
+
+        mobj = re.search(
+            'jwplayer\((?P<quote>[\'"])[^\'" ]+(?P=quote)\)\.setup\((?P<options>[^)]+)\)',
+            webpage)
+        if mobj:
+            return mobj.group('options')
+
+    def _extract_jwplayer_data(self, webpage, video_id, *args, **kwargs):
+        jwplayer_data = self._parse_json(
+            self._find_jwplayer_data(webpage), video_id)
+        return self._parse_jwplayer_data(
+            jwplayer_data, video_id, *args, **kwargs)
+
     def _parse_jwplayer_data(self, jwplayer_data, video_id, require_title=True, m3u8_id=None, rtmp_params=None):
+        # JWPlayer backward compatibility: flattened playlists
+        # https://github.com/jwplayer/jwplayer/blob/v7.4.3/src/js/api/config.js#L81-L96
+        if 'playlist' not in jwplayer_data:
+            jwplayer_data = {'playlist': [jwplayer_data]}
+
         video_data = jwplayer_data['playlist'][0]
+
+        # JWPlayer backward compatibility: flattened sources
+        # https://github.com/jwplayer/jwplayer/blob/v7.4.3/src/js/playlist/item.js#L29-L35
+        if 'sources' not in video_data:
+            video_data['sources'] = [video_data]
 
         formats = []
         for source in video_data['sources']:

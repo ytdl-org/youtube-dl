@@ -640,6 +640,9 @@ class TestUtil(unittest.TestCase):
             "1":{"src":"skipped", "type": "application/vnd.apple.mpegURL"}
         }''')
 
+        inp = '''{"foo":101}'''
+        self.assertEqual(js_to_json(inp), '''{"foo":101}''')
+
     def test_js_to_json_edgecases(self):
         on = js_to_json("{abc_def:'1\\'\\\\2\\\\\\'3\"4'}")
         self.assertEqual(json.loads(on), {"abc_def": "1'\\2\\'3\"4"})
