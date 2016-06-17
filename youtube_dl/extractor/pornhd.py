@@ -12,7 +12,21 @@ from ..utils import (
 
 class PornHdIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?pornhd\.com/(?:[a-z]{2,4}/)?videos/(?P<id>\d+)(?:/(?P<display_id>.+))?'
-    _TEST = {
+    _TESTS = [{
+        'url': 'http://www.pornhd.com/videos/9864/selfie-restroom-masturbation-fun-with-chubby-cutie-hd-porn-video',
+        'md5': 'c8b964b1f0a4b5f7f28ae3a5c9f86ad5',
+        'info_dict': {
+            'id': '9864',
+            'display_id': 'selfie-restroom-masturbation-fun-with-chubby-cutie-hd-porn-video',
+            'ext': 'mp4',
+            'title': 'Restroom selfie masturbation',
+            'description': 'md5:3748420395e03e31ac96857a8f125b2b',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'view_count': int,
+            'age_limit': 18,
+        }
+    }, {
+        # removed video
         'url': 'http://www.pornhd.com/videos/1962/sierra-day-gets-his-cum-all-over-herself-hd-porn-video',
         'md5': '956b8ca569f7f4d8ec563e2c41598441',
         'info_dict': {
@@ -24,8 +38,9 @@ class PornHdIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.jpg',
             'view_count': int,
             'age_limit': 18,
-        }
-    }
+        },
+        'skip': 'Not available anymore',
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
