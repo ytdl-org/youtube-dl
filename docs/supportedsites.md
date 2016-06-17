@@ -74,6 +74,8 @@
  - **bbc**: BBC
  - **bbc.co.uk**: BBC iPlayer
  - **bbc.co.uk:article**: BBC articles
+ - **bbc.co.uk:iplayer:playlist**
+ - **bbc.co.uk:playlist**
  - **BeatportPro**
  - **Beeg**
  - **BehindKink**
@@ -104,6 +106,8 @@
  - **canalc2.tv**
  - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
  - **Canvas**
+ - **CarambaTV**
+ - **CarambaTVPage**
  - **CBC**
  - **CBCPlayer**
  - **CBS**
@@ -432,6 +436,7 @@
  - **nhl.com:videocenter**
  - **nhl.com:videocenter:category**: NHL videocenter category
  - **nick.com**
+ - **nick.de**
  - **niconico**: ニコニコ動画
  - **NiconicoPlaylist**
  - **njoy**: N-JOY
