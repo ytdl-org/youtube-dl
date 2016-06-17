@@ -1,4 +1,7 @@
+# coding: utf-8
 from __future__ import unicode_literals
+
+import re
 
 from .common import InfoExtractor
 from ..compat import (
@@ -8,6 +11,7 @@ from ..compat import (
 from ..utils import (
     get_element_by_attribute,
     int_or_none,
+    remove_start,
 )
 
 
@@ -15,7 +19,7 @@ class MiTeleIE(InfoExtractor):
     IE_DESC = 'mitele.es'
     _VALID_URL = r'https?://www\.mitele\.es/[^/]+/[^/]+/[^/]+/(?P<id>[^/]+)/'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/la-redaccion/programa-144/',
         # MD5 is unstable
         'info_dict': {
@@ -24,10 +28,31 @@ class MiTeleIE(InfoExtractor):
             'ext': 'flv',
             'title': 'Tor, la web invisible',
             'description': 'md5:3b6fce7eaa41b2d97358726378d9369f',
+            'series': 'Diario de',
+            'season': 'La redacción',
+            'episode': 'Programa 144',
             'thumbnail': 're:(?i)^https?://.*\.jpg$',
             'duration': 2913,
         },
-    }
+    }, {
+        # no explicit title
+        'url': 'http://www.mitele.es/programas-tv/cuarto-milenio/temporada-6/programa-226/',
+        'info_dict': {
+            'id': 'eLZSwoEd1S3pVyUm8lc6F',
+            'display_id': 'programa-226',
+            'ext': 'flv',
+            'title': 'Cuarto Milenio - Temporada 6 - Programa 226',
+            'description': 'md5:50daf9fadefa4e62d9fc866d0c015701',
+            'series': 'Cuarto Milenio',
+            'season': 'Temporada 6',
+            'episode': 'Programa 226',
+            'thumbnail': 're:(?i)^https?://.*\.jpg$',
+            'duration': 7312,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
@@ -70,7 +95,22 @@ class MiTeleIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = self._search_regex(
-            r'class="Destacado-text"[^>]*>\s*<strong>([^<]+)</strong>', webpage, 'title')
+            r'class="Destacado-text"[^>]*>\s*<strong>([^<]+)</strong>',
+            webpage, 'title', default=None)
+
+        mobj = re.search(r'''(?sx)
+                            class="Destacado-text"[^>]*>.*?<h1>\s*
+                            <span>(?P<series>[^<]+)</span>\s*
+                            <span>(?P<season>[^<]+)</span>\s*
+                            <span>(?P<episode>[^<]+)</span>''', webpage)
+        series, season, episode = mobj.groups() if mobj else [None] * 3
+
+        if not title:
+            if mobj:
+                title = '%s - %s - %s' % (series, season, episode)
+            else:
+                title = remove_start(self._search_regex(
+                    r'<title>([^<]+)</title>', webpage, 'title'), 'Ver online ')
 
         video_id = self._search_regex(
             r'data-media-id\s*=\s*"([^"]+)"', webpage,
@@ -83,6 +123,9 @@ class MiTeleIE(InfoExtractor):
             'display_id': display_id,
             'title': title,
             'description': get_element_by_attribute('class', 'text', webpage),
+            'series': series,
+            'season': season,
+            'episode': episode,
             'thumbnail': thumbnail,
             'duration': duration,
             'formats': formats,
