@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     int_or_none,
     js_to_json,
 )
@@ -37,17 +37,17 @@ class PornHdIE(InfoExtractor):
         title = self._html_search_regex(
             [r'<span[^>]+class=["\']video-name["\'][^>]*>([^<]+)',
              r'<title>(.+?) - .*?[Pp]ornHD.*?</title>'], webpage, 'title')
-        description = self._html_search_regex(
-            r'<(div|p)[^>]+class="description"[^>]*>(?P<value>[^<]+)</\1',
-            webpage, 'description', fatal=False, group='value')
-        view_count = int_or_none(self._html_search_regex(
-            r'(\d+) views\s*<', webpage, 'view count', fatal=False))
-        thumbnail = self._search_regex(
-            r"'poster'\s*:\s*'([^']+)'", webpage, 'thumbnail', fatal=False)
 
-        sources = json.loads(js_to_json(self._search_regex(
+        sources = self._parse_json(js_to_json(self._search_regex(
             r"(?s)'sources'\s*:\s*(\{.+?\})\s*\}[;,)]",
-            webpage, 'sources')))
+            webpage, 'sources', default='{}')), video_id)
+
+        if not sources:
+            message = self._html_search_regex(
+                r'(?s)<(div|p)[^>]+class="no-video"[^>]*>(?P<value>.+?)</\1',
+                webpage, 'error message', group='value')
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, message), expected=True)
+
         formats = []
         for format_id, video_url in sources.items():
             if not video_url:
@@ -60,6 +60,14 @@ class PornHdIE(InfoExtractor):
                 'height': height,
             })
         self._sort_formats(formats)
+
+        description = self._html_search_regex(
+            r'<(div|p)[^>]+class="description"[^>]*>(?P<value>[^<]+)</\1',
+            webpage, 'description', fatal=False, group='value')
+        view_count = int_or_none(self._html_search_regex(
+            r'(\d+) views\s*<', webpage, 'view count', fatal=False))
+        thumbnail = self._search_regex(
+            r"'poster'\s*:\s*'([^']+)'", webpage, 'thumbnail', fatal=False)
 
         return {
             'id': video_id,
