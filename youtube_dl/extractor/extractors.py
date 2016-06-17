@@ -71,6 +71,8 @@ from .bandcamp import BandcampIE, BandcampAlbumIE
 from .bbc import (
     BBCCoUkIE,
     BBCCoUkArticleIE,
+    BBCCoUkIPlayerPlaylistIE,
+    BBCCoUkPlaylistIE,
     BBCIE,
 )
 from .beeg import BeegIE
