@@ -39,9 +39,10 @@ class PornHdIE(InfoExtractor):
             [r'<span[^>]+class=["\']video-name["\'][^>]*>([^<]+)',
              r'<title>(.+?) - .*?[Pp]ornHD.*?</title>'], webpage, 'title')
         description = self._html_search_regex(
-            r'<div class="description">([^<]+)</div>', webpage, 'description', fatal=False)
+            r'<(div|p)[^>]+class="description"[^>]*>(?P<value>[^<]+)</\1',
+            webpage, 'description', fatal=False, group='value')
         view_count = int_or_none(self._html_search_regex(
-            r'(\d+) views\s*</span>', webpage, 'view count', fatal=False))
+            r'(\d+) views\s*<', webpage, 'view count', fatal=False))
         thumbnail = self._search_regex(
             r"'poster'\s*:\s*'([^']+)'", webpage, 'thumbnail', fatal=False)
 
