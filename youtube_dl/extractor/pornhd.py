@@ -7,7 +7,6 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     js_to_json,
-    qualities,
 )
 
 
@@ -46,18 +45,19 @@ class PornHdIE(InfoExtractor):
         thumbnail = self._search_regex(
             r"'poster'\s*:\s*'([^']+)'", webpage, 'thumbnail', fatal=False)
 
-        quality = qualities(['sd', 'hd'])
         sources = json.loads(js_to_json(self._search_regex(
             r"(?s)'sources'\s*:\s*(\{.+?\})\s*\}[;,)]",
             webpage, 'sources')))
         formats = []
-        for qname, video_url in sources.items():
+        for format_id, video_url in sources.items():
             if not video_url:
                 continue
+            height = int_or_none(self._search_regex(
+                r'^(\d+)[pP]', format_id, 'height', default=None))
             formats.append({
                 'url': video_url,
-                'format_id': qname,
-                'quality': quality(qname),
+                'format_id': format_id,
+                'height': height,
             })
         self._sort_formats(formats)
 
