@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .mtv import MTVServicesInfoExtractor
 from ..compat import compat_urllib_parse_urlencode
+from ..utils import update_url_query
 
 
 class NickIE(MTVServicesInfoExtractor):
@@ -61,3 +62,26 @@ class NickIE(MTVServicesInfoExtractor):
 
     def _extract_mgid(self, webpage):
         return self._search_regex(r'data-contenturi="([^"]+)', webpage, 'mgid')
+
+
+class NickDeIE(MTVServicesInfoExtractor):
+    IE_NAME = 'nick.de'
+    _VALID_URL = r'https?://(?:www\.)?nick\.de/(?:playlist|shows)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'http://www.nick.de/playlist/3773-top-videos/videos/episode/17306-zu-wasser-und-zu-land-rauchende-erdnusse',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nick.de/shows/342-icarly',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        mrss_url = update_url_query(self._search_regex(
+            r'data-mrss=(["\'])(?P<url>http.+?)\1', webpage, 'mrss url', group='url'),
+            {'siteKey': 'nick.de'})
+
+        return self._get_videos_info_from_url(mrss_url, video_id)

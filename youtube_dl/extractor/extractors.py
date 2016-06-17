@@ -518,7 +518,10 @@ from .nhl import (
     NHLVideocenterCategoryIE,
     NHLIE,
 )
-from .nick import NickIE
+from .nick import (
+    NickIE,
+    NickDeIE,
+)
 from .niconico import NiconicoIE, NiconicoPlaylistIE
 from .ninegag import NineGagIE
 from .noco import NocoIE
