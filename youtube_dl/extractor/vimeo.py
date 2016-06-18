@@ -8,6 +8,7 @@ import itertools
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
+    compat_str,
     compat_urlparse,
 )
 from ..utils import (
@@ -24,6 +25,7 @@ from ..utils import (
     urlencode_postdata,
     unescapeHTML,
     parse_filesize,
+    try_get,
 )
 
 
@@ -445,7 +447,18 @@ class VimeoIE(VimeoBaseInfoExtractor):
             if config.get('view') == 4:
                 config = self._verify_player_video_password(url, video_id)
 
-        if '>You rented this title.<' in webpage:
+        def is_rented():
+            if '>You rented this title.<' in webpage:
+                return True
+            if config.get('user', {}).get('purchased'):
+                return True
+            label = try_get(
+                config, lambda x: x['video']['vod']['purchase_options'][0]['label_string'], compat_str)
+            if label and label.startswith('You rented this'):
+                return True
+            return False
+
+        if is_rented():
             feature_id = config.get('video', {}).get('vod', {}).get('feature_id')
             if feature_id and not data.get('force_feature_id', False):
                 return self.url_result(smuggle_url(
