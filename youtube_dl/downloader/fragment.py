@@ -53,7 +53,7 @@ class FragmentFD(FileDownloader):
             }
         )
         tmpfilename = self.temp_name(ctx['filename'])
-        dest_stream, tmpfilename = sanitize_open(tmpfilename, 'wb')
+        dest_stream, tmpfilename = sanitize_open(tmpfilename, 'ab' if ctx.get('continue_dl') else 'wb')
         ctx.update({
             'dl': dl,
             'dest_stream': dest_stream,
@@ -62,12 +62,17 @@ class FragmentFD(FileDownloader):
 
     def _start_frag_download(self, ctx):
         total_frags = ctx['total_frags']
+        try:
+            downloaded_bytes = os.path.getsize(ctx['tmpfilename']) if ctx.get('continue_dl') else 0
+        except os.error as e:
+            downloaded_bytes = 0
+        frag_index = ctx['continue_fragment'] + 1 if ctx.get('continue_fragment') else 0
         # This dict stores the download progress, it's updated by the progress
         # hook
         state = {
             'status': 'downloading',
-            'downloaded_bytes': 0,
-            'frag_index': 0,
+            'downloaded_bytes': downloaded_bytes,
+            'frag_index': frag_index,
             'frag_count': total_frags,
             'filename': ctx['filename'],
             'tmpfilename': ctx['tmpfilename'],
