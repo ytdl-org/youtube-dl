@@ -29,7 +29,8 @@ class BRIE(InfoExtractor):
                 'duration': 180,
                 'uploader': 'Reinhard Weber',
                 'upload_date': '20150422',
-            }
+            },
+            'skip': '404 not found',
         },
         {
             'url': 'http://www.br.de/nachrichten/oberbayern/inhalt/muenchner-polizeipraesident-schreiber-gestorben-100.html',
@@ -40,7 +41,8 @@ class BRIE(InfoExtractor):
                 'title': 'Manfred Schreiber ist tot',
                 'description': 'md5:b454d867f2a9fc524ebe88c3f5092d97',
                 'duration': 26,
-            }
+            },
+            'skip': '404 not found',
         },
         {
             'url': 'https://www.br-klassik.de/audio/peeping-tom-premierenkritik-dance-festival-muenchen-100.html',
@@ -51,7 +53,8 @@ class BRIE(InfoExtractor):
                 'title': 'Kurzweilig und sehr bewegend',
                 'description': 'md5:0351996e3283d64adeb38ede91fac54e',
                 'duration': 296,
-            }
+            },
+            'skip': '404 not found',
         },
         {
             'url': 'http://www.br.de/radio/bayern1/service/team/videos/team-video-erdelt100.html',
