@@ -185,7 +185,7 @@ class ArteTVPlus7IE(ArteTVBaseIE):
     _TESTS = [{
         'url': 'http://www.arte.tv/guide/de/sendungen/XEN/xenius/?vid=055918-015_PLUS7-D',
         'only_matching': True,
-    }. {
+    }, {
         'url': 'http://sites.arte.tv/karambolage/de/video/karambolage-22',
         'only_matching': True,
     }]
