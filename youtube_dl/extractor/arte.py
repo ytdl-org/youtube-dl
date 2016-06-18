@@ -180,10 +180,13 @@ class ArteTVBaseIE(InfoExtractor):
 
 class ArteTVPlus7IE(ArteTVBaseIE):
     IE_NAME = 'arte.tv:+7'
-    _VALID_URL = r'https?://(?:www\.)?arte\.tv/guide/(?P<lang>fr|de|en|es)/(?:(?:sendungen|emissions|embed)/)?(?P<id>[^/]+)/(?P<name>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:(?:www|sites)\.)?arte\.tv/[^/]+/(?P<lang>fr|de|en|es)/(?:(?:sendungen|emissions|embed)/)?(?P<id>[^/]+)/(?P<name>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'http://www.arte.tv/guide/de/sendungen/XEN/xenius/?vid=055918-015_PLUS7-D',
+        'only_matching': True,
+    }. {
+        'url': 'http://sites.arte.tv/karambolage/de/video/karambolage-22',
         'only_matching': True,
     }]
 
