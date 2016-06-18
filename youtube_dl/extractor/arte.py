@@ -240,10 +240,10 @@ class ArteTVPlus7IE(ArteTVBaseIE):
             return self._extract_from_json_url(json_url, video_id, lang, title=title)
         # Different kind of embed URL (e.g.
         # http://www.arte.tv/magazine/trepalium/fr/episode-0406-replay-trepalium)
-        embed_url = self._search_regex(
-            r'<iframe[^>]+src=(["\'])(?P<url>.+?)\1',
-            webpage, 'embed url', group='url')
-        return self.url_result(embed_url)
+        entries = [
+            self.url_result(url)
+            for _, url in re.findall(r'<iframe[^>]+src=(["\'])(?P<url>.+?)\1', webpage)]
+        return self.playlist_result(entries)
 
 
 # It also uses the arte_vp_url url from the webpage to extract the information
@@ -252,22 +252,17 @@ class ArteTVCreativeIE(ArteTVPlus7IE):
     _VALID_URL = r'https?://creative\.arte\.tv/(?P<lang>fr|de|en|es)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
 
     _TESTS = [{
-        'url': 'http://creative.arte.tv/de/magazin/agentur-amateur-corporate-design',
+        'url': 'http://creative.arte.tv/fr/episode/osmosis-episode-1',
         'info_dict': {
-            'id': '72176',
+            'id': '057405-001-A',
             'ext': 'mp4',
-            'title': 'Folge 2 - Corporate Design',
-            'upload_date': '20131004',
+            'title': 'OSMOSIS - N\'AYEZ PLUS PEUR D\'AIMER (1)',
+            'upload_date': '20150716',
         },
     }, {
         'url': 'http://creative.arte.tv/fr/Monty-Python-Reunion',
-        'info_dict': {
-            'id': '160676',
-            'ext': 'mp4',
-            'title': 'Monty Python live (mostly)',
-            'description': 'Événement ! Quarante-cinq ans après leurs premiers succès, les légendaires Monty Python remontent sur scène.\n',
-            'upload_date': '20140805',
-        }
+        'playlist_count': 11,
+        'add_ie': ['Youtube'],
     }, {
         'url': 'http://creative.arte.tv/de/episode/agentur-amateur-4-der-erste-kunde',
         'only_matching': True,
@@ -349,14 +344,13 @@ class ArteTVCinemaIE(ArteTVPlus7IE):
     _VALID_URL = r'https?://cinema\.arte\.tv/(?P<lang>fr|de|en|es)/(?P<id>.+)'
 
     _TESTS = [{
-        'url': 'http://cinema.arte.tv/de/node/38291',
-        'md5': '6b275511a5107c60bacbeeda368c3aa1',
+        'url': 'http://cinema.arte.tv/fr/article/les-ailes-du-desir-de-julia-reck',
+        'md5': 'a5b9dd5575a11d93daf0e3f404f45438',
         'info_dict': {
-            'id': '055876-000_PWA12025-D',
+            'id': '062494-000-A',
             'ext': 'mp4',
-            'title': 'Tod auf dem Nil',
-            'upload_date': '20160122',
-            'description': 'md5:7f749bbb77d800ef2be11d54529b96bc',
+            'title': 'Film lauréat du concours web - "Les ailes du désir" de Julia Reck',
+            'upload_date': '20150807',
         },
     }]
 
