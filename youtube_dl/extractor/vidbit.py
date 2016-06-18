@@ -1,8 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
+import re
 
+from .common import InfoExtractor
+from ..utils import url_basename
 
 class VidbitIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?vidbit\.co/watch\?v=(?P<id>[\w-]+)'
@@ -13,20 +15,20 @@ class VidbitIE(InfoExtractor):
             'id': 'MrM7LeaMJq',
             'ext': 'mp4',
             'title': 'RoboCop (1987) - Dick You\'re Fired',
-            'thumbnail': 'http://vidbit.co/thumbnails/MrM7LeaMJq.jpg',
+            'thumbnail': 'http://www.vidbit.co/thumbnails/MrM7LeaMJq.jpg',
         }
     }
-
-    _BASE_URL = 'http://vidbit.co/%s'
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
+        _BASE_URL = 'http://' + url.split('/')[2] + '/'
+
         return {
             'id': video_id,
             'title': self._html_search_regex(r'<h1>(.+)</h1>', webpage, 'title'),
-            'url': self._BASE_URL % self._html_search_regex(r'file:\s*(["\'])((?:(?!\1).)+)\1', webpage, 'video URL', group=2),
-            'thumbnail': self._BASE_URL % self._html_search_regex(r'image:\s*(["\'])((?:(?!\1).)+)\1', webpage, 'thumbnail', None, group=2),
+            'url': _BASE_URL + self._html_search_regex(r'file:\s*(["\'])((?:(?!\1).)+)\1', webpage, 'video URL', group=2),
+            'thumbnail': _BASE_URL + self._html_search_regex(r'image:\s*(["\'])((?:(?!\1).)+)\1', webpage, 'thumbnail', None, group=2),
             'description': self._html_search_regex(r'description:(["\'])((?:(?!\1).)+)\1', webpage, 'description', None, group=2),
         }
