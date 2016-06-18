@@ -192,6 +192,7 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
+            'skip': 'Now it\'s really geo-restricted',
         }, {
             # compact player (https://github.com/rg3/youtube-dl/issues/8147)
             'url': 'http://www.bbc.co.uk/programmes/p028bfkf/player',
