@@ -44,7 +44,6 @@ from .archiveorg import ArchiveOrgIE
 from .ard import (
     ARDIE,
     ARDMediathekIE,
-    SportschauIE,
 )
 from .arte import (
     ArteTvIE,
@@ -747,6 +746,7 @@ from .sportbox import (
     SportBoxEmbedIE,
 )
 from .sportdeutschland import SportDeutschlandIE
+from .sportschau import SportschauIE
 from .srgssr import (
     SRGSSRIE,
     SRGSSRPlayIE,
