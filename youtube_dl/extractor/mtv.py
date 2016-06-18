@@ -85,9 +85,10 @@ class MTVServicesInfoExtractor(InfoExtractor):
                 rtmp_video_url = rendition.find('./src').text
                 if rtmp_video_url.endswith('siteunavail.png'):
                     continue
+                new_url = self._transform_rtmp_url(rtmp_video_url)
                 formats.append({
-                    'ext': ext,
-                    'url': self._transform_rtmp_url(rtmp_video_url),
+                    'ext': 'flv' if new_url.startswith('rtmp') else ext,
+                    'url': new_url,
                     'format_id': rendition.get('bitrate'),
                     'width': int(rendition.get('width')),
                     'height': int(rendition.get('height')),
