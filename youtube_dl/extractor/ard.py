@@ -8,7 +8,6 @@ from .generic import GenericIE
 from ..utils import (
     determine_ext,
     ExtractorError,
-    get_element_by_attribute,
     qualities,
     int_or_none,
     parse_duration,
@@ -274,41 +273,3 @@ class ARDIE(InfoExtractor):
             'upload_date': upload_date,
             'thumbnail': thumbnail,
         }
-
-
-class SportschauIE(ARDMediathekIE):
-    IE_NAME = 'Sportschau'
-    _VALID_URL = r'(?P<baseurl>https?://(?:www\.)?sportschau\.de/(?:[^/]+/)+video(?P<id>[^/#?]+))\.html'
-    _TESTS = [{
-        'url': 'http://www.sportschau.de/tourdefrance/videoseppeltkokainhatnichtsmitklassischemdopingzutun100.html',
-        'info_dict': {
-            'id': 'seppeltkokainhatnichtsmitklassischemdopingzutun100',
-            'ext': 'mp4',
-            'title': 'Seppelt: "Kokain hat nichts mit klassischem Doping zu tun"',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            'description': 'Der ARD-Doping Experte Hajo Seppelt gibt seine Einschätzung zum ersten Dopingfall der diesjährigen Tour de France um den Italiener Luca Paolini ab.',
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-    }]
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        base_url = mobj.group('baseurl')
-
-        webpage = self._download_webpage(url, video_id)
-        title = get_element_by_attribute('class', 'headline', webpage)
-        description = self._html_search_meta('description', webpage, 'description')
-
-        info = self._extract_media_info(
-            base_url + '-mc_defaultQuality-h.json', webpage, video_id)
-
-        info.update({
-            'title': title,
-            'description': description,
-        })
-
-        return info
