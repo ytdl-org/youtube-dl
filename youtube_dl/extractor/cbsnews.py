@@ -30,9 +30,12 @@ class CBSNewsIE(CBSBaseIE):
         {
             'url': 'http://www.cbsnews.com/videos/fort-hood-shooting-army-downplays-mental-illness-as-cause-of-attack/',
             'info_dict': {
-                'id': 'fort-hood-shooting-army-downplays-mental-illness-as-cause-of-attack',
+                'id': 'SNJBOYzXiWBOvaLsdzwH8fmtP1SCd91Y',
                 'ext': 'mp4',
                 'title': 'Fort Hood shooting: Army downplays mental illness as cause of attack',
+                'description': 'md5:4a6983e480542d8b333a947bfc64ddc7',
+                'upload_date': '19700101',
+                'uploader': 'CBSI-NEW',
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'duration': 205,
                 'subtitles': {
@@ -58,30 +61,8 @@ class CBSNewsIE(CBSBaseIE):
             webpage, 'video JSON info'), video_id)
 
         item = video_info['item'] if 'item' in video_info else video_info
-        title = item.get('articleTitle') or item.get('hed')
-        duration = item.get('duration')
-        thumbnail = item.get('mediaImage') or item.get('thumbnail')
-
-        subtitles = {}
-        formats = []
-        for format_id in ['RtmpMobileLow', 'RtmpMobileHigh', 'Hls', 'RtmpDesktop']:
-            pid = item.get('media' + format_id)
-            if not pid:
-                continue
-            release_url = 'http://link.theplatform.com/s/dJ5BDC/%s?mbr=true' % pid
-            tp_formats, tp_subtitles = self._extract_theplatform_smil(release_url, video_id, 'Downloading %s SMIL data' % pid)
-            formats.extend(tp_formats)
-            subtitles = self._merge_subtitles(subtitles, tp_subtitles)
-        self._sort_formats(formats)
-
-        return {
-            'id': video_id,
-            'title': title,
-            'thumbnail': thumbnail,
-            'duration': duration,
-            'formats': formats,
-            'subtitles': subtitles,
-        }
+        guid = item['mpxRefId']
+        return self._extract_video_info('byGuid=%s' % guid, guid)
 
 
 class CBSNewsLiveVideoIE(InfoExtractor):
