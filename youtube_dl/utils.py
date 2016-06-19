@@ -1063,7 +1063,7 @@ def unified_strdate(date_str, day_first=True):
     for expression in format_expressions:
         try:
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
-        except ValueError:
+        except (ValueError, TypeError):
             pass
     if upload_date is None:
         timetuple = email.utils.parsedate_tz(date_str)
