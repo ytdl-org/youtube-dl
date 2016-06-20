@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .theplatform import ThePlatformFeedIE
 from ..utils import (
     int_or_none,
