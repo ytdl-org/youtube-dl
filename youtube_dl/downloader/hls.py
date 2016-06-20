@@ -50,7 +50,7 @@ class HlsFD(FragmentFD):
             # 4. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3.5
         )
         check_results = [not re.search(feature, manifest) for feature in UNSUPPORTED_FEATURES]
-        check_results.append(not (re.search(r'#EXT-X-KEY:METHOD=AES-128', manifest) and not can_decrypt_frag))
+        check_results.append(can_decrypt_frag or '#EXT-X-KEY:METHOD=AES-128' not in manifest)
         return all(check_results)
 
     def real_download(self, filename, info_dict):
@@ -102,8 +102,9 @@ class HlsFD(FragmentFD):
                     frag_content = down.read()
                     down.close()
                     if decrypt_info['METHOD'] == 'AES-128':
-                        iv = decrypt_info.get('IV') or compat_struct_pack(">8xq", media_sequence)
-                        frag_content = AES.new(decrypt_info['KEY'], AES.MODE_CBC, iv).decrypt(frag_content)
+                        iv = decrypt_info.get('IV') or compat_struct_pack('>8xq', media_sequence)
+                        frag_content = AES.new(
+                            decrypt_info['KEY'], AES.MODE_CBC, iv).decrypt(frag_content)
                     ctx['dest_stream'].write(frag_content)
                     frags_filenames.append(frag_sanitized)
                     # We only download the first fragment during the test
@@ -117,7 +118,8 @@ class HlsFD(FragmentFD):
                         if 'IV' in decrypt_info:
                             decrypt_info['IV'] = binascii.unhexlify(decrypt_info['IV'][2:])
                         if not re.match(r'^https?://', decrypt_info['URI']):
-                            decrypt_info['URI'] = compat_urlparse.urljoin(man_url, decrypt_info['URI'])
+                            decrypt_info['URI'] = compat_urlparse.urljoin(
+                                man_url, decrypt_info['URI'])
                         decrypt_info['KEY'] = self.ydl.urlopen(decrypt_info['URI']).read()
                 elif line.startswith('#EXT-X-MEDIA-SEQUENCE'):
                     media_sequence = int(line[22:])
