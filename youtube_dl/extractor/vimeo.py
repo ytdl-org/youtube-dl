@@ -652,7 +652,7 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
                 yield self._extract_list_title(webpage)
 
             for video_id in re.findall(r'id="clip_(\d+?)"', webpage):
-                yield self.url_result('https://vimeo.com/%s' % video_id, 'Vimeo')
+                yield self.url_result('https://vimeo.com/%s' % video_id, 'Vimeo', video_id=video_id)
 
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
                 break
