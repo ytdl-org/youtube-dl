@@ -25,6 +25,7 @@ notifications:
   email:
     - filippo.valsorda@gmail.com
     - yasoob.khld@gmail.com
+    - anisse@astier.eu
 #  irc:
 #    channels:
 #      - "irc.freenode.org#youtube-dl"
