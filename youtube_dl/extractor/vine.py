@@ -116,6 +116,29 @@ class VineIE(InfoExtractor):
         }
 
 
+class VinePlaylistIE(InfoExtractor):
+    IE_NAME = 'vine:playlist'
+    _VALID_URL = r'https?://(?:www\.)?vine\.co/playlists/(?P<id>[^/]+)/?(\?.*)?$'
+    TEST = {
+    	'url': 'https://vine.co/playlists/songcollab-kenzie-nimmo',
+    	'info_dict': {
+    		'id': 'songcollab-kenzie-nimmo',
+    		'title': 'SongCollab: Kenzie Nimmo',
+    	},
+    	'playlist_mincount': 20,
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+
+        title = self._html_search_regex(r'<h1>(.+)</h1>', webpage, 'title', None)
+        data = self._search_json_ld(webpage, display_id)['itemListElement']
+
+        entries = [self.url_result(e['url'], 'Vine') for e in data]
+        return self.playlist_result(entries, display_id, title)
+
+
 class VineUserIE(InfoExtractor):
     IE_NAME = 'vine:user'
     _VALID_URL = r'(?:https?://)?vine\.co/(?P<u>u/)?(?P<user>[^/]+)/?(\?.*)?$'

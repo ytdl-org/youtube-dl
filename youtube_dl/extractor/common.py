@@ -835,6 +835,11 @@ class InfoExtractor(object):
                     'title': unescapeHTML(json_ld.get('headline')),
                     'description': unescapeHTML(json_ld.get('articleBody')),
                 })
+            elif item_type == 'ItemList':
+                info.update({
+                    'url': unescapeHTML(json_ld.get('url')),
+                    'itemListElement': json_ld.get('itemListElement'),
+                })
         return dict((k, v) for k, v in info.items() if v is not None)
 
     @staticmethod

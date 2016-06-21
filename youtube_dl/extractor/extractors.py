@@ -956,6 +956,7 @@ from .vimeo import (
 from .vimple import VimpleIE
 from .vine import (
     VineIE,
+    VinePlaylistIE,
     VineUserIE,
 )
 from .viki import (
