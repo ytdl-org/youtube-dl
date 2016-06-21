@@ -6,17 +6,14 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
+    dict_get,
 )
 
 
 class SVTBaseIE(InfoExtractor):
-    def _extract_video(self, url, video_id):
-        info = self._download_json(url, video_id)
+    def _extract_video(self, info, video_id):
+        video_info = self._get_video_info(info)
 
-        title = info['context']['title']
-        thumbnail = info['context'].get('thumbnailImage')
-
-        video_info = info['video']
         formats = []
         for vr in video_info['videoReferences']:
             player_type = vr.get('playerType')
@@ -43,22 +40,25 @@ class SVTBaseIE(InfoExtractor):
         self._sort_formats(formats)
 
         subtitles = {}
-        subtitle_references = video_info.get('subtitleReferences')
+        subtitle_references = dict_get(video_info, ('subtitles', 'subtitleReferences'))
         if isinstance(subtitle_references, list):
             for sr in subtitle_references:
                 subtitle_url = sr.get('url')
+                subtitle_lang = sr.get('language', 'sv')
                 if subtitle_url:
-                    subtitles.setdefault('sv', []).append({'url': subtitle_url})
+                    if determine_ext(subtitle_url) == 'm3u8':
+                        # TODO(yan12125): handle WebVTT in m3u8 manifests
+                        continue
+
+                    subtitles.setdefault(subtitle_lang, []).append({'url': subtitle_url})
 
         duration = video_info.get('materialLength')
         age_limit = 18 if video_info.get('inappropriateForChildren') else 0
 
         return {
             'id': video_id,
-            'title': title,
             'formats': formats,
             'subtitles': subtitles,
-            'thumbnail': thumbnail,
             'duration': duration,
             'age_limit': age_limit,
         }
@@ -68,11 +68,11 @@ class SVTIE(SVTBaseIE):
     _VALID_URL = r'https?://(?:www\.)?svt\.se/wd\?(?:.*?&)?widgetId=(?P<widget_id>\d+)&.*?\barticleId=(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.svt.se/wd?widgetId=23991&sectionId=541&articleId=2900353&type=embed&contextSectionId=123&autostart=false',
-        'md5': '9648197555fc1b49e3dc22db4af51d46',
+        'md5': '33e9a5d8f646523ce0868ecfb0eed77d',
         'info_dict': {
             'id': '2900353',
-            'ext': 'flv',
-            'title': 'Här trycker Jagr till Giroux (under SVT-intervjun)',
+            'ext': 'mp4',
+            'title': 'Stjärnorna skojar till det - under SVT-intervjun',
             'duration': 27,
             'age_limit': 0,
         },
@@ -85,18 +85,26 @@ class SVTIE(SVTBaseIE):
         if mobj:
             return mobj.group('url')
 
+    def _get_video_info(self, info):
+        return info['video']
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         widget_id = mobj.group('widget_id')
         article_id = mobj.group('id')
-        return self._extract_video(
+
+        info = self._download_json(
             'http://www.svt.se/wd?widgetId=%s&articleId=%s&format=json&type=embed&output=json' % (widget_id, article_id),
             article_id)
+
+        info_dict = self._extract_video(info, article_id)
+        info_dict['title'] = info['context']['title']
+        return info_dict
 
 
 class SVTPlayIE(SVTBaseIE):
     IE_DESC = 'SVT Play and Öppet arkiv'
-    _VALID_URL = r'https?://(?:www\.)?(?P<host>svtplay|oppetarkiv)\.se/video/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:svtplay|oppetarkiv)\.se/video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.svtplay.se/video/5996901/flygplan-till-haile-selassie/flygplan-till-haile-selassie-2',
         'md5': '2b6704fe4a28801e1a098bbf3c5ac611',
@@ -115,10 +123,23 @@ class SVTPlayIE(SVTBaseIE):
         },
     }
 
+    def _get_video_info(self, info):
+        return info['context']['dispatcher']['stores']['VideoTitlePageStore']['data']['video']
+
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        host = mobj.group('host')
-        return self._extract_video(
-            'http://www.%s.se/video/%s?output=json' % (host, video_id),
-            video_id)
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        data = self._parse_json(self._search_regex(
+            r'root\["__svtplay"\]\s*=\s*([^;]+);', webpage, 'embedded data'), video_id)
+
+        thumbnail = self._og_search_thumbnail(webpage)
+
+        info_dict = self._extract_video(data, video_id)
+        info_dict.update({
+            'title': data['context']['dispatcher']['stores']['MetaStore']['title'],
+            'thumbnail': thumbnail,
+        })
+
+        return info_dict
