@@ -248,7 +248,6 @@
  - **Gamersyde**
  - **GameSpot**
  - **GameStar**
- - **Gametrailers**
  - **Gazeta**
  - **GDCVault**
  - **generic**: Generic downloader that works on some sites
