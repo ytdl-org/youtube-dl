@@ -227,8 +227,6 @@ class VimeoIE(VimeoBaseInfoExtractor):
         {
             'url': 'http://vimeo.com/channels/keypeele/75629013',
             'md5': '2f86a05afe9d7abc0b9126d229bbe15d',
-            'note': 'Video is freely available via original URL '
-                    'and protected with password when accessed via http://vimeo.com/75629013',
             'info_dict': {
                 'id': '75629013',
                 'ext': 'mp4',
@@ -272,7 +270,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         {
             # contains original format
             'url': 'https://vimeo.com/33951933',
-            'md5': '53c688fa95a55bf4b7293d37a89c5c53',
+            'md5': '2d9f5475e0537f013d0073e812ab89e6',
             'info_dict': {
                 'id': '33951933',
                 'ext': 'mp4',
@@ -283,6 +281,29 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'upload_date': '20111220',
                 'description': 'md5:ae23671e82d05415868f7ad1aec21147',
             },
+        },
+        {
+            # only available via https://vimeo.com/channels/tributes/6213729 and
+            # not via https://vimeo.com/6213729
+            'url': 'https://vimeo.com/channels/tributes/6213729',
+            'info_dict': {
+                'id': '6213729',
+                'ext': 'mp4',
+                'title': 'Vimeo Tribute: The Shining',
+                'uploader': 'Casey Donahue',
+                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/caseydonahue',
+                'uploader_id': 'caseydonahue',
+                'upload_date': '20090821',
+                'description': 'md5:bdbf314014e58713e6e5b66eb252f4a6',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': ['Unable to download JSON metadata'],
+        },
+        {
+            'url': 'http://vimeo.com/moogaloop.swf?clip_id=2539741',
+            'only_matching': True,
         },
         {
             'url': 'https://vimeo.com/109815029',
@@ -369,7 +390,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         orig_url = url
         if mobj.group('pro') or mobj.group('player'):
             url = 'https://player.vimeo.com/video/' + video_id
-        else:
+        elif any(p in url for p in ('play_redirect_hls', 'moogaloop.swf')):
             url = 'https://vimeo.com/' + video_id
 
         # Retrieve video webpage to extract further information
