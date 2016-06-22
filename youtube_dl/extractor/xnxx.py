@@ -8,12 +8,12 @@ from ..compat import compat_urllib_parse_unquote
 class XNXXIE(InfoExtractor):
     _VALID_URL = r'^https?://(?:video|www)\.xnxx\.com/video-?(?P<id>[0-9a-z]+)/(.*)'
     _TESTS = [{
-        'url': 'http://www.xnxx.com/video-6gqggeb/hd_star-581_sam',
-        'md5': '6a2a6aff3f10467d94e572edb7b7deb6',
+        'url': 'http://www.xnxx.com/video-55awb78/skyrim_test_video',
+        'md5': 'ef7ecee5af78f8b03dca2cf31341d3a0',
         'info_dict': {
-            'id': '6gqggeb',
+            'id': '55awb78',
             'ext': 'flv',
-            'title': 'HD STAR-581 sam',
+            'title': 'Skyrim Test Video',
             'age_limit': 18,
         },
     }, {
