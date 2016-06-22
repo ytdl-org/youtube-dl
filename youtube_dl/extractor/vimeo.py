@@ -729,6 +729,10 @@ class VimeoAlbumIE(VimeoChannelIE):
     }, {
         'url': 'https://vimeo.com/album/2632481/sort:plays/format:thumbnail',
         'only_matching': True,
+    }, {
+        # TODO: respect page number
+        'url': 'https://vimeo.com/album/2632481/page:2/sort:plays/format:thumbnail',
+        'only_matching': True,
     }]
 
     def _page_url(self, base_url, pagenum):
