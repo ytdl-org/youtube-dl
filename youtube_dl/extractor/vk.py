@@ -217,11 +217,10 @@ class VKIE(InfoExtractor):
             value, domain = remixlhk.groups()
             self._set_cookie(domain, 'remixlhk', value)
 
-        request = sanitized_Request(
-            'https://login.vk.com/?act=login',
-            urlencode_postdata(login_form))
         login_page = self._download_webpage(
-            request, None, note='Logging in as %s' % username)
+            'https://login.vk.com/?act=login', None,
+            note='Logging in as %s' % username,
+            data=urlencode_postdata(login_form))
 
         if re.search(r'onLoginFailed', login_page):
             raise ExtractorError(
