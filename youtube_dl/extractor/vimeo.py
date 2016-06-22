@@ -146,7 +146,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                             \.
                         )?
                         vimeo(?P<pro>pro)?\.com/
-                        (?!channels/[^/?#]+/?(?:$|[?#])|[^/]+/review/|(?:album|ondemand)/)
+                        (?!(?:channels|album)/[^/?#]+/?(?:$|[?#])|[^/]+/review/|ondemand/)
                         (?:.*?/)?
                         (?:
                             (?:
@@ -312,6 +312,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
         },
         {
             'url': 'https://vimeo.com/groups/travelhd/videos/22439234',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://vimeo.com/album/2632481/video/79010983',
             'only_matching': True,
         },
         {
@@ -651,8 +655,21 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
                 webpage = self._login_list_password(page_url, list_id, webpage)
                 yield self._extract_list_title(webpage)
 
-            for video_id in re.findall(r'id="clip_(\d+?)"', webpage):
-                yield self.url_result('https://vimeo.com/%s' % video_id, 'Vimeo', video_id=video_id)
+            # Try extracting href first since not all videos are available via
+            # short https://vimeo.com/id URL (e.g. https://vimeo.com/channels/tributes/6213729)
+            clips = re.findall(
+                r'id="clip_(\d+)"[^>]*>\s*<a[^>]+href="(/(?:[^/]+/)*\1)', webpage)
+            if clips:
+                for video_id, video_url in clips:
+                    yield self.url_result(
+                        compat_urlparse.urljoin(base_url, video_url),
+                        VimeoIE.ie_key(), video_id=video_id)
+            # More relaxed fallback
+            else:
+                for video_id in re.findall(r'id=["\']clip_(\d+)', webpage):
+                    yield self.url_result(
+                        'https://vimeo.com/%s' % video_id,
+                        VimeoIE.ie_key(), video_id=video_id)
 
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
                 break
@@ -689,7 +706,7 @@ class VimeoUserIE(VimeoChannelIE):
 
 class VimeoAlbumIE(VimeoChannelIE):
     IE_NAME = 'vimeo:album'
-    _VALID_URL = r'https://vimeo\.com/album/(?P<id>\d+)'
+    _VALID_URL = r'https://vimeo\.com/album/(?P<id>\d+)/?(?:$|[?#])'
     _TITLE_RE = r'<header id="page_header">\n\s*<h1>(.*?)</h1>'
     _TESTS = [{
         'url': 'https://vimeo.com/album/2632481',
