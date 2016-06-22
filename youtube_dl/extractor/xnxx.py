@@ -6,7 +6,7 @@ from ..compat import compat_urllib_parse_unquote
 
 
 class XNXXIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:video|www)\.xnxx\.com/video-?(?P<id>[0-9a-z]+)/(.*)'
+    _VALID_URL = r'https?://(?:video|www)\.xnxx\.com/video-?(?P<id>[0-9a-z]+)/'
     _TESTS = [{
         'url': 'http://www.xnxx.com/video-55awb78/skyrim_test_video',
         'md5': 'ef7ecee5af78f8b03dca2cf31341d3a0',
@@ -18,6 +18,9 @@ class XNXXIE(InfoExtractor):
         },
     }, {
         'url': 'http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.xnxx.com/video-55awb78/',
         'only_matching': True,
     }]
 
