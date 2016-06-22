@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import re
 import json
+import sys
 
 from .common import InfoExtractor
 from ..compat import compat_str
@@ -190,7 +191,7 @@ class VKIE(InfoExtractor):
         if username is None:
             return
 
-        login_page = self._download_webpage(
+        login_page, url_handle = self._download_webpage_handle(
             'https://vk.com', None, 'Downloading login page')
 
         login_form = self._hidden_inputs(login_page)
@@ -199,6 +200,22 @@ class VKIE(InfoExtractor):
             'email': username.encode('cp1251'),
             'pass': password.encode('cp1251'),
         })
+
+        # https://new.vk.com/ serves two same remixlhk cookies in Set-Cookie header
+        # and expects the first one to be set rather than second (see
+        # https://github.com/rg3/youtube-dl/issues/9841#issuecomment-227871201).
+        # As of RFC6265 the newer one cookie should be set into cookie store
+        # what actually happens.
+        # We will workaround this VK issue by resetting the remixlhk cookie to
+        # the first one manually.
+        cookies = url_handle.headers.get('Set-Cookie')
+        if sys.version_info[0] >= 3:
+            cookies = cookies.encode('iso-8859-1')
+        cookies = cookies.decode('utf-8')
+        remixlhk = re.search(r'remixlhk=(.+?);.*?\bdomain=(.+?)(?:[,;]|$)', cookies)
+        if remixlhk:
+            value, domain = remixlhk.groups()
+            self._set_cookie(domain, 'remixlhk', value)
 
         request = sanitized_Request(
             'https://login.vk.com/?act=login',
