@@ -11,7 +11,6 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     orderedSet,
-    sanitized_Request,
     str_to_int,
     unescapeHTML,
     unified_strdate,
