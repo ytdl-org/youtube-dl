@@ -680,6 +680,7 @@ from .rice import RICEIE
 from .ringtv import RingTVIE
 from .ro220 import Ro220IE
 from .rockstargames import RockstarGamesIE
+from .roosterteeth import RoosterTeethIE
 from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtbf import RTBFIE
