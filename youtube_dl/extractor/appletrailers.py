@@ -127,7 +127,7 @@ class AppleTrailersIE(InfoExtractor):
                     'id': movie + '-' + re.sub(r'[^a-zA-Z0-9]', '', clip_title).lower(),
                     'formats': formats,
                     'title': clip_title,
-                    'thumbnail': clip.get('screen') or clip.get('runtime'),
+                    'thumbnail': clip.get('screen') or clip.get('thumb'),
                     'duration': parse_duration(clip.get('runtime') or clip.get('faded')),
                     'upload_date': unified_strdate(clip.get('posted')),
                     'uploader_id': uploader_id,
