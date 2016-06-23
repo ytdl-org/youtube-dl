@@ -4,6 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import (
+    determine_ext,
+    clean_html,
+    get_element_by_attribute,
+    ExtractorError,
+)
 
 
 class TVPIE(InfoExtractor):
@@ -21,7 +27,7 @@ class TVPIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.tvp.pl/there-can-be-anything-so-i-shortened-it/17916176',
-        'md5': 'c3b15ed1af288131115ff17a17c19dda',
+        'md5': 'b0005b542e5b4de643a9690326ab1257',
         'info_dict': {
             'id': '17916176',
             'ext': 'mp4',
@@ -53,6 +59,11 @@ class TVPIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://www.tvp.pl/sess/tvplayer.php?object_id=%s' % video_id, video_id)
 
+        error_massage = get_element_by_attribute('class', 'msg error', webpage)
+        if error_massage:
+            raise ExtractorError('%s said: %s' % (
+                self.IE_NAME, clean_html(error_massage)), expected=True)
+
         title = self._search_regex(
             r'name\s*:\s*([\'"])Title\1\s*,\s*value\s*:\s*\1(?P<title>.+?)\1',
             webpage, 'title', group='title')
@@ -66,24 +77,50 @@ class TVPIE(InfoExtractor):
             r"poster\s*:\s*'([^']+)'", webpage, 'thumbnail', default=None)
 
         video_url = self._search_regex(
-            r'0:{src:([\'"])(?P<url>.*?)\1', webpage, 'formats', group='url', default=None)
-        if not video_url:
+            r'0:{src:([\'"])(?P<url>.*?)\1', webpage,
+            'formats', group='url', default=None)
+        if not video_url or 'material_niedostepny.mp4' in video_url:
             video_url = self._download_json(
                 'http://www.tvp.pl/pub/stat/videofileinfo?video_id=%s' % video_id,
                 video_id)['video_url']
 
-        ext = video_url.rsplit('.', 1)[-1]
-        if ext != 'ism/manifest':
-            if '/' in ext:
-                ext = 'mp4'
+        formats = []
+        video_url_base = self._search_regex(
+            r'(https?://.+?/video)(?:\.(?:ism|f4m|m3u8)|-\d+\.mp4)',
+            video_url, 'video base url', default=None)
+        if video_url_base:
+            # TODO: Current DASH formats are broken - $Time$ pattern in
+            # <SegmentTemplate> not implemented yet
+            # formats.extend(self._extract_mpd_formats(
+            #     video_url_base + '.ism/video.mpd',
+            #     video_id, mpd_id='dash', fatal=False))
+            formats.extend(self._extract_f4m_formats(
+                video_url_base + '.ism/video.f4m',
+                video_id, f4m_id='hds', fatal=False))
+            m3u8_formats = self._extract_m3u8_formats(
+                video_url_base + '.ism/video.m3u8', video_id,
+                'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
+            self._sort_formats(m3u8_formats)
+            m3u8_formats = list(filter(
+                lambda f: f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
+                m3u8_formats))
+            formats.extend(m3u8_formats)
+            for i, m3u8_format in enumerate(m3u8_formats, 2):
+                http_url = '%s-%d.mp4' % (video_url_base, i)
+                if self._is_valid_url(http_url, video_id):
+                    f = m3u8_format.copy()
+                    f.update({
+                        'url': http_url,
+                        'format_id': f['format_id'].replace('hls', 'http'),
+                        'protocol': 'http',
+                    })
+                    formats.append(f)
+        else:
             formats = [{
                 'format_id': 'direct',
                 'url': video_url,
-                'ext': ext,
+                'ext': determine_ext(video_url, 'mp4'),
             }]
-        else:
-            m3u8_url = re.sub('([^/]*)\.ism/manifest', r'\1.ism/\1.m3u8', video_url)
-            formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
 
         self._sort_formats(formats)
 
