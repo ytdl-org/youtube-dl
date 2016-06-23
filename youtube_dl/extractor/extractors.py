@@ -480,7 +480,6 @@ from .nbc import (
     NBCNewsIE,
     NBCSportsIE,
     NBCSportsVPlayerIE,
-    MSNBCIE,
 )
 from .ndr import (
     NDRIE,
