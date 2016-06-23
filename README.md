@@ -16,31 +16,31 @@ youtube-dl - download videos from youtube.com or other video platforms
 # INSTALLATION
 
 To install it right away for all UNIX users (Linux, OS X, etc.), type:
-
-    sudo curl -L https://yt-dl.org/latest/youtube-dl -o /usr/local/bin/youtube-dl
-    sudo chmod a+rx /usr/local/bin/youtube-dl
-
+```bash
+sudo curl -L https://yt-dl.org/latest/youtube-dl -o /usr/local/bin/youtube-dl
+sudo chmod a+rx /usr/local/bin/youtube-dl
+```
 If you do not have curl, you can alternatively use a recent wget:
-
-    sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
-    sudo chmod a+rx /usr/local/bin/youtube-dl
-
+```bash
+sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
+sudo chmod a+rx /usr/local/bin/youtube-dl
+```
 Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in any location on their [PATH](http://en.wikipedia.org/wiki/PATH_%28variable%29) except for `%SYSTEMROOT%\System32` (e.g. **do not** put in `C:\Windows\System32`).
 
 You can also use pip:
-
-    sudo pip install --upgrade youtube-dl
-    
+```bash
+sudo pip install --upgrade youtube-dl
+```
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
 OS X users can install youtube-dl with [Homebrew](http://brew.sh/):
-
-    brew install youtube-dl
-
+```bash
+brew install youtube-dl
+```
 Or with [MacPorts](https://www.macports.org/):
-
-    sudo port install youtube-dl
-
+```bash
+sudo port install youtube-dl
+```
 Alternatively, refer to the [developer instructions](#developer-instructions) for how to check out and work with the git repository. For further options, including PGP signatures, see the [youtube-dl Download Page](https://rg3.github.io/youtube-dl/download.html).
 
 # DESCRIPTION
@@ -49,9 +49,9 @@ YouTube.com and a few more sites. It requires the Python interpreter, version
 2.6, 2.7, or 3.2+, and it is not platform specific. It should work on
 your Unix box, on Windows or on Mac OS X. It is released to the public domain,
 which means you can modify it, redistribute it or use it however you like.
-
-    youtube-dl [OPTIONS] URL [URL...]
-
+```bash
+youtube-dl [OPTIONS] URL [URL...]
+```
 # OPTIONS
     -h, --help                       Print this help text and exit
     --version                        Print program version and exit
@@ -427,7 +427,7 @@ which means you can modify it, redistribute it or use it however you like.
 You can configure youtube-dl by placing any supported command line option to a configuration file. On Linux and OS X, the system wide configuration file is located at `/etc/youtube-dl.conf` and the user wide configuration file at `~/.config/youtube-dl/config`. On Windows, the user wide configuration file locations are `%APPDATA%\youtube-dl\config.txt` or `C:\Users\<user name>\youtube-dl.conf`.
 
 For example, with the following configuration file youtube-dl will always extract the audio, not copy the mtime, use a proxy and save all videos under `Movies` directory in your home directory:
-```
+```bash
 -x
 --no-mtime
 --proxy 127.0.0.1:3128
@@ -441,16 +441,16 @@ You can use `--ignore-config` if you want to disable the configuration file for 
 ### Authentication with `.netrc` file
 
 You may also want to configure automatic credentials storage for extractors that support authentication (by providing login and password with `--username` and `--password`) in order not to pass credentials as command line arguments on every youtube-dl execution and prevent tracking plain text passwords in the shell command history. You can achieve this using a [`.netrc` file](http://stackoverflow.com/tags/.netrc/info) on per extractor basis. For that you will need to create a `.netrc` file in your `$HOME` and restrict permissions to read/write by you only:
-```
+```bash
 touch $HOME/.netrc
 chmod a-rwx,u+rw $HOME/.netrc
 ```
 After that you can add credentials for extractor in the following format, where *extractor* is the name of extractor in lowercase:
-```
+```bash
 machine <extractor> login <login> password <password>
 ```
 For example:
-```
+```bash
 machine youtube login myaccount@gmail.com password my_youtube_password
 machine twitch login my_twitch_account_name password my_twitch_password
 ```
@@ -699,7 +699,7 @@ As a last resort, you can also uninstall the version installed by your package m
 
 Afterwards, simply follow [our manual installation instructions](http://rg3.github.io/youtube-dl/download.html):
 
-```
+```bash
 sudo wget https://yt-dl.org/latest/youtube-dl -O /usr/local/bin/youtube-dl
 sudo chmod a+x /usr/local/bin/youtube-dl
 hash -r
@@ -767,15 +767,21 @@ That's actually the output from your shell. Since ampersand is one of the specia
 
 For example if your URL is https://www.youtube.com/watch?t=4&v=BaW_jenozKc you should end up with following command:
 
-```youtube-dl 'https://www.youtube.com/watch?t=4&v=BaW_jenozKc'```
+```bash
+youtube-dl 'https://www.youtube.com/watch?t=4&v=BaW_jenozKc'
+```
 
 or
 
-```youtube-dl https://www.youtube.com/watch?t=4\&v=BaW_jenozKc```
+```bash
+youtube-dl https://www.youtube.com/watch?t=4\&v=BaW_jenozKc
+```
 
 For Windows you have to use the double quotes:
 
-```youtube-dl "https://www.youtube.com/watch?t=4&v=BaW_jenozKc"```
+```bat
+youtube-dl "https://www.youtube.com/watch?t=4&v=BaW_jenozKc"
+```
 
 ### ExtractorError: Could not find JS function u'OF'
 
@@ -788,10 +794,10 @@ These two error codes indicate that the service is blocking your IP address beca
 ### SyntaxError: Non-ASCII character
 
 The error
-
-    File "youtube-dl", line 2
-    SyntaxError: Non-ASCII character '\x93' ...
-
+```bash
+File "youtube-dl", line 2
+SyntaxError: Non-ASCII character '\x93' ...
+```
 means you're using an outdated version of Python. Please update to Python 2.6 or 2.7.
 
 ### What is this binary file? Where has the code gone?
@@ -817,10 +823,10 @@ Use the `-o` to specify an [output template](#output-template), for example `-o 
 ### How do I download a video starting with a `-`?
 
 Either prepend `http://www.youtube.com/watch?v=` or separate the ID from the options with `--`:
-
-    youtube-dl -- -wNyEUrxzFU
-    youtube-dl "http://www.youtube.com/watch?v=-wNyEUrxzFU"
-
+```bash
+youtube-dl -- -wNyEUrxzFU
+youtube-dl "http://www.youtube.com/watch?v=-wNyEUrxzFU"
+```
 ### How do I pass cookies to youtube-dl?
 
 Use the `--cookies` option, for example `--cookies /path/to/cookies/file.txt`. Note that the cookies file must be in Mozilla/Netscape format and the first line of the cookies file must be either `# HTTP Cookie File` or `# Netscape HTTP Cookie File`. Make sure you have correct [newline format](https://en.wikipedia.org/wiki/Newline) in the cookies file and convert newlines if necessary to correspond with your OS, namely `CRLF` (`\r\n`) for Windows, `LF` (`\n`) for Linux and `CR` (`\r`) for Mac OS. `HTTP Error 400: Bad Request` when using `--cookies` is a good sign of invalid newline format.
@@ -866,15 +872,15 @@ youtube-dl is an open-source project manned by too few volunteers, so we'd rathe
 Most users do not need to build youtube-dl and can [download the builds](http://rg3.github.io/youtube-dl/download.html) or get them from their distribution.
 
 To run youtube-dl as a developer, you don't need to build anything either. Simply execute
-
-    python -m youtube_dl
-
+```bash
+python -m youtube_dl
+```
 To run the test, simply invoke your favorite test runner, or execute a test file directly; any of the following work:
-
-    python -m unittest discover
-    python test/test_download.py
-    nosetests
-
+```bash
+python -m unittest discover
+python test/test_download.py
+nosetests
+```
 If you want to create a build of youtube-dl yourself, you'll need
 
 * python
@@ -939,11 +945,12 @@ After you have ensured this site is distributing it's content legally, you can f
 8. Keep in mind that the only mandatory fields in info dict for successful extraction process are `id`, `title` and either `url` or `formats`, i.e. these are the critical data the extraction does not make any sense without. This means that [any field](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L148-L252) apart from aforementioned mandatory ones should be treated **as optional** and extraction should be **tolerate** to situations when sources for these fields can potentially be unavailable (even if they always available at the moment) and **future-proof** in order not to break the extraction of general purpose mandatory fields. For example, if you have some intermediate dict `meta` that is a source of metadata and it has a key `summary` that you want to extract and put into resulting info dict as `description`, you should be ready that this key may be missing from the `meta` dict, i.e. you should extract it as `meta.get('summary')` and not `meta['summary']`. Similarly, you should pass `fatal=False` when extracting data from a webpage with `_search_regex/_html_search_regex`.
 9. Check the code with [flake8](https://pypi.python.org/pypi/flake8). Also make sure your code works under all [Python](http://www.python.org/) versions claimed supported by youtube-dl, namely 2.6, 2.7, and 3.2+.
 10. When the tests pass, [add](http://git-scm.com/docs/git-add) the new files and [commit](http://git-scm.com/docs/git-commit) them and [push](http://git-scm.com/docs/git-push) the result, like this:
-
-        $ git add youtube_dl/extractor/extractors.py
-        $ git add youtube_dl/extractor/yourextractor.py
-        $ git commit -m '[yourextractor] Add new extractor'
-        $ git push origin yourextractor
+    ```bash
+    $ git add youtube_dl/extractor/extractors.py
+    $ git add youtube_dl/extractor/yourextractor.py
+    $ git commit -m '[yourextractor] Add new extractor'
+    $ git push origin yourextractor
+    ```
 
 11. Finally, [create a pull request](https://help.github.com/articles/creating-a-pull-request). We'll then review and merge it.
 
@@ -954,7 +961,6 @@ In any case, thank you very much for your contributions!
 youtube-dl makes the best effort to be a good command-line program, and thus should be callable from any programming language. If you encounter any problems parsing its output, feel free to [create a report](https://github.com/rg3/youtube-dl/issues/new).
 
 From a Python program, you can embed youtube-dl in a more powerful fashion, like this:
-
 ```python
 from __future__ import unicode_literals
 import youtube_dl
@@ -1008,7 +1014,7 @@ with youtube_dl.YoutubeDL(ydl_opts) as ydl:
 Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/issues>. Unless you were prompted so or there is another pertinent reason (e.g. GitHub fails to accept the bug report), please do not send bug reports via personal email. For discussions, join us in the IRC channel [#youtube-dl](irc://chat.freenode.net/#youtube-dl) on freenode ([webchat](http://webchat.freenode.net/?randomnick=1&channels=youtube-dl)).
 
 **Please include the full output of youtube-dl when run with `-v`**, i.e. **add** `-v` flag to **your command line**, copy the **whole** output and post it in the issue body wrapped in \`\`\` for better formatting. It should look similar to this:
-```
+```bash
 $ youtube-dl -v <your command line>
 [debug] System config: []
 [debug] User config: []
