@@ -501,6 +501,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'youtube_include_dash_manifest': True,
                 'format': '141',
             },
+            'skip': 'format 141 not served anymore',
         },
         # DASH manifest with encrypted signature
         {
@@ -517,7 +518,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
             'params': {
                 'youtube_include_dash_manifest': True,
-                'format': '141',
+                'format': '141/bestaudio[ext=m4a]',
             },
         },
         # JS player signature function name containing $
@@ -537,7 +538,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
             'params': {
                 'youtube_include_dash_manifest': True,
-                'format': '141',
+                'format': '141/bestaudio[ext=m4a]',
             },
         },
         # Controversy video
