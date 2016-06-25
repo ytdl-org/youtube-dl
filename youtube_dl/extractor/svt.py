@@ -120,7 +120,7 @@ class SVTIE(SVTBaseIE):
 
 class SVTPlayIE(SVTBaseIE):
     IE_DESC = 'SVT Play and Öppet arkiv'
-    _VALID_URL = r'https?://(?:www\.)?(?:svtplay|oppetarkiv)\.se/video/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:svtplay|oppetarkiv)\.se/(?:video|klipp)/(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://www.svtplay.se/video/5996901/flygplan-till-haile-selassie/flygplan-till-haile-selassie-2',
         'md5': '2b6704fe4a28801e1a098bbf3c5ac611',
@@ -140,6 +140,9 @@ class SVTPlayIE(SVTBaseIE):
     }, {
         # geo restricted to Sweden
         'url': 'http://www.oppetarkiv.se/video/5219710/trollflojten',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.svtplay.se/klipp/9023742/stopptid-om-bjorn-borg',
         'only_matching': True,
     }]
 
