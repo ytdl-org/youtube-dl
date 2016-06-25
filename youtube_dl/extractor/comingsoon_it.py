@@ -21,19 +21,24 @@ class ComingSoonITIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        
+
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
+
         return {
             'id': video_id,
             'title': title,
             'description': description,
-            
-            'formats': [{
+
+            'formats': [
+                {
                     'url': 'http://video.comingsoon.it/MP4/' + video_id + '.mp4',
                     'format': 'Standard Definition'
-                },{
+                },
+                {
                     'url': 'http://video.comingsoon.it/MP4/' + video_id + '.mp4',
-                    'format': 'High Definition'}],
+                    'format': 'High Definition'
+                }
+            ],
             'ext': 'mp4'
         }
