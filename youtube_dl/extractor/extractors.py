@@ -155,6 +155,7 @@ from .coub import CoubIE
 from .collegerama import CollegeRamaIE
 from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
 from .comcarcoff import ComCarCoffIE
+from .comingsoon_it import ComingSoonITIE
 from .commonmistakes import CommonMistakesIE, UnicodeBOMIE
 from .commonprotocols import RtmpIE
 from .condenast import CondeNastIE
