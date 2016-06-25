@@ -32,6 +32,9 @@ class OpenloadIE(InfoExtractor):
         'url': 'https://openload.io/f/ZAn6oz-VZGE/',
         'only_matching': True,
     }, {
+        'url': 'https://openload.co/f/_-ztPaZtMhM/',
+        'only_matching': True,
+    }, {
         # unavailable via https://openload.co/f/Sxz5sADo82g/, different layout
         # for title and ext
         'url': 'https://openload.co/embed/Sxz5sADo82g/',
@@ -92,6 +95,14 @@ class OpenloadIE(InfoExtractor):
                     ret += compat_chr(int(m.group(1), 16))
         return cls.openload_level2(ret)
 
+    @classmethod
+    def getLinkNo(cls, code):
+        #Solving welikekodi_ya_rly
+        codeS = code.split( )
+        
+        return int(float(codeS[2]) - float(codeS[4][:-1]))
+
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
@@ -99,9 +110,25 @@ class OpenloadIE(InfoExtractor):
         if 'File not found' in webpage:
             raise ExtractorError('File not found', expected=True)
 
-        code = self._search_regex(
+        #There are two links
+        #welikekodi_ya_rly defines with link is the correct one
+        linkNoCode = self._search_regex(
             r'</video>\s*</div>\s*<script[^>]+>([^<]+)</script>',
             webpage, 'JS code')
+
+        linkNo = self.getLinkNo(linkNoCode)
+
+        if linkNo == 1:
+            code = self._search_regex(
+                r'</video>\s*</div>\s*<script[^>]+>[^>]+</script>\s*<script[^>]+>[^<]+</script>\s*<script[^>]+>([^<]+)</script>',
+                webpage, 'JS code')
+
+        elif linkNo == 2:
+            code = self._search_regex(
+                r'</video>\s*</div>\s*<script[^>]+>[^>]+</script>\s*<script[^>]+>[^<]+</script>\s*<script[^>]+>[^<]+</script>\s*<script[^>]+>([^<]+)</script>',
+                webpage, 'JS code')
+        else:
+            ExtractorError('Error in link extraction', expected=True)
 
         decoded = self.openload_decode(code)
 
