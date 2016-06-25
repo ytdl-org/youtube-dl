@@ -79,3 +79,29 @@ class DBTVIE(InfoExtractor):
             'categories': video.get('tags'),
             'formats': formats,
         }
+
+
+class DagbladetArticleIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?dagbladet\.no/(?:\d+/){3}(?:[\w-]+/)+(?P<id>\d+)'
+    _TEST = {
+        'url': 'http://www.dagbladet.no/2016/02/23/nyheter/nordlys/ski/troms/ver/43254897/',
+        'info_dict': {
+            'id': '43254897',
+            'title': 'Etter ett \xe5rs planlegging, klaffet endelig alt: - Jeg m\xe5tte ta en liten dans',
+        },
+        'playlist_count': 3,
+    }
+
+    def _real_extract(self, url):
+        article_id = self._match_id(url)
+        webpage = self._download_webpage(url, article_id)
+
+        iframe_urls = re.findall(r'<iframe src="([^"]+(?:lazy)?player[^"]+)"', webpage)
+
+        if len(iframe_urls) == 1:
+            return self.url_result(self._proto_relative_url(iframe_urls), DBTVIE)
+
+        entries = [self.url_result(self._proto_relative_url(iframe_url))
+            for iframe_url in iframe_urls]
+
+        return self.playlist_result(entries, article_id, self._og_search_title(webpage))
