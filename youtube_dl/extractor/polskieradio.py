@@ -49,6 +49,10 @@ class PolskieRadioIE(InfoExtractor):
     }, {
         'url': 'http://www.polskieradio.pl/7/5102/Artykul/1587943',
         'only_matching': True,
+    }, {
+        # with mp4 video
+        'url': 'http://www.polskieradio.pl/9/299/Artykul/1634903,Brexit-Leszek-Miller-swiat-sie-nie-zawali-Europa-bedzie-trwac-dalej',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
