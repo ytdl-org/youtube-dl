@@ -95,13 +95,8 @@ class DagbladetArticleIE(InfoExtractor):
     def _real_extract(self, url):
         article_id = self._match_id(url)
         webpage = self._download_webpage(url, article_id)
-
         iframe_urls = re.findall(r'<iframe src="([^"]+(?:lazy)?player[^"]+)"', webpage)
-
-        if len(iframe_urls) == 1:
-            return self.url_result(self._proto_relative_url(iframe_urls), DBTVIE)
 
         entries = [self.url_result(self._proto_relative_url(iframe_url))
             for iframe_url in iframe_urls]
-
         return self.playlist_result(entries, article_id, self._og_search_title(webpage))
