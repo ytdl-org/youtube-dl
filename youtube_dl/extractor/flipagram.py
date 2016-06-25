@@ -92,7 +92,6 @@ class FlipagramIE(InfoExtractor):
             'id': video_id,
             'title': content_data.get('title'),
             'formats': formats,
-            'ext': 'mp4',
             'thumbnails': thumbnails,
             'description': content_data.get('description'),
             'uploader': user.get('name'),
