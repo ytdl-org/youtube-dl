@@ -1660,6 +1660,10 @@ def float_or_none(v, scale=1, invscale=1, default=None):
         return default
 
 
+def strip_or_none(v):
+    return None if v is None else v.strip()
+
+
 def parse_duration(s):
     if not isinstance(s, compat_basestring):
         return None
