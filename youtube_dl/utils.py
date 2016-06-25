@@ -110,6 +110,49 @@ ACCENT_CHARS = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖŐØŒÙ�
                         itertools.chain('AAAAAA', ['AE'], 'CEEEEIIIIDNOOOOOOO', ['OE'], 'UUUUUYP', ['ss'],
                                         'aaaaaa', ['ae'], 'ceeeeiiiionooooooo', ['oe'], 'uuuuuypy')))
 
+DATE_FORMATS = (
+    '%d %B %Y',
+    '%d %b %Y',
+    '%B %d %Y',
+    '%b %d %Y',
+    '%b %dst %Y %I:%M',
+    '%b %dnd %Y %I:%M',
+    '%b %dth %Y %I:%M',
+    '%Y %m %d',
+    '%Y-%m-%d',
+    '%Y/%m/%d',
+    '%Y/%m/%d %H:%M:%S',
+    '%Y-%m-%d %H:%M:%S',
+    '%Y-%m-%d %H:%M:%S.%f',
+    '%d.%m.%Y %H:%M',
+    '%d.%m.%Y %H.%M',
+    '%Y-%m-%dT%H:%M:%SZ',
+    '%Y-%m-%dT%H:%M:%S.%fZ',
+    '%Y-%m-%dT%H:%M:%S.%f0Z',
+    '%Y-%m-%dT%H:%M:%S',
+    '%Y-%m-%dT%H:%M:%S.%f',
+    '%Y-%m-%dT%H:%M',
+)
+
+DATE_FORMATS_DAY_FIRST = list(DATE_FORMATS)
+DATE_FORMATS_DAY_FIRST.extend([
+    '%d-%m-%Y',
+    '%d.%m.%Y',
+    '%d.%m.%y',
+    '%d/%m/%Y',
+    '%d/%m/%y',
+    '%d/%m/%Y %H:%M:%S',
+])
+
+DATE_FORMATS_MONTH_FIRST = list(DATE_FORMATS)
+DATE_FORMATS_MONTH_FIRST.extend([
+    '%m-%d-%Y',
+    '%m.%d.%Y',
+    '%m/%d/%Y',
+    '%m/%d/%y',
+    '%m/%d/%Y %H:%M:%S',
+])
+
 
 def preferredencoding():
     """Get preferred encoding.
@@ -975,6 +1018,24 @@ class YoutubeDLCookieProcessor(compat_urllib_request.HTTPCookieProcessor):
     https_response = http_response
 
 
+def extract_timezone(date_str):
+    m = re.search(
+        r'^.{8,}?(?P<tz>Z$| ?(?P<sign>\+|-)(?P<hours>[0-9]{2}):?(?P<minutes>[0-9]{2})$)',
+        date_str)
+    if not m:
+        timezone = datetime.timedelta()
+    else:
+        date_str = date_str[:-len(m.group('tz'))]
+        if not m.group('sign'):
+            timezone = datetime.timedelta()
+        else:
+            sign = 1 if m.group('sign') == '+' else -1
+            timezone = datetime.timedelta(
+                hours=sign * int(m.group('hours')),
+                minutes=sign * int(m.group('minutes')))
+    return timezone, date_str
+
+
 def parse_iso8601(date_str, delimiter='T', timezone=None):
     """ Return a UNIX timestamp from the given date """
 
@@ -984,26 +1045,18 @@ def parse_iso8601(date_str, delimiter='T', timezone=None):
     date_str = re.sub(r'\.[0-9]+', '', date_str)
 
     if timezone is None:
-        m = re.search(
-            r'(?:Z$| ?(?P<sign>\+|-)(?P<hours>[0-9]{2}):?(?P<minutes>[0-9]{2})$)',
-            date_str)
-        if not m:
-            timezone = datetime.timedelta()
-        else:
-            date_str = date_str[:-len(m.group(0))]
-            if not m.group('sign'):
-                timezone = datetime.timedelta()
-            else:
-                sign = 1 if m.group('sign') == '+' else -1
-                timezone = datetime.timedelta(
-                    hours=sign * int(m.group('hours')),
-                    minutes=sign * int(m.group('minutes')))
+        timezone, date_str = extract_timezone(date_str)
+
     try:
         date_format = '%Y-%m-%d{0}%H:%M:%S'.format(delimiter)
         dt = datetime.datetime.strptime(date_str, date_format) - timezone
         return calendar.timegm(dt.timetuple())
     except ValueError:
         pass
+
+
+def date_formats(day_first=True):
+    return DATE_FORMATS_DAY_FIRST if day_first else DATE_FORMATS_MONTH_FIRST
 
 
 def unified_strdate(date_str, day_first=True):
@@ -1014,53 +1067,11 @@ def unified_strdate(date_str, day_first=True):
     upload_date = None
     # Replace commas
     date_str = date_str.replace(',', ' ')
-    # %z (UTC offset) is only supported in python>=3.2
-    if not re.match(r'^[0-9]{1,2}-[0-9]{1,2}-[0-9]{4}$', date_str):
-        date_str = re.sub(r' ?(\+|-)[0-9]{2}:?[0-9]{2}$', '', date_str)
     # Remove AM/PM + timezone
     date_str = re.sub(r'(?i)\s*(?:AM|PM)(?:\s+[A-Z]+)?', '', date_str)
+    _, date_str = extract_timezone(date_str)
 
-    format_expressions = [
-        '%d %B %Y',
-        '%d %b %Y',
-        '%B %d %Y',
-        '%b %d %Y',
-        '%b %dst %Y %I:%M',
-        '%b %dnd %Y %I:%M',
-        '%b %dth %Y %I:%M',
-        '%Y %m %d',
-        '%Y-%m-%d',
-        '%Y/%m/%d',
-        '%Y/%m/%d %H:%M:%S',
-        '%Y-%m-%d %H:%M:%S',
-        '%Y-%m-%d %H:%M:%S.%f',
-        '%d.%m.%Y %H:%M',
-        '%d.%m.%Y %H.%M',
-        '%Y-%m-%dT%H:%M:%SZ',
-        '%Y-%m-%dT%H:%M:%S.%fZ',
-        '%Y-%m-%dT%H:%M:%S.%f0Z',
-        '%Y-%m-%dT%H:%M:%S',
-        '%Y-%m-%dT%H:%M:%S.%f',
-        '%Y-%m-%dT%H:%M',
-    ]
-    if day_first:
-        format_expressions.extend([
-            '%d-%m-%Y',
-            '%d.%m.%Y',
-            '%d.%m.%y',
-            '%d/%m/%Y',
-            '%d/%m/%y',
-            '%d/%m/%Y %H:%M:%S',
-        ])
-    else:
-        format_expressions.extend([
-            '%m-%d-%Y',
-            '%m.%d.%Y',
-            '%m/%d/%Y',
-            '%m/%d/%y',
-            '%m/%d/%Y %H:%M:%S',
-        ])
-    for expression in format_expressions:
+    for expression in date_formats(day_first):
         try:
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
         except ValueError:
@@ -1074,6 +1085,29 @@ def unified_strdate(date_str, day_first=True):
                 pass
     if upload_date is not None:
         return compat_str(upload_date)
+
+
+def unified_timestamp(date_str, day_first=True):
+    if date_str is None:
+        return None
+
+    date_str = date_str.replace(',', ' ')
+
+    pm_delta = datetime.timedelta(hours=12 if re.search(r'(?i)PM', date_str) else 0)
+    timezone, date_str = extract_timezone(date_str)
+
+    # Remove AM/PM + timezone
+    date_str = re.sub(r'(?i)\s*(?:AM|PM)(?:\s+[A-Z]+)?', '', date_str)
+
+    for expression in date_formats(day_first):
+        try:
+            dt = datetime.datetime.strptime(date_str, expression) - timezone + pm_delta
+            return calendar.timegm(dt.timetuple())
+        except ValueError:
+            pass
+    timetuple = email.utils.parsedate_tz(date_str)
+    if timetuple:
+        return calendar.timegm(timetuple.timetuple())
 
 
 def determine_ext(url, default_ext='unknown_video'):

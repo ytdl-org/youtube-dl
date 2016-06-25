@@ -60,6 +60,7 @@ from youtube_dl.utils import (
     timeconvert,
     unescapeHTML,
     unified_strdate,
+    unified_timestamp,
     unsmuggle_url,
     uppercase_escape,
     lowercase_escape,
@@ -283,7 +284,27 @@ class TestUtil(unittest.TestCase):
             '20150202')
         self.assertEqual(unified_strdate('Feb 14th 2016 5:45PM'), '20160214')
         self.assertEqual(unified_strdate('25-09-2014'), '20140925')
+        self.assertEqual(unified_strdate('27.02.2016 17:30'), '20160227')
         self.assertEqual(unified_strdate('UNKNOWN DATE FORMAT'), None)
+
+    def test_unified_timestamps(self):
+        self.assertEqual(unified_timestamp('December 21, 2010'), 1292889600)
+        self.assertEqual(unified_timestamp('8/7/2009'), 1247011200)
+        self.assertEqual(unified_timestamp('Dec 14, 2012'), 1355443200)
+        self.assertEqual(unified_timestamp('2012/10/11 01:56:38 +0000'), 1349920598)
+        self.assertEqual(unified_timestamp('1968 12 10'), -33436800)
+        self.assertEqual(unified_timestamp('1968-12-10'), -33436800)
+        self.assertEqual(unified_timestamp('28/01/2014 21:00:00 +0100'), 1390939200)
+        self.assertEqual(
+            unified_timestamp('11/26/2014 11:30:00 AM PST', day_first=False),
+            1417001400)
+        self.assertEqual(
+            unified_timestamp('2/2/2015 6:47:40 PM', day_first=False),
+            1422902860)
+        self.assertEqual(unified_timestamp('Feb 14th 2016 5:45PM'), 1455471900)
+        self.assertEqual(unified_timestamp('25-09-2014'), 1411603200)
+        self.assertEqual(unified_timestamp('27.02.2016 17:30'), 1456594200)
+        self.assertEqual(unified_timestamp('UNKNOWN DATE FORMAT'), None)
 
     def test_determine_ext(self):
         self.assertEqual(determine_ext('http://example.com/foo/bar.mp4/?download'), 'mp4')
