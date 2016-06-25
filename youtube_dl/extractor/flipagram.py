@@ -1,7 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import time
+import calendar
+import datetime
 from .common import InfoExtractor
 
 from ..utils import (
@@ -30,9 +31,8 @@ class FlipagramIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def c_date_to_iso(self, c_date):
-        'Convert dates in format \'04/25/2016 00:23:24 UTC\' to ISO8601.'
-        return time.strftime('%Y-%m-%dT%H:%M:%S', time.strptime(c_date, '%m/%d/%Y %H:%M:%S %Z'))
+    def c_date_to_iso(self, date):
+        return calendar.timegm(datetime.datetime.strptime(date, '%m/%d/%Y %H:%M:%S %Z').utctimetuple())
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -67,14 +67,14 @@ class FlipagramIE(InfoExtractor):
                 'author_id': comment.get('user', {}).get('username'),
                 'id': comment.get('id'),
                 'text': text[0] if text else '',
-                'timestamp': parse_iso8601(self.c_date_to_iso(comment.get('created', ''))),
+                'timestamp': self.c_date_to_iso(comment.get('created', '')),
             })
 
         tags = [tag for item in flipagram['story'][1:] for tag in item]
 
         formats = []
         if flipagram.get('music', {}).get('track', {}).get('previewUrl', {}):
-             formats.append({
+            formats.append({
                 'url': flipagram.get('music').get('track').get('previewUrl'),
                 'ext': 'm4a',
                 'vcodec': 'none',
