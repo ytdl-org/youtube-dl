@@ -165,6 +165,8 @@ class IqiyiIE(InfoExtractor):
     IE_NAME = 'iqiyi'
     IE_DESC = '爱奇艺'
 
+    _WORKING = False
+
     _VALID_URL = r'https?://(?:(?:[^.]+\.)?iqiyi\.com|www\.pps\.tv)/.+\.html'
 
     _NETRC_MACHINE = 'iqiyi'
