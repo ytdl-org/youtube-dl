@@ -6,17 +6,35 @@ from .common import InfoExtractor
 
 class ComingSoonITIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?comingsoon\.it/film/.*\b/video/\?.*\bvid=(?P<id>\w+)'
-    _TEST = {
-        'url': 'http://www.comingsoon.it/film/1981-indagine-a-new-york/50825/video/?vid=16392',
-        'md5': '347808c99cce66b7b3654f7b694f6dfa',
-        'info_dict': {
-            'id': '16392',
-            'ext': 'mp4',
-            'title': '1981: Indagine a New York, Trailer del film, versione originale - Film (2014)',
-            'url': 'http://video.comingsoon.it/MP4/16392.mp4',
-            'description': 'Trailer del film, versione originale - 1981: Indagine a New York'
-        }
-    }
+    _TESTS = [
+        {
+            'url': 'http://www.comingsoon.it/film/1981-indagine-a-new-york/50825/video/?vid=16392',
+            'md5': '347808c99cce66b7b3654f7b694f6dfa',
+            'info_dict': {
+                'id': '16392',
+                'ext': 'mp4',
+                'title': '1981: Indagine a New York, Trailer del film, versione originale - Film (2014)',
+                'url': 'http://video.comingsoon.it/MP4/16392.mp4',
+                'description': 'Trailer del film, versione originale - 1981: Indagine a New York'
+            },
+            'params': {
+                'format': 'sd',
+            },
+        },
+        {
+            'url': 'http://www.comingsoon.it/film/1981-indagine-a-new-york/50825/video/?vid=16392',
+            'md5': '15910a31dc49cb709d83d012ddefa8b1',
+            'info_dict': {
+                'id': '16392',
+                'ext': 'mp4',
+                'title': '1981: Indagine a New York, Trailer del film, versione originale - Film (2014)',
+                'url': 'http://video.comingsoon.it/MP4/16392HD.mp4',
+                'description': 'Trailer del film, versione originale - 1981: Indagine a New York'
+            },
+            'params': {
+                'format': 'hd',
+            },
+        }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -33,11 +51,13 @@ class ComingSoonITIE(InfoExtractor):
             'formats': [
                 {
                     'url': 'http://video.comingsoon.it/MP4/' + video_id + '.mp4',
-                    'format': 'Standard Definition'
+                    'format': 'Standard Definition',
+                    'format_id': 'sd'
                 },
                 {
-                    'url': 'http://video.comingsoon.it/MP4/' + video_id + '.mp4',
-                    'format': 'High Definition'
+                    'url': 'http://video.comingsoon.it/MP4/' + video_id + 'HD.mp4',
+                    'format': 'High Definition',
+                    'format_id': 'hd'
                 }
             ],
             'ext': 'mp4'
