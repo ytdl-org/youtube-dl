@@ -385,6 +385,7 @@
  - **MovieFap**
  - **Moviezine**
  - **MPORA**
+ - **MSN**
  - **MTV**
  - **mtv.de**
  - **mtviggy.com**
@@ -501,6 +502,7 @@
  - **plus.google**: Google Plus
  - **pluzz.francetv.fr**
  - **podomatic**
+ - **PolskieRadio**
  - **PornHd**
  - **PornHub**
  - **PornHubPlaylist**
@@ -736,6 +738,7 @@
  - **vh1.com**
  - **Vice**
  - **ViceShow**
+ - **Vidbit**
  - **Viddler**
  - **video.google:search**: Google Video search
  - **video.mit.edu**
