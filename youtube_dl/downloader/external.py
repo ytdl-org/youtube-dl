@@ -313,7 +313,7 @@ class FFmpegFD(ExternalFD):
             if self.params.get('hls_use_mpegts', False) or tmpfilename == '-':
                 args += ['-f', 'mpegts']
             else:
-                args += ['-f', 'mp4']
+                args += ['-f', 'mp4', '-movflags', 'empty_moov']
                 if (ffpp.basename == 'ffmpeg' and is_outdated_version(ffpp._versions['ffmpeg'], '3.2', False)) and (not info_dict.get('acodec') or info_dict['acodec'].split('.')[0] in ('aac', 'mp4a')):
                     args += ['-bsf:a', 'aac_adtstoasc']
         elif protocol == 'rtmp':
