@@ -2,41 +2,42 @@
 from __future__ import unicode_literals
 
 import re
-from .common import InfoExtractor
 
+from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
-    unescapeHTML,
+    determine_ext,
+    ExtractorError,
     int_or_none,
+    unescapeHTML,
 )
 
+
 class MSNIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?msn\.com/[a-z-]{2,5}(?:/[a-z]+)+/(?P<display_id>[a-z-]+)/[a-z]{2}-(?P<id>[a-zA-Z]+)'
+    _VALID_URL = r'https?://(?:www\.)?msn\.com/(?:[^/]+/)+(?P<display_id>[^/]+)/[a-z]{2}-(?P<id>[\da-zA-Z]+)'
     _TESTS = [{
         'url': 'http://www.msn.com/en-ae/foodanddrink/joinourtable/criminal-minds-shemar-moore-shares-a-touching-goodbye-message/vp-BBqQYNE',
+        'md5': '8442f66c116cbab1ff7098f986983458',
         'info_dict': {
             'id': 'BBqQYNE',
+            'display_id': 'criminal-minds-shemar-moore-shares-a-touching-goodbye-message',
+            'ext': 'mp4',
             'title': 'Criminal Minds - Shemar Moore Shares A Touching Goodbye Message',
             'description': 'md5:e8e89b897b222eb33a6b5067a8f1bc25',
             'duration': 104,
-            'ext': 'mp4',
+            'uploader': 'CBS Entertainment',
+            'uploader_id': 'IT0X5aoJ6bJgYerJXSDCgFmYPB1__54v',
         },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        }
     }, {
         'url': 'http://www.msn.com/en-ae/news/offbeat/meet-the-nine-year-old-self-made-millionaire/ar-BBt6ZKf',
-        'info_dict': {
-            'id': 'BBt6ZKf',
-            'title': 'All That Bling: Self-Made Millionaire Child Builds Fashion & Jewellery Empire',
-            'description': 'md5:8e683bd5c729d5fb16d96539a582aa5e',
-            'duration': 350,
-            'ext': 'mp4',
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        }
+        'only_matching': True,
+    }, {
+        'url': 'http://www.msn.com/en-ae/video/watch/obama-a-lot-of-people-will-be-disappointed/vi-AAhxUMH',
+        'only_matching': True,
+    }, {
+        # geo restricted
+        'url': 'http://www.msn.com/en-ae/foodanddrink/joinourtable/the-first-fart-makes-you-laugh-the-last-fart-makes-you-cry/vp-AAhzIBU',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -45,46 +46,74 @@ class MSNIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        self.report_extraction(display_id)
-        video_data = self._parse_json(self._html_search_regex(r'data-metadata\s*=\s*["\'](.+)["\']',
-            webpage, 'video data'), display_id)
+        video = self._parse_json(
+            self._search_regex(
+                r'data-metadata\s*=\s*(["\'])(?P<data>.+?)\1',
+                webpage, 'video data', default='{}', group='data'),
+            display_id, transform_source=unescapeHTML)
+
+        if not video:
+            error = unescapeHTML(self._search_regex(
+                r'data-error=(["\'])(?P<error>.+?)\1',
+                webpage, 'error', group='error'))
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, error), expected=True)
+
+        title = video['title']
 
         formats = []
-        for video_file in video_data.get('videoFiles', []):
-            if not '.ism' in video_file.get('url', '.ism'):
+        for file_ in video.get('videoFiles', []):
+            format_url = file_.get('url')
+            if not format_url:
+                continue
+            ext = determine_ext(format_url)
+            # .ism is not yet supported (see
+            # https://github.com/rg3/youtube-dl/issues/8118)
+            if ext == 'ism':
+                continue
+            if 'm3u8' in format_url:
+                # m3u8_native should not be used here until
+                # https://github.com/rg3/youtube-dl/issues/9913 is fixed
+                m3u8_formats = self._extract_m3u8_formats(
+                    format_url, display_id, 'mp4',
+                    m3u8_id='hls', fatal=False)
+                # Despite metadata in m3u8 all video+audio formats are
+                # actually video-only (no audio)
+                for f in m3u8_formats:
+                    if f.get('acodec') != 'none' and f.get('vcodec') != 'none':
+                        f['acodec'] = 'none'
+                formats.extend(m3u8_formats)
+            else:
                 formats.append({
-                    'url': unescapeHTML(video_file.get('url')),
+                    'url': format_url,
                     'ext': 'mp4',
-                    'width': int_or_none(video_file.get('width')),
-                    'height': int_or_none(video_file.get('height')),
+                    'format_id': 'http',
+                    'width': int_or_none(file_.get('width')),
+                    'height': int_or_none(file_.get('height')),
                 })
-            elif 'm3u8' in video_file.get('url'):
-                formats.extend(self._extract_m3u8_formats(
-                    video_file.get('url'), display_id, 'mp4'))
-            # There (often) exists an Microsoft Smooth Streaming manifest
-            # (.ism) which is not yet supported
-            # (https://github.com/rg3/youtube-dl/issues/8118)
-
         self._sort_formats(formats)
 
         subtitles = {}
-        for f in video_data.get('files', []):
-            if f.get('formatCode', '') == '3100':
-                lang = f.get('culture', '')
-                if not lang:
-                    continue
-                subtitles.setdefault(lang, []).append({
-                    'ext': 'ttml',
-                    'url': unescapeHTML(f.get('url')),
+        for file_ in video.get('files', []):
+            format_url = file_.get('url')
+            format_code = file_.get('formatCode')
+            if not format_url or not format_code:
+                continue
+            if compat_str(format_code) == '3100':
+                subtitles.setdefault(file_.get('culture', 'en'), []).append({
+                    'ext': determine_ext(format_url, 'ttml'),
+                    'url': format_url,
                 })
 
         return {
             'id': video_id,
-            'title': video_data['title'],
-            'formats': formats,
-            'thumbnail': video_data.get('headlineImage', {}).get('url'),
-            'description': video_data.get('description'),
-            'creator': video_data.get('creator'),
+            'display_id': display_id,
+            'title': title,
+            'description': video.get('description'),
+            'thumbnail': video.get('headlineImage', {}).get('url'),
+            'duration': int_or_none(video.get('durationSecs')),
+            'uploader': video.get('sourceFriendly'),
+            'uploader_id': video.get('providerId'),
+            'creator': video.get('creator'),
             'subtitles': subtitles,
-            'duration': int_or_none(video_data.get('durationSecs')),
+            'formats': formats,
         }
