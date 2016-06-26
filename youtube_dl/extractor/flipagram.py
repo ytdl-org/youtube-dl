@@ -86,7 +86,7 @@ class FlipagramIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': content_data.get('title'),
+            'title': content_data['title'],
             'formats': formats,
             'thumbnails': thumbnails,
             'description': content_data.get('description'),
