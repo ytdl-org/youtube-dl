@@ -878,7 +878,11 @@ class InfoExtractor(object):
                 f['ext'] = determine_ext(f['url'])
 
             if isinstance(field_preference, (list, tuple)):
-                return tuple(f.get(field) if f.get(field) is not None else -1 for field in field_preference)
+                return tuple(
+                    f.get(field)
+                    if f.get(field) is not None
+                    else ('' if field == 'format_id' else -1)
+                    for field in field_preference)
 
             preference = f.get('preference')
             if preference is None:
