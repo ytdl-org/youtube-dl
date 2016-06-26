@@ -66,6 +66,7 @@ from youtube_dl.utils import (
     lowercase_escape,
     url_basename,
     urlencode_postdata,
+    urshift,
     update_url_query,
     version_tuple,
     xpath_with_ns,
@@ -979,6 +980,10 @@ The first line
 
         self.assertRaises(ValueError, encode_base_n, 0, 70)
         self.assertRaises(ValueError, encode_base_n, 0, 60, custom_table)
+
+    def test_urshift(self):
+        self.assertEqual(urshift(3, 1), 1)
+        self.assertEqual(urshift(-3, 1), 2147483646)
 
 if __name__ == '__main__':
     unittest.main()
