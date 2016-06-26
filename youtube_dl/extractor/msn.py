@@ -38,6 +38,9 @@ class MSNIE(InfoExtractor):
         # geo restricted
         'url': 'http://www.msn.com/en-ae/foodanddrink/joinourtable/the-first-fart-makes-you-laugh-the-last-fart-makes-you-cry/vp-AAhzIBU',
         'only_matching': True,
+    }, {
+        'url': 'http://www.msn.com/en-ae/entertainment/bollywood/watch-how-salman-khan-reacted-when-asked-if-he-would-apologize-for-his-‘raped-woman’-comment/vi-AAhvzW6',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
