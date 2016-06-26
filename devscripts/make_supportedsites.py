@@ -33,10 +33,10 @@ def main():
                 ie_md += ' (Currently broken)'
             yield ie_md
 
-    ies = sorted(youtube_dl.gen_extractors(), key=lambda i: i.IE_NAME.lower())
+    ies = sorted(gen_ies_md(youtube_dl.gen_extractors()), key=lambda s: s.lower())
     out = '# Supported sites\n' + ''.join(
         ' - ' + md + '\n'
-        for md in gen_ies_md(ies))
+        for md in ies)
 
     with io.open(outfile, 'w', encoding='utf-8') as outf:
         outf.write(out)
