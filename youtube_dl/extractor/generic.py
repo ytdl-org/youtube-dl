@@ -1091,12 +1091,17 @@ class GenericIE(InfoExtractor):
         # Dailymotion Cloud video
         {
             'url': 'http://replay.publicsenat.fr/vod/le-debat/florent-kolandjian,dominique-cena,axel-decourtye,laurence-abeille,bruno-parmentier/175910',
-            'md5': '49444254273501a64675a7e68c502681',
+            'md5': 'dcaf23ad0c67a256f4278bce6e0bae38',
             'info_dict': {
-                'id': '5585de919473990de4bee11b',
+                'id': 'x2uy8t3',
                 'ext': 'mp4',
-                'title': 'Le débat',
+                'title': 'Sauvons les abeilles ! - Le débat',
+                'description': 'md5:d9082128b1c5277987825d684939ca26',
                 'thumbnail': 're:^https?://.*\.jpe?g$',
+                'timestamp': 1434970506,
+                'upload_date': '20150622',
+                'uploader': 'Public Sénat',
+                'uploader_id': 'xa9gza',
             }
         },
         # OnionStudios embed
