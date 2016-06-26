@@ -920,6 +920,24 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Kaltura'],
         },
+        {
+            # Kaltura embedded via quoted entry_id
+            'url': 'https://www.oreilly.com/ideas/my-cloud-makes-pretty-pictures',
+            'info_dict': {
+                'id': '0_utuok90b',
+                'ext': 'mp4',
+                'title': '06_matthew_brender_raj_dutt',
+                'timestamp': 1466638791,
+                'upload_date': '20160622',
+            },
+            'add_ie': ['Kaltura'],
+            'expected_warnings': [
+                'Could not send HEAD request'
+            ],
+            'params': {
+                'skip_download': True,
+            }
+        },
         # Eagle.Platform embed (generic URL)
         {
             'url': 'http://lenta.ru/news/2015/03/06/navalny/',
@@ -1909,7 +1927,7 @@ class GenericIE(InfoExtractor):
 
         # Look for Kaltura embeds
         mobj = (re.search(r"(?s)kWidget\.(?:thumb)?[Ee]mbed\(\{.*?(?P<q1>['\"])wid(?P=q1)\s*:\s*(?P<q2>['\"])_?(?P<partner_id>[^'\"]+)(?P=q2),.*?(?P<q3>['\"])entry_?[Ii]d(?P=q3)\s*:\s*(?P<q4>['\"])(?P<id>[^'\"]+)(?P=q4),", webpage) or
-                re.search(r'(?s)(?P<q1>["\'])(?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/.*?(?:p|partner_id)/(?P<partner_id>\d+).*?(?P=q1).*?entry_?[Ii]d\s*:\s*(?P<q2>["\'])(?P<id>.+?)(?P=q2)', webpage))
+                re.search(r'(?s)(?P<q1>["\'])(?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/.*?(?:p|partner_id)/(?P<partner_id>\d+).*?(?P=q1).*?(?P<q2>["\'])?entry_?[Ii]d(?P=q2)\s*:\s*(?P<q3>["\'])(?P<id>.+?)(?P=q3)', webpage))
         if mobj is not None:
             return self.url_result(smuggle_url(
                 'kaltura:%(partner_id)s:%(id)s' % mobj.groupdict(),
