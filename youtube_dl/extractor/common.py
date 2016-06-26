@@ -749,10 +749,12 @@ class InfoExtractor(object):
         return self._og_search_property('url', html, **kargs)
 
     def _html_search_meta(self, name, html, display_name=None, fatal=False, **kwargs):
+        if not isinstance(name, (list, tuple)):
+            name = [name]
         if display_name is None:
-            display_name = name
+            display_name = name[0]
         return self._html_search_regex(
-            self._meta_regex(name),
+            [self._meta_regex(n) for n in name],
             html, display_name, fatal=fatal, group='content', **kwargs)
 
     def _dc_search_uploader(self, html):
