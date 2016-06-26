@@ -916,6 +916,7 @@ from .vice import (
     ViceIE,
     ViceShowIE,
 )
+from .vidbit import VidbitIE
 from .viddler import ViddlerIE
 from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
