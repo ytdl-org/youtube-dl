@@ -180,9 +180,7 @@ class IqiyiIE(InfoExtractor):
             'ext': 'mp4',
             'title': '名侦探柯南 国语版',
         },
-        'params': {
-            'cn_verification_proxy': 'http://proxy.uku.im:443/',
-        },
+        'skip': 'Geo-restricted to China',
     }, {
         'url': 'http://www.iqiyi.com/w_19rt6o8t9p.html',
         'only_matching': True,
