@@ -9,6 +9,7 @@ from ..utils import (
 
 
 class SRMediathekIE(ARDMediathekIE):
+    IE_NAME = 'sr:mediathek'
     IE_DESC = 'Saarländischer Rundfunk'
     _VALID_URL = r'https?://sr-mediathek\.sr-online\.de/index\.php\?.*?&id=(?P<id>[0-9]+)'
 
