@@ -45,7 +45,6 @@
  - **archive.org**: archive.org videos
  - **ARD**
  - **ARD:mediathek**
- - **ARD:mediathek**: Saarländischer Rundfunk
  - **arte.tv**
  - **arte.tv:+7**
  - **arte.tv:cinema**
@@ -588,7 +587,7 @@
  - **Shared**: shared.sx and vivo.sx
  - **ShareSix**
  - **Sina**
- - **skynewsarabia:video**
+ - **skynewsarabia:article**
  - **skynewsarabia:video**
  - **Slideshare**
  - **Slutload**
@@ -621,6 +620,7 @@
  - **SportBoxEmbed**
  - **SportDeutschland**
  - **Sportschau**
+ - **sr:mediathek**: Saarländischer Rundfunk
  - **SRGSSR**
  - **SRGSSRPlay**: srf.ch, rts.ch, rsi.ch, rtr.ch and swissinfo.ch play sites
  - **SSA**
