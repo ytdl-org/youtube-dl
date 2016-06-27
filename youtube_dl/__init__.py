@@ -301,6 +301,7 @@ def _real_main(argv=None):
         'listformats': opts.listformats,
         'outtmpl': outtmpl,
         'autonumber_size': opts.autonumber_size,
+        'playlist_index_size': opts.playlist_index_size,
         'restrictfilenames': opts.restrictfilenames,
         'ignoreerrors': opts.ignoreerrors,
         'force_generic_extractor': opts.force_generic_extractor,
