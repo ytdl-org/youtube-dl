@@ -134,9 +134,11 @@ class TestAllURLsMatching(unittest.TestCase):
     def test_no_duplicated_ie_names(self):
         name_accu = collections.defaultdict(list)
         for ie in self.ies:
-            name_accu[ie.IE_NAME.lower()].append(ie)
-        for (ie_name,ie_list) in name_accu.items():
-            self.assertEqual(len(ie_list), 1, 'Only 1 extractor with IE_NAME "%s" (%s)' % (ie_name, ie_list))
+            name_accu[ie.IE_NAME.lower()].append(type(ie).__name__)
+        for (ie_name, ie_list) in name_accu.items():
+            self.assertEqual(
+                len(ie_list), 1,
+                'Multiple extractors with the same IE_NAME "%s" (%s)' % (ie_name, ', '.join(ie_list)))
 
 
 if __name__ == '__main__':
