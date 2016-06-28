@@ -2,6 +2,7 @@ from __future__ import division, unicode_literals
 
 import os
 import time
+import io
 
 from .common import FileDownloader
 from .http import HttpFD
@@ -10,6 +11,7 @@ from ..utils import (
     encodeFilename,
     sanitize_open,
     sanitized_Request,
+    compat_str,
 )
 
 
@@ -30,13 +32,13 @@ class FragmentFD(FileDownloader):
                         Skip unavailable fragments (DASH and hlsnative only)
     """
 
-    def report_retry_fragment(self, err, fragment_name, count, retries):
+    def report_retry_fragment(self, err, frag_index, count, retries):
         self.to_screen(
-            '[download] Got server HTTP error: %s. Retrying fragment %s (attempt %d of %s)...'
-            % (error_to_compat_str(err), fragment_name, count, self.format_retries(retries)))
+            '[download] Got server HTTP error: %s. Retrying fragment %d (attempt %d of %s)...'
+            % (error_to_compat_str(err), frag_index, count, self.format_retries(retries)))
 
-    def report_skip_fragment(self, fragment_name):
-        self.to_screen('[download] Skipping fragment %s...' % fragment_name)
+    def report_skip_fragment(self, frag_index):
+        self.to_screen('[download] Skipping fragment %d...' % frag_index)
 
     def _prepare_url(self, info_dict, url):
         headers = info_dict.get('http_headers')
@@ -45,6 +47,25 @@ class FragmentFD(FileDownloader):
     def _prepare_and_start_frag_download(self, ctx):
         self._prepare_frag_download(ctx)
         self._start_frag_download(ctx)
+
+    def _download_fragment(self, ctx, frag_url, info_dict, headers=None):
+        down = io.BytesIO()
+        success = ctx['dl'].download(down, {
+            'url': frag_url,
+            'http_headers': headers or info_dict.get('http_headers'),
+        })
+        if not success:
+            return False, None
+        frag_content = down.getvalue()
+        down.close()
+        return True, frag_content
+
+    def _append_fragment(self, ctx, frag_content):
+        ctx['dest_stream'].write(frag_content)
+        if not (ctx.get('live') or ctx['tmpfilename'] == '-'):
+            frag_index_stream, _ = sanitize_open(ctx['tmpfilename'] + '.fragindex', 'w')
+            frag_index_stream.write(compat_str(ctx['frag_index']))
+            frag_index_stream.close()
 
     def _prepare_frag_download(self, ctx):
         if 'live' not in ctx:
@@ -66,11 +87,26 @@ class FragmentFD(FileDownloader):
             }
         )
         tmpfilename = self.temp_name(ctx['filename'])
-        dest_stream, tmpfilename = sanitize_open(tmpfilename, 'wb')
+        open_mode = 'wb'
+        resume_len = 0
+        frag_index = 0
+        # Establish possible resume length
+        if os.path.isfile(encodeFilename(tmpfilename)):
+            open_mode = 'ab'
+            resume_len = os.path.getsize(encodeFilename(tmpfilename))
+            if os.path.isfile(encodeFilename(tmpfilename + '.fragindex')):
+                frag_index_stream, _ = sanitize_open(tmpfilename + '.fragindex', 'r')
+                frag_index = int(frag_index_stream.read())
+                frag_index_stream.close()
+        dest_stream, tmpfilename = sanitize_open(tmpfilename, open_mode)
+
         ctx.update({
             'dl': dl,
             'dest_stream': dest_stream,
             'tmpfilename': tmpfilename,
+            'frag_index': frag_index,
+            # Total complete fragments downloaded so far in bytes
+            'complete_frags_downloaded_bytes': resume_len,
         })
 
     def _start_frag_download(self, ctx):
@@ -79,8 +115,8 @@ class FragmentFD(FileDownloader):
         # hook
         state = {
             'status': 'downloading',
-            'downloaded_bytes': 0,
-            'frag_index': 0,
+            'downloaded_bytes': ctx['complete_frags_downloaded_bytes'],
+            'frag_index': ctx['frag_index'],
             'frag_count': total_frags,
             'filename': ctx['filename'],
             'tmpfilename': ctx['tmpfilename'],
@@ -89,8 +125,6 @@ class FragmentFD(FileDownloader):
         start = time.time()
         ctx.update({
             'started': start,
-            # Total complete fragments downloaded so far in bytes
-            'complete_frags_downloaded_bytes': 0,
             # Amount of fragment's bytes downloaded by the time of the previous
             # frag progress hook invocation
             'prev_frag_downloaded_bytes': 0,
@@ -111,6 +145,7 @@ class FragmentFD(FileDownloader):
 
             if s['status'] == 'finished':
                 state['frag_index'] += 1
+                ctx['frag_index'] = state['frag_index']
                 state['downloaded_bytes'] += frag_total_bytes - ctx['prev_frag_downloaded_bytes']
                 ctx['complete_frags_downloaded_bytes'] = state['downloaded_bytes']
                 ctx['prev_frag_downloaded_bytes'] = 0
@@ -132,6 +167,8 @@ class FragmentFD(FileDownloader):
 
     def _finish_frag_download(self, ctx):
         ctx['dest_stream'].close()
+        if os.path.isfile(encodeFilename(ctx['tmpfilename'] + '.fragindex')):
+            os.remove(encodeFilename(ctx['tmpfilename'] + '.fragindex'))
         elapsed = time.time() - ctx['started']
         self.try_rename(ctx['tmpfilename'], ctx['filename'])
         fsize = os.path.getsize(encodeFilename(ctx['filename']))
