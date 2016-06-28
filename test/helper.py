@@ -94,7 +94,7 @@ def gettestcases(include_onlymatching=False):
             yield tc
 
 
-md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
+def md5(s): return: hashlib.md5(s.encode('utf-8')).hexdigest()
 
 
 def expect_value(self, got, expected, field):
