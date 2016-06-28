@@ -419,6 +419,7 @@ class ArteTVPlaylistIE(ArteTVBaseIE):
         'info_dict': {
             'id': 'PL-013263',
             'title': 'Areva & Uramin',
+            'description': 'md5:a1dc0312ce357c262259139cfd48c9bf',
         },
         'playlist_mincount': 6,
     }, {
