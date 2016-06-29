@@ -894,6 +894,7 @@ from .udn import UDNEmbedIE
 from .digiteka import DigitekaIE
 from .unistra import UnistraIE
 from .urort import UrortIE
+from .urplay import URPlayIE
 from .usatoday import USATodayIE
 from .ustream import UstreamIE, UstreamChannelIE
 from .ustudio import (
