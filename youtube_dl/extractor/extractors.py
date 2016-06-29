@@ -20,7 +20,10 @@ from .adobetv import (
     AdobeTVVideoIE,
 )
 from .adultswim import AdultSwimIE
-from .aenetworks import AENetworksIE
+from .aenetworks import (
+    AENetworksIE,
+    HistoryTopicIE,
+)
 from .afreecatv import AfreecaTVIE
 from .aftonbladet import AftonbladetIE
 from .airmozilla import AirMozillaIE
