@@ -20,7 +20,7 @@ from ..utils import (
 
 
 class DCNIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?show/(?P<show_id>\d+)/[^/]+(?:/(?P<video_id>\d+)/(?P<season_id>\d+))?'
+    _VALID_URL = r'https?://(?:www\.)?(?:awaan|dcndigital)\.ae/(?:#/)?show/(?P<show_id>\d+)/[^/]+(?:/(?P<video_id>\d+)/(?P<season_id>\d+))?'
 
     def _real_extract(self, url):
         show_id, video_id, season_id = re.match(self._VALID_URL, url).groups()
@@ -55,30 +55,32 @@ class DCNBaseIE(InfoExtractor):
             'is_live': is_live,
         }
 
-    def _extract_video_formats(self, webpage, video_id, entry_protocol):
+    def _extract_video_formats(self, webpage, video_id, m3u8_entry_protocol):
         formats = []
-        m3u8_url = self._html_search_regex(
-            r'file\s*:\s*"([^"]+)', webpage, 'm3u8 url', fatal=False)
-        if m3u8_url:
-            formats.extend(self._extract_m3u8_formats(
-                m3u8_url, video_id, 'mp4', entry_protocol, m3u8_id='hls', fatal=None))
-
-        rtsp_url = self._search_regex(
-            r'<a[^>]+href="(rtsp://[^"]+)"', webpage, 'rtsp url', fatal=False)
-        if rtsp_url:
-            formats.append({
-                'url': rtsp_url,
-                'format_id': 'rtsp',
-            })
-
+        format_url_base = 'http' + self._html_search_regex(
+            [
+                r'file\s*:\s*"https?(://[^"]+)/playlist.m3u8',
+                r'<a[^>]+href="rtsp(://[^"]+)"'
+            ], webpage, 'format url')
+        # TODO: Current DASH formats are broken - $Time$ pattern in
+        # <SegmentTemplate> not implemented yet
+        # formats.extend(self._extract_mpd_formats(
+        #     format_url_base + '/manifest.mpd',
+        #     video_id, mpd_id='dash', fatal=False))
+        formats.extend(self._extract_m3u8_formats(
+            format_url_base + '/playlist.m3u8', video_id, 'mp4',
+            m3u8_entry_protocol, m3u8_id='hls', fatal=False))
+        formats.extend(self._extract_f4m_formats(
+            format_url_base + '/manifest.f4m',
+            video_id, f4m_id='hds', fatal=False))
         self._sort_formats(formats)
         return formats
 
 
 class DCNVideoIE(DCNBaseIE):
     IE_NAME = 'dcn:video'
-    _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?(?:video/[^/]+|media|catchup/[^/]+/[^/]+)/(?P<id>\d+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?(?:awaan|dcndigital)\.ae/(?:#/)?(?:video(?:/[^/]+)?|media|catchup/[^/]+/[^/]+)/(?P<id>\d+)'
+    _TESTS = [{
         'url': 'http://www.dcndigital.ae/#/video/%D8%B1%D8%AD%D9%84%D8%A9-%D8%A7%D9%84%D8%B9%D9%85%D8%B1-%D8%A7%D9%84%D8%AD%D9%84%D9%82%D8%A9-1/17375',
         'info_dict':
         {
@@ -94,7 +96,10 @@ class DCNVideoIE(DCNBaseIE):
             # m3u8 download
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'http://awaan.ae/video/26723981/%D8%AF%D8%A7%D8%B1-%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85:-%D8%AE%D9%8A%D8%B1-%D8%AF%D9%88%D8%B1-%D8%A7%D9%84%D8%A3%D9%86%D8%B5%D8%A7%D8%B1',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -120,7 +125,7 @@ class DCNVideoIE(DCNBaseIE):
 
 class DCNLiveIE(DCNBaseIE):
     IE_NAME = 'dcn:live'
-    _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?live/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:awaan|dcndigital)\.ae/(?:#/)?live/(?P<id>\d+)'
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
@@ -147,7 +152,7 @@ class DCNLiveIE(DCNBaseIE):
 
 class DCNSeasonIE(InfoExtractor):
     IE_NAME = 'dcn:season'
-    _VALID_URL = r'https?://(?:www\.)?dcndigital\.ae/(?:#/)?program/(?:(?P<show_id>\d+)|season/(?P<season_id>\d+))'
+    _VALID_URL = r'https?://(?:www\.)?(?:awaan|dcndigital)\.ae/(?:#/)?program/(?:(?P<show_id>\d+)|season/(?P<season_id>\d+))'
     _TEST = {
         'url': 'http://dcndigital.ae/#/program/205024/%D9%85%D8%AD%D8%A7%D8%B6%D8%B1%D8%A7%D8%AA-%D8%A7%D9%84%D8%B4%D9%8A%D8%AE-%D8%A7%D9%84%D8%B4%D8%B9%D8%B1%D8%A7%D9%88%D9%8A',
         'info_dict':

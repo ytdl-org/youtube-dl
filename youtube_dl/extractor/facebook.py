@@ -239,6 +239,8 @@ class FacebookIE(InfoExtractor):
 
         formats = []
         for format_id, f in video_data.items():
+            if f and isinstance(f, dict):
+                f = [f]
             if not f or not isinstance(f, list):
                 continue
             for quality in ('sd', 'hd'):

@@ -277,9 +277,9 @@ class ThePlatformIE(ThePlatformBaseIE):
 
 
 class ThePlatformFeedIE(ThePlatformBaseIE):
-    _URL_TEMPLATE = '%s//feed.theplatform.com/f/%s/%s?form=json&byGuid=%s'
-    _VALID_URL = r'https?://feed\.theplatform\.com/f/(?P<provider_id>[^/]+)/(?P<feed_id>[^?/]+)\?(?:[^&]+&)*byGuid=(?P<id>[a-zA-Z0-9_]+)'
-    _TEST = {
+    _URL_TEMPLATE = '%s//feed.theplatform.com/f/%s/%s?form=json&%s'
+    _VALID_URL = r'https?://feed\.theplatform\.com/f/(?P<provider_id>[^/]+)/(?P<feed_id>[^?/]+)\?(?:[^&]+&)*(?P<filter>by(?:Gui|I)d=(?P<id>[\w-]+))'
+    _TESTS = [{
         # From http://player.theplatform.com/p/7wvmTC/MSNBCEmbeddedOffSite?guid=n_hardball_5biden_140207
         'url': 'http://feed.theplatform.com/f/7wvmTC/msnbc_video-p-test?form=json&pretty=true&range=-40&byGuid=n_hardball_5biden_140207',
         'md5': '6e32495b5073ab414471b615c5ded394',
@@ -295,32 +295,38 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
             'categories': ['MSNBC/Issues/Democrats', 'MSNBC/Issues/Elections/Election 2016'],
             'uploader': 'NBCU-NEWS',
         },
-    }
+    }]
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-
-        video_id = mobj.group('id')
-        provider_id = mobj.group('provider_id')
-        feed_id = mobj.group('feed_id')
-
-        real_url = self._URL_TEMPLATE % (self.http_scheme(), provider_id, feed_id, video_id)
-        feed = self._download_json(real_url, video_id)
-        entry = feed['entries'][0]
+    def _extract_feed_info(self, provider_id, feed_id, filter_query, video_id, custom_fields=None, asset_types_query={}):
+        real_url = self._URL_TEMPLATE % (self.http_scheme(), provider_id, feed_id, filter_query)
+        entry = self._download_json(real_url, video_id)['entries'][0]
 
         formats = []
         subtitles = {}
         first_video_id = None
         duration = None
+        asset_types = []
         for item in entry['media$content']:
-            smil_url = item['plfile$url'] + '&mbr=true'
+            smil_url = item['plfile$url']
             cur_video_id = ThePlatformIE._match_id(smil_url)
             if first_video_id is None:
                 first_video_id = cur_video_id
                 duration = float_or_none(item.get('plfile$duration'))
-            cur_formats, cur_subtitles = self._extract_theplatform_smil(smil_url, video_id, 'Downloading SMIL data for %s' % cur_video_id)
-            formats.extend(cur_formats)
-            subtitles = self._merge_subtitles(subtitles, cur_subtitles)
+            for asset_type in item['plfile$assetTypes']:
+                if asset_type in asset_types:
+                    continue
+                asset_types.append(asset_type)
+                query = {
+                    'mbr': 'true',
+                    'formats': item['plfile$format'],
+                    'assetTypes': asset_type,
+                }
+                if asset_type in asset_types_query:
+                    query.update(asset_types_query[asset_type])
+                cur_formats, cur_subtitles = self._extract_theplatform_smil(update_url_query(
+                    smil_url, query), video_id, 'Downloading SMIL data for %s' % asset_type)
+                formats.extend(cur_formats)
+                subtitles = self._merge_subtitles(subtitles, cur_subtitles)
 
         self._sort_formats(formats)
 
@@ -344,5 +350,17 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
             'timestamp': timestamp,
             'categories': categories,
         })
+        if custom_fields:
+            ret.update(custom_fields(entry))
 
         return ret
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+
+        video_id = mobj.group('id')
+        provider_id = mobj.group('provider_id')
+        feed_id = mobj.group('feed_id')
+        filter_query = mobj.group('filter')
+
+        return self._extract_feed_info(provider_id, feed_id, filter_query, video_id)

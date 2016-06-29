@@ -64,6 +64,7 @@ from .liveleak import LiveLeakIE
 from .threeqsdn import ThreeQSDNIE
 from .theplatform import ThePlatformIE
 from .vessel import VesselIE
+from .kaltura import KalturaIE
 
 
 class GenericIE(InfoExtractor):
@@ -920,6 +921,24 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Kaltura'],
         },
+        {
+            # Kaltura embedded via quoted entry_id
+            'url': 'https://www.oreilly.com/ideas/my-cloud-makes-pretty-pictures',
+            'info_dict': {
+                'id': '0_utuok90b',
+                'ext': 'mp4',
+                'title': '06_matthew_brender_raj_dutt',
+                'timestamp': 1466638791,
+                'upload_date': '20160622',
+            },
+            'add_ie': ['Kaltura'],
+            'expected_warnings': [
+                'Could not send HEAD request'
+            ],
+            'params': {
+                'skip_download': True,
+            }
+        },
         # Eagle.Platform embed (generic URL)
         {
             'url': 'http://lenta.ru/news/2015/03/06/navalny/',
@@ -1091,12 +1110,17 @@ class GenericIE(InfoExtractor):
         # Dailymotion Cloud video
         {
             'url': 'http://replay.publicsenat.fr/vod/le-debat/florent-kolandjian,dominique-cena,axel-decourtye,laurence-abeille,bruno-parmentier/175910',
-            'md5': '49444254273501a64675a7e68c502681',
+            'md5': 'dcaf23ad0c67a256f4278bce6e0bae38',
             'info_dict': {
-                'id': '5585de919473990de4bee11b',
+                'id': 'x2uy8t3',
                 'ext': 'mp4',
-                'title': 'Le débat',
+                'title': 'Sauvons les abeilles ! - Le débat',
+                'description': 'md5:d9082128b1c5277987825d684939ca26',
                 'thumbnail': 're:^https?://.*\.jpe?g$',
+                'timestamp': 1434970506,
+                'upload_date': '20150622',
+                'uploader': 'Public Sénat',
+                'uploader_id': 'xa9gza',
             }
         },
         # OnionStudios embed
@@ -1903,12 +1927,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'Zapiks')
 
         # Look for Kaltura embeds
-        mobj = (re.search(r"(?s)kWidget\.(?:thumb)?[Ee]mbed\(\{.*?(?P<q1>['\"])wid(?P=q1)\s*:\s*(?P<q2>['\"])_?(?P<partner_id>[^'\"]+)(?P=q2),.*?(?P<q3>['\"])entry_?[Ii]d(?P=q3)\s*:\s*(?P<q4>['\"])(?P<id>[^'\"]+)(?P=q4),", webpage) or
-                re.search(r'(?s)(?P<q1>["\'])(?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/.*?(?:p|partner_id)/(?P<partner_id>\d+).*?(?P=q1).*?entry_?[Ii]d\s*:\s*(?P<q2>["\'])(?P<id>.+?)(?P=q2)', webpage))
-        if mobj is not None:
-            return self.url_result(smuggle_url(
-                'kaltura:%(partner_id)s:%(id)s' % mobj.groupdict(),
-                {'source_url': url}), 'Kaltura')
+        kaltura_url = KalturaIE._extract_url(webpage)
+        if kaltura_url:
+            return self.url_result(smuggle_url(kaltura_url, {'source_url': url}), KalturaIE.ie_key())
 
         # Look for Eagle.Platform embeds
         mobj = re.search(

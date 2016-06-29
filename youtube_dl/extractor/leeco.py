@@ -23,6 +23,7 @@ from ..utils import (
     sanitized_Request,
     str_or_none,
     url_basename,
+    urshift,
 )
 
 
@@ -74,15 +75,11 @@ class LeIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    @staticmethod
-    def urshift(val, n):
-        return val >> n if val >= 0 else (val + 0x100000000) >> n
-
     # ror() and calc_time_key() are reversed from a embedded swf file in KLetvPlayer.swf
     def ror(self, param1, param2):
         _loc3_ = 0
         while _loc3_ < param2:
-            param1 = self.urshift(param1, 1) + ((param1 & 1) << 31)
+            param1 = urshift(param1, 1) + ((param1 & 1) << 31)
             _loc3_ += 1
         return param1
 

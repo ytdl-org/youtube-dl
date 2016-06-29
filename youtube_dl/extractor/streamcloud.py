@@ -6,7 +6,6 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    sanitized_Request,
     urlencode_postdata,
 )
 
@@ -45,20 +44,26 @@ class StreamcloudIE(InfoExtractor):
             (?:id="[^"]+"\s+)?
             value="([^"]*)"
             ''', orig_webpage)
-        post = urlencode_postdata(fields)
 
         self._sleep(12, video_id)
-        headers = {
-            b'Content-Type': b'application/x-www-form-urlencoded',
-        }
-        req = sanitized_Request(url, post, headers)
 
         webpage = self._download_webpage(
-            req, video_id, note='Downloading video page ...')
-        title = self._html_search_regex(
-            r'<h1[^>]*>([^<]+)<', webpage, 'title')
-        video_url = self._search_regex(
-            r'file:\s*"([^"]+)"', webpage, 'video URL')
+            url, video_id, data=urlencode_postdata(fields), headers={
+                b'Content-Type': b'application/x-www-form-urlencoded',
+            })
+
+        try:
+            title = self._html_search_regex(
+                r'<h1[^>]*>([^<]+)<', webpage, 'title')
+            video_url = self._search_regex(
+                r'file:\s*"([^"]+)"', webpage, 'video URL')
+        except ExtractorError:
+            message = self._html_search_regex(
+                r'(?s)<div[^>]+class=(["\']).*?msgboxinfo.*?\1[^>]*>(?P<message>.+?)</div>',
+                webpage, 'message', default=None, group='message')
+            if message:
+                raise ExtractorError('%s said: %s' % (self.IE_NAME, message), expected=True)
+            raise
         thumbnail = self._search_regex(
             r'image:\s*"([^"]+)"', webpage, 'thumbnail URL', fatal=False)
 

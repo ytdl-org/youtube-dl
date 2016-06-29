@@ -501,6 +501,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'youtube_include_dash_manifest': True,
                 'format': '141',
             },
+            'skip': 'format 141 not served anymore',
         },
         # DASH manifest with encrypted signature
         {
@@ -517,7 +518,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
             'params': {
                 'youtube_include_dash_manifest': True,
-                'format': '141',
+                'format': '141/bestaudio[ext=m4a]',
             },
         },
         # JS player signature function name containing $
@@ -537,7 +538,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
             'params': {
                 'youtube_include_dash_manifest': True,
-                'format': '141',
+                'format': '141/bestaudio[ext=m4a]',
             },
         },
         # Controversy video
@@ -618,7 +619,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/olympic',
                 'license': 'Standard YouTube License',
                 'description': 'HO09  - Women -  GER-AUS - Hockey - 31 July 2012 - London 2012 Olympic Games',
-                'uploader': 'Olympics',
+                'uploader': 'Olympic',
                 'title': 'Hockey - Women -  GER-AUS - London 2012 Olympic Games',
             },
             'params': {
@@ -671,7 +672,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/dorappi2000',
                 'uploader': 'dorappi2000',
                 'license': 'Standard YouTube License',
-                'formats': 'mincount:33',
+                'formats': 'mincount:32',
             },
         },
         # DASH manifest with segment_list
@@ -691,7 +692,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'params': {
                 'youtube_include_dash_manifest': True,
                 'format': '135',  # bestvideo
-            }
+            },
+            'skip': 'This live event has ended.',
         },
         {
             # Multifeed videos (multiple cameras), URL is for Main Camera
@@ -762,6 +764,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': 'DevConf.cz 2016 Day 2 Workshops 1 14:00 - 15:30',
             },
             'playlist_count': 2,
+            'skip': 'Not multifeed anymore',
         },
         {
             'url': 'http://vid.plus/FlRa-iH7PGw',
@@ -814,6 +817,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'params': {
                 'skip_download': True,
             },
+            'skip': 'This video does not exist.',
         },
         {
             # Video licensed under Creative Commons
@@ -1331,7 +1335,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     (?:[a-zA-Z-]+="[^"]*"\s+)*?
                     (?:title|href)="([^"]+)"\s+
                     (?:[a-zA-Z-]+="[^"]*"\s+)*?
-                    class="(?:yt-uix-redirect-link|yt-uix-sessionlink[^"]*)"[^>]*>
+                    class="[^"]*"[^>]*>
                 [^<]+\.{3}\s*
                 </a>
             ''', r'\1', video_description)

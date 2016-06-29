@@ -1,30 +1,28 @@
 from __future__ import unicode_literals
 
-import re
-
-from .common import InfoExtractor
+from .cbs import CBSBaseIE
 
 
-class CBSSportsIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.cbssports\.com/video/player/(?P<section>[^/]+)/(?P<id>[^/]+)'
+class CBSSportsIE(CBSBaseIE):
+    _VALID_URL = r'https?://www\.cbssports\.com/video/player/[^/]+/(?P<id>\d+)'
 
-    _TEST = {
-        'url': 'http://www.cbssports.com/video/player/tennis/318462531970/0/us-open-flashbacks-1990s',
+    _TESTS = [{
+        'url': 'http://www.cbssports.com/video/player/videos/708337219968/0/ben-simmons-the-next-lebron?-not-so-fast',
         'info_dict': {
-            'id': '_d5_GbO8p1sT',
-            'ext': 'flv',
-            'title': 'US Open flashbacks: 1990s',
-            'description': 'Bill Macatee relives the best moments in US Open history from the 1990s.',
+            'id': '708337219968',
+            'ext': 'mp4',
+            'title': 'Ben Simmons the next LeBron? Not so fast',
+            'description': 'md5:854294f627921baba1f4b9a990d87197',
+            'timestamp': 1466293740,
+            'upload_date': '20160618',
+            'uploader': 'CBSI-NEW',
         },
-    }
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
+    }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        section = mobj.group('section')
-        video_id = mobj.group('id')
-        all_videos = self._download_json(
-            'http://www.cbssports.com/data/video/player/getVideos/%s?as=json' % section,
-            video_id)
-        # The json file contains the info of all the videos in the section
-        video_info = next(v for v in all_videos if v['pcid'] == video_id)
-        return self.url_result('theplatform:%s' % video_info['pid'], 'ThePlatform')
+        video_id = self._match_id(url)
+        return self._extract_video_info('byId=%s' % video_id, video_id)

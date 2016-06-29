@@ -53,6 +53,7 @@ from ..utils import (
     mimetype2ext,
     update_Request,
     update_url_query,
+    parse_m3u8_attributes,
 )
 
 
@@ -748,10 +749,12 @@ class InfoExtractor(object):
         return self._og_search_property('url', html, **kargs)
 
     def _html_search_meta(self, name, html, display_name=None, fatal=False, **kwargs):
+        if not isinstance(name, (list, tuple)):
+            name = [name]
         if display_name is None:
-            display_name = name
+            display_name = name[0]
         return self._html_search_regex(
-            self._meta_regex(name),
+            [self._meta_regex(n) for n in name],
             html, display_name, fatal=fatal, group='content', **kwargs)
 
     def _dc_search_uploader(self, html):
@@ -875,7 +878,11 @@ class InfoExtractor(object):
                 f['ext'] = determine_ext(f['url'])
 
             if isinstance(field_preference, (list, tuple)):
-                return tuple(f.get(field) if f.get(field) is not None else -1 for field in field_preference)
+                return tuple(
+                    f.get(field)
+                    if f.get(field) is not None
+                    else ('' if field == 'format_id' else -1)
+                    for field in field_preference)
 
             preference = f.get('preference')
             if preference is None:
@@ -1150,23 +1157,11 @@ class InfoExtractor(object):
             }]
         last_info = None
         last_media = None
-        kv_rex = re.compile(
-            r'(?P<key>[a-zA-Z_-]+)=(?P<val>"[^"]+"|[^",]+)(?:,|$)')
         for line in m3u8_doc.splitlines():
             if line.startswith('#EXT-X-STREAM-INF:'):
-                last_info = {}
-                for m in kv_rex.finditer(line):
-                    v = m.group('val')
-                    if v.startswith('"'):
-                        v = v[1:-1]
-                    last_info[m.group('key')] = v
+                last_info = parse_m3u8_attributes(line)
             elif line.startswith('#EXT-X-MEDIA:'):
-                last_media = {}
-                for m in kv_rex.finditer(line):
-                    v = m.group('val')
-                    if v.startswith('"'):
-                        v = v[1:-1]
-                    last_media[m.group('key')] = v
+                last_media = parse_m3u8_attributes(line)
             elif line.startswith('#') or not line.strip():
                 continue
             else:

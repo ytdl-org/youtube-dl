@@ -31,7 +31,7 @@ class BBCCoUkIE(InfoExtractor):
                             music/clips[/#]|
                             radio/player/
                         )
-                        (?P<id>%s)
+                        (?P<id>%s)(?!/(?:episodes|broadcasts|clips))
                     ''' % _ID_REGEX
 
     _MEDIASELECTOR_URLS = [
@@ -192,6 +192,7 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
+            'skip': 'Now it\'s really geo-restricted',
         }, {
             # compact player (https://github.com/rg3/youtube-dl/issues/8147)
             'url': 'http://www.bbc.co.uk/programmes/p028bfkf/player',
@@ -698,7 +699,9 @@ class BBCIE(BBCCoUkIE):
 
     @classmethod
     def suitable(cls, url):
-        return False if BBCCoUkIE.suitable(url) or BBCCoUkArticleIE.suitable(url) else super(BBCIE, cls).suitable(url)
+        EXCLUDE_IE = (BBCCoUkIE, BBCCoUkArticleIE, BBCCoUkIPlayerPlaylistIE, BBCCoUkPlaylistIE)
+        return (False if any(ie.suitable(url) for ie in EXCLUDE_IE)
+                else super(BBCIE, cls).suitable(url))
 
     def _extract_from_media_meta(self, media_meta, video_id):
         # Direct links to media in media metadata (e.g.
@@ -975,3 +978,72 @@ class BBCCoUkArticleIE(InfoExtractor):
             r'<div[^>]+typeof="Clip"[^>]+resource="([^"]+)"', webpage)]
 
         return self.playlist_result(entries, playlist_id, title, description)
+
+
+class BBCCoUkPlaylistBaseIE(InfoExtractor):
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result(self._URL_TEMPLATE % video_id, BBCCoUkIE.ie_key())
+            for video_id in re.findall(
+                self._VIDEO_ID_TEMPLATE % BBCCoUkIE._ID_REGEX, webpage)]
+
+        title, description = self._extract_title_and_description(webpage)
+
+        return self.playlist_result(entries, playlist_id, title, description)
+
+
+class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
+    IE_NAME = 'bbc.co.uk:iplayer:playlist'
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/iplayer/episodes/(?P<id>%s)' % BBCCoUkIE._ID_REGEX
+    _URL_TEMPLATE = 'http://www.bbc.co.uk/iplayer/episode/%s'
+    _VIDEO_ID_TEMPLATE = r'data-ip-id=["\'](%s)'
+    _TEST = {
+        'url': 'http://www.bbc.co.uk/iplayer/episodes/b05rcz9v',
+        'info_dict': {
+            'id': 'b05rcz9v',
+            'title': 'The Disappearance',
+            'description': 'French thriller serial about a missing teenager.',
+        },
+        'playlist_mincount': 6,
+    }
+
+    def _extract_title_and_description(self, webpage):
+        title = self._search_regex(r'<h1>([^<]+)</h1>', webpage, 'title', fatal=False)
+        description = self._search_regex(
+            r'<p[^>]+class=(["\'])subtitle\1[^>]*>(?P<value>[^<]+)</p>',
+            webpage, 'description', fatal=False, group='value')
+        return title, description
+
+
+class BBCCoUkPlaylistIE(BBCCoUkPlaylistBaseIE):
+    IE_NAME = 'bbc.co.uk:playlist'
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/programmes/(?P<id>%s)/(?:episodes|broadcasts|clips)' % BBCCoUkIE._ID_REGEX
+    _URL_TEMPLATE = 'http://www.bbc.co.uk/programmes/%s'
+    _VIDEO_ID_TEMPLATE = r'data-pid=["\'](%s)'
+    _TESTS = [{
+        'url': 'http://www.bbc.co.uk/programmes/b05rcz9v/clips',
+        'info_dict': {
+            'id': 'b05rcz9v',
+            'title': 'The Disappearance - Clips - BBC Four',
+            'description': 'French thriller serial about a missing teenager.',
+        },
+        'playlist_mincount': 7,
+    }, {
+        'url': 'http://www.bbc.co.uk/programmes/b05rcz9v/broadcasts/2016/06',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.bbc.co.uk/programmes/b05rcz9v/clips',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.bbc.co.uk/programmes/b055jkys/episodes/player',
+        'only_matching': True,
+    }]
+
+    def _extract_title_and_description(self, webpage):
+        title = self._og_search_title(webpage, fatal=False)
+        description = self._og_search_description(webpage)
+        return title, description
