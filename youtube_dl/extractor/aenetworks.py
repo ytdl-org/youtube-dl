@@ -161,7 +161,7 @@ class HistoryTopicIE(AENetworksBaseIE):
             for episode_item in re.findall(r'<a.+?data-release-url="[^"]+"[^>]*>', webpage):
                 video_attributes = extract_attributes(episode_item)
                 entries.append(self.theplatform_url_result(
-                    video_attributes['data-href'], video_attributes['data-id'], {
+                    video_attributes['data-release-url'], video_attributes['data-id'], {
                         'mbr': 'true',
                         'switch': 'hls'
                     }))
