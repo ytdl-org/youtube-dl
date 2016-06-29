@@ -8,6 +8,7 @@ from ..utils import (
     update_url_query,
     unescapeHTML,
     extract_attributes,
+    get_element_by_attribute,
 )
 from ..compat import (
     compat_urlparse,
@@ -136,6 +137,7 @@ class HistoryTopicIE(AENetworksBaseIE):
         'info_dict':
         {
             'id': 'world-war-i-history',
+            'title': 'World War I History',
         },
         'playlist_mincount': 24,
     }, {
@@ -165,4 +167,4 @@ class HistoryTopicIE(AENetworksBaseIE):
                         'mbr': 'true',
                         'switch': 'hls'
                     }))
-            return self.playlist_result(entries, topic_id)
+            return self.playlist_result(entries, topic_id, get_element_by_attribute('class', 'show-title', webpage))
