@@ -65,6 +65,7 @@ from .threeqsdn import ThreeQSDNIE
 from .theplatform import ThePlatformIE
 from .vessel import VesselIE
 from .kaltura import KalturaIE
+from .eagleplatform import EaglePlatformIE
 
 
 class GenericIE(InfoExtractor):
@@ -1932,10 +1933,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(smuggle_url(kaltura_url, {'source_url': url}), KalturaIE.ie_key())
 
         # Look for Eagle.Platform embeds
-        mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://.+?\.media\.eagleplatform\.com/index/player\?.+?)"', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'EaglePlatform')
+        eagleplatform_url = EaglePlatformIE._extract_url(webpage)
+        if eagleplatform_url:
+            return self.url_result(eagleplatform_url, EaglePlatformIE.ie_key())
 
         # Look for ClipYou (uses Eagle.Platform) embeds
         mobj = re.search(
