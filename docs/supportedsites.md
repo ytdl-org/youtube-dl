@@ -272,6 +272,7 @@
  - **Helsinki**: helsinki.fi
  - **HentaiStigma**
  - **HistoricFilms**
+ - **history:topic**: History.com Topic
  - **hitbox**
  - **hitbox:live**
  - **HornBunny**
@@ -358,6 +359,7 @@
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
+ - **META**
  - **metacafe**
  - **Metacritic**
  - **Mgoon**
@@ -587,8 +589,10 @@
  - **Shared**: shared.sx and vivo.sx
  - **ShareSix**
  - **Sina**
+ - **SixPlay**
  - **skynewsarabia:article**
  - **skynewsarabia:video**
+ - **SkySports**
  - **Slideshare**
  - **Slutload**
  - **smotri**: Smotri.com
@@ -721,6 +725,7 @@
  - **UDNEmbed**: 聯合影音
  - **Unistra**
  - **Urort**: NRK P3 Urørt
+ - **URPlay**
  - **USAToday**
  - **ustream**
  - **ustream:channel**
