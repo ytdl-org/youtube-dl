@@ -87,8 +87,8 @@ class PornHubIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         error_msg = self._html_search_regex(
-            r'<div[^>]+class="removed">\s*<div[^>]*>\s*<p>\s*<span>([^<]*)</span>',
-            webpage, 'error message', default=None)
+            r'(?s)<div[^>]+class=(["\']).*?\bremoved\b.*?\1[^>]*>(?P<error>.+?)</div>',
+            webpage, 'error message', default=None, group='error')
         if error_msg:
             error_msg = re.sub(r'\s+', ' ', error_msg)
             raise ExtractorError(
