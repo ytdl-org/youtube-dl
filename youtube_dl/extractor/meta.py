@@ -47,9 +47,10 @@ class METAIE(InfoExtractor):
             'id': video_id,
             'url': video_url,
             'title': uppod_data.get('comment') or self._og_search_title(webpage),
-            'description': self._og_search_description(webpage),
+            'description': self._og_search_description(webpage, default=None),
             'thumbnail': uppod_data.get('poster') or self._og_search_thumbnail(webpage),
-            'duration': int_or_none(self._og_search_property('video:duration', webpage)),
+            'duration': int_or_none(self._og_search_property(
+                'video:duration', webpage, default=None)),
         }
         if 'youtube.com/' in video_url:
             info.update({
