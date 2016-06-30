@@ -28,7 +28,7 @@ class SixPlayIE(InfoExtractor):
             video_id)
         video_data = clip_data['videoInfo']
 
-        preference = qualities(['lq', 'sd', 'hq', 'hd'])
+        quality_key = qualities(['lq', 'sd', 'hq', 'hd'])
         formats = []
         for source in clip_data['sources']:
             source_type, source_url = source.get('type'), source.get('src')
@@ -46,7 +46,7 @@ class SixPlayIE(InfoExtractor):
                 formats.append({
                     'url': source_url,
                     'format_id': quality,
-                    'preference': preference(quality),
+                    'quality': quality_key(quality),
                 })
         self._sort_formats(formats)
 
