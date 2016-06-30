@@ -10,8 +10,8 @@ from ..utils import (
 
 
 class METAIE(InfoExtractor):
-    _VALID_URL = r'https?://video\.meta\.ua/(?P<id>[0-9]+)'
-    _TEST = {
+    _VALID_URL = r'https?://video\.meta\.ua/(?:iframe/)?(?P<id>[0-9]+)'
+    _TESTS = [{
         'url': 'http://video.meta.ua/5502115.video',
         'md5': '71b6f3ee274bef16f1ab410f7f56b476',
         'info_dict': {
@@ -24,7 +24,10 @@ class METAIE(InfoExtractor):
             'upload_date': '20130211',
         },
         'add_ie': ['Youtube'],
-    }
+    }, {
+        'url': 'http://video.meta.ua/iframe/5502115',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
