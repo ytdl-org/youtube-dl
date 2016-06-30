@@ -41,6 +41,7 @@ from .compat import (
 from .utils import (
     age_restricted,
     args_to_str,
+    auto_str_to_int_fmt,
     ContentTooShortError,
     date_from_str,
     DateRange,
@@ -588,7 +589,7 @@ class YoutubeDL(object):
 
             outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
             tmpl = compat_expanduser(outtmpl)
-            filename = tmpl % template_dict
+            filename = auto_str_to_int_fmt(tmpl, template_dict)
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
             # to workaround encoding issues with subprocess on python2 @ Windows

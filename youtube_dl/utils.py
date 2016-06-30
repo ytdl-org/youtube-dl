@@ -2903,3 +2903,23 @@ def parse_m3u8_attributes(attrib):
 
 def urshift(val, n):
     return val >> n if val >= 0 else (val + 0x100000000) >> n
+
+
+def auto_str_to_int_fmt(fmt, input):
+    """
+    String formatting similar to '%' formatting, but supporting strings in the input for the 'd' conversion type.
+    """
+
+    regex_split = "(%\(\w+\)[0-9]*d)"
+    regex_grouped = "%\((\w+)\)[0-9]*d"
+    result = []
+
+    for s in re.split(regex_split, fmt):
+        match = re.match(regex_grouped, s)
+        if match is None:
+            result.append(s)
+        else:
+            mapping_key = match.group(1)
+            result.append(s % { mapping_key: int(input[mapping_key]) })
+
+    return "".join(result) % input

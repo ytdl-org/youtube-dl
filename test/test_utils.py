@@ -33,6 +33,7 @@ from youtube_dl.utils import (
     ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
+    auto_str_to_int_fmt,
     InAdvancePagedList,
     intlist_to_bytes,
     is_html,
@@ -984,6 +985,17 @@ The first line
     def test_urshift(self):
         self.assertEqual(urshift(3, 1), 1)
         self.assertEqual(urshift(-3, 1), 2147483646)
+
+    def test_auto_str_to_int_fmt(self):
+        input = {"foo": "bar",
+                 "number": 1234,
+                 "s_number": "001234"}
+
+        self.assertEqual(auto_str_to_int_fmt("%(foo)s", input), "bar")
+        self.assertEqual(auto_str_to_int_fmt("%(number)d", input), "1234")
+        self.assertEqual(auto_str_to_int_fmt("%(s_number)d", input), "1234")
+        self.assertEqual(auto_str_to_int_fmt("%(s_number)07d", input), "0001234")
+        self.assertEqual(auto_str_to_int_fmt("%(foo)s%(number)d-%(s_number)d", input), "bar1234-1234")
 
 if __name__ == '__main__':
     unittest.main()
