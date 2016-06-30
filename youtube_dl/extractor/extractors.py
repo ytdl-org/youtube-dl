@@ -171,6 +171,7 @@ from .crunchyroll import (
 )
 from .cspan import CSpanIE
 from .ctsnews import CtsNewsIE
+from .ctvnews import CTVNewsIE
 from .cultureunplugged import CultureUnpluggedIE
 from .cwtv import CWTVIE
 from .dailymail import DailyMailIE
