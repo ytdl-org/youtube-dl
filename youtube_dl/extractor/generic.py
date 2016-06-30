@@ -2098,7 +2098,7 @@ class GenericIE(InfoExtractor):
             }
 
         # https://dev.twitter.com/cards/types/player#On_twitter.com_via_desktop_browser
-        embed_url = self._twitter_search_player(webpage)
+        embed_url = self._html_search_meta('twitter:player', webpage, default=None)
         if embed_url:
             return self.url_result(embed_url)
 
