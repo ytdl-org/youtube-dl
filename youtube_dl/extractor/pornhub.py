@@ -63,7 +63,16 @@ class PornHubIE(InfoExtractor):
         'url': 'http://www.pornhub.com/view_video.php?viewkey=ph557bbb6676d2d',
         'only_matching': True,
     }, {
+        # removed at the request of cam4.com
         'url': 'http://fr.pornhub.com/view_video.php?viewkey=ph55ca2f9760862',
+        'only_matching': True,
+    }, {
+        # removed at the request of the copyright owner
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=788152859',
+        'only_matching': True,
+    }, {
+        # removed by uploader
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=ph572716d15a111',
         'only_matching': True,
     }]
 
