@@ -1245,6 +1245,22 @@ class GenericIE(InfoExtractor):
                 'uploader': 'www.hudl.com',
             },
         },
+        # twitter:player embed
+        {
+            'url': 'http://www.theatlantic.com/video/index/484130/what-do-black-holes-sound-like/',
+            'md5': 'a3e0df96369831de324f0778e126653c',
+            'info_dict': {
+                'id': '4909620399001',
+                'ext': 'mp4',
+                'title': 'What Do Black Holes Sound Like?',
+                'description': 'what do black holes sound like',
+                'upload_date': '20160524',
+                'uploader_id': '29913724001',
+                'timestamp': 1464107587,
+                'uploader': 'TheAtlantic',
+            },
+            'add_ie': ['BrightcoveLegacy'],
+        }
     ]
 
     def report_following_redirect(self, new_url):
@@ -2080,6 +2096,11 @@ class GenericIE(InfoExtractor):
                 'thumbnail': video_thumbnail,
                 'uploader': video_uploader,
             }
+
+        # https://dev.twitter.com/cards/types/player#On_twitter.com_via_desktop_browser
+        embed_url = self._twitter_search_player(webpage)
+        if embed_url:
+            return self.url_result(embed_url)
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
