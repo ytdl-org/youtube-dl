@@ -22,7 +22,7 @@ class URPlayIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
         urplayer_data = self._parse_json(self._search_regex(
-            r'urPlayer.init\(({.+?})\);', webpage, 'urplayer data'), video_id)
+            r'urPlayer\.init\(({.+?})\);', webpage, 'urplayer data'), video_id)
         host = self._download_json('http://streaming-loadbalancer.ur.se/loadbalancer.json', video_id)['redirect']
 
         formats = []
