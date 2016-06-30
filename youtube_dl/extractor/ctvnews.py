@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import orderedSet
 
 
 class CTVNewsIE(InfoExtractor):
@@ -27,12 +28,12 @@ class CTVNewsIE(InfoExtractor):
         },
         'playlist_mincount': 19,
     }, {
-        'url': 'http://www.ctvnews.ca/video?binId=1.810401',
+        'url': 'http://www.ctvnews.ca/video?binId=1.2876780',
         'info_dict':
         {
-            'id': '1.810401',
+            'id': '1.2876780',
         },
-        'playlist_mincount': 91,
+        'playlist_mincount': 100,
     }, {
         'url': 'http://www.ctvnews.ca/1.810401',
         'only_matching': True,
@@ -57,8 +58,8 @@ class CTVNewsIE(InfoExtractor):
         else:
             webpage = self._download_webpage('http://www.ctvnews.ca/%s' % page_id, page_id, query={
                 'ot': 'example.AjaxPageLayout.ot',
-                'maxItemsPerPage': 20,
+                'maxItemsPerPage': 1000000,
             })
-            entries = [ninecninemedia_url_result(clip_id) for clip_id in set(
+            entries = [ninecninemedia_url_result(clip_id) for clip_id in orderedSet(
                 re.findall(r'clip\.id\s*=\s*(\d+);', webpage))]
             return self.playlist_result(entries, page_id)
