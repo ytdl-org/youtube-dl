@@ -42,6 +42,7 @@ class METAIE(InfoExtractor):
             r"st_html5\s*=\s*'#([^']+)'", webpage, 'uppod html5 st', default=None)
 
         if st_html5:
+            # uppod st decryption algorithm is reverse engineered from function un(s) at uppod.js
             json_str = ''
             for i in range(0, len(st_html5), 3):
                 json_str += '&#x0%s;' % st_html5[i:i + 3]
