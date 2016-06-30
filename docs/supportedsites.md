@@ -152,6 +152,8 @@
  - **CSNNE**
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
+ - **CTV**
+ - **CTVNews**
  - **culturebox.francetvinfo.fr**
  - **CultureUnplugged**
  - **CWTV**
@@ -440,6 +442,7 @@
  - **nick.de**
  - **niconico**: ニコニコ動画
  - **NiconicoPlaylist**
+ - **NineCNineMedia**
  - **njoy**: N-JOY
  - **njoy:embed**
  - **Noco**
