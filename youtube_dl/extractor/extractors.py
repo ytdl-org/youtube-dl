@@ -281,6 +281,7 @@ from .freespeech import FreespeechIE
 from .freevideo import FreeVideoIE
 from .funimation import FunimationIE
 from .funnyordie import FunnyOrDieIE
+from .fusion import FusionIE
 from .gameinformer import GameInformerIE
 from .gamekings import GamekingsIE
 from .gameone import (
