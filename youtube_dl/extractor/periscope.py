@@ -122,7 +122,7 @@ class PeriscopeUserIE(InfoExtractor):
 
         entries = [
             self.url_result(
-                'https://www.periscope.tv/%s/%s' % (user_id, broadcast['id']))
-            for broadcast in data_store.get('UserBroadcastHistory', {}).get('broadcasts', [])]
+                'https://www.periscope.tv/%s/%s' % (user_id, broadcast))
+            for broadcast in data_store.get('UserBroadcastHistory', {}).get('broadcastIds', [])]
 
         return self.playlist_result(entries, user_id, title, description)
