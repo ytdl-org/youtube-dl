@@ -61,7 +61,6 @@ See the <a href="https://pypi.python.org/pypi/youtube_dl">pypi page</a> for more
 <p>The following GPG keys will be used to sign the binaries and the git tags:</p>
 <ul>
 <li><strong>4096R/A4826A18</strong> Philipp Hagemeister <code>Key fingerprint = 7D33 D762 FD6C 3513 0481  347F DB4B 54CB A482 6A18</code></li>
-<li><strong>4096R/BCF05F6B</strong> Filippo Valsorda <code>Key fingerprint = 428D F5D6 3EF0 7494 BB45  5AC0 EBF0 1804 BCF0 5F6B</code></li>
 <li><strong>4096R/18A9236D</strong> Sergey M. <code>Key fingerprint = ED7F 5BF4 6B3B BED8 1C87  368E 2C39 3E0F 18A9 236D</code></li>
 </ul>
 
@@ -70,6 +69,7 @@ See the <a href="https://pypi.python.org/pypi/youtube_dl">pypi page</a> for more
 <ul>
 <li><strong>1024D/FAFB085C</strong> Philipp Hagemeister <code>Key fingerprint = 0600 E1DB 6FB5 3A5D 95D8  FC0D F5EA B582 FAFB 085C</code> (until 2013-06-01)</li>
 </li>
+<li><strong>4096R/BCF05F6B</strong> Filippo Valsorda <code>Key fingerprint = 428D F5D6 3EF0 7494 BB45  5AC0 EBF0 1804 BCF0 5F6B</code> (until 2014)</li>
 </p>
 
 <div class="note">
