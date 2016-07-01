@@ -93,7 +93,7 @@ class VineIE(InfoExtractor):
                 r'window\.POST_DATA\s*=\s*({.+?});\s*</script>',
                 webpage, 'vine data'),
             video_id)
-        
+
         data = data[list(data.keys())[0]]
 
         formats = [{
