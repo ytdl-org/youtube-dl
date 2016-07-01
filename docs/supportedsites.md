@@ -242,6 +242,7 @@
  - **FreeVideo**
  - **Funimation**
  - **FunnyOrDie**
+ - **Fusion**
  - **GameInformer**
  - **Gamekings**
  - **GameOne**
@@ -508,7 +509,7 @@
  - **podomatic**
  - **PolskieRadio**
  - **PornHd**
- - **PornHub**
+ - **PornHub**: PornHub and Thumbzilla
  - **PornHubPlaylist**
  - **PornHubUserVideos**
  - **Pornotube**
