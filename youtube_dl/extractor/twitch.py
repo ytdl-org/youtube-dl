@@ -29,7 +29,7 @@ class TwitchBaseIE(InfoExtractor):
     _VALID_URL_BASE = r'https?://(?:www\.)?twitch\.tv'
 
     _API_BASE = 'https://api.twitch.tv'
-    _USHER_BASE = 'http://usher.twitch.tv'
+    _USHER_BASE = 'https://usher.ttvnw.net'
     _LOGIN_URL = 'http://www.twitch.tv/login'
     _NETRC_MACHINE = 'twitch'
 
