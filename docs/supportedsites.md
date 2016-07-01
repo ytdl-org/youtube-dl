@@ -152,6 +152,8 @@
  - **CSNNE**
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
+ - **CTV**
+ - **CTVNews**
  - **culturebox.francetvinfo.fr**
  - **CultureUnplugged**
  - **CWTV**
@@ -272,6 +274,7 @@
  - **Helsinki**: helsinki.fi
  - **HentaiStigma**
  - **HistoricFilms**
+ - **history:topic**: History.com Topic
  - **hitbox**
  - **hitbox:live**
  - **HornBunny**
@@ -358,6 +361,7 @@
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
+ - **META**
  - **metacafe**
  - **Metacritic**
  - **Mgoon**
@@ -438,6 +442,7 @@
  - **nick.de**
  - **niconico**: ニコニコ動画
  - **NiconicoPlaylist**
+ - **NineCNineMedia**
  - **njoy**: N-JOY
  - **njoy:embed**
  - **Noco**
@@ -587,8 +592,10 @@
  - **Shared**: shared.sx and vivo.sx
  - **ShareSix**
  - **Sina**
+ - **SixPlay**
  - **skynewsarabia:article**
  - **skynewsarabia:video**
+ - **SkySports**
  - **Slideshare**
  - **Slutload**
  - **smotri**: Smotri.com
@@ -721,6 +728,7 @@
  - **UDNEmbed**: 聯合影音
  - **Unistra**
  - **Urort**: NRK P3 Urørt
+ - **URPlay**
  - **USAToday**
  - **ustream**
  - **ustream:channel**

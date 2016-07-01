@@ -65,6 +65,7 @@ from .threeqsdn import ThreeQSDNIE
 from .theplatform import ThePlatformIE
 from .vessel import VesselIE
 from .kaltura import KalturaIE
+from .eagleplatform import EaglePlatformIE
 
 
 class GenericIE(InfoExtractor):
@@ -1244,6 +1245,22 @@ class GenericIE(InfoExtractor):
                 'uploader': 'www.hudl.com',
             },
         },
+        # twitter:player embed
+        {
+            'url': 'http://www.theatlantic.com/video/index/484130/what-do-black-holes-sound-like/',
+            'md5': 'a3e0df96369831de324f0778e126653c',
+            'info_dict': {
+                'id': '4909620399001',
+                'ext': 'mp4',
+                'title': 'What Do Black Holes Sound Like?',
+                'description': 'what do black holes sound like',
+                'upload_date': '20160524',
+                'uploader_id': '29913724001',
+                'timestamp': 1464107587,
+                'uploader': 'TheAtlantic',
+            },
+            'add_ie': ['BrightcoveLegacy'],
+        }
     ]
 
     def report_following_redirect(self, new_url):
@@ -1932,10 +1949,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(smuggle_url(kaltura_url, {'source_url': url}), KalturaIE.ie_key())
 
         # Look for Eagle.Platform embeds
-        mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://.+?\.media\.eagleplatform\.com/index/player\?.+?)"', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'EaglePlatform')
+        eagleplatform_url = EaglePlatformIE._extract_url(webpage)
+        if eagleplatform_url:
+            return self.url_result(eagleplatform_url, EaglePlatformIE.ie_key())
 
         # Look for ClipYou (uses Eagle.Platform) embeds
         mobj = re.search(
@@ -2080,6 +2096,11 @@ class GenericIE(InfoExtractor):
                 'thumbnail': video_thumbnail,
                 'uploader': video_uploader,
             }
+
+        # https://dev.twitter.com/cards/types/player#On_twitter.com_via_desktop_browser
+        embed_url = self._html_search_meta('twitter:player', webpage, default=None)
+        if embed_url:
+            return self.url_result(embed_url)
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

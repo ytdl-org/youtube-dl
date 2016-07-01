@@ -63,7 +63,16 @@ class PornHubIE(InfoExtractor):
         'url': 'http://www.pornhub.com/view_video.php?viewkey=ph557bbb6676d2d',
         'only_matching': True,
     }, {
+        # removed at the request of cam4.com
         'url': 'http://fr.pornhub.com/view_video.php?viewkey=ph55ca2f9760862',
+        'only_matching': True,
+    }, {
+        # removed at the request of the copyright owner
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=788152859',
+        'only_matching': True,
+    }, {
+        # removed by uploader
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=ph572716d15a111',
         'only_matching': True,
     }]
 
@@ -87,8 +96,8 @@ class PornHubIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         error_msg = self._html_search_regex(
-            r'(?s)<div class="userMessageSection[^"]*".*?>(.*?)</div>',
-            webpage, 'error message', default=None)
+            r'(?s)<div[^>]+class=(["\']).*?\bremoved\b.*?\1[^>]*>(?P<error>.+?)</div>',
+            webpage, 'error message', default=None, group='error')
         if error_msg:
             error_msg = re.sub(r'\s+', ' ', error_msg)
             raise ExtractorError(
