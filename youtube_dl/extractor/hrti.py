@@ -2,148 +2,201 @@
 from __future__ import unicode_literals
 
 import json
+import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_HTTPError
-)
+from ..compat import compat_HTTPError
 from ..utils import (
+    clean_html,
+    ExtractorError,
+    int_or_none,
+    parse_age_limit,
     sanitized_Request,
-    ExtractorError
+    try_get,
 )
 
 
-class HRTiIE(InfoExtractor):
-    '''
-    Information Extractor for Croatian Radiotelevision video on demand site
-    https://hrti.hrt.hr
-    Reverse engineered from the JavaScript app in app.min.js
-    '''
+class HRTiBaseIE(InfoExtractor):
+    """
+        Base Information Extractor for Croatian Radiotelevision
+        video on demand site https://hrti.hrt.hr
+        Reverse engineered from the JavaScript app in app.min.js
+    """
     _NETRC_MACHINE = 'hrti'
 
-    APP_LANGUAGE = 'hr'
-    APP_VERSION = '1.1'
-    APP_PUBLICATION_ID = 'all_in_one'
-
-    _VALID_URL = r'https?://hrti.hrt.hr/#/video/show/(?P<id>[0-9]+)/(?P<name>(\w|-)+)?'
-    _TEST = {
-        'url': 'https://hrti.hrt.hr/#/video/show/2181385/republika-dokumentarna-serija-16-hd',
-        'info_dict': {
-            'id': '2181385',
-            'ext': 'mp4',
-            'name': 'REPUBLIKA, dokumentarna serija (4_6)-2251938',
-        },
-        'skip': 'Requires login'
-    }
+    _APP_LANGUAGE = 'hr'
+    _APP_VERSION = '1.1'
+    _APP_PUBLICATION_ID = 'all_in_one'
+    _API_URL = 'http://clientapi.hrt.hr/client_api.php/config/identify/format/json'
 
     def _initialize_api(self):
-        '''Initializes the API and obtains the required urls'''
-        api_url = 'http://clientapi.hrt.hr/client_api.php/config/identify/format/json'
-        app_data = json.dumps({
-            'application_publication_id': HRTiIE.APP_PUBLICATION_ID
-        })
-        self.uuid = self._download_json(api_url, None, note='Getting UUID',
-                                        errnote='Unable to obtain an UUID',
-                                        data=app_data)['uuid']
+        init_data = {
+            'application_publication_id': self._APP_PUBLICATION_ID
+        }
 
-        app_data = json.dumps({
-            'uuid': self.uuid,
-            'application_publication_id': HRTiIE.APP_PUBLICATION_ID,
-            'screen_height': 1080,
-            'screen_width': 1920,
-            'os': 'Windows',
-            'os_version': 'NT 4.0',
-            'device_model_string_id': 'chrome 42.0.2311.135',
-            'application_version': HRTiIE.APP_VERSION
-        })
+        uuid = self._download_json(
+            self._API_URL, None, note='Downloading uuid',
+            errnote='Unable to download uuid',
+            data=json.dumps(init_data).encode('utf-8'))['uuid']
 
-        req = sanitized_Request(api_url, data=app_data)
+        app_data = {
+            'uuid': uuid,
+            'application_publication_id': self._APP_PUBLICATION_ID,
+            'application_version': self._APP_VERSION
+        }
+
+        req = sanitized_Request(self._API_URL, data=json.dumps(app_data).encode('utf-8'))
         req.get_method = lambda: 'PUT'
 
         resources = self._download_json(
-            req, None, note='Getting API endpoint and session information',
-            errnote='Unable to get endpoint and session information',
-            headers={'Content-type': 'application/json'})
+            req, None, note='Downloading session information',
+            errnote='Unable to download session information')
 
-        self.session_id = resources['session_id']
+        self._session_id = resources['session_id']
+
         modules = resources['modules']
 
-        self.search_url = modules['vod_catalog']['resources']['search']['uri']
-        self.search_url = self.search_url.format(
-            language=HRTiIE.APP_LANGUAGE,
-            application_id=HRTiIE.APP_PUBLICATION_ID)
+        self._search_url = modules['vod_catalog']['resources']['search']['uri'].format(
+            language=self._APP_LANGUAGE,
+            application_id=self._APP_PUBLICATION_ID)
 
-        self.login_url = modules['user']['resources']['login']['uri']
-        self.login_url = self.login_url.format(session_id=self.session_id)
-        self.login_url += '/format/json'
+        self._login_url = (modules['user']['resources']['login']['uri'] +
+                           '/format/json').format(session_id=self._session_id)
 
-        self.logout_url = modules['user']['resources']['logout']['uri']
+        self._logout_url = modules['user']['resources']['logout']['uri']
 
     def _login(self):
-        '''Performs a login to the webservice'''
         (username, password) = self._get_login_info()
-
+        # TODO: figure out authentication with cookies
         if username is None or password is None:
             self.raise_login_required()
 
-        auth_data = json.dumps({
+        auth_data = {
             'username': username,
             'password': password,
-        })
+        }
+
         try:
             auth_info = self._download_json(
-                self.login_url, None, note='Authenticating',
-                errnote='Unable to log in', data=auth_data)
-        except ExtractorError as ee:
-            if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 406:
-                raise ExtractorError('Unable to login, ' +
-                                     'incorrect username and/or password')
-            raise
+                self._login_url, None, note='Logging in', errnote='Unable to log in',
+                data=json.dumps(auth_data).encode('utf-8'))
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 406:
+                auth_info = self._parse_json(e.cause.read().encode('utf-8'), None)
+            else:
+                raise
 
-        self.token = auth_info['secure_streaming_token']
-        self.access_token = auth_info['session_token']
+        error_message = auth_info.get('error', {}).get('message')
+        if error_message:
+            raise ExtractorError(
+                '%s said: %s' % (self.IE_NAME, error_message),
+                expected=True)
 
-        self.logout_url = self.logout_url.format(session_id=self.session_id,
-                                                 access_token=self.access_token)
-        self.logout_url += '/format/json'
+        self._token = auth_info['secure_streaming_token']
 
     def _real_initialize(self):
-        '''Performs necessary operations so that the information extractor is
-        ready for operation'''
         self._initialize_api()
         self._login()
 
-    def _logout(self):
-        '''Performs logout from the webservice'''
-        self._download_json(self.logout_url, None, note='Logout',
-                            errnote='Unable to log out', fatal=False)
+
+class HRTiIE(HRTiBaseIE):
+    _VALID_URL = r'''(?x)
+                        (?:
+                            hrti:(?P<short_id>[0-9]+)|
+                            https?://
+                                hrti\.hrt\.hr/\#/video/show/(?P<id>[0-9]+)/(?P<display_id>[^/]+)?
+                        )
+                    '''
+    _TESTS = [{
+        'url': 'https://hrti.hrt.hr/#/video/show/2181385/republika-dokumentarna-serija-16-hd',
+        'info_dict': {
+            'id': '2181385',
+            'display_id': 'republika-dokumentarna-serija-16-hd',
+            'ext': 'mp4',
+            'title': 'REPUBLIKA, dokumentarna serija (1/6) (HD)',
+            'description': 'md5:48af85f620e8e0e1df4096270568544f',
+            'duration': 2922,
+            'view_count': int,
+            'average_rating': int,
+            'episode_number': int,
+            'season_number': int,
+            'age_limit': 12,
+        },
+        'skip': 'Requires account credentials',
+    }, {
+        'url': 'https://hrti.hrt.hr/#/video/show/2181385/',
+        'only_matching': True,
+    }, {
+        'url': 'hrti:2181385',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
-        '''Extract the data necessary to download the video'''
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('short_id') or mobj.group('id')
+        display_id = mobj.group('display_id') or video_id
 
-        metadata_url = self.search_url + \
-            '/video_id/{video_id}/format/json'.format(video_id=video_id)
+        video = self._download_json(
+            '%s/video_id/%s/format/json' % (self._search_url, video_id),
+            display_id, 'Downloading video metadata JSON')['video'][0]
 
-        metadata = self._download_json(metadata_url, video_id,
-                                       note='Getting video metadata')
-        video = metadata['video'][0]
-        title_info = video.get('title', {})
-        title = title_info.get('title_long')
-        description = title_info.get('summary_long')
+        title_info = video['title']
+        title = title_info['title_long']
 
         movie = video['video_assets']['movie'][0]
-        url = movie['url'].format(TOKEN=self.token)
-
-        formats = self._extract_m3u8_formats(url, video_id, 'mp4')
-
+        m3u8_url = movie['url'].format(TOKEN=self._token)
+        formats = self._extract_m3u8_formats(
+            m3u8_url, display_id, 'mp4', entry_protocol='m3u8_native',
+            m3u8_id='hls')
         self._sort_formats(formats)
 
-        self._logout()
+        description = clean_html(title_info.get('summary_long'))
+        age_limit = parse_age_limit(video.get('parental_control', {}).get('rating'))
+        view_count = int_or_none(video.get('views'))
+        average_rating = int_or_none(video.get('user_rating'))
+        duration = int_or_none(movie.get('duration'))
 
         return {
             'id': video_id,
+            'display_id': display_id,
             'title': title,
             'description': description,
+            'duration': duration,
+            'view_count': view_count,
+            'average_rating': average_rating,
+            'age_limit': age_limit,
             'formats': formats,
         }
+
+
+class HRTiPlaylistIE(HRTiBaseIE):
+    _VALID_URL = r'https?://hrti.hrt.hr/#/video/list/category/(?P<id>[0-9]+)/(?P<display_id>[^/]+)?'
+    _TESTS = [{
+        'url': 'https://hrti.hrt.hr/#/video/list/category/212/ekumena',
+        'info_dict': {
+            'id': '212',
+            'title': 'ekumena',
+        },
+        'playlist_mincount': 8,
+        'skip': 'Requires account credentials',
+    }, {
+        'url': 'https://hrti.hrt.hr/#/video/list/category/212/',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        category_id = mobj.group('id')
+        display_id = mobj.group('display_id') or category_id
+
+        response = self._download_json(
+            '%s/category_id/%s/format/json' % (self._search_url, category_id),
+            display_id, 'Downloading video metadata JSON')
+
+        video_ids = try_get(
+            response, lambda x: x['video_listings'][0]['alternatives'][0]['list'],
+            list) or [video['id'] for video in response.get('videos', []) if video.get('id')]
+
+        entries = [self.url_result('hrti:%s' % category_id) for category_id in video_ids]
+
+        return self.playlist_result(entries, category_id, display_id)
