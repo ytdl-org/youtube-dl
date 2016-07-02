@@ -326,6 +326,7 @@ from .hotnewhiphop import HotNewHipHopIE
 from .hotstar import HotStarIE
 from .howcast import HowcastIE
 from .howstuffworks import HowStuffWorksIE
+from .hrti import HRTiIE
 from .huffpost import HuffPostIE
 from .hypem import HypemIE
 from .iconosquare import IconosquareIE

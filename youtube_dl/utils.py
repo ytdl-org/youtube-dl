@@ -1926,6 +1926,8 @@ def update_Request(req, url=None, data=None, headers={}, query={}):
         origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
     if hasattr(req, 'timeout'):
         new_req.timeout = req.timeout
+    if req.get_method() == 'PUT':
+        new_req.get_method = lambda : 'PUT'
     return new_req
 
 
