@@ -140,7 +140,7 @@ class FacebookIE(InfoExtractor):
         # see https://developers.facebook.com/docs/plugins/embedded-video-player
         mobj = re.search(r'''(?x)<div[^>]+
                 class=(?P<q1>[\'"])[^\'"]*\bfb-video\b[^\'"]*(?P=q1)[^>]+
-                data-href=(?P<q2>[\'"])(?P<url>[^\'"]+)(?P=q2)''', webpage)
+                data-href=(?P<q2>[\'"])(?P<url>(?:https?:)?//(?:www\.)?facebook.com/.+?)(?P=q2)''', webpage)
         if mobj is not None:
             return mobj.group('url')
 
