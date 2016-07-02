@@ -2,21 +2,27 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    unified_strdate,
+    unified_timestamp,
+)
 
+import re
 
 class FranceInterIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?franceinter\.fr/player/reecouter\?play=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?franceinter\.fr/emissions/(?P<id>[^?#]+)'
+
     _TEST = {
-        'url': 'http://www.franceinter.fr/player/reecouter?play=793962',
-        'md5': '4764932e466e6f6c79c317d2e74f6884',
+        'url': 'https://www.franceinter.fr/emissions/la-tete-au-carre/la-tete-au-carre-30-juin-2016',
+        'md5': 'f13e4371662cf5a829f64d829ae78062',
         'info_dict': {
-            'id': '793962',
+            'id': 'la-tete-au-carre/la-tete-au-carre-30-juin-2016',
             'ext': 'mp3',
-            'title': 'L’Histoire dans les jeux vidéo',
-            'description': 'md5:7e93ddb4451e7530022792240a3049c7',
-            'timestamp': 1387369800,
-            'upload_date': '20131218',
+            'title': 'Regards sur le sport du 30 juin 2016 - France Inter',
+            'description': 'UEFA Europa, Jeux Olympiques... La période est aux sports, dans les gradins ou devant les écrans. Mais quel est le regard des spécialistes sur cette pratique? ',
+            'timestamp': 1467244800,
+            'upload_date': '20160630',
         },
     }
 
@@ -25,17 +31,18 @@ class FranceInterIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        path = self._search_regex(
-            r'<a id="player".+?href="([^"]+)"', webpage, 'video url')
-        video_url = 'http://www.franceinter.fr/' + path
+        video_url = self._search_regex(
+            r'<button class="replay-button playable" data-is-aod="1" data-url="([^"]+)"', webpage, 'video url')
 
-        title = self._html_search_regex(
-            r'<span class="title-diffusion">(.+?)</span>', webpage, 'title')
-        description = self._html_search_regex(
-            r'<span class="description">(.*?)</span>',
-            webpage, 'description', fatal=False)
-        timestamp = int_or_none(self._search_regex(
-            r'data-date="(\d+)"', webpage, 'upload date', fatal=False))
+        title = self._og_search_title(webpage)
+        description = self._og_search_description(webpage)
+        
+        extractdate = self._search_regex(
+            r'([0-9]+[.][0-9]+[.][0-9]+)', video_url, 'extractdate', fatal=False)
+        
+        timestamp = unified_timestamp(extractdate)
+            
+        upload_date = (unified_strdate(extractdate))
 
         return {
             'id': video_id,
