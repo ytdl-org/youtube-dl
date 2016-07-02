@@ -26,7 +26,6 @@ class XTubeIE(InfoExtractor):
             'title': 'strange erotica',
             'description': 'contains:an ET kind of thing',
             'uploader': 'greenshowers',
-            'duration': 450,
             'age_limit': 18,
         }
     }, {
@@ -51,38 +50,39 @@ class XTubeIE(InfoExtractor):
         req.add_header('Cookie', 'age_verified=1; cookiesAccepted=1')
         webpage = self._download_webpage(req, display_id)
 
-        flashvars = self._parse_json(
-            self._search_regex(
-                r'xt\.playerOps\s*=\s*({.+?});', webpage, 'player ops'),
-            video_id)['flashvars']
+        sources = self._search_regex(r'sources:\s*({.+?}),', webpage, 'sources')
 
-        title = flashvars.get('title') or self._search_regex(
-            r'<h1>([^<]+)</h1>', webpage, 'title')
-        video_url = compat_urllib_parse_unquote(flashvars['video_url'])
-        duration = int_or_none(flashvars.get('video_duration'))
+        sourcesdict = self._parse_json(sources, video_id)
+
+        formats = []
+        for formatkey in sourcesdict.keys():
+            curformat = {}
+            curformat['height'] = int(formatkey)
+            curformat['url'] = sourcesdict[formatkey]
+            formats.append(curformat)
+            
+        formats = self._sort_formats(formats)
+
+        title = self._search_regex(
+            r'videoTitle:\s*\'(.+?)\',', webpage, 'title')
 
         uploader = self._search_regex(
-            r'<input[^>]+name="contentOwnerId"[^>]+value="([^"]+)"',
+            r'<span class=\"nickname\">([^<]+)',
             webpage, 'uploader', fatal=False)
         description = self._search_regex(
             r'</h1>\s*<p>([^<]+)', webpage, 'description', fatal=False)
         view_count = str_to_int(self._search_regex(
             r'<dt>Views:</dt>\s*<dd>([\d,\.]+)</dd>',
             webpage, 'view count', fatal=False))
-        comment_count = str_to_int(self._html_search_regex(
-            r'>Comments? \(([\d,\.]+)\)<',
-            webpage, 'comment count', fatal=False))
 
         return {
             'id': video_id,
             'display_id': display_id,
-            'url': video_url,
+            'formats': formats,
             'title': title,
             'description': description,
             'uploader': uploader,
-            'duration': duration,
             'view_count': view_count,
-            'comment_count': comment_count,
             'age_limit': 18,
         }
 
