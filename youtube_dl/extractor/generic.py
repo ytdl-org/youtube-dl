@@ -66,6 +66,7 @@ from .theplatform import ThePlatformIE
 from .vessel import VesselIE
 from .kaltura import KalturaIE
 from .eagleplatform import EaglePlatformIE
+from .facebook import FacebookIE
 
 
 class GenericIE(InfoExtractor):
@@ -1260,6 +1261,24 @@ class GenericIE(InfoExtractor):
                 'uploader': 'TheAtlantic',
             },
             'add_ie': ['BrightcoveLegacy'],
+        },
+        # Facebook <iframe> embed
+        {
+            'url': 'https://www.hostblogger.de/blog/archives/6181-Auto-jagt-Betonmischer.html',
+            'info_dict': {
+                'id': '599637780109885',
+                'ext': 'mp4',
+                'title': 'Facebook video #599637780109885',
+            },
+        },
+        # Facebook API embed
+        {
+            'url': 'http://www.lothype.com/blue-stars-2016-preview-standstill-full-show/',
+            'info_dict': {
+                'id': '10153467542406923',
+                'ext': 'mp4',
+                'title': 'Facebook video #10153467542406923',
+            },
         }
     ]
 
@@ -1759,10 +1778,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'))
 
         # Look for embedded Facebook player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https://www\.facebook\.com/video/embed.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Facebook')
+        facebook_url = FacebookIE._extract_url(webpage)
+        if facebook_url is not None:
+            return self.url_result(facebook_url, 'Facebook')
 
         # Look for embedded VK player
         mobj = re.search(r'<iframe[^>]+?src=(["\'])(?P<url>https?://vk\.com/video_ext\.php.+?)\1', webpage)

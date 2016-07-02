@@ -129,6 +129,21 @@ class FacebookIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>https://www\.facebook\.com/video/embed.+?)\1', webpage)
+        if mobj is not None:
+            return mobj.group('url')
+
+        # Facebook API embed
+        # see https://developers.facebook.com/docs/plugins/embedded-video-player
+        mobj = re.search(r'''(?x)<div[^>]+
+                class=(?P<q1>[\'"])[^\'"]*\bfb-video\b[^\'"]*(?P=q1)[^>]+
+                data-href=(?P<q2>[\'"])(?P<url>[^\'"]+)(?P=q2)''', webpage)
+        if mobj is not None:
+            return mobj.group('url')
+
     def _login(self):
         (useremail, password) = self._get_login_info()
         if useremail is None:
