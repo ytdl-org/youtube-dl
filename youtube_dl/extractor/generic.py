@@ -1279,7 +1279,19 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Facebook video #10153467542406923',
             },
-        }
+        },
+        # Wordpress "YouTube Video Importer" plugin
+        {
+            'url': 'http://www.lothype.com/blue-devils-drumline-stanford-lot-2016/',
+            'info_dict': {
+                'id': 'HNTXWDXV9Is',
+                'ext': 'mp4',
+                'title': 'Blue Devils Drumline Stanford lot 2016',
+                'upload_date': '20160627',
+                'uploader_id': 'GENOCIDE8GENERAL10',
+                'uploader': 'cylus cyrus',
+            },
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -1635,6 +1647,13 @@ class GenericIE(InfoExtractor):
             r'class="lazyYT" data-youtube-id="([^"]+)"', webpage)
         if matches:
             return _playlist_from_matches(matches, lambda m: unescapeHTML(m))
+
+        # Look for Wordpress "YouTube Video Importer" plugin
+        matches = re.findall(r'''(?x)<div[^>]+
+            class=(?P<q1>[\'"])[^\'"]*\byvii_single_video_player\b[^\'"]*(?P=q1)[^>]+
+            data-video_id=(?P<q2>[\'"])([^\'"]+)(?P=q2)''', webpage)
+        if matches:
+            return _playlist_from_matches(matches, lambda m: m[-1])
 
         # Look for embedded Dailymotion player
         matches = re.findall(
