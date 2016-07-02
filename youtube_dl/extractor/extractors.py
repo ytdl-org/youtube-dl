@@ -522,6 +522,7 @@ from .nick import (
 )
 from .niconico import NiconicoIE, NiconicoPlaylistIE
 from .ninegag import NineGagIE
+from .nintendo import NintendoIE
 from .noco import NocoIE
 from .normalboots import NormalbootsIE
 from .nosvideo import NosVideoIE
