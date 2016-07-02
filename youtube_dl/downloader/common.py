@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import time
+import random
 
 from ..compat import compat_os_name
 from ..utils import (
@@ -343,6 +344,12 @@ class FileDownloader(object):
             return True
 
         sleep_interval = self.params.get('sleep_interval')
+        if '-' in sleep_interval:
+            try:
+                start, stop = sleep_interval.split('-')
+                sleep_interval = random.randrange(int(start), int(stop))
+            except ValueError:
+                raise ValueError("Invalid range 'a-b' provided, expected 'a' to be integer less than 'b'")
         if sleep_interval:
             self.to_screen('[download] Sleeping %s seconds...' % sleep_interval)
             time.sleep(sleep_interval)
