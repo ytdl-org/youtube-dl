@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
+from .theplatform import ThePlatformIE
 from ..utils import (
     smuggle_url,
     update_url_query,
@@ -15,28 +15,15 @@ from ..compat import (
 )
 
 
-class AENetworksBaseIE(InfoExtractor):
-    def theplatform_url_result(self, theplatform_url, video_id, query):
-        return {
-            '_type': 'url_transparent',
-            'id': video_id,
-            'url': smuggle_url(
-                update_url_query(theplatform_url, query),
-                {
-                    'sig': {
-                        'key': 'crazyjava',
-                        'secret': 's3cr3t'
-                    },
-                    'force_smil_url': True
-                }),
-            'ie_key': 'ThePlatform',
-        }
+class AENetworksBaseIE(ThePlatformIE):
+    _THEPLATFORM_KEY = 'crazyjava'
+    _THEPLATFORM_SECRET = 's3cr3t'
 
 
 class AENetworksIE(AENetworksBaseIE):
     IE_NAME = 'aenetworks'
     IE_DESC = 'A+E Networks: A&E, Lifetime, History.com, FYI Network'
-    _VALID_URL = r'https?://(?:www\.)?(?:(?:history|aetv|mylifetime)\.com|fyi\.tv)/(?:shows/(?P<show_path>[^/]+(?:/[^/]+){0,2})|movies/(?P<movie_display_id>[^/]+)/full-movie)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:history|aetv|mylifetime)\.com|fyi\.tv)/(?:shows/(?P<show_path>[^/]+(?:/[^/]+){0,2})|movies/(?P<movie_display_id>[^/]+)/full-movie)'
     _TESTS = [{
         'url': 'http://www.history.com/shows/mountain-men/season-1/episode-1',
         'md5': '8ff93eb073449f151d6b90c0ae1ef0c7',
@@ -76,9 +63,15 @@ class AENetworksIE(AENetworksBaseIE):
         'url': 'http://www.mylifetime.com/movies/center-stage-on-pointe/full-movie',
         'only_matching': True
     }]
+    _DOMAIN_TO_REQUESTOR_ID = {
+        'history.com': 'HISTORY',
+        'aetv.com': 'AETV',
+        'mylifetime.com': 'LIFETIME',
+        'fyi.tv': 'FYI',
+    }
 
     def _real_extract(self, url):
-        show_path, movie_display_id = re.match(self._VALID_URL, url).groups()
+        domain, show_path, movie_display_id = re.match(self._VALID_URL, url).groups()
         display_id = show_path or movie_display_id
         webpage = self._download_webpage(url, display_id)
         if show_path:
@@ -103,16 +96,32 @@ class AENetworksIE(AENetworksBaseIE):
                         episode_attributes['data-videoid']))
                 return self.playlist_result(
                     entries, self._html_search_meta('aetn:SeasonId', webpage))
+
+        query = {
+            'mbr': 'true',
+            'assetTypes': 'medium_video_s3'
+        }
         video_id = self._html_search_meta('aetn:VideoID', webpage)
         media_url = self._search_regex(
             r"media_url\s*=\s*'([^']+)'", webpage, 'video url')
-
-        info = self._search_json_ld(webpage, video_id, fatal=False)
-        info.update(self.theplatform_url_result(
-            media_url, video_id, {
-                'mbr': 'true',
-                'assetTypes': 'medium_video_s3'
-            }))
+        theplatform_metadata = self._download_theplatform_metadata(self._search_regex(
+            r'https?://link.theplatform.com/s/([^?]+)', media_url, 'theplatform_path'), video_id)
+        info = self._parse_theplatform_metadata(theplatform_metadata)
+        if theplatform_metadata.get('AETN$isBehindWall'):
+            requestor_id = self._DOMAIN_TO_REQUESTOR_ID[domain]
+            resource = '<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/"><channel><title>%s</title><item><title>%s</title><guid>%s</guid><media:rating scheme="urn:v-chip">%s</media:rating></item></channel></rss>' % (requestor_id, theplatform_metadata['title'], theplatform_metadata['AETN$PPL_pplProgramId'], theplatform_metadata['ratings'][0]['rating'])
+            query['auth'] = self._extract_mvpd_auth(
+                url, video_id, requestor_id, resource)
+        info.update(self._search_json_ld(webpage, video_id, fatal=False))
+        media_url = update_url_query(media_url, query)
+        media_url = self._sign_url(media_url, self._THEPLATFORM_KEY, self._THEPLATFORM_SECRET)
+        formats, subtitles = self._extract_theplatform_smil(media_url, video_id)
+        self._sort_formats(formats)
+        info.update({
+            'id': video_id,
+            'formats': formats,
+            'subtitles': subtitles,
+        })
         return info
 
 
@@ -148,6 +157,22 @@ class HistoryTopicIE(AENetworksBaseIE):
         'url': 'http://www.history.com/topics/world-war-i-history/videos',
         'only_matching': True,
     }]
+
+    def theplatform_url_result(self, theplatform_url, video_id, query):
+        return {
+            '_type': 'url_transparent',
+            'id': video_id,
+            'url': smuggle_url(
+                update_url_query(theplatform_url, query),
+                {
+                    'sig': {
+                        'key': self._THEPLATFORM_KEY,
+                        'secret': self._THEPLATFORM_SECRET,
+                    },
+                    'force_smil_url': True
+                }),
+            'ie_key': 'ThePlatform',
+        }
 
     def _real_extract(self, url):
         topic_id, video_display_id = re.match(self._VALID_URL, url).groups()
