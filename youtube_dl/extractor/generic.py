@@ -1265,6 +1265,7 @@ class GenericIE(InfoExtractor):
         # Facebook <iframe> embed
         {
             'url': 'https://www.hostblogger.de/blog/archives/6181-Auto-jagt-Betonmischer.html',
+            'md5': 'fbcde74f534176ecb015849146dd3aee',
             'info_dict': {
                 'id': '599637780109885',
                 'ext': 'mp4',
@@ -1274,6 +1275,7 @@ class GenericIE(InfoExtractor):
         # Facebook API embed
         {
             'url': 'http://www.lothype.com/blue-stars-2016-preview-standstill-full-show/',
+            'md5': 'a47372ee61b39a7b90287094d447d94e',
             'info_dict': {
                 'id': '10153467542406923',
                 'ext': 'mp4',
@@ -1283,6 +1285,7 @@ class GenericIE(InfoExtractor):
         # Wordpress "YouTube Video Importer" plugin
         {
             'url': 'http://www.lothype.com/blue-devils-drumline-stanford-lot-2016/',
+            'md5': 'd16797741b560b485194eddda8121b48',
             'info_dict': {
                 'id': 'HNTXWDXV9Is',
                 'ext': 'mp4',
