@@ -4,7 +4,6 @@ import os
 import re
 import sys
 import time
-import random
 
 from ..compat import compat_os_name
 from ..utils import (
@@ -343,7 +342,7 @@ class FileDownloader(object):
             })
             return True
 
-        sleep_interval = random.randrange(self.params.get('sleep_interval'))
+        sleep_interval = self.params.get('sleep_interval')
         if sleep_interval:
             self.to_screen('[download] Sleeping %s seconds...' % sleep_interval)
             time.sleep(sleep_interval)
