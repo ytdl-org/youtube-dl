@@ -197,6 +197,6 @@ class HRTiPlaylistIE(HRTiBaseIE):
             response, lambda x: x['video_listings'][0]['alternatives'][0]['list'],
             list) or [video['id'] for video in response.get('videos', []) if video.get('id')]
 
-        entries = [self.url_result('hrti:%s' % category_id) for category_id in video_ids]
+        entries = [self.url_result('hrti:%s' % video_id) for video_id in video_ids]
 
         return self.playlist_result(entries, category_id, display_id)
