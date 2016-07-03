@@ -128,7 +128,7 @@ class AENetworksIE(AENetworksBaseIE):
 class HistoryTopicIE(AENetworksBaseIE):
     IE_NAME = 'history:topic'
     IE_DESC = 'History.com Topic'
-    _VALID_URL = r'https?://(?:www\.)?history\.com/topics/(?:[^/]+/)?(?P<topic_id>[^/]+)/videos(?:/(?P<video_display_id>[^/?#]+))?'
+    _VALID_URL = r'https?://(?:www\.)?history\.com/topics/(?:[^/]+/)?(?P<topic_id>[^/]+)(?:/[^/]+(?:/(?P<video_display_id>[^/?#]+))?)?'
     _TESTS = [{
         'url': 'http://www.history.com/topics/valentines-day/history-of-valentines-day/videos/bet-you-didnt-know-valentines-day?m=528e394da93ae&s=undefined&f=1&free=false',
         'info_dict': {
@@ -155,6 +155,12 @@ class HistoryTopicIE(AENetworksBaseIE):
         'playlist_mincount': 24,
     }, {
         'url': 'http://www.history.com/topics/world-war-i-history/videos',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.history.com/topics/world-war-i/world-war-i-history',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.history.com/topics/world-war-i/world-war-i-history/speeches',
         'only_matching': True,
     }]
 
