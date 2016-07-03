@@ -1,10 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import binascii
 import hashlib
 import itertools
-import math
 import re
 import time
 
@@ -14,12 +12,13 @@ from ..compat import (
     compat_urllib_parse_urlencode,
 )
 from ..utils import (
+    clean_html,
     decode_packed_codes,
+    get_element_by_id,
+    get_element_by_attribute,
     ExtractorError,
-    intlist_to_bytes,
     ohdave_rsa_encrypt,
     remove_start,
-    urshift,
 )
 
 
@@ -166,7 +165,7 @@ class IqiyiIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.iqiyi.com/v_19rrojlavg.html',
-        'md5': '470a6c160618577166db1a7aac5a3606',
+        'md5': '5b0591f55961117155430b5d544fdb01',
         'info_dict': {
             'id': '9c1fb1b99d192b21c559e5a1a2cb3c73',
             'ext': 'mp4',
@@ -174,11 +173,11 @@ class IqiyiIE(InfoExtractor):
         }
     }, {
         'url': 'http://www.iqiyi.com/v_19rrhnnclk.html',
-        'md5': 'f09f0a6a59b2da66a26bf4eda669a4cc',
+        'md5': '667171934041350c5de3f5015f7f1152',
         'info_dict': {
             'id': 'e3f585b550a280af23c98b6cb2be19fb',
             'ext': 'mp4',
-            'title': '名侦探柯南 国语版',
+            'title': '名侦探柯南 国语版：第752集 迫近灰原秘密的黑影 下篇',
         },
         'skip': 'Geo-restricted to China',
     }, {
@@ -196,22 +195,10 @@ class IqiyiIE(InfoExtractor):
         'url': 'http://www.iqiyi.com/v_19rrny4w8w.html',
         'info_dict': {
             'id': 'f3cf468b39dddb30d676f89a91200dc1',
+            'ext': 'mp4',
             'title': '泰坦尼克号',
         },
-        'playlist': [{
-            'info_dict': {
-                'id': 'f3cf468b39dddb30d676f89a91200dc1_part1',
-                'ext': 'f4v',
-                'title': '泰坦尼克号',
-            },
-        }, {
-            'info_dict': {
-                'id': 'f3cf468b39dddb30d676f89a91200dc1_part2',
-                'ext': 'f4v',
-                'title': '泰坦尼克号',
-            },
-        }],
-        'expected_warnings': ['Needs a VIP account for full video'],
+        'skip': 'Geo-restricted to China',
     }, {
         'url': 'http://www.iqiyi.com/a_19rrhb8ce1.html',
         'info_dict': {
@@ -224,14 +211,16 @@ class IqiyiIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    _FORMATS_MAP = [
-        ('1', 'h6'),
-        ('2', 'h5'),
-        ('3', 'h4'),
-        ('4', 'h3'),
-        ('5', 'h2'),
-        ('10', 'h1'),
-    ]
+    _FORMATS_MAP = {
+        '96': 1,    # 216p, 240p
+        '1': 2,     # 336p, 360p
+        '2': 3,     # 480p, 504p
+        '21': 4,    # 504p
+        '4': 5,     # 720p
+        '17': 5,    # 720p
+        '5': 6,     # 1072p, 1080p
+        '18': 7,    # 1080p
+    }
 
     def _real_initialize(self):
         self._login()
@@ -291,91 +280,17 @@ class IqiyiIE(InfoExtractor):
 
         return True
 
-    @staticmethod
-    def _gen_sc(tvid, timestamp):
-        M = [1732584193, -271733879]
-        M.extend([~M[0], ~M[1]])
-        I_table = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21]
-        C_base = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8388608, 432]
-
-        def L(n, t):
-            if t is None:
-                t = 0
-            return trunc(((n >> 1) + (t >> 1) << 1) + (n & 1) + (t & 1))
-
-        def trunc(n):
-            n = n % 0x100000000
-            if n > 0x7fffffff:
-                n -= 0x100000000
-            return n
-
-        def transform(string, mod):
-            num = int(string, 16)
-            return (num >> 8 * (i % 4) & 255 ^ i % mod) << ((a & 3) << 3)
-
-        C = list(C_base)
-        o = list(M)
-        k = str(timestamp - 7)
-        for i in range(13):
-            a = i
-            C[a >> 2] |= ord(k[a]) << 8 * (a % 4)
-
-        for i in range(16):
-            a = i + 13
-            start = (i >> 2) * 8
-            r = '03967743b643f66763d623d637e30733'
-            C[a >> 2] |= transform(''.join(reversed(r[start:start + 8])), 7)
-
-        for i in range(16):
-            a = i + 29
-            start = (i >> 2) * 8
-            r = '7038766939776a32776a32706b337139'
-            C[a >> 2] |= transform(r[start:start + 8], 1)
-
-        for i in range(9):
-            a = i + 45
-            if i < len(tvid):
-                C[a >> 2] |= ord(tvid[i]) << 8 * (a % 4)
-
-        for a in range(64):
-            i = a
-            I = i >> 4
-            C_index = [i, 5 * i + 1, 3 * i + 5, 7 * i][I] % 16 + urshift(a, 6)
-            m = L(L(o[0], [
-                trunc(o[1] & o[2]) | trunc(~o[1] & o[3]),
-                trunc(o[3] & o[1]) | trunc(~o[3] & o[2]),
-                o[1] ^ o[2] ^ o[3],
-                o[2] ^ trunc(o[1] | ~o[3])
-            ][I]), L(
-                trunc(int(abs(math.sin(i + 1)) * 4294967296)),
-                C[C_index] if C_index < len(C) else None))
-            I = I_table[4 * I + i % 4]
-            o = [o[3],
-                 L(o[1], trunc(trunc(m << I) | urshift(m, 32 - I))),
-                 o[1],
-                 o[2]]
-
-        new_M = [L(o[0], M[0]), L(o[1], M[1]), L(o[2], M[2]), L(o[3], M[3])]
-        s = [new_M[a >> 3] >> (1 ^ a & 7) * 4 & 15 for a in range(32)]
-        return binascii.hexlify(intlist_to_bytes(s))[1::2].decode('ascii')
-
     def get_raw_data(self, tvid, video_id):
         tm = int(time.time() * 1000)
 
-        sc = self._gen_sc(tvid, tm)
+        key = 'd5fb4bd9d50c4be6948c97edd7254b0e'
+        sc = md5_text(compat_str(tm) + key + tvid)
         params = {
-            'platForm': 'h5',
-            'rate': 1,
             'tvid': tvid,
             'vid': video_id,
-            'cupid': 'qc_100001_100186',
-            'type': 'mp4',
-            'nolimit': 0,
-            'agenttype': 13,
-            'src': 'd846d0c32d664d32b6b54ea48997a589',
+            'src': '76f90cbd92f94a2e925d83e8ccd22cb7',
             'sc': sc,
-            't': tm - 7,
-            '__jsT': None,
+            't': tm,
         }
 
         headers = {}
@@ -435,6 +350,7 @@ class IqiyiIE(InfoExtractor):
         video_id = self._search_regex(
             r'data-player-videoid\s*=\s*[\'"]([a-f\d]+)', webpage, 'video_id')
 
+        formats = []
         for _ in range(5):
             raw_data = self.get_raw_data(tvid, video_id)
 
@@ -445,16 +361,29 @@ class IqiyiIE(InfoExtractor):
 
             data = raw_data['data']
 
-            # iQiYi sometimes returns Ads
-            if not isinstance(data['playInfo'], dict):
-                self._sleep(5, video_id)
-                continue
+            for stream in data['vidl']:
+                if 'm3utx' not in stream:
+                    continue
+                vd = compat_str(stream['vd'])
+                formats.append({
+                    'url': stream['m3utx'],
+                    'format_id': vd,
+                    'ext': 'mp4',
+                    'preference': self._FORMATS_MAP.get(vd, -1),
+                    'protocol': 'm3u8_native',
+                })
 
-            title = data['playInfo']['an']
-            break
+            if formats:
+                break
+
+            self._sleep(5, video_id)
+
+        self._sort_formats(formats)
+        title = (get_element_by_id('widget-videotitle', webpage) or
+                 clean_html(get_element_by_attribute('class', 'mod-play-tit', webpage)))
 
         return {
             'id': video_id,
             'title': title,
-            'url': data['m3u'],
+            'formats': formats,
         }
