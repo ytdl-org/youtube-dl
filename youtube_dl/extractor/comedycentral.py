@@ -221,6 +221,7 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
             content = itemEl.find('.//{http://search.yahoo.com/mrss/}content')
             duration = float_or_none(content.attrib.get('duration'))
             mediagen_url = content.attrib['url']
+            mediagen_url = mediagen_url.replace('thedailyshow.cc.com', 'thedailyshow.com')
             guid = itemEl.find('./guid').text.rpartition(':')[-1]
 
             cdoc = self._download_xml(
