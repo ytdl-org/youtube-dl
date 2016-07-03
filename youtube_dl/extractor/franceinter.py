@@ -6,6 +6,7 @@ from ..utils import (
     int_or_none,
     unified_strdate,
     unified_timestamp,
+    month_by_french_name,
 )
 
 import re
@@ -14,15 +15,15 @@ class FranceInterIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?franceinter\.fr/emissions/(?P<id>[^?#]+)'
 
     _TEST = {
-        'url': 'https://www.franceinter.fr/emissions/la-tete-au-carre/la-tete-au-carre-30-juin-2016',
-        'md5': 'f13e4371662cf5a829f64d829ae78062',
+        'url': 'https://www.franceinter.fr/emissions/la-marche-de-l-histoire/la-marche-de-l-histoire-18-decembre-2013',
+        'md5': '4764932e466e6f6c79c317d2e74f6884',
         'info_dict': {
-            'id': 'la-tete-au-carre/la-tete-au-carre-30-juin-2016',
+            'id': 'la-marche-de-l-histoire/la-marche-de-l-histoire-18-decembre-2013',
             'ext': 'mp3',
-            'title': 'Regards sur le sport du 30 juin 2016 - France Inter',
-            'description': 'UEFA Europa, Jeux Olympiques... La période est aux sports, dans les gradins ou devant les écrans. Mais quel est le regard des spécialistes sur cette pratique? ',
-            'timestamp': 1467244800,
-            'upload_date': '20160630',
+            'title': 'L’Histoire dans les jeux vidéo du 18 décembre 2013 - France Inter',
+            'description': 'L’Histoire dans les jeux vidéo du 18 décembre 2013  par Jean Lebrun en replay sur France Inter. Retrouvez l\'émission en réécoute gratuite et abonnez-vous au podcast !',
+            'timestamp': 1387324800,
+            'upload_date': '20131218',
         },
     }
 
@@ -37,12 +38,16 @@ class FranceInterIE(InfoExtractor):
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
         
-        extractdate = self._search_regex(
-            r'([0-9]+[.][0-9]+[.][0-9]+)', video_url, 'extractdate', fatal=False)
+        extractdate = self._html_search_regex(
+            r'<span class="header-main-content-date">(.*?)</span>', webpage, 'extractdate', fatal=False)
+            
+        extractdate = extractdate.split()
+        
+        extractdate = extractdate[3]+","+str(month_by_french_name(extractdate[2]))+","+extractdate[1]
+        
+        upload_date = unified_strdate(extractdate)
         
         timestamp = unified_timestamp(extractdate)
-            
-        upload_date = (unified_strdate(extractdate))
 
         return {
             'id': video_id,

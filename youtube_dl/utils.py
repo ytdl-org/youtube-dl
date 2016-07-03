@@ -89,6 +89,10 @@ NO_DEFAULT = object()
 ENGLISH_MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December']
+    
+FRENCH_MONTH_NAMES = [
+    'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']    
 
 KNOWN_EXTENSIONS = (
     'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v', 'aac',
@@ -1558,6 +1562,13 @@ def month_by_name(name):
     except ValueError:
         return None
 
+def month_by_french_name(name):
+    """ Return the number of a month by French name """
+
+    try:
+        return FRENCH_MONTH_NAMES.index(name) + 1
+    except ValueError:
+        return None
 
 def month_by_abbreviation(abbrev):
     """ Return the number of a month by (locale-independently) English
