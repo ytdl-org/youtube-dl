@@ -221,8 +221,6 @@ def _real_main(argv=None):
             'key': 'MetadataFromTitle',
             'titleformat': opts.metafromtitle
         })
-    if opts.addmetadata:
-        postprocessors.append({'key': 'FFmpegMetadata'})
     if opts.extractaudio:
         postprocessors.append({
             'key': 'FFmpegExtractAudio',
@@ -235,6 +233,8 @@ def _real_main(argv=None):
             'key': 'FFmpegVideoConvertor',
             'preferedformat': opts.recodevideo,
         })
+    if opts.addmetadata:
+        postprocessors.append({'key': 'FFmpegMetadata'})
     if opts.convertsubtitles:
         postprocessors.append({
             'key': 'FFmpegSubtitlesConvertor',
@@ -382,6 +382,7 @@ def _real_main(argv=None):
         'external_downloader_args': external_downloader_args,
         'postprocessor_args': postprocessor_args,
         'cn_verification_proxy': opts.cn_verification_proxy,
+        'addmetadata': opts.addmetadata,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
