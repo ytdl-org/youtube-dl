@@ -79,10 +79,6 @@ class NationalGeographicChannelIE(ThePlatformIE):
                 'upload_date': '20160322',
                 'uploader': 'NEWA-FNG-NGTV',
             },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
-            },
             'add_ie': ['ThePlatform'],
         },
         {
@@ -97,10 +93,6 @@ class NationalGeographicChannelIE(ThePlatformIE):
                 'upload_date': '20160330',
                 'uploader': 'NEWA-FNG-NGTV',
             },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
-            },
             'add_ie': ['ThePlatform'],
         },
     ]
@@ -113,7 +105,7 @@ class NationalGeographicChannelIE(ThePlatformIE):
             webpage, 'release url')
         query = {
             'mbr': 'true',
-            'manifest': 'm3u',
+            'switch': 'http',
         }
         is_auth = self._search_regex(r'video_is_auth\s*=\s*"([^"]+)"', webpage, 'is auth', fatal=False)
         if is_auth == 'auth':
