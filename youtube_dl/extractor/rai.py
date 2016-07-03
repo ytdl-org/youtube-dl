@@ -107,36 +107,33 @@ class RaiTVIE(InfoExtractor):
                 return xml.replace(' tag elementi', '').replace('>/', '</')
 
             relinker = self._download_xml(
-                media['mediaUri'] + '&output=43',
+                media['mediaUri'] + '&output=44',
                 video_id, transform_source=fix_xml)
-
             has_subtitle = False
-
-            for element in relinker.findall('element'):
-                media_url = xpath_text(element, 'url')
-                ext = determine_ext(media_url)
-                content_type = xpath_text(element, 'content-type')
-                if ext == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        media_url, video_id, 'mp4', 'm3u8_native',
-                        m3u8_id='hls', fatal=False))
-                elif ext == 'f4m':
-                    formats.extend(self._extract_f4m_formats(
-                        media_url + '?hdcore=3.7.0&plugin=aasp-3.7.0.39.44',
-                        video_id, f4m_id='hds', fatal=False))
-                elif ext == 'stl':
-                    has_subtitle = True
-                elif content_type.startswith('video/'):
-                    bitrate = int_or_none(xpath_text(element, 'bitrate'))
-                    formats.append({
-                        'url': media_url,
-                        'tbr': bitrate if bitrate > 0 else None,
-                        'format_id': 'http-%d' % bitrate if bitrate > 0 else 'http',
-                    })
-                elif content_type.startswith('image/'):
-                    thumbnails.append({
-                        'url': media_url,
-                    })
+            media_url = relinker.findtext('url')
+            ext = determine_ext(media_url)
+            content_type = relinker.findtext('ct')
+            if ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    media_url, video_id, 'mp4', 'm3u8_native',
+                    m3u8_id='hls', fatal=False))
+            elif ext == 'f4m':
+                formats.extend(self._extract_f4m_formats(
+                    media_url + '?hdcore=3.7.0&plugin=aasp-3.7.0.39.44',
+                    video_id, f4m_id='hds', fatal=False))
+            elif ext == 'stl':
+                has_subtitle = True
+            elif content_type.startswith('video/'):
+                bitrate = int_or_none(relinker.findtext('bitrate'))
+                formats.append({
+                    'url': media_url,
+                    'tbr': bitrate if bitrate > 0 else None,
+                    'format_id': 'http-%d' % bitrate if bitrate > 0 else 'http',
+                })
+            elif content_type.startswith('image/'):
+                thumbnails.append({
+                    'url': media_url,
+                })
 
             self._sort_formats(formats)
 
