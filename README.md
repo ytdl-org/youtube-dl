@@ -890,9 +890,17 @@ If you want to add support for a new site, first of all **make sure** this site 
 After you have ensured this site is distributing it's content legally, you can follow this quick list (assuming your service is called `yourextractor`):
 
 1. [Fork this repository](https://github.com/rg3/youtube-dl/fork)
-2. Check out the source code with `git clone git@github.com:YOUR_GITHUB_USERNAME/youtube-dl.git`
-3. Start a new git branch with `cd youtube-dl; git checkout -b yourextractor`
+2. Check out the source code with:
+
+        git clone git@github.com:YOUR_GITHUB_USERNAME/youtube-dl.git
+
+3. Start a new git branch with
+
+        cd youtube-dl
+        git checkout -b yourextractor
+
 4. Start with this simple template and save it to `youtube_dl/extractor/yourextractor.py`:
+
     ```python
     # coding: utf-8
     from __future__ import unicode_literals
@@ -936,18 +944,150 @@ After you have ensured this site is distributing it's content legally, you can f
 5. Add an import in [`youtube_dl/extractor/extractors.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/extractors.py).
 6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done. If you decide to add more than one test, then rename ``_TEST`` to ``_TESTS`` and make it into a list of dictionaries. The tests will then be named `TestDownload.test_YourExtractor`, `TestDownload.test_YourExtractor_1`, `TestDownload.test_YourExtractor_2`, etc.
 7. Have a look at [`youtube_dl/extractor/common.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should and may return](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L74-L252). Add tests and code for as many as you want.
-8. Keep in mind that the only mandatory fields in info dict for successful extraction process are `id`, `title` and either `url` or `formats`, i.e. these are the critical data the extraction does not make any sense without. This means that [any field](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L148-L252) apart from aforementioned mandatory ones should be treated **as optional** and extraction should be **tolerate** to situations when sources for these fields can potentially be unavailable (even if they always available at the moment) and **future-proof** in order not to break the extraction of general purpose mandatory fields. For example, if you have some intermediate dict `meta` that is a source of metadata and it has a key `summary` that you want to extract and put into resulting info dict as `description`, you should be ready that this key may be missing from the `meta` dict, i.e. you should extract it as `meta.get('summary')` and not `meta['summary']`. Similarly, you should pass `fatal=False` when extracting data from a webpage with `_search_regex/_html_search_regex`.
-9. Check the code with [flake8](https://pypi.python.org/pypi/flake8). Also make sure your code works under all [Python](http://www.python.org/) versions claimed supported by youtube-dl, namely 2.6, 2.7, and 3.2+.
-10. When the tests pass, [add](http://git-scm.com/docs/git-add) the new files and [commit](http://git-scm.com/docs/git-commit) them and [push](http://git-scm.com/docs/git-push) the result, like this:
+8. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](https://pypi.python.org/pypi/flake8). Also make sure your code works under all [Python](http://www.python.org/) versions claimed supported by youtube-dl, namely 2.6, 2.7, and 3.2+.
+9. When the tests pass, [add](http://git-scm.com/docs/git-add) the new files and [commit](http://git-scm.com/docs/git-commit) them and [push](http://git-scm.com/docs/git-push) the result, like this:
 
         $ git add youtube_dl/extractor/extractors.py
         $ git add youtube_dl/extractor/yourextractor.py
         $ git commit -m '[yourextractor] Add new extractor'
         $ git push origin yourextractor
 
-11. Finally, [create a pull request](https://help.github.com/articles/creating-a-pull-request). We'll then review and merge it.
+10. Finally, [create a pull request](https://help.github.com/articles/creating-a-pull-request). We'll then review and merge it.
 
 In any case, thank you very much for your contributions!
+
+## youtube-dl coding conventions
+
+This section introduces a guide lines for writing idiomatic, robust and future-proof extractor code.
+
+Extractors are very fragile by nature since they depend on the layout of the source data provided by 3rd party media hoster out of your control and this layout tend to change. As extractor implementer your task is not only to write code that will extract media links and metadata correctly but also to minimize code dependency on source's layout changes and even to make the code foresee potential future changes and be ready for that. This is important because it will allow extractor not to break on minor layout changes thus keeping old youtube-dl version working. Even though this breakage issue is easily fixed by emitting a new version of youtube-dl with fix incorporated all the previous version become broken in all repositories and distros' packages that may not be so prompt in fetching the update from us. Needless to say some may never receive an update at all that is possible for non rolling release distros.
+
+### Mandatory and optional metafields
+
+For extraction to work youtube-dl relies on metadata your extractor extracts and provides to youtube-dl expressed by [information dictionary](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L148-L252) or simply *info dict*. Only the following meta fields in *info dict* are considered mandatory for successful extraction process by youtube-dl:
+
+ - `id` (media identifier)
+ - `title` (media title)
+ - `url` (media download URL) or `formats`
+
+In fact only the last option is technically mandatory (i.e. if you can't figure out the download location of the media the extraction does not make any sense). But by convention youtube-dl also treats `id` and `title` to be mandatory. Thus aforementioned metafields are the critical data the extraction does not make any sense without and if any of them fail to be extracted then extractor is considered completely broken.
+
+[Any field](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L148-L252) apart from the aforementioned ones are considered **optional**. That means that extraction should be **tolerate** to situations when sources for these fields can potentially be unavailable (even if they always available at the moment) and **future-proof** in order not to break the extraction of general purpose mandatory fields.
+
+#### Example
+
+Say you have some source dictionary `meta` that you've fetched as JSON with HTTP request and it has a key `summary`:
+
+```python
+meta = self._download_json(url, video_id)
+```
+    
+Assume at this point `meta`'s layout is:
+
+```python
+{
+    ...
+    "summary": "some fancy summary text",
+    ...
+}
+```
+
+Assume you want to extract `summary` and put into resulting info dict as `description`. Since `description` is optional metafield you should be ready that this key may be missing from the `meta` dict, so that you should extract it like:
+
+```python
+description = meta.get('summary')  # correct
+```
+
+and not like:
+
+```python
+description = meta['summary']  # incorrect
+```
+
+The latter will break extraction process with `KeyError` if `summary` disappears from `meta` at some time later but with former approach extraction will just go ahead with `description` set to `None` that is perfectly fine (remember `None` is equivalent for absence of data). 
+
+Similarly, you should pass `fatal=False` when extracting optional data from a webpage with `_search_regex`, `_html_search_regex` or similar methods, for instance:
+
+```python
+description = self._search_regex(
+    r'<span[^>]+id="title"[^>]*>([^<]+)<',
+    webpage, 'description', fatal=False)
+```
+
+With `fatal` set to `False` if `_search_regex` fails to extract `description` it will emit a warning and continue extraction.
+
+You can also pass `default=<some fallback value>`, for example:
+
+```python
+description = self._search_regex(
+    r'<span[^>]+id="title"[^>]*>([^<]+)<',
+    webpage, 'description', default=None)
+```
+
+On failure this code will silently continue the extraction with `description` set to `None`. That is useful for metafields that are known to may or may not be present.
+ 
+### Provide fallbacks
+
+When extracting metadata try to provide several scenarios for that. For example if `title` is present in several places/sources try extracting from at least some of them. This would make it more future-proof in case some of the sources became unavailable.
+
+#### Example
+
+Say `meta` from previous example has a `title` and you are about to extract it. Since `title` is mandatory meta field you should end up with something like:
+
+```python
+title = meta['title']
+```
+
+If `title` disappeares from `meta` in future due to some changes on hoster's side the extraction would fail since `title` is mandatory. That's expected.
+
+Assume that you have some another source you can extract `title` from, for example `og:title` HTML meta of a `webpage`. In this case you can provide a fallback scenario:
+
+```python
+title = meta.get('title') or self._og_search_title(webpage)
+```
+
+This code will try to extract from `meta` first and if it fails it will try extracting `og:title` from a `webpage`.
+
+### Make regular expressions flexible
+
+When using regular expressions try to write them fuzzy and flexible.
+ 
+#### Example
+
+Say you need to extract `title` from the following HTML code:
+
+```html
+<span style="position: absolute; left: 910px; width: 90px; float: right; z-index: 9999;" class="title">some fancy title</span>
+```
+
+The code for that task should look similar to:
+
+```python
+title = self._search_regex(
+    r'<span[^>]+class="title"[^>]*>([^<]+)', webpage, 'title')
+```
+
+Or even better:
+
+```python
+title = self._search_regex(
+    r'<span[^>]+class=(["\'])title\1[^>]*>(?P<title>[^<]+)',
+    webpage, 'title', group='title')
+```
+
+Note how you tolerate potential changes in `style` attribute's value or switch from using double quotes to single for `class` attribute: 
+
+The code definitely should not look like:
+
+```python
+title = self._search_regex(
+    r'<span style="position: absolute; left: 910px; width: 90px; float: right; z-index: 9999;" class="title">(.*?)</span>',
+    webpage, 'title', group='title')
+```
+
+### Use safe conversion functions
+
+Wrap all extracted numeric data into safe functions from `utils`: `int_or_none`, `float_or_none`. Use them for string to number conversions as well.
 
 # EMBEDDING YOUTUBE-DL
 
