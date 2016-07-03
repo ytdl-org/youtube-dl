@@ -960,7 +960,7 @@ In any case, thank you very much for your contributions!
 
 This section introduces a guide lines for writing idiomatic, robust and future-proof extractor code.
 
-Extractors are very fragile by nature since they depend on the layout of the source data provided by 3rd party media hoster out of your control and this layout tend to change. As extractor implementer your task is not only to write code that will extract media links and metadata correctly but also to minimize code dependency on source's layout changes and even to make the code foresee potential future changes and be ready for that. This is important because it will allow extractor not to break on minor layout changes thus keeping old youtube-dl version working. Even though this breakage issue is easily fixed by emitting a new version of youtube-dl with fix incorporated all the previous version become broken in all repositories and distros' packages that may not be so prompt in fetching the update from us. Needless to say some may never receive an update at all that is possible for non rolling release distros.
+Extractors are very fragile by nature since they depend on the layout of the source data provided by 3rd party media hoster out of your control and this layout tend to change. As an extractor implementer your task is not only to write code that will extract media links and metadata correctly but also to minimize code dependency on source's layout changes and even to make the code foresee potential future changes and be ready for that. This is important because it will allow extractor not to break on minor layout changes thus keeping old youtube-dl versions working. Even though this breakage issue is easily fixed by emitting a new version of youtube-dl with fix incorporated all the previous version become broken in all repositories and distros' packages that may not be so prompt in fetching the update from us. Needless to say some may never receive an update at all that is possible for non rolling release distros.
 
 ### Mandatory and optional metafields
 
@@ -972,7 +972,7 @@ For extraction to work youtube-dl relies on metadata your extractor extracts and
 
 In fact only the last option is technically mandatory (i.e. if you can't figure out the download location of the media the extraction does not make any sense). But by convention youtube-dl also treats `id` and `title` to be mandatory. Thus aforementioned metafields are the critical data the extraction does not make any sense without and if any of them fail to be extracted then extractor is considered completely broken.
 
-[Any field](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L149-L257) apart from the aforementioned ones are considered **optional**. That means that extraction should be **tolerate** to situations when sources for these fields can potentially be unavailable (even if they always available at the moment) and **future-proof** in order not to break the extraction of general purpose mandatory fields.
+[Any field](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L149-L257) apart from the aforementioned ones are considered **optional**. That means that extraction should be **tolerate** to situations when sources for these fields can potentially be unavailable (even if they are always available at the moment) and **future-proof** in order not to break the extraction of general purpose mandatory fields.
 
 #### Example
 
