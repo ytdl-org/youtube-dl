@@ -293,14 +293,10 @@ class IqiyiIE(InfoExtractor):
             't': tm,
         }
 
-        headers = {}
-        cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
-        if cn_verification_proxy:
-            headers['Ytdl-request-proxy'] = cn_verification_proxy
         return self._download_json(
             'http://cache.m.iqiyi.com/jp/tmts/%s/%s/' % (tvid, video_id),
             video_id, transform_source=lambda s: remove_start(s, 'var tvInfoJs='),
-            query=params, headers=headers)
+            query=params, headers=self.geo_verification_headers())
 
     def _extract_playlist(self, webpage):
         PAGE_SIZE = 50

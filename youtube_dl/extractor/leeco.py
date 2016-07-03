@@ -20,7 +20,6 @@ from ..utils import (
     int_or_none,
     orderedSet,
     parse_iso8601,
-    sanitized_Request,
     str_or_none,
     url_basename,
     urshift,
@@ -121,16 +120,11 @@ class LeIE(InfoExtractor):
             'tkey': self.calc_time_key(int(time.time())),
             'domain': 'www.le.com'
         }
-        play_json_req = sanitized_Request(
-            'http://api.le.com/mms/out/video/playJson?' + compat_urllib_parse_urlencode(params)
-        )
-        cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
-        if cn_verification_proxy:
-            play_json_req.add_header('Ytdl-request-proxy', cn_verification_proxy)
 
         play_json = self._download_json(
-            play_json_req,
-            media_id, 'Downloading playJson data')
+            'http://api.le.com/mms/out/video/playJson',
+            media_id, 'Downloading playJson data', query=params,
+            headers=self.geo_verification_headers())
 
         # Check for errors
         playstatus = play_json['playstatus']

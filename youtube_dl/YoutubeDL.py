@@ -196,8 +196,8 @@ class YoutubeDL(object):
     prefer_insecure:   Use HTTP instead of HTTPS to retrieve information.
                        At the moment, this is only supported by YouTube.
     proxy:             URL of the proxy server to use
-    cn_verification_proxy:  URL of the proxy to use for IP address verification
-                       on Chinese sites. (Experimental)
+    geo_verification_proxy:  URL of the proxy to use for IP address verification
+                       on geo-restricted sites. (Experimental)
     socket_timeout:    Time to wait for unresponsive hosts, in seconds
     bidi_workaround:   Work around buggy terminals without bidirectional text
                        support, using fridibi
@@ -303,6 +303,11 @@ class YoutubeDL(object):
         }
         self.params.update(params)
         self.cache = Cache(self)
+
+        if self.params.get('cn_verification_proxy') is not None:
+            self.report_warning('--cn-verification-proxy is deprecated. Use --geo-verification-proxy instead.')
+            if self.params.get('geo_verification_proxy') is None:
+                self.params['geo_verification_proxy'] = self.params['cn_verification_proxy']
 
         if params.get('bidi_workaround', False):
             try:

@@ -8,10 +8,7 @@ from ..compat import (
     compat_str,
     compat_urllib_parse_urlencode,
 )
-from ..utils import (
-    ExtractorError,
-    sanitized_Request,
-)
+from ..utils import ExtractorError
 
 
 class SohuIE(InfoExtractor):
@@ -96,15 +93,10 @@ class SohuIE(InfoExtractor):
             else:
                 base_data_url = 'http://hot.vrs.sohu.com/vrs_flash.action?vid='
 
-            req = sanitized_Request(base_data_url + vid_id)
-
-            cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
-            if cn_verification_proxy:
-                req.add_header('Ytdl-request-proxy', cn_verification_proxy)
-
             return self._download_json(
-                req, video_id,
-                'Downloading JSON data for %s' % vid_id)
+                base_data_url + vid_id, video_id,
+                'Downloading JSON data for %s' % vid_id,
+                headers=self.geo_verification_headers())
 
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')

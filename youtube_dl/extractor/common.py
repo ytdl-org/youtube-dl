@@ -1729,6 +1729,13 @@ class InfoExtractor(object):
     def _mark_watched(self, *args, **kwargs):
         raise NotImplementedError('This method must be implemented by subclasses')
 
+    def geo_verification_headers(self):
+        headers = {}
+        geo_verification_proxy = self._downloader.params.get('geo_verification_proxy')
+        if geo_verification_proxy:
+            headers['Ytdl-request-proxy'] = geo_verification_proxy
+        return headers
+
 
 class SearchInfoExtractor(InfoExtractor):
     """

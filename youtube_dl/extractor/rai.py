@@ -20,17 +20,12 @@ class RaiBaseIE(InfoExtractor):
         formats = []
 
         for platform in ('mon', 'flash', 'native'):
-            headers = {}
-            # TODO: rename --cn-verification-proxy
-            cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
-            if cn_verification_proxy:
-                headers['Ytdl-request-proxy'] = cn_verification_proxy
-
             relinker = self._download_xml(
                 relinker_url, video_id,
                 note='Downloading XML metadata for platform %s' % platform,
                 transform_source=fix_xml_ampersands,
-                query={'output': 45, 'pl': platform}, headers=headers)
+                query={'output': 45, 'pl': platform},
+                headers=self.geo_verification_headers())
 
             media_url = find_xpath_attr(relinker, './url', 'type', 'content').text
             if media_url == 'http://download.rai.it/video_no_available.mp4':
