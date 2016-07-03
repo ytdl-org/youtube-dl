@@ -83,6 +83,10 @@ class PornHubIE(InfoExtractor):
         'url': 'http://www.pornhub.com/view_video.php?viewkey=ph572716d15a111',
         'only_matching': True,
     }, {
+        # private video
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=ph56fd731fce6b7',
+        'only_matching': True,
+    }, {
         'url': 'https://www.thumbzilla.com/video/ph56c6114abd99a/horny-girlfriend-sex',
         'only_matching': True,
     }]
@@ -107,7 +111,7 @@ class PornHubIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         error_msg = self._html_search_regex(
-            r'(?s)<div[^>]+class=(["\']).*?\bremoved\b.*?\1[^>]*>(?P<error>.+?)</div>',
+            r'(?s)<div[^>]+class=(["\']).*?\b(?:removed|userMessageSection)\b.*?\1[^>]*>(?P<error>.+?)</div>',
             webpage, 'error message', default=None, group='error')
         if error_msg:
             error_msg = re.sub(r'\s+', ' ', error_msg)
