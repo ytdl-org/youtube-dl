@@ -221,6 +221,15 @@ class RaiIE(RaiBaseIE):
                 'upload_date': '20160702',
             },
         },
+        {
+            'url': 'http://www.rainews.it/dl/rainews/live/ContentItem-3156f2f2-dc70-4953-8e2f-70d7489d4ce9.html',
+            # HDS live stream, MD5 is unstable
+            'info_dict': {
+                'id': '3156f2f2-dc70-4953-8e2f-70d7489d4ce9',
+                'ext': 'flv',
+                'title': 'La diretta di Rainews24',
+            },
+        },
     ]
 
     @classmethod
@@ -247,7 +256,7 @@ class RaiIE(RaiBaseIE):
             return self._extract_from_content_id(content_item_id, url)
 
         relinker_url = compat_urlparse.urljoin(url, self._search_regex(
-            r'var\s+videoURL\s*=\s*(?P<q1>[\'"])(?P<url>(https?:)?//mediapolis\.rai\.it/relinker/relinkerServlet\.htm\?cont=\d+)(?P=q1)',
+            r'(?:var\s+videoURL|mediaInfo\.mediaUri)\s*=\s*(?P<q1>[\'"])(?P<url>(https?:)?//mediapolis\.rai\.it/relinker/relinkerServlet\.htm\?cont=\d+)(?P=q1)',
             webpage, 'relinker URL', group='url'))
         formats = self._extract_relinker_formats(relinker_url, video_id)
         self._sort_formats(formats)
