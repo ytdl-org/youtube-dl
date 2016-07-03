@@ -79,6 +79,10 @@ class NationalGeographicChannelIE(ThePlatformIE):
                 'upload_date': '20160322',
                 'uploader': 'NEWA-FNG-NGTV',
             },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
             'add_ie': ['ThePlatform'],
         },
         {
@@ -92,6 +96,10 @@ class NationalGeographicChannelIE(ThePlatformIE):
                 'timestamp': 1459362152,
                 'upload_date': '20160330',
                 'uploader': 'NEWA-FNG-NGTV',
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
             },
             'add_ie': ['ThePlatform'],
         },
