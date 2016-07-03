@@ -315,7 +315,7 @@ class ProSiebenSat1IE(InfoExtractor):
                     'play_path': play_path,
                     'player_url': 'http://livepassdl.conviva.com/hf/ver/2.79.0.17083/LivePassModuleMain.swf',
                     'page_url': 'http://www.prosieben.de',
-                    'vbr': fix_bitrate(source['bitrate']),
+                    'vbr': fix_bitrate(int(source['bitrate'])),
                     'ext': 'mp4',
                     'format_id': '%s_%s' % (source['cdn'], source['bitrate']),
                 })
