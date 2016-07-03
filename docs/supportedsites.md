@@ -283,6 +283,8 @@
  - **HotStar**
  - **Howcast**
  - **HowStuffWorks**
+ - **HRTi**
+ - **HRTiPlaylist**
  - **HuffPost**: Huffington Post
  - **Hypem**
  - **Iconosquare**
@@ -329,7 +331,7 @@
  - **kuwo:mv**: 酷我音乐 - MV
  - **kuwo:singer**: 酷我音乐 - 歌手
  - **kuwo:song**: 酷我音乐
- - **la7.tv**
+ - **la7.it**
  - **Laola1Tv**
  - **Le**: 乐视网
  - **Learnr**
