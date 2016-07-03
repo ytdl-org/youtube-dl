@@ -585,6 +585,13 @@ class BrightcoveNewIE(InfoExtractor):
                         'format_id': build_format_id('rtmp'),
                     })
                 formats.append(f)
+
+        errors = json_data.get('errors')
+        if not formats and errors:
+            error = errors[0]
+            raise ExtractorError(
+                error.get('message') or error.get('error_subcode') or error['error_code'], expected=True)
+
         self._sort_formats(formats)
 
         subtitles = {}
