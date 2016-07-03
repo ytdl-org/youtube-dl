@@ -60,6 +60,57 @@ class RaiBaseIE(InfoExtractor):
 
         return formats
 
+    def _extract_from_content_id(self, content_id, base_url):
+        media = self._download_json(
+            'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-%s.html?json' % content_id,
+            content_id, 'Downloading video JSON')
+
+        thumbnails = []
+        for image_type in ('image', 'image_medium', 'image_300'):
+            thumbnail_url = media.get(image_type)
+            if thumbnail_url:
+                thumbnails.append({
+                    'url': compat_urlparse.urljoin(base_url, thumbnail_url),
+                })
+
+        formats = []
+        media_type = media['type']
+        if 'Audio' in media_type:
+            formats.append({
+                'format_id': media.get('formatoAudio'),
+                'url': media['audioUrl'],
+                'ext': media.get('formatoAudio'),
+            })
+        elif 'Video' in media_type:
+            formats.extend(self._extract_relinker_formats(media['mediaUri'], content_id))
+            self._sort_formats(formats)
+        else:
+            raise ExtractorError('not a media file')
+
+        subtitles = {}
+        captions = media.get('subtitlesUrl')
+        if captions:
+            STL_EXT = '.stl'
+            SRT_EXT = '.srt'
+            if captions.endswith(STL_EXT):
+                captions = captions[:-len(STL_EXT)] + SRT_EXT
+            subtitles['it'] = [{
+                'ext': 'srt',
+                'url': captions,
+            }]
+
+        return {
+            'id': content_id,
+            'title': media['name'],
+            'description': media.get('desc'),
+            'thumbnails': thumbnails,
+            'uploader': media.get('author'),
+            'upload_date': unified_strdate(media.get('date')),
+            'duration': parse_duration(media.get('length')),
+            'formats': formats,
+            'subtitles': subtitles,
+        }
+
 
 class RaiTVIE(RaiBaseIE):
     _VALID_URL = r'https?://(?:.+?\.)?(?:rai\.it|rai\.tv|rainews\.it)/dl/(?:[^/]+/)+(?:media|ondemand)/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})(?:-.+?)?\.html'
@@ -131,55 +182,7 @@ class RaiTVIE(RaiBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        media = self._download_json(
-            'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-%s.html?json' % video_id,
-            video_id, 'Downloading video JSON')
-
-        thumbnails = []
-        for image_type in ('image', 'image_medium', 'image_300'):
-            thumbnail_url = media.get(image_type)
-            if thumbnail_url:
-                thumbnails.append({
-                    'url': compat_urlparse.urljoin(url, thumbnail_url),
-                })
-
-        formats = []
-        media_type = media['type']
-        if 'Audio' in media_type:
-            formats.append({
-                'format_id': media.get('formatoAudio'),
-                'url': media['audioUrl'],
-                'ext': media.get('formatoAudio'),
-            })
-        elif 'Video' in media_type:
-            formats.extend(self._extract_relinker_formats(media['mediaUri'], video_id))
-            self._sort_formats(formats)
-        else:
-            raise ExtractorError('not a media file')
-
-        subtitles = {}
-        captions = media.get('subtitlesUrl')
-        if captions:
-            STL_EXT = '.stl'
-            SRT_EXT = '.srt'
-            if captions.endswith(STL_EXT):
-                captions = captions[:-len(STL_EXT)] + SRT_EXT
-            subtitles['it'] = [{
-                'ext': 'srt',
-                'url': captions,
-            }]
-
-        return {
-            'id': video_id,
-            'title': media['name'],
-            'description': media.get('desc'),
-            'thumbnails': thumbnails,
-            'uploader': media.get('author'),
-            'upload_date': unified_strdate(media.get('date')),
-            'duration': parse_duration(media.get('length')),
-            'formats': formats,
-            'subtitles': subtitles,
-        }
+        return self._extract_from_content_id(video_id, url)
 
 
 class RaiIE(RaiBaseIE):
@@ -197,6 +200,7 @@ class RaiIE(RaiBaseIE):
             },
         },
         {
+            # Direct relinker URL
             'url': 'http://www.rai.tv/dl/RaiTV/dirette/PublishingBlock-1912dbbf-3f96-44c3-b4cf-523681fbacbc.html?channel=EuroNews',
             # HDS live stream, MD5 is unstable
             'info_dict': {
@@ -205,7 +209,18 @@ class RaiIE(RaiBaseIE):
                 'title': 'EuroNews',
             },
             'skip': 'Geo-restricted to Italy',
-        }
+        },
+        {
+            # Embedded content item ID
+            'url': 'http://www.tg1.rai.it/dl/tg1/2010/edizioni/ContentSet-9b6e0cba-4bef-4aef-8cf0-9f7f665b7dfb-tg1.html?item=undefined',
+            'md5': '84c1135ce960e8822ae63cec34441d63',
+            'info_dict': {
+                'id': '0960e765-62c8-474a-ac4b-7eb3e2be39c8',
+                'ext': 'mp4',
+                'title': 'TG1 ore 20:00 del 02/07/2016',
+                'upload_date': '20160702',
+            },
+        },
     ]
 
     @classmethod
@@ -224,6 +239,12 @@ class RaiIE(RaiBaseIE):
             if not iframe_url.startswith('http'):
                 iframe_url = compat_urlparse.urljoin(url, iframe_url)
             return self.url_result(iframe_url)
+
+        content_item_id = self._search_regex(
+            r'initEdizione\((?P<q1>[\'"])ContentItem-(?P<content_id>[^\'"]+)(?P=q1)',
+            webpage, 'content item ID', group='content_id', default=None)
+        if content_item_id:
+            return self._extract_from_content_id(content_item_id, url)
 
         relinker_url = compat_urlparse.urljoin(url, self._search_regex(
             r'var\s+videoURL\s*=\s*(?P<q1>[\'"])(?P<url>(https?:)?//mediapolis\.rai\.it/relinker/relinkerServlet\.htm\?cont=\d+)(?P=q1)',
