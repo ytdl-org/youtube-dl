@@ -91,14 +91,15 @@ class KalturaIE(InfoExtractor):
         if mobj:
             embed_info = mobj.groupdict()
             url = 'kaltura:%(partner_id)s:%(id)s' % embed_info
+            escaped_pid = re.escape(embed_info['partner_id'])
             service_url = re.search(
-                '<script[^>]+src=(?:["\'])((?:https?:)?//.+?)/p/%(partner_id)s/sp/%(partner_id)s00/embedIframeJs' % embed_info,
+                r'<script[^>]+src=["\']((?:https?:)?//.+?)/p/%s/sp/%s00/embedIframeJs' % (escaped_pid, escaped_pid),
                 webpage)
             if service_url:
                 url = smuggle_url(url, {'service_url': service_url.group(1)})
             return url
 
-    def _kaltura_api_call(self, video_id, actions, *args, **kwargs):
+    def _kaltura_api_call(self, video_id, actions, service_url=None, *args, **kwargs):
         params = actions[0]
         if len(actions) > 1:
             for i, a in enumerate(actions[1:], start=1):
@@ -106,7 +107,7 @@ class KalturaIE(InfoExtractor):
                     params['%d:%s' % (i, k)] = v
 
         data = self._download_json(
-            self._SERVICE_URL + self._SERVICE_BASE,
+            (service_url or self._SERVICE_URL) + self._SERVICE_BASE,
             video_id, query=params, *args, **kwargs)
 
         status = data if len(actions) == 1 else data[0]
@@ -116,7 +117,7 @@ class KalturaIE(InfoExtractor):
 
         return data
 
-    def _get_kaltura_signature(self, video_id, partner_id):
+    def _get_kaltura_signature(self, video_id, partner_id, service_url=None):
         actions = [{
             'apiVersion': '3.1',
             'expiry': 86400,
@@ -126,10 +127,10 @@ class KalturaIE(InfoExtractor):
             'widgetId': '_%s' % partner_id,
         }]
         return self._kaltura_api_call(
-            video_id, actions, note='Downloading Kaltura signature')['ks']
+            video_id, actions, service_url, note='Downloading Kaltura signature')['ks']
 
-    def _get_video_info(self, video_id, partner_id):
-        signature = self._get_kaltura_signature(video_id, partner_id)
+    def _get_video_info(self, video_id, partner_id, service_url=None):
+        signature = self._get_kaltura_signature(video_id, partner_id, service_url)
         actions = [
             {
                 'action': 'null',
@@ -152,19 +153,16 @@ class KalturaIE(InfoExtractor):
             },
         ]
         return self._kaltura_api_call(
-            video_id, actions, note='Downloading video info JSON')
+            video_id, actions, service_url, note='Downloading video info JSON')
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
-        service_url = smuggled_data.get('service_url')
-        if service_url:
-            self._SERVICE_URL = service_url
 
         mobj = re.match(self._VALID_URL, url)
         partner_id, entry_id = mobj.group('partner_id', 'id')
         ks = None
         if partner_id and entry_id:
-            info, flavor_assets = self._get_video_info(entry_id, partner_id)
+            info, flavor_assets = self._get_video_info(entry_id, partner_id, smuggled_data.get('service_url'))
         else:
             path, query = mobj.group('path', 'query')
             if not path and not query:
