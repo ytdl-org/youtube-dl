@@ -103,9 +103,9 @@ which means you can modify it, redistribute it or use it however you like.
                                      (experimental)
     -6, --force-ipv6                 Make all connections via IPv6
                                      (experimental)
-    --cn-verification-proxy URL      Use this proxy to verify the IP address for
-                                     some Chinese sites. The default proxy
-                                     specified by --proxy (or none, if the
+    --geo-verification-proxy URL     Use this proxy to verify the IP address for
+                                     some geo-restricted sites. The default
+                                     proxy specified by --proxy (or none, if the
                                      options is not present) is used for the
                                      actual downloading. (experimental)
 
