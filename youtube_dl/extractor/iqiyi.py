@@ -165,7 +165,7 @@ class IqiyiIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.iqiyi.com/v_19rrojlavg.html',
-        'md5': '5b0591f55961117155430b5d544fdb01',
+        # MD5 checksum differs on my machine and Travis CI
         'info_dict': {
             'id': '9c1fb1b99d192b21c559e5a1a2cb3c73',
             'ext': 'mp4',
