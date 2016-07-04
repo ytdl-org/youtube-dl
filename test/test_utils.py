@@ -405,6 +405,12 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(res_url, url)
         self.assertEqual(res_data, None)
 
+        smug_url = smuggle_url(url, {'a': 'b'})
+        smug_smug_url = smuggle_url(smug_url, {'c': 'd'})
+        res_url, res_data = unsmuggle_url(smug_smug_url)
+        self.assertEqual(res_url, url)
+        self.assertEqual(res_data, {'a': 'b', 'c': 'd'})
+
     def test_shell_quote(self):
         args = ['ffmpeg', '-i', encodeFilename('ñ€ß\'.mp4')]
         self.assertEqual(shell_quote(args), """ffmpeg -i 'ñ€ß'"'"'.mp4'""")
