@@ -210,10 +210,15 @@ def parseOpts(overrideArguments=None):
         help='Make all connections via IPv6 (experimental)',
     )
     network.add_option(
+        '--geo-verification-proxy',
+        dest='geo_verification_proxy', default=None, metavar='URL',
+        help='Use this proxy to verify the IP address for some geo-restricted sites. '
+        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading. (experimental)'
+    )
+    network.add_option(
         '--cn-verification-proxy',
         dest='cn_verification_proxy', default=None, metavar='URL',
-        help='Use this proxy to verify the IP address for some Chinese sites. '
-        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading. (experimental)'
+        help=optparse.SUPPRESS_HELP,
     )
 
     selection = optparse.OptionGroup(parser, 'Video Selection')

@@ -138,27 +138,27 @@ class TestProxy(unittest.TestCase):
         self.proxy_thread.daemon = True
         self.proxy_thread.start()
 
-        self.cn_proxy = compat_http_server.HTTPServer(
-            ('localhost', 0), _build_proxy_handler('cn'))
-        self.cn_port = http_server_port(self.cn_proxy)
-        self.cn_proxy_thread = threading.Thread(target=self.cn_proxy.serve_forever)
-        self.cn_proxy_thread.daemon = True
-        self.cn_proxy_thread.start()
+        self.geo_proxy = compat_http_server.HTTPServer(
+            ('localhost', 0), _build_proxy_handler('geo'))
+        self.geo_port = http_server_port(self.geo_proxy)
+        self.geo_proxy_thread = threading.Thread(target=self.geo_proxy.serve_forever)
+        self.geo_proxy_thread.daemon = True
+        self.geo_proxy_thread.start()
 
     def test_proxy(self):
-        cn_proxy = 'localhost:{0}'.format(self.cn_port)
+        geo_proxy = 'localhost:{0}'.format(self.geo_port)
         ydl = YoutubeDL({
             'proxy': 'localhost:{0}'.format(self.port),
-            'cn_verification_proxy': cn_proxy,
+            'geo_verification_proxy': geo_proxy,
         })
         url = 'http://foo.com/bar'
         response = ydl.urlopen(url).read().decode('utf-8')
         self.assertEqual(response, 'normal: {0}'.format(url))
 
         req = compat_urllib_request.Request(url)
-        req.add_header('Ytdl-request-proxy', cn_proxy)
+        req.add_header('Ytdl-request-proxy', geo_proxy)
         response = ydl.urlopen(req).read().decode('utf-8')
-        self.assertEqual(response, 'cn: {0}'.format(url))
+        self.assertEqual(response, 'geo: {0}'.format(url))
 
     def test_proxy_with_idn(self):
         ydl = YoutubeDL({
