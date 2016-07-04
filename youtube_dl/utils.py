@@ -1444,6 +1444,8 @@ def shell_quote(args):
 def smuggle_url(url, data):
     """ Pass additional data in a URL for internal use. """
 
+    url, idata = unsmuggle_url(url, {})
+    data.update(idata)
     sdata = compat_urllib_parse_urlencode(
         {'__youtubedl_smuggle': json.dumps(data)})
     return url + '#' + sdata
