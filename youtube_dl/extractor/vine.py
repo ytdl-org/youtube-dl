@@ -90,9 +90,11 @@ class VineIE(InfoExtractor):
 
         data = self._parse_json(
             self._search_regex(
-                r'window\.POST_DATA\s*=\s*{\s*%s\s*:\s*({.+?})\s*};\s*</script>' % video_id,
+                r'window\.POST_DATA\s*=\s*({.+?});\s*</script>',
                 webpage, 'vine data'),
             video_id)
+
+        data = data[list(data.keys())[0]]
 
         formats = [{
             'format_id': '%(format)s-%(rate)s' % f,

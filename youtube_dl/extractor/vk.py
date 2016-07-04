@@ -27,12 +27,12 @@ class VKIE(InfoExtractor):
                     https?://
                         (?:
                             (?:
-                                (?:m\.)?vk\.com/video_|
+                                (?:(?:m|new)\.)?vk\.com/video_|
                                 (?:www\.)?daxab.com/
                             )
                             ext\.php\?(?P<embed_query>.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+).*)|
                             (?:
-                                (?:m\.)?vk\.com/(?:.+?\?.*?z=)?video|
+                                (?:(?:m|new)\.)?vk\.com/(?:.+?\?.*?z=)?video|
                                 (?:www\.)?daxab.com/embed/
                             )
                             (?P<videoid>-?\d+_\d+)(?:.*\blist=(?P<list_id>[\da-f]+))?
@@ -181,6 +181,10 @@ class VKIE(InfoExtractor):
         {
             # pladform embed
             'url': 'https://vk.com/video-76116461_171554880',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://new.vk.com/video205387401_165548505',
             'only_matching': True,
         }
     ]
@@ -354,7 +358,7 @@ class VKIE(InfoExtractor):
 class VKUserVideosIE(InfoExtractor):
     IE_NAME = 'vk:uservideos'
     IE_DESC = "VK - User's Videos"
-    _VALID_URL = r'https?://vk\.com/videos(?P<id>-?[0-9]+)(?!\?.*\bz=video)(?:[/?#&]|$)'
+    _VALID_URL = r'https?://(?:(?:m|new)\.)?vk\.com/videos(?P<id>-?[0-9]+)(?!\?.*\bz=video)(?:[/?#&]|$)'
     _TEMPLATE_URL = 'https://vk.com/videos'
     _TESTS = [{
         'url': 'http://vk.com/videos205387401',
@@ -368,6 +372,12 @@ class VKUserVideosIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://vk.com/videos-97664626?section=all',
+        'only_matching': True,
+    }, {
+        'url': 'http://m.vk.com/videos205387401',
+        'only_matching': True,
+    }, {
+        'url': 'http://new.vk.com/videos205387401',
         'only_matching': True,
     }]
 

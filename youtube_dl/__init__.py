@@ -382,6 +382,8 @@ def _real_main(argv=None):
         'external_downloader_args': external_downloader_args,
         'postprocessor_args': postprocessor_args,
         'cn_verification_proxy': opts.cn_verification_proxy,
+        'geo_verification_proxy': opts.geo_verification_proxy,
+
     }
 
     with YoutubeDL(ydl_opts) as ydl:

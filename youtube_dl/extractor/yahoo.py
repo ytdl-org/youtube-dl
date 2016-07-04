@@ -19,6 +19,7 @@ from ..utils import (
     mimetype2ext,
 )
 
+from .brightcove import BrightcoveNewIE
 from .nbc import NBCSportsVPlayerIE
 
 
@@ -227,7 +228,12 @@ class YahooIE(InfoExtractor):
         # Look for NBCSports iframes
         nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
         if nbc_sports_url:
-            return self.url_result(nbc_sports_url, 'NBCSportsVPlayer')
+            return self.url_result(nbc_sports_url, NBCSportsVPlayerIE.ie_key())
+
+        # Look for Brightcove New Studio embeds
+        bc_url = BrightcoveNewIE._extract_url(webpage)
+        if bc_url:
+            return self.url_result(bc_url, BrightcoveNewIE.ie_key())
 
         # Query result is often embedded in webpage as JSON. Sometimes explicit requests
         # to video API results in a failure with geo restriction reason therefore using
