@@ -1730,6 +1730,39 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         }
 
 
+class YoutubeSharedVideoIE(InfoExtractor):
+    _VALID_URL = r'(?:https?:)?//(?:www\.)?youtube\.com/shared\?ci=(?P<id>[0-9A-Za-z_-]{11})'
+    IE_NAME = 'youtube:shared'
+
+    _TEST = {
+        'url': 'https://www.youtube.com/shared?ci=1nEzmT-M4fU',
+        'info_dict': {
+            'id': 'uPDB5I9wfp8',
+            'ext': 'webm',
+            'title': 'Pocoyo: 90 minutos de episódios completos Português para crianças - PARTE 3',
+            'description': 'md5:d9e4d9346a2dfff4c7dc4c8cec0f546d',
+            'upload_date': '20160219',
+            'uploader': 'Pocoyo - Português (BR)',
+            'uploader_id': 'PocoyoBrazil',
+        },
+        'add_ie': ['Youtube'],
+        'params': {
+            # There are already too many Youtube downloads
+            'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        real_video_id = self._html_search_meta(
+            'videoId', webpage, 'YouTube video id', fatal=True)
+
+        return self.url_result(real_video_id, YoutubeIE.ie_key())
+
+
 class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     IE_DESC = 'YouTube.com playlists'
     _VALID_URL = r"""(?x)(?:

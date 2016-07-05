@@ -1295,6 +1295,21 @@ class GenericIE(InfoExtractor):
                 'uploader': 'cylus cyrus',
             },
         },
+        {
+            # video stored on custom kaltura server
+            'url': 'http://www.expansion.com/multimedia/videos.html?media=EQcM30NHIPv',
+            'md5': '537617d06e64dfed891fa1593c4b30cc',
+            'info_dict': {
+                'id': '0_1iotm5bh',
+                'ext': 'mp4',
+                'title': 'Elecciones británicas: 5 lecciones para Rajoy',
+                'description': 'md5:435a89d68b9760b92ce67ed227055f16',
+                'uploader_id': 'videos.expansion@el-mundo.net',
+                'upload_date': '20150429',
+                'timestamp': 1430303472,
+            },
+            'add_ie': ['Kaltura'],
+        },
     ]
 
     def report_following_redirect(self, new_url):
