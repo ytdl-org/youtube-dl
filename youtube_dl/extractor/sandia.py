@@ -1,18 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import itertools
 import json
-import re
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
 from ..utils import (
     int_or_none,
-    js_to_json,
     mimetype2ext,
-    sanitized_Request,
-    unified_strdate,
 )
 
 
