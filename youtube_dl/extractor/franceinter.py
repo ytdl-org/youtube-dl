@@ -3,13 +3,10 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    int_or_none,
-    unified_strdate,
     unified_timestamp,
     month_by_french_name,
 )
 
-import re
 
 class FranceInterIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?franceinter\.fr/emissions/(?P<id>[^?#]+)'
@@ -37,16 +34,14 @@ class FranceInterIE(InfoExtractor):
 
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
-        
+
         extractdate = self._html_search_regex(
             r'<span class="header-main-content-date">(.*?)</span>', webpage, 'extractdate', fatal=False)
-            
+
         extractdate = extractdate.split()
-        
-        extractdate = extractdate[3]+","+str(month_by_french_name(extractdate[2]))+","+extractdate[1]
-        
-        upload_date = unified_strdate(extractdate)
-        
+
+        extractdate = extractdate[3] + "," + str(month_by_french_name(extractdate[2])) + "," + extractdate[1]
+
         timestamp = unified_timestamp(extractdate)
 
         return {
