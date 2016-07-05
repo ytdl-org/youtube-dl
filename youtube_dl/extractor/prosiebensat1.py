@@ -280,7 +280,7 @@ class ProSiebenSat1IE(InfoExtractor):
             client_id = g[:2] + sha1(''.join([g, clip_id, access_token, server_id, client_location, source_id, g, client_name]).encode('utf-8')).hexdigest()
             urls = self._download_json(
                 'http://vas.sim-technik.de/vas/live/v2/videos/%s/sources/url' % clip_id,
-                clip_id, 'Downloading urls JSON', query={
+                clip_id, 'Downloading urls JSON', fatal=False, query={
                     'access_token': access_token,
                     'client_id': client_id,
                     'client_location': client_location,
@@ -288,6 +288,8 @@ class ProSiebenSat1IE(InfoExtractor):
                     'server_id': server_id,
                     'source_ids': source_id,
                 })
+            if not urls:
+                continue
             if urls.get('status_code') != 0:
                 raise ExtractorError('This video is unavailable', expected=True)
             urls_sources = urls['sources']
