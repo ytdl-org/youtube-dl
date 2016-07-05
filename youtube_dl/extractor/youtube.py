@@ -1983,21 +1983,27 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
 
         url = self._TEMPLATE_URL % channel_id
 
-        # Channel by page listing is restricted to 35 pages of 30 items, i.e. 1050 videos total (see #5778)
-        # Workaround by extracting as a playlist if managed to obtain channel playlist URL
-        # otherwise fallback on channel by page extraction
+        # On channel pages, YouTube has a 'Load more' button, but it serves
+        # only 35 pages of 30 items i.e. 1050 videos total (issue #5778).
+        # Work around this by grabbing the channel's upload playlist instead.
+        # If no channel ID is present, fall back to extracting 'Load more' data.
         channel_page = self._download_webpage(
-            url + '?view=57', channel_id,
-            'Downloading channel page', fatal=False)
+            url, channel_id, 'Downloading channel page', fatal=False)
         if channel_page is False:
             channel_playlist_id = False
         else:
             channel_playlist_id = self._html_search_meta(
                 'channelId', channel_page, 'channel id', default=None)
-            if not channel_playlist_id:
-                channel_playlist_id = self._search_regex(
-                    r'data-(?:channel-external-|yt)id="([^"]+)"',
-                    channel_page, 'channel id', default=None)
+            # Extract the (hopefully) same ID from elsewhere on the page, just
+            # to make sure we don't start downloading the wrong channel when
+            # YouTube serves wonky HTML.
+            channel_playlist_id_confirmation = self._search_regex(
+                r'<link rel="alternate" type="application/rss\+xml" title="RSS"' +
+                r' href="https://www\.youtube\.com/feeds/videos\.xml\?channel_id=([^"]+)">',
+                channel_page, 'channel id', default=None)
+            if channel_playlist_id != channel_playlist_id_confirmation:
+                raise ExtractorError('[youtube] Channel playlist mismatch: %r != %r' % (
+                    channel_playlist_id, channel_playlist_id_confirmation))
         if channel_playlist_id and channel_playlist_id.startswith('UC'):
             playlist_id = 'UU' + channel_playlist_id[2:]
             return self.url_result(
