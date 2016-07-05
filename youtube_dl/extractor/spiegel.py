@@ -4,8 +4,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
 from .spiegeltv import SpiegeltvIE
+from ..compat import compat_urlparse
+from ..utils import (
+    extract_attributes,
+    unified_strdate,
+    get_element_by_attribute,
+)
 
 
 class SpiegelIE(InfoExtractor):
@@ -19,6 +24,7 @@ class SpiegelIE(InfoExtractor):
             'title': 'Vulkanausbruch in Ecuador: Der "Feuerschlund" ist wieder aktiv',
             'description': 'md5:8029d8310232196eb235d27575a8b9f4',
             'duration': 49,
+            'upload_date': '20130311',
         },
     }, {
         'url': 'http://www.spiegel.de/video/schach-wm-videoanalyse-des-fuenften-spiels-video-1309159.html',
@@ -29,6 +35,7 @@ class SpiegelIE(InfoExtractor):
             'title': 'Schach-WM in der Videoanalyse: Carlsen nutzt die Fehlgriffe des Titelverteidigers',
             'description': 'md5:c2322b65e58f385a820c10fa03b2d088',
             'duration': 983,
+            'upload_date': '20131115',
         },
     }, {
         'url': 'http://www.spiegel.de/video/astronaut-alexander-gerst-von-der-iss-station-beantwortet-fragen-video-1519126-embed.html',
@@ -38,6 +45,7 @@ class SpiegelIE(InfoExtractor):
             'ext': 'mp4',
             'description': 'SPIEGEL ONLINE-Nutzer durften den deutschen Astronauten Alexander Gerst über sein Leben auf der ISS-Station befragen. Hier kommen seine Antworten auf die besten sechs Fragen.',
             'title': 'Fragen an Astronaut Alexander Gerst: "Bekommen Sie die Tageszeiten mit?"',
+            'upload_date': '20140904',
         }
     }, {
         'url': 'http://www.spiegel.de/video/astronaut-alexander-gerst-von-der-iss-station-beantwortet-fragen-video-1519126-iframe.html',
@@ -52,10 +60,10 @@ class SpiegelIE(InfoExtractor):
         if SpiegeltvIE.suitable(handle.geturl()):
             return self.url_result(handle.geturl(), 'Spiegeltv')
 
-        title = re.sub(r'\s+', ' ', self._html_search_regex(
-            r'(?s)<(?:h1|div) class="module-title"[^>]*>(.*?)</(?:h1|div)>',
-            webpage, 'title'))
-        description = self._html_search_meta('description', webpage, 'description')
+        video_data = extract_attributes(self._search_regex(r'(<div[^>]+id="spVideoElements"[^>]+>)', webpage, 'video element', default=''))
+
+        title = video_data.get('data-video-title') or get_element_by_attribute('class', 'module-title', webpage)
+        description = video_data.get('data-video-teaser') or self._html_search_meta('description', webpage, 'description')
 
         base_url = self._search_regex(
             [r'server\s*:\s*(["\'])(?P<url>.+?)\1', r'var\s+server\s*=\s*"(?P<url>[^"]+)\"'],
@@ -87,8 +95,9 @@ class SpiegelIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'description': description,
+            'description': description.strip() if description else None,
             'duration': duration,
+            'upload_date': unified_strdate(video_data.get('data-video-date')),
             'formats': formats,
         }
 
