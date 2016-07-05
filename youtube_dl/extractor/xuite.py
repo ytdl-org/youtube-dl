@@ -68,6 +68,20 @@ class XuiteIE(InfoExtractor):
         },
         'skip': 'Video removed',
     }, {
+        # Video with encoded media id
+        # from http://forgetfulbc.blogspot.com/2016/06/date.html
+        'url': 'http://vlog.xuite.net/embed/cE1xbENoLTI3NDQ3MzM2LmZsdg==?ar=0&as=0',
+        'info_dict': {
+            'id': 'cE1xbENoLTI3NDQ3MzM2LmZsdg==',
+            'ext': 'mp4',
+            'title': '男女平權只是口號？專家解釋約會時男生是否該幫女生付錢 (中字)',
+            'description': 'md5:f0abdcb69df300f522a5442ef3146f2a',
+            'timestamp': 1466160960,
+            'upload_date': '20160617',
+            'uploader': 'B.C. & Lowy',
+            'uploader_id': '232279340',
+        },
+    }, {
         'url': 'http://vlog.xuite.net/play/S1dDUjdyLTMyOTc3NjcuZmx2/%E5%AD%AB%E7%87%95%E5%A7%BF-%E7%9C%BC%E6%B7%9A%E6%88%90%E8%A9%A9',
         'only_matching': True,
     }]
@@ -80,10 +94,9 @@ class XuiteIE(InfoExtractor):
     def base64_encode_utf8(data):
         return base64.b64encode(data.encode('utf-8')).decode('utf-8')
 
-    def _extract_flv_config(self, media_id):
-        base64_media_id = self.base64_encode_utf8(media_id)
+    def _extract_flv_config(self, encoded_media_id):
         flv_config = self._download_xml(
-            'http://vlog.xuite.net/flash/player?media=%s' % base64_media_id,
+            'http://vlog.xuite.net/flash/player?media=%s' % encoded_media_id,
             'flv config')
         prop_dict = {}
         for prop in flv_config.findall('./property'):
@@ -108,9 +121,14 @@ class XuiteIE(InfoExtractor):
                 '%s returned error: %s' % (self.IE_NAME, error_msg),
                 expected=True)
 
-        video_id = self._html_search_regex(
-            r'data-mediaid="(\d+)"', webpage, 'media id')
-        flv_config = self._extract_flv_config(video_id)
+        encoded_media_id = self._search_regex(
+            r'attributes\.name\s*=\s*"([^"]+)"', webpage,
+            'encoded media id', default=None)
+        if encoded_media_id is None:
+            video_id = self._html_search_regex(
+                r'data-mediaid="(\d+)"', webpage, 'media id')
+            encoded_media_id = self.base64_encode_utf8(video_id)
+        flv_config = self._extract_flv_config(encoded_media_id)
 
         FORMATS = {
             'audio': 'mp3',
