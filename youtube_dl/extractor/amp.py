@@ -56,7 +56,7 @@ class AMPIE(InfoExtractor):
             media_url = media.get('url')
             if not media_url:
                 continue
-            ext = mimetype2ext(media.get('type')) or determne_ext(media_url)
+            ext = mimetype2ext(media.get('type')) or determine_ext(media_url)
             if ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
                     media_url + '?hdcore=3.4.0&plugin=aasp-3.4.0.132.124',
