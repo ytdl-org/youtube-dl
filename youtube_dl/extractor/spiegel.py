@@ -113,6 +113,7 @@ class SpiegelArticleIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Faszination Badminton: Nennt es bloß nicht Federball',
             'description': 're:^Patrick Kämnitz gehört.{100,}',
+            'upload_date': '20140825',
         },
     }, {
         'url': 'http://www.spiegel.de/wissenschaft/weltall/astronaut-alexander-gerst-antwortet-spiegel-online-lesern-a-989876.html',
