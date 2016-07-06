@@ -234,9 +234,8 @@ class MetacafeIE(InfoExtractor):
                     source_url = source.get('src')
                     if not source_url:
                         continue
-                    mime_type = source.get('type')
-                    ext = mimetype2ext(mime_type) or determine_ext(source_url)
-                    if mime_type == 'application/x-mpegURL' or ext == 'm3u8':
+                    ext = mimetype2ext(source.get('type')) or determine_ext(source_url)
+                    if ext == 'm3u8':
                         video_url.extend(self._extract_m3u8_formats(
                             source_url, video_id, 'mp4',
                             'm3u8_native', m3u8_id='hls', fatal=False))

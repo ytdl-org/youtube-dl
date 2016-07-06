@@ -8,6 +8,7 @@ from ..utils import (
     determine_ext,
     int_or_none,
     float_or_none,
+    mimetype2ext,
 )
 
 
@@ -50,9 +51,8 @@ class OnionStudiosIE(InfoExtractor):
             source_url = source.get('url')
             if not source_url:
                 continue
-            content_type = source.get('content_type')
-            ext = determine_ext(source_url)
-            if content_type == 'application/x-mpegURL' or ext == 'm3u8':
+            ext = mimetype2ext(source.get('content_type')) or determine_ext(source_url)
+            if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     source_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
             else:
