@@ -2097,6 +2097,7 @@ def mimetype2ext(mt):
         return ext
 
     _, _, res = mt.rpartition('/')
+    res = res.lower()
 
     return {
         '3gpp': '3gp',
@@ -2108,6 +2109,12 @@ def mimetype2ext(mt):
         'x-flv': 'flv',
         'x-mp4-fragmented': 'mp4',
         'x-ms-wmv': 'wmv',
+        'mpegurl': 'm3u8',
+        'x-mpegurl': 'm3u8',
+        'vnd.apple.mpegurl': 'm3u8',
+        'dash+xml': 'mpd',
+        'f4m': 'f4m',
+        'f4m+xml': 'f4m',
     }.get(res, res)
 
 
