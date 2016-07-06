@@ -92,12 +92,11 @@ class ThreeQSDNIE(InfoExtractor):
             if not item_url or item_url in urls:
                 return
             urls.add(item_url)
-            type_ = item.get('type')
-            ext = determine_ext(item_url, default_ext=None)
-            if type_ == 'application/dash+xml' or ext == 'mpd':
+            ext = mimetype2ext(item.get('type')) or determine_ext(item_url, default_ext=None)
+            if ext == 'mpd':
                 formats.extend(self._extract_mpd_formats(
                     item_url, video_id, mpd_id='mpd', fatal=False))
-            elif type_ in ('application/vnd.apple.mpegURL', 'application/x-mpegurl') or ext == 'm3u8':
+            elif ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     item_url, video_id, 'mp4',
                     entry_protocol='m3u8' if live else 'm3u8_native',
@@ -111,7 +110,7 @@ class ThreeQSDNIE(InfoExtractor):
                 formats.append({
                     'url': item_url,
                     'format_id': item.get('quality'),
-                    'ext': 'mp4' if item_url.startswith('rtsp') else mimetype2ext(type_) or ext,
+                    'ext': 'mp4' if item_url.startswith('rtsp') else ext,
                     'vcodec': 'none' if stream_type == 'audio' else None,
                 })
 

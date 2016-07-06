@@ -310,8 +310,16 @@ def get_element_by_id(id, html):
     return get_element_by_attribute('id', id, html)
 
 
-def get_element_by_attribute(attribute, value, html):
+def get_element_by_class(class_name, html):
+    return get_element_by_attribute(
+        'class', r'[^\'"]*\b%s\b[^\'"]*' % re.escape(class_name),
+        html, escape_value=False)
+
+
+def get_element_by_attribute(attribute, value, html, escape_value=True):
     """Return the content of the tag with the specified attribute in the passed HTML document"""
+
+    value = re.escape(value) if escape_value else value
 
     m = re.search(r'''(?xs)
         <([a-zA-Z0-9:._-]+)
@@ -321,7 +329,7 @@ def get_element_by_attribute(attribute, value, html):
         \s*>
         (?P<content>.*?)
         </\1>
-    ''' % (re.escape(attribute), re.escape(value)), html)
+    ''' % (re.escape(attribute), value), html)
 
     if not m:
         return None
@@ -2097,6 +2105,7 @@ def mimetype2ext(mt):
         return ext
 
     _, _, res = mt.rpartition('/')
+    res = res.lower()
 
     return {
         '3gpp': '3gp',
@@ -2108,6 +2117,12 @@ def mimetype2ext(mt):
         'x-flv': 'flv',
         'x-mp4-fragmented': 'mp4',
         'x-ms-wmv': 'wmv',
+        'mpegurl': 'm3u8',
+        'x-mpegurl': 'm3u8',
+        'vnd.apple.mpegurl': 'm3u8',
+        'dash+xml': 'mpd',
+        'f4m': 'f4m',
+        'f4m+xml': 'f4m',
     }.get(res, res)
 
 

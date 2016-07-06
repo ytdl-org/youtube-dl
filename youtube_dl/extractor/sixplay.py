@@ -5,6 +5,8 @@ from .common import InfoExtractor
 from ..utils import (
     qualities,
     int_or_none,
+    mimetype2ext,
+    determine_ext,
 )
 
 
@@ -34,19 +36,21 @@ class SixPlayIE(InfoExtractor):
             source_type, source_url = source.get('type'), source.get('src')
             if not source_url or source_type == 'hls/primetime':
                 continue
-            if source_type == 'application/vnd.apple.mpegURL':
+            ext = mimetype2ext(source_type) or determine_ext(source_url)
+            if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     source_url, video_id, 'mp4', 'm3u8_native',
                     m3u8_id='hls', fatal=False))
                 formats.extend(self._extract_f4m_formats(
                     source_url.replace('.m3u8', '.f4m'),
                     video_id, f4m_id='hds', fatal=False))
-            elif source_type == 'video/mp4':
+            elif ext == 'mp4':
                 quality = source.get('quality')
                 formats.append({
                     'url': source_url,
                     'format_id': quality,
                     'quality': quality_key(quality),
+                    'ext': ext,
                 })
         self._sort_formats(formats)
 

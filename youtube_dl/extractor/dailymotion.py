@@ -16,6 +16,7 @@ from ..utils import (
     sanitized_Request,
     str_to_int,
     unescapeHTML,
+    mimetype2ext,
 )
 
 
@@ -153,18 +154,19 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                     type_ = media.get('type')
                     if type_ == 'application/vnd.lumberjack.manifest':
                         continue
-                    ext = determine_ext(media_url)
-                    if type_ == 'application/x-mpegURL' or ext == 'm3u8':
+                    ext = mimetype2ext(type_) or determine_ext(media_url)
+                    if ext == 'm3u8':
                         formats.extend(self._extract_m3u8_formats(
                             media_url, video_id, 'mp4', preference=-1,
                             m3u8_id='hls', fatal=False))
-                    elif type_ == 'application/f4m' or ext == 'f4m':
+                    elif ext == 'f4m':
                         formats.extend(self._extract_f4m_formats(
                             media_url, video_id, preference=-1, f4m_id='hds', fatal=False))
                     else:
                         f = {
                             'url': media_url,
                             'format_id': 'http-%s' % quality,
+                            'ext': ext,
                         }
                         m = re.search(r'H264-(?P<width>\d+)x(?P<height>\d+)', media_url)
                         if m:

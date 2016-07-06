@@ -139,9 +139,9 @@ from .chirbit import (
     ChirbitProfileIE,
 )
 from .cinchcast import CinchcastIE
-from .cliprs import ClipRsIE
 from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
+from .cliprs import ClipRsIE
 from .clipsyndicate import ClipsyndicateIE
 from .closertotruth import CloserToTruthIE
 from .cloudy import CloudyIE
@@ -581,6 +581,10 @@ from .nytimes import (
 from .nuvid import NuvidIE
 from .odnoklassniki import OdnoklassnikiIE
 from .oktoberfesttv import OktoberfestTVIE
+from .onet import (
+    OnetIE,
+    OnetChannelIE,
+)
 from .onionstudios import OnionStudiosIE
 from .ooyala import (
     OoyalaIE,
