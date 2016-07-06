@@ -11,13 +11,14 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
-    sanitized_Request,
     urlencode_postdata,
+    get_element_by_attribute,
+    mimetype2ext,
 )
 
 
 class MetacafeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?metacafe\.com/watch/([^/]+)/([^/]+)/.*'
+    _VALID_URL = r'https?://(?:www\.)?metacafe\.com/watch/(?P<video_id>[^/]+)/(?P<display_id>[^/?#]+)'
     _DISCLAIMER = 'http://www.metacafe.com/family_filter/'
     _FILTER_POST = 'http://www.metacafe.com/f/index.php?inputType=filter&controllerGroup=user'
     IE_NAME = 'metacafe'
@@ -47,6 +48,7 @@ class MetacafeIE(InfoExtractor):
                 'uploader': 'ign',
                 'description': 'Sony released a massive FAQ on the PlayStation Blog detailing the PS4\'s capabilities and limitations.',
             },
+            'skip': 'Page is temporarily unavailable.',
         },
         # AnyClip video
         {
@@ -55,8 +57,8 @@ class MetacafeIE(InfoExtractor):
                 'id': 'an-dVVXnuY7Jh77J',
                 'ext': 'mp4',
                 'title': 'The Andromeda Strain (1971): Stop the Bomb Part 3',
-                'uploader': 'anyclip',
-                'description': 'md5:38c711dd98f5bb87acf973d573442e67',
+                'uploader': 'AnyClip',
+                'description': 'md5:cbef0460d31e3807f6feb4e7a5952e5b',
             },
         },
         # age-restricted video
@@ -110,28 +112,25 @@ class MetacafeIE(InfoExtractor):
     def report_disclaimer(self):
         self.to_screen('Retrieving disclaimer')
 
-    def _real_initialize(self):
+    def _confirm_age(self):
         # Retrieve disclaimer
         self.report_disclaimer()
         self._download_webpage(self._DISCLAIMER, None, False, 'Unable to retrieve disclaimer')
 
         # Confirm age
-        disclaimer_form = {
-            'filters': '0',
-            'submit': "Continue - I'm over 18",
-        }
-        request = sanitized_Request(self._FILTER_POST, urlencode_postdata(disclaimer_form))
-        request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         self.report_age_confirmation()
-        self._download_webpage(request, None, False, 'Unable to confirm age')
+        self._download_webpage(
+            self._FILTER_POST, None, False, 'Unable to confirm age',
+            data=urlencode_postdata({
+                'filters': '0',
+                'submit': "Continue - I'm over 18",
+            }), headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+            })
 
     def _real_extract(self, url):
         # Extract id and simplified title from URL
-        mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError('Invalid URL: %s' % url)
-
-        video_id = mobj.group(1)
+        video_id, display_id = re.match(self._VALID_URL, url).groups()
 
         # the video may come from an external site
         m_external = re.match('^(\w{2})-(.*)$', video_id)
@@ -144,15 +143,24 @@ class MetacafeIE(InfoExtractor):
             if prefix == 'cb':
                 return self.url_result('theplatform:%s' % ext_id, 'ThePlatform')
 
-        # Retrieve video webpage to extract further information
-        req = sanitized_Request('http://www.metacafe.com/watch/%s/' % video_id)
+        # self._confirm_age()
 
         # AnyClip videos require the flashversion cookie so that we get the link
         # to the mp4 file
-        mobj_an = re.match(r'^an-(.*?)$', video_id)
-        if mobj_an:
-            req.headers['Cookie'] = 'flashVersion=0;'
-        webpage = self._download_webpage(req, video_id)
+        headers = {}
+        if video_id.startswith('an-'):
+            headers['Cookie'] = 'flashVersion=0;'
+
+        # Retrieve video webpage to extract further information
+        webpage = self._download_webpage(url, video_id, headers=headers)
+
+        error = get_element_by_attribute(
+            'class', 'notfound-page-title', webpage)
+        if error:
+            raise ExtractorError(error, expected=True)
+
+        video_title = self._html_search_meta(
+            ['og:title', 'twitter:title'], webpage, 'title', default=None) or self._search_regex(r'<h1>(.*?)</h1>', webpage, 'title')
 
         # Extract URL, uploader and title from webpage
         self.report_extraction(video_id)
@@ -216,20 +224,41 @@ class MetacafeIE(InfoExtractor):
                         'player_url': player_url,
                         'ext': play_path.partition(':')[0],
                     })
+        if video_url is None:
+            flashvars = self._parse_json(self._search_regex(
+                r'flashvars\s*=\s*({.*});', webpage, 'flashvars',
+                default=None), video_id, fatal=False)
+            if flashvars:
+                video_url = []
+                for source in flashvars.get('sources'):
+                    source_url = source.get('src')
+                    if not source_url:
+                        continue
+                    mime_type = source.get('type')
+                    ext = mimetype2ext(mime_type) or determine_ext(source_url)
+                    if mime_type == 'application/x-mpegURL' or ext == 'm3u8':
+                        video_url.extend(self._extract_m3u8_formats(
+                            source_url, video_id, 'mp4',
+                            'm3u8_native', m3u8_id='hls', fatal=False))
+                    else:
+                        video_url.append({
+                            'url': source_url,
+                            'ext': ext,
+                        })
 
         if video_url is None:
             raise ExtractorError('Unsupported video type')
 
-        video_title = self._html_search_regex(
-            r'(?im)<title>(.*) - Video</title>', webpage, 'title')
-        description = self._og_search_description(webpage)
-        thumbnail = self._og_search_thumbnail(webpage)
+        description = self._html_search_meta(
+            ['og:description', 'twitter:description', 'description'],
+            webpage, 'title', fatal=False)
+        thumbnail = self._html_search_meta(
+            ['og:image', 'twitter:image'], webpage, 'title', fatal=False)
         video_uploader = self._html_search_regex(
             r'submitter=(.*?);|googletag\.pubads\(\)\.setTargeting\("(?:channel|submiter)","([^"]+)"\);',
             webpage, 'uploader nickname', fatal=False)
         duration = int_or_none(
-            self._html_search_meta('video:duration', webpage))
-
+            self._html_search_meta('video:duration', webpage, default=None))
         age_limit = (
             18
             if re.search(r'(?:"contentRating":|"rating",)"restricted"', webpage)
@@ -242,10 +271,11 @@ class MetacafeIE(InfoExtractor):
                 'url': video_url,
                 'ext': video_ext,
             }]
-
         self._sort_formats(formats)
+
         return {
             'id': video_id,
+            'display_id': display_id,
             'description': description,
             'uploader': video_uploader,
             'title': video_title,
