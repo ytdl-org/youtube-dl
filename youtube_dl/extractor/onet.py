@@ -98,6 +98,7 @@ class OnetIE(OnetBaseIE):
 
     _TEST = {
         'url': 'http://onet.tv/k/openerfestival/open-er-festival-2016-najdziwniejsze-wymagania-gwiazd/qbpyqc',
+        'md5': 'e3ffbf47590032ac3f27249204173d50',
         'info_dict': {
             'id': 'qbpyqc',
             'display_id': 'open-er-festival-2016-najdziwniejsze-wymagania-gwiazd',
