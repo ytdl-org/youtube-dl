@@ -312,6 +312,7 @@
  - **jpopsuki.tv**
  - **JWPlatform**
  - **Kaltura**
+ - **Kamcord**
  - **KanalPlay**: Kanal 5/9/11 Play
  - **Kankan**
  - **Karaoketv**
@@ -476,6 +477,8 @@
  - **Odnoklassniki**
  - **OktoberfestTV**
  - **on.aol.com**
+ - **onet.tv**
+ - **onet.tv:channel**
  - **OnionStudios**
  - **Ooyala**
  - **OoyalaExternal**
