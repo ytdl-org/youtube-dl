@@ -33,6 +33,7 @@ class PolskieRadioIE(InfoExtractor):
                 'timestamp': 1456594200,
                 'upload_date': '20160227',
                 'duration': 2364,
+                'thumbnail': 're:^https?://static.prsa.pl/images/.*\.jpg$'
             },
         }],
     }, {
@@ -68,6 +69,8 @@ class PolskieRadioIE(InfoExtractor):
             r'(?s)<span[^>]+id="datetime2"[^>]*>(.+?)</span>',
             webpage, 'timestamp', fatal=False))
 
+        thumbnail_url = self._og_search_thumbnail(webpage)
+
         entries = []
 
         media_urls = set()
@@ -87,6 +90,7 @@ class PolskieRadioIE(InfoExtractor):
                 'duration': int_or_none(media.get('length')),
                 'vcodec': 'none' if media.get('provider') == 'audio' else None,
                 'timestamp': timestamp,
+                'thumbnail': thumbnail_url
             })
 
         title = self._og_search_title(webpage).strip()
