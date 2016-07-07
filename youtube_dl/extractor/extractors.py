@@ -93,6 +93,7 @@ from .bokecc import BokeCCIE
 from .bpb import BpbIE
 from .br import BRIE
 from .bravotv import BravoTVIE
+from .brainpop import BrainPOPIE
 from .breakcom import BreakIE
 from .brightcove import (
     BrightcoveLegacyIE,
