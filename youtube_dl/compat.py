@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import binascii
@@ -2594,15 +2595,16 @@ except ImportError:  # Python < 3.3
             return "'" + s.replace("'", "'\"'\"'") + "'"
 
 
-if sys.version_info >= (2, 7, 3):
+try:
+    assert shlex.split('中文') == ['中文']
     compat_shlex_split = shlex.split
-else:
+except (AssertionError, UnicodeWarning, UnicodeEncodeError):
     # Working around shlex issue with unicode strings on some python 2
     # versions (see http://bugs.python.org/issue1548891)
     def compat_shlex_split(s, comments=False, posix=True):
         if isinstance(s, compat_str):
             s = s.encode('utf-8')
-        return shlex.split(s, comments, posix)
+        return list(map(lambda s: s.decode('utf-8'), shlex.split(s, comments, posix)))
 
 
 def compat_ord(c):
