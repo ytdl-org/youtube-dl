@@ -22,13 +22,13 @@ class RadioCanadaIE(InfoExtractor):
         'url': 'http://ici.radio-canada.ca/widgets/mediaconsole/medianet/7184272',
         'info_dict': {
             'id': '7184272',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Le parcours du tireur capté sur vidéo',
             'description': 'Images des caméras de surveillance fournies par la GRC montrant le parcours du tireur d\'Ottawa',
             'upload_date': '20141023',
         },
         'params': {
-            # rtmp download
+            # m3u8 download
             'skip_download': True,
         },
     }
@@ -36,11 +36,14 @@ class RadioCanadaIE(InfoExtractor):
     def _real_extract(self, url):
         app_code, video_id = re.match(self._VALID_URL, url).groups()
 
+        device_types = ['ipad']
+        if app_code != 'toutv':
+            device_types.append('flash')
+
         formats = []
-        # TODO: extract m3u8 and f4m formats
-        # m3u8 formats can be extracted using ipad device_type return 403 error code when ffmpeg try to download segements
+        # TODO: extract f4m formats
         # f4m formats can be extracted using flashhd device_type but they produce unplayable file
-        for device_type in ('flash',):
+        for device_type in device_types:
             v_data = self._download_xml(
                 'http://api.radio-canada.ca/validationMedia/v1/Validation.ashx',
                 video_id, note='Downloading %s XML' % device_type, query={
@@ -115,13 +118,13 @@ class RadioCanadaAudioVideoIE(InfoExtractor):
         'url': 'http://ici.radio-canada.ca/audio-video/media-7527184/barack-obama-au-vietnam',
         'info_dict': {
             'id': '7527184',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Barack Obama au Vietnam',
             'description': 'Les États-Unis lèvent l\'embargo sur la vente d\'armes qui datait de la guerre du Vietnam',
             'upload_date': '20160523',
         },
         'params': {
-            # rtmp download
+            # m3u8 download
             'skip_download': True,
         },
     }
