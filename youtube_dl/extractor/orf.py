@@ -40,16 +40,17 @@ class ORFTVthekIE(InfoExtractor):
         'skip': 'Blocked outside of Austria / Germany',
     }, {
         'url': 'http://tvthek.orf.at/topic/Im-Wandel-der-Zeit/8002126/Best-of-Ingrid-Thurnher/7982256',
-        'playlist': [{
-            'md5': '68f543909aea49d621dfc7703a11cfaf',
-            'info_dict': {
-                'id': '7982259',
-                'ext': 'mp4',
-                'title': 'Best of Ingrid Thurnher',
-                'upload_date': '20140527',
-                'description': 'Viele Jahre war Ingrid Thurnher das "Gesicht" der ZIB 2. Vor ihrem Wechsel zur ZIB 2 im jahr 1995 moderierte sie unter anderem "Land und Leute", "Österreich-Bild" und "Niederösterreich heute".',
-            }
-        }],
+        'md5': '68f543909aea49d621dfc7703a11cfaf',
+        'info_dict': {
+            'id': '7982259',
+            'ext': 'mp4',
+            'title': 'Best of Ingrid Thurnher',
+            'upload_date': '20140527',
+            'description': 'Viele Jahre war Ingrid Thurnher das "Gesicht" der ZIB 2. Vor ihrem Wechsel zur ZIB 2 im Jahr 1995 moderierte sie unter anderem "Land und Leute", "Österreich-Bild" und "Niederösterreich heute".',
+        },
+        'params': {
+            'skip_download': True,  # rtsp downloads
+        },
         '_skip': 'Blocked outside of Austria / Germany',
     }]
 
