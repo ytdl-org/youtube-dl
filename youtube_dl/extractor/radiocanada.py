@@ -12,6 +12,7 @@ from ..utils import (
     unified_strdate,
     xpath_element,
     ExtractorError,
+    determine_protocol,
 )
 
 
@@ -36,7 +37,7 @@ class RadioCanadaIE(InfoExtractor):
     def _real_extract(self, url):
         app_code, video_id = re.match(self._VALID_URL, url).groups()
 
-        device_types = ['ipad']
+        device_types = ['ipad', 'android']
         if app_code != 'toutv':
             device_types.append('flash')
 
@@ -55,7 +56,7 @@ class RadioCanadaIE(InfoExtractor):
                     # paysJ391wsHjbOJwvCs26toz and bypasslock are used to bypass geo-restriction
                     'paysJ391wsHjbOJwvCs26toz': 'CA',
                     'bypasslock': 'NZt5K62gRqfc',
-                })
+                }, fatal=False)
             v_url = xpath_text(v_data, 'url')
             if not v_url:
                 continue
@@ -67,7 +68,8 @@ class RadioCanadaIE(InfoExtractor):
                 formats.extend(self._extract_m3u8_formats(
                     v_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
             elif ext == 'f4m':
-                formats.extend(self._extract_f4m_formats(v_url, video_id, f4m_id='hds', fatal=False))
+                formats.extend(self._extract_f4m_formats(
+                    v_url, video_id, f4m_id='hds', fatal=False))
             else:
                 ext = determine_ext(v_url)
                 bitrates = xpath_element(v_data, 'bitrates')
@@ -75,15 +77,28 @@ class RadioCanadaIE(InfoExtractor):
                     tbr = int_or_none(url_e.get('bitrate'))
                     if not tbr:
                         continue
+                    f_url = re.sub(r'\d+\.%s' % ext, '%d.%s' % (tbr, ext), v_url)
+                    protocol = determine_protocol({'url': f_url})
                     formats.append({
-                        'format_id': 'rtmp-%d' % tbr,
-                        'url': re.sub(r'\d+\.%s' % ext, '%d.%s' % (tbr, ext), v_url),
-                        'ext': 'flv',
-                        'protocol': 'rtmp',
+                        'format_id': '%s-%d' % (protocol, tbr),
+                        'url': f_url,
+                        'ext': 'flv' if protocol == 'rtmp' else ext,
+                        'protocol': protocol,
                         'width': int_or_none(url_e.get('width')),
                         'height': int_or_none(url_e.get('height')),
                         'tbr': tbr,
                     })
+                    if protocol == 'rtsp':
+                        base_url = self._search_regex(
+                            r'rtsp://([^?]+)', f_url, 'base url', default=None)
+                        if base_url:
+                            base_url = 'http://' + base_url
+                            formats.extend(self._extract_m3u8_formats(
+                                base_url + '/playlist.m3u8', video_id, 'mp4',
+                                'm3u8_native', m3u8_id='hls', fatal=False))
+                            formats.extend(self._extract_f4m_formats(
+                                base_url + '/manifest.f4m', video_id,
+                                f4m_id='hds', fatal=False))
         self._sort_formats(formats)
 
         metadata = self._download_xml(
