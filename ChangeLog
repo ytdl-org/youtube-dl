@@ -1,0 +1,261 @@
+version <unreleased>
+
+Fixed/improved extractors
+- twitch
+- tv2 (#10188)
+- rtve (#10076)
+- dailymotion (#10180)
+
+
+version 2016.07.28
+
+Fixed/improved extractors
+- shared (#10170)
+- soundcloud (#10179)
+- twitch (#9767)
+
+
+version 2016.07.26.2
+
+Fixed/improved extractors
+- smotri
+- camdemy
+- mtv
+- comedycentral
+- cmt
+- cbc
+- mgtv
+- orf
+
+
+version 2016.07.24
+
+New extractors
+- arkena (#8682)
+- lcp (#8682)
+
+Fixed/improved extractors
+- facebook (#10151)
+- dailymail
+- telegraaf
+- dcn
+- onet
+- tvp
+
+Miscellaneous
+- Support $Time$ in DASH manifests
+
+
+version 2016.07.22
+
+New extractors
+- odatv (#9285)
+
+Fixed/improved extractors
+- bbc
+- youjizz (#10131)
+- youtube (#10140)
+- pornhub (#10138)
+- eporner (#10139)
+
+
+version 2016.07.17
+
+New extractors
+- nintendo (#9986)
+- streamable (#9122)
+
+Fixed/improved extractors
+- ard (#10095)
+- mtv
+- comedycentral (#10101)
+- viki (#10098)
+- spike (#10106)
+
+Miscellaneous
+- Improved twitter player detection (#10090)
+
+
+version 2016.07.16
+
+New extractors
+- ninenow (#5181)
+
+Fixed/improved extractors
+- rtve (#10076)
+- brightcove
+- 3qsdn
+- syfy (#9087, #3820, #2388)
+- youtube (#10083)
+
+Miscellaneous
+- Fix subtitle embedding for video-only and audio-only files (#10081)
+
+
+version 2016.07.13
+
+New extractors
+- rudo
+
+Fixed/improved extractors
+- biobiochiletv
+- tvplay
+- dbtv
+- brightcove
+- tmz
+- youtube (#10059)
+- shahid (#10062)
+- vk
+- ellentv (#10067)
+
+
+version 2016.07.11
+
+New Extractors
+- roosterteeth (#9864)
+
+Fixed/improved extractors
+- miomio (#9605)
+- vuclip
+- youtube
+- vidzi (#10058)
+
+
+version 2016.07.09.2
+
+Fixed/improved extractors
+- vimeo (#1638)
+- facebook (#10048)
+- lynda (#10047)
+- animeondemand
+
+Fixed/improved features
+- Embedding subtitles no longer throws an error with problematic inputs (#9063)
+
+
+version 2016.07.09.1
+
+Fixed/improved extractors
+- youtube
+- ard
+- srmediatek (#9373)
+
+
+version 2016.07.09
+
+New extractors
+- Flipagram (#9898)
+
+Fixed/improved extractors
+- telecinco
+- toutv
+- radiocanada
+- tweakers (#9516)
+- lynda
+- nick (#7542)
+- polskieradio (#10028)
+- le
+- facebook (#9851)
+- mgtv
+- animeondemand (#10031)
+
+Fixed/improved features
+- `--postprocessor-args` and `--downloader-args` now accepts non-ASCII inputs
+  on non-Windows systems
+
+
+version 2016.07.07
+
+New extractors
+- kamcord (#10001)
+
+Fixed/improved extractors
+- spiegel (#10018)
+- metacafe (#8539, #3253)
+- onet (#9950)
+- francetv (#9955)
+- brightcove (#9965)
+- daum (#9972)
+
+
+version 2016.07.06
+
+Fixed/improved extractors
+- youtube (#10007, #10009)
+- xuite
+- stitcher
+- spiegel
+- slideshare
+- sandia
+- rtvnh
+- prosiebensat1
+- onionstudios
+
+
+version 2016.07.05
+
+Fixed/improved extractors
+- brightcove
+- yahoo (#9995)
+- pornhub (#9997)
+- iqiyi
+- kaltura (#5557)
+- la7
+- Changed features
+- Rename --cn-verfication-proxy to --geo-verification-proxy
+Miscellaneous
+- Add script for displaying downloads statistics
+
+
+version 2016.07.03.1
+
+Fixed/improved extractors
+- theplatform
+- aenetworks
+- nationalgeographic
+- hrti (#9482)
+- facebook (#5701)
+- buzzfeed (#5701)
+- rai (#8617, #9157, #9232, #8552, #8551)
+- nationalgeographic (#9991)
+- iqiyi
+
+
+version 2016.07.03
+
+New extractors
+- hrti (#9482)
+
+Fixed/improved extractors
+- vk (#9981)
+- facebook (#9938)
+- xtube (#9953, #9961)
+
+
+version 2016.07.02
+
+New extractors
+- fusion (#9958)
+
+Fixed/improved extractors
+- twitch (#9975)
+- vine (#9970)
+- periscope (#9967)
+- pornhub (#8696)
+
+
+version 2016.07.01
+
+New extractors
+- 9c9media
+- ctvnews (#2156)
+- ctv (#4077)
+
+Fixed/Improved extractors
+- rds
+- meta (#8789)
+- pornhub (#9964)
+- sixplay (#2183)
+
+New features
+- Accept quoted strings across multiple lines (#9940)
