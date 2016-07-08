@@ -33,7 +33,7 @@ class PolskieRadioIE(InfoExtractor):
                 'timestamp': 1456594200,
                 'upload_date': '20160227',
                 'duration': 2364,
-                'thumbnail': 're:^https?://static.prsa.pl/images/.*\.jpg$'
+                'thumbnail': 're:^https?://static\.prsa\.pl/images/.*\.jpg$'
             },
         }],
     }, {
