@@ -112,6 +112,13 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         }
     ]
 
+    @staticmethod
+    def _extract_urls(webpage):
+        # Look for embedded Dailymotion player
+        matches = re.findall(
+            r'<(?:(?:embed|iframe)[^>]+?src=|input[^>]+id=[\'"]dmcloudUrlEmissionSelect[\'"][^>]+value=)(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/(?:embed|swf)/video/.+?)\1', webpage)
+        return list(map(lambda m: unescapeHTML(m[1]), matches))
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 

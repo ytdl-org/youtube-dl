@@ -90,6 +90,7 @@ class BrightcoveLegacyIE(InfoExtractor):
                 'description': 'md5:363109c02998fee92ec02211bd8000df',
                 'uploader': 'National Ballet of Canada',
             },
+            'skip': 'Video gone',
         },
         {
             # test flv videos served by akamaihd.net
@@ -108,7 +109,7 @@ class BrightcoveLegacyIE(InfoExtractor):
             },
         },
         {
-            # playlist test
+            # playlist with 'videoList'
             # from http://support.brightcove.com/en/video-cloud/docs/playlist-support-single-video-players
             'url': 'http://c.brightcove.com/services/viewer/htmlFederated?playerID=3550052898001&playerKey=AQ%7E%7E%2CAAABmA9XpXk%7E%2C-Kp7jNgisre1fG5OdqpAFUTcs0lP_ZoL',
             'info_dict': {
@@ -116,6 +117,15 @@ class BrightcoveLegacyIE(InfoExtractor):
                 'id': '3550319591001',
             },
             'playlist_mincount': 7,
+        },
+        {
+            # playlist with 'playlistTab' (https://github.com/rg3/youtube-dl/issues/9965)
+            'url': 'http://c.brightcove.com/services/json/experience/runtime/?command=get_programming_for_experience&playerKey=AQ%7E%7E,AAABXlLMdok%7E,NJ4EoMlZ4rZdx9eU1rkMVd8EaYPBBUlg',
+            'info_dict': {
+                'id': '1522758701001',
+                'title': 'Lesson 08',
+            },
+            'playlist_mincount': 10,
         },
     ]
     FLV_VCODECS = {
@@ -298,13 +308,19 @@ class BrightcoveLegacyIE(InfoExtractor):
             info_url, player_key, 'Downloading playlist information')
 
         json_data = json.loads(playlist_info)
-        if 'videoList' not in json_data:
+        if 'videoList' in json_data:
+            playlist_info = json_data['videoList']
+            playlist_dto = playlist_info['mediaCollectionDTO']
+        elif 'playlistTabs' in json_data:
+            playlist_info = json_data['playlistTabs']
+            playlist_dto = playlist_info['lineupListDTO']['playlistDTOs'][0]
+        else:
             raise ExtractorError('Empty playlist')
-        playlist_info = json_data['videoList']
-        videos = [self._extract_video_info(video_info) for video_info in playlist_info['mediaCollectionDTO']['videoDTOs']]
+
+        videos = [self._extract_video_info(video_info) for video_info in playlist_dto['videoDTOs']]
 
         return self.playlist_result(videos, playlist_id='%s' % playlist_info['id'],
-                                    playlist_title=playlist_info['mediaCollectionDTO']['displayName'])
+                                    playlist_title=playlist_dto['displayName'])
 
     def _extract_video_info(self, video_info):
         video_id = compat_str(video_info['id'])

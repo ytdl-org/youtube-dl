@@ -1,50 +1,41 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
-
-from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_unquote,
-    compat_urllib_parse_urlencode,
-    compat_urlparse,
-)
-from ..utils import (
-    get_element_by_attribute,
-    parse_duration,
-    strip_jsonp,
-)
+from .mitele import MiTeleBaseIE
 
 
-class TelecincoIE(InfoExtractor):
+class TelecincoIE(MiTeleBaseIE):
     IE_DESC = 'telecinco.es, cuatro.com and mediaset.es'
     _VALID_URL = r'https?://www\.(?:telecinco\.es|cuatro\.com|mediaset\.es)/(?:[^/]+/)+(?P<id>.+?)\.html'
 
     _TESTS = [{
         'url': 'http://www.telecinco.es/robinfood/temporada-01/t01xp14/Bacalao-cocochas-pil-pil_0_1876350223.html',
-        'md5': '5cbef3ad5ef17bf0d21570332d140729',
+        'md5': '8d7b2d5f699ee2709d992a63d5cd1712',
         'info_dict': {
-            'id': 'MDSVID20141015_0058',
+            'id': 'JEA5ijCnF6p5W08A1rNKn7',
             'ext': 'mp4',
-            'title': 'Con Martín Berasategui, hacer un bacalao al ...',
+            'title': 'Bacalao con kokotxas al pil-pil',
+            'description': 'md5:1382dacd32dd4592d478cbdca458e5bb',
             'duration': 662,
         },
     }, {
         'url': 'http://www.cuatro.com/deportes/futbol/barcelona/Leo_Messi-Champions-Roma_2_2052780128.html',
-        'md5': '0a5b9f3cc8b074f50a0578f823a12694',
+        'md5': '284393e5387b3b947b77c613ef04749a',
         'info_dict': {
-            'id': 'MDSVID20150916_0128',
+            'id': 'jn24Od1zGLG4XUZcnUnZB6',
             'ext': 'mp4',
-            'title': '¿Quién es este ex futbolista con el que hablan ...',
+            'title': '¿Quién es este ex futbolista con el que hablan Leo Messi y Luis Suárez?',
+            'description': 'md5:a62ecb5f1934fc787107d7b9a2262805',
             'duration': 79,
         },
     }, {
         'url': 'http://www.mediaset.es/12meses/campanas/doylacara/conlatratanohaytrato/Ayudame-dar-cara-trata-trato_2_1986630220.html',
-        'md5': 'ad1bfaaba922dd4a295724b05b68f86a',
+        'md5': '749afab6ea5a136a8806855166ae46a2',
         'info_dict': {
-            'id': 'MDSVID20150513_0220',
+            'id': 'aywerkD2Sv1vGNqq9b85Q2',
             'ext': 'mp4',
             'title': '#DOYLACARA. Con la trata no hay trato',
+            'description': 'md5:2771356ff7bfad9179c5f5cd954f1477',
             'duration': 50,
         },
     }, {
@@ -56,40 +47,16 @@ class TelecincoIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        episode = self._match_id(url)
-        webpage = self._download_webpage(url, episode)
-        embed_data_json = self._search_regex(
-            r'(?s)MSV\.embedData\[.*?\]\s*=\s*({.*?});', webpage, 'embed data',
-        ).replace('\'', '"')
-        embed_data = json.loads(embed_data_json)
-
-        domain = embed_data['mediaUrl']
-        if not domain.startswith('http'):
-            # only happens in telecinco.es videos
-            domain = 'http://' + domain
-        info_url = compat_urlparse.urljoin(
-            domain,
-            compat_urllib_parse_unquote(embed_data['flashvars']['host'])
-        )
-        info_el = self._download_xml(info_url, episode).find('./video/info')
-
-        video_link = info_el.find('videoUrl/link').text
-        token_query = compat_urllib_parse_urlencode({'id': video_link})
-        token_info = self._download_json(
-            embed_data['flashvars']['ov_tk'] + '?' + token_query,
-            episode,
-            transform_source=strip_jsonp
-        )
-        formats = self._extract_m3u8_formats(
-            token_info['tokenizedUrl'], episode, ext='mp4', entry_protocol='m3u8_native')
-        self._sort_formats(formats)
-
-        return {
-            'id': embed_data['videoId'],
-            'display_id': episode,
-            'title': info_el.find('title').text,
-            'formats': formats,
-            'description': get_element_by_attribute('class', 'text', webpage),
-            'thumbnail': info_el.find('thumb').text,
-            'duration': parse_duration(info_el.find('duration').text),
-        }
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        title = self._html_search_meta(
+            ['og:title', 'twitter:title'], webpage, 'title')
+        info = self._get_player_info(url, webpage)
+        info.update({
+            'display_id': display_id,
+            'title': title,
+            'description': self._html_search_meta(
+                ['og:description', 'twitter:description'],
+                webpage, 'title', fatal=False),
+        })
+        return info

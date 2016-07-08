@@ -812,11 +812,11 @@ def parseOpts(overrideArguments=None):
             system_conf = []
             user_conf = []
         else:
-            system_conf = compat_conf(_readOptions('/etc/youtube-dl.conf'))
+            system_conf = _readOptions('/etc/youtube-dl.conf')
             if '--ignore-config' in system_conf:
                 user_conf = []
             else:
-                user_conf = compat_conf(_readUserConf())
+                user_conf = _readUserConf()
         argv = system_conf + user_conf + command_line_conf
 
         opts, args = parser.parse_args(argv)

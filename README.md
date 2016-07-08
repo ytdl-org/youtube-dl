@@ -432,6 +432,7 @@ For example, with the following configuration file youtube-dl will always extrac
 --no-mtime
 --proxy 127.0.0.1:3128
 -o ~/Movies/%(title)s.%(ext)s
+# Lines starting with # are comments
 ```
 
 Note that options in configuration file are just the same options aka switches used in regular command line calls thus there **must be no whitespace** after `-` or `--`, e.g. `-o` or `--proxy` but not `- o` or `-- proxy`.

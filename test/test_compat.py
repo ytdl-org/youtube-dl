@@ -88,6 +88,7 @@ class TestCompat(unittest.TestCase):
     def test_compat_shlex_split(self):
         self.assertEqual(compat_shlex_split('-option "one two"'), ['-option', 'one two'])
         self.assertEqual(compat_shlex_split('-option "one\ntwo" \n -flag'), ['-option', 'one\ntwo', '-flag'])
+        self.assertEqual(compat_shlex_split('-val 中文'), ['-val', '中文'])
 
     def test_compat_etree_fromstring(self):
         xml = '''
