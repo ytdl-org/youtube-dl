@@ -44,6 +44,7 @@ from ..utils import (
     sanitized_Request,
     unescapeHTML,
     unified_strdate,
+    unified_timestamp,
     url_basename,
     xpath_element,
     xpath_text,
@@ -840,10 +841,16 @@ class InfoExtractor(object):
                 })
             elif item_type == 'VideoObject':
                 info.update({
+                    'url': json_ld.get('contentUrl'),
                     'title': unescapeHTML(json_ld.get('name')),
                     'description': unescapeHTML(json_ld.get('description')),
-                    'upload_date': unified_strdate(json_ld.get('upload_date')),
-                    'url': unescapeHTML(json_ld.get('contentUrl')),
+                    'thumbnail': json_ld.get('thumbnailUrl'),
+                    'duration': parse_duration(json_ld.get('duration')),
+                    'timestamp': unified_timestamp(json_ld.get('uploadDate')),
+                    'filesize': float_or_none(json_ld.get('contentSize')),
+                    'tbr': int_or_none(json_ld.get('bitrate')),
+                    'width': int_or_none(json_ld.get('width')),
+                    'height': int_or_none(json_ld.get('height')),
                 })
         return dict((k, v) for k, v in info.items() if v is not None)
 
