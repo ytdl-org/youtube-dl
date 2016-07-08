@@ -161,6 +161,7 @@ class InfoExtractor(object):
                         * "height" (optional, int)
                         * "resolution" (optional, string "{width}x{height"},
                                         deprecated)
+                        * "filesize" (optional, int)
     thumbnail:      Full URL to a video thumbnail image.
     description:    Full video description.
     uploader:       Full name of the video uploader.
