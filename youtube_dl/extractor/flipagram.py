@@ -2,102 +2,114 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
-    parse_iso8601,
-    unified_strdate,
+    float_or_none,
+    try_get,
     unified_timestamp,
 )
 
 
 class FlipagramIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?flipagram\.com/f/(?P<id>[^/?_]+)'
-    _TESTS = [{
-        'url': 'https://flipagram.com/f/myrWjW9RJw',
-        'md5': '541988fb6c4c7c375215ea22a4a21841',
-        'info_dict': {
-            'id': 'myrWjW9RJw',
-            'title': 'Flipagram by crystaldolce featuring King and Lionheart by Of Monsters and Men',
-            'description': 'Herbie\'s first bannana🍌🐢🍌.  #animals #pets #reptile #tortoise #sulcata #tort #justatreat #snacktime #bannanas #rescuepets  #ofmonstersandmen  @animals',
-            'ext': 'mp4',
-            'uploader': 'Crystal Dolce',
-            'creator': 'Crystal Dolce',
-            'uploader_id': 'crystaldolce',
-        }
-    }, {
+    _VALID_URL = r'https?://(?:www\.)?flipagram\.com/f/(?P<id>[^/?#&]+)'
+    _TEST = {
         'url': 'https://flipagram.com/f/nyvTSJMKId',
-        'only_matching': True,
-    }]
+        'md5': '888dcf08b7ea671381f00fab74692755',
+        'info_dict': {
+            'id': 'nyvTSJMKId',
+            'ext': 'mp4',
+            'title': 'Flipagram by sjuria101 featuring Midnight Memories by One Direction',
+            'description': 'md5:d55e32edc55261cae96a41fa85ff630e',
+            'duration': 35.571,
+            'timestamp': 1461244995,
+            'upload_date': '20160421',
+            'uploader': 'kitty juria',
+            'uploader_id': 'sjuria101',
+            'creator': 'kitty juria',
+            'view_count': int,
+            'like_count': int,
+            'repost_count': int,
+            'comment_count': int,
+            'comments': list,
+            'formats': 'mincount:2',
+        },
+    }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        self.report_extraction(video_id)
-        user_data = self._parse_json(self._search_regex(r'window.reactH2O\s*=\s*({.+});', webpage, 'user data'), video_id)
-        content_data = self._search_json_ld(webpage, video_id)
+        video_data = self._parse_json(
+            self._search_regex(
+                r'window\.reactH2O\s*=\s*({.+});', webpage, 'video data'),
+            video_id)
 
-        flipagram = user_data.get('flipagram', {})
-        counts = flipagram.get('counts', {})
-        user = flipagram.get('user', {})
-        video = flipagram.get('video', {})
+        flipagram = video_data['flipagram']
+        video = flipagram['video']
 
-        thumbnails = []
-        for cover in flipagram.get('covers', []):
-            if not cover.get('url'):
-                continue
-            thumbnails.append({
-                'url': self._proto_relative_url(cover.get('url')),
-                'width': int_or_none(cover.get('width')),
-                'height': int_or_none(cover.get('height')),
-            })
+        json_ld = self._search_json_ld(webpage, video_id, default=False)
+        title = json_ld.get('title') or flipagram['captionText']
+        description = json_ld.get('description') or flipagram.get('captionText')
 
-        # Note that this only retrieves comments that are initally loaded.
-        # For videos with large amounts of comments, most won't be retrieved.
-        comments = []
-        for comment in user_data.get('comments', {}).get(video_id, {}).get('items', []):
-            text = comment.get('comment', [])
-            comments.append({
-                'author': comment.get('user', {}).get('name'),
-                'author_id': comment.get('user', {}).get('username'),
-                'id': comment.get('id'),
-                'text': text[0] if text else '',
-                'timestamp': unified_timestamp(comment.get('created', '')),
-            })
+        formats = [{
+            'url': video['url'],
+            'width': int_or_none(video.get('width')),
+            'height': int_or_none(video.get('height')),
+            'filesize': int_or_none(video_data.get('size')),
+        }]
 
-        tags = [tag for item in flipagram['story'][1:] for tag in item]
-
-        formats = []
-        if flipagram.get('music', {}).get('track', {}).get('previewUrl', {}):
+        preview_url = try_get(
+            flipagram, lambda x: x['music']['track']['previewUrl'], compat_str)
+        if preview_url:
             formats.append({
-                'url': flipagram.get('music').get('track').get('previewUrl'),
+                'url': preview_url,
                 'ext': 'm4a',
                 'vcodec': 'none',
             })
 
-        formats.append({
-            'url': video.get('url'),
-            'ext': 'mp4',
-            'width': int_or_none(video.get('width')),
-            'height': int_or_none(video.get('height')),
-            'filesize': int_or_none(video.get('size')),
-        })
+        self._sort_formats(formats)
+
+        counts = flipagram.get('counts', {})
+        user = flipagram.get('user', {})
+        video_data = flipagram.get('video', {})
+
+        thumbnails = [{
+            'url': self._proto_relative_url(cover['url']),
+            'width': int_or_none(cover.get('width')),
+            'height': int_or_none(cover.get('height')),
+            'filesize': int_or_none(cover.get('size')),
+        } for cover in flipagram.get('covers', []) if cover.get('url')]
+
+        # Note that this only retrieves comments that are initally loaded.
+        # For videos with large amounts of comments, most won't be retrieved.
+        comments = []
+        for comment in video_data.get('comments', {}).get(video_id, {}).get('items', []):
+            text = comment.get('comment')
+            if not text or not isinstance(text, list):
+                continue
+            comments.append({
+                'author': comment.get('user', {}).get('name'),
+                'author_id': comment.get('user', {}).get('username'),
+                'id': comment.get('id'),
+                'text': text[0],
+                'timestamp': unified_timestamp(comment.get('created')),
+            })
 
         return {
             'id': video_id,
-            'title': content_data['title'],
-            'formats': formats,
+            'title': title,
+            'description': description,
+            'duration': float_or_none(flipagram.get('duration'), 1000),
             'thumbnails': thumbnails,
-            'description': content_data.get('description'),
+            'timestamp': unified_timestamp(flipagram.get('iso8601Created')),
             'uploader': user.get('name'),
-            'creator': user.get('name'),
-            'timestamp': parse_iso8601(flipagram.get('iso801Created')),
-            'upload_date': unified_strdate(flipagram.get('created')),
             'uploader_id': user.get('username'),
+            'creator': user.get('name'),
             'view_count': int_or_none(counts.get('plays')),
+            'like_count': int_or_none(counts.get('likes')),
             'repost_count': int_or_none(counts.get('reflips')),
             'comment_count': int_or_none(counts.get('comments')),
             'comments': comments,
-            'tags': tags,
+            'formats': formats,
         }
