@@ -837,6 +837,13 @@ class InfoExtractor(object):
                     'title': unescapeHTML(json_ld.get('headline')),
                     'description': unescapeHTML(json_ld.get('articleBody')),
                 })
+            elif item_type == 'VideoObject':
+                info.update({
+                    'title': unescapeHTML(json_ld.get('name')),
+                    'description': unescapeHTML(json_ld.get('description')),
+                    'upload_date': unified_strdate(json_ld.get('upload_date')),
+                    'url': unescapeHTML(json_ld.get('contentUrl')),
+                })
         return dict((k, v) for k, v in info.items() if v is not None)
 
     @staticmethod
