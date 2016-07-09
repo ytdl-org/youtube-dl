@@ -364,6 +364,11 @@ class VimeoIE(VimeoBaseInfoExtractor):
             r'<embed[^>]+?src="((?:https?:)?//(?:www\.)?vimeo\.com/moogaloop\.swf.+?)"', webpage)
         if mobj:
             return mobj.group(1)
+        # Look more for non-standard embedded Vimeo player
+        mobj = re.search(
+            r'<video[^>]+src=(?P<q1>[\'"])(?P<url>(?:https?:)?//(?:www\.)?vimeo\.com/[0-9]+)(?P=q1)', webpage)
+        if mobj:
+            return mobj.group('url')
 
     def _verify_player_video_password(self, url, video_id):
         password = self._downloader.params.get('videopassword')
