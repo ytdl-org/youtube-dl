@@ -203,7 +203,7 @@ class AnimeOnDemandIE(InfoExtractor):
                 'formats': formats,
             }
 
-        def extract_entries(html, video_id, common_info, num):
+        def extract_entries(html, video_id, common_info, num=None):
             info = extract_info(html, video_id, num)
 
             if info['formats']:
