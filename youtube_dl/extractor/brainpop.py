@@ -24,24 +24,43 @@ class BrainPOPIE(InfoExtractor):
 
         self.report_extraction(video_id)
 
-        ec_token = self._html_search_regex(r'ec_token : \'(.+)\'', webpage, 'token')
-        movie_cdn_path = self._html_search_regex(r'movie_cdn_path : \'(.+)\'', webpage, 'cdn path')
-        mp4 = self._html_search_regex(r'mp4":"([^"]*)', webpage, 'mp4')
+        ec_token = self._html_search_regex(r"ec_token : '([^']*)'", webpage, 'token')
 
-        url = movie_cdn_path + mp4.replace('\\', '') + '?' + ec_token
+        settings = self._parse_json(self._html_search_regex(r'var settings = ([^;]*)', webpage, 'settings'), video_id)
+        title = settings['title']
+        description = settings['description']
 
-        title = self._html_search_regex(r'type":"Movie","name":"([^"]*)"', webpage, 'title') or self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
+        global_content = self._parse_json(self._html_search_regex(r'var global_content = ([^;]*)', webpage, 'global content').replace("'", '"'), video_id)
+        cdn_path = global_content['cdn_path']
+        movie_cdn_path = global_content['movie_cdn_path']
 
-        thumbnail_cdn = self._html_search_regex(r"'cdn_path' : '([^']*)'", webpage, 'thumbnail cdn', fatal=False)
-        thumbnail_image = self._html_search_regex(r'type":"Movie","name":"[^"]*","image":"([^"]*)"', webpage, 'thumbnail', fatal=False)
-        thumbnail = thumbnail_cdn + thumbnail_image.replace('\\', '')
+        content = self._parse_json(self._html_search_regex(r'var content = ([^;]*)', webpage, 'content'), video_id)
+        movies = content['category']['unit']['topic']['movies']
+        screenshots = content['category']['unit']['topic']['screenshots']
 
-        description = self._html_search_regex(r'type":"Movie","name":"[^"]*","image":"[^"]*","description":"([^"]*)"', webpage, 'description', fatal=False)
+        formats = []
+        formats.append({
+            'url': movie_cdn_path + movies['mp4'] + '?' + ec_token,
+            'height': 768,
+            'width': 768,
+        })
+        formats.append({
+            'url': movie_cdn_path + movies['mp4_small'] + '?' + ec_token,
+            'height': 480,
+            'width': 480,
+        })
+        self._sort_formats(formats)
+
+        thumbnails = []
+        for (i, screenshot) in enumerate(screenshots):
+            thumbnails.append({
+                'url': cdn_path + screenshot,
+            })
 
         return {
             'id': video_id,
-            'url': url,
             'title': title,
-            'thumbnail': thumbnail,
+            'formats': formats,
+            'thumbnails': thumbnails,
             'description': description,
         }
