@@ -115,7 +115,7 @@ class AnimeOnDemandIE(InfoExtractor):
 
         entries = []
 
-        def extract_info(html, video_id):
+        def extract_info(html, video_id, num=None):
             title, description = [None] * 2
             formats = []
 
@@ -143,7 +143,7 @@ class AnimeOnDemandIE(InfoExtractor):
                         format_id_list.append(lang)
                     if kind:
                         format_id_list.append(kind)
-                    if not format_id_list:
+                    if not format_id_list and num is not None:
                         format_id_list.append(compat_str(num))
                     format_id = '-'.join(format_id_list)
                     format_note = ', '.join(filter(None, (kind, lang_note)))
@@ -203,8 +203,8 @@ class AnimeOnDemandIE(InfoExtractor):
                 'formats': formats,
             }
 
-        def extract_entries(html, video_id, common_info):
-            info = extract_info(html, video_id)
+        def extract_entries(html, video_id, common_info, num):
+            info = extract_info(html, video_id, num)
 
             if info['formats']:
                 self._sort_formats(info['formats'])
