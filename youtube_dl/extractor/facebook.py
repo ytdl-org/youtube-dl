@@ -231,11 +231,13 @@ class FacebookIE(InfoExtractor):
                     continue
                 if isinstance(f, dict):
                     f = [f]
-                if isinstance(f, list):
+                if not isinstance(f, list):
                     continue
                 if f[0].get('video_id') == video_id:
                     video_data = video_data_candidate
                     break
+            if video_data:
+                break
 
         def video_data_list2dict(video_data):
             ret = {}
