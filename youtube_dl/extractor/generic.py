@@ -1313,6 +1313,21 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Kaltura'],
         },
+        {
+            # Non-standard Vimeo embed
+            'url': 'https://openclassrooms.com/courses/understanding-the-web',
+            'md5': '64d86f1c7d369afd9a78b38cbb88d80a',
+            'info_dict': {
+                'id': '148867247',
+                'ext': 'mp4',
+                'title': 'Understanding the web - Teaser',
+                'description': 'This is "Understanding the web - Teaser" by openclassrooms on Vimeo, the home for high quality videos and the people who love them.',
+                'upload_date': '20151214',
+                'uploader': 'OpenClassrooms',
+                'uploader_id': 'openclassrooms',
+            },
+            'add_ie': ['Vimeo'],
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
