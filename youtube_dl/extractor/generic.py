@@ -1313,23 +1313,23 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Kaltura'],
         },
-        {
-            # TODO: find another test
-            # http://schema.org/VideoObject
-            # 'url': 'https://flipagram.com/f/nyvTSJMKId',
-            # 'md5': '888dcf08b7ea671381f00fab74692755',
-            # 'info_dict': {
-            #     'id': 'nyvTSJMKId',
-            #     'ext': 'mp4',
-            #     'title': 'Flipagram by sjuria101 featuring Midnight Memories by One Direction',
-            #     'description': '#love for cats.',
-            #     'timestamp': 1461244995,
-            #     'upload_date': '20160421',
-            # },
-            # 'params': {
-            #     'force_generic_extractor': True,
-            # },
-        }
+        # {
+        #     # TODO: find another test
+        #     # http://schema.org/VideoObject
+        #     'url': 'https://flipagram.com/f/nyvTSJMKId',
+        #     'md5': '888dcf08b7ea671381f00fab74692755',
+        #     'info_dict': {
+        #         'id': 'nyvTSJMKId',
+        #         'ext': 'mp4',
+        #         'title': 'Flipagram by sjuria101 featuring Midnight Memories by One Direction',
+        #         'description': '#love for cats.',
+        #         'timestamp': 1461244995,
+        #         'upload_date': '20160421',
+        #     },
+        #     'params': {
+        #         'force_generic_extractor': True,
+        #     },
+        # }
     ]
 
     def report_following_redirect(self, new_url):
