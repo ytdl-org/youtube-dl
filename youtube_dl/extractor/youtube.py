@@ -1978,10 +1978,13 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
         return (False if YoutubePlaylistsIE.suitable(url) or YoutubeLiveIE.suitable(url)
                 else super(YoutubeChannelIE, cls).suitable(url))
 
+    def _build_template_url(self, url, channel_id):
+        return self._TEMPLATE_URL % channel_id
+
     def _real_extract(self, url):
         channel_id = self._match_id(url)
 
-        url = self._TEMPLATE_URL % channel_id
+        url = self._build_template_url(url, channel_id)
 
         # Channel by page listing is restricted to 35 pages of 30 items, i.e. 1050 videos total (see #5778)
         # Workaround by extracting as a playlist if managed to obtain channel playlist URL
@@ -2038,8 +2041,8 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
 
 class YoutubeUserIE(YoutubeChannelIE):
     IE_DESC = 'YouTube.com user videos (URL or "ytuser" keyword)'
-    _VALID_URL = r'(?:(?:https?://(?:\w+\.)?youtube\.com/(?:user/|c/)?(?!(?:attribution_link|watch|results)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)(?P<id>[A-Za-z0-9_-]+)'
-    _TEMPLATE_URL = 'https://www.youtube.com/user/%s/videos'
+    _VALID_URL = r'(?:(?:https?://(?:\w+\.)?youtube\.com/(?:(?P<user>user|c)/)?(?!(?:attribution_link|watch|results)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)(?P<id>[A-Za-z0-9_-]+)'
+    _TEMPLATE_URL = 'https://www.youtube.com/%s/%s/videos'
     IE_NAME = 'youtube:user'
 
     _TESTS = [{
@@ -2050,10 +2053,22 @@ class YoutubeUserIE(YoutubeChannelIE):
             'title': 'Uploads from The Linux Foundation',
         }
     }, {
+        # Only available via https://www.youtube.com/c/12minuteathlete/videos
+        # but not https://www.youtube.com/user/12minuteathlete/videos
+        'url': 'https://www.youtube.com/c/12minuteathlete/videos',
+        'playlist_mincount': 249,
+        'info_dict': {
+            'id': 'UUVjM-zV6_opMDx7WYxnjZiQ',
+            'title': 'Uploads from 12 Minute Athlete',
+        }
+    }, {
         'url': 'ytuser:phihag',
         'only_matching': True,
     }, {
         'url': 'https://www.youtube.com/c/gametrailers',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/gametrailers',
         'only_matching': True,
     }, {
         # This channel is not available.
@@ -2070,6 +2085,10 @@ class YoutubeUserIE(YoutubeChannelIE):
             return False
         else:
             return super(YoutubeUserIE, cls).suitable(url)
+
+    def _build_template_url(self, url, channel_id):
+        mobj = re.match(self._VALID_URL, url)
+        return self._TEMPLATE_URL % (mobj.group('user') or 'user', mobj.group('id'))
 
 
 class YoutubeLiveIE(YoutubeBaseInfoExtractor):
