@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class RoosterTeethIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(www|achievementhunter|funhaus|screwattack|theknow)\.)?roosterteeth\.com/episode/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:.+?\.)?roosterteeth\.com/episode/(?P<id>[^/?#&]+)'
     _LOGIN_URL = 'https://roosterteeth.com/login'
     _NETRC_MACHINE = 'roosterteeth'
     _TESTS = [{
@@ -49,23 +49,24 @@ class RoosterTeethIE(InfoExtractor):
 
         # token is required to authenticate request
         login_page = self._download_webpage(self._LOGIN_URL, None, 'Getting login token', 'Unable to get login token')
-        hidden_inputs = self._hidden_inputs(login_page)
-        token = hidden_inputs['_token']
 
-        login_data = {
-            '_token': token,
+        login_form = self._hidden_inputs(login_page)
+        login_form.update({
             'username': username,
             'password': password,
-        }
-
-        login_payload = urlencode_postdata(login_data)
+        })
+        login_payload = urlencode_postdata(login_form)
 
         # required for proper responses
         login_headers = {
-            'Referer': 'https://roosterteeth.com/login',
+            'Referer': self._LOGIN_URL,
         }
 
-        login_request = self._download_webpage(self._LOGIN_URL, None, note='Logging in as %s' % username, data=login_payload, headers=login_headers)
+        login_request = self._download_webpage(
+            self._LOGIN_URL, None,
+            note='Logging in as %s' % username,
+            data=login_payload,
+            headers=login_headers)
 
         if 'Authentication failed' in login_request:
             raise ExtractorError(
