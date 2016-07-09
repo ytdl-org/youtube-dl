@@ -2,11 +2,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
 from ..utils import (
     float_or_none,
     int_or_none,
     parse_iso8601,
+    sanitized_Request,
 )
 
 
@@ -57,7 +57,7 @@ class EitbIE(InfoExtractor):
 
         hls_url = media.get('HLS_SURL')
         if hls_url:
-            request = compat_urllib_request.Request(
+            request = sanitized_Request(
                 'http://mam.eitb.eus/mam/REST/ServiceMultiweb/DomainRestrictedSecurity/TokenAuth/',
                 headers={'Referer': url})
             token_data = self._download_json(
@@ -65,18 +65,14 @@ class EitbIE(InfoExtractor):
             if token_data:
                 token = token_data.get('token')
                 if token:
-                    m3u8_formats = self._extract_m3u8_formats(
-                        '%s?hdnts=%s' % (hls_url, token), video_id, m3u8_id='hls', fatal=False)
-                    if m3u8_formats:
-                        formats.extend(m3u8_formats)
+                    formats.extend(self._extract_m3u8_formats(
+                        '%s?hdnts=%s' % (hls_url, token), video_id, m3u8_id='hls', fatal=False))
 
         hds_url = media.get('HDS_SURL')
         if hds_url:
-            f4m_formats = self._extract_f4m_formats(
+            formats.extend(self._extract_f4m_formats(
                 '%s?hdcore=3.7.0' % hds_url.replace('euskalsvod', 'euskalvod'),
-                video_id, f4m_id='hds', fatal=False)
-            if f4m_formats:
-                formats.extend(f4m_formats)
+                video_id, f4m_id='hds', fatal=False))
 
         self._sort_formats(formats)
 

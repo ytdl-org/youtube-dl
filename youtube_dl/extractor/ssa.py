@@ -8,7 +8,7 @@ from ..utils import (
 
 
 class SSAIE(InfoExtractor):
-    _VALID_URL = r'http://ssa\.nls\.uk/film/(?P<id>\d+)'
+    _VALID_URL = r'https?://ssa\.nls\.uk/film/(?P<id>\d+)'
     _TEST = {
         'url': 'http://ssa.nls.uk/film/3561',
         'info_dict': {

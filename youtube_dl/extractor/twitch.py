@@ -9,17 +9,19 @@ from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
-    compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
-    encode_dict,
     ExtractorError,
     int_or_none,
+    js_to_json,
+    orderedSet,
     parse_duration,
     parse_iso8601,
+    sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -27,7 +29,7 @@ class TwitchBaseIE(InfoExtractor):
     _VALID_URL_BASE = r'https?://(?:www\.)?twitch\.tv'
 
     _API_BASE = 'https://api.twitch.tv'
-    _USHER_BASE = 'http://usher.twitch.tv'
+    _USHER_BASE = 'https://usher.ttvnw.net'
     _LOGIN_URL = 'http://www.twitch.tv/login'
     _NETRC_MACHINE = 'twitch'
 
@@ -48,7 +50,7 @@ class TwitchBaseIE(InfoExtractor):
         for cookie in self._downloader.cookiejar:
             if cookie.name == 'api_token':
                 headers['Twitch-Api-Token'] = cookie.value
-        request = compat_urllib_request.Request(url, headers=headers)
+        request = sanitized_Request(url, headers=headers)
         response = super(TwitchBaseIE, self)._download_json(request, video_id, note)
         self._handle_error(response)
         return response
@@ -80,8 +82,8 @@ class TwitchBaseIE(InfoExtractor):
         if not post_url.startswith('http'):
             post_url = compat_urlparse.urljoin(redirect_url, post_url)
 
-        request = compat_urllib_request.Request(
-            post_url, compat_urllib_parse.urlencode(encode_dict(login_form)).encode('utf-8'))
+        request = sanitized_Request(
+            post_url, urlencode_postdata(login_form))
         request.add_header('Referer', redirect_url)
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)
@@ -170,6 +172,7 @@ class TwitchVideoIE(TwitchItemBaseIE):
             'title': 'Worlds Semifinals - Star Horn Royal Club vs. OMG',
         },
         'playlist_mincount': 12,
+        'skip': 'HTTP Error 404: Not Found',
     }
 
 
@@ -186,6 +189,7 @@ class TwitchChapterIE(TwitchItemBaseIE):
             'title': 'ACRL Off Season - Sports Cars @ Nordschleife',
         },
         'playlist_mincount': 3,
+        'skip': 'HTTP Error 404: Not Found',
     }, {
         'url': 'http://www.twitch.tv/tsm_theoddone/c/2349361',
         'only_matching': True,
@@ -249,14 +253,15 @@ class TwitchVodIE(TwitchItemBaseIE):
         formats = self._extract_m3u8_formats(
             '%s/vod/%s?%s' % (
                 self._USHER_BASE, item_id,
-                compat_urllib_parse.urlencode({
+                compat_urllib_parse_urlencode({
                     'allow_source': 'true',
+                    'allow_audio_only': 'true',
                     'allow_spectre': 'true',
                     'player': 'twitchweb',
                     'nauth': access_token['token'],
                     'nauthsig': access_token['sig'],
                 })),
-            item_id, 'mp4')
+            item_id, 'mp4', entry_protocol='m3u8_native')
 
         self._prefer_source(formats)
         info['formats'] = formats
@@ -281,17 +286,37 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
         entries = []
         offset = 0
         limit = self._PAGE_LIMIT
+        broken_paging_detected = False
+        counter_override = None
         for counter in itertools.count(1):
             response = self._download_json(
                 self._PLAYLIST_URL % (channel_id, offset, limit),
-                channel_id, 'Downloading %s videos JSON page %d' % (self._PLAYLIST_TYPE, counter))
+                channel_id,
+                'Downloading %s videos JSON page %s'
+                % (self._PLAYLIST_TYPE, counter_override or counter))
             page_entries = self._extract_playlist_page(response)
             if not page_entries:
                 break
+            total = int_or_none(response.get('_total'))
+            # Since the beginning of March 2016 twitch's paging mechanism
+            # is completely broken on the twitch side. It simply ignores
+            # a limit and returns the whole offset number of videos.
+            # Working around by just requesting all videos at once.
+            # Upd: pagination bug was fixed by twitch on 15.03.2016.
+            if not broken_paging_detected and total and len(page_entries) > limit:
+                self.report_warning(
+                    'Twitch pagination is broken on twitch side, requesting all videos at once',
+                    channel_id)
+                broken_paging_detected = True
+                offset = total
+                counter_override = '(all at once)'
+                continue
             entries.extend(page_entries)
+            if broken_paging_detected or total and len(page_entries) >= total:
+                break
             offset += limit
         return self.playlist_result(
-            [self.url_result(entry) for entry in set(entries)],
+            [self.url_result(entry) for entry in orderedSet(entries)],
             channel_id, channel_name)
 
     def _extract_playlist_page(self, response):
@@ -331,31 +356,6 @@ class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
         },
         'playlist_mincount': 54,
     }
-
-
-class TwitchBookmarksIE(TwitchPlaylistBaseIE):
-    IE_NAME = 'twitch:bookmarks'
-    _VALID_URL = r'%s/(?P<id>[^/]+)/profile/bookmarks/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
-    _PLAYLIST_URL = '%s/api/bookmark/?user=%%s&offset=%%d&limit=%%d' % TwitchBaseIE._API_BASE
-    _PLAYLIST_TYPE = 'bookmarks'
-
-    _TEST = {
-        'url': 'http://www.twitch.tv/ognos/profile/bookmarks',
-        'info_dict': {
-            'id': 'ognos',
-            'title': 'Ognos',
-        },
-        'playlist_mincount': 3,
-    }
-
-    def _extract_playlist_page(self, response):
-        entries = []
-        for bookmark in response.get('bookmarks', []):
-            video = bookmark.get('video')
-            if not video:
-                continue
-            entries.append(video['url'])
-        return entries
 
 
 class TwitchStreamIE(TwitchBaseIE):
@@ -411,6 +411,7 @@ class TwitchStreamIE(TwitchBaseIE):
 
         query = {
             'allow_source': 'true',
+            'allow_audio_only': 'true',
             'p': random.randint(1000000, 10000000),
             'player': 'twitchweb',
             'segment_preference': '4',
@@ -419,7 +420,7 @@ class TwitchStreamIE(TwitchBaseIE):
         }
         formats = self._extract_m3u8_formats(
             '%s/api/channel/hls/%s.m3u8?%s'
-            % (self._USHER_BASE, channel_id, compat_urllib_parse.urlencode(query)),
+            % (self._USHER_BASE, channel_id, compat_urllib_parse_urlencode(query)),
             channel_id, 'mp4')
         self._prefer_source(formats)
 
@@ -453,4 +454,46 @@ class TwitchStreamIE(TwitchBaseIE):
             'view_count': view_count,
             'formats': formats,
             'is_live': True,
+        }
+
+
+class TwitchClipsIE(InfoExtractor):
+    IE_NAME = 'twitch:clips'
+    _VALID_URL = r'https?://clips\.twitch\.tv/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+
+    _TEST = {
+        'url': 'https://clips.twitch.tv/ea/AggressiveCobraPoooound',
+        'md5': '761769e1eafce0ffebfb4089cb3847cd',
+        'info_dict': {
+            'id': 'AggressiveCobraPoooound',
+            'ext': 'mp4',
+            'title': 'EA Play 2016 Live from the Novo Theatre',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'creator': 'EA',
+            'uploader': 'stereotype_',
+            'uploader_id': 'stereotype_',
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        clip = self._parse_json(
+            self._search_regex(
+                r'(?s)clipInfo\s*=\s*({.+?});', webpage, 'clip info'),
+            video_id, transform_source=js_to_json)
+
+        video_url = clip['clip_video_url']
+        title = clip['channel_title']
+
+        return {
+            'id': video_id,
+            'url': video_url,
+            'title': title,
+            'thumbnail': self._og_search_thumbnail(webpage),
+            'creator': clip.get('broadcaster_display_name') or clip.get('broadcaster_login'),
+            'uploader': clip.get('curator_login'),
+            'uploader_id': clip.get('curator_display_name'),
         }

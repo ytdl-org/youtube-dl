@@ -6,12 +6,9 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
-    compat_urllib_request,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
 )
-from ..utils import (
-    ExtractorError,
-)
+from ..utils import ExtractorError
 
 
 class SohuIE(InfoExtractor):
@@ -96,15 +93,10 @@ class SohuIE(InfoExtractor):
             else:
                 base_data_url = 'http://hot.vrs.sohu.com/vrs_flash.action?vid='
 
-            req = compat_urllib_request.Request(base_data_url + vid_id)
-
-            cn_verification_proxy = self._downloader.params.get('cn_verification_proxy')
-            if cn_verification_proxy:
-                req.add_header('Ytdl-request-proxy', cn_verification_proxy)
-
             return self._download_json(
-                req, video_id,
-                'Downloading JSON data for %s' % vid_id)
+                base_data_url + vid_id, video_id,
+                'Downloading JSON data for %s' % vid_id,
+                headers=self.geo_verification_headers())
 
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
@@ -158,6 +150,7 @@ class SohuIE(InfoExtractor):
                         'file': clips_url[i],
                         'new': su[i],
                         'prod': 'flash',
+                        'rb': 1,
                     }
 
                     if cdnId is not None:
@@ -169,7 +162,7 @@ class SohuIE(InfoExtractor):
                     if retries > 0:
                         download_note += ' (retry #%d)' % retries
                     part_info = self._parse_json(self._download_webpage(
-                        'http://%s/?%s' % (allot, compat_urllib_parse.urlencode(params)),
+                        'http://%s/?%s' % (allot, compat_urllib_parse_urlencode(params)),
                         video_id, download_note), video_id)
 
                     video_url = part_info['url']

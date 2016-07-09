@@ -7,14 +7,14 @@ import hmac
 import hashlib
 import itertools
 
+from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
     parse_age_limit,
     parse_iso8601,
+    sanitized_Request,
 )
-from ..compat import compat_urllib_request
-from .common import InfoExtractor
 
 
 class VikiBaseIE(InfoExtractor):
@@ -30,6 +30,12 @@ class VikiBaseIE(InfoExtractor):
 
     _token = None
 
+    _ERRORS = {
+        'geo': 'Sorry, this content is not available in your region.',
+        'upcoming': 'Sorry, this content is not yet available.',
+        # 'paywall': 'paywall',
+    }
+
     def _prepare_call(self, path, timestamp=None, post_data=None):
         path += '?' if '?' not in path else '&'
         if not timestamp:
@@ -43,7 +49,7 @@ class VikiBaseIE(InfoExtractor):
             hashlib.sha1
         ).hexdigest()
         url = self._API_URL_TEMPLATE % (query, sig)
-        return compat_urllib_request.Request(
+        return sanitized_Request(
             url, json.dumps(post_data).encode('utf-8')) if post_data else url
 
     def _call_api(self, path, video_id, note, timestamp=None, post_data=None):
@@ -67,6 +73,12 @@ class VikiBaseIE(InfoExtractor):
             '%s returned error: %s' % (self.IE_NAME, error),
             expected=True)
 
+    def _check_errors(self, data):
+        for reason, status in data.get('blocking', {}).items():
+            if status and reason in self._ERRORS:
+                raise ExtractorError('%s said: %s' % (
+                    self.IE_NAME, self._ERRORS[reason]), expected=True)
+
     def _real_initialize(self):
         self._login()
 
@@ -89,9 +101,12 @@ class VikiBaseIE(InfoExtractor):
             self.report_warning('Unable to get session token, login has probably failed')
 
     @staticmethod
-    def dict_selection(dict_obj, preferred_key):
+    def dict_selection(dict_obj, preferred_key, allow_fallback=True):
         if preferred_key in dict_obj:
             return dict_obj.get(preferred_key)
+
+        if not allow_fallback:
+            return
 
         filtered_dict = list(filter(None, [dict_obj.get(k) for k in dict_obj.keys()]))
         return filtered_dict[0] if filtered_dict else None
@@ -115,7 +130,7 @@ class VikiIE(VikiBaseIE):
     }, {
         # clip
         'url': 'http://www.viki.com/videos/1067139v-the-avengers-age-of-ultron-press-conference',
-        'md5': '86c0b5dbd4d83a6611a79987cc7a1989',
+        'md5': 'feea2b1d7b3957f70886e6dfd8b8be84',
         'info_dict': {
             'id': '1067139v',
             'ext': 'mp4',
@@ -144,17 +159,18 @@ class VikiIE(VikiBaseIE):
         'params': {
             # m3u8 download
             'skip_download': True,
-        }
+        },
+        'skip': 'Blocked in the US',
     }, {
         # episode
         'url': 'http://www.viki.com/videos/44699v-boys-over-flowers-episode-1',
-        'md5': '190f3ef426005ba3a080a63325955bc3',
+        'md5': '1f54697dabc8f13f31bf06bb2e4de6db',
         'info_dict': {
             'id': '44699v',
             'ext': 'mp4',
             'title': 'Boys Over Flowers - Episode 1',
-            'description': 'md5:52617e4f729c7d03bfd4bcbbb6e946f2',
-            'duration': 4155,
+            'description': 'md5:b89cf50038b480b88b5b3c93589a9076',
+            'duration': 4204,
             'timestamp': 1270496524,
             'upload_date': '20100405',
             'uploader': 'group8',
@@ -164,13 +180,13 @@ class VikiIE(VikiBaseIE):
     }, {
         # youtube external
         'url': 'http://www.viki.com/videos/50562v-poor-nastya-complete-episode-1',
-        'md5': '216d1afdc0c64d1febc1e9f2bd4b864b',
+        'md5': '63f8600c1da6f01b7640eee7eca4f1da',
         'info_dict': {
             'id': '50562v',
-            'ext': 'mp4',
+            'ext': 'webm',
             'title': 'Poor Nastya [COMPLETE] - Episode 1',
             'description': '',
-            'duration': 607,
+            'duration': 606,
             'timestamp': 1274949505,
             'upload_date': '20101213',
             'uploader': 'ad14065n',
@@ -184,7 +200,7 @@ class VikiIE(VikiBaseIE):
     }, {
         # non-English description
         'url': 'http://www.viki.com/videos/158036v-love-in-magic',
-        'md5': '1713ae35df5a521b31f6dc40730e7c9c',
+        'md5': '013dc282714e22acf9447cad14ff1208',
         'info_dict': {
             'id': '158036v',
             'ext': 'mp4',
@@ -193,6 +209,7 @@ class VikiIE(VikiBaseIE):
             'timestamp': 1321985454,
             'description': 'md5:44b1e46619df3a072294645c770cef36',
             'title': 'Love In Magic',
+            'age_limit': 13,
         },
     }]
 
@@ -202,7 +219,9 @@ class VikiIE(VikiBaseIE):
         video = self._call_api(
             'videos/%s.json' % video_id, video_id, 'Downloading video JSON')
 
-        title = self.dict_selection(video.get('titles', {}), 'en')
+        self._check_errors(video)
+
+        title = self.dict_selection(video.get('titles', {}), 'en', allow_fallback=False)
         if not title:
             title = 'Episode %d' % video.get('number') if video.get('type') == 'episode' else video.get('id') or video_id
             container_titles = video.get('container', {}).get('titles', {})
@@ -262,8 +281,9 @@ class VikiIE(VikiBaseIE):
                 r'^(\d+)[pP]$', format_id, 'height', default=None))
             for protocol, format_dict in stream_dict.items():
                 if format_id == 'm3u8':
-                    formats = self._extract_m3u8_formats(
-                        format_dict['url'], video_id, 'mp4', m3u8_id='m3u8-%s' % protocol)
+                    formats.extend(self._extract_m3u8_formats(
+                        format_dict['url'], video_id, 'mp4', 'm3u8_native',
+                        m3u8_id='m3u8-%s' % protocol, fatal=False))
                 else:
                     formats.append({
                         'url': format_dict['url'],
@@ -286,7 +306,7 @@ class VikiChannelIE(VikiBaseIE):
             'title': 'Boys Over Flowers',
             'description': 'md5:ecd3cff47967fe193cff37c0bec52790',
         },
-        'playlist_count': 70,
+        'playlist_mincount': 71,
     }, {
         'url': 'http://www.viki.com/tv/1354c-poor-nastya-complete',
         'info_dict': {
@@ -314,6 +334,8 @@ class VikiChannelIE(VikiBaseIE):
         channel = self._call_api(
             'containers/%s.json' % channel_id, channel_id,
             'Downloading channel JSON')
+
+        self._check_errors(channel)
 
         title = self.dict_selection(channel['titles'], 'en')
 

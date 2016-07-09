@@ -5,7 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
@@ -53,8 +53,8 @@ class NaverIE(InfoExtractor):
             raise ExtractorError('couldn\'t extract vid and key')
         vid = m_id.group(1)
         key = m_id.group(2)
-        query = compat_urllib_parse.urlencode({'vid': vid, 'inKey': key, })
-        query_urls = compat_urllib_parse.urlencode({
+        query = compat_urllib_parse_urlencode({'vid': vid, 'inKey': key, })
+        query_urls = compat_urllib_parse_urlencode({
             'masterVid': vid,
             'protocol': 'p2p',
             'inKey': key,

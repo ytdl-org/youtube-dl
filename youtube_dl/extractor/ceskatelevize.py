@@ -5,14 +5,14 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_request,
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
     ExtractorError,
     float_or_none,
+    sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -33,19 +33,33 @@ class CeskaTelevizeIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        'url': 'http://www.ceskatelevize.cz/ivysilani/10532695142-prvni-republika/bonus/14716-zpevacka-z-duparny-bobina',
+        'url': 'http://www.ceskatelevize.cz/ivysilani/10441294653-hyde-park-civilizace/215411058090502/bonus/20641-bonus-01-en',
         'info_dict': {
-            'id': '61924494876844374',
+            'id': '61924494877028507',
             'ext': 'mp4',
-            'title': 'První republika: Zpěvačka z Dupárny Bobina',
-            'description': 'Sága mapující atmosféru první republiky od r. 1918 do r. 1945.',
+            'title': 'Hyde Park Civilizace: Bonus 01 - En',
+            'description': 'English Subtittles',
             'thumbnail': 're:^https?://.*\.jpg',
-            'duration': 88.4,
+            'duration': 81.3,
         },
         'params': {
             # m3u8 download
             'skip_download': True,
         },
+    }, {
+        # live stream
+        'url': 'http://www.ceskatelevize.cz/ivysilani/zive/ct4/',
+        'info_dict': {
+            'id': 402,
+            'ext': 'mp4',
+            'title': 're:^ČT Sport \d{4}-\d{2}-\d{2} \d{2}:\d{2}$',
+            'is_live': True,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'skip': 'Georestricted to Czech Republic',
     }, {
         # video with 18+ caution trailer
         'url': 'http://www.ceskatelevize.cz/porady/10520528904-queer/215562210900007-bogotart/',
@@ -100,9 +114,9 @@ class CeskaTelevizeIE(InfoExtractor):
             'requestSource': 'iVysilani',
         }
 
-        req = compat_urllib_request.Request(
+        req = sanitized_Request(
             'http://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
-            data=compat_urllib_parse.urlencode(data))
+            data=urlencode_postdata(data))
 
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
         req.add_header('x-addr', '127.0.0.1')
@@ -115,21 +129,24 @@ class CeskaTelevizeIE(InfoExtractor):
         if playlist_url == 'error_region':
             raise ExtractorError(NOT_AVAILABLE_STRING, expected=True)
 
-        req = compat_urllib_request.Request(compat_urllib_parse_unquote(playlist_url))
+        req = sanitized_Request(compat_urllib_parse_unquote(playlist_url))
         req.add_header('Referer', url)
 
-        playlist_title = self._og_search_title(webpage)
-        playlist_description = self._og_search_description(webpage)
+        playlist_title = self._og_search_title(webpage, default=None)
+        playlist_description = self._og_search_description(webpage, default=None)
 
         playlist = self._download_json(req, playlist_id)['playlist']
         playlist_len = len(playlist)
 
         entries = []
         for item in playlist:
+            is_live = item.get('type') == 'LIVE'
             formats = []
             for format_id, stream_url in item['streamUrls'].items():
                 formats.extend(self._extract_m3u8_formats(
-                    stream_url, playlist_id, 'mp4', entry_protocol='m3u8_native'))
+                    stream_url, playlist_id, 'mp4',
+                    entry_protocol='m3u8' if is_live else 'm3u8_native',
+                    fatal=False))
             self._sort_formats(formats)
 
             item_id = item.get('id') or item['assetId']
@@ -144,14 +161,22 @@ class CeskaTelevizeIE(InfoExtractor):
                 if subs:
                     subtitles = self.extract_subtitles(episode_id, subs)
 
+            if playlist_len == 1:
+                final_title = playlist_title or title
+                if is_live:
+                    final_title = self._live_title(final_title)
+            else:
+                final_title = '%s (%s)' % (playlist_title, title)
+
             entries.append({
                 'id': item_id,
-                'title': playlist_title if playlist_len == 1 else '%s (%s)' % (playlist_title, title),
+                'title': final_title,
                 'description': playlist_description if playlist_len == 1 else None,
                 'thumbnail': thumbnail,
                 'duration': duration,
                 'formats': formats,
                 'subtitles': subtitles,
+                'is_live': is_live,
             })
 
         return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
@@ -177,16 +202,16 @@ class CeskaTelevizeIE(InfoExtractor):
             for divider in [1000, 60, 60, 100]:
                 components.append(msec % divider)
                 msec //= divider
-            return "{3:02}:{2:02}:{1:02},{0:03}".format(*components)
+            return '{3:02}:{2:02}:{1:02},{0:03}'.format(*components)
 
         def _fix_subtitle(subtitle):
             for line in subtitle.splitlines():
-                m = re.match(r"^\s*([0-9]+);\s*([0-9]+)\s+([0-9]+)\s*$", line)
+                m = re.match(r'^\s*([0-9]+);\s*([0-9]+)\s+([0-9]+)\s*$', line)
                 if m:
                     yield m.group(1)
                     start, stop = (_msectotimecode(int(t)) for t in m.groups()[1:])
-                    yield "{0} --> {1}".format(start, stop)
+                    yield '{0} --> {1}'.format(start, stop)
                 else:
                     yield line
 
-        return "\r\n".join(_fix_subtitle(subtitles))
+        return '\r\n'.join(_fix_subtitle(subtitles))

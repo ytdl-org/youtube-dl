@@ -18,7 +18,6 @@ from .options import (
 from .compat import (
     compat_expanduser,
     compat_getpass,
-    compat_print,
     compat_shlex_split,
     workaround_optparse_bug9161,
 )
@@ -67,16 +66,16 @@ def _real_main(argv=None):
     # Custom HTTP headers
     if opts.headers is not None:
         for h in opts.headers:
-            if h.find(':', 1) < 0:
+            if ':' not in h:
                 parser.error('wrong header formatting, it should be key:value, not "%s"' % h)
-            key, value = h.split(':', 2)
+            key, value = h.split(':', 1)
             if opts.verbose:
                 write_string('[debug] Adding header from command line option %s:%s\n' % (key, value))
             std_headers[key] = value
 
     # Dump user agent
     if opts.dump_user_agent:
-        compat_print(std_headers['User-Agent'])
+        write_string(std_headers['User-Agent'] + '\n', out=sys.stdout)
         sys.exit(0)
 
     # Batch file verification
@@ -86,7 +85,9 @@ def _real_main(argv=None):
             if opts.batchfile == '-':
                 batchfd = sys.stdin
             else:
-                batchfd = io.open(opts.batchfile, 'r', encoding='utf-8', errors='ignore')
+                batchfd = io.open(
+                    compat_expanduser(opts.batchfile),
+                    'r', encoding='utf-8', errors='ignore')
             batch_urls = read_batch_urls(batchfd)
             if opts.verbose:
                 write_string('[debug] Batch file urls: ' + repr(batch_urls) + '\n')
@@ -99,10 +100,10 @@ def _real_main(argv=None):
 
     if opts.list_extractors:
         for ie in list_extractors(opts.age_limit):
-            compat_print(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else ''))
+            write_string(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else '') + '\n', out=sys.stdout)
             matchedUrls = [url for url in all_urls if ie.suitable(url)]
             for mu in matchedUrls:
-                compat_print('  ' + mu)
+                write_string('  ' + mu + '\n', out=sys.stdout)
         sys.exit(0)
     if opts.list_extractor_descriptions:
         for ie in list_extractors(opts.age_limit):
@@ -115,7 +116,7 @@ def _real_main(argv=None):
                 _SEARCHES = ('cute kittens', 'slithering pythons', 'falling cat', 'angry poodle', 'purple fish', 'running tortoise', 'sleeping bunny', 'burping cow')
                 _COUNTS = ('', '5', '10', 'all')
                 desc += ' (Example: "%s%s:%s" )' % (ie.SEARCH_KEY, random.choice(_COUNTS), random.choice(_SEARCHES))
-            compat_print(desc)
+            write_string(desc + '\n', out=sys.stdout)
         sys.exit(0)
 
     # Conflicting, missing and erroneous options
@@ -144,14 +145,20 @@ def _real_main(argv=None):
         if numeric_limit is None:
             parser.error('invalid max_filesize specified')
         opts.max_filesize = numeric_limit
-    if opts.retries is not None:
-        if opts.retries in ('inf', 'infinite'):
-            opts_retries = float('inf')
+
+    def parse_retries(retries):
+        if retries in ('inf', 'infinite'):
+            parsed_retries = float('inf')
         else:
             try:
-                opts_retries = int(opts.retries)
+                parsed_retries = int(retries)
             except (TypeError, ValueError):
                 parser.error('invalid retry count specified')
+        return parsed_retries
+    if opts.retries is not None:
+        opts.retries = parse_retries(opts.retries)
+    if opts.fragment_retries is not None:
+        opts.fragment_retries = parse_retries(opts.fragment_retries)
     if opts.buffersize is not None:
         numeric_buffersize = FileDownloader.parse_bytes(opts.buffersize)
         if numeric_buffersize is None:
@@ -299,7 +306,8 @@ def _real_main(argv=None):
         'force_generic_extractor': opts.force_generic_extractor,
         'ratelimit': opts.ratelimit,
         'nooverwrites': opts.nooverwrites,
-        'retries': opts_retries,
+        'retries': opts.retries,
+        'fragment_retries': opts.fragment_retries,
         'buffersize': opts.buffersize,
         'noresizebuffer': opts.noresizebuffer,
         'continuedl': opts.continue_dl,
@@ -355,6 +363,7 @@ def _real_main(argv=None):
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
         'encoding': opts.encoding,
         'extract_flat': opts.extract_flat,
+        'mark_watched': opts.mark_watched,
         'merge_output_format': opts.merge_output_format,
         'postprocessors': postprocessors,
         'fixup': opts.fixup,
@@ -369,9 +378,12 @@ def _real_main(argv=None):
         'no_color': opts.no_color,
         'ffmpeg_location': opts.ffmpeg_location,
         'hls_prefer_native': opts.hls_prefer_native,
+        'hls_use_mpegts': opts.hls_use_mpegts,
         'external_downloader_args': external_downloader_args,
         'postprocessor_args': postprocessor_args,
         'cn_verification_proxy': opts.cn_verification_proxy,
+        'geo_verification_proxy': opts.geo_verification_proxy,
+
     }
 
     with YoutubeDL(ydl_opts) as ydl:
@@ -395,7 +407,7 @@ def _real_main(argv=None):
 
         try:
             if opts.load_info_filename is not None:
-                retcode = ydl.download_with_info_file(opts.load_info_filename)
+                retcode = ydl.download_with_info_file(compat_expanduser(opts.load_info_filename))
             else:
                 retcode = ydl.download(all_urls)
         except MaxDownloadsReached:

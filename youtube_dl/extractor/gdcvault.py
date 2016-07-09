@@ -3,13 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
 from ..utils import (
-    remove_end,
     HEADRequest,
+    sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -53,62 +50,32 @@ class GDCVaultIE(InfoExtractor):
         {
             'url': 'http://gdcvault.com/play/1020791/',
             'only_matching': True,
-        }
+        },
+        {
+            # Hard-coded hostname
+            'url': 'http://gdcvault.com/play/1023460/Tenacious-Design-and-The-Interface',
+            'md5': 'a8efb6c31ed06ca8739294960b2dbabd',
+            'info_dict': {
+                'id': '1023460',
+                'ext': 'mp4',
+                'display_id': 'Tenacious-Design-and-The-Interface',
+                'title': 'Tenacious Design and The Interface of \'Destiny\'',
+            },
+        },
+        {
+            # Multiple audios
+            'url': 'http://www.gdcvault.com/play/1014631/Classic-Game-Postmortem-PAC',
+            'info_dict': {
+                'id': '1014631',
+                'ext': 'flv',
+                'title': 'How to Create a Good Game - From My Experience of Designing Pac-Man',
+            },
+            'params': {
+                'skip_download': True,  # Requires rtmpdump
+                'format': 'jp',  # The japanese audio
+            }
+        },
     ]
-
-    def _parse_mp4(self, xml_description):
-        video_formats = []
-        mp4_video = xml_description.find('./metadata/mp4video')
-        if mp4_video is None:
-            return None
-
-        mobj = re.match(r'(?P<root>https?://.*?/).*', mp4_video.text)
-        video_root = mobj.group('root')
-        formats = xml_description.findall('./metadata/MBRVideos/MBRVideo')
-        for format in formats:
-            mobj = re.match(r'mp4\:(?P<path>.*)', format.find('streamName').text)
-            url = video_root + mobj.group('path')
-            vbr = format.find('bitrate').text
-            video_formats.append({
-                'url': url,
-                'vbr': int(vbr),
-            })
-        return video_formats
-
-    def _parse_flv(self, xml_description):
-        formats = []
-        akamai_url = xml_description.find('./metadata/akamaiHost').text
-        audios = xml_description.find('./metadata/audios')
-        if audios is not None:
-            for audio in audios:
-                formats.append({
-                    'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
-                    'play_path': remove_end(audio.get('url'), '.flv'),
-                    'ext': 'flv',
-                    'vcodec': 'none',
-                    'format_id': audio.get('code'),
-                })
-        slide_video_path = xml_description.find('./metadata/slideVideo').text
-        formats.append({
-            'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
-            'play_path': remove_end(slide_video_path, '.flv'),
-            'ext': 'flv',
-            'format_note': 'slide deck video',
-            'quality': -2,
-            'preference': -2,
-            'format_id': 'slides',
-        })
-        speaker_video_path = xml_description.find('./metadata/speakerVideo').text
-        formats.append({
-            'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
-            'play_path': remove_end(speaker_video_path, '.flv'),
-            'ext': 'flv',
-            'format_note': 'speaker video',
-            'quality': -1,
-            'preference': -1,
-            'format_id': 'speaker',
-        })
-        return formats
 
     def _login(self, webpage_url, display_id):
         (username, password) = self._get_login_info()
@@ -125,7 +92,7 @@ class GDCVaultIE(InfoExtractor):
             'password': password,
         }
 
-        request = compat_urllib_request.Request(login_url, compat_urllib_parse.urlencode(login_form))
+        request = sanitized_Request(login_url, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         self._download_webpage(request, display_id, 'Logging in')
         start_page = self._download_webpage(webpage_url, display_id, 'Getting authenticated video page')
@@ -161,9 +128,10 @@ class GDCVaultIE(InfoExtractor):
                 'title': title,
             }
 
+        PLAYER_REGEX = r'<iframe src="(?P<xml_root>.+?)/player.*?\.html.*?".*?</iframe>'
+
         xml_root = self._html_search_regex(
-            r'<iframe src="(?P<xml_root>.*?)player.html.*?".*?</iframe>',
-            start_page, 'xml root', default=None)
+            PLAYER_REGEX, start_page, 'xml root', default=None)
         if xml_root is None:
             # Probably need to authenticate
             login_res = self._login(webpage_url, display_id)
@@ -173,27 +141,21 @@ class GDCVaultIE(InfoExtractor):
                 start_page = login_res
                 # Grab the url from the authenticated page
                 xml_root = self._html_search_regex(
-                    r'<iframe src="(.*?)player.html.*?".*?</iframe>',
-                    start_page, 'xml root')
+                    PLAYER_REGEX, start_page, 'xml root')
 
         xml_name = self._html_search_regex(
             r'<iframe src=".*?\?xml=(.+?\.xml).*?".*?</iframe>',
             start_page, 'xml filename', default=None)
         if xml_name is None:
             # Fallback to the older format
-            xml_name = self._html_search_regex(r'<iframe src=".*?\?xmlURL=xml/(?P<xml_file>.+?\.xml).*?".*?</iframe>', start_page, 'xml filename')
-
-        xml_description_url = xml_root + 'xml/' + xml_name
-        xml_description = self._download_xml(xml_description_url, display_id)
-
-        video_title = xml_description.find('./metadata/title').text
-        video_formats = self._parse_mp4(xml_description)
-        if video_formats is None:
-            video_formats = self._parse_flv(xml_description)
+            xml_name = self._html_search_regex(
+                r'<iframe src=".*?\?xmlURL=xml/(?P<xml_file>.+?\.xml).*?".*?</iframe>',
+                start_page, 'xml filename')
 
         return {
+            '_type': 'url_transparent',
             'id': video_id,
             'display_id': display_id,
-            'title': video_title,
-            'formats': video_formats,
+            'url': '%s/xml/%s' % (xml_root, xml_name),
+            'ie_key': 'DigitallySpeaking',
         }

@@ -46,15 +46,13 @@ class FunnyOrDieIE(InfoExtractor):
         links.sort(key=lambda link: 1 if link[1] == 'mp4' else 0)
 
         m3u8_url = self._search_regex(
-            r'<source[^>]+src=(["\'])(?P<url>.+?/master\.m3u8)\1',
-            webpage, 'm3u8 url', default=None, group='url')
+            r'<source[^>]+src=(["\'])(?P<url>.+?/master\.m3u8[^"\']*)\1',
+            webpage, 'm3u8 url', group='url')
 
         formats = []
 
-        m3u8_formats = self._extract_m3u8_formats(
-            m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
-        if m3u8_formats:
-            formats.extend(m3u8_formats)
+        formats.extend(self._extract_m3u8_formats(
+            m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
 
         bitrates = [int(bitrate) for bitrate in re.findall(r'[,/]v(\d+)[,/]', m3u8_url)]
         bitrates.sort()

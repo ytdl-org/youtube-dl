@@ -5,13 +5,11 @@ import os.path
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
 from ..utils import (
     ExtractorError,
     remove_start,
+    sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -81,7 +79,7 @@ class MonikerIE(InfoExtractor):
             orig_webpage, 'builtin URL', default=None, group='url')
 
         if builtin_url:
-            req = compat_urllib_request.Request(builtin_url)
+            req = sanitized_Request(builtin_url)
             req.add_header('Referer', url)
             webpage = self._download_webpage(req, video_id, 'Downloading builtin page')
             title = self._og_search_title(orig_webpage).strip()
@@ -90,11 +88,11 @@ class MonikerIE(InfoExtractor):
             fields = re.findall(r'type="hidden" name="(.+?)"\s* value="?(.+?)">', orig_webpage)
             data = dict(fields)
 
-            post = compat_urllib_parse.urlencode(data)
+            post = urlencode_postdata(data)
             headers = {
                 b'Content-Type': b'application/x-www-form-urlencoded',
             }
-            req = compat_urllib_request.Request(url, post, headers)
+            req = sanitized_Request(url, post, headers)
             webpage = self._download_webpage(
                 req, video_id, note='Downloading video page ...')
 

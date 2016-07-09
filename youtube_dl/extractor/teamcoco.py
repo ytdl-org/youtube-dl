@@ -16,7 +16,7 @@ from ..compat import compat_ord
 
 
 class TeamcocoIE(InfoExtractor):
-    _VALID_URL = r'http://teamcoco\.com/video/(?P<video_id>[0-9]+)?/?(?P<display_id>.*)'
+    _VALID_URL = r'https?://teamcoco\.com/video/(?P<video_id>[0-9]+)?/?(?P<display_id>.*)'
     _TESTS = [
         {
             'url': 'http://teamcoco.com/video/80187/conan-becomes-a-mary-kay-beauty-consultant',
@@ -88,7 +88,7 @@ class TeamcocoIE(InfoExtractor):
         preload_codes = self._html_search_regex(
             r'(function.+)setTimeout\(function\(\)\{playlist',
             webpage, 'preload codes')
-        base64_fragments = re.findall(r'"([a-zA-z0-9+/=]+)"', preload_codes)
+        base64_fragments = re.findall(r'"([a-zA-Z0-9+/=]+)"', preload_codes)
         base64_fragments.remove('init')
 
         def _check_sequence(cur_fragments):

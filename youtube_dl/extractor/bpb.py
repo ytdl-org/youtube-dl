@@ -1,16 +1,23 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
+from ..utils import (
+    js_to_json,
+    determine_ext,
+)
 
 
 class BpbIE(InfoExtractor):
     IE_DESC = 'Bundeszentrale für politische Bildung'
-    _VALID_URL = r'http://www\.bpb\.de/mediathek/(?P<id>[0-9]+)/'
+    _VALID_URL = r'https?://www\.bpb\.de/mediathek/(?P<id>[0-9]+)/'
 
     _TEST = {
         'url': 'http://www.bpb.de/mediathek/297/joachim-gauck-zu-1989-und-die-erinnerung-an-die-ddr',
-        'md5': '0792086e8e2bfbac9cdf27835d5f2093',
+        # md5 fails in Python 2.6 due to buggy server response and wrong handling of urllib2
+        'md5': 'c4f84c8a8044ca9ff68bb8441d300b3f',
         'info_dict': {
             'id': '297',
             'ext': 'mp4',
@@ -25,13 +32,26 @@ class BpbIE(InfoExtractor):
 
         title = self._html_search_regex(
             r'<h2 class="white">(.*?)</h2>', webpage, 'title')
-        video_url = self._html_search_regex(
-            r'(http://film\.bpb\.de/player/dokument_[0-9]+\.mp4)',
-            webpage, 'video URL')
+        video_info_dicts = re.findall(
+            r"({\s*src:\s*'http://film\.bpb\.de/[^}]+})", webpage)
+
+        formats = []
+        for video_info in video_info_dicts:
+            video_info = self._parse_json(video_info, video_id, transform_source=js_to_json)
+            quality = video_info['quality']
+            video_url = video_info['src']
+            formats.append({
+                'url': video_url,
+                'preference': 10 if quality == 'high' else 0,
+                'format_note': quality,
+                'format_id': '%s-%s' % (quality, determine_ext(video_url)),
+            })
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'url': video_url,
+            'formats': formats,
             'title': title,
             'description': self._og_search_description(webpage),
         }

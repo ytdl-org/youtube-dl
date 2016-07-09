@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -73,12 +73,16 @@ class ShahidIE(InfoExtractor):
             'https://shahid.mbc.net/arContent/getPlayerContent-param-.id-%s.type-%s.html'
             % (video_id, api_vars['type']), video_id, 'Downloading player JSON')
 
+        if player.get('drm'):
+            raise ExtractorError('This video is DRM protected.', expected=True)
+
         formats = self._extract_m3u8_formats(player['url'], video_id, 'mp4')
+        self._sort_formats(formats)
 
         video = self._download_json(
             '%s/%s/%s?%s' % (
                 api_vars['url'], api_vars['playerType'], api_vars['id'],
-                compat_urllib_parse.urlencode({
+                compat_urllib_parse_urlencode({
                     'apiKey': 'sh@hid0nlin3',
                     'hash': 'b2wMCTHpSmyxGqQjJFOycRmLSex+BpTK/ooxy6vHaqs=',
                 })),

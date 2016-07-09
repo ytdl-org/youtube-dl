@@ -24,6 +24,7 @@ class VineIE(InfoExtractor):
             'upload_date': '20130519',
             'uploader': 'Jack Dorsey',
             'uploader_id': '76',
+            'view_count': int,
             'like_count': int,
             'comment_count': int,
             'repost_count': int,
@@ -39,6 +40,7 @@ class VineIE(InfoExtractor):
             'upload_date': '20140815',
             'uploader': 'Mars Ruiz',
             'uploader_id': '1102363502380728320',
+            'view_count': int,
             'like_count': int,
             'comment_count': int,
             'repost_count': int,
@@ -54,6 +56,7 @@ class VineIE(InfoExtractor):
             'upload_date': '20130430',
             'uploader': 'Z3k3',
             'uploader_id': '936470460173008896',
+            'view_count': int,
             'like_count': int,
             'comment_count': int,
             'repost_count': int,
@@ -71,6 +74,7 @@ class VineIE(InfoExtractor):
             'upload_date': '20150705',
             'uploader': 'Pimry_zaa',
             'uploader_id': '1135760698325307392',
+            'view_count': int,
             'like_count': int,
             'comment_count': int,
             'repost_count': int,
@@ -86,9 +90,11 @@ class VineIE(InfoExtractor):
 
         data = self._parse_json(
             self._search_regex(
-                r'window\.POST_DATA\s*=\s*{\s*%s\s*:\s*({.+?})\s*};\s*</script>' % video_id,
+                r'window\.POST_DATA\s*=\s*({.+?});\s*</script>',
                 webpage, 'vine data'),
             video_id)
+
+        data = data[list(data.keys())[0]]
 
         formats = [{
             'format_id': '%(format)s-%(rate)s' % f,
@@ -109,6 +115,7 @@ class VineIE(InfoExtractor):
             'upload_date': unified_strdate(data.get('created')),
             'uploader': username,
             'uploader_id': data.get('userIdStr'),
+            'view_count': int_or_none(data.get('loops', {}).get('count')),
             'like_count': int_or_none(data.get('likes', {}).get('count')),
             'comment_count': int_or_none(data.get('comments', {}).get('count')),
             'repost_count': int_or_none(data.get('reposts', {}).get('count')),
@@ -119,7 +126,7 @@ class VineIE(InfoExtractor):
 class VineUserIE(InfoExtractor):
     IE_NAME = 'vine:user'
     _VALID_URL = r'(?:https?://)?vine\.co/(?P<u>u/)?(?P<user>[^/]+)/?(\?.*)?$'
-    _VINE_BASE_URL = "https://vine.co/"
+    _VINE_BASE_URL = 'https://vine.co/'
     _TESTS = [
         {
             'url': 'https://vine.co/Visa',
@@ -139,7 +146,7 @@ class VineUserIE(InfoExtractor):
         user = mobj.group('user')
         u = mobj.group('u')
 
-        profile_url = "%sapi/users/profiles/%s%s" % (
+        profile_url = '%sapi/users/profiles/%s%s' % (
             self._VINE_BASE_URL, 'vanity/' if not u else '', user)
         profile_data = self._download_json(
             profile_url, user, note='Downloading user profile data')
@@ -147,7 +154,7 @@ class VineUserIE(InfoExtractor):
         user_id = profile_data['data']['userId']
         timeline_data = []
         for pagenum in itertools.count(1):
-            timeline_url = "%sapi/timelines/users/%s?page=%s&size=100" % (
+            timeline_url = '%sapi/timelines/users/%s?page=%s&size=100' % (
                 self._VINE_BASE_URL, user_id, pagenum)
             timeline_page = self._download_json(
                 timeline_url, user, note='Downloading page %d' % pagenum)

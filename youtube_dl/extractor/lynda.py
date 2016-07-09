@@ -1,108 +1,106 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_HTTPError,
     compat_str,
-    compat_urllib_parse,
-    compat_urllib_request,
+    compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
-    clean_html,
     int_or_none,
+    urlencode_postdata,
 )
 
 
 class LyndaBaseIE(InfoExtractor):
-    _LOGIN_URL = 'https://www.lynda.com/login/login.aspx'
+    _SIGNIN_URL = 'https://www.lynda.com/signin'
+    _PASSWORD_URL = 'https://www.lynda.com/signin/password'
+    _USER_URL = 'https://www.lynda.com/signin/user'
     _ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to provide lynda.com account credentials.'
     _NETRC_MACHINE = 'lynda'
 
     def _real_initialize(self):
         self._login()
 
+    @staticmethod
+    def _check_error(json_string, key_or_keys):
+        keys = [key_or_keys] if isinstance(key_or_keys, compat_str) else key_or_keys
+        for key in keys:
+            error = json_string.get(key)
+            if error:
+                raise ExtractorError('Unable to login: %s' % error, expected=True)
+
+    def _login_step(self, form_html, fallback_action_url, extra_form_data, note, referrer_url):
+        action_url = self._search_regex(
+            r'<form[^>]+action=(["\'])(?P<url>.+?)\1', form_html,
+            'post url', default=fallback_action_url, group='url')
+
+        if not action_url.startswith('http'):
+            action_url = compat_urlparse.urljoin(self._SIGNIN_URL, action_url)
+
+        form_data = self._hidden_inputs(form_html)
+        form_data.update(extra_form_data)
+
+        try:
+            response = self._download_json(
+                action_url, None, note,
+                data=urlencode_postdata(form_data),
+                headers={
+                    'Referer': referrer_url,
+                    'X-Requested-With': 'XMLHttpRequest',
+                })
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 500:
+                response = self._parse_json(e.cause.read().decode('utf-8'), None)
+                self._check_error(response, ('email', 'password'))
+            raise
+
+        self._check_error(response, 'ErrorMessage')
+
+        return response, action_url
+
     def _login(self):
         username, password = self._get_login_info()
         if username is None:
             return
 
-        login_form = {
-            'username': username.encode('utf-8'),
-            'password': password.encode('utf-8'),
-            'remember': 'false',
-            'stayPut': 'false'
-        }
-        request = compat_urllib_request.Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
-        login_page = self._download_webpage(
-            request, None, 'Logging in as %s' % username)
+        # Step 1: download signin page
+        signin_page = self._download_webpage(
+            self._SIGNIN_URL, None, 'Downloading signin page')
 
-        # Not (yet) logged in
-        m = re.search(r'loginResultJson\s*=\s*\'(?P<json>[^\']+)\';', login_page)
-        if m is not None:
-            response = m.group('json')
-            response_json = json.loads(response)
-            state = response_json['state']
-
-            if state == 'notlogged':
-                raise ExtractorError(
-                    'Unable to login, incorrect username and/or password',
-                    expected=True)
-
-            # This is when we get popup:
-            # > You're already logged in to lynda.com on two devices.
-            # > If you log in here, we'll log you out of another device.
-            # So, we need to confirm this.
-            if state == 'conflicted':
-                confirm_form = {
-                    'username': '',
-                    'password': '',
-                    'resolve': 'true',
-                    'remember': 'false',
-                    'stayPut': 'false',
-                }
-                request = compat_urllib_request.Request(
-                    self._LOGIN_URL, compat_urllib_parse.urlencode(confirm_form).encode('utf-8'))
-                login_page = self._download_webpage(
-                    request, None,
-                    'Confirming log in and log out from another device')
-
-        if all(not re.search(p, login_page) for p in ('isLoggedIn\s*:\s*true', r'logout\.aspx', r'>Log out<')):
-            if 'login error' in login_page:
-                mobj = re.search(
-                    r'(?s)<h1[^>]+class="topmost">(?P<title>[^<]+)</h1>\s*<div>(?P<description>.+?)</div>',
-                    login_page)
-                if mobj:
-                    raise ExtractorError(
-                        'lynda returned error: %s - %s'
-                        % (mobj.group('title'), clean_html(mobj.group('description'))),
-                        expected=True)
-            raise ExtractorError('Unable to log in')
-
-    def _logout(self):
-        username, _ = self._get_login_info()
-        if username is None:
+        # Already logged in
+        if any(re.search(p, signin_page) for p in (
+                'isLoggedIn\s*:\s*true', r'logout\.aspx', r'>Log out<')):
             return
 
-        self._download_webpage(
-            'http://www.lynda.com/ajax/logout.aspx', None,
-            'Logging out', 'Unable to log out', fatal=False)
+        # Step 2: submit email
+        signin_form = self._search_regex(
+            r'(?s)(<form[^>]+data-form-name=["\']signin["\'][^>]*>.+?</form>)',
+            signin_page, 'signin form')
+        signin_page, signin_url = self._login_step(
+            signin_form, self._PASSWORD_URL, {'email': username},
+            'Submitting email', self._SIGNIN_URL)
+
+        # Step 3: submit password
+        password_form = signin_page['body']
+        self._login_step(
+            password_form, self._USER_URL, {'email': username, 'password': password},
+            'Submitting password', signin_url)
 
 
 class LyndaIE(LyndaBaseIE):
     IE_NAME = 'lynda'
     IE_DESC = 'lynda.com videos'
     _VALID_URL = r'https?://www\.lynda\.com/(?:[^/]+/[^/]+/\d+|player/embed)/(?P<id>\d+)'
-    _NETRC_MACHINE = 'lynda'
 
     _TIMECODE_REGEX = r'\[(?P<timecode>\d+:\d+:\d+[\.,]\d+)\]'
 
     _TESTS = [{
         'url': 'http://www.lynda.com/Bootstrap-tutorials/Using-exercise-files/110885/114408-4.html',
-        'md5': 'ecfc6862da89489161fb9cd5f5a6fac1',
+        'md5': '679734f6786145da3546585de9a356be',
         'info_dict': {
             'id': '114408',
             'ext': 'mp4',
@@ -214,14 +212,12 @@ class LyndaCourseIE(LyndaBaseIE):
             'http://www.lynda.com/ajax/player?courseId=%s&type=course' % course_id,
             course_id, 'Downloading course JSON')
 
-        self._logout()
-
         if course.get('Status') == 'NotFound':
             raise ExtractorError(
                 'Course %s does not exist' % course_id, expected=True)
 
         unaccessible_videos = 0
-        videos = []
+        entries = []
 
         # Might want to extract videos right here from video['Formats'] as it seems 'Formats' is not provided
         # by single video API anymore
@@ -231,20 +227,23 @@ class LyndaCourseIE(LyndaBaseIE):
                 if video.get('HasAccess') is False:
                     unaccessible_videos += 1
                     continue
-                if video.get('ID'):
-                    videos.append(video['ID'])
+                video_id = video.get('ID')
+                if video_id:
+                    entries.append({
+                        '_type': 'url_transparent',
+                        'url': 'http://www.lynda.com/%s/%s-4.html' % (course_path, video_id),
+                        'ie_key': LyndaIE.ie_key(),
+                        'chapter': chapter.get('Title'),
+                        'chapter_number': int_or_none(chapter.get('ChapterIndex')),
+                        'chapter_id': compat_str(chapter.get('ID')),
+                    })
 
         if unaccessible_videos > 0:
             self._downloader.report_warning(
                 '%s videos are only available for members (or paid members) and will not be downloaded. '
                 % unaccessible_videos + self._ACCOUNT_CREDENTIALS_HINT)
 
-        entries = [
-            self.url_result(
-                'http://www.lynda.com/%s/%s-4.html' % (course_path, video_id),
-                'Lynda')
-            for video_id in videos]
-
         course_title = course.get('Title')
+        course_description = course.get('Description')
 
-        return self.playlist_result(entries, course_id, course_title)
+        return self.playlist_result(entries, course_id, course_title, course_description)

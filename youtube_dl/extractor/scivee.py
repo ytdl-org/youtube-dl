@@ -18,6 +18,7 @@ class SciVeeIE(InfoExtractor):
             'title': 'Adam Arkin at the 2014 DOE JGI Genomics of Energy & Environment Meeting',
             'description': 'md5:81f1710638e11a481358fab1b11059d7',
         },
+        'skip': 'Not accessible from Travis CI server',
     }
 
     def _real_extract(self, url):

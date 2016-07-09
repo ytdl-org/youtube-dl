@@ -5,7 +5,7 @@ import re
 from .mtv import MTVServicesInfoExtractor
 from ..compat import (
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     ExtractorError,
@@ -16,11 +16,11 @@ from ..utils import (
 
 class ComedyCentralIE(MTVServicesInfoExtractor):
     _VALID_URL = r'''(?x)https?://(?:www\.)?cc\.com/
-        (video-clips|episodes|cc-studios|video-collections|full-episodes)
+        (video-clips|episodes|cc-studios|video-collections|full-episodes|shows)
         /(?P<title>.*)'''
     _FEED_URL = 'http://comedycentral.com/feeds/mrss/'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.cc.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother',
         'md5': 'c4f48e9eda1b16dd10add0744344b6d8',
         'info_dict': {
@@ -29,7 +29,10 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
             'title': 'CC:Stand-Up|Greg Fitzsimmons: Life on Stage|Uncensored - Too Good of a Mother',
             'description': 'After a certain point, breastfeeding becomes c**kblocking.',
         },
-    }
+    }, {
+        'url': 'http://www.cc.com/shows/the-daily-show-with-trevor-noah/interviews/6yx39d/exclusive-rand-paul-extended-interview',
+        'only_matching': True,
+    }]
 
 
 class ComedyCentralShowsIE(MTVServicesInfoExtractor):
@@ -41,10 +44,10 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
     #                     or: http://www.colbertnation.com/the-colbert-report-collections/422008/festival-of-lights/79524
     _VALID_URL = r'''(?x)^(:(?P<shortname>tds|thedailyshow)
                       |https?://(:www\.)?
-                          (?P<showname>thedailyshow|thecolbertreport)\.(?:cc\.)?com/
+                          (?P<showname>thedailyshow|thecolbertreport|tosh)\.(?:cc\.)?com/
                          ((?:full-)?episodes/(?:[0-9a-z]{6}/)?(?P<episode>.*)|
                           (?P<clip>
-                              (?:(?:guests/[^/]+|videos|video-playlists|special-editions|news-team/[^/]+)/[^/]+/(?P<videotitle>[^/?#]+))
+                              (?:(?:guests/[^/]+|videos|video-(?:clips|playlists)|special-editions|news-team/[^/]+)/[^/]+/(?P<videotitle>[^/?#]+))
                               |(the-colbert-report-(videos|collections)/(?P<clipID>[0-9]+)/[^/]*/(?P<cntitle>.*?))
                               |(watch/(?P<date>[^/]*)/(?P<tdstitle>.*))
                           )|
@@ -126,6 +129,9 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
     }, {
         'url': 'http://thedailyshow.cc.com/news-team/michael-che/7wnfel/we-need-to-talk-about-israel',
         'only_matching': True,
+    }, {
+        'url': 'http://tosh.cc.com/video-clips/68g93d/twitter-users-share-summer-plans',
+        'only_matching': True,
     }]
 
     _available_formats = ['3500', '2200', '1700', '1200', '750', '400']
@@ -192,13 +198,13 @@ class ComedyCentralShowsIE(MTVServicesInfoExtractor):
             if len(altMovieParams) == 0:
                 raise ExtractorError('unable to find Flash URL in webpage ' + url)
             else:
-                mMovieParams = [("http://media.mtvnservices.com/" + altMovieParams[0], altMovieParams[0])]
+                mMovieParams = [('http://media.mtvnservices.com/' + altMovieParams[0], altMovieParams[0])]
 
         uri = mMovieParams[0][1]
         # Correct cc.com in uri
         uri = re.sub(r'(episode:[^.]+)(\.cc)?\.com', r'\1.com', uri)
 
-        index_url = 'http://%s.cc.com/feeds/mrss?%s' % (show_name, compat_urllib_parse.urlencode({'uri': uri}))
+        index_url = 'http://%s.cc.com/feeds/mrss?%s' % (show_name, compat_urllib_parse_urlencode({'uri': uri}))
         idoc = self._download_xml(
             index_url, epTitle,
             'Downloading show index', 'Unable to download episode index')

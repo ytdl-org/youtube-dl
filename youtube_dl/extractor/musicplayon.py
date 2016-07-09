@@ -1,17 +1,21 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..compat import compat_urlparse
+from ..utils import (
+    int_or_none,
+    js_to_json,
+    mimetype2ext,
+)
 
 
 class MusicPlayOnIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:.+?\.)?musicplayon\.com/play(?:-touch)?\?(?:v|pl=100&play)=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:.+?\.)?musicplayon\.com/play(?:-touch)?\?(?:v|pl=\d+&play)=(?P<id>\d+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://en.musicplayon.com/play?v=433377',
+        'md5': '00cdcdea1726abdf500d1e7fd6dd59bb',
         'info_dict': {
             'id': '433377',
             'ext': 'mp4',
@@ -20,15 +24,16 @@ class MusicPlayOnIE(InfoExtractor):
             'duration': 342,
             'uploader': 'ultrafish',
         },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-    }
+    }, {
+        'url': 'http://en.musicplayon.com/play?pl=102&play=442629',
+        'only_matching': True,
+    }]
+
+    _URL_TEMPLATE = 'http://en.musicplayon.com/play?v=%s'
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
+        url = self._URL_TEMPLATE % video_id
 
         page = self._download_webpage(url, video_id)
 
@@ -40,28 +45,14 @@ class MusicPlayOnIE(InfoExtractor):
         uploader = self._html_search_regex(
             r'<div>by&nbsp;<a href="[^"]+" class="purple">([^<]+)</a></div>', page, 'uploader', fatal=False)
 
-        formats = [
-            {
-                'url': 'http://media0-eu-nl.musicplayon.com/stream-mobile?id=%s&type=.mp4' % video_id,
-                'ext': 'mp4',
-            }
-        ]
-
-        manifest = self._download_webpage(
-            'http://en.musicplayon.com/manifest.m3u8?v=%s' % video_id, video_id, 'Downloading manifest')
-
-        for entry in manifest.split('#')[1:]:
-            if entry.startswith('EXT-X-STREAM-INF:'):
-                meta, url, _ = entry.split('\n')
-                params = dict(param.split('=') for param in meta.split(',')[1:])
-                formats.append({
-                    'url': url,
-                    'ext': 'mp4',
-                    'tbr': int(params['BANDWIDTH']),
-                    'width': int(params['RESOLUTION'].split('x')[1]),
-                    'height': int(params['RESOLUTION'].split('x')[-1]),
-                    'format_note': params['NAME'].replace('"', '').strip(),
-                })
+        sources = self._parse_json(
+            self._search_regex(r'setup\[\'_sources\'\]\s*=\s*([^;]+);', page, 'video sources'),
+            video_id, transform_source=js_to_json)
+        formats = [{
+            'url': compat_urlparse.urljoin(url, source['src']),
+            'ext': mimetype2ext(source.get('type')),
+            'format_note': source.get('data-res'),
+        } for source in sources]
 
         return {
             'id': video_id,

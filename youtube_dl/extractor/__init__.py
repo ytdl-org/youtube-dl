@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+<<<<<<< HEAD
 from .abc import ABCIE
 from .abc7news import Abc7NewsIE
 from .academicearth import AcademicEarthCourseIE
@@ -849,13 +850,36 @@ _ALL_CLASSES = [
     if name.endswith('IE') and name != 'GenericIE'
 ]
 _ALL_CLASSES.append(GenericIE)
+=======
+try:
+    from .lazy_extractors import *
+    from .lazy_extractors import _ALL_CLASSES
+    _LAZY_LOADER = True
+except ImportError:
+    _LAZY_LOADER = False
+    from .extractors import *
+
+    _ALL_CLASSES = [
+        klass
+        for name, klass in globals().items()
+        if name.endswith('IE') and name != 'GenericIE'
+    ]
+    _ALL_CLASSES.append(GenericIE)
+
+
+def gen_extractor_classes():
+    """ Return a list of supported extractors.
+    The order does matter; the first extractor matched is the one handling the URL.
+    """
+    return _ALL_CLASSES
+>>>>>>> upstream/master
 
 
 def gen_extractors():
     """ Return a list of an instance of every supported extractor.
     The order does matter; the first extractor matched is the one handling the URL.
     """
-    return [klass() for klass in _ALL_CLASSES]
+    return [klass() for klass in gen_extractor_classes()]
 
 
 def list_extractors(age_limit):

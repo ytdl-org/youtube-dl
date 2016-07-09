@@ -1,12 +1,15 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-from .brightcove import BrightcoveLegacyIE
+from .brightcove import (
+    BrightcoveLegacyIE,
+    BrightcoveNewIE,
+)
 from .common import InfoExtractor
-from ..utils import ExtractorError
-from ..compat import (
-    compat_str,
-    compat_urllib_request,
+from ..compat import compat_str
+from ..utils import (
+    ExtractorError,
+    sanitized_Request,
 )
 
 
@@ -23,9 +26,12 @@ class NownessBaseIE(InfoExtractor):
                             note='Downloading player JavaScript',
                             errnote='Unable to download player JavaScript')
                         bc_url = BrightcoveLegacyIE._extract_brightcove_url(player_code)
-                        if bc_url is None:
-                            raise ExtractorError('Could not find player definition')
-                        return self.url_result(bc_url, 'BrightcoveLegacy')
+                        if bc_url:
+                            return self.url_result(bc_url, BrightcoveLegacyIE.ie_key())
+                        bc_url = BrightcoveNewIE._extract_url(player_code)
+                        if bc_url:
+                            return self.url_result(bc_url, BrightcoveNewIE.ie_key())
+                        raise ExtractorError('Could not find player definition')
                     elif source == 'vimeo':
                         return self.url_result('http://vimeo.com/%s' % video_id, 'Vimeo')
                     elif source == 'youtube':
@@ -37,7 +43,7 @@ class NownessBaseIE(InfoExtractor):
 
     def _api_request(self, url, request_path):
         display_id = self._match_id(url)
-        request = compat_urllib_request.Request(
+        request = sanitized_Request(
             'http://api.nowness.com/api/' + request_path % display_id,
             headers={
                 'X-Nowness-Language': 'zh-cn' if 'cn.nowness.com' in url else 'en-us',
@@ -57,8 +63,11 @@ class NownessIE(NownessBaseIE):
             'title': 'Candor: The Art of Gesticulation',
             'description': 'Candor: The Art of Gesticulation',
             'thumbnail': 're:^https?://.*\.jpg',
-            'uploader': 'Nowness',
+            'timestamp': 1446745676,
+            'upload_date': '20151105',
+            'uploader_id': '2385340575001',
         },
+        'add_ie': ['BrightcoveNew'],
     }, {
         'url': 'https://cn.nowness.com/story/kasper-bjorke-ft-jaakko-eino-kalevi-tnr',
         'md5': 'e79cf125e387216f86b2e0a5b5c63aa3',
@@ -68,8 +77,11 @@ class NownessIE(NownessBaseIE):
             'title': 'Kasper Bjørke ft. Jaakko Eino Kalevi: TNR',
             'description': 'Kasper Bjørke ft. Jaakko Eino Kalevi: TNR',
             'thumbnail': 're:^https?://.*\.jpg',
-            'uploader': 'Nowness',
+            'timestamp': 1407315371,
+            'upload_date': '20140806',
+            'uploader_id': '2385340575001',
         },
+        'add_ie': ['BrightcoveNew'],
     }, {
         # vimeo
         'url': 'https://www.nowness.com/series/nowness-picks/jean-luc-godard-supercut',
@@ -84,6 +96,7 @@ class NownessIE(NownessBaseIE):
             'uploader': 'Cinema Sem Lei',
             'uploader_id': 'cinemasemlei',
         },
+        'add_ie': ['Vimeo'],
     }]
 
     def _real_extract(self, url):

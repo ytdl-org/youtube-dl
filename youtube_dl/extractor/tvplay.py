@@ -13,7 +13,7 @@ from ..utils import (
 
 class TVPlayIE(InfoExtractor):
     IE_DESC = 'TV3Play and related services'
-    _VALID_URL = r'''(?x)http://(?:www\.)?
+    _VALID_URL = r'''(?x)https?://(?:www\.)?
         (?:tvplay\.lv/parraides|
            tv3play\.lt/programos|
            play\.tv3\.lt/programos|

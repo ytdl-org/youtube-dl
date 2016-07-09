@@ -3,7 +3,11 @@ from __future__ import unicode_literals
 import json
 
 from .common import InfoExtractor
-from ..utils import float_or_none
+from ..utils import (
+    ExtractorError,
+    float_or_none,
+    sanitized_Request,
+)
 
 
 class AzubuIE(InfoExtractor):
@@ -42,6 +46,7 @@ class AzubuIE(InfoExtractor):
                 'uploader_id': 272749,
                 'view_count': int,
             },
+            'skip': 'Channel offline',
         },
     ]
 
@@ -52,21 +57,25 @@ class AzubuIE(InfoExtractor):
             'http://www.azubu.tv/api/video/%s' % video_id, video_id)['data']
 
         title = data['title'].strip()
-        description = data['description']
-        thumbnail = data['thumbnail']
-        view_count = data['view_count']
-        uploader = data['user']['username']
-        uploader_id = data['user']['id']
+        description = data.get('description')
+        thumbnail = data.get('thumbnail')
+        view_count = data.get('view_count')
+        user = data.get('user', {})
+        uploader = user.get('username')
+        uploader_id = user.get('id')
 
         stream_params = json.loads(data['stream_params'])
 
-        timestamp = float_or_none(stream_params['creationDate'], 1000)
-        duration = float_or_none(stream_params['length'], 1000)
+        timestamp = float_or_none(stream_params.get('creationDate'), 1000)
+        duration = float_or_none(stream_params.get('length'), 1000)
 
         renditions = stream_params.get('renditions') or []
         video = stream_params.get('FLVFullLength') or stream_params.get('videoFullLength')
         if video:
             renditions.append(video)
+
+        if not renditions and not user.get('channel', {}).get('is_live', True):
+            raise ExtractorError('%s said: channel is offline.' % self.IE_NAME, expected=True)
 
         formats = [{
             'url': fmt['url'],
@@ -90,4 +99,39 @@ class AzubuIE(InfoExtractor):
             'uploader_id': uploader_id,
             'view_count': view_count,
             'formats': formats,
+        }
+
+
+class AzubuLiveIE(InfoExtractor):
+    _VALID_URL = r'https?://www.azubu.tv/(?P<id>[^/]+)$'
+
+    _TEST = {
+        'url': 'http://www.azubu.tv/MarsTVMDLen',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        user = self._match_id(url)
+
+        info = self._download_json(
+            'http://api.azubu.tv/public/modules/last-video/{0}/info'.format(user),
+            user)['data']
+        if info['type'] != 'STREAM':
+            raise ExtractorError('{0} is not streaming live'.format(user), expected=True)
+
+        req = sanitized_Request(
+            'https://edge-elb.api.brightcove.com/playback/v1/accounts/3361910549001/videos/ref:' + info['reference_id'])
+        req.add_header('Accept', 'application/json;pk=BCpkADawqM1gvI0oGWg8dxQHlgT8HkdE2LnAlWAZkOlznO39bSZX726u4JqnDsK3MDXcO01JxXK2tZtJbgQChxgaFzEVdHRjaDoxaOu8hHOO8NYhwdxw9BzvgkvLUlpbDNUuDoc4E4wxDToV')
+        bc_info = self._download_json(req, user)
+        m3u8_url = next(source['src'] for source in bc_info['sources'] if source['container'] == 'M2TS')
+        formats = self._extract_m3u8_formats(m3u8_url, user, ext='mp4')
+        self._sort_formats(formats)
+
+        return {
+            'id': info['id'],
+            'title': self._live_title(info['title']),
+            'uploader_id': user,
+            'formats': formats,
+            'is_live': True,
+            'thumbnail': bc_info['poster'],
         }

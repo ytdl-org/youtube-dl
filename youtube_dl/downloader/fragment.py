@@ -19,14 +19,27 @@ class HttpQuietDownloader(HttpFD):
 class FragmentFD(FileDownloader):
     """
     A base file downloader class for fragmented media (e.g. f4m/m3u8 manifests).
+
+    Available options:
+
+    fragment_retries:   Number of times to retry a fragment for HTTP error (DASH only)
     """
+
+    def report_retry_fragment(self, fragment_name, count, retries):
+        self.to_screen(
+            '[download] Got server HTTP error. Retrying fragment %s (attempt %d of %s)...'
+            % (fragment_name, count, self.format_retries(retries)))
 
     def _prepare_and_start_frag_download(self, ctx):
         self._prepare_frag_download(ctx)
         self._start_frag_download(ctx)
 
     def _prepare_frag_download(self, ctx):
-        self.to_screen('[%s] Total fragments: %d' % (self.FD_NAME, ctx['total_frags']))
+        if 'live' not in ctx:
+            ctx['live'] = False
+        self.to_screen(
+            '[%s] Total fragments: %s'
+            % (self.FD_NAME, ctx['total_frags'] if not ctx['live'] else 'unknown (live)'))
         self.report_destination(ctx['filename'])
         dl = HttpQuietDownloader(
             self.ydl,
@@ -34,7 +47,7 @@ class FragmentFD(FileDownloader):
                 'continuedl': True,
                 'quiet': True,
                 'noprogress': True,
-                'ratelimit': self.params.get('ratelimit', None),
+                'ratelimit': self.params.get('ratelimit'),
                 'retries': self.params.get('retries', 0),
                 'test': self.params.get('test', False),
             }
@@ -59,37 +72,45 @@ class FragmentFD(FileDownloader):
             'filename': ctx['filename'],
             'tmpfilename': ctx['tmpfilename'],
         }
+
         start = time.time()
-        ctx['started'] = start
+        ctx.update({
+            'started': start,
+            # Total complete fragments downloaded so far in bytes
+            'complete_frags_downloaded_bytes': 0,
+            # Amount of fragment's bytes downloaded by the time of the previous
+            # frag progress hook invocation
+            'prev_frag_downloaded_bytes': 0,
+        })
 
         def frag_progress_hook(s):
             if s['status'] not in ('downloading', 'finished'):
                 return
 
-            frag_total_bytes = s.get('total_bytes', 0)
-            if s['status'] == 'finished':
-                state['downloaded_bytes'] += frag_total_bytes
-                state['frag_index'] += 1
-
-            estimated_size = (
-                (state['downloaded_bytes'] + frag_total_bytes) /
-                (state['frag_index'] + 1) * total_frags)
             time_now = time.time()
-            state['total_bytes_estimate'] = estimated_size
             state['elapsed'] = time_now - start
+            frag_total_bytes = s.get('total_bytes') or 0
+            if not ctx['live']:
+                estimated_size = (
+                    (ctx['complete_frags_downloaded_bytes'] + frag_total_bytes) /
+                    (state['frag_index'] + 1) * total_frags)
+                state['total_bytes_estimate'] = estimated_size
 
             if s['status'] == 'finished':
-                progress = self.calc_percent(state['frag_index'], total_frags)
+                state['frag_index'] += 1
+                state['downloaded_bytes'] += frag_total_bytes - ctx['prev_frag_downloaded_bytes']
+                ctx['complete_frags_downloaded_bytes'] = state['downloaded_bytes']
+                ctx['prev_frag_downloaded_bytes'] = 0
             else:
                 frag_downloaded_bytes = s['downloaded_bytes']
-                frag_progress = self.calc_percent(frag_downloaded_bytes,
-                                                  frag_total_bytes)
-                progress = self.calc_percent(state['frag_index'], total_frags)
-                progress += frag_progress / float(total_frags)
-
-                state['eta'] = self.calc_eta(
-                    start, time_now, estimated_size, state['downloaded_bytes'] + frag_downloaded_bytes)
-                state['speed'] = s.get('speed')
+                state['downloaded_bytes'] += frag_downloaded_bytes - ctx['prev_frag_downloaded_bytes']
+                if not ctx['live']:
+                    state['eta'] = self.calc_eta(
+                        start, time_now, estimated_size,
+                        state['downloaded_bytes'])
+                state['speed'] = s.get('speed') or ctx.get('speed')
+                ctx['speed'] = state['speed']
+                ctx['prev_frag_downloaded_bytes'] = frag_downloaded_bytes
             self._hook_progress(state)
 
         ctx['dl'].add_progress_hook(frag_progress_hook)

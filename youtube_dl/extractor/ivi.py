@@ -5,11 +5,10 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-)
 from ..utils import (
     ExtractorError,
+    int_or_none,
+    sanitized_Request,
 )
 
 
@@ -29,43 +28,35 @@ class IviIE(InfoExtractor):
                 'title': 'Иван Васильевич меняет профессию',
                 'description': 'md5:b924063ea1677c8fe343d8a72ac2195f',
                 'duration': 5498,
-                'thumbnail': 'http://thumbs.ivi.ru/f20.vcp.digitalaccess.ru/contents/d/1/c3c885163a082c29bceeb7b5a267a6.jpg',
+                'thumbnail': 're:^https?://.*\.jpg$',
             },
             'skip': 'Only works from Russia',
         },
-        # Serial's serie
+        # Serial's series
         {
             'url': 'http://www.ivi.ru/watch/dvoe_iz_lartsa/9549',
             'md5': '221f56b35e3ed815fde2df71032f4b3e',
             'info_dict': {
                 'id': '9549',
                 'ext': 'mp4',
-                'title': 'Двое из ларца - Серия 1',
+                'title': 'Двое из ларца - Дело Гольдберга (1 часть)',
+                'series': 'Двое из ларца',
+                'season': 'Сезон 1',
+                'season_number': 1,
+                'episode': 'Дело Гольдберга (1 часть)',
+                'episode_number': 1,
                 'duration': 2655,
-                'thumbnail': 'http://thumbs.ivi.ru/f15.vcp.digitalaccess.ru/contents/8/4/0068dc0677041f3336b7c2baad8fc0.jpg',
+                'thumbnail': 're:^https?://.*\.jpg$',
             },
             'skip': 'Only works from Russia',
         }
     ]
 
     # Sorted by quality
-    _known_formats = ['MP4-low-mobile', 'MP4-mobile', 'FLV-lo', 'MP4-lo', 'FLV-hi', 'MP4-hi', 'MP4-SHQ']
-
-    # Sorted by size
-    _known_thumbnails = ['Thumb-120x90', 'Thumb-160', 'Thumb-640x480']
-
-    def _extract_description(self, html):
-        m = re.search(r'<meta name="description" content="(?P<description>[^"]+)"/>', html)
-        return m.group('description') if m is not None else None
-
-    def _extract_comment_count(self, html):
-        m = re.search('(?s)<a href="#" id="view-comments" class="action-button dim gradient">\s*Комментарии:\s*(?P<commentcount>\d+)\s*</a>', html)
-        return int(m.group('commentcount')) if m is not None else 0
+    _KNOWN_FORMATS = ['MP4-low-mobile', 'MP4-mobile', 'FLV-lo', 'MP4-lo', 'FLV-hi', 'MP4-hi', 'MP4-SHQ']
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
-        api_url = 'http://api.digitalaccess.ru/api/json/'
 
         data = {
             'method': 'da.content.get',
@@ -78,11 +69,10 @@ class IviIE(InfoExtractor):
             ]
         }
 
-        request = compat_urllib_request.Request(api_url, json.dumps(data))
-
-        video_json_page = self._download_webpage(
+        request = sanitized_Request(
+            'http://api.digitalaccess.ru/api/json/', json.dumps(data))
+        video_json = self._download_json(
             request, video_id, 'Downloading video JSON')
-        video_json = json.loads(video_json_page)
 
         if 'error' in video_json:
             error = video_json['error']
@@ -97,35 +87,51 @@ class IviIE(InfoExtractor):
         formats = [{
             'url': x['url'],
             'format_id': x['content_format'],
-            'preference': self._known_formats.index(x['content_format']),
-        } for x in result['files'] if x['content_format'] in self._known_formats]
+            'preference': self._KNOWN_FORMATS.index(x['content_format']),
+        } for x in result['files'] if x['content_format'] in self._KNOWN_FORMATS]
 
         self._sort_formats(formats)
 
-        if not formats:
-            raise ExtractorError('No media links available for %s' % video_id)
-
-        duration = result['duration']
-        compilation = result['compilation']
         title = result['title']
+
+        duration = int_or_none(result.get('duration'))
+        compilation = result.get('compilation')
+        episode = title if compilation else None
 
         title = '%s - %s' % (compilation, title) if compilation is not None else title
 
-        previews = result['preview']
-        previews.sort(key=lambda fmt: self._known_thumbnails.index(fmt['content_format']))
-        thumbnail = previews[-1]['url'] if len(previews) > 0 else None
+        thumbnails = [{
+            'url': preview['url'],
+            'id': preview.get('content_format'),
+        } for preview in result.get('preview', []) if preview.get('url')]
 
-        video_page = self._download_webpage(url, video_id, 'Downloading video page')
-        description = self._extract_description(video_page)
-        comment_count = self._extract_comment_count(video_page)
+        webpage = self._download_webpage(url, video_id)
+
+        season = self._search_regex(
+            r'<li[^>]+class="season active"[^>]*><a[^>]+>([^<]+)',
+            webpage, 'season', default=None)
+        season_number = int_or_none(self._search_regex(
+            r'<li[^>]+class="season active"[^>]*><a[^>]+data-season(?:-index)?="(\d+)"',
+            webpage, 'season number', default=None))
+
+        episode_number = int_or_none(self._search_regex(
+            r'<meta[^>]+itemprop="episode"[^>]*>\s*<meta[^>]+itemprop="episodeNumber"[^>]+content="(\d+)',
+            webpage, 'episode number', default=None))
+
+        description = self._og_search_description(webpage, default=None) or self._html_search_meta(
+            'description', webpage, 'description', default=None)
 
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': thumbnail,
+            'series': compilation,
+            'season': season,
+            'season_number': season_number,
+            'episode': episode,
+            'episode_number': episode_number,
+            'thumbnails': thumbnails,
             'description': description,
             'duration': duration,
-            'comment_count': comment_count,
             'formats': formats,
         }
 
@@ -151,8 +157,11 @@ class IviCompilationIE(InfoExtractor):
     }]
 
     def _extract_entries(self, html, compilation_id):
-        return [self.url_result('http://www.ivi.ru/watch/%s/%s' % (compilation_id, serie), 'Ivi')
-                for serie in re.findall(r'<strong><a href="/watch/%s/(\d+)">(?:[^<]+)</a></strong>' % compilation_id, html)]
+        return [
+            self.url_result(
+                'http://www.ivi.ru/watch/%s/%s' % (compilation_id, serie), IviIE.ie_key())
+            for serie in re.findall(
+                r'<a href="/watch/%s/(\d+)"[^>]+data-id="\1"' % compilation_id, html)]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -160,7 +169,8 @@ class IviCompilationIE(InfoExtractor):
         season_id = mobj.group('seasonid')
 
         if season_id is not None:  # Season link
-            season_page = self._download_webpage(url, compilation_id, 'Downloading season %s web page' % season_id)
+            season_page = self._download_webpage(
+                url, compilation_id, 'Downloading season %s web page' % season_id)
             playlist_id = '%s/season%s' % (compilation_id, season_id)
             playlist_title = self._html_search_meta('title', season_page, 'title')
             entries = self._extract_entries(season_page, compilation_id)
@@ -168,8 +178,9 @@ class IviCompilationIE(InfoExtractor):
             compilation_page = self._download_webpage(url, compilation_id, 'Downloading compilation web page')
             playlist_id = compilation_id
             playlist_title = self._html_search_meta('title', compilation_page, 'title')
-            seasons = re.findall(r'<a href="/watch/%s/season(\d+)">[^<]+</a>' % compilation_id, compilation_page)
-            if len(seasons) == 0:  # No seasons in this compilation
+            seasons = re.findall(
+                r'<a href="/watch/%s/season(\d+)' % compilation_id, compilation_page)
+            if not seasons:  # No seasons in this compilation
                 entries = self._extract_entries(compilation_page, compilation_id)
             else:
                 entries = []

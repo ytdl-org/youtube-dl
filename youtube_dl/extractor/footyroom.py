@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class FootyRoomIE(InfoExtractor):
-    _VALID_URL = r'http://footyroom\.com/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://footyroom\.com/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://footyroom.com/schalke-04-0-2-real-madrid-2015-02/',
         'info_dict': {
@@ -13,6 +13,7 @@ class FootyRoomIE(InfoExtractor):
             'title': 'Schalke 04 0 – 2 Real Madrid',
         },
         'playlist_count': 3,
+        'skip': 'Video for this match is not available',
     }, {
         'url': 'http://footyroom.com/georgia-0-2-germany-2015-03/',
         'info_dict': {

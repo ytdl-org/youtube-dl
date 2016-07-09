@@ -4,11 +4,9 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-)
 from ..utils import (
     parse_iso8601,
+    sanitized_Request,
 )
 
 
@@ -54,7 +52,7 @@ class SportDeutschlandIE(InfoExtractor):
 
         api_url = 'http://proxy.vidibusdynamic.net/sportdeutschland.tv/api/permalinks/%s/%s?access_token=true' % (
             sport_id, video_id)
-        req = compat_urllib_request.Request(api_url, headers={
+        req = sanitized_Request(api_url, headers={
             'Accept': 'application/vnd.vidibus.v2.html+json',
             'Referer': url,
         })
@@ -72,10 +70,12 @@ class SportDeutschlandIE(InfoExtractor):
 
             smil_doc = self._download_xml(
                 smil_url, video_id, note='Downloading SMIL metadata')
-            base_url = smil_doc.find('./head/meta').attrib['base']
+            base_url_el = smil_doc.find('./head/meta')
+            if base_url_el:
+                base_url = base_url_el.attrib['base']
             formats.extend([{
                 'format_id': 'rmtp',
-                'url': base_url,
+                'url': base_url if base_url_el else n.attrib['src'],
                 'play_path': n.attrib['src'],
                 'ext': 'flv',
                 'preference': -100,

@@ -14,21 +14,24 @@ from ..utils import (
 
 
 class TV2IE(InfoExtractor):
-    _VALID_URL = 'http://(?:www\.)?tv2\.no/v/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?tv2\.no/v/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.tv2.no/v/916509/',
-        'md5': '9cb9e3410b18b515d71892f27856e9b1',
         'info_dict': {
             'id': '916509',
-            'ext': 'flv',
-            'title': 'Se Gryttens hyllest av Steven Gerrard',
+            'ext': 'mp4',
+            'title': 'Se Frode Gryttens hyllest av Steven Gerrard',
             'description': 'TV 2 Sportens huspoet tar avskjed med Liverpools kaptein Steven Gerrard.',
             'timestamp': 1431715610,
             'upload_date': '20150515',
             'duration': 156.967,
             'view_count': int,
             'categories': list,
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):
@@ -97,7 +100,7 @@ class TV2IE(InfoExtractor):
 
 
 class TV2ArticleIE(InfoExtractor):
-    _VALID_URL = 'http://(?:www\.)?tv2\.no/(?:a|\d{4}/\d{2}/\d{2}(/[^/]+)+)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?tv2\.no/(?:a|\d{4}/\d{2}/\d{2}(/[^/]+)+)/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.tv2.no/2015/05/16/nyheter/alesund/krim/pingvin/6930542',
         'info_dict': {

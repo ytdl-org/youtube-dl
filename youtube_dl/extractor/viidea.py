@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class ViideaIE(InfoExtractor):
-    _VALID_URL = r'''(?x)http://(?:www\.)?(?:
+    _VALID_URL = r'''(?x)https?://(?:www\.)?(?:
             videolectures\.net|
             flexilearn\.viidea\.net|
             presentations\.ocwconsortium\.org|
@@ -44,6 +44,10 @@ class ViideaIE(InfoExtractor):
             'timestamp': 1372349289,
             'upload_date': '20130627',
             'duration': 565,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
     }, {
         # video with invalid direct format links (HTTP 403)
@@ -147,6 +151,7 @@ class ViideaIE(InfoExtractor):
                 smil_url = '%s/%s/video/%s/smil.xml' % (base_url, lecture_slug, part_id)
                 smil = self._download_smil(smil_url, lecture_id)
                 info = self._parse_smil(smil, smil_url, lecture_id)
+                self._sort_formats(info['formats'])
                 info['id'] = lecture_id if not multipart else '%s_part%s' % (lecture_id, part_id)
                 info['display_id'] = lecture_slug if not multipart else '%s_part%s' % (lecture_slug, part_id)
                 if multipart:

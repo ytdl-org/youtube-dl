@@ -6,7 +6,7 @@ from ..utils import int_or_none
 
 
 class AftonbladetIE(InfoExtractor):
-    _VALID_URL = r'http://tv\.aftonbladet\.se/abtv/articles/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://tv\.aftonbladet\.se/abtv/articles/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://tv.aftonbladet.se/abtv/articles/36015',
         'info_dict': {
@@ -24,10 +24,10 @@ class AftonbladetIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         # find internal video meta data
-        meta_url = 'http://aftonbladet-play.drlib.aptoma.no/video/%s.json'
+        meta_url = 'http://aftonbladet-play-metadata.cdn.drvideo.aptoma.no/video/%s.json'
         player_config = self._parse_json(self._html_search_regex(
             r'data-player-config="([^"]+)"', webpage, 'player config'), video_id)
-        internal_meta_id = player_config['videoId']
+        internal_meta_id = player_config['aptomaVideoId']
         internal_meta_url = meta_url % internal_meta_id
         internal_meta_json = self._download_json(
             internal_meta_url, video_id, 'Downloading video meta data')

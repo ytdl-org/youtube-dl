@@ -14,7 +14,10 @@ from ..utils import (
     parse_duration,
     determine_ext,
 )
-from .dailymotion import DailymotionCloudIE
+from .dailymotion import (
+    DailymotionIE,
+    DailymotionCloudIE,
+)
 
 
 class FranceTVBaseInfoExtractor(InfoExtractor):
@@ -60,28 +63,31 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                     video_id, 'Downloading f4m manifest token', fatal=False)
                 if f4m_url:
                     formats.extend(self._extract_f4m_formats(
-                        f4m_url + '&hdcore=3.7.0&plugin=aasp-3.7.0.39.44', video_id, 1, format_id))
+                        f4m_url + '&hdcore=3.7.0&plugin=aasp-3.7.0.39.44',
+                        video_id, f4m_id=format_id, fatal=False))
             elif ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(video_url, video_id, 'mp4', m3u8_id=format_id))
+                formats.extend(self._extract_m3u8_formats(
+                    video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id=format_id, fatal=False))
             elif video_url.startswith('rtmp'):
                 formats.append({
                     'url': video_url,
                     'format_id': 'rtmp-%s' % format_id,
                     'ext': 'flv',
-                    'preference': 1,
                 })
             else:
-                formats.append({
-                    'url': video_url,
-                    'format_id': format_id,
-                    'preference': -1,
-                })
+                if self._is_valid_url(video_url, video_id, format_id):
+                    formats.append({
+                        'url': video_url,
+                        'format_id': format_id,
+                    })
         self._sort_formats(formats)
 
         title = info['titre']
         subtitle = info.get('sous_titre')
         if subtitle:
             title += ' - %s' % subtitle
+        title = title.strip()
 
         subtitles = {}
         subtitles_list = [{
@@ -125,19 +131,23 @@ class PluzzIE(FranceTVBaseInfoExtractor):
 
 class FranceTvInfoIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'francetvinfo.fr'
-    _VALID_URL = r'https?://(?:www|mobile)\.francetvinfo\.fr/.*/(?P<title>.+)\.html'
+    _VALID_URL = r'https?://(?:www|mobile|france3-regions)\.francetvinfo\.fr/.*/(?P<title>.+)\.html'
 
     _TESTS = [{
         'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
         'info_dict': {
             'id': '84981923',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Soir 3',
             'upload_date': '20130826',
             'timestamp': 1377548400,
             'subtitles': {
                 'fr': 'mincount:2',
             },
+        },
+        'params': {
+            # m3u8 downloads
+            'skip_download': True,
         },
     }, {
         'url': 'http://www.francetvinfo.fr/elections/europeennes/direct-europeennes-regardez-le-debat-entre-les-candidats-a-la-presidence-de-la-commission_600639.html',
@@ -155,11 +165,47 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
         'url': 'http://www.francetvinfo.fr/economie/entreprises/les-entreprises-familiales-le-secret-de-la-reussite_933271.html',
         'md5': 'f485bda6e185e7d15dbc69b72bae993e',
         'info_dict': {
-            'id': '556e03339473995ee145930c',
+            'id': 'NI_173343',
             'ext': 'mp4',
             'title': 'Les entreprises familiales : le secret de la réussite',
             'thumbnail': 're:^https?://.*\.jpe?g$',
-        }
+            'timestamp': 1433273139,
+            'upload_date': '20150602',
+        },
+        'params': {
+            # m3u8 downloads
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://france3-regions.francetvinfo.fr/bretagne/cotes-d-armor/thalassa-echappee-breizh-ce-venredi-dans-les-cotes-d-armor-954961.html',
+        'md5': 'f485bda6e185e7d15dbc69b72bae993e',
+        'info_dict': {
+            'id': 'NI_657393',
+            'ext': 'mp4',
+            'title': 'Olivier Monthus, réalisateur de "Bretagne, le choix de l’Armor"',
+            'description': 'md5:a3264114c9d29aeca11ced113c37b16c',
+            'thumbnail': 're:^https?://.*\.jpe?g$',
+            'timestamp': 1458300695,
+            'upload_date': '20160318',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        # Dailymotion embed
+        'url': 'http://www.francetvinfo.fr/politique/notre-dame-des-landes/video-sur-france-inter-cecile-duflot-denonce-le-regard-meprisant-de-patrick-cohen_1520091.html',
+        'md5': 'ee7f1828f25a648addc90cb2687b1f12',
+        'info_dict': {
+            'id': 'x4iiko0',
+            'ext': 'mp4',
+            'title': 'NDDL, référendum, Brexit : Cécile Duflot répond à Patrick Cohen',
+            'description': 'Au lendemain de la victoire du "oui" au référendum sur l\'aéroport de Notre-Dame-des-Landes, l\'ancienne ministre écologiste est l\'invitée de Patrick Cohen. Plus d\'info : https://www.franceinter.fr/emissions/le-7-9/le-7-9-27-juin-2016',
+            'timestamp': 1467011958,
+            'upload_date': '20160627',
+            'uploader': 'France Inter',
+            'uploader_id': 'x2q2ez',
+        },
+        'add_ie': ['Dailymotion'],
     }]
 
     def _real_extract(self, url):
@@ -169,10 +215,18 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
 
         dmcloud_url = DailymotionCloudIE._extract_dmcloud_url(webpage)
         if dmcloud_url:
-            return self.url_result(dmcloud_url, 'DailymotionCloud')
+            return self.url_result(dmcloud_url, DailymotionCloudIE.ie_key())
+
+        dailymotion_urls = DailymotionIE._extract_urls(webpage)
+        if dailymotion_urls:
+            return self.playlist_result([
+                self.url_result(dailymotion_url, DailymotionIE.ie_key())
+                for dailymotion_url in dailymotion_urls])
 
         video_id, catalogue = self._search_regex(
-            r'id-video=([^@]+@[^"]+)', webpage, 'video id').split('@')
+            (r'id-video=([^@]+@[^"]+)',
+             r'<a[^>]+href="(?:https?:)?//videos\.francetv\.fr/video/([^@]+@[^"]+)"'),
+            webpage, 'video id').split('@')
         return self._extract_video(video_id, catalogue)
 
 
@@ -289,7 +343,7 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         video_id, catalogue = self._html_search_regex(
-            r'href="http://videos?\.francetv\.fr/video/([^@]+@[^"]+)"',
+            r'(?:href=|player\.setVideo\(\s*)"http://videos?\.francetv\.fr/video/([^@]+@[^"]+)"',
             webpage, 'video ID').split('@')
         return self._extract_video(video_id, catalogue)
 

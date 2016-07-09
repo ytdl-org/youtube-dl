@@ -5,9 +5,10 @@ import re
 import sys
 import time
 
-from ..compat import compat_str
+from ..compat import compat_os_name
 from ..utils import (
     encodeFilename,
+    error_to_compat_str,
     decodeArgument,
     format_bytes,
     timeconvert,
@@ -42,9 +43,10 @@ class FileDownloader(object):
     min_filesize:       Skip files smaller than this size
     max_filesize:       Skip files larger than this size
     xattr_set_filesize: Set ytdl.filesize user xattribute with expected size.
-                        (experimenatal)
+                        (experimental)
     external_downloader_args:  A list of additional command-line arguments for the
                         external downloader.
+    hls_use_mpegts:     Use the mpegts container for HLS videos.
 
     Subclasses of this one must re-define the real_download method.
     """
@@ -114,6 +116,10 @@ class FileDownloader(object):
         return '%10s' % ('%s/s' % format_bytes(speed))
 
     @staticmethod
+    def format_retries(retries):
+        return 'inf' if retries == float('inf') else '%.0f' % retries
+
+    @staticmethod
     def best_block_size(elapsed_time, bytes):
         new_min = max(bytes / 2.0, 1.0)
         new_max = min(max(bytes * 2.0, 1.0), 4194304)  # Do not surpass 4 MB
@@ -156,7 +162,7 @@ class FileDownloader(object):
 
     def slow_down(self, start_time, now, byte_counter):
         """Sleep if the download speed is over the rate limit."""
-        rate_limit = self.params.get('ratelimit', None)
+        rate_limit = self.params.get('ratelimit')
         if rate_limit is None or byte_counter == 0:
             return
         if now is None:
@@ -186,7 +192,7 @@ class FileDownloader(object):
                 return
             os.rename(encodeFilename(old_filename), encodeFilename(new_filename))
         except (IOError, OSError) as err:
-            self.report_error('unable to rename file: %s' % compat_str(err))
+            self.report_error('unable to rename file: %s' % error_to_compat_str(err))
 
     def try_utime(self, filename, last_modified_hdr):
         """Try to set the last-modified time of the given file."""
@@ -218,7 +224,7 @@ class FileDownloader(object):
         if self.params.get('progress_with_newline', False):
             self.to_screen(fullmsg)
         else:
-            if os.name == 'nt':
+            if compat_os_name == 'nt':
                 prev_len = getattr(self, '_report_progress_prev_line_length',
                                    0)
                 if prev_len > len(fullmsg):
@@ -295,7 +301,9 @@ class FileDownloader(object):
 
     def report_retry(self, count, retries):
         """Report retry in case of HTTP error 5xx"""
-        self.to_screen('[download] Got server HTTP error. Retrying (attempt %d of %d)...' % (count, retries))
+        self.to_screen(
+            '[download] Got server HTTP error. Retrying (attempt %d of %s)...'
+            % (count, self.format_retries(retries)))
 
     def report_file_already_downloaded(self, file_name):
         """Report file has already been fully downloaded."""

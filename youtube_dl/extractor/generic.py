@@ -11,7 +11,6 @@ from .youtube import YoutubeIE
 from ..compat import (
     compat_etree_fromstring,
     compat_urllib_parse_unquote,
-    compat_urllib_request,
     compat_urlparse,
     compat_xml_parse_error,
 )
@@ -22,6 +21,7 @@ from ..utils import (
     HEADRequest,
     is_html,
     orderedSet,
+    sanitized_Request,
     smuggle_url,
     unescapeHTML,
     unified_strdate,
@@ -44,16 +44,32 @@ from .myvi import MyviIE
 from .condenast import CondeNastIE
 from .udn import UDNEmbedIE
 from .senateisvp import SenateISVPIE
-from .bliptv import BlipTVIE
 from .svt import SVTIE
 from .pornhub import PornHubIE
 from .xhamster import XHamsterEmbedIE
+from .tnaflix import TNAFlixNetworkEmbedIE
 from .vimeo import VimeoIE
-from .dailymotion import DailymotionCloudIE
+from .dailymotion import (
+    DailymotionIE,
+    DailymotionCloudIE,
+)
 from .onionstudios import OnionStudiosIE
-from .snagfilms import SnagFilmsEmbedIE
+from .viewlift import ViewLiftEmbedIE
 from .screenwavemedia import ScreenwaveMediaIE
 from .mtv import MTVServicesEmbeddedIE
+from .pladform import PladformIE
+from .videomore import VideomoreIE
+from .googledrive import GoogleDriveIE
+from .jwplatform import JWPlatformIE
+from .digiteka import DigitekaIE
+from .instagram import InstagramIE
+from .liveleak import LiveLeakIE
+from .threeqsdn import ThreeQSDNIE
+from .theplatform import ThePlatformIE
+from .vessel import VesselIE
+from .kaltura import KalturaIE
+from .eagleplatform import EaglePlatformIE
+from .facebook import FacebookIE
 
 
 class GenericIE(InfoExtractor):
@@ -98,7 +114,8 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,  # infinite live stream
             },
             'expected_warnings': [
-                r'501.*Not Implemented'
+                r'501.*Not Implemented',
+                r'400.*Bad Request',
             ],
         },
         # Direct link with incorrect MIME type
@@ -220,6 +237,50 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        # MPD from http://dash-mse-test.appspot.com/media.html
+        {
+            'url': 'http://yt-dash-mse-test.commondatastorage.googleapis.com/media/car-20120827-manifest.mpd',
+            'md5': '4b57baab2e30d6eb3a6a09f0ba57ef53',
+            'info_dict': {
+                'id': 'car-20120827-manifest',
+                'ext': 'mp4',
+                'title': 'car-20120827-manifest',
+                'formats': 'mincount:9',
+                'upload_date': '20130904',
+            },
+            'params': {
+                'format': 'bestvideo',
+            },
+        },
+        # m3u8 served with Content-Type: audio/x-mpegURL; charset=utf-8
+        {
+            'url': 'http://once.unicornmedia.com/now/master/playlist/bb0b18ba-64f5-4b1b-a29f-0ac252f06b68/77a785f3-5188-4806-b788-0893a61634ed/93677179-2d99-4ef4-9e17-fe70d49abfbf/content.m3u8',
+            'info_dict': {
+                'id': 'content',
+                'ext': 'mp4',
+                'title': 'content',
+                'formats': 'mincount:8',
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            }
+        },
+        # m3u8 served with Content-Type: text/plain
+        {
+            'url': 'http://www.nacentapps.com/m3u8/index.m3u8',
+            'info_dict': {
+                'id': 'index',
+                'ext': 'mp4',
+                'title': 'index',
+                'upload_date': '20140720',
+                'formats': 'mincount:11',
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            }
+        },
         # google redirect
         {
             'url': 'http://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&ved=0CCUQtwIwAA&url=http%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DcmQHVoWB5FY&ei=F-sNU-LLCaXk4QT52ICQBQ&usg=AFQjCNEw4hL29zgOohLXvpJ-Bdh2bils1Q&bvm=bv.61965928,d.bGE',
@@ -339,6 +400,7 @@ class GenericIE(InfoExtractor):
                 'id': 'BwY2RxaTrTkslxOfcan0UCf0YqyvWysJ',
                 'ext': 'mp4',
                 'title': '2cc213299525360.mov',  # that's what we get
+                'duration': 238.231,
             },
             'add_ie': ['Ooyala'],
         },
@@ -350,23 +412,11 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': '"Steve Jobs: Man in the Machine" trailer',
                 'description': 'The first trailer for the Alex Gibney documentary "Steve Jobs: Man in the Machine."',
+                'duration': 135.427,
             },
             'params': {
                 'skip_download': True,
             },
-        },
-        # multiple ooyala embeds on SBN network websites
-        {
-            'url': 'http://www.sbnation.com/college-football-recruiting/2015/2/3/7970291/national-signing-day-rationalizations-itll-be-ok-itll-be-ok',
-            'info_dict': {
-                'id': 'national-signing-day-rationalizations-itll-be-ok-itll-be-ok',
-                'title': '25 lies you will tell yourself on National Signing Day - SBNation.com',
-            },
-            'playlist_mincount': 3,
-            'params': {
-                'skip_download': True,
-            },
-            'add_ie': ['Ooyala'],
         },
         # embed.ly video
         {
@@ -481,7 +531,7 @@ class GenericIE(InfoExtractor):
                 'description': 'md5:8145d19d320ff3e52f28401f4c4283b9',
             }
         },
-        # Embeded Ustream video
+        # Embedded Ustream video
         {
             'url': 'http://www.american.edu/spa/pti/nsa-privacy-janus-2014.cfm',
             'md5': '27b99cdb639c9b12a79bca876a073417',
@@ -556,7 +606,11 @@ class GenericIE(InfoExtractor):
                 'id': 'k2mm4bCdJ6CQ2i7c8o2',
                 'ext': 'mp4',
                 'title': 'Le Zap de Spi0n n°216 - Zapping du Web',
+                'description': 'md5:faf028e48a461b8b7fad38f1e104b119',
                 'uploader': 'Spi0n',
+                'uploader_id': 'xgditw',
+                'upload_date': '20140425',
+                'timestamp': 1398441542,
             },
             'add_ie': ['Dailymotion'],
         },
@@ -579,13 +633,13 @@ class GenericIE(InfoExtractor):
         },
         # MTVSercices embed
         {
-            'url': 'http://www.gametrailers.com/news-post/76093/north-america-europe-is-getting-that-mario-kart-8-mercedes-dlc-too',
-            'md5': '35727f82f58c76d996fc188f9755b0d5',
+            'url': 'http://www.vulture.com/2016/06/new-key-peele-sketches-released.html',
+            'md5': 'ca1aef97695ef2c1d6973256a57e5252',
             'info_dict': {
-                'id': '0306a69b-8adf-4fb5-aace-75f8e8cbfca9',
+                'id': '769f7ec0-0692-4d62-9b45-0d88074bffc1',
                 'ext': 'mp4',
-                'title': 'Review',
-                'description': 'Mario\'s life in the fast lane has never looked so good.',
+                'title': 'Key and Peele|October 10, 2012|2|203|Liam Neesons - Uncensored',
+                'description': 'Two valets share their love for movie star Liam Neesons.',
             },
         },
         # YouTube embed via <data-embed-url="">
@@ -671,15 +725,18 @@ class GenericIE(InfoExtractor):
         },
         # Wistia embed
         {
-            'url': 'http://education-portal.com/academy/lesson/north-american-exploration-failed-colonies-of-spain-france-england.html#lesson',
-            'md5': '8788b683c777a5cf25621eaf286d0c23',
+            'url': 'http://study.com/academy/lesson/north-american-exploration-failed-colonies-of-spain-france-england.html#lesson',
+            'md5': '1953f3a698ab51cfc948ed3992a0b7ff',
             'info_dict': {
-                'id': '1cfaf6b7ea',
+                'id': '6e2wtrbdaf',
                 'ext': 'mov',
-                'title': 'md5:51364a8d3d009997ba99656004b5e20d',
-                'duration': 643.0,
-                'filesize': 182808282,
-                'uploader': 'education-portal.com',
+                'title': 'paywall_north-american-exploration-failed-colonies-of-spain-france-england',
+                'description': 'a Paywall Videos video from Remilon',
+                'duration': 644.072,
+                'uploader': 'study.com',
+                'timestamp': 1459678540,
+                'upload_date': '20160403',
+                'filesize': 24687186,
             },
         },
         {
@@ -688,10 +745,29 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'id': 'uxjb0lwrcz',
                 'ext': 'mp4',
-                'title': 'Conversation about Hexagonal Rails Part 1 - ThoughtWorks',
+                'title': 'Conversation about Hexagonal Rails Part 1',
+                'description': 'a Martin Fowler video from ThoughtWorks',
                 'duration': 1715.0,
                 'uploader': 'thoughtworks.wistia.com',
+                'timestamp': 1401832161,
+                'upload_date': '20140603',
             },
+        },
+        # Wistia standard embed (async)
+        {
+            'url': 'https://www.getdrip.com/university/brennan-dunn-drip-workshop/',
+            'info_dict': {
+                'id': '807fafadvk',
+                'ext': 'mp4',
+                'title': 'Drip Brennan Dunn Workshop',
+                'description': 'a JV Webinars video from getdrip-1',
+                'duration': 4986.95,
+                'timestamp': 1463607249,
+                'upload_date': '20160518',
+            },
+            'params': {
+                'skip_download': True,
+            }
         },
         # Soundcloud embed
         {
@@ -714,6 +790,19 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20141112',
                 'title': 'Rosetta #CometLanding webcast HL 10',
             }
+        },
+        # Another Livestream embed, without 'new.' in URL
+        {
+            'url': 'https://www.freespeech.org/',
+            'info_dict': {
+                'id': '123537347',
+                'ext': 'mp4',
+                'title': 're:^FSTV [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            },
+            'params': {
+                # Live stream
+                'skip_download': True,
+            },
         },
         # LazyYT
         {
@@ -799,18 +888,6 @@ class GenericIE(InfoExtractor):
                 'title': 'EP3S5 - Bon Appétit - Baqueira Mi Corazon !',
             }
         },
-        # Kaltura embed
-        {
-            'url': 'http://www.monumentalnetwork.com/videos/john-carlson-postgame-2-25-15',
-            'info_dict': {
-                'id': '1_eergr3h1',
-                'ext': 'mp4',
-                'upload_date': '20150226',
-                'uploader_id': 'MonumentalSports-Kaltura@perfectsensedigital.com',
-                'timestamp': int,
-                'title': 'John Carlson Postgame 2/25/15',
-            },
-        },
         # Kaltura embed (different embed code)
         {
             'url': 'http://www.premierchristianradio.com/Shows/Saturday/Unbelievable/Conference-Videos/Os-Guinness-Is-It-Fools-Talk-Unbelievable-Conference-2014',
@@ -823,9 +900,54 @@ class GenericIE(InfoExtractor):
                 'title': 'Os Guinness // Is It Fools Talk? // Unbelievable? Conference 2014',
             },
         },
+        # Kaltura embed protected with referrer
+        {
+            'url': 'http://www.disney.nl/disney-channel/filmpjes/achter-de-schermen#/videoId/violetta-achter-de-schermen-ruggero',
+            'info_dict': {
+                'id': '1_g4fbemnq',
+                'ext': 'mp4',
+                'title': 'Violetta - Achter De Schermen - Ruggero',
+                'description': 'Achter de schermen met Ruggero',
+                'timestamp': 1435133761,
+                'upload_date': '20150624',
+                'uploader_id': 'echojecka',
+            },
+        },
+        # Kaltura embed with single quotes
+        {
+            'url': 'http://fod.infobase.com/p_ViewPlaylist.aspx?AssignmentID=NUN8ZY',
+            'info_dict': {
+                'id': '0_izeg5utt',
+                'ext': 'mp4',
+                'title': '35871',
+                'timestamp': 1355743100,
+                'upload_date': '20121217',
+                'uploader_id': 'batchUser',
+            },
+            'add_ie': ['Kaltura'],
+        },
+        {
+            # Kaltura embedded via quoted entry_id
+            'url': 'https://www.oreilly.com/ideas/my-cloud-makes-pretty-pictures',
+            'info_dict': {
+                'id': '0_utuok90b',
+                'ext': 'mp4',
+                'title': '06_matthew_brender_raj_dutt',
+                'timestamp': 1466638791,
+                'upload_date': '20160622',
+            },
+            'add_ie': ['Kaltura'],
+            'expected_warnings': [
+                'Could not send HEAD request'
+            ],
+            'params': {
+                'skip_download': True,
+            }
+        },
         # Eagle.Platform embed (generic URL)
         {
             'url': 'http://lenta.ru/news/2015/03/06/navalny/',
+            # Not checking MD5 as sometimes the direct HTTP link results in 404 and HLS is used
             'info_dict': {
                 'id': '227304',
                 'ext': 'mp4',
@@ -840,6 +962,7 @@ class GenericIE(InfoExtractor):
         # ClipYou (Eagle.Platform) embed (custom URL)
         {
             'url': 'http://muz-tv.ru/play/7129/',
+            # Not checking MD5 as sometimes the direct HTTP link results in 404 and HLS is used
             'info_dict': {
                 'id': '12820',
                 'ext': 'mp4',
@@ -928,18 +1051,36 @@ class GenericIE(InfoExtractor):
                 'ext': 'flv',
                 'title': "PFT Live: New leader in the 'new-look' defense",
                 'description': 'md5:65a19b4bbfb3b0c0c5768bed1dfad74e',
+                'uploader': 'NBCU-SPORTS',
+                'upload_date': '20140107',
+                'timestamp': 1389118457,
+            },
+        },
+        # NBC News embed
+        {
+            'url': 'http://www.vulture.com/2016/06/letterman-couldnt-care-less-about-late-night.html',
+            'md5': '1aa589c675898ae6d37a17913cf68d66',
+            'info_dict': {
+                'id': '701714499682',
+                'ext': 'mp4',
+                'title': 'PREVIEW: On Assignment: David Letterman',
+                'description': 'A preview of Tom Brokaw\'s interview with David Letterman as part of the On Assignment series powered by Dateline. Airs Sunday June 12 at 7/6c.',
             },
         },
         # UDN embed
         {
-            'url': 'http://www.udn.com/news/story/7314/822787',
+            'url': 'https://video.udn.com/news/300346',
             'md5': 'fd2060e988c326991037b9aff9df21a6',
             'info_dict': {
                 'id': '300346',
                 'ext': 'mp4',
                 'title': '中一中男師變性 全校師生力挺',
                 'thumbnail': 're:^https?://.*\.jpg$',
-            }
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
         },
         # Ooyala embed
         {
@@ -947,25 +1088,12 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'id': '50YnY4czr4ms1vJ7yz3xzq0excz_pUMs',
                 'ext': 'mp4',
-                'description': 'VIDEO: Index/Match versus VLOOKUP.',
+                'description': 'VIDEO: INDEX/MATCH versus VLOOKUP.',
                 'title': 'This is what separates the Excel masters from the wannabes',
+                'duration': 191.933,
             },
             'params': {
                 # m3u8 downloads
-                'skip_download': True,
-            }
-        },
-        # Contains a SMIL manifest
-        {
-            'url': 'http://www.telewebion.com/fa/1263668/%D9%82%D8%B1%D8%B9%D9%87%E2%80%8C%DA%A9%D8%B4%DB%8C-%D9%84%DB%8C%DA%AF-%D9%82%D9%87%D8%B1%D9%85%D8%A7%D9%86%D8%A7%D9%86-%D8%A7%D8%B1%D9%88%D9%BE%D8%A7/%2B-%D9%81%D9%88%D8%AA%D8%A8%D8%A7%D9%84.html',
-            'info_dict': {
-                'id': 'file',
-                'ext': 'flv',
-                'title': '+ Football: Lottery Champions League Europe',
-                'uploader': 'www.telewebion.com',
-            },
-            'params': {
-                # rtmpe downloads
                 'skip_download': True,
             }
         },
@@ -979,17 +1107,25 @@ class GenericIE(InfoExtractor):
                 'title': 'SN Presents: Russell Martin, World Citizen',
                 'description': 'To understand why he was the Toronto Blue Jays’ top off-season priority is to appreciate his background and upbringing in Montreal, where he first developed his baseball skills. Written and narrated by Stephen Brunt.',
                 'uploader': 'Rogers Sportsnet',
+                'uploader_id': '1704050871',
+                'upload_date': '20150525',
+                'timestamp': 1432570283,
             },
         },
         # Dailymotion Cloud video
         {
             'url': 'http://replay.publicsenat.fr/vod/le-debat/florent-kolandjian,dominique-cena,axel-decourtye,laurence-abeille,bruno-parmentier/175910',
-            'md5': '49444254273501a64675a7e68c502681',
+            'md5': 'dcaf23ad0c67a256f4278bce6e0bae38',
             'info_dict': {
-                'id': '5585de919473990de4bee11b',
+                'id': 'x2uy8t3',
                 'ext': 'mp4',
-                'title': 'Le débat',
+                'title': 'Sauvons les abeilles ! - Le débat',
+                'description': 'md5:d9082128b1c5277987825d684939ca26',
                 'thumbnail': 're:^https?://.*\.jpe?g$',
+                'timestamp': 1434970506,
+                'upload_date': '20150622',
+                'uploader': 'Public Sénat',
+                'uploader_id': 'xa9gza',
             }
         },
         # OnionStudios embed
@@ -1045,7 +1181,170 @@ class GenericIE(InfoExtractor):
                 'description': 'Tabletop: Dread, Last Thoughts',
                 'duration': 51690,
             },
-        }
+        },
+        # JWPlayer with M3U8
+        {
+            'url': 'http://ren.tv/novosti/2015-09-25/sluchaynyy-prohozhiy-poymal-avtougonshchika-v-murmanske-video',
+            'info_dict': {
+                'id': 'playlist',
+                'ext': 'mp4',
+                'title': 'Случайный прохожий поймал автоугонщика в Мурманске. ВИДЕО | РЕН ТВ',
+                'uploader': 'ren.tv',
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            }
+        },
+        # Brightcove embed, with no valid 'renditions' but valid 'IOSRenditions'
+        # This video can't be played in browsers if Flash disabled and UA set to iPhone, which is actually a false alarm
+        {
+            'url': 'https://dl.dropboxusercontent.com/u/29092637/interview.html',
+            'info_dict': {
+                'id': '4785848093001',
+                'ext': 'mp4',
+                'title': 'The Cardinal Pell Interview',
+                'description': 'Sky News Contributor Andrew Bolt interviews George Pell in Rome, following the Cardinal\'s evidence before the Royal Commission into Child Abuse. ',
+                'uploader': 'GlobeCast Australia - GlobeStream',
+                'uploader_id': '2733773828001',
+                'upload_date': '20160304',
+                'timestamp': 1457083087,
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            },
+        },
+        # Another form of arte.tv embed
+        {
+            'url': 'http://www.tv-replay.fr/redirection/09-04-16/arte-reportage-arte-11508975.html',
+            'md5': '850bfe45417ddf221288c88a0cffe2e2',
+            'info_dict': {
+                'id': '030273-562_PLUS7-F',
+                'ext': 'mp4',
+                'title': 'ARTE Reportage - Nulle part, en France',
+                'description': 'md5:e3a0e8868ed7303ed509b9e3af2b870d',
+                'upload_date': '20160409',
+            },
+        },
+        # LiveLeak embed
+        {
+            'url': 'http://www.wykop.pl/link/3088787/',
+            'md5': 'ace83b9ed19b21f68e1b50e844fdf95d',
+            'info_dict': {
+                'id': '874_1459135191',
+                'ext': 'mp4',
+                'title': 'Man shows poor quality of new apartment building',
+                'description': 'The wall is like a sand pile.',
+                'uploader': 'Lake8737',
+            }
+        },
+        # Duplicated embedded video URLs
+        {
+            'url': 'http://www.hudl.com/athlete/2538180/highlights/149298443',
+            'info_dict': {
+                'id': '149298443_480_16c25b74_2',
+                'ext': 'mp4',
+                'title': 'vs. Blue Orange Spring Game',
+                'uploader': 'www.hudl.com',
+            },
+        },
+        # twitter:player embed
+        {
+            'url': 'http://www.theatlantic.com/video/index/484130/what-do-black-holes-sound-like/',
+            'md5': 'a3e0df96369831de324f0778e126653c',
+            'info_dict': {
+                'id': '4909620399001',
+                'ext': 'mp4',
+                'title': 'What Do Black Holes Sound Like?',
+                'description': 'what do black holes sound like',
+                'upload_date': '20160524',
+                'uploader_id': '29913724001',
+                'timestamp': 1464107587,
+                'uploader': 'TheAtlantic',
+            },
+            'add_ie': ['BrightcoveLegacy'],
+        },
+        # Facebook <iframe> embed
+        {
+            'url': 'https://www.hostblogger.de/blog/archives/6181-Auto-jagt-Betonmischer.html',
+            'md5': 'fbcde74f534176ecb015849146dd3aee',
+            'info_dict': {
+                'id': '599637780109885',
+                'ext': 'mp4',
+                'title': 'Facebook video #599637780109885',
+            },
+        },
+        # Facebook API embed
+        {
+            'url': 'http://www.lothype.com/blue-stars-2016-preview-standstill-full-show/',
+            'md5': 'a47372ee61b39a7b90287094d447d94e',
+            'info_dict': {
+                'id': '10153467542406923',
+                'ext': 'mp4',
+                'title': 'Facebook video #10153467542406923',
+            },
+        },
+        # Wordpress "YouTube Video Importer" plugin
+        {
+            'url': 'http://www.lothype.com/blue-devils-drumline-stanford-lot-2016/',
+            'md5': 'd16797741b560b485194eddda8121b48',
+            'info_dict': {
+                'id': 'HNTXWDXV9Is',
+                'ext': 'mp4',
+                'title': 'Blue Devils Drumline Stanford lot 2016',
+                'upload_date': '20160627',
+                'uploader_id': 'GENOCIDE8GENERAL10',
+                'uploader': 'cylus cyrus',
+            },
+        },
+        {
+            # video stored on custom kaltura server
+            'url': 'http://www.expansion.com/multimedia/videos.html?media=EQcM30NHIPv',
+            'md5': '537617d06e64dfed891fa1593c4b30cc',
+            'info_dict': {
+                'id': '0_1iotm5bh',
+                'ext': 'mp4',
+                'title': 'Elecciones británicas: 5 lecciones para Rajoy',
+                'description': 'md5:435a89d68b9760b92ce67ed227055f16',
+                'uploader_id': 'videos.expansion@el-mundo.net',
+                'upload_date': '20150429',
+                'timestamp': 1430303472,
+            },
+            'add_ie': ['Kaltura'],
+        },
+        {
+            # Non-standard Vimeo embed
+            'url': 'https://openclassrooms.com/courses/understanding-the-web',
+            'md5': '64d86f1c7d369afd9a78b38cbb88d80a',
+            'info_dict': {
+                'id': '148867247',
+                'ext': 'mp4',
+                'title': 'Understanding the web - Teaser',
+                'description': 'This is "Understanding the web - Teaser" by openclassrooms on Vimeo, the home for high quality videos and the people who love them.',
+                'upload_date': '20151214',
+                'uploader': 'OpenClassrooms',
+                'uploader_id': 'openclassrooms',
+            },
+            'add_ie': ['Vimeo'],
+        },
+        # {
+        #     # TODO: find another test
+        #     # http://schema.org/VideoObject
+        #     'url': 'https://flipagram.com/f/nyvTSJMKId',
+        #     'md5': '888dcf08b7ea671381f00fab74692755',
+        #     'info_dict': {
+        #         'id': 'nyvTSJMKId',
+        #         'ext': 'mp4',
+        #         'title': 'Flipagram by sjuria101 featuring Midnight Memories by One Direction',
+        #         'description': '#love for cats.',
+        #         'timestamp': 1461244995,
+        #         'upload_date': '20160421',
+        #     },
+        #     'params': {
+        #         'force_generic_extractor': True,
+        #     },
+        # }
     ]
 
     def report_following_redirect(self, new_url):
@@ -1188,28 +1487,36 @@ class GenericIE(InfoExtractor):
 
         full_response = None
         if head_response is False:
-            request = compat_urllib_request.Request(url)
+            request = sanitized_Request(url)
             request.add_header('Accept-Encoding', '*')
             full_response = self._request_webpage(request, video_id)
             head_response = full_response
 
+        info_dict = {
+            'id': video_id,
+            'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
+            'upload_date': unified_strdate(head_response.headers.get('Last-Modified'))
+        }
+
         # Check for direct link to a video
-        content_type = head_response.headers.get('Content-Type', '')
-        m = re.match(r'^(?P<type>audio|video|application(?=/ogg$))/(?P<format_id>.+)$', content_type)
+        content_type = head_response.headers.get('Content-Type', '').lower()
+        m = re.match(r'^(?P<type>audio|video|application(?=/(?:ogg$|(?:vnd\.apple\.|x-)?mpegurl)))/(?P<format_id>[^;\s]+)', content_type)
         if m:
-            upload_date = unified_strdate(
-                head_response.headers.get('Last-Modified'))
-            return {
-                'id': video_id,
-                'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
-                'direct': True,
-                'formats': [{
+            format_id = m.group('format_id')
+            if format_id.endswith('mpegurl'):
+                formats = self._extract_m3u8_formats(url, video_id, 'mp4')
+            elif format_id == 'f4m':
+                formats = self._extract_f4m_formats(url, video_id)
+            else:
+                formats = [{
                     'format_id': m.group('format_id'),
                     'url': url,
                     'vcodec': 'none' if m.group('type') == 'audio' else None
-                }],
-                'upload_date': upload_date,
-            }
+                }]
+                info_dict['direct'] = True
+            self._sort_formats(formats)
+            info_dict['formats'] = formats
+            return info_dict
 
         if not self._downloader.params.get('test', False) and not is_intentional:
             force = self._downloader.params.get('force_generic_extractor', False)
@@ -1217,7 +1524,7 @@ class GenericIE(InfoExtractor):
                 '%s on generic information extractor.' % ('Forcing' if force else 'Falling back'))
 
         if not full_response:
-            request = compat_urllib_request.Request(url)
+            request = sanitized_Request(url)
             # Some webservers may serve compressed content of rather big size (e.g. gzipped flac)
             # making it impossible to download only chunk of the file (yet we need only 512kB to
             # test whether it's HTML or not). According to youtube-dl default Accept-Encoding
@@ -1229,36 +1536,50 @@ class GenericIE(InfoExtractor):
             request.add_header('Accept-Encoding', '*')
             full_response = self._request_webpage(request, video_id)
 
+        first_bytes = full_response.read(512)
+
+        # Is it an M3U playlist?
+        if first_bytes.startswith(b'#EXTM3U'):
+            info_dict['formats'] = self._extract_m3u8_formats(url, video_id, 'mp4')
+            self._sort_formats(info_dict['formats'])
+            return info_dict
+
         # Maybe it's a direct link to a video?
         # Be careful not to download the whole thing!
-        first_bytes = full_response.read(512)
         if not is_html(first_bytes):
             self._downloader.report_warning(
                 'URL could be a direct video link, returning it as such.')
-            upload_date = unified_strdate(
-                head_response.headers.get('Last-Modified'))
-            return {
-                'id': video_id,
-                'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
+            info_dict.update({
                 'direct': True,
                 'url': url,
-                'upload_date': upload_date,
-            }
+            })
+            return info_dict
 
         webpage = self._webpage_read_content(
             full_response, url, video_id, prefix=first_bytes)
 
         self.report_extraction(video_id)
 
-        # Is it an RSS feed, a SMIL file or a XSPF playlist?
+        # Is it an RSS feed, a SMIL file, an XSPF playlist or a MPD manifest?
         try:
             doc = compat_etree_fromstring(webpage.encode('utf-8'))
             if doc.tag == 'rss':
                 return self._extract_rss(url, video_id, doc)
             elif re.match(r'^(?:{[^}]+})?smil$', doc.tag):
-                return self._parse_smil(doc, url, video_id)
+                smil = self._parse_smil(doc, url, video_id)
+                self._sort_formats(smil['formats'])
+                return smil
             elif doc.tag == '{http://xspf.org/ns/0/}playlist':
                 return self.playlist_result(self._parse_xspf(doc, video_id), video_id)
+            elif re.match(r'(?i)^(?:{[^}]+})?MPD$', doc.tag):
+                info_dict['formats'] = self._parse_mpd_formats(
+                    doc, video_id, mpd_base_url=url.rpartition('/')[0])
+                self._sort_formats(info_dict['formats'])
+                return info_dict
+            elif re.match(r'^{http://ns\.adobe\.com/f4m/[12]\.0}manifest$', doc.tag):
+                info_dict['formats'] = self._parse_f4m_formats(doc, url, video_id)
+                self._sort_formats(info_dict['formats'])
+                return info_dict
         except compat_xml_parse_error:
             pass
 
@@ -1278,7 +1599,8 @@ class GenericIE(InfoExtractor):
         #   Site Name | Video Title
         #   Video Title - Tagline | Site Name
         # and so on and so forth; it's just not practical
-        video_title = self._html_search_regex(
+        video_title = self._og_search_title(
+            webpage, default=None) or self._html_search_regex(
             r'(?s)<title>(.*?)</title>', webpage, 'video title',
             default='video')
 
@@ -1295,6 +1617,9 @@ class GenericIE(InfoExtractor):
         # video uploader is domain name
         video_uploader = self._search_regex(
             r'^(?:https?://)?([^/]*)/.*', url, 'video uploader')
+
+        video_description = self._og_search_description(webpage, default=None)
+        video_thumbnail = self._og_search_thumbnail(webpage, default=None)
 
         # Helper method
         def _playlist_from_matches(matches, getter=None, ie=None):
@@ -1325,6 +1650,16 @@ class GenericIE(InfoExtractor):
         bc_urls = BrightcoveNewIE._extract_urls(webpage)
         if bc_urls:
             return _playlist_from_matches(bc_urls, ie='BrightcoveNew')
+
+        # Look for ThePlatform embeds
+        tp_urls = ThePlatformIE._extract_urls(webpage)
+        if tp_urls:
+            return _playlist_from_matches(tp_urls, ie='ThePlatform')
+
+        # Look for Vessel embeds
+        vessel_urls = VesselIE._extract_urls(webpage)
+        if vessel_urls:
+            return _playlist_from_matches(vessel_urls, ie=VesselIE.ie_key())
 
         # Look for embedded rtl.nl player
         matches = re.findall(
@@ -1366,12 +1701,16 @@ class GenericIE(InfoExtractor):
         if matches:
             return _playlist_from_matches(matches, lambda m: unescapeHTML(m))
 
-        # Look for embedded Dailymotion player
-        matches = re.findall(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/embed/video/.+?)\1', webpage)
+        # Look for Wordpress "YouTube Video Importer" plugin
+        matches = re.findall(r'''(?x)<div[^>]+
+            class=(?P<q1>[\'"])[^\'"]*\byvii_single_video_player\b[^\'"]*(?P=q1)[^>]+
+            data-video_id=(?P<q2>[\'"])([^\'"]+)(?P=q2)''', webpage)
         if matches:
-            return _playlist_from_matches(
-                matches, lambda m: unescapeHTML(m[1]))
+            return _playlist_from_matches(matches, lambda m: m[-1])
+
+        matches = DailymotionIE._extract_urls(webpage)
+        if matches:
+            return _playlist_from_matches(matches)
 
         # Look for embedded Dailymotion playlist player (#3822)
         m = re.search(
@@ -1394,25 +1733,25 @@ class GenericIE(InfoExtractor):
                 'url': embed_url,
                 'ie_key': 'Wistia',
                 'uploader': video_uploader,
-                'title': video_title,
-                'id': video_id,
             }
 
         match = re.search(r'(?:id=["\']wistia_|data-wistia-?id=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
         if match:
             return {
                 '_type': 'url_transparent',
-                'url': 'http://fast.wistia.net/embed/iframe/{0:}'.format(match.group('id')),
+                'url': 'wistia:%s' % match.group('id'),
                 'ie_key': 'Wistia',
                 'uploader': video_uploader,
-                'title': video_title,
-                'id': match.group('id')
             }
 
-        # Look for embedded blip.tv player
-        bliptv_url = BlipTVIE._extract_url(webpage)
-        if bliptv_url:
-            return self.url_result(bliptv_url, 'BlipTV')
+        match = re.search(
+            r'''(?sx)
+                <script[^>]+src=(["'])(?:https?:)?//fast\.wistia\.com/assets/external/E-v1\.js\1[^>]*>.*?
+                <div[^>]+class=(["']).*?\bwistia_async_(?P<id>[a-z0-9]+)\b.*?\2
+            ''', webpage)
+        if match:
+            return self.url_result(self._proto_relative_url(
+                'wistia:%s' % match.group('id')), 'Wistia')
 
         # Look for SVT player
         svt_url = SVTIE._extract_url(webpage)
@@ -1474,7 +1813,7 @@ class GenericIE(InfoExtractor):
                 re.search(r'SBN\.VideoLinkset\.ooyala\([\'"](?P<ec>.{32})[\'"]\)', webpage) or
                 re.search(r'data-ooyala-video-id\s*=\s*[\'"](?P<ec>.{32})[\'"]', webpage))
         if mobj is not None:
-            return OoyalaIE._build_url_result(mobj.group('ec'))
+            return OoyalaIE._build_url_result(smuggle_url(mobj.group('ec'), {'domain': url}))
 
         # Look for multiple Ooyala embeds on SBN network websites
         mobj = re.search(r'SBN\.VideoLinkset\.entryGroup\((\[.*?\])', webpage)
@@ -1482,7 +1821,7 @@ class GenericIE(InfoExtractor):
             embeds = self._parse_json(mobj.group(1), video_id, fatal=False)
             if embeds:
                 return _playlist_from_matches(
-                    embeds, getter=lambda v: OoyalaIE._url_for_embed_code(v['provider_video_id']), ie='Ooyala')
+                    embeds, getter=lambda v: OoyalaIE._url_for_embed_code(smuggle_url(v['provider_video_id'], {'domain': url})), ie='Ooyala')
 
         # Look for Aparat videos
         mobj = re.search(r'<iframe .*?src="(http://www\.aparat\.com/video/[^"]+)"', webpage)
@@ -1508,15 +1847,19 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'))
 
         # Look for embedded Facebook player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https://www\.facebook\.com/video/embed.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Facebook')
+        facebook_url = FacebookIE._extract_url(webpage)
+        if facebook_url is not None:
+            return self.url_result(facebook_url, 'Facebook')
 
         # Look for embedded VK player
         mobj = re.search(r'<iframe[^>]+?src=(["\'])(?P<url>https?://vk\.com/video_ext\.php.+?)\1', webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'VK')
+
+        # Look for embedded Odnoklassniki player
+        mobj = re.search(r'<iframe[^>]+?src=(["\'])(?P<url>https?://(?:odnoklassniki|ok)\.ru/videoembed/.+?)\1', webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'), 'Odnoklassniki')
 
         # Look for embedded ivi player
         mobj = re.search(r'<embed[^>]+?src=(["\'])(?P<url>https?://(?:www\.)?ivi\.ru/video/player.+?)\1', webpage)
@@ -1573,6 +1916,11 @@ class GenericIE(InfoExtractor):
         if xhamster_urls:
             return _playlist_from_matches(xhamster_urls, ie='XHamsterEmbed')
 
+        # Look for embedded TNAFlixNetwork player
+        tnaflix_urls = TNAFlixNetworkEmbedIE._extract_urls(webpage)
+        if tnaflix_urls:
+            return _playlist_from_matches(tnaflix_urls, ie=TNAFlixNetworkEmbedIE.ie_key())
+
         # Look for embedded Tvigle player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//cloud\.tvigle\.ru/video/.+?)\1', webpage)
@@ -1593,7 +1941,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded arte.tv player
         mobj = re.search(
-            r'<script [^>]*?src="(?P<url>http://www\.arte\.tv/playerv2/embed[^"]+)"',
+            r'<(?:script|iframe) [^>]*?src="(?P<url>http://www\.arte\.tv/(?:playerv2/embed|arte_vp/index)[^"]+)"',
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'ArteTVEmbed')
@@ -1615,21 +1963,13 @@ class GenericIE(InfoExtractor):
         if myvi_url:
             return self.url_result(myvi_url)
 
-        # Look for embeded soundcloud player
+        # Look for embedded soundcloud player
         mobj = re.search(
             r'<iframe\s+(?:[a-zA-Z0-9_-]+="[^"]+"\s+)*src="(?P<url>https?://(?:w\.)?soundcloud\.com/player[^"]+)"',
             webpage)
         if mobj is not None:
             url = unescapeHTML(mobj.group('url'))
             return self.url_result(url)
-
-        # Look for embedded vulture.com player
-        mobj = re.search(
-            r'<iframe src="(?P<url>https?://video\.vulture\.com/[^"]+)"',
-            webpage)
-        if mobj is not None:
-            url = unescapeHTML(mobj.group('url'))
-            return self.url_result(url, ie='Vulture')
 
         # Look for embedded mtvservices player
         mtvservices_url = MTVServicesEmbeddedIE._extract_url(webpage)
@@ -1679,7 +2019,7 @@ class GenericIE(InfoExtractor):
             return self.url_result(self._proto_relative_url(mobj.group('url'), scheme='http:'), 'CondeNast')
 
         mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://new\.livestream\.com/[^"]+/player[^"]+)"',
+            r'<iframe[^>]+src="(?P<url>https?://(?:new\.)?livestream\.com/[^"]+/player[^"]+)"',
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'Livestream')
@@ -1691,16 +2031,14 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'Zapiks')
 
         # Look for Kaltura embeds
-        mobj = (re.search(r"(?s)kWidget\.(?:thumb)?[Ee]mbed\(\{.*?'wid'\s*:\s*'_?(?P<partner_id>[^']+)',.*?'entry_?[Ii]d'\s*:\s*'(?P<id>[^']+)',", webpage) or
-                re.search(r'(?s)(?P<q1>["\'])(?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/.*?(?:p|partner_id)/(?P<partner_id>\d+).*?(?P=q1).*?entry_?[Ii]d\s*:\s*(?P<q2>["\'])(?P<id>.+?)(?P=q2)', webpage))
-        if mobj is not None:
-            return self.url_result('kaltura:%(partner_id)s:%(id)s' % mobj.groupdict(), 'Kaltura')
+        kaltura_url = KalturaIE._extract_url(webpage)
+        if kaltura_url:
+            return self.url_result(smuggle_url(kaltura_url, {'source_url': url}), KalturaIE.ie_key())
 
         # Look for Eagle.Platform embeds
-        mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://.+?\.media\.eagleplatform\.com/index/player\?.+?)"', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'EaglePlatform')
+        eagleplatform_url = EaglePlatformIE._extract_url(webpage)
+        if eagleplatform_url:
+            return self.url_result(eagleplatform_url, EaglePlatformIE.ie_key())
 
         # Look for ClipYou (uses Eagle.Platform) embeds
         mobj = re.search(
@@ -1709,10 +2047,14 @@ class GenericIE(InfoExtractor):
             return self.url_result('eagleplatform:%(host)s:%(id)s' % mobj.groupdict(), 'EaglePlatform')
 
         # Look for Pladform embeds
-        mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://out\.pladform\.ru/player\?.+?)"', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Pladform')
+        pladform_url = PladformIE._extract_url(webpage)
+        if pladform_url:
+            return self.url_result(pladform_url)
+
+        # Look for Videomore embeds
+        videomore_url = VideomoreIE._extract_url(webpage)
+        if videomore_url:
+            return self.url_result(videomore_url)
 
         # Look for Playwire embeds
         mobj = re.search(
@@ -1737,9 +2079,20 @@ class GenericIE(InfoExtractor):
         if nbc_sports_url:
             return self.url_result(nbc_sports_url, 'NBCSportsVPlayer')
 
+        # Look for NBC News embeds
+        nbc_news_embed_url = re.search(
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//www\.nbcnews\.com/widget/video-embed/[^"\']+)\1', webpage)
+        if nbc_news_embed_url:
+            return self.url_result(nbc_news_embed_url.group('url'), 'NBCNews')
+
+        # Look for Google Drive embeds
+        google_drive_url = GoogleDriveIE._extract_url(webpage)
+        if google_drive_url:
+            return self.url_result(google_drive_url, 'GoogleDrive')
+
         # Look for UDN embeds
         mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>%s)"' % UDNEmbedIE._VALID_URL, webpage)
+            r'<iframe[^>]+src="(?P<url>%s)"' % UDNEmbedIE._PROTOCOL_RELATIVE_VALID_URL, webpage)
         if mobj is not None:
             return self.url_result(
                 compat_urlparse.urljoin(url, mobj.group('url')), 'UDNEmbed')
@@ -1759,15 +2112,36 @@ class GenericIE(InfoExtractor):
         if onionstudios_url:
             return self.url_result(onionstudios_url)
 
-        # Look for SnagFilms embeds
-        snagfilms_url = SnagFilmsEmbedIE._extract_url(webpage)
-        if snagfilms_url:
-            return self.url_result(snagfilms_url)
+        # Look for ViewLift embeds
+        viewlift_url = ViewLiftEmbedIE._extract_url(webpage)
+        if viewlift_url:
+            return self.url_result(viewlift_url)
+
+        # Look for JWPlatform embeds
+        jwplatform_url = JWPlatformIE._extract_url(webpage)
+        if jwplatform_url:
+            return self.url_result(jwplatform_url, 'JWPlatform')
 
         # Look for ScreenwaveMedia embeds
         mobj = re.search(ScreenwaveMediaIE.EMBED_PATTERN, webpage)
         if mobj is not None:
             return self.url_result(unescapeHTML(mobj.group('url')), 'ScreenwaveMedia')
+
+        # Look for Digiteka embeds
+        digiteka_url = DigitekaIE._extract_url(webpage)
+        if digiteka_url:
+            return self.url_result(self._proto_relative_url(digiteka_url), DigitekaIE.ie_key())
+
+        # Look for Limelight embeds
+        mobj = re.search(r'LimelightPlayer\.doLoad(Media|Channel|ChannelList)\(["\'](?P<id>[a-z0-9]{32})', webpage)
+        if mobj:
+            lm = {
+                'Media': 'media',
+                'Channel': 'channel',
+                'ChannelList': 'channel_list',
+            }
+            return self.url_result('limelight:%s:%s' % (
+                lm[mobj.group(1)], mobj.group(2)), 'Limelight%s' % mobj.group(1), mobj.group(2))
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(
@@ -1777,6 +2151,56 @@ class GenericIE(InfoExtractor):
             return self.url_result(
                 self._proto_relative_url(unescapeHTML(mobj.group(1))),
                 'AdobeTVVideo')
+
+        # Look for Vine embeds
+        mobj = re.search(
+            r'<iframe[^>]+src=[\'"]((?:https?:)?//(?:www\.)?vine\.co/v/[^/]+/embed/(?:simple|postcard))',
+            webpage)
+        if mobj is not None:
+            return self.url_result(
+                self._proto_relative_url(unescapeHTML(mobj.group(1))), 'Vine')
+
+        # Look for Instagram embeds
+        instagram_embed_url = InstagramIE._extract_embed_url(webpage)
+        if instagram_embed_url is not None:
+            return self.url_result(
+                self._proto_relative_url(instagram_embed_url), InstagramIE.ie_key())
+
+        # Look for LiveLeak embeds
+        liveleak_url = LiveLeakIE._extract_url(webpage)
+        if liveleak_url:
+            return self.url_result(liveleak_url, 'LiveLeak')
+
+        # Look for 3Q SDN embeds
+        threeqsdn_url = ThreeQSDNIE._extract_url(webpage)
+        if threeqsdn_url:
+            return {
+                '_type': 'url_transparent',
+                'ie_key': ThreeQSDNIE.ie_key(),
+                'url': self._proto_relative_url(threeqsdn_url),
+                'title': video_title,
+                'description': video_description,
+                'thumbnail': video_thumbnail,
+                'uploader': video_uploader,
+            }
+
+        # https://dev.twitter.com/cards/types/player#On_twitter.com_via_desktop_browser
+        embed_url = self._html_search_meta('twitter:player', webpage, default=None)
+        if embed_url:
+            return self.url_result(embed_url)
+
+        # Looking for http://schema.org/VideoObject
+        json_ld = self._search_json_ld(
+            webpage, video_id, default=None, expected_type='VideoObject')
+        if json_ld and json_ld.get('url'):
+            info_dict.update({
+                'title': video_title or info_dict['title'],
+                'description': video_description,
+                'thumbnail': video_thumbnail,
+                'age_limit': age_limit
+            })
+            info_dict.update(json_ld)
+            return info_dict
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
@@ -1858,7 +2282,9 @@ class GenericIE(InfoExtractor):
             raise UnsupportedError(url)
 
         entries = []
-        for video_url in found:
+        for video_url in orderedSet(found):
+            video_url = unescapeHTML(video_url)
+            video_url = video_url.replace('\\/', '/')
             video_url = compat_urlparse.urljoin(url, video_url)
             video_id = compat_urllib_parse_unquote(os.path.basename(video_url))
 
@@ -1870,25 +2296,31 @@ class GenericIE(InfoExtractor):
             # here's a fun little line of code for you:
             video_id = os.path.splitext(video_id)[0]
 
+            entry_info_dict = {
+                'id': video_id,
+                'uploader': video_uploader,
+                'title': video_title,
+                'age_limit': age_limit,
+            }
+
             ext = determine_ext(video_url)
             if ext == 'smil':
-                entries.append({
-                    'id': video_id,
-                    'formats': self._extract_smil_formats(video_url, video_id),
-                    'uploader': video_uploader,
-                    'title': video_title,
-                    'age_limit': age_limit,
-                })
+                entry_info_dict['formats'] = self._extract_smil_formats(video_url, video_id)
             elif ext == 'xspf':
                 return self.playlist_result(self._extract_xspf_playlist(video_url, video_id), video_id)
+            elif ext == 'm3u8':
+                entry_info_dict['formats'] = self._extract_m3u8_formats(video_url, video_id, ext='mp4')
+            elif ext == 'mpd':
+                entry_info_dict['formats'] = self._extract_mpd_formats(video_url, video_id)
+            elif ext == 'f4m':
+                entry_info_dict['formats'] = self._extract_f4m_formats(video_url, video_id)
             else:
-                entries.append({
-                    'id': video_id,
-                    'url': video_url,
-                    'uploader': video_uploader,
-                    'title': video_title,
-                    'age_limit': age_limit,
-                })
+                entry_info_dict['url'] = video_url
+
+            if entry_info_dict.get('formats'):
+                self._sort_formats(entry_info_dict['formats'])
+
+            entries.append(entry_info_dict)
 
         if len(entries) == 1:
             return entries[0]

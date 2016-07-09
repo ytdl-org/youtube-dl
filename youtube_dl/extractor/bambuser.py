@@ -4,15 +4,13 @@ import re
 import itertools
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-    compat_str,
-)
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
-    int_or_none,
     float_or_none,
+    int_or_none,
+    sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -57,8 +55,8 @@ class BambuserIE(InfoExtractor):
             'pass': password,
         }
 
-        request = compat_urllib_request.Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+        request = sanitized_Request(
+            self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Referer', self._LOGIN_URL)
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)
@@ -126,7 +124,7 @@ class BambuserChannelIE(InfoExtractor):
                 '&sort=created&access_mode=0%2C1%2C2&limit={count}'
                 '&method=broadcast&format=json&vid_older_than={last}'
             ).format(user=user, count=self._STEP, last=last_id)
-            req = compat_urllib_request.Request(req_url)
+            req = sanitized_Request(req_url)
             # Without setting this header, we wouldn't get any result
             req.add_header('Referer', 'http://bambuser.com/channel/%s' % user)
             data = self._download_json(

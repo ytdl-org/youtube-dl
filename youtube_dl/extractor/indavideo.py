@@ -60,7 +60,8 @@ class IndavideoEmbedIE(InfoExtractor):
 
         formats = [{
             'url': video_url,
-            'height': self._search_regex(r'\.(\d{3,4})\.mp4$', video_url, 'height', default=None),
+            'height': int_or_none(self._search_regex(
+                r'\.(\d{3,4})\.mp4(?:\?|$)', video_url, 'height', default=None)),
         } for video_url in video_urls]
         self._sort_formats(formats)
 
@@ -73,7 +74,7 @@ class IndavideoEmbedIE(InfoExtractor):
             'url': self._proto_relative_url(thumbnail)
         } for thumbnail in video.get('thumbnails', [])]
 
-        tags = [tag['title'] for tag in video.get('tags', [])]
+        tags = [tag['title'] for tag in video.get('tags') or []]
 
         return {
             'id': video.get('id') or video_id,

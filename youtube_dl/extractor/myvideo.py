@@ -9,17 +9,18 @@ import json
 from .common import InfoExtractor
 from ..compat import (
     compat_ord,
-    compat_urllib_parse,
     compat_urllib_parse_unquote,
-    compat_urllib_request,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     ExtractorError,
+    sanitized_Request,
 )
 
 
 class MyVideoIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?myvideo\.de/(?:[^/]+/)?watch/(?P<id>[0-9]+)/[^?/]+.*'
+    _WORKING = False
+    _VALID_URL = r'https?://(?:www\.)?myvideo\.de/(?:[^/]+/)?watch/(?P<id>[0-9]+)/[^?/]+.*'
     IE_NAME = 'myvideo'
     _TEST = {
         'url': 'http://www.myvideo.de/watch/8229274/bowling_fail_or_win',
@@ -83,7 +84,7 @@ class MyVideoIE(InfoExtractor):
 
         mobj = re.search(r'data-video-service="/service/data/video/%s/config' % video_id, webpage)
         if mobj is not None:
-            request = compat_urllib_request.Request('http://www.myvideo.de/service/data/video/%s/config' % video_id, '')
+            request = sanitized_Request('http://www.myvideo.de/service/data/video/%s/config' % video_id, '')
             response = self._download_webpage(request, video_id,
                                               'Downloading video info')
             info = json.loads(base64.b64decode(response).decode('utf-8'))
@@ -111,7 +112,7 @@ class MyVideoIE(InfoExtractor):
                 encxml = compat_urllib_parse_unquote(b)
         if not params.get('domain'):
             params['domain'] = 'www.myvideo.de'
-        xmldata_url = '%s?%s' % (encxml, compat_urllib_parse.urlencode(params))
+        xmldata_url = '%s?%s' % (encxml, compat_urllib_parse_urlencode(params))
         if 'flash_playertype=MTV' in xmldata_url:
             self._downloader.report_warning('avoiding MTV player')
             xmldata_url = (

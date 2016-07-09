@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class TVCIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?tvc\.ru/video/iframe/id/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?tvc\.ru/video/iframe/id/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.tvc.ru/video/iframe/id/74622/isPlay/false/id_stat/channel/?acc_video_id=/channel/brand/id/17/show/episodes/episode_id/39702',
         'md5': 'bbc5ff531d1e90e856f60fc4b3afd708',
@@ -64,7 +64,7 @@ class TVCIE(InfoExtractor):
 
 
 class TVCArticleIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?tvc\.ru/(?!video/iframe/id/)(?P<id>[^?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?tvc\.ru/(?!video/iframe/id/)(?P<id>[^?#]+)'
     _TESTS = [{
         'url': 'http://www.tvc.ru/channel/brand/id/29/show/episodes/episode_id/39702/',
         'info_dict': {

@@ -6,9 +6,9 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
-    compat_urllib_request,
 )
 from ..utils import (
+    sanitized_Request,
     str_to_int,
     unified_strdate,
 )
@@ -51,7 +51,7 @@ class SpankwireIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
 
-        req = compat_urllib_request.Request('http://www.' + mobj.group('url'))
+        req = sanitized_Request('http://www.' + mobj.group('url'))
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
 
@@ -96,20 +96,18 @@ class SpankwireIE(InfoExtractor):
         formats = []
         for height, video_url in zip(heights, video_urls):
             path = compat_urllib_parse_urlparse(video_url).path
-            _, quality = path.split('/')[4].split('_')[:2]
-            f = {
-                'url': video_url,
-                'height': height,
-            }
-            tbr = self._search_regex(r'^(\d+)[Kk]$', quality, 'tbr', default=None)
-            if tbr:
-                f.update({
-                    'tbr': int(tbr),
-                    'format_id': '%dp' % height,
-                })
+            m = re.search(r'/(?P<height>\d+)[pP]_(?P<tbr>\d+)[kK]', path)
+            if m:
+                tbr = int(m.group('tbr'))
+                height = int(m.group('height'))
             else:
-                f['format_id'] = quality
-            formats.append(f)
+                tbr = None
+            formats.append({
+                'url': video_url,
+                'format_id': '%dp' % height,
+                'height': height,
+                'tbr': tbr,
+            })
         self._sort_formats(formats)
 
         age_limit = self._rta_search(webpage)

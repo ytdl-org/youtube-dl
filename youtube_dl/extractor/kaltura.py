@@ -2,36 +2,40 @@
 from __future__ import unicode_literals
 
 import re
+import base64
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse
+from ..compat import (
+    compat_urlparse,
+    compat_parse_qs,
+)
 from ..utils import (
+    clean_html,
     ExtractorError,
     int_or_none,
+    unsmuggle_url,
+    smuggle_url,
 )
 
 
 class KalturaIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                 (?:
-                    kaltura:(?P<partner_id_s>\d+):(?P<id_s>[0-9a-z_]+)|
+                    kaltura:(?P<partner_id>\d+):(?P<id>[0-9a-z_]+)|
                     https?://
                         (:?(?:www|cdnapi(?:sec)?)\.)?kaltura\.com/
                         (?:
                             (?:
                                 # flash player
-                                index\.php/kwidget/
-                                (?:[^/]+/)*?wid/_(?P<partner_id>\d+)/
-                                (?:[^/]+/)*?entry_id/(?P<id>[0-9a-z_]+)|
+                                index\.php/kwidget|
                                 # html5 player
-                                html5/html5lib/
-                                (?:[^/]+/)*?entry_id/(?P<id_html5>[0-9a-z_]+)
-                                .*\?.*\bwid=_(?P<partner_id_html5>\d+)
+                                html5/html5lib/[^/]+/mwEmbedFrame\.php
                             )
-                        )
+                        )(?:/(?P<path>[^?]+))?(?:\?(?P<query>.*))?
                 )
                 '''
-    _API_BASE = 'http://cdnapi.kaltura.com/api_v3/index.php?'
+    _SERVICE_URL = 'http://cdnapi.kaltura.com'
+    _SERVICE_BASE = '/api_v3/index.php'
     _TESTS = [
         {
             'url': 'kaltura:269692:1_1jc2y3e4',
@@ -39,7 +43,7 @@ class KalturaIE(InfoExtractor):
             'info_dict': {
                 'id': '1_1jc2y3e4',
                 'ext': 'mp4',
-                'title': 'Track 4',
+                'title': 'Straight from the Heart',
                 'upload_date': '20131219',
                 'uploader_id': 'mlundberg@wolfgangsvault.com',
                 'description': 'The Allman Brothers Band, 12/16/1981',
@@ -61,16 +65,50 @@ class KalturaIE(InfoExtractor):
         }
     ]
 
-    def _kaltura_api_call(self, video_id, actions, *args, **kwargs):
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = (
+            re.search(
+                r"""(?xs)
+                    kWidget\.(?:thumb)?[Ee]mbed\(
+                    \{.*?
+                        (?P<q1>['\"])wid(?P=q1)\s*:\s*
+                        (?P<q2>['\"])_?(?P<partner_id>[^'\"]+)(?P=q2),.*?
+                        (?P<q3>['\"])entry_?[Ii]d(?P=q3)\s*:\s*
+                        (?P<q4>['\"])(?P<id>[^'\"]+)(?P=q4),
+                """, webpage) or
+            re.search(
+                r'''(?xs)
+                    (?P<q1>["\'])
+                        (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/.*?(?:p|partner_id)/(?P<partner_id>\d+).*?
+                    (?P=q1).*?
+                    (?:
+                        entry_?[Ii]d|
+                        (?P<q2>["\'])entry_?[Ii]d(?P=q2)
+                    )\s*:\s*
+                    (?P<q3>["\'])(?P<id>.+?)(?P=q3)
+                ''', webpage))
+        if mobj:
+            embed_info = mobj.groupdict()
+            url = 'kaltura:%(partner_id)s:%(id)s' % embed_info
+            escaped_pid = re.escape(embed_info['partner_id'])
+            service_url = re.search(
+                r'<script[^>]+src=["\']((?:https?:)?//.+?)/p/%s/sp/%s00/embedIframeJs' % (escaped_pid, escaped_pid),
+                webpage)
+            if service_url:
+                url = smuggle_url(url, {'service_url': service_url.group(1)})
+            return url
+
+    def _kaltura_api_call(self, video_id, actions, service_url=None, *args, **kwargs):
         params = actions[0]
         if len(actions) > 1:
             for i, a in enumerate(actions[1:], start=1):
                 for k, v in a.items():
                     params['%d:%s' % (i, k)] = v
 
-        query = compat_urllib_parse.urlencode(params)
-        url = self._API_BASE + query
-        data = self._download_json(url, video_id, *args, **kwargs)
+        data = self._download_json(
+            (service_url or self._SERVICE_URL) + self._SERVICE_BASE,
+            video_id, query=params, *args, **kwargs)
 
         status = data if len(actions) == 1 else data[0]
         if status.get('objectType') == 'KalturaAPIException':
@@ -79,7 +117,7 @@ class KalturaIE(InfoExtractor):
 
         return data
 
-    def _get_kaltura_signature(self, video_id, partner_id):
+    def _get_kaltura_signature(self, video_id, partner_id, service_url=None):
         actions = [{
             'apiVersion': '3.1',
             'expiry': 86400,
@@ -89,10 +127,10 @@ class KalturaIE(InfoExtractor):
             'widgetId': '_%s' % partner_id,
         }]
         return self._kaltura_api_call(
-            video_id, actions, note='Downloading Kaltura signature')['ks']
+            video_id, actions, service_url, note='Downloading Kaltura signature')['ks']
 
-    def _get_video_info(self, video_id, partner_id):
-        signature = self._get_kaltura_signature(video_id, partner_id)
+    def _get_video_info(self, video_id, partner_id, service_url=None):
+        signature = self._get_kaltura_signature(video_id, partner_id, service_url)
         actions = [
             {
                 'action': 'null',
@@ -109,43 +147,107 @@ class KalturaIE(InfoExtractor):
                 'version': '-1',
             },
             {
-                'action': 'getContextData',
-                'contextDataParams:objectType': 'KalturaEntryContextDataParams',
-                'contextDataParams:referrer': 'http://www.kaltura.com/',
-                'contextDataParams:streamerType': 'http',
+                'action': 'getbyentryid',
                 'entryId': video_id,
-                'service': 'baseentry',
+                'service': 'flavorAsset',
             },
         ]
         return self._kaltura_api_call(
-            video_id, actions, note='Downloading video info JSON')
+            video_id, actions, service_url, note='Downloading video info JSON')
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
+
         mobj = re.match(self._VALID_URL, url)
-        partner_id = mobj.group('partner_id_s') or mobj.group('partner_id') or mobj.group('partner_id_html5')
-        entry_id = mobj.group('id_s') or mobj.group('id') or mobj.group('id_html5')
+        partner_id, entry_id = mobj.group('partner_id', 'id')
+        ks = None
+        if partner_id and entry_id:
+            info, flavor_assets = self._get_video_info(entry_id, partner_id, smuggled_data.get('service_url'))
+        else:
+            path, query = mobj.group('path', 'query')
+            if not path and not query:
+                raise ExtractorError('Invalid URL', expected=True)
+            params = {}
+            if query:
+                params = compat_parse_qs(query)
+            if path:
+                splitted_path = path.split('/')
+                params.update(dict((zip(splitted_path[::2], [[v] for v in splitted_path[1::2]]))))
+            if 'wid' in params:
+                partner_id = params['wid'][0][1:]
+            elif 'p' in params:
+                partner_id = params['p'][0]
+            else:
+                raise ExtractorError('Invalid URL', expected=True)
+            if 'entry_id' in params:
+                entry_id = params['entry_id'][0]
+                info, flavor_assets = self._get_video_info(entry_id, partner_id)
+            elif 'uiconf_id' in params and 'flashvars[referenceId]' in params:
+                reference_id = params['flashvars[referenceId]'][0]
+                webpage = self._download_webpage(url, reference_id)
+                entry_data = self._parse_json(self._search_regex(
+                    r'window\.kalturaIframePackageData\s*=\s*({.*});',
+                    webpage, 'kalturaIframePackageData'),
+                    reference_id)['entryResult']
+                info, flavor_assets = entry_data['meta'], entry_data['contextData']['flavorAssets']
+                entry_id = info['id']
+            else:
+                raise ExtractorError('Invalid URL', expected=True)
+            ks = params.get('flashvars[ks]', [None])[0]
 
-        info, source_data = self._get_video_info(entry_id, partner_id)
+        source_url = smuggled_data.get('source_url')
+        if source_url:
+            referrer = base64.b64encode(
+                '://'.join(compat_urlparse.urlparse(source_url)[:2])
+                .encode('utf-8')).decode('utf-8')
+        else:
+            referrer = None
 
-        formats = [{
-            'format_id': '%(fileExt)s-%(bitrate)s' % f,
-            'ext': f['fileExt'],
-            'tbr': f['bitrate'],
-            'fps': f.get('frameRate'),
-            'filesize_approx': int_or_none(f.get('size'), invscale=1024),
-            'container': f.get('containerFormat'),
-            'vcodec': f.get('videoCodecId'),
-            'height': f.get('height'),
-            'width': f.get('width'),
-            'url': '%s/flavorId/%s' % (info['dataUrl'], f['id']),
-        } for f in source_data['flavorAssets']]
+        def sign_url(unsigned_url):
+            if ks:
+                unsigned_url += '/ks/%s' % ks
+            if referrer:
+                unsigned_url += '?referrer=%s' % referrer
+            return unsigned_url
+
+        data_url = info['dataUrl']
+        if '/flvclipper/' in data_url:
+            data_url = re.sub(r'/flvclipper/.*', '/serveFlavor', data_url)
+
+        formats = []
+        for f in flavor_assets:
+            # Continue if asset is not ready
+            if f['status'] != 2:
+                continue
+            video_url = sign_url(
+                '%s/flavorId/%s' % (data_url, f['id']))
+            formats.append({
+                'format_id': '%(fileExt)s-%(bitrate)s' % f,
+                'ext': f.get('fileExt'),
+                'tbr': int_or_none(f['bitrate']),
+                'fps': int_or_none(f.get('frameRate')),
+                'filesize_approx': int_or_none(f.get('size'), invscale=1024),
+                'container': f.get('containerFormat'),
+                'vcodec': f.get('videoCodecId'),
+                'height': int_or_none(f.get('height')),
+                'width': int_or_none(f.get('width')),
+                'url': video_url,
+            })
+        if '/playManifest/' in data_url:
+            m3u8_url = sign_url(data_url.replace(
+                'format/url', 'format/applehttp'))
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, entry_id, 'mp4', 'm3u8_native',
+                m3u8_id='hls', fatal=False))
+
+        self._check_formats(formats, entry_id)
         self._sort_formats(formats)
 
         return {
             'id': entry_id,
             'title': info['name'],
             'formats': formats,
-            'description': info.get('description'),
+            'description': clean_html(info.get('description')),
             'thumbnail': info.get('thumbnailUrl'),
             'duration': info.get('duration'),
             'timestamp': info.get('createdAt'),

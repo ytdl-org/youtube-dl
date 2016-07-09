@@ -10,7 +10,7 @@ from ..compat import (compat_str, compat_basestring)
 
 class DouyuTVIE(InfoExtractor):
     IE_DESC = '斗鱼'
-    _VALID_URL = r'http://(?:www\.)?douyutv\.com/(?P<id>[A-Za-z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?douyu(?:tv)?\.com/(?P<id>[A-Za-z0-9]+)'
     _TESTS = [{
         'url': 'http://www.douyutv.com/iseven',
         'info_dict': {
@@ -18,7 +18,7 @@ class DouyuTVIE(InfoExtractor):
             'display_id': 'iseven',
             'ext': 'flv',
             'title': 're:^清晨醒脑！T-ara根本停不下来！ [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
-            'description': 'md5:c93d6692dde6fe33809a46edcbecca44',
+            'description': 're:.*m7show@163\.com.*',
             'thumbnail': 're:^https?://.*\.jpg$',
             'uploader': '7师傅',
             'uploader_id': '431925',
@@ -26,7 +26,7 @@ class DouyuTVIE(InfoExtractor):
         },
         'params': {
             'skip_download': True,
-        }
+        },
     }, {
         'url': 'http://www.douyutv.com/85982',
         'info_dict': {
@@ -42,7 +42,27 @@ class DouyuTVIE(InfoExtractor):
         },
         'params': {
             'skip_download': True,
-        }
+        },
+        'skip': 'Room not found',
+    }, {
+        'url': 'http://www.douyutv.com/17732',
+        'info_dict': {
+            'id': '17732',
+            'display_id': '17732',
+            'ext': 'flv',
+            'title': 're:^清晨醒脑！T-ara根本停不下来！ [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 're:.*m7show@163\.com.*',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'uploader': '7师傅',
+            'uploader_id': '431925',
+            'is_live': True,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://www.douyu.com/xiaocang',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -55,13 +75,28 @@ class DouyuTVIE(InfoExtractor):
             room_id = self._html_search_regex(
                 r'"room_id"\s*:\s*(\d+),', page, 'room id')
 
-        prefix = 'room/%s?aid=android&client_sys=android&time=%d' % (
-            room_id, int(time.time()))
+        config = None
+        # Douyu API sometimes returns error "Unable to load the requested class: eticket_redis_cache"
+        # Retry with different parameters - same parameters cause same errors
+        for i in range(5):
+            prefix = 'room/%s?aid=android&client_sys=android&time=%d' % (
+                room_id, int(time.time()))
+            auth = hashlib.md5((prefix + '1231').encode('ascii')).hexdigest()
 
-        auth = hashlib.md5((prefix + '1231').encode('ascii')).hexdigest()
-        config = self._download_json(
-            'http://www.douyutv.com/api/v1/%s&auth=%s' % (prefix, auth),
-            video_id)
+            config_page = self._download_webpage(
+                'http://www.douyutv.com/api/v1/%s&auth=%s' % (prefix, auth),
+                video_id)
+            try:
+                config = self._parse_json(config_page, video_id, fatal=False)
+            except ExtractorError:
+                # Wait some time before retrying to get a different time() value
+                self._sleep(1, video_id, msg_template='%(video_id)s: Error occurs. '
+                                                      'Waiting for %(timeout)s seconds before retrying')
+                continue
+            else:
+                break
+        if config is None:
+            raise ExtractorError('Unable to fetch API result')
 
         data = config['data']
 

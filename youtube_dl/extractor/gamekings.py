@@ -6,24 +6,29 @@ from ..utils import (
     xpath_text,
     xpath_with_ns,
 )
+from .youtube import YoutubeIE
 
 
 class GamekingsIE(InfoExtractor):
-    _VALID_URL = r'http://www\.gamekings\.tv/(?:videos|nieuws)/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://www\.gamekings\.nl/(?:videos|nieuws)/(?P<id>[^/]+)'
     _TESTS = [{
-        'url': 'http://www.gamekings.tv/videos/phoenix-wright-ace-attorney-dual-destinies-review/',
-        # MD5 is flaky, seems to change regularly
-        # 'md5': '2f32b1f7b80fdc5cb616efb4f387f8a3',
+        # YouTube embed video
+        'url': 'http://www.gamekings.nl/videos/phoenix-wright-ace-attorney-dual-destinies-review/',
+        'md5': '5208d3a17adeaef829a7861887cb9029',
         'info_dict': {
-            'id': 'phoenix-wright-ace-attorney-dual-destinies-review',
+            'id': 'HkSQKetlGOU',
             'ext': 'mp4',
-            'title': 'Phoenix Wright: Ace Attorney \u2013 Dual Destinies Review',
-            'description': 'md5:36fd701e57e8c15ac8682a2374c99731',
+            'title': 'Phoenix Wright: Ace Attorney - Dual Destinies Review',
+            'description': 'md5:db88c0e7f47e9ea50df3271b9dc72e1d',
             'thumbnail': 're:^https?://.*\.jpg$',
+            'uploader_id': 'UCJugRGo4STYMeFr5RoOShtQ',
+            'uploader': 'Gamekings Vault',
+            'upload_date': '20151123',
         },
+        'add_ie': ['Youtube'],
     }, {
         # vimeo video
-        'url': 'http://www.gamekings.tv/videos/the-legend-of-zelda-majoras-mask/',
+        'url': 'http://www.gamekings.nl/videos/the-legend-of-zelda-majoras-mask/',
         'md5': '12bf04dfd238e70058046937657ea68d',
         'info_dict': {
             'id': 'the-legend-of-zelda-majoras-mask',
@@ -33,7 +38,7 @@ class GamekingsIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.jpg$',
         },
     }, {
-        'url': 'http://www.gamekings.tv/nieuws/gamekings-extra-shelly-en-david-bereiden-zich-voor-op-de-livestream/',
+        'url': 'http://www.gamekings.nl/nieuws/gamekings-extra-shelly-en-david-bereiden-zich-voor-op-de-livestream/',
         'only_matching': True,
     }]
 
@@ -43,7 +48,11 @@ class GamekingsIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         playlist_id = self._search_regex(
-            r'gogoVideo\(\s*\d+\s*,\s*"([^"]+)', webpage, 'playlist id')
+            r'gogoVideo\([^,]+,\s*"([^"]+)', webpage, 'playlist id')
+
+        # Check if a YouTube embed is used
+        if YoutubeIE.suitable(playlist_id):
+            return self.url_result(playlist_id, ie='Youtube')
 
         playlist = self._download_xml(
             'http://www.gamekings.tv/wp-content/themes/gk2010/rss_playlist.php?id=%s' % playlist_id,

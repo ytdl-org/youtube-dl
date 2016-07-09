@@ -4,13 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urllib_request,
-)
 from ..utils import (
     determine_ext,
     ExtractorError,
+    sanitized_Request,
+    urlencode_postdata,
 )
 
 
@@ -36,8 +34,8 @@ class PromptFileIE(InfoExtractor):
                                  expected=True)
 
         fields = self._hidden_inputs(webpage)
-        post = compat_urllib_parse.urlencode(fields)
-        req = compat_urllib_request.Request(url, post)
+        post = urlencode_postdata(fields)
+        req = sanitized_Request(url, post)
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
         webpage = self._download_webpage(
             req, video_id, 'Downloading video page')

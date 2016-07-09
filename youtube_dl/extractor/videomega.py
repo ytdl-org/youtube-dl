@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
+from ..utils import (
+    decode_packed_codes,
+    sanitized_Request,
+)
 
 
 class VideoMegaIE(InfoExtractor):
@@ -30,7 +33,7 @@ class VideoMegaIE(InfoExtractor):
         video_id = self._match_id(url)
 
         iframe_url = 'http://videomega.tv/cdn.php?ref=%s' % video_id
-        req = compat_urllib_request.Request(iframe_url)
+        req = sanitized_Request(iframe_url)
         req.add_header('Referer', url)
         req.add_header('Cookie', 'noadvtday=0')
         webpage = self._download_webpage(req, video_id)
@@ -41,8 +44,10 @@ class VideoMegaIE(InfoExtractor):
             r'(?:^[Vv]ideo[Mm]ega\.tv\s-\s*|\s*-\svideomega\.tv$)', '', title)
         thumbnail = self._search_regex(
             r'<video[^>]+?poster="([^"]+)"', webpage, 'thumbnail', fatal=False)
+
+        real_codes = decode_packed_codes(webpage)
         video_url = self._search_regex(
-            r'<source[^>]+?src="([^"]+)"', webpage, 'video URL')
+            r'"src"\s*,\s*"([^"]+)"', real_codes, 'video URL')
 
         return {
             'id': video_id,

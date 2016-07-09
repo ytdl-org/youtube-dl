@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class PornoVoisinesIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?pornovoisines\.com/showvideo/(?P<id>\d+)/(?P<display_id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?pornovoisines\.com/showvideo/(?P<id>\d+)/(?P<display_id>[^/]+)'
 
     _VIDEO_URL_TEMPLATE = 'http://stream%d.pornovoisines.com' \
         '/static/media/video/transcoded/%s-640x360-1000-trscded.mp4'
@@ -56,7 +56,7 @@ class PornoVoisinesIE(InfoExtractor):
             r'<h1>(.+?)</h1>', webpage, 'title', flags=re.DOTALL)
         description = self._html_search_regex(
             r'<article id="descriptif">(.+?)</article>',
-            webpage, "description", fatal=False, flags=re.DOTALL)
+            webpage, 'description', fatal=False, flags=re.DOTALL)
 
         thumbnail = self._search_regex(
             r'<div id="mediaspace%s">\s*<img src="/?([^"]+)"' % video_id,

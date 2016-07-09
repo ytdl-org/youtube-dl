@@ -5,8 +5,10 @@ import base64
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_request
-from ..utils import qualities
+from ..utils import (
+    qualities,
+    sanitized_Request,
+)
 
 
 class DumpertIE(InfoExtractor):
@@ -32,7 +34,7 @@ class DumpertIE(InfoExtractor):
         protocol = mobj.group('protocol')
 
         url = '%s://www.dumpert.nl/mediabase/%s' % (protocol, video_id)
-        req = compat_urllib_request.Request(url)
+        req = sanitized_Request(url)
         req.add_header('Cookie', 'nsfw=1; cpc=10')
         webpage = self._download_webpage(req, video_id)
 

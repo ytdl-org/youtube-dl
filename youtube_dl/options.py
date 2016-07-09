@@ -26,9 +26,11 @@ def parseOpts(overrideArguments=None):
         except IOError:
             return default  # silently skip if file is not present
         try:
-            res = []
-            for l in optionf:
-                res += compat_shlex_split(l, comments=True)
+            # FIXME: https://github.com/rg3/youtube-dl/commit/dfe5fa49aed02cf36ba9f743b11b0903554b5e56
+            contents = optionf.read()
+            if sys.version_info < (3,):
+                contents = contents.decode(preferredencoding())
+            res = compat_shlex_split(contents, comments=True)
         finally:
             optionf.close()
         return res
@@ -85,7 +87,7 @@ def parseOpts(overrideArguments=None):
         if option.takes_value():
             opts.append(' %s' % option.metavar)
 
-        return "".join(opts)
+        return ''.join(opts)
 
     def _comma_separated_values_options_callback(option, opt_str, value, parser):
         setattr(parser.values, option.dest, value.split(','))
@@ -171,6 +173,14 @@ def parseOpts(overrideArguments=None):
         default=False,
         help='Do not extract the videos of a playlist, only list them.')
     general.add_option(
+        '--mark-watched',
+        action='store_true', dest='mark_watched', default=False,
+        help='Mark videos watched (YouTube only)')
+    general.add_option(
+        '--no-mark-watched',
+        action='store_false', dest='mark_watched', default=False,
+        help='Do not mark videos watched (YouTube only)')
+    general.add_option(
         '--no-color', '--no-colors',
         action='store_true', dest='no_color',
         default=False,
@@ -180,7 +190,10 @@ def parseOpts(overrideArguments=None):
     network.add_option(
         '--proxy', dest='proxy',
         default=None, metavar='URL',
-        help='Use the specified HTTP/HTTPS proxy. Pass in an empty string (--proxy "") for direct connection')
+        help='Use the specified HTTP/HTTPS/SOCKS proxy. To enable experimental '
+             'SOCKS proxy, specify a proper scheme. For example '
+             'socks5://127.0.0.1:1080/. Pass in an empty string (--proxy "") '
+             'for direct connection')
     network.add_option(
         '--socket-timeout',
         dest='socket_timeout', type=float, default=None, metavar='SECONDS',
@@ -201,10 +214,15 @@ def parseOpts(overrideArguments=None):
         help='Make all connections via IPv6 (experimental)',
     )
     network.add_option(
+        '--geo-verification-proxy',
+        dest='geo_verification_proxy', default=None, metavar='URL',
+        help='Use this proxy to verify the IP address for some geo-restricted sites. '
+        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading. (experimental)'
+    )
+    network.add_option(
         '--cn-verification-proxy',
         dest='cn_verification_proxy', default=None, metavar='URL',
-        help='Use this proxy to verify the IP address for some Chinese sites. '
-        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading. (experimental)'
+        help=optparse.SUPPRESS_HELP,
     )
 
     selection = optparse.OptionGroup(parser, 'Video Selection')
@@ -338,7 +356,7 @@ def parseOpts(overrideArguments=None):
     video_format.add_option(
         '-F', '--list-formats',
         action='store_true', dest='listformats',
-        help='List all available formats')
+        help='List all available formats of requested videos')
     video_format.add_option(
         '--youtube-include-dash-manifest',
         action='store_true', dest='youtube_include_dash_manifest', default=True,
@@ -363,7 +381,7 @@ def parseOpts(overrideArguments=None):
     subtitles.add_option(
         '--write-auto-sub', '--write-automatic-sub',
         action='store_true', dest='writeautomaticsub', default=False,
-        help='Write automatic subtitle file (YouTube only)')
+        help='Write automatically generated subtitle file (YouTube only)')
     subtitles.add_option(
         '--all-subs',
         action='store_true', dest='allsubtitles', default=False,
@@ -380,17 +398,21 @@ def parseOpts(overrideArguments=None):
         '--sub-lang', '--sub-langs', '--srt-lang',
         action='callback', dest='subtitleslangs', metavar='LANGS', type='str',
         default=[], callback=_comma_separated_values_options_callback,
-        help='Languages of the subtitles to download (optional) separated by commas, use IETF language tags like \'en,pt\'')
+        help='Languages of the subtitles to download (optional) separated by commas, use --list-subs for available language tags')
 
     downloader = optparse.OptionGroup(parser, 'Download Options')
     downloader.add_option(
-        '-r', '--rate-limit',
-        dest='ratelimit', metavar='LIMIT',
+        '-r', '--limit-rate', '--rate-limit',
+        dest='ratelimit', metavar='RATE',
         help='Maximum download rate in bytes per second (e.g. 50K or 4.2M)')
     downloader.add_option(
         '-R', '--retries',
         dest='retries', metavar='RETRIES', default=10,
         help='Number of retries (default is %default), or "infinite".')
+    downloader.add_option(
+        '--fragment-retries',
+        dest='fragment_retries', metavar='RETRIES', default=10,
+        help='Number of retries for a fragment (default is %default), or "infinite" (DASH only)')
     downloader.add_option(
         '--buffer-size',
         dest='buffersize', metavar='SIZE', default='1024',
@@ -413,8 +435,17 @@ def parseOpts(overrideArguments=None):
         help='Set file xattribute ytdl.filesize with expected filesize (experimental)')
     downloader.add_option(
         '--hls-prefer-native',
-        dest='hls_prefer_native', action='store_true',
-        help='Use the native HLS downloader instead of ffmpeg (experimental)')
+        dest='hls_prefer_native', action='store_true', default=None,
+        help='Use the native HLS downloader instead of ffmpeg')
+    downloader.add_option(
+        '--hls-prefer-ffmpeg',
+        dest='hls_prefer_native', action='store_false', default=None,
+        help='Use ffmpeg instead of the native HLS downloader')
+    downloader.add_option(
+        '--hls-use-mpegts',
+        dest='hls_use_mpegts', action='store_true',
+        help='Use the mpegts container for HLS videos, allowing to play the '
+             'video while downloading (some players may not be able to play it)')
     downloader.add_option(
         '--external-downloader',
         dest='external_downloader', metavar='COMMAND',
@@ -644,7 +675,7 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='writeannotations', default=False,
         help='Write video annotations to a .annotations.xml file')
     filesystem.add_option(
-        '--load-info',
+        '--load-info-json', '--load-info',
         dest='load_info_filename', metavar='FILE',
         help='JSON file containing the video information (created with the "--write-info-json" option)')
     filesystem.add_option(
@@ -707,7 +738,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--embed-subs',
         action='store_true', dest='embedsubtitles', default=False,
-        help='Embed subtitles in the video (only for mkv and mp4 videos)')
+        help='Embed subtitles in the video (only for mp4, webm and mkv videos)')
     postproc.add_option(
         '--embed-thumbnail',
         action='store_true', dest='embedthumbnail', default=False,
@@ -752,7 +783,7 @@ def parseOpts(overrideArguments=None):
         metavar='CMD', dest='exec_cmd',
         help='Execute a command on the file after downloading, similar to find\'s -exec syntax. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'')
     postproc.add_option(
-        '--convert-subtitles', '--convert-subs',
+        '--convert-subs', '--convert-subtitles',
         metavar='FORMAT', dest='convertsubtitles', default=None,
         help='Convert the subtitles to other format (currently supported: srt|ass|vtt)')
 
@@ -785,11 +816,11 @@ def parseOpts(overrideArguments=None):
             system_conf = []
             user_conf = []
         else:
-            system_conf = compat_conf(_readOptions('/etc/youtube-dl.conf'))
+            system_conf = _readOptions('/etc/youtube-dl.conf')
             if '--ignore-config' in system_conf:
                 user_conf = []
             else:
-                user_conf = compat_conf(_readUserConf())
+                user_conf = _readUserConf()
         argv = system_conf + user_conf + command_line_conf
 
         opts, args = parser.parse_args(argv)

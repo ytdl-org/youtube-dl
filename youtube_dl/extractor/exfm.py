@@ -8,7 +8,7 @@ from .common import InfoExtractor
 class ExfmIE(InfoExtractor):
     IE_NAME = 'exfm'
     IE_DESC = 'ex.fm'
-    _VALID_URL = r'http://(?:www\.)?ex\.fm/song/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?ex\.fm/song/(?P<id>[^/]+)'
     _SOUNDCLOUD_URL = r'http://(?:www\.)?api\.soundcloud\.com/tracks/([^/]+)/stream'
     _TESTS = [
         {
@@ -41,7 +41,7 @@ class ExfmIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         song_id = mobj.group('id')
-        info_url = "http://ex.fm/api/v3/song/%s" % song_id
+        info_url = 'http://ex.fm/api/v3/song/%s' % song_id
         info = self._download_json(info_url, song_id)['song']
         song_url = info['url']
         if re.match(self._SOUNDCLOUD_URL, song_url) is not None:

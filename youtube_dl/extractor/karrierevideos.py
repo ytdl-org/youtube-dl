@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class KarriereVideosIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?karrierevideos\.at(?:/[^/]+)+/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?karrierevideos\.at(?:/[^/]+)+/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://www.karrierevideos.at/berufsvideos/mittlere-hoehere-schulen/altenpflegerin',
         'info_dict': {
@@ -52,9 +52,12 @@ class KarriereVideosIE(InfoExtractor):
 
         video_id = self._search_regex(
             r'/config/video/(.+?)\.xml', webpage, 'video id')
+        # Server returns malformed headers
+        # Force Accept-Encoding: * to prevent gzipped results
         playlist = self._download_xml(
             'http://www.karrierevideos.at/player-playlist.xml.php?p=%s' % video_id,
-            video_id, transform_source=fix_xml_ampersands)
+            video_id, transform_source=fix_xml_ampersands,
+            headers={'Accept-Encoding': '*'})
 
         NS_MAP = {
             'jwplayer': 'http://developer.longtailvideo.com/trac/wiki/FlashFormats'
