@@ -38,6 +38,13 @@ youtube-dl.zsh
 
 # IntelliJ related files
 .idea
+<<<<<<< HEAD
+.idea/*
+.tags*
+*.json
+*.html
+=======
 *.iml
 
 tmp/
+>>>>>>> upstream/master

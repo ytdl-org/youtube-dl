@@ -16,7 +16,7 @@ class CtsNewsIE(InfoExtractor):
             'id': '201501291578109',
             'ext': 'mp4',
             'title': '以色列.真主黨交火 3人死亡',
-            'description': 'md5:95e9b295c898b7ff294f09d450178d7d',
+            'description': 'md5:4b06a45b453eaaf96007f0d1daf6f48f',
             'timestamp': 1422528540,
             'upload_date': '20150129',
         }

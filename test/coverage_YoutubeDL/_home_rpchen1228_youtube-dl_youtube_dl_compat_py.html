@@ -1,0 +1,1253 @@
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
+    <title>Coverage for /home/rpchen1228/youtube-dl/youtube_dl/compat.py: 47%</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.hotkeys.js"></script>
+    <script type="text/javascript" src="jquery.isonscreen.js"></script>
+    <script type="text/javascript" src="coverage_html.js"></script>
+    <script type="text/javascript">
+        jQuery(document).ready(coverage.pyfile_ready);
+    </script>
+</head>
+<body class="pyfile">
+
+<div id="header">
+    <div class="content">
+        <h1>Coverage for <b>/home/rpchen1228/youtube-dl/youtube_dl/compat.py</b> :
+            <span class="pc_cov">47%</span>
+        </h1>
+
+        <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
+
+        <h2 class="stats">
+            383 statements &nbsp;
+            <span class="run hide_run shortkey_r button_toggle_run">202 run</span>
+            <span class="mis shortkey_m button_toggle_mis">181 missing</span>
+            <span class="exc shortkey_x button_toggle_exc">0 excluded</span>
+
+            
+                <span class="par run hide_run shortkey_p button_toggle_par">21 partial</span>
+            
+        </h2>
+    </div>
+</div>
+
+<div class="help_panel">
+    <img id="panel_icon" src="keybd_open.png" alt="Hide keyboard shortcuts" />
+<p class="legend">Hot-keys on this page</p>
+    <div>
+<p class="keyhelp">
+        <span class="key">r</span>
+        <span class="key">m</span>
+        <span class="key">x</span>
+        <span class="key">p</span> &nbsp; toggle line displays
+    </p>
+<p class="keyhelp">
+        <span class="key">j</span>
+        <span class="key">k</span> &nbsp; next/prev highlighted chunk
+    </p>
+<p class="keyhelp">
+        <span class="key">0</span> &nbsp; (zero) top of page
+    </p>
+<p class="keyhelp">
+        <span class="key">1</span> &nbsp; (one) first highlighted chunk
+    </p>
+    </div>
+</div>
+
+<div id="source">
+    <table>
+        <tr>
+            <td class="linenos">
+<p id="n1" class="stm run hide_run"><a href="#n1">1</a></p>
+<p id="n2" class="pln"><a href="#n2">2</a></p>
+<p id="n3" class="stm run hide_run"><a href="#n3">3</a></p>
+<p id="n4" class="stm run hide_run"><a href="#n4">4</a></p>
+<p id="n5" class="stm run hide_run"><a href="#n5">5</a></p>
+<p id="n6" class="stm run hide_run"><a href="#n6">6</a></p>
+<p id="n7" class="stm run hide_run"><a href="#n7">7</a></p>
+<p id="n8" class="stm run hide_run"><a href="#n8">8</a></p>
+<p id="n9" class="stm run hide_run"><a href="#n9">9</a></p>
+<p id="n10" class="stm run hide_run"><a href="#n10">10</a></p>
+<p id="n11" class="stm run hide_run"><a href="#n11">11</a></p>
+<p id="n12" class="stm run hide_run"><a href="#n12">12</a></p>
+<p id="n13" class="stm run hide_run"><a href="#n13">13</a></p>
+<p id="n14" class="stm run hide_run"><a href="#n14">14</a></p>
+<p id="n15" class="stm run hide_run"><a href="#n15">15</a></p>
+<p id="n16" class="stm run hide_run"><a href="#n16">16</a></p>
+<p id="n17" class="stm run hide_run"><a href="#n17">17</a></p>
+<p id="n18" class="pln"><a href="#n18">18</a></p>
+<p id="n19" class="pln"><a href="#n19">19</a></p>
+<p id="n20" class="stm run hide_run"><a href="#n20">20</a></p>
+<p id="n21" class="stm run hide_run"><a href="#n21">21</a></p>
+<p id="n22" class="stm run hide_run"><a href="#n22">22</a></p>
+<p id="n23" class="stm run hide_run"><a href="#n23">23</a></p>
+<p id="n24" class="pln"><a href="#n24">24</a></p>
+<p id="n25" class="stm run hide_run"><a href="#n25">25</a></p>
+<p id="n26" class="stm run hide_run"><a href="#n26">26</a></p>
+<p id="n27" class="stm run hide_run"><a href="#n27">27</a></p>
+<p id="n28" class="stm run hide_run"><a href="#n28">28</a></p>
+<p id="n29" class="pln"><a href="#n29">29</a></p>
+<p id="n30" class="stm run hide_run"><a href="#n30">30</a></p>
+<p id="n31" class="stm run hide_run"><a href="#n31">31</a></p>
+<p id="n32" class="stm run hide_run"><a href="#n32">32</a></p>
+<p id="n33" class="stm run hide_run"><a href="#n33">33</a></p>
+<p id="n34" class="pln"><a href="#n34">34</a></p>
+<p id="n35" class="stm run hide_run"><a href="#n35">35</a></p>
+<p id="n36" class="stm run hide_run"><a href="#n36">36</a></p>
+<p id="n37" class="stm run hide_run"><a href="#n37">37</a></p>
+<p id="n38" class="stm run hide_run"><a href="#n38">38</a></p>
+<p id="n39" class="pln"><a href="#n39">39</a></p>
+<p id="n40" class="stm run hide_run"><a href="#n40">40</a></p>
+<p id="n41" class="stm run hide_run"><a href="#n41">41</a></p>
+<p id="n42" class="stm run hide_run"><a href="#n42">42</a></p>
+<p id="n43" class="stm run hide_run"><a href="#n43">43</a></p>
+<p id="n44" class="pln"><a href="#n44">44</a></p>
+<p id="n45" class="stm run hide_run"><a href="#n45">45</a></p>
+<p id="n46" class="stm run hide_run"><a href="#n46">46</a></p>
+<p id="n47" class="stm run hide_run"><a href="#n47">47</a></p>
+<p id="n48" class="stm run hide_run"><a href="#n48">48</a></p>
+<p id="n49" class="pln"><a href="#n49">49</a></p>
+<p id="n50" class="stm run hide_run"><a href="#n50">50</a></p>
+<p id="n51" class="stm run hide_run"><a href="#n51">51</a></p>
+<p id="n52" class="stm run hide_run"><a href="#n52">52</a></p>
+<p id="n53" class="stm run hide_run"><a href="#n53">53</a></p>
+<p id="n54" class="pln"><a href="#n54">54</a></p>
+<p id="n55" class="stm run hide_run"><a href="#n55">55</a></p>
+<p id="n56" class="stm run hide_run"><a href="#n56">56</a></p>
+<p id="n57" class="stm run hide_run"><a href="#n57">57</a></p>
+<p id="n58" class="stm run hide_run"><a href="#n58">58</a></p>
+<p id="n59" class="pln"><a href="#n59">59</a></p>
+<p id="n60" class="stm run hide_run"><a href="#n60">60</a></p>
+<p id="n61" class="stm run hide_run"><a href="#n61">61</a></p>
+<p id="n62" class="stm run hide_run"><a href="#n62">62</a></p>
+<p id="n63" class="stm run hide_run"><a href="#n63">63</a></p>
+<p id="n64" class="pln"><a href="#n64">64</a></p>
+<p id="n65" class="stm run hide_run"><a href="#n65">65</a></p>
+<p id="n66" class="stm run hide_run"><a href="#n66">66</a></p>
+<p id="n67" class="stm run hide_run"><a href="#n67">67</a></p>
+<p id="n68" class="stm run hide_run"><a href="#n68">68</a></p>
+<p id="n69" class="pln"><a href="#n69">69</a></p>
+<p id="n70" class="stm run hide_run"><a href="#n70">70</a></p>
+<p id="n71" class="stm run hide_run"><a href="#n71">71</a></p>
+<p id="n72" class="stm run hide_run"><a href="#n72">72</a></p>
+<p id="n73" class="stm run hide_run"><a href="#n73">73</a></p>
+<p id="n74" class="pln"><a href="#n74">74</a></p>
+<p id="n75" class="stm run hide_run"><a href="#n75">75</a></p>
+<p id="n76" class="stm run hide_run"><a href="#n76">76</a></p>
+<p id="n77" class="stm run hide_run"><a href="#n77">77</a></p>
+<p id="n78" class="stm run hide_run"><a href="#n78">78</a></p>
+<p id="n79" class="pln"><a href="#n79">79</a></p>
+<p id="n80" class="pln"><a href="#n80">80</a></p>
+<p id="n81" class="stm run hide_run"><a href="#n81">81</a></p>
+<p id="n82" class="stm run hide_run"><a href="#n82">82</a></p>
+<p id="n83" class="stm mis"><a href="#n83">83</a></p>
+<p id="n84" class="stm run hide_run"><a href="#n84">84</a></p>
+<p id="n85" class="stm par run hide_run"><a href="#n85">85</a></p>
+<p id="n86" class="pln"><a href="#n86">86</a></p>
+<p id="n87" class="stm run hide_run"><a href="#n87">87</a></p>
+<p id="n88" class="stm run hide_run"><a href="#n88">88</a></p>
+<p id="n89" class="stm run hide_run"><a href="#n89">89</a></p>
+<p id="n90" class="stm run hide_run"><a href="#n90">90</a></p>
+<p id="n91" class="pln"><a href="#n91">91</a></p>
+<p id="n92" class="stm run hide_run"><a href="#n92">92</a></p>
+<p id="n93" class="stm run hide_run"><a href="#n93">93</a></p>
+<p id="n94" class="stm mis"><a href="#n94">94</a></p>
+<p id="n95" class="stm mis"><a href="#n95">95</a></p>
+<p id="n96" class="pln"><a href="#n96">96</a></p>
+<p id="n97" class="stm run hide_run"><a href="#n97">97</a></p>
+<p id="n98" class="stm run hide_run"><a href="#n98">98</a></p>
+<p id="n99" class="stm mis"><a href="#n99">99</a></p>
+<p id="n100" class="stm mis"><a href="#n100">100</a></p>
+<p id="n101" class="stm run hide_run"><a href="#n101">101</a></p>
+<p id="n102" class="stm run hide_run"><a href="#n102">102</a></p>
+<p id="n103" class="pln"><a href="#n103">103</a></p>
+<p id="n104" class="pln"><a href="#n104">104</a></p>
+<p id="n105" class="pln"><a href="#n105">105</a></p>
+<p id="n106" class="pln"><a href="#n106">106</a></p>
+<p id="n107" class="pln"><a href="#n107">107</a></p>
+<p id="n108" class="pln"><a href="#n108">108</a></p>
+<p id="n109" class="stm run hide_run"><a href="#n109">109</a></p>
+<p id="n110" class="pln"><a href="#n110">110</a></p>
+<p id="n111" class="pln"><a href="#n111">111</a></p>
+<p id="n112" class="pln"><a href="#n112">112</a></p>
+<p id="n113" class="stm par run hide_run"><a href="#n113">113</a></p>
+<p id="n114" class="pln"><a href="#n114">114</a></p>
+<p id="n115" class="stm mis"><a href="#n115">115</a></p>
+<p id="n116" class="stm mis"><a href="#n116">116</a></p>
+<p id="n117" class="stm par run hide_run"><a href="#n117">117</a></p>
+<p id="n118" class="stm run hide_run"><a href="#n118">118</a></p>
+<p id="n119" class="stm run hide_run"><a href="#n119">119</a></p>
+<p id="n120" class="stm par run hide_run"><a href="#n120">120</a></p>
+<p id="n121" class="stm mis"><a href="#n121">121</a></p>
+<p id="n122" class="stm run hide_run"><a href="#n122">122</a></p>
+<p id="n123" class="stm run hide_run"><a href="#n123">123</a></p>
+<p id="n124" class="stm run hide_run"><a href="#n124">124</a></p>
+<p id="n125" class="stm run hide_run"><a href="#n125">125</a></p>
+<p id="n126" class="stm run hide_run"><a href="#n126">126</a></p>
+<p id="n127" class="stm run hide_run"><a href="#n127">127</a></p>
+<p id="n128" class="stm mis"><a href="#n128">128</a></p>
+<p id="n129" class="stm mis"><a href="#n129">129</a></p>
+<p id="n130" class="stm mis"><a href="#n130">130</a></p>
+<p id="n131" class="stm run hide_run"><a href="#n131">131</a></p>
+<p id="n132" class="pln"><a href="#n132">132</a></p>
+<p id="n133" class="stm run hide_run"><a href="#n133">133</a></p>
+<p id="n134" class="pln"><a href="#n134">134</a></p>
+<p id="n135" class="pln"><a href="#n135">135</a></p>
+<p id="n136" class="pln"><a href="#n136">136</a></p>
+<p id="n137" class="pln"><a href="#n137">137</a></p>
+<p id="n138" class="pln"><a href="#n138">138</a></p>
+<p id="n139" class="pln"><a href="#n139">139</a></p>
+<p id="n140" class="pln"><a href="#n140">140</a></p>
+<p id="n141" class="pln"><a href="#n141">141</a></p>
+<p id="n142" class="pln"><a href="#n142">142</a></p>
+<p id="n143" class="stm run hide_run"><a href="#n143">143</a></p>
+<p id="n144" class="stm run hide_run"><a href="#n144">144</a></p>
+<p id="n145" class="stm run hide_run"><a href="#n145">145</a></p>
+<p id="n146" class="stm par run hide_run"><a href="#n146">146</a></p>
+<p id="n147" class="stm mis"><a href="#n147">147</a></p>
+<p id="n148" class="stm par run hide_run"><a href="#n148">148</a></p>
+<p id="n149" class="stm mis"><a href="#n149">149</a></p>
+<p id="n150" class="stm run hide_run"><a href="#n150">150</a></p>
+<p id="n151" class="stm run hide_run"><a href="#n151">151</a></p>
+<p id="n152" class="stm run hide_run"><a href="#n152">152</a></p>
+<p id="n153" class="stm run hide_run"><a href="#n153">153</a></p>
+<p id="n154" class="stm run hide_run"><a href="#n154">154</a></p>
+<p id="n155" class="stm run hide_run"><a href="#n155">155</a></p>
+<p id="n156" class="stm run hide_run"><a href="#n156">156</a></p>
+<p id="n157" class="pln"><a href="#n157">157</a></p>
+<p id="n158" class="stm run hide_run"><a href="#n158">158</a></p>
+<p id="n159" class="pln"><a href="#n159">159</a></p>
+<p id="n160" class="pln"><a href="#n160">160</a></p>
+<p id="n161" class="pln"><a href="#n161">161</a></p>
+<p id="n162" class="pln"><a href="#n162">162</a></p>
+<p id="n163" class="pln"><a href="#n163">163</a></p>
+<p id="n164" class="stm run hide_run"><a href="#n164">164</a></p>
+<p id="n165" class="stm run hide_run"><a href="#n165">165</a></p>
+<p id="n166" class="pln"><a href="#n166">166</a></p>
+<p id="n167" class="stm run hide_run"><a href="#n167">167</a></p>
+<p id="n168" class="stm run hide_run"><a href="#n168">168</a></p>
+<p id="n169" class="stm run hide_run"><a href="#n169">169</a></p>
+<p id="n170" class="pln"><a href="#n170">170</a></p>
+<p id="n171" class="stm run hide_run"><a href="#n171">171</a></p>
+<p id="n172" class="stm run hide_run"><a href="#n172">172</a></p>
+<p id="n173" class="pln"><a href="#n173">173</a></p>
+<p id="n174" class="pln"><a href="#n174">174</a></p>
+<p id="n175" class="pln"><a href="#n175">175</a></p>
+<p id="n176" class="pln"><a href="#n176">176</a></p>
+<p id="n177" class="pln"><a href="#n177">177</a></p>
+<p id="n178" class="pln"><a href="#n178">178</a></p>
+<p id="n179" class="pln"><a href="#n179">179</a></p>
+<p id="n180" class="pln"><a href="#n180">180</a></p>
+<p id="n181" class="pln"><a href="#n181">181</a></p>
+<p id="n182" class="stm mis"><a href="#n182">182</a></p>
+<p id="n183" class="pln"><a href="#n183">183</a></p>
+<p id="n184" class="stm mis"><a href="#n184">184</a></p>
+<p id="n185" class="stm mis"><a href="#n185">185</a></p>
+<p id="n186" class="pln"><a href="#n186">186</a></p>
+<p id="n187" class="pln"><a href="#n187">187</a></p>
+<p id="n188" class="stm mis"><a href="#n188">188</a></p>
+<p id="n189" class="stm mis"><a href="#n189">189</a></p>
+<p id="n190" class="stm mis"><a href="#n190">190</a></p>
+<p id="n191" class="stm mis"><a href="#n191">191</a></p>
+<p id="n192" class="pln"><a href="#n192">192</a></p>
+<p id="n193" class="stm mis"><a href="#n193">193</a></p>
+<p id="n194" class="stm mis"><a href="#n194">194</a></p>
+<p id="n195" class="pln"><a href="#n195">195</a></p>
+<p id="n196" class="stm mis"><a href="#n196">196</a></p>
+<p id="n197" class="pln"><a href="#n197">197</a></p>
+<p id="n198" class="pln"><a href="#n198">198</a></p>
+<p id="n199" class="stm mis"><a href="#n199">199</a></p>
+<p id="n200" class="pln"><a href="#n200">200</a></p>
+<p id="n201" class="stm run hide_run"><a href="#n201">201</a></p>
+<p id="n202" class="stm run hide_run"><a href="#n202">202</a></p>
+<p id="n203" class="stm mis"><a href="#n203">203</a></p>
+<p id="n204" class="stm mis"><a href="#n204">204</a></p>
+<p id="n205" class="pln"><a href="#n205">205</a></p>
+<p id="n206" class="stm run hide_run"><a href="#n206">206</a></p>
+<p id="n207" class="stm run hide_run"><a href="#n207">207</a></p>
+<p id="n208" class="stm mis"><a href="#n208">208</a></p>
+<p id="n209" class="stm mis"><a href="#n209">209</a></p>
+<p id="n210" class="pln"><a href="#n210">210</a></p>
+<p id="n211" class="stm run hide_run"><a href="#n211">211</a></p>
+<p id="n212" class="stm run hide_run"><a href="#n212">212</a></p>
+<p id="n213" class="stm mis"><a href="#n213">213</a></p>
+<p id="n214" class="stm mis"><a href="#n214">214</a></p>
+<p id="n215" class="pln"><a href="#n215">215</a></p>
+<p id="n216" class="stm par run hide_run"><a href="#n216">216</a></p>
+<p id="n217" class="stm mis"><a href="#n217">217</a></p>
+<p id="n218" class="pln"><a href="#n218">218</a></p>
+<p id="n219" class="pln"><a href="#n219">219</a></p>
+<p id="n220" class="pln"><a href="#n220">220</a></p>
+<p id="n221" class="stm run hide_run"><a href="#n221">221</a></p>
+<p id="n222" class="pln"><a href="#n222">222</a></p>
+<p id="n223" class="stm run hide_run"><a href="#n223">223</a></p>
+<p id="n224" class="stm run hide_run"><a href="#n224">224</a></p>
+<p id="n225" class="stm mis"><a href="#n225">225</a></p>
+<p id="n226" class="stm mis"><a href="#n226">226</a></p>
+<p id="n227" class="stm mis"><a href="#n227">227</a></p>
+<p id="n228" class="stm mis"><a href="#n228">228</a></p>
+<p id="n229" class="stm mis"><a href="#n229">229</a></p>
+<p id="n230" class="stm mis"><a href="#n230">230</a></p>
+<p id="n231" class="pln"><a href="#n231">231</a></p>
+<p id="n232" class="pln"><a href="#n232">232</a></p>
+<p id="n233" class="pln"><a href="#n233">233</a></p>
+<p id="n234" class="stm run hide_run"><a href="#n234">234</a></p>
+<p id="n235" class="stm par run hide_run"><a href="#n235">235</a></p>
+<p id="n236" class="stm mis"><a href="#n236">236</a></p>
+<p id="n237" class="stm run hide_run"><a href="#n237">237</a></p>
+<p id="n238" class="stm run hide_run"><a href="#n238">238</a></p>
+<p id="n239" class="pln"><a href="#n239">239</a></p>
+<p id="n240" class="stm run hide_run"><a href="#n240">240</a></p>
+<p id="n241" class="stm run hide_run"><a href="#n241">241</a></p>
+<p id="n242" class="stm run hide_run"><a href="#n242">242</a></p>
+<p id="n243" class="stm par run hide_run"><a href="#n243">243</a></p>
+<p id="n244" class="stm run hide_run"><a href="#n244">244</a></p>
+<p id="n245" class="stm run hide_run"><a href="#n245">245</a></p>
+<p id="n246" class="pln"><a href="#n246">246</a></p>
+<p id="n247" class="stm run hide_run"><a href="#n247">247</a></p>
+<p id="n248" class="stm run hide_run"><a href="#n248">248</a></p>
+<p id="n249" class="stm run hide_run"><a href="#n249">249</a></p>
+<p id="n250" class="stm run hide_run"><a href="#n250">250</a></p>
+<p id="n251" class="stm run hide_run"><a href="#n251">251</a></p>
+<p id="n252" class="stm run hide_run"><a href="#n252">252</a></p>
+<p id="n253" class="pln"><a href="#n253">253</a></p>
+<p id="n254" class="stm run hide_run"><a href="#n254">254</a></p>
+<p id="n255" class="stm run hide_run"><a href="#n255">255</a></p>
+<p id="n256" class="stm run hide_run"><a href="#n256">256</a></p>
+<p id="n257" class="pln"><a href="#n257">257</a></p>
+<p id="n258" class="pln"><a href="#n258">258</a></p>
+<p id="n259" class="pln"><a href="#n259">259</a></p>
+<p id="n260" class="stm run hide_run"><a href="#n260">260</a></p>
+<p id="n261" class="pln"><a href="#n261">261</a></p>
+<p id="n262" class="stm run hide_run"><a href="#n262">262</a></p>
+<p id="n263" class="stm run hide_run"><a href="#n263">263</a></p>
+<p id="n264" class="stm run hide_run"><a href="#n264">264</a></p>
+<p id="n265" class="stm run hide_run"><a href="#n265">265</a></p>
+<p id="n266" class="stm run hide_run"><a href="#n266">266</a></p>
+<p id="n267" class="stm run hide_run"><a href="#n267">267</a></p>
+<p id="n268" class="stm run hide_run"><a href="#n268">268</a></p>
+<p id="n269" class="stm par run hide_run"><a href="#n269">269</a></p>
+<p id="n270" class="stm mis"><a href="#n270">270</a></p>
+<p id="n271" class="stm mis"><a href="#n271">271</a></p>
+<p id="n272" class="pln"><a href="#n272">272</a></p>
+<p id="n273" class="stm mis"><a href="#n273">273</a></p>
+<p id="n274" class="stm mis"><a href="#n274">274</a></p>
+<p id="n275" class="pln"><a href="#n275">275</a></p>
+<p id="n276" class="stm mis"><a href="#n276">276</a></p>
+<p id="n277" class="stm par run hide_run"><a href="#n277">277</a></p>
+<p id="n278" class="stm run hide_run"><a href="#n278">278</a></p>
+<p id="n279" class="stm run hide_run"><a href="#n279">279</a></p>
+<p id="n280" class="pln"><a href="#n280">280</a></p>
+<p id="n281" class="stm run hide_run"><a href="#n281">281</a></p>
+<p id="n282" class="stm run hide_run"><a href="#n282">282</a></p>
+<p id="n283" class="stm run hide_run"><a href="#n283">283</a></p>
+<p id="n284" class="pln"><a href="#n284">284</a></p>
+<p id="n285" class="stm run hide_run"><a href="#n285">285</a></p>
+<p id="n286" class="stm run hide_run"><a href="#n286">286</a></p>
+<p id="n287" class="stm run hide_run"><a href="#n287">287</a></p>
+<p id="n288" class="pln"><a href="#n288">288</a></p>
+<p id="n289" class="stm run hide_run"><a href="#n289">289</a></p>
+<p id="n290" class="pln"><a href="#n290">290</a></p>
+<p id="n291" class="stm run hide_run"><a href="#n291">291</a></p>
+<p id="n292" class="stm run hide_run"><a href="#n292">292</a></p>
+<p id="n293" class="pln"><a href="#n293">293</a></p>
+<p id="n294" class="stm run hide_run"><a href="#n294">294</a></p>
+<p id="n295" class="stm par run hide_run"><a href="#n295">295</a></p>
+<p id="n296" class="stm mis"><a href="#n296">296</a></p>
+<p id="n297" class="pln"><a href="#n297">297</a></p>
+<p id="n298" class="stm run hide_run"><a href="#n298">298</a></p>
+<p id="n299" class="stm run hide_run"><a href="#n299">299</a></p>
+<p id="n300" class="pln"><a href="#n300">300</a></p>
+<p id="n301" class="stm run hide_run"><a href="#n301">301</a></p>
+<p id="n302" class="stm run hide_run"><a href="#n302">302</a></p>
+<p id="n303" class="stm run hide_run"><a href="#n303">303</a></p>
+<p id="n304" class="stm run hide_run"><a href="#n304">304</a></p>
+<p id="n305" class="stm mis"><a href="#n305">305</a></p>
+<p id="n306" class="stm mis"><a href="#n306">306</a></p>
+<p id="n307" class="pln"><a href="#n307">307</a></p>
+<p id="n308" class="stm mis"><a href="#n308">308</a></p>
+<p id="n309" class="pln"><a href="#n309">309</a></p>
+<p id="n310" class="pln"><a href="#n310">310</a></p>
+<p id="n311" class="stm par run hide_run"><a href="#n311">311</a></p>
+<p id="n312" class="stm run hide_run"><a href="#n312">312</a></p>
+<p id="n313" class="pln"><a href="#n313">313</a></p>
+<p id="n314" class="pln"><a href="#n314">314</a></p>
+<p id="n315" class="pln"><a href="#n315">315</a></p>
+<p id="n316" class="stm mis"><a href="#n316">316</a></p>
+<p id="n317" class="stm mis"><a href="#n317">317</a></p>
+<p id="n318" class="stm mis"><a href="#n318">318</a></p>
+<p id="n319" class="stm mis"><a href="#n319">319</a></p>
+<p id="n320" class="pln"><a href="#n320">320</a></p>
+<p id="n321" class="pln"><a href="#n321">321</a></p>
+<p id="n322" class="stm run hide_run"><a href="#n322">322</a></p>
+<p id="n323" class="stm mis"><a href="#n323">323</a></p>
+<p id="n324" class="stm mis"><a href="#n324">324</a></p>
+<p id="n325" class="pln"><a href="#n325">325</a></p>
+<p id="n326" class="stm mis"><a href="#n326">326</a></p>
+<p id="n327" class="pln"><a href="#n327">327</a></p>
+<p id="n328" class="pln"><a href="#n328">328</a></p>
+<p id="n329" class="stm par run hide_run"><a href="#n329">329</a></p>
+<p id="n330" class="stm mis"><a href="#n330">330</a></p>
+<p id="n331" class="stm mis"><a href="#n331">331</a></p>
+<p id="n332" class="pln"><a href="#n332">332</a></p>
+<p id="n333" class="pln"><a href="#n333">333</a></p>
+<p id="n334" class="pln"><a href="#n334">334</a></p>
+<p id="n335" class="pln"><a href="#n335">335</a></p>
+<p id="n336" class="stm run hide_run"><a href="#n336">336</a></p>
+<p id="n337" class="stm mis"><a href="#n337">337</a></p>
+<p id="n338" class="stm mis"><a href="#n338">338</a></p>
+<p id="n339" class="stm mis"><a href="#n339">339</a></p>
+<p id="n340" class="stm mis"><a href="#n340">340</a></p>
+<p id="n341" class="stm mis"><a href="#n341">341</a></p>
+<p id="n342" class="pln"><a href="#n342">342</a></p>
+<p id="n343" class="pln"><a href="#n343">343</a></p>
+<p id="n344" class="pln"><a href="#n344">344</a></p>
+<p id="n345" class="pln"><a href="#n345">345</a></p>
+<p id="n346" class="pln"><a href="#n346">346</a></p>
+<p id="n347" class="pln"><a href="#n347">347</a></p>
+<p id="n348" class="pln"><a href="#n348">348</a></p>
+<p id="n349" class="stm par run hide_run"><a href="#n349">349</a></p>
+<p id="n350" class="stm run hide_run"><a href="#n350">350</a></p>
+<p id="n351" class="pln"><a href="#n351">351</a></p>
+<p id="n352" class="pln"><a href="#n352">352</a></p>
+<p id="n353" class="stm par run hide_run"><a href="#n353">353</a></p>
+<p id="n354" class="stm run hide_run"><a href="#n354">354</a></p>
+<p id="n355" class="stm mis"><a href="#n355">355</a></p>
+<p id="n356" class="stm mis"><a href="#n356">356</a></p>
+<p id="n357" class="stm mis"><a href="#n357">357</a></p>
+<p id="n358" class="stm mis"><a href="#n358">358</a></p>
+<p id="n359" class="stm mis"><a href="#n359">359</a></p>
+<p id="n360" class="stm mis"><a href="#n360">360</a></p>
+<p id="n361" class="stm mis"><a href="#n361">361</a></p>
+<p id="n362" class="pln"><a href="#n362">362</a></p>
+<p id="n363" class="stm mis"><a href="#n363">363</a></p>
+<p id="n364" class="pln"><a href="#n364">364</a></p>
+<p id="n365" class="stm mis"><a href="#n365">365</a></p>
+<p id="n366" class="stm mis"><a href="#n366">366</a></p>
+<p id="n367" class="stm mis"><a href="#n367">367</a></p>
+<p id="n368" class="stm mis"><a href="#n368">368</a></p>
+<p id="n369" class="stm mis"><a href="#n369">369</a></p>
+<p id="n370" class="stm mis"><a href="#n370">370</a></p>
+<p id="n371" class="stm mis"><a href="#n371">371</a></p>
+<p id="n372" class="stm mis"><a href="#n372">372</a></p>
+<p id="n373" class="stm mis"><a href="#n373">373</a></p>
+<p id="n374" class="stm mis"><a href="#n374">374</a></p>
+<p id="n375" class="pln"><a href="#n375">375</a></p>
+<p id="n376" class="pln"><a href="#n376">376</a></p>
+<p id="n377" class="pln"><a href="#n377">377</a></p>
+<p id="n378" class="stm mis"><a href="#n378">378</a></p>
+<p id="n379" class="stm mis"><a href="#n379">379</a></p>
+<p id="n380" class="stm mis"><a href="#n380">380</a></p>
+<p id="n381" class="stm mis"><a href="#n381">381</a></p>
+<p id="n382" class="stm mis"><a href="#n382">382</a></p>
+<p id="n383" class="pln"><a href="#n383">383</a></p>
+<p id="n384" class="stm mis"><a href="#n384">384</a></p>
+<p id="n385" class="stm mis"><a href="#n385">385</a></p>
+<p id="n386" class="stm mis"><a href="#n386">386</a></p>
+<p id="n387" class="stm mis"><a href="#n387">387</a></p>
+<p id="n388" class="stm mis"><a href="#n388">388</a></p>
+<p id="n389" class="stm mis"><a href="#n389">389</a></p>
+<p id="n390" class="pln"><a href="#n390">390</a></p>
+<p id="n391" class="stm mis"><a href="#n391">391</a></p>
+<p id="n392" class="stm mis"><a href="#n392">392</a></p>
+<p id="n393" class="stm mis"><a href="#n393">393</a></p>
+<p id="n394" class="stm mis"><a href="#n394">394</a></p>
+<p id="n395" class="stm mis"><a href="#n395">395</a></p>
+<p id="n396" class="pln"><a href="#n396">396</a></p>
+<p id="n397" class="stm mis"><a href="#n397">397</a></p>
+<p id="n398" class="stm mis"><a href="#n398">398</a></p>
+<p id="n399" class="pln"><a href="#n399">399</a></p>
+<p id="n400" class="stm mis"><a href="#n400">400</a></p>
+<p id="n401" class="pln"><a href="#n401">401</a></p>
+<p id="n402" class="stm mis"><a href="#n402">402</a></p>
+<p id="n403" class="pln"><a href="#n403">403</a></p>
+<p id="n404" class="pln"><a href="#n404">404</a></p>
+<p id="n405" class="stm par run hide_run"><a href="#n405">405</a></p>
+<p id="n406" class="stm run hide_run"><a href="#n406">406</a></p>
+<p id="n407" class="stm mis"><a href="#n407">407</a></p>
+<p id="n408" class="stm mis"><a href="#n408">408</a></p>
+<p id="n409" class="pln"><a href="#n409">409</a></p>
+<p id="n410" class="stm mis"><a href="#n410">410</a></p>
+<p id="n411" class="stm mis"><a href="#n411">411</a></p>
+<p id="n412" class="stm mis"><a href="#n412">412</a></p>
+<p id="n413" class="pln"><a href="#n413">413</a></p>
+<p id="n414" class="pln"><a href="#n414">414</a></p>
+<p id="n415" class="stm run hide_run"><a href="#n415">415</a></p>
+<p id="n416" class="stm run hide_run"><a href="#n416">416</a></p>
+<p id="n417" class="stm mis"><a href="#n417">417</a></p>
+<p id="n418" class="stm mis"><a href="#n418">418</a></p>
+<p id="n419" class="stm mis"><a href="#n419">419</a></p>
+<p id="n420" class="stm mis"><a href="#n420">420</a></p>
+<p id="n421" class="stm mis"><a href="#n421">421</a></p>
+<p id="n422" class="stm mis"><a href="#n422">422</a></p>
+<p id="n423" class="stm mis"><a href="#n423">423</a></p>
+<p id="n424" class="stm mis"><a href="#n424">424</a></p>
+<p id="n425" class="stm mis"><a href="#n425">425</a></p>
+<p id="n426" class="pln"><a href="#n426">426</a></p>
+<p id="n427" class="stm par run hide_run"><a href="#n427">427</a></p>
+<p id="n428" class="stm mis"><a href="#n428">428</a></p>
+<p id="n429" class="stm mis"><a href="#n429">429</a></p>
+<p id="n430" class="stm mis"><a href="#n430">430</a></p>
+<p id="n431" class="stm mis"><a href="#n431">431</a></p>
+<p id="n432" class="stm mis"><a href="#n432">432</a></p>
+<p id="n433" class="pln"><a href="#n433">433</a></p>
+<p id="n434" class="stm run hide_run"><a href="#n434">434</a></p>
+<p id="n435" class="pln"><a href="#n435">435</a></p>
+<p id="n436" class="pln"><a href="#n436">436</a></p>
+<p id="n437" class="stm run hide_run"><a href="#n437">437</a></p>
+<p id="n438" class="stm run hide_run"><a href="#n438">438</a></p>
+<p id="n439" class="stm run hide_run"><a href="#n439">439</a></p>
+<p id="n440" class="stm run hide_run"><a href="#n440">440</a></p>
+<p id="n441" class="stm mis"><a href="#n441">441</a></p>
+<p id="n442" class="stm mis"><a href="#n442">442</a></p>
+<p id="n443" class="stm mis"><a href="#n443">443</a></p>
+<p id="n444" class="pln"><a href="#n444">444</a></p>
+<p id="n445" class="stm run hide_run"><a href="#n445">445</a></p>
+<p id="n446" class="pln"><a href="#n446">446</a></p>
+<p id="n447" class="pln"><a href="#n447">447</a></p>
+<p id="n448" class="stm par run hide_run"><a href="#n448">448</a></p>
+<p id="n449" class="stm mis"><a href="#n449">449</a></p>
+<p id="n450" class="stm mis"><a href="#n450">450</a></p>
+<p id="n451" class="stm mis"><a href="#n451">451</a></p>
+<p id="n452" class="stm mis"><a href="#n452">452</a></p>
+<p id="n453" class="stm mis"><a href="#n453">453</a></p>
+<p id="n454" class="stm mis"><a href="#n454">454</a></p>
+<p id="n455" class="stm mis"><a href="#n455">455</a></p>
+<p id="n456" class="stm mis"><a href="#n456">456</a></p>
+<p id="n457" class="stm mis"><a href="#n457">457</a></p>
+<p id="n458" class="stm mis"><a href="#n458">458</a></p>
+<p id="n459" class="stm mis"><a href="#n459">459</a></p>
+<p id="n460" class="stm mis"><a href="#n460">460</a></p>
+<p id="n461" class="stm mis"><a href="#n461">461</a></p>
+<p id="n462" class="stm mis"><a href="#n462">462</a></p>
+<p id="n463" class="stm mis"><a href="#n463">463</a></p>
+<p id="n464" class="stm mis"><a href="#n464">464</a></p>
+<p id="n465" class="stm mis"><a href="#n465">465</a></p>
+<p id="n466" class="stm mis"><a href="#n466">466</a></p>
+<p id="n467" class="stm mis"><a href="#n467">467</a></p>
+<p id="n468" class="pln"><a href="#n468">468</a></p>
+<p id="n469" class="stm mis"><a href="#n469">469</a></p>
+<p id="n470" class="pln"><a href="#n470">470</a></p>
+<p id="n471" class="stm run hide_run"><a href="#n471">471</a></p>
+<p id="n472" class="pln"><a href="#n472">472</a></p>
+<p id="n473" class="pln"><a href="#n473">473</a></p>
+<p id="n474" class="pln"><a href="#n474">474</a></p>
+<p id="n475" class="pln"><a href="#n475">475</a></p>
+<p id="n476" class="stm run hide_run"><a href="#n476">476</a></p>
+<p id="n477" class="stm mis"><a href="#n477">477</a></p>
+<p id="n478" class="stm mis"><a href="#n478">478</a></p>
+<p id="n479" class="stm mis"><a href="#n479">479</a></p>
+<p id="n480" class="stm mis"><a href="#n480">480</a></p>
+<p id="n481" class="stm mis"><a href="#n481">481</a></p>
+<p id="n482" class="stm mis"><a href="#n482">482</a></p>
+<p id="n483" class="pln"><a href="#n483">483</a></p>
+<p id="n484" class="stm mis"><a href="#n484">484</a></p>
+<p id="n485" class="stm mis"><a href="#n485">485</a></p>
+<p id="n486" class="pln"><a href="#n486">486</a></p>
+<p id="n487" class="pln"><a href="#n487">487</a></p>
+<p id="n488" class="stm mis"><a href="#n488">488</a></p>
+<p id="n489" class="stm mis"><a href="#n489">489</a></p>
+<p id="n490" class="pln"><a href="#n490">490</a></p>
+<p id="n491" class="stm mis"><a href="#n491">491</a></p>
+<p id="n492" class="stm mis"><a href="#n492">492</a></p>
+<p id="n493" class="pln"><a href="#n493">493</a></p>
+<p id="n494" class="stm par run hide_run"><a href="#n494">494</a></p>
+<p id="n495" class="stm mis"><a href="#n495">495</a></p>
+<p id="n496" class="pln"><a href="#n496">496</a></p>
+<p id="n497" class="stm run hide_run"><a href="#n497">497</a></p>
+<p id="n498" class="pln"><a href="#n498">498</a></p>
+<p id="n499" class="stm run hide_run"><a href="#n499">499</a></p>
+<p id="n500" class="stm mis"><a href="#n500">500</a></p>
+<p id="n501" class="stm mis"><a href="#n501">501</a></p>
+<p id="n502" class="stm mis"><a href="#n502">502</a></p>
+<p id="n503" class="pln"><a href="#n503">503</a></p>
+<p id="n504" class="stm mis"><a href="#n504">504</a></p>
+<p id="n505" class="stm mis"><a href="#n505">505</a></p>
+<p id="n506" class="stm mis"><a href="#n506">506</a></p>
+<p id="n507" class="stm mis"><a href="#n507">507</a></p>
+<p id="n508" class="pln"><a href="#n508">508</a></p>
+<p id="n509" class="stm mis"><a href="#n509">509</a></p>
+<p id="n510" class="pln"><a href="#n510">510</a></p>
+<p id="n511" class="stm mis"><a href="#n511">511</a></p>
+<p id="n512" class="stm mis"><a href="#n512">512</a></p>
+<p id="n513" class="stm mis"><a href="#n513">513</a></p>
+<p id="n514" class="pln"><a href="#n514">514</a></p>
+<p id="n515" class="pln"><a href="#n515">515</a></p>
+<p id="n516" class="stm mis"><a href="#n516">516</a></p>
+<p id="n517" class="stm mis"><a href="#n517">517</a></p>
+<p id="n518" class="stm mis"><a href="#n518">518</a></p>
+<p id="n519" class="stm mis"><a href="#n519">519</a></p>
+<p id="n520" class="pln"><a href="#n520">520</a></p>
+<p id="n521" class="stm mis"><a href="#n521">521</a></p>
+<p id="n522" class="stm mis"><a href="#n522">522</a></p>
+<p id="n523" class="stm mis"><a href="#n523">523</a></p>
+<p id="n524" class="stm mis"><a href="#n524">524</a></p>
+<p id="n525" class="stm mis"><a href="#n525">525</a></p>
+<p id="n526" class="pln"><a href="#n526">526</a></p>
+<p id="n527" class="stm run hide_run"><a href="#n527">527</a></p>
+<p id="n528" class="stm run hide_run"><a href="#n528">528</a></p>
+<p id="n529" class="stm run hide_run"><a href="#n529">529</a></p>
+<p id="n530" class="stm mis"><a href="#n530">530</a></p>
+<p id="n531" class="stm mis"><a href="#n531">531</a></p>
+<p id="n532" class="stm mis"><a href="#n532">532</a></p>
+<p id="n533" class="stm mis"><a href="#n533">533</a></p>
+<p id="n534" class="stm mis"><a href="#n534">534</a></p>
+<p id="n535" class="stm mis"><a href="#n535">535</a></p>
+<p id="n536" class="pln"><a href="#n536">536</a></p>
+<p id="n537" class="stm par run hide_run"><a href="#n537">537</a></p>
+<p id="n538" class="stm mis"><a href="#n538">538</a></p>
+<p id="n539" class="pln"><a href="#n539">539</a></p>
+<p id="n540" class="stm run hide_run"><a href="#n540">540</a></p>
+<p id="n541" class="pln"><a href="#n541">541</a></p>
+<p id="n542" class="stm run hide_run"><a href="#n542">542</a></p>
+<p id="n543" class="pln"><a href="#n543">543</a></p>
+<p id="n544" class="pln"><a href="#n544">544</a></p>
+<p id="n545" class="pln"><a href="#n545">545</a></p>
+<p id="n546" class="pln"><a href="#n546">546</a></p>
+<p id="n547" class="pln"><a href="#n547">547</a></p>
+<p id="n548" class="pln"><a href="#n548">548</a></p>
+<p id="n549" class="pln"><a href="#n549">549</a></p>
+<p id="n550" class="pln"><a href="#n550">550</a></p>
+<p id="n551" class="pln"><a href="#n551">551</a></p>
+<p id="n552" class="pln"><a href="#n552">552</a></p>
+<p id="n553" class="pln"><a href="#n553">553</a></p>
+<p id="n554" class="pln"><a href="#n554">554</a></p>
+<p id="n555" class="pln"><a href="#n555">555</a></p>
+<p id="n556" class="pln"><a href="#n556">556</a></p>
+<p id="n557" class="pln"><a href="#n557">557</a></p>
+<p id="n558" class="pln"><a href="#n558">558</a></p>
+<p id="n559" class="pln"><a href="#n559">559</a></p>
+<p id="n560" class="pln"><a href="#n560">560</a></p>
+<p id="n561" class="pln"><a href="#n561">561</a></p>
+<p id="n562" class="pln"><a href="#n562">562</a></p>
+<p id="n563" class="pln"><a href="#n563">563</a></p>
+<p id="n564" class="pln"><a href="#n564">564</a></p>
+<p id="n565" class="pln"><a href="#n565">565</a></p>
+<p id="n566" class="pln"><a href="#n566">566</a></p>
+<p id="n567" class="pln"><a href="#n567">567</a></p>
+<p id="n568" class="pln"><a href="#n568">568</a></p>
+<p id="n569" class="pln"><a href="#n569">569</a></p>
+<p id="n570" class="pln"><a href="#n570">570</a></p>
+<p id="n571" class="pln"><a href="#n571">571</a></p>
+<p id="n572" class="pln"><a href="#n572">572</a></p>
+<p id="n573" class="pln"><a href="#n573">573</a></p>
+<p id="n574" class="pln"><a href="#n574">574</a></p>
+<p id="n575" class="pln"><a href="#n575">575</a></p>
+<p id="n576" class="pln"><a href="#n576">576</a></p>
+<p id="n577" class="pln"><a href="#n577">577</a></p>
+<p id="n578" class="pln"><a href="#n578">578</a></p>
+<p id="n579" class="pln"><a href="#n579">579</a></p>
+<p id="n580" class="pln"><a href="#n580">580</a></p>
+<p id="n581" class="pln"><a href="#n581">581</a></p>
+                
+            </td>
+            <td class="text">
+<p id="t1" class="stm run hide_run"><span class="key">from</span> <span class="nam">__future__</span> <span class="key">import</span> <span class="nam">unicode_literals</span><span class="strut">&nbsp;</span></p>
+<p id="t2" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t3" class="stm run hide_run"><span class="key">import</span> <span class="nam">binascii</span><span class="strut">&nbsp;</span></p>
+<p id="t4" class="stm run hide_run"><span class="key">import</span> <span class="nam">collections</span><span class="strut">&nbsp;</span></p>
+<p id="t5" class="stm run hide_run"><span class="key">import</span> <span class="nam">email</span><span class="strut">&nbsp;</span></p>
+<p id="t6" class="stm run hide_run"><span class="key">import</span> <span class="nam">getpass</span><span class="strut">&nbsp;</span></p>
+<p id="t7" class="stm run hide_run"><span class="key">import</span> <span class="nam">io</span><span class="strut">&nbsp;</span></p>
+<p id="t8" class="stm run hide_run"><span class="key">import</span> <span class="nam">optparse</span><span class="strut">&nbsp;</span></p>
+<p id="t9" class="stm run hide_run"><span class="key">import</span> <span class="nam">os</span><span class="strut">&nbsp;</span></p>
+<p id="t10" class="stm run hide_run"><span class="key">import</span> <span class="nam">re</span><span class="strut">&nbsp;</span></p>
+<p id="t11" class="stm run hide_run"><span class="key">import</span> <span class="nam">shlex</span><span class="strut">&nbsp;</span></p>
+<p id="t12" class="stm run hide_run"><span class="key">import</span> <span class="nam">shutil</span><span class="strut">&nbsp;</span></p>
+<p id="t13" class="stm run hide_run"><span class="key">import</span> <span class="nam">socket</span><span class="strut">&nbsp;</span></p>
+<p id="t14" class="stm run hide_run"><span class="key">import</span> <span class="nam">subprocess</span><span class="strut">&nbsp;</span></p>
+<p id="t15" class="stm run hide_run"><span class="key">import</span> <span class="nam">sys</span><span class="strut">&nbsp;</span></p>
+<p id="t16" class="stm run hide_run"><span class="key">import</span> <span class="nam">itertools</span><span class="strut">&nbsp;</span></p>
+<p id="t17" class="stm run hide_run"><span class="key">import</span> <span class="nam">xml</span><span class="op">.</span><span class="nam">etree</span><span class="op">.</span><span class="nam">ElementTree</span><span class="strut">&nbsp;</span></p>
+<p id="t18" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t19" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t20" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t21" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">urllib</span><span class="op">.</span><span class="nam">request</span> <span class="key">as</span> <span class="nam">compat_urllib_request</span><span class="strut">&nbsp;</span></p>
+<p id="t22" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t23" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">urllib2</span> <span class="key">as</span> <span class="nam">compat_urllib_request</span><span class="strut">&nbsp;</span></p>
+<p id="t24" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t25" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t26" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">urllib</span><span class="op">.</span><span class="nam">error</span> <span class="key">as</span> <span class="nam">compat_urllib_error</span><span class="strut">&nbsp;</span></p>
+<p id="t27" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t28" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">urllib2</span> <span class="key">as</span> <span class="nam">compat_urllib_error</span><span class="strut">&nbsp;</span></p>
+<p id="t29" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t30" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t31" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">urllib</span><span class="op">.</span><span class="nam">parse</span> <span class="key">as</span> <span class="nam">compat_urllib_parse</span><span class="strut">&nbsp;</span></p>
+<p id="t32" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t33" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">urllib</span> <span class="key">as</span> <span class="nam">compat_urllib_parse</span><span class="strut">&nbsp;</span></p>
+<p id="t34" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t35" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t36" class="stm run hide_run">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">urllib</span><span class="op">.</span><span class="nam">parse</span> <span class="key">import</span> <span class="nam">urlparse</span> <span class="key">as</span> <span class="nam">compat_urllib_parse_urlparse</span><span class="strut">&nbsp;</span></p>
+<p id="t37" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t38" class="stm run hide_run">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">urlparse</span> <span class="key">import</span> <span class="nam">urlparse</span> <span class="key">as</span> <span class="nam">compat_urllib_parse_urlparse</span><span class="strut">&nbsp;</span></p>
+<p id="t39" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t40" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t41" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">urllib</span><span class="op">.</span><span class="nam">parse</span> <span class="key">as</span> <span class="nam">compat_urlparse</span><span class="strut">&nbsp;</span></p>
+<p id="t42" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t43" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">urlparse</span> <span class="key">as</span> <span class="nam">compat_urlparse</span><span class="strut">&nbsp;</span></p>
+<p id="t44" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t45" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t46" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">urllib</span><span class="op">.</span><span class="nam">response</span> <span class="key">as</span> <span class="nam">compat_urllib_response</span><span class="strut">&nbsp;</span></p>
+<p id="t47" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t48" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">urllib</span> <span class="key">as</span> <span class="nam">compat_urllib_response</span><span class="strut">&nbsp;</span></p>
+<p id="t49" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t50" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t51" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">http</span><span class="op">.</span><span class="nam">cookiejar</span> <span class="key">as</span> <span class="nam">compat_cookiejar</span><span class="strut">&nbsp;</span></p>
+<p id="t52" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t53" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">cookielib</span> <span class="key">as</span> <span class="nam">compat_cookiejar</span><span class="strut">&nbsp;</span></p>
+<p id="t54" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t55" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t56" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">http</span><span class="op">.</span><span class="nam">cookies</span> <span class="key">as</span> <span class="nam">compat_cookies</span><span class="strut">&nbsp;</span></p>
+<p id="t57" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t58" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">Cookie</span> <span class="key">as</span> <span class="nam">compat_cookies</span><span class="strut">&nbsp;</span></p>
+<p id="t59" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t60" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t61" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">html</span><span class="op">.</span><span class="nam">entities</span> <span class="key">as</span> <span class="nam">compat_html_entities</span><span class="strut">&nbsp;</span></p>
+<p id="t62" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t63" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">htmlentitydefs</span> <span class="key">as</span> <span class="nam">compat_html_entities</span><span class="strut">&nbsp;</span></p>
+<p id="t64" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t65" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t66" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">http</span><span class="op">.</span><span class="nam">client</span> <span class="key">as</span> <span class="nam">compat_http_client</span><span class="strut">&nbsp;</span></p>
+<p id="t67" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t68" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">httplib</span> <span class="key">as</span> <span class="nam">compat_http_client</span><span class="strut">&nbsp;</span></p>
+<p id="t69" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t70" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t71" class="stm run hide_run">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">urllib</span><span class="op">.</span><span class="nam">error</span> <span class="key">import</span> <span class="nam">HTTPError</span> <span class="key">as</span> <span class="nam">compat_HTTPError</span><span class="strut">&nbsp;</span></p>
+<p id="t72" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t73" class="stm run hide_run">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">urllib2</span> <span class="key">import</span> <span class="nam">HTTPError</span> <span class="key">as</span> <span class="nam">compat_HTTPError</span><span class="strut">&nbsp;</span></p>
+<p id="t74" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t75" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t76" class="stm run hide_run">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">urllib</span><span class="op">.</span><span class="nam">request</span> <span class="key">import</span> <span class="nam">urlretrieve</span> <span class="key">as</span> <span class="nam">compat_urlretrieve</span><span class="strut">&nbsp;</span></p>
+<p id="t77" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t78" class="stm run hide_run">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">urllib</span> <span class="key">import</span> <span class="nam">urlretrieve</span> <span class="key">as</span> <span class="nam">compat_urlretrieve</span><span class="strut">&nbsp;</span></p>
+<p id="t79" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t80" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t81" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t82" class="stm run hide_run">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">subprocess</span> <span class="key">import</span> <span class="nam">DEVNULL</span><span class="strut">&nbsp;</span></p>
+<p id="t83" class="stm mis">&nbsp; &nbsp; <span class="nam">compat_subprocess_get_DEVNULL</span> <span class="op">=</span> <span class="key">lambda</span><span class="op">:</span> <span class="nam">DEVNULL</span><span class="strut">&nbsp;</span></p>
+<p id="t84" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t85" class="stm par run hide_run"><span class="annotate" title="Line 85 was executed, but never jumped to the function exit">85&#x202F;&#x219B;&#x202F;exit [?]</span>&nbsp; &nbsp; <span class="nam">compat_subprocess_get_DEVNULL</span> <span class="op">=</span> <span class="key">lambda</span><span class="op">:</span> <span class="nam">open</span><span class="op">(</span><span class="nam">os</span><span class="op">.</span><span class="nam">path</span><span class="op">.</span><span class="nam">devnull</span><span class="op">,</span> <span class="str">&#39;w&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t86" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t87" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t88" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">http</span><span class="op">.</span><span class="nam">server</span> <span class="key">as</span> <span class="nam">compat_http_server</span><span class="strut">&nbsp;</span></p>
+<p id="t89" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t90" class="stm run hide_run">&nbsp; &nbsp; <span class="key">import</span> <span class="nam">BaseHTTPServer</span> <span class="key">as</span> <span class="nam">compat_http_server</span><span class="strut">&nbsp;</span></p>
+<p id="t91" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t92" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t93" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">compat_str</span> <span class="op">=</span> <span class="nam">unicode</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t94" class="stm mis"><span class="key">except</span> <span class="nam">NameError</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t95" class="stm mis">&nbsp; &nbsp; <span class="nam">compat_str</span> <span class="op">=</span> <span class="nam">str</span><span class="strut">&nbsp;</span></p>
+<p id="t96" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t97" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t98" class="stm run hide_run">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">urllib</span><span class="op">.</span><span class="nam">parse</span> <span class="key">import</span> <span class="nam">unquote_to_bytes</span> <span class="key">as</span> <span class="nam">compat_urllib_parse_unquote_to_bytes</span><span class="strut">&nbsp;</span></p>
+<p id="t99" class="stm mis">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">urllib</span><span class="op">.</span><span class="nam">parse</span> <span class="key">import</span> <span class="nam">unquote</span> <span class="key">as</span> <span class="nam">compat_urllib_parse_unquote</span><span class="strut">&nbsp;</span></p>
+<p id="t100" class="stm mis">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">urllib</span><span class="op">.</span><span class="nam">parse</span> <span class="key">import</span> <span class="nam">unquote_plus</span> <span class="key">as</span> <span class="nam">compat_urllib_parse_unquote_plus</span><span class="strut">&nbsp;</span></p>
+<p id="t101" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t102" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_asciire</span> <span class="op">=</span> <span class="op">(</span><span class="nam">compat_urllib_parse</span><span class="op">.</span><span class="nam">_asciire</span> <span class="key">if</span> <span class="nam">hasattr</span><span class="op">(</span><span class="nam">compat_urllib_parse</span><span class="op">,</span> <span class="str">&#39;_asciire&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t103" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">else</span> <span class="nam">re</span><span class="op">.</span><span class="nam">compile</span><span class="op">(</span><span class="str">&#39;([\x00-\x7f]+)&#39;</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t104" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t105" class="pln">&nbsp; &nbsp; <span class="com"># HACK: The following are the correct unquote_to_bytes, unquote and unquote_plus</span><span class="strut">&nbsp;</span></p>
+<p id="t106" class="pln">&nbsp; &nbsp; <span class="com"># implementations from cpython 3.4.3&#39;s stdlib. Python 2&#39;s version</span><span class="strut">&nbsp;</span></p>
+<p id="t107" class="pln">&nbsp; &nbsp; <span class="com"># is apparently broken (see https://github.com/rg3/youtube-dl/pull/6244)</span><span class="strut">&nbsp;</span></p>
+<p id="t108" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t109" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_urllib_parse_unquote_to_bytes</span><span class="op">(</span><span class="nam">string</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t110" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&quot;&quot;&quot;unquote_to_bytes(&#39;abc%20def&#39;) -&gt; b&#39;abc def&#39;.&quot;&quot;&quot;</span><span class="strut">&nbsp;</span></p>
+<p id="t111" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="com"># Note: strings are encoded as UTF-8. This is only an issue if it contains</span><span class="strut">&nbsp;</span></p>
+<p id="t112" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="com"># unescaped non-ASCII characters, which URIs should not.</span><span class="strut">&nbsp;</span></p>
+<p id="t113" class="stm par run hide_run"><span class="annotate" title="Line 113 was executed, but never jumped to line 115">113&#x202F;&#x219B;&#x202F;115 [?]</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="key">not</span> <span class="nam">string</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t114" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="com"># Is it a string-like object?</span><span class="strut">&nbsp;</span></p>
+<p id="t115" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">string</span><span class="op">.</span><span class="nam">split</span><span class="strut">&nbsp;</span></p>
+<p id="t116" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="str">b&#39;&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t117" class="stm par run hide_run"><span class="annotate" title="Line 117 was executed, but never jumped to line 119">117&#x202F;&#x219B;&#x202F;119 [?]</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">isinstance</span><span class="op">(</span><span class="nam">string</span><span class="op">,</span> <span class="nam">compat_str</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t118" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">string</span> <span class="op">=</span> <span class="nam">string</span><span class="op">.</span><span class="nam">encode</span><span class="op">(</span><span class="str">&#39;utf-8&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t119" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">bits</span> <span class="op">=</span> <span class="nam">string</span><span class="op">.</span><span class="nam">split</span><span class="op">(</span><span class="str">b&#39;%&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t120" class="stm par run hide_run"><span class="annotate" title="Line 120 was executed, but never jumped to line 121">120&#x202F;&#x219B;&#x202F;121 [?]</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">len</span><span class="op">(</span><span class="nam">bits</span><span class="op">)</span> <span class="op">==</span> <span class="num">1</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t121" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">string</span><span class="strut">&nbsp;</span></p>
+<p id="t122" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">res</span> <span class="op">=</span> <span class="op">[</span><span class="nam">bits</span><span class="op">[</span><span class="num">0</span><span class="op">]</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t123" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">append</span> <span class="op">=</span> <span class="nam">res</span><span class="op">.</span><span class="nam">append</span><span class="strut">&nbsp;</span></p>
+<p id="t124" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">for</span> <span class="nam">item</span> <span class="key">in</span> <span class="nam">bits</span><span class="op">[</span><span class="num">1</span><span class="op">:</span><span class="op">]</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t125" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t126" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">append</span><span class="op">(</span><span class="nam">compat_urllib_parse</span><span class="op">.</span><span class="nam">_hextochr</span><span class="op">[</span><span class="nam">item</span><span class="op">[</span><span class="op">:</span><span class="num">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t127" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">append</span><span class="op">(</span><span class="nam">item</span><span class="op">[</span><span class="num">2</span><span class="op">:</span><span class="op">]</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t128" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">except</span> <span class="nam">KeyError</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t129" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">append</span><span class="op">(</span><span class="str">b&#39;%&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t130" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">append</span><span class="op">(</span><span class="nam">item</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t131" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="str">b&#39;&#39;</span><span class="op">.</span><span class="nam">join</span><span class="op">(</span><span class="nam">res</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t132" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t133" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_urllib_parse_unquote</span><span class="op">(</span><span class="nam">string</span><span class="op">,</span> <span class="nam">encoding</span><span class="op">=</span><span class="str">&#39;utf-8&#39;</span><span class="op">,</span> <span class="nam">errors</span><span class="op">=</span><span class="str">&#39;replace&#39;</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t134" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&quot;&quot;&quot;Replace %xx escapes by their single-character equivalent. The optional</span><span class="strut">&nbsp;</span></p>
+<p id="t135" class="pln"><span class="str">&nbsp; &nbsp; &nbsp; &nbsp; encoding and errors parameters specify how to decode percent-encoded</span><span class="strut">&nbsp;</span></p>
+<p id="t136" class="pln"><span class="str">&nbsp; &nbsp; &nbsp; &nbsp; sequences into Unicode characters, as accepted by the bytes.decode()</span><span class="strut">&nbsp;</span></p>
+<p id="t137" class="pln"><span class="str">&nbsp; &nbsp; &nbsp; &nbsp; method.</span><span class="strut">&nbsp;</span></p>
+<p id="t138" class="pln"><span class="str">&nbsp; &nbsp; &nbsp; &nbsp; By default, percent-encoded sequences are decoded with UTF-8, and invalid</span><span class="strut">&nbsp;</span></p>
+<p id="t139" class="pln"><span class="str">&nbsp; &nbsp; &nbsp; &nbsp; sequences are replaced by a placeholder character.</span><span class="strut">&nbsp;</span></p>
+<p id="t140" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t141" class="pln"><span class="str">&nbsp; &nbsp; &nbsp; &nbsp; unquote(&#39;abc%20def&#39;) -&gt; &#39;abc def&#39;.</span><span class="strut">&nbsp;</span></p>
+<p id="t142" class="pln"><span class="str">&nbsp; &nbsp; &nbsp; &nbsp; &quot;&quot;&quot;</span><span class="strut">&nbsp;</span></p>
+<p id="t143" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="str">&#39;%&#39;</span> <span class="key">not</span> <span class="key">in</span> <span class="nam">string</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t144" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">string</span><span class="op">.</span><span class="nam">split</span><span class="strut">&nbsp;</span></p>
+<p id="t145" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">string</span><span class="strut">&nbsp;</span></p>
+<p id="t146" class="stm par run hide_run"><span class="annotate" title="Line 146 was executed, but never jumped to line 147">146&#x202F;&#x219B;&#x202F;147 [?]</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">encoding</span> <span class="key">is</span> <span class="nam">None</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t147" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">encoding</span> <span class="op">=</span> <span class="str">&#39;utf-8&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t148" class="stm par run hide_run"><span class="annotate" title="Line 148 was executed, but never jumped to line 149">148&#x202F;&#x219B;&#x202F;149 [?]</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">errors</span> <span class="key">is</span> <span class="nam">None</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t149" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">errors</span> <span class="op">=</span> <span class="str">&#39;replace&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t150" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">bits</span> <span class="op">=</span> <span class="nam">_asciire</span><span class="op">.</span><span class="nam">split</span><span class="op">(</span><span class="nam">string</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t151" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">res</span> <span class="op">=</span> <span class="op">[</span><span class="nam">bits</span><span class="op">[</span><span class="num">0</span><span class="op">]</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t152" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">append</span> <span class="op">=</span> <span class="nam">res</span><span class="op">.</span><span class="nam">append</span><span class="strut">&nbsp;</span></p>
+<p id="t153" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">for</span> <span class="nam">i</span> <span class="key">in</span> <span class="nam">range</span><span class="op">(</span><span class="num">1</span><span class="op">,</span> <span class="nam">len</span><span class="op">(</span><span class="nam">bits</span><span class="op">)</span><span class="op">,</span> <span class="num">2</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t154" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">append</span><span class="op">(</span><span class="nam">compat_urllib_parse_unquote_to_bytes</span><span class="op">(</span><span class="nam">bits</span><span class="op">[</span><span class="nam">i</span><span class="op">]</span><span class="op">)</span><span class="op">.</span><span class="nam">decode</span><span class="op">(</span><span class="nam">encoding</span><span class="op">,</span> <span class="nam">errors</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t155" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">append</span><span class="op">(</span><span class="nam">bits</span><span class="op">[</span><span class="nam">i</span> <span class="op">+</span> <span class="num">1</span><span class="op">]</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t156" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="str">&#39;&#39;</span><span class="op">.</span><span class="nam">join</span><span class="op">(</span><span class="nam">res</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t157" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t158" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_urllib_parse_unquote_plus</span><span class="op">(</span><span class="nam">string</span><span class="op">,</span> <span class="nam">encoding</span><span class="op">=</span><span class="str">&#39;utf-8&#39;</span><span class="op">,</span> <span class="nam">errors</span><span class="op">=</span><span class="str">&#39;replace&#39;</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t159" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&quot;&quot;&quot;Like unquote(), but also replace plus signs by spaces, as required for</span><span class="strut">&nbsp;</span></p>
+<p id="t160" class="pln"><span class="str">&nbsp; &nbsp; &nbsp; &nbsp; unquoting HTML form values.</span><span class="strut">&nbsp;</span></p>
+<p id="t161" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t162" class="pln"><span class="str">&nbsp; &nbsp; &nbsp; &nbsp; unquote_plus(&#39;%7e/abc+def&#39;) -&gt; &#39;~/abc def&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t163" class="pln"><span class="str">&nbsp; &nbsp; &nbsp; &nbsp; &quot;&quot;&quot;</span><span class="strut">&nbsp;</span></p>
+<p id="t164" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">string</span> <span class="op">=</span> <span class="nam">string</span><span class="op">.</span><span class="nam">replace</span><span class="op">(</span><span class="str">&#39;+&#39;</span><span class="op">,</span> <span class="str">&#39; &#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t165" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">compat_urllib_parse_unquote</span><span class="op">(</span><span class="nam">string</span><span class="op">,</span> <span class="nam">encoding</span><span class="op">,</span> <span class="nam">errors</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t166" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t167" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t168" class="stm run hide_run">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">urllib</span><span class="op">.</span><span class="nam">request</span> <span class="key">import</span> <span class="nam">DataHandler</span> <span class="key">as</span> <span class="nam">compat_urllib_request_DataHandler</span><span class="strut">&nbsp;</span></p>
+<p id="t169" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python &lt; 3.4</span><span class="strut">&nbsp;</span></p>
+<p id="t170" class="pln">&nbsp; &nbsp; <span class="com"># Ported from CPython 98774:1733b3bd46db, Lib/urllib/request.py</span><span class="strut">&nbsp;</span></p>
+<p id="t171" class="stm run hide_run">&nbsp; &nbsp; <span class="key">class</span> <span class="nam">compat_urllib_request_DataHandler</span><span class="op">(</span><span class="nam">compat_urllib_request</span><span class="op">.</span><span class="nam">BaseHandler</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t172" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">def</span> <span class="nam">data_open</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">req</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t173" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="com"># data URLs as specified in RFC 2397.</span><span class="strut">&nbsp;</span></p>
+<p id="t174" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="com">#</span><span class="strut">&nbsp;</span></p>
+<p id="t175" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="com"># ignores POSTed data</span><span class="strut">&nbsp;</span></p>
+<p id="t176" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="com">#</span><span class="strut">&nbsp;</span></p>
+<p id="t177" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="com"># syntax:</span><span class="strut">&nbsp;</span></p>
+<p id="t178" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="com"># dataurl&nbsp;&nbsp; := &quot;data:&quot; [ mediatype ] [ &quot;;base64&quot; ] &quot;,&quot; data</span><span class="strut">&nbsp;</span></p>
+<p id="t179" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="com"># mediatype := [ type &quot;/&quot; subtype ] *( &quot;;&quot; parameter )</span><span class="strut">&nbsp;</span></p>
+<p id="t180" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="com"># data&nbsp; &nbsp; &nbsp; := *urlchar</span><span class="strut">&nbsp;</span></p>
+<p id="t181" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="com"># parameter := attribute &quot;=&quot; value</span><span class="strut">&nbsp;</span></p>
+<p id="t182" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">url</span> <span class="op">=</span> <span class="nam">req</span><span class="op">.</span><span class="nam">get_full_url</span><span class="op">(</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t183" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t184" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">scheme</span><span class="op">,</span> <span class="nam">data</span> <span class="op">=</span> <span class="nam">url</span><span class="op">.</span><span class="nam">split</span><span class="op">(</span><span class="str">&quot;:&quot;</span><span class="op">,</span> <span class="num">1</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t185" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">mediatype</span><span class="op">,</span> <span class="nam">data</span> <span class="op">=</span> <span class="nam">data</span><span class="op">.</span><span class="nam">split</span><span class="op">(</span><span class="str">&quot;,&quot;</span><span class="op">,</span> <span class="num">1</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t186" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t187" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="com"># even base64 encoded data URLs might be quoted so unquote in any case:</span><span class="strut">&nbsp;</span></p>
+<p id="t188" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">data</span> <span class="op">=</span> <span class="nam">compat_urllib_parse_unquote_to_bytes</span><span class="op">(</span><span class="nam">data</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t189" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">mediatype</span><span class="op">.</span><span class="nam">endswith</span><span class="op">(</span><span class="str">&quot;;base64&quot;</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t190" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">data</span> <span class="op">=</span> <span class="nam">binascii</span><span class="op">.</span><span class="nam">a2b_base64</span><span class="op">(</span><span class="nam">data</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t191" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">mediatype</span> <span class="op">=</span> <span class="nam">mediatype</span><span class="op">[</span><span class="op">:</span><span class="op">-</span><span class="num">7</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t192" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t193" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="key">not</span> <span class="nam">mediatype</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t194" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">mediatype</span> <span class="op">=</span> <span class="str">&quot;text/plain;charset=US-ASCII&quot;</span><span class="strut">&nbsp;</span></p>
+<p id="t195" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t196" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">headers</span> <span class="op">=</span> <span class="nam">email</span><span class="op">.</span><span class="nam">message_from_string</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t197" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&quot;Content-type: %s\nContent-length: %d\n&quot;</span> <span class="op">%</span> <span class="op">(</span><span class="nam">mediatype</span><span class="op">,</span> <span class="nam">len</span><span class="op">(</span><span class="nam">data</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t198" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t199" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">compat_urllib_response</span><span class="op">.</span><span class="nam">addinfourl</span><span class="op">(</span><span class="nam">io</span><span class="op">.</span><span class="nam">BytesIO</span><span class="op">(</span><span class="nam">data</span><span class="op">)</span><span class="op">,</span> <span class="nam">headers</span><span class="op">,</span> <span class="nam">url</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t200" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t201" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t202" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">compat_basestring</span> <span class="op">=</span> <span class="nam">basestring</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t203" class="stm mis"><span class="key">except</span> <span class="nam">NameError</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t204" class="stm mis">&nbsp; &nbsp; <span class="nam">compat_basestring</span> <span class="op">=</span> <span class="nam">str</span><span class="strut">&nbsp;</span></p>
+<p id="t205" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t206" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t207" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">compat_chr</span> <span class="op">=</span> <span class="nam">unichr</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t208" class="stm mis"><span class="key">except</span> <span class="nam">NameError</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t209" class="stm mis">&nbsp; &nbsp; <span class="nam">compat_chr</span> <span class="op">=</span> <span class="nam">chr</span><span class="strut">&nbsp;</span></p>
+<p id="t210" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t211" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t212" class="stm run hide_run">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">xml</span><span class="op">.</span><span class="nam">etree</span><span class="op">.</span><span class="nam">ElementTree</span> <span class="key">import</span> <span class="nam">ParseError</span> <span class="key">as</span> <span class="nam">compat_xml_parse_error</span><span class="strut">&nbsp;</span></p>
+<p id="t213" class="stm mis"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2.6</span><span class="strut">&nbsp;</span></p>
+<p id="t214" class="stm mis">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">xml</span><span class="op">.</span><span class="nam">parsers</span><span class="op">.</span><span class="nam">expat</span> <span class="key">import</span> <span class="nam">ExpatError</span> <span class="key">as</span> <span class="nam">compat_xml_parse_error</span><span class="strut">&nbsp;</span></p>
+<p id="t215" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t216" class="stm par run hide_run"><span class="annotate" title="Line 216 was executed, but never jumped to line 217">216&#x202F;&#x219B;&#x202F;217 [?]</span><span class="key">if</span> <span class="nam">sys</span><span class="op">.</span><span class="nam">version_info</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">&gt;=</span> <span class="num">3</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t217" class="stm mis">&nbsp; &nbsp; <span class="nam">compat_etree_fromstring</span> <span class="op">=</span> <span class="nam">xml</span><span class="op">.</span><span class="nam">etree</span><span class="op">.</span><span class="nam">ElementTree</span><span class="op">.</span><span class="nam">fromstring</span><span class="strut">&nbsp;</span></p>
+<p id="t218" class="pln"><span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t219" class="pln">&nbsp; &nbsp; <span class="com"># python 2.x tries to encode unicode strings with ascii (see the</span><span class="strut">&nbsp;</span></p>
+<p id="t220" class="pln">&nbsp; &nbsp; <span class="com"># XMLParser._fixtext method)</span><span class="strut">&nbsp;</span></p>
+<p id="t221" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">etree</span> <span class="op">=</span> <span class="nam">xml</span><span class="op">.</span><span class="nam">etree</span><span class="op">.</span><span class="nam">ElementTree</span><span class="strut">&nbsp;</span></p>
+<p id="t222" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t223" class="stm run hide_run">&nbsp; &nbsp; <span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t224" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">_etree_iter</span> <span class="op">=</span> <span class="nam">etree</span><span class="op">.</span><span class="nam">Element</span><span class="op">.</span><span class="nam">iter</span><span class="strut">&nbsp;</span></p>
+<p id="t225" class="stm mis">&nbsp; &nbsp; <span class="key">except</span> <span class="nam">AttributeError</span><span class="op">:</span>&nbsp; <span class="com"># Python &lt;=2.6</span><span class="strut">&nbsp;</span></p>
+<p id="t226" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">def</span> <span class="nam">_etree_iter</span><span class="op">(</span><span class="nam">root</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t227" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">for</span> <span class="nam">el</span> <span class="key">in</span> <span class="nam">root</span><span class="op">.</span><span class="nam">findall</span><span class="op">(</span><span class="str">&#39;*&#39;</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t228" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">yield</span> <span class="nam">el</span><span class="strut">&nbsp;</span></p>
+<p id="t229" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">for</span> <span class="nam">sub</span> <span class="key">in</span> <span class="nam">_etree_iter</span><span class="op">(</span><span class="nam">el</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t230" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">yield</span> <span class="nam">sub</span><span class="strut">&nbsp;</span></p>
+<p id="t231" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t232" class="pln">&nbsp; &nbsp; <span class="com"># on 2.6 XML doesn&#39;t have a parser argument, function copied from CPython</span><span class="strut">&nbsp;</span></p>
+<p id="t233" class="pln">&nbsp; &nbsp; <span class="com"># 2.7 source</span><span class="strut">&nbsp;</span></p>
+<p id="t234" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">_XML</span><span class="op">(</span><span class="nam">text</span><span class="op">,</span> <span class="nam">parser</span><span class="op">=</span><span class="nam">None</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t235" class="stm par run hide_run"><span class="annotate" title="Line 235 was executed, but never jumped to line 236">235&#x202F;&#x219B;&#x202F;236 [?]</span>&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="key">not</span> <span class="nam">parser</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t236" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">parser</span> <span class="op">=</span> <span class="nam">etree</span><span class="op">.</span><span class="nam">XMLParser</span><span class="op">(</span><span class="nam">target</span><span class="op">=</span><span class="nam">etree</span><span class="op">.</span><span class="nam">TreeBuilder</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t237" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">parser</span><span class="op">.</span><span class="nam">feed</span><span class="op">(</span><span class="nam">text</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t238" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">parser</span><span class="op">.</span><span class="nam">close</span><span class="op">(</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t239" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t240" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">_element_factory</span><span class="op">(</span><span class="op">*</span><span class="nam">args</span><span class="op">,</span> <span class="op">**</span><span class="nam">kwargs</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t241" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">el</span> <span class="op">=</span> <span class="nam">etree</span><span class="op">.</span><span class="nam">Element</span><span class="op">(</span><span class="op">*</span><span class="nam">args</span><span class="op">,</span> <span class="op">**</span><span class="nam">kwargs</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t242" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">for</span> <span class="nam">k</span><span class="op">,</span> <span class="nam">v</span> <span class="key">in</span> <span class="nam">el</span><span class="op">.</span><span class="nam">items</span><span class="op">(</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t243" class="stm par run hide_run"><span class="annotate" title="Line 243 was executed, but never jumped to line 242">243&#x202F;&#x219B;&#x202F;242 [?]</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">isinstance</span><span class="op">(</span><span class="nam">v</span><span class="op">,</span> <span class="nam">bytes</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t244" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">el</span><span class="op">.</span><span class="nam">set</span><span class="op">(</span><span class="nam">k</span><span class="op">,</span> <span class="nam">v</span><span class="op">.</span><span class="nam">decode</span><span class="op">(</span><span class="str">&#39;utf-8&#39;</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t245" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">el</span><span class="strut">&nbsp;</span></p>
+<p id="t246" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t247" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_etree_fromstring</span><span class="op">(</span><span class="nam">text</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t248" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">doc</span> <span class="op">=</span> <span class="nam">_XML</span><span class="op">(</span><span class="nam">text</span><span class="op">,</span> <span class="nam">parser</span><span class="op">=</span><span class="nam">etree</span><span class="op">.</span><span class="nam">XMLParser</span><span class="op">(</span><span class="nam">target</span><span class="op">=</span><span class="nam">etree</span><span class="op">.</span><span class="nam">TreeBuilder</span><span class="op">(</span><span class="nam">element_factory</span><span class="op">=</span><span class="nam">_element_factory</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t249" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">for</span> <span class="nam">el</span> <span class="key">in</span> <span class="nam">_etree_iter</span><span class="op">(</span><span class="nam">doc</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t250" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">el</span><span class="op">.</span><span class="nam">text</span> <span class="key">is</span> <span class="key">not</span> <span class="nam">None</span> <span class="key">and</span> <span class="nam">isinstance</span><span class="op">(</span><span class="nam">el</span><span class="op">.</span><span class="nam">text</span><span class="op">,</span> <span class="nam">bytes</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t251" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">el</span><span class="op">.</span><span class="nam">text</span> <span class="op">=</span> <span class="nam">el</span><span class="op">.</span><span class="nam">text</span><span class="op">.</span><span class="nam">decode</span><span class="op">(</span><span class="str">&#39;utf-8&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t252" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">doc</span><span class="strut">&nbsp;</span></p>
+<p id="t253" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t254" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t255" class="stm run hide_run">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">urllib</span><span class="op">.</span><span class="nam">parse</span> <span class="key">import</span> <span class="nam">parse_qs</span> <span class="key">as</span> <span class="nam">compat_parse_qs</span><span class="strut">&nbsp;</span></p>
+<p id="t256" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t257" class="pln">&nbsp; &nbsp; <span class="com"># HACK: The following is the correct parse_qs implementation from cpython 3&#39;s stdlib.</span><span class="strut">&nbsp;</span></p>
+<p id="t258" class="pln">&nbsp; &nbsp; <span class="com"># Python 2&#39;s version is apparently totally broken</span><span class="strut">&nbsp;</span></p>
+<p id="t259" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t260" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">_parse_qsl</span><span class="op">(</span><span class="nam">qs</span><span class="op">,</span> <span class="nam">keep_blank_values</span><span class="op">=</span><span class="nam">False</span><span class="op">,</span> <span class="nam">strict_parsing</span><span class="op">=</span><span class="nam">False</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t261" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <span class="nam">encoding</span><span class="op">=</span><span class="str">&#39;utf-8&#39;</span><span class="op">,</span> <span class="nam">errors</span><span class="op">=</span><span class="str">&#39;replace&#39;</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t262" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">qs</span><span class="op">,</span> <span class="nam">_coerce_result</span> <span class="op">=</span> <span class="nam">qs</span><span class="op">,</span> <span class="nam">compat_str</span><span class="strut">&nbsp;</span></p>
+<p id="t263" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">pairs</span> <span class="op">=</span> <span class="op">[</span><span class="nam">s2</span> <span class="key">for</span> <span class="nam">s1</span> <span class="key">in</span> <span class="nam">qs</span><span class="op">.</span><span class="nam">split</span><span class="op">(</span><span class="str">&#39;&amp;&#39;</span><span class="op">)</span> <span class="key">for</span> <span class="nam">s2</span> <span class="key">in</span> <span class="nam">s1</span><span class="op">.</span><span class="nam">split</span><span class="op">(</span><span class="str">&#39;;&#39;</span><span class="op">)</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t264" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">r</span> <span class="op">=</span> <span class="op">[</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t265" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">for</span> <span class="nam">name_value</span> <span class="key">in</span> <span class="nam">pairs</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t266" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="key">not</span> <span class="nam">name_value</span> <span class="key">and</span> <span class="key">not</span> <span class="nam">strict_parsing</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t267" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">continue</span><span class="strut">&nbsp;</span></p>
+<p id="t268" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">nv</span> <span class="op">=</span> <span class="nam">name_value</span><span class="op">.</span><span class="nam">split</span><span class="op">(</span><span class="str">&#39;=&#39;</span><span class="op">,</span> <span class="num">1</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t269" class="stm par run hide_run"><span class="annotate" title="Line 269 was executed, but never jumped to line 270">269&#x202F;&#x219B;&#x202F;270 [?]</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">len</span><span class="op">(</span><span class="nam">nv</span><span class="op">)</span> <span class="op">!=</span> <span class="num">2</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t270" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">strict_parsing</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t271" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">raise</span> <span class="nam">ValueError</span><span class="op">(</span><span class="str">&quot;bad query field: %r&quot;</span> <span class="op">%</span> <span class="op">(</span><span class="nam">name_value</span><span class="op">,</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t272" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="com"># Handle case of a control-name with no equal sign</span><span class="strut">&nbsp;</span></p>
+<p id="t273" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">keep_blank_values</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t274" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">nv</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="str">&#39;&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t275" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t276" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">continue</span><span class="strut">&nbsp;</span></p>
+<p id="t277" class="stm par run hide_run"><span class="annotate" title="Line 277 was executed, but never jumped to line 265">277&#x202F;&#x219B;&#x202F;265 [?]</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">len</span><span class="op">(</span><span class="nam">nv</span><span class="op">[</span><span class="num">1</span><span class="op">]</span><span class="op">)</span> <span class="key">or</span> <span class="nam">keep_blank_values</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t278" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">name</span> <span class="op">=</span> <span class="nam">nv</span><span class="op">[</span><span class="num">0</span><span class="op">]</span><span class="op">.</span><span class="nam">replace</span><span class="op">(</span><span class="str">&#39;+&#39;</span><span class="op">,</span> <span class="str">&#39; &#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t279" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">name</span> <span class="op">=</span> <span class="nam">compat_urllib_parse_unquote</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t280" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">name</span><span class="op">,</span> <span class="nam">encoding</span><span class="op">=</span><span class="nam">encoding</span><span class="op">,</span> <span class="nam">errors</span><span class="op">=</span><span class="nam">errors</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t281" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">name</span> <span class="op">=</span> <span class="nam">_coerce_result</span><span class="op">(</span><span class="nam">name</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t282" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">value</span> <span class="op">=</span> <span class="nam">nv</span><span class="op">[</span><span class="num">1</span><span class="op">]</span><span class="op">.</span><span class="nam">replace</span><span class="op">(</span><span class="str">&#39;+&#39;</span><span class="op">,</span> <span class="str">&#39; &#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t283" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">value</span> <span class="op">=</span> <span class="nam">compat_urllib_parse_unquote</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t284" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">value</span><span class="op">,</span> <span class="nam">encoding</span><span class="op">=</span><span class="nam">encoding</span><span class="op">,</span> <span class="nam">errors</span><span class="op">=</span><span class="nam">errors</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t285" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">value</span> <span class="op">=</span> <span class="nam">_coerce_result</span><span class="op">(</span><span class="nam">value</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t286" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">r</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="op">(</span><span class="nam">name</span><span class="op">,</span> <span class="nam">value</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t287" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">r</span><span class="strut">&nbsp;</span></p>
+<p id="t288" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t289" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_parse_qs</span><span class="op">(</span><span class="nam">qs</span><span class="op">,</span> <span class="nam">keep_blank_values</span><span class="op">=</span><span class="nam">False</span><span class="op">,</span> <span class="nam">strict_parsing</span><span class="op">=</span><span class="nam">False</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t290" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">encoding</span><span class="op">=</span><span class="str">&#39;utf-8&#39;</span><span class="op">,</span> <span class="nam">errors</span><span class="op">=</span><span class="str">&#39;replace&#39;</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t291" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">parsed_result</span> <span class="op">=</span> <span class="op">{</span><span class="op">}</span><span class="strut">&nbsp;</span></p>
+<p id="t292" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">pairs</span> <span class="op">=</span> <span class="nam">_parse_qsl</span><span class="op">(</span><span class="nam">qs</span><span class="op">,</span> <span class="nam">keep_blank_values</span><span class="op">,</span> <span class="nam">strict_parsing</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t293" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; <span class="nam">encoding</span><span class="op">=</span><span class="nam">encoding</span><span class="op">,</span> <span class="nam">errors</span><span class="op">=</span><span class="nam">errors</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t294" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">for</span> <span class="nam">name</span><span class="op">,</span> <span class="nam">value</span> <span class="key">in</span> <span class="nam">pairs</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t295" class="stm par run hide_run"><span class="annotate" title="Line 295 was executed, but never jumped to line 296">295&#x202F;&#x219B;&#x202F;296 [?]</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">name</span> <span class="key">in</span> <span class="nam">parsed_result</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t296" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">parsed_result</span><span class="op">[</span><span class="nam">name</span><span class="op">]</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="nam">value</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t297" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t298" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">parsed_result</span><span class="op">[</span><span class="nam">name</span><span class="op">]</span> <span class="op">=</span> <span class="op">[</span><span class="nam">value</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t299" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">parsed_result</span><span class="strut">&nbsp;</span></p>
+<p id="t300" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t301" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t302" class="stm run hide_run">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">shlex</span> <span class="key">import</span> <span class="nam">quote</span> <span class="key">as</span> <span class="nam">shlex_quote</span><span class="strut">&nbsp;</span></p>
+<p id="t303" class="stm run hide_run"><span class="key">except</span> <span class="nam">ImportError</span><span class="op">:</span>&nbsp; <span class="com"># Python &lt; 3.3</span><span class="strut">&nbsp;</span></p>
+<p id="t304" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">shlex_quote</span><span class="op">(</span><span class="nam">s</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t305" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">re</span><span class="op">.</span><span class="nam">match</span><span class="op">(</span><span class="str">r&#39;^[-_\w./]+$&#39;</span><span class="op">,</span> <span class="nam">s</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t306" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">s</span><span class="strut">&nbsp;</span></p>
+<p id="t307" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t308" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="str">&quot;&#39;&quot;</span> <span class="op">+</span> <span class="nam">s</span><span class="op">.</span><span class="nam">replace</span><span class="op">(</span><span class="str">&quot;&#39;&quot;</span><span class="op">,</span> <span class="str">&quot;&#39;\&quot;&#39;\&quot;&#39;&quot;</span><span class="op">)</span> <span class="op">+</span> <span class="str">&quot;&#39;&quot;</span><span class="strut">&nbsp;</span></p>
+<p id="t309" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t310" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t311" class="stm par run hide_run"><span class="annotate" title="Line 311 was executed, but never jumped to line 316">311&#x202F;&#x219B;&#x202F;316 [?]</span><span class="key">if</span> <span class="nam">sys</span><span class="op">.</span><span class="nam">version_info</span> <span class="op">&gt;=</span> <span class="op">(</span><span class="num">2</span><span class="op">,</span> <span class="num">7</span><span class="op">,</span> <span class="num">3</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t312" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">compat_shlex_split</span> <span class="op">=</span> <span class="nam">shlex</span><span class="op">.</span><span class="nam">split</span><span class="strut">&nbsp;</span></p>
+<p id="t313" class="pln"><span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t314" class="pln">&nbsp; &nbsp; <span class="com"># Working around shlex issue with unicode strings on some python 2</span><span class="strut">&nbsp;</span></p>
+<p id="t315" class="pln">&nbsp; &nbsp; <span class="com"># versions (see http://bugs.python.org/issue1548891)</span><span class="strut">&nbsp;</span></p>
+<p id="t316" class="stm mis">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_shlex_split</span><span class="op">(</span><span class="nam">s</span><span class="op">,</span> <span class="nam">comments</span><span class="op">=</span><span class="nam">False</span><span class="op">,</span> <span class="nam">posix</span><span class="op">=</span><span class="nam">True</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t317" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">isinstance</span><span class="op">(</span><span class="nam">s</span><span class="op">,</span> <span class="nam">compat_str</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t318" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">s</span> <span class="op">=</span> <span class="nam">s</span><span class="op">.</span><span class="nam">encode</span><span class="op">(</span><span class="str">&#39;utf-8&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t319" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">shlex</span><span class="op">.</span><span class="nam">split</span><span class="op">(</span><span class="nam">s</span><span class="op">,</span> <span class="nam">comments</span><span class="op">,</span> <span class="nam">posix</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t320" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t321" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t322" class="stm run hide_run"><span class="key">def</span> <span class="nam">compat_ord</span><span class="op">(</span><span class="nam">c</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t323" class="stm mis">&nbsp; &nbsp; <span class="key">if</span> <span class="nam">type</span><span class="op">(</span><span class="nam">c</span><span class="op">)</span> <span class="key">is</span> <span class="nam">int</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t324" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">c</span><span class="strut">&nbsp;</span></p>
+<p id="t325" class="pln">&nbsp; &nbsp; <span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t326" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">ord</span><span class="op">(</span><span class="nam">c</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t327" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t328" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t329" class="stm par run hide_run"><span class="annotate" title="Line 329 was executed, but never jumped to line 330">329&#x202F;&#x219B;&#x202F;330 [?]</span><span class="key">if</span> <span class="nam">sys</span><span class="op">.</span><span class="nam">version_info</span> <span class="op">&gt;=</span> <span class="op">(</span><span class="num">3</span><span class="op">,</span> <span class="num">0</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t330" class="stm mis">&nbsp; &nbsp; <span class="nam">compat_getenv</span> <span class="op">=</span> <span class="nam">os</span><span class="op">.</span><span class="nam">getenv</span><span class="strut">&nbsp;</span></p>
+<p id="t331" class="stm mis">&nbsp; &nbsp; <span class="nam">compat_expanduser</span> <span class="op">=</span> <span class="nam">os</span><span class="op">.</span><span class="nam">path</span><span class="op">.</span><span class="nam">expanduser</span><span class="strut">&nbsp;</span></p>
+<p id="t332" class="pln"><span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t333" class="pln">&nbsp; &nbsp; <span class="com"># Environment variables should be decoded with filesystem encoding.</span><span class="strut">&nbsp;</span></p>
+<p id="t334" class="pln">&nbsp; &nbsp; <span class="com"># Otherwise it will fail if any non-ASCII characters present (see #3854 #3217 #2918)</span><span class="strut">&nbsp;</span></p>
+<p id="t335" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t336" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_getenv</span><span class="op">(</span><span class="nam">key</span><span class="op">,</span> <span class="nam">default</span><span class="op">=</span><span class="nam">None</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t337" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">from</span> <span class="op">.</span><span class="nam">utils</span> <span class="key">import</span> <span class="nam">get_filesystem_encoding</span><span class="strut">&nbsp;</span></p>
+<p id="t338" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">env</span> <span class="op">=</span> <span class="nam">os</span><span class="op">.</span><span class="nam">getenv</span><span class="op">(</span><span class="nam">key</span><span class="op">,</span> <span class="nam">default</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t339" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">env</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t340" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">env</span> <span class="op">=</span> <span class="nam">env</span><span class="op">.</span><span class="nam">decode</span><span class="op">(</span><span class="nam">get_filesystem_encoding</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t341" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">env</span><span class="strut">&nbsp;</span></p>
+<p id="t342" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t343" class="pln">&nbsp; &nbsp; <span class="com"># HACK: The default implementations of os.path.expanduser from cpython do not decode</span><span class="strut">&nbsp;</span></p>
+<p id="t344" class="pln">&nbsp; &nbsp; <span class="com"># environment variables with filesystem encoding. We will work around this by</span><span class="strut">&nbsp;</span></p>
+<p id="t345" class="pln">&nbsp; &nbsp; <span class="com"># providing adjusted implementations.</span><span class="strut">&nbsp;</span></p>
+<p id="t346" class="pln">&nbsp; &nbsp; <span class="com"># The following are os.path.expanduser implementations from cpython 2.7.8 stdlib</span><span class="strut">&nbsp;</span></p>
+<p id="t347" class="pln">&nbsp; &nbsp; <span class="com"># for different platforms with correct environment variables decoding.</span><span class="strut">&nbsp;</span></p>
+<p id="t348" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t349" class="stm par run hide_run"><span class="annotate" title="Line 349 was executed, but never jumped to line 373">349&#x202F;&#x219B;&#x202F;373 [?]</span>&nbsp; &nbsp; <span class="key">if</span> <span class="nam">os</span><span class="op">.</span><span class="nam">name</span> <span class="op">==</span> <span class="str">&#39;posix&#39;</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t350" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_expanduser</span><span class="op">(</span><span class="nam">path</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t351" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&quot;&quot;&quot;Expand ~ and ~user constructions.&nbsp; If user or $HOME is unknown,</span><span class="strut">&nbsp;</span></p>
+<p id="t352" class="pln"><span class="str">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; do nothing.&quot;&quot;&quot;</span><span class="strut">&nbsp;</span></p>
+<p id="t353" class="stm par run hide_run"><span class="annotate" title="Line 353 was executed, but never jumped to line 355">353&#x202F;&#x219B;&#x202F;355 [?]</span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="key">not</span> <span class="nam">path</span><span class="op">.</span><span class="nam">startswith</span><span class="op">(</span><span class="str">&#39;~&#39;</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t354" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">path</span><span class="strut">&nbsp;</span></p>
+<p id="t355" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">i</span> <span class="op">=</span> <span class="nam">path</span><span class="op">.</span><span class="nam">find</span><span class="op">(</span><span class="str">&#39;/&#39;</span><span class="op">,</span> <span class="num">1</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t356" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">i</span> <span class="op">&lt;</span> <span class="num">0</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t357" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">i</span> <span class="op">=</span> <span class="nam">len</span><span class="op">(</span><span class="nam">path</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t358" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">i</span> <span class="op">==</span> <span class="num">1</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t359" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="str">&#39;HOME&#39;</span> <span class="key">not</span> <span class="key">in</span> <span class="nam">os</span><span class="op">.</span><span class="nam">environ</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t360" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">import</span> <span class="nam">pwd</span><span class="strut">&nbsp;</span></p>
+<p id="t361" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">userhome</span> <span class="op">=</span> <span class="nam">pwd</span><span class="op">.</span><span class="nam">getpwuid</span><span class="op">(</span><span class="nam">os</span><span class="op">.</span><span class="nam">getuid</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">.</span><span class="nam">pw_dir</span><span class="strut">&nbsp;</span></p>
+<p id="t362" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t363" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">userhome</span> <span class="op">=</span> <span class="nam">compat_getenv</span><span class="op">(</span><span class="str">&#39;HOME&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t364" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t365" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">import</span> <span class="nam">pwd</span><span class="strut">&nbsp;</span></p>
+<p id="t366" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t367" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">pwent</span> <span class="op">=</span> <span class="nam">pwd</span><span class="op">.</span><span class="nam">getpwnam</span><span class="op">(</span><span class="nam">path</span><span class="op">[</span><span class="num">1</span><span class="op">:</span><span class="nam">i</span><span class="op">]</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t368" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">except</span> <span class="nam">KeyError</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t369" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">path</span><span class="strut">&nbsp;</span></p>
+<p id="t370" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">userhome</span> <span class="op">=</span> <span class="nam">pwent</span><span class="op">.</span><span class="nam">pw_dir</span><span class="strut">&nbsp;</span></p>
+<p id="t371" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">userhome</span> <span class="op">=</span> <span class="nam">userhome</span><span class="op">.</span><span class="nam">rstrip</span><span class="op">(</span><span class="str">&#39;/&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t372" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="op">(</span><span class="nam">userhome</span> <span class="op">+</span> <span class="nam">path</span><span class="op">[</span><span class="nam">i</span><span class="op">:</span><span class="op">]</span><span class="op">)</span> <span class="key">or</span> <span class="str">&#39;/&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t373" class="stm mis">&nbsp; &nbsp; <span class="key">elif</span> <span class="nam">os</span><span class="op">.</span><span class="nam">name</span> <span class="op">==</span> <span class="str">&#39;nt&#39;</span> <span class="key">or</span> <span class="nam">os</span><span class="op">.</span><span class="nam">name</span> <span class="op">==</span> <span class="str">&#39;ce&#39;</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t374" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_expanduser</span><span class="op">(</span><span class="nam">path</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t375" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="str">&quot;&quot;&quot;Expand ~ and ~user constructs.</span><span class="strut">&nbsp;</span></p>
+<p id="t376" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t377" class="pln"><span class="str">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; If user or $HOME is unknown, do nothing.&quot;&quot;&quot;</span><span class="strut">&nbsp;</span></p>
+<p id="t378" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">path</span><span class="op">[</span><span class="op">:</span><span class="num">1</span><span class="op">]</span> <span class="op">!=</span> <span class="str">&#39;~&#39;</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t379" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">path</span><span class="strut">&nbsp;</span></p>
+<p id="t380" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">i</span><span class="op">,</span> <span class="nam">n</span> <span class="op">=</span> <span class="num">1</span><span class="op">,</span> <span class="nam">len</span><span class="op">(</span><span class="nam">path</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t381" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">while</span> <span class="nam">i</span> <span class="op">&lt;</span> <span class="nam">n</span> <span class="key">and</span> <span class="nam">path</span><span class="op">[</span><span class="nam">i</span><span class="op">]</span> <span class="key">not</span> <span class="key">in</span> <span class="str">&#39;/\\&#39;</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t382" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">i</span> <span class="op">=</span> <span class="nam">i</span> <span class="op">+</span> <span class="num">1</span><span class="strut">&nbsp;</span></p>
+<p id="t383" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t384" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="str">&#39;HOME&#39;</span> <span class="key">in</span> <span class="nam">os</span><span class="op">.</span><span class="nam">environ</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t385" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">userhome</span> <span class="op">=</span> <span class="nam">compat_getenv</span><span class="op">(</span><span class="str">&#39;HOME&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t386" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">elif</span> <span class="str">&#39;USERPROFILE&#39;</span> <span class="key">in</span> <span class="nam">os</span><span class="op">.</span><span class="nam">environ</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t387" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">userhome</span> <span class="op">=</span> <span class="nam">compat_getenv</span><span class="op">(</span><span class="str">&#39;USERPROFILE&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t388" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">elif</span> <span class="str">&#39;HOMEPATH&#39;</span> <span class="key">not</span> <span class="key">in</span> <span class="nam">os</span><span class="op">.</span><span class="nam">environ</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t389" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">path</span><span class="strut">&nbsp;</span></p>
+<p id="t390" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t391" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t392" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">drive</span> <span class="op">=</span> <span class="nam">compat_getenv</span><span class="op">(</span><span class="str">&#39;HOMEDRIVE&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t393" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">except</span> <span class="nam">KeyError</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t394" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">drive</span> <span class="op">=</span> <span class="str">&#39;&#39;</span><span class="strut">&nbsp;</span></p>
+<p id="t395" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">userhome</span> <span class="op">=</span> <span class="nam">os</span><span class="op">.</span><span class="nam">path</span><span class="op">.</span><span class="nam">join</span><span class="op">(</span><span class="nam">drive</span><span class="op">,</span> <span class="nam">compat_getenv</span><span class="op">(</span><span class="str">&#39;HOMEPATH&#39;</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t396" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t397" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">i</span> <span class="op">!=</span> <span class="num">1</span><span class="op">:</span>&nbsp; <span class="com"># ~user</span><span class="strut">&nbsp;</span></p>
+<p id="t398" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">userhome</span> <span class="op">=</span> <span class="nam">os</span><span class="op">.</span><span class="nam">path</span><span class="op">.</span><span class="nam">join</span><span class="op">(</span><span class="nam">os</span><span class="op">.</span><span class="nam">path</span><span class="op">.</span><span class="nam">dirname</span><span class="op">(</span><span class="nam">userhome</span><span class="op">)</span><span class="op">,</span> <span class="nam">path</span><span class="op">[</span><span class="num">1</span><span class="op">:</span><span class="nam">i</span><span class="op">]</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t399" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t400" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">userhome</span> <span class="op">+</span> <span class="nam">path</span><span class="op">[</span><span class="nam">i</span><span class="op">:</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t401" class="pln">&nbsp; &nbsp; <span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t402" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">compat_expanduser</span> <span class="op">=</span> <span class="nam">os</span><span class="op">.</span><span class="nam">path</span><span class="op">.</span><span class="nam">expanduser</span><span class="strut">&nbsp;</span></p>
+<p id="t403" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t404" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t405" class="stm par run hide_run"><span class="annotate" title="Line 405 was executed, but never jumped to line 410">405&#x202F;&#x219B;&#x202F;410 [?]</span><span class="key">if</span> <span class="nam">sys</span><span class="op">.</span><span class="nam">version_info</span> <span class="op">&lt;</span> <span class="op">(</span><span class="num">3</span><span class="op">,</span> <span class="num">0</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t406" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_print</span><span class="op">(</span><span class="nam">s</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t407" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">from</span> <span class="op">.</span><span class="nam">utils</span> <span class="key">import</span> <span class="nam">preferredencoding</span><span class="strut">&nbsp;</span></p>
+<p id="t408" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">print</span><span class="op">(</span><span class="nam">s</span><span class="op">.</span><span class="nam">encode</span><span class="op">(</span><span class="nam">preferredencoding</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="str">&#39;xmlcharrefreplace&#39;</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t409" class="pln"><span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t410" class="stm mis">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_print</span><span class="op">(</span><span class="nam">s</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t411" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">assert</span> <span class="nam">isinstance</span><span class="op">(</span><span class="nam">s</span><span class="op">,</span> <span class="nam">compat_str</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t412" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">print</span><span class="op">(</span><span class="nam">s</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t413" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t414" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t415" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t416" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">subprocess_check_output</span> <span class="op">=</span> <span class="nam">subprocess</span><span class="op">.</span><span class="nam">check_output</span><span class="strut">&nbsp;</span></p>
+<p id="t417" class="stm mis"><span class="key">except</span> <span class="nam">AttributeError</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t418" class="stm mis">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">subprocess_check_output</span><span class="op">(</span><span class="op">*</span><span class="nam">args</span><span class="op">,</span> <span class="op">**</span><span class="nam">kwargs</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t419" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">assert</span> <span class="str">&#39;input&#39;</span> <span class="key">not</span> <span class="key">in</span> <span class="nam">kwargs</span><span class="strut">&nbsp;</span></p>
+<p id="t420" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">p</span> <span class="op">=</span> <span class="nam">subprocess</span><span class="op">.</span><span class="nam">Popen</span><span class="op">(</span><span class="op">*</span><span class="nam">args</span><span class="op">,</span> <span class="nam">stdout</span><span class="op">=</span><span class="nam">subprocess</span><span class="op">.</span><span class="nam">PIPE</span><span class="op">,</span> <span class="op">**</span><span class="nam">kwargs</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t421" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">output</span><span class="op">,</span> <span class="nam">_</span> <span class="op">=</span> <span class="nam">p</span><span class="op">.</span><span class="nam">communicate</span><span class="op">(</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t422" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">ret</span> <span class="op">=</span> <span class="nam">p</span><span class="op">.</span><span class="nam">poll</span><span class="op">(</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t423" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">ret</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t424" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">raise</span> <span class="nam">subprocess</span><span class="op">.</span><span class="nam">CalledProcessError</span><span class="op">(</span><span class="nam">ret</span><span class="op">,</span> <span class="nam">p</span><span class="op">.</span><span class="nam">args</span><span class="op">,</span> <span class="nam">output</span><span class="op">=</span><span class="nam">output</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t425" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">output</span><span class="strut">&nbsp;</span></p>
+<p id="t426" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t427" class="stm par run hide_run"><span class="annotate" title="Line 427 was executed, but never jumped to line 428">427&#x202F;&#x219B;&#x202F;428 [?]</span><span class="key">if</span> <span class="nam">sys</span><span class="op">.</span><span class="nam">version_info</span> <span class="op">&lt;</span> <span class="op">(</span><span class="num">3</span><span class="op">,</span> <span class="num">0</span><span class="op">)</span> <span class="key">and</span> <span class="nam">sys</span><span class="op">.</span><span class="nam">platform</span> <span class="op">==</span> <span class="str">&#39;win32&#39;</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t428" class="stm mis">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_getpass</span><span class="op">(</span><span class="nam">prompt</span><span class="op">,</span> <span class="op">*</span><span class="nam">args</span><span class="op">,</span> <span class="op">**</span><span class="nam">kwargs</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t429" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">isinstance</span><span class="op">(</span><span class="nam">prompt</span><span class="op">,</span> <span class="nam">compat_str</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t430" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">from</span> <span class="op">.</span><span class="nam">utils</span> <span class="key">import</span> <span class="nam">preferredencoding</span><span class="strut">&nbsp;</span></p>
+<p id="t431" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">prompt</span> <span class="op">=</span> <span class="nam">prompt</span><span class="op">.</span><span class="nam">encode</span><span class="op">(</span><span class="nam">preferredencoding</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t432" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">getpass</span><span class="op">.</span><span class="nam">getpass</span><span class="op">(</span><span class="nam">prompt</span><span class="op">,</span> <span class="op">*</span><span class="nam">args</span><span class="op">,</span> <span class="op">**</span><span class="nam">kwargs</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t433" class="pln"><span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t434" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">compat_getpass</span> <span class="op">=</span> <span class="nam">getpass</span><span class="op">.</span><span class="nam">getpass</span><span class="strut">&nbsp;</span></p>
+<p id="t435" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t436" class="pln"><span class="com"># Old 2.6 and 2.7 releases require kwargs to be bytes</span><span class="strut">&nbsp;</span></p>
+<p id="t437" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t438" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">_testfunc</span><span class="op">(</span><span class="nam">x</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t439" class="stm run hide_run">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">pass</span><span class="strut">&nbsp;</span></p>
+<p id="t440" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_testfunc</span><span class="op">(</span><span class="op">**</span><span class="op">{</span><span class="str">&#39;x&#39;</span><span class="op">:</span> <span class="num">0</span><span class="op">}</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t441" class="stm mis"><span class="key">except</span> <span class="nam">TypeError</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t442" class="stm mis">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_kwargs</span><span class="op">(</span><span class="nam">kwargs</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t443" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">dict</span><span class="op">(</span><span class="op">(</span><span class="nam">bytes</span><span class="op">(</span><span class="nam">k</span><span class="op">)</span><span class="op">,</span> <span class="nam">v</span><span class="op">)</span> <span class="key">for</span> <span class="nam">k</span><span class="op">,</span> <span class="nam">v</span> <span class="key">in</span> <span class="nam">kwargs</span><span class="op">.</span><span class="nam">items</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t444" class="pln"><span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t445" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">compat_kwargs</span> <span class="op">=</span> <span class="key">lambda</span> <span class="nam">kwargs</span><span class="op">:</span> <span class="nam">kwargs</span><span class="strut">&nbsp;</span></p>
+<p id="t446" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t447" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t448" class="stm par run hide_run"><span class="annotate" title="Line 448 was executed, but never jumped to line 449">448&#x202F;&#x219B;&#x202F;449 [?]</span><span class="key">if</span> <span class="nam">sys</span><span class="op">.</span><span class="nam">version_info</span> <span class="op">&lt;</span> <span class="op">(</span><span class="num">2</span><span class="op">,</span> <span class="num">7</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t449" class="stm mis">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_socket_create_connection</span><span class="op">(</span><span class="nam">address</span><span class="op">,</span> <span class="nam">timeout</span><span class="op">,</span> <span class="nam">source_address</span><span class="op">=</span><span class="nam">None</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t450" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">host</span><span class="op">,</span> <span class="nam">port</span> <span class="op">=</span> <span class="nam">address</span><span class="strut">&nbsp;</span></p>
+<p id="t451" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">err</span> <span class="op">=</span> <span class="nam">None</span><span class="strut">&nbsp;</span></p>
+<p id="t452" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">for</span> <span class="nam">res</span> <span class="key">in</span> <span class="nam">socket</span><span class="op">.</span><span class="nam">getaddrinfo</span><span class="op">(</span><span class="nam">host</span><span class="op">,</span> <span class="nam">port</span><span class="op">,</span> <span class="num">0</span><span class="op">,</span> <span class="nam">socket</span><span class="op">.</span><span class="nam">SOCK_STREAM</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t453" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">af</span><span class="op">,</span> <span class="nam">socktype</span><span class="op">,</span> <span class="nam">proto</span><span class="op">,</span> <span class="nam">canonname</span><span class="op">,</span> <span class="nam">sa</span> <span class="op">=</span> <span class="nam">res</span><span class="strut">&nbsp;</span></p>
+<p id="t454" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">sock</span> <span class="op">=</span> <span class="nam">None</span><span class="strut">&nbsp;</span></p>
+<p id="t455" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t456" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">sock</span> <span class="op">=</span> <span class="nam">socket</span><span class="op">.</span><span class="nam">socket</span><span class="op">(</span><span class="nam">af</span><span class="op">,</span> <span class="nam">socktype</span><span class="op">,</span> <span class="nam">proto</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t457" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">sock</span><span class="op">.</span><span class="nam">settimeout</span><span class="op">(</span><span class="nam">timeout</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t458" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">source_address</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t459" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">sock</span><span class="op">.</span><span class="nam">bind</span><span class="op">(</span><span class="nam">source_address</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t460" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">sock</span><span class="op">.</span><span class="nam">connect</span><span class="op">(</span><span class="nam">sa</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t461" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">sock</span><span class="strut">&nbsp;</span></p>
+<p id="t462" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">except</span> <span class="nam">socket</span><span class="op">.</span><span class="nam">error</span> <span class="key">as</span> <span class="nam">_</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t463" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">err</span> <span class="op">=</span> <span class="nam">_</span><span class="strut">&nbsp;</span></p>
+<p id="t464" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">sock</span> <span class="key">is</span> <span class="key">not</span> <span class="nam">None</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t465" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">sock</span><span class="op">.</span><span class="nam">close</span><span class="op">(</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t466" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">err</span> <span class="key">is</span> <span class="key">not</span> <span class="nam">None</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t467" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">raise</span> <span class="nam">err</span><span class="strut">&nbsp;</span></p>
+<p id="t468" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t469" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">raise</span> <span class="nam">socket</span><span class="op">.</span><span class="nam">error</span><span class="op">(</span><span class="str">&quot;getaddrinfo returns an empty list&quot;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t470" class="pln"><span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t471" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">compat_socket_create_connection</span> <span class="op">=</span> <span class="nam">socket</span><span class="op">.</span><span class="nam">create_connection</span><span class="strut">&nbsp;</span></p>
+<p id="t472" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t473" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t474" class="pln"><span class="com"># Fix https://github.com/rg3/youtube-dl/issues/4223</span><span class="strut">&nbsp;</span></p>
+<p id="t475" class="pln"><span class="com"># See http://bugs.python.org/issue9161 for what is broken</span><span class="strut">&nbsp;</span></p>
+<p id="t476" class="stm run hide_run"><span class="key">def</span> <span class="nam">workaround_optparse_bug9161</span><span class="op">(</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t477" class="stm mis">&nbsp; &nbsp; <span class="nam">op</span> <span class="op">=</span> <span class="nam">optparse</span><span class="op">.</span><span class="nam">OptionParser</span><span class="op">(</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t478" class="stm mis">&nbsp; &nbsp; <span class="nam">og</span> <span class="op">=</span> <span class="nam">optparse</span><span class="op">.</span><span class="nam">OptionGroup</span><span class="op">(</span><span class="nam">op</span><span class="op">,</span> <span class="str">&#39;foo&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t479" class="stm mis">&nbsp; &nbsp; <span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t480" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">og</span><span class="op">.</span><span class="nam">add_option</span><span class="op">(</span><span class="str">&#39;-t&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t481" class="stm mis">&nbsp; &nbsp; <span class="key">except</span> <span class="nam">TypeError</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t482" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">real_add_option</span> <span class="op">=</span> <span class="nam">optparse</span><span class="op">.</span><span class="nam">OptionGroup</span><span class="op">.</span><span class="nam">add_option</span><span class="strut">&nbsp;</span></p>
+<p id="t483" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t484" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">def</span> <span class="nam">_compat_add_option</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="op">*</span><span class="nam">args</span><span class="op">,</span> <span class="op">**</span><span class="nam">kwargs</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t485" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">enc</span> <span class="op">=</span> <span class="key">lambda</span> <span class="nam">v</span><span class="op">:</span> <span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t486" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">v</span><span class="op">.</span><span class="nam">encode</span><span class="op">(</span><span class="str">&#39;ascii&#39;</span><span class="op">,</span> <span class="str">&#39;replace&#39;</span><span class="op">)</span> <span class="key">if</span> <span class="nam">isinstance</span><span class="op">(</span><span class="nam">v</span><span class="op">,</span> <span class="nam">compat_str</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t487" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">else</span> <span class="nam">v</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t488" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">bargs</span> <span class="op">=</span> <span class="op">[</span><span class="nam">enc</span><span class="op">(</span><span class="nam">a</span><span class="op">)</span> <span class="key">for</span> <span class="nam">a</span> <span class="key">in</span> <span class="nam">args</span><span class="op">]</span><span class="strut">&nbsp;</span></p>
+<p id="t489" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">bkwargs</span> <span class="op">=</span> <span class="nam">dict</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t490" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="op">(</span><span class="nam">k</span><span class="op">,</span> <span class="nam">enc</span><span class="op">(</span><span class="nam">v</span><span class="op">)</span><span class="op">)</span> <span class="key">for</span> <span class="nam">k</span><span class="op">,</span> <span class="nam">v</span> <span class="key">in</span> <span class="nam">kwargs</span><span class="op">.</span><span class="nam">items</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t491" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">real_add_option</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="op">*</span><span class="nam">bargs</span><span class="op">,</span> <span class="op">**</span><span class="nam">bkwargs</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t492" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">optparse</span><span class="op">.</span><span class="nam">OptionGroup</span><span class="op">.</span><span class="nam">add_option</span> <span class="op">=</span> <span class="nam">_compat_add_option</span><span class="strut">&nbsp;</span></p>
+<p id="t493" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t494" class="stm par run hide_run"><span class="annotate" title="Line 494 was executed, but never jumped to line 495">494&#x202F;&#x219B;&#x202F;495 [?]</span><span class="key">if</span> <span class="nam">hasattr</span><span class="op">(</span><span class="nam">shutil</span><span class="op">,</span> <span class="str">&#39;get_terminal_size&#39;</span><span class="op">)</span><span class="op">:</span>&nbsp; <span class="com"># Python &gt;= 3.3</span><span class="strut">&nbsp;</span></p>
+<p id="t495" class="stm mis">&nbsp; &nbsp; <span class="nam">compat_get_terminal_size</span> <span class="op">=</span> <span class="nam">shutil</span><span class="op">.</span><span class="nam">get_terminal_size</span><span class="strut">&nbsp;</span></p>
+<p id="t496" class="pln"><span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t497" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">_terminal_size</span> <span class="op">=</span> <span class="nam">collections</span><span class="op">.</span><span class="nam">namedtuple</span><span class="op">(</span><span class="str">&#39;terminal_size&#39;</span><span class="op">,</span> <span class="op">[</span><span class="str">&#39;columns&#39;</span><span class="op">,</span> <span class="str">&#39;lines&#39;</span><span class="op">]</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t498" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t499" class="stm run hide_run">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_get_terminal_size</span><span class="op">(</span><span class="nam">fallback</span><span class="op">=</span><span class="op">(</span><span class="num">80</span><span class="op">,</span> <span class="num">24</span><span class="op">)</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t500" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">columns</span> <span class="op">=</span> <span class="nam">compat_getenv</span><span class="op">(</span><span class="str">&#39;COLUMNS&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t501" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">columns</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t502" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">columns</span> <span class="op">=</span> <span class="nam">int</span><span class="op">(</span><span class="nam">columns</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t503" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t504" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">columns</span> <span class="op">=</span> <span class="nam">None</span><span class="strut">&nbsp;</span></p>
+<p id="t505" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">lines</span> <span class="op">=</span> <span class="nam">compat_getenv</span><span class="op">(</span><span class="str">&#39;LINES&#39;</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t506" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">lines</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t507" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">lines</span> <span class="op">=</span> <span class="nam">int</span><span class="op">(</span><span class="nam">lines</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t508" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t509" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">lines</span> <span class="op">=</span> <span class="nam">None</span><span class="strut">&nbsp;</span></p>
+<p id="t510" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t511" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">columns</span> <span class="key">is</span> <span class="nam">None</span> <span class="key">or</span> <span class="nam">lines</span> <span class="key">is</span> <span class="nam">None</span> <span class="key">or</span> <span class="nam">columns</span> <span class="op">&lt;=</span> <span class="num">0</span> <span class="key">or</span> <span class="nam">lines</span> <span class="op">&lt;=</span> <span class="num">0</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t512" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t513" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">sp</span> <span class="op">=</span> <span class="nam">subprocess</span><span class="op">.</span><span class="nam">Popen</span><span class="op">(</span><span class="strut">&nbsp;</span></p>
+<p id="t514" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="op">[</span><span class="str">&#39;stty&#39;</span><span class="op">,</span> <span class="str">&#39;size&#39;</span><span class="op">]</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t515" class="pln">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">stdout</span><span class="op">=</span><span class="nam">subprocess</span><span class="op">.</span><span class="nam">PIPE</span><span class="op">,</span> <span class="nam">stderr</span><span class="op">=</span><span class="nam">subprocess</span><span class="op">.</span><span class="nam">PIPE</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t516" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">out</span><span class="op">,</span> <span class="nam">err</span> <span class="op">=</span> <span class="nam">sp</span><span class="op">.</span><span class="nam">communicate</span><span class="op">(</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t517" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">_lines</span><span class="op">,</span> <span class="nam">_columns</span> <span class="op">=</span> <span class="nam">map</span><span class="op">(</span><span class="nam">int</span><span class="op">,</span> <span class="nam">out</span><span class="op">.</span><span class="nam">split</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t518" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">except</span> <span class="nam">Exception</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t519" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">_columns</span><span class="op">,</span> <span class="nam">_lines</span> <span class="op">=</span> <span class="nam">_terminal_size</span><span class="op">(</span><span class="op">*</span><span class="nam">fallback</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t520" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t521" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">columns</span> <span class="key">is</span> <span class="nam">None</span> <span class="key">or</span> <span class="nam">columns</span> <span class="op">&lt;=</span> <span class="num">0</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t522" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">columns</span> <span class="op">=</span> <span class="nam">_columns</span><span class="strut">&nbsp;</span></p>
+<p id="t523" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">if</span> <span class="nam">lines</span> <span class="key">is</span> <span class="nam">None</span> <span class="key">or</span> <span class="nam">lines</span> <span class="op">&lt;=</span> <span class="num">0</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t524" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">lines</span> <span class="op">=</span> <span class="nam">_lines</span><span class="strut">&nbsp;</span></p>
+<p id="t525" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">return</span> <span class="nam">_terminal_size</span><span class="op">(</span><span class="nam">columns</span><span class="op">,</span> <span class="nam">lines</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t526" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t527" class="stm run hide_run"><span class="key">try</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t528" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">itertools</span><span class="op">.</span><span class="nam">count</span><span class="op">(</span><span class="nam">start</span><span class="op">=</span><span class="num">0</span><span class="op">,</span> <span class="nam">step</span><span class="op">=</span><span class="num">1</span><span class="op">)</span><span class="strut">&nbsp;</span></p>
+<p id="t529" class="stm run hide_run">&nbsp; &nbsp; <span class="nam">compat_itertools_count</span> <span class="op">=</span> <span class="nam">itertools</span><span class="op">.</span><span class="nam">count</span><span class="strut">&nbsp;</span></p>
+<p id="t530" class="stm mis"><span class="key">except</span> <span class="nam">TypeError</span><span class="op">:</span>&nbsp; <span class="com"># Python 2.6</span><span class="strut">&nbsp;</span></p>
+<p id="t531" class="stm mis">&nbsp; &nbsp; <span class="key">def</span> <span class="nam">compat_itertools_count</span><span class="op">(</span><span class="nam">start</span><span class="op">=</span><span class="num">0</span><span class="op">,</span> <span class="nam">step</span><span class="op">=</span><span class="num">1</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t532" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">n</span> <span class="op">=</span> <span class="nam">start</span><span class="strut">&nbsp;</span></p>
+<p id="t533" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; <span class="key">while</span> <span class="nam">True</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t534" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="key">yield</span> <span class="nam">n</span><span class="strut">&nbsp;</span></p>
+<p id="t535" class="stm mis">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="nam">n</span> <span class="op">+=</span> <span class="nam">step</span><span class="strut">&nbsp;</span></p>
+<p id="t536" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t537" class="stm par run hide_run"><span class="annotate" title="Line 537 was executed, but never jumped to line 538">537&#x202F;&#x219B;&#x202F;538 [?]</span><span class="key">if</span> <span class="nam">sys</span><span class="op">.</span><span class="nam">version_info</span> <span class="op">&gt;=</span> <span class="op">(</span><span class="num">3</span><span class="op">,</span> <span class="num">0</span><span class="op">)</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t538" class="stm mis">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">tokenize</span> <span class="key">import</span> <span class="nam">tokenize</span> <span class="key">as</span> <span class="nam">compat_tokenize_tokenize</span><span class="strut">&nbsp;</span></p>
+<p id="t539" class="pln"><span class="key">else</span><span class="op">:</span><span class="strut">&nbsp;</span></p>
+<p id="t540" class="stm run hide_run">&nbsp; &nbsp; <span class="key">from</span> <span class="nam">tokenize</span> <span class="key">import</span> <span class="nam">generate_tokens</span> <span class="key">as</span> <span class="nam">compat_tokenize_tokenize</span><span class="strut">&nbsp;</span></p>
+<p id="t541" class="pln"><span class="strut">&nbsp;</span></p>
+<p id="t542" class="stm run hide_run"><span class="nam">__all__</span> <span class="op">=</span> <span class="op">[</span><span class="strut">&nbsp;</span></p>
+<p id="t543" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_HTTPError&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t544" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_basestring&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t545" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_chr&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t546" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_cookiejar&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t547" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_cookies&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t548" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_etree_fromstring&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t549" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_expanduser&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t550" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_get_terminal_size&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t551" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_getenv&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t552" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_getpass&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t553" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_html_entities&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t554" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_http_client&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t555" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_http_server&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t556" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_itertools_count&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t557" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_kwargs&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t558" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_ord&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t559" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_parse_qs&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t560" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_print&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t561" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_shlex_split&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t562" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_socket_create_connection&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t563" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_str&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t564" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_subprocess_get_DEVNULL&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t565" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_tokenize_tokenize&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t566" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_urllib_error&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t567" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_urllib_parse&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t568" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_urllib_parse_unquote&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t569" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_urllib_parse_unquote_plus&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t570" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_urllib_parse_unquote_to_bytes&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t571" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_urllib_parse_urlparse&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t572" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_urllib_request&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t573" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_urllib_request_DataHandler&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t574" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_urllib_response&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t575" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_urlparse&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t576" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_urlretrieve&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t577" class="pln">&nbsp; &nbsp; <span class="str">&#39;compat_xml_parse_error&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t578" class="pln">&nbsp; &nbsp; <span class="str">&#39;shlex_quote&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t579" class="pln">&nbsp; &nbsp; <span class="str">&#39;subprocess_check_output&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t580" class="pln">&nbsp; &nbsp; <span class="str">&#39;workaround_optparse_bug9161&#39;</span><span class="op">,</span><span class="strut">&nbsp;</span></p>
+<p id="t581" class="pln"><span class="op">]</span><span class="strut">&nbsp;</span></p>
+                
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div id="footer">
+    <div class="content">
+        <p>
+            <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.org">coverage.py v4.0.3</a>,
+            created at 2016-01-05 02:10
+        </p>
+    </div>
+</div>
+
+</body>
+</html>

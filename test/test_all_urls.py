@@ -131,6 +131,12 @@ class TestAllURLsMatching(unittest.TestCase):
             'https://screen.yahoo.com/smartwatches-latest-wearable-gadgets-163745379-cbs.html',
             ['Yahoo'])
 
+<<<<<<< HEAD
+    def test_udn(self):
+        self.assertMatch('https://video.udn.com/news/398685', ['UDN'])
+        self.assertMatch('https://video.udn.com/embed/news/300040', ['UDN'])
+        self.assertMatch('https://video.udn.com/play/news/303776', ['UDN'])
+=======
     def test_no_duplicated_ie_names(self):
         name_accu = collections.defaultdict(list)
         for ie in self.ies:
@@ -139,6 +145,7 @@ class TestAllURLsMatching(unittest.TestCase):
             self.assertEqual(
                 len(ie_list), 1,
                 'Multiple extractors with the same IE_NAME "%s" (%s)' % (ie_name, ', '.join(ie_list)))
+>>>>>>> upstream/master
 
 
 if __name__ == '__main__':

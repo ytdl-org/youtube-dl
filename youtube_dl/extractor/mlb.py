@@ -84,7 +84,7 @@ class MLBIE(InfoExtractor):
         },
         {
             'url': 'http://m.mlb.com/news/article/118550098/blue-jays-kevin-pillar-goes-spidey-up-the-wall-to-rob-tim-beckham-of-a-homer',
-            'md5': 'b190e70141fb9a1552a85426b4da1b5d',
+            'md5': 'aafaf5b0186fee8f32f20508092f8111',
             'info_dict': {
                 'id': '75609783',
                 'ext': 'mp4',
@@ -124,13 +124,11 @@ class MLBIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-
         if not video_id:
             video_path = mobj.group('path')
             webpage = self._download_webpage(url, video_path)
             video_id = self._search_regex(
                 [r'data-video-?id="(\d+)"', r'content_id=(\d+)'], webpage, 'video id')
-
         detail = self._download_xml(
             'http://m.mlb.com/gen/multimedia/detail/%s/%s/%s/%s.xml'
             % (video_id[-3], video_id[-2], video_id[-1], video_id), video_id)

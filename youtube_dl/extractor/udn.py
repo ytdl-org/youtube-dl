@@ -15,8 +15,12 @@ from ..compat import compat_urlparse
 
 class UDNEmbedIE(InfoExtractor):
     IE_DESC = '聯合影音'
+<<<<<<< HEAD
+    _VALID_URL = r'(?:https?:)?//video\.udn\.com/(?:embed|play)/news/(?P<id>\d+)'
+=======
     _PROTOCOL_RELATIVE_VALID_URL = r'//video\.udn\.com/(?:embed|play)/news/(?P<id>\d+)'
     _VALID_URL = r'https?:' + _PROTOCOL_RELATIVE_VALID_URL
+>>>>>>> upstream/master
     _TESTS = [{
         'url': 'http://video.udn.com/embed/news/300040',
         'info_dict': {
@@ -36,6 +40,9 @@ class UDNEmbedIE(InfoExtractor):
         # From https://video.udn.com/news/303776
         'url': 'https://video.udn.com/play/news/303776',
         'only_matching': True,
+    }, {
+        'url': 'https://video.udn.com/news/398685',
+        'only_matching': True
     }]
 
     def _real_extract(self, url):

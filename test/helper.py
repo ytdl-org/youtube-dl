@@ -89,8 +89,12 @@ class FakeYDL(YoutubeDL):
 
 
 def gettestcases(include_onlymatching=False):
+    SoftwareTestingCase = {'AppleDaily','NextMedia','NextMediaActionNews','UDNEmbed','Xuite','CtsNews','MLB'}
     for ie in youtube_dl.extractor.gen_extractors():
         for tc in ie.get_testcases(include_onlymatching):
+            if tc['name'] not in SoftwareTestingCase:
+                continue
+            print tc['name']
             yield tc
 
 

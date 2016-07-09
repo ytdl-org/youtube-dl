@@ -137,6 +137,11 @@
  - **CNN**
  - **CNNArticle**
  - **CNNBlogs**
+<<<<<<< HEAD
+ - **cntv**: 央视网
+ - **CollegeHumor**
+=======
+>>>>>>> upstream/master
  - **CollegeRama**
  - **ComCarCoff**
  - **ComedyCentral**
