@@ -224,6 +224,7 @@
  - **Firstpost**
  - **FiveTV**
  - **Flickr**
+ - **Flipagram**
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
  - **FootyRoom**
  - **Formula1**
