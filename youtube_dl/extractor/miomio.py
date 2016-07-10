@@ -19,13 +19,16 @@ class MioMioIE(InfoExtractor):
     _TESTS = [{
         # "type=video" in flashvars
         'url': 'http://www.miomio.tv/watch/cc88912/',
-        'md5': '317a5f7f6b544ce8419b784ca8edae65',
         'info_dict': {
             'id': '88912',
             'ext': 'flv',
             'title': '【SKY】字幕 铠武昭和VS平成 假面骑士大战FEAT战队 魔星字幕组 字幕',
             'duration': 5923,
         },
+        'params': {
+            # The server provides broken file
+            'skip_download': True,
+        }
     }, {
         'url': 'http://www.miomio.tv/watch/cc184024/',
         'info_dict': {
@@ -33,7 +36,7 @@ class MioMioIE(InfoExtractor):
             'title': '《动漫同人插画绘制》',
         },
         'playlist_mincount': 86,
-        'skip': 'This video takes time too long for retrieving the URL',
+        'skip': 'Unable to load videos',
     }, {
         'url': 'http://www.miomio.tv/watch/cc173113/',
         'info_dict': {
@@ -41,6 +44,7 @@ class MioMioIE(InfoExtractor):
             'title': 'The New Macbook 2015 上手试玩与简评'
         },
         'playlist_mincount': 2,
+        'skip': 'Unable to load videos',
     }, {
         # new 'h5' player
         'url': 'http://www.miomio.tv/watch/cc273295/',
