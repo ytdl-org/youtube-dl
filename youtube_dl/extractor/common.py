@@ -55,6 +55,8 @@ from ..utils import (
     update_Request,
     update_url_query,
     parse_m3u8_attributes,
+    extract_attributes,
+    parse_codecs,
 )
 
 
@@ -1634,6 +1636,62 @@ class InfoExtractor(object):
                     else:
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
         return formats
+
+    def _parse_html5_media_entries(self, base_url, webpage):
+        def absolute_url(video_url):
+            return compat_urlparse.urljoin(base_url, video_url)
+
+        def parse_content_type(content_type):
+            if not content_type:
+                return {}
+            ctr = re.search(r'(?P<mimetype>[^/]+/[^;]+)(?:;\s*codecs="?(?P<codecs>[^"]+))?', content_type)
+            if ctr:
+                mimetype, codecs = ctr.groups()
+                f = parse_codecs(codecs)
+                f['ext'] = mimetype2ext(mimetype)
+                return f
+            return {}
+
+        entries = []
+        for media_tag, media_type, media_content in re.findall(r'(?s)(<(?P<tag>video|audio)[^>]*>)(.*?)</(?P=tag)>', webpage):
+            media_info = {
+                'formats': [],
+                'subtitles': {},
+            }
+            media_attributes = extract_attributes(media_tag)
+            src = media_attributes.get('src')
+            if src:
+                media_info['formats'].append({
+                    'url': absolute_url(src),
+                    'vcodec': 'none' if media_type == 'audio' else None,
+                })
+            media_info['thumbnail'] = media_attributes.get('poster')
+            if media_content:
+                for source_tag in re.findall(r'<source[^>]+>', media_content):
+                    source_attributes = extract_attributes(source_tag)
+                    src = source_attributes.get('src')
+                    if not src:
+                        continue
+                    f = parse_content_type(source_attributes.get('type'))
+                    f.update({
+                        'url': absolute_url(src),
+                        'vcodec': 'none' if media_type == 'audio' else None,
+                    })
+                    media_info['formats'].append(f)
+                for track_tag in re.findall(r'<track[^>]+>', media_content):
+                    track_attributes = extract_attributes(track_tag)
+                    kind = track_attributes.get('kind')
+                    if not kind or kind == 'subtitles':
+                        src = track_attributes.get('src')
+                        if not src:
+                            continue
+                        lang = track_attributes.get('srclang') or track_attributes.get('lang') or track_attributes.get('label')
+                        media_info['subtitles'].setdefault(lang, []).append({
+                            'url': absolute_url(src),
+                        })
+            if media_info['formats']:
+                entries.append(media_info)
+        return entries
 
     def _live_title(self, name):
         """ Generate the title for a live video """
