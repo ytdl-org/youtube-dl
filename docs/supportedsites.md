@@ -554,6 +554,7 @@
  - **RICE**
  - **RingTV**
  - **RockstarGames**
+ - **RoosterTeeth**
  - **RottenTomatoes**
  - **Roxwel**
  - **RTBF**
