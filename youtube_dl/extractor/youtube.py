@@ -137,7 +137,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         # Two-Factor
         # TODO add SMS and phone call support - these require making a request and then prompting the user
 
-        if re.search(r'(?i)<form[^>]* id="challenge"', login_results) is not None:
+        if re.search(r'(?i)<form[^>]+id="challenge"', login_results) is not None:
             tfa_code = self._get_tfa_info('2-step verification code')
 
             if not tfa_code:
@@ -165,17 +165,17 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             if tfa_results is False:
                 return False
 
-            if re.search(r'(?i)<form[^>]* id="challenge"', tfa_results) is not None:
+            if re.search(r'(?i)<form[^>]+id="challenge"', tfa_results) is not None:
                 self._downloader.report_warning('Two-factor code expired or invalid. Please try again, or use a one-use backup code instead.')
                 return False
-            if re.search(r'(?i)<form[^>]* id="gaia_loginform"', tfa_results) is not None:
+            if re.search(r'(?i)<form[^>]+id="gaia_loginform"', tfa_results) is not None:
                 self._downloader.report_warning('unable to log in - did the page structure change?')
                 return False
             if re.search(r'smsauth-interstitial-reviewsettings', tfa_results) is not None:
                 self._downloader.report_warning('Your Google account has a security notice. Please log in on your web browser, resolve the notice, and try again.')
                 return False
 
-        if re.search(r'(?i)<form[^>]* id="gaia_loginform"', login_results) is not None:
+        if re.search(r'(?i)<form[^>]+id="gaia_loginform"', login_results) is not None:
             self._downloader.report_warning('unable to log in: bad username or password')
             return False
         return True
