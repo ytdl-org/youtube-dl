@@ -137,7 +137,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         # Two-Factor
         # TODO add SMS and phone call support - these require making a request and then prompting the user
 
-        if re.search(r'(?i)<form[^>]* id="challenge"', login_results) is not None:
+        if re.search(r'(?i)<form[^>]+id="challenge"', login_results) is not None:
             tfa_code = self._get_tfa_info('2-step verification code')
 
             if not tfa_code:
@@ -165,17 +165,17 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             if tfa_results is False:
                 return False
 
-            if re.search(r'(?i)<form[^>]* id="challenge"', tfa_results) is not None:
+            if re.search(r'(?i)<form[^>]+id="challenge"', tfa_results) is not None:
                 self._downloader.report_warning('Two-factor code expired or invalid. Please try again, or use a one-use backup code instead.')
                 return False
-            if re.search(r'(?i)<form[^>]* id="gaia_loginform"', tfa_results) is not None:
+            if re.search(r'(?i)<form[^>]+id="gaia_loginform"', tfa_results) is not None:
                 self._downloader.report_warning('unable to log in - did the page structure change?')
                 return False
             if re.search(r'smsauth-interstitial-reviewsettings', tfa_results) is not None:
                 self._downloader.report_warning('Your Google account has a security notice. Please log in on your web browser, resolve the notice, and try again.')
                 return False
 
-        if re.search(r'(?i)<form[^>]* id="gaia_loginform"', login_results) is not None:
+        if re.search(r'(?i)<form[^>]+id="gaia_loginform"', login_results) is not None:
             self._downloader.report_warning('unable to log in: bad username or password')
             return False
         return True
@@ -1978,10 +1978,13 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
         return (False if YoutubePlaylistsIE.suitable(url) or YoutubeLiveIE.suitable(url)
                 else super(YoutubeChannelIE, cls).suitable(url))
 
+    def _build_template_url(self, url, channel_id):
+        return self._TEMPLATE_URL % channel_id
+
     def _real_extract(self, url):
         channel_id = self._match_id(url)
 
-        url = self._TEMPLATE_URL % channel_id
+        url = self._build_template_url(url, channel_id)
 
         # Channel by page listing is restricted to 35 pages of 30 items, i.e. 1050 videos total (see #5778)
         # Workaround by extracting as a playlist if managed to obtain channel playlist URL
@@ -2038,8 +2041,8 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
 
 class YoutubeUserIE(YoutubeChannelIE):
     IE_DESC = 'YouTube.com user videos (URL or "ytuser" keyword)'
-    _VALID_URL = r'(?:(?:https?://(?:\w+\.)?youtube\.com/(?:user/|c/)?(?!(?:attribution_link|watch|results)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)(?P<id>[A-Za-z0-9_-]+)'
-    _TEMPLATE_URL = 'https://www.youtube.com/user/%s/videos'
+    _VALID_URL = r'(?:(?:https?://(?:\w+\.)?youtube\.com/(?:(?P<user>user|c)/)?(?!(?:attribution_link|watch|results)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)(?P<id>[A-Za-z0-9_-]+)'
+    _TEMPLATE_URL = 'https://www.youtube.com/%s/%s/videos'
     IE_NAME = 'youtube:user'
 
     _TESTS = [{
@@ -2050,10 +2053,22 @@ class YoutubeUserIE(YoutubeChannelIE):
             'title': 'Uploads from The Linux Foundation',
         }
     }, {
+        # Only available via https://www.youtube.com/c/12minuteathlete/videos
+        # but not https://www.youtube.com/user/12minuteathlete/videos
+        'url': 'https://www.youtube.com/c/12minuteathlete/videos',
+        'playlist_mincount': 249,
+        'info_dict': {
+            'id': 'UUVjM-zV6_opMDx7WYxnjZiQ',
+            'title': 'Uploads from 12 Minute Athlete',
+        }
+    }, {
         'url': 'ytuser:phihag',
         'only_matching': True,
     }, {
         'url': 'https://www.youtube.com/c/gametrailers',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/gametrailers',
         'only_matching': True,
     }, {
         # This channel is not available.
@@ -2070,6 +2085,10 @@ class YoutubeUserIE(YoutubeChannelIE):
             return False
         else:
             return super(YoutubeUserIE, cls).suitable(url)
+
+    def _build_template_url(self, url, channel_id):
+        mobj = re.match(self._VALID_URL, url)
+        return self._TEMPLATE_URL % (mobj.group('user') or 'user', mobj.group('id'))
 
 
 class YoutubeLiveIE(YoutubeBaseInfoExtractor):

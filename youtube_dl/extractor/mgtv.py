@@ -26,7 +26,8 @@ class MGTVIE(InfoExtractor):
         video_id = self._match_id(url)
         api_data = self._download_json(
             'http://v.api.mgtv.com/player/video', video_id,
-            query={'video_id': video_id})['data']
+            query={'video_id': video_id},
+            headers=self.geo_verification_headers())['data']
         info = api_data['info']
 
         formats = []

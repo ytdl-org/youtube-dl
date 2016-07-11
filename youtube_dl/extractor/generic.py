@@ -1313,6 +1313,38 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Kaltura'],
         },
+        {
+            # Non-standard Vimeo embed
+            'url': 'https://openclassrooms.com/courses/understanding-the-web',
+            'md5': '64d86f1c7d369afd9a78b38cbb88d80a',
+            'info_dict': {
+                'id': '148867247',
+                'ext': 'mp4',
+                'title': 'Understanding the web - Teaser',
+                'description': 'This is "Understanding the web - Teaser" by openclassrooms on Vimeo, the home for high quality videos and the people who love them.',
+                'upload_date': '20151214',
+                'uploader': 'OpenClassrooms',
+                'uploader_id': 'openclassrooms',
+            },
+            'add_ie': ['Vimeo'],
+        },
+        # {
+        #     # TODO: find another test
+        #     # http://schema.org/VideoObject
+        #     'url': 'https://flipagram.com/f/nyvTSJMKId',
+        #     'md5': '888dcf08b7ea671381f00fab74692755',
+        #     'info_dict': {
+        #         'id': 'nyvTSJMKId',
+        #         'ext': 'mp4',
+        #         'title': 'Flipagram by sjuria101 featuring Midnight Memories by One Direction',
+        #         'description': '#love for cats.',
+        #         'timestamp': 1461244995,
+        #         'upload_date': '20160421',
+        #     },
+        #     'params': {
+        #         'force_generic_extractor': True,
+        #     },
+        # }
     ]
 
     def report_following_redirect(self, new_url):
@@ -2156,6 +2188,19 @@ class GenericIE(InfoExtractor):
         embed_url = self._html_search_meta('twitter:player', webpage, default=None)
         if embed_url:
             return self.url_result(embed_url)
+
+        # Looking for http://schema.org/VideoObject
+        json_ld = self._search_json_ld(
+            webpage, video_id, default=None, expected_type='VideoObject')
+        if json_ld and json_ld.get('url'):
+            info_dict.update({
+                'title': video_title or info_dict['title'],
+                'description': video_description,
+                'thumbnail': video_thumbnail,
+                'age_limit': age_limit
+            })
+            info_dict.update(json_ld)
+            return info_dict
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

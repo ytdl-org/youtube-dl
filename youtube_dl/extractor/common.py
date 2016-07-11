@@ -44,6 +44,7 @@ from ..utils import (
     sanitized_Request,
     unescapeHTML,
     unified_strdate,
+    unified_timestamp,
     url_basename,
     xpath_element,
     xpath_text,
@@ -54,6 +55,8 @@ from ..utils import (
     update_Request,
     update_url_query,
     parse_m3u8_attributes,
+    extract_attributes,
+    parse_codecs,
 )
 
 
@@ -161,6 +164,7 @@ class InfoExtractor(object):
                         * "height" (optional, int)
                         * "resolution" (optional, string "{width}x{height"},
                                         deprecated)
+                        * "filesize" (optional, int)
     thumbnail:      Full URL to a video thumbnail image.
     description:    Full video description.
     uploader:       Full name of the video uploader.
@@ -803,15 +807,17 @@ class InfoExtractor(object):
         return self._html_search_meta('twitter:player', html,
                                       'twitter card player')
 
-    def _search_json_ld(self, html, video_id, **kwargs):
+    def _search_json_ld(self, html, video_id, expected_type=None, **kwargs):
         json_ld = self._search_regex(
             r'(?s)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json_ld>.+?)</script>',
             html, 'JSON-LD', group='json_ld', **kwargs)
         if not json_ld:
             return {}
-        return self._json_ld(json_ld, video_id, fatal=kwargs.get('fatal', True))
+        return self._json_ld(
+            json_ld, video_id, fatal=kwargs.get('fatal', True),
+            expected_type=expected_type)
 
-    def _json_ld(self, json_ld, video_id, fatal=True):
+    def _json_ld(self, json_ld, video_id, fatal=True, expected_type=None):
         if isinstance(json_ld, compat_str):
             json_ld = self._parse_json(json_ld, video_id, fatal=fatal)
         if not json_ld:
@@ -819,6 +825,8 @@ class InfoExtractor(object):
         info = {}
         if json_ld.get('@context') == 'http://schema.org':
             item_type = json_ld.get('@type')
+            if expected_type is not None and expected_type != item_type:
+                return info
             if item_type == 'TVEpisode':
                 info.update({
                     'episode': unescapeHTML(json_ld.get('name')),
@@ -836,6 +844,19 @@ class InfoExtractor(object):
                     'timestamp': parse_iso8601(json_ld.get('datePublished')),
                     'title': unescapeHTML(json_ld.get('headline')),
                     'description': unescapeHTML(json_ld.get('articleBody')),
+                })
+            elif item_type == 'VideoObject':
+                info.update({
+                    'url': json_ld.get('contentUrl'),
+                    'title': unescapeHTML(json_ld.get('name')),
+                    'description': unescapeHTML(json_ld.get('description')),
+                    'thumbnail': json_ld.get('thumbnailUrl'),
+                    'duration': parse_duration(json_ld.get('duration')),
+                    'timestamp': unified_timestamp(json_ld.get('uploadDate')),
+                    'filesize': float_or_none(json_ld.get('contentSize')),
+                    'tbr': int_or_none(json_ld.get('bitrate')),
+                    'width': int_or_none(json_ld.get('width')),
+                    'height': int_or_none(json_ld.get('height')),
                 })
         return dict((k, v) for k, v in info.items() if v is not None)
 
@@ -1615,6 +1636,62 @@ class InfoExtractor(object):
                     else:
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
         return formats
+
+    def _parse_html5_media_entries(self, base_url, webpage):
+        def absolute_url(video_url):
+            return compat_urlparse.urljoin(base_url, video_url)
+
+        def parse_content_type(content_type):
+            if not content_type:
+                return {}
+            ctr = re.search(r'(?P<mimetype>[^/]+/[^;]+)(?:;\s*codecs="?(?P<codecs>[^"]+))?', content_type)
+            if ctr:
+                mimetype, codecs = ctr.groups()
+                f = parse_codecs(codecs)
+                f['ext'] = mimetype2ext(mimetype)
+                return f
+            return {}
+
+        entries = []
+        for media_tag, media_type, media_content in re.findall(r'(?s)(<(?P<tag>video|audio)[^>]*>)(.*?)</(?P=tag)>', webpage):
+            media_info = {
+                'formats': [],
+                'subtitles': {},
+            }
+            media_attributes = extract_attributes(media_tag)
+            src = media_attributes.get('src')
+            if src:
+                media_info['formats'].append({
+                    'url': absolute_url(src),
+                    'vcodec': 'none' if media_type == 'audio' else None,
+                })
+            media_info['thumbnail'] = media_attributes.get('poster')
+            if media_content:
+                for source_tag in re.findall(r'<source[^>]+>', media_content):
+                    source_attributes = extract_attributes(source_tag)
+                    src = source_attributes.get('src')
+                    if not src:
+                        continue
+                    f = parse_content_type(source_attributes.get('type'))
+                    f.update({
+                        'url': absolute_url(src),
+                        'vcodec': 'none' if media_type == 'audio' else None,
+                    })
+                    media_info['formats'].append(f)
+                for track_tag in re.findall(r'<track[^>]+>', media_content):
+                    track_attributes = extract_attributes(track_tag)
+                    kind = track_attributes.get('kind')
+                    if not kind or kind == 'subtitles':
+                        src = track_attributes.get('src')
+                        if not src:
+                            continue
+                        lang = track_attributes.get('srclang') or track_attributes.get('lang') or track_attributes.get('label')
+                        media_info['subtitles'].setdefault(lang, []).append({
+                            'url': absolute_url(src),
+                        })
+            if media_info['formats']:
+                entries.append(media_info)
+        return entries
 
     def _live_title(self, name):
         """ Generate the title for a live video """

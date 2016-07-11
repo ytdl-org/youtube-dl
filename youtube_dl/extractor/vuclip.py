@@ -9,7 +9,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     parse_duration,
-    qualities,
+    remove_end,
 )
 
 
@@ -22,7 +22,7 @@ class VuClipIE(InfoExtractor):
             'id': '922692425',
             'ext': '3gp',
             'title': 'The Toy Soldiers - Hollywood Movie Trailer',
-            'duration': 180,
+            'duration': 177,
         }
     }
 
@@ -46,34 +46,21 @@ class VuClipIE(InfoExtractor):
                 '%s said: %s' % (self.IE_NAME, error_msg), expected=True)
 
         # These clowns alternate between two page types
-        links_code = self._search_regex(
-            r'''(?xs)
-                (?:
-                    <img\s+src="[^"]*/play.gif".*?>|
-                    <!--\ player\ end\ -->\s*</div><!--\ thumb\ end-->
-                )
-                (.*?)
-                (?:
-                    <a\s+href="fblike|<div\s+class="social">
-                )
-            ''', webpage, 'links')
-        title = self._html_search_regex(
-            r'<title>(.*?)-\s*Vuclip</title>', webpage, 'title').strip()
+        video_url = self._search_regex(
+            r'<a[^>]+href="([^"]+)"[^>]*><img[^>]+src="[^"]*/play\.gif',
+            webpage, 'video URL', default=None)
+        if video_url:
+            formats = [{
+                'url': video_url,
+            }]
+        else:
+            formats = self._parse_html5_media_entries(url, webpage)[0]['formats']
 
-        quality_order = qualities(['Reg', 'Hi'])
-        formats = []
-        for url, q in re.findall(
-                r'<a\s+href="(?P<url>[^"]+)".*?>(?:<button[^>]*>)?(?P<q>[^<]+)(?:</button>)?</a>', links_code):
-            format_id = compat_urllib_parse_urlparse(url).scheme + '-' + q
-            formats.append({
-                'format_id': format_id,
-                'url': url,
-                'quality': quality_order(q),
-            })
-        self._sort_formats(formats)
+        title = remove_end(self._html_search_regex(
+            r'<title>(.*?)-\s*Vuclip</title>', webpage, 'title').strip(), ' - Video')
 
-        duration = parse_duration(self._search_regex(
-            r'\(([0-9:]+)\)</span>', webpage, 'duration', fatal=False))
+        duration = parse_duration(self._html_search_regex(
+            r'[(>]([0-9]+:[0-9]+)(?:<span|\))', webpage, 'duration', fatal=False))
 
         return {
             'id': video_id,

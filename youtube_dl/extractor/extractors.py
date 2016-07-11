@@ -256,6 +256,7 @@ from .fivemin import FiveMinIE
 from .fivetv import FiveTVIE
 from .fktv import FKTVIE
 from .flickr import FlickrIE
+from .flipagram import FlipagramIE
 from .folketinget import FolketingetIE
 from .footyroom import FootyRoomIE
 from .formula1 import Formula1IE
@@ -679,6 +680,7 @@ from .rice import RICEIE
 from .ringtv import RingTVIE
 from .ro220 import Ro220IE
 from .rockstargames import RockstarGamesIE
+from .roosterteeth import RoosterTeethIE
 from .rottentomatoes import RottenTomatoesIE
 from .roxwel import RoxwelIE
 from .rtbf import RTBFIE
@@ -689,6 +691,7 @@ from .rtp import RTPIE
 from .rts import RTSIE
 from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE
 from .rtvnh import RTVNHIE
+from .rudo import RudoIE
 from .ruhd import RUHDIE
 from .ruleporn import RulePornIE
 from .rutube import (

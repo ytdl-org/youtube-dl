@@ -224,6 +224,7 @@
  - **Firstpost**
  - **FiveTV**
  - **Flickr**
+ - **Flipagram**
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
  - **FootyRoom**
  - **Formula1**
@@ -553,6 +554,7 @@
  - **RICE**
  - **RingTV**
  - **RockstarGames**
+ - **RoosterTeeth**
  - **RottenTomatoes**
  - **Roxwel**
  - **RTBF**
