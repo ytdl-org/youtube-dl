@@ -26,6 +26,7 @@ from ..utils import (
     unescapeHTML,
     unsmuggle_url,
     update_url_query,
+    clean_html,
 )
 
 
@@ -620,7 +621,7 @@ class BrightcoveNewIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'description': json_data.get('description'),
+            'description': clean_html(json_data.get('description')),
             'thumbnail': json_data.get('thumbnail') or json_data.get('poster'),
             'duration': float_or_none(json_data.get('duration'), 1000),
             'timestamp': parse_iso8601(json_data.get('published_at')),
