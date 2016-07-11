@@ -691,6 +691,7 @@ from .rtp import RTPIE
 from .rts import RTSIE
 from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE
 from .rtvnh import RTVNHIE
+from .rudo import RudoIE
 from .ruhd import RUHDIE
 from .ruleporn import RulePornIE
 from .rutube import (
