@@ -20,7 +20,7 @@
 
 <h2><a href="@PROGRAM_URL@">@PROGRAM_VERSION@</a> (<a href="@PROGRAM_URL@.sig">sig</a>)</h2>
 
-<div><strong>SHA256</strong>: @PROGRAM_SHA256SUM@</div>
+<p><strong>SHA256</strong>: @PROGRAM_SHA256SUM@</p>
 
 <p>
 	<a href="@EXE_URL@">Windows exe</a> (<a href="@EXE_URL@.sig">sig</a> - SHA256 @EXE_SHA256SUM@)<br>
