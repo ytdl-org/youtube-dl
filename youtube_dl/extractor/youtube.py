@@ -858,6 +858,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         {
             'url': 'https://www.youtube.com/watch?feature=player_embedded&amp;amp;v=V36LpHqtcDY',
             'only_matching': True,
+        },
+        {
+            # YouTube Red paid video (https://github.com/rg3/youtube-dl/issues/10059)
+            'url': 'https://www.youtube.com/watch?v=i1Ko8UG-Tdo',
+            'only_matching': True,
         }
     ]
 
