@@ -20,15 +20,11 @@
 
 <h2><a href="@PROGRAM_URL@">@PROGRAM_VERSION@</a> (<a href="@PROGRAM_URL@.sig">sig</a>)</h2>
 
-<ul>
-<li><strong>MD5</strong>: @PROGRAM_MD5SUM@</li>
-<li><strong>SHA1</strong>: @PROGRAM_SHA1SUM@</li>
-<li><strong>SHA256</strong>: @PROGRAM_SHA256SUM@</li>
-</ul>
+<div><strong>SHA256</strong>: @PROGRAM_SHA256SUM@</div>
 
 <p>
-	<a href="@EXE_URL@">Windows exe</a> (<a href="@EXE_URL@.sig">sig</a> - @EXE_SHA256SUM@)<br>
-	<a href="@TAR_URL@">Full source + docs + binary tarball</a> (<a href="@TAR_URL@.sig">sig</a> - @TAR_SHA256SUM@)
+	<a href="@EXE_URL@">Windows exe</a> (<a href="@EXE_URL@.sig">sig</a> - SHA256 @EXE_SHA256SUM@)<br>
+	<a href="@TAR_URL@">Full source + docs + binary tarball</a> (<a href="@TAR_URL@.sig">sig</a> - SHA256 @TAR_SHA256SUM@)
 </p>
 
 <p>To install it right away for all UNIX users (Linux, OS X, etc.), type:
