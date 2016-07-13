@@ -568,6 +568,7 @@
  - **rtve.es:infantil**: RTVE infantil
  - **rtve.es:live**: RTVE.es live streams
  - **RTVNH**
+ - **Rudo**
  - **RUHD**
  - **RulePorn**
  - **rutube**: Rutube videos
@@ -794,6 +795,7 @@
  - **vine:user**
  - **vk**: VK
  - **vk:uservideos**: VK - User's Videos
+ - **vk:wallpost**
  - **vlive**
  - **Vodlocker**
  - **VoiceRepublic**
