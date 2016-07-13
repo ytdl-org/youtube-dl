@@ -2,42 +2,44 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import (
+    remove_end
+)
 
 
 class BrainPOPIE(InfoExtractor):
-    _VALID_URL = r'https?:\/\/(?:(.+)\.)?brainpop\.com\/(?P<id>[^\r\n]+)'
+    _VALID_URL = r'https?:\/\/(?:(.+)\.)?brainpop\.com\/[^/]+/[^/]+/(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'https://www.brainpop.com/english/freemovies/williamshakespeare/',
         'md5': '676d936271b628dc05e4cec377751919',
         'info_dict': {
-            'id': 'english/freemovies/williamshakespeare/',
+            'id': '3026',
+            'display_id': 'williamshakespeare',
             'ext': 'mp4',
-            'title': 'William Shakespeare - BrainPOP',
+            'title': 'William Shakespeare',
             'thumbnail': 're:^https?://.*\.png$',
             'description': 'He could do comedies, tragedies, histories and poetry.  Learn about the greatest playwright in the history of the English language!',
         }
     }
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
 
-        self.report_extraction(video_id)
+        content = self._parse_json(self._html_search_regex(r'var content = ([^;]*)', webpage, 'content'), display_id)
+        
+        if content['category']['unit']['topic']['free'] == 'no':
+            self.raise_login_required('%s is only available for users with Subscriptions' % display_id)
 
+        global_content = self._parse_json(self._html_search_regex(r'var global_content = ([^;]*)', webpage, 'global content').replace("'", '"'), display_id)
+        cdn_path = global_content.get('cdn_path', 'https://cdn.brainpop.com')
+        movie_cdn_path = global_content.get('movie_cdn_path', 'https://svideos.brainpop.com')
         ec_token = self._html_search_regex(r"ec_token : '([^']*)'", webpage, 'token')
 
-        settings = self._parse_json(self._html_search_regex(r'var settings = ([^;]*)', webpage, 'settings'), video_id)
-        title = settings['title']
-        description = settings['description']
+        screenshots = content['category']['unit']['topic'].get('screenshots', {})
+        thumbnails = [{'url': cdn_path + screenshot} for screenshot in screenshots]
 
-        global_content = self._parse_json(self._html_search_regex(r'var global_content = ([^;]*)', webpage, 'global content').replace("'", '"'), video_id)
-        cdn_path = global_content['cdn_path']
-        movie_cdn_path = global_content['movie_cdn_path']
-
-        content = self._parse_json(self._html_search_regex(r'var content = ([^;]*)', webpage, 'content'), video_id)
         movies = content['category']['unit']['topic']['movies']
-        screenshots = content['category']['unit']['topic']['screenshots']
-
         formats = []
         formats.append({
             'url': movie_cdn_path + movies['mp4'] + '?' + ec_token,
@@ -50,17 +52,14 @@ class BrainPOPIE(InfoExtractor):
             'width': 480,
         })
         self._sort_formats(formats)
-
-        thumbnails = []
-        for (i, screenshot) in enumerate(screenshots):
-            thumbnails.append({
-                'url': cdn_path + screenshot,
-            })
+        
+        settings = self._parse_json(self._html_search_regex(r'var settings = ([^;]*)', webpage, 'settings'), display_id)
 
         return {
-            'id': video_id,
-            'title': title,
-            'formats': formats,
+            'id': content['category']['unit']['topic']['EntryID'],
+            'display_id': display_id,
+            'title': remove_end(settings['title'], ' - BrainPOP'),
+            'description': settings['description'],
             'thumbnails': thumbnails,
-            'description': description,
+            'formats': formats,
         }
