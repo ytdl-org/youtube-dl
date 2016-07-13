@@ -6,11 +6,18 @@ import json
 import sys
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_str,
+    compat_urlparse,
+)
 from ..utils import (
+    clean_html,
     ExtractorError,
+    get_element_by_class,
     int_or_none,
     orderedSet,
+    parse_duration,
+    remove_start,
     str_to_int,
     unescapeHTML,
     unified_strdate,
@@ -20,7 +27,54 @@ from .vimeo import VimeoIE
 from .pladform import PladformIE
 
 
-class VKIE(InfoExtractor):
+class VKBaseIE(InfoExtractor):
+    _NETRC_MACHINE = 'vk'
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            return
+
+        login_page, url_handle = self._download_webpage_handle(
+            'https://vk.com', None, 'Downloading login page')
+
+        login_form = self._hidden_inputs(login_page)
+
+        login_form.update({
+            'email': username.encode('cp1251'),
+            'pass': password.encode('cp1251'),
+        })
+
+        # https://new.vk.com/ serves two same remixlhk cookies in Set-Cookie header
+        # and expects the first one to be set rather than second (see
+        # https://github.com/rg3/youtube-dl/issues/9841#issuecomment-227871201).
+        # As of RFC6265 the newer one cookie should be set into cookie store
+        # what actually happens.
+        # We will workaround this VK issue by resetting the remixlhk cookie to
+        # the first one manually.
+        cookies = url_handle.headers.get('Set-Cookie')
+        if sys.version_info[0] >= 3:
+            cookies = cookies.encode('iso-8859-1')
+        cookies = cookies.decode('utf-8')
+        remixlhk = re.search(r'remixlhk=(.+?);.*?\bdomain=(.+?)(?:[,;]|$)', cookies)
+        if remixlhk:
+            value, domain = remixlhk.groups()
+            self._set_cookie(domain, 'remixlhk', value)
+
+        login_page = self._download_webpage(
+            'https://login.vk.com/?act=login', None,
+            note='Logging in as %s' % username,
+            data=urlencode_postdata(login_form))
+
+        if re.search(r'onLoginFailed', login_page):
+            raise ExtractorError(
+                'Unable to login, incorrect username and/or password', expected=True)
+
+    def _real_initialize(self):
+        self._login()
+
+
+class VKIE(VKBaseIE):
     IE_NAME = 'vk'
     IE_DESC = 'VK'
     _VALID_URL = r'''(?x)
@@ -38,8 +92,6 @@ class VKIE(InfoExtractor):
                             (?P<videoid>-?\d+_\d+)(?:.*\blist=(?P<list_id>[\da-f]+))?
                         )
                     '''
-    _NETRC_MACHINE = 'vk'
-
     _TESTS = [
         {
             'url': 'http://vk.com/videos-77521?z=video-77521_162222515%2Fclub77521',
@@ -189,49 +241,6 @@ class VKIE(InfoExtractor):
         }
     ]
 
-    def _login(self):
-        (username, password) = self._get_login_info()
-        if username is None:
-            return
-
-        login_page, url_handle = self._download_webpage_handle(
-            'https://vk.com', None, 'Downloading login page')
-
-        login_form = self._hidden_inputs(login_page)
-
-        login_form.update({
-            'email': username.encode('cp1251'),
-            'pass': password.encode('cp1251'),
-        })
-
-        # https://new.vk.com/ serves two same remixlhk cookies in Set-Cookie header
-        # and expects the first one to be set rather than second (see
-        # https://github.com/rg3/youtube-dl/issues/9841#issuecomment-227871201).
-        # As of RFC6265 the newer one cookie should be set into cookie store
-        # what actually happens.
-        # We will workaround this VK issue by resetting the remixlhk cookie to
-        # the first one manually.
-        cookies = url_handle.headers.get('Set-Cookie')
-        if sys.version_info[0] >= 3:
-            cookies = cookies.encode('iso-8859-1')
-        cookies = cookies.decode('utf-8')
-        remixlhk = re.search(r'remixlhk=(.+?);.*?\bdomain=(.+?)(?:[,;]|$)', cookies)
-        if remixlhk:
-            value, domain = remixlhk.groups()
-            self._set_cookie(domain, 'remixlhk', value)
-
-        login_page = self._download_webpage(
-            'https://login.vk.com/?act=login', None,
-            note='Logging in as %s' % username,
-            data=urlencode_postdata(login_form))
-
-        if re.search(r'onLoginFailed', login_page):
-            raise ExtractorError(
-                'Unable to login, incorrect username and/or password', expected=True)
-
-    def _real_initialize(self):
-        self._login()
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('videoid')
@@ -355,7 +364,7 @@ class VKIE(InfoExtractor):
         }
 
 
-class VKUserVideosIE(InfoExtractor):
+class VKUserVideosIE(VKBaseIE):
     IE_NAME = 'vk:uservideos'
     IE_DESC = "VK - User's Videos"
     _VALID_URL = r'https?://(?:(?:m|new)\.)?vk\.com/videos(?P<id>-?[0-9]+)(?!\?.*\bz=video)(?:[/?#&]|$)'
@@ -396,3 +405,121 @@ class VKUserVideosIE(InfoExtractor):
             webpage, 'title', default=page_id))
 
         return self.playlist_result(entries, page_id, title)
+
+
+class VKWallPostIE(VKBaseIE):
+    IE_NAME = 'vk:wallpost'
+    _VALID_URL = r'https?://(?:(?:(?:(?:m|new)\.)?vk\.com/(?:[^?]+\?.*\bw=)?wall(?P<id>-?\d+_\d+)))'
+    _TESTS = [{
+        # public page URL, audio playlist
+        'url': 'https://vk.com/bs.official?w=wall-23538238_35',
+        'info_dict': {
+            'id': '23538238_35',
+            'title': 'Black Shadow - Wall post 23538238_35',
+            'description': 'md5:3f84b9c4f9ef499731cf1ced9998cc0c',
+        },
+        'playlist': [{
+            'md5': '5ba93864ec5b85f7ce19a9af4af080f6',
+            'info_dict': {
+                'id': '135220665_111806521',
+                'ext': 'mp3',
+                'title': 'Black Shadow - Слепое Верование',
+                'duration': 370,
+                'uploader': 'Black Shadow',
+                'artist': 'Black Shadow',
+                'track': 'Слепое Верование',
+            },
+        }, {
+            'md5': '4cc7e804579122b17ea95af7834c9233',
+            'info_dict': {
+                'id': '135220665_111802303',
+                'ext': 'mp3',
+                'title': 'Black Shadow - Война - Негасимое Бездны Пламя!',
+                'duration': 423,
+                'uploader': 'Black Shadow',
+                'artist': 'Black Shadow',
+                'track': 'Война - Негасимое Бездны Пламя!',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        }],
+        'skip': 'Requires vk account credentials',
+    }, {
+        # single YouTube embed, no leading -
+        'url': 'https://vk.com/wall85155021_6319',
+        'info_dict': {
+            'id': '85155021_6319',
+            'title': 'Sergey Gorbunov - Wall post 85155021_6319',
+        },
+        'playlist_count': 1,
+        'skip': 'Requires vk account credentials',
+    }, {
+        # wall page URL
+        'url': 'https://vk.com/wall-23538238_35',
+        'only_matching': True,
+    }, {
+        # mobile wall page URL
+        'url': 'https://m.vk.com/wall-23538238_35',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        post_id = self._match_id(url)
+
+        wall_url = 'https://vk.com/wall%s' % post_id
+
+        post_id = remove_start(post_id, '-')
+
+        webpage = self._download_webpage(wall_url, post_id)
+
+        error = self._html_search_regex(
+            r'>Error</div>\s*<div[^>]+class=["\']body["\'][^>]*>([^<]+)',
+            webpage, 'error', default=None)
+        if error:
+            raise ExtractorError('VK said: %s' % error, expected=True)
+
+        description = clean_html(get_element_by_class('wall_post_text', webpage))
+        uploader = clean_html(get_element_by_class(
+            'fw_post_author', webpage)) or self._og_search_description(webpage)
+        thumbnail = self._og_search_thumbnail(webpage)
+
+        entries = []
+
+        for audio in re.finditer(r'''(?sx)
+                            <input[^>]+
+                                id=(?P<q1>["\'])audio_info(?P<id>\d+_\d+).*?(?P=q1)[^>]+
+                                value=(?P<q2>["\'])(?P<url>http.+?)(?P=q2)
+                                .+?
+                            </table>''', webpage):
+            audio_html = audio.group(0)
+            audio_id = audio.group('id')
+            duration = parse_duration(get_element_by_class('duration', audio_html))
+            track = self._html_search_regex(
+                r'<span[^>]+id=["\']title%s[^>]*>([^<]+)' % audio_id,
+                audio_html, 'title', default=None)
+            artist = self._html_search_regex(
+                r'>([^<]+)</a></b>\s*&ndash', audio_html,
+                'artist', default=None)
+            entries.append({
+                'id': audio_id,
+                'url': audio.group('url'),
+                'title': '%s - %s' % (artist, track) if artist and track else audio_id,
+                'thumbnail': thumbnail,
+                'duration': duration,
+                'uploader': uploader,
+                'artist': artist,
+                'track': track,
+            })
+
+        for video in re.finditer(
+                r'<a[^>]+href=(["\'])(?P<url>/video(?:-?[\d_]+).*?)\1', webpage):
+            entries.append(self.url_result(
+                compat_urlparse.urljoin(url, video.group('url')), VKIE.ie_key()))
+
+        title = 'Wall post %s' % post_id
+
+        return self.playlist_result(
+            orderedSet(entries), post_id,
+            '%s - %s' % (uploader, title) if uploader else title,
+            description)
