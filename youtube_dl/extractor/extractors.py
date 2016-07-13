@@ -689,7 +689,7 @@ from .rtlnl import RtlNlIE
 from .rtl2 import RTL2IE
 from .rtp import RTPIE
 from .rts import RTSIE
-from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE
+from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE, RTVELiveIE, RTVETelevisionIE
 from .rtvnh import RTVNHIE
 from .rudo import RudoIE
 from .ruhd import RUHDIE
