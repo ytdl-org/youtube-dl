@@ -26,20 +26,20 @@ class BrainPOPIE(InfoExtractor):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
 
-        content = self._parse_json(self._html_search_regex(r'var content = ([^;]*)', webpage, 'content'), display_id)
-        
-        if content['category']['unit']['topic']['free'] == 'no':
+        content = self._parse_json(self._html_search_regex(r'var content = ([^;]*)', webpage, 'content JSON'), display_id)
+        topic = content['category']['unit']['topic']
+
+        if topic['free'] == 'no':
             self.raise_login_required('%s is only available for users with Subscriptions' % display_id)
 
-        global_content = self._parse_json(self._html_search_regex(r'var global_content = ([^;]*)', webpage, 'global content').replace("'", '"'), display_id)
+        global_content = self._parse_json(self._html_search_regex(r'var global_content = ([^;]*)', webpage, 'global content JSON').replace("'", '"'), display_id)
         cdn_path = global_content.get('cdn_path', 'https://cdn.brainpop.com')
         movie_cdn_path = global_content.get('movie_cdn_path', 'https://svideos.brainpop.com')
         ec_token = self._html_search_regex(r"ec_token : '([^']*)'", webpage, 'token')
 
-        screenshots = content['category']['unit']['topic'].get('screenshots', {})
-        thumbnails = [{'url': cdn_path + screenshot} for screenshot in screenshots]
+        thumbnails = [{'url': cdn_path + screenshot} for screenshot in topic.get('screenshots', {})]
 
-        movies = content['category']['unit']['topic']['movies']
+        movies = topic['movies']
         formats = []
         formats.append({
             'url': movie_cdn_path + movies['mp4'] + '?' + ec_token,
@@ -52,14 +52,14 @@ class BrainPOPIE(InfoExtractor):
             'width': 480,
         })
         self._sort_formats(formats)
-        
-        settings = self._parse_json(self._html_search_regex(r'var settings = ([^;]*)', webpage, 'settings'), display_id)
+
+        settings = self._parse_json(self._html_search_regex(r'var settings = ([^;]*)', webpage, 'settings JSON', '{}'), display_id)
 
         return {
-            'id': content['category']['unit']['topic']['EntryID'],
+            'id': topic['EntryID'],
             'display_id': display_id,
-            'title': remove_end(settings['title'], ' - BrainPOP'),
-            'description': settings['description'],
+            'title': remove_end(settings.get('title', display_id), ' - BrainPOP'),
+            'description': settings.get('description', ''),
             'thumbnails': thumbnails,
             'formats': formats,
         }
