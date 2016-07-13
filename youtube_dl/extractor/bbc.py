@@ -44,8 +44,6 @@ class BBCCoUkIE(InfoExtractor):
 
     _MEDIASELECTION_NS = 'http://bbc.co.uk/2008/mp/mediaselection'
     _EMP_PLAYLIST_NS = 'http://bbc.co.uk/2008/emp/playlist'
-    # Unified Streaming Platform
-    _USP_RE = r'/([^/]+)\.ism(?:\.hlsv2\.ism)?/[^/]+\.m3u8'
 
     _NAMESPACES = (
         _MEDIASELECTION_NS,
@@ -246,15 +244,9 @@ class BBCCoUkIE(InfoExtractor):
             elif transfer_format == 'dash':
                 pass
             elif transfer_format == 'hls':
-                is_unified_streaming = re.search(self._USP_RE, href)
-                if is_unified_streaming:
-                    href = re.sub(self._USP_RE, r'/\1.ism/\1.m3u8', href)
-                m3u8_formats = self._extract_m3u8_formats(
-                    href, programme_id, ext='mp4', entry_protocol='m3u8_native',
-                    m3u8_id=supplier, fatal=False)
-                if is_unified_streaming:
-                    self._check_formats(m3u8_formats, programme_id)
-                formats.extend(m3u8_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    href, programme_id, 'mp4', 'm3u8_native',
+                    m3u8_id=supplier, fatal=False))
             # Direct link
             else:
                 formats.append({
