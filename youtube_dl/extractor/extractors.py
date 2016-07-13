@@ -989,6 +989,7 @@ from .viki import (
 from .vk import (
     VKIE,
     VKUserVideosIE,
+    VKWallPostIE,
 )
 from .vlive import VLiveIE
 from .vodlocker import VodlockerIE
