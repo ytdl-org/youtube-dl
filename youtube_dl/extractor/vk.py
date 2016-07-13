@@ -53,13 +53,14 @@ class VKBaseIE(InfoExtractor):
         # We will workaround this VK issue by resetting the remixlhk cookie to
         # the first one manually.
         cookies = url_handle.headers.get('Set-Cookie')
-        if sys.version_info[0] >= 3:
-            cookies = cookies.encode('iso-8859-1')
-        cookies = cookies.decode('utf-8')
-        remixlhk = re.search(r'remixlhk=(.+?);.*?\bdomain=(.+?)(?:[,;]|$)', cookies)
-        if remixlhk:
-            value, domain = remixlhk.groups()
-            self._set_cookie(domain, 'remixlhk', value)
+        if cookies:
+            if sys.version_info[0] >= 3:
+                cookies = cookies.encode('iso-8859-1')
+            cookies = cookies.decode('utf-8')
+            remixlhk = re.search(r'remixlhk=(.+?);.*?\bdomain=(.+?)(?:[,;]|$)', cookies)
+            if remixlhk:
+                value, domain = remixlhk.groups()
+                self._set_cookie(domain, 'remixlhk', value)
 
         login_page = self._download_webpage(
             'https://login.vk.com/?act=login', None,
