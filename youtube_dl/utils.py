@@ -2123,6 +2123,7 @@ def mimetype2ext(mt):
         'dash+xml': 'mpd',
         'f4m': 'f4m',
         'f4m+xml': 'f4m',
+        'vnd.ms-sstr+xml': 'ism',
     }.get(res, res)
 
 
