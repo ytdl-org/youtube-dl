@@ -537,6 +537,7 @@ from .nick import (
 from .niconico import NiconicoIE, NiconicoPlaylistIE
 from .ninecninemedia import NineCNineMediaIE
 from .ninegag import NineGagIE
+from .ninenow import NineNowIE
 from .noco import NocoIE
 from .normalboots import NormalbootsIE
 from .nosvideo import NosVideoIE
