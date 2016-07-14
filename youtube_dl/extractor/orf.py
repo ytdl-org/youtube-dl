@@ -40,7 +40,6 @@ class ORFTVthekIE(InfoExtractor):
         'skip': 'Blocked outside of Austria / Germany',
     }, {
         'url': 'http://tvthek.orf.at/topic/Im-Wandel-der-Zeit/8002126/Best-of-Ingrid-Thurnher/7982256',
-        'md5': '68f543909aea49d621dfc7703a11cfaf',
         'info_dict': {
             'id': '7982259',
             'ext': 'mp4',
