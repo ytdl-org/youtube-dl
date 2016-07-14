@@ -33,7 +33,7 @@ class NineNowIE(InfoExtractor):
         'only_matching': True,
     }, {
         # DRM protected
-        'url': 'https://www.9now.com.au/afl-footy-show/2016/episode-19',
+        'url': 'https://www.9now.com.au/andrew-marrs-history-of-the-world/season-1/episode-1',
         'only_matching': True,
     }]
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/4460760524001/default_default/index.html?videoId=%s'
