@@ -87,6 +87,8 @@ class TestCompat(unittest.TestCase):
 
     def test_compat_shlex_split(self):
         self.assertEqual(compat_shlex_split('-option "one two"'), ['-option', 'one two'])
+        self.assertEqual(compat_shlex_split('-option "one\ntwo" \n -flag'), ['-option', 'one\ntwo', '-flag'])
+        self.assertEqual(compat_shlex_split('-val 中文'), ['-val', '中文'])
 
     def test_compat_etree_fromstring(self):
         xml = '''
@@ -102,6 +104,12 @@ class TestCompat(unittest.TestCase):
         self.assertTrue(isinstance(doc.find('normal').text, compat_str))
         self.assertTrue(isinstance(doc.find('chinese').text, compat_str))
         self.assertTrue(isinstance(doc.find('foo/bar').text, compat_str))
+
+    def test_compat_etree_fromstring_doctype(self):
+        xml = '''<?xml version="1.0"?>
+<!DOCTYPE smil PUBLIC "-//W3C//DTD SMIL 2.0//EN" "http://www.w3.org/2001/SMIL20/SMIL20.dtd">
+<smil xmlns="http://www.w3.org/2001/SMIL20/Language"></smil>'''
+        compat_etree_fromstring(xml)
 
     def test_struct_unpack(self):
         self.assertEqual(compat_struct_unpack('!B', b'\x00'), (0,))

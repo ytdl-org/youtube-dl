@@ -51,8 +51,11 @@ class CSpanIE(InfoExtractor):
         'url': 'http://www.c-span.org/video/?104517-1/immigration-reforms-needed-protect-skilled-american-workers',
         'info_dict': {
             'id': 'judiciary031715',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Immigration Reforms Needed to Protect Skilled American Workers',
+        },
+        'params': {
+            'skip_download': True,  # m3u8 downloads
         }
     }]
 

@@ -129,6 +129,21 @@ class FacebookIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>https://www\.facebook\.com/video/embed.+?)\1', webpage)
+        if mobj is not None:
+            return mobj.group('url')
+
+        # Facebook API embed
+        # see https://developers.facebook.com/docs/plugins/embedded-video-player
+        mobj = re.search(r'''(?x)<div[^>]+
+                class=(?P<q1>[\'"])[^\'"]*\bfb-(?:video|post)\b[^\'"]*(?P=q1)[^>]+
+                data-href=(?P<q2>[\'"])(?P<url>(?:https?:)?//(?:www\.)?facebook.com/.+?)(?P=q2)''', webpage)
+        if mobj is not None:
+            return mobj.group('url')
+
     def _login(self):
         (useremail, password) = self._get_login_info()
         if useremail is None:
@@ -204,12 +219,25 @@ class FacebookIE(InfoExtractor):
 
         BEFORE = '{swf.addParam(param[0], param[1]);});'
         AFTER = '.forEach(function(variable) {swf.addVariable(variable[0], variable[1]);});'
-        m = re.search(re.escape(BEFORE) + '(?:\n|\\\\n)(.*?)' + re.escape(AFTER), webpage)
-        if m:
-            swf_params = m.group(1).replace('\\\\', '\\').replace('\\"', '"')
+        PATTERN = re.escape(BEFORE) + '(?:\n|\\\\n)(.*?)' + re.escape(AFTER)
+
+        for m in re.findall(PATTERN, webpage):
+            swf_params = m.replace('\\\\', '\\').replace('\\"', '"')
             data = dict(json.loads(swf_params))
             params_raw = compat_urllib_parse_unquote(data['params'])
-            video_data = json.loads(params_raw)['video_data']
+            video_data_candidate = json.loads(params_raw)['video_data']
+            for _, f in video_data_candidate.items():
+                if not f:
+                    continue
+                if isinstance(f, dict):
+                    f = [f]
+                if not isinstance(f, list):
+                    continue
+                if f[0].get('video_id') == video_id:
+                    video_data = video_data_candidate
+                    break
+            if video_data:
+                break
 
         def video_data_list2dict(video_data):
             ret = {}
@@ -239,6 +267,8 @@ class FacebookIE(InfoExtractor):
 
         formats = []
         for format_id, f in video_data.items():
+            if f and isinstance(f, dict):
+                f = [f]
             if not f or not isinstance(f, list):
                 continue
             for quality in ('sd', 'hd'):

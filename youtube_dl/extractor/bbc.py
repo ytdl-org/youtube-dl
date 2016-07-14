@@ -31,7 +31,7 @@ class BBCCoUkIE(InfoExtractor):
                             music/clips[/#]|
                             radio/player/
                         )
-                        (?P<id>%s)
+                        (?P<id>%s)(?!/(?:episodes|broadcasts|clips))
                     ''' % _ID_REGEX
 
     _MEDIASELECTOR_URLS = [
@@ -55,12 +55,11 @@ class BBCCoUkIE(InfoExtractor):
             'url': 'http://www.bbc.co.uk/programmes/b039g8p7',
             'info_dict': {
                 'id': 'b039d07m',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Leonard Cohen, Kaleidoscope - BBC Radio 4',
                 'description': 'The Canadian poet and songwriter reflects on his musical career.',
             },
             'params': {
-                # rtmp download
                 'skip_download': True,
             }
         },
@@ -92,7 +91,7 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
-            'skip': 'Currently BBC iPlayer TV programmes are available to play in the UK only',
+            'skip': 'this episode is not currently available',
         },
         {
             'url': 'http://www.bbc.co.uk/iplayer/episode/p026c7jt/tomorrows-worlds-the-unearthly-history-of-science-fiction-2-invasion',
@@ -107,7 +106,7 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
-            'skip': 'Currently BBC iPlayer TV programmes are available to play in the UK only',
+            'skip': 'this episode is not currently available',
         }, {
             'url': 'http://www.bbc.co.uk/programmes/b04v20dw',
             'info_dict': {
@@ -127,13 +126,12 @@ class BBCCoUkIE(InfoExtractor):
             'note': 'Audio',
             'info_dict': {
                 'id': 'p022h44j',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'BBC Proms Music Guides, Rachmaninov: Symphonic Dances',
                 'description': "In this Proms Music Guide, Andrew McGregor looks at Rachmaninov's Symphonic Dances.",
                 'duration': 227,
             },
             'params': {
-                # rtmp download
                 'skip_download': True,
             }
         }, {
@@ -141,13 +139,12 @@ class BBCCoUkIE(InfoExtractor):
             'note': 'Video',
             'info_dict': {
                 'id': 'p025c103',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Reading and Leeds Festival, 2014, Rae Morris - Closer (Live on BBC Three)',
                 'description': 'Rae Morris performs Closer for BBC Three at Reading 2014',
                 'duration': 226,
             },
             'params': {
-                # rtmp download
                 'skip_download': True,
             }
         }, {
@@ -163,7 +160,7 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
-            'skip': 'geolocation',
+            'skip': 'this episode is not currently available',
         }, {
             'url': 'http://www.bbc.co.uk/iplayer/episode/b05zmgwn/royal-academy-summer-exhibition',
             'info_dict': {
@@ -177,7 +174,7 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
-            'skip': 'geolocation',
+            'skip': 'this episode is not currently available',
         }, {
             # iptv-all mediaset fails with geolocation however there is no geo restriction
             # for this programme at all
@@ -192,17 +189,17 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
+            'skip': 'this episode is not currently available on BBC iPlayer Radio',
         }, {
             # compact player (https://github.com/rg3/youtube-dl/issues/8147)
             'url': 'http://www.bbc.co.uk/programmes/p028bfkf/player',
             'info_dict': {
                 'id': 'p028bfkj',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Extract from BBC documentary Look Stranger - Giant Leeks and Magic Brews',
                 'description': 'Extract from BBC documentary Look Stranger - Giant Leeks and Magic Brews',
             },
             'params': {
-                # rtmp download
                 'skip_download': True,
             },
         }, {
@@ -248,7 +245,7 @@ class BBCCoUkIE(InfoExtractor):
                 pass
             elif transfer_format == 'hls':
                 formats.extend(self._extract_m3u8_formats(
-                    href, programme_id, ext='mp4', entry_protocol='m3u8_native',
+                    href, programme_id, 'mp4', 'm3u8_native',
                     m3u8_id=supplier, fatal=False))
             # Direct link
             else:
@@ -304,13 +301,14 @@ class BBCCoUkIE(InfoExtractor):
         for connection in self._extract_connections(media):
             conn_formats = self._extract_connection(connection, programme_id)
             for format in conn_formats:
-                format.update({
-                    'width': width,
-                    'height': height,
-                    'vbr': vbr,
-                    'vcodec': vcodec,
-                    'filesize': file_size,
-                })
+                if format.get('protocol') != 'm3u8_native':
+                    format.update({
+                        'width': width,
+                        'height': height,
+                        'vbr': vbr,
+                        'vcodec': vcodec,
+                        'filesize': file_size,
+                    })
                 if service:
                     format['format_id'] = '%s_%s' % (service, format['format_id'])
             formats.extend(conn_formats)
@@ -698,7 +696,9 @@ class BBCIE(BBCCoUkIE):
 
     @classmethod
     def suitable(cls, url):
-        return False if BBCCoUkIE.suitable(url) or BBCCoUkArticleIE.suitable(url) else super(BBCIE, cls).suitable(url)
+        EXCLUDE_IE = (BBCCoUkIE, BBCCoUkArticleIE, BBCCoUkIPlayerPlaylistIE, BBCCoUkPlaylistIE)
+        return (False if any(ie.suitable(url) for ie in EXCLUDE_IE)
+                else super(BBCIE, cls).suitable(url))
 
     def _extract_from_media_meta(self, media_meta, video_id):
         # Direct links to media in media metadata (e.g.
@@ -975,3 +975,72 @@ class BBCCoUkArticleIE(InfoExtractor):
             r'<div[^>]+typeof="Clip"[^>]+resource="([^"]+)"', webpage)]
 
         return self.playlist_result(entries, playlist_id, title, description)
+
+
+class BBCCoUkPlaylistBaseIE(InfoExtractor):
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result(self._URL_TEMPLATE % video_id, BBCCoUkIE.ie_key())
+            for video_id in re.findall(
+                self._VIDEO_ID_TEMPLATE % BBCCoUkIE._ID_REGEX, webpage)]
+
+        title, description = self._extract_title_and_description(webpage)
+
+        return self.playlist_result(entries, playlist_id, title, description)
+
+
+class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
+    IE_NAME = 'bbc.co.uk:iplayer:playlist'
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/iplayer/episodes/(?P<id>%s)' % BBCCoUkIE._ID_REGEX
+    _URL_TEMPLATE = 'http://www.bbc.co.uk/iplayer/episode/%s'
+    _VIDEO_ID_TEMPLATE = r'data-ip-id=["\'](%s)'
+    _TEST = {
+        'url': 'http://www.bbc.co.uk/iplayer/episodes/b05rcz9v',
+        'info_dict': {
+            'id': 'b05rcz9v',
+            'title': 'The Disappearance',
+            'description': 'French thriller serial about a missing teenager.',
+        },
+        'playlist_mincount': 6,
+    }
+
+    def _extract_title_and_description(self, webpage):
+        title = self._search_regex(r'<h1>([^<]+)</h1>', webpage, 'title', fatal=False)
+        description = self._search_regex(
+            r'<p[^>]+class=(["\'])subtitle\1[^>]*>(?P<value>[^<]+)</p>',
+            webpage, 'description', fatal=False, group='value')
+        return title, description
+
+
+class BBCCoUkPlaylistIE(BBCCoUkPlaylistBaseIE):
+    IE_NAME = 'bbc.co.uk:playlist'
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/programmes/(?P<id>%s)/(?:episodes|broadcasts|clips)' % BBCCoUkIE._ID_REGEX
+    _URL_TEMPLATE = 'http://www.bbc.co.uk/programmes/%s'
+    _VIDEO_ID_TEMPLATE = r'data-pid=["\'](%s)'
+    _TESTS = [{
+        'url': 'http://www.bbc.co.uk/programmes/b05rcz9v/clips',
+        'info_dict': {
+            'id': 'b05rcz9v',
+            'title': 'The Disappearance - Clips - BBC Four',
+            'description': 'French thriller serial about a missing teenager.',
+        },
+        'playlist_mincount': 7,
+    }, {
+        'url': 'http://www.bbc.co.uk/programmes/b05rcz9v/broadcasts/2016/06',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.bbc.co.uk/programmes/b05rcz9v/clips',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.bbc.co.uk/programmes/b055jkys/episodes/player',
+        'only_matching': True,
+    }]
+
+    def _extract_title_and_description(self, webpage):
+        title = self._og_search_title(webpage, fatal=False)
+        description = self._og_search_description(webpage)
+        return title, description

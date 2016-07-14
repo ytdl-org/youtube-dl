@@ -102,11 +102,11 @@ class MixcloudIE(InfoExtractor):
         description = self._og_search_description(webpage)
         like_count = parse_count(self._search_regex(
             r'\bbutton-favorite[^>]+>.*?<span[^>]+class=["\']toggle-number[^>]+>\s*([^<]+)',
-            webpage, 'like count', fatal=False))
+            webpage, 'like count', default=None))
         view_count = str_to_int(self._search_regex(
             [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
              r'/listeners/?">([0-9,.]+)</a>'],
-            webpage, 'play count', fatal=False))
+            webpage, 'play count', default=None))
 
         return {
             'id': track_id,

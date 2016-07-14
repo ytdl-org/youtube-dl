@@ -11,8 +11,8 @@ from ..utils import (
 
 
 class EpornerIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?eporner\.com/hd-porn/(?P<id>\d+)/(?P<display_id>[\w-]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?eporner\.com/hd-porn/(?P<id>\w+)/(?P<display_id>[\w-]+)'
+    _TESTS = [{
         'url': 'http://www.eporner.com/hd-porn/95008/Infamous-Tiffany-Teen-Strip-Tease-Video/',
         'md5': '39d486f046212d8e1b911c52ab4691f8',
         'info_dict': {
@@ -23,8 +23,12 @@ class EpornerIE(InfoExtractor):
             'duration': 1838,
             'view_count': int,
             'age_limit': 18,
-        }
-    }
+        },
+    }, {
+        # New (May 2016) URL layout
+        'url': 'http://www.eporner.com/hd-porn/3YRUtzMcWn0/Star-Wars-XXX-Parody/',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

@@ -1,19 +1,32 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     int_or_none,
     js_to_json,
-    qualities,
 )
 
 
 class PornHdIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?pornhd\.com/(?:[a-z]{2,4}/)?videos/(?P<id>\d+)(?:/(?P<display_id>.+))?'
-    _TEST = {
+    _TESTS = [{
+        'url': 'http://www.pornhd.com/videos/9864/selfie-restroom-masturbation-fun-with-chubby-cutie-hd-porn-video',
+        'md5': 'c8b964b1f0a4b5f7f28ae3a5c9f86ad5',
+        'info_dict': {
+            'id': '9864',
+            'display_id': 'selfie-restroom-masturbation-fun-with-chubby-cutie-hd-porn-video',
+            'ext': 'mp4',
+            'title': 'Restroom selfie masturbation',
+            'description': 'md5:3748420395e03e31ac96857a8f125b2b',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'view_count': int,
+            'age_limit': 18,
+        }
+    }, {
+        # removed video
         'url': 'http://www.pornhd.com/videos/1962/sierra-day-gets-his-cum-all-over-herself-hd-porn-video',
         'md5': '956b8ca569f7f4d8ec563e2c41598441',
         'info_dict': {
@@ -25,8 +38,9 @@ class PornHdIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.jpg',
             'view_count': int,
             'age_limit': 18,
-        }
-    }
+        },
+        'skip': 'Not available anymore',
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -38,27 +52,37 @@ class PornHdIE(InfoExtractor):
         title = self._html_search_regex(
             [r'<span[^>]+class=["\']video-name["\'][^>]*>([^<]+)',
              r'<title>(.+?) - .*?[Pp]ornHD.*?</title>'], webpage, 'title')
-        description = self._html_search_regex(
-            r'<div class="description">([^<]+)</div>', webpage, 'description', fatal=False)
-        view_count = int_or_none(self._html_search_regex(
-            r'(\d+) views\s*</span>', webpage, 'view count', fatal=False))
-        thumbnail = self._search_regex(
-            r"'poster'\s*:\s*'([^']+)'", webpage, 'thumbnail', fatal=False)
 
-        quality = qualities(['sd', 'hd'])
-        sources = json.loads(js_to_json(self._search_regex(
+        sources = self._parse_json(js_to_json(self._search_regex(
             r"(?s)'sources'\s*:\s*(\{.+?\})\s*\}[;,)]",
-            webpage, 'sources')))
+            webpage, 'sources', default='{}')), video_id)
+
+        if not sources:
+            message = self._html_search_regex(
+                r'(?s)<(div|p)[^>]+class="no-video"[^>]*>(?P<value>.+?)</\1',
+                webpage, 'error message', group='value')
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, message), expected=True)
+
         formats = []
-        for qname, video_url in sources.items():
+        for format_id, video_url in sources.items():
             if not video_url:
                 continue
+            height = int_or_none(self._search_regex(
+                r'^(\d+)[pP]', format_id, 'height', default=None))
             formats.append({
                 'url': video_url,
-                'format_id': qname,
-                'quality': quality(qname),
+                'format_id': format_id,
+                'height': height,
             })
         self._sort_formats(formats)
+
+        description = self._html_search_regex(
+            r'<(div|p)[^>]+class="description"[^>]*>(?P<value>[^<]+)</\1',
+            webpage, 'description', fatal=False, group='value')
+        view_count = int_or_none(self._html_search_regex(
+            r'(\d+) views\s*<', webpage, 'view count', fatal=False))
+        thumbnail = self._search_regex(
+            r"'poster'\s*:\s*'([^']+)'", webpage, 'thumbnail', fatal=False)
 
         return {
             'id': video_id,

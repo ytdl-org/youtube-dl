@@ -363,8 +363,10 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         input_files = [filename] + sub_filenames
 
         opts = [
-            '-map', '0',
-            '-c', 'copy',
+            '-map', '0:v',
+            '-c:v', 'copy',
+            '-map', '0:a',
+            '-c:a', 'copy',
             # Don't copy the existing subtitles, we may be running the
             # postprocessor a second time
             '-map', '-0:s',

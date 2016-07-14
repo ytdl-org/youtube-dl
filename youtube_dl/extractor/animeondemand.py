@@ -22,6 +22,7 @@ class AnimeOnDemandIE(InfoExtractor):
     _APPLY_HTML5_URL = 'https://www.anime-on-demand.de/html5apply'
     _NETRC_MACHINE = 'animeondemand'
     _TESTS = [{
+        # jap, OmU
         'url': 'https://www.anime-on-demand.de/anime/161',
         'info_dict': {
             'id': '161',
@@ -30,16 +31,20 @@ class AnimeOnDemandIE(InfoExtractor):
         },
         'playlist_mincount': 4,
     }, {
-        # Film wording is used instead of Episode
+        # Film wording is used instead of Episode, ger/jap, Dub/OmU
         'url': 'https://www.anime-on-demand.de/anime/39',
         'only_matching': True,
     }, {
-        # Episodes without titles
+        # Episodes without titles, jap, OmU
         'url': 'https://www.anime-on-demand.de/anime/162',
         'only_matching': True,
     }, {
         # ger/jap, Dub/OmU, account required
         'url': 'https://www.anime-on-demand.de/anime/169',
+        'only_matching': True,
+    }, {
+        # Full length film, non-series, ger/jap, Dub/OmU, account required
+        'url': 'https://www.anime-on-demand.de/anime/185',
         'only_matching': True,
     }]
 
@@ -110,35 +115,12 @@ class AnimeOnDemandIE(InfoExtractor):
 
         entries = []
 
-        for num, episode_html in enumerate(re.findall(
-                r'(?s)<h3[^>]+class="episodebox-title".+?>Episodeninhalt<', webpage), 1):
-            episodebox_title = self._search_regex(
-                (r'class="episodebox-title"[^>]+title=(["\'])(?P<title>.+?)\1',
-                 r'class="episodebox-title"[^>]+>(?P<title>.+?)<'),
-                episode_html, 'episodebox title', default=None, group='title')
-            if not episodebox_title:
-                continue
-
-            episode_number = int(self._search_regex(
-                r'(?:Episode|Film)\s*(\d+)',
-                episodebox_title, 'episode number', default=num))
-            episode_title = self._search_regex(
-                r'(?:Episode|Film)\s*\d+\s*-\s*(.+)',
-                episodebox_title, 'episode title', default=None)
-
-            video_id = 'episode-%d' % episode_number
-
-            common_info = {
-                'id': video_id,
-                'series': anime_title,
-                'episode': episode_title,
-                'episode_number': episode_number,
-            }
-
+        def extract_info(html, video_id, num=None):
+            title, description = [None] * 2
             formats = []
 
             for input_ in re.findall(
-                    r'<input[^>]+class=["\'].*?streamstarter_html5[^>]+>', episode_html):
+                    r'<input[^>]+class=["\'].*?streamstarter_html5[^>]+>', html):
                 attributes = extract_attributes(input_)
                 playlist_urls = []
                 for playlist_key in ('data-playlist', 'data-otherplaylist'):
@@ -161,7 +143,7 @@ class AnimeOnDemandIE(InfoExtractor):
                         format_id_list.append(lang)
                     if kind:
                         format_id_list.append(kind)
-                    if not format_id_list:
+                    if not format_id_list and num is not None:
                         format_id_list.append(compat_str(num))
                     format_id = '-'.join(format_id_list)
                     format_note = ', '.join(filter(None, (kind, lang_note)))
@@ -215,28 +197,74 @@ class AnimeOnDemandIE(InfoExtractor):
                             })
                         formats.extend(file_formats)
 
-            if formats:
-                self._sort_formats(formats)
+            return {
+                'title': title,
+                'description': description,
+                'formats': formats,
+            }
+
+        def extract_entries(html, video_id, common_info, num=None):
+            info = extract_info(html, video_id, num)
+
+            if info['formats']:
+                self._sort_formats(info['formats'])
                 f = common_info.copy()
-                f.update({
-                    'title': title,
-                    'description': description,
-                    'formats': formats,
-                })
+                f.update(info)
                 entries.append(f)
 
-            # Extract teaser only when full episode is not available
-            if not formats:
+            # Extract teaser/trailer only when full episode is not available
+            if not info['formats']:
                 m = re.search(
-                    r'data-dialog-header=(["\'])(?P<title>.+?)\1[^>]+href=(["\'])(?P<href>.+?)\3[^>]*>Teaser<',
-                    episode_html)
+                    r'data-dialog-header=(["\'])(?P<title>.+?)\1[^>]+href=(["\'])(?P<href>.+?)\3[^>]*>(?P<kind>Teaser|Trailer)<',
+                    html)
                 if m:
                     f = common_info.copy()
                     f.update({
-                        'id': '%s-teaser' % f['id'],
+                        'id': '%s-%s' % (f['id'], m.group('kind').lower()),
                         'title': m.group('title'),
                         'url': compat_urlparse.urljoin(url, m.group('href')),
                     })
                     entries.append(f)
+
+        def extract_episodes(html):
+            for num, episode_html in enumerate(re.findall(
+                    r'(?s)<h3[^>]+class="episodebox-title".+?>Episodeninhalt<', html), 1):
+                episodebox_title = self._search_regex(
+                    (r'class="episodebox-title"[^>]+title=(["\'])(?P<title>.+?)\1',
+                     r'class="episodebox-title"[^>]+>(?P<title>.+?)<'),
+                    episode_html, 'episodebox title', default=None, group='title')
+                if not episodebox_title:
+                    continue
+
+                episode_number = int(self._search_regex(
+                    r'(?:Episode|Film)\s*(\d+)',
+                    episodebox_title, 'episode number', default=num))
+                episode_title = self._search_regex(
+                    r'(?:Episode|Film)\s*\d+\s*-\s*(.+)',
+                    episodebox_title, 'episode title', default=None)
+
+                video_id = 'episode-%d' % episode_number
+
+                common_info = {
+                    'id': video_id,
+                    'series': anime_title,
+                    'episode': episode_title,
+                    'episode_number': episode_number,
+                }
+
+                extract_entries(episode_html, video_id, common_info)
+
+        def extract_film(html, video_id):
+            common_info = {
+                'id': anime_id,
+                'title': anime_title,
+                'description': anime_description,
+            }
+            extract_entries(html, video_id, common_info)
+
+        extract_episodes(webpage)
+
+        if not entries:
+            extract_film(webpage, anime_id)
 
         return self.playlist_result(entries, anime_id, anime_title, anime_description)

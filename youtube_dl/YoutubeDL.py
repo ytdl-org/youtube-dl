@@ -196,8 +196,8 @@ class YoutubeDL(object):
     prefer_insecure:   Use HTTP instead of HTTPS to retrieve information.
                        At the moment, this is only supported by YouTube.
     proxy:             URL of the proxy server to use
-    cn_verification_proxy:  URL of the proxy to use for IP address verification
-                       on Chinese sites. (Experimental)
+    geo_verification_proxy:  URL of the proxy to use for IP address verification
+                       on geo-restricted sites. (Experimental)
     socket_timeout:    Time to wait for unresponsive hosts, in seconds
     bidi_workaround:   Work around buggy terminals without bidirectional text
                        support, using fridibi
@@ -304,6 +304,11 @@ class YoutubeDL(object):
         self.params.update(params)
         self.cache = Cache(self)
 
+        if self.params.get('cn_verification_proxy') is not None:
+            self.report_warning('--cn-verification-proxy is deprecated. Use --geo-verification-proxy instead.')
+            if self.params.get('geo_verification_proxy') is None:
+                self.params['geo_verification_proxy'] = self.params['cn_verification_proxy']
+
         if params.get('bidi_workaround', False):
             try:
                 import pty
@@ -326,7 +331,7 @@ class YoutubeDL(object):
                         ['fribidi', '-c', 'UTF-8'] + width_args, **sp_kwargs)
                 self._output_channel = os.fdopen(master, 'rb')
             except OSError as ose:
-                if ose.errno == 2:
+                if ose.errno == errno.ENOENT:
                     self.report_warning('Could not find fribidi executable, ignoring --bidi-workaround . Make sure that  fribidi  is an executable file in one of the directories in your $PATH.')
                 else:
                     raise
@@ -1222,6 +1227,10 @@ class YoutubeDL(object):
             raise ExtractorError('Missing "id" field in extractor result')
         if 'title' not in info_dict:
             raise ExtractorError('Missing "title" field in extractor result')
+
+        if not isinstance(info_dict['id'], compat_str):
+            self.report_warning('"id" field is not a string - forcing string conversion')
+            info_dict['id'] = compat_str(info_dict['id'])
 
         if 'playlist' not in info_dict:
             # It isn't part of a playlist

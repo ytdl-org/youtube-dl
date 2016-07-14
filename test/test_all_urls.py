@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+import collections
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
@@ -129,6 +130,15 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch(
             'https://screen.yahoo.com/smartwatches-latest-wearable-gadgets-163745379-cbs.html',
             ['Yahoo'])
+
+    def test_no_duplicated_ie_names(self):
+        name_accu = collections.defaultdict(list)
+        for ie in self.ies:
+            name_accu[ie.IE_NAME.lower()].append(type(ie).__name__)
+        for (ie_name, ie_list) in name_accu.items():
+            self.assertEqual(
+                len(ie_list), 1,
+                'Multiple extractors with the same IE_NAME "%s" (%s)' % (ie_name, ', '.join(ie_list)))
 
 
 if __name__ == '__main__':

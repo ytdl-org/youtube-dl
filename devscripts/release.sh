@@ -6,7 +6,7 @@
 # * the git config user.signingkey is properly set
 
 # You will need
-# pip install coverage nose rsa
+# pip install coverage nose rsa wheel
 
 # TODO
 # release notes
@@ -15,10 +15,33 @@
 set -e
 
 skip_tests=true
-if [ "$1" = '--run-tests' ]; then
-    skip_tests=false
-    shift
-fi
+gpg_sign_commits=""
+buildserver='localhost:8142'
+
+while true
+do
+case "$1" in
+    --run-tests)
+        skip_tests=false
+        shift
+    ;;
+    --gpg-sign-commits|-S)
+        gpg_sign_commits="-S"
+        shift
+    ;;
+    --buildserver)
+        buildserver="$2"
+        shift 2
+    ;;
+    --*)
+        echo "ERROR: unknown option $1"
+        exit 1
+    ;;
+    *)
+        break
+    ;;
+esac
+done
 
 if [ -z "$1" ]; then echo "ERROR: specify version number like this: $0 1994.09.06"; exit 1; fi
 version="$1"
@@ -33,6 +56,9 @@ if [ ! -z "`git status --porcelain | grep -v CHANGELOG`" ]; then echo 'ERROR: th
 useless_files=$(find youtube_dl -type f -not -name '*.py')
 if [ ! -z "$useless_files" ]; then echo "ERROR: Non-.py files in youtube_dl: $useless_files"; exit 1; fi
 if [ ! -f "updates_key.pem" ]; then echo 'ERROR: updates_key.pem missing'; exit 1; fi
+if ! type pandoc >/dev/null 2>/dev/null; then echo 'ERROR: pandoc is missing'; exit 1; fi
+if ! python3 -c 'import rsa' 2>/dev/null; then echo 'ERROR: python3-rsa is missing'; exit 1; fi
+if ! python3 -c 'import wheel' 2>/dev/null; then echo 'ERROR: wheel is missing'; exit 1; fi
 
 /bin/echo -e "\n### First of all, testing..."
 make clean
@@ -48,7 +74,7 @@ sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
 /bin/echo -e "\n### Committing documentation, templates and youtube_dl/version.py..."
 make README.md CONTRIBUTING.md .github/ISSUE_TEMPLATE.md supportedsites
 git add README.md CONTRIBUTING.md .github/ISSUE_TEMPLATE.md docs/supportedsites.md youtube_dl/version.py
-git commit -m "release $version"
+git commit $gpg_sign_commits -m "release $version"
 
 /bin/echo -e "\n### Now tagging, signing and pushing..."
 git tag -s -m "Release $version" "$version"
@@ -64,7 +90,7 @@ git push origin "$version"
 REV=$(git rev-parse HEAD)
 make youtube-dl youtube-dl.tar.gz
 read -p "VM running? (y/n) " -n 1
-wget "http://localhost:8142/build/rg3/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe
+wget "http://$buildserver/build/rg3/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe
 mkdir -p "build/$version"
 mv youtube-dl youtube-dl.exe "build/$version"
 mv youtube-dl.tar.gz "build/$version/youtube-dl-$version.tar.gz"
@@ -74,15 +100,16 @@ RELEASE_FILES="youtube-dl youtube-dl.exe youtube-dl-$version.tar.gz"
 (cd build/$version/ && sha256sum $RELEASE_FILES > SHA2-256SUMS)
 (cd build/$version/ && sha512sum $RELEASE_FILES > SHA2-512SUMS)
 
-/bin/echo -e "\n### Signing and uploading the new binaries to yt-dl.org ..."
+/bin/echo -e "\n### Signing and uploading the new binaries to GitHub..."
 for f in $RELEASE_FILES; do gpg --passphrase-repeat 5 --detach-sig "build/$version/$f"; done
-scp -r "build/$version" ytdl@yt-dl.org:html/tmp/
-ssh ytdl@yt-dl.org "mv html/tmp/$version html/downloads/"
+
+ROOT=$(pwd)
+python devscripts/create-github-release.py $version "$ROOT/build/$version"
+
 ssh ytdl@yt-dl.org "sh html/update_latest.sh $version"
 
 /bin/echo -e "\n### Now switching to gh-pages..."
 git clone --branch gh-pages --single-branch . build/gh-pages
-ROOT=$(pwd)
 (
     set -e
     ORIGIN_URL=$(git config --get remote.origin.url)
@@ -94,7 +121,7 @@ ROOT=$(pwd)
     "$ROOT/devscripts/gh-pages/update-copyright.py"
     "$ROOT/devscripts/gh-pages/update-sites.py"
     git add *.html *.html.in update
-    git commit -m "release $version"
+    git commit $gpg_sign_commits -m "release $version"
     git push "$ROOT" gh-pages
     git push "$ORIGIN_URL" gh-pages
 )
