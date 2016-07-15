@@ -1396,12 +1396,11 @@ class YoutubeDL(object):
         # instead of just formats.
         # This fixes incorrect format selection issue (see
         # https://github.com/rg3/youtube-dl/issues/10083).
-        incomplete_formats = all(
+        incomplete_formats = (
             # All formats are video-only or
-            f.get('vcodec') != 'none' and f.get('acodec') == 'none' or
+            all(f.get('vcodec') != 'none' and f.get('acodec') == 'none' for f in formats) or
             # all formats are audio-only
-            f.get('vcodec') == 'none' and f.get('acodec') != 'none'
-            for f in formats)
+            all(f.get('vcodec') == 'none' and f.get('acodec') != 'none' for f in formats))
 
         ctx = {
             'formats': formats,
