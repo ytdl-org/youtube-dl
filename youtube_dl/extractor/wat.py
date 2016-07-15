@@ -9,7 +9,6 @@ from ..utils import (
     ExtractorError,
     unified_strdate,
     HEADRequest,
-    float_or_none,
 )
 
 
@@ -95,16 +94,7 @@ class WatIE(InfoExtractor):
             m3u8_url.replace('ios.', 'web.').replace('.m3u8', '.f4m'),
             video_id, f4m_id='hds', fatal=False))
         for m3u8_format in m3u8_formats:
-            mobj = re.search(
-                r'audio.*?%3D(\d+)(?:-video.*?%3D(\d+))?', m3u8_format['url'])
-            if not mobj:
-                continue
-            abr, vbr = mobj.groups()
-            abr, vbr = float_or_none(abr, 1000), float_or_none(vbr, 1000)
-            m3u8_format.update({
-                'vbr': vbr,
-                'abr': abr,
-            })
+            vbr, abr = m3u8_format.get('vbr'), m3u8_format.get('abr')
             if not vbr or not abr:
                 continue
             f = m3u8_format.copy()

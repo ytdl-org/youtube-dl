@@ -1207,6 +1207,7 @@ class InfoExtractor(object):
                     'url': format_url(line.strip()),
                     'tbr': tbr,
                     'ext': ext,
+                    'fps': float_or_none(last_info.get('FRAME-RATE')),
                     'protocol': entry_protocol,
                     'preference': preference,
                 }
@@ -1215,24 +1216,17 @@ class InfoExtractor(object):
                     width_str, height_str = resolution.split('x')
                     f['width'] = int(width_str)
                     f['height'] = int(height_str)
-                codecs = last_info.get('CODECS')
-                if codecs:
-                    vcodec, acodec = [None] * 2
-                    va_codecs = codecs.split(',')
-                    if len(va_codecs) == 1:
-                        # Audio only entries usually come with single codec and
-                        # no resolution. For more robustness we also check it to
-                        # be mp4 audio.
-                        if not resolution and va_codecs[0].startswith('mp4a'):
-                            vcodec, acodec = 'none', va_codecs[0]
-                        else:
-                            vcodec = va_codecs[0]
-                    else:
-                        vcodec, acodec = va_codecs[:2]
+                # Unified Streaming Platform
+                mobj = re.search(
+                    r'audio.*?(?:%3D|=)(\d+)(?:-video.*?(?:%3D|=)(\d+))?', f['url'])
+                if mobj:
+                    abr, vbr = mobj.groups()
+                    abr, vbr = float_or_none(abr, 1000), float_or_none(vbr, 1000)
                     f.update({
-                        'acodec': acodec,
-                        'vcodec': vcodec,
+                        'vbr': vbr,
+                        'abr': abr,
                     })
+                f.update(parse_codecs(last_info.get('CODECS')))
                 if last_media is not None:
                     f['m3u8_media'] = last_media
                     last_media = None

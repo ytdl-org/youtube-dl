@@ -113,9 +113,7 @@ class RTVEALaCartaIE(InfoExtractor):
         png = self._download_webpage(png_request, video_id, 'Downloading url information')
         video_url = _decrypt_url(png)
         if not video_url.endswith('.f4m'):
-            video_url = video_url.replace(
-                'resources/', 'auth/resources/'
-            ).replace('.net.rtve', '.multimedia.cdn.rtve')
+            video_url = video_url.replace('.net.rtve', '.multimedia.cdn.rtve')
 
         subtitles = None
         if info.get('sbtFile') is not None:
@@ -222,3 +220,34 @@ class RTVELiveIE(InfoExtractor):
             'formats': formats,
             'is_live': True,
         }
+
+
+class RTVETelevisionIE(InfoExtractor):
+    IE_NAME = 'rtve.es:television'
+    _VALID_URL = r'https?://www\.rtve\.es/television/[^/]+/[^/]+/(?P<id>\d+).shtml'
+
+    _TEST = {
+        'url': 'http://www.rtve.es/television/20160628/revolucion-del-movil/1364141.shtml',
+        'info_dict': {
+            'id': '3069778',
+            'ext': 'mp4',
+            'title': 'Documentos TV - La revolución del móvil',
+            'duration': 3496.948,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        page_id = self._match_id(url)
+        webpage = self._download_webpage(url, page_id)
+
+        alacarta_url = self._search_regex(
+            r'data-location="alacarta_videos"[^<]+url&quot;:&quot;(http://www\.rtve\.es/alacarta.+?)&',
+            webpage, 'alacarta url', default=None)
+        if alacarta_url is None:
+            raise ExtractorError(
+                'The webpage doesn\'t contain any video', expected=True)
+
+        return self.url_result(alacarta_url, ie=RTVEALaCartaIE.ie_key())

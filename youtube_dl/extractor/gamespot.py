@@ -28,9 +28,12 @@ class GameSpotIE(OnceIE):
         'url': 'http://www.gamespot.com/videos/the-witcher-3-wild-hunt-xbox-one-now-playing/2300-6424837/',
         'info_dict': {
             'id': 'gs-2300-6424837',
-            'ext': 'flv',
-            'title': 'The Witcher 3: Wild Hunt [Xbox ONE]  - Now Playing',
+            'ext': 'mp4',
+            'title': 'Now Playing - The Witcher 3: Wild Hunt',
             'description': 'Join us as we take a look at the early hours of The Witcher 3: Wild Hunt and more.',
+        },
+        'params': {
+            'skip_download': True,  # m3u8 downloads
         },
     }]
 

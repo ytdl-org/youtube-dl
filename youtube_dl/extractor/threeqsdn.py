@@ -24,16 +24,20 @@ class ThreeQSDNIE(InfoExtractor):
             'title': '0280d6b9-1215-11e6-b427-0cc47a188158',
             'is_live': False,
         },
-        'expected_warnings': ['Failed to download MPD manifest'],
+        'expected_warnings': ['Failed to download MPD manifest', 'Failed to parse JSON'],
     }, {
         # live video stream
         'url': 'https://playout.3qsdn.com/d755d94b-4ab9-11e3-9162-0025907ad44f?js=true',
         'info_dict': {
             'id': 'd755d94b-4ab9-11e3-9162-0025907ad44f',
             'ext': 'mp4',
-            'title': 'd755d94b-4ab9-11e3-9162-0025907ad44f',
-            'is_live': False,
+            'title': 're:^d755d94b-4ab9-11e3-9162-0025907ad44f [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'is_live': True,
         },
+        'params': {
+            'skip_download': True,  # m3u8 downloads
+        },
+        'expected_warnings': ['Failed to download MPD manifest'],
     }, {
         # live audio stream
         'url': 'http://playout.3qsdn.com/9edf36e0-6bf2-11e2-a16a-9acf09e2db48',
@@ -114,7 +118,7 @@ class ThreeQSDNIE(InfoExtractor):
                     'vcodec': 'none' if stream_type == 'audio' else None,
                 })
 
-        for item_js in re.findall(r'({.*?\b(?:src|source)\s*:\s*["\'].+?})', js):
+        for item_js in re.findall(r'({[^{]*?\b(?:src|source)\s*:\s*["\'].+?})', js):
             f = self._parse_json(
                 item_js, video_id, transform_source=js_to_json, fatal=False)
             if not f:

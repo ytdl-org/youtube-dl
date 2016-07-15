@@ -26,6 +26,8 @@ from ..utils import (
     unescapeHTML,
     unsmuggle_url,
     update_url_query,
+    clean_html,
+    mimetype2ext,
 )
 
 
@@ -544,14 +546,16 @@ class BrightcoveNewIE(InfoExtractor):
         formats = []
         for source in json_data.get('sources', []):
             container = source.get('container')
-            source_type = source.get('type')
+            ext = mimetype2ext(source.get('type'))
             src = source.get('src')
-            if source_type == 'application/x-mpegURL' or container == 'M2TS':
+            if ext == 'ism':
+                continue
+            elif ext == 'm3u8' or container == 'M2TS':
                 if not src:
                     continue
                 formats.extend(self._extract_m3u8_formats(
                     src, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
-            elif source_type == 'application/dash+xml':
+            elif ext == 'mpd':
                 if not src:
                     continue
                 formats.extend(self._extract_mpd_formats(src, video_id, 'dash', fatal=False))
@@ -567,7 +571,7 @@ class BrightcoveNewIE(InfoExtractor):
                     'tbr': tbr,
                     'filesize': int_or_none(source.get('size')),
                     'container': container,
-                    'ext': container.lower(),
+                    'ext': ext or container.lower(),
                 }
                 if width == 0 and height == 0:
                     f.update({
@@ -620,7 +624,7 @@ class BrightcoveNewIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'description': json_data.get('description'),
+            'description': clean_html(json_data.get('description')),
             'thumbnail': json_data.get('thumbnail') or json_data.get('poster'),
             'duration': float_or_none(json_data.get('duration'), 1000),
             'timestamp': parse_iso8601(json_data.get('published_at')),

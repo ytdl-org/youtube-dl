@@ -537,6 +537,7 @@ from .nick import (
 from .niconico import NiconicoIE, NiconicoPlaylistIE
 from .ninecninemedia import NineCNineMediaIE
 from .ninegag import NineGagIE
+from .ninenow import NineNowIE
 from .noco import NocoIE
 from .normalboots import NormalbootsIE
 from .nosvideo import NosVideoIE
@@ -689,7 +690,7 @@ from .rtlnl import RtlNlIE
 from .rtl2 import RTL2IE
 from .rtp import RTPIE
 from .rts import RTSIE
-from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE
+from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE, RTVELiveIE, RTVETelevisionIE
 from .rtvnh import RTVNHIE
 from .rudo import RudoIE
 from .ruhd import RUHDIE
@@ -989,6 +990,7 @@ from .viki import (
 from .vk import (
     VKIE,
     VKUserVideosIE,
+    VKWallPostIE,
 )
 from .vlive import VLiveIE
 from .vodlocker import VodlockerIE
