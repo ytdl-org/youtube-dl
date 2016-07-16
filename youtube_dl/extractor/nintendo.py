@@ -1,13 +1,15 @@
+# coding: utf-8
 from __future__ import unicode_literals
-
-from .common import InfoExtractor
-from .ooyala import OoyalaIE
 
 import re
 
+from .common import InfoExtractor
+from .ooyala import OoyalaIE
+from ..utils import unescapeHTML
+
 
 class NintendoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nintendo\.com/games/detail/(?P<id>[\w-]+)'
+    _VALID_URL = r'https?://(?:www\.)?nintendo\.com/games/detail/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.nintendo.com/games/detail/yEiAzhU2eQI1KZ7wOHhngFoAHc1FpHwj',
         'info_dict': {
@@ -24,24 +26,21 @@ class NintendoIE(InfoExtractor):
         'url': 'http://www.nintendo.com/games/detail/tokyo-mirage-sessions-fe-wii-u',
         'info_dict': {
             'id': 'tokyo-mirage-sessions-fe-wii-u',
+            'title': 'Tokyo Mirage Sessions ♯FE',
         },
-        'params': {
-            'skip_download': True,
-        },
-        'add_ie': ['Ooyala'],
-        'playlist_count': 4,
+        'playlist_count': 3,
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        page_id = self._match_id(url)
 
-        ooyala_codes = re.findall(
-            r'data-video-code=(["\'])(?P<code>.+?)\1',
-            webpage)
+        webpage = self._download_webpage(url, page_id)
 
-        entries = []
-        for ooyala_code in ooyala_codes:
-            entries.append(OoyalaIE._build_url_result(ooyala_code[1]))
+        entries = [
+            OoyalaIE._build_url_result(m.group('code'))
+            for m in re.finditer(
+                r'class=(["\'])embed-video\1[^>]+data-video-code=(["\'])(?P<code>(?:(?!\2).)+)\2',
+                webpage)]
 
-        return self.playlist_result(entries, video_id, self._og_search_title(webpage))
+        return self.playlist_result(
+            entries, page_id, unescapeHTML(self._og_search_title(webpage, fatal=False)))
