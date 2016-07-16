@@ -4,12 +4,13 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    float_or_none
+    float_or_none,
+    int_or_none,
 )
 
 
 class StreamableIE(InfoExtractor):
-    _VALID_URL = r'https?://streamable\.com/(?P<id>[\w]+)'
+    _VALID_URL = r'https?://streamable\.com/(?:e/)?(?P<id>\w+)'
     _TESTS = [
         {
             'url': 'https://streamable.com/dnd1',
@@ -18,7 +19,12 @@ class StreamableIE(InfoExtractor):
                 'id': 'dnd1',
                 'ext': 'mp4',
                 'title': 'Mikel Oiarzabal scores to make it 0-3 for La Real against Espanyol',
-                'thumbnail': 'http://cdn.streamable.com/image/dnd1.jpg',
+                'thumbnail': 're:https?://.*\.jpg$',
+                'uploader': 'teabaker',
+                'timestamp': 1454964157.35115,
+                'upload_date': '20160208',
+                'duration': 61.516,
+                'view_count': int,
             }
         },
         # older video without bitrate, width/height, etc. info
@@ -29,8 +35,16 @@ class StreamableIE(InfoExtractor):
                 'id': 'moo',
                 'ext': 'mp4',
                 'title': '"Please don\'t eat me!"',
-                'thumbnail': 'http://cdn.streamable.com/image/f6441ae0c84311e4af010bc47400a0a4.jpg',
+                'thumbnail': 're:https?://.*\.jpg$',
+                'timestamp': 1426115495,
+                'upload_date': '20150311',
+                'duration': 12,
+                'view_count': int,
             }
+        },
+        {
+            'url': 'https://streamable.com/e/dnd1',
+            'only_matching': True,
         }
     ]
 
@@ -54,23 +68,31 @@ class StreamableIE(InfoExtractor):
                 'This video is currently unavailable. It may still be uploading or processing.',
                 expected=True)
 
+        title = video.get('reddit_title') or video['title']
+
         formats = []
-        for key, info in video.get('files').items():
+        for key, info in video['files'].items():
+            if not info.get('url'):
+                continue
             formats.append({
                 'format_id': key,
-                'url': info['url'],
-                'width': info.get('width'),
-                'height': info.get('height'),
-                'filesize': info.get('size'),
-                'fps': info.get('framerate'),
+                'url': self._proto_relative_url(info['url']),
+                'width': int_or_none(info.get('width')),
+                'height': int_or_none(info.get('height')),
+                'filesize': int_or_none(info.get('size')),
+                'fps': int_or_none(info.get('framerate')),
                 'vbr': float_or_none(info.get('bitrate'), 1000)
             })
         self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'title': video.get('result_title'),
-            'thumbnail': video.get('thumbnail_url'),
-            'duration': video.get('duration'),
+            'title': title,
+            'description': video.get('description'),
+            'thumbnail': self._proto_relative_url(video.get('thumbnail_url')),
+            'uploader': video.get('owner', {}).get('user_name'),
+            'timestamp': float_or_none(video.get('date_added')),
+            'duration': float_or_none(video.get('duration')),
+            'view_count': int_or_none(video.get('plays')),
             'formats': formats
         }
