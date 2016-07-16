@@ -20,7 +20,7 @@ from ..compat import compat_etree_fromstring
 
 class ARDMediathekIE(InfoExtractor):
     IE_NAME = 'ARD:mediathek'
-    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.daserste\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
+    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
         'url': 'http://www.ardmediathek.de/tv/Dokumentation-und-Reportage/Ich-liebe-das-Leben-trotzdem/rbb-Fernsehen/Video?documentId=29582122&bcastId=3822114',
