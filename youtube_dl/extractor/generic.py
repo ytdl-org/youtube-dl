@@ -1249,6 +1249,20 @@ class GenericIE(InfoExtractor):
                 'uploader': 'www.hudl.com',
             },
         },
+        # twitter:player:stream embed
+        {
+            'url': 'http://www.rtl.be/info/video/589263.aspx?CategoryID=288',
+            'info_dict': {
+                'id': 'master',
+                'ext': 'mp4',
+                'title': 'Une nouvelle espèce de dinosaure découverte en Argentine',
+                'uploader': 'www.rtl.be',
+            },
+            'params': {
+                # m3u8 downloads
+                'skip_download': True,
+            },
+        },
         # twitter:player embed
         {
             'url': 'http://www.theatlantic.com/video/index/484130/what-do-black-holes-sound-like/',
@@ -2184,11 +2198,6 @@ class GenericIE(InfoExtractor):
                 'uploader': video_uploader,
             }
 
-        # https://dev.twitter.com/cards/types/player#On_twitter.com_via_desktop_browser
-        embed_url = self._html_search_meta('twitter:player', webpage, default=None)
-        if embed_url:
-            return self.url_result(embed_url)
-
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
             webpage, video_id, default=None, expected_type='VideoObject')
@@ -2245,6 +2254,9 @@ class GenericIE(InfoExtractor):
                 r"cinerama\.embedPlayer\(\s*\'[^']+\',\s*'([^']+)'", webpage)
         if not found:
             # Try to find twitter cards info
+            # twitter:player:stream should be checked before twitter:player since
+            # it is expected to contain a raw stream (see
+            # https://dev.twitter.com/cards/types/player#On_twitter.com_via_desktop_browser)
             found = filter_video(re.findall(
                 r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage))
         if not found:
@@ -2278,6 +2290,15 @@ class GenericIE(InfoExtractor):
                     '_type': 'url',
                     'url': new_url,
                 }
+
+        if not found:
+            # twitter:player is a https URL to iframe player that may or may not
+            # be supported by youtube-dl thus this is checked the very last (see
+            # https://dev.twitter.com/cards/types/player#On_twitter.com_via_desktop_browser)
+            embed_url = self._html_search_meta('twitter:player', webpage, default=None)
+            if embed_url:
+                return self.url_result(embed_url)
+
         if not found:
             raise UnsupportedError(url)
 
