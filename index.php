@@ -14,9 +14,9 @@ $latest = file_get_contents('latest_version');
 
 echo '<div class="latest">';
 echo '<div><a href="latest">Latest</a> (v' . htmlspecialchars($latest) . ') downloads:</div>';
-echo '<a href="downloads/' . htmlspecialchars($latest) . '/youtube-dl">youtube-dl</a> ';
-echo '<a href="downloads/' . htmlspecialchars($latest) . '/youtube-dl.exe">youtube-dl.exe</a> ';
-echo '<a href="downloads/' . htmlspecialchars($latest) . '/youtube-dl-' . htmlspecialchars($latest) . '.tar.gz">youtube-dl-' . htmlspecialchars($latest) . '.tar.gz</a>';
+echo '<a href="downloads/latest/youtube-dl">youtube-dl</a> ';
+echo '<a href="downloads/latest/youtube-dl.exe">youtube-dl.exe</a> ';
+echo '<a href="downloads/latest/youtube-dl-' . htmlspecialchars($latest) . '.tar.gz">youtube-dl-' . htmlspecialchars($latest) . '.tar.gz</a>';
 echo '</div>';
 
 ?>
