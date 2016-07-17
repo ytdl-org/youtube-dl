@@ -28,13 +28,13 @@
 </p>
 
 <p>To install it right away for all UNIX users (Linux, OS X, etc.), type:
-<code class="commands">sudo curl -L @PROGRAM_URL@ -o /usr/local/bin/youtube-dl<br/>
+<code class="commands">sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl<br/>
 sudo chmod a+rx /usr/local/bin/youtube-dl</code>
 </p>
 
 <p>If you do not have curl, you can alternatively use a recent wget:
 
-<code class="commands">sudo wget @PROGRAM_URL@ -O /usr/local/bin/youtube-dl<br/>
+<code class="commands">sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl<br/>
 sudo chmod a+rx /usr/local/bin/youtube-dl</code>
 </p>
 
@@ -51,7 +51,7 @@ See the <a href="https://pypi.python.org/pypi/youtube_dl">pypi page</a> for more
 </p>
 
 <p>To check the signature, type:
-<code class="commands">sudo wget @PROGRAM_URL@.sig -O youtube-dl.sig<br/>gpg --verify youtube-dl.sig /usr/local/bin/youtube-dl<br/>rm youtube-dl.sig</code>
+<code class="commands">sudo wget https://yt-dl.org/downloads/latest/youtube-dl.sig -O youtube-dl.sig<br/>gpg --verify youtube-dl.sig /usr/local/bin/youtube-dl<br/>rm youtube-dl.sig</code>
 </p>
 
 <p>The following GPG keys will be used to sign the binaries and the git tags:</p>
