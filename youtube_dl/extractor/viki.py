@@ -283,7 +283,7 @@ class VikiIE(VikiBaseIE):
                 if format_id == 'm3u8':
                     m3u8_formats = self._extract_m3u8_formats(
                         format_dict['url'], video_id, 'mp4',
-                        entry_protocol='m3u8_native',
+                        entry_protocol='m3u8_native', preference=-1,
                         m3u8_id='m3u8-%s' % protocol, fatal=False)
                     # Despite CODECS metadata in m3u8 all video-only formats
                     # are actually video+audio
