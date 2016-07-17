@@ -62,6 +62,17 @@ class ARDMediathekIE(InfoExtractor):
     }, {
         'url': 'http://mediathek.daserste.de/sendungen_a-z/328454_anne-will/22429276_vertrauen-ist-gut-spionieren-ist-besser-geht',
         'only_matching': True,
+    }, {
+        # audio
+        'url': 'http://mediathek.rbb-online.de/radio/Hörspiel/Vor-dem-Fest/kulturradio/Audio?documentId=30796318&topRessort=radio&bcastId=9839158',
+        'md5': '4e8f00631aac0395fee17368ac0e9867',
+        'info_dict': {
+            'id': '30796318',
+            'ext': 'mp3',
+            'title': 'Vor dem Fest',
+            'description': 'md5:c0c1c8048514deaed2a73b3a60eecacb',
+            'duration': 3287,
+        },
     }]
 
     def _extract_media_info(self, media_info_url, webpage, video_id):
