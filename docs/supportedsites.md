@@ -449,6 +449,7 @@
  - **niconico**: ニコニコ動画
  - **NiconicoPlaylist**
  - **NineCNineMedia**
+ - **Nintendo**
  - **njoy**: N-JOY
  - **njoy:embed**
  - **Noco**
@@ -645,6 +646,7 @@
  - **stanfordoc**: Stanford Open ClassRoom
  - **Steam**
  - **Stitcher**
+ - **Streamable**
  - **streamcloud.eu**
  - **StreamCZ**
  - **StreetVoice**
