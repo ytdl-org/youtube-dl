@@ -281,9 +281,16 @@ class VikiIE(VikiBaseIE):
                 r'^(\d+)[pP]$', format_id, 'height', default=None))
             for protocol, format_dict in stream_dict.items():
                 if format_id == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        format_dict['url'], video_id, 'mp4', 'm3u8_native',
-                        m3u8_id='m3u8-%s' % protocol, fatal=False))
+                    m3u8_formats = self._extract_m3u8_formats(
+                        format_dict['url'], video_id, 'mp4',
+                        entry_protocol='m3u8_native',
+                        m3u8_id='m3u8-%s' % protocol, fatal=False)
+                    # Despite CODECS metadata in m3u8 all video-only formats
+                    # are actually video+audio
+                    for f in m3u8_formats:
+                        if f.get('acodec') == 'none' and f.get('vcodec') != 'none':
+                            f['acodec'] = None
+                    formats.extend(m3u8_formats)
                 else:
                     formats.append({
                         'url': format_dict['url'],
