@@ -3121,3 +3121,11 @@ def decode_png(png_data):
             current_row.append(color)
 
     return width, height, pixels
+
+
+def strip_bom_utf8(s):
+    BOM_UTF8 = u'\ufeff'
+    if s.startswith(BOM_UTF8):
+        return s[len(BOM_UTF8):]
+
+    return s
