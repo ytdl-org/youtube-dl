@@ -2491,6 +2491,7 @@ class _TreeBuilder(etree.TreeBuilder):
     def doctype(self, name, pubid, system):
         pass
 
+
 if sys.version_info[0] >= 3:
     def compat_etree_fromstring(text):
         return etree.XML(text, parser=etree.XMLParser(target=_TreeBuilder()))
@@ -2786,6 +2787,7 @@ def workaround_optparse_bug9161():
                 (k, enc(v)) for k, v in kwargs.items())
             return real_add_option(self, *bargs, **bkwargs)
         optparse.OptionGroup.add_option = _compat_add_option
+
 
 if hasattr(shutil, 'get_terminal_size'):  # Python >= 3.3
     compat_get_terminal_size = shutil.get_terminal_size

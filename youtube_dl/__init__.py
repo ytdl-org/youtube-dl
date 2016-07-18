@@ -427,4 +427,5 @@ def main(argv=None):
     except KeyboardInterrupt:
         sys.exit('\nERROR: Interrupted by user')
 
+
 __all__ = ['main', 'YoutubeDL', 'gen_extractors', 'list_extractors']

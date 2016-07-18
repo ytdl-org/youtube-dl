@@ -31,6 +31,8 @@ from ..utils import (
 )
 
 default_ns = 'http://www.w3.org/2005/SMIL21/Language'
+
+
 _x = lambda p: xpath_with_ns(p, {'smil': default_ns})
 
 

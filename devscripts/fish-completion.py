@@ -44,5 +44,6 @@ def build_completion(opt_parser):
     with open(FISH_COMPLETION_FILE, 'w') as f:
         f.write(filled_template)
 
+
 parser = youtube_dl.parseOpts()[0]
 build_completion(parser)
