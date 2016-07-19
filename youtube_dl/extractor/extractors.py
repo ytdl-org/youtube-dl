@@ -156,7 +156,11 @@ from .cnn import (
 )
 from .coub import CoubIE
 from .collegerama import CollegeRamaIE
-from .comedycentral import ComedyCentralIE, ComedyCentralShowsIE
+from .comedycentral import (
+    ComedyCentralIE,
+    ComedyCentralShowsIE,
+    ComedyCentralTVIE,
+)
 from .comcarcoff import ComCarCoffIE
 from .commonmistakes import CommonMistakesIE, UnicodeBOMIE
 from .commonprotocols import RtmpIE
