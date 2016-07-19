@@ -589,7 +589,8 @@ class BBCIE(BBCCoUkIE):
         'info_dict': {
             'id': '150615_telabyad_kentin_cogu',
             'ext': 'mp4',
-            'title': "YPG: Tel Abyad'ın tamamı kontrolümüzde",
+            'title': "Tel Abyad'da IŞİD bayrağı indirildi YPG bayrağı çekildi",
+            'description': 'md5:33a4805a855c9baf7115fcbde57e7025',
             'timestamp': 1434397334,
             'upload_date': '20150615',
         },
@@ -603,6 +604,7 @@ class BBCIE(BBCCoUkIE):
             'id': '150619_video_honduras_militares_hospitales_corrupcion_aw',
             'ext': 'mp4',
             'title': 'Honduras militariza sus hospitales por nuevo escándalo de corrupción',
+            'description': 'md5:1525f17448c4ee262b64b8f0c9ce66c8',
             'timestamp': 1434713142,
             'upload_date': '20150619',
         },
@@ -818,8 +820,20 @@ class BBCIE(BBCCoUkIE):
                         # http://www.bbc.com/turkce/multimedya/2015/10/151010_vid_ankara_patlama_ani)
                         playlist = data_playable.get('otherSettings', {}).get('playlist', {})
                         if playlist:
-                            entries.append(self._extract_from_playlist_sxml(
-                                playlist.get('progressiveDownloadUrl'), playlist_id, timestamp))
+                            for key in ('progressiveDownload', 'streaming'):
+                                playlist_url = playlist.get('%sUrl' % key)
+                                if not playlist_url:
+                                    continue
+                                try:
+                                    entries.append(self._extract_from_playlist_sxml(
+                                        playlist_url, playlist_id, timestamp))
+                                except Exception as e:
+                                    # Some playlist URL may fail with 500, at the same time
+                                    # the other one may work fine (e.g.
+                                    # http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu)
+                                    if isinstance(e.cause, compat_HTTPError) and e.cause.code == 500:
+                                        continue
+                                    raise
 
         if entries:
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
