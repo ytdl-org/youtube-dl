@@ -2968,3 +2968,19 @@ def parse_m3u8_attributes(attrib):
 
 def urshift(val, n):
     return val >> n if val >= 0 else (val + 0x100000000) >> n
+
+
+def decode_pkcs7(data, block=16):
+    """
+    Remove PKCS#7 padding, see:
+    <https://tools.ietf.org/html/rfc5652#section-6.3>.
+
+    @param {int[]} data        input data
+    @param {int}   block       cipher block size (1-255)
+    @returns {int[]}           data without padding
+    """
+    assert 0 < block < 256, 'Bad padding block'
+    num_padded = data[-1]
+    if num_padded > block or len(data) < num_padded:
+        raise ValueError('Input is not padded or padding is corrupt')
+    return data[:-num_padded]

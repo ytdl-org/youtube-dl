@@ -43,6 +43,7 @@ from .appletrailers import (
     AppleTrailersIE,
     AppleTrailersSectionIE,
 )
+from .aqstream import AqstreamIE
 from .archiveorg import ArchiveOrgIE
 from .ard import (
     ARDIE,
