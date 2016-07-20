@@ -25,6 +25,7 @@ class CBCIE(InfoExtractor):
             'upload_date': '20160203',
             'uploader': 'CBCC-NEW',
         },
+        'skip': 'Geo-restricted to Canada',
     }, {
         # with clipId
         'url': 'http://www.cbc.ca/archives/entry/1978-robin-williams-freestyles-on-90-minutes-live',
@@ -64,6 +65,7 @@ class CBCIE(InfoExtractor):
                 'uploader': 'CBCC-NEW',
             },
         }],
+        'skip': 'Geo-restricted to Canada',
     }]
 
     @classmethod
@@ -104,6 +106,7 @@ class CBCPlayerIE(InfoExtractor):
             'upload_date': '20160210',
             'uploader': 'CBCC-NEW',
         },
+        'skip': 'Geo-restricted to Canada',
     }, {
         # Redirected from http://www.cbc.ca/player/AudioMobile/All%20in%20a%20Weekend%20Montreal/ID/2657632011/
         'url': 'http://www.cbc.ca/player/play/2657631896',

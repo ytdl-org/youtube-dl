@@ -26,6 +26,7 @@ class CBSNewsIE(CBSBaseIE):
                 # rtmp download
                 'skip_download': True,
             },
+            'skip': 'Subscribers only',
         },
         {
             'url': 'http://www.cbsnews.com/videos/fort-hood-shooting-army-downplays-mental-illness-as-cause-of-attack/',
@@ -69,7 +70,7 @@ class CBSNewsLiveVideoIE(InfoExtractor):
     IE_DESC = 'CBS News Live Videos'
     _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/live/video/(?P<id>[\da-z_-]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.cbsnews.com/live/video/clinton-sanders-prepare-to-face-off-in-nh/',
         'info_dict': {
             'id': 'clinton-sanders-prepare-to-face-off-in-nh',
@@ -77,7 +78,15 @@ class CBSNewsLiveVideoIE(InfoExtractor):
             'title': 'Clinton, Sanders Prepare To Face Off In NH',
             'duration': 334,
         },
-    }
+        'skip': 'Video gone, redirected to http://www.cbsnews.com/live/',
+    }, {
+        'url': 'http://www.cbsnews.com/live/video/video-shows-intense-paragliding-accident/',
+        'info_dict': {
+            'id': 'video-shows-intense-paragliding-accident',
+            'ext': 'flv',
+            'title': 'Video Shows Intense Paragliding Accident',
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

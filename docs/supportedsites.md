@@ -14,6 +14,7 @@
  - **8tracks**
  - **91porn**
  - **9gag**
+ - **9now.com.au**
  - **abc.net.au**
  - **Abc7News**
  - **abcnews**
@@ -448,6 +449,7 @@
  - **niconico**: ニコニコ動画
  - **NiconicoPlaylist**
  - **NineCNineMedia**
+ - **Nintendo**
  - **njoy**: N-JOY
  - **njoy:embed**
  - **Noco**
@@ -567,6 +569,7 @@
  - **rtve.es:alacarta**: RTVE a la carta
  - **rtve.es:infantil**: RTVE infantil
  - **rtve.es:live**: RTVE.es live streams
+ - **rtve.es:television**
  - **RTVNH**
  - **Rudo**
  - **RUHD**
@@ -643,6 +646,7 @@
  - **stanfordoc**: Stanford Open ClassRoom
  - **Steam**
  - **Stitcher**
+ - **Streamable**
  - **streamcloud.eu**
  - **StreamCZ**
  - **StreetVoice**

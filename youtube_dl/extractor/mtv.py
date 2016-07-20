@@ -15,6 +15,7 @@ from ..utils import (
     float_or_none,
     HEADRequest,
     sanitized_Request,
+    strip_or_none,
     unescapeHTML,
     url_basename,
     RegexNotFoundError,
@@ -133,7 +134,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
             message += item.text
             raise ExtractorError(message, expected=True)
 
-        description = xpath_text(itemdoc, 'description')
+        description = strip_or_none(xpath_text(itemdoc, 'description'))
 
         title_el = None
         if title_el is None:

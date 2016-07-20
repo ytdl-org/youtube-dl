@@ -23,7 +23,7 @@ class CliphunterIE(InfoExtractor):
         (?P<id>[0-9]+)/
         (?P<seo>.+?)(?:$|[#\?])
     '''
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.cliphunter.com/w/1012420/Fun_Jynx_Maze_solo',
         'md5': 'b7c9bbd4eb3a226ab91093714dcaa480',
         'info_dict': {
@@ -32,8 +32,19 @@ class CliphunterIE(InfoExtractor):
             'title': 'Fun Jynx Maze solo',
             'thumbnail': 're:^https?://.*\.jpg$',
             'age_limit': 18,
-        }
-    }
+        },
+        'skip': 'Video gone',
+    }, {
+        'url': 'http://www.cliphunter.com/w/2019449/ShesNew__My_booty_girlfriend_Victoria_Paradices_pussy_filled_with_jizz',
+        'md5': '55a723c67bfc6da6b0cfa00d55da8a27',
+        'info_dict': {
+            'id': '2019449',
+            'ext': 'mp4',
+            'title': 'ShesNew - My booty girlfriend, Victoria Paradice\'s pussy filled with jizz',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'age_limit': 18,
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
