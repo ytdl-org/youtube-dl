@@ -11,6 +11,65 @@ from ..utils import (
 )
 
 
+class RteArchivesIE(InfoExtractor):
+    IE_NAME = 'rte:archives'
+    IE_DESC = 'Raidió Teilifís Éireann archives'
+    _VALID_URL = r'https?://(?:www\.)?rte\.ie/archives/\d{4}/\d{4}/(?P<id>[0-9]+)[^/]+/?'
+    _TEST = {
+        'url': 'http://www.rte.ie/archives/2016/0210/766882-beat-of-the-feet/',
+        'info_dict': {
+            'id': '10526837',
+            'ext': 'flv',
+            'title': 'Beat Of The Feet',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'description': 'Battering requires the dancer to beat out a rhythm on the floor with their feet.',
+            'duration': 255.001,
+            'display_id': '766882'
+        },
+        'params': {
+            'skip_download': 'f4m fails with --test atm'
+        }
+    }
+
+    def _real_extract(self, url):
+        # meta tag with name="av" contains this id, too
+        id_pattern = r'<iframe.+src="//www.rte.ie/bosco/components/player/iframe.html\?clipid=(\d+)'
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._search_regex(id_pattern, webpage, 'video id')
+
+        title = self._og_search_title(webpage)
+        description = self._html_search_meta('description', webpage, 'description')
+
+        thumbnail_id = self._search_regex(
+            r'<meta name="thumbnail" content="uri:irus:(.*?)"/?>', webpage, 'thumbnail')
+        thumbnail = None
+        if thumbnail_id is not None:
+          thumbnail = 'http://img.rasset.ie/' + thumbnail_id + '.jpg'
+
+        feeds_url = 'http://www.rte.ie/rteavgen/getplaylist/?format=json&id=' + video_id
+        json_string = self._download_json(feeds_url, video_id)
+
+        # f4m_url = server + relative_url
+        f4m_url = json_string['shows'][0]['media:group'][0]['hds_server'] + json_string['shows'][0]['media:group'][0]['hds_url']
+        f4m_formats = self._extract_f4m_formats(f4m_url, video_id)
+        duration = None
+        try:
+          duration = float_or_none(json_string['shows'][0]['media:group'][0]['duration'], 1000)
+        except KeyError:
+          pass
+
+        return {
+            'id': video_id,
+            'title': title,
+            'formats': f4m_formats,
+            'description': description,
+            'thumbnail': thumbnail,
+            'duration': duration,
+            'display_id': display_id
+        }
+
+
 class RteIE(InfoExtractor):
     IE_NAME = 'rte'
     IE_DESC = 'Raidió Teilifís Éireann TV'
