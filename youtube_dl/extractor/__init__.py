@@ -43,4 +43,4 @@ def list_extractors(age_limit):
 
 def get_info_extractor(ie_name):
     """Returns the info extractor class with the given ie_name"""
-return globals()[ie_name + 'IE']
+    return globals()[ie_name + 'IE']
