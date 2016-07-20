@@ -43,7 +43,7 @@ from .extractor import gen_extractors, list_extractors
 from .YoutubeDL import YoutubeDL
 
 
-def _real_main(argv=None):
+def _real_main(argv=None, ignoreConfig=True):
     # Compatibility fixes for Windows
     if sys.platform == 'win32':
         # https://github.com/rg3/youtube-dl/issues/820
@@ -53,7 +53,7 @@ def _real_main(argv=None):
 
     setproctitle('youtube-dl')
 
-    parser, opts, args = parseOpts(argv)
+    parser, opts, args = parseOpts(argv, ignoreConfig)
 
     # Set user agent
     if opts.user_agent is not None:
@@ -382,8 +382,6 @@ def _real_main(argv=None):
         'external_downloader_args': external_downloader_args,
         'postprocessor_args': postprocessor_args,
         'cn_verification_proxy': opts.cn_verification_proxy,
-        'geo_verification_proxy': opts.geo_verification_proxy,
-
     }
 
     with YoutubeDL(ydl_opts) as ydl:
@@ -417,9 +415,9 @@ def _real_main(argv=None):
     sys.exit(retcode)
 
 
-def main(argv=None):
+def main(argv=None, ignoreConfig=True):
     try:
-        _real_main(argv)
+        _real_main(argv, ignoreConfig)
     except DownloadError:
         sys.exit(1)
     except SameFileError:
