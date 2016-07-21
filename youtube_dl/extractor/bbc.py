@@ -1023,6 +1023,7 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
             'description': 'French thriller serial about a missing teenager.',
         },
         'playlist_mincount': 6,
+        'skip': 'This programme is not currently available on BBC iPlayer',
     }
 
     def _extract_title_and_description(self, webpage):
