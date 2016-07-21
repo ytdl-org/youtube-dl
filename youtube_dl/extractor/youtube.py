@@ -1736,7 +1736,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
 
 class YoutubeSharedVideoIE(InfoExtractor):
-    _VALID_URL = r'(?:https?:)?//(?:www\.)?youtube\.com/shared\?ci=(?P<id>[0-9A-Za-z_-]{11})'
+    _VALID_URL = r'(?:https?:)?//(?:www\.)?youtube\.com/shared\?.*\bci=(?P<id>[0-9A-Za-z_-]{11})'
     IE_NAME = 'youtube:shared'
 
     _TEST = {
