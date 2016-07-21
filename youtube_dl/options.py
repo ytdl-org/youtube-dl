@@ -26,9 +26,11 @@ def parseOpts(overrideArguments=None, overrideIgnoreConfig=True):
         except IOError:
             return default  # silently skip if file is not present
         try:
-            res = []
-            for l in optionf:
-                res += compat_shlex_split(l, comments=True)
+            # FIXME: https://github.com/rg3/youtube-dl/commit/dfe5fa49aed02cf36ba9f743b11b0903554b5e56
+            contents = optionf.read()
+            if sys.version_info < (3,):
+                contents = contents.decode(preferredencoding())
+            res = compat_shlex_split(contents, comments=True)
         finally:
             optionf.close()
         return res
@@ -162,9 +164,9 @@ def parseOpts(overrideArguments=None, overrideIgnoreConfig=True):
         '--ignore-config',
         action='store_true',
         help='Do not read configuration files. '
-             'When given in the global configuration file /etc/youtube-dl.conf: '
-             'Do not read the user configuration in ~/.config/youtube-dl/config '
-             '(%APPDATA%/youtube-dl/config.txt on Windows)')
+        'When given in the global configuration file /etc/youtube-dl.conf: '
+        'Do not read the user configuration in ~/.config/youtube-dl/config '
+        '(%APPDATA%/youtube-dl/config.txt on Windows)')
     general.add_option(
         '--flat-playlist',
         action='store_const', dest='extract_flat', const='in_playlist',
@@ -213,14 +215,14 @@ def parseOpts(overrideArguments=None, overrideIgnoreConfig=True):
     )
     network.add_option(
         '--geo-verification-proxy',
-        dest = 'geo_verification_proxy', default = None, metavar = 'URL',
-        help = 'Use this proxy to verify the IP address for some geo-restricted sites. '
+        dest='geo_verification_proxy', default=None, metavar='URL',
+        help='Use this proxy to verify the IP address for some geo-restricted sites. '
         'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading. (experimental)'
     )
     network.add_option(
         '--cn-verification-proxy',
-        dest = 'cn_verification_proxy', default = None, metavar = 'URL',
-        help = optparse.SUPPRESS_HELP,
+        dest='cn_verification_proxy', default=None, metavar='URL',
+        help=optparse.SUPPRESS_HELP,
     )
 
     selection = optparse.OptionGroup(parser, 'Video Selection')
