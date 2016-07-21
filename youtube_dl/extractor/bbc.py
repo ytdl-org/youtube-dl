@@ -1012,10 +1012,10 @@ class BBCCoUkPlaylistBaseIE(InfoExtractor):
 
 class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
     IE_NAME = 'bbc.co.uk:iplayer:playlist'
-    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/iplayer/episodes/(?P<id>%s)' % BBCCoUkIE._ID_REGEX
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/iplayer/(?:episodes|group)/(?P<id>%s)' % BBCCoUkIE._ID_REGEX
     _URL_TEMPLATE = 'http://www.bbc.co.uk/iplayer/episode/%s'
     _VIDEO_ID_TEMPLATE = r'data-ip-id=["\'](%s)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.bbc.co.uk/iplayer/episodes/b05rcz9v',
         'info_dict': {
             'id': 'b05rcz9v',
@@ -1024,7 +1024,16 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
         },
         'playlist_mincount': 6,
         'skip': 'This programme is not currently available on BBC iPlayer',
-    }
+    }, {
+        # Available for over a year unlike 30 days for most other programmes
+        'url': 'http://www.bbc.co.uk/iplayer/group/p02tcc32',
+        'info_dict': {
+            'id': 'p02tcc32',
+            'title': 'Bohemian Icons',
+            'description': 'md5:683e901041b2fe9ba596f2ab04c4dbe7',
+        },
+        'playlist_mincount': 10,
+    }]
 
     def _extract_title_and_description(self, webpage):
         title = self._search_regex(r'<h1>([^<]+)</h1>', webpage, 'title', fatal=False)
