@@ -62,6 +62,7 @@ from .videomore import VideomoreIE
 from .googledrive import GoogleDriveIE
 from .jwplatform import JWPlatformIE
 from .digiteka import DigitekaIE
+from .arkena import ArkenaIE
 from .instagram import InstagramIE
 from .liveleak import LiveLeakIE
 from .threeqsdn import ThreeQSDNIE
@@ -1342,6 +1343,23 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Vimeo'],
         },
+        {
+            'url': 'https://support.arkena.com/display/PLAY/Ways+to+embed+your+video',
+            'md5': 'b96f2f71b359a8ecd05ce4e1daa72365',
+            'info_dict': {
+                'id': 'b41dda37-d8e7-4d3f-b1b5-9a9db578bdfe',
+                'ext': 'mp4',
+                'title': 'Big Buck Bunny',
+                'description': 'Royalty free test video',
+                'timestamp': 1432816365,
+                'upload_date': '20150528',
+                'is_live': False,
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [ArkenaIE.ie_key()],
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -2145,6 +2163,11 @@ class GenericIE(InfoExtractor):
         digiteka_url = DigitekaIE._extract_url(webpage)
         if digiteka_url:
             return self.url_result(self._proto_relative_url(digiteka_url), DigitekaIE.ie_key())
+
+        # Look for Arkena embeds
+        arkena_url = ArkenaIE._extract_url(webpage)
+        if arkena_url:
+            return self.url_result(arkena_url, ArkenaIE.ie_key())
 
         # Look for Limelight embeds
         mobj = re.search(r'LimelightPlayer\.doLoad(Media|Channel|ChannelList)\(["\'](?P<id>[a-z0-9]{32})', webpage)
