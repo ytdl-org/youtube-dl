@@ -81,12 +81,15 @@ class ArkenaIE(InfoExtractor):
                     formats.extend(self._extract_f4m_formats(
                         f_url, video_id, f4m_id=kind, fatal=False))
                 elif kind == 'dash' or 'mpd' in exts:
-                    formats.extend(self._extract_mpd_formats(
-                        f_url, video_id, mpd_id=kind, fatal=False))
+                    # TODO: Current DASH formats are broken - $Time$ pattern in
+                    # <SegmentTemplate> not implemented yet
+                    # formats.extend(self._extract_mpd_formats(
+                    #    f_url, video_id, mpd_id=kind, fatal=False))
+                    continue
                 elif kind == 'silverlight':
                     # TODO: process when ism is supported (see
                     # https://github.com/rg3/youtube-dl/issues/8118)
-                    pass
+                    continue
                 else:
                     tbr = float_or_none(f.get('Bitrate'), 1000)
                     formats.append({
