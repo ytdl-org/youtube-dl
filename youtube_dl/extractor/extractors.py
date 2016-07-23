@@ -44,6 +44,7 @@ from .appletrailers import (
     AppleTrailersSectionIE,
 )
 from .archiveorg import ArchiveOrgIE
+from .arkena import ArkenaIE
 from .ard import (
     ARDIE,
     ARDMediathekIE,
@@ -397,6 +398,10 @@ from .kuwo import (
 )
 from .la7 import LA7IE
 from .laola1tv import Laola1TvIE
+from .lcp import (
+    LcpPlayIE,
+    LcpIE,
+)
 from .learnr import LearnrIE
 from .lecture2go import Lecture2GoIE
 from .lemonde import LemondeIE
