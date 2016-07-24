@@ -62,11 +62,9 @@ class DCNBaseIE(InfoExtractor):
                 r'file\s*:\s*"https?(://[^"]+)/playlist.m3u8',
                 r'<a[^>]+href="rtsp(://[^"]+)"'
             ], webpage, 'format url')
-        # TODO: Current DASH formats are broken - $Time$ pattern in
-        # <SegmentTemplate> not implemented yet
-        # formats.extend(self._extract_mpd_formats(
-        #     format_url_base + '/manifest.mpd',
-        #     video_id, mpd_id='dash', fatal=False))
+        formats.extend(self._extract_mpd_formats(
+            format_url_base + '/manifest.mpd',
+            video_id, mpd_id='dash', fatal=False))
         formats.extend(self._extract_m3u8_formats(
             format_url_base + '/playlist.m3u8', video_id, 'mp4',
             m3u8_entry_protocol, m3u8_id='hls', fatal=False))
