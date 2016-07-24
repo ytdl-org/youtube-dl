@@ -1481,6 +1481,13 @@ class InfoExtractor(object):
             compat_etree_fromstring(mpd.encode('utf-8')), mpd_id, mpd_base_url, formats_dict=formats_dict)
 
     def _parse_mpd_formats(self, mpd_doc, mpd_id=None, mpd_base_url='', formats_dict={}):
+        """
+        Parse formats from MPD manifest.
+        References:
+         1. MPEG-DASH Standard, ISO/IEC 23009-1:2014(E),
+            http://standards.iso.org/ittf/PubliclyAvailableStandards/c065274_ISO_IEC_23009-1_2014.zip
+         2. https://en.wikipedia.org/wiki/Dynamic_Adaptive_Streaming_over_HTTP
+        """
         if mpd_doc.get('type') == 'dynamic':
             return []
 
@@ -1513,8 +1520,16 @@ class InfoExtractor(object):
                         s_e = segment_timeline.findall(_add_ns('S'))
                         if s_e:
                             ms_info['total_number'] = 0
+                            ms_info['s'] = []
                             for s in s_e:
-                                ms_info['total_number'] += 1 + int(s.get('r', '0'))
+                                r = int(s.get('r', 0))
+                                ms_info['total_number'] += 1 + r
+                                ms_info['s'].append({
+                                    't': int(s.get('t', 0)),
+                                    # @d is mandatory (see [1, 5.3.9.6.2, Table 17, page 60])
+                                    'd': int(s.attrib['d']),
+                                    'r': r,
+                                })
                     else:
                         timescale = segment_template.get('timescale')
                         if timescale:
@@ -1551,7 +1566,7 @@ class InfoExtractor(object):
                         continue
                     representation_attrib = adaptation_set.attrib.copy()
                     representation_attrib.update(representation.attrib)
-                    # According to page 41 of ISO/IEC 29001-1:2014, @mimeType is mandatory
+                    # According to [1, 5.3.7.2, Table 9, page 41], @mimeType is mandatory
                     mime_type = representation_attrib['mimeType']
                     content_type = mime_type.split('/')[0]
                     if content_type == 'text':
@@ -1595,16 +1610,40 @@ class InfoExtractor(object):
                                 representation_ms_info['total_number'] = int(math.ceil(float(period_duration) / segment_duration))
                             media_template = representation_ms_info['media_template']
                             media_template = media_template.replace('$RepresentationID$', representation_id)
-                            media_template = re.sub(r'\$(Number|Bandwidth)\$', r'%(\1)d', media_template)
-                            media_template = re.sub(r'\$(Number|Bandwidth)%([^$]+)\$', r'%(\1)\2', media_template)
+                            media_template = re.sub(r'\$(Number|Bandwidth|Time)\$', r'%(\1)d', media_template)
+                            media_template = re.sub(r'\$(Number|Bandwidth|Time)%([^$]+)\$', r'%(\1)\2', media_template)
                             media_template.replace('$$', '$')
-                            representation_ms_info['segment_urls'] = [
-                                media_template % {
-                                    'Number': segment_number,
-                                    'Bandwidth': representation_attrib.get('bandwidth')}
-                                for segment_number in range(
-                                    representation_ms_info['start_number'],
-                                    representation_ms_info['total_number'] + representation_ms_info['start_number'])]
+
+                            # As per [1, 5.3.9.4.4, Table 16, page 55] $Number$ and $Time$
+                            # can't be used at the same time
+                            if '%(Number' in media_template:
+                                representation_ms_info['segment_urls'] = [
+                                    media_template % {
+                                        'Number': segment_number,
+                                        'Bandwidth': representation_attrib.get('bandwidth'),
+                                    }
+                                    for segment_number in range(
+                                        representation_ms_info['start_number'],
+                                        representation_ms_info['total_number'] + representation_ms_info['start_number'])]
+                            else:
+                                representation_ms_info['segment_urls'] = []
+                                segment_time = 0
+
+                                def add_segment_url():
+                                    representation_ms_info['segment_urls'].append(
+                                        media_template % {
+                                            'Time': segment_time,
+                                            'Bandwidth': representation_attrib.get('bandwidth'),
+                                        }
+                                    )
+
+                                for num, s in enumerate(representation_ms_info['s']):
+                                    segment_time = s.get('t') or segment_time
+                                    add_segment_url()
+                                    for r in range(s.get('r', 0)):
+                                        segment_time += s['d']
+                                        add_segment_url()
+                                    segment_time += s['d']
                         if 'segment_urls' in representation_ms_info:
                             f.update({
                                 'segment_urls': representation_ms_info['segment_urls'],
