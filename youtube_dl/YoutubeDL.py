@@ -250,6 +250,10 @@ class YoutubeDL(object):
     call_home:         Boolean, true iff we are allowed to contact the
                        youtube-dl servers for debugging.
     sleep_interval:    Number of seconds to sleep before each download.
+                        Accepts range for random sleep in formats:
+                        - <lower limit>to<upper limit>
+                        - <upper limit>to<lower limit>
+                            where limits are in seconds
     listformats:       Print an overview of available video formats and exit.
     list_thumbnails:   Print a table of all thumbnails and exit.
     match_filter:      A function that gets called with the info_dict of
@@ -1684,7 +1688,7 @@ class YoutubeDL(object):
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                 self.report_error('unable to download video data: %s' % error_to_compat_str(err))
                 return
-            except (OSError, IOError) as err:
+            except (OSError, IOError, ValueError) as err:
                 raise UnavailableVideoError(err)
             except (ContentTooShortError, ) as err:
                 self.report_error('content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))

@@ -329,8 +329,11 @@ which means you can modify it, redistribute it or use it however you like.
     --bidi-workaround                Work around terminals that lack
                                      bidirectional text support. Requires bidiv
                                      or fribidi executable in PATH
-    --sleep-interval SECONDS         Number of seconds to sleep before each
-                                     download.
+    --sleep-interval SECONDS/RANGE   Number of seconds to sleep before each
+                                     download. Also accepts random sleep in 
+                                     format <lower limit>to<upper limit> and
+                                     <upper limit>to<lower limit>, where limits
+                                     are in seconds.
 
 ## Video Format Options:
     -f, --format FORMAT              Video format code, see the "FORMAT

@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import time
+import random
 
 from ..compat import compat_os_name
 from ..utils import (
@@ -344,8 +345,16 @@ class FileDownloader(object):
 
         sleep_interval = self.params.get('sleep_interval')
         if sleep_interval:
-            self.to_screen('[download] Sleeping %s seconds...' % sleep_interval)
-            time.sleep(sleep_interval)
+            sleep_interval_lower = sleep_interval.lower()
+
+            if 'to' in sleep_interval_lower:
+                lower_sleep_limit, upper_sleep_limit = map(float, sleep_interval_lower.split('to'))
+                sleep_time = random.uniform(lower_sleep_limit, upper_sleep_limit)
+            else:
+                sleep_time = float(sleep_interval)
+
+            self.to_screen('[download] Sleeping %s seconds...' % sleep_time)
+            time.sleep(sleep_time)
 
         return self.real_download(filename, info_dict)
 
