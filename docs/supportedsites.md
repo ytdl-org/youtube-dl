@@ -46,6 +46,7 @@
  - **archive.org**: archive.org videos
  - **ARD**
  - **ARD:mediathek**
+ - **Arkena**
  - **arte.tv**
  - **arte.tv:+7**
  - **arte.tv:cinema**
@@ -337,6 +338,8 @@
  - **kuwo:song**: 酷我音乐
  - **la7.it**
  - **Laola1Tv**
+ - **Lcp**
+ - **LcpPlay**
  - **Le**: 乐视网
  - **Learnr**
  - **Lecture2Go**
