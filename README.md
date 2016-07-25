@@ -331,6 +331,7 @@ which means you can modify it, redistribute it or use it however you like.
                                      or fribidi executable in PATH
     --sleep-interval SECONDS         Number of seconds to sleep before each
                                      download.
+
 ## Video Format Options:
     -f, --format FORMAT              Video format code, see the "FORMAT
                                      SELECTION" for all the info

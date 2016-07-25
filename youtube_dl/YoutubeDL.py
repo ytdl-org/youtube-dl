@@ -1685,7 +1685,7 @@ class YoutubeDL(object):
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                 self.report_error('unable to download video data: %s' % error_to_compat_str(err))
                 return
-            except (OSError, IOError, ValueError) as err:
+            except (OSError, IOError) as err:
                 raise UnavailableVideoError(err)
             except (ContentTooShortError, ) as err:
                 self.report_error('content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
