@@ -489,8 +489,14 @@ def parseOpts(overrideArguments=None):
         help='Work around terminals that lack bidirectional text support. Requires bidiv or fribidi executable in PATH')
     workarounds.add_option(
         '--sleep-interval', metavar='SECONDS',
-        dest='sleep_interval', type=str,
-        help='Number of seconds to sleep before each download.')
+        dest='sleep_interval', type=float,
+        help='Number of seconds to sleep before each download.',
+    )
+    workarounds.add_option(
+        '--max-sleep-interval', metavar='SECONDS',
+        dest='max_sleep_interval', type=float,
+        help='Maximum sleep time for random sleep.'
+    )
 
     verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
     verbosity.add_option(

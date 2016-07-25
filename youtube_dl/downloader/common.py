@@ -13,6 +13,7 @@ from ..utils import (
     decodeArgument,
     format_bytes,
     timeconvert,
+    InvalidSleepTimeError
 )
 
 
@@ -345,16 +346,22 @@ class FileDownloader(object):
 
         sleep_interval = self.params.get('sleep_interval')
         if sleep_interval:
-            sleep_interval_lower = sleep_interval.lower()
+            min_sleep_interval = sleep_interval
+            max_sleep_interval = self.params.get('max_sleep_interval')
 
-            if 'to' in sleep_interval_lower:
-                lower_sleep_limit, upper_sleep_limit = map(float, sleep_interval_lower.split('to'))
-                sleep_time = random.uniform(lower_sleep_limit, upper_sleep_limit)
-            else:
-                sleep_time = float(sleep_interval)
+            try:
+                if max_sleep_interval:
+                    sleep_time = random.uniform(
+                        float(min_sleep_interval),
+                        float(max_sleep_interval)
+                    )
+                else:
+                    sleep_time = float(min_sleep_interval)
 
-            self.to_screen('[download] Sleeping %s seconds...' % sleep_time)
-            time.sleep(sleep_time)
+                self.to_screen('[download] Sleeping %s seconds...' % sleep_time)
+                time.sleep(sleep_time)
+            except (ValueError, IOError) as err:
+                raise InvalidSleepTimeError()
 
         return self.real_download(filename, info_dict)
 

@@ -76,6 +76,7 @@ from .utils import (
     std_headers,
     subtitles_filename,
     UnavailableVideoError,
+    InvalidSleepTimeError,
     url_basename,
     version_tuple,
     write_json_file,
@@ -250,10 +251,7 @@ class YoutubeDL(object):
     call_home:         Boolean, true iff we are allowed to contact the
                        youtube-dl servers for debugging.
     sleep_interval:    Number of seconds to sleep before each download.
-                        Accepts range for random sleep in formats:
-                        - <lower limit>to<upper limit>
-                        - <upper limit>to<lower limit>
-                            where limits are in seconds
+    max_sleep_interval Upper bound of number of seconds for random sleep.
     listformats:       Print an overview of available video formats and exit.
     list_thumbnails:   Print a table of all thumbnails and exit.
     match_filter:      A function that gets called with the info_dict of
@@ -1782,6 +1780,8 @@ class YoutubeDL(object):
             except MaxDownloadsReached:
                 self.to_screen('[info] Maximum number of downloaded files reached.')
                 raise
+            except InvalidSleepTimeError:
+                self.report_error('Invalid argument for sleep')
             else:
                 if self.params.get('dump_single_json', False):
                     self.to_stdout(json.dumps(res))
