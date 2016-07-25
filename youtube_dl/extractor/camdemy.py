@@ -10,6 +10,7 @@ from ..compat import (
 )
 from ..utils import (
     clean_html,
+    parse_duration,
     str_to_int,
     unified_strdate,
 )
@@ -27,6 +28,7 @@ class CamdemyIE(InfoExtractor):
             'title': 'Ch1-1 Introduction, Signals (02-23-2012)',
             'thumbnail': 're:^https?://.*\.jpg$',
             'creator': 'ss11spring',
+            'duration': 1591,
             'upload_date': '20130114',
             'view_count': int,
         }
@@ -42,6 +44,7 @@ class CamdemyIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.jpg$',
             'description': 'md5:2a9f989c2b153a2342acee579c6e7db6',
             'creator': 'evercam',
+            'duration': 318,
         }
     }, {
         # External source (YouTube)
@@ -74,6 +77,7 @@ class CamdemyIE(InfoExtractor):
         oembed_obj = self._download_json(
             'http://www.camdemy.com/oembed/?format=json&url=' + url, video_id)
 
+        title = oembed_obj['title']
         thumb_url = oembed_obj['thumbnail_url']
         video_folder = compat_urlparse.urljoin(thumb_url, 'video/')
         file_list_doc = self._download_xml(
@@ -97,11 +101,11 @@ class CamdemyIE(InfoExtractor):
         return {
             'id': video_id,
             'url': video_url,
-            'title': oembed_obj['title'],
+            'title': title,
             'thumbnail': thumb_url,
             'description': description,
-            'creator': oembed_obj['author_name'],
-            'duration': oembed_obj['duration'],
+            'creator': oembed_obj.get('author_name'),
+            'duration': parse_duration(oembed_obj.get('duration')),
             'upload_date': upload_date,
             'view_count': view_count,
         }
