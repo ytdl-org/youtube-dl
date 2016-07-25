@@ -76,7 +76,6 @@ from .utils import (
     std_headers,
     subtitles_filename,
     UnavailableVideoError,
-    InvalidSleepTimeError,
     url_basename,
     version_tuple,
     write_json_file,
@@ -1780,8 +1779,6 @@ class YoutubeDL(object):
             except MaxDownloadsReached:
                 self.to_screen('[info] Maximum number of downloaded files reached.')
                 raise
-            except InvalidSleepTimeError:
-                self.report_error('Invalid argument for sleep')
             else:
                 if self.params.get('dump_single_json', False):
                     self.to_stdout(json.dumps(res))

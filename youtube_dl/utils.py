@@ -752,15 +752,6 @@ class UnavailableVideoError(Exception):
     pass
 
 
-class InvalidSleepTimeError(Exception):
-    """Invalid sleep time provided exception
-
-    This exception will be thrown when user provides invalid
-    time for sleep in --sleep-interval or --max-sleep-interval.
-    """
-    pass
-
-
 class ContentTooShortError(Exception):
     """Content Too Short exception.
 
