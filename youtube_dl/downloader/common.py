@@ -346,7 +346,7 @@ class FileDownloader(object):
         sleep_interval = self.params.get('sleep_interval')
         if sleep_interval:
             min_sleep_interval = sleep_interval
-            max_sleep_interval = self.params.get('max_sleep_interval') or min_sleep_interval
+            max_sleep_interval = self.params.get('max_sleep_interval') if self.params.get('max_sleep_interval') else min_sleep_interval
 
             sleep_time = random.uniform(
                 min_sleep_interval,
