@@ -729,6 +729,7 @@ from .screencast import ScreencastIE
 from .screencastomatic import ScreencastOMaticIE
 from .screenjunkies import ScreenJunkiesIE
 from .screenwavemedia import ScreenwaveMediaIE, TeamFourIE
+from .sdarot import SdarotEpisodeIE, SdarotSeasonIE, SdarotSerieIE 
 from .seeker import SeekerIE
 from .senateisvp import SenateISVPIE
 from .sendtonews import SendtoNewsIE
