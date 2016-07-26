@@ -329,6 +329,7 @@ class MTVDEIE(MTVServicesInfoExtractor):
             # rtmp download
             'skip_download': True,
         },
+        'skip': 'Blocked at Travis CI',
     }, {
         # mediagen URL without query (e.g. http://videos.mtvnn.com/mediagen/e865da714c166d18d6f80893195fcb97)
         'url': 'http://www.mtv.de/shows/933-teen-mom-2/staffeln/5353/folgen/63565-enthullungen',
@@ -341,6 +342,7 @@ class MTVDEIE(MTVServicesInfoExtractor):
             # rtmp download
             'skip_download': True,
         },
+        'skip': 'Blocked at Travis CI',
     }, {
         'url': 'http://www.mtv.de/news/77491-mtv-movies-spotlight-pixels-teil-3',
         'info_dict': {
