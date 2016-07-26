@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import unicode_literals
 
+import itertools
 import json
 import os
 import re
@@ -21,21 +22,26 @@ def format_size(bytes):
 
 total_bytes = 0
 
-releases = json.loads(compat_urllib_request.urlopen(
-    'https://api.github.com/repos/rg3/youtube-dl/releases').read().decode('utf-8'))
+for page in itertools.count(1):
+    releases = json.loads(compat_urllib_request.urlopen(
+        'https://api.github.com/repos/rg3/youtube-dl/releases?page=%s' % page
+    ).read().decode('utf-8'))
 
-for release in releases:
-    compat_print(release['name'])
-    for asset in release['assets']:
-        asset_name = asset['name']
-        total_bytes += asset['download_count'] * asset['size']
-        if all(not re.match(p, asset_name) for p in (
-                r'^youtube-dl$',
-                r'^youtube-dl-\d{4}\.\d{2}\.\d{2}(?:\.\d+)?\.tar\.gz$',
-                r'^youtube-dl\.exe$')):
-            continue
-        compat_print(
-            ' %s size: %s downloads: %d'
-            % (asset_name, format_size(asset['size']), asset['download_count']))
+    if not releases:
+        break
+
+    for release in releases:
+        compat_print(release['name'])
+        for asset in release['assets']:
+            asset_name = asset['name']
+            total_bytes += asset['download_count'] * asset['size']
+            if all(not re.match(p, asset_name) for p in (
+                    r'^youtube-dl$',
+                    r'^youtube-dl-\d{4}\.\d{2}\.\d{2}(?:\.\d+)?\.tar\.gz$',
+                    r'^youtube-dl\.exe$')):
+                continue
+            compat_print(
+                ' %s size: %s downloads: %d'
+                % (asset_name, format_size(asset['size']), asset['download_count']))
 
 compat_print('total downloads traffic: %s' % format_size(total_bytes))
