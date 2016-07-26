@@ -4,9 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     js_to_json,
     smuggle_url,
+    try_get,
 )
 
 
@@ -27,7 +29,20 @@ class CBCIE(InfoExtractor):
         },
         'skip': 'Geo-restricted to Canada',
     }, {
-        # with clipId
+        # with clipId, feed available via tpfeed.cbc.ca and feed.theplatform.com
+        'url': 'http://www.cbc.ca/22minutes/videos/22-minutes-update/22-minutes-update-episode-4',
+        'md5': '162adfa070274b144f4fdc3c3b8207db',
+        'info_dict': {
+            'id': '2414435309',
+            'ext': 'mp4',
+            'title': '22 Minutes Update: What Not To Wear Quebec',
+            'description': "This week's latest Canadian top political story is What Not To Wear Quebec.",
+            'upload_date': '20131025',
+            'uploader': 'CBCC-NEW',
+            'timestamp': 1382717907,
+        },
+    }, {
+        # with clipId, feed only available via tpfeed.cbc.ca
         'url': 'http://www.cbc.ca/archives/entry/1978-robin-williams-freestyles-on-90-minutes-live',
         'md5': '0274a90b51a9b4971fe005c63f592f12',
         'info_dict': {
@@ -83,9 +98,15 @@ class CBCIE(InfoExtractor):
             media_id = player_info.get('mediaId')
             if not media_id:
                 clip_id = player_info['clipId']
-                media_id = self._download_json(
-                    'http://feed.theplatform.com/f/h9dtGB/punlNGjMlc1F?fields=id&byContent=byReleases%3DbyId%253D' + clip_id,
-                    clip_id)['entries'][0]['id'].split('/')[-1]
+                feed = self._download_json(
+                    'http://tpfeed.cbc.ca/f/ExhSPC/vms_5akSXx4Ng_Zn?byCustomValue={:mpsReleases}{%s}'% clip_id,
+                    clip_id, fatal=False)
+                if feed:
+                    media_id = try_get(feed, lambda x: x['entries'][0]['guid'], compat_str)
+                if not media_id:
+                    media_id = self._download_json(
+                        'http://feed.theplatform.com/f/h9dtGB/punlNGjMlc1F?fields=id&byContent=byReleases%3DbyId%253D' + clip_id,
+                        clip_id)['entries'][0]['id'].split('/')[-1]
             return self.url_result('cbcplayer:%s' % media_id, 'CBCPlayer', media_id)
         else:
             entries = [self.url_result('cbcplayer:%s' % media_id, 'CBCPlayer', media_id) for media_id in re.findall(r'<iframe[^>]+src="[^"]+?mediaId=(\d+)"', webpage)]
