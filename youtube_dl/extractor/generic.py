@@ -474,7 +474,7 @@ class GenericIE(InfoExtractor):
             'url': 'http://www.vestifinance.ru/articles/25753',
             'info_dict': {
                 'id': '25753',
-                'title': 'Вести Экономика ― Прямые трансляции с Форума-выставки "Госзаказ-2013"',
+                'title': 'Прямые трансляции с Форума-выставки "Госзаказ-2013"',
             },
             'playlist': [{
                 'info_dict': {
@@ -641,6 +641,8 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Key and Peele|October 10, 2012|2|203|Liam Neesons - Uncensored',
                 'description': 'Two valets share their love for movie star Liam Neesons.',
+                'timestamp': 1349922600,
+                'upload_date': '20121011',
             },
         },
         # YouTube embed via <data-embed-url="">
