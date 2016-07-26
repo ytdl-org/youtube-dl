@@ -99,7 +99,7 @@ class CBCIE(InfoExtractor):
             if not media_id:
                 clip_id = player_info['clipId']
                 feed = self._download_json(
-                    'http://tpfeed.cbc.ca/f/ExhSPC/vms_5akSXx4Ng_Zn?byCustomValue={:mpsReleases}{%s}'% clip_id,
+                    'http://tpfeed.cbc.ca/f/ExhSPC/vms_5akSXx4Ng_Zn?byCustomValue={:mpsReleases}{%s}' % clip_id,
                     clip_id, fatal=False)
                 if feed:
                     media_id = try_get(feed, lambda x: x['entries'][0]['guid'], compat_str)
