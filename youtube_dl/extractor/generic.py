@@ -859,6 +859,7 @@ class GenericIE(InfoExtractor):
                 'description': 'md5:601cb790edd05908957dae8aaa866465',
                 'upload_date': '20150220',
             },
+            'skip': 'All The Daily Show URLs now redirect to http://www.cc.com/shows/',
         },
         # jwplayer YouTube
         {
