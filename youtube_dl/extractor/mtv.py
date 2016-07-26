@@ -91,7 +91,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
                 formats.extend([{
                     'ext': 'flv' if new_url.startswith('rtmp') else ext,
                     'url': new_url,
-                    'format_id': '-'.join([kind, rendition.get('bitrate')]),
+                    'format_id': '-'.join(filter(None, [kind, rendition.get('bitrate')])),
                     'width': int(rendition.get('width')),
                     'height': int(rendition.get('height')),
                 } for kind, new_url in new_urls.items()])
