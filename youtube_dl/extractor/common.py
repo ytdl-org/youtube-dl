@@ -1786,7 +1786,7 @@ class InfoExtractor(object):
 
         any_restricted = False
         for tc in self.get_testcases(include_onlymatching=False):
-            if 'playlist' in tc:
+            if tc.get('playlist', []):
                 tc = tc['playlist'][0]
             is_restricted = age_restricted(
                 tc.get('info_dict', {}).get('age_limit'), age_limit)
