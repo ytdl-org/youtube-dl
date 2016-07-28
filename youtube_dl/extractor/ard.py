@@ -73,6 +73,7 @@ class ARDMediathekIE(InfoExtractor):
             'description': 'md5:c0c1c8048514deaed2a73b3a60eecacb',
             'duration': 3287,
         },
+        'skip': 'Video is no longer available',
     }]
 
     def _extract_media_info(self, media_info_url, webpage, video_id):
