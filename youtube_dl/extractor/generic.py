@@ -785,6 +785,15 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20141029',
             }
         },
+        # Soundcloud multiple embeds
+        {
+            'url': 'http://www.guitarplayer.com/lessons/1014/legato-workout-one-hour-to-more-fluid-performance---tab/52809',
+            'info_dict': {
+                'id': '52809',
+                'title': 'Guitar Essentials: Legato Workout—One-Hour to Fluid Performance  | TAB + AUDIO',
+            },
+            'playlist_mincount': 7,
+        },
         # Livestream embed
         {
             'url': 'http://www.esa.int/Our_Activities/Space_Science/Rosetta/Philae_comet_touch-down_webcast',
