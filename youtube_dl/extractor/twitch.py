@@ -461,7 +461,7 @@ class TwitchClipsIE(InfoExtractor):
     IE_NAME = 'twitch:clips'
     _VALID_URL = r'https?://clips\.twitch\.tv/(?:[^/]+/)*(?P<id>[^/?#&]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://clips.twitch.tv/ea/AggressiveCobraPoooound',
         'md5': '761769e1eafce0ffebfb4089cb3847cd',
         'info_dict': {
@@ -473,7 +473,11 @@ class TwitchClipsIE(InfoExtractor):
             'uploader': 'stereotype_',
             'uploader_id': 'stereotype_',
         },
-    }
+    }, {
+        # multiple formats
+        'url': 'https://clips.twitch.tv/rflegendary/UninterestedBeeDAESuppy',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -485,15 +489,25 @@ class TwitchClipsIE(InfoExtractor):
                 r'(?s)clipInfo\s*=\s*({.+?});', webpage, 'clip info'),
             video_id, transform_source=js_to_json)
 
-        video_url = clip['clip_video_url']
-        title = clip['channel_title']
+        title = clip.get('channel_title') or self._og_search_title(webpage)
+
+        formats = [{
+            'url': option['source'],
+            'format_id': option.get('quality'),
+            'height': int_or_none(option.get('quality')),
+        } for option in clip.get('quality_options', []) if option.get('source')]
+
+        if not formats:
+            formats = [{
+                'url': clip['clip_video_url'],
+            }]
 
         return {
             'id': video_id,
-            'url': video_url,
             'title': title,
             'thumbnail': self._og_search_thumbnail(webpage),
             'creator': clip.get('broadcaster_display_name') or clip.get('broadcaster_login'),
             'uploader': clip.get('curator_login'),
             'uploader_id': clip.get('curator_display_name'),
+            'formats': formats,
         }
