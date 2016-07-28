@@ -331,7 +331,7 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
 
             for video_id in re.findall(r'data-xid="(.+?)"', webpage):
                 if video_id not in video_ids:
-                    yield self.url_result('http://www.dailymotion.com/video/%s' % video_id, 'Dailymotion')
+                    yield self.url_result('http://www.dailymotion.com/video/%s' % video_id, 'Dailymotion', video_id)
                     video_ids.add(video_id)
 
             if re.search(self._MORE_PAGES_INDICATOR, webpage) is None:
