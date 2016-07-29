@@ -502,6 +502,8 @@ class TwitchClipsIE(InfoExtractor):
                 'url': clip['clip_video_url'],
             }]
 
+        self._sort_formats(formats)
+
         return {
             'id': video_id,
             'title': title,
