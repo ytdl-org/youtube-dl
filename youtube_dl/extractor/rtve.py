@@ -113,7 +113,9 @@ class RTVEALaCartaIE(InfoExtractor):
         png = self._download_webpage(png_request, video_id, 'Downloading url information')
         video_url = _decrypt_url(png)
         if not video_url.endswith('.f4m'):
-            video_url = video_url.replace('.net.rtve', '.multimedia.cdn.rtve')
+            video_url = video_url.replace(
+                'resources/', 'auth/resources/'
+            ).replace('.net.rtve', '.multimedia.cdn.rtve')
 
         subtitles = None
         if info.get('sbtFile') is not None:
