@@ -25,7 +25,15 @@ from ..aes import (
 
 
 class PornHubIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:[a-z]+\.)?pornhub\.com/(?:view_video\.php\?viewkey=|embed/)(?P<id>[0-9a-z]+)'
+    IE_DESC = 'PornHub and Thumbzilla'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:[a-z]+\.)?pornhub\.com/(?:view_video\.php\?viewkey=|embed/)|
+                            (?:www\.)?thumbzilla\.com/video/
+                        )
+                        (?P<id>[0-9a-z]+)
+                    '''
     _TESTS = [{
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
         'md5': '1e19b41231a02eba417839222ac9d58e',
@@ -63,7 +71,23 @@ class PornHubIE(InfoExtractor):
         'url': 'http://www.pornhub.com/view_video.php?viewkey=ph557bbb6676d2d',
         'only_matching': True,
     }, {
+        # removed at the request of cam4.com
         'url': 'http://fr.pornhub.com/view_video.php?viewkey=ph55ca2f9760862',
+        'only_matching': True,
+    }, {
+        # removed at the request of the copyright owner
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=788152859',
+        'only_matching': True,
+    }, {
+        # removed by uploader
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=ph572716d15a111',
+        'only_matching': True,
+    }, {
+        # private video
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=ph56fd731fce6b7',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.thumbzilla.com/video/ph56c6114abd99a/horny-girlfriend-sex',
         'only_matching': True,
     }]
 
@@ -87,8 +111,8 @@ class PornHubIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         error_msg = self._html_search_regex(
-            r'(?s)<div class="userMessageSection[^"]*".*?>(.*?)</div>',
-            webpage, 'error message', default=None)
+            r'(?s)<div[^>]+class=(["\'])(?:(?!\1).)*\b(?:removed|userMessageSection)\b(?:(?!\1).)*\1[^>]*>(?P<error>.+?)</div>',
+            webpage, 'error message', default=None, group='error')
         if error_msg:
             error_msg = re.sub(r'\s+', ' ', error_msg)
             raise ExtractorError(

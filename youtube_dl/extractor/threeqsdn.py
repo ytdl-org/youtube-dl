@@ -24,16 +24,20 @@ class ThreeQSDNIE(InfoExtractor):
             'title': '0280d6b9-1215-11e6-b427-0cc47a188158',
             'is_live': False,
         },
-        'expected_warnings': ['Failed to download MPD manifest'],
+        'expected_warnings': ['Failed to download MPD manifest', 'Failed to parse JSON'],
     }, {
         # live video stream
         'url': 'https://playout.3qsdn.com/d755d94b-4ab9-11e3-9162-0025907ad44f?js=true',
         'info_dict': {
             'id': 'd755d94b-4ab9-11e3-9162-0025907ad44f',
             'ext': 'mp4',
-            'title': 'd755d94b-4ab9-11e3-9162-0025907ad44f',
-            'is_live': False,
+            'title': 're:^d755d94b-4ab9-11e3-9162-0025907ad44f [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'is_live': True,
         },
+        'params': {
+            'skip_download': True,  # m3u8 downloads
+        },
+        'expected_warnings': ['Failed to download MPD manifest'],
     }, {
         # live audio stream
         'url': 'http://playout.3qsdn.com/9edf36e0-6bf2-11e2-a16a-9acf09e2db48',
@@ -92,12 +96,11 @@ class ThreeQSDNIE(InfoExtractor):
             if not item_url or item_url in urls:
                 return
             urls.add(item_url)
-            type_ = item.get('type')
-            ext = determine_ext(item_url, default_ext=None)
-            if type_ == 'application/dash+xml' or ext == 'mpd':
+            ext = mimetype2ext(item.get('type')) or determine_ext(item_url, default_ext=None)
+            if ext == 'mpd':
                 formats.extend(self._extract_mpd_formats(
                     item_url, video_id, mpd_id='mpd', fatal=False))
-            elif type_ in ('application/vnd.apple.mpegURL', 'application/x-mpegurl') or ext == 'm3u8':
+            elif ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     item_url, video_id, 'mp4',
                     entry_protocol='m3u8' if live else 'm3u8_native',
@@ -111,11 +114,11 @@ class ThreeQSDNIE(InfoExtractor):
                 formats.append({
                     'url': item_url,
                     'format_id': item.get('quality'),
-                    'ext': 'mp4' if item_url.startswith('rtsp') else mimetype2ext(type_) or ext,
+                    'ext': 'mp4' if item_url.startswith('rtsp') else ext,
                     'vcodec': 'none' if stream_type == 'audio' else None,
                 })
 
-        for item_js in re.findall(r'({.*?\b(?:src|source)\s*:\s*["\'].+?})', js):
+        for item_js in re.findall(r'({[^{]*?\b(?:src|source)\s*:\s*["\'].+?})', js):
             f = self._parse_json(
                 item_js, video_id, transform_source=js_to_json, fatal=False)
             if not f:

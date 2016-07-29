@@ -6,7 +6,6 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
-    compat_urllib_parse_urlencode,
     compat_HTTPError,
 )
 from ..utils import (
@@ -17,37 +16,26 @@ from ..utils import (
 
 
 class CloudyIE(InfoExtractor):
-    _IE_DESC = 'cloudy.ec and videoraj.ch'
+    _IE_DESC = 'cloudy.ec'
     _VALID_URL = r'''(?x)
-        https?://(?:www\.)?(?P<host>cloudy\.ec|videoraj\.(?:ch|to))/
+        https?://(?:www\.)?cloudy\.ec/
         (?:v/|embed\.php\?id=)
         (?P<id>[A-Za-z0-9]+)
         '''
-    _EMBED_URL = 'http://www.%s/embed.php?id=%s'
-    _API_URL = 'http://www.%s/api/player.api.php?%s'
+    _EMBED_URL = 'http://www.cloudy.ec/embed.php?id=%s'
+    _API_URL = 'http://www.cloudy.ec/api/player.api.php'
     _MAX_TRIES = 2
-    _TESTS = [
-        {
-            'url': 'https://www.cloudy.ec/v/af511e2527aac',
-            'md5': '5cb253ace826a42f35b4740539bedf07',
-            'info_dict': {
-                'id': 'af511e2527aac',
-                'ext': 'flv',
-                'title': 'Funny Cats and Animals Compilation june 2013',
-            }
-        },
-        {
-            'url': 'http://www.videoraj.to/v/47f399fd8bb60',
-            'md5': '7d0f8799d91efd4eda26587421c3c3b0',
-            'info_dict': {
-                'id': '47f399fd8bb60',
-                'ext': 'flv',
-                'title': 'Burning a New iPhone 5 with Gasoline - Will it Survive?',
-            }
+    _TEST = {
+        'url': 'https://www.cloudy.ec/v/af511e2527aac',
+        'md5': '5cb253ace826a42f35b4740539bedf07',
+        'info_dict': {
+            'id': 'af511e2527aac',
+            'ext': 'flv',
+            'title': 'Funny Cats and Animals Compilation june 2013',
         }
-    ]
+    }
 
-    def _extract_video(self, video_host, video_id, file_key, error_url=None, try_num=0):
+    def _extract_video(self, video_id, file_key, error_url=None, try_num=0):
 
         if try_num > self._MAX_TRIES - 1:
             raise ExtractorError('Unable to extract video URL', expected=True)
@@ -64,9 +52,8 @@ class CloudyIE(InfoExtractor):
                 'errorUrl': error_url,
             })
 
-        data_url = self._API_URL % (video_host, compat_urllib_parse_urlencode(form))
         player_data = self._download_webpage(
-            data_url, video_id, 'Downloading player data')
+            self._API_URL, video_id, 'Downloading player data', query=form)
         data = compat_parse_qs(player_data)
 
         try_num += 1
@@ -88,7 +75,7 @@ class CloudyIE(InfoExtractor):
             except ExtractorError as e:
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code in [404, 410]:
                     self.report_warning('Invalid video URL, requesting another', video_id)
-                    return self._extract_video(video_host, video_id, file_key, video_url, try_num)
+                    return self._extract_video(video_id, file_key, video_url, try_num)
 
         return {
             'id': video_id,
@@ -98,14 +85,13 @@ class CloudyIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_host = mobj.group('host')
         video_id = mobj.group('id')
 
-        url = self._EMBED_URL % (video_host, video_id)
+        url = self._EMBED_URL % video_id
         webpage = self._download_webpage(url, video_id)
 
         file_key = self._search_regex(
             [r'key\s*:\s*"([^"]+)"', r'filekey\s*=\s*"([^"]+)"'],
             webpage, 'file_key')
 
-        return self._extract_video(video_host, video_id, file_key)
+        return self._extract_video(video_id, file_key)

@@ -6,6 +6,7 @@ import time
 import hmac
 import binascii
 import hashlib
+import netrc
 
 
 from .once import OnceIE
@@ -24,6 +25,9 @@ from ..utils import (
     xpath_with_ns,
     mimetype2ext,
     find_xpath_attr,
+    unescapeHTML,
+    urlencode_postdata,
+    unified_timestamp,
 )
 
 default_ns = 'http://www.w3.org/2005/SMIL21/Language'
@@ -62,10 +66,11 @@ class ThePlatformBaseIE(OnceIE):
 
         return formats, subtitles
 
-    def get_metadata(self, path, video_id):
+    def _download_theplatform_metadata(self, path, video_id):
         info_url = 'http://link.theplatform.com/s/%s?format=preview' % path
-        info = self._download_json(info_url, video_id)
+        return self._download_json(info_url, video_id)
 
+    def _parse_theplatform_metadata(self, info):
         subtitles = {}
         captions = info.get('captions')
         if isinstance(captions, list):
@@ -85,6 +90,10 @@ class ThePlatformBaseIE(OnceIE):
             'timestamp': int_or_none(info.get('pubDate'), 1000) or None,
             'uploader': info.get('billingCode'),
         }
+
+    def _extract_theplatform_metadata(self, path, video_id):
+        info = self._download_theplatform_metadata(path, video_id)
+        return self._parse_theplatform_metadata(info)
 
 
 class ThePlatformIE(ThePlatformBaseIE):
@@ -158,6 +167,7 @@ class ThePlatformIE(ThePlatformBaseIE):
         'url': 'http://player.theplatform.com/p/NnzsPC/onsite_universal/select/media/guid/2410887629/2928790?fwsitesection=nbc_the_blacklist_video_library&autoPlay=true&carouselID=137781',
         'only_matching': True,
     }]
+    _SERVICE_PROVIDER_TEMPLATE = 'https://sp.auth.adobe.com/adobe-services/%s'
 
     @classmethod
     def _extract_urls(cls, webpage):
@@ -191,6 +201,96 @@ class ThePlatformIE(ThePlatformBaseIE):
         checksum = hmac.new(sig_key.encode('ascii'), clear_text, hashlib.sha1).hexdigest()
         sig = flags + expiration_date + checksum + str_to_hex(sig_secret)
         return '%s&sig=%s' % (url, sig)
+
+    def _extract_mvpd_auth(self, url, video_id, requestor_id, resource):
+        def xml_text(xml_str, tag):
+            return self._search_regex(
+                '<%s>(.+?)</%s>' % (tag, tag), xml_str, tag)
+
+        mvpd_headers = {
+            'ap_42': 'anonymous',
+            'ap_11': 'Linux i686',
+            'ap_z': 'Mozilla/5.0 (X11; Linux i686; rv:47.0) Gecko/20100101 Firefox/47.0',
+            'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:47.0) Gecko/20100101 Firefox/47.0',
+        }
+
+        guid = xml_text(resource, 'guid')
+        requestor_info = self._downloader.cache.load('mvpd', requestor_id) or {}
+        authn_token = requestor_info.get('authn_token')
+        if authn_token:
+            token_expires = unified_timestamp(xml_text(authn_token, 'simpleTokenExpires').replace('_GMT', ''))
+            if token_expires and token_expires >= time.time():
+                authn_token = None
+        if not authn_token:
+            # TODO add support for other TV Providers
+            mso_id = 'DTV'
+            login_info = netrc.netrc().authenticators(mso_id)
+            if not login_info:
+                return None
+
+            def post_form(form_page, note, data={}):
+                post_url = self._html_search_regex(r'<form[^>]+action=(["\'])(?P<url>.+?)\1', form_page, 'post url', group='url')
+                return self._download_webpage(
+                    post_url, video_id, note, data=urlencode_postdata(data or self._hidden_inputs(form_page)), headers={
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    })
+
+            provider_redirect_page = self._download_webpage(
+                self._SERVICE_PROVIDER_TEMPLATE % 'authenticate/saml', video_id,
+                'Downloading Provider Redirect Page', query={
+                    'noflash': 'true',
+                    'mso_id': mso_id,
+                    'requestor_id': requestor_id,
+                    'no_iframe': 'false',
+                    'domain_name': 'adobe.com',
+                    'redirect_url': url,
+                })
+            provider_login_page = post_form(
+                provider_redirect_page, 'Downloading Provider Login Page')
+            mvpd_confirm_page = post_form(provider_login_page, 'Logging in', {
+                'username': login_info[0],
+                'password': login_info[2],
+            })
+            post_form(mvpd_confirm_page, 'Confirming Login')
+
+            session = self._download_webpage(
+                self._SERVICE_PROVIDER_TEMPLATE % 'session', video_id,
+                'Retrieving Session', data=urlencode_postdata({
+                    '_method': 'GET',
+                    'requestor_id': requestor_id,
+                }), headers=mvpd_headers)
+            authn_token = unescapeHTML(xml_text(session, 'authnToken'))
+            requestor_info['authn_token'] = authn_token
+            self._downloader.cache.store('mvpd', requestor_id, requestor_info)
+
+        authz_token = requestor_info.get(guid)
+        if not authz_token:
+            authorize = self._download_webpage(
+                self._SERVICE_PROVIDER_TEMPLATE % 'authorize', video_id,
+                'Retrieving Authorization Token', data=urlencode_postdata({
+                    'resource_id': resource,
+                    'requestor_id': requestor_id,
+                    'authentication_token': authn_token,
+                    'mso_id': xml_text(authn_token, 'simpleTokenMsoID'),
+                    'userMeta': '1',
+                }), headers=mvpd_headers)
+            authz_token = unescapeHTML(xml_text(authorize, 'authzToken'))
+            requestor_info[guid] = authz_token
+            self._downloader.cache.store('mvpd', requestor_id, requestor_info)
+
+        mvpd_headers.update({
+            'ap_19': xml_text(authn_token, 'simpleSamlNameID'),
+            'ap_23': xml_text(authn_token, 'simpleSamlSessionIndex'),
+        })
+
+        return self._download_webpage(
+            self._SERVICE_PROVIDER_TEMPLATE % 'shortAuthorize',
+            video_id, 'Retrieving Media Token', data=urlencode_postdata({
+                'authz_token': authz_token,
+                'requestor_id': requestor_id,
+                'session_guid': xml_text(authn_token, 'simpleTokenAuthenticationGuid'),
+                'hashed_guid': 'false',
+            }), headers=mvpd_headers)
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
@@ -265,7 +365,7 @@ class ThePlatformIE(ThePlatformBaseIE):
         formats, subtitles = self._extract_theplatform_smil(smil_url, video_id)
         self._sort_formats(formats)
 
-        ret = self.get_metadata(path, video_id)
+        ret = self._extract_theplatform_metadata(path, video_id)
         combined_subtitles = self._merge_subtitles(ret.get('subtitles', {}), subtitles)
         ret.update({
             'id': video_id,
@@ -277,9 +377,9 @@ class ThePlatformIE(ThePlatformBaseIE):
 
 
 class ThePlatformFeedIE(ThePlatformBaseIE):
-    _URL_TEMPLATE = '%s//feed.theplatform.com/f/%s/%s?form=json&byGuid=%s'
-    _VALID_URL = r'https?://feed\.theplatform\.com/f/(?P<provider_id>[^/]+)/(?P<feed_id>[^?/]+)\?(?:[^&]+&)*byGuid=(?P<id>[a-zA-Z0-9_]+)'
-    _TEST = {
+    _URL_TEMPLATE = '%s//feed.theplatform.com/f/%s/%s?form=json&%s'
+    _VALID_URL = r'https?://feed\.theplatform\.com/f/(?P<provider_id>[^/]+)/(?P<feed_id>[^?/]+)\?(?:[^&]+&)*(?P<filter>by(?:Gui|I)d=(?P<id>[\w-]+))'
+    _TESTS = [{
         # From http://player.theplatform.com/p/7wvmTC/MSNBCEmbeddedOffSite?guid=n_hardball_5biden_140207
         'url': 'http://feed.theplatform.com/f/7wvmTC/msnbc_video-p-test?form=json&pretty=true&range=-40&byGuid=n_hardball_5biden_140207',
         'md5': '6e32495b5073ab414471b615c5ded394',
@@ -295,32 +395,38 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
             'categories': ['MSNBC/Issues/Democrats', 'MSNBC/Issues/Elections/Election 2016'],
             'uploader': 'NBCU-NEWS',
         },
-    }
+    }]
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-
-        video_id = mobj.group('id')
-        provider_id = mobj.group('provider_id')
-        feed_id = mobj.group('feed_id')
-
-        real_url = self._URL_TEMPLATE % (self.http_scheme(), provider_id, feed_id, video_id)
-        feed = self._download_json(real_url, video_id)
-        entry = feed['entries'][0]
+    def _extract_feed_info(self, provider_id, feed_id, filter_query, video_id, custom_fields=None, asset_types_query={}):
+        real_url = self._URL_TEMPLATE % (self.http_scheme(), provider_id, feed_id, filter_query)
+        entry = self._download_json(real_url, video_id)['entries'][0]
 
         formats = []
         subtitles = {}
         first_video_id = None
         duration = None
+        asset_types = []
         for item in entry['media$content']:
-            smil_url = item['plfile$url'] + '&mbr=true'
+            smil_url = item['plfile$url']
             cur_video_id = ThePlatformIE._match_id(smil_url)
             if first_video_id is None:
                 first_video_id = cur_video_id
                 duration = float_or_none(item.get('plfile$duration'))
-            cur_formats, cur_subtitles = self._extract_theplatform_smil(smil_url, video_id, 'Downloading SMIL data for %s' % cur_video_id)
-            formats.extend(cur_formats)
-            subtitles = self._merge_subtitles(subtitles, cur_subtitles)
+            for asset_type in item['plfile$assetTypes']:
+                if asset_type in asset_types:
+                    continue
+                asset_types.append(asset_type)
+                query = {
+                    'mbr': 'true',
+                    'formats': item['plfile$format'],
+                    'assetTypes': asset_type,
+                }
+                if asset_type in asset_types_query:
+                    query.update(asset_types_query[asset_type])
+                cur_formats, cur_subtitles = self._extract_theplatform_smil(update_url_query(
+                    smil_url, query), video_id, 'Downloading SMIL data for %s' % asset_type)
+                formats.extend(cur_formats)
+                subtitles = self._merge_subtitles(subtitles, cur_subtitles)
 
         self._sort_formats(formats)
 
@@ -333,7 +439,7 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
         timestamp = int_or_none(entry.get('media$availableDate'), scale=1000)
         categories = [item['media$name'] for item in entry.get('media$categories', [])]
 
-        ret = self.get_metadata('%s/%s' % (provider_id, first_video_id), video_id)
+        ret = self._extract_theplatform_metadata('%s/%s' % (provider_id, first_video_id), video_id)
         subtitles = self._merge_subtitles(subtitles, ret['subtitles'])
         ret.update({
             'id': video_id,
@@ -344,5 +450,17 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
             'timestamp': timestamp,
             'categories': categories,
         })
+        if custom_fields:
+            ret.update(custom_fields(entry))
 
         return ret
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+
+        video_id = mobj.group('id')
+        provider_id = mobj.group('provider_id')
+        feed_id = mobj.group('feed_id')
+        filter_query = mobj.group('filter')
+
+        return self._extract_feed_info(provider_id, feed_id, filter_query, video_id)

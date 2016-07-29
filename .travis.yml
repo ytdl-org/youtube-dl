@@ -7,9 +7,6 @@ python:
   - "3.4"
   - "3.5"
 sudo: false
-install:
-  - bash ./devscripts/install_srelay.sh
-  - export PATH=$PATH:$(pwd)/tmp/srelay-0.4.8b6
 script: nosetests test --verbose
 notifications:
   email:

@@ -14,6 +14,7 @@
  - **8tracks**
  - **91porn**
  - **9gag**
+ - **9now.com.au**
  - **abc.net.au**
  - **Abc7News**
  - **abcnews**
@@ -45,7 +46,7 @@
  - **archive.org**: archive.org videos
  - **ARD**
  - **ARD:mediathek**
- - **ARD:mediathek**: Saarländischer Rundfunk
+ - **Arkena**
  - **arte.tv**
  - **arte.tv:+7**
  - **arte.tv:cinema**
@@ -74,6 +75,8 @@
  - **bbc**: BBC
  - **bbc.co.uk**: BBC iPlayer
  - **bbc.co.uk:article**: BBC articles
+ - **bbc.co.uk:iplayer:playlist**
+ - **bbc.co.uk:playlist**
  - **BeatportPro**
  - **Beeg**
  - **BehindKink**
@@ -104,6 +107,8 @@
  - **canalc2.tv**
  - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
  - **Canvas**
+ - **CarambaTV**
+ - **CarambaTVPage**
  - **CBC**
  - **CBCPlayer**
  - **CBS**
@@ -124,6 +129,7 @@
  - **cliphunter**
  - **ClipRs**
  - **Clipsyndicate**
+ - **CloserToTruth**
  - **cloudtime**: CloudTime
  - **Cloudy**
  - **Clubic**
@@ -136,7 +142,7 @@
  - **CollegeRama**
  - **ComCarCoff**
  - **ComedyCentral**
- - **ComedyCentralShows**: The Daily Show / The Colbert Report
+ - **ComedyCentralTV**
  - **CondeNast**: Condé Nast media group: Allure, Architectural Digest, Ars Technica, Bon Appétit, Brides, Condé Nast, Condé Nast Traveler, Details, Epicurious, GQ, Glamour, Golf Digest, SELF, Teen Vogue, The New Yorker, Vanity Fair, Vogue, W Magazine, WIRED
  - **Coub**
  - **Cracked**
@@ -148,6 +154,8 @@
  - **CSNNE**
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
+ - **CTV**
+ - **CTVNews**
  - **culturebox.francetvinfo.fr**
  - **CultureUnplugged**
  - **CWTV**
@@ -218,6 +226,7 @@
  - **Firstpost**
  - **FiveTV**
  - **Flickr**
+ - **Flipagram**
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
  - **FootyRoom**
  - **Formula1**
@@ -236,6 +245,7 @@
  - **FreeVideo**
  - **Funimation**
  - **FunnyOrDie**
+ - **Fusion**
  - **GameInformer**
  - **Gamekings**
  - **GameOne**
@@ -243,7 +253,6 @@
  - **Gamersyde**
  - **GameSpot**
  - **GameStar**
- - **Gametrailers**
  - **Gazeta**
  - **GDCVault**
  - **generic**: Generic downloader that works on some sites
@@ -269,6 +278,7 @@
  - **Helsinki**: helsinki.fi
  - **HentaiStigma**
  - **HistoricFilms**
+ - **history:topic**: History.com Topic
  - **hitbox**
  - **hitbox:live**
  - **HornBunny**
@@ -276,6 +286,8 @@
  - **HotStar**
  - **Howcast**
  - **HowStuffWorks**
+ - **HRTi**
+ - **HRTiPlaylist**
  - **HuffPost**: Huffington Post
  - **Hypem**
  - **Iconosquare**
@@ -303,6 +315,7 @@
  - **jpopsuki.tv**
  - **JWPlatform**
  - **Kaltura**
+ - **Kamcord**
  - **KanalPlay**: Kanal 5/9/11 Play
  - **Kankan**
  - **Karaoketv**
@@ -322,8 +335,10 @@
  - **kuwo:mv**: 酷我音乐 - MV
  - **kuwo:singer**: 酷我音乐 - 歌手
  - **kuwo:song**: 酷我音乐
- - **la7.tv**
+ - **la7.it**
  - **Laola1Tv**
+ - **Lcp**
+ - **LcpPlay**
  - **Le**: 乐视网
  - **Learnr**
  - **Lecture2Go**
@@ -355,6 +370,7 @@
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
+ - **META**
  - **metacafe**
  - **Metacritic**
  - **Mgoon**
@@ -381,10 +397,9 @@
  - **MovieFap**
  - **Moviezine**
  - **MPORA**
- - **MSNBC**
+ - **MSN**
  - **MTV**
  - **mtv.de**
- - **mtviggy.com**
  - **mtvservices:embedded**
  - **MuenchenTV**: münchen.tv
  - **MusicPlayOn**
@@ -424,7 +439,6 @@
  - **Newstube**
  - **NextMedia**: 蘋果日報
  - **NextMediaActionNews**: 蘋果日報 - 動新聞
- - **nextmovie.com**
  - **nfb**: National Film Board of Canada
  - **nfl.com**
  - **nhl.com**
@@ -432,8 +446,11 @@
  - **nhl.com:videocenter**
  - **nhl.com:videocenter:category**: NHL videocenter category
  - **nick.com**
+ - **nick.de**
  - **niconico**: ニコニコ動画
  - **NiconicoPlaylist**
+ - **NineCNineMedia**
+ - **Nintendo**
  - **njoy**: N-JOY
  - **njoy:embed**
  - **Noco**
@@ -461,9 +478,12 @@
  - **NYTimes**
  - **NYTimesArticle**
  - **ocw.mit.edu**
+ - **OdaTV**
  - **Odnoklassniki**
  - **OktoberfestTV**
  - **on.aol.com**
+ - **onet.tv**
+ - **onet.tv:channel**
  - **OnionStudios**
  - **Ooyala**
  - **OoyalaExternal**
@@ -497,8 +517,9 @@
  - **plus.google**: Google Plus
  - **pluzz.francetv.fr**
  - **podomatic**
+ - **PolskieRadio**
  - **PornHd**
- - **PornHub**
+ - **PornHub**: PornHub and Thumbzilla
  - **PornHubPlaylist**
  - **PornHubUserVideos**
  - **Pornotube**
@@ -516,6 +537,7 @@
  - **qqmusic:singer**: QQ音乐 - 歌手
  - **qqmusic:toplist**: QQ音乐 - 排行榜
  - **R7**
+ - **R7Article**
  - **radio.de**
  - **radiobremen**
  - **radiocanada**
@@ -536,6 +558,7 @@
  - **RICE**
  - **RingTV**
  - **RockstarGames**
+ - **RoosterTeeth**
  - **RottenTomatoes**
  - **Roxwel**
  - **RTBF**
@@ -548,7 +571,9 @@
  - **rtve.es:alacarta**: RTVE a la carta
  - **rtve.es:infantil**: RTVE infantil
  - **rtve.es:live**: RTVE.es live streams
+ - **rtve.es:television**
  - **RTVNH**
+ - **Rudo**
  - **RUHD**
  - **RulePorn**
  - **rutube**: Rutube videos
@@ -581,8 +606,10 @@
  - **Shared**: shared.sx and vivo.sx
  - **ShareSix**
  - **Sina**
+ - **SixPlay**
+ - **skynewsarabia:article**
  - **skynewsarabia:video**
- - **skynewsarabia:video**
+ - **SkySports**
  - **Slideshare**
  - **Slutload**
  - **smotri**: Smotri.com
@@ -614,12 +641,14 @@
  - **SportBoxEmbed**
  - **SportDeutschland**
  - **Sportschau**
+ - **sr:mediathek**: Saarländischer Rundfunk
  - **SRGSSR**
  - **SRGSSRPlay**: srf.ch, rts.ch, rsi.ch, rtr.ch and swissinfo.ch play sites
  - **SSA**
  - **stanfordoc**: Stanford Open ClassRoom
  - **Steam**
  - **Stitcher**
+ - **Streamable**
  - **streamcloud.eu**
  - **StreamCZ**
  - **StreetVoice**
@@ -667,6 +696,7 @@
  - **TNAFlix**
  - **TNAFlixNetworkEmbed**
  - **toggle**
+ - **Tosh**: Tosh.0
  - **tou.tv**
  - **Toypics**: Toypics user profile
  - **ToypicsUser**: Toypics user profile
@@ -714,6 +744,7 @@
  - **UDNEmbed**: 聯合影音
  - **Unistra**
  - **Urort**: NRK P3 Urørt
+ - **URPlay**
  - **USAToday**
  - **ustream**
  - **ustream:channel**
@@ -731,6 +762,7 @@
  - **vh1.com**
  - **Vice**
  - **ViceShow**
+ - **Vidbit**
  - **Viddler**
  - **video.google:search**: Google Video search
  - **video.mit.edu**
@@ -770,6 +802,7 @@
  - **vine:user**
  - **vk**: VK
  - **vk:uservideos**: VK - User's Videos
+ - **vk:wallpost**
  - **vlive**
  - **Vodlocker**
  - **VoiceRepublic**
@@ -838,6 +871,7 @@
  - **youtube:search**: YouTube.com searches
  - **youtube:search:date**: YouTube.com searches, newest videos first
  - **youtube:search_url**: YouTube.com search URLs
+ - **youtube:shared**
  - **youtube:show**: YouTube.com (multi-season) shows
  - **youtube:subscriptions**: YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)
  - **youtube:user**: YouTube.com user videos (URL or "ytuser" keyword)

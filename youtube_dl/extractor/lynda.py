@@ -100,7 +100,7 @@ class LyndaIE(LyndaBaseIE):
 
     _TESTS = [{
         'url': 'http://www.lynda.com/Bootstrap-tutorials/Using-exercise-files/110885/114408-4.html',
-        'md5': 'ecfc6862da89489161fb9cd5f5a6fac1',
+        # md5 is unstable
         'info_dict': {
             'id': '114408',
             'ext': 'mp4',
