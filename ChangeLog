@@ -1,11 +1,110 @@
 version <unreleased>
 
+version 2016.07.28
+
+Fixed/improved extractors
+- shared (#10170)
+- soundcloud (#10179)
+- twitch (#9767)
+
+version 2016.07.26.2
+
+Fixed/improved extractors
+- smotri
+- camdemy
+- mtv
+- comedycentral
+- cmt
+- cbc
+- mgtv
+- orf
+
+version 2016.07.24
+
+New extractors
+- arkena (#8682)
+- lcp (#8682)
+
+Fixed/improved extractors
+- facebook (#10151)
+- dailymail
+- telegraaf
+- dcn
+- onet
+- tvp
+
+Miscellaneous
+- Support $Time$ in DASH manifests
+
+version 2016.07.22
+
+New extractors
+- odatv (#9285)
+
+Fixed/improved extractors
+- bbc
+- youjizz (#10131)
+- youtube (#10140)
+- pornhub (#10138)
+- eporner (#10139)
+
+version 2016.07.17
+
+New extractors
+- nintendo (#9986)
+- streamable (#9122)
+
+Fixed/improved extractors
+- ard (#10095)
+- mtv
+- comedycentral (#10101)
+- viki (#10098)
+- spike (#10106)
+
+Miscellaneous
+- Improved twitter player detection (#10090)
+
+version 2016.07.16
+
+New extractors
+- ninenow (#5181)
+
+Fixed/improved extractors
+- rtve (#10076)
+- brightcove
+- 3qsdn
+- syfy (#9087, #3820, #2388)
+- youtube (#10083)
+
+Miscellaneous
+- Fix subtitle embedding for video-only and audio-only files (#10081)
+
+version 2016.07.13
+
+New extractors
+- rudo
+
+Fixed/improved extractors
+- biobiochiletv
+- tvplay
+- dbtv
+- brightcove
+- tmz
+- youtube (#10059)
+- shahid (#10062)
+- vk
+- ellentv (#10067)
+
+version 2016.07.11
+
 New Extractors
 - roosterteeth (#9864)
 
 Fixed/improved extractors
 - miomio (#9605)
 - vuclip
+- youtube
+- vidzi (#10058)
 
 version 2016.07.09.2
 
