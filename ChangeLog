@@ -84,7 +84,7 @@ Fixed/improved extractors
 - la7
 - Changed features
 - Rename --cn-verfication-proxy to --geo-verification-proxy
-- Miscellaneous
+Miscellaneous
 - Add script for displaying downloads statistics
 
 version 2016.07.03.1
@@ -99,9 +99,6 @@ Fixed/improved extractors
 - rai (#8617, #9157, #9232, #8552, #8551)
 - nationalgeographic (#9991)
 - iqiyi
-- Miscellaneous
-- Add coding convention guide to README.md
-- Add PULL_REQUEST_TEMPLATE.md
 
 version 2016.07.03
 
