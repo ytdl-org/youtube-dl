@@ -27,7 +27,7 @@ class FacebookIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                 (?:
                     https?://
-                        (?:\w+\.)?facebook\.com/
+                        (?:[\w-]+\.)?facebook\.com/
                         (?:[^#]*?\#!/)?
                         (?:
                             (?:
@@ -126,6 +126,9 @@ class FacebookIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.facebook.com/groups/164828000315060/permalink/764967300301124/',
+        'only_matching': True,
+    }, {
+        'url': 'https://zh-hk.facebook.com/peoplespower/videos/1135894589806027/',
         'only_matching': True,
     }]
 

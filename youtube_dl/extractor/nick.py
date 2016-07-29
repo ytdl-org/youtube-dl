@@ -7,6 +7,7 @@ from ..utils import update_url_query
 
 
 class NickIE(MTVServicesInfoExtractor):
+    # None of videos on the website are still alive?
     IE_NAME = 'nick.com'
     _VALID_URL = r'https?://(?:www\.)?nick(?:jr)?\.com/(?:videos/clip|[^/]+/videos)/(?P<id>[^/?#.]+)'
     _FEED_URL = 'http://udat.mtvnservices.com/service1/dispatch.htm'

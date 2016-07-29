@@ -46,6 +46,7 @@
  - **archive.org**: archive.org videos
  - **ARD**
  - **ARD:mediathek**
+ - **Arkena**
  - **arte.tv**
  - **arte.tv:+7**
  - **arte.tv:cinema**
@@ -141,7 +142,7 @@
  - **CollegeRama**
  - **ComCarCoff**
  - **ComedyCentral**
- - **ComedyCentralShows**: The Daily Show / The Colbert Report
+ - **ComedyCentralTV**
  - **CondeNast**: Condé Nast media group: Allure, Architectural Digest, Ars Technica, Bon Appétit, Brides, Condé Nast, Condé Nast Traveler, Details, Epicurious, GQ, Glamour, Golf Digest, SELF, Teen Vogue, The New Yorker, Vanity Fair, Vogue, W Magazine, WIRED
  - **Coub**
  - **Cracked**
@@ -336,6 +337,8 @@
  - **kuwo:song**: 酷我音乐
  - **la7.it**
  - **Laola1Tv**
+ - **Lcp**
+ - **LcpPlay**
  - **Le**: 乐视网
  - **Learnr**
  - **Lecture2Go**
@@ -397,7 +400,6 @@
  - **MSN**
  - **MTV**
  - **mtv.de**
- - **mtviggy.com**
  - **mtvservices:embedded**
  - **MuenchenTV**: münchen.tv
  - **MusicPlayOn**
@@ -437,7 +439,6 @@
  - **Newstube**
  - **NextMedia**: 蘋果日報
  - **NextMediaActionNews**: 蘋果日報 - 動新聞
- - **nextmovie.com**
  - **nfb**: National Film Board of Canada
  - **nfl.com**
  - **nhl.com**
@@ -477,6 +478,7 @@
  - **NYTimes**
  - **NYTimesArticle**
  - **ocw.mit.edu**
+ - **OdaTV**
  - **Odnoklassniki**
  - **OktoberfestTV**
  - **on.aol.com**
@@ -694,6 +696,7 @@
  - **TNAFlix**
  - **TNAFlixNetworkEmbed**
  - **toggle**
+ - **Tosh**: Tosh.0
  - **tou.tv**
  - **Toypics**: Toypics user profile
  - **ToypicsUser**: Toypics user profile

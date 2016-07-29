@@ -9,7 +9,7 @@ class MGTVIE(InfoExtractor):
     _VALID_URL = r'https?://www\.mgtv\.com/v/(?:[^/]+/)*(?P<id>\d+)\.html'
     IE_DESC = '芒果TV'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.mgtv.com/v/1/290525/f/3116640.html',
         'md5': '1bdadcf760a0b90946ca68ee9a2db41a',
         'info_dict': {
@@ -20,7 +20,11 @@ class MGTVIE(InfoExtractor):
             'duration': 7461,
             'thumbnail': 're:^https?://.*\.jpg$',
         },
-    }
+    }, {
+        # no tbr extracted from stream_url
+        'url': 'http://www.mgtv.com/v/1/1/f/3324755.html',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -41,7 +45,8 @@ class MGTVIE(InfoExtractor):
             def extract_format(stream_url, format_id, idx, query={}):
                 format_info = self._download_json(
                     stream_url, video_id,
-                    note='Download video info for format %s' % format_id or '#%d' % idx, query=query)
+                    note='Download video info for format %s' % (format_id or '#%d' % idx),
+                    query=query)
                 return {
                     'format_id': format_id,
                     'url': format_info['info'],

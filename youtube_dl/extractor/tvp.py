@@ -89,8 +89,8 @@ class TVPIE(InfoExtractor):
             r'(https?://.+?/video)(?:\.(?:ism|f4m|m3u8)|-\d+\.mp4)',
             video_url, 'video base url', default=None)
         if video_url_base:
-            # TODO: Current DASH formats are broken - $Time$ pattern in
-            # <SegmentTemplate> not implemented yet
+            # TODO: <Group> found instead of <AdaptationSet> in MPD manifest.
+            # It's not mentioned in MPEG-DASH standard. Figure that out.
             # formats.extend(self._extract_mpd_formats(
             #     video_url_base + '.ism/video.mpd',
             #     video_id, mpd_id='dash', fatal=False))

@@ -53,6 +53,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     """Provide base functions for Youtube extractors"""
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
     _TWOFACTOR_URL = 'https://accounts.google.com/signin/challenge'
+    _PASSWORD_CHALLENGE_URL = 'https://accounts.google.com/signin/challenge/sl/password'
     _NETRC_MACHINE = 'youtube'
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
@@ -116,12 +117,10 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'hl': 'en_US',
         }
 
-        login_data = urlencode_postdata(login_form_strs)
-
-        req = sanitized_Request(self._LOGIN_URL, login_data)
         login_results = self._download_webpage(
-            req, None,
-            note='Logging in', errnote='unable to log in', fatal=False)
+            self._PASSWORD_CHALLENGE_URL, None,
+            note='Logging in', errnote='unable to log in', fatal=False,
+            data=urlencode_postdata(login_form_strs))
         if login_results is False:
             return False
 

@@ -44,6 +44,7 @@ from .appletrailers import (
     AppleTrailersSectionIE,
 )
 from .archiveorg import ArchiveOrgIE
+from .arkena import ArkenaIE
 from .ard import (
     ARDIE,
     ARDMediathekIE,
@@ -158,8 +159,8 @@ from .coub import CoubIE
 from .collegerama import CollegeRamaIE
 from .comedycentral import (
     ComedyCentralIE,
-    ComedyCentralShowsIE,
     ComedyCentralTVIE,
+    ToshIE,
 )
 from .comcarcoff import ComCarCoffIE
 from .commonmistakes import CommonMistakesIE, UnicodeBOMIE
@@ -397,6 +398,10 @@ from .kuwo import (
 )
 from .la7 import LA7IE
 from .laola1tv import Laola1TvIE
+from .lcp import (
+    LcpPlayIE,
+    LcpIE,
+)
 from .learnr import LearnrIE
 from .lecture2go import Lecture2GoIE
 from .lemonde import LemondeIE
@@ -475,7 +480,6 @@ from .msn import MSNIE
 from .mtv import (
     MTVIE,
     MTVServicesEmbeddedIE,
-    MTVIggyIE,
     MTVDEIE,
 )
 from .muenchentv import MuenchenTVIE
@@ -525,7 +529,6 @@ from .nextmedia import (
     NextMediaActionNewsIE,
     AppleDailyIE,
 )
-from .nextmovie import NextMovieIE
 from .nfb import NFBIE
 from .nfl import NFLIE
 from .nhl import (

@@ -62,6 +62,7 @@ from .videomore import VideomoreIE
 from .googledrive import GoogleDriveIE
 from .jwplatform import JWPlatformIE
 from .digiteka import DigitekaIE
+from .arkena import ArkenaIE
 from .instagram import InstagramIE
 from .liveleak import LiveLeakIE
 from .threeqsdn import ThreeQSDNIE
@@ -70,6 +71,7 @@ from .vessel import VesselIE
 from .kaltura import KalturaIE
 from .eagleplatform import EaglePlatformIE
 from .facebook import FacebookIE
+from .soundcloud import SoundcloudIE
 
 
 class GenericIE(InfoExtractor):
@@ -473,7 +475,7 @@ class GenericIE(InfoExtractor):
             'url': 'http://www.vestifinance.ru/articles/25753',
             'info_dict': {
                 'id': '25753',
-                'title': 'Вести Экономика ― Прямые трансляции с Форума-выставки "Госзаказ-2013"',
+                'title': 'Прямые трансляции с Форума-выставки "Госзаказ-2013"',
             },
             'playlist': [{
                 'info_dict': {
@@ -640,6 +642,8 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Key and Peele|October 10, 2012|2|203|Liam Neesons - Uncensored',
                 'description': 'Two valets share their love for movie star Liam Neesons.',
+                'timestamp': 1349922600,
+                'upload_date': '20121011',
             },
         },
         # YouTube embed via <data-embed-url="">
@@ -781,6 +785,15 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20141029',
             }
         },
+        # Soundcloud multiple embeds
+        {
+            'url': 'http://www.guitarplayer.com/lessons/1014/legato-workout-one-hour-to-more-fluid-performance---tab/52809',
+            'info_dict': {
+                'id': '52809',
+                'title': 'Guitar Essentials: Legato Workout—One-Hour to Fluid Performance  | TAB + AUDIO',
+            },
+            'playlist_mincount': 7,
+        },
         # Livestream embed
         {
             'url': 'http://www.esa.int/Our_Activities/Space_Science/Rosetta/Philae_comet_touch-down_webcast',
@@ -856,6 +869,7 @@ class GenericIE(InfoExtractor):
                 'description': 'md5:601cb790edd05908957dae8aaa866465',
                 'upload_date': '20150220',
             },
+            'skip': 'All The Daily Show URLs now redirect to http://www.cc.com/shows/',
         },
         # jwplayer YouTube
         {
@@ -1341,6 +1355,23 @@ class GenericIE(InfoExtractor):
                 'uploader_id': 'openclassrooms',
             },
             'add_ie': ['Vimeo'],
+        },
+        {
+            'url': 'https://support.arkena.com/display/PLAY/Ways+to+embed+your+video',
+            'md5': 'b96f2f71b359a8ecd05ce4e1daa72365',
+            'info_dict': {
+                'id': 'b41dda37-d8e7-4d3f-b1b5-9a9db578bdfe',
+                'ext': 'mp4',
+                'title': 'Big Buck Bunny',
+                'description': 'Royalty free test video',
+                'timestamp': 1432816365,
+                'upload_date': '20150528',
+                'is_live': False,
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [ArkenaIE.ie_key()],
         },
         # {
         #     # TODO: find another test
@@ -1978,12 +2009,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(myvi_url)
 
         # Look for embedded soundcloud player
-        mobj = re.search(
-            r'<iframe\s+(?:[a-zA-Z0-9_-]+="[^"]+"\s+)*src="(?P<url>https?://(?:w\.)?soundcloud\.com/player[^"]+)"',
-            webpage)
-        if mobj is not None:
-            url = unescapeHTML(mobj.group('url'))
-            return self.url_result(url)
+        soundcloud_urls = SoundcloudIE._extract_urls(webpage)
+        if soundcloud_urls:
+            return _playlist_from_matches(soundcloud_urls, getter=unescapeHTML, ie=SoundcloudIE.ie_key())
 
         # Look for embedded mtvservices player
         mtvservices_url = MTVServicesEmbeddedIE._extract_url(webpage)
@@ -2145,6 +2173,11 @@ class GenericIE(InfoExtractor):
         digiteka_url = DigitekaIE._extract_url(webpage)
         if digiteka_url:
             return self.url_result(self._proto_relative_url(digiteka_url), DigitekaIE.ie_key())
+
+        # Look for Arkena embeds
+        arkena_url = ArkenaIE._extract_url(webpage)
+        if arkena_url:
+            return self.url_result(arkena_url, ArkenaIE.ie_key())
 
         # Look for Limelight embeds
         mobj = re.search(r'LimelightPlayer\.doLoad(Media|Channel|ChannelList)\(["\'](?P<id>[a-z0-9]{32})', webpage)
