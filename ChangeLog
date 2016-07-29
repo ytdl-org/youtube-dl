@@ -1,11 +1,19 @@
 version <unreleased>
 
+Fixed/improved extractors
+- twitch
+- tv2 (#10188)
+- rtve (#10076)
+- dailymotion (#10180)
+
+
 version 2016.07.28
 
 Fixed/improved extractors
 - shared (#10170)
 - soundcloud (#10179)
 - twitch (#9767)
+
 
 version 2016.07.26.2
 
@@ -18,6 +26,7 @@ Fixed/improved extractors
 - cbc
 - mgtv
 - orf
+
 
 version 2016.07.24
 
@@ -36,6 +45,7 @@ Fixed/improved extractors
 Miscellaneous
 - Support $Time$ in DASH manifests
 
+
 version 2016.07.22
 
 New extractors
@@ -47,6 +57,7 @@ Fixed/improved extractors
 - youtube (#10140)
 - pornhub (#10138)
 - eporner (#10139)
+
 
 version 2016.07.17
 
@@ -64,6 +75,7 @@ Fixed/improved extractors
 Miscellaneous
 - Improved twitter player detection (#10090)
 
+
 version 2016.07.16
 
 New extractors
@@ -78,6 +90,7 @@ Fixed/improved extractors
 
 Miscellaneous
 - Fix subtitle embedding for video-only and audio-only files (#10081)
+
 
 version 2016.07.13
 
@@ -95,6 +108,7 @@ Fixed/improved extractors
 - vk
 - ellentv (#10067)
 
+
 version 2016.07.11
 
 New Extractors
@@ -105,6 +119,7 @@ Fixed/improved extractors
 - vuclip
 - youtube
 - vidzi (#10058)
+
 
 version 2016.07.09.2
 
@@ -117,12 +132,14 @@ Fixed/improved extractors
 Fixed/improved features
 - Embedding subtitles no longer throws an error with problematic inputs (#9063)
 
+
 version 2016.07.09.1
 
 Fixed/improved extractors
 - youtube
 - ard
 - srmediatek (#9373)
+
 
 version 2016.07.09
 
@@ -146,6 +163,7 @@ Fixed/improved features
 - `--postprocessor-args` and `--downloader-args` now accepts non-ASCII inputs
   on non-Windows systems
 
+
 version 2016.07.07
 
 New extractors
@@ -159,6 +177,7 @@ Fixed/improved extractors
 - brightcove (#9965)
 - daum (#9972)
 
+
 version 2016.07.06
 
 Fixed/improved extractors
@@ -171,6 +190,7 @@ Fixed/improved extractors
 - rtvnh
 - prosiebensat1
 - onionstudios
+
 
 version 2016.07.05
 
@@ -186,6 +206,7 @@ Fixed/improved extractors
 Miscellaneous
 - Add script for displaying downloads statistics
 
+
 version 2016.07.03.1
 
 Fixed/improved extractors
@@ -199,6 +220,7 @@ Fixed/improved extractors
 - nationalgeographic (#9991)
 - iqiyi
 
+
 version 2016.07.03
 
 New extractors
@@ -208,6 +230,7 @@ Fixed/improved extractors
 - vk (#9981)
 - facebook (#9938)
 - xtube (#9953, #9961)
+
 
 version 2016.07.02
 
@@ -219,6 +242,7 @@ Fixed/improved extractors
 - vine (#9970)
 - periscope (#9967)
 - pornhub (#8696)
+
 
 version 2016.07.01
 
