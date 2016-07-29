@@ -8,6 +8,7 @@ from ..utils import (
     determine_ext,
     int_or_none,
     float_or_none,
+    js_to_json,
     parse_iso8601,
     remove_end,
 )
@@ -105,7 +106,7 @@ class TV2ArticleIE(InfoExtractor):
         'url': 'http://www.tv2.no/2015/05/16/nyheter/alesund/krim/pingvin/6930542',
         'info_dict': {
             'id': '6930542',
-            'title': 'Russen hetses etter pingvintyveri – innrømmer å ha åpnet luken på buret',
+            'title': 'Russen hetses etter pingvintyveri - innrømmer å ha åpnet luken på buret',
             'description': 'md5:339573779d3eea3542ffe12006190954',
         },
         'playlist_count': 2,
@@ -119,9 +120,23 @@ class TV2ArticleIE(InfoExtractor):
 
         webpage = self._download_webpage(url, playlist_id)
 
+        # Old embed pattern (looks unused nowadays)
+        assets = re.findall(r'data-assetid=["\'](\d+)', webpage)
+
+        if not assets:
+            # New embed pattern
+            for v in re.findall('TV2ContentboxVideo\(({.+?})\)', webpage):
+                video = self._parse_json(
+                    v, playlist_id, transform_source=js_to_json, fatal=False)
+                if not video:
+                    continue
+                asset = video.get('assetId')
+                if asset:
+                    assets.append(asset)
+
         entries = [
-            self.url_result('http://www.tv2.no/v/%s' % video_id, 'TV2')
-            for video_id in re.findall(r'data-assetid="(\d+)"', webpage)]
+            self.url_result('http://www.tv2.no/v/%s' % asset_id, 'TV2')
+            for asset_id in assets]
 
         title = remove_end(self._og_search_title(webpage), ' - TV2.no')
         description = remove_end(self._og_search_description(webpage), ' - TV2.no')
