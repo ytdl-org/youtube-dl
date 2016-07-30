@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.07.30
 
 Fixed/improved extractors
 - [twitch:clips] Sort formats
