@@ -1,10 +1,11 @@
 version <unreleased>
 
 Fixed/improved extractors
-- twitch
-- tv2 (#10188)
+- [twitch:clips] Sort formats
+- [tv2] Use m3u8_native
+- [tv2:article] Fix video detection (#10188)
 - rtve (#10076)
-- dailymotion (#10180)
+- [dailymotion:playlist] Optimize download archive processing (#10180)
 
 
 version 2016.07.28
