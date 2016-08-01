@@ -37,7 +37,7 @@ class LimelightBaseIE(InfoExtractor):
 
         for stream in streams:
             stream_url = stream.get('url')
-            if not stream_url or stream.get('previewStream') or stream.get('drmProtected'):
+            if not stream_url or stream.get('drmProtected'):
                 continue
             ext = determine_ext(stream_url)
             if ext == 'f4m':
@@ -177,7 +177,7 @@ class LimelightMediaIE(LimelightBaseIE):
             'subtitles': 'mincount:9',
         },
         'params': {
-            # m3u8 download
+            # rtmp download
             'skip_download': True,
         },
     }, {
