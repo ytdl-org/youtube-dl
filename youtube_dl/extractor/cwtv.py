@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class CWTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?cw(?:tv|seed)\.com/(?:shows/)?(?:[^/]+/){2}\?.*\bplay=(?P<id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})'
+    _VALID_URL = r'https?://(?:www\.)?cw(?:tv(?:pr)?|seed)\.com/(?:shows/)?(?:[^/]+/)+[^?]*\?.*\b(?:play|watch)=(?P<id>[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})'
     _TESTS = [{
         'url': 'http://cwtv.com/shows/arrow/legends-of-yesterday/?play=6b15e985-9345-4f60-baf8-56e96be57c63',
         'info_dict': {
@@ -50,6 +50,12 @@ class CWTVIE(InfoExtractor):
         }
     }, {
         'url': 'http://cwtv.com/thecw/chroniclesofcisco/?play=8adebe35-f447-465f-ab52-e863506ff6d6',
+        'only_matching': True,
+    }, {
+        'url': 'http://cwtvpr.com/the-cw/video?watch=9eee3f60-ef4e-440b-b3b2-49428ac9c54e',
+        'only_matching': True,
+    }, {
+        'url': 'http://cwtv.com/shows/arrow/legends-of-yesterday/?watch=6b15e985-9345-4f60-baf8-56e96be57c63',
         'only_matching': True,
     }]
 

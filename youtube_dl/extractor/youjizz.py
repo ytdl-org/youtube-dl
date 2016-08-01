@@ -9,8 +9,8 @@ from ..utils import (
 
 
 class YouJizzIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:\w+\.)?youjizz\.com/videos/[^/#?]+-(?P<id>[0-9]+)\.html(?:$|[?#])'
-    _TEST = {
+    _VALID_URL = r'https?://(?:\w+\.)?youjizz\.com/videos/(?:[^/#?]+)?-(?P<id>[0-9]+)\.html(?:$|[?#])'
+    _TESTS = [{
         'url': 'http://www.youjizz.com/videos/zeichentrick-1-2189178.html',
         'md5': '07e15fa469ba384c7693fd246905547c',
         'info_dict': {
@@ -19,7 +19,10 @@ class YouJizzIE(InfoExtractor):
             'title': 'Zeichentrick 1',
             'age_limit': 18,
         }
-    }
+    }, {
+        'url': 'http://www.youjizz.com/videos/-2189178.html',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

@@ -5,6 +5,7 @@ import json
 import re
 
 from .common import InfoExtractor
+from .facebook import FacebookIE
 
 
 class BuzzFeedIE(InfoExtractor):
@@ -20,11 +21,11 @@ class BuzzFeedIE(InfoExtractor):
             'info_dict': {
                 'id': 'aVCR29aE_OQ',
                 'ext': 'mp4',
+                'title': 'Angry Ram destroys a punching bag..',
+                'description': 'md5:c59533190ef23fd4458a5e8c8c872345',
                 'upload_date': '20141024',
                 'uploader_id': 'Buddhanz1',
-                'description': 'He likes to stay in shape with his heavy bag, he wont stop until its on the ground\n\nFollow Angry Ram on Facebook for regular updates -\nhttps://www.facebook.com/pages/Angry-Ram/1436897249899558?ref=hl',
-                'uploader': 'Buddhanz',
-                'title': 'Angry Ram destroys a punching bag',
+                'uploader': 'Angry Ram',
             }
         }]
     }, {
@@ -41,13 +42,30 @@ class BuzzFeedIE(InfoExtractor):
             'info_dict': {
                 'id': 'mVmBL8B-In0',
                 'ext': 'mp4',
+                'title': 're:Munchkin the Teddy Bear gets her exercise',
+                'description': 'md5:28faab95cda6e361bcff06ec12fc21d8',
                 'upload_date': '20141124',
                 'uploader_id': 'CindysMunchkin',
-                'description': 're:© 2014 Munchkin the',
                 'uploader': 're:^Munchkin the',
-                'title': 're:Munchkin the Teddy Bear gets her exercise',
             },
         }]
+    }, {
+        'url': 'http://www.buzzfeed.com/craigsilverman/the-most-adorable-crash-landing-ever#.eq7pX0BAmK',
+        'info_dict': {
+            'id': 'the-most-adorable-crash-landing-ever',
+            'title': 'Watch This Baby Goose Make The Most Adorable Crash Landing',
+            'description': 'This gosling knows how to stick a landing.',
+        },
+        'playlist': [{
+            'md5': '763ca415512f91ca62e4621086900a23',
+            'info_dict': {
+                'id': '971793786185728',
+                'ext': 'mp4',
+                'title': 'We set up crash pads so that the goslings on our roof would have a safe landi...',
+                'uploader': 'Calgary Outdoor Centre-University of Calgary',
+            },
+        }],
+        'add_ie': ['Facebook'],
     }]
 
     def _real_extract(self, url):
@@ -65,6 +83,10 @@ class BuzzFeedIE(InfoExtractor):
             if not video:
                 continue
             entries.append(self.url_result(video['url']))
+
+        facebook_url = FacebookIE._extract_url(webpage)
+        if facebook_url:
+            entries.append(self.url_result(facebook_url))
 
         return {
             '_type': 'playlist',

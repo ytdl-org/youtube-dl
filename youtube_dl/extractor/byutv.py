@@ -11,6 +11,7 @@ class BYUtvIE(InfoExtractor):
     _VALID_URL = r'^https?://(?:www\.)?byutv.org/watch/[0-9a-f-]+/(?P<video_id>[^/?#]+)'
     _TEST = {
         'url': 'http://www.byutv.org/watch/6587b9a3-89d2-42a6-a7f7-fd2f81840a7d/studio-c-season-5-episode-5',
+        'md5': '05850eb8c749e2ee05ad5a1c34668493',
         'info_dict': {
             'id': 'studio-c-season-5-episode-5',
             'ext': 'mp4',
@@ -21,7 +22,8 @@ class BYUtvIE(InfoExtractor):
         },
         'params': {
             'skip_download': True,
-        }
+        },
+        'add_ie': ['Ooyala'],
     }
 
     def _real_extract(self, url):

@@ -28,12 +28,16 @@ updates_key.pem
 *.mp4
 *.m4a
 *.m4v
+*.mp3
 *.part
 *.swp
 test/testdata
 test/local_parameters.json
 .tox
 youtube-dl.zsh
+
+# IntelliJ related files
 .idea
-.idea/*
+*.iml
+
 tmp/

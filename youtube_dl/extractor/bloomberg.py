@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -21,6 +22,18 @@ class BloombergIE(InfoExtractor):
             'format': 'best[format_id^=hds]',
         },
     }, {
+        # video ID in BPlayer(...)
+        'url': 'http://www.bloomberg.com/features/2016-hello-world-new-zealand/',
+        'info_dict': {
+            'id': '938c7e72-3f25-4ddb-8b85-a9be731baa74',
+            'ext': 'flv',
+            'title': 'Meet the Real-Life Tech Wizards of Middle Earth',
+            'description': 'Hello World, Episode 1: New Zealand’s freaky AI babies, robot exoskeletons, and a virtual you.',
+        },
+        'params': {
+            'format': 'best[format_id^=hds]',
+        },
+    }, {
         'url': 'http://www.bloomberg.com/news/articles/2015-11-12/five-strange-things-that-have-been-happening-in-financial-markets',
         'only_matching': True,
     }, {
@@ -33,7 +46,11 @@ class BloombergIE(InfoExtractor):
         webpage = self._download_webpage(url, name)
         video_id = self._search_regex(
             r'["\']bmmrId["\']\s*:\s*(["\'])(?P<url>.+?)\1',
-            webpage, 'id', group='url')
+            webpage, 'id', group='url', default=None)
+        if not video_id:
+            bplayer_data = self._parse_json(self._search_regex(
+                r'BPlayer\(null,\s*({[^;]+})\);', webpage, 'id'), name)
+            video_id = bplayer_data['id']
         title = re.sub(': Video$', '', self._og_search_title(webpage))
 
         embed_info = self._download_json(

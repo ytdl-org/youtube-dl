@@ -20,54 +20,64 @@ class Channel9IE(InfoExtractor):
     '''
     IE_DESC = 'Channel 9'
     IE_NAME = 'channel9'
-    _VALID_URL = r'https?://(?:www\.)?channel9\.msdn\.com/(?P<contentpath>.+)/?'
+    _VALID_URL = r'https?://(?:www\.)?channel9\.msdn\.com/(?P<contentpath>.+?)(?P<rss>/RSS)?/?(?:[?#&]|$)'
 
-    _TESTS = [
-        {
-            'url': 'http://channel9.msdn.com/Events/TechEd/Australia/2013/KOS002',
-            'md5': 'bbd75296ba47916b754e73c3a4bbdf10',
-            'info_dict': {
-                'id': 'Events/TechEd/Australia/2013/KOS002',
-                'ext': 'mp4',
-                'title': 'Developer Kick-Off Session: Stuff We Love',
-                'description': 'md5:c08d72240b7c87fcecafe2692f80e35f',
-                'duration': 4576,
-                'thumbnail': 're:http://.*\.jpg',
-                'session_code': 'KOS002',
-                'session_day': 'Day 1',
-                'session_room': 'Arena 1A',
-                'session_speakers': ['Ed Blankenship', 'Andrew Coates', 'Brady Gaster', 'Patrick Klug', 'Mads Kristensen'],
-            },
+    _TESTS = [{
+        'url': 'http://channel9.msdn.com/Events/TechEd/Australia/2013/KOS002',
+        'md5': 'bbd75296ba47916b754e73c3a4bbdf10',
+        'info_dict': {
+            'id': 'Events/TechEd/Australia/2013/KOS002',
+            'ext': 'mp4',
+            'title': 'Developer Kick-Off Session: Stuff We Love',
+            'description': 'md5:c08d72240b7c87fcecafe2692f80e35f',
+            'duration': 4576,
+            'thumbnail': 're:http://.*\.jpg',
+            'session_code': 'KOS002',
+            'session_day': 'Day 1',
+            'session_room': 'Arena 1A',
+            'session_speakers': ['Ed Blankenship', 'Andrew Coates', 'Brady Gaster', 'Patrick Klug',
+                                 'Mads Kristensen'],
         },
-        {
-            'url': 'http://channel9.msdn.com/posts/Self-service-BI-with-Power-BI-nuclear-testing',
-            'md5': 'b43ee4529d111bc37ba7ee4f34813e68',
-            'info_dict': {
-                'id': 'posts/Self-service-BI-with-Power-BI-nuclear-testing',
-                'ext': 'mp4',
-                'title': 'Self-service BI with Power BI - nuclear testing',
-                'description': 'md5:d1e6ecaafa7fb52a2cacdf9599829f5b',
-                'duration': 1540,
-                'thumbnail': 're:http://.*\.jpg',
-                'authors': ['Mike Wilmot'],
-            },
+    }, {
+        'url': 'http://channel9.msdn.com/posts/Self-service-BI-with-Power-BI-nuclear-testing',
+        'md5': 'b43ee4529d111bc37ba7ee4f34813e68',
+        'info_dict': {
+            'id': 'posts/Self-service-BI-with-Power-BI-nuclear-testing',
+            'ext': 'mp4',
+            'title': 'Self-service BI with Power BI - nuclear testing',
+            'description': 'md5:d1e6ecaafa7fb52a2cacdf9599829f5b',
+            'duration': 1540,
+            'thumbnail': 're:http://.*\.jpg',
+            'authors': ['Mike Wilmot'],
         },
-        {
-            # low quality mp4 is best
-            'url': 'https://channel9.msdn.com/Events/CPP/CppCon-2015/Ranges-for-the-Standard-Library',
-            'info_dict': {
-                'id': 'Events/CPP/CppCon-2015/Ranges-for-the-Standard-Library',
-                'ext': 'mp4',
-                'title': 'Ranges for the Standard Library',
-                'description': 'md5:2e6b4917677af3728c5f6d63784c4c5d',
-                'duration': 5646,
-                'thumbnail': 're:http://.*\.jpg',
-            },
-            'params': {
-                'skip_download': True,
-            },
-        }
-    ]
+    }, {
+        # low quality mp4 is best
+        'url': 'https://channel9.msdn.com/Events/CPP/CppCon-2015/Ranges-for-the-Standard-Library',
+        'info_dict': {
+            'id': 'Events/CPP/CppCon-2015/Ranges-for-the-Standard-Library',
+            'ext': 'mp4',
+            'title': 'Ranges for the Standard Library',
+            'description': 'md5:2e6b4917677af3728c5f6d63784c4c5d',
+            'duration': 5646,
+            'thumbnail': 're:http://.*\.jpg',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://channel9.msdn.com/Niners/Splendid22/Queue/76acff796e8f411184b008028e0d492b/RSS',
+        'info_dict': {
+            'id': 'Niners/Splendid22/Queue/76acff796e8f411184b008028e0d492b',
+            'title': 'Channel 9',
+        },
+        'playlist_count': 2,
+    }, {
+        'url': 'https://channel9.msdn.com/Events/DEVintersection/DEVintersection-2016/RSS',
+        'only_matching': True,
+    }, {
+        'url': 'https://channel9.msdn.com/Events/Speakers/scott-hanselman/RSS?UrlSafeName=scott-hanselman',
+        'only_matching': True,
+    }]
 
     _RSS_URL = 'http://channel9.msdn.com/%s/RSS'
 
@@ -254,22 +264,30 @@ class Channel9IE(InfoExtractor):
 
         return self.playlist_result(contents)
 
-    def _extract_list(self, content_path):
-        rss = self._download_xml(self._RSS_URL % content_path, content_path, 'Downloading RSS')
+    def _extract_list(self, video_id, rss_url=None):
+        if not rss_url:
+            rss_url = self._RSS_URL % video_id
+        rss = self._download_xml(rss_url, video_id, 'Downloading RSS')
         entries = [self.url_result(session_url.text, 'Channel9')
                    for session_url in rss.findall('./channel/item/link')]
         title_text = rss.find('./channel/title').text
-        return self.playlist_result(entries, content_path, title_text)
+        return self.playlist_result(entries, video_id, title_text)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         content_path = mobj.group('contentpath')
+        rss = mobj.group('rss')
 
-        webpage = self._download_webpage(url, content_path, 'Downloading web page')
+        if rss:
+            return self._extract_list(content_path, url)
 
-        page_type_m = re.search(r'<meta name="WT.entryid" content="(?P<pagetype>[^:]+)[^"]+"/>', webpage)
-        if page_type_m is not None:
-            page_type = page_type_m.group('pagetype')
+        webpage = self._download_webpage(
+            url, content_path, 'Downloading web page')
+
+        page_type = self._search_regex(
+            r'<meta[^>]+name=(["\'])WT\.entryid\1[^>]+content=(["\'])(?P<pagetype>[^:]+).+?\2',
+            webpage, 'page type', default=None, group='pagetype')
+        if page_type:
             if page_type == 'Entry':      # Any 'item'-like page, may contain downloadable content
                 return self._extract_entry_item(webpage, content_path)
             elif page_type == 'Session':  # Event session page, may contain downloadable content
@@ -278,6 +296,5 @@ class Channel9IE(InfoExtractor):
                 return self._extract_list(content_path)
             else:
                 raise ExtractorError('Unexpected WT.entryid %s' % page_type, expected=True)
-
         else:  # Assuming list
             return self._extract_list(content_path)

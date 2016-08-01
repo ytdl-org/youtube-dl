@@ -56,7 +56,7 @@ class StitcherIE(InfoExtractor):
 
         episode = self._parse_json(
             js_to_json(self._search_regex(
-                r'(?s)var\s+stitcher\s*=\s*({.+?});\n', webpage, 'episode config')),
+                r'(?s)var\s+stitcher(?:Config)?\s*=\s*({.+?});\n', webpage, 'episode config')),
             display_id)['config']['episode']
 
         title = unescapeHTML(episode['title'])

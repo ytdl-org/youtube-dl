@@ -1,17 +1,38 @@
 #!/usr/bin/python3
 
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from socketserver import ThreadingMixIn
 import argparse
 import ctypes
 import functools
+import shutil
+import subprocess
 import sys
+import tempfile
 import threading
 import traceback
 import os.path
 
+sys.path.insert(0, os.path.dirname(os.path.dirname((os.path.abspath(__file__)))))
+from youtube_dl.compat import (
+    compat_input,
+    compat_http_server,
+    compat_str,
+    compat_urlparse,
+)
 
-class BuildHTTPServer(ThreadingMixIn, HTTPServer):
+# These are not used outside of buildserver.py thus not in compat.py
+
+try:
+    import winreg as compat_winreg
+except ImportError:  # Python 2
+    import _winreg as compat_winreg
+
+try:
+    import socketserver as compat_socketserver
+except ImportError:  # Python 2
+    import SocketServer as compat_socketserver
+
+
+class BuildHTTPServer(compat_socketserver.ThreadingMixIn, compat_http_server.HTTPServer):
     allow_reuse_address = True
 
 
@@ -191,7 +212,7 @@ def main(args=None):
                         action='store_const', dest='action', const='service',
                         help='Run as a Windows service')
     parser.add_argument('-b', '--bind', metavar='<host:port>',
-                        action='store', default='localhost:8142',
+                        action='store', default='0.0.0.0:8142',
                         help='Bind to host:port (default %default)')
     options = parser.parse_args(args=args)
 
@@ -216,7 +237,7 @@ def main(args=None):
     srv = BuildHTTPServer((host, port), BuildHTTPRequestHandler)
     thr = threading.Thread(target=srv.serve_forever)
     thr.start()
-    input('Press ENTER to shut down')
+    compat_input('Press ENTER to shut down')
     srv.shutdown()
     thr.join()
 
@@ -230,8 +251,6 @@ def rmtree(path):
             os.chmod(fname, 0o666)
             os.remove(fname)
     os.rmdir(path)
-
-#==============================================================================
 
 
 class BuildError(Exception):
@@ -249,15 +268,25 @@ class HTTPError(BuildError):
 
 class PythonBuilder(object):
     def __init__(self, **kwargs):
-        pythonVersion = kwargs.pop('python', '2.7')
-        try:
-            key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\Python\PythonCore\%s\InstallPath' % pythonVersion)
+        python_version = kwargs.pop('python', '3.4')
+        python_path = None
+        for node in ('Wow6432Node\\', ''):
             try:
-                self.pythonPath, _ = _winreg.QueryValueEx(key, '')
-            finally:
-                _winreg.CloseKey(key)
-        except Exception:
-            raise BuildError('No such Python version: %s' % pythonVersion)
+                key = compat_winreg.OpenKey(
+                    compat_winreg.HKEY_LOCAL_MACHINE,
+                    r'SOFTWARE\%sPython\PythonCore\%s\InstallPath' % (node, python_version))
+                try:
+                    python_path, _ = compat_winreg.QueryValueEx(key, '')
+                finally:
+                    compat_winreg.CloseKey(key)
+                break
+            except Exception:
+                pass
+
+        if not python_path:
+            raise BuildError('No such Python version: %s' % python_version)
+
+        self.pythonPath = python_path
 
         super(PythonBuilder, self).__init__(**kwargs)
 
@@ -305,8 +334,10 @@ class YoutubeDLBuilder(object):
 
     def build(self):
         try:
-            subprocess.check_output([os.path.join(self.pythonPath, 'python.exe'), 'setup.py', 'py2exe'],
-                                    cwd=self.buildPath)
+            proc = subprocess.Popen([os.path.join(self.pythonPath, 'python.exe'), 'setup.py', 'py2exe'], stdin=subprocess.PIPE, cwd=self.buildPath)
+            proc.wait()
+            #subprocess.check_output([os.path.join(self.pythonPath, 'python.exe'), 'setup.py', 'py2exe'],
+            #                        cwd=self.buildPath)
         except subprocess.CalledProcessError as e:
             raise BuildError(e.output)
 
@@ -369,12 +400,12 @@ class Builder(PythonBuilder, GITBuilder, YoutubeDLBuilder, DownloadBuilder, Clea
     pass
 
 
-class BuildHTTPRequestHandler(BaseHTTPRequestHandler):
+class BuildHTTPRequestHandler(compat_http_server.BaseHTTPRequestHandler):
     actionDict = {'build': Builder, 'download': Builder}  # They're the same, no more caching.
 
     def do_GET(self):
-        path = urlparse.urlparse(self.path)
-        paramDict = dict([(key, value[0]) for key, value in urlparse.parse_qs(path.query).items()])
+        path = compat_urlparse.urlparse(self.path)
+        paramDict = dict([(key, value[0]) for key, value in compat_urlparse.parse_qs(path.query).items()])
         action, _, path = path.path.strip('/').partition('/')
         if path:
             path = path.split('/')
@@ -388,7 +419,7 @@ class BuildHTTPRequestHandler(BaseHTTPRequestHandler):
                         builder.close()
                 except BuildError as e:
                     self.send_response(e.code)
-                    msg = unicode(e).encode('UTF-8')
+                    msg = compat_str(e).encode('UTF-8')
                     self.send_header('Content-Type', 'text/plain; charset=UTF-8')
                     self.send_header('Content-Length', len(msg))
                     self.end_headers()
@@ -399,8 +430,6 @@ class BuildHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.send_response(500, 'Unknown build method "%s"' % action)
         else:
             self.send_response(500, 'Malformed URL')
-
-#==============================================================================
 
 if __name__ == '__main__':
     main()

@@ -14,7 +14,10 @@ from ..utils import (
     parse_duration,
     determine_ext,
 )
-from .dailymotion import DailymotionCloudIE
+from .dailymotion import (
+    DailymotionIE,
+    DailymotionCloudIE,
+)
 
 
 class FranceTVBaseInfoExtractor(InfoExtractor):
@@ -188,6 +191,21 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # Dailymotion embed
+        'url': 'http://www.francetvinfo.fr/politique/notre-dame-des-landes/video-sur-france-inter-cecile-duflot-denonce-le-regard-meprisant-de-patrick-cohen_1520091.html',
+        'md5': 'ee7f1828f25a648addc90cb2687b1f12',
+        'info_dict': {
+            'id': 'x4iiko0',
+            'ext': 'mp4',
+            'title': 'NDDL, référendum, Brexit : Cécile Duflot répond à Patrick Cohen',
+            'description': 'Au lendemain de la victoire du "oui" au référendum sur l\'aéroport de Notre-Dame-des-Landes, l\'ancienne ministre écologiste est l\'invitée de Patrick Cohen. Plus d\'info : https://www.franceinter.fr/emissions/le-7-9/le-7-9-27-juin-2016',
+            'timestamp': 1467011958,
+            'upload_date': '20160627',
+            'uploader': 'France Inter',
+            'uploader_id': 'x2q2ez',
+        },
+        'add_ie': ['Dailymotion'],
     }]
 
     def _real_extract(self, url):
@@ -197,7 +215,13 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
 
         dmcloud_url = DailymotionCloudIE._extract_dmcloud_url(webpage)
         if dmcloud_url:
-            return self.url_result(dmcloud_url, 'DailymotionCloud')
+            return self.url_result(dmcloud_url, DailymotionCloudIE.ie_key())
+
+        dailymotion_urls = DailymotionIE._extract_urls(webpage)
+        if dailymotion_urls:
+            return self.playlist_result([
+                self.url_result(dailymotion_url, DailymotionIE.ie_key())
+                for dailymotion_url in dailymotion_urls])
 
         video_id, catalogue = self._search_regex(
             (r'id-video=([^@]+@[^"]+)',

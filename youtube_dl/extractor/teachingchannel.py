@@ -11,6 +11,7 @@ class TeachingChannelIE(InfoExtractor):
 
     _TEST = {
         'url': 'https://www.teachingchannel.org/videos/teacher-teaming-evolution',
+        'md5': '3d6361864d7cac20b57c8784da17166f',
         'info_dict': {
             'id': 'F3bnlzbToeI6pLEfRyrlfooIILUjz4nM',
             'ext': 'mp4',
@@ -19,9 +20,9 @@ class TeachingChannelIE(InfoExtractor):
             'duration': 422.255,
         },
         'params': {
-            # m3u8 download
             'skip_download': True,
         },
+        'add_ie': ['Ooyala'],
     }
 
     def _real_extract(self, url):
