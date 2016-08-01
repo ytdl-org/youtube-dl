@@ -1,7 +1,11 @@
 version <unreleased>
 
 Fixed/improved extractors
+- [yandexmusic:track] Adapt to changes in track location JSON (#10193)
 - [bloomberg] Support another form of player (#10187)
+- [limelight] Skip DRM protected videos
+- [safari] Relax regular expressions for URL matching (#10202)
+- [cwtv] Add support for cwtvpr.com (#10196)
 
 version 2016.07.30
 
