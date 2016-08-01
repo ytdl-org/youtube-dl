@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.08.01
 
 Fixed/improved extractors
 - [yandexmusic:track] Adapt to changes in track location JSON (#10193)
