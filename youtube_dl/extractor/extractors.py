@@ -290,7 +290,6 @@ from .funimation import FunimationIE
 from .funnyordie import FunnyOrDieIE
 from .fusion import FusionIE
 from .gameinformer import GameInformerIE
-from .gamekings import GamekingsIE
 from .gameone import (
     GameOneIE,
     GameOnePlaylistIE,
