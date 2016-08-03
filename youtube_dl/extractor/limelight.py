@@ -53,11 +53,17 @@ class LimelightBaseIE(InfoExtractor):
                     'height': int_or_none(stream.get('videoHeightInPixels')),
                     'ext': ext,
                 }
-                rtmp = re.search(r'^(?P<url>rtmpe?://[^/]+/(?P<app>.+))/(?P<playpath>mp4:.+)$', stream_url)
+                rtmp = re.search(r'^(?P<url>rtmpe?://(?P<host>[^/]+)/(?P<app>.+))/(?P<playpath>mp4:.+)$', stream_url)
                 if rtmp:
                     format_id = 'rtmp'
                     if stream.get('videoBitRate'):
                         format_id += '-%d' % int_or_none(stream['videoBitRate'])
+                    http_fmt = fmt.copy()
+                    http_fmt.update({
+                        'url': 'http://%s/%s' % (rtmp.group('host').replace('csl.', 'cpl.'), rtmp.group('playpath')[4:]),
+                        'format_id': format_id.replace('rtmp', 'http'),
+                    })
+                    formats.append(http_fmt)
                     fmt.update({
                         'url': rtmp.group('url'),
                         'play_path': rtmp.group('playpath'),
@@ -166,19 +172,16 @@ class LimelightMediaIE(LimelightBaseIE):
     }, {
         # video with subtitles
         'url': 'limelight:media:a3e00274d4564ec4a9b29b9466432335',
+        'md5': '2fa3bad9ac321e23860ca23bc2c69e3d',
         'info_dict': {
             'id': 'a3e00274d4564ec4a9b29b9466432335',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': '3Play Media Overview Video',
             'thumbnail': 're:^https?://.*\.jpeg$',
             'duration': 78.101,
             'timestamp': 1338929955,
             'upload_date': '20120605',
             'subtitles': 'mincount:9',
-        },
-        'params': {
-            # rtmp download
-            'skip_download': True,
         },
     }, {
         'url': 'https://assets.delvenetworks.com/player/loader.swf?mediaId=8018a574f08d416e95ceaccae4ba0452',
