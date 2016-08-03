@@ -727,9 +727,14 @@ class InfoExtractor(object):
                     [^>]+?content=(["\'])(?P<content>.*?)\2''' % re.escape(prop)
 
     def _og_search_property(self, prop, html, name=None, **kargs):
+        if not isinstance(prop, (list, tuple)):
+            prop = [prop]
         if name is None:
-            name = 'OpenGraph %s' % prop
-        escaped = self._search_regex(self._og_regexes(prop), html, name, flags=re.DOTALL, **kargs)
+            name = 'OpenGraph %s' % prop[0]
+        og_regexes = []
+        for p in prop:
+            og_regexes.extend(self._og_regexes(p))
+        escaped = self._search_regex(og_regexes, html, name, flags=re.DOTALL, **kargs)
         if escaped is None:
             return None
         return unescapeHTML(escaped)

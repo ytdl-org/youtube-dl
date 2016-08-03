@@ -159,6 +159,7 @@ from .coub import CoubIE
 from .collegerama import CollegeRamaIE
 from .comedycentral import (
     ComedyCentralIE,
+    ComedyCentralShortnameIE,
     ComedyCentralTVIE,
     ToshIE,
 )

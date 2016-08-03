@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import os.path
 import optparse
+import re
 import sys
 
 from .downloader.external import list_external_downloaders
@@ -93,8 +94,18 @@ def parseOpts(overrideArguments=None):
         setattr(parser.values, option.dest, value.split(','))
 
     def _hide_login_info(opts):
-        opts = list(opts)
-        for private_opt in ['-p', '--password', '-u', '--username', '--video-password']:
+        PRIVATE_OPTS = ['-p', '--password', '-u', '--username', '--video-password']
+        eqre = re.compile('^(?P<key>' + ('|'.join(re.escape(po) for po in PRIVATE_OPTS)) + ')=.+$')
+
+        def _scrub_eq(o):
+            m = eqre.match(o)
+            if m:
+                return m.group('key') + '=PRIVATE'
+            else:
+                return o
+
+        opts = list(map(_scrub_eq, opts))
+        for private_opt in PRIVATE_OPTS:
             try:
                 i = opts.index(private_opt)
                 opts[i + 1] = 'PRIVATE'
