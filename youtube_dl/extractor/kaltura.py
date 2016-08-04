@@ -262,7 +262,6 @@ class KalturaIE(InfoExtractor):
         subtitles = {}
         if captions:
             for caption in captions.get('objects', []):
-                print(caption)
                 # Continue if caption is not ready
                 if f.get('status') != 2:
                     continue
