@@ -62,6 +62,11 @@ class KalturaIE(InfoExtractor):
         {
             'url': 'https://cdnapisec.kaltura.com/html5/html5lib/v2.30.2/mwEmbedFrame.php/p/1337/uiconf_id/20540612/entry_id/1_sf5ovm7u?wid=_243342',
             'only_matching': True,
+        },
+        {
+            # video with subtitles
+            'url': 'kaltura:111032:1_cw786r8q',
+            'only_matching': True,
         }
     ]
 
@@ -130,7 +135,6 @@ class KalturaIE(InfoExtractor):
             video_id, actions, service_url, note='Downloading Kaltura signature')['ks']
 
     def _get_video_info(self, video_id, partner_id, service_url=None):
-        signature = self._get_kaltura_signature(video_id, partner_id, service_url)
         actions = [
             {
                 'action': 'null',
@@ -138,18 +142,30 @@ class KalturaIE(InfoExtractor):
                 'clientTag': 'kdp:v3.8.5',
                 'format': 1,  # JSON, 2 = XML, 3 = PHP
                 'service': 'multirequest',
-                'ks': signature,
+            },
+            {
+                'expiry': 86400,
+                'service': 'session',
+                'action': 'startWidgetSession',
+                'widgetId': '_%s' % partner_id,
             },
             {
                 'action': 'get',
                 'entryId': video_id,
                 'service': 'baseentry',
-                'version': '-1',
+                'ks': '{1:result:ks}',
             },
             {
                 'action': 'getbyentryid',
                 'entryId': video_id,
                 'service': 'flavorAsset',
+                'ks': '{1:result:ks}',
+            },
+            {
+                'action': 'list',
+                'filter:entryIdEqual': video_id,
+                'service': 'caption_captionasset',
+                'ks': '{1:result:ks}',
             },
         ]
         return self._kaltura_api_call(
@@ -161,8 +177,9 @@ class KalturaIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         partner_id, entry_id = mobj.group('partner_id', 'id')
         ks = None
+        captions = None
         if partner_id and entry_id:
-            info, flavor_assets = self._get_video_info(entry_id, partner_id, smuggled_data.get('service_url'))
+            _, info, flavor_assets, captions = self._get_video_info(entry_id, partner_id, smuggled_data.get('service_url'))
         else:
             path, query = mobj.group('path', 'query')
             if not path and not query:
@@ -181,7 +198,7 @@ class KalturaIE(InfoExtractor):
                 raise ExtractorError('Invalid URL', expected=True)
             if 'entry_id' in params:
                 entry_id = params['entry_id'][0]
-                info, flavor_assets = self._get_video_info(entry_id, partner_id)
+                _, info, flavor_assets, captions = self._get_video_info(entry_id, partner_id)
             elif 'uiconf_id' in params and 'flashvars[referenceId]' in params:
                 reference_id = params['flashvars[referenceId]'][0]
                 webpage = self._download_webpage(url, reference_id)
@@ -217,7 +234,7 @@ class KalturaIE(InfoExtractor):
         formats = []
         for f in flavor_assets:
             # Continue if asset is not ready
-            if f['status'] != 2:
+            if f.get('status') != 2:
                 continue
             video_url = sign_url(
                 '%s/flavorId/%s' % (data_url, f['id']))
@@ -240,13 +257,25 @@ class KalturaIE(InfoExtractor):
                 m3u8_url, entry_id, 'mp4', 'm3u8_native',
                 m3u8_id='hls', fatal=False))
 
-        self._check_formats(formats, entry_id)
         self._sort_formats(formats)
+
+        subtitles = {}
+        if captions:
+            for caption in captions.get('objects', []):
+                print(caption)
+                # Continue if caption is not ready
+                if f.get('status') != 2:
+                    continue
+                subtitles.setdefault(caption.get('languageCode') or caption.get('language'), []).append({
+                    'url': '%s/api_v3/service/caption_captionasset/action/serve/captionAssetId/%s' % (self._SERVICE_URL, caption['id']),
+                    'ext': caption.get('fileExt'),
+                })
 
         return {
             'id': entry_id,
             'title': info['name'],
             'formats': formats,
+            'subtitles': subtitles,
             'description': clean_html(info.get('description')),
             'thumbnail': info.get('thumbnailUrl'),
             'duration': info.get('duration'),
