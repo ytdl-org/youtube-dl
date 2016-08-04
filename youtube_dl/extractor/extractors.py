@@ -1004,6 +1004,7 @@ from .vk import (
 )
 from .vlive import VLiveIE
 from .vodlocker import VodlockerIE
+from .vodplatform import VODPlatformIE
 from .voicerepublic import VoiceRepublicIE
 from .voxmedia import VoxMediaIE
 from .vporn import VpornIE

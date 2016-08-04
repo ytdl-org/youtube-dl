@@ -2207,6 +2207,14 @@ class GenericIE(InfoExtractor):
             return self.url_result(
                 self._proto_relative_url(unescapeHTML(mobj.group(1))), 'Vine')
 
+        # Look for VODPlatform embeds
+        mobj = re.search(
+            r'<iframe[^>]+src=[\'"]((?:https?:)?//(?:www\.)?vod-platform\.net/embed/[^/?#]+)',
+            webpage)
+        if mobj is not None:
+            return self.url_result(
+                self._proto_relative_url(unescapeHTML(mobj.group(1))), 'VODPlatform')
+
         # Look for Instagram embeds
         instagram_embed_url = InstagramIE._extract_embed_url(webpage)
         if instagram_embed_url is not None:
