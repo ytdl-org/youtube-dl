@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 class FiveMinIE(InfoExtractor):
     IE_NAME = '5min'
-    _VALID_URL = r'(?:5min:|(?:https?://(?:[^/]*?5min\.com|delivery\.vidible\.tv/aol)/(?:(?:Scripts/PlayerSeed\.js|playerseed/?)?\?.*?playList=)?)(?P<id>\d+)'
+    _VALID_URL = r'(?:5min:|https?://(?:[^/]*?5min\.com|delivery\.vidible\.tv/aol)/(?:(?:Scripts/PlayerSeed\.js|playerseed/?)?\?.*?playList=)?)(?P<id>\d+)'
 
     _TESTS = [
         {
